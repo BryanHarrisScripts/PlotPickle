@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "issue": 2418,
+  "phase": "storyboard-batch-progression-character-grounding",
+  "brief": "docs/developer-briefs/2418-storyboard-batch-progression.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-editorial-model.ts",
+    "app/_components/storyboard/storyboard-frame-planner.ts",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "config/development-convergence/2418.json",
+    "docs/developer-briefs/2418-storyboard-batch-progression.md",
+    "tests/issue-2418-storyboard-batch-progression.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2418-E1",
+      "criterion": "Storyboard maps selected, current five-frame band, and all 25 positions deterministically.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-frame-planner.ts",
+          "contains": "export function storyboardPositionsForScope"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2418-storyboard-batch-progression.test.mjs",
+          "contains": "maps selected, five-frame and full Mini-Block scopes deterministically"
+        }
+      ]
+    },
+    {
+      "id": "P2418-E2",
+      "criterion": "Each requested position receives a distinct progression-aware frame brief using position-specific screenplay evidence rather than the whole Mini-Block prompt unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-frame-planner.ts",
+          "contains": "function passageWindow"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2418-storyboard-batch-progression.test.mjs",
+          "contains": "distributes screenplay evidence in source order across 25 distinct frame briefs"
+        }
+      ]
+    },
+    {
+      "id": "P2418-E3",
+      "criterion": "Applicable frames inject character truth and locked approved local character references while ungrounded identity remains explicitly exploratory.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "approvedCharacterReferenceImages"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-editorial-model.ts",
+          "contains": "Canonical character truth for characters actually present in this frame"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2418-storyboard-batch-progression.test.mjs",
+          "contains": "injects explicit character truth and locked approved references only when applicable"
+        }
+      ]
+    },
+    {
+      "id": "P2418-E4",
+      "criterion": "The Storyboard UI exposes batch-safe consent and 1 / 5 / 25 scope while every provider request is submitted separately through the existing local media route.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "I approve this image generation request through my configured provider"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "approvedCharacterReferences: plan.brief.approvedVisualRefs"
+        }
+      ]
+    },
+    {
+      "id": "P2418-E5",
+      "criterion": "Generated WebPs remain position-scoped draft candidates and are not automatically kept or committed to GitHub.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "workflow: \"storyboard-frame-webp-v2\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "reviewState: \"draft\""
+        }
+      ]
+    }
+  ]
+}

@@ -32,6 +32,8 @@ test("#2398 keeps one selected address across map, Storyboard detail and standal
   assert.match(detail, /\[initialBlockNumber, initialMiniBlockNumber\]/);
   assert.match(detail, /!embeddedNavigation \? <nav aria-label="Storyboard Acts"/);
   assert.match(detail, /preserveStoryboardAddress\(block, mini\)/);
+  const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
+  assert.match(host, /if \(stage === "storyboard"\) \{[\s\S]*?url\.searchParams\.set\("block", String\(address\.blockNumber\)\);[\s\S]*?url\.searchParams\.set\("mini", String\(address\.miniBlockNumber\)\)/);
   assert.match(standalone, /<StoryboardReadinessWorkspace/);
   assert.doesNotMatch(standalone, /embeddedNavigation/);
 });

@@ -171,6 +171,12 @@ export default function DashboardBbsReviewHost({
   function updateReviewAddress(stage: PreproductionStage, address: PreproductionReviewAddress) {
     setReviewAddress(address);
     rememberPreproductionContext(stage, address);
+    if (stage === "storyboard") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("block", String(address.blockNumber));
+      url.searchParams.set("mini", String(address.miniBlockNumber));
+      window.history.replaceState(window.history.state, "", url);
+    }
   }
 
   useEffect(() => {

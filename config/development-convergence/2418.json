@@ -5,11 +5,9 @@
   "brief": "docs/developer-briefs/2418-storyboard-batch-progression.md",
   "allowedChanges": [
     "app/_components/storyboard/storyboard-editorial-model.ts",
-    "app/_components/storyboard/storyboard-frame-planner.ts",
     "app/_components/storyboard/storyboard-readiness-workspace.module.css",
     "app/_components/storyboard/storyboard-readiness-workspace.tsx",
     "config/development-convergence/2418.json",
-    "config/verification/ownership-map.json",
     "docs/developer-briefs/2418-storyboard-batch-progression.md",
     "tests/issue-2418-storyboard-batch-progression.test.mjs"
   ],
@@ -20,7 +18,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/_components/storyboard/storyboard-frame-planner.ts",
+          "path": "app/_components/storyboard/storyboard-editorial-model.ts",
           "contains": "export function storyboardPositionsForScope"
         },
         {
@@ -36,7 +34,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/_components/storyboard/storyboard-frame-planner.ts",
+          "path": "app/_components/storyboard/storyboard-editorial-model.ts",
           "contains": "function passageWindow"
         },
         {

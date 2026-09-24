@@ -111,7 +111,7 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, outlineReadiness, onSelectAddress, onSelectTurningPoint, turningPointSelected = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[]; readonly onSelectAddress?: (address: { blockNumber: number; miniBlockNumber: number }) => void; readonly onSelectTurningPoint?: (act: number) => void; readonly turningPointSelected?: boolean }) {
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, surfaceLabel = "Outline", outlineReadiness, onSelectAddress, onSelectTurningPoint, turningPointSelected = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly surfaceLabel?: "Outline" | "Storyboard"; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[]; readonly onSelectAddress?: (address: { blockNumber: number; miniBlockNumber: number }) => void; readonly onSelectTurningPoint?: (act: number) => void; readonly turningPointSelected?: boolean }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
@@ -303,9 +303,9 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
     <section className={styles.panel} aria-labelledby="progressive-story-map-title" data-progressive-story-map="24x96">
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>{act ? `Outline · Act ${act}` : "Outline · 4 Acts / 24 Blocks / 96 Mini-Blocks"}</p>
+          <p className={styles.kicker}>{act ? `${surfaceLabel} · Act ${act}` : `${surfaceLabel} · 4 Acts / 24 Blocks / 96 Mini-Blocks`}</p>
           <h2 id="progressive-story-map-title">The story is the navigation.</h2>
-          <p>{act ? `Act ${act} · Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select a Block and one of its four Mini-Blocks to develop this part of the story.` : "Select a Block, select one of its four Mini-Blocks, then PLAN, BUILD, collect visuals and STORYBOARD without losing your place in the whole story."}</p>
+          <p>{act ? `Act ${act} · Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select a Block and one of its four Mini-Blocks to develop this part of the story.` : "Select a Block and one of its four Mini-Blocks to develop this part of the story."}</p>
         </div>
         <div className={styles.sourceSummary}>
           <strong>Active project</strong>

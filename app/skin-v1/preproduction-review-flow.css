@@ -52,6 +52,10 @@ html[data-plotpickle-skin^="skin-"] :is(
   box-sizing: border-box;
 }
 
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-progressive-story-map="24x96"] {
+  align-content: start;
+}
+
 html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"]) [data-story-act-rail="four-acts"] {
   width: calc(100% - 40px);
   box-sizing: border-box;

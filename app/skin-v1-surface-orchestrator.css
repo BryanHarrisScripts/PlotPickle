@@ -34,6 +34,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-header {
 }
 
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-header > :first-child { justify-self: start; }
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-header .pp-skin-v1-home-link:hover { color: var(--pp-skin-accent-bright); }
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-header > :nth-child(2) { justify-self: center; text-align: center; }
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-header > :last-child { justify-self: end; text-align: right; }
 
@@ -314,4 +315,3 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-return="true"] {
   display: none !important;
 }
-

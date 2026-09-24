@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import { persistentHome } from "./local-credentials";
 import type { MediaProfile } from "./media-routing-store";
 
@@ -22,6 +23,7 @@ export type ImageGenerationInput = {
   continuityMetadata?: unknown;
   billingAcknowledged?: unknown;
   requestCount?: unknown;
+  outputFormat?: unknown;
 };
 
 export type VideoGenerationInput = {
@@ -308,6 +310,15 @@ export async function saveGeneratedAsset(
   await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
   await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
   return `${ASSET_PATH}${fileName}`;
+}
+
+export async function saveWebpFrameCandidate(assetUrl: string, stem: unknown) {
+  const fileName = assetUrl.startsWith(ASSET_PATH) ? assetUrl.slice(ASSET_PATH.length) : "";
+  if (!/^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|webp)$/i.test(fileName)) {
+    throw new Error("The generated image has no safe local asset for WebP conversion.");
+  }
+  const converted = await sharp(await readFile(path.join(assetsDirectory(), fileName))).webp({ quality: 85 }).toBuffer();
+  return saveGeneratedAsset(converted, stem, ".webp");
 }
 
 export async function videoSourceReference(value: unknown) {

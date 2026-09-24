@@ -322,6 +322,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       <LearnExplore
         completedLessonIds={completedLessonIds}
         onBack={() => setExploreOpen(false)}
+        onDashboard={onBack}
         onLessonOpen={(lessonId) => commit({ type: "lesson.open", lessonId, occurredAt: new Date().toISOString() })}
         onToggleLessonCompletion={toggleLessonCompletion}
       />

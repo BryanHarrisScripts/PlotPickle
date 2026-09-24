@@ -69,6 +69,20 @@ export default function DashboardBbsPanel({
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
+  useEffect(() => {
+    const returnDashboard = () => {
+      setWriterCraftMenuOpen(false);
+      setSettingsMenuOpen(false);
+      setSettingsWorkspace(null);
+      setStoryModeView(null);
+      setNodeInfoOpen(false);
+      setPlotPickleAgentsOpen(false);
+      onSurfaceNameChange("DASHBOARD");
+    };
+    window.addEventListener("plotpickle:return-dashboard", returnDashboard);
+    return () => window.removeEventListener("plotpickle:return-dashboard", returnDashboard);
+  }, [onSurfaceNameChange]);
+
   const selectedDashboardItem = items[selectedIndex];
   const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEM_IDS.has(selectedDashboardItem.id));
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];

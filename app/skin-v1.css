@@ -43,6 +43,63 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
 }
 
+.pp-skin-v1-logon > .pp-skin-v1-panel {
+  width: min(960px, 100%);
+  overflow: hidden;
+}
+
+.pp-skin-v1-logon-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-5);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+}
+
+.pp-skin-v1-logon-intro span,
+.pp-skin-v1-logon-intro p {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+
+.pp-skin-v1-logon-intro h1 {
+  margin: var(--pp-skin-space-3) 0;
+  font-size: clamp(24px, 3vw, 42px);
+  line-height: 1.15;
+}
+
+.pp-skin-v1-logon-intro h1 em { color: var(--pp-skin-accent-bright); font-style: normal; }
+.pp-skin-v1-logon-intro img { display: block; width: 100%; max-height: 250px; object-fit: contain; }
+
+.pp-skin-v1-logon > .pp-skin-v1-panel > form,
+.pp-skin-v1-logon > .pp-skin-v1-panel > .pp-skin-v1-message {
+  width: min(560px, 100%);
+  margin-inline: auto;
+}
+
+.pp-skin-v1-home-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.pp-skin-v1-home-link:focus-visible {
+  outline: 2px solid var(--pp-skin-focus);
+  outline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+  .pp-skin-v1-logon-intro { grid-template-columns: 1fr; }
+  .pp-skin-v1-logon-intro img { max-height: 160px; }
+}
+
 .pp-skin-v1-logon > .pp-skin-v1-panel > :is(p, form, .pp-skin-v1-message) {
   min-height: 260px;
 }

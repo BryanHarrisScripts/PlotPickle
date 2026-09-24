@@ -37,3 +37,9 @@ test("#2398 keeps one selected address across map, Storyboard detail and standal
   assert.match(standalone, /<StoryboardReadinessWorkspace/);
   assert.doesNotMatch(standalone, /embeddedNavigation/);
 });
+
+test("#2398 hands focus to Visual Story after the entry map", async () => {
+  const css = await read("app/skin-v1/preproduction-review-flow.css");
+  assert.match(css, /\[data-dashboard-review-surface="storyboard"\]:has\(\[data-visual-story="scene-beat-shot-frame"\]\)/);
+  assert.match(css, /\[data-progressive-story-map="24x96"\]/);
+});

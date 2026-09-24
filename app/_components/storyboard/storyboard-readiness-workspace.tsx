@@ -345,6 +345,15 @@ export default function StoryboardReadinessWorkspace({
     onAddressChange?.({ blockNumber: block, miniBlockNumber: mini });
   }
 
+  const generationCount = promptPosition === null ? 1 : storyboardPositionsForScope(promptPosition, generationScope).length;
+  const generationButtonLabel = frameBusy
+    ? "Creating " + generationCount + " WebP frame" + (generationCount === 1 ? "…" : "s…")
+    : generationCount === 1
+      ? "Generate selected WebP frame"
+      : generationCount === 5
+        ? "Generate 5 WebP frames"
+        : "Generate all 25 WebP frames";
+
   return (
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
@@ -515,8 +524,15 @@ export default function StoryboardReadinessWorkspace({
                   <h4>Position {String(promptPosition).padStart(2, "0")} · WebP frame candidate</h4>
                   <p>Prepared from mapped story evidence. Edit the visual direction before generating; no story content changes until you keep a candidate.</p>
                   <textarea aria-label="Editable storyboard frame prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
-                  <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this single image request through my configured provider; cloud routes may charge my account.</label>
-                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{frameBusy ? "Creating WebP frame…" : "Generate WebP frame"}</button>
+                  <fieldset className={styles.generationScope}>
+                    <legend>Generation scope</legend>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "single"} onChange={() => setGenerationScope("single")} /> Selected frame</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "group5"} onChange={() => setGenerationScope("group5")} /> Current group of 5</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "all25"} onChange={() => setGenerationScope("all25")} /> All 25 frames</label>
+                  </fieldset>
+                  <p className={styles.generationHint}>Each position receives its own story-progressing frame brief. The selected prompt above is editable; batch neighbors are rebuilt from their own evidence slices.</p>
+                  <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this image generation request through my configured provider; cloud routes may charge my account.</label>
+                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{generationButtonLabel}</button>
                   <p role="status">{frameNotice}</p>
                 </section>
               ) : null}

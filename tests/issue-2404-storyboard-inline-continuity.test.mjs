@@ -42,8 +42,9 @@ test("#2404 presents 25 vertical Scene Beat rows with adjacent image selection",
   assert.match(workspace, /Array\.from\(\{ length: 25 \}/u);
   assert.match(workspace, /className=\{styles\.positionList\}/u);
   assert.match(workspace, /className=\{styles\.positionRow\}/u);
-  assert.match(workspace, /Select image for Scene and Beat position/u);
+  assert.match(workspace, /Select Frame for Storyboard position/u);
   assert.match(workspace, /availablePositionImages\.map/u);
+  assert.match(workspace, /Storyboard Positions 01–25 · Shot \/ Frame capacity/u);
   assert.doesNotMatch(workspace, /Existing visuals at this Mini-Block/u);
   assert.match(css, /\.positionList \{ display: grid/u);
   assert.match(css, /\.positionRow \{[\s\S]*grid-template-columns/u);

@@ -233,6 +233,21 @@
       ]
     },
     {
+      "id": "storyboard-frame-director-agent-skill",
+      "classification": "production",
+      "include": [
+        ".agents/skills/storyboard-frame-director/**",
+        "config/agent-profiles.json"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "skill",
+        "visual",
+        "canon"
+      ]
+    },
+    {
       "id": "developer-workbench-agent-skill-selection",
       "classification": "production",
       "include": [

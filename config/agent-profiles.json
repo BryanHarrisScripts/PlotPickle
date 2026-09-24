@@ -175,7 +175,7 @@
       "responsibility": "Coordinates creative specialists and turns their work into reviewable choices without overriding writer intent.",
       "execution": { "kind": "embedded-mastra", "roleId": "creative-director" },
       "buzzBinding": { "actorId": "quillan-reedcloak", "mode": "mirrored" },
-      "skillUris": [],
+      "skillUris": ["skill://plotpickle/sequence-director", "skill://plotpickle/storyboard-frame-director"],
       "requestedCapabilityRole": "deep",
       "requestedCapabilities": ["project-context-read", "proposal-draft", "specialist-coordination"],
       "readScopes": ["approved-project-context", "current-task-proposals"],

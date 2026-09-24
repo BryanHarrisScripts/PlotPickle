@@ -140,6 +140,11 @@ export default function StoryboardReadinessWorkspace({
 
   function prepareFramePrompt(position: number) {
     const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position);
+    const previousShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position - 1);
+    const nextShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position + 1);
+    const describeShot = (candidate: typeof shot) => candidate
+      ? [candidate.narrativePurpose, candidate.visualIntent, candidate.shotSize, candidate.angle, candidate.movement].filter(Boolean).join("; ")
+      : "";
     const evidence = storyboardAnchorEvidence(project, `block:block-${String(selectedNumber).padStart(2, "0")}`, selectedMiniBlockNumber);
     setFramePrompt(storyboardFramePrompt({
       title: project.title,
@@ -148,7 +153,9 @@ export default function StoryboardReadinessWorkspace({
       position,
       scene: selectedScenes.map((scene) => [scene.title, scene.purpose].filter(Boolean).join(" — ")).join("; "),
       beat: selectedVisualAnchor?.beats.map((beat) => beat.visualAction || beat.purpose || beat.label).filter(Boolean).join("; ") ?? "",
-      shot: shot ? [shot.narrativePurpose, shot.visualIntent, shot.shotSize, shot.angle, shot.movement].filter(Boolean).join("; ") : "",
+      shot: describeShot(shot),
+      previousShot: describeShot(previousShot),
+      nextShot: describeShot(nextShot),
       source: evidence.passages.map((passage) => passage.text).join(" "),
     }));
     setPromptPosition(position);

@@ -87,7 +87,7 @@ test("#2169 makes 96 anchors addresses, not a sequential four-image progression 
   assert.match(map, /available without requiring visual acceptance in an earlier Block/u);
   assert.doesNotMatch(map, /const unlocked = number === 1 \|\| completedBlockIds\.has/u);
   assert.doesNotMatch(map, /unlocks after Block/u);
-  assert.match(readiness, /does not gate later Blocks or require one kept image per Mini-Block/u);
+  assert.match(readiness, /25 planning positions help organize coverage without prescribing a fixed image count/u);
   assert.match(oldRegression, /#1745\/#2169 keeps all canonical story addresses available/u);
 });
 
@@ -117,8 +117,8 @@ test("#2169 preserves the exact Block/Mini address across Storyboard and BUILD n
   assert.match(workspace, /function preserveStoryboardAddress/u);
   assert.match(workspace, /url\.searchParams\.set\("block", String\(block\)\)/u);
   assert.match(workspace, /url\.searchParams\.set\("mini", String\(mini\)\)/u);
-  assert.match(workspace, /preserveStoryboardAddress\(selectedNumber, miniNumber\)/u);
-  assert.match(workspace, /onOpenBuild\(selectedNumber, selectedMiniBlockNumber\)/u);
+  assert.match(workspace, /function selectStoryboardAddress\(block: number, mini: number\)[\s\S]*preserveStoryboardAddress\(block, mini\)/u);
+  assert.doesNotMatch(workspace, /window\.location\.assign/u);
   assert.match(page, /workspace=build&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/u);
 });
 

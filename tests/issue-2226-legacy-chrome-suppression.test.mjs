@@ -50,7 +50,7 @@ test("#2226 keeps legacy state handlers mounted while removing only their supers
     read("app/skin-v1-surface-orchestrator.css"),
   ]);
 
-  assert.match(library, /function returnToDirectory\(\)/u);
+  assert.match(library, /function openActiveProject\(\)/u);
   assert.doesNotMatch(library, /data-library-back="directory"/u);
   assert.match(storyMode, /setView\("landing"\)/u);
   assert.doesNotMatch(css, /visibility:\s*hidden[^}]*data-library-back/u);

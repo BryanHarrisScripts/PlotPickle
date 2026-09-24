@@ -69,6 +69,7 @@
         "kind": "node-test",
         "targets": [
           "tests/layer1-navigation-continuity.test.mjs",
+          "tests/issue-2422-library-load-import-export.test.mjs",
           "tests/issue-2310-surface-coverage-convergence.test.mjs"
         ]
       },

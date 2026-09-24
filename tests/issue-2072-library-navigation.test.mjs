@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#2072 gives Library one vertical destination per task in the required order", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(workspace, /const DESTINATIONS[\s\S]*id: "new", shortcut: "N", label: "NEW"[\s\S]*id: "import", shortcut: "I", label: "IMPORT"[\s\S]*id: "load", shortcut: "L", label: "LOAD"[\s\S]*id: "examples", shortcut: "E", label: "EXAMPLES"[\s\S]*id: "presets", shortcut: "P", label: "PRESETS"[\s\S]*id: "avery", shortcut: "A", label: "AVERY"[\s\S]*id: "archive", shortcut: "R", label: "ARCHIVE"/);
+  assert.match(workspace, /const DESTINATIONS[\s\S]*id: "load", shortcut: "L", label: "LOAD"[\s\S]*id: "new", shortcut: "N", label: "NEW"[\s\S]*id: "import-export", shortcut: "I", label: "IMPORT EXPORT"[\s\S]*id: "examples", shortcut: "E", label: "EXAMPLES"[\s\S]*id: "presets", shortcut: "P", label: "PRESETS"[\s\S]*id: "avery", shortcut: "A", label: "AVERY"[\s\S]*id: "archive", shortcut: "R", label: "ARCHIVE"/);
   assert.match(workspace, /data-library-directory="keyboard-directory"/);
   assert.match(workspace, /role="listbox" aria-label="Library directory"/);
   assert.match(workspace, /onKeyDown=\{\(event\) => handleDirectoryKeyDown\(event, index\)\}/);
@@ -22,15 +22,15 @@ test("#2072 gives Library one vertical destination per task in the required orde
   assert.doesNotMatch(workspace, /className=\{styles\.tabs\}/);
 });
 
-test("#2072 keeps NEW, IMPORT, LOAD, EXAMPLES, PRESETS, AVERY and ARCHIVE behavior separated", async () => {
+test("#2072 keeps LOAD, NEW, IMPORT EXPORT, EXAMPLES, PRESETS, AVERY and ARCHIVE behavior separated", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  for (const [surface, heading] of [["new", "NEW"], ["import", "IMPORT"], ["load", "LOAD"], ["avery", "AVERY"], ["archive", "ARCHIVE"]]) {
+  for (const [surface, heading] of [["new", "NEW"], ["import-export", "IMPORT EXPORT"], ["load", "LOAD"], ["avery", "AVERY"], ["archive", "ARCHIVE"]]) {
     assert.match(workspace, new RegExp(`data-library-surface="${surface}"[\\s\\S]*?<h2[^>]*>${heading}<\\/h2>`));
   }
   assert.match(workspace, /data-library-surface=\{destination\}[\s\S]*isExamples \? "EXAMPLES" : "PRESETS"/);
   assert.match(workspace, /destination === "new"[\s\S]*<NewStoryCard onCreate=\{createNewStory\}/);
-  assert.match(workspace, /destination === "import"[\s\S]*accept="\.ppf,application\/octet-stream"[\s\S]*Import \.PPF/);
+  assert.match(workspace, /destination === "import-export"[\s\S]*accept="\.ppf,\.json,application\/octet-stream,application\/json"[\s\S]*Import story[\s\S]*Export story/);
   assert.match(workspace, /destination === "load"[\s\S]*stories\.map[\s\S]*<StoryCard/);
   assert.match(workspace, /function StoryCard[\s\S]*Archive story/);
   assert.match(workspace, /destination === "examples" \|\| destination === "presets"/);

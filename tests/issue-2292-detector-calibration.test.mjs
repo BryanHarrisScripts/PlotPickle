@@ -75,7 +75,7 @@ test("#2292 menu completeness follows the surface that owns visible navigation, 
   assert.equal(storyboard.expected.menu.visibilityScope, "inherited-owner");
   assert.deepEqual(storyMode.expected.menu.expectedVisibleLabels, ["Local", "Cloud", "Hybrid"]);
   assert.equal(storyMode.expected.menu.visibilityScope, "owned-direct-children");
-  assert.deepEqual(library.expected.menu.expectedVisibleLabels, ["New", "Import", "Load", "Examples", "Presets", "Avery", "Archive"]);
+  assert.deepEqual(library.expected.menu.expectedVisibleLabels, ["Load", "New", "Import Export", "Examples", "Presets", "Avery", "Archive"]);
 });
 
 test("#2292 nested content grids cannot masquerade as one-column shell geometry", async () => {

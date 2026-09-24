@@ -47,9 +47,9 @@
       "baseline": "tests/visual-baselines/skin-v1/03-library__01-new.png"
     },
     "library-import": {
-      "label": "Library · Import",
+      "label": "Library · Import Export",
       "status": "candidate",
-      "selector": "section[data-library-destination='import']",
+      "selector": "section[data-library-destination='import-export']",
       "candidate": ".artifacts/visual-readiness/03-library__02-import__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/03-library__02-import.png"
     },

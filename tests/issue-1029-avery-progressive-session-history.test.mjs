@@ -50,7 +50,7 @@ test("#1029 keeps POSTER and TRAILER pills under every slot and session-bound", 
 
 test("#1029 in-app review exposes journey evidence without mutating the owner's project", async () => {
   const sessions = await read(sessionUi);
-  for (const phrase of ["Avery Writer-in-Residence session review","Story and persisted creative memory","Stages visited in order","Confusion, friction, needs and possible bugs","Screenshots and visual observations","Full Writer-in-Residence history","Back to Library"]) assert.ok(sessions.includes(phrase), `Missing Avery Library review copy: ${phrase}`);
+  for (const phrase of ["Avery Writer-in-Residence session review","Story and persisted creative memory","Stages visited in order","Confusion, friction, needs and possible bugs","Screenshots and visual observations","Full Writer-in-Residence history","Back to Dashboard"]) assert.ok(sessions.includes(phrase), `Missing Avery Library review copy: ${phrase}`);
   assert.match(sessions, /searchParams\.set\("workspace", "library"\)/);
   assert.doesNotMatch(sessions, /localStorage|sessionStorage|FOUNDATION_PROJECT_STORAGE_KEY|saveFoundationProject/);
 });

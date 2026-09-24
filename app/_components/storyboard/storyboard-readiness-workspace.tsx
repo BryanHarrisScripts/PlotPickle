@@ -276,7 +276,7 @@ export default function StoryboardReadinessWorkspace({
                   const selectedImageId = selectedImageByPosition[selectionKey] ?? shot?.frames[0]?.id ?? "";
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
                   const shotLabel = shot
-                    ? [`Shot ${String(shot.order).padStart(2, "0")`}, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
+                    ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Open Shot / Frame position";
                   return (
                     <div className={styles.positionRow} data-storyboard-position={position} key={position}>

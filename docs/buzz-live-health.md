@@ -68,9 +68,9 @@ The previous `gatehouse` probe target was retired by the Community cleanup contr
 
 The probe contains only an opaque health tag and timestamp. It contains no story content, prompt, model response, credential, hidden reasoning, or private key.
 
-## Buzz Desktop v0.5.22 review
+## Buzz Desktop v0.5.24 review
 
-PlotPickle reviewed the upstream Desktop line from `v0.5.19` through `v0.5.22`. The published `desktop-v0.5.22` tag resolves to commit `9ceb1f79bbc21785a0a075c40aecb3c058b1ea15`. Upstream did not publish a standalone `desktop-v0.5.21` tag; the v0.5.21 release step is included in the cumulative v0.5.22 release history.
+PlotPickle reviewed the upstream Desktop line through `desktop-v0.5.24`. The published `desktop-v0.5.24` tag resolves to commit `3befaf16002d802a97aa79007be29b23623ceb3f`. The Desktop lane remains independent from the BUZZ relay/container lane, so this review does not silently move PlotPickle's managed relay pin.
 
 The architecture-relevant changes strengthen existing PlotPickle transport and presence contracts rather than creating new authority:
 
@@ -84,4 +84,4 @@ The architecture-relevant changes strengthen existing PlotPickle transport and p
 
 PlotPickle does **not** adopt BUZZ workflow/editor concepts, Bestie, or BUZZ agent spawning as a second PlotPickle orchestration engine. Mastra and the existing PlotPickle harness remain orchestration authority; PPF remains canon authority; Story Decisions/Workbench and deterministic release gates retain change authority.
 
-The Windows companion installer already resolves the newest compatible official Desktop release from `block/buzz` at install/maintenance time and verifies a release SHA-256 when GitHub publishes one. The verified local fallback is now `desktop-v0.5.22`, using `Buzz_0.5.22_x64-setup_alpha-unsigned.exe` with SHA-256 `c76aa32e75faa20aee5d8cd1c1c2c00265bc94166c3cb6a88455a6819e9ec289`. The asset remains explicitly marked unsigned; PlotPickle does not bypass normal installer or trust boundaries because of that status.
+The Windows companion installer already resolves the newest compatible official Desktop release from `block/buzz` at install/maintenance time and verifies a release SHA-256 when GitHub publishes one. The verified local fallback is now `desktop-v0.5.24`, using `Buzz_0.5.24_x64-setup_alpha-unsigned.exe` with SHA-256 `38a9be91d547c177f9d69d801b09e73b27aa600dad43f1e9abaaa8dc3ceb70c6`. The asset remains explicitly marked unsigned; PlotPickle does not bypass normal installer or trust boundaries because of that status.

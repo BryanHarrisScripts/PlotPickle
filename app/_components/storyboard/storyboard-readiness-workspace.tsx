@@ -17,7 +17,7 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import { storyboardFramePrompt } from "@/lib/preproduction/storyboard-frame-prompt";
+import { storyboardFramePrompt } from "./storyboard-frame-prompt";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,

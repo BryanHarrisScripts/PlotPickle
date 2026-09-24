@@ -6,6 +6,7 @@
   "allowedChanges": [
     "app/_components/storyboard/storyboard-readiness-workspace.module.css",
     "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-frame-prompt.ts",
     "app/_components/storyboard/visual-story-workspace.module.css",
     "app/skin-v1-bbs-surfaces.css",
     "app/skin-v1-surface-orchestrator.css",
@@ -23,7 +24,6 @@
     "build/media-routing-gateway.ts",
     "config/development-convergence/2411.json",
     "docs/developer-briefs/skin-v1-logon-learn-outline-storyboard-polish.md",
-    "lib/preproduction/storyboard-frame-prompt.ts",
     "lib/verification/browser-probes/continuity.mjs",
     "tests/issue-2411-storyboard-frame-workflow.test.mjs"
   ],

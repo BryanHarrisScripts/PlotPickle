@@ -19,14 +19,14 @@ import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-ins
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
 import { approvedCharacterReferenceImages, getCharacterVisualIdentity, type CharacterWithVisualIdentity } from "@/lib/projects/visual/character-visual-identity";
-import { storyboardFramePrompt } from "./storyboard-editorial-model";
 import {
   storyboardFrameBriefs,
+  storyboardFramePrompt,
   storyboardPositionsForScope,
   type StoryboardCharacterGrounding,
   type StoryboardFrameBrief,
   type StoryboardGenerationScope,
-} from "./storyboard-frame-planner";
+} from "./storyboard-editorial-model";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,

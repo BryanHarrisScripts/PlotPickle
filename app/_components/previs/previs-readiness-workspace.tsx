@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   RENDER_CLIP_SECONDS,
   RENDER_CLIPS_PER_BLOCK,
@@ -16,6 +16,9 @@ import {
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { deriveVisualReadiness } from "@/modules/build/visual-readiness";
+import StoryboardEditorialWorkspace from "../storyboard/storyboard-editorial-workspace";
+import { storyboardReferenceCandidates } from "../storyboard/storyboard-editorial-model";
 import {
   createProductionShotForAnchor,
   derivePrevisProjection,
@@ -52,15 +55,27 @@ export default function PrevisReadinessWorkspace({
   onProjectChange,
   onOpenStoryboard,
   onOpenBuild,
+  address,
+  onAddressChange,
 }: {
   readonly project: PPFProject;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenStoryboard: (anchor?: PrevisAnchorProjection) => void;
   readonly onOpenBuild: (anchor?: PrevisAnchorProjection) => void;
+  readonly address?: { readonly blockNumber: number; readonly miniBlockNumber: number };
+  readonly onAddressChange?: (address: { blockNumber: number; miniBlockNumber: number }) => void;
 }) {
   const projection = useMemo(() => derivePrevisProjection(project), [project]);
-  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => requestedAddress().blockNumber);
-  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => requestedAddress().miniBlockNumber);
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => address?.blockNumber ?? requestedAddress().blockNumber);
+  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => address?.miniBlockNumber ?? requestedAddress().miniBlockNumber);
+  useEffect(() => {
+    if (!address) return;
+    const timer = window.setTimeout(() => {
+      setSelectedBlockNumber(address.blockNumber);
+      setSelectedMiniBlockNumber(address.miniBlockNumber);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [address?.blockNumber, address?.miniBlockNumber]);
   const [selectedShotId, setSelectedShotId] = useState("");
   const [message, setMessage] = useState("");
   const selectedBlock = projection.blocks.find((block) => block.blockNumber === selectedBlockNumber)
@@ -73,6 +88,12 @@ export default function PrevisReadinessWorkspace({
   const selectedAnchor = allAnchors.find((anchor) => anchor.shots.some((shot) => shot.id === selectedShotId)) ?? null;
   const selectedShot = selectedAnchor?.shots.find((shot) => shot.id === selectedShotId) ?? null;
   const selectedShotStale = Boolean(selectedShot && selectedAnchor && shotNeedsReview(selectedAnchor, selectedShot));
+  const editorialTarget = useMemo(() => deriveVisualReadiness({ project }).targets.find((target) => (
+    target.id === selectedBlock?.targetId
+  )), [project, selectedBlock?.targetId]);
+  const editorialCandidateId = useMemo(() => editorialTarget
+    ? storyboardReferenceCandidates(project, editorialTarget.id).find((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber)?.id
+    : undefined, [project, editorialTarget, selectedMiniBlockNumber]);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);
@@ -180,6 +201,7 @@ export default function PrevisReadinessWorkspace({
                 setSelectedBlockNumber(block.blockNumber);
                 setSelectedMiniBlockNumber(1);
                 preservePrevisAddress(block.blockNumber, 1);
+                onAddressChange?.({ blockNumber: block.blockNumber, miniBlockNumber: 1 });
               }}
               role="tab"
               type="button"
@@ -257,6 +279,7 @@ export default function PrevisReadinessWorkspace({
                   <button type="button" onClick={() => {
                     setSelectedMiniBlockNumber(anchor.miniBlockNumber);
                     preservePrevisAddress(anchor.blockNumber, anchor.miniBlockNumber);
+                    onAddressChange?.({ blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
                   }}>Inspect evidence</button>
                   <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add creative shot</button>
                   <button type="button" onClick={() => anchor.storyboardAllowed ? onOpenStoryboard(anchor) : onOpenBuild(anchor)}>
@@ -371,6 +394,19 @@ export default function PrevisReadinessWorkspace({
         </div>
         <p>Creative shots are not the render quota. PlotPickle preserves Human-authored camera, blocking, performance and timing intent. For the current two-hour preset only, a complete 75-second Mini-Block maps onto Clip 01–25. Each clip has a stable address and shares its boundary keyframe with the next clip, enabling surgical regeneration without rebuilding the whole sequence.</p>
       </section>
+
+      {editorialTarget && editorialCandidateId ? (
+        <div id="previs-storyboard-editorial">
+          <StoryboardEditorialWorkspace
+            key={`${editorialTarget.id}-mini-${selectedMiniBlockNumber}`}
+            project={project}
+            requestedCandidateId={editorialCandidateId}
+            target={editorialTarget}
+            onProjectChange={onProjectChange}
+            onOpenBuild={() => onOpenBuild(selectedAddressAnchor ?? undefined)}
+          />
+        </div>
+      ) : null}
 
       <p className={styles.message} role="status">{message}</p>
       <footer className={styles.footer}>

@@ -164,16 +164,20 @@ export function SkinV1StoryboardStoryMap({
   if (error) return <p role="alert">{error}</p>;
   if (!project) return <p role="status">Opening Storyboard Story Map…</p>;
 
-  return <ProgressiveStoryMap
-    key={`${project.id}-storyboard-act-${act}`}
-    project={project}
-    act={act}
-    initialBlockNumber={normalized.blockNumber}
-    initialMiniBlockNumber={normalized.miniBlockNumber}
-    navigationOnly
-    surfaceLabel="Storyboard"
-    onSelectAddress={onAddressChange}
-  />;
+  return (
+    <div data-skin-v1-storyboard-map-review="true">
+      <ProgressiveStoryMap
+        key={`${project.id}-storyboard-act-${act}`}
+        project={project}
+        act={act}
+        initialBlockNumber={normalized.blockNumber}
+        initialMiniBlockNumber={normalized.miniBlockNumber}
+        navigationOnly
+        surfaceLabel="Storyboard"
+        onSelectAddress={onAddressChange}
+      />
+    </div>
+  );
 }
 
 export function SkinV1PrevisReviewSurface({

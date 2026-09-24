@@ -386,6 +386,7 @@
   background: var(--pp-skin-surface-1);
 }
 .framePromptButton,
+.frameReview button,
 .framePromptPanel button {
   min-height: var(--pp-skin-control-height);
   padding: var(--pp-skin-space-2);
@@ -395,6 +396,10 @@
   font: inherit;
   cursor: pointer;
 }
+.frameReview { display: flex; flex-wrap: wrap; gap: var(--pp-skin-space-1); align-items: center; }
+.frameReview span { width: 100%; color: var(--pp-skin-accent-bright); font-size: var(--pp-skin-font-meta); }
+.frameReview button { flex: 1 1 auto; }
+.frameReview button:disabled { opacity: .6; cursor: default; }
 .framePromptPanel { display: grid; gap: var(--pp-skin-space-2); padding: var(--pp-skin-space-3); border: 1px solid var(--pp-skin-accent-bright); }
 .framePromptPanel h4 { margin: 0; color: var(--pp-skin-accent-bright); }
 .framePromptPanel textarea { width: 100%; padding: var(--pp-skin-space-2); border: 1px solid var(--pp-skin-line-strong); background: var(--pp-skin-surface-0); color: var(--pp-skin-ink); font: inherit; }

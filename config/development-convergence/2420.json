@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "issue": 2420,
+  "phase": "storyboard-frame-review-previs-handoff",
+  "brief": "docs/developer-briefs/2420-storyboard-frame-review.md",
+  "allowedChanges": [
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/preproduction-review-surfaces.tsx",
+    "config/development-convergence/2420.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2420-storyboard-frame-review.md",
+    "tests/issue-2420-storyboard-frame-review.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2420-E1",
+      "criterion": "Generated Storyboard frames can be explicitly accepted and rejected at their own position; regeneration uses the existing single-frame flow.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "function reviewFrame(" },
+        { "type": "file-contains", "path": "tests/issue-2420-storyboard-frame-review.test.mjs", "contains": "reviews only the generated candidate" }
+      ]
+    },
+    {
+      "id": "P2420-E2",
+      "criterion": "Previs no longer opens the legacy Build visual editor and Inspect evidence reaches the selected address.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/previs/previs-readiness-workspace.tsx", "contains": "previs-selected-evidence" },
+        { "type": "file-contains", "path": "tests/issue-2420-storyboard-frame-review.test.mjs", "contains": "routes visual decisions to Storyboard" }
+      ]
+    }
+  ]
+}

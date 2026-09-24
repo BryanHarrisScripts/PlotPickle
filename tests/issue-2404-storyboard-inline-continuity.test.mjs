@@ -51,13 +51,23 @@ test("#2404 presents 25 vertical Scene Beat rows with adjacent image selection",
   assert.match(css, /\.positionSelector select/u);
 });
 
-test("#2404 WebMCP reaches inline Visual Story directly from Storyboard", async () => {
-  const registry = await read("lib/verification/webmcp-surface-capture-registry.mjs");
+test("#2404 keeps inline Visual Story governed by the Storyboard parent", async () => {
+  const [registry, orchestrator, catalogue] = await Promise.all([
+    read("lib/verification/webmcp-surface-capture-registry.mjs"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("lib/verification/webmcp-standard-surface-catalogue.mjs"),
+  ]);
   const start = registry.indexOf('"visual-story": Object.freeze');
   const end = registry.indexOf("profile: Object.freeze", start);
   const contract = registry.slice(start, end);
 
   assert.match(contract, /Storyboard Dashboard row/u);
   assert.doesNotMatch(contract, /data-storyboard-open-/u);
+  assert.match(contract, /surface: "STORYBOARD"/u);
+  assert.match(contract, /aliasSurfaceId: "storyboard"/u);
   assert.match(contract, /readySelector: "\[data-visual-story='scene-beat-shot-frame'\]"/u);
+  assert.match(orchestrator, /storyboardOwnsInlineChildren/u);
+  assert.match(orchestrator, /\["story-map", "visual-story"\]\.includes\(surface\.id\)/u);
+  assert.match(catalogue, /const storyboardOwner = visibleContracts\.find/u);
+  assert.match(catalogue, /if \(storyboardOwner\) return storyboardOwner\.contract/u);
 });

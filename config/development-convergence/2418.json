@@ -9,6 +9,7 @@
     "app/_components/storyboard/storyboard-readiness-workspace.module.css",
     "app/_components/storyboard/storyboard-readiness-workspace.tsx",
     "config/development-convergence/2418.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/2418-storyboard-batch-progression.md",
     "tests/issue-2418-storyboard-batch-progression.test.mjs"
   ],

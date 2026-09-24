@@ -70,15 +70,16 @@ test("#1728 opens Foundations and World BUILD workshops for QA but keeps generat
 });
 
 test("#1728 opens Storyboard inspection but does not let QA access silently Keep an unearned canonical visual", async () => {
-  const [workspace, editorial] = await Promise.all([
+  const [workspace, editorial, previs] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/storyboard-editorial-workspace.tsx"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
   ]);
 
   assert.match(workspace, /hasQaWorkspaceAccess\(selectedTarget\.storyboardAllowed\)/);
   assert.match(workspace, /QA access is open; BUILD readiness remains unresolved/);
   assert.match(workspace, /data-state=\{selectedTarget\.state\}/);
-  assert.match(workspace, /storyboardAccessible && selectedTarget/);
+  assert.match(previs, /editorialTarget && editorialCandidateId/);
   assert.doesNotMatch(workspace, /Locked by BUILD/);
 
   assert.match(editorial, /hasQaWorkspaceAccess\(target\.storyboardAllowed\)/);

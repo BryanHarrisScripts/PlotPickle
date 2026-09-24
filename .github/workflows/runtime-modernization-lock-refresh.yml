@@ -1,0 +1,41 @@
+name: Runtime Modernization Lock Refresh
+
+on:
+  push:
+    branches:
+      - issue-2410-runtime-modernization
+    paths:
+      - .github/workflows/runtime-modernization-lock-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-locks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout modernization branch
+        uses: actions/checkout@v4
+        with:
+          ref: issue-2410-runtime-modernization
+          fetch-depth: 0
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+      - name: Regenerate exact Mastra root lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --save-exact @mastra/core@1.69.0
+      - name: Regenerate exact managed Pi extension lock
+        run: npm install --prefix .pi/npm --package-lock-only --ignore-scripts --no-audit --no-fund --save-exact --save-dev @earendil-works/pi-coding-agent@0.87.1
+      - name: Commit regenerated lockfiles
+        shell: bash
+        run: |
+          if git diff --quiet -- package-lock.json .pi/npm/package-lock.json; then
+            echo "Lockfiles already current."
+            exit 0
+          fi
+          git config user.name "PlotPickle Runtime Modernization"
+          git config user.email "actions@users.noreply.github.com"
+          git add package-lock.json .pi/npm/package-lock.json
+          git commit -m "Regenerate Mastra and Pi lockfiles for #2410"
+          git push origin HEAD:issue-2410-runtime-modernization

@@ -41,7 +41,7 @@
         {
           "type": "file-contains",
           "path": "tests/issue-2418-storyboard-batch-progression.test.mjs",
-          "contains": "distributes screenplay evidence in source order across 25 distinct frame briefs"
+          "contains": "defines 25 distinct progression roles and position-specific screenplay windows"
         }
       ]
     },

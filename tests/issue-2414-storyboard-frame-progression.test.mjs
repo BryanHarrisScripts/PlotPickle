@@ -28,7 +28,7 @@ test("#2414 gives every Storyboard position a distinct visual progression functi
     const progression = storyboardPositionProgression(position);
     const prompt = prompts[position - 1];
     assert.match(prompt, new RegExp(`Storyboard Position ${String(position).padStart(2, "0")}`));
-    assert.match(prompt, new RegExp(`Visual progression function: ${progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")}`));
+    assert.match(prompt, new RegExp(`Visual progression function: ${progression.label.replace(/[.*+?^${}()|[\\]\\]/g, "\\progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")")}`));
     assert.match(prompt, /not a Beat assignment/u);
   }
 });

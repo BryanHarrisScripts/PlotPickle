@@ -19,19 +19,68 @@ export type StoryboardFramePromptInput = Readonly<{
   beat: string;
   shot: string;
   source: string;
+  previousShot?: string;
+  nextShot?: string;
 }>;
+
+export type StoryboardPositionProgression = Readonly<{
+  position: number;
+  label: string;
+  direction: string;
+}>;
+
+const STORYBOARD_POSITION_PROGRESSION: readonly StoryboardPositionProgression[] = [
+  { position: 1, label: "Entry boundary", direction: "Establish the approved Mini-Block starting state clearly before new movement develops." },
+  { position: 2, label: "Geography", direction: "Clarify the supported spatial relationship between characters, objects and environment." },
+  { position: 3, label: "Subject relationship", direction: "Make the central supported character or object relationship visually legible." },
+  { position: 4, label: "Story detail", direction: "Isolate a supported prop, expression, environmental clue or physical detail that matters." },
+  { position: 5, label: "Directional shift", direction: "Show the next supported change in attention, intention or movement without inventing an event." },
+  { position: 6, label: "Response", direction: "Show the supported reaction or physical response that follows the established state." },
+  { position: 7, label: "Forward movement", direction: "Clarify supported movement through the space or toward the current objective." },
+  { position: 8, label: "Resistance", direction: "Emphasize the supported obstacle, friction or counterforce already present in the story evidence." },
+  { position: 9, label: "Compression", direction: "Increase visual pressure through supported staging, proximity or framing rather than new plot." },
+  { position: 10, label: "Setup pressure", direction: "Emphasize a supported setup, risk or unresolved condition that carries forward." },
+  { position: 11, label: "Reorientation", direction: "Re-establish geography, eyelines or power relationships after the preceding supported change." },
+  { position: 12, label: "Pressure", direction: "Increase visual emphasis on the supported source of tension without exaggerating the story." },
+  { position: 13, label: "Reaction under pressure", direction: "Capture the supported human or physical response with restrained readable performance." },
+  { position: 14, label: "Discovery emphasis", direction: "Make an existing reveal, recognition or important piece of information visually clear." },
+  { position: 15, label: "Turn coverage", direction: "Emphasize the supported change of direction, meaning or control at this point in the sequence." },
+  { position: 16, label: "Consequence", direction: "Show the visible supported result of the preceding action or turn." },
+  { position: 17, label: "Stakes detail", direction: "Isolate what the evidence shows is now at risk, changed or newly important." },
+  { position: 18, label: "Intent / strategy", direction: "Clarify the next supported intention, preparation or directional choice." },
+  { position: 19, label: "Convergence", direction: "Bring the supported opposing forces, goals or movements into a clearer visual relationship." },
+  { position: 20, label: "Crisis pressure", direction: "Frame the strongest supported unresolved pressure before the sequence payoff." },
+  { position: 21, label: "Confrontation coverage", direction: "Make the supported central conflict or decisive interaction visually readable." },
+  { position: 22, label: "Peak emphasis", direction: "Capture the strongest supported action, realization or emotional peak available in the evidence." },
+  { position: 23, label: "Immediate aftermath", direction: "Show the first supported visible state after the peak without skipping continuity." },
+  { position: 24, label: "Resolution movement", direction: "Show the supported settling, departure, recovery or emerging new state." },
+  { position: 25, label: "Exit boundary", direction: "Establish the approved Mini-Block ending state and a clean visual handoff to what follows." },
+];
+
+export function storyboardPositionProgression(position: number) {
+  const item = STORYBOARD_POSITION_PROGRESSION.find((candidate) => candidate.position === position);
+  if (!item) throw new RangeError("Storyboard position must be between 1 and 25.");
+  return item;
+}
 
 export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
   const clean = (value: string) => value.trim().replace(/\s+/g, " ").slice(0, 1200);
+  const progression = storyboardPositionProgression(input.position);
   return [
-    `Create one cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
-    `Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, position ${String(input.position).padStart(2, "0")}.`,
+    `Create one standalone cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
+    `Production address: Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, Storyboard Position ${String(input.position).padStart(2, "0")}.`,
+    `Visual progression function: ${progression.label}. ${progression.direction} This is a visual coverage function, not a Beat assignment; never invent unsupported story events to satisfy it.`,
     input.scene ? `Observed scene: ${clean(input.scene)}.` : "No scene is mapped here; do not invent a scene.",
-    input.beat ? `Authored beat: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
-    input.shot ? `Authored shot: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory frame coverage.",
+    input.beat ? `Authored beat evidence: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
+    input.shot ? `Authored shot evidence takes precedence: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory Shot / Frame coverage only.",
+    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
+    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
     input.source ? `Screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
-    "Show clear dramatic action and spatial continuity with established characters and locations. Black-and-white storyboard illustration, landscape composition, no dialogue, text, logos, or watermarks.",
-    "Create one WebP visual candidate. Generation does not create a canonical Beat or Shot or approve the Frame.",
+    "Direct the camera physically: choose a plausible camera position, height, distance, viewing direction and shot size that best reveals the supported action. Prefer concrete staging, eyelines, foreground/background relationships and readable silhouette over vague cinematic adjectives.",
+    "Make this position visibly distinct from neighboring positions through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
+    "Continuity lock: preserve established character identity, age, face, hair, wardrobe, props, injuries, location geography, screen direction, time of day, lighting logic and visual language unless the supplied story evidence explicitly changes them.",
+    "Output one clean black-and-white storyboard illustration in landscape composition. No collage, contact sheet, storyboard grid, split screen, multiple panels, poster layout, dialogue text, captions, logos or watermarks.",
+    "Create one WebP visual candidate only. Generation does not create or approve a canonical Scene, Beat, Shot or Frame.",
   ].join(" ");
 }
 

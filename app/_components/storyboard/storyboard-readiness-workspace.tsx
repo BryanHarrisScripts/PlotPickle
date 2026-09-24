@@ -14,7 +14,6 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,
@@ -57,6 +56,7 @@ export default function StoryboardReadinessWorkspace({
   initialShotId,
   initialVisualView,
   embeddedNavigation = false,
+  onOpenPrevis,
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
@@ -70,6 +70,7 @@ export default function StoryboardReadinessWorkspace({
   readonly initialShotId?: string;
   readonly initialVisualView?: "story" | "timeline";
   readonly embeddedNavigation?: boolean;
+  readonly onOpenPrevis: (blockNumber: number, miniBlockNumber: number) => void;
 }) {
   const readiness = deriveVisualReadiness({ project });
   const blocks = readiness.targets
@@ -87,7 +88,6 @@ export default function StoryboardReadinessWorkspace({
   const [visualStoryOpen, setVisualStoryOpen] = useState(() => Boolean(
     initialSceneId || initialShotId || initialVisualView === "timeline",
   ));
-  const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
   const selectedAct = Math.ceil(selectedNumber / 6);
@@ -118,19 +118,9 @@ export default function StoryboardReadinessWorkspace({
   function selectStoryboardAddress(block: number, mini: number) {
     setSelectedBlockNumber(block);
     setSelectedMiniBlockNumber(mini);
-    setRequestedCandidateId(undefined);
     setVisualStoryOpen(false);
     preserveStoryboardAddress(block, mini);
     onAddressChange?.({ blockNumber: block, miniBlockNumber: mini });
-  }
-
-  function openEditorial(candidateId: string, miniNumber: number) {
-    setSelectedMiniBlockNumber(miniNumber);
-    preserveStoryboardAddress(selectedNumber, miniNumber);
-    setRequestedCandidateId(candidateId);
-    window.requestAnimationFrame(() => {
-      document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }
 
   return (
@@ -261,11 +251,11 @@ export default function StoryboardReadinessWorkspace({
                   >Open Visual Story</button>
                   <button
                     disabled={!canReviewReference}
-                    onClick={reference && canReviewReference ? () => openEditorial(reference.id, miniNumber) : undefined}
+                    onClick={reference && canReviewReference ? () => onOpenPrevis(selectedNumber, miniNumber) : undefined}
                     type="button"
                   >
                     {reference
-                      ? reference.acceptedArtifactId ? "Review kept visual" : "Review visual"
+                      ? reference.acceptedArtifactId ? "Review kept visual in Previs" : "Review visual in Previs"
                       : storyboardAccessible ? "Awaiting candidate" : "Unavailable"}
                   </button>
                 </article>
@@ -297,18 +287,6 @@ export default function StoryboardReadinessWorkspace({
           project={project}
           providerInstructions={providerInstructions}
         />
-      ) : null}
-
-      {storyboardAccessible && selectedTarget ? (
-        <div id="storyboard-editorial">
-          <StoryboardEditorialWorkspace
-            project={project}
-            requestedCandidateId={requestedCandidateId}
-            target={selectedTarget}
-            onProjectChange={onProjectChange}
-            onOpenBuild={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}
-          />
-        </div>
       ) : null}
 
       <footer className={styles.footer}>

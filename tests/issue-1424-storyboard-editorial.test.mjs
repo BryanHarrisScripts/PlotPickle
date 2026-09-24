@@ -133,7 +133,8 @@ test("#1424 uses shared evidence-state tokens and never restores legacy Storyboa
 
   for (const label of ["DEFINED", "OBSERVED", "EMERGING", "MISSING", "LOCKED"]) assert.ok(workspace.includes(label));
   for (const colour of ["accent-bright", "ink-soft", "warning", "danger", "disabled"]) assert.ok(css.includes(`--pp-skin-${colour}`));
-  assert.match(workspace, /StoryboardEditorialWorkspace/);
+  const previs = await read("app/_components/previs/previs-readiness-workspace.tsx");
+  assert.match(previs, /StoryboardEditorialWorkspace/);
   assert.match(workspace, /storyboardReferenceCandidates/);
   assert.match(workspace, /onProjectChange/);
   assert.match(page, /onProjectChange=\{applyProjectChange\}/);

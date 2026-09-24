@@ -76,6 +76,9 @@ export default function StoryboardPage() {
         onOpenBuild={(blockNumber, miniBlockNumber) => window.location.assign(
           `/?workspace=build&block=${blockNumber}&mini=${miniBlockNumber}`,
         )}
+        onOpenPrevis={(blockNumber, miniBlockNumber) => window.location.assign(
+          `/previs?block=${blockNumber}&mini=${miniBlockNumber}`,
+        )}
       />
     </div>
   );

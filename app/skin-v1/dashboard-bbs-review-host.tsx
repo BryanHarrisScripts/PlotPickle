@@ -562,16 +562,11 @@ export default function DashboardBbsReviewHost({
             window.requestAnimationFrame(() => document.getElementById("storyboard-block-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }));
           }}
         />
-        <PreproductionStageRail active="storyboard" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
-        <BlockVisualJourneyWorkspace
-          address={reviewAddress}
-          stage="storyboard"
-          onAddressChange={(address) => updateReviewAddress("storyboard", address)}
-        />
         <SkinV1StoryboardReviewSurface
           address={reviewAddress}
           onAddressChange={(address) => updateReviewAddress("storyboard", address)}
           onOpenBuild={() => openBuild(reviewAddress, "storyboard")}
+          onOpenPrevis={openPrevis}
         />
       </section>
     );

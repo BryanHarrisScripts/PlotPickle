@@ -21,6 +21,12 @@ export type StoryboardFramePromptInput = Readonly<{
   source: string;
   previousShot?: string;
   nextShot?: string;
+  storyFunction?: string;
+  visibleChange?: string;
+  characterTruth?: string;
+  identityMode?: "approved-reference" | "exploratory" | "not-applicable";
+  continuityIn?: string;
+  continuityOut?: string;
 }>;
 
 export type StoryboardPositionProgression = Readonly<{
@@ -70,18 +76,26 @@ export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
     `Create one standalone cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
     `Production address: Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, Storyboard Position ${String(input.position).padStart(2, "0")}.`,
     `Visual progression function: ${progression.label}. ${progression.direction} This is a visual coverage function, not a Beat assignment; never invent unsupported story events to satisfy it.`,
+    input.storyFunction ? `Frame-brief story function: ${clean(input.storyFunction)}` : "",
+    input.visibleChange ? `Required visible progression: ${clean(input.visibleChange)}` : "",
     input.scene ? `Observed scene: ${clean(input.scene)}.` : "No scene is mapped here; do not invent a scene.",
     input.beat ? `Authored beat evidence: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
     input.shot ? `Authored shot evidence takes precedence: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory Shot / Frame coverage only.",
-    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
-    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
-    input.source ? `Screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
+    input.characterTruth ? `Canonical character truth for characters actually present in this frame: ${clean(input.characterTruth)}.` : "",
+    input.identityMode === "approved-reference"
+      ? "Character identity mode: locked approved character visual references are attached to this request and are identity authority."
+      : input.identityMode === "exploratory"
+        ? "Character identity mode: no locked approved character visual reference is available for one or more present characters; keep identity exploratory and do not imply visual canon."
+        : "",
+    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.continuityIn ? `Continuity-in: ${clean(input.continuityIn)}` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
+    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.continuityOut ? `Continuity-out: ${clean(input.continuityOut)}` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
+    input.source ? `Position-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
     "Direct the camera physically: choose a plausible camera position, height, distance, viewing direction and shot size that best reveals the supported action. Prefer concrete staging, eyelines, foreground/background relationships and readable silhouette over vague cinematic adjectives.",
     "Make this position visibly distinct from neighboring positions through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
     "Continuity lock: preserve established character identity, age, face, hair, wardrobe, props, injuries, location geography, screen direction, time of day, lighting logic and visual language unless the supplied story evidence explicitly changes them.",
     "Output one clean black-and-white storyboard illustration in landscape composition. No collage, contact sheet, storyboard grid, split screen, multiple panels, poster layout, dialogue text, captions, logos or watermarks.",
     "Create one WebP visual candidate only. Generation does not create or approve a canonical Scene, Beat, Shot or Frame.",
-  ].join(" ");
+  ].filter(Boolean).join(" ");
 }
 
 const STORYBOARD_UPSTREAM_PREFIX = "storyboard-upstream:" as const;

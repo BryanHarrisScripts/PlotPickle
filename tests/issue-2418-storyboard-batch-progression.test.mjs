@@ -3,9 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   storyboardFrameBriefs,
+  storyboardFramePrompt,
   storyboardPositionsForScope,
-} from "../app/_components/storyboard/storyboard-frame-planner.ts";
-import { storyboardFramePrompt } from "../app/_components/storyboard/storyboard-editorial-model.ts";
+} from "../app/_components/storyboard/storyboard-editorial-model.ts";
 
 const ren = {
   id: "ren",

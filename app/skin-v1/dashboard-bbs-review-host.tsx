@@ -366,7 +366,7 @@ export default function DashboardBbsReviewHost({
     }
     if (item.id === "plan") {
       onActivate(index);
-      openOutline(reviewAddress);
+      openOutline(DEFAULT_REVIEW_ADDRESS);
       return;
     }
     if (item.id === "storyboard") {
@@ -551,13 +551,13 @@ export default function DashboardBbsReviewHost({
         data-dashboard-review-surface="storyboard"
         data-review-state="in-review"
         onKeyDown={(event) => {
-          if (event.key === "Escape") { event.preventDefault(); returnDashboard("storyboard"); }
+          if (event.key === "Escape") { event.preventDefault(); window.dispatchEvent(new Event("plotpickle:return-dashboard")); }
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
           <h1>STORYBOARD</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
-          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("storyboard")}>Back to Dashboard</button>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}>Back to Dashboard</button>
         </div>
         <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("storyboard", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />
         <SkinV1StoryboardStoryMap

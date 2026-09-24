@@ -375,16 +375,35 @@
 .sceneList p, .beatList p, .visualSequence p, .visualCandidates p { margin: 0; }
 .beatList, .visualSequence, .visualCandidates { display: grid; gap: var(--pp-skin-space-2); }
 .beatList { padding: var(--pp-skin-space-2); border-left: 2px solid var(--pp-skin-accent-bright); }
-.positionList { display: grid; gap: var(--pp-skin-space-1); }
+.positionList { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--pp-skin-space-2); }
 .positionRow {
   display: grid;
-  grid-template-columns: minmax(190px, .8fr) minmax(260px, 1.4fr) minmax(180px, .7fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--pp-skin-space-2);
   align-items: center;
   padding: var(--pp-skin-space-2);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
 }
+.framePromptButton,
+.framePromptPanel button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2);
+  border: 1px solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.framePromptPanel { display: grid; gap: var(--pp-skin-space-2); padding: var(--pp-skin-space-3); border: 1px solid var(--pp-skin-accent-bright); }
+.framePromptPanel h4 { margin: 0; color: var(--pp-skin-accent-bright); }
+.framePromptPanel textarea { width: 100%; padding: var(--pp-skin-space-2); border: 1px solid var(--pp-skin-line-strong); background: var(--pp-skin-surface-0); color: var(--pp-skin-ink); font: inherit; }
+.framePromptPanel label { display: flex; align-items: center; gap: var(--pp-skin-space-2); }
+.framePromptPanel button { justify-self: start; }
+.framePromptPanel button:disabled { opacity: .6; cursor: default; }
+@media (max-width: 1500px) { .positionList { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .positionList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .positionList { grid-template-columns: 1fr; } }
 .positionIdentity { display: grid; gap: var(--pp-skin-space-1); }
 .positionIdentity strong { color: var(--pp-skin-ink); font-size: var(--pp-skin-font-meta); letter-spacing: var(--pp-skin-tracking-meta); text-transform: uppercase; }
 .positionIdentity span { color: var(--pp-skin-ink-soft); font-size: var(--pp-skin-font-meta); }

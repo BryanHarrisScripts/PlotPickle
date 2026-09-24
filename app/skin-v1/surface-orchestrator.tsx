@@ -284,7 +284,10 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       {active && active.id !== "dashboard" ? (
         <>
           <header className="pp-skin-v1-orchestrator-header" data-skin-v1-region-role="global-header">
-            <strong>PLOTPICKLE</strong>
+            <button type="button" className="pp-skin-v1-home-link" aria-label="PlotPickle — return to Dashboard" onClick={() => {
+              if (window.location.pathname !== "/skin-v1") window.location.assign("/skin-v1");
+              else window.dispatchEvent(new Event("plotpickle:return-dashboard"));
+            }}>PLOTPICKLE</button>
             <span>{active.label}</span>
             <span>MATRIX</span>
           </header>

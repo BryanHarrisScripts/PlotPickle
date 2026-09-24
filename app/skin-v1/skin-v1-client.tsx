@@ -26,6 +26,7 @@ import { normalizePlotPickleSettings } from "../../lib/runtime/ai/settings";
 import { SETTINGS_STORAGE_KEY } from "../use-connection-status";
 import DashboardBbsReviewHost from "./dashboard-bbs-review-host";
 import { DASHBOARD_MENU, isDashboardStartupId } from "./dashboard-menu-registry";
+import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
 const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
@@ -148,6 +149,11 @@ export default function SkinV1Client() {
       setActiveSurface(surfaceId);
       if (surfaceId === "DASHBOARD") setDashboardSurfaceName("DASHBOARD");
     }
+  }
+
+  function returnHome() {
+    window.dispatchEvent(new Event("plotpickle:return-dashboard"));
+    openSurface("DASHBOARD");
   }
 
   function activateDashboardItem(index: number) {
@@ -322,7 +328,7 @@ export default function SkinV1Client() {
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar" data-skin-v1-standard-header="true">
-          <strong>PLOTPICKLE</strong>
+          <button className="pp-skin-v1-home-link" type="button" onClick={returnHome} aria-label="PlotPickle — return to Dashboard">PLOTPICKLE</button>
           <span>{businessUseCase}</span>
           <span>MATRIX</span>
         </header>
@@ -388,6 +394,15 @@ export default function SkinV1Client() {
           <span>LOGON</span>
           <span>MATRIX</span>
         </header>
+
+        <div className="pp-skin-v1-logon-intro">
+          <div>
+            <span>AI-NATIVE AGENTIC STORY OPERATING SYSTEM</span>
+            <h1>Shape the whole story.<br /><em>Keep it yours.</em></h1>
+            <p>ONE PROJECT · ONE CANON PATH · HUMAN AUTHORITY</p>
+          </div>
+          <img src={SKIN_V1_ASSETS.dashboard.hero} alt="" />
+        </div>
 
         {view.state === "loading" ? <p>INITIALIZING LOGON...</p> : null}
         {view.state === "unavailable" ? <p role="alert">{view.message || error || "LOGON unavailable"}</p> : null}

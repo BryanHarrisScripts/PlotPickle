@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "issue": 2411,
+  "phase": "matrix-logon-outline-storyboard-polish",
+  "brief": "docs/developer-briefs/skin-v1-logon-learn-outline-storyboard-polish.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-editorial-model.ts",
+    "app/_components/storyboard/visual-story-workspace.module.css",
+    "app/skin-v1-bbs-surfaces.css",
+    "app/skin-v1-surface-orchestrator.css",
+    "app/skin-v1.css",
+    "app/skin-v1/act-written-story-board.tsx",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/learn-explore.tsx",
+    "app/skin-v1/learn-journey-preview.tsx",
+    "app/skin-v1/preproduction-review-flow.css",
+    "app/skin-v1/skin-v1-client.tsx",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "app/skin-v1/surface-orchestrator.tsx",
+    "build/media-provider-common.ts",
+    "build/media-routing-gateway.ts",
+    "config/development-convergence/2411.json",
+    "docs/developer-briefs/skin-v1-logon-learn-outline-storyboard-polish.md",
+    "lib/verification/browser-probes/continuity.mjs",
+    "tests/issue-2411-storyboard-frame-workflow.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2411-navigation",
+      "criterion": "Shared Matrix headers and Learn/Storyboard returns reach Dashboard; Outline starts at the first address with closed disclosures.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/skin-v1-client.tsx", "contains": "aria-label=\"PlotPickle — return to Dashboard\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-review-host.tsx", "contains": "openOutline(DEFAULT_REVIEW_ADDRESS)" },
+        { "type": "file-contains", "path": "lib/verification/browser-probes/continuity.mjs", "contains": "governed-route-and-header-return" }
+      ]
+    },
+    {
+      "id": "P2411-visual",
+      "criterion": "Logon uses the canonical Dashboard art and Storyboard detail/positions use the browser width.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/skin-v1-client.tsx", "contains": "SKIN_V1_ASSETS.dashboard.hero" },
+        { "type": "file-contains", "path": "app/_components/storyboard/visual-story-workspace.module.css", "contains": "width: min(100%, calc(100vw - 40px))" },
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.module.css", "contains": "repeat(5, minmax(0, 1fr))" }
+      ]
+    },
+    {
+      "id": "P2411-frame",
+      "criterion": "One consented image request uses existing story evidence and saves a valid WebP draft without inventing Beat/Shot identities.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "outputFormat: \"webp\"" },
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "reviewState: \"draft\"" },
+        { "type": "file-contains", "path": "tests/issue-2411-storyboard-frame-workflow.test.mjs", "contains": "converts a real generated PNG" }
+      ]
+    }
+  ]
+}

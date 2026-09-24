@@ -29,6 +29,7 @@ import {
 } from "./media-routing-store";
 import {
   resolveImageStoryJobClass,
+  saveWebpFrameCandidate,
   type ImageGenerationInput,
   type VideoGenerationInput,
 } from "./media-provider-common";
@@ -496,7 +497,10 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
       const execution = await resolveImageExecutionRoute(store, input);
       const routedInput: ImageGenerationInput = { ...input, jobClass: execution.jobClass };
       try {
-        const result = await generateImage(store, execution.route, routedInput);
+        let result = await generateImage(store, execution.route, routedInput);
+        if (input.outputFormat === "webp") {
+          result = { ...result, assetUrl: await saveWebpFrameCandidate(result.assetUrl, input.assetId || "storyboard-frame") };
+        }
         await saveImageSuccess(store, execution.route);
         sendJson(response, 200, {
           ok: true,

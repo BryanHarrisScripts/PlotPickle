@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
 import type { PPFProject } from "@/core/project/project";
 import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -62,10 +62,12 @@ export function SkinV1StoryboardReviewSurface({
   address,
   onAddressChange,
   onOpenBuild,
+  onOpenPrevis,
 }: {
   readonly address: PreproductionReviewAddress;
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly onOpenBuild: () => void;
+  readonly onOpenPrevis: (address: PreproductionReviewAddress) => void;
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [error, setError] = useState("");
@@ -125,6 +127,7 @@ export function SkinV1StoryboardReviewSurface({
         onProjectChange={applyProjectChange}
         onAddressChange={onAddressChange}
         onOpenBuild={onOpenBuild}
+        onOpenPrevis={(blockNumber, miniBlockNumber) => onOpenPrevis({ blockNumber, miniBlockNumber })}
       />
     </div>
   );
@@ -186,7 +189,6 @@ export function SkinV1PrevisReviewSurface({
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [error, setError] = useState("");
-  const rootRef = useRef<HTMLDivElement>(null);
   const normalized = normalizedAddress(address);
   const coverage = useMemo(
     () => project ? visualCoverageForBlock(project, normalized.blockNumber) : [],
@@ -204,25 +206,6 @@ export function SkinV1PrevisReviewSurface({
     return () => window.clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (!project) return;
-    const timer = window.setTimeout(() => {
-      const label = `Block ${String(normalized.blockNumber).padStart(2, "0")},`;
-      rootRef.current?.querySelector<HTMLButtonElement>(`button[role='tab'][aria-label^='${label}']`)?.click();
-      onAddressChange(normalized);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [normalized.blockNumber, normalized.miniBlockNumber, onAddressChange, project]);
-
-  function handleClickCapture(event: ReactMouseEvent<HTMLDivElement>) {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
-    if (!button) return;
-    const blockMatch = (button.getAttribute("aria-label") || "").match(/^Block (\d{2}),/u);
-    if (blockMatch && Number(blockMatch[1]) !== normalized.blockNumber) {
-      onAddressChange(normalizedAddress({ blockNumber: Number(blockMatch[1]), miniBlockNumber: 1 }));
-    }
-  }
-
   function storyboardAddress(anchor?: PrevisAnchorProjection) {
     return normalizedAddress(anchor
       ? { blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber }
@@ -233,7 +216,7 @@ export function SkinV1PrevisReviewSurface({
   if (!project) return <p role="status">Opening canonical Previs projection…</p>;
 
   return (
-    <div ref={rootRef} data-skin-v1-preproduction-review="previs" onClickCapture={handleClickCapture}>
+    <div data-skin-v1-preproduction-review="previs">
       <section className="pp-skin-v1-previs-coverage" aria-labelledby="previs-visual-coverage-title">
         <header>
           <div><p>VISUAL COVERAGE</p><h2 id="previs-visual-coverage-title">Block {String(normalized.blockNumber).padStart(2, "0")} preview</h2></div>
@@ -261,8 +244,10 @@ export function SkinV1PrevisReviewSurface({
         <span>Previs is the visual preview/readiness view first, then downstream camera and timing intent for the same selected story address.</span>
       </div>
       <PrevisReadinessWorkspace
+        address={normalized}
         project={project}
         onProjectChange={setProject}
+        onAddressChange={onAddressChange}
         onOpenStoryboard={(anchor) => onOpenStoryboard(storyboardAddress(anchor))}
         onOpenBuild={onOpenBuild}
       />

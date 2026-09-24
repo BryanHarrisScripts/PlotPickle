@@ -86,6 +86,12 @@ export default function StoryboardReadinessWorkspace({
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
+  const selectedStructureBlock = project.structure.blocks.find((block) => block.number === selectedNumber) ?? null;
+  const selectedSequenceNumber = selectedStructureBlock?.sequenceNumber ?? Math.ceil(selectedNumber / 2);
+  const selectedSequenceBlocks = project.structure.blocks
+    .filter((block) => block.sequenceNumber === selectedSequenceNumber)
+    .map((block) => block.number)
+    .sort((left, right) => left - right);
   const selectedAct = Math.ceil(selectedNumber / 6);
   const actBlocks = blocks.filter((target) => Math.ceil(blockNumber(target) / 6) === selectedAct);
   const outline = deriveOutlineReadiness(project).find((item) => item.blockNumber === selectedNumber);
@@ -138,16 +144,17 @@ export default function StoryboardReadinessWorkspace({
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Storyboard · 4 Acts / 24 Blocks / 96 Mini-Block anchors</span>
+          <span className={styles.eyebrow}>Sequence → Block → Mini-Block → Scene → Beat → Shot → Frame</span>
           <h1 id="storyboard-readiness-title">Storyboard · {project.title || "Untitled Story"}</h1>
           <p>
-            Choose an Act, then a Block and Mini-Block. Scenes and Beats shape a sequence of storyboard images at each address. The 24/96 scaffold keeps visuals traceable; it is not a fixed final-frame quota.
+            Storyboard inherits Scene and Beat from the story structure, then adds Shot and Frame. Shot is the director/cinematographer view of the moment; Frame is the still image representing that Shot. The 25 positions are available Shot/Frame capacity, not 25 Beats.
           </p>
         </div>
         <dl className={styles.summary}>
-          <div><dt>PPF revision</dt><dd>{project.revision}</dd></div>
+          <div><dt>Sequence</dt><dd>{String(selectedSequenceNumber).padStart(2, "0")} · Blocks {selectedSequenceBlocks.map((number) => String(number).padStart(2, "0")).join("–")}</dd></div>
+          <div><dt>Mini-Block</dt><dd>{selectedNumber}.{selectedMiniBlockNumber} · ≈75 sec</dd></div>
           <div><dt>Visual anchors</dt><dd>96</dd></div>
-          <div><dt>Act {selectedAct} Blocks with mapped text</dt><dd>{actBlocks.filter((target) => target.storyboardAllowed).length} / 6</dd></div>
+          <div><dt>Act {selectedAct} mapped Blocks</dt><dd>{actBlocks.filter((target) => target.storyboardAllowed).length} / 6</dd></div>
         </dl>
       </header>
 
@@ -248,45 +255,48 @@ export default function StoryboardReadinessWorkspace({
           <section className={styles.visualBreakdown} data-storyboard-scene-beat-detail="inline" aria-label={`Block ${selectedNumber} Mini-Block ${selectedMiniBlockNumber} Scene and Beat visuals`}>
             <header>
               <div>
-                <span className={styles.eyebrow}>Scene → Beat → Storyboard images</span>
+                <span className={styles.eyebrow}>Scene → Beat → Shot → Frame</span>
                 <h3>Mini-Block {selectedNumber}.{selectedMiniBlockNumber} · Scenes &amp; Beats</h3>
                 <p>{selectedScenes.length} mapped Scene{selectedScenes.length === 1 ? "" : "s"} at this anchor. The Storyboard navigation remains visible above while you work.</p>
               </div>
-              <small>25 vertical planning positions · no fixed image quota</small>
+              <small>25 available Shot / Frame positions · no fixed Shot quota</small>
             </header>
             <div className={styles.sceneList}>
               {blockScenes.length ? blockScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Block yet. Visual positions remain available without inventing a Scene.</p>}
             </div>
             <div className={styles.beatList}><strong>Authored Beats</strong>{blockBeats.length ? blockBeats.map((beat) => <p key={`${beat.anchorRef}-${beat.id}`}>{beat.anchorRef} · {String(beat.order).padStart(2, "0")} · {beat.label || beat.visualAction || beat.purpose}</p>) : <p>No authored Beat is mapped to this Block yet. Scene passages are evidence, not automatically named Beats.</p>}</div>
             <div className={styles.visualSequence}>
-              <strong>Scene / Beat positions 01–25</strong>
-              <p>Each row keeps the planning position, its current image and an image selector together. Working selections here do not silently change the canonical kept Storyboard visual.</p>
-              <div className={styles.positionList} aria-label="25 storyboard Scene and Beat positions">
+              <strong>Storyboard Positions 01–25 · Shot / Frame capacity</strong>
+              <p>These are available visual positions, not 25 Beats. A Beat may use several Shots, and unused positions stay empty. Existing authored Shots and linked Frames appear at their Shot order without manufacturing missing story structure.</p>
+              <div className={styles.positionList} aria-label="25 storyboard Shot and Frame positions">
                 {Array.from({ length: 25 }, (_, index) => {
                   const position = index + 1;
-                  const beat = blockBeats[index];
+                  const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
                   const selectionKey = `${selectedNumber}.${selectedMiniBlockNumber}.${position}`;
-                  const selectedImageId = selectedImageByPosition[selectionKey] ?? availablePositionImages[index]?.id ?? "";
+                  const selectedImageId = selectedImageByPosition[selectionKey] ?? shot?.frames[0]?.id ?? "";
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
+                  const shotLabel = shot
+                    ? [`Shot ${String(shot.order).padStart(2, "0")`}, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
+                    : "Open Shot / Frame position";
                   return (
                     <div className={styles.positionRow} data-storyboard-position={position} key={position}>
                       <div className={styles.positionIdentity}>
-                        <strong>Scene / Beat {String(position).padStart(2, "0")}</strong>
-                        <span>{beat ? beat.label || beat.visualAction || beat.purpose || `Beat ${beat.order}` : "Open planning position"}</span>
+                        <strong>Position {String(position).padStart(2, "0")}</strong>
+                        <span>{shotLabel}</span>
                       </div>
                       <div className={styles.positionImage}>
                         {selectedImage
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
-                          : <span>No image selected</span>}
+                          : <span>No Frame selected</span>}
                       </div>
                       <label className={styles.positionSelector}>
-                        <span>Image</span>
+                        <span>Frame</span>
                         <select
-                          aria-label={`Select image for Scene and Beat position ${position}`}
+                          aria-label={`Select Frame for Storyboard position ${position}`}
                           value={selectedImageId}
                           onChange={(event) => setSelectedImageByPosition((current) => ({ ...current, [selectionKey]: event.target.value }))}
                         >
-                          <option value="">No image selected</option>
+                          <option value="">No Frame selected</option>
                           {availablePositionImages.map((image) => <option key={image.id} value={image.id}>{image.label}</option>)}
                         </select>
                       </label>
@@ -324,7 +334,7 @@ export default function StoryboardReadinessWorkspace({
       ) : null}
 
       <footer className={styles.footer}>
-        Four Acts contain six Blocks each, with four Mini-Block visual anchors per Block. Scenes and Beats can call for any number of storyboard images. The 25 planning positions help organize coverage without prescribing a fixed image count.
+        Four Acts contain twelve Sequences, twenty-four Blocks and ninety-six Mini-Blocks. Outline owns story structure through Scene and Beat. Storyboard adds Shot and Frame. Scene, Beat and Shot counts remain flexible; the 25 positions are visual capacity, not a creative quota.
       </footer>
     </main>
   );

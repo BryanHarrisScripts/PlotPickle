@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "issue": 2410,
+  "reviewedAt": "2026-09-24",
+  "promoted": [
+    {
+      "id": "mastra",
+      "current": "1.67.0",
+      "reviewed": "1.69.0",
+      "target": "1.69.0",
+      "authority": "package.json/package-lock.json"
+    },
+    {
+      "id": "pi-coding-agent",
+      "current": "0.87.0",
+      "reviewed": "0.87.1",
+      "target": "0.87.1",
+      "authority": "scripts/pi-managed-install.mjs + config/developer-agent-stack.json + .pi/npm/package-lock.json"
+    },
+    {
+      "id": "buzz-desktop",
+      "current": "0.5.22",
+      "reviewed": "0.5.24",
+      "target": "0.5.24",
+      "authority": "config/buzz-desktop.json"
+    }
+  ],
+  "userManaged": [
+    {
+      "id": "comfyui",
+      "reviewed": "0.37.0",
+      "policy": "connect-only-official-maintenance"
+    },
+    {
+      "id": "ollama",
+      "reviewed": "0.34.4",
+      "policy": "connect-only-official-maintenance"
+    },
+    {
+      "id": "cline",
+      "reviewed": "4.1.21",
+      "policy": "developer-tool-user-managed-latest-resolving"
+    }
+  ],
+  "holds": [
+    {
+      "id": "nodejs",
+      "current": "24.19.0",
+      "reviewed": "24.21.0",
+      "reason": "performance-and-installer-evidence-rebaseline-required"
+    },
+    {
+      "id": "whisper-cpp",
+      "current": "b5130",
+      "reviewed": "1.9.4",
+      "sourceCommit": "927cfce34f31707e17f2bff35c349632fb9e2c3a",
+      "reason": "same-source-commit-no-equivalent-release-binary"
+    },
+    {
+      "id": "buzz-relay",
+      "current": "0.4.26",
+      "reviewed": "desktop-0.5.24",
+      "reason": "independent-release-lane-no-qualified-newer-relay-pin"
+    },
+    {
+      "id": "portless",
+      "current": "0.15.5",
+      "reviewed": "0.15.6",
+      "reason": "fresh-windows-acceptance-required"
+    },
+    {
+      "id": "lazy-frames",
+      "current": "0.6.3",
+      "reviewed": "0.6.3",
+      "reason": "no-newer-managed-stable-release-identified"
+    }
+  ]
+}

@@ -21,6 +21,12 @@ export type StoryboardFramePromptInput = Readonly<{
   source: string;
   previousShot?: string;
   nextShot?: string;
+  storyFunction?: string;
+  visibleChange?: string;
+  characterTruth?: string;
+  identityMode?: "approved-reference" | "exploratory" | "not-applicable";
+  continuityIn?: string;
+  continuityOut?: string;
 }>;
 
 export type StoryboardPositionProgression = Readonly<{
@@ -70,18 +76,26 @@ export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
     `Create one standalone cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
     `Production address: Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, Storyboard Position ${String(input.position).padStart(2, "0")}.`,
     `Visual progression function: ${progression.label}. ${progression.direction} This is a visual coverage function, not a Beat assignment; never invent unsupported story events to satisfy it.`,
+    input.storyFunction ? `Frame-brief story function: ${clean(input.storyFunction)}` : "",
+    input.visibleChange ? `Required visible progression: ${clean(input.visibleChange)}` : "",
     input.scene ? `Observed scene: ${clean(input.scene)}.` : "No scene is mapped here; do not invent a scene.",
     input.beat ? `Authored beat evidence: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
     input.shot ? `Authored shot evidence takes precedence: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory Shot / Frame coverage only.",
-    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
-    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
-    input.source ? `Screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
+    input.characterTruth ? `Canonical character truth for characters actually present in this frame: ${clean(input.characterTruth)}.` : "",
+    input.identityMode === "approved-reference"
+      ? "Character identity mode: locked approved character visual references are attached to this request and are identity authority."
+      : input.identityMode === "exploratory"
+        ? "Character identity mode: no locked approved character visual reference is available for one or more present characters; keep identity exploratory and do not imply visual canon."
+        : "",
+    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.continuityIn ? `Continuity-in: ${clean(input.continuityIn)}` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
+    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.continuityOut ? `Continuity-out: ${clean(input.continuityOut)}` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
+    input.source ? `Position-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
     "Direct the camera physically: choose a plausible camera position, height, distance, viewing direction and shot size that best reveals the supported action. Prefer concrete staging, eyelines, foreground/background relationships and readable silhouette over vague cinematic adjectives.",
     "Make this position visibly distinct from neighboring positions through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
     "Continuity lock: preserve established character identity, age, face, hair, wardrobe, props, injuries, location geography, screen direction, time of day, lighting logic and visual language unless the supplied story evidence explicitly changes them.",
     "Output one clean black-and-white storyboard illustration in landscape composition. No collage, contact sheet, storyboard grid, split screen, multiple panels, poster layout, dialogue text, captions, logos or watermarks.",
     "Create one WebP visual candidate only. Generation does not create or approve a canonical Scene, Beat, Shot or Frame.",
-  ].join(" ");
+  ].filter(Boolean).join(" ");
 }
 
 const STORYBOARD_UPSTREAM_PREFIX = "storyboard-upstream:" as const;
@@ -477,4 +491,179 @@ export function createStoryboardReferenceArtifact(input: {
     reviewState: "draft",
     parentArtifactId: current?.id ?? null,
   };
+}
+
+export type StoryboardGenerationScope = "single" | "group5" | "all25";
+
+export type StoryboardPlanningPassage = Readonly<{
+  id: string;
+  type: string;
+  text: string;
+}>;
+
+export type StoryboardCharacterGrounding = Readonly<{
+  id: string;
+  name: string;
+  aliases?: readonly string[];
+  pronouns: string;
+  role: string;
+  description: string;
+  truthClaims: readonly string[];
+  approvedVisualRefs: readonly string[];
+  identityLock: Readonly<{
+    characterId: string;
+    status: string;
+    version: number;
+    approvedPrompt: string;
+  }> | null;
+}>;
+
+export type StoryboardFrameBrief = Readonly<{
+  position: number;
+  storyFunction: string;
+  visibleChange: string;
+  evidence: readonly StoryboardPlanningPassage[];
+  evidenceSummary: string;
+  characters: readonly StoryboardCharacterGrounding[];
+  characterTruth: string;
+  approvedVisualRefs: readonly string[];
+  identityLocks: readonly NonNullable<StoryboardCharacterGrounding["identityLock"]>[];
+  identityMode: "approved-reference" | "exploratory" | "not-applicable";
+  continuityIn: string;
+  continuityOut: string;
+}>;
+
+const POSITION_STORY_FUNCTIONS = [
+  "Establish the Mini-Block entry state and the first supported visual fact.",
+  "Clarify the geography around the opening state.",
+  "Clarify the central subject relationship present in the opening evidence.",
+  "Isolate a supported story detail that gives the opening state meaning.",
+  "Show the first supported shift in attention, intention, or physical state.",
+  "Show the reaction caused by the preceding supported shift.",
+  "Advance to the next supported action or story condition.",
+  "Make the current obstacle, friction, or emotional resistance legible.",
+  "Tighten visual pressure through staging, distance, or emphasis.",
+  "Hold the unresolved setup that must carry into the next movement.",
+  "Reorient the audience after the preceding change using supported geography or eyelines.",
+  "Advance the next supported source event or emotional pressure.",
+  "Show the human or physical reaction to that pressure.",
+  "Emphasize a supported discovery, object, expression, or environmental clue.",
+  "Cover the supported turn or change in meaning near the middle of the sequence.",
+  "Show the immediate consequence of the supported turn.",
+  "Isolate the supported detail that makes the stakes or emotional cost readable.",
+  "Show the subject's supported intention, strategy, or next physical choice.",
+  "Bring supported characters, objects, or story pressures into stronger visual relationship.",
+  "Hold the strongest supported crisis pressure available in this Mini-Block evidence.",
+  "Cover the principal supported confrontation, decision, or emotional collision.",
+  "Give the strongest supported image or reaction its clearest visual emphasis.",
+  "Show the immediate aftermath created by the preceding supported moment.",
+  "Move the sequence toward its supported resolved state without inventing closure.",
+  "Establish the Mini-Block exit boundary and a stable visual handoff to the next story address.",
+] as const;
+
+function boundedPosition(value: number) {
+  return Math.min(25, Math.max(1, Math.trunc(Number(value) || 1)));
+}
+
+export function storyboardPositionsForScope(
+  selectedPosition: number,
+  scope: StoryboardGenerationScope,
+): readonly number[] {
+  const selected = boundedPosition(selectedPosition);
+  if (scope === "single") return [selected];
+  if (scope === "all25") return Array.from({ length: 25 }, (_, index) => index + 1);
+  const start = Math.floor((selected - 1) / 5) * 5 + 1;
+  return Array.from({ length: 5 }, (_, index) => start + index);
+}
+
+function passageWindow(
+  passages: readonly StoryboardPlanningPassage[],
+  position: number,
+) {
+  if (!passages.length) return [];
+  const start = Math.min(
+    passages.length - 1,
+    Math.floor(((position - 1) * passages.length) / 25),
+  );
+  const proportionalEnd = Math.ceil((position * passages.length) / 25);
+  const end = Math.min(passages.length, Math.max(start + 1, proportionalEnd));
+  return passages.slice(start, end);
+}
+
+function clean(value: string, limit = 700) {
+  return value.replace(/\s+/gu, " ").trim().slice(0, limit);
+}
+
+function mentionsCharacter(
+  text: string,
+  character: StoryboardCharacterGrounding,
+) {
+  const candidates = [character.name, ...(character.aliases ?? [])]
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return candidates.some((name) => {
+    const escaped = name.replace(/[.*+?^$()|[\]\\]/gu, "\\$&");
+    return new RegExp("\\b" + escaped + "\\b", "iu").test(text);
+  });
+}
+
+function characterTruthLine(character: StoryboardCharacterGrounding) {
+  return [
+    character.name,
+    character.pronouns ? "pronouns " + character.pronouns : "",
+    character.role ? "role " + character.role : "",
+    character.description,
+    ...character.truthClaims.slice(0, 3),
+  ].filter(Boolean).map((item) => clean(item, 420)).join("; ");
+}
+
+export function storyboardFrameBriefs(input: Readonly<{
+  positions: readonly number[];
+  passages: readonly StoryboardPlanningPassage[];
+  characters?: readonly StoryboardCharacterGrounding[];
+}>): readonly StoryboardFrameBrief[] {
+  const characters = input.characters ?? [];
+  return input.positions.map((rawPosition) => {
+    const position = boundedPosition(rawPosition);
+    const evidence = passageWindow(input.passages, position);
+    const evidenceSummary = evidence.map((passage) => clean(passage.text)).filter(Boolean).join(" | ");
+    const matchingCharacters = characters.filter((character) => mentionsCharacter(evidenceSummary, character));
+    const approvedVisualRefs = [...new Set(matchingCharacters.flatMap((character) => character.approvedVisualRefs))];
+    const identityLocks = matchingCharacters
+      .map((character) => character.identityLock)
+      .filter((value): value is NonNullable<StoryboardCharacterGrounding["identityLock"]> => Boolean(value));
+    const identityMode = matchingCharacters.length === 0
+      ? "not-applicable"
+      : approvedVisualRefs.length && identityLocks.length
+        ? "approved-reference"
+        : "exploratory";
+    const previousEvidence = passageWindow(input.passages, Math.max(1, position - 1));
+    const nextEvidence = passageWindow(input.passages, Math.min(25, position + 1));
+    const previousSummary = previousEvidence.map((passage) => clean(passage.text, 260)).join(" | ");
+    const nextSummary = nextEvidence.map((passage) => clean(passage.text, 260)).join(" | ");
+    return {
+      position,
+      storyFunction: POSITION_STORY_FUNCTIONS[position - 1],
+      visibleChange: evidenceSummary
+        ? "Make Position " + String(position).padStart(2, "0") + " visibly advance or reframe only this supported story evidence: " + evidenceSummary
+        : "No direct screenplay passage is mapped to this position; use the progression function only to clarify already-established state without inventing an event.",
+      evidence,
+      evidenceSummary,
+      characters: matchingCharacters,
+      characterTruth: matchingCharacters.map(characterTruthLine).filter(Boolean).join(" | "),
+      approvedVisualRefs,
+      identityLocks,
+      identityMode,
+      continuityIn: position === 1
+        ? "Mini-Block entry boundary."
+        : previousSummary
+          ? "Carry forward the established state from the preceding supported evidence: " + previousSummary
+          : "Carry forward the established visual state from the preceding Storyboard position.",
+      continuityOut: position === 25
+        ? "Mini-Block exit boundary; leave a stable state for the next story address."
+        : nextSummary
+          ? "End in a state that can hand off to the next supported evidence: " + nextSummary
+          : "End in a stable state that the next Storyboard position can continue.",
+    };
+  });
 }

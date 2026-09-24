@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
@@ -17,7 +18,15 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import { storyboardFramePrompt } from "./storyboard-editorial-model";
+import { approvedCharacterReferenceImages, getCharacterVisualIdentity, type CharacterWithVisualIdentity } from "@/lib/projects/visual/character-visual-identity";
+import {
+  storyboardFrameBriefs,
+  storyboardFramePrompt,
+  storyboardPositionsForScope,
+  type StoryboardCharacterGrounding,
+  type StoryboardFrameBrief,
+  type StoryboardGenerationScope,
+} from "./storyboard-editorial-model";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,
@@ -90,6 +99,7 @@ export default function StoryboardReadinessWorkspace({
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
   const [promptPosition, setPromptPosition] = useState<number | null>(null);
   const [framePrompt, setFramePrompt] = useState("");
+  const [generationScope, setGenerationScope] = useState<StoryboardGenerationScope>("group5");
   const [frameConsent, setFrameConsent] = useState(false);
   const [frameBusy, setFrameBusy] = useState(false);
   const [frameNotice, setFrameNotice] = useState("");
@@ -138,15 +148,64 @@ export default function StoryboardReadinessWorkspace({
     })),
   ].filter((image, index, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === index);
 
-  function prepareFramePrompt(position: number) {
+  const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
+  const storyboardCharacters: readonly StoryboardCharacterGrounding[] = (legacyProject?.characters ?? []).map((character) => {
+    const visualCharacter = character as CharacterWithVisualIdentity;
+    const identity = getCharacterVisualIdentity(visualCharacter);
+    const identityLocked = identity.status === "locked" && Boolean(identity.approvedPrompt.trim());
+    const approvedVisualRefs = identityLocked
+      ? approvedCharacterReferenceImages(visualCharacter).filter((reference) => reference.startsWith("/api/local-ai/assets/"))
+      : [];
+    const truthClaims = (normalizedSourceEvidence.characterTruth?.claims ?? [])
+      .filter((claim) => claim.characterIds.includes(character.id)
+        && claim.reviewState !== "rejected"
+        && claim.handling === "writer-reference"
+        && claim.kind !== "sensitive-source")
+      .map((claim) => claim.summary)
+      .slice(0, 4);
+    return {
+      id: character.id,
+      name: character.name,
+      aliases: character.id === "isobel" ? ["Summer"] : [],
+      pronouns: character.pronouns,
+      role: character.role,
+      description: character.description,
+      truthClaims,
+      approvedVisualRefs,
+      identityLock: identityLocked ? {
+        characterId: character.id,
+        status: identity.status,
+        version: identity.version,
+        approvedPrompt: identity.approvedPrompt,
+      } : null,
+    };
+  });
+  const activeAnchorEvidence = selectedTarget
+    ? storyboardAnchorEvidence(project, selectedTarget.id, selectedMiniBlockNumber)
+    : null;
+  const storyboardBriefs = storyboardFrameBriefs({
+    positions: Array.from({ length: 25 }, (_, index) => index + 1),
+    passages: activeAnchorEvidence?.passages ?? [],
+    characters: storyboardCharacters,
+  });
+
+  function briefForPosition(position: number): StoryboardFrameBrief {
+    return storyboardBriefs.find((brief) => brief.position === position) ?? storyboardFrameBriefs({
+      positions: [position],
+      passages: activeAnchorEvidence?.passages ?? [],
+      characters: storyboardCharacters,
+    })[0];
+  }
+
+  function generationPlanForPosition(position: number) {
+    const brief = briefForPosition(position);
     const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position);
     const previousShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position - 1);
     const nextShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position + 1);
     const describeShot = (candidate: typeof shot) => candidate
       ? [candidate.narrativePurpose, candidate.visualIntent, candidate.shotSize, candidate.angle, candidate.movement].filter(Boolean).join("; ")
       : "";
-    const evidence = storyboardAnchorEvidence(project, `block:block-${String(selectedNumber).padStart(2, "0")}`, selectedMiniBlockNumber);
-    setFramePrompt(storyboardFramePrompt({
+    const prompt = storyboardFramePrompt({
       title: project.title,
       blockNumber: selectedNumber,
       miniBlockNumber: selectedMiniBlockNumber,
@@ -156,8 +215,19 @@ export default function StoryboardReadinessWorkspace({
       shot: describeShot(shot),
       previousShot: describeShot(previousShot),
       nextShot: describeShot(nextShot),
-      source: evidence.passages.map((passage) => passage.text).join(" "),
-    }));
+      source: brief.evidenceSummary,
+      storyFunction: brief.storyFunction,
+      visibleChange: brief.visibleChange,
+      characterTruth: brief.characterTruth,
+      identityMode: brief.identityMode,
+      continuityIn: brief.continuityIn,
+      continuityOut: brief.continuityOut,
+    });
+    return { brief, prompt };
+  }
+
+  function prepareFramePrompt(position: number) {
+    setFramePrompt(generationPlanForPosition(position).prompt);
     setPromptPosition(position);
     setFrameConsent(false);
     setFrameNotice("");
@@ -165,45 +235,97 @@ export default function StoryboardReadinessWorkspace({
 
   async function generateFrame() {
     if (frameBusy || promptPosition === null || !frameConsent || !framePrompt.trim()) return;
-    const block = selectedNumber;
+    const blockNumberValue = selectedNumber;
     const mini = selectedMiniBlockNumber;
-    const position = promptPosition;
     const projectId = project.id;
-    const prompt = framePrompt.trim();
+    const positions = storyboardPositionsForScope(promptPosition, generationScope);
+    const selectedPrompt = framePrompt.trim();
+    let current = loadFoundationProject();
+    if (current.id !== projectId) {
+      setFrameNotice("The active story changed before generation began.");
+      return;
+    }
+
+    let succeeded = 0;
+    const failures: string[] = [];
+    const selectedArtifacts: Record<string, string> = {};
     setFrameBusy(true);
-    setFrameNotice("Creating a WebP frame candidate…");
+    setFrameNotice("Preparing " + positions.length + " progression-aware WebP frame request" + (positions.length === 1 ? "" : "s") + "…");
+
     try {
-      const response = await fetch("/api/local-ai/generate/image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, assetId: `storyboard-${projectId}-${block}-${mini}-${position}-${Date.now()}`, aspect: "landscape", quality: "low", outputFormat: "webp", requestCount: 1, billingAcknowledged: true }),
-      });
-      const result = await response.json() as { ok?: boolean; assetUrl?: string; provider?: string; model?: string; message?: string };
-      if (!response.ok || !result.ok || !result.assetUrl?.endsWith(".webp")) throw new Error(result.message || "The image route did not return a WebP frame.");
-      const current = loadFoundationProject();
-      if (current.id !== projectId || activeAddressRef.current.block !== block || activeAddressRef.current.mini !== mini) throw new Error("The active story address changed while generating. The late image was not attached.");
-      const now = new Date().toISOString();
-      const artifact: FoundationsVisualArtifact = {
-        id: globalThis.crypto.randomUUID(),
-        assetUrl: result.assetUrl,
-        prompt,
-        createdAt: now,
-        provider: result.provider || "configured image route",
-        model: result.model || "",
-        frameNumber: position,
-        narrativeIntention: `Storyboard frame candidate · position ${String(position).padStart(2, "0")}`,
-        sourceDecisionKeys: [`storyboard-target:block:block-${String(block).padStart(2, "0")}`, `storyboard-anchor:block:block-${String(block).padStart(2, "0")}:mini-${mini}`, `storyboard-position:${position}`, `ppf-revision:${current.revision}`],
-        workflow: "storyboard-frame-webp-v1",
-        reviewState: "draft",
-        parentArtifactId: null,
-      };
-      const next = applyStoryCommand(current, { type: "foundations.visual.store", artifact, occurredAt: now });
-      saveFoundationProject(next);
-      onProjectChange(next);
-      setSelectedImageByPosition((values) => ({ ...values, [`${block}.${mini}.${position}`]: artifact.id }));
-      setFrameNotice("WebP frame candidate saved for review. It has not been kept or made canon.");
-    } catch (error) {
-      setFrameNotice(error instanceof Error ? error.message : "Frame generation failed.");
+      for (let index = 0; index < positions.length; index += 1) {
+        const position = positions[index];
+        if (activeAddressRef.current.block !== blockNumberValue || activeAddressRef.current.mini !== mini) {
+          failures.push("Generation stopped because the active Storyboard address changed.");
+          break;
+        }
+
+        const plan = generationPlanForPosition(position);
+        const prompt = position === promptPosition ? selectedPrompt : plan.prompt;
+        setFrameNotice("Creating WebP frame " + (index + 1) + " of " + positions.length + " · position " + String(position).padStart(2, "0") + "…");
+        try {
+          const response = await fetch("/api/local-ai/generate/image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt,
+              assetId: "storyboard-" + projectId + "-" + blockNumberValue + "-" + mini + "-" + position + "-" + Date.now(),
+              aspect: "landscape",
+              quality: "low",
+              outputFormat: "webp",
+              approvedCharacterReferences: plan.brief.approvedVisualRefs,
+              identityLocks: plan.brief.identityLocks,
+              continuityMetadata: [plan.brief.continuityIn, plan.brief.continuityOut],
+              requestCount: 1,
+              billingAcknowledged: true,
+            }),
+          });
+          const result = await response.json() as { ok?: boolean; assetUrl?: string; provider?: string; model?: string; message?: string };
+          if (!response.ok || !result.ok || !result.assetUrl?.endsWith(".webp")) {
+            throw new Error(result.message || "The image route did not return a WebP frame.");
+          }
+          if (activeAddressRef.current.block !== blockNumberValue || activeAddressRef.current.mini !== mini) {
+            throw new Error("The active story address changed while generating. The late image was not attached.");
+          }
+
+          const now = new Date().toISOString();
+          const artifact: FoundationsVisualArtifact = {
+            id: globalThis.crypto.randomUUID(),
+            assetUrl: result.assetUrl,
+            prompt,
+            createdAt: now,
+            provider: result.provider || "configured image route",
+            model: result.model || "",
+            frameNumber: position,
+            narrativeIntention: "Storyboard frame candidate · position " + String(position).padStart(2, "0"),
+            sourceDecisionKeys: [
+              "storyboard-target:block:block-" + String(blockNumberValue).padStart(2, "0"),
+              "storyboard-anchor:block:block-" + String(blockNumberValue).padStart(2, "0") + ":mini-" + mini,
+              "storyboard-position:" + position,
+              ...plan.brief.characters.map((character) => "storyboard-character:" + character.id),
+              "storyboard-identity-mode:" + plan.brief.identityMode,
+              "ppf-revision:" + current.revision,
+            ],
+            workflow: "storyboard-frame-webp-v2",
+            reviewState: "draft",
+            parentArtifactId: null,
+          };
+          current = applyStoryCommand(current, { type: "foundations.visual.store", artifact, occurredAt: now });
+          saveFoundationProject(current);
+          selectedArtifacts[String(blockNumberValue) + "." + mini + "." + position] = artifact.id;
+          succeeded += 1;
+        } catch (error) {
+          failures.push("Position " + String(position).padStart(2, "0") + ": " + (error instanceof Error ? error.message : "Frame generation failed."));
+        }
+      }
+
+      if (succeeded > 0) {
+        onProjectChange(current);
+        setSelectedImageByPosition((values) => ({ ...values, ...selectedArtifacts }));
+      }
+      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " saved locally for review.";
+      const failureText = failures.length ? " " + failures.join(" ") : " None were kept or made canon.";
+      setFrameNotice(successText + failureText);
     } finally {
       setFrameBusy(false);
     }
@@ -222,6 +344,15 @@ export default function StoryboardReadinessWorkspace({
     preserveStoryboardAddress(block, mini);
     onAddressChange?.({ blockNumber: block, miniBlockNumber: mini });
   }
+
+  const generationCount = promptPosition === null ? 1 : storyboardPositionsForScope(promptPosition, generationScope).length;
+  const generationButtonLabel = frameBusy
+    ? "Creating " + generationCount + " WebP frame" + (generationCount === 1 ? "…" : "s…")
+    : generationCount === 1
+      ? "Generate selected WebP frame"
+      : generationCount === 5
+        ? "Generate 5 WebP frames"
+        : "Generate all 25 WebP frames";
 
   return (
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
@@ -393,8 +524,15 @@ export default function StoryboardReadinessWorkspace({
                   <h4>Position {String(promptPosition).padStart(2, "0")} · WebP frame candidate</h4>
                   <p>Prepared from mapped story evidence. Edit the visual direction before generating; no story content changes until you keep a candidate.</p>
                   <textarea aria-label="Editable storyboard frame prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
-                  <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this single image request through my configured provider; cloud routes may charge my account.</label>
-                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{frameBusy ? "Creating WebP frame…" : "Generate WebP frame"}</button>
+                  <fieldset className={styles.generationScope}>
+                    <legend>Generation scope</legend>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "single"} onChange={() => setGenerationScope("single")} /> Selected frame</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "group5"} onChange={() => setGenerationScope("group5")} /> Current group of 5</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "all25"} onChange={() => setGenerationScope("all25")} /> All 25 frames</label>
+                  </fieldset>
+                  <p className={styles.generationHint}>Each position receives its own story-progressing frame brief. The selected prompt above is editable; batch neighbors are rebuilt from their own evidence slices.</p>
+                  <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this image generation request through my configured provider; cloud routes may charge my account.</label>
+                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{generationButtonLabel}</button>
                   <p role="status">{frameNotice}</p>
                 </section>
               ) : null}

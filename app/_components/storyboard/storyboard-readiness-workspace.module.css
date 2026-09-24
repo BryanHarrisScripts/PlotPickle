@@ -401,6 +401,32 @@
 .framePromptPanel label { display: flex; align-items: center; gap: var(--pp-skin-space-2); }
 .framePromptPanel button { justify-self: start; }
 .framePromptPanel button:disabled { opacity: .6; cursor: default; }
+.generationScope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-2);
+  margin: 0;
+  padding: var(--pp-skin-space-2);
+  border: 1px solid var(--pp-skin-line);
+}
+.generationScope legend {
+  padding: 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-meta);
+  text-transform: uppercase;
+}
+.generationScope label {
+  min-height: var(--pp-skin-control-height);
+  padding: 0 var(--pp-skin-space-2);
+  border: 1px solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+}
+.generationHint {
+  margin: 0;
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+}
 @media (max-width: 1500px) { .positionList { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .positionList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 650px) { .positionList { grid-template-columns: 1fr; } }

@@ -21,7 +21,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/layer1-skin-surface-contract.test.mjs"
+          "tests/layer1-skin-surface-contract.test.mjs",
+          "tests/issue-2418-storyboard-batch-progression.test.mjs"
         ]
       },
       "cost": "fast",

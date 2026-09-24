@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import sharp from "sharp";
-import { storyboardFramePrompt } from "../app/_components/storyboard/storyboard-frame-prompt.ts";
+import { storyboardFramePrompt } from "../app/_components/storyboard/storyboard-editorial-model.ts";
 import { saveWebpFrameCandidate } from "../build/media-provider-common.ts";
 
 test("#2411 prepares a frame from observed context without inventing story structure", () => {

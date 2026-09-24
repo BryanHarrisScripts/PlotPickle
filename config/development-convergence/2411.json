@@ -6,7 +6,7 @@
   "allowedChanges": [
     "app/_components/storyboard/storyboard-readiness-workspace.module.css",
     "app/_components/storyboard/storyboard-readiness-workspace.tsx",
-    "app/_components/storyboard/storyboard-frame-prompt.ts",
+    "app/_components/storyboard/storyboard-editorial-model.ts",
     "app/_components/storyboard/visual-story-workspace.module.css",
     "app/skin-v1-bbs-surfaces.css",
     "app/skin-v1-surface-orchestrator.css",

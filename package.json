@@ -147,7 +147,7 @@
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "1.55.0",
-    "@mastra/core": "1.67.0",
+    "@mastra/core": "1.69.0",
     "@tailwindcss/postcss": "4.3.3",
     "@vitejs/plugin-react": "6.1.1",
     "@vitejs/plugin-rsc": "0.5.35",

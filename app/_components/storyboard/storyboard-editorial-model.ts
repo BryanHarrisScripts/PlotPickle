@@ -21,15 +21,60 @@ export type StoryboardFramePromptInput = Readonly<{
   source: string;
 }>;
 
+// Storyboard direction is a proposal skill: PlotPickle's story, shot and continuity roles
+// each constrain one disposable image brief. No agent or provider runs until the writer asks.
+const FRAME_DIRECTION = [
+  ["Establish the geography", "Wide view: orient the audience to the verified place and the characters' positions."],
+  ["Locate the protagonist", "Medium view: make the protagonist's immediate objective legible in the space."],
+  ["Reveal the obstacle", "Show the physical resistance or opposing presence already in the source."],
+  ["Show a telling detail", "Close on a grounded object or environmental detail that matters to this moment."],
+  ["Clarify the eyeline", "Frame what the character actually notices; preserve screen direction."],
+  ["Map the relationship", "Two-shot: express the established distance and power between the people present."],
+  ["Track the first action", "A readable action frame with clear origin, destination and body position."],
+  ["Show the reaction", "Close view of the observed response, avoiding an invented emotional beat."],
+  ["Reveal new information", "Compose a source-supported discovery in foreground and background."],
+  ["Hold the geography", "A wide continuity check that preserves exits, landmarks and character positions."],
+  ["Focus the pressure", "Tighten the frame around the existing source of tension without adding events."],
+  ["Find the point of view", "Use an over-shoulder or motivated POV aligned with the current observer."],
+  ["Mark a physical choice", "Show a source-supported gesture or change in position at the moment of choice."],
+  ["Expose the consequence", "Reveal the immediate visible result of an action present in the passage."],
+  ["Reframe the opposition", "Give the established obstacle its own readable composition."],
+  ["Preserve the axis", "Use the reverse angle without flipping established left-right relationships."],
+  ["Isolate a prop", "Insert on a relevant object already named in the evidence; do not invent one."],
+  ["Show the environment responding", "Frame an observed change in light, weather or setting, if present."],
+  ["Measure the distance", "A spatial frame showing the gap between objective and obstacle."],
+  ["Anticipate the turn", "Hold on a source-supported tension point before the next visible action."],
+  ["Capture the turn", "Compose the concrete action that changes the moment, if the source supplies one."],
+  ["Read the aftermath", "Show the immediate physical aftermath grounded in this part of the passage."],
+  ["Return to the character", "A restrained reaction frame that keeps identity and wardrobe consistent."],
+  ["Confirm changed space", "Wide view of the new arrangement without moving anyone unsupported."],
+  ["Leave a visual handoff", "End on a source-supported image that can connect to the next shot."],
+] as const;
+
+export function storyboardPositionDirection(position: number) {
+  if (!Number.isInteger(position) || position < 1 || position > FRAME_DIRECTION.length) throw new RangeError("Storyboard position must be 1 through 25.");
+  return FRAME_DIRECTION[position - 1];
+}
+
+function positionEvidence(source: string, position: number) {
+  const words = source.trim().replace(/\s+/g, " ").split(" ").filter(Boolean);
+  if (!words.length) return "";
+  const start = Math.max(0, Math.min(words.length - 1, Math.round((position - 1) * (words.length - 1) / 24) - 25));
+  return words.slice(start, start + 65).join(" ");
+}
+
 export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
   const clean = (value: string) => value.trim().replace(/\s+/g, " ").slice(0, 1200);
+  const [purpose, composition] = storyboardPositionDirection(input.position);
   return [
     `Create one cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
     `Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, position ${String(input.position).padStart(2, "0")}.`,
+    `PlotPickle shot direction skill: ${purpose}. ${composition}`,
     input.scene ? `Observed scene: ${clean(input.scene)}.` : "No scene is mapped here; do not invent a scene.",
     input.beat ? `Authored beat: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
     input.shot ? `Authored shot: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory frame coverage.",
-    input.source ? `Screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
+    input.source ? `Screenplay evidence near this position: ${clean(positionEvidence(input.source, input.position))}.` : "No screenplay passage is mapped here; use only the available story context.",
+    "Story Architect: keep the sequence, source action and character intent intact. Visual Director: turn this one purpose into a legible camera composition. Continuity keeper: preserve established identity, wardrobe, props, geography and the screen axis. These are prompt instructions, not a claim that an agent has run.",
     "Show clear dramatic action and spatial continuity with established characters and locations. Black-and-white storyboard illustration, landscape composition, no dialogue, text, logos, or watermarks.",
     "Create one WebP visual candidate. Generation does not create a canonical Beat or Shot or approve the Frame.",
   ].join(" ");

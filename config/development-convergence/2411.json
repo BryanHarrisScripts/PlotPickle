@@ -20,6 +20,7 @@
     "app/skin-v1/skin-v1-client.tsx",
     "app/skin-v1/story-card-foundation-board.tsx",
     "app/skin-v1/surface-orchestrator.tsx",
+    "build/ai/comfyui-sdxl-local-gateway.ts",
     "build/media-provider-common.ts",
     "build/media-routing-gateway.ts",
     "config/development-convergence/2411.json",
@@ -51,6 +52,8 @@
       "criterion": "One consented image request uses existing story evidence and saves a valid WebP draft without inventing Beat/Shot identities.",
       "evidence": [
         { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "outputFormat: \"webp\"" },
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "agentId: \"visual-director\"" },
+        { "type": "file-contains", "path": "build/ai/comfyui-sdxl-local-gateway.ts", "contains": "saveWebpFrameCandidate" },
         { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "reviewState: \"draft\"" },
         { "type": "file-contains", "path": "tests/issue-2411-storyboard-frame-workflow.test.mjs", "contains": "converts a real generated PNG" }
       ]

@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import sharp from "sharp";
-import { storyboardFramePrompt } from "../app/_components/storyboard/storyboard-editorial-model.ts";
+import { storyboardFramePrompt, storyboardPositionDirection } from "../app/_components/storyboard/storyboard-editorial-model.ts";
 import { saveWebpFrameCandidate } from "../build/media-provider-common.ts";
 
 test("#2411 prepares a frame from observed context without inventing story structure", () => {
@@ -13,8 +13,22 @@ test("#2411 prepares a frame from observed context without inventing story struc
   assert.match(prompt, /Observed scene: Santa Cruz pier/u);
   assert.match(prompt, /No beat is authored here; do not invent a beat/u);
   assert.match(prompt, /Authored shot: Wide angle; morning/u);
-  assert.match(prompt, /Screenplay evidence: She sees the water/u);
+  assert.match(prompt, /Screenplay evidence near this position: She sees the water/u);
   assert.match(prompt, /WebP visual candidate/u);
+});
+
+test("#2411 gives all 25 positions distinct shot purposes and source windows", () => {
+  const source = Array.from({ length: 250 }, (_, index) => `moment${index + 1}`).join(" ");
+  const prompts = Array.from({ length: 25 }, (_, index) => storyboardFramePrompt({
+    title: "Afterglow", blockNumber: 20, miniBlockNumber: 1, position: index + 1,
+    scene: "ROCKET / BEACH PARKING LOT", beat: "", shot: "", source,
+  }));
+  assert.equal(new Set(prompts).size, 25);
+  assert.equal(new Set(Array.from({ length: 25 }, (_, index) => storyboardPositionDirection(index + 1)[0])).size, 25);
+  assert.match(prompts[0], /moment1/u);
+  assert.match(prompts[24], /moment250/u);
+  assert.doesNotMatch(prompts[24], /moment1(?:\D|$)/u);
+  assert.throws(() => storyboardPositionDirection(26), RangeError);
 });
 
 test("#2411 converts a real generated PNG into a decodable WebP asset", async () => {

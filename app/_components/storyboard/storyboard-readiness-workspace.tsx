@@ -17,7 +17,7 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import { storyboardFramePrompt } from "./storyboard-editorial-model";
+import { storyboardFramePrompt, storyboardPositionDirection } from "./storyboard-editorial-model";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,
@@ -89,9 +89,12 @@ export default function StoryboardReadinessWorkspace({
   }, [initialBlockNumber, initialMiniBlockNumber]);
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
   const [promptPosition, setPromptPosition] = useState<number | null>(null);
+  const activePromptPositionRef = useRef<number | null>(null);
   const [framePrompt, setFramePrompt] = useState("");
   const [frameConsent, setFrameConsent] = useState(false);
   const [frameBusy, setFrameBusy] = useState(false);
+  const [agentConsent, setAgentConsent] = useState(false);
+  const [agentBusy, setAgentBusy] = useState(false);
   const [frameNotice, setFrameNotice] = useState("");
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
@@ -151,9 +154,42 @@ export default function StoryboardReadinessWorkspace({
       shot: shot ? [shot.narrativePurpose, shot.visualIntent, shot.shotSize, shot.angle, shot.movement].filter(Boolean).join("; ") : "",
       source: evidence.passages.map((passage) => passage.text).join(" "),
     }));
+    activePromptPositionRef.current = position;
     setPromptPosition(position);
     setFrameConsent(false);
+    setAgentConsent(false);
     setFrameNotice("");
+  }
+
+  async function refineFramePrompt() {
+    if (agentBusy || !agentConsent || promptPosition === null || !framePrompt.trim()) return;
+    const address = { ...activeAddressRef.current, position: promptPosition, projectId: project.id };
+    setAgentBusy(true);
+    setFrameNotice("Asking PlotPickle's Visual Director to refine this position…");
+    try {
+      const response = await fetch("/api/writing-assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId: "visual-director", tone: "direct", history: [],
+          message: `Use this Storyboard prompt skill to refine ONE image prompt for position ${address.position}. Keep the unique shot purpose, observed scene, source window and any authored shot. Check story causality and visual continuity. Do not invent a Beat, Shot, person, prop, or canonical fact. Return only an image generation prompt; no commentary.\n\n${framePrompt.trim().slice(0, 9000)}`,
+        }),
+      });
+      const result = await response.json() as { ok?: boolean; text?: string; message?: string; runtime?: string; agentId?: string };
+      if (!response.ok || !result.ok || result.runtime !== "mastra" || result.agentId !== "visual-director" || !result.text?.trim()) {
+        throw new Error(result.message || "The Visual Director did not return a usable prompt.");
+      }
+      if (activeAddressRef.current.block !== address.block || activeAddressRef.current.mini !== address.mini || activePromptPositionRef.current !== address.position || loadFoundationProject().id !== address.projectId) {
+        throw new Error("The story address changed. The late Agent response was not applied.");
+      }
+      setFramePrompt(result.text.trim());
+      setFrameNotice("Visual Director proposal ready to edit. Review it before approving an image request.");
+      setFrameConsent(false);
+    } catch (error) {
+      setFrameNotice(error instanceof Error ? error.message : "The Agent request failed; the position prompt remains available.");
+    } finally {
+      setAgentBusy(false);
+    }
   }
 
   async function generateFrame() {
@@ -212,6 +248,10 @@ export default function StoryboardReadinessWorkspace({
   function selectStoryboardAddress(block: number, mini: number) {
     setSelectedBlockNumber(block);
     setSelectedMiniBlockNumber(mini);
+    activePromptPositionRef.current = null;
+    setPromptPosition(null);
+    setFrameConsent(false);
+    setAgentConsent(false);
     preserveStoryboardAddress(block, mini);
     onAddressChange?.({ blockNumber: block, miniBlockNumber: mini });
   }
@@ -353,7 +393,7 @@ export default function StoryboardReadinessWorkspace({
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
-                    : "Open Shot / Frame position";
+                    : storyboardPositionDirection(position)[0];
                   return (
                     <div className={styles.positionRow} data-storyboard-position={position} key={position}>
                       <div className={styles.positionIdentity}>
@@ -376,7 +416,7 @@ export default function StoryboardReadinessWorkspace({
                           {availablePositionImages.map((image) => <option key={image.id} value={image.id}>{image.label}</option>)}
                         </select>
                       </label>
-                      <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button>
+                      <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Prepare position prompt</button>
                     </div>
                   );
                 })}
@@ -384,10 +424,12 @@ export default function StoryboardReadinessWorkspace({
               {promptPosition !== null ? (
                 <section className={styles.framePromptPanel} aria-label={`Frame prompt for position ${promptPosition}`}>
                   <h4>Position {String(promptPosition).padStart(2, "0")} · WebP frame candidate</h4>
-                  <p>Prepared from mapped story evidence. Edit the visual direction before generating; no story content changes until you keep a candidate.</p>
+                  <p>Position {promptPosition} has its own shot purpose and a focused screenplay passage. PlotPickle's story, visual direction and continuity instructions guide this editable brief. Preparing it makes no provider request.</p>
                   <textarea aria-label="Editable storyboard frame prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
+                  <label><input type="checkbox" checked={agentConsent} onChange={(event) => setAgentConsent(event.target.checked)} /> I approve sending this story excerpt to my configured PlotPickle Agent provider; cloud routes may charge my account.</label>
+                  <button type="button" disabled={!agentConsent || agentBusy || frameBusy || !framePrompt.trim()} onClick={() => void refineFramePrompt()}>{agentBusy ? "Refining with Visual Director…" : "Refine with PlotPickle Visual Director"}</button>
                   <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this single image request through my configured provider; cloud routes may charge my account.</label>
-                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{frameBusy ? "Creating WebP frame…" : "Generate WebP frame"}</button>
+                  <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy || agentBusy} onClick={() => void generateFrame()}>{frameBusy ? "Creating WebP frame…" : "Generate WebP frame"}</button>
                   <p role="status">{frameNotice}</p>
                 </section>
               ) : null}

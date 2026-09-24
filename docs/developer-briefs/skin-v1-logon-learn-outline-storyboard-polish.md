@@ -11,6 +11,7 @@ The September 24 Full QA bundle at `312e342` passed Standard, Interaction, Resil
 - Entering Outline from Dashboard begins at Act 1, Block 1, Mini-Block 1, with disclosure chevrons closed. Human story content and progress remain intact.
 - Outline uses its viewport meaningfully. Storyboard's Beat/Shot/Frame detail fills the available browser width and 25 frame positions remain discoverable without a very tall list.
 - For an individual position, prepare an editable image prompt from existing Scene/Beat/Shot/screenplay evidence, request one image only after explicit consent, convert the generated result to WebP, and attach it as a draft candidate. No invented Beat/Shot and no automatic canon promotion.
+- September 24 follow-up: all 25 positions need distinct shot purposes and focused source windows. Let the writer explicitly ask the existing Mastra Visual Director to refine one editable prompt under its configured Agent provider. Local SDXL must return a real WebP frame on that request path; do not claim an Agent ran merely because the deterministic brief was prepared.
 - Continuity QA follows the actual governed routes and Dashboard navigation instead of the removed five-stage rail.
 
 ## Verification

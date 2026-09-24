@@ -7,7 +7,7 @@ import {
   readMediaRoutingStore,
   writeMediaRoutingStore,
 } from "../media-routing-store";
-import type { ImageGenerationInput } from "../media-provider-common";
+import { saveWebpFrameCandidate, type ImageGenerationInput } from "../media-provider-common";
 
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const TEST_IMAGE_PATH = "/api/media-routing/test/image";
@@ -92,7 +92,10 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
         requestCount: 1,
       } : body;
       try {
-        const result = await generateSdxlImage(store.comfyui.baseUrl, checkpoint, input);
+        const generated = await generateSdxlImage(store.comfyui.baseUrl, checkpoint, input);
+        const result = input.outputFormat === "webp"
+          ? { ...generated, assetUrl: await saveWebpFrameCandidate(generated.assetUrl, input.assetId || "storyboard-frame") }
+          : generated;
         store.comfyui.imageVerifiedAt = new Date().toISOString();
         store.comfyui.lastError = "";
         await writeMediaRoutingStore(store);

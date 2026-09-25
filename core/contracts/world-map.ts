@@ -87,8 +87,8 @@ function normalizePackage(value: unknown): WorldMapCharacterVisualPackage | null
       .map(normalizeReference)
       .filter((item): item is WorldMapCharacterVisualReference => Boolean(item))
       .filter((item) => item.characterId === characterId)
-      .filter((item, index, all) => all.findLastIndex((candidate) => candidate.view === item.view) === index)
-      .slice(0, WORLD_MAP_CHARACTER_VIEWS.length)
+      .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
+      .slice(-WORLD_MAP_CHARACTER_VIEWS.length * 2)
     : [];
   return {
     characterId,
@@ -120,9 +120,11 @@ export function worldMapCharacterVisualPackage(state: WorldMapState, characterId
 }
 
 export function approvedWorldMapCharacterReferences(state: WorldMapState, characterId: string) {
-  return worldMapCharacterVisualPackage(state, characterId)?.references
-    .filter((reference) => reference.reviewState === "approved")
-    .map((reference) => reference.assetUrl) ?? [];
+  const approved = worldMapCharacterVisualPackage(state, characterId)?.references
+    .filter((reference) => reference.reviewState === "approved") ?? [];
+  return WORLD_MAP_CHARACTER_VIEWS
+    .map((view) => [...approved].reverse().find((reference) => reference.view === view.id)?.assetUrl ?? "")
+    .filter(Boolean);
 }
 
 export function upsertWorldMapCharacterVisualPackage(
@@ -145,9 +147,15 @@ export function approveWorldMapCharacterVisualPackage(
 ): WorldMapState {
   const current = worldMapCharacterVisualPackage(state, characterId);
   if (!current || !current.references.length) return state;
+  const references = WORLD_MAP_CHARACTER_VIEWS.flatMap((view) => {
+    const candidates = current.references.filter((reference) => reference.view === view.id);
+    const selected = [...candidates].reverse().find((reference) => reference.reviewState === "draft")
+      ?? [...candidates].reverse().find((reference) => reference.reviewState === "approved");
+    return selected ? [{ ...selected, reviewState: "approved" as const }] : [];
+  });
   return upsertWorldMapCharacterVisualPackage(state, {
     ...current,
-    references: current.references.map((reference) => ({ ...reference, reviewState: "approved" as const })),
+    references,
     approvedAt,
     updatedAt: approvedAt,
   });

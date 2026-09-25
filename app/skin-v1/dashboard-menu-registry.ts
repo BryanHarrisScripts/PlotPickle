@@ -8,9 +8,9 @@ export type DashboardBbsItem = Readonly<{
 
 export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "learn", shortcut: "1", label: "Learn", description: "Learn Story Craft", group: "EXPLORE" },
+  { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "EXPLORE" },
   { id: "community", shortcut: "C", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
   { id: "screening", shortcut: "9", label: "Screening", description: "Screen Stories and Gather Reactions", group: "EXPLORE" },
-  { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "EXPLORE" },
   { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" },
 
   { id: "discovery", shortcut: "G", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
@@ -64,9 +64,6 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 ]);
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
-  "discovery",
-  "plan",
-  "storyboard",
   "previs",
   "timeline",
   "production",

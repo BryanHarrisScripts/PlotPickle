@@ -11,6 +11,7 @@ import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-wor
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
+import { projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/story-to-screen-convergence";
 
 export type PreproductionReviewAddress = Readonly<{
   blockNumber: number;
@@ -372,6 +373,12 @@ export function SkinV1ProductionReviewSurface({
     ?? selectedBlock?.anchors[0]
     ?? null;
   const approvedShots = selectedAnchor?.shots.filter((shot) => shot.reviewState === "approved") ?? [];
+  const anchorRef = `storyboard-anchor:block:block-${String(normalized.blockNumber).padStart(2, "0")}:mini-${normalized.miniBlockNumber}`;
+  const roughCut = useMemo(() => project ? projectRoughCutAnchor({
+    production: project.production,
+    anchorRef,
+    currentRevision: project.revision,
+  }) : null, [anchorRef, project]);
   const readiness = !selectedAnchor
     ? { label: "NO EVIDENCE", detail: "No canonical Previs anchor exists for this story address." }
     : selectedAnchor.storyboardCoverage !== "kept"
@@ -394,13 +401,13 @@ export function SkinV1ProductionReviewSurface({
   }, []);
 
   if (error) return <p role="alert">{error}</p>;
-  if (!project || !projection) return <p role="status">Opening canonical Production readiness…</p>;
+  if (!project || !projection) return <p role="status">Opening canonical Rough Cut projection…</p>;
 
   return (
     <div data-skin-v1-preproduction-review="production">
       <div className="pp-skin-v1-preproduction-context" role="status">
-        <strong>PRODUCTION · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>This is a read-only projection over current Storyboard, Previs and #2173 provider-neutral production authorities. It does not use the legacy mutable Production Studio.</span>
+        <strong>ROUGH CUT · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Storyboard intent, Previs timing, generated takes and sound stay attached to the same Production Shot identities. New takes never silently replace an approved take.</span>
       </div>
 
       <section
@@ -410,13 +417,13 @@ export function SkinV1ProductionReviewSurface({
       >
         <header>
           <div>
-            <p>PROVIDER-NEUTRAL HANDOFF</p>
-            <h2 id="production-stage-title">Production readiness</h2>
+            <p>STORY-TO-SCREEN HANDOFF</p>
+            <h2 id="production-stage-title">Rough Cut readiness</h2>
           </div>
           <strong data-production-readiness={readiness.label.toLowerCase().replaceAll(" ", "-")}>{readiness.label}</strong>
         </header>
 
-        <nav className="pp-skin-v1-production-addresses" aria-label="Production Mini-Block address">
+        <nav className="pp-skin-v1-production-addresses" aria-label="Rough Cut Mini-Block address">
           {(selectedBlock?.anchors ?? []).map((anchor) => (
             <button
               aria-current={anchor.miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
@@ -455,23 +462,29 @@ export function SkinV1ProductionReviewSurface({
               </article>
             </div>
 
-            <section className="pp-skin-v1-production-shots" aria-label="Production Shots for selected story address">
+            <section className="pp-skin-v1-production-shots" aria-label="Rough Cut Shots for selected story address">
               <header>
-                <h3>Production Shots</h3>
-                <span>Existing Previs authority</span>
+                <h3>Rough Cut Shots</h3>
+                <span>Existing Previs identity · versioned takes</span>
               </header>
-              {selectedAnchor.shots.length ? (
+              {roughCut?.shots.length ? (
                 <ol>
-                  {selectedAnchor.shots.map((shot) => (
+                  {roughCut.shots.map(({ shot, packet, placement }) => (
                     <li key={shot.id}>
                       <strong>Shot {shot.order}</strong>
                       <span>{shot.reviewState}</span>
-                      <span>{shot.durationSeconds ? `${shot.durationSeconds}s` : "Timing open"}</span>
-                      <small>{shot.visualIntent || shot.blockingIntent || shot.id}</small>
+                      <span>{packet.intendedDurationSeconds ? `${packet.intendedDurationSeconds}s intended` : "Timing open"}</span>
+                      <span>{packet.takes.length} take{packet.takes.length === 1 ? "" : "s"} · {packet.approvedTakeId ? "approved take selected" : "no approved take"}</span>
+                      <span>{packet.soundCues.length} sound cue{packet.soundCues.length === 1 ? "" : "s"}</span>
+                      <small>{placement?.takeId ? `Cut uses ${placement.takeId}` : shot.visualIntent || shot.blockingIntent || shot.id}</small>
                     </li>
                   ))}
                 </ol>
               ) : <p>No Production Shot exists at this address. PlotPickle leaves the slot empty rather than creating a placeholder Production Shot.</p>}
+            </section>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Rough Cut revision state">
+              <strong>{roughCut?.cuts.length ?? 0} cut revision{roughCut?.cuts.length === 1 ? "" : "s"}</strong>
+              <p>{roughCut?.cuts[0] ? `Current revision: ${roughCut.cuts[0].id}. Earlier cuts remain recoverable.` : "No Rough Cut revision exists yet. Approved upstream work remains intact until a cut is explicitly assembled."}</p>
             </section>
 
             <section className="pp-skin-v1-production-handoff-state" aria-label="Provider-neutral production handoff state">
@@ -483,6 +496,70 @@ export function SkinV1ProductionReviewSurface({
         ) : (
           <p>No production evidence exists for this selected story address.</p>
         )}
+      </section>
+    </div>
+  );
+}
+
+export function SkinV1ScreeningReviewSurface() {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const screening = useMemo(() => project ? projectScreening({ production: project.production }) : null, [project]);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project || !screening) return <p role="status">Opening Screening evidence…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="screening">
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>SCREENING · OBSERVED EVIDENCE</strong>
+        <span>Screening compares the current Rough Cut with approved intent. Findings are evidence and do not automatically change canon or regenerate media.</span>
+      </div>
+      <section className="pp-skin-v1-production-stage" aria-labelledby="screening-stage-title" data-production-stage="screening-observation">
+        <header>
+          <div>
+            <p>INTENDED VS OBSERVED</p>
+            <h2 id="screening-stage-title">Current screening</h2>
+          </div>
+          <strong>{screening.cut ? screening.cut.id : "NO ROUGH CUT"}</strong>
+        </header>
+        {screening.cut ? (
+          <>
+            <div className="pp-skin-v1-production-evidence">
+              <article><span>Cut revision</span><strong>{screening.cut.id}</strong><p>Source revision {screening.cut.sourceRevision}</p></article>
+              <article><span>Placements</span><strong>{screening.cut.placements.length}</strong><p>Stable Production Shot identities.</p></article>
+              <article><span>Observations</span><strong>{screening.observations.length}</strong><p>{screening.unresolved.length} unresolved.</p></article>
+              <article><span>Authority</span><strong>HUMAN</strong><p>Observed evidence never self-promotes into canon.</p></article>
+            </div>
+            <section className="pp-skin-v1-production-shots" aria-label="Screening observations">
+              <header><h3>Observed evidence</h3><span>Bounded repair routes back to the owning surface</span></header>
+              {screening.observations.length ? (
+                <ol>
+                  {screening.observations.map((observation) => (
+                    <li key={observation.id}>
+                      <strong>{observation.category.toUpperCase()}</strong>
+                      <span>{observation.state}</span>
+                      <span>{observation.productionShotId || observation.soundCueId || "cut-level"}</span>
+                      <small>{observation.summary}</small>
+                    </li>
+                  ))}
+                </ol>
+              ) : <p>No Screening observations exist for this Rough Cut. PlotPickle does not invent a quality score or failure to fill the surface.</p>}
+            </section>
+          </>
+        ) : <p>No Rough Cut revision exists yet. Screening remains truthful and empty until there is something to watch and compare.</p>}
       </section>
     </div>
   );

@@ -168,10 +168,10 @@ export interface ScreeningObservation {
 
 export interface PrevisProductionState {
   readonly shots: readonly ProductionShotIntent[];
-  readonly soundCues: readonly ProductionSoundCue[];
-  readonly takes: readonly ProductionTake[];
-  readonly roughCuts: readonly RoughCutRevision[];
-  readonly screeningObservations: readonly ScreeningObservation[];
+  readonly soundCues?: readonly ProductionSoundCue[];
+  readonly takes?: readonly ProductionTake[];
+  readonly roughCuts?: readonly RoughCutRevision[];
+  readonly screeningObservations?: readonly ScreeningObservation[];
 }
 
 export function createEmptyPrevisProductionState(): PrevisProductionState {

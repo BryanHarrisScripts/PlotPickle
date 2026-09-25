@@ -35,7 +35,7 @@ test("#2458 extends the existing PPF production authority without creating a sec
 });
 
 test("#2458 Production Packet is a read-only provider-neutral projection over existing Shot identity", async () => {
-  const source = await read("lib/preproduction/story-to-screen-convergence.ts");
+  const source = await read("lib/preproduction/production-convergence.ts");
 
   for (const contract of [
     "projectionOnly: true",
@@ -92,7 +92,7 @@ test("#2458 projects typed Narration Music and Foley cues into the existing Time
 test("#2458 versions generated takes and preserves earlier Rough Cut revisions", async () => {
   const [surface, convergence] = await Promise.all([
     read("app/skin-v1/preproduction-review-surfaces.tsx"),
-    read("lib/preproduction/story-to-screen-convergence.ts"),
+    read("lib/preproduction/production-convergence.ts"),
   ]);
 
   assert.match(surface, /Register a generated take/u);
@@ -100,14 +100,14 @@ test("#2458 versions generated takes and preserves earlier Rough Cut revisions",
   assert.match(surface, /Create Rough Cut revision/u);
   assert.match(surface, /supersedesCutId: previous\?\.id/u);
   assert.match(surface, /missing takes remain explicit placeholders/u);
-  assert.match(convergence, /newest\(roughCuts/u);
+  assert.match(convergence, /newestByCreatedAt(roughCuts/u);
   assert.doesNotMatch(surface, /delete.*take/iu);
 });
 
 test("#2458 makes Screening observed evidence under Human authority", async () => {
   const [surface, convergence, host] = await Promise.all([
     read("app/skin-v1/preproduction-review-surfaces.tsx"),
-    read("lib/preproduction/story-to-screen-convergence.ts"),
+    read("lib/preproduction/production-convergence.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
 

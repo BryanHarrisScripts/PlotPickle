@@ -92,9 +92,9 @@ test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score a
   assert.match(dashboard, /<PlotPickleScorePanel \/>/u);
   assert.match(dashboard, /const connected = CONNECTED_DASHBOARD_ITEM_IDS\.has\(item\.id\)/u);
   assert.match(dashboard, /data-skin-menu-indicator=\{connected \? "connected" : "unwired"\}/u);
-  assert.match(dashboard, /data-dashboard-surface-state=\{disabled \? "unavailable" : inReview \? "in-review" : locked \? "locked" : "unavailable"\}/u);
+  assert.match(dashboard, /data-dashboard-surface-state=\{unavailable \? "unavailable" : inReview \? "in-review" : locked \? "locked" : "unavailable"\}/u);
   assert.match(dashboard, /data-dashboard-locked=\{locked \? "true" : "false"\}/u);
-  assert.match(dashboard, /data-dashboard-status=\{disabled \? "inactive" : inReview \? "in-review" : locked \? "locked" : "inactive"\}/u);
+  assert.match(dashboard, /data-dashboard-status=\{unavailable \? "inactive" : inReview \? "in-review" : locked \? "locked" : "inactive"\}/u);
 });
 
 test("#2026 preserves keyboard-first navigation while changing only Human-facing menu IA", async () => {

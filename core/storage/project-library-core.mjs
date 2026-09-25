@@ -64,7 +64,7 @@ function parseJson(raw) {
 }
 
 function validSourceKind(value) {
-  return value === "user" || value === "example" || value === "preset" || value === "migrated";
+  return value === "user" || value === "example" || value === "preset" || value === "migrated" || value === "import";
 }
 
 function normalizeSummary(value) {
@@ -228,6 +228,73 @@ export function resolveProjectLibraryProfileId(storage) {
     storage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, DEFAULT_LOCAL_PROFILE_ID);
     return DEFAULT_LOCAL_PROFILE_ID;
   }
+}
+
+export function hydrateProfileProjectLibrary(input) {
+  const storage = requireStorage(input.storage);
+  const profileId = normalizeProjectLibraryProfileId(input.profileId);
+  const now = input.now();
+  const sourceProjects = Array.isArray(input.projects) ? input.projects : [];
+  const summaries = [];
+  const projectIds = new Set();
+
+  for (const item of sourceProjects) {
+    const rawProject = item && typeof item === "object" && !Array.isArray(item) && "project" in item ? item.project : item;
+    const suppliedSummary = item && typeof item === "object" && !Array.isArray(item) && item.summary && typeof item.summary === "object"
+      ? item.summary
+      : {};
+    let project;
+    try {
+      project = input.normalizeProject(rawProject);
+    } catch {
+      continue;
+    }
+    const projectId = requireProjectId(project?.id);
+    if (projectIds.has(projectId)) continue;
+    projectIds.add(projectId);
+    const summary = writeProject(storage, profileId, project, input.describeProject, {
+      now,
+      sourceKind: suppliedSummary.sourceKind,
+      sourceId: suppliedSummary.sourceId,
+      genre: suppliedSummary.genre,
+      format: suppliedSummary.format,
+      archivedAt: suppliedSummary.archivedAt,
+    });
+    summaries.push(summary);
+  }
+
+  if (!summaries.length) {
+    const project = newProject(input.createProject, now, input.idFactory);
+    summaries.push(writeProject(storage, profileId, project, input.describeProject, {
+      now,
+      sourceKind: "user",
+      sourceId: null,
+      genre: "",
+      format: "Story",
+      archivedAt: null,
+    }));
+  }
+
+  const requestedActiveProjectId = typeof input.activeProjectId === "string" ? input.activeProjectId.trim() : "";
+  const activeProjectId = requestedActiveProjectId && summaries.some((item) => item.id === requestedActiveProjectId && !item.archivedAt)
+    ? requestedActiveProjectId
+    : summaries.find((item) => !item.archivedAt)?.id ?? null;
+  const registry = writeRegistry(storage, {
+    version: PROJECT_LIBRARY_VERSION,
+    profileId,
+    activeProjectId,
+    projects: summaries,
+    updatedAt: now,
+  });
+  const active = activeProjectId
+    ? readProject(storage, profileId, activeProjectId, input.normalizeProject, now)
+    : null;
+  return {
+    registry,
+    activeProject: active?.project ?? null,
+    migrated: false,
+    quarantined: [],
+  };
 }
 
 export function initializeProfileProjectLibrary(input) {

@@ -3,12 +3,23 @@ import {
   normalizeStoryMapContextRegistry,
   type StoryMapContext,
 } from "./story-map-context";
-import { normalizeFoundationProject, type PPFProject } from "../project/project";
-import { loadFoundationProject, saveFoundationProject } from "./foundation-project-browser";
-import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "./project-library-browser";
+import { normalizeLibraryProject, type LibraryPPFProject } from "./library-project";
+import {
+  PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
+  hydrateProfileProjectLibrary,
+  listLibraryProjects,
+  loadActiveLibraryProject,
+} from "./project-library-browser";
+
+type HydratedPrivateProjectEntry = Readonly<{
+  project: unknown;
+  summary?: Readonly<Record<string, unknown>>;
+}>;
 
 type HydratedPrivateState = {
   readonly project: unknown | null;
+  readonly activeProjectId?: string | null;
+  readonly projects?: readonly HydratedPrivateProjectEntry[];
   readonly wyrmwood: unknown | null;
   readonly storyMapContexts: unknown | null;
 };
@@ -74,7 +85,7 @@ function queueCacheWrite(action: string, payload: Record<string, unknown>) {
 }
 
 function legacyBrowserProjects() {
-  const projects = new Map<string, PPFProject>();
+  const projects = new Map<string, LibraryPPFProject>();
   const add = (raw: string | null, wrapped = false) => {
     if (!raw) return;
     try {
@@ -83,7 +94,7 @@ function legacyBrowserProjects() {
         ? (parsed as { readonly project?: unknown }).project
         : parsed;
       if (!value || typeof value !== "object" || Array.isArray(value) || typeof (value as { readonly id?: unknown }).id !== "string") return;
-      const project = normalizeFoundationProject(value);
+      const project = normalizeLibraryProject(value);
       projects.set(project.id, project);
     } catch {
       // Leave unreadable legacy browser records in place for explicit recovery rather than deleting them.
@@ -124,12 +135,24 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   const result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
   if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
   const next = await result.json() as HydratedPrivateState;
+  const projects = Array.isArray(next.projects) && next.projects.length
+    ? next.projects
+    : next.project
+      ? [{ project: next.project }]
+      : [];
+  const activeProjectId = typeof next.activeProjectId === "string" && next.activeProjectId.trim()
+    ? next.activeProjectId
+    : next.project && typeof next.project === "object" && !Array.isArray(next.project) && typeof (next.project as { readonly id?: unknown }).id === "string"
+      ? String((next.project as { readonly id: string }).id)
+      : null;
+  const restored = hydrateProfileProjectLibrary({ activeProjectId, projects });
   hydrated = {
     ...next,
+    project: restored.activeProject,
+    activeProjectId: restored.registry.activeProjectId,
+    projects,
     storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
   };
-  if (hydrated.project) saveFoundationProject(hydrated.project as Parameters<typeof saveFoundationProject>[0]);
-  else saveFoundationProject(loadFoundationProject());
   updateSaveState("saved", "Saved");
 }
 
@@ -142,7 +165,22 @@ export function hydratedStoryMapContext(projectId: string) {
 }
 
 export function persistActiveProfileProject(explicitToken = "") {
-  return queueWrite("save-project", { project: loadFoundationProject() }, explicitToken);
+  const project = loadActiveLibraryProject();
+  const librarySummary = listLibraryProjects().find((item) => item.id === project.id);
+  const summary = librarySummary ? {
+    title: librarySummary.title,
+    updatedAt: librarySummary.updatedAt,
+    createdAt: librarySummary.createdAt,
+    progress: librarySummary.progress,
+    frontier: librarySummary.frontier,
+    thumbnailRef: librarySummary.thumbnail,
+    sourceKind: librarySummary.sourceKind,
+    sourceId: librarySummary.sourceId,
+    genre: librarySummary.genre,
+    format: librarySummary.format,
+    archivedAt: librarySummary.archivedAt,
+  } : undefined;
+  return queueWrite("save-project", { project, ...(summary ? { summary } : {}) }, explicitToken);
 }
 
 export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {

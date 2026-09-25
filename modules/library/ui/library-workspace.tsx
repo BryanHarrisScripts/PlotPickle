@@ -518,11 +518,11 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Load a base project</p><h2 id="load-title">LOAD</h2></div>
-            <p>Load the story first, then decide whether to restore durable local resources. Local media is never attached or made canon without your choice.</p>
+            <p>Resume a saved working story below to keep its MindMap, WorldMap and other project work. Use Afterglow default only when you want a fresh working copy. Local media is never attached or made canon without your choice.</p>
           </div>
           {afterglow ? (
             <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="afterglow-load">
-              <div><strong>Afterglow default</strong><p>Load the packaged Afterglow reference as a fresh working copy. After it loads, PlotPickle can scan for previous local Storyboard resources.</p></div>
+              <div><strong>Afterglow default · fresh copy</strong><p>This starts a new working copy from the packaged Afterglow reference. To keep existing MindMap, WorldMap or locked character work, resume the saved Afterglow story listed below instead.</p></div>
               <button
                 className={styles.primaryButton}
                 onClick={() => setPending({ kind: "catalog", sourceKind: "example", item: afterglow })}

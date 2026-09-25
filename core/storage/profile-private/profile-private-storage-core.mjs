@@ -219,6 +219,7 @@ function projectSummary(project, supplied, now) {
     : typeof project?.title === "string" && project.title.trim()
       ? project.title.trim()
       : "Untitled Story";
+  const sourceKind = new Set(["user", "example", "preset", "migrated", "import"]).has(supplied?.sourceKind) ? supplied.sourceKind : "user";
   return Object.freeze({
     projectId: normalizeObjectId(project?.id, "Project"),
     title,
@@ -227,6 +228,11 @@ function projectSummary(project, supplied, now) {
     progress: Number.isFinite(supplied?.progress) ? Math.max(0, Math.min(100, Math.round(supplied.progress))) : 0,
     frontier: typeof supplied?.frontier === "string" && supplied.frontier.trim() ? supplied.frontier.trim() : "Foundations",
     thumbnailRef: typeof supplied?.thumbnailRef === "string" ? supplied.thumbnailRef : "",
+    sourceKind,
+    sourceId: typeof supplied?.sourceId === "string" && supplied.sourceId.trim() ? supplied.sourceId.trim().slice(0, 240) : null,
+    genre: typeof supplied?.genre === "string" ? supplied.genre.slice(0, 240) : "",
+    format: typeof supplied?.format === "string" && supplied.format.trim() ? supplied.format.slice(0, 240) : "Story",
+    archivedAt: typeof supplied?.archivedAt === "string" && supplied.archivedAt.trim() ? supplied.archivedAt : null,
   });
 }
 
@@ -412,8 +418,14 @@ export function createProfilePrivateStorageService(options) {
     async loadActiveProject(authContext) {
       const access = await authority(authContext);
       const active = activeProjects.get(authContext.sessionId);
-      if (!active || active.profileId !== access.profileId) return null;
-      const project = await readObject(access, "projects", active.projectId);
+      let projectId = active?.profileId === access.profileId ? active.projectId : null;
+      if (!projectId) {
+        const library = await readLibrary(access);
+        projectId = library.activeProjectId;
+        if (projectId) activeProjects.set(authContext.sessionId, { profileId: access.profileId, projectId });
+      }
+      if (!projectId) return null;
+      const project = await readObject(access, "projects", projectId);
       return project === null || typeof options.normalizeProject !== "function" ? project : options.normalizeProject(project);
     },
     async writeCredential(authContext, name, value) {

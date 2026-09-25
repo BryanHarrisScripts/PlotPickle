@@ -6,6 +6,7 @@ import {
   LEGACY_ACTIVE_PROJECT_KEY,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   createProfileWorkingCopy,
+  hydrateProfileProjectLibrary,
   initializeProfileProjectLibrary,
   listProfileProjectSummaries,
   projectLibraryMigrationKey,
@@ -103,6 +104,28 @@ test("#1122 saves the current story before cloning examples or switching among m
   assert.equal(switched.activeProject.title, "Bryan Original");
   const savedFifth = JSON.parse(storage.getItem(projectLibraryProjectKey("profile-bryan", "story-five")));
   assert.equal(savedFifth.project.title, "Fifth");
+});
+
+
+test("#1122 durable inventory hydration restores all saved ids and requested active story without cloning", () => {
+  const storage = new MemoryStorage();
+  const input = harness(storage, "profile-bryan", ["should-not-be-used"]);
+  const first = createProject({ id: "saved-afterglow", now: FIXED_NOW, title: "Afterglow" });
+  const second = createProject({ id: "saved-second", now: FIXED_NOW, title: "Second Story" });
+  const hydrated = hydrateProfileProjectLibrary({
+    ...input,
+    activeProjectId: first.id,
+    projects: [
+      { project: first, summary: { sourceKind: "example", sourceId: "afterglow-v9", format: "Screenplay" } },
+      { project: second, summary: { sourceKind: "user", format: "Feature" } },
+    ],
+  });
+  assert.equal(hydrated.activeProject.id, "saved-afterglow");
+  assert.deepEqual(listProfileProjectSummaries(input).map((item) => item.id).sort(), ["saved-afterglow", "saved-second"]);
+  const afterglow = listProfileProjectSummaries(input).find((item) => item.id === "saved-afterglow");
+  assert.equal(afterglow.sourceKind, "example");
+  assert.equal(afterglow.sourceId, "afterglow-v9");
+  assert.equal(afterglow.format, "Screenplay");
 });
 
 test("#1122 keeps My Stories registries and project snapshots isolated by opaque Human profile id", () => {

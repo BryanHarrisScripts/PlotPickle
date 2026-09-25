@@ -1,4 +1,5 @@
 import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
+import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
@@ -34,19 +35,32 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
-    let project = await runtimeState.privateStorage.loadActiveProject(authContext);
+    const summaries = await runtimeState.privateStorage.listProjects(authContext);
+    let project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
     if (!project) {
-      const projects = await runtimeState.privateStorage.listProjects(authContext);
-      if (projects[0]) {
-        await runtimeState.privateStorage.activateProject(authContext, projects[0].projectId);
-        project = await runtimeState.privateStorage.loadActiveProject(authContext);
+      for (const summary of summaries) {
+        const candidate = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
+        if (!candidate) continue;
+        await runtimeState.privateStorage.activateProject(authContext, summary.projectId);
+        project = candidate;
+        break;
       }
     }
-    const [wyrmwood, storyMapContexts] = await Promise.all([
+    const [projects, wyrmwood, storyMapContexts] = await Promise.all([
+      Promise.all(summaries.map(async (summary) => {
+        const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
+        return savedProject ? { project: savedProject, summary } : null;
+      })),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" }),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts" }),
     ]);
-    return response({ project, wyrmwood, storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts) });
+    return response({
+      project,
+      activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof project.id === "string" ? project.id : null,
+      projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),
+      wyrmwood,
+      storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts),
+    });
   } catch (error) {
     return errorResponse(error);
   }
@@ -58,7 +72,10 @@ export async function POST(request: Request) {
     const input = await request.json() as Record<string, unknown>;
     if (input.action === "save-project") {
       const project = normalizeLibraryProject(input.project);
-      const saved = await runtimeState.privateStorage.saveProject(authContext, { project });
+      const summary = input.summary && typeof input.summary === "object" && !Array.isArray(input.summary)
+        ? input.summary as Partial<ProfileProjectSummary>
+        : undefined;
+      const saved = await runtimeState.privateStorage.saveProject(authContext, { project, summary });
       return response({ projectId: saved.summary.projectId });
     }
     if (input.action === "save-wyrmwood") {

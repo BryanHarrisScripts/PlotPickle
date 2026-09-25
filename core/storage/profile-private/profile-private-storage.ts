@@ -27,6 +27,11 @@ export type ProfileProjectSummary = Readonly<{
   progress: number;
   frontier: string;
   thumbnailRef: string;
+  sourceKind: "user" | "example" | "preset" | "migrated" | "import";
+  sourceId: string | null;
+  genre: string;
+  format: string;
+  archivedAt: string | null;
 }>;
 
 export type LegacyProfileMigrationSource = {

@@ -1,14 +1,5 @@
 import type { StoryboardEditorialShot } from "../../core/contracts/storyboard/editorial-shot";
 import type {
-  PrevisProductionState,
-  ProductionShotIntent,
-  ProductionSoundCue,
-  ProductionTake,
-  RoughCutPlacement,
-  RoughCutRevision,
-  ScreeningObservation,
-} from "../../core/contracts/previs";
-import type {
   BeatSemanticProjection,
   CanonicalPreproductionProject,
   FrameSemanticProjection,
@@ -81,6 +72,16 @@ export type SelectedProductionInstructionCompilation = {
 function stableStrings(values: readonly string[]) {
   return [...new Set(values.filter(Boolean))].sort();
 }
+
+import type {
+  PrevisProductionState,
+  ProductionShotIntent,
+  ProductionSoundCue,
+  ProductionTake,
+  RoughCutPlacement,
+  RoughCutRevision,
+  ScreeningObservation,
+} from "../../core/contracts/previs";
 
 function notReady(input: {
   projectId: string;

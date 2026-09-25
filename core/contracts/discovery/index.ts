@@ -1,4 +1,4 @@
-export const DISCOVERY_VERSION = 2 as const;
+export const DISCOVERY_VERSION = 1 as const;
 
 export const DISCOVERY_LANES = [
   { id: "story", label: "Story" },

@@ -399,7 +399,7 @@ export default function DashboardBbsReviewHost({
       }
       setStoryBibleProject(loadActiveLibraryProject());
       setStoryBibleOpen(true);
-      onSurfaceNameChange("WORLD MAP");
+      onSurfaceNameChange("WORLDMAP");
       return;
     }
     if (item.id === "open-source") {

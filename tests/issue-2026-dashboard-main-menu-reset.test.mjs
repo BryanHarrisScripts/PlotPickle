@@ -12,7 +12,9 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   const ordered = [
     ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
+    ["screening", "9", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
     ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
+    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
     ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
@@ -22,14 +24,13 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["storyboard", "S", "Storyboard", "Visualize Scenes Before You Write", "VISUALIZE"],
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
-    ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
+    ["production", "D", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
     ["sound-narration", "6", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
     ["sound-music", "7", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
     ["sound-foley", "8", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
     ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
-    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "PITCH"],
     ["profile", "I", "Identity", "Manage User Profile", "PLAY"],
     ["wyrmwood", "2", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
     ["story", "3", "Written", "Story Game Engine", "PLAY"],
@@ -54,11 +55,11 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   const groupCounts = new Map();
   for (const [, , , , group] of ordered) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
   assert.deepEqual([...groupCounts.entries()], [
-    ["EXPLORE", 3],
+    ["EXPLORE", 5],
     ["DEVELOP", 5],
     ["VISUALIZE", 5],
     ["SOUND", 3],
-    ["PITCH", 4],
+    ["PITCH", 3],
     ["PLAY", 3],
     ["SYSTEM", 5],
   ]);

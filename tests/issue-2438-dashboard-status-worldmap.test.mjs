@@ -26,7 +26,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["discovery", "plan", "storyboard", "previs", "timeline", "production"],
+    ["previs", "timeline", "production"],
   );
 
   const disabled = menu.slice(

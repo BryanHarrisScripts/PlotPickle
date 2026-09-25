@@ -13,7 +13,7 @@ import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-wor
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
-import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/story-to-screen-convergence";
+import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/production-convergence";
 
 export type PreproductionReviewAddress = Readonly<{
   blockNumber: number;

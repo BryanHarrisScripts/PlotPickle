@@ -46,6 +46,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
 
 export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "community",
+  "screening",
   "settings",
   "profile",
   "open-source",
@@ -64,13 +65,13 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 ]);
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
+  "screening",
   "previs",
   "timeline",
   "production",
 ]);
 
 export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set([
-  "screening",
   "sound-narration",
   "sound-music",
   "sound-foley",

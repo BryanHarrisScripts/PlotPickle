@@ -4,19 +4,16 @@
    does not move. Dashboard projects the same authorities compactly in its
    existing footer rather than replacing Profile's detailed presentation. */
 
-/* Black and White keeps semantic readiness green even though its theme palette
-   is monochrome. */
+/* Black and White keeps locked Dashboard surfaces green even though its theme palette
+   is monochrome. Green is the locked lifecycle state, not merely a wiring signal. */
 html[data-plotpickle-skin-theme="skin-v2"] .pp-skin-v1-dashboard-status-box.is-active {
   border-color: var(--pp-skin-ready) !important;
   background: var(--pp-skin-ready) !important;
 }
 
-/* Library, Outline, Storyboard and Previs are deliberately open for review,
-   not represented as production-ready green destinations. */
-[data-dashboard-menu-item="library"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="plan"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="storyboard"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="previs"] .pp-skin-v1-dashboard-status-box {
+/* Yellow means the destination is enterable but still in review.
+   Green is reserved for locked surfaces; gray is unavailable. */
+[data-dashboard-review="in-review"] .pp-skin-v1-dashboard-status-box {
   border-color: var(--pp-skin-warning) !important;
   background: var(--pp-skin-warning) !important;
   box-shadow: var(--pp-skin-shadow-control) !important;

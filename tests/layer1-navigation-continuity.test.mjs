@@ -15,7 +15,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
     ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
-    ["story-bible", "V", "Story", "Story, Logline, Theme and Visual Reference", "DEVELOP"],
+    ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
     ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
     ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
@@ -44,9 +44,11 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     "EXPLORE", "DEVELOP", "VISUALIZE", "REVIEW", "PITCH", "PLAY", "SYSTEM",
   ]);
 
-  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  assert.match(connected, /"pitch-package"/u);
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
+  assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
+  assert.match(menu, /DASHBOARD_REVIEW_ITEM_IDS/u);
+  assert.match(menu, /DASHBOARD_DISABLED_ITEM_IDS/u);
 });
 
 test("Layer 1 canonical navigation protects nested Library return continuity", async () => {

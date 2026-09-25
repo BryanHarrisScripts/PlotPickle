@@ -219,6 +219,7 @@ function projectSummary(project, supplied, now) {
     : typeof project?.title === "string" && project.title.trim()
       ? project.title.trim()
       : "Untitled Story";
+  const sourceKind = new Set(["user", "example", "preset", "migrated", "import"]).has(supplied?.sourceKind) ? supplied.sourceKind : "user";
   return Object.freeze({
     projectId: normalizeObjectId(project?.id, "Project"),
     title,
@@ -227,6 +228,11 @@ function projectSummary(project, supplied, now) {
     progress: Number.isFinite(supplied?.progress) ? Math.max(0, Math.min(100, Math.round(supplied.progress))) : 0,
     frontier: typeof supplied?.frontier === "string" && supplied.frontier.trim() ? supplied.frontier.trim() : "Foundations",
     thumbnailRef: typeof supplied?.thumbnailRef === "string" ? supplied.thumbnailRef : "",
+    sourceKind,
+    sourceId: typeof supplied?.sourceId === "string" && supplied.sourceId.trim() ? supplied.sourceId.trim().slice(0, 240) : null,
+    genre: typeof supplied?.genre === "string" ? supplied.genre.slice(0, 240) : "",
+    format: typeof supplied?.format === "string" && supplied.format.trim() ? supplied.format.slice(0, 240) : "Story",
+    archivedAt: typeof supplied?.archivedAt === "string" && supplied.archivedAt.trim() ? supplied.archivedAt : null,
   });
 }
 

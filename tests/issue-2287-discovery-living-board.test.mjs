@@ -11,15 +11,15 @@ const readJson = async (path) => JSON.parse(await read(path));
 
 test("#2287 exposes the approved Development and Pre-Production hierarchy", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
-  const ordered = ["community", "learn", "discovery", "library", "story-bible", "plan", "storyboard", "previs", "timeline", "production"];
+  const ordered = ["learn", "community", "library", "discovery", "story-bible", "plan", "storyboard", "previs", "timeline", "production"];
   let cursor = -1;
   for (const id of ordered) {
     const next = menu.indexOf(`id: "${id}"`);
     assert.ok(next > cursor, "Dashboard hierarchy drifted at " + id);
     cursor = next;
   }
-  assert.match(menu, /id: "discovery", shortcut: "G", label: "Discovery"/u);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Story Bible"/u);
+  assert.match(menu, /id: "discovery", shortcut: "G", label: "MindMap"/u);
+  assert.match(menu, /id: "story-bible", shortcut: "V", label: "WorldMap"/u);
   assert.doesNotMatch(menu, /id: "story-bible"[\s\S]{0,120}label: "Pre-Production"/u);
   assert.match(menu, /"discovery"[\s\S]*"library"/u);
 });
@@ -68,11 +68,13 @@ test("#2287 Pin routes only genuinely unplaced local cards through the Discovery
   assert.match(skill, /This skill classifies; it does not write/u);
 });
 
-test("#2287 pinned placement is read-only and distinguishes PROJECT from NEW LOCAL without color alone", async () => {
+test("#2287/#2442 pinned placement distinguishes PROJECT, NEW LOCAL and AGENT PROPOSAL without color alone", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
   const css = await read("app/skin-v1/discovery-surface.module.css");
   assert.match(surface, /"PROJECT"/u);
   assert.match(surface, /"NEW LOCAL"/u);
+  assert.match(surface, /"AGENT PROPOSAL"/u);
+  assert.match(surface, /sourceState: "agent-proposal"/u);
   assert.match(surface, /Placement is read-only in v1/u);
   assert.doesNotMatch(surface, /draggable=|onDragStart|onDrop|Move earlier|Move later/u);
   assert.match(css, /data-source-state="new-local"/u);
@@ -82,7 +84,7 @@ test("#2287 pinned placement is read-only and distinguishes PROJECT from NEW LOC
 test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without expanding the standard 30", async () => {
   const registry = await readJson("config/skin-v1-surface-registry.json");
   const discovery = registry.surfaces.find((surface) => surface.id === "discovery");
-  assert.equal(discovery?.label, "Discovery");
+  assert.equal(discovery?.label, "Mind Map");
   assert.equal(discovery?.capturePolicy, "census-only");
   assert.equal(discovery?.runtimeSelector, "[data-discovery-surface='living-board']");
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly.includes("discovery"));
@@ -103,8 +105,8 @@ test("#2287 Discovery is connected from Dashboard and does not manufacture a pro
 test("#2287 live Dashboard keyboard audit includes Discovery between Writer's Craft and Library", async () => {
   const audit = await read("lib/verification/skin-v1-menu-contract-audit.mjs");
   const learn = audit.indexOf("[data-dashboard-menu-item='learn']");
-  const discovery = audit.indexOf("[data-dashboard-menu-item='discovery']");
   const library = audit.indexOf("[data-dashboard-menu-item='library']");
-  assert.ok(learn >= 0 && discovery > learn && library > discovery);
+  const discovery = audit.indexOf("[data-dashboard-menu-item='discovery']");
+  assert.ok(learn >= 0 && library > learn && discovery > library);
   assert.match(audit, /dashboard-discovery/u);
 });

@@ -12,7 +12,7 @@ test("#2444 removes Review and folds Refine into Develop plus Feedback/Reports i
   assert.deepEqual(rows.filter((row) => row.group === "DEVELOP").map((row) => row.id), ["discovery", "story-bible", "write", "edit", "refine"]);
   assert.deepEqual(rows.filter((row) => row.group === "PITCH").map((row) => row.id), ["pitch-package", "pitch-deck", "feedback", "reports"]);
   assert.equal(rows.some((row) => row.group === "REVIEW"), false);
-  assert.deepEqual([...new Set(rows.map((row) => row.group))], ["EXPLORE", "DEVELOP", "VISUALIZE", "PITCH", "PLAY", "SYSTEM"]);
+  assert.deepEqual([...new Set(rows.map((row) => row.group))], ["EXPLORE", "DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY", "SYSTEM"]);
 });
 
 test("#2444 preserves moved-item identity, shortcut, copy and lifecycle sets", async () => {
@@ -21,11 +21,11 @@ test("#2444 preserves moved-item identity, shortcut, copy and lifecycle sets", a
   assert.match(menu, /\{ id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" \}/u);
   assert.match(menu, /\{ id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "PITCH" \}/u);
 
-  const disabled = menu.slice(menu.indexOf("export const DASHBOARD_DISABLED_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  const disabled = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
   assert.match(disabled, /"pitch-package"/u);
   assert.match(disabled, /"pitch-deck"/u);
   assert.doesNotMatch(disabled, /"feedback"|"reports"|"refine"/u);
 
-  const reviewState = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_DISABLED_ITEM_IDS"));
+  const reviewState = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewState, /"feedback"|"reports"|"refine"/u);
 });

@@ -12,9 +12,9 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
 
   assert.deepEqual(rows, [
     ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
+    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
     ["screening", "9", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
-    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
     ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],

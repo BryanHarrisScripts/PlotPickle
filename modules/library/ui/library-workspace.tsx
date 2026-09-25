@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
+import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   DEFAULT_LOCAL_PROFILE_ID,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -28,7 +29,7 @@ import {
 } from "../project-library-catalog";
 import styles from "./library-workspace.module.css";
 
-type LibraryDestination = "new" | "import" | "load" | "examples" | "presets" | "avery" | "archive";
+type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
@@ -42,9 +43,9 @@ const DESTINATIONS: readonly {
   readonly label: string;
   readonly description: string;
 }[] = [
-  { id: "new", shortcut: "N", label: "NEW", description: "Start a New Story" },
-  { id: "import", shortcut: "I", label: "IMPORT", description: "Import Existing Work" },
   { id: "load", shortcut: "L", label: "LOAD", description: "Load Your Stories" },
+  { id: "new", shortcut: "N", label: "NEW", description: "Start a New Story" },
+  { id: "import-export", shortcut: "I", label: "IMPORT EXPORT", description: "Import or Export a Story" },
   { id: "examples", shortcut: "E", label: "EXAMPLES", description: "Explore Reference Stories" },
   { id: "presets", shortcut: "P", label: "PRESETS", description: "Start From a Story Preset" },
   { id: "avery", shortcut: "A", label: "AVERY", description: "Writer-in-Residence History" },
@@ -170,7 +171,7 @@ export default function LibraryWorkspace() {
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
   const ppfInput = useRef<HTMLInputElement>(null);
   const directoryItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const [destination, setDestination] = useState<LibraryDestination | null>(null);
+  const [destination, setDestination] = useState<LibraryDestination>("load");
   const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
@@ -216,11 +217,6 @@ export default function LibraryWorkspace() {
     if (!item) return;
     setDirectorySelectedIndex(index);
     setDestination(item.id);
-  }
-
-  function returnToDirectory() {
-    setDestination(null);
-    window.requestAnimationFrame(() => directoryItemRefs.current[directorySelectedIndex]?.focus());
   }
 
   function handleDirectoryKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -319,6 +315,22 @@ export default function LibraryWorkspace() {
     setImportingPpf(true);
     setNotice("");
     try {
+      if (file.size > 48 * 1024 * 1024) throw new Error("A Library import cannot exceed 48 MB.");
+      if (file.name.toLowerCase().endsWith(".ppf.json")) {
+        const backup = parseLibraryBackup(await file.text());
+        const imported = importLibraryProject({
+          sourceProject: backup,
+          sourceId: backup.id,
+          title: backup.title,
+          format: "Imported · Library backup",
+        });
+        markCurrentSessionLibraryProject(imported.id);
+        setDirectorySelectedIndex(0);
+        setDestination("load");
+        setNotice(`${imported.title} was imported into Library as a separate working story.`);
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith(".ppf")) throw new Error("Choose a PlotPickle .ppf or .ppf.json file.");
       const response = await fetch("/api/library/import/ppf", {
         method: "POST",
         headers: {
@@ -346,10 +358,27 @@ export default function LibraryWorkspace() {
       setDestination("load");
       setNotice(`${imported.title} was imported into Library. Screenplay passages stay evidence; imported interpretation still requires your review.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not import this .ppf.");
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not import this project.");
     } finally {
       setImportingPpf(false);
       if (ppfInput.current) ppfInput.current.value = "";
+    }
+  }
+
+  function exportCurrentStory() {
+    try {
+      const project = currentSessionLibraryProject() ?? initializeProjectLibrary().activeProject;
+      if (!project) throw new Error("Load a story before exporting a Library backup.");
+      const blob = new Blob([serializeLibraryBackup(project)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = libraryBackupFileName(project.title);
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      setNotice(`${project.title} exported as a Library .ppf.json backup. Local image files are stored separately.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not export this story.");
     }
   }
 
@@ -366,17 +395,21 @@ export default function LibraryWorkspace() {
       );
     }
 
-    if (destination === "import") {
+    if (destination === "import-export") {
       return (
-        <section aria-labelledby="import-title" className={styles.section} data-library-surface="import">
+        <section aria-labelledby="import-export-title" className={styles.section} data-library-surface="import-export">
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>Bring in existing work</p><h2 id="import-title">IMPORT</h2></div>
-            <p>.PPF is the currently supported Library import path. Imported material remains source evidence until reviewed, and importer interpretation never silently becomes canon.</p>
+            <div><p className={styles.eyebrow}>Move your work</p><h2 id="import-export-title">IMPORT EXPORT</h2></div>
+            <p>Import a legacy .ppf story or a Library .ppf.json backup. Export your current story as a Library backup; locally stored image files remain separate.</p>
           </div>
           <div className={styles.actionPanel}>
-            <div><strong>Import a .PPF story</strong><p>Choose an existing PlotPickle PPF file and add it to your local Library.</p></div>
-            <input ref={ppfInput} accept=".ppf,application/octet-stream" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
-            <button className={styles.primaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import .PPF"}</button>
+            <div><strong>Import a story</strong><p>Choose a PlotPickle .ppf or .ppf.json file. Import creates a separate local working story.</p></div>
+            <input ref={ppfInput} accept=".ppf,.json,application/octet-stream,application/json" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
+            <button className={styles.primaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import story"}</button>
+          </div>
+          <div className={styles.actionPanel}>
+            <div><strong>Export current story</strong><p>Download a .ppf.json backup of the current Library story. Keep local image files alongside your backup.</p></div>
+            <button className={styles.primaryButton} disabled={!stories.length} onClick={exportCurrentStory} type="button">Export story</button>
           </div>
         </section>
       );
@@ -415,7 +448,7 @@ export default function LibraryWorkspace() {
               ))}
             </div>
           ) : (
-            <div className={styles.empty}><h3>No saved stories yet.</h3><p>Use NEW to start a clean project or IMPORT to bring in an existing .PPF.</p></div>
+            <div className={styles.empty}><h3>No saved stories yet.</h3><p>Use NEW to start a clean project or IMPORT EXPORT to bring in an existing story.</p></div>
           )}
         </section>
       );
@@ -496,7 +529,7 @@ export default function LibraryWorkspace() {
                     role="option"
                     aria-selected={selected}
                     tabIndex={selected ? 0 : -1}
-                    autoFocus={destination === null && selected}
+                    autoFocus={selected}
                     className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.libraryDirectoryItem}${selected ? " is-selected" : ""}`}
                     data-library-nav={item.id}
                     data-library-shortcut={item.shortcut}
@@ -514,30 +547,28 @@ export default function LibraryWorkspace() {
                 );
               })}
             </div>
-            <p className="pp-skin-v1-dashboard-reminder" aria-live="polite">Selected: {selectedDirectoryItem?.label || "NEW"}</p>
+            <p className="pp-skin-v1-dashboard-reminder" aria-live="polite">Selected: {selectedDirectoryItem?.label || "LOAD"}</p>
           </div>
         </section>
 
-        {destination !== null ? (
-          <section
+        <section
             className={styles.libraryColumn}
             aria-label={`${selectedDirectoryItem?.label || destination} Library destination`}
             data-library-destination={destination}
             onKeyDown={(event) => {
               if (event.key === "Escape") {
                 event.preventDefault();
-                returnToDirectory();
+                openActiveProject();
               }
             }}
           >
             <button
               type="button"
               data-skin-v1-local-return="true"
-              onClick={returnToDirectory}
-            >Back to Library</button>
+              onClick={openActiveProject}
+            >Back to Dashboard</button>
             {renderSurface()}
           </section>
-        ) : null}
       </div>
 
       {pending ? (

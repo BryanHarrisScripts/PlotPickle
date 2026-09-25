@@ -222,9 +222,9 @@
     },
     "library-import": {
       "surfaceId": "library-import",
-      "label": "Library · Import",
+      "label": "Library · Import Export",
       "parent": "library",
-      "runtimeSelector": "section[data-library-destination='import']",
+      "runtimeSelector": "section[data-library-destination='import-export']",
       "formatProfile": {
         "layout": "one-column",
         "shell": "library-family",
@@ -233,7 +233,7 @@
         "typography": "standard-ui"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Library · Import",
+        "globalSurfaceLabel": "Library · Import Export",
         "workspaceTitlePolicy": "rendered-surface-content",
         "alignment": "left"
       },

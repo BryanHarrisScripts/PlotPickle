@@ -62,7 +62,7 @@ function openSession(sessionId: string) {
 function closeSession() {
   const destination = new URL(window.location.href);
   destination.searchParams.delete("averySession");
-  destination.searchParams.set("workspace", "library");
+  destination.searchParams.set("workspace", "dashboard");
   window.location.assign(`${destination.pathname}${destination.search}`);
 }
 
@@ -97,7 +97,7 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
           <h2>{summary.projectName}</h2>
           <p>{report.storySeed?.premise || "Synthetic test story premise was not recorded."}</p>
         </div>
-        <button onClick={closeSession} type="button">Back to Library</button>
+        <button onClick={closeSession} type="button">Back to Dashboard</button>
       </header>
 
       <div className={styles.reviewSummary}>
@@ -208,7 +208,7 @@ export default function AverySessionHistory() {
 
   if (requested) {
     if (detail) return <SessionReview detail={detail} />;
-    return <section className={styles.panel}><p>{notice || "Opening Avery session…"}</p><button onClick={closeSession} type="button">Back to Library</button></section>;
+    return <section className={styles.panel}><p>{notice || "Opening Avery session…"}</p><button onClick={closeSession} type="button">Back to Dashboard</button></section>;
   }
 
   const slots = Array.from({ length: SLOT_COUNT }, (_, index) => sessions[index] || null);

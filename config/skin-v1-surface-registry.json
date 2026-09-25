@@ -240,7 +240,7 @@
           "label": "Library"
         },
         {
-          "order": 1,
+          "order": 2,
           "slug": "new",
           "label": "New"
         }
@@ -262,7 +262,7 @@
     },
     {
       "id": "library-import",
-      "label": "Library · Import",
+      "label": "Library · Import Export",
       "family": "library",
       "parent": "library",
       "surfaceClass": "nested",
@@ -277,9 +277,9 @@
           "label": "Library"
         },
         {
-          "order": 2,
-          "slug": "import",
-          "label": "Import"
+          "order": 3,
+          "slug": "import-export",
+          "label": "Import Export"
         }
       ],
       "legacyEvidence": {
@@ -293,8 +293,8 @@
         "selectedState": "not-applicable",
         "typography": "standard-ui"
       },
-      "runtimeSelector": "section[data-library-destination='import']",
-      "runtimeReadySelector": "section[data-library-destination='import'] [data-library-surface='import']",
+      "runtimeSelector": "section[data-library-destination='import-export']",
+      "runtimeReadySelector": "section[data-library-destination='import-export'] [data-library-surface='import-export']",
       "orchestrated": true
     },
     {
@@ -314,7 +314,7 @@
           "label": "Library"
         },
         {
-          "order": 3,
+          "order": 1,
           "slug": "load",
           "label": "Load"
         }

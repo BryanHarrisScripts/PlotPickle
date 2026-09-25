@@ -43,22 +43,22 @@
       "label": "Library · New",
       "status": "candidate",
       "selector": "section[data-library-destination='new']",
-      "candidate": ".artifacts/visual-readiness/03-library__01-new__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/03-library__01-new.png"
+      "candidate": ".artifacts/visual-readiness/03-library__02-new__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__02-new.png"
     },
     "library-import": {
-      "label": "Library · Import",
+      "label": "Library · Import Export",
       "status": "candidate",
-      "selector": "section[data-library-destination='import']",
-      "candidate": ".artifacts/visual-readiness/03-library__02-import__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/03-library__02-import.png"
+      "selector": "section[data-library-destination='import-export']",
+      "candidate": ".artifacts/visual-readiness/03-library__03-import-export__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__03-import-export.png"
     },
     "library-load": {
       "label": "Library · Load",
       "status": "candidate",
       "selector": "section[data-library-destination='load']",
-      "candidate": ".artifacts/visual-readiness/03-library__03-load__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/03-library__03-load.png"
+      "candidate": ".artifacts/visual-readiness/03-library__01-load__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__01-load.png"
     },
     "library-examples": {
       "label": "Library · Examples",

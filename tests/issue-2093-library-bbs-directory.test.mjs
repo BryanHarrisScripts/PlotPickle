@@ -7,14 +7,14 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#2093 makes Library a single-surface Matrix/BBS keyboard directory", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(workspace, /useState<LibraryDestination \| null>\(null\)/u);
+  assert.match(workspace, /useState<LibraryDestination>\("load"\)/u);
   assert.match(workspace, /data-library-layout="single-surface"/u);
   assert.match(workspace, /data-library-directory="keyboard-directory"/u);
   assert.match(workspace, /data-skin-menu="library"/u);
   assert.match(workspace, /role="listbox" aria-label="Library directory"/u);
   assert.doesNotMatch(workspace, /data-library-back="directory"|Back to Library/u);
-  assert.match(workspace, /data-library-directory="keyboard-directory"[\s\S]*destination !== null \? \([\s\S]*data-library-destination=\{destination\}/u);
-  assert.match(workspace, /event\.key === "Escape"[\s\S]*returnToDirectory\(\)/u);
+  assert.match(workspace, /data-library-directory="keyboard-directory"[\s\S]*data-library-destination=\{destination\}/u);
+  assert.match(workspace, /event\.key === "Escape"[\s\S]*openActiveProject\(\)/u);
   assert.doesNotMatch(workspace, /<nav aria-label="Library navigation"/u);
   assert.doesNotMatch(workspace, /className=\{styles\.libraryNav\}/u);
 });
@@ -23,9 +23,9 @@ test("#2093 scopes all seven visible character shortcuts to the Library director
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
   for (const [id, shortcut, label] of [
-    ["new", "N", "NEW"],
-    ["import", "I", "IMPORT"],
     ["load", "L", "LOAD"],
+    ["new", "N", "NEW"],
+    ["import-export", "I", "IMPORT EXPORT"],
     ["examples", "E", "EXAMPLES"],
     ["presets", "P", "PRESETS"],
     ["avery", "A", "AVERY"],
@@ -60,6 +60,6 @@ test("#2093 preserves Library project authority while changing only navigation",
 
   assert.match(workspace, /sourceKind: pending\.sourceKind/u);
   assert.match(workspace, /setPending\(\{ kind: "story", item \}\)/u);
-  assert.match(workspace, /accept="\.ppf,application\/octet-stream"/u);
+  assert.match(workspace, /accept="\.ppf,\.json,application\/octet-stream,application\/json"/u);
   assert.match(workspace, /Your current work will be saved as a local story before PlotPickle switches projects\./u);
 });

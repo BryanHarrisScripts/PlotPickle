@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "issue": 2448,
+  "phase": "mindmap-act-workspace",
+  "brief": "docs/developer-briefs/2448-mindmap-act-workspace.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/discovery-surface.tsx",
+    "app/skin-v1/discovery-surface.module.css",
+    "core/contracts/discovery/index.ts",
+    "config/development-convergence/2448.json",
+    "docs/developer-briefs/2448-mindmap-act-workspace.md",
+    "tests/issue-2442-mind-world-map-refinement.test.mjs",
+    "tests/issue-2448-mindmap-act-workspace.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2448-A1",
+      "criterion": "MindMap header is one word.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-review-host.tsx", "contains": "<h1>MINDMAP</h1>" }
+      ]
+    },
+    {
+      "id": "P2448-A2",
+      "criterion": "One selected Act drives composer, inbox, develop action and six-lane board.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/discovery-surface.tsx", "contains": "selectedAct" }
+      ]
+    },
+    {
+      "id": "P2448-A3",
+      "criterion": "Story Shape is a two-column selected-Act workspace.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/discovery-surface.module.css", "contains": "grid-template-columns: repeat(2, minmax(0, 1fr))" }
+      ]
+    }
+  ]
+}

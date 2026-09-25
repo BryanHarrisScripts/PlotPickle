@@ -5,7 +5,7 @@ import { WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-cano
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Layer 1 canonical navigation keeps the frozen six-group Dashboard authority", async () => {
+test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard authority", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
   const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
     .map((match) => match.slice(1));
@@ -24,6 +24,9 @@ test("Layer 1 canonical navigation keeps the frozen six-group Dashboard authorit
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
+    ["sound-narration", "6", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
+    ["sound-music", "7", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["sound-foley", "8", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
     ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
@@ -41,14 +44,14 @@ test("Layer 1 canonical navigation keeps the frozen six-group Dashboard authorit
   const shortcuts = rows.map(([, shortcut]) => shortcut);
   assert.equal(new Set(shortcuts).size, shortcuts.length);
   assert.deepEqual([...new Set(rows.map((row) => row[4]))], [
-    "EXPLORE", "DEVELOP", "VISUALIZE", "PITCH", "PLAY", "SYSTEM",
+    "EXPLORE", "DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY", "SYSTEM",
   ]);
 
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
   assert.match(menu, /DASHBOARD_REVIEW_ITEM_IDS/u);
-  assert.match(menu, /DASHBOARD_DISABLED_ITEM_IDS/u);
+  assert.match(menu, /DASHBOARD_UNAVAILABLE_ITEM_IDS/u);
 });
 
 test("Layer 1 canonical navigation protects nested Library return continuity", async () => {

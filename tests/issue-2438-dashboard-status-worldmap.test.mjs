@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and disables Pitch", async () => {
+test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and keeps unavailable destinations gray", async () => {
   const [menu, dashboard, host, styles, audit] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
@@ -22,7 +22,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and di
 
   const review = menu.slice(
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
-    menu.indexOf("export const DASHBOARD_DISABLED_ITEM_IDS"),
+    menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
   );
   assert.deepEqual(
     [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
@@ -30,20 +30,20 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and di
   );
 
   const disabled = menu.slice(
-    menu.indexOf("export const DASHBOARD_DISABLED_ITEM_IDS"),
+    menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
   assert.deepEqual(
     [...disabled.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["pitch-package", "pitch-deck"],
+    ["sound-narration", "sound-music", "sound-foley", "pitch-package", "pitch-deck"],
   );
 
-  assert.match(dashboard, /const locked = connected && !inReview && !disabled/u);
-  assert.match(dashboard, /data-dashboard-surface-state=\{disabled \? "unavailable" : inReview \? "in-review" : locked \? "locked" : "unavailable"\}/u);
+  assert.match(dashboard, /const locked = connected && !inReview && !unavailable/u);
+  assert.match(dashboard, /data-dashboard-surface-state=\{unavailable \? "unavailable" : inReview \? "in-review" : locked \? "locked" : "unavailable"\}/u);
   assert.match(dashboard, /data-dashboard-locked=\{locked \? "true" : "false"\}/u);
-  assert.match(dashboard, /aria-disabled=\{disabled\}/u);
-  assert.match(dashboard, /if \(!item \|\| DASHBOARD_DISABLED_ITEM_IDS\.has\(item\.id\)\) return/u);
-  assert.match(host, /if \(!item \|\| DASHBOARD_DISABLED_ITEM_IDS\.has\(item\.id\)\) return/u);
+  assert.match(dashboard, /aria-description=\{unavailable \? "Surface unavailable; row remains selectable\." : undefined\}/u);
+  assert.doesNotMatch(dashboard, /if \(!item \|\| DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) return/u);
+  assert.match(host, /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u);
   assert.doesNotMatch(host, /window\.location\.assign\("\/pitch-review\?scope=pitch&return=dashboard"\)/u);
 
   assert.match(styles, /\[data-dashboard-review="in-review"\] \.pp-skin-v1-dashboard-status-box[\s\S]*--pp-skin-warning/u);

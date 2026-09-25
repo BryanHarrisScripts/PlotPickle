@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "issue": 2446,
+  "phase": "dashboard-sound-selectable",
+  "brief": "docs/developer-briefs/2446-dashboard-sound-selectable.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-menu-registry.ts",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "config/development-convergence/2446.json",
+    "docs/developer-briefs/2446-dashboard-sound-selectable.md",
+    "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+    "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+    "tests/issue-2444-dashboard-review-fold.test.mjs",
+    "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2446-A1",
+      "criterion": "Sound appears between Visualize and Pitch with Narration, Music and Foley.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "group: \"SOUND\"" }
+      ]
+    },
+    {
+      "id": "P2446-A2",
+      "criterion": "Unavailable rows remain selectable without opening a surface.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-review-host.tsx", "contains": "DASHBOARD_UNAVAILABLE_ITEM_IDS" }
+      ]
+    },
+    {
+      "id": "P2446-A3",
+      "criterion": "Unavailable destinations remain gray rather than locked.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-dashboard-surface-state" }
+      ]
+    }
+  ]
+}

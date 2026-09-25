@@ -15,7 +15,8 @@
     "tests/issue-1143-profile-experience.test.mjs",
     "tests/issue-2215-uat-semantic-review.test.mjs",
     "tests/issue-2450-library-durable-hydration.test.mjs",
-    "core/storage/profile-private/profile-private-storage-core.mjs"
+    "core/storage/profile-private/profile-private-storage-core.mjs",
+    "core/storage/profile-private/profile-private-storage.ts"
   ],
   "acceptance": [
     {

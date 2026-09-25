@@ -43,7 +43,7 @@ export default function MatrixStoryMapSurface({
         navigationOnly
         onSelectAddress={onAddressChange}
       />
-      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} />
+      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} baselinePresentation />
     </div>
   );
 }

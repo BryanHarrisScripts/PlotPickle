@@ -7,6 +7,7 @@ import { normalizeLibraryProject, type LibraryPPFProject } from "./library-proje
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   hydrateProfileProjectLibrary,
+  listLibraryProjects,
   loadActiveLibraryProject,
 } from "./project-library-browser";
 
@@ -164,7 +165,9 @@ export function hydratedStoryMapContext(projectId: string) {
 }
 
 export function persistActiveProfileProject(explicitToken = "") {
-  return queueWrite("save-project", { project: loadActiveLibraryProject() }, explicitToken);
+  const project = loadActiveLibraryProject();
+  const summary = listLibraryProjects().find((item) => item.id === project.id);
+  return queueWrite("save-project", { project, ...(summary ? { summary } : {}) }, explicitToken);
 }
 
 export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {

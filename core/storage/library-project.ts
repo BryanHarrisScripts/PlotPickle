@@ -14,6 +14,7 @@ import {
   type StoryStructureV2,
 } from "../project/story-structure-v2";
 import { normalizeFoundationProject, PPF_FOUNDATION_VERSION, type PPFProject } from "../project/project";
+import { createEmptyWorldMapState, normalizeWorldMapState, type WorldMapState } from "../contracts/world-map";
 import { createEmptyDiscoveryState, normalizeDiscoveryState, type DiscoveryState } from "../contracts/discovery";
 
 export type LibraryPPFProject = PPFProject & {
@@ -21,6 +22,7 @@ export type LibraryPPFProject = PPFProject & {
   readonly sourceEvidence: ProjectSourceEvidence;
   readonly writing: BlockWritingState;
   readonly discovery: DiscoveryState;
+  readonly worldMap: WorldMapState;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
@@ -51,7 +53,10 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const discovery = source.discovery === undefined
     ? createEmptyDiscoveryState()
     : normalizeDiscoveryState(source.discovery);
-  return { ...project, structure, sourceEvidence, writing, discovery };
+  const worldMap = source.worldMap === undefined
+    ? createEmptyWorldMapState()
+    : normalizeWorldMapState(source.worldMap);
+  return { ...project, structure, sourceEvidence, writing, discovery, worldMap };
 }
 
 export function libraryBackupFileName(title: string) {

@@ -1,4 +1,5 @@
 import { createEmptyProject, type PPFProject } from "../project/project";
+import { createEmptyWorldMapState, normalizeWorldMapState } from "../contracts/world-map";
 import {
   createEmptyBlockWritingState,
   normalizeBlockWritingState,
@@ -139,7 +140,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.writing
       : createEmptyBlockWritingState();
-  const projectWithStructure = { ...project, structure, writing };
+  const worldMap = "worldMap" in incoming
+    ? normalizeWorldMapState(incoming.worldMap)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.worldMap
+      : createEmptyWorldMapState();
+  const projectWithStructure = { ...project, structure, writing, worldMap };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const result = libraryCore.saveProfileActiveProject({

@@ -10,7 +10,7 @@ import {
   createEmptyWorldMapState,
   normalizeWorldMapState,
   upsertWorldMapCharacterVisualPackage,
-} from "../core/contracts/world-map.ts";
+} from "../core/contracts/world-map/index.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

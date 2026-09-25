@@ -205,6 +205,20 @@
       ]
     },
     {
+      "id": "library-local-resource-recovery",
+      "classification": "production",
+      "include": [
+        "modules/library/local-resource-recovery.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "visual"
+      ]
+    },
+    {
       "id": "mastra-agent-runtime",
       "classification": "production",
       "include": [

@@ -8,13 +8,12 @@ const readJson = async (path) => JSON.parse(await read(path));
 test("#2251 Story Bible remains connected after the #2266 Pre-Production consolidation", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
   const bible = menu.indexOf('id: "story-bible"');
-  const plan = menu.indexOf('id: "plan"');
-  const storyboard = menu.indexOf('id: "storyboard"');
-  const previs = menu.indexOf('id: "previs"');
+  const discovery = menu.indexOf('id: "discovery"');
   const write = menu.indexOf('id: "write"');
+  const plan = menu.indexOf('id: "plan"');
 
-  assert.ok(bible >= 0 && plan > bible && storyboard > plan && previs > storyboard && write > previs);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Story Bible", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION"/u);
+  assert.ok(discovery >= 0 && bible > discovery && write > bible && plan > write);
+  assert.match(menu, /id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP"/u);
   assert.match(menu, /"story-bible"/u);
 
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
@@ -39,7 +38,7 @@ test("#2251 refuses to manufacture an empty Bible when no story is active", asyn
   assert.doesNotMatch(host, /createEmptyLibraryProject|Untitled Story/);
 });
 
-test("#2251 renders a canonical read-only visual Bible surface", async () => {
+test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-reviewed World Map surface", async () => {
   const [surface, styles, host] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
@@ -48,10 +47,11 @@ test("#2251 renders a canonical read-only visual Bible surface", async () => {
 
   for (const phrase of [
     'data-story-bible-surface="canonical"',
-    'data-story-bible-read-only="true"',
-    "STORY BIBLE · READ-ONLY REFERENCE",
+    'data-story-bible-read-only="false"',
+    'data-world-map-surface="review"',
+    "WORLD MAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT",
     "PLOT / STRUCTURE",
-    "Character truth and backstory",
+    "Character truth, backstory and reusable visual identity",
     "FOUNDATIONS / WRITER DECISIONS",
     "WORLD / CONTINUITY",
     "PROVENANCE",
@@ -59,7 +59,9 @@ test("#2251 renders a canonical read-only visual Bible surface", async () => {
 
   assert.match(surface, /projectStoryBible\(project, plotPickleCurriculum\)/u);
   assert.match(surface, /NO POSTER YET/u);
-  assert.match(surface, /NO CHARACTER IMAGE YET/u);
+  assert.match(surface, /NO APPROVED CHARACTER IMAGE YET/u);
+  assert.match(surface, /Ask World Agent/u);
+  assert.match(surface, /Generate Character Visual/u);
   assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\}/u);
   assert.match(styles, /var\(--pp-skin-/u);
   assert.doesNotMatch(styles, /#[0-9a-f]{3,8}\b|rgba?\(/iu);

@@ -4,8 +4,8 @@
    does not move. Dashboard projects the same authorities compactly in its
    existing footer rather than replacing Profile's detailed presentation. */
 
-/* Black and White keeps semantic readiness green even though its theme palette
-   is monochrome. */
+/* Black and White keeps locked Dashboard surfaces green even though its theme palette
+   is monochrome. Green is the locked lifecycle state, not merely a wiring signal. */
 html[data-plotpickle-skin-theme="skin-v2"] .pp-skin-v1-dashboard-status-box.is-active {
   border-color: var(--pp-skin-ready) !important;
   background: var(--pp-skin-ready) !important;

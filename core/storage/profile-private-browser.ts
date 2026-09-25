@@ -166,7 +166,20 @@ export function hydratedStoryMapContext(projectId: string) {
 
 export function persistActiveProfileProject(explicitToken = "") {
   const project = loadActiveLibraryProject();
-  const summary = listLibraryProjects().find((item) => item.id === project.id);
+  const librarySummary = listLibraryProjects().find((item) => item.id === project.id);
+  const summary = librarySummary ? {
+    title: librarySummary.title,
+    updatedAt: librarySummary.updatedAt,
+    createdAt: librarySummary.createdAt,
+    progress: librarySummary.progress,
+    frontier: librarySummary.frontier,
+    thumbnailRef: librarySummary.thumbnail,
+    sourceKind: librarySummary.sourceKind,
+    sourceId: librarySummary.sourceId,
+    genre: librarySummary.genre,
+    format: librarySummary.format,
+    archivedAt: librarySummary.archivedAt,
+  } : undefined;
   return queueWrite("save-project", { project, ...(summary ? { summary } : {}) }, explicitToken);
 }
 

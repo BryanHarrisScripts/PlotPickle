@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "issue": 2428,
+  "phase": "storyboard-frame-review-controls",
+  "brief": "docs/developer-briefs/2428-storyboard-frame-review-controls.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "config/development-convergence/2428.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2428-storyboard-frame-review-controls.md",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2428-storyboard-frame-review-controls.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2428-E1",
+      "criterion": "All 25 Storyboard positions permanently expose Keep / Lock, Redo and Reject under the frame image.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Keep / Lock"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+          "contains": "visible review strip"
+        }
+      ]
+    },
+    {
+      "id": "P2428-E2",
+      "criterion": "Review actions reuse canonical accept/discard and single-frame regeneration authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "function reviewFrame("
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "setGenerationScope(\"single\")"
+        }
+      ]
+    }
+  ]
+}

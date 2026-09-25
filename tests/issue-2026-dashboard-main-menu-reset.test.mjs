@@ -14,7 +14,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
     ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
-    ["story-bible", "V", "Story", "Story, Logline, Theme and Visual Reference", "DEVELOP"],
+    ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
     ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
     ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
@@ -65,8 +65,10 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   }
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  assert.match(connected, /"pitch-package"/u);
+  assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
+  assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"discovery"[\s\S]*"story-bible"[\s\S]*"plan"[\s\S]*"storyboard"[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
+  assert.match(menu, /export const DASHBOARD_DISABLED_ITEM_IDS = new Set\(\[[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {
@@ -87,7 +89,9 @@ test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score a
   assert.match(dashboard, /<PlotPickleScorePanel \/>/u);
   assert.match(dashboard, /const connected = CONNECTED_DASHBOARD_ITEM_IDS\.has\(item\.id\)/u);
   assert.match(dashboard, /data-skin-menu-indicator=\{connected \? "connected" : "unwired"\}/u);
-  assert.match(dashboard, /data-dashboard-status=\{connected \? "active" : "inactive"\}/u);
+  assert.match(dashboard, /data-dashboard-surface-state=\{disabled \? "unavailable" : inReview \? "in-review" : locked \? "locked" : "unavailable"\}/u);
+  assert.match(dashboard, /data-dashboard-locked=\{locked \? "true" : "false"\}/u);
+  assert.match(dashboard, /data-dashboard-status=\{disabled \? "inactive" : inReview \? "in-review" : locked \? "locked" : "inactive"\}/u);
 });
 
 test("#2026 preserves keyboard-first navigation while changing only Human-facing menu IA", async () => {

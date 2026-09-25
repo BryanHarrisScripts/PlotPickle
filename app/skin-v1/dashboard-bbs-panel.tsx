@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_DISABLED_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
+import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import LearnJourneyPreview from "./learn-journey-preview";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
@@ -136,7 +136,7 @@ export default function DashboardBbsPanel({
 
   function activateItem(index: number) {
     const item = items[index];
-    if (!item || DASHBOARD_DISABLED_ITEM_IDS.has(item.id)) return;
+    if (!item) return;
     if (item.id === "settings") {
       setSettingsSelectedIndex(0);
       setSettingsMenuOpen(true);
@@ -396,9 +396,9 @@ export default function DashboardBbsPanel({
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEM_IDS.has(item.id);
-            const disabled = DASHBOARD_DISABLED_ITEM_IDS.has(item.id);
+            const unavailable = DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id);
             const inReview = DASHBOARD_REVIEW_ITEM_IDS.has(item.id);
-            const locked = connected && !inReview && !disabled;
+            const locked = connected && !inReview && !unavailable;
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ") + ` - ${item.description}`;
             const primary = (
@@ -407,14 +407,14 @@ export default function DashboardBbsPanel({
                 type="button"
                 role="option"
                 aria-selected={selected}
-                aria-disabled={disabled}
+                aria-description={unavailable ? "Surface unavailable; row remains selectable." : undefined}
                 tabIndex={selected ? 0 : -1}
                 className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row${selected ? " is-selected" : ""}`}
                 data-dashboard-menu-item={item.id}
                 data-dashboard-shortcut={item.shortcut}
                 data-dashboard-connected={connected ? "true" : "false"}
                 data-dashboard-review={inReview ? "in-review" : undefined}
-                data-dashboard-surface-state={disabled ? "unavailable" : inReview ? "in-review" : locked ? "locked" : "unavailable"}
+                data-dashboard-surface-state={unavailable ? "unavailable" : inReview ? "in-review" : locked ? "locked" : "unavailable"}
                 data-dashboard-locked={locked ? "true" : "false"}
                 data-skin-menu-row={item.id}
                 data-skin-menu-shortcut={item.shortcut}
@@ -426,9 +426,9 @@ export default function DashboardBbsPanel({
                 <span className="pp-skin-v1-dashboard-command-line">{command}</span>
                 <span
                   className={`pp-skin-v1-dashboard-status-box${locked ? " is-active" : ""}${inReview ? " is-review" : ""}`}
-                  aria-label={`${item.label}: ${disabled ? "unavailable" : inReview ? "in review" : locked ? "locked" : "unavailable"}`}
+                  aria-label={`${item.label}: ${unavailable ? "unavailable" : inReview ? "in review" : locked ? "locked" : "unavailable"}`}
                   data-skin-reference-state="status"
-                  data-dashboard-status={disabled ? "inactive" : inReview ? "in-review" : locked ? "locked" : "inactive"}
+                  data-dashboard-status={unavailable ? "inactive" : inReview ? "in-review" : locked ? "locked" : "inactive"}
                   data-skin-menu-indicator={connected ? "connected" : "unwired"}
                 />
               </button>

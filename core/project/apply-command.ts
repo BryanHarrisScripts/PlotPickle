@@ -277,7 +277,7 @@ export function applyStoryCommand(
         },
       };
     case "production.sound.store": {
-      const existing = project.production.soundCues.filter((cue) => cue.id !== command.cue.id);
+      const existing = (project.production.soundCues ?? []).filter((cue) => cue.id !== command.cue.id);
       return {
         ...base,
         production: {
@@ -291,11 +291,11 @@ export function applyStoryCommand(
         ...base,
         production: {
           ...project.production,
-          soundCues: project.production.soundCues.filter((cue) => cue.id !== command.cueId),
+          soundCues: (project.production.soundCues ?? []).filter((cue) => cue.id !== command.cueId),
         },
       };
     case "production.take.store": {
-      const existing = project.production.takes.filter((take) => take.id !== command.take.id);
+      const existing = (project.production.takes ?? []).filter((take) => take.id !== command.take.id);
       return {
         ...base,
         production: {
@@ -305,7 +305,7 @@ export function applyStoryCommand(
       };
     }
     case "production.cut.store": {
-      const existing = project.production.roughCuts.filter((cut) => cut.id !== command.cut.id);
+      const existing = (project.production.roughCuts ?? []).filter((cut) => cut.id !== command.cut.id);
       return {
         ...base,
         production: {
@@ -315,7 +315,7 @@ export function applyStoryCommand(
       };
     }
     case "production.screening.store": {
-      const existing = project.production.screeningObservations.filter((observation) => observation.id !== command.observation.id);
+      const existing = (project.production.screeningObservations ?? []).filter((observation) => observation.id !== command.observation.id);
       return {
         ...base,
         production: {

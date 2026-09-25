@@ -26,8 +26,10 @@ test("#2251 Story Bible is a read-only projection of existing PlotPickle authori
   assert.doesNotMatch(source, /saveActiveLibraryProject|applyStoryCommand|fetch\(|POST|PUT|PATCH/u);
 });
 
-test("#2251 does not invent Character imagery when no accepted visual authority exists", async () => {
+test("#2251/#2442 only projects Human-approved Character imagery and never generates it in the Story Bible projection", async () => {
   const source = await read("core/project/story-bible-projection.ts");
-  assert.match(source, /imageUrl: null/u);
+  assert.match(source, /approvedWorldMapCharacterReferences\(project\.worldMap, characterId\)/u);
+  assert.match(source, /imageUrl: approvedVisualRefs\[0\] \?\? null/u);
   assert.doesNotMatch(source, /generate.*character|character.*generate/iu);
+  assert.doesNotMatch(source, /fetch\(|POST|PUT|PATCH/u);
 });

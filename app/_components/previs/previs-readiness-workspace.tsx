@@ -17,6 +17,10 @@ import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
+  storyboardAnchorEvidence,
+  storyboardPositionProgression,
+} from "../storyboard/storyboard-editorial-model";
+import {
   createProductionShotForAnchor,
   derivePrevisProjection,
   shotNeedsReview,
@@ -43,8 +47,8 @@ const STATE_LABELS = {
   defined: "DEFINED",
   observed: "OBSERVED",
   emerging: "EMERGING",
-  missing: "MISSING",
-  locked: "LOCKED",
+  missing: "AVAILABLE",
+  locked: "BLOCKED",
 } as const;
 
 export default function PrevisReadinessWorkspace({
@@ -53,16 +57,20 @@ export default function PrevisReadinessWorkspace({
   onOpenStoryboard,
   address,
   onAddressChange,
+  embeddedNavigation = false,
 }: {
   readonly project: PPFProject;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenStoryboard: (anchor?: PrevisAnchorProjection) => void;
   readonly address?: { readonly blockNumber: number; readonly miniBlockNumber: number };
   readonly onAddressChange?: (address: { blockNumber: number; miniBlockNumber: number }) => void;
+  readonly embeddedNavigation?: boolean;
 }) {
   const projection = useMemo(() => derivePrevisProjection(project), [project]);
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => address?.blockNumber ?? requestedAddress().blockNumber);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => address?.miniBlockNumber ?? requestedAddress().miniBlockNumber);
+  const [selectedFramePosition, setSelectedFramePosition] = useState(1);
+  const [flipBookPlaying, setFlipBookPlaying] = useState(false);
   useEffect(() => {
     if (!address) return;
     const timer = window.setTimeout(() => {
@@ -83,6 +91,51 @@ export default function PrevisReadinessWorkspace({
   const selectedAnchor = allAnchors.find((anchor) => anchor.shots.some((shot) => shot.id === selectedShotId)) ?? null;
   const selectedShot = selectedAnchor?.shots.find((shot) => shot.id === selectedShotId) ?? null;
   const selectedShotStale = Boolean(selectedShot && selectedAnchor && shotNeedsReview(selectedAnchor, selectedShot));
+  const selectedAct = Math.ceil(selectedBlockNumber / 6);
+  const actBlocks = projection.blocks.filter((block) => Math.ceil(block.blockNumber / 6) === selectedAct);
+  const acceptedVisualIds = new Set(project.build.foundations.acceptedVisualArtifactIds);
+  const activeFrameArtifacts = selectedAddressAnchor
+    ? project.build.foundations.visualArtifacts
+      .filter((artifact) => artifact.workflow === "storyboard-frame-webp-v2"
+        && artifact.reviewState !== "rejected"
+        && (artifact.sourceDecisionKeys ?? []).includes(selectedAddressAnchor.id))
+    : [];
+  const flipBookFrames = Array.from({ length: 25 }, (_, index) => {
+    const position = index + 1;
+    const artifacts = activeFrameArtifacts
+      .filter((artifact) => artifact.frameNumber === position)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    const locked = artifacts.find((artifact) => acceptedVisualIds.has(artifact.id) && artifact.reviewState === "accepted") ?? null;
+    const candidate = artifacts[0] ?? null;
+    return {
+      position,
+      locked,
+      candidate,
+      visual: locked ?? candidate,
+      state: locked ? "locked" as const : candidate ? "review" as const : "empty" as const,
+    };
+  });
+  const selectedFlipBookFrame = flipBookFrames[selectedFramePosition - 1];
+  const lockedFrameCount = flipBookFrames.filter((frame) => frame.locked).length;
+  const selectedFrameEvidence = selectedAddressAnchor
+    ? storyboardAnchorEvidence(project, selectedAddressAnchor.targetId, selectedAddressAnchor.miniBlockNumber)
+    : null;
+  const selectedFrameSceneNumbers = [...new Set((selectedFrameEvidence?.passages ?? []).map((passage) => passage.sceneNumber).filter(Boolean))];
+  const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
+  const selectedFrameShot = selectedAddressAnchor?.shots.find((shot) => shot.order === selectedFramePosition) ?? null;
+
+  useEffect(() => {
+    setSelectedFramePosition(1);
+    setFlipBookPlaying(false);
+  }, [selectedBlockNumber, selectedMiniBlockNumber]);
+
+  useEffect(() => {
+    if (!flipBookPlaying) return;
+    const timer = window.setInterval(() => {
+      setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
+    }, 220);
+    return () => window.clearInterval(timer);
+  }, [flipBookPlaying]);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);
@@ -141,10 +194,10 @@ export default function PrevisReadinessWorkspace({
     <main className={styles.workspace} aria-labelledby="previs-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Previs · 24 Blocks / 96 Mini-Blocks / {RENDER_CLIPS_PER_FEATURE.toLocaleString()} render clips</span>
+          <span className={styles.eyebrow}>Previs · Flip Book → Scene → Beat Detail → Shot → Frame</span>
           <h1 id="previs-title">Previs · {project.title || "Untitled Story"}</h1>
           <p>
-            Storyboard and Visualize establish what the film looks like. Previs authors camera, blocking, performance energy, motion and timing only where the Human has evidence or intent to record. For the current two-hour technical preset, Render Plan can project a completed 75-second Mini-Block onto 25 × 3-second generation clips. A creative shot may span one clip or several; the clip grid is production plumbing, not a source of creative timing.
+            Previs inherits the Human-kept Storyboard sequence and tests how the visual story plays. Locked frames form the Flip Book; Scene, Beat Detail, Shot and Frame stay attached to the same story address while camera, blocking, performance, motion and timing remain Human-authored downstream intent.
           </p>
         </div>
         <dl className={styles.summary}>
@@ -158,40 +211,64 @@ export default function PrevisReadinessWorkspace({
 
       <section className={styles.notice} aria-label="Previs and Render Plan authority boundary">
         <div>
-          <strong>Storyboard → Visualize → Previs → Render Plan → Generate.</strong>
-          <span>Previs owns Human-authored motion, blocking, camera and timing intent. The current 75-second / 25 × 3-second Render Plan is a technical preset projection, not timing inferred from the 24/96 story grid.</span>
+          <strong>Locked Storyboard frames → Previs Flip Book → motion and timing intent.</strong>
+          <span>Storyboard owns the still image and Keep / Lock decision. Previs can inspect draft positions, but only locked Storyboard frames become authoritative Flip Book material. Beat Detail is derived working context and never creates a new canonical Beat.</span>
         </div>
         <div className={styles.noticeActions}>
           <button type="button" onClick={() => onOpenStoryboard()}>Open Storyboard</button>
         </div>
       </section>
 
-      <nav aria-label="Previs Block tabs" className={styles.tabRail} role="tablist">
-        {projection.blocks.map((block) => {
-          const selected = block.blockNumber === selectedBlock?.blockNumber;
-          return (
-            <button
-              aria-controls="previs-block-panel"
-              aria-label={`Block ${String(block.blockNumber).padStart(2, "0")}, ${STATE_LABELS[block.state]}`}
-              aria-selected={selected}
-              className={styles.blockTab}
-              data-state={block.state}
-              key={block.targetId}
-              onClick={() => {
-                setSelectedBlockNumber(block.blockNumber);
-                setSelectedMiniBlockNumber(1);
-                preservePrevisAddress(block.blockNumber, 1);
-                onAddressChange?.({ blockNumber: block.blockNumber, miniBlockNumber: 1 });
-              }}
-              role="tab"
-              type="button"
-            >
-              <i aria-hidden="true" className={styles.stateLight} />
-              <span>{String(block.blockNumber).padStart(2, "0")}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {!embeddedNavigation ? (
+        <>
+          <nav aria-label="Previs Acts" className={styles.actRail} role="tablist">
+            {[1, 2, 3, 4].map((act) => (
+              <button
+                aria-selected={selectedAct === act}
+                className={styles.actTab}
+                key={act}
+                onClick={() => {
+                  const firstBlock = (act - 1) * 6 + 1;
+                  setSelectedBlockNumber(firstBlock);
+                  setSelectedMiniBlockNumber(1);
+                  preservePrevisAddress(firstBlock, 1);
+                  onAddressChange?.({ blockNumber: firstBlock, miniBlockNumber: 1 });
+                }}
+                role="tab"
+                type="button"
+              >
+                Act {act}
+              </button>
+            ))}
+          </nav>
+          <nav aria-label={`Act ${selectedAct} Previs Block tabs`} className={styles.tabRail} role="tablist">
+            {actBlocks.map((block) => {
+              const selected = block.blockNumber === selectedBlock?.blockNumber;
+              return (
+                <button
+                  aria-controls="previs-block-panel"
+                  aria-label={`Block ${String(block.blockNumber).padStart(2, "0")}, ${STATE_LABELS[block.state]}`}
+                  aria-selected={selected}
+                  className={styles.blockTab}
+                  data-state={block.state}
+                  key={block.targetId}
+                  onClick={() => {
+                    setSelectedBlockNumber(block.blockNumber);
+                    setSelectedMiniBlockNumber(1);
+                    preservePrevisAddress(block.blockNumber, 1);
+                    onAddressChange?.({ blockNumber: block.blockNumber, miniBlockNumber: 1 });
+                  }}
+                  role="tab"
+                  type="button"
+                >
+                  <i aria-hidden="true" className={styles.stateLight} />
+                  <span>Block {block.blockNumber - (selectedAct - 1) * 6}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </>
+      ) : null}
 
       {selectedBlock ? (
         <section
@@ -268,6 +345,90 @@ export default function PrevisReadinessWorkspace({
               </article>
             ))}
           </div>
+
+          {selectedAddressAnchor ? (
+            <section className={styles.flipBook} aria-labelledby="previs-flipbook-title" data-previs-flipbook="25-positions">
+              <header className={styles.flipBookHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Locked Storyboard sequence</span>
+                  <h3 id="previs-flipbook-title">Flip Book · Mini-Block {selectedAddressAnchor.blockNumber}.{selectedAddressAnchor.miniBlockNumber}</h3>
+                  <p>Fan through the 25 Storyboard positions as one visual sequence. Only Keep / Lock frames are authoritative Previs inputs; unlocked candidates stay visible in the strip for review context only.</p>
+                </div>
+                <strong>{lockedFrameCount}/25 locked</strong>
+              </header>
+
+              <div className={styles.flipBookViewer}>
+                <div className={styles.flipBookStage} data-frame-state={selectedFlipBookFrame.locked ? "locked" : selectedFlipBookFrame.candidate ? "review" : "empty"}>
+                  {selectedFlipBookFrame.locked ? (
+                    <img
+                      alt={selectedFlipBookFrame.locked.narrativeIntention || `Locked Storyboard frame ${selectedFramePosition}`}
+                      decoding="async"
+                      src={selectedFlipBookFrame.locked.assetUrl}
+                    />
+                  ) : (
+                    <div className={styles.flipBookBlocked}>
+                      <strong>Position {String(selectedFramePosition).padStart(2, "0")} is not locked for Previs.</strong>
+                      <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
+                      <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open Storyboard</button>
+                    </div>
+                  )}
+                  <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>
+                </div>
+
+                <div className={styles.flipBookControls} aria-label="Flip Book playback">
+                  <button type="button" onClick={() => setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1)}>Previous</button>
+                  <button aria-pressed={flipBookPlaying} type="button" onClick={() => setFlipBookPlaying((playing) => !playing)}>{flipBookPlaying ? "Pause" : "Play Flip Book"}</button>
+                  <button type="button" onClick={() => setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1)}>Next</button>
+                </div>
+              </div>
+
+              <div className={styles.flipBookStrip} aria-label="25 Previs Flip Book positions">
+                {flipBookFrames.map((frame) => (
+                  <button
+                    aria-current={frame.position === selectedFramePosition ? "true" : undefined}
+                    aria-label={`Position ${frame.position}, ${frame.locked ? "locked" : frame.candidate ? "unlocked Storyboard candidate" : "empty"}`}
+                    data-frame-state={frame.state}
+                    key={frame.position}
+                    onClick={() => {
+                      setFlipBookPlaying(false);
+                      setSelectedFramePosition(frame.position);
+                    }}
+                    type="button"
+                  >
+                    {frame.visual
+                      ? <img alt="" aria-hidden="true" decoding="async" loading="lazy" src={frame.visual.assetUrl} />
+                      : <span className={styles.flipBookEmpty}>—</span>}
+                    <strong>{String(frame.position).padStart(2, "0")}</strong>
+                    <small>{frame.locked ? "LOCKED" : frame.candidate ? "REVIEW" : "EMPTY"}</small>
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.flipBookDetail} aria-label={`Previs detail for position ${selectedFramePosition}`}>
+                <article>
+                  <span>Scene</span>
+                  <strong>{selectedFrameSceneNumbers.length ? selectedFrameSceneNumbers.map((number) => `Scene ${number}`).join(" · ") : "No mapped Scene"}</strong>
+                  <p>{selectedFrameEvidence?.passages.length ? `${selectedFrameEvidence.passages.length} screenplay passage${selectedFrameEvidence.passages.length === 1 ? "" : "s"} support this Mini-Block.` : "Previs will not invent a Scene where screenplay evidence is missing."}</p>
+                </article>
+                <article>
+                  <span>Beat Detail</span>
+                  <strong>{selectedFrameProgression.label}</strong>
+                  <p>{selectedFrameProgression.direction}</p>
+                  <small>Derived Previs detail only · does not create a canonical Beat.</small>
+                </article>
+                <article>
+                  <span>Shot</span>
+                  <strong>{selectedFrameShot ? `Shot ${String(selectedFrameShot.order).padStart(2, "0")} · ${selectedFrameShot.shotSize || "size open"}` : "Shot intent open"}</strong>
+                  <p>{selectedFrameShot ? [selectedFrameShot.angle, selectedFrameShot.movement, selectedFrameShot.visualIntent].filter(Boolean).join(" · ") || "Camera intent remains open." : "Storyboard owns the locked still; Previs adds camera, blocking, performance and timing intent without rewriting the story."}</p>
+                </article>
+                <article>
+                  <span>Frame</span>
+                  <strong>Position {String(selectedFramePosition).padStart(2, "0")} · {selectedFlipBookFrame.locked ? "Locked" : selectedFlipBookFrame.candidate ? "Awaiting Keep / Lock" : "Missing"}</strong>
+                  <p>{selectedFlipBookFrame.locked?.narrativeIntention || selectedFlipBookFrame.candidate?.narrativeIntention || "No Storyboard frame is attached to this position."}</p>
+                </article>
+              </div>
+            </section>
+          ) : null}
 
           {selectedAddressAnchor ? (
             <section className={styles.evidencePanel} id="previs-selected-evidence" aria-label="Selected Previs anchor source and Storyboard provenance">

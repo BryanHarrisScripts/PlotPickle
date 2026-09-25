@@ -31,15 +31,21 @@ test("#2285 exposes the Human-approved five-stage pre-production flow vertically
   assert.match(host, /<SkinV1ProductionReviewSurface/u);
 });
 
-test("#2285 exposes the same five stages horizontally and preserves one shared address", async () => {
+test("#2285 keeps shared downstream stage routing while later visual surfaces use Act-first navigation", async () => {
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
 
   assert.match(host, /type PreproductionStage = "outline" \| "storyboard" \| "previs" \| "timeline" \| "production"/u);
   assert.match(host, /data-preproduction-stage-rail="five-stage"/u);
-  for (const stage of ["storyboard", "previs", "timeline", "production"]) {
+  for (const stage of ["timeline", "production"]) {
     assert.match(host, new RegExp('PreproductionStageRail active="' + stage + '"', "u"));
   }
-  assert.match(host, /<StoryActRail activeAct=/u);
+  for (const stage of ["storyboard", "previs"]) {
+    const start = host.indexOf("if (" + stage + "Open)");
+    const end = host.indexOf("if (", start + 4);
+    const section = host.slice(start, end > start ? end : undefined);
+    assert.match(section, /<StoryActRail activeAct=/u);
+    assert.doesNotMatch(section, new RegExp('PreproductionStageRail active="' + stage + '"', "u"));
+  }
   assert.match(host, /openPreproductionStage\([\s\S]*address: PreproductionReviewAddress = reviewAddress/u);
   assert.match(host, /setReviewAddress\(address\)/u);
 });

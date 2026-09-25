@@ -18,6 +18,7 @@ import StoryBibleSurface from "./story-bible-surface";
 import {
   SkinV1BuildReviewSurface,
   SkinV1PrevisReviewSurface,
+  SkinV1PrevisStoryMap,
   SkinV1ProductionReviewSurface,
   SkinV1StoryboardReviewSurface,
   SkinV1StoryboardStoryMap,
@@ -593,10 +594,9 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>
-        <PreproductionStageRail active="previs" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
-        <BlockVisualJourneyWorkspace
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("previs", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />
+        <SkinV1PrevisStoryMap
           address={reviewAddress}
-          stage="previs"
           onAddressChange={(address) => updateReviewAddress("previs", address)}
         />
         <SkinV1PrevisReviewSurface

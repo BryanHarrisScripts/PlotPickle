@@ -165,6 +165,53 @@ export function SkinV1StoryboardStoryMap({
   );
 }
 
+export function SkinV1PrevisStoryMap({
+  address,
+  onAddressChange,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+  const act = Math.ceil(normalized.blockNumber / 6);
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Previs Story Map…</p>;
+
+  return (
+    <div data-skin-v1-previs-map-review="true">
+      <ProgressiveStoryMap
+        key={`${project.id}-previs-act-${act}`}
+        project={project}
+        act={act}
+        initialBlockNumber={normalized.blockNumber}
+        initialMiniBlockNumber={normalized.miniBlockNumber}
+        navigationOnly
+        surfaceLabel="Previs"
+        onSelectAddress={onAddressChange}
+      />
+    </div>
+  );
+}
+
 export function SkinV1PrevisReviewSurface({
   address,
   onAddressChange,
@@ -231,6 +278,7 @@ export function SkinV1PrevisReviewSurface({
         <span>Previs is the visual preview/readiness view first, then downstream camera and timing intent for the same selected story address.</span>
       </div>
       <PrevisReadinessWorkspace
+        embeddedNavigation
         address={normalized}
         project={project}
         onProjectChange={setProject}

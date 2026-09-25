@@ -148,7 +148,7 @@
         "typography": "standard-ui"
       },
       "runtimeSelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey'], section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
-      "runtimeReadySelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
+      "runtimeReadySelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted'][data-learn-explore-view='directory']",
       "orchestrated": true,
       "primitiveContract": {
         "familyProfile": "writers-craft",

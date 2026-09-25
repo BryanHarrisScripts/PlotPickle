@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "issue": 2444,
+  "phase": "dashboard-review-fold",
+  "brief": "docs/developer-briefs/2444-dashboard-review-fold.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-menu-registry.ts",
+    "config/development-convergence/2444.json",
+    "docs/developer-briefs/2444-dashboard-review-fold.md",
+    "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+    "tests/issue-2444-dashboard-review-fold.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2444-A1",
+      "criterion": "Refine is the fifth Develop entry.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "label: \"Refine\"" }
+      ]
+    },
+    {
+      "id": "P2444-A2",
+      "criterion": "Pitch is Package, Deck, Feedback, Reports.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "group: \"PITCH\"" }
+      ]
+    },
+    {
+      "id": "P2444-A3",
+      "criterion": "Review group is absent from the active Dashboard taxonomy.",
+      "evidence": [
+        { "type": "file-not-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "group: \"REVIEW\"" }
+      ]
+    }
+  ]
+}

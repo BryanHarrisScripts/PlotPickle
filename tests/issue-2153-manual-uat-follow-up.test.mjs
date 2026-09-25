@@ -47,7 +47,7 @@ test("#2153 makes existing Story Mode readiness visually legible without a new a
   assert.doesNotMatch(host, /new readiness|readiness service|readiness API/iu);
 });
 
-test("#2153/#2438 marks the Human-approved Dashboard destinations yellow while green means locked", async () => {
+test("#2153/#2438/#2452 marks current review destinations yellow while green means locked", async () => {
   const [dashboard, styles, audit] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/issue-2061.css"),
@@ -60,7 +60,7 @@ test("#2153/#2438 marks the Human-approved Dashboard destinations yellow while g
   assert.match(dashboard, /inReview \? " is-review" : ""/u);
   assert.match(dashboard, /locked \? "locked"/u);
   assert.match(styles, /\[data-dashboard-review="in-review"\][^}]*--pp-skin-warning/su);
-  assert.match(audit, /\["discovery", "story-bible", "plan", "storyboard", "previs", "timeline", "production"\]\.includes\(row\.id\)/u);
+  assert.match(audit, /\["discovery", "plan", "storyboard", "previs", "timeline", "production"\]\.includes\(row\.id\)/u);
   assert.match(audit, /expectedSurfaceState = isDashboardReviewItem \? "in-review" : row\.connected \? "locked" : "unavailable"/u);
 });
 

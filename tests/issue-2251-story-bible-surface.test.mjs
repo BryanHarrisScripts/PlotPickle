@@ -49,7 +49,7 @@ test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-re
     'data-story-bible-surface="canonical"',
     'data-story-bible-read-only="false"',
     'data-world-map-surface="review"',
-    "WORLD MAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT",
+    "WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT",
     "PLOT / STRUCTURE",
     "Character truth, backstory and reusable visual identity",
     "FOUNDATIONS / WRITER DECISIONS",
@@ -59,6 +59,8 @@ test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-re
 
   assert.match(surface, /projectStoryBible\(project, plotPickleCurriculum\)/u);
   assert.match(surface, /NO POSTER YET/u);
+  assert.match(surface, /Generate Poster Visual/u);
+  assert.match(surface, /className=\{styles\.primaryAction\}/u);
   assert.match(surface, /NO APPROVED CHARACTER IMAGE YET/u);
   assert.match(surface, /Ask World Agent/u);
   assert.match(surface, /Generate Character Visual/u);

@@ -313,3 +313,34 @@
   min-height: 120px;
   text-align: center;
 }
+
+
+.primaryAction {
+  min-height: 38px;
+  padding: 0 var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-accent-bright);
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  cursor: pointer;
+}
+
+.primaryAction:hover,
+.primaryAction:focus-visible {
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.primaryAction:disabled {
+  border-color: var(--pp-skin-line);
+  color: var(--pp-skin-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.posterAction {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}

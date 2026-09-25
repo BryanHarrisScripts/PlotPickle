@@ -26,7 +26,7 @@ The first supported proof is Storyboard WebP recovery, including the current Aft
 ## Storage truth
 
 Generated media bytes are durable under `persistentHome()/assets`.
-On Windows the default is `%LOCALAPPDATA%\PlotPickle\assets`.
+On Windows the default is `%LOCALAPPDATA%\PlotPickle\assets`. The confirmed development-machine location for this recovery case is `C:\Users\bryan\AppData\Local\PlotPickle\assets`; the product must resolve the location through PlotPickle's persistent-home contract rather than hard-coding a username.
 
 The current Storyboard filename format contains recoverable address evidence:
 
@@ -87,4 +87,4 @@ Focused tests must prove:
 - recovery UI offers Use Project Defaults / Restore Local Resources;
 - unmatched groups require explicit selection.
 
-Stop before opening the PR.
+After focused branch checks, open the PR, run exact-head Architecture Verification/CodeQL, repair only failed gates, and merge when green.

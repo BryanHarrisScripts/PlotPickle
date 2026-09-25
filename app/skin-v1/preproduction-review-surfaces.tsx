@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
+import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
-import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import type { ProductionSoundCueKind } from "@/core/contracts/previs";
+import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
@@ -496,6 +498,167 @@ export function SkinV1ProductionReviewSurface({
         ) : (
           <p>No production evidence exists for this selected story address.</p>
         )}
+      </section>
+    </div>
+  );
+}
+
+export function SkinV1SoundReviewSurface({
+  kind,
+  address,
+  onAddressChange,
+}: {
+  readonly kind: ProductionSoundCueKind;
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const normalized = normalizedAddress(address);
+  const anchorRef = `storyboard-anchor:block:block-${String(normalized.blockNumber).padStart(2, "0")}:mini-${normalized.miniBlockNumber}`;
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  const shots = useMemo(
+    () => project?.production.shots.filter((shot) => shot.anchorRef === anchorRef) ?? [],
+    [anchorRef, project],
+  );
+  const cues = useMemo(
+    () => (project?.production.soundCues ?? []).filter((cue) => cue.anchorRef === anchorRef && cue.kind === kind),
+    [anchorRef, kind, project],
+  );
+
+  function createCue(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    const data = new FormData(event.currentTarget);
+    const intent = String(data.get("intent") ?? "").trim();
+    if (!intent) {
+      setMessage("Describe the sound intent before saving. PlotPickle will not invent missing sound.");
+      return;
+    }
+    const shotId = String(data.get("productionShotId") ?? "").trim();
+    const startRaw = String(data.get("startSecond") ?? "").trim();
+    const endRaw = String(data.get("endSecond") ?? "").trim();
+    const startSecond = startRaw ? Number(startRaw) : null;
+    const endSecond = endRaw ? Number(endRaw) : null;
+    if ((startSecond !== null && (!Number.isFinite(startSecond) || startSecond < 0))
+      || (endSecond !== null && (!Number.isFinite(endSecond) || endSecond < 0))
+      || (startSecond !== null && endSecond !== null && endSecond <= startSecond)) {
+      setMessage("Timing must be positive, and the end must be later than the start. Leave both blank to keep the cue untimed.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const cueId = globalThis.crypto?.randomUUID?.() ?? `sound-${kind}-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.sound.store",
+      cue: {
+        id: cueId,
+        anchorRef,
+        productionShotId: shotId || undefined,
+        kind,
+        intent,
+        startSecond,
+        endSecond,
+        sourceRefs: shotId ? [`production-shot:${shotId}`] : [anchorRef],
+        reviewState: "planned",
+        createdAt: now,
+        updatedAt: now,
+      },
+      occurredAt: now,
+    });
+    const saved = saveFoundationProject(next);
+    setProject(saved);
+    event.currentTarget.reset();
+    setMessage(`${kind === "narration" ? "Narration" : kind === "music" ? "Music" : "Foley"} cue saved to ${normalized.blockNumber}.${normalized.miniBlockNumber} without changing story or Previs authority.`);
+  }
+
+  function removeCue(cueId: string) {
+    if (!project) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.sound.remove",
+      cueId,
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage("Sound cue removed. Picture and Previs timing were unchanged.");
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Sound intent…</p>;
+
+  const label = kind === "narration" ? "Narration" : kind === "music" ? "Music" : "Foley";
+  return (
+    <div data-skin-v1-preproduction-review="sound" data-sound-kind={kind}>
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>{label.toUpperCase()} · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Sound intent attaches to the same story/shot identity as Timeline and Rough Cut. Blank timing stays untimed rather than receiving an invented timestamp.</span>
+      </div>
+      <nav className="pp-skin-v1-preproduction-address-rail" aria-label={`${label} Mini-Block address`}>
+        {[1, 2, 3, 4].map((miniBlockNumber) => (
+          <button
+            aria-current={miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
+            key={miniBlockNumber}
+            onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber })}
+            type="button"
+          >
+            Mini {miniBlockNumber}
+          </button>
+        ))}
+      </nav>
+      <section className="pp-skin-v1-production-stage" aria-labelledby="sound-stage-title" data-production-stage="sound-intent">
+        <header>
+          <div><p>SOUND INTENT</p><h2 id="sound-stage-title">{label}</h2></div>
+          <strong>{cues.length} cue{cues.length === 1 ? "" : "s"}</strong>
+        </header>
+        <form onSubmit={createCue}>
+          <label>
+            Intent
+            <textarea name="intent" placeholder={kind === "narration" ? "What should be spoken or narrated?" : kind === "music" ? "What should the music do here?" : "What physical or environmental sound belongs here?"} />
+          </label>
+          <label>
+            Attach to Shot
+            <select name="productionShotId" defaultValue="">
+              <option value="">Whole Mini-Block / story address</option>
+              {shots.map((shot) => <option key={shot.id} value={shot.id}>Shot {shot.order} · {shot.reviewState}</option>)}
+            </select>
+          </label>
+          <label>Start second <input min="0" name="startSecond" step="0.01" type="number" /></label>
+          <label>End second <input min="0" name="endSecond" step="0.01" type="number" /></label>
+          <button type="submit">Save {label} cue</button>
+        </form>
+        <section className="pp-skin-v1-production-shots" aria-label={`${label} cues`}>
+          {cues.length ? (
+            <ol>
+              {cues.map((cue) => (
+                <li key={cue.id}>
+                  <strong>{label}</strong>
+                  <span>{cue.reviewState}</span>
+                  <span>{cue.startSecond !== null && cue.endSecond !== null ? `${cue.startSecond}s → ${cue.endSecond}s` : "Untimed"}</span>
+                  <small>{cue.intent}</small>
+                  <button type="button" onClick={() => removeCue(cue.id)}>Remove</button>
+                </li>
+              ))}
+            </ol>
+          ) : <p>No {label.toLowerCase()} intent is authored for this address. PlotPickle leaves the lane empty.</p>}
+        </section>
+        <p aria-live="polite">{message}</p>
       </section>
     </div>
   );

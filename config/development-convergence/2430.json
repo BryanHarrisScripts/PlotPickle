@@ -6,6 +6,7 @@
   "allowedChanges": [
     "config/buzz-desktop.json",
     "config/development-convergence/2430.json",
+    "config/verification/ownership-map.json",
     "docs/buzz-live-health.md",
     "docs/developer-briefs/2430-buzz-desktop-0-5-25.md",
     "tests/issue-620-buzz-startup-updater.test.mjs"
@@ -40,6 +41,22 @@
           "type": "file-contains",
           "path": "tests/issue-620-buzz-startup-updater.test.mjs",
           "contains": "verify release digests"
+        }
+      ]
+    },
+    {
+      "id": "P2430-E3",
+      "criterion": "The BUZZ Desktop production config has explicit Production Orchestration ownership so Architecture Verification can select the correct layer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "buzz-desktop-companion-runtime"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "explicit production ownership"
         }
       ]
     }

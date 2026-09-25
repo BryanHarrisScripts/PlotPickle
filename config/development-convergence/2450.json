@@ -16,7 +16,8 @@
     "tests/issue-2215-uat-semantic-review.test.mjs",
     "tests/issue-2450-library-durable-hydration.test.mjs",
     "core/storage/profile-private/profile-private-storage-core.mjs",
-    "core/storage/profile-private/profile-private-storage.ts"
+    "core/storage/profile-private/profile-private-storage.ts",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {

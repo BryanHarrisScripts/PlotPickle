@@ -27,9 +27,9 @@ test("#2272 calibrates keyboard-prefixed and descriptive menu labels without hid
       menus: [{
         identity: "Library menu",
         items: [
-          { label: "[N] NEW" },
-          { label: "[I] IMPORT" },
           { label: "[L] LOAD (1)" },
+          { label: "[N] NEW" },
+          { label: "[I] IMPORT EXPORT" },
           { label: "[E] EXAMPLES" },
           { label: "[P] PRESETS" },
           { label: "[A] AVERY" },

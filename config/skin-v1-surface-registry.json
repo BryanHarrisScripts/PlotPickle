@@ -1139,7 +1139,7 @@
     },
     {
       "id": "story-bible",
-      "label": "World Map",
+      "label": "WorldMap",
       "family": "story",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -1150,7 +1150,7 @@
         {
           "order": 8,
           "slug": "story-bible",
-          "label": "World Map"
+          "label": "WorldMap"
         }
       ],
       "formatProfile": {

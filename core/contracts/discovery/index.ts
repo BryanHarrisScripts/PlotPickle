@@ -1,12 +1,17 @@
-export const DISCOVERY_VERSION = 1 as const;
+export const DISCOVERY_VERSION = 2 as const;
 
 export const DISCOVERY_LANES = [
-  { id: "story-plot", label: "Story / Plot" },
+  { id: "story", label: "Story" },
+  { id: "plot", label: "Plot" },
   { id: "character", label: "Character" },
-  { id: "scene-dialogue", label: "Scene / Dialogue" },
-  { id: "world-research", label: "World / Research" },
-  { id: "theme-motif", label: "Theme / Motif" },
-  { id: "visual-mood", label: "Visual / Mood" },
+  { id: "scene", label: "Scene" },
+  { id: "dialogue", label: "Dialogue" },
+  { id: "world", label: "World" },
+  { id: "research", label: "Research" },
+  { id: "theme", label: "Theme" },
+  { id: "motif", label: "Motif" },
+  { id: "visual", label: "Visual" },
+  { id: "image", label: "Image" },
 ] as const;
 
 export type DiscoveryLaneId = (typeof DISCOVERY_LANES)[number]["id"];
@@ -42,6 +47,13 @@ export type DiscoveryState = {
 };
 
 const LANE_IDS = new Set<DiscoveryLaneId>(DISCOVERY_LANES.map((lane) => lane.id));
+const LEGACY_DISCOVERY_LANE_MAP: Readonly<Record<string, DiscoveryLaneId>> = {
+  "story-plot": "story",
+  "scene-dialogue": "scene",
+  "world-research": "world",
+  "theme-motif": "theme",
+  "visual-mood": "visual",
+};
 
 function record(value: unknown): Readonly<Record<string, unknown>> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -64,6 +76,12 @@ export function isDiscoveryLane(value: unknown): value is DiscoveryLaneId {
   return typeof value === "string" && LANE_IDS.has(value as DiscoveryLaneId);
 }
 
+export function normalizeDiscoveryLane(value: unknown): DiscoveryLaneId | null {
+  if (isDiscoveryLane(value)) return value;
+  if (typeof value !== "string") return null;
+  return LEGACY_DISCOVERY_LANE_MAP[value] ?? null;
+}
+
 export function isDiscoveryAct(value: unknown): value is DiscoveryAct {
   return value === 1 || value === 2 || value === 3 || value === 4;
 }
@@ -74,12 +92,13 @@ export function createEmptyDiscoveryState(): DiscoveryState {
 
 export function normalizeDiscoveryPlacement(value: unknown): DiscoveryPlacement | null {
   const source = record(value);
-  if (!isDiscoveryAct(source.act) || !isDiscoveryLane(source.lane)) return null;
+  const lane = normalizeDiscoveryLane(source.lane);
+  if (!isDiscoveryAct(source.act) || !lane) return null;
   const reason = cleanText(source.reason, 800);
   if (!reason) return null;
   return {
     act: source.act,
-    lane: source.lane,
+    lane,
     reason,
     evidenceRefs: cleanEvidenceRefs(source.evidenceRefs),
     classifierId: cleanText(source.classifierId, 120) || "discovery-mapper",
@@ -126,12 +145,13 @@ export function discoveryActForBlock(blockNumber: number): DiscoveryAct {
 
 export function normalizeDiscoveryMapperResult(value: unknown) {
   const source = record(value);
-  if (!isDiscoveryAct(source.act) || !isDiscoveryLane(source.lane)) return null;
+  const lane = normalizeDiscoveryLane(source.lane);
+  if (!isDiscoveryAct(source.act) || !lane) return null;
   const reason = cleanText(source.reason, 800);
   if (!reason) return null;
   return {
     act: source.act,
-    lane: source.lane,
+    lane,
     reason,
     evidenceRefs: cleanEvidenceRefs(source.evidenceRefs),
   } as const;

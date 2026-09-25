@@ -170,7 +170,7 @@ export default function StoryboardReadinessWorkspace({
       const key = `${selectedNumber}.${selectedMiniBlockNumber}.${artifact.frameNumber}`;
       setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
     }
-    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "accepted" : "rejected"}.`);
+    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "kept and locked" : "rejected"}.`);
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -512,10 +512,14 @@ export default function StoryboardReadinessWorkspace({
                   const position = index + 1;
                   const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
                   const selectionKey = `${selectedNumber}.${selectedMiniBlockNumber}.${position}`;
-                  const selectedImageId = selectedImageByPosition[selectionKey] ?? frameArtifacts.find((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected")?.id ?? shot?.frames[0]?.id ?? "";
+                  const positionArtifacts = frameArtifacts.filter((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected");
+                  const latestGeneratedArtifact = positionArtifacts.at(-1) ?? null;
+                  const selectedImageId = selectedImageByPosition[selectionKey] ?? latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? "";
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
-                  const selectedArtifact = frameArtifacts.find((artifact) => artifact.id === selectedImageId && artifact.frameNumber === position && artifact.reviewState !== "rejected");
+                  const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
+                  const reviewState = accepted ? "locked" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
+                  const reviewLabel = accepted ? "Locked" : selectedArtifact ? "Ready for review" : selectedImage ? "Reference image" : "No frame";
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Open Shot / Frame position";
@@ -529,6 +533,25 @@ export default function StoryboardReadinessWorkspace({
                         {selectedImage
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
                           : <span>No Frame selected</span>}
+                      </div>
+                      <div className={styles.frameReview} aria-label={`Review frame at position ${position}`} data-review-state={reviewState}>
+                        <span>{reviewLabel}</span>
+                        <button
+                          aria-pressed={accepted}
+                          disabled={!selectedArtifact || accepted || qaOnlyAccess || frameBusy}
+                          type="button"
+                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "accept")}
+                        >{accepted ? "Locked" : "Keep / Lock"}</button>
+                        <button
+                          disabled={!selectedImage || frameBusy}
+                          type="button"
+                          onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}
+                        >Redo</button>
+                        <button
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
+                          type="button"
+                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "discard")}
+                        >Reject</button>
                       </div>
                       <label className={styles.positionSelector}>
                         <span>Frame</span>
@@ -545,13 +568,7 @@ export default function StoryboardReadinessWorkspace({
                           })}
                         </select>
                       </label>
-                      <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button>
-                      {selectedArtifact ? <div className={styles.frameReview} aria-label={`Review frame at position ${position}`}>
-                        <span>{accepted ? "Accepted" : "Awaiting review"}</span>
-                        <button disabled={accepted || qaOnlyAccess || frameBusy} type="button" onClick={() => reviewFrame(selectedArtifact, "accept")}>Accept</button>
-                        <button disabled={frameBusy} type="button" onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>Regenerate</button>
-                        <button disabled={qaOnlyAccess || frameBusy} type="button" onClick={() => reviewFrame(selectedArtifact, "discard")}>Reject</button>
-                      </div> : null}
+                      {!selectedImage ? <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button> : null}
                     </div>
                   );
                 })}

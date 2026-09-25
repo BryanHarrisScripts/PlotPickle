@@ -126,6 +126,11 @@
   box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-accent);
 }
 
+.card[data-source-state="agent-proposal"] {
+  border-color: var(--pp-skin-warning);
+  box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-warning);
+}
+
 .card header {
   display: flex;
   justify-content: space-between;

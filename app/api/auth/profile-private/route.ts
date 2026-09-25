@@ -34,19 +34,27 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
+    const summaries = await runtimeState.privateStorage.listProjects(authContext);
     let project = await runtimeState.privateStorage.loadActiveProject(authContext);
-    if (!project) {
-      const projects = await runtimeState.privateStorage.listProjects(authContext);
-      if (projects[0]) {
-        await runtimeState.privateStorage.activateProject(authContext, projects[0].projectId);
-        project = await runtimeState.privateStorage.loadActiveProject(authContext);
-      }
+    if (!project && summaries[0]) {
+      await runtimeState.privateStorage.activateProject(authContext, summaries[0].projectId);
+      project = await runtimeState.privateStorage.loadActiveProject(authContext);
     }
-    const [wyrmwood, storyMapContexts] = await Promise.all([
+    const [projects, wyrmwood, storyMapContexts] = await Promise.all([
+      Promise.all(summaries.map(async (summary) => {
+        const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId);
+        return savedProject ? { project: savedProject, summary } : null;
+      })),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" }),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts" }),
     ]);
-    return response({ project, wyrmwood, storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts) });
+    return response({
+      project,
+      activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof project.id === "string" ? project.id : null,
+      projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),
+      wyrmwood,
+      storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts),
+    });
   } catch (error) {
     return errorResponse(error);
   }

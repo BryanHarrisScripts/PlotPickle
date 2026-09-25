@@ -139,7 +139,7 @@ test("#1143 API uses the existing Auth/session boundary and does not return raw 
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true/u);
   assert.doesNotMatch(route, /authContext\s*:/u);
   assert.match(route, /locateProfile[\s\S]*AUTHENTICATION_REJECTED|locateProfile[\s\S]*profile_A/u);
-  assert.match(privateRoute, /boundary\.authorizeRequest[\s\S]*privateStorage\.listProjects[\s\S]*privateStorage\.saveProject/u);
+  assert.match(privateRoute, /boundary\.authorizeRequest[\s\S]*privateStorage\.listProjects[\s\S]*privateStorage\.loadProject[\s\S]*activeProjectId[\s\S]*privateStorage\.saveProject/u);
   assert.match(runtime, /PLOTPICKLE_ACCESS_MODE[\s\S]*serverExposure\(\)[\s\S]*accessMode: mode/u);
   assert.doesNotMatch(route, /accessMode: "desktop-loopback"/u);
 });
@@ -156,6 +156,9 @@ test("#1143 LEARN and Wyrmwood use session-only browser state backed by authenti
   assert.match(library, /return window\.sessionStorage/u);
   assert.doesNotMatch(library, /return window\.localStorage/u);
   assert.match(privateBrowser, /\/api\/auth\/profile-private[\s\S]*X-PlotPickle-CSRF[\s\S]*save-project/u);
+  assert.match(privateBrowser, /normalizeLibraryProject/u);
+  assert.match(privateBrowser, /hydrateProfileProjectLibrary\(\{ activeProjectId, projects \}\)/u);
+  assert.match(privateBrowser, /loadActiveLibraryProject\(\)/u);
 });
 
 test("#1143 Profile owns security actions while Settings no longer duplicates Profiles & Security", async () => {

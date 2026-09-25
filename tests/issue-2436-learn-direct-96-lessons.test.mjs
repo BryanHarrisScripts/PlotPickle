@@ -6,10 +6,11 @@ import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog.ts"
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#2436 Learn enters the canonical 96-lesson browser directly", async () => {
-  const [journey, explore, route] = await Promise.all([
+  const [journey, explore, route, registryText] = await Promise.all([
     read("app/skin-v1/learn-journey-preview.tsx"),
     read("app/skin-v1/learn-explore.tsx"),
     read("app/api/learn/explore/route.ts"),
+    read("config/skin-v1-surface-registry.json"),
   ]);
 
   assert.equal(plotPickleCurriculum.length, 96);
@@ -25,6 +26,10 @@ test("#2436 Learn enters the canonical 96-lesson browser directly", async () => 
   assert.match(explore, /aria-label="Filter Explore by topic"/u);
   assert.match(explore, /aria-label="Filter Explore by Craft Module"/u);
   assert.match(explore, /\{filteredEntries\.length\} OF \{payload\.presentationLessonCount\} LESSONS/u);
+
+  const registry = JSON.parse(registryText);
+  const learnSurface = registry.surfaces.find((surface) => surface.id === "writers-craft");
+  assert.equal(learnSurface?.runtimeReadySelector, "section[aria-label=\'LEARN Explore All Curriculum\'][data-learn-explore-access=\'unrestricted\'][data-learn-explore-view=\'directory\']");
 });
 
 test("#2436 Learn returns to Dashboard without an intermediate Learn landing surface", async () => {

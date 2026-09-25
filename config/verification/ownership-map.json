@@ -1095,7 +1095,7 @@
       "id": "world-map-character-visual-contract",
       "classification": "production",
       "include": [
-        "core/contracts/world-map.ts"
+        "core/contracts/world-map/**"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

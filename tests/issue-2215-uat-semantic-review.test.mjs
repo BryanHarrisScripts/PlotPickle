@@ -54,11 +54,13 @@ test("#2215 complete Writer-to-Screen Library PPF state survives encrypted profi
   assert.match(normalizer, /normalizeStoryStructureV2\(source\.structure\)/u);
   assert.match(normalizer, /normalizeProjectSourceEvidence\(source\.sourceEvidence\)/u);
   assert.match(normalizer, /normalizeBlockWritingState\(source\.writing\)/u);
-  assert.match(normalizer, /return \{ \.\.\.project, structure, sourceEvidence, writing \}/u);
+  assert.match(normalizer, /return \{ \.\.\.project, structure, sourceEvidence, writing, discovery, worldMap \}/u);
   assert.match(runtime, /normalizeProject: normalizeLibraryProject/u);
   assert.match(route, /const project = normalizeLibraryProject\(input\.project\)/u);
   assert.match(privateBrowser, /persistActiveProfileProject\(explicitToken = ""\)/u);
-  assert.match(privateBrowser, /queueWrite\("save-project", \{ project: loadFoundationProject\(\) \}, explicitToken\)/u);
+  assert.match(privateBrowser, /const project = loadActiveLibraryProject\(\)/u);
+  assert.match(privateBrowser, /listLibraryProjects\(\)\.find/u);
+  assert.match(privateBrowser, /queueWrite\("save-project", \{ project, \.\.\.\(summary \? \{ summary \} : \{\}\) \}, explicitToken\)/u);
 });
 
 test("#2215 ongoing Human edits keep using the profile-private encrypted-on-disk save boundary", async () => {
@@ -74,11 +76,19 @@ test("#2215 ongoing Human edits keep using the profile-private encrypted-on-disk
 });
 
 test("#2215 Afterglow source provenance survives hydration so later UAT runs reuse local Human work", async () => {
-  const browser = await read("core/storage/project-library-browser.ts");
+  const [browser, privateBrowser, privateStorage] = await Promise.all([
+    read("core/storage/project-library-browser.ts"),
+    read("core/storage/profile-private-browser.ts"),
+    read("core/storage/profile-private/profile-private-storage-core.mjs"),
+  ]);
 
   assert.match(browser, /referenceFixture\.sourceId === "afterglow-v9-complete-baseline"/u);
   assert.match(browser, /sourceKind: "example", sourceId: "afterglow-v9"/u);
   assert.match(browser, /normalizeLibraryProject/u);
+  assert.match(privateBrowser, /hydrateProfileProjectLibrary/u);
+  assert.match(privateBrowser, /summary = listLibraryProjects\(\)\.find/u);
+  assert.match(privateStorage, /sourceKind/u);
+  assert.match(privateStorage, /sourceId/u);
 });
 
 test("#2215 the packaged v9 source truth is 21 explicit titled sections", async () => {
@@ -110,6 +120,9 @@ test("#2215 tested-surface navigation keeps every Library runtime dependency def
   assert.match(browser, /createEmptyBlockWritingState,[\s\S]*normalizeBlockWritingState/u);
   assert.match(browser, /const structure = hasStructure[\s\S]*normalizeStoryStructureV2\(incoming\.structure\)/u);
   assert.match(browser, /const writing = "writing" in incoming[\s\S]*normalizeBlockWritingState\(incoming\.writing\)/u);
+  assert.match(browser, /const discovery = "discovery" in incoming[\s\S]*normalizeDiscoveryState\(incoming\.discovery\)/u);
+  assert.match(browser, /const sourceEvidence = "sourceEvidence" in incoming[\s\S]*normalizeProjectSourceEvidence\(incoming\.sourceEvidence\)/u);
+  assert.match(browser, /const worldMap = "worldMap" in incoming[\s\S]*normalizeWorldMapState\(incoming\.worldMap\)/u);
 });
 
 test("#2215 Human review annotations are durable steering evidence and cannot override PASS or FAIL", async () => {

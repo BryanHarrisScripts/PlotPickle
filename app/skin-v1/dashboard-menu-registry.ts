@@ -64,7 +64,6 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
   "discovery",
-  "story-bible",
   "plan",
   "storyboard",
   "previs",

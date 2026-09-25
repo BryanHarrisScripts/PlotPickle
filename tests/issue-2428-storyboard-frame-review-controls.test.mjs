@@ -19,7 +19,7 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
 test("#2428 reloads the latest non-rejected generated candidate for its own position", async () => {
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   assert.match(source, /const positionArtifacts = frameArtifacts\.filter\(\(artifact\) => artifact\.frameNumber === position && artifact\.reviewState !== "rejected"\)/u);
-  assert.match(source, /const latestGeneratedArtifact = positionArtifacts\.at\(-1\) \?\? null/u);
+  assert.match(source, /const latestGeneratedArtifact = \[\.\.\.positionArtifacts\]\.sort\(\(left, right\) => right\.createdAt\.localeCompare\(left\.createdAt\)\)\[0\] \?\? null/u);
   assert.match(source, /selectedImageByPosition\[selectionKey\] \?\? latestGeneratedArtifact\?\.id/u);
 });
 

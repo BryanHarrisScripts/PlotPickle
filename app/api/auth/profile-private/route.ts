@@ -66,7 +66,10 @@ export async function POST(request: Request) {
     const input = await request.json() as Record<string, unknown>;
     if (input.action === "save-project") {
       const project = normalizeLibraryProject(input.project);
-      const saved = await runtimeState.privateStorage.saveProject(authContext, { project });
+      const summary = input.summary && typeof input.summary === "object" && !Array.isArray(input.summary)
+        ? input.summary as Record<string, unknown>
+        : undefined;
+      const saved = await runtimeState.privateStorage.saveProject(authContext, { project, summary });
       return response({ projectId: saved.summary.projectId });
     }
     if (input.action === "save-wyrmwood") {

@@ -13,7 +13,7 @@ import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-wor
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
-import { projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/story-to-screen-convergence";
+import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/story-to-screen-convergence";
 
 export type PreproductionReviewAddress = Readonly<{
   blockNumber: number;
@@ -74,6 +74,7 @@ export function SkinV1StoryboardReviewSurface({
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
@@ -402,6 +403,104 @@ export function SkinV1ProductionReviewSurface({
     return () => window.clearTimeout(timer);
   }, []);
 
+  function registerTake(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    const data = new FormData(event.currentTarget);
+    const productionShotId = String(data.get("productionShotId") ?? "").trim();
+    const mediaRef = String(data.get("mediaRef") ?? "").trim();
+    const provider = String(data.get("provider") ?? "").trim();
+    const model = String(data.get("model") ?? "").trim();
+    const observedRaw = String(data.get("observedDurationSeconds") ?? "").trim();
+    const observedDurationSeconds = observedRaw ? Number(observedRaw) : null;
+    const reviewState = String(data.get("reviewState") ?? "candidate") === "approved" ? "approved" as const : "candidate" as const;
+    const shot = project.production.shots.find((candidate) => candidate.id === productionShotId);
+    if (!shot || !mediaRef) {
+      setMessage("Choose an existing Production Shot and identify the generated media before registering a take.");
+      return;
+    }
+    if (observedDurationSeconds !== null && (!Number.isFinite(observedDurationSeconds) || observedDurationSeconds <= 0)) {
+      setMessage("Observed take duration must be a positive number or left blank.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const takeId = globalThis.crypto?.randomUUID?.() ?? `take-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: {
+        id: takeId,
+        productionShotId: shot.id,
+        sourceRevision: project.revision,
+        storyboardDependencyKey: shot.storyboardDependencyKey,
+        mediaRef,
+        provider,
+        model,
+        intendedDurationSeconds: shot.durationSeconds,
+        observedDurationSeconds,
+        provenanceRefs: [shot.id, shot.storyboardArtifactId, shot.storyboardDependencyKey, mediaRef],
+        reviewState,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    event.currentTarget.reset();
+    setMessage(`Take ${takeId} registered as ${reviewState}. Existing takes were preserved.`);
+  }
+
+  function setTakeReviewState(takeId: string, reviewState: "approved" | "rejected") {
+    if (!project) return;
+    const take = (project.production.takes ?? []).find((candidate) => candidate.id === takeId);
+    if (!take) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: { ...take, reviewState },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Take ${takeId} marked ${reviewState}. No other take was deleted.`);
+  }
+
+  function createRoughCutRevision() {
+    if (!project) return;
+    const approved = project.production.shots
+      .filter((shot) => shot.reviewState === "approved")
+      .sort((left, right) => left.anchorRef.localeCompare(right.anchorRef) || left.order - right.order);
+    if (!approved.length) {
+      setMessage("No approved Production Shots exist yet, so PlotPickle cannot assemble a Rough Cut revision.");
+      return;
+    }
+    const placements = approved.map((shot) => {
+      const packet = projectPlotPickleProductionPacket({
+        production: project.production,
+        productionShotId: shot.id,
+        currentRevision: project.revision,
+      });
+      return {
+        productionShotId: shot.id,
+        takeId: packet?.approvedTakeId ?? null,
+        soundCueIds: packet?.soundCues.filter((cue) => cue.reviewState !== "rejected").map((cue) => cue.id) ?? [],
+      };
+    });
+    const previous = [...(project.production.roughCuts ?? [])].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+    const now = new Date().toISOString();
+    const cutId = globalThis.crypto?.randomUUID?.() ?? `rough-cut-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.cut.store",
+      cut: {
+        id: cutId,
+        sourceRevision: project.revision,
+        placements,
+        supersedesCutId: previous?.id,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Rough Cut ${cutId} created. ${placements.filter((item) => item.takeId).length}/${placements.length} approved Shots have selected media; missing takes remain explicit placeholders.`);
+  }
+
   if (error) return <p role="alert">{error}</p>;
   if (!project || !projection) return <p role="status">Opening canonical Rough Cut projection…</p>;
 
@@ -484,9 +583,50 @@ export function SkinV1ProductionReviewSurface({
                 </ol>
               ) : <p>No Production Shot exists at this address. PlotPickle leaves the slot empty rather than creating a placeholder Production Shot.</p>}
             </section>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Register generated take">
+              <strong>Register a generated take</strong>
+              <p>Attach returned local/cloud media to an existing Production Shot. Registering a new take never replaces earlier media.</p>
+              <form onSubmit={registerTake}>
+                <label>
+                  Production Shot
+                  <select name="productionShotId" defaultValue="">
+                    <option value="">Choose Shot</option>
+                    {(roughCut?.shots ?? []).map(({ shot }) => <option key={shot.id} value={shot.id}>Shot {shot.order} · {shot.reviewState}</option>)}
+                  </select>
+                </label>
+                <label>Media reference <input name="mediaRef" placeholder="/api/local-ai/assets/take.webm" /></label>
+                <label>Provider <input name="provider" placeholder="local / cloud provider" /></label>
+                <label>Model <input name="model" placeholder="optional model" /></label>
+                <label>Observed seconds <input min="0.01" name="observedDurationSeconds" step="0.01" type="number" /></label>
+                <label>
+                  Human review
+                  <select name="reviewState" defaultValue="candidate">
+                    <option value="candidate">Candidate</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </label>
+                <button type="submit">Register take</button>
+              </form>
+              {(roughCut?.shots ?? []).flatMap(({ packet }) => packet.takes).length ? (
+                <ol>
+                  {(roughCut?.shots ?? []).flatMap(({ shot, packet }) => packet.takes.map((item) => ({ shot, item }))).map(({ shot, item }) => (
+                    <li key={item.take.id}>
+                      <strong>Shot {shot.order} · {item.take.reviewState}</strong>
+                      <span>{item.take.observedDurationSeconds ? `${item.take.observedDurationSeconds}s observed` : "Observed duration unavailable"}</span>
+                      <span>{item.stale ? `STALE · ${item.staleBecause.join("; ")}` : "Current dependency"}</span>
+                      <small>{item.take.mediaRef}</small>
+                      {item.take.reviewState === "candidate" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "approved")}>Approve</button> : null}
+                      {item.take.reviewState !== "rejected" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "rejected")}>Reject</button> : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : <p>No generated takes are registered for this address.</p>}
+            </section>
             <section className="pp-skin-v1-production-handoff-state" aria-label="Rough Cut revision state">
               <strong>{roughCut?.cuts.length ?? 0} cut revision{roughCut?.cuts.length === 1 ? "" : "s"}</strong>
               <p>{roughCut?.cuts[0] ? `Current revision: ${roughCut.cuts[0].id}. Earlier cuts remain recoverable.` : "No Rough Cut revision exists yet. Approved upstream work remains intact until a cut is explicitly assembled."}</p>
+              <button type="button" onClick={createRoughCutRevision}>Create Rough Cut revision</button>
+              <p aria-live="polite">{message}</p>
             </section>
 
             <section className="pp-skin-v1-production-handoff-state" aria-label="Provider-neutral production handoff state">

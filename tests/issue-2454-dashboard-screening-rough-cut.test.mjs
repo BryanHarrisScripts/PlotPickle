@@ -37,7 +37,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
   assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
 });
 
-test("#2454 keeps Screening Dashboard-only, locks completed surfaces green, and leaves later visualize stages in review", async () => {
+test("#2454/#2458 keeps the approved IA while Screening becomes a governed review surface", async () => {
   const [menu, host] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -47,8 +47,8 @@ test("#2454 keeps Screening Dashboard-only, locks completed surfaces green, and 
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
-  assert.match(unavailable, /"screening"/u);
-  assert.doesNotMatch(host, /item\.id === "screening"[\s\S]*set[A-Za-z]+Open\(true\)/u);
+  assert.doesNotMatch(unavailable, /"screening"/u);
+  assert.match(host, /item\.id === "screening"[\s\S]*setScreeningOpen\(true\)/u);
   assert.match(host, /item\.id === "production"[\s\S]*openProduction\(reviewAddress\)/u);
   assert.match(host, /onSurfaceNameChange\("MINDMAP"\)/u);
   assert.match(host, /<h1>MINDMAP<\/h1>/u);
@@ -57,6 +57,6 @@ test("#2454 keeps Screening Dashboard-only, locks completed surfaces green, and 
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
   );
-  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["previs", "timeline", "production"]);
+  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["screening", "sound-narration", "sound-music", "sound-foley", "previs", "timeline", "production"]);
   for (const id of ["discovery", "story-bible", "plan", "storyboard"]) assert.doesNotMatch(review, new RegExp(`"${id}"`, "u"));
 });

@@ -11,9 +11,9 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
 
   const ordered = [
     ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
+    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
     ["screening", "9", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
-    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
     ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
     ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
@@ -71,7 +71,9 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
-  assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"discovery"[\s\S]*"story-bible"[\s\S]*"plan"[\s\S]*"storyboard"[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
+  assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
+  const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
+  assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
   assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"sound-narration"[\s\S]*"sound-music"[\s\S]*"sound-foley"[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
 });
 

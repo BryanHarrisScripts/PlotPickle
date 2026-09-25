@@ -10,7 +10,9 @@
 .summary,
 .composer,
 .inbox,
-.board {
+.board,
+.actRail,
+.developAction {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-4);
@@ -35,10 +37,33 @@
   color: var(--pp-skin-ink-muted);
 }
 
+.actRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+.actRail button,
+.developAction button,
+.actions button,
+.card button {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+}
+
+.actRail button[aria-current="page"] {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent);
+  box-shadow: inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-accent-bright);
+}
+
 .composer {
   display: grid;
   gap: var(--pp-skin-space-3);
-  grid-template-columns: minmax(150px, .25fr) minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .composer label {
@@ -54,6 +79,7 @@
 .composer input,
 .composer select {
   width: 100%;
+  box-sizing: border-box;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-2);
   color: var(--pp-skin-ink);
@@ -67,13 +93,9 @@
   grid-column: 1 / -1;
 }
 
-.actions button,
-.card button {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
-  background: var(--pp-skin-accent-deep);
-  color: var(--pp-skin-ink);
-  font: inherit;
-  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+.developAction {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .inboxList {
@@ -82,40 +104,52 @@
   margin-top: var(--pp-skin-space-3);
 }
 
-.boardGrid {
+.laneGrid {
   display: grid;
-  grid-template-columns: minmax(130px, .65fr) repeat(4, minmax(180px, 1fr));
-  gap: var(--pp-skin-border-thin);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-  background: var(--pp-skin-line);
-  overflow: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-3);
   margin-top: var(--pp-skin-space-3);
 }
 
-.corner,
-.actHeader,
-.laneLabel,
-.cell {
+.lanePanel {
+  min-width: 0;
+  min-height: 220px;
+  display: grid;
+  align-content: start;
+  gap: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-3);
 }
 
-.actHeader,
-.laneLabel {
-  font-weight: 700;
+.laneHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  padding-bottom: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.laneHeader h4 {
+  margin: 0;
   color: var(--pp-skin-accent-bright);
 }
 
-.cell {
-  min-height: 118px;
+.laneHeader span {
+  color: var(--pp-skin-ink-muted);
+  white-space: nowrap;
+}
+
+.laneCards {
   display: grid;
-  align-content: start;
   gap: var(--pp-skin-space-2);
 }
 
 .card {
   display: grid;
   gap: var(--pp-skin-space-2);
+  min-width: 0;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-surface-2);
   padding: var(--pp-skin-space-3);
@@ -155,8 +189,24 @@
 }
 
 @media (max-width: 900px) {
-  .composer { grid-template-columns: 1fr; }
+  .summary {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .composer,
+  .laneGrid {
+    grid-template-columns: 1fr;
+  }
+
   .composer label:last-of-type,
-  .actions { grid-column: 1; }
-  .boardGrid { grid-template-columns: minmax(120px, .6fr) repeat(4, minmax(160px, 1fr)); }
+  .actions {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 620px) {
+  .actRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

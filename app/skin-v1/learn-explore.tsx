@@ -58,7 +58,6 @@ type ExplorePayload = Readonly<{
 
 type LearnExploreProps = Readonly<{
   completedLessonIds: ReadonlySet<string>;
-  onBack: () => void;
   onDashboard: () => void;
   onLessonOpen: (lessonId: string) => void;
   onToggleLessonCompletion: (lesson: CurriculumLesson) => void;
@@ -74,10 +73,6 @@ function exploreRowPrimary(entry: ExploreEntry) {
 
 function exploreRowSecondary(entry: ExploreEntry) {
   return `${entry.topic.title} · Craft Module ${craftModuleNumber(entry.craftModule.id)}`;
-}
-
-function requestLearnReturn(onBack: () => void) {
-  onBack();
 }
 
 function assertExplorePayload(value: ExplorePayload) {
@@ -140,7 +135,6 @@ function matchesQuery(entry: ExploreEntry, query: string) {
 
 export default function LearnExplore({
   completedLessonIds,
-  onBack,
   onDashboard,
   onLessonOpen,
   onToggleLessonCompletion,
@@ -212,7 +206,7 @@ export default function LearnExplore({
     return (
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Explore loading" data-learn-explore-phase="6">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => requestLearnReturn(onBack)}>Back to Learn</button><button type="button" className="pp-skin-v1-return" onClick={onDashboard}>Back to Dashboard</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onDashboard}>Back to Dashboard</button></div>
           <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / UNRESTRICTED ACCESS</div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `EXPLORE UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL ALL-CURRICULUM INDEX…"}</p>
         </div>
@@ -238,7 +232,7 @@ export default function LearnExplore({
         }}
       >
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => setOpenEntry(null)}>Back to All Curriculum</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => setOpenEntry(null)}>Back to All Curriculum</button><button type="button" className="pp-skin-v1-return" onClick={onDashboard}>Back to Dashboard</button></div>
           <article className={styles.lesson} data-learn-explore-presentation={openEntry.presentationId} data-learn-explore-coverage={openEntry.coverageMode}>
             <header>
               <span>ALL CURRICULUM · LESSON {openEntry.presentationOrder} OF {payload.presentationLessonCount} · {openEntry.topic.title.toUpperCase()} · CRAFT MODULE {craftModuleNumber(openEntry.craftModule.id)}</span>
@@ -272,12 +266,12 @@ export default function LearnExplore({
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();
-          requestLearnReturn(onBack);
+          onDashboard();
         }
       }}
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => requestLearnReturn(onBack)}>Back to Learn</button><button type="button" className="pp-skin-v1-return" onClick={onDashboard}>Back to Dashboard</button></div>
+        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onDashboard}>Back to Dashboard</button></div>
         <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / {payload.topicCount} TOPICS / {payload.presentationLessonCount} PRESENTATION LESSONS / {payload.bundledSourceCount} BUNDLED SOURCES</div>
         <div className={styles.exploreControls} data-learn-explore-controls="true">
           <label>

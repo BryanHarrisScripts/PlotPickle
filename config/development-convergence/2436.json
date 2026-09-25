@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "issue": 2436,
+  "phase": "learn-direct-96-lessons",
+  "brief": "docs/developer-briefs/2436-learn-direct-96-lessons.md",
+  "allowedChanges": [
+    "app/skin-v1/learn-explore.tsx",
+    "app/skin-v1/learn-journey-preview.tsx",
+    "config/development-convergence/2436.json",
+    "config/skin-v1-surface-registry.json",
+    "docs/developer-briefs/2436-learn-direct-96-lessons.md",
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1994-writers-craft-all-curriculum.test.mjs",
+    "tests/issue-2320-navigation-ia-convergence.test.mjs",
+    "tests/issue-2436-learn-direct-96-lessons.test.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2436-A1",
+      "criterion": "Dashboard Learn enters the canonical 96-lesson All Curriculum browser directly.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-journey-preview.tsx",
+          "contains": "useState(true)"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/api/learn/explore/route.ts",
+          "contains": "entries.length !== 96"
+        }
+      ]
+    },
+    {
+      "id": "P2436-A2",
+      "criterion": "All Curriculum retains search/topic/Craft Module filters and returns to Dashboard instead of Learn.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "Search all curriculum"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "Filter Explore by topic"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "Filter Explore by Craft Module"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "Back to Dashboard"
+        }
+      ]
+    },
+    {
+      "id": "P2436-A3",
+      "criterion": "Lesson detail can return to All Curriculum or directly to Dashboard while preserving progress ownership.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "Back to All Curriculum"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/learn-explore.tsx",
+          "contains": "PPFProject.learning.completedLessonIds"
+        }
+      ]
+    },
+    {
+      "id": "P2436-A4",
+      "criterion": "The registered Learn ready state is the All Curriculum directory rather than the retired Journey menu.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "data-learn-explore-view='directory'"
+        }
+      ]
+    },
+    {
+      "id": "P2436-A5",
+      "criterion": "WebMCP and visual verification treat All Curriculum as the canonical Learn surface and validate all 96 visible lessons.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-surface-capture-registry.mjs",
+          "contains": "data-learn-explore-view='directory'"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "exploreLessonCount !== 96"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/visual-baselines/skin-v1/manifest.json",
+          "contains": "LEARN Explore All Curriculum"
+        }
+      ]
+    }
+  ]
+}

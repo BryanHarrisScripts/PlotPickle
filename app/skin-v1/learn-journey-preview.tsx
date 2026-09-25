@@ -136,7 +136,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   const [project, setProject] = useState<PPFProject | null>(null);
   const [loadError, setLoadError] = useState("");
   const [contentError, setContentError] = useState("");
-  const [exploreOpen, setExploreOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(true);
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [semesterOpen, setSemesterOpen] = useState(false);
   const [selectedSemesterIndex, setSelectedSemesterIndex] = useState(0);
@@ -321,7 +321,6 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     return (
       <LearnExplore
         completedLessonIds={completedLessonIds}
-        onBack={() => setExploreOpen(false)}
         onDashboard={onBack}
         onLessonOpen={(lessonId) => commit({ type: "lesson.open", lessonId, occurredAt: new Date().toISOString() })}
         onToggleLessonCompletion={toggleLessonCompletion}

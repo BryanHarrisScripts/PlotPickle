@@ -1,4 +1,5 @@
 import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
+import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
@@ -35,14 +36,19 @@ export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
     const summaries = await runtimeState.privateStorage.listProjects(authContext);
-    let project = await runtimeState.privateStorage.loadActiveProject(authContext);
-    if (!project && summaries[0]) {
-      await runtimeState.privateStorage.activateProject(authContext, summaries[0].projectId);
-      project = await runtimeState.privateStorage.loadActiveProject(authContext);
+    let project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
+    if (!project) {
+      for (const summary of summaries) {
+        const candidate = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
+        if (!candidate) continue;
+        await runtimeState.privateStorage.activateProject(authContext, summary.projectId);
+        project = candidate;
+        break;
+      }
     }
     const [projects, wyrmwood, storyMapContexts] = await Promise.all([
       Promise.all(summaries.map(async (summary) => {
-        const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId);
+        const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
         return savedProject ? { project: savedProject, summary } : null;
       })),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" }),
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
     if (input.action === "save-project") {
       const project = normalizeLibraryProject(input.project);
       const summary = input.summary && typeof input.summary === "object" && !Array.isArray(input.summary)
-        ? input.summary as Record<string, unknown>
+        ? input.summary as Partial<ProfileProjectSummary>
         : undefined;
       const saved = await runtimeState.privateStorage.saveProject(authContext, { project, summary });
       return response({ projectId: saved.summary.projectId });

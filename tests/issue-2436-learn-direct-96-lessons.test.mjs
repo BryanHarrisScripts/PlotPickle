@@ -6,11 +6,14 @@ import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog.ts"
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#2436 Learn enters the canonical 96-lesson browser directly", async () => {
-  const [journey, explore, route, registryText] = await Promise.all([
+  const [journey, explore, route, registryText, webMcpRegistry, menuAudit, baselineText] = await Promise.all([
     read("app/skin-v1/learn-journey-preview.tsx"),
     read("app/skin-v1/learn-explore.tsx"),
     read("app/api/learn/explore/route.ts"),
     read("config/skin-v1-surface-registry.json"),
+    read("lib/verification/webmcp-surface-capture-registry.mjs"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
+    read("tests/visual-baselines/skin-v1/manifest.json"),
   ]);
 
   assert.equal(plotPickleCurriculum.length, 96);
@@ -30,6 +33,13 @@ test("#2436 Learn enters the canonical 96-lesson browser directly", async () => 
   const registry = JSON.parse(registryText);
   const learnSurface = registry.surfaces.find((surface) => surface.id === "writers-craft");
   assert.equal(learnSurface?.runtimeReadySelector, "section[aria-label=\'LEARN Explore All Curriculum\'][data-learn-explore-access=\'unrestricted\'][data-learn-explore-view=\'directory\']");
+
+  assert.match(webMcpRegistry, /rootSelector: "section\[aria-label='LEARN Explore All Curriculum'\]\[data-learn-explore-access='unrestricted'\]"/u);
+  assert.match(webMcpRegistry, /readySelector: "section\[aria-label='LEARN Explore All Curriculum'\]\[data-learn-explore-access='unrestricted'\]\[data-learn-explore-view='directory'\]"/u);
+  assert.match(menuAudit, /exploreLessonCount !== 96/u);
+  assert.doesNotMatch(menuAudit, /clickSurfaceReturn\(page, "Back to Learn"\)/u);
+  const baseline = JSON.parse(baselineText);
+  assert.equal(baseline.surfaces["writers-craft"]?.selector, "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']");
 });
 
 test("#2436 Learn returns to Dashboard without an intermediate Learn landing surface", async () => {

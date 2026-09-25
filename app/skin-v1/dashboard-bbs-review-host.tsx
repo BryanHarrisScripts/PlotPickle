@@ -20,6 +20,7 @@ import {
   SkinV1PrevisReviewSurface,
   SkinV1PrevisStoryMap,
   SkinV1ProductionReviewSurface,
+  SkinV1ScreeningReviewSurface,
   SkinV1StoryboardReviewSurface,
   SkinV1StoryboardStoryMap,
   SkinV1TimelineReviewSurface,
@@ -52,7 +53,7 @@ const PREPRODUCTION_STAGES: readonly Readonly<{ id: PreproductionStage; label: s
   { id: "storyboard", label: "Storyboard", shortcut: "S" },
   { id: "previs", label: "Previs", shortcut: "P" },
   { id: "timeline", label: "Timeline", shortcut: "T" },
-  { id: "production", label: "Production", shortcut: "D" },
+  { id: "production", label: "Rough Cut", shortcut: "D" },
 ];
 
 function PreproductionStageRail({
@@ -125,6 +126,7 @@ export default function DashboardBbsReviewHost({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [screeningOpen, setScreeningOpen] = useState(false);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
   const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
   const [storyBibleOpen, setStoryBibleOpen] = useState(false);
@@ -184,6 +186,7 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
+      setScreeningOpen(false);
       setDiscoveryOpen(false);
       setDiscoveryProject(null);
       setStoryBibleOpen(false);
@@ -233,6 +236,7 @@ export default function DashboardBbsReviewHost({
   function returnDashboard(itemId?: string) {
     setDiscoveryOpen(false);
     setDiscoveryProject(null);
+    setScreeningOpen(false);
     closePreproductionSurfaces();
     onSurfaceNameChange("DASHBOARD");
     if (itemId) restoreDashboardFocus(itemId);
@@ -275,7 +279,7 @@ export default function DashboardBbsReviewHost({
     updateReviewAddress("production", address);
     closePreproductionSurfaces();
     setProductionOpen(true);
-    onSurfaceNameChange("PRODUCTION");
+    onSurfaceNameChange("ROUGH CUT");
   }
 
   function openPreproductionStage(
@@ -353,6 +357,12 @@ export default function DashboardBbsReviewHost({
       onSurfaceNameChange("DASHBOARD");
       return;
     }
+    if (item.id === "screening") {
+      onActivate(index);
+      setScreeningOpen(true);
+      onSurfaceNameChange("SCREENING");
+      return;
+    }
     if (item.id === "discovery") {
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
@@ -422,6 +432,26 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (screeningOpen) {
+    return (
+      <section
+        aria-label="Screening"
+        data-dashboard-review-surface="screening"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard("screening"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>SCREENING</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("screening")}>Back to Dashboard</button>
+        </div>
+        <SkinV1ScreeningReviewSurface />
+      </section>
+    );
   }
 
   if (discoveryOpen) {
@@ -641,7 +671,7 @@ export default function DashboardBbsReviewHost({
   if (productionOpen) {
     return (
       <section
-        aria-label="Production pre-production"
+        aria-label="Rough Cut"
         data-dashboard-review-surface="production"
         data-review-state="in-review"
         onKeyDown={(event) => {
@@ -649,7 +679,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>PRODUCTION</h1>
+          <h1>ROUGH CUT</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("production")}>Back to Dashboard</button>
         </div>

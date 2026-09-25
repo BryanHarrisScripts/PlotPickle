@@ -32,7 +32,7 @@ test("#2442 Storyboard returns to Dashboard and Outline disclosures default clos
   assert.doesNotMatch(written, /<details[^>]+open=\{!turningPointSelected/u);
 });
 
-test("#2442 Mind Map is written-only and Creative Director develops all six governed lanes for each Act", async () => {
+test("#2442/#2448 MindMap is written-only and Creative Director develops all eleven governed lanes for each Act", async () => {
   const [surface, contract, host, registry] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/contracts/discovery/index.ts"),
@@ -58,7 +58,7 @@ test("#2442 Mind Map is written-only and Creative Director develops all six gove
 
   const parsed = JSON.parse(registry);
   assert.equal(parsed.surfaces.find((item) => item.id === "discovery")?.label, "Mind Map");
-  for (const lane of ["story-plot", "character", "scene-dialogue", "world-research", "theme-motif", "visual-mood"]) {
+  for (const lane of ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"]) {
     assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
   }
 });

@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("#1994 Writer's Craft opens All Curriculum before the guided Journey", async () => {
+test("#1994 Writer's Craft opens All Curriculum directly from Dashboard Learn", async () => {
   const [dashboard, journey, explore] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/learn-journey-preview.tsx"),
@@ -14,7 +14,8 @@ test("#1994 Writer's Craft opens All Curriculum before the guided Journey", asyn
   assert.match(dashboard, /if \(writerCraftMenuOpen\)[\s\S]*<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
   assert.match(journey, /const \[exploreOpen, setExploreOpen\] = useState\(true\)/u);
   assert.match(journey, /if \(exploreOpen\)[\s\S]*<LearnExplore/u);
-  assert.match(journey, /onBack=\{\(\) => setExploreOpen\(false\)\}/u);
+  assert.match(journey, /onDashboard=\{onBack\}/u);
+  assert.doesNotMatch(journey, /onBack=\{\(\) => setExploreOpen\(false\)\}/u);
   assert.match(explore, /aria-label="LEARN Explore All Curriculum"/u);
 });
 
@@ -26,7 +27,8 @@ test("#1994 keeps All Curriculum open-access controls and shared progress author
   assert.match(explore, /aria-label="Filter Explore by topic"/u);
   assert.match(explore, /aria-label="Filter Explore by Craft Module"/u);
   assert.match(explore, /data-learn-progress-owner="PPFProject\.learning\.completedLessonIds"/u);
-  assert.match(explore, /Back to Journey/u);
+  assert.match(explore, /Back to Dashboard/u);
+  assert.doesNotMatch(explore, /Back to Learn/u);
 });
 
 test("#1994 consumes the current canonical Explore payload and derives inventory totals", async () => {
@@ -45,13 +47,14 @@ test("#1994 consumes the current canonical Explore payload and derives inventory
   assert.doesNotMatch(explore, /\b88\b/u);
 });
 
-test("#1994 Phase A preserves the six guided Paths as a secondary view", async () => {
+test("#1994 preserves historical guided Paths outside the active Dashboard Learn route", async () => {
   const journey = await read("app/skin-v1/learn-journey-preview.tsx");
 
   assert.match(journey, /OPEN JOURNEY \/ 6 PATHS \/ 24 CRAFT MODULES/u);
   assert.match(journey, /preview\.semesters\.map/u);
   assert.match(journey, /data-learn-semester-open="true"/u);
-  assert.match(journey, /setExploreOpen\(false\)/u);
+  assert.match(journey, /const \[exploreOpen, setExploreOpen\] = useState\(true\)/u);
+  assert.doesNotMatch(journey, /onBack=\{\(\) => setExploreOpen\(false\)\}/u);
 });
 
 test("#1994 Phase B1 gives All Curriculum rows a compact title-first hierarchy", async () => {
@@ -82,7 +85,7 @@ test("#1994 Phase B1 uses the existing compact status box for completion rather 
   assert.match(browseRows, /data-learn-lesson-completed=\{completed \? "true" : "false"\}/u);
   assert.match(browseRows, /aria-label=\{completed \? "Lesson complete" : "Lesson incomplete"\}/u);
   assert.match(browseRows, /pp-skin-v1-dashboard-status-box\$\{completed \? " is-active" : ""\}/u);
-  assert.match(explore, /UP\/DOWN MOVES · ENTER OPENS · ESC RETURNS TO JOURNEY\./u);
+  assert.match(explore, /UP\/DOWN MOVES · ENTER OPENS · ESC RETURNS TO DASHBOARD\./u);
 });
 
 test("#1994 Phase B2 removes duration and repeated access prose from secondary Journey lesson rows", async () => {

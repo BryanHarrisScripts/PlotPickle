@@ -60,7 +60,7 @@ test("#2153/#2438/#2452 marks current review destinations yellow while green mea
   assert.match(dashboard, /inReview \? " is-review" : ""/u);
   assert.match(dashboard, /locked \? "locked"/u);
   assert.match(styles, /\[data-dashboard-review="in-review"\][^}]*--pp-skin-warning/su);
-  assert.match(audit, /\["discovery", "plan", "storyboard", "previs", "timeline", "production"\]\.includes\(row\.id\)/u);
+  assert.match(audit, /\["previs", "timeline", "production"\]\.includes\(row\.id\)/u);
   assert.match(audit, /expectedSurfaceState = isDashboardReviewItem \? "in-review" : row\.connected \? "locked" : "unavailable"/u);
 });
 

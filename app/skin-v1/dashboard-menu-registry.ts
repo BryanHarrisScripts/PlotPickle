@@ -8,8 +8,10 @@ export type DashboardBbsItem = Readonly<{
 
 export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "learn", shortcut: "1", label: "Learn", description: "Learn Story Craft", group: "EXPLORE" },
-  { id: "community", shortcut: "C", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
   { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "EXPLORE" },
+  { id: "community", shortcut: "C", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
+  { id: "screening", shortcut: "9", label: "Screening", description: "Screen Stories and Gather Reactions", group: "EXPLORE" },
+  { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" },
 
   { id: "discovery", shortcut: "G", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
   { id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
@@ -21,7 +23,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "VISUALIZE" },
   { id: "previs", shortcut: "P", label: "Previs", description: "Preview Shots, Timing and Camera Motion", group: "VISUALIZE" },
   { id: "timeline", shortcut: "T", label: "Timeline", description: "Synchronize Script, Shots, Timing and Audio", group: "VISUALIZE" },
-  { id: "production", shortcut: "D", label: "Production", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
+  { id: "production", shortcut: "D", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
   { id: "sound-narration", shortcut: "6", label: "Narration", description: "Develop Narration, Voice-Over and Spoken Story", group: "SOUND" },
   { id: "sound-music", shortcut: "7", label: "Music", description: "Develop Score, Music and Ambient Cues", group: "SOUND" },
@@ -30,7 +32,6 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "pitch-package", shortcut: "4", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
   { id: "pitch-deck", shortcut: "5", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
   { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" },
-  { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "PITCH" },
 
   { id: "profile", shortcut: "I", label: "Identity", description: "Manage User Profile", group: "PLAY" },
   { id: "wyrmwood", shortcut: "2", label: "Wyrmwood", description: "Practice Narrative Craft", group: "PLAY" },
@@ -63,15 +64,13 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 ]);
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
-  "discovery",
-  "plan",
-  "storyboard",
   "previs",
   "timeline",
   "production",
 ]);
 
 export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set([
+  "screening",
   "sound-narration",
   "sound-music",
   "sound-foley",

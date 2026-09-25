@@ -86,7 +86,7 @@ test("#2215 Afterglow source provenance survives hydration so later UAT runs reu
   assert.match(browser, /sourceKind: "example", sourceId: "afterglow-v9"/u);
   assert.match(browser, /normalizeLibraryProject/u);
   assert.match(privateBrowser, /hydrateProfileProjectLibrary/u);
-  assert.match(privateBrowser, /summary = listLibraryProjects\(\)\.find/u);
+  assert.match(privateBrowser, /librarySummary = listLibraryProjects\(\)\.find/u);
   assert.match(privateStorage, /sourceKind/u);
   assert.match(privateStorage, /sourceId/u);
 });

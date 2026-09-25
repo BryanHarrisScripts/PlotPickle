@@ -210,6 +210,9 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
   const [notice, setNotice] = useState("");
   const draftCount = visualPackage?.references.filter((reference) => reference.reviewState === "draft").length ?? 0;
   const approvedCount = visualPackage?.references.filter((reference) => reference.reviewState === "approved").length ?? 0;
+  const completeViewCoverage = WORLD_MAP_CHARACTER_VIEWS.every((view) => (
+    visualPackage?.references.some((reference) => reference.view === view.id) ?? false
+  ));
 
   async function generateSheet() {
     if (working) return;
@@ -313,9 +316,9 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
         <button type="button" disabled={working} onClick={() => void generateSheet()}>
           {working ? "Generating character views…" : "Generate Character Visual"}
         </button>
-        <button type="button" disabled={!draftCount || working} onClick={approveSheet}>Approve / Lock Character Visuals</button>
+        <button type="button" disabled={!draftCount || !completeViewCoverage || working} onClick={approveSheet}>Approve / Lock Character Visuals</button>
       </div>
-      <small>{approvedCount} approved · {draftCount} draft · target {WORLD_MAP_CHARACTER_VIEWS.length} governed views</small>
+      <small>{approvedCount} approved · {draftCount} draft · target {WORLD_MAP_CHARACTER_VIEWS.length} governed views{completeViewCoverage ? "" : " · complete all eight views before approval"}</small>
       {visualPackage?.references.length ? (
         <div className={styles.referenceGrid}>
           {WORLD_MAP_CHARACTER_VIEWS.map((view) => {

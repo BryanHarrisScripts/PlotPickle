@@ -318,7 +318,7 @@ export default function StoryCardFoundationBoard({
     const scope: OutlineAssessmentRunReceipt["scope"] = blockNumbers.length === 1 ? "block" : "act";
     const run: OutlineAssessmentRunReceipt = {
       version: 1,
-      id: \`outline-assessment-run-\${crypto.randomUUID()}\`,
+      id: `outline-assessment-run-${crypto.randomUUID()}`,
       scope,
       actNumber: scope === "act" ? Math.ceil(blockNumbers[0] / 6) : null,
       requestedBlockNumbers: [...blockNumbers],
@@ -352,18 +352,18 @@ export default function StoryCardFoundationBoard({
         const before = loadFoundationProject() as LibraryPPFProject;
         const previous = currentOutlineAssessment(before, blockNumber);
         setAssessing(blockNumber);
-        setMessage(\`Story Architect is assessing Block \${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…\`);
+        setMessage(`Story Architect is assessing Block ${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…`);
         const assessment = await assessOne(blockNumber);
         completed.push(assessment);
         if (assessmentFindingsChanged(previous, assessment)) changedBlockNumbers.push(blockNumber);
       }
       saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, "completed");
-      setMessage(\`Story Architect assessed \${completed.length} Block\${completed.length === 1 ? "" : "s"}. \${changedBlockNumbers.length} Block\${changedBlockNumbers.length === 1 ? "" : "s"} produced new or changed findings. No accepted story content changed. See Story Architect Assessment History below.\`);
+      setMessage(`Story Architect assessed ${completed.length} Block${completed.length === 1 ? "" : "s"}. ${changedBlockNumbers.length} Block${changedBlockNumbers.length === 1 ? "" : "s"} produced new or changed findings. No accepted story content changed. See Story Architect Assessment History below.`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Story Architect could not complete this assessment.";
       const status: OutlineAssessmentRunReceipt["status"] = completed.length ? "partial" : "failed";
       saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, status, errorMessage);
-      setMessage(\`Story Architect assessment \${status === "partial" ? "stopped after a partial run" : "failed before any Block completed"}. \${completed.length} of \${blockNumbers.length} Blocks completed. No accepted story content changed. \${errorMessage}\`);
+      setMessage(`Story Architect assessment ${status === "partial" ? "stopped after a partial run" : "failed before any Block completed"}. ${completed.length} of ${blockNumbers.length} Blocks completed. No accepted story content changed. ${errorMessage}`);
     } finally {
       setAssessing(null);
     }
@@ -453,7 +453,7 @@ export default function StoryCardFoundationBoard({
                     <div className="pp-skin-v1-outline-agent-summary" data-agent-structural-state={assessment?.structural.state ?? "pending"}>
                       <strong>Story Architect · {assessment ? assessment.structural.state.replaceAll("-", " / ") : "Not assessed"}</strong>
                       {assessment ? <small>ASSESSED · Story Architect · {formatAssessmentTime(assessment.assessedAt)}</small> : null}
-                      <p>{assessment ? assessment.structural.reason : \`Block \${String(block.number).padStart(2, "0")} has \${coverage.passageCount} projected passages across \${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish \${matrixBlock?.responsibility || "structural responsibility"}.\`}</p>
+                      <p>{assessment ? assessment.structural.reason : `Block ${String(block.number).padStart(2, "0")} has ${coverage.passageCount} projected passages across ${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish ${matrixBlock?.responsibility || "structural responsibility"}.`}</p>
                       {assessment ? <small>{assessment.structural.state.replaceAll("-", " / ")} · {assessedCitationCount} unique cited passage{assessedCitationCount === 1 ? "" : "s"} · 4 Mini-Blocks reviewed · {assessment.model}</small> : null}
                       {assessment ? <small>No accepted story content changed.</small> : null}
                       {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
@@ -600,14 +600,14 @@ export default function StoryCardFoundationBoard({
           <div>
             {visibleAssessmentRuns.map((run) => (
               <details className="pp-skin-v1-story-card-structural-review" key={run.id}>
-                <summary>{run.scope === "act" ? \`Act \${run.actNumber}\` : \`Block \${String(run.requestedBlockNumbers[0]).padStart(2, "0")}\`} · {run.status} · {formatAssessmentTime(run.assessedAt)}</summary>
+                <summary>{run.scope === "act" ? `Act ${run.actNumber}` : `Block ${String(run.requestedBlockNumbers[0]).padStart(2, "0")}`} · {run.status} · {formatAssessmentTime(run.assessedAt)}</summary>
                 <p>{run.completedBlockNumbers.length} of {run.requestedBlockNumbers.length} Block{run.requestedBlockNumbers.length === 1 ? "" : "s"} assessed · {run.changedBlockNumbers.length} Block{run.changedBlockNumbers.length === 1 ? "" : "s"} with new or changed findings.</p>
                 <small>No accepted story content changed.</small>
                 {run.error ? <p>Stopped: {run.error}</p> : null}
                 {run.blockSummaries.length ? (
                   <ul>
                     {run.blockSummaries.map((summary) => (
-                      <li key={\`\${run.id}-\${summary.blockNumber}\`}>
+                      <li key={`${run.id}-${summary.blockNumber}`}>
                         Block {String(summary.blockNumber).padStart(2, "0")} · {summary.structuralState.replaceAll("-", " / ")} · {summary.citedPassageCount} cited passage{summary.citedPassageCount === 1 ? "" : "s"} · {summary.characterFindingCount} character finding{summary.characterFindingCount === 1 ? "" : "s"} · Mini-Blocks {summary.miniBlockStates.join(" / ")}
                       </li>
                     ))}

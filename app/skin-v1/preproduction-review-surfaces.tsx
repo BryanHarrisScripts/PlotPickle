@@ -74,7 +74,6 @@ export function SkinV1StoryboardReviewSurface({
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
@@ -369,6 +368,7 @@ export function SkinV1ProductionReviewSurface({
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
   const projection = useMemo(() => project ? derivePrevisProjection(project) : null, [project]);
   const selectedBlock = projection?.blocks.find((block) => block.blockNumber === normalized.blockNumber) ?? null;

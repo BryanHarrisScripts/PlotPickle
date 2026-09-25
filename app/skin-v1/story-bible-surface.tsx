@@ -11,8 +11,13 @@ import {
   type WorldMapCharacterVisualReference,
 } from "../../core/contracts/world-map";
 import { projectStoryBible, type StoryBibleCharacter, type StoryBibleFact, type StoryBibleFactGroup } from "../../core/project/story-bible-projection";
+import { applyStoryCommand } from "../../core/project/apply-command";
 import { saveActiveLibraryProject } from "../../core/storage/project-library-browser";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
+import {
+  createFirstMarketingReferenceArtifact,
+  deriveMarketingContextV1,
+} from "../../modules/learn/model/marquee-director";
 import styles from "./story-bible-surface.module.css";
 
 type AgentResponse = { readonly text?: string; readonly message?: string };
@@ -189,6 +194,35 @@ function WorldFactGroup({ group, project }: { readonly group: StoryBibleFactGrou
   );
 }
 
+function worldMapPosterPrompt(input: {
+  readonly title: string;
+  readonly logline: string;
+  readonly characterNames: readonly string[];
+  readonly foundationsBrief: string;
+  readonly worldBrief: string;
+}) {
+  const featuredCharacters = input.characterNames.filter(Boolean).slice(0, 6);
+  const billing = [
+    "A PLOTPICKLE PRODUCTION",
+    `FEATURED CHARACTERS: ${featuredCharacters.length ? featuredCharacters.join(", ") : "TBD"}`,
+    "ACTOR CAST: TBD",
+    "DIRECTED BY TBD",
+    "PRODUCED BY TBD",
+    "MUSICAL SCORE BY TBD",
+  ].join(" · ");
+  return [
+    `Create one professional theatrical movie poster for "${input.title}".`,
+    `Primary story logline: ${input.logline}`,
+    input.foundationsBrief.trim() ? `Established Foundations context: ${input.foundationsBrief.trim().slice(0, 1_500)}` : "",
+    input.worldBrief.trim() ? `Established WorldMap context: ${input.worldBrief.trim().slice(0, 1_500)}` : "",
+    "Create cinematic key art with one clear focal idea, strong title hierarchy and a conventional lower billing/footer zone.",
+    `Render the project title exactly as: ${input.title}`,
+    `Billing/footer intent: ${billing}`,
+    "Character names are story-character placeholders only. Do not invent actor identities, director names, producer names, composer names, critic quotes, awards, release dates, studio logos or platform logos.",
+    "Keep every unknown personnel identity as TBD. This is a marketing reference, not story canon.",
+  ].filter(Boolean).join("\n");
+}
+
 function characterVisualEvidence(character: StoryBibleCharacter, project: LibraryPPFProject) {
   const claims = (project.sourceEvidence.characterTruth?.claims ?? [])
     .filter((claim) => claim.characterIds.includes(character.id)
@@ -313,7 +347,7 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
   return (
     <div className={styles.visualSheet} data-world-map-character-visual={character.id}>
       <div className={styles.actions}>
-        <button type="button" disabled={working} onClick={() => void generateSheet()}>
+        <button className={styles.primaryAction} type="button" disabled={working} onClick={() => void generateSheet()}>
           {working ? "Generating character views…" : "Generate Character Visual"}
         </button>
         <button type="button" disabled={!draftCount || !completeViewCoverage || working} onClick={approveSheet}>Approve / Lock Character Visuals</button>
@@ -341,6 +375,86 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
 
 export default function StoryBibleSurface({ project }: { readonly project: LibraryPPFProject }) {
   const bible = useMemo(() => projectStoryBible(project, plotPickleCurriculum), [project]);
+  const [posterWorking, setPosterWorking] = useState(false);
+  const [posterNotice, setPosterNotice] = useState("");
+
+  async function generatePosterVisual() {
+    if (posterWorking || bible.posterUrl) return;
+    if (bible.logline.state === "not-established" || !bible.logline.value.trim()) {
+      setPosterNotice("Establish the story logline before generating the WorldMap poster.");
+      return;
+    }
+    const billingAcknowledged = window.confirm("Generate one WorldMap poster using the configured image route? A connected cloud image provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
+    if (!billingAcknowledged) {
+      setPosterNotice("Poster generation cancelled. No provider request was made.");
+      return;
+    }
+
+    setPosterWorking(true);
+    setPosterNotice("Generating the WorldMap poster and saving it to local PlotPickle assets…");
+    const prompt = worldMapPosterPrompt({
+      title: bible.title,
+      logline: bible.logline.value,
+      characterNames: bible.characters.map((character) => character.name),
+      foundationsBrief: project.foundations.brief.content,
+      worldBrief: project.world.brief.content,
+    });
+
+    try {
+      const response = await fetch("/api/local-ai/generate/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          assetId: `worldmap-poster-${project.id}`,
+          aspect: "portrait",
+          quality: "low",
+          requestCount: 1,
+          billingAcknowledged: true,
+        }),
+      });
+      const result = await response.json() as ImageResponse;
+      if (!response.ok || !result.ok || !result.assetUrl) throw new Error(result.message || "Image provider returned no poster.");
+      if (!result.assetUrl.startsWith("/api/local-ai/assets/")) {
+        throw new Error("The generated poster was not saved in PlotPickle local asset storage.");
+      }
+
+      const now = new Date().toISOString();
+      const context = deriveMarketingContextV1(project);
+      const baseArtifact = createFirstMarketingReferenceArtifact({
+        id: globalThis.crypto?.randomUUID?.() ?? `worldmap-poster-${Date.now()}`,
+        assetUrl: result.assetUrl,
+        prompt,
+        createdAt: now,
+        provider: result.provider || "configured image route",
+        model: result.model || "",
+        context,
+      });
+      const artifact = {
+        ...baseArtifact,
+        narrativeIntention: "PPF Marketing Reference · WorldMap poster",
+        sourceDecisionKeys: [
+          ...(baseArtifact.sourceDecisionKeys ?? []),
+          "surface:worldmap",
+          "billing:actor-cast:tbd",
+          "billing:director:tbd",
+          "billing:producer:tbd",
+          "billing:musical-score:tbd",
+        ],
+      };
+      const next = applyStoryCommand(project, {
+        type: "foundations.visual.store",
+        artifact,
+        occurredAt: now,
+      }) as LibraryPPFProject;
+      saveActiveLibraryProject(next);
+      setPosterNotice("Poster saved with this story as a local PPF Marketing Reference. Credit identities remain TBD until established.");
+    } catch (error) {
+      setPosterNotice(error instanceof Error ? error.message : "The WorldMap poster could not be generated.");
+    } finally {
+      setPosterWorking(false);
+    }
+  }
 
   return (
     <main
@@ -362,13 +476,19 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               unoptimized
             />
           ) : (
-            <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
+            <div className={styles.posterAction}>
+              <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
+              <button className={styles.primaryAction} disabled={posterWorking} onClick={() => void generatePosterVisual()} type="button">
+                {posterWorking ? "Generating Poster…" : "Generate Poster Visual"}
+              </button>
+            </div>
           )}
           <small>{bible.posterLabel}</small>
+          {posterNotice ? <small role="status">{posterNotice}</small> : null}
         </div>
 
         <div className={styles.identity}>
-          <p className={styles.kicker}>WORLD MAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT</p>
+          <p className={styles.kicker}>WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT</p>
           <h1 id="story-bible-title">{bible.title}</h1>
           <p className={styles.meta}>PPF REVISION {bible.revision} · UPDATED {bible.updatedAt || "UNKNOWN"}</p>
           <div className={styles.spotlight}>

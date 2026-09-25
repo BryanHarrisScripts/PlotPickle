@@ -4,6 +4,7 @@ import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "r
 import { loadFoundationProject } from "../../core/storage/foundation-project-browser";
 import { hydratedStoryMapContext, persistStoryMapContext } from "../../core/storage/profile-private-browser";
 import { hasActiveLibraryProject, loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
+import type { ProductionSoundCueKind } from "../../core/contracts/previs";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
@@ -21,6 +22,7 @@ import {
   SkinV1PrevisStoryMap,
   SkinV1ProductionReviewSurface,
   SkinV1ScreeningReviewSurface,
+  SkinV1SoundReviewSurface,
   SkinV1StoryboardReviewSurface,
   SkinV1StoryboardStoryMap,
   SkinV1TimelineReviewSurface,
@@ -127,6 +129,7 @@ export default function DashboardBbsReviewHost({
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [screeningOpen, setScreeningOpen] = useState(false);
+  const [soundOpen, setSoundOpen] = useState<ProductionSoundCueKind | null>(null);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
   const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
   const [storyBibleOpen, setStoryBibleOpen] = useState(false);
@@ -187,6 +190,7 @@ export default function DashboardBbsReviewHost({
     const returnToDashboard = () => {
       setLibraryOpen(false);
       setScreeningOpen(false);
+      setSoundOpen(null);
       setDiscoveryOpen(false);
       setDiscoveryProject(null);
       setStoryBibleOpen(false);
@@ -237,6 +241,7 @@ export default function DashboardBbsReviewHost({
     setDiscoveryOpen(false);
     setDiscoveryProject(null);
     setScreeningOpen(false);
+    setSoundOpen(null);
     closePreproductionSurfaces();
     onSurfaceNameChange("DASHBOARD");
     if (itemId) restoreDashboardFocus(itemId);
@@ -363,6 +368,13 @@ export default function DashboardBbsReviewHost({
       onSurfaceNameChange("SCREENING");
       return;
     }
+    if (item.id === "sound-narration" || item.id === "sound-music" || item.id === "sound-foley") {
+      onActivate(index);
+      const kind: ProductionSoundCueKind = item.id === "sound-narration" ? "narration" : item.id === "sound-music" ? "music" : "foley";
+      setSoundOpen(kind);
+      onSurfaceNameChange(kind === "narration" ? "NARRATION" : kind === "music" ? "MUSIC" : "FOLEY");
+      return;
+    }
     if (item.id === "discovery") {
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
@@ -432,6 +444,40 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (soundOpen) {
+    const itemId = soundOpen === "narration" ? "sound-narration" : soundOpen === "music" ? "sound-music" : "sound-foley";
+    const label = soundOpen === "narration" ? "NARRATION" : soundOpen === "music" ? "MUSIC" : "FOLEY";
+    return (
+      <section
+        aria-label={label}
+        data-dashboard-review-surface="sound"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard(itemId); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>{label}</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard(itemId)}>Back to Dashboard</button>
+        </div>
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => {
+          const next = { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 };
+          setReviewAddress(next);
+          rememberPreproductionContext("timeline", next);
+        }} />
+        <SkinV1SoundReviewSurface
+          kind={soundOpen}
+          address={reviewAddress}
+          onAddressChange={(address) => {
+            setReviewAddress(address);
+            rememberPreproductionContext("timeline", address);
+          }}
+        />
+      </section>
+    );
   }
 
   if (screeningOpen) {

@@ -30,7 +30,7 @@ test("#2287 stores Discovery metadata in the existing Library project envelope",
   assert.match(library, /readonly discovery: DiscoveryState/u);
   assert.match(library, /normalizeDiscoveryState\(source\.discovery\)/u);
   assert.match(library, /createEmptyDiscoveryState\(\)/u);
-  for (const lane of ["story-plot", "character", "scene-dialogue", "world-research", "theme-motif", "visual-mood"]) {
+  for (const lane of ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"]) {
     assert.match(contract, new RegExp('id: "' + lane + '"', "u"));
   }
   assert.match(contract, /export function discoveryActForBlock/u);
@@ -39,7 +39,7 @@ test("#2287 stores Discovery metadata in the existing Library project envelope",
 test("#2287 derives existing project pins from canonical Block addresses instead of model guesses", async () => {
   const projection = await read("core/project/discovery/index.ts");
   assert.match(projection, /placement:[\s\S]*act: block\.actNumber/u);
-  assert.match(projection, /lane: "story-plot"/u);
+  assert.match(projection, /lane: "story"/u);
   assert.match(projection, /classifierId: "deterministic-ppf-address"/u);
   assert.match(projection, /Derived deterministically from canonical PPF Block/u);
   assert.doesNotMatch(projection, /fetch\(|askPlotPickleAgent|\/api\/writing-assistant/u);

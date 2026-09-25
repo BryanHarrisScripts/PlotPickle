@@ -15,6 +15,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
   { id: "write", shortcut: "W", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "DEVELOP" },
   { id: "edit", shortcut: "E", label: "Edit", description: "Review and Improve Screenplay Flow", group: "DEVELOP" },
+  { id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "DEVELOP" },
 
   { id: "plan", shortcut: "O", label: "Outline", description: "Visualize Story Structure", group: "VISUALIZE" },
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "VISUALIZE" },
@@ -22,12 +23,10 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "timeline", shortcut: "T", label: "Timeline", description: "Synchronize Script, Shots, Timing and Audio", group: "VISUALIZE" },
   { id: "production", shortcut: "D", label: "Production", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
-  { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "REVIEW" },
-  { id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "REVIEW" },
-  { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "REVIEW" },
-
   { id: "pitch-package", shortcut: "4", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
   { id: "pitch-deck", shortcut: "5", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
+  { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" },
+  { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "PITCH" },
 
   { id: "profile", shortcut: "I", label: "Identity", description: "Manage User Profile", group: "PLAY" },
   { id: "wyrmwood", shortcut: "2", label: "Wyrmwood", description: "Practice Narrative Craft", group: "PLAY" },

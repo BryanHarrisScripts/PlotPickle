@@ -5,7 +5,7 @@ import { WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-cano
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard authority", async () => {
+test("Layer 1 canonical navigation keeps the frozen six-group Dashboard authority", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
   const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
     .map((match) => match.slice(1));
@@ -18,16 +18,16 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
     ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
+    ["refine", "R", "Refine", "Polish Dialogue and Story Choices", "DEVELOP"],
     ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
     ["storyboard", "S", "Storyboard", "Visualize Scenes Before You Write", "VISUALIZE"],
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
-    ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "REVIEW"],
-    ["refine", "R", "Refine", "Polish Dialogue and Story Choices", "REVIEW"],
-    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "REVIEW"],
     ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
+    ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
+    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "PITCH"],
     ["profile", "I", "Identity", "Manage User Profile", "PLAY"],
     ["wyrmwood", "2", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
     ["story", "3", "Written", "Story Game Engine", "PLAY"],
@@ -41,7 +41,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
   const shortcuts = rows.map(([, shortcut]) => shortcut);
   assert.equal(new Set(shortcuts).size, shortcuts.length);
   assert.deepEqual([...new Set(rows.map((row) => row[4]))], [
-    "EXPLORE", "DEVELOP", "VISUALIZE", "REVIEW", "PITCH", "PLAY", "SYSTEM",
+    "EXPLORE", "DEVELOP", "VISUALIZE", "PITCH", "PLAY", "SYSTEM",
   ]);
 
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));

@@ -23,6 +23,9 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
+    ["sound-narration", "6", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
+    ["sound-music", "7", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["sound-foley", "8", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
     ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
@@ -54,6 +57,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["EXPLORE", 3],
     ["DEVELOP", 5],
     ["VISUALIZE", 5],
+    ["SOUND", 3],
     ["PITCH", 4],
     ["PLAY", 3],
     ["SYSTEM", 5],
@@ -67,7 +71,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"discovery"[\s\S]*"story-bible"[\s\S]*"plan"[\s\S]*"storyboard"[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
-  assert.match(menu, /export const DASHBOARD_DISABLED_ITEM_IDS = new Set\(\[[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
+  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"sound-narration"[\s\S]*"sound-music"[\s\S]*"sound-foley"[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

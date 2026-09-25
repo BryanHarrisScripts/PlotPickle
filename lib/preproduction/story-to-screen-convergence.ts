@@ -113,7 +113,7 @@ export function projectPlotPickleProductionPacket(input: {
       shot.id,
       shot.storyboardArtifactId,
       shot.storyboardDependencyKey,
-      ...shot.roughMotionEvidenceRefs ?? [],
+      ...(shot.roughMotionEvidenceRefs ?? []),
       ...shotCues.flatMap((cue) => [cue.id, ...cue.sourceRefs]),
       ...shotTakes.flatMap((take) => [take.id, take.mediaRef, ...take.provenanceRefs]),
       ...activeCutIds,

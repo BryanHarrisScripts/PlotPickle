@@ -68,20 +68,10 @@ The previous `gatehouse` probe target was retired by the Community cleanup contr
 
 The probe contains only an opaque health tag and timestamp. It contains no story content, prompt, model response, credential, hidden reasoning, or private key.
 
-## Buzz Desktop v0.5.22 review
+## Buzz Desktop v0.5.25 review
 
-PlotPickle reviewed the upstream Desktop line from `v0.5.19` through `v0.5.22`. The published `desktop-v0.5.22` tag resolves to commit `9ceb1f79bbc21785a0a075c40aecb3c058b1ea15`. Upstream did not publish a standalone `desktop-v0.5.21` tag; the v0.5.21 release step is included in the cumulative v0.5.22 release history.
+PlotPickle reviewed the current upstream Desktop line through `desktop-v0.5.25`. The published tag resolves to commit `c8f73213089cbd5a0f1e675d3193558280d46e10` and is the current stable Desktop release reviewed for PlotPickle on 2026-09-24.
 
-The architecture-relevant changes strengthen existing PlotPickle transport and presence contracts rather than creating new authority:
+The architecture boundary remains unchanged: BUZZ is transport, Community and local coordination/evidence infrastructure beneath PlotPickle's existing authority model. Mastra and the PlotPickle harness remain orchestration authority; PPF remains canon authority; Story Decisions/Workbench and deterministic release gates retain change authority. PlotPickle does not adopt BUZZ workflow/editor concepts or BUZZ agent spawning as a second orchestration engine.
 
-- agent availability can derive from actual relay presence instead of stale local assumptions;
-- authenticated owned relay agents are discovered more reliably;
-- explicit agent profiles remain bound to their exact key;
-- owned-agent cloud provenance markers are normalized;
-- mention messages are published before waking agents, reducing ordering races between transport and execution;
-- profile-batch and thread-reply retrieval is more tolerant of relay slowness;
-- a harness-agnostic agent effort/spawn bridge exists upstream, but PlotPickle treats it only as interoperability beneath the existing governed Agent Contract, Context Engine and runtime authority.
-
-PlotPickle does **not** adopt BUZZ workflow/editor concepts, Bestie, or BUZZ agent spawning as a second PlotPickle orchestration engine. Mastra and the existing PlotPickle harness remain orchestration authority; PPF remains canon authority; Story Decisions/Workbench and deterministic release gates retain change authority.
-
-The Windows companion installer already resolves the newest compatible official Desktop release from `block/buzz` at install/maintenance time and verifies a release SHA-256 when GitHub publishes one. The verified local fallback is now `desktop-v0.5.22`, using `Buzz_0.5.22_x64-setup_alpha-unsigned.exe` with SHA-256 `c76aa32e75faa20aee5d8cd1c1c2c00265bc94166c3cb6a88455a6819e9ec289`. The asset remains explicitly marked unsigned; PlotPickle does not bypass normal installer or trust boundaries because of that status.
+The Windows companion installer continues to resolve the newest compatible official Desktop release from `block/buzz` at install/maintenance time and verifies the published release SHA-256 when available. The verified reviewed fallback is now `desktop-v0.5.25`, using `Buzz_0.5.25_x64-setup_alpha-unsigned.exe` with SHA-256 `fff84c9048acbb0592d873f6cc8c8cd9816c43a753042407bfa47b452c2bda43`. The asset remains explicitly marked unsigned; PlotPickle does not bypass normal installer or trust boundaries because of that status.

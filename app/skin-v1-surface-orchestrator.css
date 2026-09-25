@@ -165,44 +165,14 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-ski
   align-self: start !important;
 }
 
-/* #2408: Outline and Storyboard are primary canvas workspaces. They use the
-   full browser boundary with the shared 20px side breathing room instead of the
-   restrained subordinate-surface shell. */
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:is(
-  [data-skin-v1-active-surface="story-map"],
-  [data-skin-v1-active-surface="storyboard"]
-) :is(
-  .pp-skin-v1-orchestrator-header,
-  .pp-skin-v1-orchestrator-actions,
-  .pp-skin-v1-orchestrator-workspace-header,
-  .pp-skin-v1-orchestrator-footer
-) {
-  width: calc(100vw - 40px);
-  max-width: none;
-}
-
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:is(
-  [data-skin-v1-active-surface="story-map"],
-  [data-skin-v1-active-surface="storyboard"]
-) :is(
-  .pp-skin-v1-orchestrator-header,
-  .pp-skin-v1-orchestrator-workspace-header
-) {
-  border: 0;
-}
-
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:is(
-  [data-skin-v1-active-surface="story-map"],
-  [data-skin-v1-active-surface="storyboard"]
-) [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:is(
-  [data-skin-v1-surface-id="story-map"],
-  [data-skin-v1-surface-id="storyboard"]
-) {
-  width: calc(100vw - 40px) !important;
-  max-width: none !important;
-  min-height: calc(100dvh - 40px) !important;
-  border: 0 !important;
-}
+/* #2426: restore Outline to the #2399 shared-map boundary. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] :is(.pp-skin-v1-orchestrator-header,.pp-skin-v1-orchestrator-actions,.pp-skin-v1-orchestrator-workspace-header){width:calc(100% - 40px);max-width:none;}
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] :is(.pp-skin-v1-orchestrator-header,.pp-skin-v1-orchestrator-workspace-header){border:0;}
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"][data-skin-v1-surface-id="story-map"]{width:calc(100% - 40px)!important;max-width:none!important;border:0!important;}
+/* #2408 remains Storyboard-only. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="storyboard"] :is(.pp-skin-v1-orchestrator-header,.pp-skin-v1-orchestrator-actions,.pp-skin-v1-orchestrator-workspace-header,.pp-skin-v1-orchestrator-footer){width:calc(100vw - 40px);max-width:none;}
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="storyboard"] :is(.pp-skin-v1-orchestrator-header,.pp-skin-v1-orchestrator-workspace-header){border:0;}
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="storyboard"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"][data-skin-v1-surface-id="storyboard"]{width:calc(100vw - 40px)!important;max-width:none!important;min-height:calc(100dvh - 40px)!important;border:0!important;}
 
 /* Nested registered roots remain semantic subregions until they become the active
    WebMCP/application surface. This avoids decorative frame stacking. */
@@ -315,3 +285,5 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-return="true"] {
   display: none !important;
 }
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:has([data-dashboard-review-surface="outline"]) .pp-skin-v1-orchestrator-footer { width: calc(100vw - 40px); max-width: none; }

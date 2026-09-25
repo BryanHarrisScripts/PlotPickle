@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "issue": 2450,
+  "phase": "library-durable-hydration",
+  "brief": "docs/developer-briefs/2450-library-durable-hydration.md",
+  "allowedChanges": [
+    "app/api/auth/profile-private/route.ts",
+    "core/storage/project-library-core.mjs",
+    "core/storage/project-library-browser.ts",
+    "core/storage/profile-private-browser.ts",
+    "modules/library/ui/library-workspace.tsx",
+    "config/development-convergence/2450.json",
+    "docs/developer-briefs/2450-library-durable-hydration.md",
+    "tests/issue-1122-library-persistence.test.mjs",
+    "tests/issue-1143-profile-experience.test.mjs",
+    "tests/issue-2215-uat-semantic-review.test.mjs",
+    "tests/issue-2450-library-durable-hydration.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2450-A1",
+      "criterion": "Profile-private GET returns complete project inventory and active id.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/api/auth/profile-private/route.ts", "contains": "activeProjectId" }
+      ]
+    },
+    {
+      "id": "P2450-A2",
+      "criterion": "Browser session hydrates all durable working stories without cloning ids.",
+      "evidence": [
+        { "type": "file-contains", "path": "core/storage/project-library-core.mjs", "contains": "hydrateProfileProjectLibrary" }
+      ]
+    },
+    {
+      "id": "P2450-A3",
+      "criterion": "Legacy migration preserves full Library project fields.",
+      "evidence": [
+        { "type": "file-contains", "path": "core/storage/profile-private-browser.ts", "contains": "normalizeLibraryProject" }
+      ]
+    }
+  ]
+}

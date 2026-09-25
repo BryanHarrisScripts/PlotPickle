@@ -12,7 +12,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "EXPLORE" },
 
   { id: "discovery", shortcut: "G", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
-  { id: "story-bible", shortcut: "V", label: "Story", description: "Story, Logline, Theme and Visual Reference", group: "DEVELOP" },
+  { id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
   { id: "write", shortcut: "W", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "DEVELOP" },
   { id: "edit", shortcut: "E", label: "Edit", description: "Review and Improve Screenplay Flow", group: "DEVELOP" },
 
@@ -57,7 +57,21 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "timeline",
   "production",
   "story-bible",
+]);
+
+export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
+  "discovery",
+  "story-bible",
+  "plan",
+  "storyboard",
+  "previs",
+  "timeline",
+  "production",
+]);
+
+export const DASHBOARD_DISABLED_ITEM_IDS = new Set([
   "pitch-package",
+  "pitch-deck",
 ]);
 
 export const DASHBOARD_STARTUP_CHOICES = [

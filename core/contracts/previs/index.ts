@@ -97,12 +97,85 @@ export interface ProductionShotIntent {
   readonly updatedAt: string;
 }
 
+export type ProductionSoundCueKind = "narration" | "music" | "foley";
+export type ProductionSoundCueReviewState = "planned" | "approved" | "rejected";
+
+export interface ProductionSoundCue {
+  readonly id: string;
+  readonly anchorRef: string;
+  readonly productionShotId?: string;
+  readonly kind: ProductionSoundCueKind;
+  /** Human-authored sound intention. Empty/generated filler is never manufactured by normalization. */
+  readonly intent: string;
+  readonly startSecond: number | null;
+  readonly endSecond: number | null;
+  readonly sourceRefs: readonly string[];
+  readonly reviewState: ProductionSoundCueReviewState;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export type ProductionTakeReviewState = "candidate" | "approved" | "rejected";
+
+export interface ProductionTake {
+  readonly id: string;
+  readonly productionShotId: string;
+  readonly sourceRevision: number;
+  readonly storyboardDependencyKey: string;
+  /** Durable project/local media reference. This contract does not own the file bytes. */
+  readonly mediaRef: string;
+  readonly provider: string;
+  readonly model: string;
+  readonly intendedDurationSeconds: number | null;
+  /** Measured duration belongs to observed media evidence and never overwrites intended timing. */
+  readonly observedDurationSeconds: number | null;
+  readonly provenanceRefs: readonly string[];
+  readonly reviewState: ProductionTakeReviewState;
+  readonly replacesTakeId?: string;
+  readonly createdAt: string;
+}
+
+export interface RoughCutPlacement {
+  readonly productionShotId: string;
+  readonly takeId: string | null;
+  readonly soundCueIds: readonly string[];
+}
+
+export interface RoughCutRevision {
+  readonly id: string;
+  readonly sourceRevision: number;
+  readonly placements: readonly RoughCutPlacement[];
+  readonly supersedesCutId?: string;
+  readonly createdAt: string;
+}
+
+export type ScreeningObservationCategory = "intent" | "picture" | "timing" | "continuity" | "sound";
+export type ScreeningObservationState = "observed" | "resolved";
+
+export interface ScreeningObservation {
+  readonly id: string;
+  readonly roughCutId: string;
+  readonly productionShotId?: string;
+  readonly soundCueId?: string;
+  readonly startSecond: number | null;
+  readonly endSecond: number | null;
+  readonly category: ScreeningObservationCategory;
+  readonly summary: string;
+  readonly evidenceRefs: readonly string[];
+  readonly state: ScreeningObservationState;
+  readonly createdAt: string;
+}
+
 export interface PrevisProductionState {
   readonly shots: readonly ProductionShotIntent[];
+  readonly soundCues: readonly ProductionSoundCue[];
+  readonly takes: readonly ProductionTake[];
+  readonly roughCuts: readonly RoughCutRevision[];
+  readonly screeningObservations: readonly ScreeningObservation[];
 }
 
 export function createEmptyPrevisProductionState(): PrevisProductionState {
-  return { shots: [] };
+  return { shots: [], soundCues: [], takes: [], roughCuts: [], screeningObservations: [] };
 }
 
 function cleanText(value: unknown, maximum: number) {
@@ -159,9 +232,132 @@ export function normalizeProductionShotIntent(value: unknown): ProductionShotInt
   };
 }
 
+function cleanStringList(value: unknown, limit = 64) {
+  return Array.isArray(value)
+    ? [...new Set(value.map((item) => cleanText(item, 500)).filter(Boolean))].slice(0, limit)
+    : [];
+}
+
+function positiveSecond(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.min(Math.round(value * 1000) / 1000, 86_400)
+    : null;
+}
+
+function normalizeProductionSoundCue(value: unknown): ProductionSoundCue | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<ProductionSoundCue>;
+  const id = cleanText(item.id, 180);
+  const anchorRef = cleanText(item.anchorRef, 240);
+  const kind = item.kind === "music" || item.kind === "foley" ? item.kind : item.kind === "narration" ? "narration" : null;
+  const intent = cleanText(item.intent, 4_000);
+  if (!id || !/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef) || !kind || !intent) return null;
+  const startSecond = positiveSecond(item.startSecond);
+  const endSecond = positiveSecond(item.endSecond);
+  const createdAt = cleanText(item.createdAt, 80) || new Date().toISOString();
+  return {
+    id,
+    anchorRef,
+    productionShotId: cleanText(item.productionShotId, 180) || undefined,
+    kind,
+    intent,
+    startSecond,
+    endSecond: startSecond !== null && endSecond !== null && endSecond > startSecond ? endSecond : null,
+    sourceRefs: cleanStringList(item.sourceRefs),
+    reviewState: item.reviewState === "approved" || item.reviewState === "rejected" ? item.reviewState : "planned",
+    createdAt,
+    updatedAt: cleanText(item.updatedAt, 80) || createdAt,
+  };
+}
+
+function normalizeProductionTake(value: unknown): ProductionTake | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<ProductionTake>;
+  const id = cleanText(item.id, 180);
+  const productionShotId = cleanText(item.productionShotId, 180);
+  const storyboardDependencyKey = cleanText(item.storyboardDependencyKey, 320);
+  const mediaRef = cleanText(item.mediaRef, 800);
+  if (!id || !productionShotId || !storyboardDependencyKey.startsWith("storyboard-upstream:") || !mediaRef) return null;
+  const sourceRevision = typeof item.sourceRevision === "number" && Number.isInteger(item.sourceRevision) && item.sourceRevision >= 0 ? item.sourceRevision : 0;
+  return {
+    id,
+    productionShotId,
+    sourceRevision,
+    storyboardDependencyKey,
+    mediaRef,
+    provider: cleanText(item.provider, 120),
+    model: cleanText(item.model, 160),
+    intendedDurationSeconds: positiveSecond(item.intendedDurationSeconds),
+    observedDurationSeconds: positiveSecond(item.observedDurationSeconds),
+    provenanceRefs: cleanStringList(item.provenanceRefs),
+    reviewState: item.reviewState === "approved" || item.reviewState === "rejected" ? item.reviewState : "candidate",
+    replacesTakeId: cleanText(item.replacesTakeId, 180) || undefined,
+    createdAt: cleanText(item.createdAt, 80) || new Date().toISOString(),
+  };
+}
+
+function normalizeRoughCutPlacement(value: unknown): RoughCutPlacement | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<RoughCutPlacement>;
+  const productionShotId = cleanText(item.productionShotId, 180);
+  if (!productionShotId) return null;
+  return {
+    productionShotId,
+    takeId: cleanText(item.takeId, 180) || null,
+    soundCueIds: cleanStringList(item.soundCueIds, 32),
+  };
+}
+
+function normalizeRoughCutRevision(value: unknown): RoughCutRevision | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<RoughCutRevision>;
+  const id = cleanText(item.id, 180);
+  if (!id) return null;
+  return {
+    id,
+    sourceRevision: typeof item.sourceRevision === "number" && Number.isInteger(item.sourceRevision) && item.sourceRevision >= 0 ? item.sourceRevision : 0,
+    placements: Array.isArray(item.placements)
+      ? item.placements.map(normalizeRoughCutPlacement).filter((placement): placement is RoughCutPlacement => Boolean(placement)).slice(0, 500)
+      : [],
+    supersedesCutId: cleanText(item.supersedesCutId, 180) || undefined,
+    createdAt: cleanText(item.createdAt, 80) || new Date().toISOString(),
+  };
+}
+
+function normalizeScreeningObservation(value: unknown): ScreeningObservation | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<ScreeningObservation>;
+  const id = cleanText(item.id, 180);
+  const roughCutId = cleanText(item.roughCutId, 180);
+  const summary = cleanText(item.summary, 4_000);
+  const categories: readonly ScreeningObservationCategory[] = ["intent", "picture", "timing", "continuity", "sound"];
+  if (!id || !roughCutId || !summary || !categories.includes(item.category as ScreeningObservationCategory)) return null;
+  const startSecond = positiveSecond(item.startSecond);
+  const endSecond = positiveSecond(item.endSecond);
+  return {
+    id,
+    roughCutId,
+    productionShotId: cleanText(item.productionShotId, 180) || undefined,
+    soundCueId: cleanText(item.soundCueId, 180) || undefined,
+    startSecond,
+    endSecond: startSecond !== null && endSecond !== null && endSecond > startSecond ? endSecond : null,
+    category: item.category as ScreeningObservationCategory,
+    summary,
+    evidenceRefs: cleanStringList(item.evidenceRefs),
+    state: item.state === "resolved" ? "resolved" : "observed",
+    createdAt: cleanText(item.createdAt, 80) || new Date().toISOString(),
+  };
+}
+
 export function normalizePrevisProductionState(value: unknown): PrevisProductionState {
   if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyPrevisProductionState();
-  const source = value as { readonly shots?: unknown };
+  const source = value as {
+    readonly shots?: unknown;
+    readonly soundCues?: unknown;
+    readonly takes?: unknown;
+    readonly roughCuts?: unknown;
+    readonly screeningObservations?: unknown;
+  };
   const shots = Array.isArray(source.shots)
     ? source.shots
       .map(normalizeProductionShotIntent)
@@ -169,5 +365,17 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
       .filter((shot, index, all) => all.findIndex((candidate) => candidate.id === shot.id) === index)
       .slice(0, 500)
     : [];
-  return { shots };
+  const soundCues = Array.isArray(source.soundCues)
+    ? source.soundCues.map(normalizeProductionSoundCue).filter((cue): cue is ProductionSoundCue => Boolean(cue)).slice(0, 1_000)
+    : [];
+  const takes = Array.isArray(source.takes)
+    ? source.takes.map(normalizeProductionTake).filter((take): take is ProductionTake => Boolean(take)).slice(0, 2_000)
+    : [];
+  const roughCuts = Array.isArray(source.roughCuts)
+    ? source.roughCuts.map(normalizeRoughCutRevision).filter((cut): cut is RoughCutRevision => Boolean(cut)).slice(0, 250)
+    : [];
+  const screeningObservations = Array.isArray(source.screeningObservations)
+    ? source.screeningObservations.map(normalizeScreeningObservation).filter((observation): observation is ScreeningObservation => Boolean(observation)).slice(0, 5_000)
+    : [];
+  return { shots, soundCues, takes, roughCuts, screeningObservations };
 }

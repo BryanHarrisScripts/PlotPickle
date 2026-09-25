@@ -60,7 +60,7 @@ test("#2448 Discovery Mapper cannot move an Act-scoped Inbox card", async () => 
   assert.match(surface, /\.\.\.mapped,[\s\S]*act: fixedAct/u);
 });
 
-test("#2448 one Develop action drives all six lanes for the selected Act", async () => {
+test("#2448 one Develop action drives all eleven lanes for the selected Act", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
   assert.match(surface, /onClick=\{\(\) => void developAct\(selectedAct\)\}/u);
@@ -71,7 +71,7 @@ test("#2448 one Develop action drives all six lanes for the selected Act", async
   assert.doesNotMatch(surface, /MIND_MAP_ACTS\.map\(\(act\) => \([\s\S]*Develop Act \$\{act\} Mind Map/u);
 });
 
-test("#2448 Story Shape renders six selected-Act lanes in two columns", async () => {
+test("#2448 Story Shape renders eleven independent selected-Act rows", async () => {
   const [surface, styles, contract] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("app/skin-v1/discovery-surface.module.css"),
@@ -83,11 +83,62 @@ test("#2448 Story Shape renders six selected-Act lanes in two columns", async ()
   assert.match(surface, /selectedActBoardCards\.filter\(\(card\) => card\.placement\?\.lane === lane\.id\)/u);
   assert.match(surface, /data-discovery-act=\{selectedAct\}/u);
   assert.doesNotMatch(surface, /className=\{styles\.boardGrid\}/u);
-  assert.match(styles, /\.laneGrid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/u);
-  assert.match(styles, /@media \(max-width: 900px\)[\s\S]*\.laneGrid \{[\s\S]*grid-template-columns: 1fr/u);
+  assert.match(styles, /\.laneGrid \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/u);
+  assert.doesNotMatch(styles, /\.laneGrid \{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/u);
 
-  for (const lane of ["story-plot", "character", "scene-dialogue", "world-research", "theme-motif", "visual-mood"]) {
+  for (const lane of ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"]) {
     assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
   }
   assert.match(contract, /export type DiscoveryAct = 1 \| 2 \| 3 \| 4/u);
+});
+
+
+test("#2448 legacy paired lanes normalize to the closest primary lane without dropping cards", async () => {
+  const { normalizeDiscoveryState } = await import("../core/contracts/discovery/index.ts");
+  const legacyPairs = {
+    "story-plot": "story",
+    "scene-dialogue": "scene",
+    "world-research": "world",
+    "theme-motif": "theme",
+    "visual-mood": "visual",
+  };
+  const cards = Object.entries(legacyPairs).map(([lane], index) => ({
+    id: `legacy-${index}`,
+    kind: "text",
+    content: `Legacy ${lane}`,
+    assetRef: "",
+    sourceState: "new-local",
+    sourceRef: null,
+    createdAt: "2026-09-25T00:00:00.000Z",
+    placement: {
+      act: 1,
+      lane,
+      reason: "Legacy placement",
+      evidenceRefs: [],
+      classifierId: "legacy",
+      classifierVersion: "1",
+      pinnedAt: "2026-09-25T00:00:00.000Z"
+    }
+  }));
+  const normalized = normalizeDiscoveryState({ cards });
+  assert.equal(normalized.cards.length, 5);
+  for (const [index, expected] of Object.values(legacyPairs).entries()) {
+    assert.equal(normalized.cards[index]?.placement?.lane, expected);
+  }
+});
+
+test("#2448 Discovery Mapper skill and structured schema use the eleven current lanes", async () => {
+  const [runtime, skill, projection] = await Promise.all([
+    read("build/mastra-agent-runtime.ts"),
+    read(".agents/skills/discovery-mapper/SKILL.md"),
+    read("core/project/discovery/index.ts"),
+  ]);
+  const lanes = ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"];
+  for (const lane of lanes) {
+    assert.match(runtime, new RegExp(`"${lane}"`, "u"));
+    assert.match(skill, new RegExp(`\\b${lane}\\b`, "u"));
+  }
+  assert.match(runtime, /lane: \{ type: "string", enum: \["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"\] \}/u);
+  assert.match(skill, /required Act/u);
+  assert.match(projection, /lane: "story"/u);
 });

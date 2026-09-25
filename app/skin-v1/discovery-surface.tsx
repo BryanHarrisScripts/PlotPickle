@@ -258,7 +258,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
         persist([...retained, ...proposals]);
       }
       setNotice(
-        `Creative Director completed ${proposals.length} of 6 MindMap lanes for Act ${act}.`
+        `Creative Director completed ${proposals.length} of ${DISCOVERY_LANES.length} MindMap lanes for Act ${act}.`
         + (failures.length ? ` ${failures.join(" ")}` : " Proposals remain non-canon until the Human chooses to use them."),
       );
     } finally {
@@ -287,7 +287,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
         <div>
           <small>MINDMAP · ACT {selectedAct} · NON-CANON PROJECTION</small>
           <h2>{project.title}</h2>
-          <p>Work one Act at a time. Written ideas stay with the selected Act; Creative Director proposals fill that Act's six governed narrative lanes.</p>
+          <p>Work one Act at a time. Written ideas stay with the selected Act; Creative Director proposals fill that Act's eleven governed narrative lanes.</p>
         </div>
         <strong>{selectedActBoardCards.length} PINNED · {selectedActInbox.length} INBOX</strong>
       </section>
@@ -348,7 +348,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       </section>
 
       <section className={styles.board} aria-label={`Act ${selectedAct} Living MindMap Board`}>
-        <small>THE LIVING MINDMAP · ACT {selectedAct} · SIX GOVERNED LANES</small>
+        <small>THE LIVING MINDMAP · ACT {selectedAct} · ELEVEN GOVERNED LANES</small>
         <h3>STORY SHAPE · ACT {selectedAct}</h3>
         <div className={styles.laneGrid}>
           {DISCOVERY_LANES.map((lane) => {

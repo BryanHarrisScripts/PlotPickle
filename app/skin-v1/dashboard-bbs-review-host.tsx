@@ -351,7 +351,7 @@ export default function DashboardBbsReviewHost({
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
       setDiscoveryOpen(true);
-      onSurfaceNameChange("DISCOVERY");
+      onSurfaceNameChange("MIND MAP");
       return;
     }
     if (item.id === "library") {
@@ -394,7 +394,7 @@ export default function DashboardBbsReviewHost({
       }
       setStoryBibleProject(loadActiveLibraryProject());
       setStoryBibleOpen(true);
-      onSurfaceNameChange("STORY");
+      onSurfaceNameChange("WORLD MAP");
       return;
     }
     if (item.id === "open-source") {
@@ -421,7 +421,7 @@ export default function DashboardBbsReviewHost({
   if (discoveryOpen) {
     return (
       <section
-        aria-label="Discovery"
+        aria-label="Mind Map"
         data-dashboard-review-surface="discovery"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -431,7 +431,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>DISCOVERY</h1>
+          <h1>MIND MAP</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
         </div>
         <DiscoverySurface project={discoveryProject} />
@@ -442,7 +442,7 @@ export default function DashboardBbsReviewHost({
   if (storyBibleOpen && storyBibleProject) {
     return (
       <section
-        aria-label="Story"
+        aria-label="World Map"
         data-dashboard-review-surface="story-bible"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -455,7 +455,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>STORY</h1>
+          <h1>WORLD MAP</h1>
           <button
             autoFocus
             type="button"

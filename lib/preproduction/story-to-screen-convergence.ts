@@ -82,7 +82,7 @@ export function projectPlotPickleProductionPacket(input: {
   const shotTakes = newest(takes.filter((take) => take.productionShotId === shot.id));
   const projectedTakes = shotTakes.map((take): ProductionPacketTakeProjection => {
     const staleBecause = [
-      ...(take.sourceRevision !== input.currentRevision ? [`source revision ${take.sourceRevision} != current revision ${input.currentRevision}`] : []),
+      ...(take.sourceRevision > input.currentRevision ? [`take source revision ${take.sourceRevision} is newer than current revision ${input.currentRevision}`] : []),
       ...(take.storyboardDependencyKey !== shot.storyboardDependencyKey ? ["Storyboard dependency changed"] : []),
     ];
     return { take, stale: staleBecause.length > 0, staleBecause };

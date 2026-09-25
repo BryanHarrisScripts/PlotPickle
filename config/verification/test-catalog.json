@@ -72,7 +72,8 @@
         "targets": [
           "tests/layer1-navigation-continuity.test.mjs",
           "tests/issue-2422-library-load-import-export.test.mjs",
-          "tests/issue-2310-surface-coverage-convergence.test.mjs"
+          "tests/issue-2310-surface-coverage-convergence.test.mjs",
+          "tests/issue-2432-library-load-recovery-ui.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1528,6 +1529,50 @@
         ]
       },
       "notes": "#2262 protects exact-commit Sites provenance, drift detection and Human-only OSS Radar public draft publication. #2327 extends the same gate to both public production hostnames and complete in-site daily Radar reading."
+    },
+    {
+      "id": "story-canon.library-local-resource-recovery-2432",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "visual"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2432-library-local-resource-restore.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines."
     }
   ]
 }

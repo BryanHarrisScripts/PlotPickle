@@ -96,6 +96,25 @@ export function validateOutlineAgentAssessment(
   return { version: 1, blockNumber, inputFingerprint: outlineAssessmentFingerprint(project, blockNumber), assessedAt, model: model.slice(0, 120), structural: { state: structural.state as OutlineAgentAssessment["structural"]["state"], reason: reason(structural.reason, "Structure"), passageIds: structuralIds }, characters, miniBlocks: miniBlocks.sort((left, right) => left.ordinal - right.ordinal) };
 }
 
+function storyArchitectExecutionLabel(result: {
+  provider?: string;
+  runtimeProvider?: string;
+  model?: string;
+  modelRole?: string;
+  computeSource?: string;
+}) {
+  const runtime = result.runtimeProvider && result.runtimeProvider !== result.provider
+    ? `runtime=${result.runtimeProvider}`
+    : "";
+  return [
+    result.provider ? `provider=${result.provider}` : "",
+    runtime,
+    result.model ? `model=${result.model}` : "",
+    result.modelRole ? `role=${result.modelRole}` : "",
+    result.computeSource ? `compute=${result.computeSource}` : "",
+  ].filter(Boolean).join(" · ").slice(0, 120) || "configured Story Architect";
+}
+
 export async function requestOutlineAgentAssessment(project: LibraryPPFProject, blockNumber: number): Promise<OutlineAgentAssessment> {
   const block = project.structure.blocks.find((item) => item.number === blockNumber);
   if (!block) throw new Error("Choose a valid Story Block.");
@@ -110,7 +129,21 @@ export async function requestOutlineAgentAssessment(project: LibraryPPFProject, 
     JSON.stringify({ title: project.title, blockNumber, responsibility, blockTitle: block.title, blockNote: block.note, sourcePlacement: evidence.screenplay?.analysisStatus, sampleIncomplete: sample.length < passages.length || Boolean(evidence.screenplay?.passagesTruncated), miniBlocks: block.miniBlocks.map((mini) => ({ ordinal: mini.ordinal, title: mini.title, note: mini.note, savedWriting: blockWritingEntry(project.writing, { blockNumber, miniBlockNumber: mini.ordinal })?.text.slice(0, 900) ?? "" })), characters, passages: sample.map((p) => ({ id: p.id, mini: p.miniBlockNumber, type: p.type, scene: p.sceneNumber, text: p.text.slice(0, 320) })) }),
   ].join("\n\n");
   const response = await fetch("/api/writing-assistant/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": "quality" }, body: JSON.stringify({ agentId: "story-architect", modelRole: "quality", tone: "direct", message }), signal: AbortSignal.timeout(60_000) });
-  const result = await response.json() as { text?: string; model?: string; message?: string };
+  const result = await response.json() as {
+    text?: string;
+    provider?: string;
+    runtimeProvider?: string;
+    model?: string;
+    modelRole?: string;
+    computeSource?: string;
+    message?: string;
+  };
   if (!response.ok || !result.text) throw new Error(result.message || "Story Architect could not assess this Block. No finding was saved.");
-  return validateOutlineAgentAssessment(result.text, project, blockNumber, result.model ?? "configured Story Architect", new Date().toISOString());
+  return validateOutlineAgentAssessment(
+    result.text,
+    project,
+    blockNumber,
+    storyArchitectExecutionLabel(result),
+    new Date().toISOString(),
+  );
 }

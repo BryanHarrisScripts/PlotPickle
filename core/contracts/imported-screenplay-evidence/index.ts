@@ -6,7 +6,12 @@ import {
   normalizeStoryEvidenceMatrix,
   type StoryEvidenceMatrix,
 } from "../story-evidence-matrix";
-import { normalizeOutlineAgentAssessments, type OutlineAgentAssessment } from "./outline-agent-assessment";
+import {
+  normalizeOutlineAgentAssessments,
+  normalizeOutlineAssessmentRuns,
+  type OutlineAgentAssessment,
+  type OutlineAssessmentRunReceipt,
+} from "./outline-agent-assessment";
 
 export type ImportedScreenplayEvidenceState = "none" | "suggested" | "reviewed";
 
@@ -80,6 +85,7 @@ export type ProjectSourceEvidence = {
   readonly storyMatrix?: StoryEvidenceMatrix | null;
   readonly characterTruth?: CharacterTruthEvidence | null;
   readonly outlineAssessments?: readonly OutlineAgentAssessment[];
+  readonly outlineAssessmentRuns?: readonly OutlineAssessmentRunReceipt[];
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
@@ -220,13 +226,15 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     readonly storyMatrix?: unknown;
     readonly characterTruth?: unknown;
     readonly outlineAssessments?: unknown;
+    readonly outlineAssessmentRuns?: unknown;
   };
   const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
   const storyMatrix = normalizeStoryEvidenceMatrix(source.storyMatrix);
   const characterTruth = normalizeCharacterTruthEvidence(source.characterTruth);
   const outlineAssessments = normalizeOutlineAgentAssessments(source.outlineAssessments);
+  const outlineAssessmentRuns = normalizeOutlineAssessmentRuns(source.outlineAssessmentRuns);
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return { screenplay: null, referenceFixture, storyMatrix, characterTruth, outlineAssessments };
+    return { screenplay: null, referenceFixture, storyMatrix, characterTruth, outlineAssessments, outlineAssessmentRuns };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -275,6 +283,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     storyMatrix,
     characterTruth,
     outlineAssessments,
+    outlineAssessmentRuns,
   };
 }
 

@@ -12,7 +12,10 @@
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1994-writers-craft-all-curriculum.test.mjs",
     "tests/issue-2320-navigation-ia-convergence.test.mjs",
-    "tests/issue-2436-learn-direct-96-lessons.test.mjs"
+    "tests/issue-2436-learn-direct-96-lessons.test.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
   ],
   "acceptance": [
     {
@@ -81,6 +84,27 @@
           "type": "file-contains",
           "path": "config/skin-v1-surface-registry.json",
           "contains": "data-learn-explore-view='directory'"
+        }
+      ]
+    },
+    {
+      "id": "P2436-A5",
+      "criterion": "WebMCP and visual verification treat All Curriculum as the canonical Learn surface and validate all 96 visible lessons.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-surface-capture-registry.mjs",
+          "contains": "data-learn-explore-view='directory'"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "exploreLessonCount !== 96"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/visual-baselines/skin-v1/manifest.json",
+          "contains": "LEARN Explore All Curriculum"
         }
       ]
     }

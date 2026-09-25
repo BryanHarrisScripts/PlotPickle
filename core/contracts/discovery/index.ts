@@ -32,6 +32,7 @@ export type DiscoveryCard = {
   readonly sourceState: DiscoverySourceState;
   readonly sourceRef: string | null;
   readonly createdAt: string;
+  readonly inboxAct?: DiscoveryAct | null;
   readonly placement: DiscoveryPlacement | null;
 };
 
@@ -106,6 +107,7 @@ export function normalizeDiscoveryState(value: unknown): DiscoveryState {
       sourceState,
       sourceRef: cleanText(card.sourceRef, 240) || null,
       createdAt: cleanText(card.createdAt, 80) || new Date().toISOString(),
+      inboxAct: isDiscoveryAct(card.inboxAct) ? card.inboxAct : null,
       placement: normalizeDiscoveryPlacement(card.placement),
     });
   }

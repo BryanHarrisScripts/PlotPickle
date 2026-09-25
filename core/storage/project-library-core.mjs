@@ -263,6 +263,18 @@ export function hydrateProfileProjectLibrary(input) {
     summaries.push(summary);
   }
 
+  if (!summaries.length) {
+    const project = newProject(input.createProject, now, input.idFactory);
+    summaries.push(writeProject(storage, profileId, project, input.describeProject, {
+      now,
+      sourceKind: "user",
+      sourceId: null,
+      genre: "",
+      format: "Story",
+      archivedAt: null,
+    }));
+  }
+
   const requestedActiveProjectId = typeof input.activeProjectId === "string" ? input.activeProjectId.trim() : "";
   const activeProjectId = requestedActiveProjectId && summaries.some((item) => item.id === requestedActiveProjectId && !item.archivedAt)
     ? requestedActiveProjectId

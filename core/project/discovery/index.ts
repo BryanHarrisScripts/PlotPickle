@@ -30,7 +30,7 @@ export function projectDiscoveryPins(project: LibraryPPFProject): readonly Disco
         createdAt: project.updatedAt,
         placement: {
           act: block.actNumber,
-          lane: "story-plot",
+          lane: "story",
           reason: `Derived deterministically from canonical PPF Block ${String(block.number).padStart(2, "0")}.`,
           evidenceRefs: [block.id],
           classifierId: "deterministic-ppf-address",

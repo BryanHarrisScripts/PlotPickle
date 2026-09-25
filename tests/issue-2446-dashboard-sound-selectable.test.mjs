@@ -33,7 +33,7 @@ test("#2446 adds Sound between Visualize and Pitch with three unavailable destin
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
-  for (const id of ["sound-narration", "sound-music", "sound-foley", "pitch-package", "pitch-deck"]) {
+  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley", "pitch-package", "pitch-deck"]) {
     assert.match(unavailable, new RegExp(`"${id}"`, "u"));
   }
 });

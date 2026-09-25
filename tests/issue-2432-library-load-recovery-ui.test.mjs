@@ -27,7 +27,7 @@ test("#2432 keeps project defaults and local resource restore as separate Human 
   assert.match(source, /restoreLocalStoryboardResources\(current, selected\)/u);
   assert.match(source, /saveActiveLibraryProject\(result\.project\)/u);
   assert.match(source, /Local media restore is additive/u);
-  assert.match(source, /requires reconciliation rather than last-write-wins/u);
+  assert.match(source, /require reconciliation rather than last-write-wins/u);
 });
 
 test("#2432 routes Resume through Load recovery instead of bypassing it", async () => {

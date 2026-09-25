@@ -11,12 +11,9 @@ html[data-plotpickle-skin-theme="skin-v2"] .pp-skin-v1-dashboard-status-box.is-a
   background: var(--pp-skin-ready) !important;
 }
 
-/* Library, Outline, Storyboard and Previs are deliberately open for review,
-   not represented as production-ready green destinations. */
-[data-dashboard-menu-item="library"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="plan"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="storyboard"] .pp-skin-v1-dashboard-status-box,
-[data-dashboard-menu-item="previs"] .pp-skin-v1-dashboard-status-box {
+/* Yellow means the destination is enterable but still in review.
+   Green is reserved for locked surfaces; gray is unavailable. */
+[data-dashboard-review="in-review"] .pp-skin-v1-dashboard-status-box {
   border-color: var(--pp-skin-warning) !important;
   background: var(--pp-skin-warning) !important;
   box-shadow: var(--pp-skin-shadow-control) !important;

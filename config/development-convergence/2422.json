@@ -23,31 +23,56 @@
     "tests/issue-2292-detector-calibration.test.mjs",
     "tests/issue-2422-library-load-import-export.test.mjs",
     "tests/layer1-navigation-continuity.test.mjs",
-    "tests/visual-baselines/skin-v1/manifest.json"
+    "tests/visual-baselines/skin-v1/manifest.json",
+    "tests/issue-2226-phase-1-navigation-evidence.test.mjs"
   ],
   "acceptance": [
     {
       "id": "P2422-E1",
       "criterion": "Library opens Load and preserves the requested seven-item keyboard directory order.",
       "evidence": [
-        { "type": "file-contains", "path": "modules/library/ui/library-workspace.tsx", "contains": "useState<LibraryDestination>(\"load\")" },
-        { "type": "file-contains", "path": "tests/issue-2422-library-load-import-export.test.mjs", "contains": "requested keyboard order" }
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": "useState<LibraryDestination>(\"load\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2422-library-load-import-export.test.mjs",
+          "contains": "requested keyboard order"
+        }
       ]
     },
     {
       "id": "P2422-E2",
       "criterion": "Import Export accepts legacy PPF and canonical backup while exporting the active Library project locally.",
       "evidence": [
-        { "type": "file-contains", "path": "core/storage/library-project.ts", "contains": "parseLibraryBackup" },
-        { "type": "file-contains", "path": "modules/library/ui/library-workspace.tsx", "contains": "function exportCurrentStory()" }
+        {
+          "type": "file-contains",
+          "path": "core/storage/library-project.ts",
+          "contains": "parseLibraryBackup"
+        },
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": "function exportCurrentStory()"
+        }
       ]
     },
     {
       "id": "P2422-E3",
       "criterion": "Library and Avery return directly to Dashboard, and the live menu audit follows the same path.",
       "evidence": [
-        { "type": "file-contains", "path": "modules/library/ui/library-workspace.tsx", "contains": ">Back to Dashboard</button>" },
-        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "clickSurfaceReturn(page, \"Back to Dashboard\")" }
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": ">Back to Dashboard</button>"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "clickSurfaceReturn(page, \"Back to Dashboard\")"
+        }
       ]
     }
   ]

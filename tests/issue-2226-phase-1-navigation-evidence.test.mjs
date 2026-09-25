@@ -54,7 +54,7 @@ test("#2226 Phase 1 orders standard evidence by the current Human navigation flo
 test("#2226 Phase 1 derives sortable candidate and baseline names from navigation identity", () => {
   const expected = {
     dashboard: ["00-dashboard", ".artifacts/visual-readiness/00-dashboard__candidate.png", "tests/visual-baselines/skin-v1/00-dashboard.png"],
-    "library-load": ["03-library__03-load", ".artifacts/visual-readiness/03-library__03-load__candidate.png", "tests/visual-baselines/skin-v1/03-library__03-load.png"],
+    "library-load": ["03-library__01-load", ".artifacts/visual-readiness/03-library__01-load__candidate.png", "tests/visual-baselines/skin-v1/03-library__01-load.png"],
     "scene-timeline": ["05-storyboard__02-scene-workspace", ".artifacts/visual-readiness/05-storyboard__02-scene-workspace__candidate.png", "tests/visual-baselines/skin-v1/05-storyboard__02-scene-workspace.png"],
     "cloud-story-mode": ["15-manage__02-story-mode__02-cloud", ".artifacts/visual-readiness/15-manage__02-story-mode__02-cloud__candidate.png", "tests/visual-baselines/skin-v1/15-manage__02-story-mode__02-cloud.png"],
     pageflow: ["10-refine__03-pageflow", ".artifacts/visual-readiness/10-refine__03-pageflow__candidate.png", "tests/visual-baselines/skin-v1/10-refine__03-pageflow.png"],

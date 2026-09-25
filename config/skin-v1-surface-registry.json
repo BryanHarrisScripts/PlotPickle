@@ -309,12 +309,12 @@
       "continuityIds": [],
       "navigationPath": [
         {
-          "order": 1,
+          "order": 3,
           "slug": "library",
           "label": "Library"
         },
         {
-          "order": 3,
+          "order": 1,
           "slug": "load",
           "label": "Load"
         }

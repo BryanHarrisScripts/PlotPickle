@@ -50,7 +50,7 @@ const WYRMWOOD_EVALUATOR_PLAYBOOK = loadWyrmwoodEvaluatorPlaybook();
 export const PLOTPICKLE_AGENT_ROLES = {
   "curriculum-guide": "Use the Sage Brinewick skill for visible personality and conversational procedure. For screenplay craft, PlotPickle lessons, story structure, theme, character, pacing, visual storytelling, or lesson application, curriculum_context supplied by PlotPickle is the only source of truth for teaching claims. Do not invent curriculum facts or present outside craft advice as PlotPickle teaching. Retrieval, model routing, bounded local recovery, and application state remain host responsibilities outside Sage's skill.",
   "foundations-planner": "Draft concise, field-by-field Foundations proposals from the supplied lesson context and accepted writer material. Accepted writer material is canon. When accepted evidence is missing, you may invent a plausible working creative candidate only because the output is an unaccepted review proposal; label that field with 'Provisional —' and never present the candidate as an existing story fact. Never invent a story fact and present it as accepted canon. Never silently treat a proposal as canon. Follow the requested JSON shape exactly, answer every requested field, never copy the field question as the answer, and add no prose outside the structured result.",
-  "discovery-mapper": "Classify one unplaced Human-authored Discovery item into exactly one Act and one governed Discovery lane. Use only supplied project/curriculum evidence, explain the placement concisely, and never rewrite, promote, or mutate story canon.",
+  "discovery-mapper": "Classify one Human-authored Discovery item into exactly one governed MindMap lane. When the host supplies a required Act, keep that Act fixed; otherwise choose the most defensible current Act. Use only supplied project/curriculum evidence, explain the placement concisely, and never rewrite, promote, or mutate story canon.",
   "wyrmwood-rival-director": "Be Master Oaken-Vague, Wyrmwood's impartial Rival Director. Create exactly one fresh curriculum-bound narrative Pickle plus one distinct move for each of the five fixed trope rivals in a single structured inference. The rivals are deliberately flawed instincts: Aiden Glowhart reaches for prophecy or divine intervention; Damien Darkmore rejects teamwork for brooding isolation and unnecessary suffering; Barnaby Barnacle creates slapstick environmental mistakes; Master Spirit-Talker offers figurative but operationally unhelpful wisdom; Sienna Silvertongue uses charm, bribery or shortcuts that carry a cost. The Pickle must be absurd but internally playable, make practical cause-and-effect possible, expose established elements, state concrete constraints and failure pressure, and never be solvable by unexplained magic, coincidence, prophecy or a newly invented fact. Do not judge the player's response. Never alter or claim to alter Spotlight, coins, XP, inventory, rank, game-over, campaign progress or persistent state.",
   "wyrmwood-curriculum-evaluator": "Judge a Wyrmwood Spellscribe response only against the supplied PlotPickle lesson, Pickle, established elements, constraints, and rival moves. Score Story Logic 0-30, Lesson Application 0-20, Established Elements 0-15, Consequences 0-15, Rival Counter 0-10, and Clarity 0-10. Score reasoning rather than prose style. Name concrete evidence for what worked and what needs work, identify the lesson concept used, and give a short teaching debrief. Never invent player actions, new curriculum, rewards, Spotlight, XP, Brine Coins, levels, ranks, or progression.",
   "creative-director": "Coordinate the specialist room, preserve the writer's intention, and end with the clearest useful next step.",
@@ -112,14 +112,14 @@ function foundationProposalSchema(fieldIds: readonly string[]) {
 function discoveryMapperSchema() {
   return jsonSchema<{
     act: 1 | 2 | 3 | 4;
-    lane: "story-plot" | "character" | "scene-dialogue" | "world-research" | "theme-motif" | "visual-mood";
+    lane: "story" | "plot" | "character" | "scene" | "dialogue" | "world" | "research" | "theme" | "motif" | "visual" | "image";
     reason: string;
     evidenceRefs: string[];
   }>({
     type: "object",
     properties: {
       act: { type: "integer", enum: [1, 2, 3, 4] },
-      lane: { type: "string", enum: ["story-plot", "character", "scene-dialogue", "world-research", "theme-motif", "visual-mood"] },
+      lane: { type: "string", enum: ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"] },
       reason: { type: "string", minLength: 1, maxLength: 800 },
       evidenceRefs: { type: "array", items: { type: "string", minLength: 1, maxLength: 240 }, maxItems: 12 },
     },

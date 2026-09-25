@@ -26,6 +26,8 @@ test("Mastra execution and the Curriculum Guide keep a bounded local response bu
   assert.match(runtime, /const executionOptions = \{[\s\S]*abortSignal,/);
   assert.match(runtime, /agent\.generate\(prompt, (?:\{[\s\S]*\.\.\.executionOptions|executionOptions)\)/);
   assert.match(runtime, /structuredOutput: \{[\s\S]*foundationProposalSchema/);
+  assert.match(runtime, /structuredOutput: \{[\s\S]*storyArchitectAssessmentSchema/);
+  assert.match(runtime, /const storyArchitectModelSettings = \{[\s\S]*maxOutputTokens: 1800/);
   assert.match(runtime, /jsonPromptInjection: false/);
   assert.match(runtime, /30-second response limit/);
   assert.match(guide, /\/api\/writing-assistant\/status/);

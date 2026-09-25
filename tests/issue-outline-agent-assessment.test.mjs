@@ -64,6 +64,9 @@ test("Outline agent uses current screenplay, validates source citations and carr
   assert.match(agent, /No finding was saved/);
   assert.match(agent, /inputFingerprint: outlineAssessmentFingerprint/);
   assert.match(agent, /agentId: "story-architect"/);
+  assert.match(agent, /storyArchitectExecutionLabel\(result\)/);
+  assert.match(agent, /runtimeProvider\?: string/);
+  assert.match(agent, /computeSource\?: string/);
   assert.match(model, /currentOutlineAssessment\(project, block.number\)/);
   assert.match(board, /Assess Act \$\{act\} with Story Architect/);
   assert.match(board, /Screenplay passages behind this finding/);

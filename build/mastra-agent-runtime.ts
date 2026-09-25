@@ -128,6 +128,97 @@ function discoveryMapperSchema() {
   });
 }
 
+function storyArchitectAssessmentSchema() {
+  const passageIds = {
+    type: "array" as const,
+    items: { type: "string" as const, minLength: 1, maxLength: 240 },
+    maxItems: 24,
+  };
+  const reason = { type: "string" as const, minLength: 18, maxLength: 900 };
+  return jsonSchema<{
+    structural: {
+      state: "covered" | "condensed-shared" | "gap-underdeveloped" | "unresolved";
+      reason: string;
+      passageIds: string[];
+    };
+    characters: Array<{
+      characterId: string;
+      state: "not-present-no-evidence" | "present-arc-neutral" | "pressure-introduced" | "belief-strategy-reinforced" | "belief-strategy-challenged" | "meaningful-choice" | "consequence" | "relationship-movement" | "arc-transition" | "unresolved-insufficient-evidence";
+      reason: string;
+      passageIds: string[];
+    }>;
+    miniBlocks: Array<{
+      ordinal: 1 | 2 | 3 | 4;
+      state: "supported" | "partial" | "unsupported";
+      reason: string;
+      passageIds: string[];
+      storyboardCue: string;
+    }>;
+  }>({
+    type: "object",
+    properties: {
+      structural: {
+        type: "object",
+        properties: {
+          state: { type: "string", enum: ["covered", "condensed-shared", "gap-underdeveloped", "unresolved"] },
+          reason,
+          passageIds,
+        },
+        required: ["state", "reason", "passageIds"],
+        additionalProperties: false,
+      },
+      characters: {
+        type: "array",
+        maxItems: 64,
+        items: {
+          type: "object",
+          properties: {
+            characterId: { type: "string", minLength: 1, maxLength: 160 },
+            state: {
+              type: "string",
+              enum: [
+                "not-present-no-evidence",
+                "present-arc-neutral",
+                "pressure-introduced",
+                "belief-strategy-reinforced",
+                "belief-strategy-challenged",
+                "meaningful-choice",
+                "consequence",
+                "relationship-movement",
+                "arc-transition",
+                "unresolved-insufficient-evidence",
+              ],
+            },
+            reason,
+            passageIds,
+          },
+          required: ["characterId", "state", "reason", "passageIds"],
+          additionalProperties: false,
+        },
+      },
+      miniBlocks: {
+        type: "array",
+        minItems: 4,
+        maxItems: 4,
+        items: {
+          type: "object",
+          properties: {
+            ordinal: { type: "integer", enum: [1, 2, 3, 4] },
+            state: { type: "string", enum: ["supported", "partial", "unsupported"] },
+            reason,
+            passageIds,
+            storyboardCue: { type: "string", maxLength: 360 },
+          },
+          required: ["ordinal", "state", "reason", "passageIds", "storyboardCue"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["structural", "characters", "miniBlocks"],
+    additionalProperties: false,
+  });
+}
+
 function storyCouncilContributionSchema() {
   return jsonSchema<{
     kind: "finding" | "proposal" | "alternatives" | "no-finding" | "blocked" | "needs-human";
@@ -336,11 +427,19 @@ export async function askPlotPickleAgent(input: {
     temperature: 0.2,
     maxOutputTokens: 850,
   };
+  const storyArchitectModelSettings = {
+    temperature: 0.1,
+    maxOutputTokens: 1800,
+  };
   try {
     const executionOptions = {
       abortSignal,
-      ...(storyCouncilMode || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
-        modelSettings: storyCouncilMode ? storyCouncilModelSettings : standardModelSettings,
+      ...(storyCouncilMode || input.agentId === "story-architect" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
+        modelSettings: storyCouncilMode
+          ? storyCouncilModelSettings
+          : input.agentId === "story-architect"
+            ? storyArchitectModelSettings
+            : standardModelSettings,
       } : {}),
     };
     if (storyCouncilMode) {
@@ -352,6 +451,17 @@ export async function askPlotPickleAgent(input: {
         },
       });
       if (!result.object) throw new Error("The Story Council specialist did not return a structured contribution.");
+      return JSON.stringify(result.object);
+    }
+    if (!directConversationMode && input.agentId === "story-architect") {
+      const result = await agent.generate(prompt, {
+        ...executionOptions,
+        structuredOutput: {
+          schema: storyArchitectAssessmentSchema(),
+          jsonPromptInjection: false,
+        },
+      });
+      if (!result.object) throw new Error("Story Architect did not return a structured assessment.");
       return JSON.stringify(result.object);
     }
     if (!directConversationMode && input.agentId === "discovery-mapper") {

@@ -369,6 +369,20 @@ async function profileForProvider(
   return profile;
 }
 
+function storyArchitectExecutionRoute(
+  profile: ProviderProfile,
+  role: LocalTextRole,
+  computeSource: string,
+) {
+  return [
+    `provider=${profile.provider}`,
+    `runtime=${profile.runtime || profile.provider}`,
+    `model=${profile.textModel}`,
+    `role=${role}`,
+    `compute=${computeSource}`,
+  ].join(" · ");
+}
+
 async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const body = await readBody(request, 96 * 1024);
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
@@ -401,16 +415,30 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     : [];
   const conversationMode = body.conversationMode === true;
   const started = Date.now();
-  const text = await askPlotPickleAgent({
-    profile,
-    agentId,
-    tone,
-    message,
-    history: safeHistory(body.history),
-    foundationFieldIds,
-    conversationMode,
-  });
-  if (!text) throw new Error("The provider returned no text.");
+  let text = "";
+  try {
+    text = await askPlotPickleAgent({
+      profile,
+      agentId,
+      tone,
+      message,
+      history: safeHistory(body.history),
+      foundationFieldIds,
+      conversationMode,
+    });
+  } catch (error) {
+    if (agentId === "story-architect") {
+      const detail = error instanceof Error ? error.message : "Story Architect structured execution failed.";
+      throw new Error(`Story Architect execution failed (${storyArchitectExecutionRoute(profile, role, assigned.source)}): ${detail}`);
+    }
+    throw error;
+  }
+  if (!text) {
+    if (agentId === "story-architect") {
+      throw new Error(`Story Architect execution failed (${storyArchitectExecutionRoute(profile, role, assigned.source)}): no structured assessment was returned.`);
+    }
+    throw new Error("The provider returned no text.");
+  }
   const updated: ProviderProfile = {
     ...profile,
     assistantVerifiedAt: new Date().toISOString(),

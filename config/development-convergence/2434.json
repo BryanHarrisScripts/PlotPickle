@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "issue": 2434,
+  "phase": "outline-assessment-receipts",
+  "brief": "docs/developer-briefs/outline-assessment-receipts.md",
+  "allowedChanges": [
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "config/development-convergence/2434.json",
+    "core/contracts/imported-screenplay-evidence/index.ts",
+    "core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts",
+    "docs/developer-briefs/outline-assessment-receipts.md",
+    "tests/issue-outline-agent-assessment.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2434-A1",
+      "criterion": "Current Story Architect assessments remain visibly assessed and use reassess wording without rewriting accepted story content.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "ASSESSED · Story Architect" },
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "No accepted story content changed." },
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "Reassess this Block" }
+      ]
+    },
+    {
+      "id": "P2434-A2",
+      "criterion": "Block and Act assessment runs persist bounded audit receipts with completed and changed Block summaries.",
+      "evidence": [
+        { "type": "file-contains", "path": "core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts", "contains": "normalizeOutlineAssessmentRuns" },
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "Story Architect Assessment History" },
+        { "type": "file-contains", "path": "tests/issue-outline-agent-assessment.test.mjs", "contains": "assessment run receipts" }
+      ]
+    },
+    {
+      "id": "P2434-A3",
+      "criterion": "Legacy evidence normalizes safely and assessment history never duplicates screenplay text.",
+      "evidence": [
+        { "type": "file-contains", "path": "core/contracts/imported-screenplay-evidence/index.ts", "contains": "outlineAssessmentRuns" },
+        { "type": "file-contains", "path": "docs/developer-briefs/outline-assessment-receipts.md", "contains": "not duplicate screenplay text" }
+      ]
+    }
+  ]
+}

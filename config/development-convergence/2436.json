@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "issue": 2436,
+  "phase": "learn-direct-96-lessons",
+  "brief": "docs/developer-briefs/2436-learn-direct-96-lessons.md",
+  "allowedChanges": [
+    "app/skin-v1/learn-explore.tsx",
+    "app/skin-v1/learn-journey-preview.tsx",
+    "config/development-convergence/2436.json",
+    "docs/developer-briefs/2436-learn-direct-96-lessons.md",
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1994-writers-craft-all-curriculum.test.mjs",
+    "tests/issue-2320-navigation-ia-convergence.test.mjs",
+    "tests/issue-2436-learn-direct-96-lessons.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2436-A1",
+      "criterion": "Dashboard Learn enters the canonical 96-lesson All Curriculum browser directly.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "useState(true)" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "entries.length !== 96" }
+      ]
+    },
+    {
+      "id": "P2436-A2",
+      "criterion": "All Curriculum retains search/topic/Craft Module filters and returns to Dashboard instead of Learn.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "Search all curriculum" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "Filter Explore by topic" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "Filter Explore by Craft Module" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "Back to Dashboard" }
+      ]
+    },
+    {
+      "id": "P2436-A3",
+      "criterion": "Lesson detail can return to All Curriculum or directly to Dashboard while preserving progress ownership.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "Back to All Curriculum" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "PPFProject.learning.completedLessonIds" }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
-import type { CharacterArcEvidenceState } from "@/core/contracts/character-truth-evidence";
+import {
+  reviewCharacterArcEvidence,
+  type CharacterArcEvidenceState,
+} from "@/core/contracts/character-truth-evidence";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import {
+  reviewStoryEvidenceBlock,
+  type StoryStructuralFindingState,
+} from "@/core/contracts/story-evidence-matrix";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
-import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
   markCreativeRevisionDependentsStale,
   planCreativeRevisionPropagation,
@@ -21,17 +28,7 @@ import {
   updateStoryCardMini,
 } from "@/modules/plan/story-card-board";
 
-import { currentOutlineAssessment, outlineAssessmentFingerprint, requestOutlineAgentAssessment } from "@/modules/plan/outline-agent-assessment";
-import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
-import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
-import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
-
 type StoryCardFoundationBoardProps = {
-  readonly outlineReadiness?: readonly OutlineBlockReadiness[];
-  readonly selectedAddress?: PreproductionReviewAddress;
-  readonly onSelectAddress?: (address: PreproductionReviewAddress) => void;
-  readonly turningPointSelected?: boolean;
-  readonly onSelectTurningPoint?: () => void;
   readonly project: LibraryPPFProject;
   readonly onProjectChange: (project: LibraryPPFProject) => void;
   readonly act?: number;
@@ -76,13 +73,7 @@ export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
   act,
-  outlineReadiness,
-  selectedAddress,
-  onSelectAddress,
-  turningPointSelected,
-  onSelectTurningPoint,
 }: StoryCardFoundationBoardProps) {
-  const [assessing, setAssessing] = useState<number | null>(null);
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -241,35 +232,56 @@ export default function StoryCardFoundationBoard({
     );
   }
 
-  async function assessOne(blockNumber: number) {
-      const current = loadFoundationProject() as LibraryPPFProject;
-      const assessment = await requestOutlineAgentAssessment(current, blockNumber);
-      const latest = loadFoundationProject() as LibraryPPFProject;
-      if (outlineAssessmentFingerprint(latest, blockNumber) !== assessment.inputFingerprint) throw new Error("The screenplay or plan changed during assessment. Run it again with current evidence.");
-      const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
-      const saved = saveFoundationProject({
-        ...latest,
-        revision: latest.revision + 1,
-        updatedAt: assessment.assessedAt,
-        sourceEvidence: { ...source, outlineAssessments: [...(source.outlineAssessments ?? []).filter((item) => item.blockNumber !== blockNumber), assessment] },
-      }) as LibraryPPFProject;
-      onProjectChange(saved);
+  function saveStructuralFinding(
+    blockNumber: number,
+    state: StoryStructuralFindingState,
+    reason: string,
+  ) {
+    if (!storyMatrix) return;
+    const reviewedAt = new Date().toISOString();
+    const nextMatrix = reviewStoryEvidenceBlock(storyMatrix, blockNumber, state, reason, reviewedAt);
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: reviewedAt,
+      sourceEvidence: {
+        ...normalizedSourceEvidence,
+        storyMatrix: nextMatrix,
+      },
+    };
+    const saved = saveFoundationProject(next) as LibraryPPFProject;
+    onProjectChange(saved);
+    setMessage(`Saved Human structural review for Block ${String(blockNumber).padStart(2, "0")}. No screenplay text or comparison source was changed.`);
   }
 
-  async function assessBlocks(blockNumbers: readonly number[]) {
-    if (assessing !== null) return;
-    try {
-      for (const blockNumber of blockNumbers) {
-        setAssessing(blockNumber);
-        setMessage(`Story Architect is assessing Block ${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…`);
-        await assessOne(blockNumber);
-      }
-      setMessage(`Story Architect assessed ${blockNumbers.length} Block${blockNumbers.length === 1 ? "" : "s"} with cited screenplay passages. Proposals now carry into the Storyboard handoff; screenplay and accepted canon were not rewritten.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Story Architect could not complete this assessment. Remaining Blocks were not assessed.");
-    } finally {
-      setAssessing(null);
-    }
+  function saveCharacterArcFinding(
+    characterId: string,
+    blockNumber: number,
+    state: CharacterArcEvidenceState,
+    note: string,
+  ) {
+    if (!characterTruth) return;
+    const reviewedAt = new Date().toISOString();
+    const nextCharacterTruth = reviewCharacterArcEvidence(
+      characterTruth,
+      characterId,
+      blockNumber,
+      state,
+      note,
+      reviewedAt,
+    );
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: reviewedAt,
+      sourceEvidence: {
+        ...normalizedSourceEvidence,
+        characterTruth: nextCharacterTruth,
+      },
+    };
+    const saved = saveFoundationProject(next) as LibraryPPFProject;
+    onProjectChange(saved);
+    setMessage(`Saved Human character-arc evidence review for ${CHARACTER_NAMES[characterId] ?? characterId} at Block ${String(blockNumber).padStart(2, "0")}. Character profile source and screenplay text were not changed.`);
   }
 
   return (
@@ -287,7 +299,6 @@ export default function StoryCardFoundationBoard({
       </header>
 
       <p className="pp-skin-v1-story-card-board-status" role="status">{message}</p>
-      {act ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
 
       <div className="pp-skin-v1-story-card-act-stack">
         {storyCardActRows(project.structure).filter((row) => !act || row.actNumber === act).map((row) => (
@@ -298,8 +309,6 @@ export default function StoryCardFoundationBoard({
             </header>
             <div className="pp-skin-v1-story-card-row">
               {row.blocks.map((block) => {
-                const readiness = outlineReadiness?.find((item) => item.blockNumber === block.number);
-                const assessment = currentOutlineAssessment(project, block.number);
                 const locked = Boolean(block.planningLockedAt);
                 const authoredTitle = block.title === structuralBlockTitle(block.number) ? "" : block.title;
                 const coverage = storyCardSourceCoverage(sourcePassages, block.number);
@@ -311,8 +320,6 @@ export default function StoryCardFoundationBoard({
                   <article
                     className="pp-skin-v1-story-card"
                     data-locked={locked ? "true" : "false"}
-                    data-outline-readiness={readiness?.status}
-                    data-selected={!turningPointSelected && selectedAddress?.blockNumber === block.number ? "true" : undefined}
                     data-story-card-address={block.id}
                     draggable={!locked}
                     key={block.id}
@@ -340,7 +347,6 @@ export default function StoryCardFoundationBoard({
                       <span data-story-card-lock-state={locked ? "locked" : "exploratory"}>{locked ? "LOCKED" : "MOVE"}</span>
                     </header>
 
-                    {readiness ? <p className="pp-skin-v1-outline-status">Outline: {readiness.status === "needs-support" ? "Needs support" : readiness.status === "review" ? "Review" : "Evidence ready"} · {readiness.issues.length} issue{readiness.issues.length === 1 ? "" : "s"}</p> : null}
                     <div className="pp-skin-v1-story-card-coverage" aria-label={`Mapped screenplay coverage for PPF Block ${block.number}`}>
                       <strong>MAPPED SCREENPLAY EVIDENCE</strong>
                       <span>{coverage.passageCount} passages · {coverage.sceneCount} scenes · {coverage.wordCount} words · {coverage.sourceSharePercent}% of stored source</span>
@@ -352,25 +358,62 @@ export default function StoryCardFoundationBoard({
                       ) : null}
                     </div>
 
-                    <div className="pp-skin-v1-outline-agent-summary" data-agent-structural-state={assessment?.structural.state ?? "pending"}>
-                      <strong>Story Architect · {assessment ? assessment.structural.state.replaceAll("-", " / ") : "Not assessed"}</strong>
-                      <p>{assessment ? assessment.structural.reason : `Block ${String(block.number).padStart(2, "0")} has ${coverage.passageCount} projected passages across ${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish ${matrixBlock?.responsibility || "structural responsibility"}.`}</p>
-                      {assessment ? <small>Provisional, source-cited assessment · {assessment.structural.passageIds.length} cited passages · {assessment.model}</small> : null}
-                      {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
-                      {matrixBlock?.structuralFinding.reviewedAt ? <small>Existing reviewed finding: {matrixBlock.structuralFinding.state.replaceAll("-", " / ")} · {matrixBlock.structuralFinding.reason}</small> : null}
-                      <button type="button" disabled={assessing !== null} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
-                    </div>
-                    {matrixBlock ? <details className="pp-skin-v1-story-card-structural-review">
-                      <summary>Structural responsibility and source placement</summary>
-                      <p>{matrixBlock.responsibility}</p>
-                      <div className="pp-skin-v1-story-card-source-map">{matrixBlock.sourceMappings.map((mapping) => <span key={`${block.id}-${mapping.sourceId}`}>{mapping.sourceVersion.toUpperCase()} · {mapping.mappingMethod.replaceAll("-", " ")}{mapping.candidateOnly ? " · comparison only" : ""}</span>)}</div>
-                      <small>Projected placement and density are observations. Agent findings cite screenplay passages and remain proposals.</small>
-                    </details> : null}
+                    {matrixBlock ? (
+                      <details className="pp-skin-v1-story-card-structural-review" data-structural-finding={matrixBlock.structuralFinding.state}>
+                        <summary>Structural responsibility · {matrixBlock.structuralFinding.state.replace("-", " / ")}</summary>
+                        <p>{matrixBlock.responsibility}</p>
+                        <div className="pp-skin-v1-story-card-source-map">
+                          {matrixBlock.sourceMappings.map((mapping) => (
+                            <span key={`${block.id}-${mapping.sourceId}`}>
+                              {mapping.sourceVersion.toUpperCase()} · {mapping.sourceRole.replace("-", " ")} · {mapping.mappingMethod.replaceAll("-", " ")}
+                              {mapping.candidateOnly ? " · comparison only" : ""}
+                            </span>
+                          ))}
+                        </div>
+                        <label>
+                          <span>Human structural finding</span>
+                          <select
+                            defaultValue={matrixBlock.structuralFinding.state}
+                            key={`finding-${block.id}-${project.revision}`}
+                            onChange={(event) => saveStructuralFinding(
+                              block.number,
+                              event.currentTarget.value as StoryStructuralFindingState,
+                              matrixBlock.structuralFinding.reason,
+                            )}
+                          >
+                            <option value="unresolved">Unresolved</option>
+                            <option value="covered">Covered</option>
+                            <option value="condensed-shared">Condensed / Shared</option>
+                            <option value="gap-underdeveloped">Gap / Underdeveloped</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>Evidence-backed review note</span>
+                          <textarea
+                            defaultValue={matrixBlock.structuralFinding.reason}
+                            key={`finding-note-${block.id}-${project.revision}`}
+                            maxLength={2000}
+                            onBlur={(event) => {
+                              const value = event.currentTarget.value.trim();
+                              if (value !== matrixBlock.structuralFinding.reason) {
+                                saveStructuralFinding(
+                                  block.number,
+                                  matrixBlock.structuralFinding.state,
+                                  value,
+                                );
+                              }
+                            }}
+                            rows={4}
+                          />
+                        </label>
+                        <small>Source density and curriculum guidance do not decide this finding. Human review owns the classification.</small>
+                      </details>
+                    ) : null}
 
                     {characterTruth && characterCells.length ? (
                       <details className="pp-skin-v1-story-card-character-review">
                         <summary>Character arc evidence · {observedCharacterCount}/{characterCells.length} observed here</summary>
-                        <details><summary>Character source policy</summary><p className="pp-skin-v1-story-card-character-rule">{characterTruth.governingRule}</p></details>
+                        <p className="pp-skin-v1-story-card-character-rule">{characterTruth.governingRule}</p>
                         <div className="pp-skin-v1-story-card-character-grid">
                           {characterCells.map((cell) => {
                             const profileClaims = characterTruth.claims.filter((claim) => (
@@ -391,13 +434,56 @@ export default function StoryCardFoundationBoard({
                                   <strong>{CHARACTER_NAMES[cell.characterId] ?? cell.characterId}</strong>
                                   <span>{cell.passageIds.length} passages · {cell.sceneNumbers.length} scenes</span>
                                 </header>
-                                <p>{assessment?.characters.find((item) => item.characterId === cell.characterId) ? characterEvidenceLabel(assessment.characters.find((item) => item.characterId === cell.characterId)!.state) : cell.passageIds.length ? "Agent assessment pending · observed mention alone does not establish arc movement" : "No observed character passage here"}</p>
-                                {assessment?.characters.find((item) => item.characterId === cell.characterId) ? <p>{assessment.characters.find((item) => item.characterId === cell.characterId)!.reason} · cited passages: {assessment.characters.find((item) => item.characterId === cell.characterId)!.passageIds.join(", ") || "none"}</p> : null}
+                                <p>{characterEvidenceLabel(cell.state)}</p>
                                 {checkpointHints.length ? (
                                   <p className="pp-skin-v1-story-card-checkpoint-hint">
                                     Flexible checkpoint: {checkpointHints.map((checkpoint) => `${checkpoint.kind} → Arc Matrix.${checkpoint.targetArcField}`).join(" · ")}
                                   </p>
                                 ) : null}
+                                <label>
+                                  <span>Human arc-evidence finding</span>
+                                  <select
+                                    defaultValue={cell.state}
+                                    key={`arc-state-${block.id}-${cell.characterId}-${project.revision}`}
+                                    onChange={(event) => saveCharacterArcFinding(
+                                      cell.characterId,
+                                      block.number,
+                                      event.currentTarget.value as CharacterArcEvidenceState,
+                                      cell.note,
+                                    )}
+                                  >
+                                    <option value="not-present-no-evidence">No observed evidence</option>
+                                    <option value="present-arc-neutral">Present / arc-neutral</option>
+                                    <option value="pressure-introduced">Pressure introduced</option>
+                                    <option value="belief-strategy-reinforced">Belief / strategy reinforced</option>
+                                    <option value="belief-strategy-challenged">Belief / strategy challenged</option>
+                                    <option value="meaningful-choice">Meaningful choice</option>
+                                    <option value="consequence">Consequence</option>
+                                    <option value="relationship-movement">Relationship movement</option>
+                                    <option value="arc-transition">Arc transition</option>
+                                    <option value="unresolved-insufficient-evidence">Unresolved / insufficient evidence</option>
+                                  </select>
+                                </label>
+                                <label>
+                                  <span>Evidence note</span>
+                                  <textarea
+                                    defaultValue={cell.note}
+                                    key={`arc-note-${block.id}-${cell.characterId}-${project.revision}`}
+                                    maxLength={2400}
+                                    onBlur={(event) => {
+                                      const value = event.currentTarget.value.trim();
+                                      if (value !== cell.note) {
+                                        saveCharacterArcFinding(
+                                          cell.characterId,
+                                          block.number,
+                                          cell.state,
+                                          value,
+                                        );
+                                      }
+                                    }}
+                                    rows={3}
+                                  />
+                                </label>
                                 <details>
                                   <summary>Profile context · source-only</summary>
                                   {profileClaims.slice(0, 4).map((claim) => (
@@ -411,7 +497,7 @@ export default function StoryCardFoundationBoard({
                             );
                           })}
                         </div>
-                        <small>Character findings are agent proposals grounded in audience-visible screenplay passages. Profile/backstory is separate source context.</small>
+                        <small>Profile/backstory may explain motivation, but it is not audience-visible screenplay proof and is never inserted as exposition automatically.</small>
                       </details>
                     ) : null}
 
@@ -440,18 +526,17 @@ export default function StoryCardFoundationBoard({
                       />
                     </label>
 
-                    <details className="pp-skin-v1-story-card-minis" key={`${block.id}-${selectedAddress?.blockNumber === block.number && !turningPointSelected ? selectedAddress?.miniBlockNumber : 0}`}>
+                    <details className="pp-skin-v1-story-card-minis">
                       <summary>4 Mini-Blocks</summary>
                       <ol>
                         {block.miniBlocks.map((mini, index) => {
                           const miniTitle = mini.title === structuralMiniTitle(mini.number) ? "" : mini.title;
                           return (
-                            <li key={mini.id} data-mini-address={mini.id} data-selected={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === mini.ordinal ? "true" : undefined}>
+                            <li key={mini.id} data-mini-address={mini.id}>
                               <div>
-                                <button type="button" aria-pressed={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === mini.ordinal} onClick={() => onSelectAddress?.({ blockNumber: block.number, miniBlockNumber: mini.ordinal })}>{index + 1} · {STORY_CARD_MINI_LABELS[index]}</button>
+                                <strong>{index + 1} · {STORY_CARD_MINI_LABELS[index]}</strong>
                                 <small>{mini.id}</small>
                               </div>
-                              {assessment?.miniBlocks.find((item) => item.ordinal === mini.ordinal) ? <p className="pp-skin-v1-outline-agent-mini">Story Architect: {assessment.miniBlocks.find((item) => item.ordinal === mini.ordinal)!.state} · {assessment.miniBlocks.find((item) => item.ordinal === mini.ordinal)!.reason}</p> : null}
                               <input
                                 key={`mini-title-${mini.id}-${project.revision}`}
                                 aria-label={`Block ${block.number} Mini-Block ${index + 1} title`}
@@ -486,14 +571,11 @@ export default function StoryCardFoundationBoard({
                 );
               })}
             </div>
-            {act ? <button className="pp-skin-v1-outline-turning-point" data-selected={turningPointSelected ? "true" : undefined} aria-pressed={Boolean(turningPointSelected)} onClick={onSelectTurningPoint} type="button">
-              <strong>{outlineTurningPoint(act).label}</strong><span>After Block {String(act * 6).padStart(2, "0")} · Review the Act change against the six Story Cards. The turning point is a checkpoint, not a seventh Block.</span>
-            </button> : null}
           </section>
         ))}
       </div>
 
-      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Story Architect proposals cite screenplay evidence and do not rewrite accepted canon. Older reviewed findings remain visible separately. Character Truth stays separate from audience-visible screenplay evidence. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
+      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Structural and character-arc findings are Human review states, not creative-quality scores. Character Truth stays separate from audience-visible screenplay evidence. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
     </section>
   );
 }

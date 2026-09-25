@@ -19,12 +19,13 @@ test("#2320 flattens Human navigation without changing feature authority", async
   assert.match(menu, /id: "reports", shortcut: "A", label: "Reports"/u);
   assert.doesNotMatch(menu, /label: "Analytics"/u);
 
-  assert.match(learn, /useState\(false\)/u);
+  assert.match(learn, /const \[exploreOpen, setExploreOpen\] = useState\(true\)/u);
   assert.match(learn, /aria-label="LEARN menu"/u);
   assert.match(learn, />6 PATHS \/ 24 CRAFT MODULES</u);
   assert.doesNotMatch(learn, /<h1>LEARN JOURNEY<\/h1>/u);
   assert.match(learn, />Back to Dashboard<\/button>/u);
-  assert.match(explore, />Back to Learn<\/button>/u);
+  assert.match(explore, />Back to Dashboard<\/button>/u);
+  assert.doesNotMatch(explore, />Back to Learn<\/button>/u);
 
   for (const [id, shortcut, label] of [
     ["general", "G", "General"],

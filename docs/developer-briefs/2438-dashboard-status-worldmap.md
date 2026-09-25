@@ -39,9 +39,9 @@ Everything else remains unchanged.
 ## Status authority
 
 Use three explicit Dashboard states:
-- connected/ready → Matrix green
-- in-review → warning yellow
-- unavailable/disabled → muted gray
+- locked → Matrix green. A green square is a product lifecycle promise that the corresponding screen/surface is locked.
+- in-review → warning yellow. The surface remains enterable but is not locked.
+- unavailable/disabled → muted gray. The destination cannot be entered.
 
 The yellow list must be owned in the Dashboard menu registry rather than duplicated as one-off CSS ids.
 
@@ -57,7 +57,8 @@ Unavailable Pitch rows must:
 ## Verification
 
 Focused tests must prove:
-- Library is no longer in the warning selector and stays connected.
+- Library is no longer in the warning selector and is explicitly locked/green.
+- Every green Dashboard square exposes locked surface semantics.
 - MindMap, WorldMap, Outline, Storyboard, Previs, Timeline and Production are the yellow review set.
 - Package and Deck are disconnected/disabled.
 - WorldMap replaces Story in the Develop row.

@@ -1,4 +1,8 @@
-import type { FoundationsVisualArtifact } from "../../core/contracts/build-progress";
+import {
+  FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
+  FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
+  type FoundationsVisualArtifact,
+} from "../../core/contracts/build-progress";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 
@@ -23,15 +27,27 @@ export type RecoveredStoryboardResource = {
   readonly position: number;
 };
 
+export type RecoveredWorldMapPosterResource = {
+  readonly kind: "worldmap-poster";
+  readonly fileName: string;
+  readonly assetUrl: string;
+  readonly contentHash: string;
+  readonly modifiedAt: string;
+  readonly originProjectId: string;
+};
+
+export type RecoverableLocalResource = RecoveredStoryboardResource | RecoveredWorldMapPosterResource;
+
 export type LocalResourceGroup = {
   readonly originProjectId: string;
   readonly exactProject: boolean;
   readonly selectedByDefault: boolean;
-  readonly resources: readonly RecoveredStoryboardResource[];
+  readonly resources: readonly RecoverableLocalResource[];
 };
 
 export type LocalResourceInventory = {
   readonly storyboardResources: readonly RecoveredStoryboardResource[];
+  readonly posterResources: readonly RecoveredWorldMapPosterResource[];
   readonly groups: readonly LocalResourceGroup[];
   readonly unclassifiedAssets: readonly LocalAssetIndexItem[];
 };
@@ -48,6 +64,7 @@ export type LibraryLoadSessionBaseline = {
 export type RevisionReconciliationState = "same-base" | "requires-three-way";
 
 const STORYBOARD_FILE = /^storyboard-(.+)-(\d{1,2})-([1-4])-(\d{1,2})-(\d{10,})-(\d{10,})\.webp$/iu;
+const WORLDMAP_POSTER_FILE = /^worldmap-poster-(.+)-(\d{10,})\.(png|jpe?g|webp)$/iu;
 
 function normalizedSourceIdentity(project: LibraryPPFProject) {
   const fixture = project.sourceEvidence?.referenceFixture;
@@ -101,20 +118,49 @@ export function parseRecoverableStoryboardAsset(asset: LocalAssetIndexItem): Rec
   };
 }
 
+export function parseRecoverableWorldMapPosterAsset(asset: LocalAssetIndexItem): RecoveredWorldMapPosterResource | null {
+  const match = WORLDMAP_POSTER_FILE.exec(asset.fileName);
+  if (!match) return null;
+  if (!asset.url.startsWith("/api/local-ai/assets/") || !["image/png", "image/jpeg", "image/webp"].includes(asset.mediaType)) return null;
+  return {
+    kind: "worldmap-poster",
+    fileName: asset.fileName,
+    assetUrl: asset.url,
+    contentHash: asset.contentHash,
+    modifiedAt: asset.modifiedAt,
+    originProjectId: match[1],
+  };
+}
+
 export function inventoryLocalResources(
   project: LibraryPPFProject,
   assets: readonly LocalAssetIndexItem[],
 ): LocalResourceInventory {
   const storyboardResources: RecoveredStoryboardResource[] = [];
+  const posterResources: RecoveredWorldMapPosterResource[] = [];
   const unclassifiedAssets: LocalAssetIndexItem[] = [];
   for (const asset of assets) {
-    const recovered = parseRecoverableStoryboardAsset(asset);
-    if (recovered) storyboardResources.push(recovered);
-    else unclassifiedAssets.push(asset);
+    const storyboard = parseRecoverableStoryboardAsset(asset);
+    if (storyboard) {
+      storyboardResources.push(storyboard);
+      continue;
+    }
+    const poster = parseRecoverableWorldMapPosterAsset(asset);
+    if (poster) {
+      posterResources.push(poster);
+      continue;
+    }
+    unclassifiedAssets.push(asset);
   }
-  storyboardResources.sort((left, right) => right.modifiedAt.localeCompare(left.modifiedAt) || left.fileName.localeCompare(right.fileName));
-  const grouped = new Map<string, RecoveredStoryboardResource[]>();
-  for (const resource of storyboardResources) {
+
+  const byNewest = <T extends { readonly modifiedAt: string; readonly fileName: string }>(left: T, right: T) => (
+    right.modifiedAt.localeCompare(left.modifiedAt) || left.fileName.localeCompare(right.fileName)
+  );
+  storyboardResources.sort(byNewest);
+  posterResources.sort(byNewest);
+
+  const grouped = new Map<string, RecoverableLocalResource[]>();
+  for (const resource of [...storyboardResources, ...posterResources]) {
     const existing = grouped.get(resource.originProjectId) ?? [];
     existing.push(resource);
     grouped.set(resource.originProjectId, existing);
@@ -127,14 +173,14 @@ export function inventoryLocalResources(
         originProjectId,
         exactProject,
         selectedByDefault: exactProject,
-        resources,
+        resources: resources.sort(byNewest),
       } satisfies LocalResourceGroup;
     })
     .sort((left, right) => Number(right.exactProject) - Number(left.exactProject) || left.originProjectId.localeCompare(right.originProjectId));
-  return { storyboardResources, groups, unclassifiedAssets };
+  return { storyboardResources, posterResources, groups, unclassifiedAssets };
 }
 
-function recoveryArtifactId(resource: RecoveredStoryboardResource) {
+function recoveryArtifactId(resource: RecoverableLocalResource) {
   const hash = resource.contentHash.replace(/^sha256:/iu, "").replace(/[^a-f0-9]/giu, "").toLowerCase();
   const stable = hash.slice(0, 40) || resource.fileName.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "").slice(0, 40);
   return `local-recovery-${stable}`;
@@ -174,6 +220,54 @@ export function restoreLocalStoryboardResources(
         `recovery-content-hash:${resource.contentHash}`,
       ],
       workflow: "storyboard-frame-webp-v2",
+      reviewState: "draft",
+      parentArtifactId: null,
+    };
+    current = applyStoryCommand(current, {
+      type: "foundations.visual.store",
+      artifact,
+      occurredAt: resource.modifiedAt,
+    }) as LibraryPPFProject;
+    existingUrls.add(resource.assetUrl);
+    existingIds.add(id);
+    attachedCount += 1;
+  }
+
+  return { project: current, attachedCount, skippedCount };
+}
+
+export function restoreLocalWorldMapPosterResources(
+  project: LibraryPPFProject,
+  resources: readonly RecoveredWorldMapPosterResource[],
+) {
+  let current = project;
+  let attachedCount = 0;
+  let skippedCount = 0;
+  const existingUrls = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.assetUrl));
+  const existingIds = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.id));
+
+  for (const resource of resources) {
+    const id = recoveryArtifactId(resource);
+    if (existingUrls.has(resource.assetUrl) || existingIds.has(id)) {
+      skippedCount += 1;
+      continue;
+    }
+    const artifact: FoundationsVisualArtifact = {
+      id,
+      assetUrl: resource.assetUrl,
+      prompt: "Recovered local WorldMap poster. Original prompt metadata was unavailable in the loaded project. Credit identities remain unverified and must not be inferred.",
+      createdAt: resource.modifiedAt,
+      provider: "local recovery",
+      model: "",
+      narrativeIntention: "PPF Marketing Reference · recovered WorldMap poster",
+      curriculumFrontier: FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
+      sourceDecisionKeys: [
+        "authority:marketing-reference",
+        "surface:worldmap",
+        `recovery-origin-project:${resource.originProjectId}`,
+        `recovery-content-hash:${resource.contentHash}`,
+      ],
+      workflow: FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
       reviewState: "draft",
       parentArtifactId: null,
     };

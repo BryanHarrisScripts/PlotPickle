@@ -1,5 +1,7 @@
 import { createEmptyProject, type PPFProject } from "../project/project";
 import { createEmptyWorldMapState, normalizeWorldMapState } from "../contracts/world-map";
+import { createEmptyDiscoveryState, normalizeDiscoveryState } from "../contracts/discovery";
+import { createEmptyProjectSourceEvidence, normalizeProjectSourceEvidence } from "../contracts/imported-screenplay-evidence";
 import {
   createEmptyBlockWritingState,
   normalizeBlockWritingState,
@@ -103,6 +105,24 @@ function announceChange() {
   window.dispatchEvent(new Event(PROJECT_LIBRARY_CHANGED_EVENT));
 }
 
+export function hydrateProfileProjectLibrary(input: {
+  readonly activeProjectId: string | null;
+  readonly projects: readonly Readonly<{ readonly project: unknown; readonly summary?: Readonly<Record<string, unknown>> }>[];
+}) {
+  const result = libraryCore.hydrateProfileProjectLibrary({
+    ...coreInput(),
+    activeProjectId: input.activeProjectId,
+    projects: input.projects,
+  }) as {
+    readonly registry: { readonly activeProjectId: string | null; readonly projects: readonly ProjectLibrarySummary[] };
+    readonly activeProject: LibraryPPFProject | null;
+    readonly migrated: boolean;
+    readonly quarantined: readonly string[];
+  };
+  announceChange();
+  return result;
+}
+
 export function initializeProjectLibrary() {
   return libraryCore.initializeProfileProjectLibrary(coreInput()) as {
     readonly registry: { readonly activeProjectId: string | null; readonly projects: readonly ProjectLibrarySummary[] };
@@ -145,7 +165,17 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.worldMap
       : createEmptyWorldMapState();
-  const projectWithStructure = { ...project, structure, writing, worldMap };
+  const discovery = "discovery" in incoming
+    ? normalizeDiscoveryState(incoming.discovery)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.discovery
+      : createEmptyDiscoveryState();
+  const sourceEvidence = "sourceEvidence" in incoming
+    ? normalizeProjectSourceEvidence(incoming.sourceEvidence)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.sourceEvidence
+      : createEmptyProjectSourceEvidence();
+  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const result = libraryCore.saveProfileActiveProject({

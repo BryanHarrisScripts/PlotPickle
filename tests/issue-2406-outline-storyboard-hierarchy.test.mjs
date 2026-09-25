@@ -4,14 +4,17 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2406 makes Outline teach canonical structure through Beat", async () => {
-  const outline = await read("app/skin-v1/matrix-story-map-surface.tsx");
+test("#2406 hierarchy guidance remains documented but no longer displaces the #2389 Outline map", async () => {
+  const [outline, brief] = await Promise.all([
+    read("app/skin-v1/matrix-story-map-surface.tsx"),
+    read("docs/developer-briefs/2406-outline-storyboard-hierarchy.md"),
+  ]);
 
-  assert.match(outline, /data-outline-hierarchy="story-through-beat"/u);
-  assert.match(outline, /Sequence → Block → Mini-Block → Scene → Beat/u);
-  assert.match(outline, /selectedStructureBlock\?\.sequenceNumber/u);
-  assert.match(outline, /A Sequence pairs two Blocks/u);
-  assert.match(outline, /Scene and Beat counts stay flexible/u);
+  assert.doesNotMatch(outline, /data-outline-hierarchy="story-through-beat"/u);
+  assert.doesNotMatch(outline, /Sequence → Block → Mini-Block → Scene → Beat/u);
+  assert.match(brief, /Sequence → Block → Mini-Block → Scene → Beat/u);
+  assert.match(brief, /A Sequence pairs two Blocks/u);
+  assert.match(brief, /Scene and Beat counts stay flexible/u);
 });
 
 test("#2406 makes Storyboard inherit story structure and add Shot and Frame", async () => {

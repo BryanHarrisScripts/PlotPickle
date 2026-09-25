@@ -32,6 +32,7 @@ type StoryCardFoundationBoardProps = {
   readonly onSelectAddress?: (address: PreproductionReviewAddress) => void;
   readonly turningPointSelected?: boolean;
   readonly onSelectTurningPoint?: () => void;
+  readonly baselinePresentation?: boolean;
   readonly project: LibraryPPFProject;
   readonly onProjectChange: (project: LibraryPPFProject) => void;
   readonly act?: number;
@@ -81,6 +82,7 @@ export default function StoryCardFoundationBoard({
   onSelectAddress,
   turningPointSelected,
   onSelectTurningPoint,
+  baselinePresentation = false,
 }: StoryCardFoundationBoardProps) {
   const [assessing, setAssessing] = useState<number | null>(null);
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
@@ -287,7 +289,7 @@ export default function StoryCardFoundationBoard({
       </header>
 
       <p className="pp-skin-v1-story-card-board-status" role="status">{message}</p>
-      {act ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
+      {act && !baselinePresentation ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
 
       <div className="pp-skin-v1-story-card-act-stack">
         {storyCardActRows(project.structure).filter((row) => !act || row.actNumber === act).map((row) => (
@@ -352,14 +354,14 @@ export default function StoryCardFoundationBoard({
                       ) : null}
                     </div>
 
-                    <div className="pp-skin-v1-outline-agent-summary" data-agent-structural-state={assessment?.structural.state ?? "pending"}>
+                    {!baselinePresentation ? <div className="pp-skin-v1-outline-agent-summary" data-agent-structural-state={assessment?.structural.state ?? "pending"}>
                       <strong>Story Architect · {assessment ? assessment.structural.state.replaceAll("-", " / ") : "Not assessed"}</strong>
                       <p>{assessment ? assessment.structural.reason : `Block ${String(block.number).padStart(2, "0")} has ${coverage.passageCount} projected passages across ${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish ${matrixBlock?.responsibility || "structural responsibility"}.`}</p>
                       {assessment ? <small>Provisional, source-cited assessment · {assessment.structural.passageIds.length} cited passages · {assessment.model}</small> : null}
                       {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
                       {matrixBlock?.structuralFinding.reviewedAt ? <small>Existing reviewed finding: {matrixBlock.structuralFinding.state.replaceAll("-", " / ")} · {matrixBlock.structuralFinding.reason}</small> : null}
                       <button type="button" disabled={assessing !== null} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
-                    </div>
+                    </div> : null}
                     {matrixBlock ? <details className="pp-skin-v1-story-card-structural-review">
                       <summary>Structural responsibility and source placement</summary>
                       <p>{matrixBlock.responsibility}</p>
@@ -486,7 +488,7 @@ export default function StoryCardFoundationBoard({
                 );
               })}
             </div>
-            {act ? <button className="pp-skin-v1-outline-turning-point" data-selected={turningPointSelected ? "true" : undefined} aria-pressed={Boolean(turningPointSelected)} onClick={onSelectTurningPoint} type="button">
+            {act && !baselinePresentation ? <button className="pp-skin-v1-outline-turning-point" data-selected={turningPointSelected ? "true" : undefined} aria-pressed={Boolean(turningPointSelected)} onClick={onSelectTurningPoint} type="button">
               <strong>{outlineTurningPoint(act).label}</strong><span>After Block {String(act * 6).padStart(2, "0")} · Review the Act change against the six Story Cards. The turning point is a checkpoint, not a seventh Block.</span>
             </button> : null}
           </section>

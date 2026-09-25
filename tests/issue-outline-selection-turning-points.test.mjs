@@ -10,7 +10,7 @@ test("each Act checkpoint follows its sixth Block without claiming a script addr
   assert.match(outlineTurningPoint(4).label, /Act 4/);
 });
 
-test("Outline selection is shared across navigation, readiness, planning, and script", async () => {
+test("turning-point and selection capabilities remain available without changing the #2389 primary Outline", async () => {
   const [surface, map, plan, script, footer] = await Promise.all([
     source("app/skin-v1/matrix-story-map-surface.tsx"),
     source("modules/build/ui/progressive-story-map.tsx"),
@@ -21,12 +21,12 @@ test("Outline selection is shared across navigation, readiness, planning, and sc
   assert.match(map, /data-mini-number=\{mini.number\}/);
   assert.match(map, /onSelectAddress\?\.\(\{ blockNumber, miniBlockNumber \}\)/);
   assert.match(map, /onSelectTurningPoint\?\.\(Math.ceil\(sequence.number \/ 3\)\)/);
-  assert.match(surface, /onSelectAddress=\{selectAddress\}/);
-  assert.match(surface, /data-outline-readiness=\{block.status\} data-selected=/);
-  assert.match(surface, /onSelectTurningPoint=\{setTurningPointAct\}/);
-  assert.match(plan, /data-mini-address=\{mini.id\} data-selected=/);
+  assert.match(surface, /onSelectAddress=\{onAddressChange\}/);
+  assert.doesNotMatch(surface, /onSelectTurningPoint=/);
+  assert.doesNotMatch(surface, /turningPointSelected=/);
+  assert.match(surface, /baselinePresentation/);
   assert.match(plan, /outlineTurningPoint\(act\)\.label/);
-  assert.match(script, /pp-skin-v1-written-act-mini" data-mini-support=.*data-selected=/);
+  assert.match(plan, /act && !baselinePresentation/);
   assert.match(script, /No screenplay passage is assigned to a separate turning point/);
   assert.match(footer, /orchestrator:has\(\[data-dashboard-review-surface="outline"\]\) \.pp-skin-v1-orchestrator-footer \{ width: calc\(100vw - 40px\)/);
 });

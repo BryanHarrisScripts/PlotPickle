@@ -40,9 +40,9 @@ test("#2442 Mind Map is written-only and Creative Director develops all six gove
     read("config/skin-v1-surface-registry.json"),
   ]);
 
-  assert.match(host, /<h1>MIND MAP<\/h1>/u);
-  assert.match(host, /aria-label="Mind Map"/u);
-  assert.match(surface, /MIND MAP · NON-CANON PROJECTION/u);
+  assert.match(host, /<h1>MINDMAP<\/h1>/u);
+  assert.match(host, /aria-label="MindMap"/u);
+  assert.match(surface, /MINDMAP · ACT \{selectedAct\} · NON-CANON PROJECTION/u);
   assert.match(surface, /Material type[\s\S]*Written idea/u);
   assert.doesNotMatch(surface, /<select/u);
   assert.doesNotMatch(surface, /Visual reference<\/option>/u);
@@ -50,7 +50,7 @@ test("#2442 Mind Map is written-only and Creative Director develops all six gove
   assert.match(surface, /DISCOVERY_LANES/u);
   assert.match(surface, /agentId: "creative-director"/u);
   assert.match(surface, /conversationMode: true/u);
-  assert.match(surface, /Develop Act \$\{act\} Mind Map/u);
+  assert.match(surface, /Develop Act \$\{selectedAct\} Mind Map/u);
   assert.match(surface, /sourceState: "agent-proposal"/u);
   assert.match(surface, /classifierId: "creative-director"/u);
   assert.match(surface, /AGENT PROPOSAL/u);

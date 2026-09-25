@@ -4,7 +4,7 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Outline separates observed screenplay evidence from deterministic support and review", async () => {
+test("Outline readiness remains available without altering the #2389 primary map", async () => {
   const [check, surface, cards, script, map, css] = await Promise.all([
     source("modules/plan/outline-readiness.ts"),
     source("app/skin-v1/matrix-story-map-surface.tsx"),
@@ -17,7 +17,9 @@ test("Outline separates observed screenplay evidence from deterministic support 
   assert.match(check, /unsupportedMiniBlocks\.length/);
   assert.match(check, /page-progress-fallback/);
   assert.match(check, /assessment\?\.characters.some/);
-  assert.match(surface, /deriveOutlineReadiness\(project\)/);
+  assert.doesNotMatch(surface, /deriveOutlineReadiness\(project\)/);
+  assert.doesNotMatch(surface, /outlineReadiness=\{/);
+  assert.doesNotMatch(surface, /pp-skin-v1-outline-readiness/);
   assert.match(cards, /data-outline-readiness=\{readiness\?\.status\}/);
   assert.match(script, /<details className="pp-skin-v1-written-act-mini"/);
   assert.match(script, /miniSections\.map/);

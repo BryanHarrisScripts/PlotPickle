@@ -15,6 +15,7 @@ import {
   initializeProjectLibrary,
   listArchivedLibraryProjects,
   listLibraryProjects,
+  saveActiveLibraryProject,
   switchActiveLibraryProject,
   type LibraryPPFProject,
   type ProjectLibrarySummary,
@@ -27,6 +28,14 @@ import {
   type LibraryCatalogItem,
   type LibraryFrontierCoverage,
 } from "../project-library-catalog";
+import {
+  createLibraryLoadSessionBaseline,
+  inventoryLocalResources,
+  restoreLocalStoryboardResources,
+  type LibraryLoadSessionBaseline,
+  type LocalAssetIndexItem,
+  type LocalResourceInventory,
+} from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
@@ -34,8 +43,21 @@ type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
+type PendingRecovery = {
+  readonly project: LibraryPPFProject;
+  readonly baseline: LibraryLoadSessionBaseline;
+  readonly inventory: LocalResourceInventory;
+  readonly scanError: string;
+};
+
+type LocalAssetIndexResponse = {
+  readonly assets?: readonly LocalAssetIndexItem[];
+  readonly message?: string;
+};
+
 const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
 const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
+const LOAD_SESSION_KEY_PREFIX = "plotpickle.project-library.load-session";
 
 const DESTINATIONS: readonly {
   readonly id: LibraryDestination;
@@ -66,6 +88,14 @@ function currentProfileId() {
 
 function currentSessionProjectKey() {
   return `${SESSION_PROJECT_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function currentLoadSessionKey() {
+  return `${LOAD_SESSION_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function persistLoadSessionBaseline(baseline: LibraryLoadSessionBaseline) {
+  window.sessionStorage.setItem(currentLoadSessionKey(), JSON.stringify(baseline));
 }
 
 function markCurrentSessionLibraryProject(projectId: string) {
@@ -144,7 +174,7 @@ function StoryCard({ item, activeProjectId, onOpen, onArchive }: {
         <p>{item.frontier} · {item.progress}% complete</p>
         <small>Last saved {displayDate(item.updatedAt)}</small>
         <progress className={styles.progress} max={100} value={item.progress} aria-label={`${item.progress}% complete`} />
-        <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={active ? openActiveProject : onOpen} type="button">{active ? "Resume" : "Open Story"}</button>
+        <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={onOpen} type="button">{active ? "Resume" : "Open Story"}</button>
       </div>
     </article>
   );
@@ -177,9 +207,12 @@ export default function LibraryWorkspace() {
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
+  const [recovery, setRecovery] = useState<PendingRecovery | null>(null);
+  const [selectedRecoveryOrigins, setSelectedRecoveryOrigins] = useState<readonly string[]>([]);
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
+  const [restoringResources, setRestoringResources] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -265,6 +298,13 @@ export default function LibraryWorkspace() {
     }
   }
 
+  async function scanLocalResources(project: LibraryPPFProject) {
+    const response = await fetch("/api/local-ai/assets", { headers: { Accept: "application/json" }, cache: "no-store" });
+    const body = await response.json() as LocalAssetIndexResponse;
+    if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
+    return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : []);
+  }
+
   async function confirmLoad() {
     if (!pending || loadingReference) return;
     setLoadingReference(true);
@@ -287,9 +327,25 @@ export default function LibraryWorkspace() {
           format: pending.item.format,
         });
       }
+
       markCurrentSessionLibraryProject(openedProject.id);
+      const baseline = createLibraryLoadSessionBaseline(openedProject, {
+        sessionId: globalThis.crypto?.randomUUID?.() ?? `load-${Date.now()}`,
+        startedAt: new Date().toISOString(),
+      });
+      persistLoadSessionBaseline(baseline);
+
+      let inventory = inventoryLocalResources(openedProject, []);
+      let scanError = "";
+      try {
+        inventory = await scanLocalResources(openedProject);
+      } catch (error) {
+        scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
+      }
+
+      setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
+      setRecovery({ project: openedProject, baseline, inventory, scanError });
       setPending(null);
-      openActiveProject();
     } catch (error) {
       setPending(null);
       setNotice(error instanceof Error ? error.message : "PlotPickle could not switch stories.");
@@ -298,7 +354,48 @@ export default function LibraryWorkspace() {
     }
   }
 
-  function archiveStory(item: ProjectLibrarySummary) {
+  function useProjectDefaults() {
+    setRecovery(null);
+    setSelectedRecoveryOrigins([]);
+    openActiveProject();
+  }
+
+  function toggleRecoveryOrigin(originProjectId: string) {
+    setSelectedRecoveryOrigins((current) => current.includes(originProjectId)
+      ? current.filter((value) => value !== originProjectId)
+      : [...current, originProjectId]);
+  }
+
+  function restoreSelectedLocalResources() {
+    if (!recovery || restoringResources) return;
+    const selected = recovery.inventory.groups
+      .filter((group) => selectedRecoveryOrigins.includes(group.originProjectId))
+      .flatMap((group) => group.resources);
+    if (!selected.length) {
+      setNotice("Choose at least one local resource group, or use the project defaults.");
+      return;
+    }
+
+    setRestoringResources(true);
+    try {
+      const current = initializeProjectLibrary().activeProject;
+      if (!current || current.id !== recovery.project.id) {
+        throw new Error("The active story changed before local resources were restored.");
+      }
+      const result = restoreLocalStoryboardResources(current, selected);
+      saveActiveLibraryProject(result.project);
+      setNotice(`${result.attachedCount} local Storyboard frame${result.attachedCount === 1 ? "" : "s"} restored as draft candidates. ${result.skippedCount} duplicate${result.skippedCount === 1 ? "" : "s"} skipped.`);
+      setRecovery(null);
+      setSelectedRecoveryOrigins([]);
+      openActiveProject();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not restore local resources.");
+    } finally {
+      setRestoringResources(false);
+    }
+  }
+
+    function archiveStory(item: ProjectLibrarySummary) {
     try {
       const wasCurrentSessionStory = activeProject?.id === item.id;
       archiveLibraryProject(item.id);
@@ -416,25 +513,25 @@ export default function LibraryWorkspace() {
     }
 
     if (destination === "load") {
+      const afterglow = examples.find((item) => item.referenceLoader === "afterglow-v9-foundations") ?? null;
       return (
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="load-title">LOAD</h2></div>
-            <p>Open, resume, and manage your saved Human-owned PlotPickle stories. Avery Writer-in-Residence work is kept separate.</p>
+            <div><p className={styles.eyebrow}>Load a base project</p><h2 id="load-title">LOAD</h2></div>
+            <p>Load the story first, then decide whether to restore durable local resources. Local media is never attached or made canon without your choice.</p>
           </div>
-          <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="examples">
-            <div><strong>Looking for Afterglow?</strong><p>Packaged reference stories live in Examples. Load remains reserved for your saved working stories.</p></div>
-            <button
-              className={styles.primaryButton}
-              onClick={() => {
-                setDirectorySelectedIndex(DESTINATIONS.findIndex((item) => item.id === "examples"));
-                setDestination("examples");
-              }}
-              type="button"
-            >
-              Open Examples
-            </button>
-          </div>
+          {afterglow ? (
+            <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="afterglow-load">
+              <div><strong>Afterglow default</strong><p>Load the packaged Afterglow reference as a fresh working copy. After it loads, PlotPickle can scan for previous local Storyboard resources.</p></div>
+              <button
+                className={styles.primaryButton}
+                onClick={() => setPending({ kind: "catalog", sourceKind: "example", item: afterglow })}
+                type="button"
+              >
+                Load Afterglow
+              </button>
+            </div>
+          ) : null}
           {stories.length ? (
             <div className={styles.grid}>
               {stories.map((item) => (
@@ -448,7 +545,7 @@ export default function LibraryWorkspace() {
               ))}
             </div>
           ) : (
-            <div className={styles.empty}><h3>No saved stories yet.</h3><p>Use NEW to start a clean project or IMPORT EXPORT to bring in an existing story.</p></div>
+            <div className={styles.empty}><h3>No saved working stories yet.</h3><p>Load Afterglow above, use NEW to start a clean project, or IMPORT EXPORT to bring in an existing story.</p></div>
           )}
         </section>
       );
@@ -574,10 +671,48 @@ export default function LibraryWorkspace() {
       {pending ? (
         <div className={styles.dialogBackdrop} role="presentation">
           <section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog">
-            <p className={styles.eyebrow}>Safe project switch</p><h2 id="library-load-title">Load this project?</h2>
-            <p>Your current work will be saved as a local story before PlotPickle switches projects.</p><strong>{pending.item.title}</strong>
-            {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The complete v9 reference is loaded only after you confirm, keeping the screenplay and reference evidence off PlotPickle’s startup path.</small> : null}
-            <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Reference…" : "Save & Switch"}</button></div>
+            <p className={styles.eyebrow}>Safe project load</p><h2 id="library-load-title">Load this project?</h2>
+            <p>PlotPickle loads the selected base project first. Local resources are a separate choice on the next step.</p><strong>{pending.item.title}</strong>
+            {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Existing local media is not attached automatically.</small> : null}
+            <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : "Load Project"}</button></div>
+          </section>
+        </div>
+      ) : null}
+
+      {recovery ? (
+        <div className={styles.dialogBackdrop} role="presentation">
+          <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog">
+            <p className={styles.eyebrow}>Load Session · base revision {recovery.baseline.baseRevision}</p>
+            <h2 id="library-recovery-title">Restore local resources?</h2>
+            <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames as draft candidates.</p>
+            <div className={styles.recoverySummary}>
+              <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
+              <span><b>{recovery.inventory.unclassifiedAssets.length}</b> other local asset{recovery.inventory.unclassifiedAssets.length === 1 ? "" : "s"} inventoried only</span>
+            </div>
+            {recovery.scanError ? <p role="alert">{recovery.scanError} You can continue with project defaults.</p> : null}
+            {recovery.inventory.groups.length ? (
+              <fieldset className={styles.recoveryGroups}>
+                <legend>Resource groups</legend>
+                {recovery.inventory.groups.map((group) => (
+                  <label key={group.originProjectId}>
+                    <input
+                      checked={selectedRecoveryOrigins.includes(group.originProjectId)}
+                      onChange={() => toggleRecoveryOrigin(group.originProjectId)}
+                      type="checkbox"
+                    />
+                    <span>
+                      <strong>{group.exactProject ? "Current project resources" : "Legacy / unmatched resources"}</strong>
+                      <small>{group.resources.length} frame{group.resources.length === 1 ? "" : "s"} · origin <code>{group.originProjectId}</code>{group.exactProject ? " · selected automatically" : " · requires your explicit selection"}</small>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            ) : <p>No recoverable Storyboard frames were found. The local asset folder remains unchanged.</p>}
+            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not overwrite project defaults, accept images, or resolve story-data conflicts. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
+            <div className={styles.recoveryActions}>
+              <button className={styles.secondaryButton} disabled={restoringResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
+              <button className={styles.primaryButton} disabled={restoringResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Local Resources"}</button>
+            </div>
           </section>
         </div>
       ) : null}

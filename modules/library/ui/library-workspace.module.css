@@ -508,6 +508,79 @@
   line-height: var(--pp-skin-leading-body);
 }
 
+
+.recoveryDialog {
+  width: min(100%, 760px);
+  max-height: min(84dvh, 760px);
+  overflow: auto;
+}
+
+.recoverySummary {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2) !important;
+  margin: var(--pp-skin-space-3) 0;
+}
+
+.recoverySummary span {
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink-soft);
+}
+
+.recoverySummary b {
+  display: block;
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-title);
+}
+
+.recoveryGroups {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-3) 0;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.recoveryGroups legend {
+  padding: 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-ink);
+  font-weight: 700;
+}
+
+.recoveryGroups label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--pp-skin-space-2);
+  align-items: start;
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+
+.recoveryGroups label > span {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.recoveryGroups small,
+.recoveryPolicy {
+  color: var(--pp-skin-ink-soft);
+}
+
+.recoveryGroups code {
+  overflow-wrap: anywhere;
+  color: var(--pp-skin-accent-bright);
+}
+
+.recoveryActions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: var(--pp-skin-space-2) !important;
+  margin-top: var(--pp-skin-space-4);
+}
+
 .dialogBackdrop {
   position: fixed;
   z-index: 40;
@@ -564,6 +637,8 @@
   .coverage { grid-template-columns: 1fr; }
   .coverage span:last-child { grid-column: auto; }
   .dialog > div { flex-direction: column-reverse; }
+  .recoverySummary { grid-template-columns: 1fr; }
+  .recoveryActions { flex-direction: column-reverse; }
 }
 
 @media (prefers-reduced-motion: reduce) {

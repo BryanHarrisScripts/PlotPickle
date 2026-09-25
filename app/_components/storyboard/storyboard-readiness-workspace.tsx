@@ -513,7 +513,7 @@ export default function StoryboardReadinessWorkspace({
                   const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
                   const selectionKey = `${selectedNumber}.${selectedMiniBlockNumber}.${position}`;
                   const positionArtifacts = frameArtifacts.filter((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected");
-                  const latestGeneratedArtifact = positionArtifacts.at(-1) ?? null;
+                  const latestGeneratedArtifact = [...positionArtifacts].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
                   const selectedImageId = selectedImageByPosition[selectionKey] ?? latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? "";
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;

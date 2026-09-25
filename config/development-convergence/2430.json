@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 2430,
+  "phase": "buzz-desktop-0-5-25",
+  "brief": "docs/developer-briefs/2430-buzz-desktop-0-5-25.md",
+  "allowedChanges": [
+    "config/buzz-desktop.json",
+    "config/development-convergence/2430.json",
+    "config/verification/ownership-map.json",
+    "docs/buzz-live-health.md",
+    "docs/developer-briefs/2430-buzz-desktop-0-5-25.md",
+    "tests/issue-620-buzz-startup-updater.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2430-E1",
+      "criterion": "The reviewed BUZZ Desktop fallback is desktop-v0.5.25 with the verified Windows asset, source commit and SHA-256.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/buzz-desktop.json",
+          "contains": "desktop-v0.5.25"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "fff84c9048acbb0592d873f6cc8c8cd9816c43a753042407bfa47b452c2bda43"
+        }
+      ]
+    },
+    {
+      "id": "P2430-E2",
+      "criterion": "The existing newest-compatible-release lookup and digest verification remain authoritative and cannot downgrade below the reviewed fallback.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "live release lookup can never downgrade below the reviewed fallback"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "verify release digests"
+        }
+      ]
+    },
+    {
+      "id": "P2430-E3",
+      "criterion": "The BUZZ Desktop production config has explicit Production Orchestration ownership so Architecture Verification can select the correct layer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "buzz-desktop-companion-runtime"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "explicit production ownership"
+        }
+      ]
+    }
+  ]
+}

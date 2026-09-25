@@ -345,6 +345,20 @@
       ]
     },
     {
+      "id": "buzz-desktop-companion-runtime",
+      "classification": "production",
+      "include": [
+        "config/buzz-desktop.json"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "provider",
+        "security",
+        "native",
+        "windows"
+      ]
+    },
+    {
       "id": "root-dependency-manifests",
       "classification": "production",
       "include": [

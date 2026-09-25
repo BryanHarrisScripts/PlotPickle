@@ -2,21 +2,23 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const [installer, config, companion] = await Promise.all([
+const [installer, config, companion, ownership] = await Promise.all([
   readFile(new URL("../scripts/install-buzz-desktop.ps1", import.meta.url), "utf8"),
   readFile(new URL("../config/buzz-desktop.json", import.meta.url), "utf8"),
   readFile(new URL("../scripts/windows-companion-software.ps1", import.meta.url), "utf8"),
+  readFile(new URL("../config/verification/ownership-map.json", import.meta.url), "utf8"),
 ]);
 
 const parsedConfig = JSON.parse(config);
+const parsedOwnership = JSON.parse(ownership);
 
-test("PlotPickle keeps Buzz Desktop 0.5.22 as a verified reviewed fallback", () => {
-  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.22");
-  assert.equal(parsedConfig.version, "0.5.22");
-  assert.equal(parsedConfig.sourceCommit, "9ceb1f79bbc21785a0a075c40aecb3c058b1ea15");
-  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.22_x64-setup_alpha-unsigned.exe");
-  assert.equal(parsedConfig.windows.sha256, "c76aa32e75faa20aee5d8cd1c1c2c00265bc94166c3cb6a88455a6819e9ec289");
-  assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.22\//);
+test("PlotPickle keeps Buzz Desktop 0.5.25 as a verified reviewed fallback", () => {
+  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.25");
+  assert.equal(parsedConfig.version, "0.5.25");
+  assert.equal(parsedConfig.sourceCommit, "c8f73213089cbd5a0f1e675d3193558280d46e10");
+  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.25_x64-setup_alpha-unsigned.exe");
+  assert.equal(parsedConfig.windows.sha256, "fff84c9048acbb0592d873f6cc8c8cd9816c43a753042407bfa47b452c2bda43");
+  assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.25\//);
 });
 
 test("startup maintenance checks block/buzz releases and selects the newest compatible Windows desktop asset", () => {
@@ -54,4 +56,14 @@ test("downloaded Buzz assets stay constrained to official block/buzz GitHub rele
 test("normal companion maintenance invokes the Buzz updater when Buzz is installed", () => {
   assert.match(companion, /\$buzzPath = Find-BuzzCli/);
   assert.match(companion, /Invoke-ReviewedScript -Path \$BuzzInstaller -Arguments @\("-Maintain"\) -Label "Buzz Desktop"/);
+});
+
+
+test("BUZZ Desktop companion config has explicit production ownership", () => {
+  const rule = parsedOwnership.rules.find((candidate) => candidate.id === "buzz-desktop-companion-runtime");
+  assert.ok(rule);
+  assert.equal(rule.classification, "production");
+  assert.deepEqual(rule.include, ["config/buzz-desktop.json"]);
+  assert.equal(rule.ownerLayer, "production-harness");
+  assert.deepEqual(rule.riskTokens, ["provider", "security", "native", "windows"]);
 });

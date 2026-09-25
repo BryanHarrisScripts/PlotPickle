@@ -356,7 +356,7 @@ export default function DashboardBbsReviewHost({
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
       setDiscoveryOpen(true);
-      onSurfaceNameChange("MIND MAP");
+      onSurfaceNameChange("MINDMAP");
       return;
     }
     if (item.id === "library") {
@@ -426,7 +426,7 @@ export default function DashboardBbsReviewHost({
   if (discoveryOpen) {
     return (
       <section
-        aria-label="Mind Map"
+        aria-label="MindMap"
         data-dashboard-review-surface="discovery"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -436,7 +436,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>MIND MAP</h1>
+          <h1>MINDMAP</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
         </div>
         <DiscoverySurface project={discoveryProject} />

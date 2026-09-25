@@ -26,7 +26,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["discovery", "story-bible", "plan", "storyboard", "previs", "timeline", "production"],
+    ["discovery", "plan", "storyboard", "previs", "timeline", "production"],
   );
 
   const disabled = menu.slice(
@@ -53,7 +53,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   assert.match(audit, /expectedLocked = row\.connected && !isDashboardReviewItem/u);
 });
 
-test("#2438 renames the Develop Story row to one-word WorldMap without changing its shortcut or position", async () => {
+test("#2438/#2452 keeps the Develop Story row as one-word WorldMap without changing its shortcut or position", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   assert.match(menu, /\{ id: "discovery", shortcut: "G", label: "MindMap"/u);

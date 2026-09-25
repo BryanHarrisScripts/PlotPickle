@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import { approvedWorldMapCharacterReferences } from "@/core/contracts/world-map";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
@@ -174,20 +175,34 @@ export default function StoryboardReadinessWorkspace({
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
-  const storyboardCharacters: readonly StoryboardCharacterGrounding[] = (legacyProject?.characters ?? []).map((character) => {
+  const characterTruthEvidence = normalizedSourceEvidence.characterTruth;
+  const legacyStoryboardCharacters: readonly StoryboardCharacterGrounding[] = (legacyProject?.characters ?? []).map((character) => {
     const visualCharacter = character as CharacterWithVisualIdentity;
     const identity = getCharacterVisualIdentity(visualCharacter);
-    const identityLocked = identity.status === "locked" && Boolean(identity.approvedPrompt.trim());
-    const approvedVisualRefs = identityLocked
+    const legacyIdentityLocked = identity.status === "locked" && Boolean(identity.approvedPrompt.trim());
+    const legacyApprovedRefs = legacyIdentityLocked
       ? approvedCharacterReferenceImages(visualCharacter).filter((reference) => reference.startsWith("/api/local-ai/assets/"))
       : [];
-    const truthClaims = (normalizedSourceEvidence.characterTruth?.claims ?? [])
+    const worldMapApprovedRefs = approvedWorldMapCharacterReferences(project.worldMap, character.id);
+    const approvedVisualRefs = [...new Set([...worldMapApprovedRefs, ...legacyApprovedRefs])];
+    const truthClaims = (characterTruthEvidence?.claims ?? [])
       .filter((claim) => claim.characterIds.includes(character.id)
         && claim.reviewState !== "rejected"
         && claim.handling === "writer-reference"
         && claim.kind !== "sensitive-source")
       .map((claim) => claim.summary)
       .slice(0, 4);
+    const identityLock = legacyIdentityLocked ? {
+      characterId: character.id,
+      status: identity.status,
+      version: identity.version,
+      approvedPrompt: identity.approvedPrompt,
+    } : worldMapApprovedRefs.length ? {
+      characterId: character.id,
+      status: "locked",
+      version: 1,
+      approvedPrompt: `World Map approved multi-view visual reference package for ${character.name}.`,
+    } : null;
     return {
       id: character.id,
       name: character.name,
@@ -197,14 +212,44 @@ export default function StoryboardReadinessWorkspace({
       description: character.description,
       truthClaims,
       approvedVisualRefs,
-      identityLock: identityLocked ? {
-        characterId: character.id,
-        status: identity.status,
-        version: identity.version,
-        approvedPrompt: identity.approvedPrompt,
-      } : null,
+      identityLock,
     };
   });
+  const legacyCharacterIds = new Set(legacyStoryboardCharacters.map((character) => character.id));
+  const libraryStoryboardCharacters: readonly StoryboardCharacterGrounding[] = (characterTruthEvidence?.principalCharacterIds ?? [])
+    .filter((characterId) => !legacyCharacterIds.has(characterId))
+    .map((characterId) => {
+      const claims = (characterTruthEvidence?.claims ?? [])
+        .filter((claim) => claim.characterIds.includes(characterId)
+          && claim.reviewState !== "rejected"
+          && claim.handling === "writer-reference"
+          && claim.kind !== "sensitive-source");
+      const identityClaim = claims.find((claim) => claim.kind === "identity");
+      const name = identityClaim?.summary?.trim()
+        || characterId.replace(/^character:/u, "").replace(/[-_]+/gu, " ").replace(/\b\w/gu, (letter) => letter.toUpperCase())
+        || "Unknown Character";
+      const approvedVisualRefs = approvedWorldMapCharacterReferences(project.worldMap, characterId);
+      return {
+        id: characterId,
+        name,
+        aliases: [],
+        pronouns: "",
+        role: "",
+        description: claims.find((claim) => claim.kind === "personality")?.summary ?? "",
+        truthClaims: claims.map((claim) => claim.summary).slice(0, 4),
+        approvedVisualRefs,
+        identityLock: approvedVisualRefs.length ? {
+          characterId,
+          status: "locked",
+          version: 1,
+          approvedPrompt: `World Map approved multi-view visual reference package for ${name}.`,
+        } : null,
+      };
+    });
+  const storyboardCharacters: readonly StoryboardCharacterGrounding[] = [
+    ...legacyStoryboardCharacters,
+    ...libraryStoryboardCharacters,
+  ];
   const activeAnchorEvidence = selectedTarget
     ? storyboardAnchorEvidence(project, selectedTarget.id, selectedMiniBlockNumber)
     : null;

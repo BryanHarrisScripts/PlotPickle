@@ -1092,6 +1092,21 @@
       ]
     },
     {
+      "id": "world-map-character-visual-contract",
+      "classification": "production",
+      "include": [
+        "core/contracts/world-map/**"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "visual",
+        "surface"
+      ]
+    },
+    {
       "id": "learn-journey-baseline-validator",
       "classification": "verification",
       "include": [

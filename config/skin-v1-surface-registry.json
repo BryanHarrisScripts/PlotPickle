@@ -158,7 +158,7 @@
     },
     {
       "id": "discovery",
-      "label": "Discover",
+      "label": "Mind Map",
       "family": "story",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -169,7 +169,7 @@
         {
           "order": 3,
           "slug": "discovery",
-          "label": "Discover"
+          "label": "Mind Map"
         }
       ],
       "formatProfile": {
@@ -1139,7 +1139,7 @@
     },
     {
       "id": "story-bible",
-      "label": "Story",
+      "label": "World Map",
       "family": "story",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -1150,7 +1150,7 @@
         {
           "order": 8,
           "slug": "story-bible",
-          "label": "Story"
+          "label": "World Map"
         }
       ],
       "formatProfile": {

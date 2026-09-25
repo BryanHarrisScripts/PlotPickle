@@ -33,7 +33,7 @@ test("#2249 global Dashboard return closes Licensing and Issue Log owner state",
   assert.match(host, /data-dashboard-review-surface="help"[\s\S]*closeHelpIssueLog/u);
 });
 
-test("#2249 Visual Story stays Storyboard-owned while rendering inline", async () => {
+test("#2249/#2442 Visual Story stays Storyboard-owned while its explicit return goes to Dashboard", async () => {
   const [storyboard, visual, scene, capture] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/visual-story-workspace.tsx"),
@@ -46,9 +46,10 @@ test("#2249 Visual Story stays Storyboard-owned while rendering inline", async (
   assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/u);
   assert.match(visual, /readonly embedded\?: boolean/u);
   assert.match(visual, /data-embedded=\{embedded \? "true" : undefined\}/u);
-  assert.match(visual, /\{!embedded \? <button[\s\S]*?Back to Storyboard/u);
-  assert.match(scene, /data-skin-v1-return="storyboard"/u);
-  assert.match(scene, /onClick=\{onReturnToStoryboard\}/u);
+  assert.match(visual, /\{!embedded \? <button[\s\S]*?Back to Dashboard/u);
+  assert.match(visual, /data-skin-v1-return="dashboard"/u);
+  assert.match(scene, /data-skin-v1-return="dashboard"/u);
+  assert.match(visual + scene, /plotpickle:return-dashboard/u);
   assert.doesNotMatch(storyboard + visual + scene, /history\.back\(/u);
 
   const visualStart = capture.indexOf('"visual-story": Object.freeze');

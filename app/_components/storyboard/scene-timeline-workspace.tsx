@@ -268,9 +268,9 @@ export default function SceneTimelineWorkspace({
       <button
         type="button"
         className="pp-skin-v1-return"
-        data-skin-v1-return="storyboard"
-        onClick={onReturnToStoryboard}
-      >Back to Storyboard</button>
+        data-skin-v1-return="dashboard"
+        onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}
+      >Back to Dashboard</button>
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Timeline · Dialogue / Action / Shot / Audio</p>

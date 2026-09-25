@@ -10,6 +10,7 @@ import {
   isUsableWorldAnswer,
 } from "../contracts/world-plan";
 import type { LibraryPPFProject } from "../storage/library-project";
+import { approvedWorldMapCharacterReferences } from "../contracts/world-map";
 
 export type StoryBibleFactState = "established" | "reference" | "not-established";
 
@@ -166,10 +167,11 @@ function characterProjection(project: LibraryPPFProject): readonly StoryBibleCha
         source: `Character Truth Evidence · ${claim.reviewState}`,
       }));
 
+    const approvedVisualRefs = approvedWorldMapCharacterReferences(project.worldMap, characterId);
     return {
       id: characterId,
       name: identity?.summary || displayCharacterName(characterId),
-      imageUrl: null,
+      imageUrl: approvedVisualRefs[0] ?? null,
       facts,
     };
   });

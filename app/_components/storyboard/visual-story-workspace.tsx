@@ -109,9 +109,9 @@ export default function VisualStoryWorkspace({
         {!embedded ? <button
           type="button"
           className="pp-skin-v1-return"
-          data-skin-v1-return="storyboard"
-          onClick={onReturnToStoryboard}
-        >Back to Storyboard</button> : null}
+          data-skin-v1-return="dashboard"
+          onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}
+        >Back to Dashboard</button> : null}
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>
@@ -247,9 +247,9 @@ export default function VisualStoryWorkspace({
             <button
               type="button"
               className="pp-skin-v1-return"
-              data-skin-v1-return="storyboard"
-              onClick={onReturnToStoryboard}
-            >Back to Storyboard</button>
+              data-skin-v1-return="dashboard"
+              onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}
+            >Back to Dashboard</button>
             <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
             <p>Timeline does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
           </section>
@@ -275,9 +275,9 @@ export default function VisualStoryWorkspace({
       {!embedded ? <button
         type="button"
         className="pp-skin-v1-return"
-        data-skin-v1-return="storyboard"
-        onClick={onReturnToStoryboard}
-      >Back to Storyboard</button> : null}
+        data-skin-v1-return="dashboard"
+        onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}
+      >Back to Dashboard</button> : null}
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>

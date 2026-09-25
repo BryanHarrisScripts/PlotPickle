@@ -12,7 +12,7 @@ export const DISCOVERY_LANES = [
 export type DiscoveryLaneId = (typeof DISCOVERY_LANES)[number]["id"];
 export type DiscoveryAct = 1 | 2 | 3 | 4;
 export type DiscoveryCardKind = "text" | "visual";
-export type DiscoverySourceState = "project" | "new-local";
+export type DiscoverySourceState = "project" | "new-local" | "agent-proposal";
 
 export type DiscoveryPlacement = {
   readonly act: DiscoveryAct;
@@ -97,7 +97,7 @@ export function normalizeDiscoveryState(value: unknown): DiscoveryState {
     const content = cleanText(card.content, 12_000);
     if (!id || !content) continue;
     const kind: DiscoveryCardKind = card.kind === "visual" ? "visual" : "text";
-    const sourceState: DiscoverySourceState = card.sourceState === "project" ? "project" : "new-local";
+    const sourceState: DiscoverySourceState = card.sourceState === "project" ? "project" : card.sourceState === "agent-proposal" ? "agent-proposal" : "new-local";
     normalized.push({
       id,
       kind,

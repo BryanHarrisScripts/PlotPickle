@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "issue": 2438,
+  "phase": "dashboard-status-worldmap",
+  "brief": "docs/developer-briefs/2438-dashboard-status-worldmap.md",
+  "allowedChanges": [
+    "app/issue-2061.css",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/dashboard-menu-registry.ts",
+    "config/development-convergence/2438.json",
+    "docs/developer-briefs/2438-dashboard-status-worldmap.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+    "tests/issue-2153-manual-uat-follow-up.test.mjs",
+    "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2438-A1",
+      "criterion": "Explore readiness is green for Learn, Community and Library.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "\"library\"" }
+      ]
+    },
+    {
+      "id": "P2438-A2",
+      "criterion": "MindMap, WorldMap and all five Visualize stages use the warning/in-review state.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "DASHBOARD_REVIEW_ITEM_IDS" },
+        { "type": "file-contains", "path": "app/issue-2061.css", "contains": "data-dashboard-review=\"in-review\"" }
+      ]
+    },
+    {
+      "id": "P2438-A3",
+      "criterion": "Package and Deck are gray and cannot activate.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "DASHBOARD_DISABLED_ITEM_IDS" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "aria-disabled={disabled}" }
+      ]
+    },
+    {
+      "id": "P2438-A4",
+      "criterion": "Develop Story is renamed WorldMap.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "label: \"WorldMap\"" }
+      ]
+    }
+  ]
+}

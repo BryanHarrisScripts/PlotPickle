@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "issue": 2440,
+  "phase": "story-architect-structured-execution",
+  "brief": "docs/developer-briefs/2440-story-architect-structured-execution.md",
+  "allowedChanges": [
+    "build/mastra-agent-runtime.ts",
+    "build/writing-assistant-gateway.ts",
+    "config/development-convergence/2440.json",
+    "docs/developer-briefs/2440-story-architect-structured-execution.md",
+    "modules/plan/outline-agent-assessment.ts",
+    "tests/issue-2440-story-architect-structured-execution.test.mjs",
+    "tests/issue-580-mastra-runtime-readiness.test.mjs",
+    "tests/issue-outline-agent-assessment.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2440-A1",
+      "criterion": "Story Architect uses native Mastra structured output and never free-form fallback for assessment calls.",
+      "evidence": [
+        { "type": "file-contains", "path": "build/mastra-agent-runtime.ts", "contains": "storyArchitectAssessmentSchema" },
+        { "type": "file-contains", "path": "build/mastra-agent-runtime.ts", "contains": "Story Architect did not return a structured assessment." }
+      ]
+    },
+    {
+      "id": "P2440-A2",
+      "criterion": "Existing Outline source and citation validation remains authoritative.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/plan/outline-agent-assessment.ts", "contains": "validateOutlineAgentAssessment" },
+        { "type": "file-contains", "path": "modules/plan/outline-agent-assessment.ts", "contains": "cited a passage outside this Block" }
+      ]
+    },
+    {
+      "id": "P2440-A3",
+      "criterion": "Story Architect failures expose safe provider/model/role/compute diagnostics and no secrets.",
+      "evidence": [
+        { "type": "file-contains", "path": "build/writing-assistant-gateway.ts", "contains": "storyArchitectExecutionRoute" },
+        { "type": "file-contains", "path": "tests/issue-2440-story-architect-structured-execution.test.mjs", "contains": "does not expose provider secrets" }
+      ]
+    }
+  ]
+}

@@ -64,7 +64,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     assert.doesNotMatch(description, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
   }
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
-  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   assert.doesNotMatch(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"discovery"[\s\S]*"story-bible"[\s\S]*"plan"[\s\S]*"storyboard"[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);

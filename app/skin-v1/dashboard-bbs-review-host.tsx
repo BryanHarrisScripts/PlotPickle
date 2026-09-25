@@ -9,7 +9,7 @@ import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
-import { DASHBOARD_DISABLED_ITEM_IDS } from "./dashboard-menu-registry";
+import { DASHBOARD_UNAVAILABLE_ITEM_IDS } from "./dashboard-menu-registry";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import MatrixStoryMapSurface from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
@@ -345,8 +345,13 @@ export default function DashboardBbsReviewHost({
 
   function activateItem(index: number) {
     const item = items[index];
-    if (!item || DASHBOARD_DISABLED_ITEM_IDS.has(item.id)) return;
+    if (!item) return;
     setDashboardNotice("");
+    if (DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)) {
+      onActivate(index);
+      onSurfaceNameChange("DASHBOARD");
+      return;
+    }
     if (item.id === "discovery") {
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);

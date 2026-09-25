@@ -1,3 +1,622 @@
+"use client";
+
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
+import { applyStoryCommand } from "@/core/project/apply-command";
+import type { PPFProject } from "@/core/project/project";
+import type { ProductionSoundCueKind } from "@/core/contracts/previs";
+import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
+import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
+import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
+import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
+import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
+import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
+import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
+import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/story-to-screen-convergence";
+
+export type PreproductionReviewAddress = Readonly<{
+  blockNumber: number;
+  miniBlockNumber: number;
+}>;
+
+type MiniBlockVisualCoverage = Readonly<{
+  miniBlockNumber: number;
+  state: "accepted" | "candidate" | "missing";
+  candidateCount: number;
+}>;
+
+function bounded(value: number, maximum: number) {
+  return Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.trunc(value))) : 1;
+}
+
+function normalizedAddress(address: PreproductionReviewAddress): PreproductionReviewAddress {
+  return {
+    blockNumber: bounded(address.blockNumber, 24),
+    miniBlockNumber: bounded(address.miniBlockNumber, 4),
+  };
+}
+
+function visualCoverageForBlock(project: PPFProject, blockNumber: number): readonly MiniBlockVisualCoverage[] {
+  const blockId = `block-${String(blockNumber).padStart(2, "0")}`;
+  const artifacts = [
+    ...project.build.foundations.visualArtifacts,
+    ...project.build.world.visualArtifacts,
+  ].filter((artifact) => artifact.reviewState !== "rejected");
+  const acceptedIds = new Set([
+    ...project.build.foundations.acceptedVisualArtifactIds,
+    ...project.build.world.acceptedVisualArtifactIds,
+  ]);
+
+  return Array.from({ length: 4 }, (_, index): MiniBlockVisualCoverage => {
+    const miniBlockNumber = index + 1;
+    const anchor = `storyboard-anchor:block:${blockId}:mini-${miniBlockNumber}`;
+    const candidates = artifacts.filter((artifact) => (artifact.sourceDecisionKeys ?? []).includes(anchor));
+    const accepted = candidates.some((artifact) => acceptedIds.has(artifact.id) && artifact.reviewState === "accepted");
+    return {
+      miniBlockNumber,
+      state: accepted ? "accepted" : candidates.length ? "candidate" : "missing",
+      candidateCount: candidates.length,
+    };
+  });
+}
+
+export function SkinV1StoryboardReviewSurface({
+  address,
+  onAddressChange,
+  onOpenBuild,
+  onOpenPrevis,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+  readonly onOpenBuild: () => void;
+  readonly onOpenPrevis: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  function applyProjectChange(next: PPFProject) {
+    setProject((current) => current ? {
+      ...current,
+      ...next,
+      structure: current.structure,
+      sourceEvidence: current.sourceEvidence,
+    } : current);
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening canonical Storyboard readiness…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="storyboard">
+      <StoryboardReadinessWorkspace
+        embeddedNavigation
+        initialBlockNumber={normalized.blockNumber}
+        initialMiniBlockNumber={normalized.miniBlockNumber}
+        legacyProject={null}
+        project={project}
+        onProjectChange={applyProjectChange}
+        onAddressChange={onAddressChange}
+        onOpenBuild={onOpenBuild}
+        onOpenPrevis={(blockNumber, miniBlockNumber) => onOpenPrevis({ blockNumber, miniBlockNumber })}
+      />
+    </div>
+  );
+}
+
+export function SkinV1StoryboardStoryMap({
+  address,
+  onAddressChange,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+  const act = Math.ceil(normalized.blockNumber / 6);
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Storyboard Story Map…</p>;
+
+  return (
+    <div data-skin-v1-storyboard-map-review="true">
+      <ProgressiveStoryMap
+        key={`${project.id}-storyboard-act-${act}`}
+        project={project}
+        act={act}
+        initialBlockNumber={normalized.blockNumber}
+        initialMiniBlockNumber={normalized.miniBlockNumber}
+        navigationOnly
+        surfaceLabel="Storyboard"
+        onSelectAddress={onAddressChange}
+      />
+    </div>
+  );
+}
+
+export function SkinV1PrevisStoryMap({
+  address,
+  onAddressChange,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+  const act = Math.ceil(normalized.blockNumber / 6);
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Previs Story Map…</p>;
+
+  return (
+    <div data-skin-v1-previs-map-review="true">
+      <ProgressiveStoryMap
+        key={`${project.id}-previs-act-${act}`}
+        project={project}
+        act={act}
+        initialBlockNumber={normalized.blockNumber}
+        initialMiniBlockNumber={normalized.miniBlockNumber}
+        navigationOnly
+        surfaceLabel="Previs"
+        onSelectAddress={onAddressChange}
+      />
+    </div>
+  );
+}
+
+export function SkinV1PrevisReviewSurface({
+  address,
+  onAddressChange,
+  onOpenStoryboard,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+  readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+  const coverage = useMemo(
+    () => project ? visualCoverageForBlock(project, normalized.blockNumber) : [],
+    [normalized.blockNumber, project],
+  );
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function storyboardAddress(anchor?: PrevisAnchorProjection) {
+    return normalizedAddress(anchor
+      ? { blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber }
+      : normalized);
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening canonical Previs projection…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="previs">
+      <section className="pp-skin-v1-previs-coverage" aria-labelledby="previs-visual-coverage-title">
+        <header>
+          <div><p>VISUAL COVERAGE</p><h2 id="previs-visual-coverage-title">Block {String(normalized.blockNumber).padStart(2, "0")} preview</h2></div>
+          <span>{coverage.filter((item) => item.state === "accepted").length}/4 accepted visuals</span>
+        </header>
+        <p>Start with what you can already see. Previs then adds timing and camera intent without turning technical render slots into creative Shots.</p>
+        <div className="pp-skin-v1-previs-coverage-grid" aria-label={`Block ${normalized.blockNumber} Mini-Block visual coverage`}>
+          {coverage.map((item) => (
+            <button
+              aria-pressed={item.miniBlockNumber === normalized.miniBlockNumber}
+              data-visual-coverage-state={item.state}
+              key={item.miniBlockNumber}
+              onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber: item.miniBlockNumber })}
+              type="button"
+            >
+              <strong>MINI {item.miniBlockNumber}</strong>
+              <span>{item.state === "accepted" ? "Accepted visual" : item.state === "candidate" ? `${item.candidateCount} candidate${item.candidateCount === 1 ? "" : "s"}` : "No visual yet"}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Previs is the visual preview/readiness view first, then downstream camera and timing intent for the same selected story address.</span>
+      </div>
+      <PrevisReadinessWorkspace
+        embeddedNavigation
+        address={normalized}
+        project={project}
+        onProjectChange={setProject}
+        onAddressChange={onAddressChange}
+        onOpenStoryboard={(anchor) => onOpenStoryboard(storyboardAddress(anchor))}
+      />
+    </div>
+  );
+}
+
+export function SkinV1TimelineReviewSurface({
+  address,
+  onAddressChange,
+  onOpenStoryboard,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+  readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function applyProjectChange(next: PPFProject) {
+    setProject((current) => current ? {
+      ...current,
+      ...next,
+      structure: current.structure,
+      sourceEvidence: current.sourceEvidence,
+    } : current);
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening canonical Timeline projection…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="timeline">
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>TIMELINE · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Script, Dialogue, Action, Shot and Audio stay synchronized against the same canonical story address. Missing Scene or timing evidence remains visibly missing.</span>
+      </div>
+      <nav className="pp-skin-v1-preproduction-address-rail" aria-label="Timeline Mini-Block address">
+        {[1, 2, 3, 4].map((miniBlockNumber) => (
+          <button
+            aria-current={miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
+            key={miniBlockNumber}
+            onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber })}
+            type="button"
+          >
+            Mini {miniBlockNumber}
+          </button>
+        ))}
+      </nav>
+      <VisualStoryWorkspace
+        blockNumber={normalized.blockNumber}
+        initialView="timeline"
+        legacyProject={null}
+        miniBlockNumber={normalized.miniBlockNumber}
+        onProjectChange={applyProjectChange}
+        onReturnToStoryboard={() => onOpenStoryboard(normalized)}
+        project={project}
+      />
+    </div>
+  );
+}
+
+export function SkinV1ProductionReviewSurface({
+  address,
+  onAddressChange,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const normalized = normalizedAddress(address);
+  const projection = useMemo(() => project ? derivePrevisProjection(project) : null, [project]);
+  const selectedBlock = projection?.blocks.find((block) => block.blockNumber === normalized.blockNumber) ?? null;
+  const selectedAnchor = selectedBlock?.anchors.find((anchor) => anchor.miniBlockNumber === normalized.miniBlockNumber)
+    ?? selectedBlock?.anchors[0]
+    ?? null;
+  const approvedShots = selectedAnchor?.shots.filter((shot) => shot.reviewState === "approved") ?? [];
+  const anchorRef = `storyboard-anchor:block:block-${String(normalized.blockNumber).padStart(2, "0")}:mini-${normalized.miniBlockNumber}`;
+  const roughCut = useMemo(() => project ? projectRoughCutAnchor({
+    production: project.production,
+    anchorRef,
+    currentRevision: project.revision,
+  }) : null, [anchorRef, project]);
+  const readiness = !selectedAnchor
+    ? { label: "NO EVIDENCE", detail: "No canonical Previs anchor exists for this story address." }
+    : selectedAnchor.storyboardCoverage !== "kept"
+      ? { label: "NOT READY", detail: "A kept Storyboard visual is required before production intent can be treated as approved." }
+      : selectedAnchor.staleShotIds.length
+        ? { label: "REVIEW REQUIRED", detail: "Upstream Storyboard evidence changed. Stale Production Shots must be reviewed before handoff." }
+        : approvedShots.length === 0
+          ? { label: "NOT READY", detail: "No approved Previs Production Shot exists at this address yet." }
+          : { label: "UPSTREAM READY", detail: "Approved upstream shot evidence exists. #2173 still validates Scene semantics and provider-neutral Director Specification readiness before execution." };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function registerTake(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    const data = new FormData(event.currentTarget);
+    const productionShotId = String(data.get("productionShotId") ?? "").trim();
+    const mediaRef = String(data.get("mediaRef") ?? "").trim();
+    const provider = String(data.get("provider") ?? "").trim();
+    const model = String(data.get("model") ?? "").trim();
+    const observedRaw = String(data.get("observedDurationSeconds") ?? "").trim();
+    const observedDurationSeconds = observedRaw ? Number(observedRaw) : null;
+    const reviewState = String(data.get("reviewState") ?? "candidate") === "approved" ? "approved" as const : "candidate" as const;
+    const shot = project.production.shots.find((candidate) => candidate.id === productionShotId);
+    if (!shot || !mediaRef) {
+      setMessage("Choose an existing Production Shot and identify the generated media before registering a take.");
+      return;
+    }
+    if (observedDurationSeconds !== null && (!Number.isFinite(observedDurationSeconds) || observedDurationSeconds <= 0)) {
+      setMessage("Observed take duration must be a positive number or left blank.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const takeId = globalThis.crypto?.randomUUID?.() ?? `take-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: {
+        id: takeId,
+        productionShotId: shot.id,
+        sourceRevision: project.revision,
+        storyboardDependencyKey: shot.storyboardDependencyKey,
+        mediaRef,
+        provider,
+        model,
+        intendedDurationSeconds: shot.durationSeconds,
+        observedDurationSeconds,
+        provenanceRefs: [shot.id, shot.storyboardArtifactId, shot.storyboardDependencyKey, mediaRef],
+        reviewState,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    event.currentTarget.reset();
+    setMessage(`Take ${takeId} registered as ${reviewState}. Existing takes were preserved.`);
+  }
+
+  function setTakeReviewState(takeId: string, reviewState: "approved" | "rejected") {
+    if (!project) return;
+    const take = (project.production.takes ?? []).find((candidate) => candidate.id === takeId);
+    if (!take) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: { ...take, reviewState },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Take ${takeId} marked ${reviewState}. No other take was deleted.`);
+  }
+
+  function createRoughCutRevision() {
+    if (!project) return;
+    const approved = project.production.shots
+      .filter((shot) => shot.reviewState === "approved")
+      .sort((left, right) => left.anchorRef.localeCompare(right.anchorRef) || left.order - right.order);
+    if (!approved.length) {
+      setMessage("No approved Production Shots exist yet, so PlotPickle cannot assemble a Rough Cut revision.");
+      return;
+    }
+    const placements = approved.map((shot) => {
+      const packet = projectPlotPickleProductionPacket({
+        production: project.production,
+        productionShotId: shot.id,
+        currentRevision: project.revision,
+      });
+      return {
+        productionShotId: shot.id,
+        takeId: packet?.approvedTakeId ?? null,
+        soundCueIds: packet?.soundCues.filter((cue) => cue.reviewState !== "rejected").map((cue) => cue.id) ?? [],
+      };
+    });
+    const previous = [...(project.production.roughCuts ?? [])].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+    const now = new Date().toISOString();
+    const cutId = globalThis.crypto?.randomUUID?.() ?? `rough-cut-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.cut.store",
+      cut: {
+        id: cutId,
+        sourceRevision: project.revision,
+        placements,
+        supersedesCutId: previous?.id,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Rough Cut ${cutId} created. ${placements.filter((item) => item.takeId).length}/${placements.length} approved Shots have selected media; missing takes remain explicit placeholders.`);
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project || !projection) return <p role="status">Opening canonical Rough Cut projection…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="production">
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>ROUGH CUT · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Storyboard intent, Previs timing, generated takes and sound stay attached to the same Production Shot identities. New takes never silently replace an approved take.</span>
+      </div>
+
+      <section
+        aria-labelledby="production-stage-title"
+        className="pp-skin-v1-production-stage"
+        data-production-stage="provider-neutral-handoff"
+      >
+        <header>
+          <div>
+            <p>STORY-TO-SCREEN HANDOFF</p>
+            <h2 id="production-stage-title">Rough Cut readiness</h2>
+          </div>
+          <strong data-production-readiness={readiness.label.toLowerCase().replaceAll(" ", "-")}>{readiness.label}</strong>
+        </header>
+
+        <nav className="pp-skin-v1-production-addresses" aria-label="Rough Cut Mini-Block address">
+          {(selectedBlock?.anchors ?? []).map((anchor) => (
+            <button
+              aria-current={anchor.miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
+              key={anchor.id}
+              onClick={() => onAddressChange({ blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber })}
+              type="button"
+            >
+              <strong>MINI {anchor.miniBlockNumber}</strong>
+              <span>{anchor.storyboardCoverage === "kept" ? "Kept visual" : anchor.storyboardCoverage === "candidate" ? "Candidate visual" : "No visual"}</span>
+            </button>
+          ))}
+        </nav>
+
+        {selectedAnchor ? (
+          <>
+            <div className="pp-skin-v1-production-evidence">
+              <article>
+                <span>Storyboard</span>
+                <strong>{selectedAnchor.storyboardCoverage.toUpperCase()}</strong>
+                <p>{selectedAnchor.storyboardArtifactId || "No kept Storyboard artifact."}</p>
+              </article>
+              <article>
+                <span>Previs timing</span>
+                <strong>{selectedAnchor.timingAllowed ? "ELIGIBLE" : "NOT READY"}</strong>
+                <p>{selectedAnchor.authoredDurationSeconds > 0 ? `${selectedAnchor.authoredDurationSeconds}s authored` : "No authored duration."}</p>
+              </article>
+              <article>
+                <span>Written evidence</span>
+                <strong>{selectedAnchor.sourcePassageCount} passage{selectedAnchor.sourcePassageCount === 1 ? "" : "s"}</strong>
+                <p>{selectedAnchor.sourceSceneCount} related Scene{selectedAnchor.sourceSceneCount === 1 ? "" : "s"}.</p>
+              </article>
+              <article>
+                <span>Production Shots</span>
+                <strong>{selectedAnchor.shots.length}</strong>
+                <p>{approvedShots.length} approved · {selectedAnchor.staleShotIds.length} stale.</p>
+              </article>
+            </div>
+
+            <section className="pp-skin-v1-production-shots" aria-label="Rough Cut Shots for selected story address">
+              <header>
+                <h3>Rough Cut Shots</h3>
+                <span>Existing Previs identity · versioned takes</span>
+              </header>
+              {roughCut?.shots.length ? (
+                <ol>
+                  {roughCut.shots.map(({ shot, packet, placement }) => (
+                    <li key={shot.id}>
+                      <strong>Shot {shot.order}</strong>
+                      <span>{shot.reviewState}</span>
+                      <span>{packet.intendedDurationSeconds ? `${packet.intendedDurationSeconds}s intended` : "Timing open"}</span>
+                      <span>{packet.takes.length} take{packet.takes.length === 1 ? "" : "s"} · {packet.approvedTakeId ? "approved take selected" : "no approved take"}</span>
+                      <span>{packet.soundCues.length} sound cue{packet.soundCues.length === 1 ? "" : "s"}</span>
+                      <small>{placement?.takeId ? `Cut uses ${placement.takeId}` : shot.visualIntent || shot.blockingIntent || shot.id}</small>
+                    </li>
+                  ))}
+                </ol>
+              ) : <p>No Production Shot exists at this address. PlotPickle leaves the slot empty rather than creating a placeholder Production Shot.</p>}
+            </section>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Register generated take">
+              <strong>Register a generated take</strong>
+              <p>Attach returned local/cloud media to an existing Production Shot. Registering a new take never replaces earlier media.</p>
+              <form onSubmit={registerTake}>
+                <label>
+                  Production Shot
+                  <select name="productionShotId" defaultValue="">
+                    <option value="">Choose Shot</option>
+                    {(roughCut?.shots ?? []).map(({ shot }) => <option key={shot.id} value={shot.id}>Shot {shot.order} · {shot.reviewState}</option>)}
+                  </select>
+                </label>
+                <label>Media reference <input name="mediaRef" placeholder="/api/local-ai/assets/take.webm" /></label>
+                <label>Provider <input name="provider" placeholder="local / cloud provider" /></label>
+                <label>Model <input name="model" placeholder="optional model" /></label>
+                <label>Observed seconds <input min="0.01" name="observedDurationSeconds" step="0.01" type="number" /></label>
+                <label>
+                  Human review
+                  <select name="reviewState" defaultValue="candidate">
+                    <option value="candidate">Candidate</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </label>
+                <button type="submit">Register take</button>
+              </form>
+              {(roughCut?.shots ?? []).flatMap(({ packet }) => packet.takes).length ? (
+                <ol>
+                  {(roughCut?.shots ?? []).flatMap(({ shot, packet }) => packet.takes.map((item) => ({ shot, item }))).map(({ shot, item }) => (
+                    <li key={item.take.id}>
+                      <strong>Shot {shot.order} · {item.take.reviewState}</strong>
+                      <span>{item.take.observedDurationSeconds ? `${item.take.observedDurationSeconds}s observed` : "Observed duration unavailable"}</span>
+                      <span>{item.stale ? `STALE · ${item.staleBecause.join("; ")}` : "Current dependency"}</span>
+                      <small>{item.take.mediaRef}</small>
+                      {item.take.reviewState === "candidate" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "approved")}>Approve</button> : null}
+                      {item.take.reviewState !== "rejected" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "rejected")}>Reject</button> : null}
                     </li>
                   ))}
                 </ol>

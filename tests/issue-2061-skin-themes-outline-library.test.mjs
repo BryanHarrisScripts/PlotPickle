@@ -44,7 +44,7 @@ test("#2061 Black and White is a palette-only skin with exactly nine black and n
   assert.doesNotMatch(skin, /--pp-skin-control-height:/u);
 });
 
-test("#2061/#2124 exposes Library and the PPF-backed Story Map as Matrix review destinations", async () => {
+test("#2061/#2124/#2438 keeps Library locked while the PPF-backed Story Map remains in review", async () => {
   const [menu, host, hostStyles, issueStyles, storyMapSurface] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -59,7 +59,7 @@ test("#2061/#2124 exposes Library and the PPF-backed Story Map as Matrix review 
   assert.doesNotMatch(host, /StructureEnginePage/u);
   assert.match(host, /data-dashboard-review-surface="library"/u);
   assert.match(host, /data-dashboard-review-surface="outline"/u);
-  assert.equal((host.match(/>IN REVIEW</gu) || []).length, 2);
+  assert.equal((host.match(/>IN REVIEW</gu) || []).length, 5);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeReview\("library"\)/u);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeReview\("plan"\)/u);
   assert.match(host, /restoreDashboardFocus\(itemId\)/u);
@@ -68,8 +68,8 @@ test("#2061/#2124 exposes Library and the PPF-backed Story Map as Matrix review 
   assert.match(storyMapSurface, /loadFoundationProject/u);
   assert.match(storyMapSurface, /<ProgressiveStoryMap project=\{project\} \/>/u);
   assert.match(hostStyles, /\.reviewSurface[\s\S]*--pp-skin-warning-line/u);
-  assert.match(issueStyles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);
-  assert.match(issueStyles, /data-dashboard-menu-item="plan"[\s\S]*--pp-skin-warning/u);
+  assert.doesNotMatch(issueStyles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);
+  assert.match(issueStyles, /\[data-dashboard-review="in-review"\][\s\S]*--pp-skin-warning/u);
 });
 
 test("#2061 presents six compact Dashboard readiness entries from the existing backend authorities", async () => {

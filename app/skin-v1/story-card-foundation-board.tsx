@@ -3,6 +3,7 @@
 import { useState, type DragEvent, type KeyboardEvent } from "react";
 import type { CharacterArcEvidenceState } from "@/core/contracts/character-truth-evidence";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import type { OutlineAgentAssessment, OutlineAssessmentRunReceipt } from "@/core/contracts/imported-screenplay-evidence/outline-agent-assessment";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -72,6 +73,48 @@ function characterEvidenceLabel(state: CharacterArcEvidenceState) {
     .replace("unresolved-insufficient-evidence", "Unresolved / insufficient evidence");
 }
 
+function formatAssessmentTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function assessmentCitationCount(assessment: OutlineAgentAssessment) {
+  return new Set([
+    ...assessment.structural.passageIds,
+    ...assessment.characters.flatMap((item) => item.passageIds),
+    ...assessment.miniBlocks.flatMap((item) => item.passageIds),
+  ]).size;
+}
+
+function assessmentFindingsSignature(assessment: OutlineAgentAssessment) {
+  return JSON.stringify({
+    structural: assessment.structural,
+    characters: assessment.characters,
+    miniBlocks: assessment.miniBlocks,
+  });
+}
+
+function assessmentFindingsChanged(previous: OutlineAgentAssessment | null, next: OutlineAgentAssessment) {
+  return !previous || assessmentFindingsSignature(previous) !== assessmentFindingsSignature(next);
+}
+
+function assessmentRunBlockSummary(assessment: OutlineAgentAssessment) {
+  return {
+    blockNumber: assessment.blockNumber,
+    structuralState: assessment.structural.state,
+    citedPassageCount: assessmentCitationCount(assessment),
+    characterFindingCount: assessment.characters.filter((item) => item.state !== "not-present-no-evidence").length,
+    miniBlockStates: assessment.miniBlocks.map((item) => item.state),
+    model: assessment.model,
+  };
+}
+
 export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
@@ -91,6 +134,11 @@ export default function StoryCardFoundationBoard({
   const characterTruth = normalizedSourceEvidence.characterTruth;
   const sourcePassages = screenplayEvidence?.passages ?? [];
   const sourceSectionMarkers = screenplayEvidence?.sectionMarkers ?? [];
+  const assessmentRuns = normalizedSourceEvidence.outlineAssessmentRuns ?? [];
+  const visibleAssessmentRuns = assessmentRuns
+    .filter((run) => !act || run.requestedBlockNumbers.some((blockNumber) => Math.ceil(blockNumber / 6) === act))
+    .slice(-8)
+    .reverse();
 
   function structureRevisionTargets(
     structure: LibraryPPFProject["structure"],
@@ -242,31 +290,80 @@ export default function StoryCardFoundationBoard({
   }
 
   async function assessOne(blockNumber: number) {
-      const current = loadFoundationProject() as LibraryPPFProject;
-      const assessment = await requestOutlineAgentAssessment(current, blockNumber);
-      const latest = loadFoundationProject() as LibraryPPFProject;
-      if (outlineAssessmentFingerprint(latest, blockNumber) !== assessment.inputFingerprint) throw new Error("The screenplay or plan changed during assessment. Run it again with current evidence.");
-      const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
-      const saved = saveFoundationProject({
-        ...latest,
-        revision: latest.revision + 1,
-        updatedAt: assessment.assessedAt,
-        sourceEvidence: { ...source, outlineAssessments: [...(source.outlineAssessments ?? []).filter((item) => item.blockNumber !== blockNumber), assessment] },
-      }) as LibraryPPFProject;
-      onProjectChange(saved);
+    const current = loadFoundationProject() as LibraryPPFProject;
+    const assessment = await requestOutlineAgentAssessment(current, blockNumber);
+    const latest = loadFoundationProject() as LibraryPPFProject;
+    if (outlineAssessmentFingerprint(latest, blockNumber) !== assessment.inputFingerprint) throw new Error("The screenplay or plan changed during assessment. Run it again with current evidence.");
+    const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
+    const saved = saveFoundationProject({
+      ...latest,
+      revision: latest.revision + 1,
+      updatedAt: assessment.assessedAt,
+      sourceEvidence: { ...source, outlineAssessments: [...(source.outlineAssessments ?? []).filter((item) => item.blockNumber !== blockNumber), assessment] },
+    }) as LibraryPPFProject;
+    onProjectChange(saved);
+    return assessment;
+  }
+
+  function saveAssessmentRun(
+    blockNumbers: readonly number[],
+    completed: readonly OutlineAgentAssessment[],
+    changedBlockNumbers: readonly number[],
+    status: OutlineAssessmentRunReceipt["status"],
+    errorMessage = "",
+  ) {
+    const latest = loadFoundationProject() as LibraryPPFProject;
+    const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
+    const assessedAt = completed.at(-1)?.assessedAt ?? new Date().toISOString();
+    const scope: OutlineAssessmentRunReceipt["scope"] = blockNumbers.length === 1 ? "block" : "act";
+    const run: OutlineAssessmentRunReceipt = {
+      version: 1,
+      id: \`outline-assessment-run-\${crypto.randomUUID()}\`,
+      scope,
+      actNumber: scope === "act" ? Math.ceil(blockNumbers[0] / 6) : null,
+      requestedBlockNumbers: [...blockNumbers],
+      completedBlockNumbers: completed.map((assessment) => assessment.blockNumber),
+      changedBlockNumbers: [...changedBlockNumbers],
+      status,
+      assessedAt,
+      acceptedStoryContentChanged: false,
+      blockSummaries: completed.map(assessmentRunBlockSummary),
+      ...(errorMessage ? { error: errorMessage.slice(0, 500) } : {}),
+    };
+    const saved = saveFoundationProject({
+      ...latest,
+      revision: latest.revision + 1,
+      updatedAt: assessedAt,
+      sourceEvidence: {
+        ...source,
+        outlineAssessmentRuns: [...(source.outlineAssessmentRuns ?? []), run].slice(-40),
+      },
+    }) as LibraryPPFProject;
+    onProjectChange(saved);
+    return saved;
   }
 
   async function assessBlocks(blockNumbers: readonly number[]) {
     if (assessing !== null) return;
+    const completed: OutlineAgentAssessment[] = [];
+    const changedBlockNumbers: number[] = [];
     try {
       for (const blockNumber of blockNumbers) {
+        const before = loadFoundationProject() as LibraryPPFProject;
+        const previous = currentOutlineAssessment(before, blockNumber);
         setAssessing(blockNumber);
-        setMessage(`Story Architect is assessing Block ${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…`);
-        await assessOne(blockNumber);
+        setMessage(\`Story Architect is assessing Block \${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…\`);
+        const assessment = await assessOne(blockNumber);
+        completed.push(assessment);
+        if (assessmentFindingsChanged(previous, assessment)) changedBlockNumbers.push(blockNumber);
       }
-      setMessage(`Story Architect assessed ${blockNumbers.length} Block${blockNumbers.length === 1 ? "" : "s"} with cited screenplay passages. Proposals now carry into the Storyboard handoff; screenplay and accepted canon were not rewritten.`);
+      saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, "completed");
+      setMessage(\`Story Architect assessed \${completed.length} Block\${completed.length === 1 ? "" : "s"}. \${changedBlockNumbers.length} Block\${changedBlockNumbers.length === 1 ? "" : "s"} produced new or changed findings. No accepted story content changed. See Story Architect Assessment History below.\`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Story Architect could not complete this assessment. Remaining Blocks were not assessed.");
+      const errorMessage = error instanceof Error ? error.message : "Story Architect could not complete this assessment.";
+      const status: OutlineAssessmentRunReceipt["status"] = completed.length ? "partial" : "failed";
+      saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, status, errorMessage);
+      setMessage(\`Story Architect assessment \${status === "partial" ? "stopped after a partial run" : "failed before any Block completed"}. \${completed.length} of \${blockNumbers.length} Blocks completed. No accepted story content changed. \${errorMessage}\`);
     } finally {
       setAssessing(null);
     }
@@ -307,6 +404,7 @@ export default function StoryCardFoundationBoard({
                 const matrixBlock = storyMatrix?.blocks.find((candidate) => candidate.blockNumber === block.number) ?? null;
                 const characterCells = characterTruth?.arcCells.filter((cell) => cell.blockNumber === block.number) ?? [];
                 const observedCharacterCount = characterCells.filter((cell) => cell.passageIds.length > 0).length;
+                const assessedCitationCount = assessment ? assessmentCitationCount(assessment) : 0;
                 return (
                   <article
                     className="pp-skin-v1-story-card"
@@ -354,8 +452,10 @@ export default function StoryCardFoundationBoard({
 
                     <div className="pp-skin-v1-outline-agent-summary" data-agent-structural-state={assessment?.structural.state ?? "pending"}>
                       <strong>Story Architect · {assessment ? assessment.structural.state.replaceAll("-", " / ") : "Not assessed"}</strong>
-                      <p>{assessment ? assessment.structural.reason : `Block ${String(block.number).padStart(2, "0")} has ${coverage.passageCount} projected passages across ${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish ${matrixBlock?.responsibility || "structural responsibility"}.`}</p>
-                      {assessment ? <small>Provisional, source-cited assessment · {assessment.structural.passageIds.length} cited passages · {assessment.model}</small> : null}
+                      {assessment ? <small>ASSESSED · Story Architect · {formatAssessmentTime(assessment.assessedAt)}</small> : null}
+                      <p>{assessment ? assessment.structural.reason : \`Block \${String(block.number).padStart(2, "0")} has \${coverage.passageCount} projected passages across \${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish \${matrixBlock?.responsibility || "structural responsibility"}.\`}</p>
+                      {assessment ? <small>{assessment.structural.state.replaceAll("-", " / ")} · {assessedCitationCount} unique cited passage{assessedCitationCount === 1 ? "" : "s"} · 4 Mini-Blocks reviewed · {assessment.model}</small> : null}
+                      {assessment ? <small>No accepted story content changed.</small> : null}
                       {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
                       {matrixBlock?.structuralFinding.reviewedAt ? <small>Existing reviewed finding: {matrixBlock.structuralFinding.state.replaceAll("-", " / ")} · {matrixBlock.structuralFinding.reason}</small> : null}
                       <button type="button" disabled={assessing !== null} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
@@ -492,6 +592,32 @@ export default function StoryCardFoundationBoard({
           </section>
         ))}
       </div>
+
+      <section className="pp-skin-v1-story-card-character-review" aria-labelledby="story-architect-assessment-history" data-outline-assessment-history="true">
+        <h3 id="story-architect-assessment-history">Story Architect Assessment History</h3>
+        <p>Assessment receipts show what the Story Architect reviewed. They are advisory evidence records and do not change accepted story content.</p>
+        {visibleAssessmentRuns.length ? (
+          <div>
+            {visibleAssessmentRuns.map((run) => (
+              <details className="pp-skin-v1-story-card-structural-review" key={run.id}>
+                <summary>{run.scope === "act" ? \`Act \${run.actNumber}\` : \`Block \${String(run.requestedBlockNumbers[0]).padStart(2, "0")}\`} · {run.status} · {formatAssessmentTime(run.assessedAt)}</summary>
+                <p>{run.completedBlockNumbers.length} of {run.requestedBlockNumbers.length} Block{run.requestedBlockNumbers.length === 1 ? "" : "s"} assessed · {run.changedBlockNumbers.length} Block{run.changedBlockNumbers.length === 1 ? "" : "s"} with new or changed findings.</p>
+                <small>No accepted story content changed.</small>
+                {run.error ? <p>Stopped: {run.error}</p> : null}
+                {run.blockSummaries.length ? (
+                  <ul>
+                    {run.blockSummaries.map((summary) => (
+                      <li key={\`\${run.id}-\${summary.blockNumber}\`}>
+                        Block {String(summary.blockNumber).padStart(2, "0")} · {summary.structuralState.replaceAll("-", " / ")} · {summary.citedPassageCount} cited passage{summary.citedPassageCount === 1 ? "" : "s"} · {summary.characterFindingCount} character finding{summary.characterFindingCount === 1 ? "" : "s"} · Mini-Blocks {summary.miniBlockStates.join(" / ")}
+                      </li>
+                    ))}
+                  </ul>
+                ) : <small>No Block assessment completed in this run.</small>}
+              </details>
+            ))}
+          </div>
+        ) : <small>No Story Architect assessment runs recorded yet.</small>}
+      </section>
 
       <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Story Architect proposals cite screenplay evidence and do not rewrite accepted canon. Older reviewed findings remain visible separately. Character Truth stays separate from audience-visible screenplay evidence. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
     </section>

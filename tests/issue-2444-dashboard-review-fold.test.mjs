@@ -10,7 +10,7 @@ test("#2444/#2454 keeps Refine in Develop, moves Reports to Explore, and leaves 
     .map((match) => ({ id: match[1], shortcut: match[2], label: match[3], description: match[4], group: match[5] }));
 
   assert.deepEqual(rows.filter((row) => row.group === "DEVELOP").map((row) => row.id), ["discovery", "story-bible", "write", "edit", "refine"]);
-  assert.deepEqual(rows.filter((row) => row.group === "EXPLORE").map((row) => row.id), ["learn", "community", "screening", "library", "reports"]);
+  assert.deepEqual(rows.filter((row) => row.group === "EXPLORE").map((row) => row.id), ["learn", "library", "community", "screening", "reports"]);
   assert.deepEqual(rows.filter((row) => row.group === "PITCH").map((row) => row.id), ["pitch-package", "pitch-deck", "feedback"]);
   assert.equal(rows.some((row) => row.group === "REVIEW"), false);
   assert.deepEqual([...new Set(rows.map((row) => row.group))], ["EXPLORE", "DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY", "SYSTEM"]);

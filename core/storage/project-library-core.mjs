@@ -64,7 +64,7 @@ function parseJson(raw) {
 }
 
 function validSourceKind(value) {
-  return value === "user" || value === "example" || value === "preset" || value === "migrated";
+  return value === "user" || value === "example" || value === "preset" || value === "migrated" || value === "import";
 }
 
 function normalizeSummary(value) {

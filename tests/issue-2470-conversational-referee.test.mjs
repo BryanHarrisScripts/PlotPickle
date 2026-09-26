@@ -6,7 +6,7 @@ import {
   normalizeConversationalFinding,
   correlateConversationalFindings,
   decideConversationalFinding,
-} from "../lib/verification/conversational-uat-referee.mjs";
+} from "../lib/verification/conversational-uat/referee.mjs";
 
 const identity = { head: "a".repeat(40), runtime: "option-3" };
 const candidate = {

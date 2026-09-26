@@ -7,7 +7,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { buildUatFinding } from "../lib/verification/sage-conversation-uat.mjs";
-import { correlateConversationalFindings } from "../lib/verification/conversational-uat-referee.mjs";
+import { correlateConversationalFindings } from "../lib/verification/conversational-uat/referee.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -44,8 +44,9 @@ function run(script, scriptArgs) {
 async function readJson(filePath) {
   try {
     return JSON.parse(await readFile(filePath, "utf8"));
-  } catch {
-    return null;
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
   }
 }
 

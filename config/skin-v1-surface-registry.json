@@ -595,7 +595,7 @@
     },
     {
       "id": "production",
-      "label": "Production",
+      "label": "Rough Cut",
       "family": "production",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -606,7 +606,7 @@
         {
           "order": 8,
           "slug": "production",
-          "label": "Production"
+          "label": "Rough Cut"
         }
       ],
       "formatProfile": {

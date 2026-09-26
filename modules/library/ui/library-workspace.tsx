@@ -696,7 +696,7 @@ export default function LibraryWorkspace() {
           <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog">
             <p className={styles.eyebrow}>Load Session · base revision {recovery.baseline.baseRevision}</p>
             <h2 id="library-recovery-title">Restore local resources?</h2>
-            <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames and WorldMap posters as draft/reference candidates.</p>
+            <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames and WorldMap posters. Storyboard frames remain draft unless saved Library metadata proves the same frame was previously Keep/Locked.</p>
             <div className={styles.recoverySummary}>
               <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
               <span><b>{recovery.inventory.posterResources.length}</b> recoverable WorldMap poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
@@ -721,7 +721,7 @@ export default function LibraryWorkspace() {
                 ))}
               </fieldset>
             ) : <p>No recoverable Storyboard frames or WorldMap posters were found. The local asset folder remains unchanged.</p>}
-            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not overwrite project defaults, accept images, promote story canon, or resolve story-data conflicts. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
+            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. A Storyboard frame restores as Locked only when exact saved Library metadata proves its prior Human Keep/Lock; otherwise it remains draft. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
             <div className={styles.recoveryActions}>
               <button className={styles.secondaryButton} disabled={restoringResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
               <button className={styles.primaryButton} disabled={restoringResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Local Resources"}</button>

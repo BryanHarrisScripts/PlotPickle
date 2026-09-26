@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 2491,
+  "phase": "previs-graphic-novel-animated-webp",
+  "brief": "docs/developer-briefs/2491-previs-graphic-novel-animated-webp.md",
+  "allowedChanges": [
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/previs/previs-graphic-novel-presentation.ts",
+    "app/api/previs/graphic-novel/export/route.ts",
+    "build/previs-graphic-novel-webp.ts",
+    "config/development-convergence/2491.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2491-previs-graphic-novel-animated-webp.md",
+    "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+    "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2491-A1",
+      "criterion": "Previs exposes Animated WebP as the only Graphic Novel export.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/previs/previs-readiness-workspace.tsx",
+          "contains": "Export Animated WebP"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+          "contains": "removes Human-facing HTML export"
+        }
+      ]
+    },
+    {
+      "id": "P2491-A2",
+      "criterion": "The export route is authenticated, local-only and path-safe.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/previs/graphic-novel/export/route.ts",
+          "contains": "authorizeRequest"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/previs-graphic-novel-webp.ts",
+          "contains": "/api/local-ai/assets/"
+        }
+      ]
+    },
+    {
+      "id": "P2491-A3",
+      "criterion": "Sharp emits bounded Animated WebP at the existing 3000ms Graphic Novel interval.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/previs-graphic-novel-webp.ts",
+          "contains": "animated: true"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+          "contains": "3000"
+        }
+      ]
+    }
+  ]
+}

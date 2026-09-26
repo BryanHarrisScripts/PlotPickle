@@ -35,19 +35,21 @@ test("#2471 derives Graphic Novel narration without provider or canon mutation",
   assert.doesNotMatch(model, /acceptedVisualArtifactIds.*=/u);
 });
 
-test("#2471 exports a local presentation-only Graphic Novel", async () => {
-  const [workspace, model] = await Promise.all([
+test("#2471 retains local presentation-only Graphic Novel export under the superseding WebP requirement", async () => {
+  const [workspace, model, route] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
+    read("app/api/previs/graphic-novel/export/route.ts"),
   ]);
 
-  assert.match(workspace, /Export Graphic Novel/u);
-  assert.match(workspace, /buildPrevisGraphicNovelExportHtml/u);
-  assert.match(workspace, /URL\.createObjectURL/u);
-  assert.match(workspace, /new Blob\(\[html\], \{ type: "text\/html;charset=utf-8" \}\)/u);
-  assert.match(model, /Derived presentation only; story canon and Storyboard approval are unchanged/u);
-  assert.match(model, /NOT KEEP \/ LOCKED/u);
-  assert.match(model, /graphicNovelExportFileName/u);
+  assert.match(workspace, /Export Animated WebP/u);
+  assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
+  assert.match(workspace, /story canon and Storyboard approval were unchanged/u);
+  assert.match(model, /graphicNovelWebpExportFileName/u);
+  assert.match(model, /\.webp`/u);
+  assert.match(route, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS/u);
+  assert.match(route, /image\/webp/u);
+  assert.doesNotMatch(workspace, /buildPrevisGraphicNovelExportHtml|text\/html|>Export Graphic Novel</u);
 });
 
 test("#2471 keeps the Graphic Novel inside the canonical 25-position Previs authority", async () => {

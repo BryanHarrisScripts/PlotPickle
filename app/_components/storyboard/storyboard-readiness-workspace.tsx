@@ -415,7 +415,7 @@ export default function StoryboardReadinessWorkspace({
         onProjectChange(current);
         setSelectedImageByPosition((values) => ({ ...values, ...selectedArtifacts }));
       }
-      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save this Version on any image you want explicitly marked Saved locally.";
+      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save this Version to mark the versions you want saved locally for review.";
       const failureText = failures.length ? " " + failures.join(" ") : " None were kept or made canon.";
       setFrameNotice(successText + failureText);
     } finally {

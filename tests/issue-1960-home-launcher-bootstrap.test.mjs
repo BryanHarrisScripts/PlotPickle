@@ -5,7 +5,7 @@ import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-d
 
 const read = (path) => readFile(path, "utf8");
 
-test("#1960 home bootstrap changes into the repo and pulls before delegating to the Y/N launcher", async () => {
+test("#1960 home bootstrap changes into the repo and pulls before delegating to the numbered repo launcher", async () => {
   const [bootstrap, repoLauncher] = await Promise.all([
     read("GIT-PlotPickle.ps1"),
     read("PlotPickle.ps1"),
@@ -24,8 +24,12 @@ test("#1960 home bootstrap changes into the repo and pulls before delegating to 
   const delegateIndex = bootstrap.indexOf("& $repoLauncher @launchArgs");
   assert.ok(cdIndex >= 0 && pullIndex > cdIndex && delegateIndex > pullIndex);
 
-  assert.match(repoLauncher, /Run autonomous WebMCP Testing\? \[Y\/N\]/u);
-  assert.match(repoLauncher, /Read-Host/u);
+  assert.match(repoLauncher, /Choose how PlotPickle should start\./u);
+  assert.match(repoLauncher, /\["1"\][\s\S]*Mode = "human"/u);
+  assert.match(repoLauncher, /\["2"\][\s\S]*Mode = "webmcp"/u);
+  assert.match(repoLauncher, /AddSeconds\(5\)/u);
+  assert.doesNotMatch(repoLauncher, /Read-Host/u);
+  assert.doesNotMatch(repoLauncher, /Run autonomous WebMCP Testing\? \[Y\/N\]/u);
 });
 
 test("#1960 bootstrap fails closed on update errors and preserves explicit mode pass-through", async () => {
@@ -55,7 +59,10 @@ test("#1960 home bootstrap is governed by Experience Skins verification", async 
   const entry = catalog.entries.find((candidate) => candidate.id === "experience.home-launcher-1960");
   assert.ok(entry);
   assert.equal(entry.ownerLayer, "experience-skins");
-  assert.deepEqual(entry.runner.targets, ["tests/issue-1960-home-launcher-bootstrap.test.mjs"]);
+  assert.deepEqual(entry.runner.targets, [
+    "tests/issue-1960-home-launcher-bootstrap.test.mjs",
+    "tests/issue-2464-numbered-launcher-menu.test.mjs",
+  ]);
   assert.ok(entry.triggerTokens.includes("windows"));
   assert.ok(entry.triggerTokens.includes("native"));
 });

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 2499,
+  "phase": "storyboard-explicit-save-count",
+  "brief": "docs/developer-briefs/2499-storyboard-explicit-save-count.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "config/development-convergence/2499.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2499-storyboard-explicit-save-count.md",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
+    "tests/issue-2499-storyboard-save-count.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2499-A1",
+      "criterion": "Storyboard image Save is explicit, durable and separate from Lock.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "storyboard-local-save:v1"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Save this Version"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Lock this Version"
+        }
+      ]
+    },
+    {
+      "id": "P2499-A2",
+      "criterion": "Every Storyboard position exposes its current image index and total.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "frameVersionCount"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2499-storyboard-save-count.test.mjs",
+          "contains": "1/X"
+        }
+      ]
+    }
+  ]
+}

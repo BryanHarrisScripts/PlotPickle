@@ -44,7 +44,7 @@ test("#2404 presents 25 vertical Shot Frame rows with adjacent image navigation"
   assert.match(workspace, /className=\{styles\.positionRow\}/u);
   assert.match(workspace, /Previous frame for Storyboard position/u);
   assert.match(workspace, /Next frame for Storyboard position/u);
-  assert.match(workspace, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages, \.\.\.miniReferenceImages\]/u);
+  assert.match(workspace, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
   assert.match(workspace, /Storyboard Positions 01–25 · Shot \/ Frame capacity/u);
   assert.doesNotMatch(workspace, /Existing visuals at this Mini-Block/u);
   assert.match(css, /\.positionList \{ display: grid/u);

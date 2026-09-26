@@ -590,12 +590,7 @@ function passageWindow(
   return passages.slice(start, end);
 }
 
-export function storyboardPassageWindowForPosition(
-  passages: readonly StoryboardPlanningPassage[],
-  position: number,
-) {
-  return passageWindow(passages, position);
-}
+export const storyboardPassageWindowForPosition = passageWindow;
 
 function clean(value: string, limit = 700) {
   return value.replace(/\s+/gu, " ").trim().slice(0, limit);

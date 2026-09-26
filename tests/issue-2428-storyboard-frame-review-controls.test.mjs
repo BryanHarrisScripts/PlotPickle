@@ -28,7 +28,7 @@ test("#2428 places Keep/Lock, Redo and Reject directly under each frame image", 
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
   ]);
-  const row = source.slice(source.indexOf("className={styles.positionImage}"), source.indexOf("className={styles.positionSelector}"));
+  const row = source.slice(source.indexOf("className={styles.positionImage}"), source.indexOf("className={styles.framePromptProvenance}"));
   assert.ok(row.indexOf("className={styles.positionImage}") < row.indexOf("className={styles.frameReview}"));
   assert.match(css, /\.frameReview \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/u);
   assert.match(css, /\.frameReview button\[aria-pressed="true"\]/u);

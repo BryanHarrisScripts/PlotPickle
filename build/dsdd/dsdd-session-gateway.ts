@@ -19,8 +19,7 @@ import {
   findingContext,
   normalizeConversationalUatState,
   reconcileConversationalUatCandidates,
-  type ConversationalUatState,
-} from "./conversational-uat-runtime";
+} from "./conversational-uat-runtime.mjs";
 
 const API = "/api/dsdd/session";
 const OBJECT_ID = "dsdd-engineering-session-v1";
@@ -29,6 +28,16 @@ const MAX_BODY = 128 * 1024;
 function dsddRuntimeEnabled() {
   return process.env.PLOTPICKLE_STARTUP_TESTING_MODE === "conversational-uat";
 }
+
+type ConversationalUatState = {
+  schemaVersion: 1;
+  sessionId: string;
+  head: string;
+  runtime: "option-3";
+  journey: Array<Record<string, unknown>>;
+  findings: Array<Record<string, any>>;
+  updatedAt: string;
+};
 
 type DsddContext = {
   route: string;

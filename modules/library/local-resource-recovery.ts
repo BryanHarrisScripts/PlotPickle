@@ -214,9 +214,6 @@ export function restoreLocalStoryboardResources(
   let attachedCount = 0;
   let skippedCount = 0;
   let restoredLockedCount = 0;
-  const existingUrls = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.assetUrl));
-  const existingIds = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.id));
-
   for (const resource of resources) {
     const id = recoveryArtifactId(resource);
     const priorApproval = priorAcceptedStoryboardArtifact(resource, sourceProjects);
@@ -281,8 +278,6 @@ export function restoreLocalStoryboardResources(
       }) as LibraryPPFProject;
       restoredLockedCount += 1;
     }
-    existingUrls.add(resource.assetUrl);
-    existingIds.add(id);
     attachedCount += 1;
   }
 

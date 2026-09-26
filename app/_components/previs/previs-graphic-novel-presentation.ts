@@ -25,8 +25,7 @@ export type PrevisGraphicNovelPanel = Readonly<{
   shotContext: string;
 }>;
 
-export type PrevisGraphicNovelExportPanel = PrevisGraphicNovelPanel & Readonly<{
-}>;
+export type PrevisGraphicNovelExportPanel = PrevisGraphicNovelPanel;
 
 function clean(value: string, maximum = 420) {
   const normalized = value.replace(/\s+/gu, " ").trim();

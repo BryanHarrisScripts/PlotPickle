@@ -7,7 +7,6 @@
     "Start-PlotPickle.bat",
     "app/skin-v1/global-dsdd-conversation.module.css",
     "app/skin-v1/global-dsdd-conversation.tsx",
-    "build/dsdd/conversational-uat-runtime.mjs",
     "build/dsdd/dsdd-session-gateway.ts",
     "config/development-convergence/2470-phase2-5.json",
     "config/verification/test-catalog.json",

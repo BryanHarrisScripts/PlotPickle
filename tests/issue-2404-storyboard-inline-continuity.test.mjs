@@ -55,22 +55,27 @@ test("#2404 presents 25 vertical Shot Frame rows with adjacent image navigation"
 });
 
 test("#2404 keeps inline Visual Story governed by the Storyboard parent", async () => {
-  const [registry, orchestrator, catalogue] = await Promise.all([
+  const [registry, canonicalText, orchestrator, catalogue] = await Promise.all([
     read("lib/verification/webmcp-surface-capture-registry.mjs"),
+    read("config/skin-v1-surface-registry.json"),
     read("app/skin-v1/surface-orchestrator.tsx"),
     read("lib/verification/webmcp-standard-surface-catalogue.mjs"),
   ]);
   const start = registry.indexOf('"visual-story": Object.freeze');
   const end = registry.indexOf("profile: Object.freeze", start);
   const contract = registry.slice(start, end);
+  const canonical = JSON.parse(canonicalText);
+  const storyboard = canonical.surfaces.find((surface) => surface.id === "storyboard");
 
   assert.match(contract, /Storyboard Dashboard row/u);
   assert.doesNotMatch(contract, /data-storyboard-open-/u);
   assert.match(contract, /surface: "STORYBOARD"/u);
   assert.match(contract, /aliasSurfaceId: "storyboard"/u);
   assert.match(contract, /readySelector: "\[data-visual-story='scene-beat-shot-frame'\]"/u);
-  assert.match(orchestrator, /storyboardOwnsInlineChildren/u);
-  assert.match(orchestrator, /\["story-map", "visual-story"\]\.includes\(surface\.id\)/u);
+  assert.deepEqual(storyboard?.ownsInlineSurfaces, ["story-map", "visual-story"]);
+  assert.match(orchestrator, /surface\.ownsInlineSurfaces \?\? \[\]/u);
+  assert.match(orchestrator, /ownedInlineSurfaceIds\.has\(surface\.id\)/u);
+  assert.doesNotMatch(orchestrator, /storyboardOwnsInlineChildren/u);
   assert.match(catalogue, /const storyboardOwner = visibleContracts\.find/u);
   assert.match(catalogue, /if \(storyboardOwner\) return storyboardOwner\.contract/u);
 });

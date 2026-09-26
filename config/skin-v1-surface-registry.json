@@ -595,7 +595,7 @@
     },
     {
       "id": "production",
-      "label": "Production",
+      "label": "Rough Cut",
       "family": "production",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -606,7 +606,7 @@
         {
           "order": 8,
           "slug": "production",
-          "label": "Production"
+          "label": "Rough Cut"
         }
       ],
       "formatProfile": {
@@ -1380,6 +1380,10 @@
       "runtimeSelector": "main[aria-labelledby='storyboard-readiness-title']",
       "runtimeReadySelector": "main[aria-labelledby='storyboard-readiness-title']",
       "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map",
+        "visual-story"
+      ],
       "runtimeRoute": "/storyboard?block=17&mini=1",
       "primitiveContract": {
         "familyProfile": "storyboard",
@@ -1393,7 +1397,7 @@
     },
     {
       "id": "previs",
-      "label": "Previs / Graphic Novel",
+      "label": "Previs",
       "family": "production",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -1425,6 +1429,9 @@
       "runtimeSelector": "main[aria-labelledby='previs-title']",
       "runtimeReadySelector": "#previs-block-panel",
       "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ],
       "runtimeRoute": "/previs?block=17&mini=1"
     },
     {

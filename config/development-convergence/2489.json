@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 2489,
+  "phase": "post-2457-live-reconciliation",
+  "brief": "docs/developer-briefs/2489-post-2457-live-reconciliation.md",
+  "allowedChanges": [
+    "app/skin-v1/preproduction-matrix-contract.css",
+    "config/development-convergence/2489.json",
+    "config/skin-v1-surface-registry.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2489-post-2457-live-reconciliation.md",
+    "lib/verification/browser-probes/continuity.mjs",
+    "tests/issue-2489-post-2457-live-reconciliation.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2489-A1",
+      "criterion": "Previs retains five distinct evidence-state colours.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/preproduction-matrix-contract.css",
+          "contains": "[data-skin-v1-preproduction-review=\"previs\"]"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "previs-five-state-colour-grammar"
+        }
+      ]
+    },
+    {
+      "id": "P2489-A2",
+      "criterion": "Canonical runtime identity for production is Rough Cut.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"label\": \"Rough Cut\""
+        }
+      ]
+    },
+    {
+      "id": "P2489-A3",
+      "criterion": "Normal Dashboard journey verifies settled ownership across Outline through Screening.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2489-post-2457-live-reconciliation.test.mjs",
+          "contains": "all downstream Dashboard stages"
+        }
+      ]
+    }
+  ]
+}

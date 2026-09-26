@@ -1245,6 +1245,7 @@
         "scripts/validate-verification-phase-1.mjs",
         "scripts/verification-core.mjs",
         "scripts/verification-shadow.mjs",
+        "scripts/run-uat-closed-loop.mjs",
         "scripts/package-smoke.mjs",
         "scripts/windows-server-smoke.mjs",
         "config/uat-autopilot-registry.json",

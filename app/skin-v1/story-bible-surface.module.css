@@ -344,3 +344,43 @@
   display: grid;
   gap: var(--pp-skin-space-1);
 }
+
+
+.versionBar {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: var(--pp-skin-space-2);
+}
+
+.versionBar strong {
+  min-width: 0;
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-meta);
+  text-align: center;
+}
+
+.versionBar button {
+  min-height: 36px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-accent-bright);
+  font: inherit;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.versionBar button:disabled {
+  color: var(--pp-skin-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.referenceGrid figure[data-review-state="candidate"] {
+  border-style: dashed;
+}
+
+.poster > .actions {
+  margin-top: var(--pp-skin-space-1);
+}

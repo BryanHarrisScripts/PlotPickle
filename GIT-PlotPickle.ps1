@@ -2,13 +2,15 @@
 param(
   [switch]$WebMCPTesting,
   [switch]$HumanTesting,
+  [switch]$ConversationalUAT,
   [string]$RepositoryPath = (Join-Path $HOME "PlotPickle")
 )
 
 $ErrorActionPreference = "Stop"
 
-if ($WebMCPTesting -and $HumanTesting) {
-  throw "Choose either -WebMCPTesting or -HumanTesting, not both."
+$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent) | Where-Object { $_ }
+if ($explicitModes.Count -gt 1) {
+  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT."
 }
 
 $git = Get-Command git -ErrorAction SilentlyContinue
@@ -47,7 +49,10 @@ Write-Host "[READY] Repository is current. Starting the freshly pulled PlotPickl
 $launchArgs = @{}
 if ($WebMCPTesting) {
   $launchArgs.WebMCPTesting = $true
+} elseif ($ConversationalUAT) {
+  $launchArgs.ConversationalUAT = $true
 } elseif ($HumanTesting) {
+  # Legacy compatibility alias: HumanTesting now means normal/pristine product mode.
   $launchArgs.HumanTesting = $true
 }
 

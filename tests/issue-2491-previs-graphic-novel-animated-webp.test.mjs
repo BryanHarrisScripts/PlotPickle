@@ -16,7 +16,7 @@ async function sharpRuntime(context) {
   }
 }
 
-test("#2491 removes Human-facing HTML export and exposes one Animated WebP action", async () => {
+test("#2491/#2497 removes HTML and exposes one static WebP action", async () => {
   const [workspace, presentation, route, encoder] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
@@ -24,53 +24,53 @@ test("#2491 removes Human-facing HTML export and exposes one Animated WebP actio
     read("build/previs-graphic-novel-webp.ts"),
   ]);
 
-  assert.match(workspace, />Export Animated WebP</u);
+  assert.match(workspace, />Export WebP</u);
+  assert.doesNotMatch(workspace, /Export Animated WebP/u);
   assert.match(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.doesNotMatch(workspace, /buildPrevisGraphicNovelExportHtml|text\/html|>Export Graphic Novel</u);
   assert.doesNotMatch(presentation, /<!doctype html>|buildPrevisGraphicNovelExportHtml|\.html`/u);
-  assert.match(presentation, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS = 3000/u);
   assert.match(presentation, /\.webp`/u);
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
-  assert.match(route, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS/u);
   assert.match(route, /"Content-Type": "image\/webp"/u);
   assert.match(route, /"Cache-Control": "no-store"/u);
   assert.match(route, /"Referrer-Policy": "no-referrer"/u);
   assert.doesNotMatch(workspace, /format picker|Export HTML|Save as HTML/u);
   assert.match(encoder, /PREVIS_GRAPHIC_NOVEL_MAX_PANELS = 25/u);
-  assert.match(encoder, /join: \{ animated: true \}/u);
-  assert.match(encoder, /loop: 0, delay: frames\.map\(\(\) => delayMs\)/u);
+  assert.match(encoder, /PREVIS_GRAPHIC_NOVEL_COLUMNS = 2/u);
+  assert.match(encoder, /\.sort\(\(left, right\) => left\.position - right\.position\)/u);
+  assert.match(encoder, /speechBubbleSvg/u);
+  assert.match(encoder, /\.webp\(\{ quality: 86 \}\)/u);
+  assert.doesNotMatch(encoder, /join: \{ animated: true \}|loop: 0|delay:/u);
   assert.match(encoder, /value\.startsWith\(ASSET_PATH\)/u);
   assert.match(encoder, /panel\.authoritative !== true/u);
-  assert.match(encoder, /\.sort\(\(left, right\) => left\.position - right\.position\)/u);
   assert.match(encoder, /Graphic Novel export received an unsafe local asset path/u);
   assert.match(encoder, /PNG, JPEG or WebP source images only/u);
   assert.match(encoder, /dimensions exceed the bounded export limit/u);
   assert.doesNotMatch(encoder, /\bfetch\s*\(/u);
 });
 
-test("#2491 Sharp runtime supports ordered looping Animated WebP metadata", async (context) => {
+test("#2497 Sharp runtime supports one static WebP page", async (context) => {
   const sharp = await sharpRuntime(context);
   if (!sharp) return;
 
   const first = await sharp({ create: { width: 320, height: 180, channels: 3, background: "#1a8f4a" } }).png().toBuffer();
   const second = await sharp({ create: { width: 320, height: 180, channels: 3, background: "#8f241a" } }).png().toBuffer();
-  const animated = await sharp([{ input: first }, { input: second }], { join: { animated: true } })
-    .webp({ quality: 86, loop: 0, delay: [3000, 3000] })
-    .toBuffer();
+  const sheet = await sharp({
+    create: { width: 660, height: 180, channels: 3, background: "#050807" },
+  }).composite([
+    { input: first, left: 0, top: 0 },
+    { input: second, left: 340, top: 0 },
+  ]).webp({ quality: 86 }).toBuffer();
 
-  const metadata = await sharp(animated, { animated: true }).metadata();
+  const metadata = await sharp(sheet, { animated: true }).metadata();
   assert.equal(metadata.format, "webp");
-  assert.equal(metadata.pages, 2);
-  assert.deepEqual(metadata.delay, [3000, 3000]);
-  assert.equal(metadata.loop, 0);
-
-  const firstPage = await sharp(animated, { page: 0 }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const pixel = [...firstPage.data.subarray(0, 3)];
-  assert.ok(pixel[1] > pixel[0], "the first supplied frame remains the first animation page");
+  assert.equal(metadata.pages ?? 1, 1);
+  assert.equal(metadata.width, 660);
+  assert.equal(metadata.height, 180);
 });
 
-test("#2491 Sharp runtime keeps a one-frame WebP valid", async (context) => {
+test("#2491/#2497 Sharp runtime keeps a one-panel WebP valid", async (context) => {
   const sharp = await sharpRuntime(context);
   if (!sharp) return;
 

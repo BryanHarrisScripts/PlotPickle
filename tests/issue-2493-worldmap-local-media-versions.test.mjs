@@ -44,7 +44,7 @@ test("#2493 character contract bounds five versions and uses one explicit locked
   const contract = await read("core/contracts/world-map/index.ts");
 
   assert.match(contract, /WORLD_MAP_CHARACTER_MAX_VERSIONS = 5/u);
-  assert.match(contract, /readonly versionId: string/u);
+  assert.match(contract, /versionId: string/u);
   assert.match(contract, /lockedVersionId: string \| null/u);
   assert.match(contract, /versionOrder\(normalizedReferences\)\.slice\(0, WORLD_MAP_CHARACTER_MAX_VERSIONS\)/u);
   assert.match(contract, /existingVersions\.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS/u);

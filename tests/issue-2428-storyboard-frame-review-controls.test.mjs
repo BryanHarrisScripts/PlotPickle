@@ -20,7 +20,8 @@ test("#2428 reloads the latest non-rejected generated candidate for its own posi
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   assert.match(source, /const positionArtifacts = frameArtifacts\.filter\(\(artifact\) => artifact\.frameNumber === position && artifact\.reviewState !== "rejected"\)/u);
   assert.match(source, /const latestGeneratedArtifact = \[\.\.\.positionArtifacts\]\.sort\(\(left, right\) => right\.createdAt\.localeCompare\(left\.createdAt\)\)\[0\] \?\? null/u);
-  assert.match(source, /selectedImageByPosition\[selectionKey\] \?\? latestGeneratedArtifact\?\.id/u);
+  assert.match(source, /const requestedImageId = selectedImageByPosition\[selectionKey\] \?\? ""/u);
+  assert.match(source, /const fallbackImageId = latestGeneratedArtifact\?\.id \?\? shot\?\.frames\[0\]\?\.id \?\? positionImages\[0\]\?\.id \?\? ""/u);
 });
 
 test("#2428 places Keep/Lock, Redo and Reject directly under each frame image", async () => {

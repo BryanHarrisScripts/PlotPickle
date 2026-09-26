@@ -37,7 +37,7 @@ test("#2406 treats the 25 rows as Shot Frame capacity rather than Beat ordinals"
   assert.match(storyboard, /Open Shot \/ Frame position/u);
   assert.match(storyboard, /Previous frame for Storyboard position/u);
   assert.match(storyboard, /Next frame for Storyboard position/u);
-  assert.match(storyboard, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages, \.\.\.miniReferenceImages\]/u);
+  assert.match(storyboard, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
   assert.doesNotMatch(storyboard, /const beat = blockBeats\[index\]/u);
   assert.doesNotMatch(storyboard, /Scene \/ Beat positions 01–25/u);
   assert.doesNotMatch(storyboard, /<strong>Scene \/ Beat \{String\(position\)/u);

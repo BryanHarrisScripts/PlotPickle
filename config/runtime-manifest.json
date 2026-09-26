@@ -70,6 +70,26 @@
       "enabled": true
     },
     {
+      "id": "stable-diffusion-cpp-engine",
+      "displayName": "Optional stable-diffusion.cpp Engine",
+      "version": "external-adapter",
+      "launchStrategy": "external-loopback-service",
+      "platforms": ["windows", "macos", "linux"],
+      "stageLocation": "user-managed-engine",
+      "launcher": null,
+      "healthProbe": { "kind": "host-owned", "target": "stable-diffusion-cpp-service" },
+      "readinessProbe": { "kind": "host-owned", "target": "stable-diffusion-cpp-image-ready" },
+      "startupDependencies": ["plotpickle-app-runtime"],
+      "startupTimeoutMs": 120000,
+      "shutdown": { "strategy": "external-owner" },
+      "restartPolicy": "never",
+      "capabilities": ["image-generation"],
+      "updatePolicy": "explicit-adapter-validation",
+      "source": { "name": "stable-diffusion.cpp", "license": "MIT" },
+      "developerOverride": "not-applicable",
+      "enabled": false
+    },
+    {
       "id": "plotpickle-node-service",
       "displayName": "PlotPickle Compute Node Service",
       "version": "future",

@@ -9,6 +9,18 @@ import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
 import { assertDsddInterpretationIntegrity } from "../../scripts/dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
+import {
+  appendConversationalJourney,
+  applyConversationalHumanDecision,
+  confirmedFindingInterpretation,
+  confirmedFindingNarration,
+  CONVERSATIONAL_UAT_OBJECT_ID,
+  currentConversationalUatIdentity,
+  findingContext,
+  normalizeConversationalUatState,
+  reconcileConversationalUatCandidates,
+  type ConversationalUatState,
+} from "./conversational-uat-runtime";
 
 const API = "/api/dsdd/session";
 const OBJECT_ID = "dsdd-engineering-session-v1";
@@ -100,6 +112,13 @@ type DsddIntent = {
   };
   developerBrief?: DsddDeveloperBrief;
   publishedIssue?: DsddPublishedIssue;
+  originatingUat?: {
+    fingerprint: string;
+    sessionId: string;
+    head: string;
+    confirmedAt: string;
+    evidenceRefs: string[];
+  };
 };
 
 type DsddSession = {
@@ -225,6 +244,32 @@ async function save(context: DsddProfileContext, session: DsddSession) {
     objectId: OBJECT_ID,
     value: session,
   });
+}
+
+async function loadConversationalUat() {
+  const context = currentProfileRequestContext();
+  if (!context) throw new Error("Unlock a PlotPickle Human profile before using Conversational UAT.");
+  const identity = currentConversationalUatIdentity();
+  const stored = await context.privateStorage.readPrivateJson(context.authContext, {
+    domain: "memory",
+    objectId: CONVERSATIONAL_UAT_OBJECT_ID,
+  });
+  const base = normalizeConversationalUatState(stored, identity);
+  const reconciled = await reconcileConversationalUatCandidates(base, identity);
+  if (JSON.stringify(base.findings) !== JSON.stringify(reconciled.findings)) {
+    await saveConversationalUat(context, reconciled);
+  }
+  return { context, uat: reconciled };
+}
+
+async function saveConversationalUat(context: DsddProfileContext, uat: ConversationalUatState) {
+  const value = { ...uat, updatedAt: new Date().toISOString() };
+  await context.privateStorage.writePrivateJson(context.authContext, {
+    domain: "memory",
+    objectId: CONVERSATIONAL_UAT_OBJECT_ID,
+    value,
+  });
+  return value;
 }
 
 function piSessionDir(profileId: string) {
@@ -499,6 +544,13 @@ function issueBody(intent: DsddIntent) {
     intent.developerBrief.text,
     "",
     "## DSDD provenance",
+    ...(intent.originatingUat ? [
+      `- Originating UAT fingerprint: ${intent.originatingUat.fingerprint}`,
+      `- Originating UAT session: ${intent.originatingUat.sessionId}`,
+      `- Originating repo head: ${intent.originatingUat.head}`,
+      `- Human Y confirmation: ${intent.originatingUat.confirmedAt}`,
+      `- UAT evidence: ${intent.originatingUat.evidenceRefs.join(", ") || "none"}`,
+    ] : []),
     `- Intent version: ${intent.version}`,
     `- Input mode: ${intent.inputMode || "typed"}`,
     `- Intent digest: ${packet.intentDigest}`,
@@ -547,6 +599,59 @@ async function publishBriefIssue() {
   return { session, intent };
 }
 
+
+async function observeJourney(body: Record<string, unknown>) {
+  const { context, uat } = await loadConversationalUat();
+  const next = appendConversationalJourney(uat, body.event);
+  return { uat: await saveConversationalUat(context, next) };
+}
+
+async function validateConversationalFinding(body: Record<string, unknown>) {
+  const fingerprint = text(body.fingerprint, 160);
+  const decision = body.decision === "Y" ? "Y" : body.decision === "N" ? "N" : "";
+  if (!fingerprint || !decision) throw new Error("Conversational UAT validation requires a finding fingerprint and Y/N decision.");
+
+  const identity = currentConversationalUatIdentity();
+  const { context: uatContext, uat } = await loadConversationalUat();
+  const finding = uat.findings.find((candidate) =>
+    candidate.fingerprint === fingerprint && candidate.head === identity.head && candidate.state === "candidate");
+  if (!finding) throw new Error("A current contract-backed candidate is required before Human validation.");
+
+  const decided = applyConversationalHumanDecision(uat, fingerprint, decision, identity);
+  const persistedDecision = await saveConversationalUat(uatContext, decided);
+  if (decision === "N") return { uat: persistedDecision };
+
+  const confirmed = persistedDecision.findings.find((candidate) => candidate.fingerprint === fingerprint);
+  if (!confirmed) throw new Error("The confirmed UAT finding could not be preserved.");
+  const captured = findingContext(confirmed);
+  await appendHuman({ text: confirmedFindingNarration(confirmed), context: captured, inputMode: "typed" });
+  await appendInterpretation({ text: confirmedFindingInterpretation(confirmed), context: captured });
+  await lockIntent();
+
+  const loaded = await load();
+  const intent = loaded.session.intents.at(-1);
+  if (!intent) throw new Error("The Human-confirmed UAT finding could not lock DSDD intent.");
+  intent.originatingUat = {
+    fingerprint,
+    sessionId: persistedDecision.sessionId,
+    head: identity.head,
+    confirmedAt: confirmed.humanDecision?.at || new Date().toISOString(),
+    evidenceRefs: Array.isArray(confirmed.evidenceRefs) ? confirmed.evidenceRefs.slice(0, 8) : [],
+  };
+  await save(loaded.context, loaded.session);
+
+  await draftDeveloperBrief();
+  const publication = await publishBriefIssue();
+  const refreshed = await loadConversationalUat();
+  const findings = refreshed.uat.findings.map((candidate) => candidate.fingerprint === fingerprint ? {
+    ...candidate,
+    handoffState: "published",
+    publishedIssue: publication.intent.publishedIssue,
+  } : candidate);
+  const nextUat = await saveConversationalUat(refreshed.context, { ...refreshed.uat, findings });
+  return { uat: nextUat, session: publication.session, intent: publication.intent };
+}
+
 async function recordEvidence(body: Record<string, unknown>) {
   const { context, session } = await load();
   const version = Number(body.intentVersion);
@@ -584,8 +689,8 @@ async function recordEvidence(body: Record<string, unknown>) {
 
 async function handle(request: IncomingMessage, response: ServerResponse) {
   if (request.method === "GET") {
-    const { session } = await load();
-    replyDsdd(response, { status: 200, body: { ok: true, session } });
+    const [{ session }, { uat }] = await Promise.all([load(), loadConversationalUat()]);
+    replyDsdd(response, { status: 200, body: { ok: true, session, uat } });
     return;
   }
   if (request.method !== "POST") {
@@ -612,6 +717,14 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
   }
   if (action === "publish-brief") {
     replyDsdd(response, { status: 201, body: { ok: true, ...(await publishBriefIssue()) } });
+    return;
+  }
+  if (action === "observe-journey") {
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await observeJourney(body)) } });
+    return;
+  }
+  if (action === "validate-finding") {
+    replyDsdd(response, { status: body.decision === "Y" ? 201 : 200, body: { ok: true, ...(await validateConversationalFinding(body)) } });
     return;
   }
   if (action === "record-evidence") {

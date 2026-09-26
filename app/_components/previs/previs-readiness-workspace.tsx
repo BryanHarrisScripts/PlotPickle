@@ -26,6 +26,14 @@ import {
   shotNeedsReview,
   type PrevisAnchorProjection,
 } from "./previs-projection-model";
+import {
+  PREVIS_FLIP_BOOK_INTERVAL_MS,
+  PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
+  buildPrevisGraphicNovelExportHtml,
+  buildPrevisGraphicNovelPanel,
+  graphicNovelExportFileName,
+  type PrevisGraphicNovelPanel,
+} from "./previs-graphic-novel-presentation";
 import styles from "./previs-readiness-workspace.module.css";
 
 function requestedAddress() {
@@ -70,6 +78,7 @@ export default function PrevisReadinessWorkspace({
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => address?.miniBlockNumber ?? requestedAddress().miniBlockNumber);
   const [selectedFramePosition, setSelectedFramePosition] = useState(1);
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
+  const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
   useEffect(() => {
     if (!address) return;
     const timer = window.setTimeout(() => {

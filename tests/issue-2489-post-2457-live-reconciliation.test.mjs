@@ -10,7 +10,7 @@ test("#2489 restores the five-state palette inside Previs", async () => {
   assert.match(css, /\[data-skin-v1-preproduction-review="previs"\] \[data-progressive-story-map="24x96"\]/u);
   assert.match(css, /main\[aria-labelledby="previs-title"\] \[data-progressive-story-map="24x96"\]/u);
   for (const colour of ["#35d779", "#3bb8ff", "#f6a93b", "#ff4d6d", "#a875ff"]) {
-    assert.match(css, new RegExp(colour.replace("#", "\\#"), "u"));
+    assert.ok(css.includes(colour), "missing evidence colour " + colour);
   }
 });
 

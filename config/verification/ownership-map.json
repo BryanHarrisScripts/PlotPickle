@@ -1142,6 +1142,20 @@
       ]
     },
     {
+      "id": "world-map-local-media-versioning",
+      "classification": "production",
+      "include": [
+        "core/contracts/build-progress.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "visual",
+        "surface"
+      ]
+    },
+    {
       "id": "learn-journey-baseline-validator",
       "classification": "verification",
       "include": [

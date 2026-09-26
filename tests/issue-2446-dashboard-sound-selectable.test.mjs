@@ -12,9 +12,9 @@ test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three
   assert.deepEqual(
     rows.filter((row) => row.group === "SOUND").map((row) => [row.id, row.shortcut, row.label]),
     [
+      ["sound-foley", "8", "Foley"],
       ["sound-narration", "6", "Narration"],
       ["sound-music", "7", "Music"],
-      ["sound-foley", "8", "Foley"],
     ],
   );
   assert.deepEqual(

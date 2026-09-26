@@ -836,7 +836,8 @@
           "tests/issue-2338-pi-087-dsdd-session.test.mjs",
           "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
           "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
-          "tests/issue-2468-three-runtime-modes.test.mjs"
+          "tests/issue-2468-three-runtime-modes.test.mjs",
+          "tests/issue-2470-human-validation-loop.test.mjs"
         ]
       },
       "cost": "fast",
@@ -861,7 +862,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2350 moves deterministic DSDD/Pi source contracts into Layer 4 instead of a permanent long-running PR lane. The real Windows Pi compatibility proof remains separately impact-selected for Pi/session/native integration changes. #2468 adds the server-enforced Conversational UAT runtime boundary for DSDD."
+      "notes": "#2350 moves deterministic DSDD/Pi source contracts into Layer 4 instead of a permanent long-running PR lane. The real Windows Pi compatibility proof remains separately impact-selected for Pi/session/native integration changes. #2468 adds the server-enforced Conversational UAT runtime boundary for DSDD. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "provider.local-voice-runtime-2350",
@@ -1019,7 +1020,8 @@
           "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs",
           "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
           "tests/issue-2371-dsdd-integrity.test.mjs",
-          "tests/issue-2376-dsdd-action-cycle.test.mjs"
+          "tests/issue-2376-dsdd-action-cycle.test.mjs",
+          "tests/issue-2470-human-validation-loop.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1044,7 +1046,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state."
+      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "provider.dsdd-production-interpretation-2357",
@@ -1554,7 +1556,8 @@
         "targets": [
           "tests/issue-2432-library-local-resource-restore.test.mjs",
           "tests/issue-2466-storyboard-lock-restore.test.mjs",
-          "tests/issue-2473-storyboard-lock-chain-restore.test.mjs"
+          "tests/issue-2473-storyboard-lock-chain-restore.test.mjs",
+          "tests/issue-2470-human-validation-loop.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1580,7 +1583,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven."
+      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "story-canon.previs-graphic-novel-2471",

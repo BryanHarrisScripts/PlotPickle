@@ -166,6 +166,29 @@ export default function PrevisReadinessWorkspace({
     return () => window.clearInterval(timer);
   }, [flipBookPlaying, graphicNovelPlaying]);
 
+  function exportGraphicNovel() {
+    if (!selectedAddressAnchor) return;
+    setFlipBookPlaying(false);
+    setGraphicNovelPlaying(false);
+    const exportPanels = graphicNovelPanels.map((panel) => ({
+      ...panel,
+      assetUrl: panel.authoritative && panel.assetUrl ? new URL(panel.assetUrl, window.location.origin).toString() : "",
+    }));
+    const html = buildPrevisGraphicNovelExportHtml({
+      projectTitle: project.title || "Untitled Story",
+      blockNumber: selectedAddressAnchor.blockNumber,
+      miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
+      panels: exportPanels,
+    });
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = graphicNovelExportFileName(project.title || "Untitled Story", selectedAddressAnchor.blockNumber, selectedAddressAnchor.miniBlockNumber);
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setMessage(`Graphic Novel exported with ${lockedFrameCount} locked panel${lockedFrameCount === 1 ? "" : "s"}. Images remain linked to this local PlotPickle installation; derived narration is presentation-only and did not change story canon or Storyboard approval.`);
+  }
+
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);
     saveFoundationProject(next);

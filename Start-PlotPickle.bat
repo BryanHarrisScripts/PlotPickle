@@ -147,6 +147,12 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   )
   echo !READY! WebMCP Testing selected. QA profile !PLOTPICKLE_WEBMCP_QA_PROFILE! will run in the isolated test session after readiness.
 ) else if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" (
+  if not exist "%CONVERSATIONAL_UAT_OBSERVER%" (
+    echo.
+    echo !ERROR_TAG! The Conversational UAT observer is missing from this PlotPickle build.
+    pause
+    exit /b 1
+  )
   echo !READY! Conversational UAT selected. DSDD and Human-validation development tools will be enabled after readiness.
 ) else (
   echo !READY! Normal PlotPickle selected. The pristine current product will open without developer UAT controls.
@@ -432,6 +438,7 @@ if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" (
   if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
     call :start_webmcp_testing
   ) else (
+    if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" call :start_conversational_uat_observer
     call :open_when_ready
     call :start_deferred_companion_maintenance
   )
@@ -440,7 +447,14 @@ call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
-call :cleanup_webmcp_testing
+call :start_conversational_uat_observer
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" exit /b 0
+if not exist "%CONVERSATIONAL_UAT_OBSERVER%" exit /b 1
+echo !INFO! Conversational UAT will run a read-only deterministic observer after PlotPickle reports ready.
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { & node $env:CONVERSATIONAL_UAT_OBSERVER --base-url $base --conversational-observe --head $env:PLOTPICKLE_SOURCE_SHA; exit $LASTEXITCODE } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] Conversational UAT observer did not start because PlotPickle did not become ready.' -ForegroundColor Yellow; exit 1"
+exit /b 0
+
+:cleanup_webmcp_testing
 if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
   del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
   del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1

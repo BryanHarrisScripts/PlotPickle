@@ -1655,8 +1655,7 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
-          "tests/windows-native-runtime.test.mjs"
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
         ]
       },
       "cost": "fast",

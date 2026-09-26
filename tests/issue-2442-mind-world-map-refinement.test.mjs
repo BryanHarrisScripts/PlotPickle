@@ -40,9 +40,9 @@ test("#2442/#2448 MindMap is written-only and Creative Director develops all ele
     read("config/skin-v1-surface-registry.json"),
   ]);
 
-  assert.match(host, /<h1>MINDMAP<\/h1>/u);
+  assert.match(host, /<h1>MindMap<\/h1>/u);
   assert.match(host, /aria-label="MindMap"/u);
-  assert.match(surface, /MINDMAP · ACT \{selectedAct\} · NON-CANON PROJECTION/u);
+  assert.match(surface, /MindMap · ACT \{selectedAct\} · NON-CANON PROJECTION/u);
   assert.match(surface, /Material type[\s\S]*Written idea/u);
   assert.doesNotMatch(surface, /<select/u);
   assert.doesNotMatch(surface, /Visual reference<\/option>/u);

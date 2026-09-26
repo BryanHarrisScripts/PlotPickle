@@ -18,10 +18,10 @@ test("#2420 reviews only the generated candidate at its Storyboard position", as
   assert.match(source, /selectedArtifact && reviewFrame\(selectedArtifact, "discard"\)/u);
 });
 
-test("#2420 routes visual decisions to Storyboard and makes Previs evidence reachable", async () => {
+test("#2420 keeps Previs evidence in place without legacy navigation links", async () => {
   const previs = await read("app/_components/previs/previs-readiness-workspace.tsx");
   assert.doesNotMatch(previs, /Open BUILD evidence|StoryboardEditorialWorkspace|Remove shot|value="omitted"/u);
-  assert.match(previs, /onOpenStoryboard\(anchor\)/u);
+  assert.doesNotMatch(previs, />Inspect evidence<|>Open Storyboard</u);
   assert.match(previs, /id="previs-selected-evidence"/u);
-  assert.match(previs, /getElementById\("previs-selected-evidence"\)\?\.scrollIntoView/u);
+  assert.doesNotMatch(previs, /getElementById\("previs-selected-evidence"\)\?\.scrollIntoView/u);
 });

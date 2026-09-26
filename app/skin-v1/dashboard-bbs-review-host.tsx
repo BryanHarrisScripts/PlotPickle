@@ -266,6 +266,10 @@ export default function DashboardBbsReviewHost({
     if (storyboardOpen) onSurfaceNameChange("STORYBOARD");
   }, [storyboardOpen, onSurfaceNameChange]);
 
+  useEffect(() => {
+    if (previsOpen) onSurfaceNameChange("PREVIS");
+  }, [previsOpen, onSurfaceNameChange]);
+
   function openPrevis(address: PreproductionReviewAddress = reviewAddress) {
     updateReviewAddress("previs", address);
     closePreproductionSurfaces();
@@ -379,7 +383,7 @@ export default function DashboardBbsReviewHost({
       onActivate(index);
       setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
       setDiscoveryOpen(true);
-      onSurfaceNameChange("MINDMAP");
+      onSurfaceNameChange("MindMap");
       return;
     }
     if (item.id === "library") {
@@ -513,7 +517,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>MINDMAP</h1>
+          <h1>MindMap</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
         </div>
         <DiscoverySurface project={discoveryProject} />
@@ -666,7 +670,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>PREVIS</h1>
+          <h1>Previs</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>

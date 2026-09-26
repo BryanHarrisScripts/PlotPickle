@@ -19,7 +19,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
   );
   assert.deepEqual(
     rows.filter((row) => row.group === "PITCH").map((row) => row.label),
-    ["Package", "Deck", "Feedback"],
+    ["Deck", "Package", "Feedback"],
   );
 
   const roughCut = rows.find((row) => row.label === "Rough Cut");
@@ -50,8 +50,8 @@ test("#2454/#2458 keeps the approved IA while Screening becomes a governed revie
   assert.doesNotMatch(unavailable, /"screening"/u);
   assert.match(host, /item\.id === "screening"[\s\S]*setScreeningOpen\(true\)/u);
   assert.match(host, /item\.id === "production"[\s\S]*openProduction\(reviewAddress\)/u);
-  assert.match(host, /onSurfaceNameChange\("MINDMAP"\)/u);
-  assert.match(host, /<h1>MINDMAP<\/h1>/u);
+  assert.match(host, /onSurfaceNameChange\("MindMap"\)/u);
+  assert.match(host, /<h1>MindMap<\/h1>/u);
 
   const review = menu.slice(
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),

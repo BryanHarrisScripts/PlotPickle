@@ -54,7 +54,6 @@ const STATE_LABELS = {
 export default function PrevisReadinessWorkspace({
   project,
   onProjectChange,
-  onOpenStoryboard,
   address,
   onAddressChange,
   embeddedNavigation = false,
@@ -214,9 +213,6 @@ export default function PrevisReadinessWorkspace({
           <strong>Locked Storyboard frames → Previs Flip Book → motion and timing intent.</strong>
           <span>Storyboard owns the still image and Keep / Lock decision. Previs can inspect draft positions, but only locked Storyboard frames become authoritative Flip Book material. Beat Detail is derived working context and never creates a new canonical Beat.</span>
         </div>
-        <div className={styles.noticeActions}>
-          <button type="button" onClick={() => onOpenStoryboard()}>Open Storyboard</button>
-        </div>
       </section>
 
       {!embeddedNavigation ? (
@@ -333,14 +329,7 @@ export default function PrevisReadinessWorkspace({
                   ))}
                 </div>
                 <div className={styles.anchorActions}>
-                  <button type="button" onClick={() => {
-                    setSelectedMiniBlockNumber(anchor.miniBlockNumber);
-                    preservePrevisAddress(anchor.blockNumber, anchor.miniBlockNumber);
-                    onAddressChange?.({ blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
-                    window.requestAnimationFrame(() => document.getElementById("previs-selected-evidence")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-                  }}>Inspect evidence</button>
                   <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add creative shot</button>
-                  <button type="button" onClick={() => onOpenStoryboard(anchor)}>Open Storyboard</button>
                 </div>
               </article>
             ))}
@@ -369,7 +358,6 @@ export default function PrevisReadinessWorkspace({
                     <div className={styles.flipBookBlocked}>
                       <strong>Position {String(selectedFramePosition).padStart(2, "0")} is not locked for Previs.</strong>
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
-                      <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open Storyboard</button>
                     </div>
                   )}
                   <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>

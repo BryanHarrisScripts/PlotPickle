@@ -25,17 +25,17 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "timeline", shortcut: "T", label: "Timeline", description: "Synchronize Script, Shots, Timing and Audio", group: "VISUALIZE" },
   { id: "production", shortcut: "D", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
+  { id: "sound-foley", shortcut: "8", label: "Foley", description: "Develop Foley, Room Tone and Environmental Sound", group: "SOUND" },
   { id: "sound-narration", shortcut: "6", label: "Narration", description: "Develop Narration, Voice-Over and Spoken Story", group: "SOUND" },
   { id: "sound-music", shortcut: "7", label: "Music", description: "Develop Score, Music and Ambient Cues", group: "SOUND" },
-  { id: "sound-foley", shortcut: "8", label: "Foley", description: "Develop Foley, Room Tone and Environmental Sound", group: "SOUND" },
 
-  { id: "pitch-package", shortcut: "4", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
   { id: "pitch-deck", shortcut: "5", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
+  { id: "pitch-package", shortcut: "4", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
   { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" },
 
   { id: "profile", shortcut: "I", label: "Identity", description: "Manage User Profile", group: "PLAY" },
   { id: "wyrmwood", shortcut: "2", label: "Wyrmwood", description: "Practice Narrative Craft", group: "PLAY" },
-  { id: "story", shortcut: "3", label: "Written", description: "Story Game Engine", group: "PLAY" },
+  { id: "story", shortcut: "3", label: "The Unwritten", description: "Story Game Engine", group: "PLAY" },
 
   { id: "settings", shortcut: "M", label: "Settings", description: "Configure PlotPickle", group: "SYSTEM" },
   { id: "help", shortcut: "B", label: "Service", description: "Prepare a PlotPickle Issue", group: "SYSTEM" },

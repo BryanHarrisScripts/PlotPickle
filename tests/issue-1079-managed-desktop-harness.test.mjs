@@ -40,6 +40,7 @@ test("#1079 has one PlotPickle-owned managed runtime manifest authority", async 
     "plotpickle-app-runtime",
     "buzz-bridge",
     "comfyui-engine",
+    "stable-diffusion-cpp-engine",
     "plotpickle-node-service",
   ]);
 });

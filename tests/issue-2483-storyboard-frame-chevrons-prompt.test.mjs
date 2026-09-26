@@ -11,7 +11,7 @@ test("#2483 replaces the Storyboard Frame pull-down with bounded image chevrons"
   assert.doesNotMatch(loop, /<select/u);
   assert.doesNotMatch(loop, /positionSelector/u);
   assert.match(loop, /const positionArtifacts = frameArtifacts\.filter\(\(artifact\) => artifact\.frameNumber === position && artifact\.reviewState !== "rejected"\)/u);
-  assert.match(loop, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages, \.\.\.miniReferenceImages\]/u);
+  assert.match(loop, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
   assert.match(loop, /Previous frame for Storyboard position/u);
   assert.match(loop, /Next frame for Storyboard position/u);
   assert.match(loop, /disabled=\{selectedImageIndex <= 0\}/u);

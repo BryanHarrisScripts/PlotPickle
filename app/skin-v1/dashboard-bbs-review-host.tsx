@@ -670,7 +670,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>Previs</h1>
+          <h1>PREVIS</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>

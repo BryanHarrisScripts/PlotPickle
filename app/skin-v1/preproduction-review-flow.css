@@ -43,7 +43,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] {
   width:100%; max-width:none; min-width:0; min-height:100dvh; margin:0; box-sizing:border-box;
 }
-html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"]) [data-story-act-rail="four-acts"] {
+html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"], [data-dashboard-review-surface="previs"]) [data-story-act-rail="four-acts"] {
   width:calc(100% - 40px); box-sizing:border-box; grid-template-columns:repeat(4,minmax(0,1fr)); margin:var(--pp-skin-space-4) auto; border:0;
 }
 html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"]) [data-story-act-rail="four-acts"] button[aria-current="page"] {

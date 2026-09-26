@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "issue": 2462,
+  "phase": "dashboard-mindmap-previs-polish",
+  "brief": "docs/developer-briefs/2462-dashboard-mindmap-previs-polish.md",
+  "allowedChanges": [
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/dashboard-menu-registry.ts",
+    "app/skin-v1/discovery-surface.tsx",
+    "config/development-convergence/2462.json",
+    "docs/developer-briefs/2462-dashboard-mindmap-previs-polish.md",
+    "modules/build/ui/progressive-story-map.tsx",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2442-mind-world-map-refinement.test.mjs",
+    "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+    "tests/issue-2448-mindmap-act-workspace.test.mjs",
+    "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
+    "tests/issue-2456-previs-flipbook-act-workspace.test.mjs",
+    "tests/issue-2462-dashboard-previs-polish.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Dashboard Sound, Pitch, and Play labels match the approved order without changing their underlying ids.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "[\"Foley\", \"Narration\", \"Music\"]"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "[\"Deck\", \"Package\", \"Feedback\"]"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "[\"story\", \"3\", \"The Unwritten\"]"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "MindMap uses the approved one-word user-facing header.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "<h1>MindMap</h1>"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "<h2>MindMap</h2>"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Previs identifies itself as Previs in the dashboard and embedded Story Map.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "<h1>Previs</h1>"
+        },
+        {
+          "type": "file-contains",
+          "path": "modules/build/ui/progressive-story-map.tsx",
+          "contains": "surfaceLabel === \"Previs\" ? \"Previs\" : \"The story is the navigation.\""
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Previs removes legacy Open Storyboard and Inspect evidence actions while preserving Flip Book, shot authoring, and Storyboard-derived provenance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "assert.doesNotMatch(previs, />Open Storyboard</u);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "assert.doesNotMatch(previs, />Inspect evidence</u);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "data-previs-flipbook=\"25-positions\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2462-dashboard-previs-polish.test.mjs",
+          "contains": "Add creative shot"
+        }
+      ]
+    }
+  ]
+}

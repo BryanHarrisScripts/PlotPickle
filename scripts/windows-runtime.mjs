@@ -32,6 +32,12 @@ const WINDOWS_ROLLDOWN_BINDINGS = {
   ia32: "@rolldown/binding-win32-ia32-msvc",
 };
 
+const WINDOWS_SHARP_BINDINGS = {
+  x64: "@img/sharp-win32-x64",
+  arm64: "@img/sharp-win32-arm64",
+  ia32: "@img/sharp-win32-ia32",
+};
+
 function persistentHome() {
   if (process.env.PLOTPICKLE_HOME) return path.resolve(process.env.PLOTPICKLE_HOME);
   if (process.env.LOCALAPPDATA) return path.join(process.env.LOCALAPPDATA, "PlotPickle");
@@ -126,6 +132,11 @@ function expectedWindowsBinding() {
   return WINDOWS_ROLLDOWN_BINDINGS[process.arch] ?? null;
 }
 
+function expectedWindowsSharpBinding() {
+  if (process.platform !== "win32") return null;
+  return WINDOWS_SHARP_BINDINGS[process.arch] ?? null;
+}
+
 function nativeBindingStatus(modulesPath) {
   const packageName = expectedWindowsBinding();
   if (!packageName) {
@@ -202,6 +213,13 @@ function installedRolldownVersion(modulesPath) {
   return typeof manifest.version === "string" ? manifest.version : "";
 }
 
+function installedSharpVersion(modulesPath) {
+  const manifestPath = path.join(modulesPath, "sharp", "package.json");
+  if (!existsSync(manifestPath)) return "";
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return typeof manifest.version === "string" ? manifest.version : "";
+}
+
 function repairNativeBinding(modulesPath) {
   if (process.platform !== "win32") return true;
   if (nativeBindingReady(modulesPath)) {
@@ -244,6 +262,56 @@ function repairNativeBinding(modulesPath) {
   );
   if (result.status !== 0) {
     console.error(`[PlotPickle runtime error] Native binding repair exited with code ${result.status ?? "unknown"}.`);
+    return false;
+  }
+  return verifyModules(modulesPath);
+}
+
+function repairSharpRuntime(modulesPath) {
+  if (sharpRuntimeReady(modulesPath)) {
+    console.log("Sharp image runtime is already complete.");
+    return true;
+  }
+  if (process.platform !== "win32") {
+    console.error("[PlotPickle runtime error] Automatic Sharp native repair is currently available only on Windows.");
+    return false;
+  }
+
+  const packageName = expectedWindowsSharpBinding();
+  const version = installedSharpVersion(modulesPath);
+  if (!packageName || !version) {
+    console.error("[PlotPickle runtime error] Sharp must be installed before its Windows native package can be repaired.");
+    return false;
+  }
+
+  const runtimeDir = path.dirname(modulesPath);
+  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  const packageSpec = `${packageName}@${version}`;
+  console.log(`Repairing Sharp Windows image runtime with ${packageSpec}...`);
+  const result = spawnSync(
+    npmCommand,
+    [
+      "install",
+      "--prefix",
+      runtimeDir,
+      "--omit=dev",
+      "--prefer-offline",
+      "--no-audit",
+      "--no-fund",
+      "--no-save",
+      "--package-lock=false",
+      packageSpec,
+    ],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        npm_config_cache: process.env.PLOTPICKLE_NPM_CACHE || runtimeInfo().npmCache,
+      },
+    },
+  );
+  if (result.status !== 0) {
+    console.error(`[PlotPickle runtime error] Sharp native repair exited with code ${result.status ?? "unknown"}.`);
     return false;
   }
   return verifyModules(modulesPath);
@@ -424,6 +492,11 @@ try {
       ? path.resolve(projectRoot, commandArgument)
       : runtimeInfo().runtimeModules;
     if (!repairNativeBinding(modulesPath)) process.exitCode = 1;
+  } else if (command === "repair-sharp") {
+    const modulesPath = commandArgument
+      ? path.resolve(projectRoot, commandArgument)
+      : runtimeInfo().runtimeModules;
+    if (!repairSharpRuntime(modulesPath)) process.exitCode = 1;
   } else describe();
 } catch (error) {
   console.error(`[PlotPickle runtime error] ${error instanceof Error ? error.message : String(error)}`);

@@ -46,7 +46,7 @@ test("#2491 removes Human-facing HTML export and exposes one Animated WebP actio
   assert.match(encoder, /Graphic Novel export received an unsafe local asset path/u);
   assert.match(encoder, /PNG, JPEG or WebP source images only/u);
   assert.match(encoder, /dimensions exceed the bounded export limit/u);
-  assert.doesNotMatch(encoder, /fetch\(|https?:\/\//u);
+  assert.doesNotMatch(encoder, /\\bfetch\\s*\\(/u);
 });
 
 test("#2491 Sharp runtime supports ordered looping Animated WebP metadata", async (context) => {

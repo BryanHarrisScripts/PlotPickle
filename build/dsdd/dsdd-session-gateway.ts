@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
@@ -10,16 +11,10 @@ import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
 import { assertDsddInterpretationIntegrity } from "../../scripts/dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 import {
-  appendConversationalJourney,
-  applyConversationalHumanDecision,
-  confirmedFindingInterpretation,
-  confirmedFindingNarration,
-  CONVERSATIONAL_UAT_OBJECT_ID,
-  currentConversationalUatIdentity,
-  findingContext,
-  normalizeConversationalUatState,
-  reconcileConversationalUatCandidates,
-} from "./conversational-uat-runtime.mjs";
+  correlateConversationalFindings,
+  decideConversationalFinding,
+  semanticJourneyEvent,
+} from "../../lib/verification/conversational-uat/referee.mjs";
 
 const API = "/api/dsdd/session";
 const OBJECT_ID = "dsdd-engineering-session-v1";
@@ -38,6 +33,91 @@ type ConversationalUatState = {
   findings: Array<Record<string, any>>;
   updatedAt: string;
 };
+
+const CONVERSATIONAL_UAT_OBJECT_ID = "conversational-uat-evidence-v1";
+
+function currentConversationalUatIdentity() {
+  const head = String(process.env.PLOTPICKLE_SOURCE_SHA || process.env.GITHUB_SHA || "unknown").trim().slice(0, 160) || "unknown";
+  return { head, runtime: "option-3" as const };
+}
+
+function normalizeConversationalUatState(value: unknown, identity = currentConversationalUatIdentity()): ConversationalUatState {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<ConversationalUatState> : {};
+  const sameHead = source.head === identity.head && source.runtime === identity.runtime;
+  return {
+    schemaVersion: 1,
+    sessionId: sameHead && typeof source.sessionId === "string" ? source.sessionId : randomUUID(),
+    head: identity.head,
+    runtime: identity.runtime,
+    journey: sameHead && Array.isArray(source.journey) ? source.journey.slice(-120) : [],
+    findings: sameHead && Array.isArray(source.findings) ? source.findings.slice(-100) : [],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function reconcileConversationalUatCandidates(
+  state: ConversationalUatState,
+  identity = currentConversationalUatIdentity(),
+) {
+  let document: { head?: string; candidates?: Array<Record<string, unknown>> } | null = null;
+  try {
+    document = JSON.parse(await readFile(path.join(persistentHome(), "uat-focused", "conversational-candidates.json"), "utf8"));
+  } catch (error: any) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  if (!document || document.head !== identity.head || !Array.isArray(document.candidates)) return state;
+  let findings = state.findings;
+  for (const candidate of document.candidates) findings = correlateConversationalFindings(findings, candidate, identity);
+  return { ...state, findings: findings.slice(-100), updatedAt: new Date().toISOString() };
+}
+
+function appendConversationalJourney(state: ConversationalUatState, value: unknown): ConversationalUatState {
+  const event = semanticJourneyEvent(value && typeof value === "object" ? value : {});
+  const last = state.journey.at(-1) as Record<string, unknown> | undefined;
+  if (last && last.from === event.from && last.to === event.to && last.actionId === event.actionId && last.maturity === event.maturity) return state;
+  return { ...state, journey: [...state.journey, event].slice(-120), updatedAt: new Date().toISOString() };
+}
+
+function applyConversationalHumanDecision(
+  state: ConversationalUatState,
+  fingerprint: string,
+  decision: "Y" | "N",
+  identity = currentConversationalUatIdentity(),
+): ConversationalUatState {
+  return {
+    ...state,
+    findings: decideConversationalFinding(state.findings, fingerprint, decision, identity),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function confirmedFindingNarration(finding: Record<string, any>) {
+  return [
+    `Human-confirmed Conversational UAT finding ${finding.fingerprint}.`,
+    `Surface: ${finding.surfaceId || "UNKNOWN"}.`,
+    finding.route ? `Reproduction path: ${finding.route}.` : "",
+    `Expected: ${finding.expected || "Expected behavior was not recorded."}`,
+    `Observed: ${finding.observed || "Observed behavior was not recorded."}`,
+    `Expectation source: ${finding.expectationSource || "unknown"} ${finding.expectationRef || ""}`.trim(),
+    Array.isArray(finding.evidenceRefs) && finding.evidenceRefs.length ? `Evidence: ${finding.evidenceRefs.join(", ")}.` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function confirmedFindingInterpretation(finding: Record<string, any>) {
+  return [
+    `- Preserve the expected ${finding.surfaceId || "surface"} behavior: ${finding.expected || "match the confirmed product contract"}.`,
+    `- Treat the observed behavior as the Human-confirmed regression: ${finding.observed || "the confirmed mismatch"}.`,
+    finding.route ? `- Reproduce through ${finding.route} without bypassing normal product gates.` : "- Reproduce only through the normal governed product path.",
+    "- Keep UAT evidence separate from story canon; this confirmation authorizes specification publication only.",
+    `- Acceptance requires deterministic proof against expectation source ${finding.expectationRef || finding.expectationSource || "the recorded contract"}.`,
+  ].join("\n");
+}
+
+function findingContext(finding: Record<string, any>): DsddContext {
+  const route = typeof finding.route === "string" && finding.route.trim() ? finding.route.trim().slice(0, 512) : "/";
+  const surfaceId = typeof finding.surfaceId === "string" && finding.surfaceId.trim() ? finding.surfaceId.trim().slice(0, 180) : "UNKNOWN";
+  return { route, surfaceId, surfaceLabel: surfaceId, capturedAt: new Date().toISOString() };
+}
 
 type DsddContext = {
   route: string;

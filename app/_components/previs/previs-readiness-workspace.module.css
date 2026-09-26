@@ -757,6 +757,47 @@
   color: var(--pp-skin-warning);
 }
 
+.graphicNovelCaption {
+  position: absolute;
+  left: var(--pp-skin-space-3);
+  right: var(--pp-skin-space-3);
+  bottom: calc(var(--pp-skin-space-3) + 34px);
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  max-width: 860px;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: color-mix(in srgb, var(--pp-skin-surface-0) 92%, transparent);
+  box-shadow: var(--pp-skin-inset-highlight);
+}
+
+.graphicNovelCaption small {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-sm);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  text-transform: uppercase;
+}
+
+.graphicNovelCaption strong {
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-body);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.graphicNovelCaption span,
+.graphicNovelCaption em {
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.graphicNovelCaption em {
+  color: var(--pp-skin-ink-muted);
+  font-style: normal;
+}
+
 .flipBookCounter {
   position: absolute;
   right: var(--pp-skin-space-2);
@@ -772,7 +813,7 @@
 
 .flipBookControls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--pp-skin-space-2);
 }
 

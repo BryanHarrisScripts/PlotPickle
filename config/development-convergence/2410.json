@@ -17,6 +17,7 @@
     "scripts/dsdd-pi-session.mjs",
     "scripts/pi-managed-install.mjs",
     "tests/issue-1185-pi-managed-install.test.mjs",
+    "tests/issue-341-windows-startup-ui-ux.test.mjs",
     "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
     "tests/issue-2338-pi-087-dsdd-session.test.mjs"
   ],

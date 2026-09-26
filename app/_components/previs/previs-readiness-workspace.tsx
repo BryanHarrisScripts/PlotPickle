@@ -132,6 +132,26 @@ export default function PrevisReadinessWorkspace({
   const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
   const selectedFrameShot = selectedAddressAnchor?.shots.find((shot) => shot.order === selectedFramePosition) ?? null;
 
+  function graphicNovelPanelFor(position: number): PrevisGraphicNovelPanel {
+    const frame = flipBookFrames[position - 1];
+    const progression = storyboardPositionProgression(position);
+    const shot = selectedAddressAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
+    return buildPrevisGraphicNovelPanel({
+      position,
+      assetUrl: frame?.locked?.assetUrl ?? "",
+      authoritative: Boolean(frame?.locked),
+      narrativeIntention: frame?.locked?.narrativeIntention ?? "",
+      sceneNumbers: selectedFrameSceneNumbers.map((number) => String(number)),
+      beatLabel: progression.label,
+      beatDirection: progression.direction,
+      shotLabel: shot ? `Shot ${String(shot.order).padStart(2, "0")} · ${shot.shotSize || "size open"}` : "Shot intent open",
+      shotContext: shot ? [shot.angle, shot.movement, shot.visualIntent].filter(Boolean).join(" · ") : "",
+    });
+  }
+
+  const graphicNovelPanels = flipBookFrames.map((frame) => graphicNovelPanelFor(frame.position));
+  const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];
+
   useEffect(() => {
     setSelectedFramePosition(1);
     setFlipBookPlaying(false);

@@ -45,6 +45,12 @@ const STATE_LABELS = {
 } as const;
 
 const RECOVERED_STORYBOARD_PROMPT_UNAVAILABLE = "Recovered local Storyboard resource. Original prompt metadata was unavailable in the loaded project.";
+const STORYBOARD_LOCAL_SAVE_MARKER = "storyboard-local-save:v1";
+
+function storyboardArtifactSavedLocally(artifact: FoundationsVisualArtifact) {
+  return artifact.assetUrl.startsWith("/api/local-ai/assets/")
+    && (artifact.sourceDecisionKeys ?? []).includes(STORYBOARD_LOCAL_SAVE_MARKER);
+}
 
 function exactStoryboardPrompt(prompt: string | undefined) {
   const value = prompt?.trim() ?? "";
@@ -147,6 +153,27 @@ export default function StoryboardReadinessWorkspace({
     artifact.workflow === "storyboard-frame-webp-v2"
     && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
   );
+
+  function saveFrameVersion(artifact: FoundationsVisualArtifact) {
+    if (qaOnlyAccess || !storyboardAccessible || frameBusy) return;
+    if (!artifact.assetUrl.startsWith("/api/local-ai/assets/")) {
+      setFrameNotice("Only PlotPickle local Storyboard images can be explicitly saved.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const savedArtifact: FoundationsVisualArtifact = {
+      ...artifact,
+      sourceDecisionKeys: [...new Set([...(artifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
+    };
+    const next = applyStoryCommand(project, {
+      type: "foundations.visual.store",
+      artifact: savedArtifact,
+      occurredAt: now,
+    });
+    saveFoundationProject(next);
+    onProjectChange(next);
+    setFrameNotice(`Position ${String(artifact.frameNumber ?? 0).padStart(2, "0")} saved locally with this story.`);
+  }
 
   function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "discard") {
     if (qaOnlyAccess || !storyboardAccessible) return;
@@ -388,7 +415,7 @@ export default function StoryboardReadinessWorkspace({
         onProjectChange(current);
         setSelectedImageByPosition((values) => ({ ...values, ...selectedArtifacts }));
       }
-      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " saved locally for review.";
+      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save this Version on any image you want explicitly marked Saved locally.";
       const failureText = failures.length ? " " + failures.join(" ") : " None were kept or made canon.";
       setFrameNotice(successText + failureText);
     } finally {
@@ -579,8 +606,16 @@ export default function StoryboardReadinessWorkspace({
                   const selectedImageIndex = positionImages.findIndex((image) => image.id === selectedImageId);
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
-                  const reviewState = accepted ? "locked" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
-                  const reviewLabel = accepted ? "Locked" : selectedArtifact ? "Ready for review" : selectedImage ? "Reference image" : "No frame";
+                  const savedLocally = Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact));
+                  const reviewState = accepted ? "locked" : savedLocally ? "saved" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
+                  const reviewLabel = accepted
+                    ? savedLocally ? "Locked · Saved locally" : "Locked · Save confirmation pending"
+                    : savedLocally ? "Saved locally"
+                      : selectedArtifact ? "Ready to save"
+                        : selectedImage ? "Reference image" : "No frame";
+                  const frameVersionLabel = positionImages.length > 0 && selectedImageIndex >= 0
+                    ? `${selectedImageIndex + 1}/${positionImages.length}`
+                    : "0/0";
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Open Shot / Frame position";
@@ -591,6 +626,10 @@ export default function StoryboardReadinessWorkspace({
                         <span>{shotLabel}</span>
                       </div>
                       <div className={styles.positionImage}>
+                        <span
+                          aria-label={`${frameVersionLabel} images for Storyboard position ${String(position).padStart(2, "0")}`}
+                          className={styles.frameVersionCount}
+                        >{frameVersionLabel}</span>
                         {positionImages.length > 1 ? <button
                           aria-label={`Previous frame for Storyboard position ${String(position).padStart(2, "0")}`}
                           className={`${styles.frameChevron} ${styles.frameChevronPrevious}`}
@@ -618,11 +657,16 @@ export default function StoryboardReadinessWorkspace({
                       <div className={styles.frameReview} aria-label={`Review frame at position ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
                         <button
+                          disabled={!selectedArtifact || savedLocally || qaOnlyAccess || frameBusy}
+                          type="button"
+                          onClick={() => selectedArtifact && saveFrameVersion(selectedArtifact)}
+                        >{savedLocally ? "Saved locally" : "Save this Version"}</button>
+                        <button
                           aria-pressed={accepted}
                           disabled={!selectedArtifact || accepted || qaOnlyAccess || frameBusy}
                           type="button"
                           onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "accept")}
-                        >{accepted ? "Locked" : "Keep / Lock"}</button>
+                        >{accepted ? "Locked" : "Lock this Version"}</button>
                         <button
                           disabled={!selectedImage || frameBusy}
                           type="button"

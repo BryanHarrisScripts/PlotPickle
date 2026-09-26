@@ -1,5 +1,13 @@
+import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } from "../storyboard/storyboard-editorial-model";
+
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
 export const PREVIS_GRAPHIC_NOVEL_INTERVAL_MS = 3000;
+
+export type PrevisGraphicNovelBubble = Readonly<{
+  speaker: string;
+  text: string;
+  style: "speech";
+}>;
 
 export type PrevisGraphicNovelPanelInput = Readonly<{
   position: number;
@@ -11,6 +19,7 @@ export type PrevisGraphicNovelPanelInput = Readonly<{
   beatDirection: string;
   shotLabel: string;
   shotContext: string;
+  passages: readonly StoryboardPlanningPassage[];
 }>;
 
 export type PrevisGraphicNovelPanel = Readonly<{
@@ -23,12 +32,43 @@ export type PrevisGraphicNovelPanel = Readonly<{
   narration: string;
   shotLabel: string;
   shotContext: string;
+  bubbles: readonly PrevisGraphicNovelBubble[];
 }>;
 
 function clean(value: string, maximum = 420) {
   const normalized = value.replace(/\s+/gu, " ").trim();
   if (normalized.length <= maximum) return normalized;
   return normalized.slice(0, Math.max(0, maximum - 1)).trimEnd() + "…";
+}
+
+function speakerName(value: string) {
+  return clean(value.replace(/\s*\([^)]*\)\s*$/u, ""), 80);
+}
+
+export function graphicNovelSpeechBubbles(
+  passages: readonly StoryboardPlanningPassage[],
+  position: number,
+): readonly PrevisGraphicNovelBubble[] {
+  const evidence = storyboardPassageWindowForPosition(passages, position);
+  const bubbles: PrevisGraphicNovelBubble[] = [];
+  let speaker = "";
+
+  for (const passage of evidence) {
+    const type = passage.type.toLocaleLowerCase();
+    if (type === "character") {
+      speaker = speakerName(passage.text);
+      continue;
+    }
+    if (type === "parenthetical") continue;
+    if (type === "dialogue" || type === "dual-dialogue") {
+      const text = clean(passage.text, 180);
+      if (speaker && text) bubbles.push({ speaker, text, style: "speech" });
+      if (bubbles.length >= 2) break;
+      continue;
+    }
+    if (type === "action" || type === "scene-heading" || type === "transition") speaker = "";
+  }
+  return bubbles;
 }
 
 export function buildPrevisGraphicNovelPanel(input: PrevisGraphicNovelPanelInput): PrevisGraphicNovelPanel {
@@ -54,6 +94,7 @@ export function buildPrevisGraphicNovelPanel(input: PrevisGraphicNovelPanelInput
     narration,
     shotLabel: clean(input.shotLabel, 140) || "Shot intent open",
     shotContext,
+    bubbles: input.authoritative ? graphicNovelSpeechBubbles(input.passages, input.position) : [],
   };
 }
 

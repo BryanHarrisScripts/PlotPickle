@@ -1,4 +1,5 @@
 export const WORLD_MAP_VERSION = 1 as const;
+export const WORLD_MAP_CHARACTER_MAX_VERSIONS = 5 as const;
 
 export const WORLD_MAP_CHARACTER_VIEWS = [
   { id: "front-full-body", label: "Front full-body", directive: "Front-facing full-body neutral production-reference pose." },
@@ -16,6 +17,7 @@ export type WorldMapVisualReviewState = "draft" | "approved";
 
 export type WorldMapCharacterVisualReference = Readonly<{
   id: string;
+  versionId: string;
   characterId: string;
   characterName: string;
   view: WorldMapCharacterView;
@@ -31,8 +33,17 @@ export type WorldMapCharacterVisualPackage = Readonly<{
   characterId: string;
   characterName: string;
   references: readonly WorldMapCharacterVisualReference[];
+  lockedVersionId: string | null;
   approvedAt: string | null;
   updatedAt: string;
+}>;
+
+export type WorldMapCharacterVisualVersion = Readonly<{
+  id: string;
+  references: readonly WorldMapCharacterVisualReference[];
+  createdAt: string;
+  locked: boolean;
+  complete: boolean;
 }>;
 
 export type WorldMapState = Readonly<{
@@ -50,6 +61,14 @@ function record(value: unknown): Readonly<Record<string, unknown>> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Readonly<Record<string, unknown>> : {};
 }
 
+function normalizedVersionId(source: Readonly<Record<string, unknown>>, characterId: string) {
+  const explicit = clean(source.versionId, 180);
+  if (explicit) return explicit;
+  return source.reviewState === "approved"
+    ? `legacy-locked-${characterId}`
+    : `legacy-saved-${characterId}`;
+}
+
 function normalizeReference(value: unknown): WorldMapCharacterVisualReference | null {
   const source = record(value);
   const id = clean(source.id, 180);
@@ -65,6 +84,7 @@ function normalizeReference(value: unknown): WorldMapCharacterVisualReference | 
   if (!assetUrl.startsWith("/api/local-ai/assets/") && !assetUrl.startsWith("/assets/library/examples/")) return null;
   return {
     id,
+    versionId: normalizedVersionId(source, characterId),
     characterId,
     characterName,
     view,
@@ -77,24 +97,48 @@ function normalizeReference(value: unknown): WorldMapCharacterVisualReference | 
   };
 }
 
+function versionOrder(references: readonly WorldMapCharacterVisualReference[]) {
+  const timestamps = new Map<string, string>();
+  for (const reference of references) {
+    const previous = timestamps.get(reference.versionId) ?? "";
+    if (reference.createdAt > previous) timestamps.set(reference.versionId, reference.createdAt);
+  }
+  return [...timestamps.entries()]
+    .sort((left, right) => right[1].localeCompare(left[1]))
+    .map(([versionId]) => versionId);
+}
+
 function normalizePackage(value: unknown): WorldMapCharacterVisualPackage | null {
   const source = record(value);
   const characterId = clean(source.characterId, 160);
   const characterName = clean(source.characterName, 300);
   if (!characterId || !characterName) return null;
-  const references = Array.isArray(source.references)
+  const normalizedReferences = Array.isArray(source.references)
     ? source.references
       .map(normalizeReference)
       .filter((item): item is WorldMapCharacterVisualReference => Boolean(item))
       .filter((item) => item.characterId === characterId)
       .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
-      .slice(-WORLD_MAP_CHARACTER_VIEWS.length * 2)
     : [];
+  const retainedVersionIds = versionOrder(normalizedReferences).slice(0, WORLD_MAP_CHARACTER_MAX_VERSIONS);
+  const references = normalizedReferences.filter((reference) => retainedVersionIds.includes(reference.versionId));
+  const explicitLockedVersionId = clean(source.lockedVersionId, 180);
+  const approvedLegacyVersionId = references.find((reference) => reference.reviewState === "approved")?.versionId ?? "";
+  const lockedVersionId = retainedVersionIds.includes(explicitLockedVersionId)
+    ? explicitLockedVersionId
+    : retainedVersionIds.includes(approvedLegacyVersionId)
+      ? approvedLegacyVersionId
+      : null;
+  const normalizedLockReferences = references.map((reference) => ({
+    ...reference,
+    reviewState: lockedVersionId && reference.versionId === lockedVersionId ? "approved" as const : "draft" as const,
+  }));
   return {
     characterId,
     characterName,
-    references,
-    approvedAt: clean(source.approvedAt, 80) || null,
+    references: normalizedLockReferences,
+    lockedVersionId,
+    approvedAt: lockedVersionId ? clean(source.approvedAt, 80) || null : null,
     updatedAt: clean(source.updatedAt, 80) || new Date().toISOString(),
   };
 }
@@ -119,11 +163,35 @@ export function worldMapCharacterVisualPackage(state: WorldMapState, characterId
   return state.characterVisuals.find((item) => item.characterId === characterId) ?? null;
 }
 
+export function worldMapCharacterVisualVersions(state: WorldMapState, characterId: string): readonly WorldMapCharacterVisualVersion[] {
+  const current = worldMapCharacterVisualPackage(state, characterId);
+  if (!current) return [];
+  return versionOrder(current.references).map((versionId) => {
+    const references = current.references
+      .filter((reference) => reference.versionId === versionId)
+      .slice()
+      .sort((left, right) => (
+        WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === left.view)
+        - WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === right.view)
+      ));
+    return {
+      id: versionId,
+      references,
+      createdAt: references.reduce((latest, reference) => reference.createdAt > latest ? reference.createdAt : latest, ""),
+      locked: current.lockedVersionId === versionId,
+      complete: WORLD_MAP_CHARACTER_VIEWS.every((view) => references.some((reference) => reference.view === view.id)),
+    };
+  }).slice(0, WORLD_MAP_CHARACTER_MAX_VERSIONS);
+}
+
 export function approvedWorldMapCharacterReferences(state: WorldMapState, characterId: string) {
-  const approved = worldMapCharacterVisualPackage(state, characterId)?.references
-    .filter((reference) => reference.reviewState === "approved") ?? [];
+  const current = worldMapCharacterVisualPackage(state, characterId);
+  if (!current?.lockedVersionId) return [];
+  const locked = current.references.filter((reference) => (
+    reference.versionId === current.lockedVersionId && reference.reviewState === "approved"
+  ));
   return WORLD_MAP_CHARACTER_VIEWS
-    .map((view) => [...approved].reverse().find((reference) => reference.view === view.id)?.assetUrl ?? "")
+    .map((view) => locked.find((reference) => reference.view === view.id)?.assetUrl ?? "")
     .filter(Boolean);
 }
 
@@ -140,23 +208,65 @@ export function upsertWorldMapCharacterVisualPackage(
   });
 }
 
+export function saveWorldMapCharacterVisualVersion(
+  state: WorldMapState,
+  input: Readonly<{
+    characterId: string;
+    characterName: string;
+    versionId: string;
+    references: readonly WorldMapCharacterVisualReference[];
+    savedAt: string;
+  }>,
+): WorldMapState {
+  const current = worldMapCharacterVisualPackage(state, input.characterId);
+  const existingVersions = current ? worldMapCharacterVisualVersions(state, input.characterId) : [];
+  const alreadySaved = existingVersions.some((version) => version.id === input.versionId);
+  if (!alreadySaved && existingVersions.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS) return state;
+  const references = input.references
+    .filter((reference) => reference.characterId === input.characterId)
+    .map((reference) => ({ ...reference, versionId: input.versionId, reviewState: "draft" as const }));
+  if (!references.length) return state;
+  return upsertWorldMapCharacterVisualPackage(state, {
+    characterId: input.characterId,
+    characterName: input.characterName,
+    references: [
+      ...(current?.references.filter((reference) => reference.versionId !== input.versionId) ?? []),
+      ...references,
+    ],
+    lockedVersionId: current?.lockedVersionId ?? null,
+    approvedAt: current?.approvedAt ?? null,
+    updatedAt: input.savedAt,
+  });
+}
+
+export function lockWorldMapCharacterVisualVersion(
+  state: WorldMapState,
+  characterId: string,
+  versionId: string,
+  lockedAt: string,
+): WorldMapState {
+  const current = worldMapCharacterVisualPackage(state, characterId);
+  if (!current) return state;
+  const target = worldMapCharacterVisualVersions(state, characterId).find((version) => version.id === versionId);
+  if (!target?.complete) return state;
+  return upsertWorldMapCharacterVisualPackage(state, {
+    ...current,
+    references: current.references.map((reference) => ({
+      ...reference,
+      reviewState: reference.versionId === versionId ? "approved" as const : "draft" as const,
+    })),
+    lockedVersionId: versionId,
+    approvedAt: lockedAt,
+    updatedAt: lockedAt,
+  });
+}
+
+/** Legacy compatibility alias. New WorldMap UI must use explicit Save then Lock. */
 export function approveWorldMapCharacterVisualPackage(
   state: WorldMapState,
   characterId: string,
   approvedAt: string,
 ): WorldMapState {
-  const current = worldMapCharacterVisualPackage(state, characterId);
-  if (!current || !current.references.length) return state;
-  const references = WORLD_MAP_CHARACTER_VIEWS.flatMap((view) => {
-    const candidates = current.references.filter((reference) => reference.view === view.id);
-    const selected = [...candidates].reverse().find((reference) => reference.reviewState === "draft")
-      ?? [...candidates].reverse().find((reference) => reference.reviewState === "approved");
-    return selected ? [{ ...selected, reviewState: "approved" as const }] : [];
-  });
-  return upsertWorldMapCharacterVisualPackage(state, {
-    ...current,
-    references,
-    approvedAt,
-    updatedAt: approvedAt,
-  });
+  const target = worldMapCharacterVisualVersions(state, characterId).find((version) => version.complete);
+  return target ? lockWorldMapCharacterVisualVersion(state, characterId, target.id, approvedAt) : state;
 }

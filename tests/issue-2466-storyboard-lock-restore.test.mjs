@@ -99,7 +99,8 @@ test("#2466 reads saved source-project approval metadata without switching the a
 test("#2466 requires exact saved Storyboard approval evidence before restoring a lock", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
-  assert.match(source, /const directOrigin = source\.id === resource\.originProjectId/u);\n  assert.match(source, /provenanceMatches = directOrigin/u);
+  assert.match(source, /const directOrigin = source\.id === resource\.originProjectId/u);
+  assert.match(source, /provenanceMatches = directOrigin/u);
   assert.match(source, /candidate\.assetUrl === resource\.assetUrl/u);
   assert.match(source, /candidate\.workflow === "storyboard-frame-webp-v2"/u);
   assert.match(source, /candidate\.frameNumber === resource\.position/u);

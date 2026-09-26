@@ -9,7 +9,7 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
   const positionLoop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
   assert.match(positionLoop, /className=\{styles\.frameReview\}/u);
   assert.doesNotMatch(positionLoop, /selectedArtifact \? <div className=\{styles\.frameReview\}/u);
-  assert.match(positionLoop, /Keep \/ Lock/u);
+  assert.match(positionLoop, /Save this Version/u);\n  assert.match(positionLoop, /Lock this Version/u);
   assert.match(positionLoop, />Redo</u);
   assert.match(positionLoop, />Reject</u);
   assert.match(positionLoop, /data-review-state=\{reviewState\}/u);
@@ -24,13 +24,13 @@ test("#2428 reloads the latest non-rejected generated candidate for its own posi
   assert.match(source, /const fallbackImageId = latestGeneratedArtifact\?\.id \?\? shot\?\.frames\[0\]\?\.id \?\? positionImages\[0\]\?\.id \?\? ""/u);
 });
 
-test("#2428 places Keep/Lock, Redo and Reject directly under each frame image", async () => {
+test("#2428 places Save, Lock, Redo and Reject directly under each frame image", async () => {
   const [source, css] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
   ]);
   const row = source.slice(source.indexOf("className={styles.positionImage}"), source.indexOf("className={styles.framePromptProvenance}"));
   assert.ok(row.indexOf("className={styles.positionImage}") < row.indexOf("className={styles.frameReview}"));
-  assert.match(css, /\.frameReview \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/u);
+  assert.match(css, /\.frameReview \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/u);
   assert.match(css, /\.frameReview button\[aria-pressed="true"\]/u);
 });

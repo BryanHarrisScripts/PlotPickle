@@ -7,6 +7,7 @@
     "config/agent-skills.json",
     "config/development-convergence/2460.json",
     "config/runtime-manifest.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/2460-agent-runtime-vocabulary.md",
     "docs/developer-briefs/2460-paperclip-deterministic-skill-materialization.md",
     "docs/developer-briefs/2460-stable-diffusion-cpp-runtime.md",
@@ -133,6 +134,27 @@
         {
           "type": "path-exists",
           "path": "docs/developer-briefs/2460-agent-runtime-vocabulary.md"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "New Agent Skill/runtime execution modules and the managed runtime manifest have explicit seven-layer production ownership.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"agent-runtime-execution-contracts\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"managed-runtime-manifest\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"ownerLayer\": \"provider-runtime\""
         }
       ]
     }

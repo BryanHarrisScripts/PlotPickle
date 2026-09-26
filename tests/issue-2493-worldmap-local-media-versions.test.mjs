@@ -88,6 +88,14 @@ test("#2493 poster history is bounded and Lock is scoped to Marketing References
   assert.match(lockPoster, /acceptedVisualArtifactIds\.includes\(artifact\.id\)/u);
 });
 
+test("#2493 Story Bible projection prefers the locked poster over merely newest saved media", async () => {
+  const projection = await read("core/project/story-bible-projection.ts");
+  assert.match(projection, /lockedMarketingReference/u);
+  assert.match(projection, /lockedPosterReference \?\? currentMarketingReference/u);
+  assert.match(projection, /"Locked Marketing Reference"/u);
+  assert.match(projection, /"Saved Marketing Reference"/u);
+});
+
 test("#2493 chevrons are bounded and visible saved-state text is not colour-only", async () => {
   const [surface, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),

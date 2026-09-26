@@ -72,9 +72,34 @@ type DsddLockedIntent = {
   publishedIssue?: DsddPublishedIssue;
 };
 
+type ConversationalUatFinding = {
+  fingerprint: string;
+  head: string;
+  surfaceId: string;
+  route?: string;
+  expected: string;
+  observed: string;
+  expectationSource: string;
+  expectationRef: string;
+  evidenceRefs?: string[];
+  safeNavigationTarget?: string;
+  state: "candidate" | "human-confirmed" | "human-rejected" | "unproven";
+  humanDecision?: { answer: "Y" | "N"; at: string } | null;
+  handoffState?: "published";
+  publishedIssue?: DsddPublishedIssue;
+};
+
+type ConversationalUatState = {
+  sessionId: string;
+  head: string;
+  runtime: "option-3";
+  findings: ConversationalUatFinding[];
+};
+
 type DsddSessionPayload = {
   ok?: boolean;
   message?: string;
+  uat?: ConversationalUatState;
   session?: {
     conversation?: Array<DsddMessage & { recordedAt?: string }>;
     intents?: DsddLockedIntent[];
@@ -123,6 +148,14 @@ function loopbackHost() {
 function visible(element: HTMLElement | null) {
   if (!element || !element.isConnected || element.getClientRects().length === 0) return false;
   return window.getComputedStyle(element).visibility !== "hidden";
+}
+
+function safeFindingCheckpoint() {
+  const active = document.activeElement as HTMLElement | null;
+  if (active?.matches("input, textarea, select, [contenteditable='true']")) return false;
+  return !document.querySelector(
+    '[aria-busy="true"], [data-generation-pending="true"], [data-destructive-confirmation="true"], [data-provider-key-entry="true"]',
+  );
 }
 
 function currentSurfaceContext(pathname: string): DsddContext {
@@ -196,10 +229,13 @@ export default function GlobalDsddConversation() {
   const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
   const [piDrafting, setPiDrafting] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [validatingFinding, setValidatingFinding] = useState(false);
+  const [uat, setUat] = useState<ConversationalUatState | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
-  const busy = working || piDrafting || publishing;
+  const previousJourneyRef = useRef<DsddContext | null>(null);
+  const busy = working || piDrafting || publishing || validatingFinding;
   const latestHumanIndex = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
       if (messages[index].role === "human") return index;
@@ -219,6 +255,8 @@ export default function GlobalDsddConversation() {
   const interpretStep = working ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";
   const piDraftStep = piDrafting ? "active" : piDraftReady ? "complete" : hasInterpretation && !noActionRequired ? "active" : "locked";
   const publishStep = publishing ? "active" : briefPublished ? "complete" : piDraftReady ? "active" : "locked";
+  const pendingFindings = useMemo(() => uat?.findings?.filter((finding) => finding.state === "candidate") || [], [uat]);
+  const activeFinding = pendingFindings[0] || null;
 
   useEffect(() => {
     const refresh = () => {
@@ -276,6 +314,7 @@ export default function GlobalDsddConversation() {
         if (!response.ok || !body.ok) throw new Error(body.message || "DSDD session could not be restored.");
         if (cancelled) return;
         setRuntimeEligible(true);
+        setUat(body.uat || null);
         const conversation = Array.isArray(body.session?.conversation) ? body.session!.conversation! : [];
         const restoredMessages = conversation.slice(-MAX_MESSAGES).map((entry) => ({
           id: entry.id,
@@ -306,6 +345,64 @@ export default function GlobalDsddConversation() {
   useEffect(() => {
     if (!eligible || !runtimeEligible) setOpen(false);
   }, [eligible, runtimeEligible]);
+
+  useEffect(() => {
+    if (!eligible || !runtimeEligible || !hydrated) return;
+    const refresh = () => {
+      void authenticatedProfileFetch("/api/dsdd/session", { cache: "no-store" })
+        .then(async (response) => {
+          const body = await response.json() as DsddSessionPayload;
+          if (response.ok && body.ok && body.uat) setUat(body.uat);
+        })
+        .catch(() => {});
+    };
+    const timer = window.setInterval(refresh, 4000);
+    return () => window.clearInterval(timer);
+  }, [eligible, runtimeEligible, hydrated]);
+
+  useEffect(() => {
+    if (!eligible || !runtimeEligible || !context) return;
+    const previous = previousJourneyRef.current;
+    previousJourneyRef.current = context;
+    if (!previous || (previous.surfaceId === context.surfaceId && previous.route === context.route)) return;
+    const timer = window.setTimeout(() => {
+      if (!safeFindingCheckpoint()) return;
+      void authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "observe-journey",
+          event: {
+            from: previous.surfaceId,
+            to: context.surfaceId,
+            actionId: `nav.${previous.surfaceId.toLowerCase()}.${context.surfaceId.toLowerCase()}`,
+          },
+        }),
+      }).catch(() => {});
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [eligible, runtimeEligible, context]);
+
+  useEffect(() => {
+    if (!activeFinding || busy || draft.trim() || open) return;
+    const timer = window.setTimeout(() => {
+      if (safeFindingCheckpoint()) setOpen(true);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [activeFinding, busy, draft, open]);
+
+  useEffect(() => {
+    if (!open || !activeFinding || busy) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!safeFindingCheckpoint()) return;
+      const key = event.key.toUpperCase();
+      if (key !== "Y" && key !== "N") return;
+      event.preventDefault();
+      void validateFinding(key as "Y" | "N");
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, activeFinding, busy]);
 
   const currentLabel = useMemo(
     () => context ? `${context.surfaceLabel} · ${context.route}` : "Detecting current surface…",
@@ -427,6 +524,36 @@ export default function GlobalDsddConversation() {
     }
   }
 
+
+  async function validateFinding(decision: "Y" | "N") {
+    if (!activeFinding || busy) return;
+    setValidatingFinding(true);
+    setError("");
+    try {
+      const response = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "validate-finding", fingerprint: activeFinding.fingerprint, decision }),
+      });
+      const body = await response.json() as DsddSessionPayload;
+      if (!response.ok || !body.ok || !body.uat) {
+        throw new Error(body.message || "Conversational UAT could not preserve the Human validation.");
+      }
+      setUat(body.uat);
+      if (body.intent) setLockedIntent(body.intent);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Conversational UAT validation is unavailable.");
+    } finally {
+      setValidatingFinding(false);
+    }
+  }
+
+  function navigateToFinding() {
+    const target = activeFinding?.safeNavigationTarget;
+    if (!target || !target.startsWith("/") || target.startsWith("//")) return;
+    window.location.assign(target);
+  }
+
   async function publishBrief() {
     if (busy || !lockedIntent?.developerBrief || lockedIntent.publishedIssue) return;
     setPublishing(true);
@@ -461,7 +588,7 @@ export default function GlobalDsddConversation() {
         onClick={() => setOpen((value) => !value)}
       >
         DSDD
-        <span>LIVE UAT</span>
+        <span>LIVE UAT{pendingFindings.length ? ` · ${pendingFindings.length} PENDING` : ""}</span>
       </button>
 
       {open ? (
@@ -484,7 +611,33 @@ export default function GlobalDsddConversation() {
           <div className={styles.context} aria-live="polite">
             <strong>Current context</strong>
             <span>{currentLabel}</span>
+            <small>Pending findings: {pendingFindings.length}</small>
           </div>
+
+          {activeFinding ? (
+            <section
+              className={styles.findingCard}
+              data-dsdd-finding-card={activeFinding.fingerprint}
+              aria-live="assertive"
+              aria-labelledby="plotpickle-uat-finding-title"
+            >
+              <strong id="plotpickle-uat-finding-title">Potential problem found</strong>
+              <span>{activeFinding.surfaceId}{activeFinding.route ? ` · ${activeFinding.route}` : ""}</span>
+              <p><b>Expected:</b> {activeFinding.expected}</p>
+              <p><b>Observed:</b> {activeFinding.observed}</p>
+              <small>Evidence: {activeFinding.expectationSource} · {activeFinding.expectationRef}</small>
+              <div className={styles.findingActions}>
+                <button type="button" disabled={busy} onClick={() => { void validateFinding("Y"); }}>[Y] Yes — this problem exists</button>
+                <button type="button" disabled={busy} onClick={() => { void validateFinding("N"); }}>[N] No — this is expected behavior</button>
+                {activeFinding.safeNavigationTarget?.startsWith("/") ? (
+                  <button type="button" className={styles.secondary} disabled={busy} data-dsdd-safe-navigation="true" onClick={navigateToFinding}>
+                    Take me to it
+                  </button>
+                ) : null}
+              </div>
+              <small>Y publishes a developer brief only. It does not edit source, run repair, create an implementation PR, or merge.</small>
+            </section>
+          ) : null}
 
           {lockedIntent ? (
             <div className={styles.context} data-dsdd-locked-intent="true" aria-live="polite">
@@ -535,6 +688,7 @@ export default function GlobalDsddConversation() {
             {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
             {piDrafting ? <p className={styles.working} role="status">Pi is inspecting the repository read-only and drafting developer guidance…</p> : null}
             {publishing ? <p className={styles.working} role="status">Publishing the approved developer brief as a GitHub Issue…</p> : null}
+            {validatingFinding ? <p className={styles.working} role="status">Preserving Human validation and preparing the specification handoff…</p> : null}
           </div>
 
           {error ? (

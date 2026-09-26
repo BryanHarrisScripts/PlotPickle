@@ -14,6 +14,10 @@ const API = "/api/dsdd/session";
 const OBJECT_ID = "dsdd-engineering-session-v1";
 const MAX_BODY = 128 * 1024;
 
+function dsddRuntimeEnabled() {
+  return process.env.PLOTPICKLE_STARTUP_TESTING_MODE === "conversational-uat";
+}
+
 type DsddContext = {
   route: string;
   surfaceId: string;
@@ -621,6 +625,13 @@ export function registerDsddSessionGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (pathname !== API) { next(); return; }
+    if (!dsddRuntimeEnabled()) {
+      replyDsdd(response, {
+        status: 403,
+        body: { ok: false, message: "DSDD engineering sessions require PlotPickle Conversational UAT startup mode." },
+      });
+      return;
+    }
     if (!acceptsDsddLoopbackRequest(request)) {
       replyDsdd(response, {
         status: 403,

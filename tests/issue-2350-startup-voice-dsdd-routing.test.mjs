@@ -6,14 +6,16 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 const json = async (path) => JSON.parse(await read(path));
 
-test("#2350 normal Human startup owns reviewed whisper.cpp/base.en readiness", async () => {
+test("#2350/#2468 normal and Conversational UAT startup own reviewed whisper.cpp/base.en readiness", async () => {
   const [launcher, manifest, provenance] = await Promise.all([
     read("Start-PlotPickle.bat"),
     json("config/local-voice-input.json"),
     read("runtime/whisper/MODEL-PROVENANCE.md"),
   ]);
 
-  assert.match(launcher, /if \/I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" \([\s\S]*call :prepare_local_dictation/u);
+  assert.match(launcher, /PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"/u);
+  assert.match(launcher, /PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"/u);
+  assert.match(launcher, /if "!PLOTPICKLE_PREPARE_LOCAL_DICTATION!"=="1" \([\s\S]*call :prepare_local_dictation/u);
   assert.match(launcher, /LOCAL_VOICE_INSTALLER=scripts\\install-whisper-cpp\.ps1/u);
   assert.match(launcher, /powershell\.exe .*"%LOCAL_VOICE_INSTALLER%" -Mode Verify/u);
   assert.match(launcher, /powershell\.exe .*"%LOCAL_VOICE_INSTALLER%" -Mode Install -Approved/u);
@@ -22,13 +24,15 @@ test("#2350 normal Human startup owns reviewed whisper.cpp/base.en readiness", a
   assert.match(provenance, /Normal Human startup provisions the pinned model/u);
 });
 
-test("#2350 WebMCP startup does not provision the reviewed speech model", async () => {
+test("#2350/#2468 WebMCP startup does not provision the reviewed speech model", async () => {
   const launcher = await read("Start-PlotPickle.bat");
-  const humanBlockStart = launcher.indexOf('if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" (');
-  const humanBlockEnd = launcher.indexOf('if not exist "%AGENT_SKILLS_CLI%"', humanBlockStart);
-  const humanBlock = launcher.slice(humanBlockStart, humanBlockEnd);
-  assert.match(humanBlock, /call :prepare_local_dictation/u);
-  assert.doesNotMatch(launcher.slice(0, humanBlockStart), /call :prepare_local_dictation/u);
+  assert.doesNotMatch(launcher, /PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"/u);
+  const preparation = launcher.slice(
+    launcher.indexOf('set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=0"'),
+    launcher.indexOf('if not exist "%AGENT_SKILLS_CLI%"'),
+  );
+  assert.match(preparation, /call :prepare_local_dictation/u);
+  assert.doesNotMatch(preparation, /=="webmcp" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"/u);
 });
 
 test("#2350 microphone never downloads speech dependencies and cannot turn green before readiness", async () => {

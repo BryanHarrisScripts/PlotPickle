@@ -7,21 +7,23 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-test("startup asks Human Testing or WebMCP Testing as the first testing choice", async () => {
+test("startup recognizes the three explicit runtime modes before later readiness work", async () => {
   const launcher = await read("Start-PlotPickle.bat");
-  const testingPrompt = launcher.indexOf("Human Testing or WebMCP Testing");
+  const testingPrompt = launcher.indexOf("[1] Open PlotPickle normally");
   const runtimePrompt = launcher.indexOf("Continue with this local runtime installation? [Y/N]");
 
-  assert.ok(testingPrompt >= 0, "startup testing selector is missing");
-  assert.ok(runtimePrompt < 0 || testingPrompt < runtimePrompt, "testing selector must precede later runtime consent prompts");
-  assert.match(launcher, /Y = WebMCP Testing/);
-  assert.match(launcher, /N = Human Testing/);
-  assert.match(launcher, /choice \/C YN \/N \/M "Run WebMCP Testing\? \[Y\/N\]/);
-  assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"/);
-  assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=human"/);
+  assert.ok(testingPrompt >= 0, "startup mode selector is missing");
+  assert.ok(runtimePrompt < 0 || testingPrompt < runtimePrompt, "startup selector must precede later runtime consent prompts");
+  assert.match(launcher, /\[1\] Open PlotPickle normally/u);
+  assert.match(launcher, /\[2\] WebMCP Testing/u);
+  assert.match(launcher, /\[3\] Conversational UAT/u);
+  assert.match(launcher, /choice \/C 123 \/N \/M "Choose startup mode \[1-3\]:"/u);
+  assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"/u);
+  assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"/u);
+  assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"/u);
 });
 
-test("Human and WebMCP modes share a resource-tolerant startup readiness contract", async () => {
+test("normal and WebMCP modes share a resource-tolerant startup readiness contract", async () => {
   const [launcher, uiAxe] = await Promise.all([
     read("Start-PlotPickle.bat"),
     read("lib/verification/ui-axe-audit.mjs"),

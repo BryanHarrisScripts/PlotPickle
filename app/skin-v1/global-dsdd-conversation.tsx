@@ -185,6 +185,7 @@ export default function GlobalDsddConversation() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [eligible, setEligible] = useState(false);
+  const [runtimeEligible, setRuntimeEligible] = useState(false);
   const [context, setContext] = useState<DsddContext | null>(null);
   const [messages, setMessages] = useState<DsddMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -274,6 +275,7 @@ export default function GlobalDsddConversation() {
         const body = await response.json() as DsddSessionPayload;
         if (!response.ok || !body.ok) throw new Error(body.message || "DSDD session could not be restored.");
         if (cancelled) return;
+        setRuntimeEligible(true);
         const conversation = Array.isArray(body.session?.conversation) ? body.session!.conversation! : [];
         const restoredMessages = conversation.slice(-MAX_MESSAGES).map((entry) => ({
           id: entry.id,
@@ -292,9 +294,9 @@ export default function GlobalDsddConversation() {
         setActiveInputMode(latestHuman?.inputMode === "voice" ? "voice" : "typed");
         setHydrated(true);
       })
-      .catch((cause) => {
+      .catch(() => {
         if (!cancelled) {
-          setError(cause instanceof Error ? cause.message : "DSDD session could not be restored.");
+          setRuntimeEligible(false);
           setHydrated(true);
         }
       });
@@ -302,8 +304,8 @@ export default function GlobalDsddConversation() {
   }, [eligible, hydrated]);
 
   useEffect(() => {
-    if (!eligible) setOpen(false);
-  }, [eligible]);
+    if (!eligible || !runtimeEligible) setOpen(false);
+  }, [eligible, runtimeEligible]);
 
   const currentLabel = useMemo(
     () => context ? `${context.surfaceLabel} · ${context.route}` : "Detecting current surface…",
@@ -447,7 +449,7 @@ export default function GlobalDsddConversation() {
     }
   }
 
-  if (!eligible) return null;
+  if (!eligible || !runtimeEligible) return null;
 
   return (
     <>

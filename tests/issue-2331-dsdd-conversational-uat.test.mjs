@@ -27,7 +27,8 @@ test("#2331 keeps DSDD local/private and hidden from LOGON/public surfaces", asy
   assert.match(panel, /isPublicWebPath\(pathname\)/u);
   assert.match(panel, /data-experience-surface="LOGON"/u);
   assert.match(panel, /setEligible\(!logonVisible && next\.surfaceId !== "LOGON"\)/u);
-  assert.match(panel, /if \(!eligible\) return null/u);
+  assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) return null/u);
+  assert.match(panel, /setRuntimeEligible\(false\)/u);
 });
 
 test("#2331 grounds each narration in current route and governed surface context", async () => {

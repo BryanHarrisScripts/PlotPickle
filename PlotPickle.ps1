@@ -1,14 +1,16 @@
 [CmdletBinding()]
 param(
   [switch]$WebMCPTesting,
-  [switch]$HumanTesting
+  [switch]$HumanTesting,
+  [switch]$ConversationalUAT
 )
 
 $ErrorActionPreference = "Stop"
 $launcher = Join-Path $PSScriptRoot "Start-PlotPickle.bat"
 
-if ($WebMCPTesting -and $HumanTesting) {
-  throw "Choose either -WebMCPTesting or -HumanTesting, not both."
+$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent) | Where-Object { $_ }
+if ($explicitModes.Count -gt 1) {
+  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT."
 }
 
 if (-not (Test-Path -LiteralPath $launcher)) {
@@ -17,19 +19,26 @@ if (-not (Test-Path -LiteralPath $launcher)) {
 
 $mode = if ($WebMCPTesting) {
   "webmcp"
+} elseif ($ConversationalUAT) {
+  "conversational-uat"
 } elseif ($HumanTesting) {
-  "human"
+  "normal"
 } else {
   $startupOptions = [ordered]@{
     "1" = @{
-      Mode = "human"
+      Mode = "normal"
       Label = "Open PlotPickle normally"
-      Description = "use your regular app session for hands-on Human testing. No autonomous WebMCP run is started."
+      Description = "open the pristine current product with no developer UAT overlay."
     }
     "2" = @{
       Mode = "webmcp"
       Label = "WebMCP Testing"
-      Description = "start an isolated test session and automatically check the interface, navigation, surfaces and Skin V1 Matrix."
+      Description = "start an isolated test session and automatically inspect the interface, navigation, surfaces and Matrix skin."
+    }
+    "3" = @{
+      Mode = "conversational-uat"
+      Label = "Conversational UAT"
+      Description = "open the governed Human development session with DSDD and conversational UAT tools."
     }
   }
 
@@ -42,7 +51,7 @@ $mode = if ($WebMCPTesting) {
     Write-Host ""
   }
 
-  Write-Host "Run PlotPickle? [SELECT]: 1/2"
+  Write-Host "Run PlotPickle? [SELECT]: 1/2/3"
 
   $selection = $null
   $deadline = [DateTime]::UtcNow.AddSeconds(5)
@@ -85,9 +94,12 @@ $mode = if ($WebMCPTesting) {
 if ($mode -eq "webmcp") {
   Write-Host "[READY] WebMCP Testing selected. Starting an isolated test session; your normal Human profile and credentials will not be used."
   & $launcher --webmcp-testing
+} elseif ($mode -eq "conversational-uat") {
+  Write-Host "[READY] Conversational UAT selected. Opening the governed Human development session with DSDD enabled."
+  & $launcher --conversational-uat
 } else {
-  Write-Host "[READY] Normal PlotPickle selected. Opening your regular app session for hands-on Human testing."
-  & $launcher --human-testing
+  Write-Host "[READY] Normal PlotPickle selected. Opening the pristine current product."
+  & $launcher --normal
 }
 
 exit $LASTEXITCODE

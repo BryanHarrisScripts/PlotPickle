@@ -186,22 +186,63 @@ function recoveryArtifactId(resource: RecoverableLocalResource) {
   return `local-recovery-${stable}`;
 }
 
+function priorAcceptedStoryboardArtifact(
+  resource: RecoveredStoryboardResource,
+  sourceProjects: readonly LibraryPPFProject[],
+) {
+  const source = sourceProjects.find((candidate) => candidate.id === resource.originProjectId);
+  if (!source) return null;
+  const blockRef = String(resource.blockNumber).padStart(2, "0");
+  const anchorKey = `storyboard-anchor:block:block-${blockRef}:mini-${resource.miniBlockNumber}`;
+  const acceptedIds = new Set(source.build.foundations.acceptedVisualArtifactIds);
+  return source.build.foundations.visualArtifacts.find((artifact) =>
+    artifact.assetUrl === resource.assetUrl
+    && artifact.workflow === "storyboard-frame-webp-v2"
+    && artifact.frameNumber === resource.position
+    && artifact.reviewState !== "rejected"
+    && (artifact.sourceDecisionKeys ?? []).includes(anchorKey)
+    && (artifact.reviewState === "accepted" || acceptedIds.has(artifact.id))
+  ) ?? null;
+}
+
 export function restoreLocalStoryboardResources(
   project: LibraryPPFProject,
   resources: readonly RecoveredStoryboardResource[],
+  sourceProjects: readonly LibraryPPFProject[] = [],
 ) {
   let current = project;
   let attachedCount = 0;
   let skippedCount = 0;
+  let restoredLockedCount = 0;
   const existingUrls = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.assetUrl));
   const existingIds = new Set(project.build.foundations.visualArtifacts.map((artifact) => artifact.id));
 
   for (const resource of resources) {
     const id = recoveryArtifactId(resource);
-    if (existingUrls.has(resource.assetUrl) || existingIds.has(id)) {
+    const priorApproval = priorAcceptedStoryboardArtifact(resource, sourceProjects);
+    const existingArtifact = current.build.foundations.visualArtifacts.find((artifact) =>
+      artifact.assetUrl === resource.assetUrl || artifact.id === id
+    );
+
+    if (existingArtifact) {
+      if (
+        priorApproval
+        && existingArtifact.workflow === "storyboard-frame-webp-v2"
+        && existingArtifact.frameNumber === resource.position
+        && existingArtifact.reviewState !== "rejected"
+        && !current.build.foundations.acceptedVisualArtifactIds.includes(existingArtifact.id)
+      ) {
+        current = applyStoryCommand(current, {
+          type: "foundations.visual.accept",
+          artifactId: existingArtifact.id,
+          occurredAt: resource.modifiedAt,
+        }) as LibraryPPFProject;
+        restoredLockedCount += 1;
+      }
       skippedCount += 1;
       continue;
     }
+
     const blockRef = String(resource.blockNumber).padStart(2, "0");
     const artifact: FoundationsVisualArtifact = {
       id,
@@ -218,6 +259,10 @@ export function restoreLocalStoryboardResources(
         `storyboard-position:${resource.position}`,
         `recovery-origin-project:${resource.originProjectId}`,
         `recovery-content-hash:${resource.contentHash}`,
+        ...(priorApproval ? [
+          `recovery-approved-artifact:${priorApproval.id}`,
+          "recovery-approval-source:saved-library",
+        ] : []),
       ],
       workflow: "storyboard-frame-webp-v2",
       reviewState: "draft",
@@ -228,12 +273,20 @@ export function restoreLocalStoryboardResources(
       artifact,
       occurredAt: resource.modifiedAt,
     }) as LibraryPPFProject;
+    if (priorApproval) {
+      current = applyStoryCommand(current, {
+        type: "foundations.visual.accept",
+        artifactId: id,
+        occurredAt: resource.modifiedAt,
+      }) as LibraryPPFProject;
+      restoredLockedCount += 1;
+    }
     existingUrls.add(resource.assetUrl);
     existingIds.add(id);
     attachedCount += 1;
   }
 
-  return { project: current, attachedCount, skippedCount };
+  return { project: current, attachedCount, skippedCount, restoredLockedCount };
 }
 
 export function restoreLocalWorldMapPosterResources(

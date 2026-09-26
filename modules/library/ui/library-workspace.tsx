@@ -15,6 +15,7 @@ import {
   initializeProjectLibrary,
   listArchivedLibraryProjects,
   listLibraryProjects,
+  loadLibraryProjectSnapshot,
   saveActiveLibraryProject,
   switchActiveLibraryProject,
   type LibraryPPFProject,
@@ -387,12 +388,15 @@ export default function LibraryWorkspace() {
       }
       const storyboardResources = selected.filter((resource): resource is RecoveredStoryboardResource => resource.kind === "storyboard-frame");
       const posterResources = selected.filter((resource): resource is RecoveredWorldMapPosterResource => resource.kind === "worldmap-poster");
-      const storyboardResult = restoreLocalStoryboardResources(current, storyboardResources);
+      const storyboardSourceProjects = [...new Set(storyboardResources.map((resource) => resource.originProjectId))]
+        .map((projectId) => loadLibraryProjectSnapshot(projectId))
+        .filter((project): project is LibraryPPFProject => Boolean(project));
+      const storyboardResult = restoreLocalStoryboardResources(current, storyboardResources, storyboardSourceProjects);
       const posterResult = restoreLocalWorldMapPosterResources(storyboardResult.project, posterResources);
       saveActiveLibraryProject(posterResult.project);
       const attachedCount = storyboardResult.attachedCount + posterResult.attachedCount;
       const skippedCount = storyboardResult.skippedCount + posterResult.skippedCount;
-      setNotice(`${attachedCount} local resource${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"} and ${posterResult.attachedCount} WorldMap poster${posterResult.attachedCount === 1 ? "" : "s"}. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
+      setNotice(`${attachedCount} local resource${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"} and ${posterResult.attachedCount} WorldMap poster${posterResult.attachedCount === 1 ? "" : "s"}. ${storyboardResult.restoredLockedCount} proven Storyboard lock${storyboardResult.restoredLockedCount === 1 ? "" : "s"} restored. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
       setRecovery(null);
       setSelectedRecoveryOrigins([]);
       openActiveProject();

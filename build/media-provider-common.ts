@@ -1,7 +1,20 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-import { persistentHome } from "./local-credentials";
+import {
+  ASSET_PATH,
+  MAX_ASSET_BYTES,
+  MAX_VIDEO_BYTES,
+  assetsDirectory,
+  safeAssetStem,
+} from "./media-storage-common";
+export {
+  ASSET_PATH,
+  MAX_ASSET_BYTES,
+  MAX_VIDEO_BYTES,
+  assetsDirectory,
+  safeAssetStem,
+} from "./media-storage-common";
 import type { MediaProfile } from "./media-routing-store";
 
 export type ImageStoryJobClass = "image-fast-draft" | "image-precision-edit";
@@ -52,10 +65,6 @@ export type VisualContinuityEnvelope = {
   continuity: string[];
 };
 
-export const ASSET_PATH = "/api/local-ai/assets/";
-export const MAX_ASSET_BYTES = 20 * 1024 * 1024;
-export const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
-
 function hasImageIntent(value: unknown) {
   if (Array.isArray(value)) return value.length > 0;
   if (typeof value === "string") return Boolean(value.trim());
@@ -73,15 +82,6 @@ export function resolveImageStoryJobClass(input: ImageGenerationInput): ImageSto
     input.continuityMetadata,
   ].some(hasImageIntent);
   return precisionIntent ? "image-precision-edit" : "image-fast-draft";
-}
-
-export function assetsDirectory() {
-  return path.join(persistentHome(), "assets");
-}
-
-export function safeAssetStem(value: unknown) {
-  const stem = typeof value === "string" ? value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "") : "asset";
-  return stem.slice(0, 70) || "asset";
 }
 
 export function normalizedUrl(value: string) {

@@ -1632,7 +1632,7 @@
         "canon",
         "graph",
         "visual",
-        "previs"
+        "surface"
       ],
       "runner": {
         "kind": "node-test",

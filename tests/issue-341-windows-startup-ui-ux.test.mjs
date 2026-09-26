@@ -63,7 +63,7 @@ test("startup reuses only a current verified PlotPickle session and rejects stal
     "The current PlotPickle build is already running",
     "No second server or maintenance pass will be started",
     'if "!PROBE_RESULT!"=="3"',
-    "stale or unverified",
+    "stale, unverified, or running a different startup mode",
     'if "!PROBE_RESULT!"=="2"',
     "Port %PLOTPICKLE_PORT% is already being used by another application",
   ]) assert.ok(launcher.toLowerCase().includes(contract.toLowerCase()), `Missing duplicate-instance contract: ${contract}`);

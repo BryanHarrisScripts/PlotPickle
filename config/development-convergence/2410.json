@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "issue": 2410,
+  "phase": "managed-mastra-pi-runtime",
+  "brief": "docs/developer-briefs/2410-managed-runtime-modernization.md",
+  "allowedChanges": [
+    ".pi/npm/package.json",
+    ".pi/npm/package-lock.json",
+    "build/dsdd/dsdd-pi-session.ts",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "config/developer-agent-stack.json",
+    "config/third-party-oss.json",
+    "config/development-convergence/2410.json",
+    "docs/developer-briefs/2410-managed-runtime-modernization.md",
+    "package.json",
+    "package-lock.json",
+    "scripts/dsdd-pi-session.mjs",
+    "scripts/pi-managed-install.mjs",
+    "tests/issue-1185-pi-managed-install.test.mjs",
+    "tests/issue-341-windows-startup-ui-ux.test.mjs",
+    "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs"
+  ],
+  "acceptance": [
+    {"id":"A1","criterion":"Mastra is pinned to 1.69.0 in the root manifest and exact lockfile.","evidence":[{"type":"file-contains","path":"package.json","contains":"\"@mastra/core\": \"1.69.0\""},{"type":"file-contains","path":"package-lock.json","contains":"\"@mastra/core\": \"1.69.0\""}]},
+    {"id":"A2","criterion":"Managed Pi is pinned to 0.87.1 in the runtime and package lockfile.","evidence":[{"type":"file-contains","path":"scripts/pi-managed-install.mjs","contains":"PLOTPICKLE_MANAGED_PI_VERSION = \"0.87.1\""},{"type":"file-contains","path":".pi/npm/package-lock.json","contains":"\"@earendil-works/pi-coding-agent\": \"0.87.1\""}]},
+    {"id":"A3","criterion":"Live DSDD bridge, developer stack, and OSS inventory track the current Pi version.","evidence":[{"type":"file-contains","path":"scripts/dsdd-pi-session.mjs","contains":"managed.version !== \"0.87.1\""},{"type":"file-contains","path":"config/developer-agent-stack.json","contains":"\"managedVersion\": \"0.87.1\""},{"type":"file-contains","path":"config/third-party-oss.json","contains":"\"version\": \"0.87.1\""}]}
+  ]
+}

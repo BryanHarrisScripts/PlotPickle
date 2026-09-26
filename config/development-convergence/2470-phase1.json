@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "issue": 2470,
+  "phase": "observation-foundation",
+  "brief": "docs/developer-briefs/2470-observation-foundation.md",
+  "allowedChanges": [
+    "config/development-convergence/2470-phase1.json",
+    "docs/developer-briefs/2470-observation-foundation.md",
+    "lib/verification/conversational-uat-referee.mjs",
+    "scripts/run-uat-closed-loop.mjs",
+    "tests/issue-2470-conversational-referee.test.mjs"
+  ],
+  "acceptance": [
+    {"id":"A1","criterion":"Option 3 forbids raw GitHub reporting and semantic repair in observation mode.","evidence":[{"type":"file-contains","path":"scripts/run-uat-closed-loop.mjs","contains":"conversationalObserve && (githubReport || repair)"}]},
+    {"id":"A2","criterion":"Human decisions are head-aware and limited to contract-backed candidates.","evidence":[{"type":"file-contains","path":"lib/verification/conversational-uat-referee.mjs","contains":"entry.head === identity.head && entry.state === \"candidate\""}]},
+    {"id":"A3","criterion":"The observation contract excludes raw prose and keyboard input.","evidence":[{"type":"file-contains","path":"tests/issue-2470-conversational-referee.test.mjs","contains":"semantic observation excludes raw input, prose, and arbitrary DOM text"}]}
+  ]
+}

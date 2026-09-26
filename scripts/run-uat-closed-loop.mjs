@@ -7,6 +7,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { buildUatFinding } from "../lib/verification/sage-conversation-uat.mjs";
+import { correlateConversationalFindings } from "../lib/verification/conversational-uat-referee.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -21,6 +22,11 @@ const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData",
 const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat-focused")));
 const githubReport = args.includes("--github-report");
 const repair = args.includes("--repair");
+const conversationalObserve = args.includes("--conversational-observe");
+
+if (conversationalObserve && (githubReport || repair)) {
+  throw new Error("Option [3] observation cannot invoke GitHub reporting or semantic repair.");
+}
 
 function run(script, scriptArgs) {
   return new Promise((resolve) => {
@@ -102,7 +108,31 @@ async function main() {
     findings: deduped,
   };
   await writeFile(reportPath, `${JSON.stringify(combined, null, 2)}\n`, "utf8");
-  await mirrorUatResult(combined, deduped);
+  if (conversationalObserve) {
+    // Candidates are local development evidence. The ordinary closed-loop repair
+    // and raw GitHub reporting paths remain unavailable in this mode.
+    const identity = {
+      head: argument("--head", process.env.GITHUB_SHA || "unknown"),
+      runtime: "option-3",
+    };
+    let candidates = [];
+    for (const finding of deduped) {
+      candidates = correlateConversationalFindings(candidates, {
+        source: finding.area === "ui-conformance" ? "webmcp-ui" : "focused-uat",
+        fingerprint: finding.fingerprint,
+        surfaceId: finding.evidence?.surface || finding.area,
+        expected: finding.evidence?.expected,
+        expectationSource: finding.evidence?.expected ? "product-contract" : "",
+        expectationRef: finding.evidence?.source,
+        observed: finding.message,
+        evidenceRefs: [finding.evidence?.source || "uat-findings.json"],
+      }, identity);
+    }
+    await writeFile(path.join(artifactRoot, "conversational-candidates.json"), `${JSON.stringify({
+      schemaVersion: 1, head: identity.head, candidates,
+    }, null, 2)}\n`, "utf8");
+  }
+  if (!conversationalObserve) await mirrorUatResult(combined, deduped);
 
   if (githubReport && deduped.length) {
     const reporter = await run("scripts/report-uat-findings.mjs", ["--report", reportPath]);

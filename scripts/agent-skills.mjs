@@ -52,14 +52,10 @@ export async function materializeAgentSkillRunManifest(consumer, requiredSkillId
   return materializeAgentSkillsForRun(registry, {
     consumer,
     requiredSkillIds,
-    entryExists: async (entry) => {
-      try {
-        await access(safeEntry(entry));
-        return true;
-      } catch {
-        return false;
-      }
-    },
+    entryExists: async (entry) => access(safeEntry(entry)).then(
+      () => true,
+      () => false,
+    ),
   });
 }
 

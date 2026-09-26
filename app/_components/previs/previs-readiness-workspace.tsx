@@ -358,7 +358,6 @@ export default function PrevisReadinessWorkspace({
                     <div className={styles.flipBookBlocked}>
                       <strong>Position {String(selectedFramePosition).padStart(2, "0")} is not locked for Previs.</strong>
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
-                      <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open Storyboard</button>
                     </div>
                   )}
                   <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>

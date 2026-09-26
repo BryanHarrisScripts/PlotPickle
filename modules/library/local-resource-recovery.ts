@@ -186,23 +186,43 @@ function recoveryArtifactId(resource: RecoverableLocalResource) {
   return `local-recovery-${stable}`;
 }
 
+type PriorStoryboardApproval = Readonly<{
+  artifact: FoundationsVisualArtifact;
+  projectId: string;
+}>;
+
 function priorAcceptedStoryboardArtifact(
   resource: RecoveredStoryboardResource,
   sourceProjects: readonly LibraryPPFProject[],
-) {
-  const source = sourceProjects.find((candidate) => candidate.id === resource.originProjectId);
-  if (!source) return null;
+): PriorStoryboardApproval | null {
   const blockRef = String(resource.blockNumber).padStart(2, "0");
   const anchorKey = `storyboard-anchor:block:block-${blockRef}:mini-${resource.miniBlockNumber}`;
-  const acceptedIds = new Set(source.build.foundations.acceptedVisualArtifactIds);
-  return source.build.foundations.visualArtifacts.find((artifact) =>
-    artifact.assetUrl === resource.assetUrl
-    && artifact.workflow === "storyboard-frame-webp-v2"
-    && artifact.frameNumber === resource.position
-    && artifact.reviewState !== "rejected"
-    && (artifact.sourceDecisionKeys ?? []).includes(anchorKey)
-    && (artifact.reviewState === "accepted" || acceptedIds.has(artifact.id))
-  ) ?? null;
+  const originKey = `recovery-origin-project:${resource.originProjectId}`;
+  const contentHashKey = `recovery-content-hash:${resource.contentHash}`;
+  const orderedSources = [...sourceProjects]
+    .filter((source, index, all) => all.findIndex((candidate) => candidate.id === source.id) === index)
+    .sort((left, right) =>
+      Number(right.id === resource.originProjectId) - Number(left.id === resource.originProjectId)
+      || left.id.localeCompare(right.id)
+    );
+
+  for (const source of orderedSources) {
+    const acceptedIds = new Set(source.build.foundations.acceptedVisualArtifactIds);
+    const directOrigin = source.id === resource.originProjectId;
+    const artifact = source.build.foundations.visualArtifacts.find((candidate) => {
+      const decisionKeys = candidate.sourceDecisionKeys ?? [];
+      const provenanceMatches = directOrigin || (decisionKeys.includes(originKey) && decisionKeys.includes(contentHashKey));
+      return provenanceMatches
+        && candidate.assetUrl === resource.assetUrl
+        && candidate.workflow === "storyboard-frame-webp-v2"
+        && candidate.frameNumber === resource.position
+        && candidate.reviewState !== "rejected"
+        && decisionKeys.includes(anchorKey)
+        && (candidate.reviewState === "accepted" || acceptedIds.has(candidate.id));
+    });
+    if (artifact) return { artifact, projectId: source.id };
+  }
+  return null;
 }
 
 export function restoreLocalStoryboardResources(
@@ -260,7 +280,8 @@ export function restoreLocalStoryboardResources(
         `recovery-origin-project:${resource.originProjectId}`,
         `recovery-content-hash:${resource.contentHash}`,
         ...(priorApproval ? [
-          `recovery-approved-artifact:${priorApproval.id}`,
+          `recovery-approved-artifact:${priorApproval.artifact.id}`,
+          `recovery-approved-project:${priorApproval.projectId}`,
           "recovery-approval-source:saved-library",
         ] : []),
       ],

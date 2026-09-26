@@ -132,6 +132,67 @@
   text-transform: uppercase;
 }
 
+.findingCard {
+  display: grid;
+  gap: var(--pp-skin-space-2, 8px);
+  padding: var(--pp-skin-space-3, 12px);
+  border-bottom: var(--pp-skin-border-strong, 2px) solid var(--pp-skin-accent-bright, #79bd92);
+  background: var(--pp-skin-surface-2, #121212);
+}
+
+.findingCard > strong {
+  color: var(--pp-skin-accent-bright, #79bd92);
+  font-size: var(--pp-skin-font-sm, 10px);
+  letter-spacing: var(--pp-skin-tracking-label, .1em);
+  text-transform: uppercase;
+}
+
+.findingCard > span,
+.findingCard > small {
+  color: var(--pp-skin-ink-muted, #888);
+  font-size: var(--pp-skin-font-xs, 9px);
+}
+
+.findingCard p {
+  margin: 0;
+  color: var(--pp-skin-ink, #f4f4f4);
+  font-size: var(--pp-skin-font-meta, 11px);
+  line-height: var(--pp-skin-leading-body, 1.55);
+}
+
+.findingActions {
+  display: grid;
+  gap: var(--pp-skin-space-1, 4px);
+}
+
+.findingActions button {
+  min-height: var(--pp-skin-control-height, 34px);
+  border: var(--pp-skin-border-thin, 1px) solid var(--pp-skin-line-strong, #efefef);
+  background: var(--pp-skin-surface-1, #090909);
+  color: var(--pp-skin-ink, #f4f4f4);
+  padding: 6px 10px;
+  font: inherit;
+  font-size: var(--pp-skin-font-sm, 10px);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.findingActions button.secondary {
+  border-color: var(--pp-skin-line, #333);
+  color: var(--pp-skin-ink-soft, #d0d0d0);
+}
+
+.findingActions button:disabled {
+  color: var(--pp-skin-disabled, #666);
+  cursor: not-allowed;
+}
+
+.findingActions button:focus-visible {
+  outline: var(--pp-skin-border-strong, 2px) solid var(--pp-skin-focus, #79bd92);
+  outline-offset: 2px;
+}
+
 .thread {
   min-height: 0;
   overflow-y: auto;

@@ -271,7 +271,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true">
         <section className={styles.summary}>
           <div>
-            <h2>MINDMAP</h2>
+            <h2>MindMap</h2>
             <p>Capture written ideas before they become formal 24/96 structure.</p>
           </div>
           <strong>NO ACTIVE STORY</strong>
@@ -285,7 +285,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
     <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct}>
       <section className={styles.summary}>
         <div>
-          <small>MINDMAP · ACT {selectedAct} · NON-CANON PROJECTION</small>
+          <small>MindMap · ACT {selectedAct} · NON-CANON PROJECTION</small>
           <h2>{project.title}</h2>
           <p>Work one Act at a time. Written ideas stay with the selected Act; Creative Director proposals fill that Act's eleven governed narrative lanes.</p>
         </div>

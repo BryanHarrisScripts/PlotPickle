@@ -84,7 +84,7 @@ test("#2448 Story Shape renders eleven independent selected-Act rows", async () 
   assert.match(surface, /data-discovery-act=\{selectedAct\}/u);
   assert.doesNotMatch(surface, /className=\{styles\.boardGrid\}/u);
   assert.match(styles, /\.laneGrid \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/u);
-  assert.doesNotMatch(styles, /\.laneGrid \{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/u);
+  assert.doesNotMatch(styles, /\.laneGrid \{[^}]*repeat\(2, minmax\(0, 1fr\)\)/u);
 
   for (const lane of ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"]) {
     assert.match(contract, new RegExp(`id: "${lane}"`, "u"));

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
+import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
-import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import type { ProductionSoundCueKind } from "@/core/contracts/previs";
+import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
@@ -11,6 +13,7 @@ import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-wor
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
+import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/production-convergence";
 
 export type PreproductionReviewAddress = Readonly<{
   blockNumber: number;
@@ -365,6 +368,7 @@ export function SkinV1ProductionReviewSurface({
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
   const projection = useMemo(() => project ? derivePrevisProjection(project) : null, [project]);
   const selectedBlock = projection?.blocks.find((block) => block.blockNumber === normalized.blockNumber) ?? null;
@@ -372,6 +376,12 @@ export function SkinV1ProductionReviewSurface({
     ?? selectedBlock?.anchors[0]
     ?? null;
   const approvedShots = selectedAnchor?.shots.filter((shot) => shot.reviewState === "approved") ?? [];
+  const anchorRef = `storyboard-anchor:block:block-${String(normalized.blockNumber).padStart(2, "0")}:mini-${normalized.miniBlockNumber}`;
+  const roughCut = useMemo(() => project ? projectRoughCutAnchor({
+    production: project.production,
+    anchorRef,
+    currentRevision: project.revision,
+  }) : null, [anchorRef, project]);
   const readiness = !selectedAnchor
     ? { label: "NO EVIDENCE", detail: "No canonical Previs anchor exists for this story address." }
     : selectedAnchor.storyboardCoverage !== "kept"
@@ -393,14 +403,112 @@ export function SkinV1ProductionReviewSurface({
     return () => window.clearTimeout(timer);
   }, []);
 
+  function registerTake(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    const data = new FormData(event.currentTarget);
+    const productionShotId = String(data.get("productionShotId") ?? "").trim();
+    const mediaRef = String(data.get("mediaRef") ?? "").trim();
+    const provider = String(data.get("provider") ?? "").trim();
+    const model = String(data.get("model") ?? "").trim();
+    const observedRaw = String(data.get("observedDurationSeconds") ?? "").trim();
+    const observedDurationSeconds = observedRaw ? Number(observedRaw) : null;
+    const reviewState = String(data.get("reviewState") ?? "candidate") === "approved" ? "approved" as const : "candidate" as const;
+    const shot = project.production.shots.find((candidate) => candidate.id === productionShotId);
+    if (!shot || !mediaRef) {
+      setMessage("Choose an existing Production Shot and identify the generated media before registering a take.");
+      return;
+    }
+    if (observedDurationSeconds !== null && (!Number.isFinite(observedDurationSeconds) || observedDurationSeconds <= 0)) {
+      setMessage("Observed take duration must be a positive number or left blank.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const takeId = globalThis.crypto?.randomUUID?.() ?? `take-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: {
+        id: takeId,
+        productionShotId: shot.id,
+        sourceRevision: project.revision,
+        storyboardDependencyKey: shot.storyboardDependencyKey,
+        mediaRef,
+        provider,
+        model,
+        intendedDurationSeconds: shot.durationSeconds,
+        observedDurationSeconds,
+        provenanceRefs: [shot.id, shot.storyboardArtifactId, shot.storyboardDependencyKey, mediaRef],
+        reviewState,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    event.currentTarget.reset();
+    setMessage(`Take ${takeId} registered as ${reviewState}. Existing takes were preserved.`);
+  }
+
+  function setTakeReviewState(takeId: string, reviewState: "approved" | "rejected") {
+    if (!project) return;
+    const take = (project.production.takes ?? []).find((candidate) => candidate.id === takeId);
+    if (!take) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.take.store",
+      take: { ...take, reviewState },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Take ${takeId} marked ${reviewState}. No other take was deleted.`);
+  }
+
+  function createRoughCutRevision() {
+    if (!project) return;
+    const approved = project.production.shots
+      .filter((shot) => shot.reviewState === "approved")
+      .sort((left, right) => left.anchorRef.localeCompare(right.anchorRef) || left.order - right.order);
+    if (!approved.length) {
+      setMessage("No approved Production Shots exist yet, so PlotPickle cannot assemble a Rough Cut revision.");
+      return;
+    }
+    const placements = approved.map((shot) => {
+      const packet = projectPlotPickleProductionPacket({
+        production: project.production,
+        productionShotId: shot.id,
+        currentRevision: project.revision,
+      });
+      return {
+        productionShotId: shot.id,
+        takeId: packet?.approvedTakeId ?? null,
+        soundCueIds: packet?.soundCues.filter((cue) => cue.reviewState !== "rejected").map((cue) => cue.id) ?? [],
+      };
+    });
+    const previous = [...(project.production.roughCuts ?? [])].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+    const now = new Date().toISOString();
+    const cutId = globalThis.crypto?.randomUUID?.() ?? `rough-cut-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.cut.store",
+      cut: {
+        id: cutId,
+        sourceRevision: project.revision,
+        placements,
+        supersedesCutId: previous?.id,
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage(`Rough Cut ${cutId} created. ${placements.filter((item) => item.takeId).length}/${placements.length} approved Shots have selected media; missing takes remain explicit placeholders.`);
+  }
+
   if (error) return <p role="alert">{error}</p>;
-  if (!project || !projection) return <p role="status">Opening canonical Production readiness…</p>;
+  if (!project || !projection) return <p role="status">Opening canonical Rough Cut projection…</p>;
 
   return (
     <div data-skin-v1-preproduction-review="production">
       <div className="pp-skin-v1-preproduction-context" role="status">
-        <strong>PRODUCTION · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>This is a read-only projection over current Storyboard, Previs and #2173 provider-neutral production authorities. It does not use the legacy mutable Production Studio.</span>
+        <strong>ROUGH CUT · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Storyboard intent, Previs timing, generated takes and sound stay attached to the same Production Shot identities. New takes never silently replace an approved take.</span>
       </div>
 
       <section
@@ -410,13 +518,13 @@ export function SkinV1ProductionReviewSurface({
       >
         <header>
           <div>
-            <p>PROVIDER-NEUTRAL HANDOFF</p>
-            <h2 id="production-stage-title">Production readiness</h2>
+            <p>STORY-TO-SCREEN HANDOFF</p>
+            <h2 id="production-stage-title">Rough Cut readiness</h2>
           </div>
           <strong data-production-readiness={readiness.label.toLowerCase().replaceAll(" ", "-")}>{readiness.label}</strong>
         </header>
 
-        <nav className="pp-skin-v1-production-addresses" aria-label="Production Mini-Block address">
+        <nav className="pp-skin-v1-production-addresses" aria-label="Rough Cut Mini-Block address">
           {(selectedBlock?.anchors ?? []).map((anchor) => (
             <button
               aria-current={anchor.miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
@@ -455,23 +563,70 @@ export function SkinV1ProductionReviewSurface({
               </article>
             </div>
 
-            <section className="pp-skin-v1-production-shots" aria-label="Production Shots for selected story address">
+            <section className="pp-skin-v1-production-shots" aria-label="Rough Cut Shots for selected story address">
               <header>
-                <h3>Production Shots</h3>
-                <span>Existing Previs authority</span>
+                <h3>Rough Cut Shots</h3>
+                <span>Existing Previs identity · versioned takes</span>
               </header>
-              {selectedAnchor.shots.length ? (
+              {roughCut?.shots.length ? (
                 <ol>
-                  {selectedAnchor.shots.map((shot) => (
+                  {roughCut.shots.map(({ shot, packet, placement }) => (
                     <li key={shot.id}>
                       <strong>Shot {shot.order}</strong>
                       <span>{shot.reviewState}</span>
-                      <span>{shot.durationSeconds ? `${shot.durationSeconds}s` : "Timing open"}</span>
-                      <small>{shot.visualIntent || shot.blockingIntent || shot.id}</small>
+                      <span>{packet.intendedDurationSeconds ? `${packet.intendedDurationSeconds}s intended` : "Timing open"}</span>
+                      <span>{packet.takes.length} take{packet.takes.length === 1 ? "" : "s"} · {packet.approvedTakeId ? "approved take selected" : "no approved take"}</span>
+                      <span>{packet.soundCues.length} sound cue{packet.soundCues.length === 1 ? "" : "s"}</span>
+                      <small>{placement?.takeId ? `Cut uses ${placement.takeId}` : shot.visualIntent || shot.blockingIntent || shot.id}</small>
                     </li>
                   ))}
                 </ol>
               ) : <p>No Production Shot exists at this address. PlotPickle leaves the slot empty rather than creating a placeholder Production Shot.</p>}
+            </section>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Register generated take">
+              <strong>Register a generated take</strong>
+              <p>Attach returned local/cloud media to an existing Production Shot. Registering a new take never replaces earlier media.</p>
+              <form onSubmit={registerTake}>
+                <label>
+                  Production Shot
+                  <select name="productionShotId" defaultValue="">
+                    <option value="">Choose Shot</option>
+                    {(roughCut?.shots ?? []).map(({ shot }) => <option key={shot.id} value={shot.id}>Shot {shot.order} · {shot.reviewState}</option>)}
+                  </select>
+                </label>
+                <label>Media reference <input name="mediaRef" placeholder="/api/local-ai/assets/take.webm" /></label>
+                <label>Provider <input name="provider" placeholder="local / cloud provider" /></label>
+                <label>Model <input name="model" placeholder="optional model" /></label>
+                <label>Observed seconds <input min="0.01" name="observedDurationSeconds" step="0.01" type="number" /></label>
+                <label>
+                  Human review
+                  <select name="reviewState" defaultValue="candidate">
+                    <option value="candidate">Candidate</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </label>
+                <button type="submit">Register take</button>
+              </form>
+              {(roughCut?.shots ?? []).flatMap(({ packet }) => packet.takes).length ? (
+                <ol>
+                  {(roughCut?.shots ?? []).flatMap(({ shot, packet }) => packet.takes.map((item) => ({ shot, item }))).map(({ shot, item }) => (
+                    <li key={item.take.id}>
+                      <strong>Shot {shot.order} · {item.take.reviewState}</strong>
+                      <span>{item.take.observedDurationSeconds ? `${item.take.observedDurationSeconds}s observed` : "Observed duration unavailable"}</span>
+                      <span>{item.stale ? `STALE · ${item.staleBecause.join("; ")}` : "Current dependency"}</span>
+                      <small>{item.take.mediaRef}</small>
+                      {item.take.reviewState === "candidate" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "approved")}>Approve</button> : null}
+                      {item.take.reviewState !== "rejected" ? <button type="button" onClick={() => setTakeReviewState(item.take.id, "rejected")}>Reject</button> : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : <p>No generated takes are registered for this address.</p>}
+            </section>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Rough Cut revision state">
+              <strong>{roughCut?.cuts.length ?? 0} cut revision{roughCut?.cuts.length === 1 ? "" : "s"}</strong>
+              <p>{roughCut?.cuts[0] ? `Current revision: ${roughCut.cuts[0].id}. Earlier cuts remain recoverable.` : "No Rough Cut revision exists yet. Approved upstream work remains intact until a cut is explicitly assembled."}</p>
+              <button type="button" onClick={createRoughCutRevision}>Create Rough Cut revision</button>
+              <p aria-live="polite">{message}</p>
             </section>
 
             <section className="pp-skin-v1-production-handoff-state" aria-label="Provider-neutral production handoff state">
@@ -483,6 +638,325 @@ export function SkinV1ProductionReviewSurface({
         ) : (
           <p>No production evidence exists for this selected story address.</p>
         )}
+      </section>
+    </div>
+  );
+}
+
+export function SkinV1SoundReviewSurface({
+  kind,
+  address,
+  onAddressChange,
+}: {
+  readonly kind: ProductionSoundCueKind;
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const normalized = normalizedAddress(address);
+  const anchorRef = `storyboard-anchor:block:block-${String(normalized.blockNumber).padStart(2, "0")}:mini-${normalized.miniBlockNumber}`;
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  const shots = useMemo(
+    () => project?.production.shots.filter((shot) => shot.anchorRef === anchorRef) ?? [],
+    [anchorRef, project],
+  );
+  const cues = useMemo(
+    () => (project?.production.soundCues ?? []).filter((cue) => cue.anchorRef === anchorRef && cue.kind === kind),
+    [anchorRef, kind, project],
+  );
+
+  function createCue(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    const data = new FormData(event.currentTarget);
+    const intent = String(data.get("intent") ?? "").trim();
+    if (!intent) {
+      setMessage("Describe the sound intent before saving. PlotPickle will not invent missing sound.");
+      return;
+    }
+    const shotId = String(data.get("productionShotId") ?? "").trim();
+    const startRaw = String(data.get("startSecond") ?? "").trim();
+    const endRaw = String(data.get("endSecond") ?? "").trim();
+    const startSecond = startRaw ? Number(startRaw) : null;
+    const endSecond = endRaw ? Number(endRaw) : null;
+    if ((startSecond !== null && (!Number.isFinite(startSecond) || startSecond < 0))
+      || (endSecond !== null && (!Number.isFinite(endSecond) || endSecond < 0))
+      || (startSecond !== null && endSecond !== null && endSecond <= startSecond)) {
+      setMessage("Timing must be positive, and the end must be later than the start. Leave both blank to keep the cue untimed.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const cueId = globalThis.crypto?.randomUUID?.() ?? `sound-${kind}-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.sound.store",
+      cue: {
+        id: cueId,
+        anchorRef,
+        productionShotId: shotId || undefined,
+        kind,
+        intent,
+        startSecond,
+        endSecond,
+        sourceRefs: shotId ? [`production-shot:${shotId}`] : [anchorRef],
+        reviewState: "planned",
+        createdAt: now,
+        updatedAt: now,
+      },
+      occurredAt: now,
+    });
+    const saved = saveFoundationProject(next);
+    setProject(saved);
+    event.currentTarget.reset();
+    setMessage(`${kind === "narration" ? "Narration" : kind === "music" ? "Music" : "Foley"} cue saved to ${normalized.blockNumber}.${normalized.miniBlockNumber} without changing story or Previs authority.`);
+  }
+
+  function removeCue(cueId: string) {
+    if (!project) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.sound.remove",
+      cueId,
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage("Sound cue removed. Picture and Previs timing were unchanged.");
+  }
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Sound intent…</p>;
+
+  const label = kind === "narration" ? "Narration" : kind === "music" ? "Music" : "Foley";
+  return (
+    <div data-skin-v1-preproduction-review="sound" data-sound-kind={kind}>
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>{label.toUpperCase()} · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
+        <span>Sound intent attaches to the same story/shot identity as Timeline and Rough Cut. Blank timing stays untimed rather than receiving an invented timestamp.</span>
+      </div>
+      <nav className="pp-skin-v1-preproduction-address-rail" aria-label={`${label} Mini-Block address`}>
+        {[1, 2, 3, 4].map((miniBlockNumber) => (
+          <button
+            aria-current={miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
+            key={miniBlockNumber}
+            onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber })}
+            type="button"
+          >
+            Mini {miniBlockNumber}
+          </button>
+        ))}
+      </nav>
+      <section className="pp-skin-v1-production-stage" aria-labelledby="sound-stage-title" data-production-stage="sound-intent">
+        <header>
+          <div><p>SOUND INTENT</p><h2 id="sound-stage-title">{label}</h2></div>
+          <strong>{cues.length} cue{cues.length === 1 ? "" : "s"}</strong>
+        </header>
+        <form onSubmit={createCue}>
+          <label>
+            Intent
+            <textarea name="intent" placeholder={kind === "narration" ? "What should be spoken or narrated?" : kind === "music" ? "What should the music do here?" : "What physical or environmental sound belongs here?"} />
+          </label>
+          <label>
+            Attach to Shot
+            <select name="productionShotId" defaultValue="">
+              <option value="">Whole Mini-Block / story address</option>
+              {shots.map((shot) => <option key={shot.id} value={shot.id}>Shot {shot.order} · {shot.reviewState}</option>)}
+            </select>
+          </label>
+          <label>Start second <input min="0" name="startSecond" step="0.01" type="number" /></label>
+          <label>End second <input min="0" name="endSecond" step="0.01" type="number" /></label>
+          <button type="submit">Save {label} cue</button>
+        </form>
+        <section className="pp-skin-v1-production-shots" aria-label={`${label} cues`}>
+          {cues.length ? (
+            <ol>
+              {cues.map((cue) => (
+                <li key={cue.id}>
+                  <strong>{label}</strong>
+                  <span>{cue.reviewState}</span>
+                  <span>{cue.startSecond !== null && cue.endSecond !== null ? `${cue.startSecond}s → ${cue.endSecond}s` : "Untimed"}</span>
+                  <small>{cue.intent}</small>
+                  <button type="button" onClick={() => removeCue(cue.id)}>Remove</button>
+                </li>
+              ))}
+            </ol>
+          ) : <p>No {label.toLowerCase()} intent is authored for this address. PlotPickle leaves the lane empty.</p>}
+        </section>
+        <p aria-live="polite">{message}</p>
+      </section>
+    </div>
+  );
+}
+
+export function SkinV1ScreeningReviewSurface() {
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function createObservation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project || !screening?.cut) return;
+    const data = new FormData(event.currentTarget);
+    const summary = String(data.get("summary") ?? "").trim();
+    const productionShotId = String(data.get("productionShotId") ?? "").trim();
+    const category = String(data.get("category") ?? "intent");
+    const startRaw = String(data.get("startSecond") ?? "").trim();
+    const endRaw = String(data.get("endSecond") ?? "").trim();
+    const startSecond = startRaw ? Number(startRaw) : null;
+    const endSecond = endRaw ? Number(endRaw) : null;
+    if (!summary) {
+      setMessage("Describe what was observed before saving a Screening note.");
+      return;
+    }
+    if (!["intent", "picture", "timing", "continuity", "sound"].includes(category)) {
+      setMessage("Choose a supported Screening observation category.");
+      return;
+    }
+    if ((startSecond !== null && (!Number.isFinite(startSecond) || startSecond < 0))
+      || (endSecond !== null && (!Number.isFinite(endSecond) || endSecond < 0))
+      || (startSecond !== null && endSecond !== null && endSecond <= startSecond)) {
+      setMessage("Screening timing must be positive and ordered, or left blank.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const observationId = globalThis.crypto?.randomUUID?.() ?? `screening-${Date.now()}`;
+    const next = applyStoryCommand(project, {
+      type: "production.screening.store",
+      observation: {
+        id: observationId,
+        roughCutId: screening.cut.id,
+        productionShotId: productionShotId || undefined,
+        startSecond,
+        endSecond,
+        category: category as "intent" | "picture" | "timing" | "continuity" | "sound",
+        summary,
+        evidenceRefs: productionShotId ? [`production-shot:${productionShotId}`, `rough-cut:${screening.cut.id}`] : [`rough-cut:${screening.cut.id}`],
+        state: "observed",
+        createdAt: now,
+      },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    event.currentTarget.reset();
+    setMessage("Screening observation saved as evidence. No story, shot, sound or media was changed automatically.");
+  }
+
+  function resolveObservation(observationId: string) {
+    if (!project) return;
+    const observation = (project.production.screeningObservations ?? []).find((candidate) => candidate.id === observationId);
+    if (!observation) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "production.screening.store",
+      observation: { ...observation, state: "resolved" },
+      occurredAt: now,
+    });
+    setProject(saveFoundationProject(next));
+    setMessage("Screening observation marked resolved. The underlying creative authorities remain unchanged.");
+  }
+
+  const screening = useMemo(() => project ? projectScreening({ production: project.production }) : null, [project]);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project || !screening) return <p role="status">Opening Screening evidence…</p>;
+
+  return (
+    <div data-skin-v1-preproduction-review="screening">
+      <div className="pp-skin-v1-preproduction-context" role="status">
+        <strong>SCREENING · OBSERVED EVIDENCE</strong>
+        <span>Screening compares the current Rough Cut with approved intent. Findings are evidence and do not automatically change canon or regenerate media.</span>
+      </div>
+      <section className="pp-skin-v1-production-stage" aria-labelledby="screening-stage-title" data-production-stage="screening-observation">
+        <header>
+          <div>
+            <p>INTENDED VS OBSERVED</p>
+            <h2 id="screening-stage-title">Current screening</h2>
+          </div>
+          <strong>{screening.cut ? screening.cut.id : "NO ROUGH CUT"}</strong>
+        </header>
+        {screening.cut ? (
+          <>
+            <div className="pp-skin-v1-production-evidence">
+              <article><span>Cut revision</span><strong>{screening.cut.id}</strong><p>Source revision {screening.cut.sourceRevision}</p></article>
+              <article><span>Placements</span><strong>{screening.cut.placements.length}</strong><p>Stable Production Shot identities.</p></article>
+              <article><span>Observations</span><strong>{screening.observations.length}</strong><p>{screening.unresolved.length} unresolved.</p></article>
+              <article><span>Authority</span><strong>HUMAN</strong><p>Observed evidence never self-promotes into canon.</p></article>
+            </div>
+            <section className="pp-skin-v1-production-handoff-state" aria-label="Add Screening observation">
+              <strong>Add observed evidence</strong>
+              <form onSubmit={createObservation}>
+                <label>
+                  Category
+                  <select name="category" defaultValue="intent">
+                    <option value="intent">Intent</option>
+                    <option value="picture">Picture</option>
+                    <option value="timing">Timing</option>
+                    <option value="continuity">Continuity</option>
+                    <option value="sound">Sound</option>
+                  </select>
+                </label>
+                <label>
+                  Production Shot
+                  <select name="productionShotId" defaultValue="">
+                    <option value="">Cut-level observation</option>
+                    {screening.cut.placements.map((placement) => {
+                      const shot = project.production.shots.find((candidate) => candidate.id === placement.productionShotId);
+                      return <option key={placement.productionShotId} value={placement.productionShotId}>Shot {shot?.order ?? "?"} · {placement.productionShotId}</option>;
+                    })}
+                  </select>
+                </label>
+                <label>Start second <input min="0" name="startSecond" step="0.01" type="number" /></label>
+                <label>End second <input min="0" name="endSecond" step="0.01" type="number" /></label>
+                <label>Observation <textarea name="summary" placeholder="What did the current cut actually show or sound like?" /></label>
+                <button type="submit">Save observation</button>
+              </form>
+              <p aria-live="polite">{message}</p>
+            </section>
+            <section className="pp-skin-v1-production-shots" aria-label="Screening observations">
+              <header><h3>Observed evidence</h3><span>Bounded repair routes back to the owning surface</span></header>
+              {screening.observations.length ? (
+                <ol>
+                  {screening.observations.map((observation) => (
+                    <li key={observation.id}>
+                      <strong>{observation.category.toUpperCase()}</strong>
+                      <span>{observation.state}</span>
+                      <span>{observation.productionShotId || observation.soundCueId || "cut-level"}</span>
+                      <small>{observation.summary}</small>
+                      {observation.state === "observed" ? <button type="button" onClick={() => resolveObservation(observation.id)}>Mark resolved</button> : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : <p>No Screening observations exist for this Rough Cut. PlotPickle does not invent a quality score or failure to fill the surface.</p>}
+            </section>
+          </>
+        ) : <p>No Rough Cut revision exists yet. Screening remains truthful and empty until there is something to watch and compare.</p>}
       </section>
     </div>
   );

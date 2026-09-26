@@ -263,6 +263,7 @@ export function applyStoryCommand(
       return {
         ...base,
         production: {
+          ...project.production,
           shots: [command.shot, ...existing].slice(0, 500),
         },
       };
@@ -271,9 +272,58 @@ export function applyStoryCommand(
       return {
         ...base,
         production: {
+          ...project.production,
           shots: project.production.shots.filter((shot) => shot.id !== command.shotId),
         },
       };
+    case "production.sound.store": {
+      const existing = (project.production.soundCues ?? []).filter((cue) => cue.id !== command.cue.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          soundCues: [command.cue, ...existing].slice(0, 1_000),
+        },
+      };
+    }
+    case "production.sound.remove":
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          soundCues: (project.production.soundCues ?? []).filter((cue) => cue.id !== command.cueId),
+        },
+      };
+    case "production.take.store": {
+      const existing = (project.production.takes ?? []).filter((take) => take.id !== command.take.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          takes: [command.take, ...existing].slice(0, 2_000),
+        },
+      };
+    }
+    case "production.cut.store": {
+      const existing = (project.production.roughCuts ?? []).filter((cut) => cut.id !== command.cut.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          roughCuts: [command.cut, ...existing].slice(0, 250),
+        },
+      };
+    }
+    case "production.screening.store": {
+      const existing = (project.production.screeningObservations ?? []).filter((observation) => observation.id !== command.observation.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          screeningObservations: [command.observation, ...existing].slice(0, 5_000),
+        },
+      };
+    }
     case "world.lesson.open":
       return {
         ...base,

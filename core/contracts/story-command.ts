@@ -1,6 +1,12 @@
 import type { FoundationsVisualArtifact, WorldVisualArtifact } from "./build-progress";
 import type { FoundationDraftProposal } from "./foundation-plan";
-import type { ProductionShotIntent } from "./previs";
+import type {
+  ProductionShotIntent,
+  ProductionSoundCue,
+  ProductionTake,
+  RoughCutRevision,
+  ScreeningObservation,
+} from "./previs";
 
 export type StoryCommand =
   | {
@@ -90,6 +96,31 @@ export type StoryCommand =
   | {
       readonly type: "previs.shot.remove";
       readonly shotId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.sound.store";
+      readonly cue: ProductionSoundCue;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.sound.remove";
+      readonly cueId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.take.store";
+      readonly take: ProductionTake;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.cut.store";
+      readonly cut: RoughCutRevision;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.screening.store";
+      readonly observation: ScreeningObservation;
       readonly occurredAt: string;
     }
   | {

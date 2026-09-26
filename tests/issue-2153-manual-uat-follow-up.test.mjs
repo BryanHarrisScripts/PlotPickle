@@ -60,7 +60,10 @@ test("#2153/#2438/#2452 marks current review destinations yellow while green mea
   assert.match(dashboard, /inReview \? " is-review" : ""/u);
   assert.match(dashboard, /locked \? "locked"/u);
   assert.match(styles, /\[data-dashboard-review="in-review"\][^}]*--pp-skin-warning/su);
-  assert.match(audit, /\["previs", "timeline", "production"\]\.includes\(row\.id\)/u);
+  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley", "previs", "timeline", "production"]) {
+    assert.ok(audit.includes('"' + id + '"'), "Menu audit is missing review destination: " + id);
+  }
+  assert.match(audit, /DASHBOARD_REVIEW_IDS\.has\(row\.id\)/u);
   assert.match(audit, /expectedSurfaceState = isDashboardReviewItem \? "in-review" : row\.connected \? "locked" : "unavailable"/u);
 });
 

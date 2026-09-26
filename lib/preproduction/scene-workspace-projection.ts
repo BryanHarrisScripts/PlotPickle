@@ -165,12 +165,13 @@ function shotCues(timeline: SceneTimelineProjection): SceneWorkspaceCue[] {
 }
 
 function audioCues(
+  project: LibraryPPFProject,
   visualStory: VisualStoryProjection,
   legacyProject: PlotPickleProject | null,
 ): SceneWorkspaceCue[] {
   const lanes = projectProgressiveProductionLanes({ visualStory, legacyProject });
   const selected = visualStory.selectedScene;
-  return lanes.sound.map((item) => {
+  const projectedLegacy = lanes.sound.map((item): SceneWorkspaceCue => {
     const anchor = visualStory.anchors.find((candidate) => (
       candidate.beats.some((beat) => beat.id === item.id)
     )) ?? visualStory.anchors[0] ?? null;
@@ -190,6 +191,28 @@ function audioCues(
       shotId: null,
     };
   });
+  const projectedModern = (project.production.soundCues ?? []).flatMap((cue): SceneWorkspaceCue[] => {
+    const anchor = visualStory.anchors.find((candidate) => candidate.anchorRef === cue.anchorRef);
+    if (!anchor) return [];
+    const timed = cue.startSecond !== null && cue.endSecond !== null;
+    return [{
+      id: `scene-cue:audio:${cue.id}`,
+      lane: "audio",
+      owner: "sonic-cue",
+      sourceRef: `production-sound:${cue.id}`,
+      blockNumber: anchor.blockNumber,
+      miniBlockNumber: anchor.miniBlockNumber,
+      anchorRef: cue.anchorRef,
+      label: cue.kind === "narration" ? "Narration" : cue.kind === "music" ? "Music" : "Foley",
+      detail: cue.intent,
+      timingState: timed ? "timed" : "unplaced",
+      startSecond: timed ? cue.startSecond : null,
+      endSecond: timed ? cue.endSecond : null,
+      shotId: cue.productionShotId ?? null,
+    }];
+  });
+  const byId = new Map([...projectedModern, ...projectedLegacy].map((cue) => [cue.id, cue] as const));
+  return [...byId.values()];
 }
 
 /**
@@ -207,7 +230,7 @@ export function projectSceneWorkspace(input: {
   const dialogue = dialogueCues(passages);
   const action = actionCues(passages);
   const shot = shotCues(timeline);
-  const audio = audioCues(input.visualStory, input.legacyProject);
+  const audio = audioCues(input.project, input.visualStory, input.legacyProject);
   const cues = [...dialogue, ...action, ...shot, ...audio];
   const timedEnds = cues
     .map((cue) => cue.endSecond)

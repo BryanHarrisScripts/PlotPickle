@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "issue": 2470,
+  "phase": "human-validation-loop",
+  "brief": "docs/developer-briefs/2470-human-validation-loop.md",
+  "allowedChanges": [
+    "Start-PlotPickle.bat",
+    "app/skin-v1/global-dsdd-conversation.module.css",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/dsdd/conversational-uat-runtime.mjs",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "config/development-convergence/2470-phase2-5.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2470-human-validation-loop.md",
+    "scripts/run-uat-closed-loop.mjs",
+    "tests/issue-2470-human-validation-loop.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Option 3 starts a read-only deterministic observer and keeps repair/report authority disabled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "CONVERSATIONAL_UAT_OBSERVER=scripts\\run-uat-closed-loop.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/run-uat-closed-loop.mjs",
+          "contains": "conversationalObserve && (githubReport || repair)"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Human journey observation is semantic and current-head UAT evidence is separate from story canon.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/conversational-uat-runtime.mjs",
+          "contains": "CONVERSATIONAL_UAT_OBJECT_ID"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2470-human-validation-loop.test.mjs",
+          "contains": "journey evidence stays semantic"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The checkpoint is one-candidate-at-a-time, pending-count visible and keyboard Y/N.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "data-dsdd-finding-card"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Pending findings"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "N publishes nothing; Y runs the existing lock -> read-only Pi Draft -> Issue publication handoff with UAT provenance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "if (decision === \"N\") return"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "await draftDeveloperBrief()"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "await publishBriefIssue()"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused coverage is owned by existing Experience, Agent Runtime and Story/Canon verification layers.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2470-human-validation-loop.test.mjs"
+        }
+      ]
+    }
+  ]
+}

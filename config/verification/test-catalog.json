@@ -302,7 +302,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-1960-home-launcher-bootstrap.test.mjs",
-          "tests/issue-2464-numbered-launcher-menu.test.mjs"
+          "tests/issue-2464-numbered-launcher-menu.test.mjs",
+          "tests/issue-2468-three-runtime-modes.test.mjs"
         ]
       },
       "cost": "fast",
@@ -327,7 +328,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1960 Windows home-folder bootstrap plus #2464 numbered startup selection. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, preserves explicit WebMCP/Human mode pass-through, and keeps the interactive numbered menu with a five-second normal-start default. #2291 retains this launcher verification as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
+      "notes": "#1960 Windows home-folder bootstrap plus #2464 numbered startup selection. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, preserves explicit WebMCP/Human mode pass-through, and keeps the interactive numbered menu with a five-second normal-start default. #2291 retains this launcher verification as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites. #2468 establishes normal, WebMCP and Conversational UAT runtime separation with a pristine five-second normal default."
     },
     {
       "id": "experience.community-conversation-1963",
@@ -833,7 +834,8 @@
           "tests/issue-2331-dsdd-conversational-uat.test.mjs",
           "tests/issue-2338-pi-087-dsdd-session.test.mjs",
           "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
-          "tests/issue-2331-dsdd-evidence-enforcement.test.mjs"
+          "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+          "tests/issue-2468-three-runtime-modes.test.mjs"
         ]
       },
       "cost": "fast",
@@ -858,7 +860,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2350 moves deterministic DSDD/Pi source contracts into Layer 4 instead of a permanent long-running PR lane. The real Windows Pi compatibility proof remains separately impact-selected for Pi/session/native integration changes."
+      "notes": "#2350 moves deterministic DSDD/Pi source contracts into Layer 4 instead of a permanent long-running PR lane. The real Windows Pi compatibility proof remains separately impact-selected for Pi/session/native integration changes. #2468 adds the server-enforced Conversational UAT runtime boundary for DSDD."
     },
     {
       "id": "provider.local-voice-runtime-2350",

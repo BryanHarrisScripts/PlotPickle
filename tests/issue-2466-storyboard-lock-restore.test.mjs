@@ -99,25 +99,24 @@ test("#2466 reads saved source-project approval metadata without switching the a
 test("#2466 requires exact saved Storyboard approval evidence before restoring a lock", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
-  assert.match(source, /const directOrigin = sourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).id === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).originProjectId/u);
-  assert.match(source, /provenanceMatches = directOrigin/u);
-  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).assetUrl === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).assetUrl/u);
-  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).workflow === "storyboard-frame-webp-v2"/u);
-  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).frameNumber === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).position/u);
-  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).reviewState !== "rejected"/u);
-  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).sourceDecisionKeys candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)?candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)? candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)[candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)]candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).includescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(anchorKeycandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
-  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)|candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)|candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/u);
+  assert.match(source, /const directOrigin = source\.id === resource\.originProjectId/u);\n  assert.match(source, /provenanceMatches = directOrigin/u);
+  assert.match(source, /candidate\.assetUrl === resource\.assetUrl/u);
+  assert.match(source, /candidate\.workflow === "storyboard-frame-webp-v2"/u);
+  assert.match(source, /candidate\.frameNumber === resource\.position/u);
+  assert.match(source, /candidate\.reviewState !== "rejected"/u);
+  assert.match(source, /decisionKeys\.includes\(anchorKey\)/u);
+  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/u);
 });
 
 test("#2466 keeps recovery draft-first and uses canonical acceptance only when prior approval is proven", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
   assert.match(source, /reviewState: "draft"/u);
-  assert.match(source, /const priorApproval = priorAcceptedStoryboardArtifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(resource, sourceProjectscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
-  assert.match(source, /if candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)) candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){[candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)scandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)S]*?type: "foundationscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).visualcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).accept",[candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)scandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)S]*?artifactId: id/u);
-  assert.match(source, /recovery-approved-artifact:candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)$candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).idcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)}/u);
+  assert.match(source, /const priorApproval = priorAcceptedStoryboardArtifact\(resource, sourceProjects\)/u);
+  assert.match(source, /if \(priorApproval\) \{[\s\S]*?type: "foundations\.visual\.accept",[\s\S]*?artifactId: id/u);
+  assert.match(source, /recovery-approved-artifact:\$\{priorApproval\.artifact\.id\}/u);
   assert.match(source, /recovery-approval-source:saved-library/u);
-  assert.match(source, /restoredLockedCount candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)+= 1/u);
+  assert.match(source, /restoredLockedCount \+= 1/u);
 });
 
 test("#2466 can canonically promote an already-restored non-rejected draft when exact proof later exists", async () => {
@@ -128,11 +127,11 @@ test("#2466 can canonically promote an already-restored non-rejected draft when 
   );
 
   assert.match(duplicateBranch, /priorApproval/u);
-  assert.match(duplicateBranch, /existingArtifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).workflow === "storyboard-frame-webp-v2"/u);
-  assert.match(duplicateBranch, /existingArtifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).frameNumber === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).position/u);
-  assert.match(duplicateBranch, /existingArtifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).reviewState !== "rejected"/u);
-  assert.match(duplicateBranch, /type: "foundationscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).visualcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).accept"/u);
-  assert.match(duplicateBranch, /artifactId: existingArtifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).id/u);
+  assert.match(duplicateBranch, /existingArtifact\.workflow === "storyboard-frame-webp-v2"/u);
+  assert.match(duplicateBranch, /existingArtifact\.frameNumber === resource\.position/u);
+  assert.match(duplicateBranch, /existingArtifact\.reviewState !== "rejected"/u);
+  assert.match(duplicateBranch, /type: "foundations\.visual\.accept"/u);
+  assert.match(duplicateBranch, /artifactId: existingArtifact\.id/u);
 });
 
 test("#2466 Library recovery supplies saved origin-project snapshots and explains proven lock restoration", async () => {
@@ -141,12 +140,12 @@ test("#2466 Library recovery supplies saved origin-project snapshots and explain
     read("core/storage/project-library-browser.ts"),
   ]);
 
-  assert.match(browser, /export function loadLibraryProjectSnapshotcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(projectId: stringcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(browser, /export function loadLibraryProjectSnapshot\(projectId: string\)/u);
   assert.match(browser, /readProfileProjectSnapshot/u);
   assert.match(workspace, /storyboardSourceProjects/u);
-  assert.match(workspace, /loadLibraryProjectSnapshotcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(projectIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
-  assert.match(workspace, /restoreLocalStoryboardResourcescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(current, storyboardResources, storyboardSourceProjectscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(workspace, /loadLibraryProjectSnapshot\(projectId\)/u);
+  assert.match(workspace, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
   assert.match(workspace, /restoredLockedCount/u);
   assert.match(workspace, /does not overwrite project defaults, invent approvals, promote story canon/u);
-  assert.match(workspace, /restores as Locked only when exact saved Library metadata proves its prior Human Keepcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/Lock/u);
+  assert.match(workspace, /restores as Locked only when exact saved Library metadata proves its prior Human Keep\/Lock/u);
 });

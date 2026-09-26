@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "issue": 2493,
+  "phase": "worldmap-explicit-save-local-version-history",
+  "brief": "docs/developer-briefs/2493-worldmap-explicit-save-local-version-history.md",
+  "allowedChanges": [
+    "app/skin-v1/story-bible-surface.tsx",
+    "app/skin-v1/story-bible-surface.module.css",
+    "core/contracts/build-progress.ts",
+    "core/contracts/world-map/index.ts",
+    "core/project/story-bible-projection.ts",
+    "core/storage/library-project.ts",
+    "core/storage/project-library-browser.ts",
+    "config/development-convergence/2493.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2493-worldmap-explicit-save-local-version-history.md",
+    "tests/issue-2442-mind-world-map-refinement.test.mjs",
+    "tests/issue-2450-library-durable-hydration.test.mjs",
+    "tests/issue-2452-worldmap-poster-local.test.mjs",
+    "tests/issue-2493-worldmap-local-media-versions.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2493-A1",
+      "criterion": "Poster and character generation require explicit Save this Version before project persistence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-bible-surface.tsx",
+          "contains": "Save this Version"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2493-worldmap-local-media-versions.test.mjs",
+          "contains": "generation stays unsaved until explicit Save"
+        }
+      ]
+    },
+    {
+      "id": "P2493-A2",
+      "criterion": "Poster and character histories retain at most five saved versions with bounded chevrons.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/contracts/world-map/index.ts",
+          "contains": "WORLD_MAP_CHARACTER_MAX_VERSIONS"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-bible-surface.tsx",
+          "contains": "Previous saved version"
+        }
+      ]
+    },
+    {
+      "id": "P2493-A3",
+      "criterion": "Exactly one saved version per poster/character subject may be locked while other saved versions remain.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/contracts/world-map/index.ts",
+          "contains": "lockWorldMapCharacterVisualVersion"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2493-worldmap-local-media-versions.test.mjs",
+          "contains": "single lock preserves saved versions"
+        }
+      ]
+    },
+    {
+      "id": "P2493-A4",
+      "criterion": "Saved version history and locks survive Library/profile-private reopen.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2450-library-durable-hydration.test.mjs",
+          "contains": "five saved WorldMap media versions"
+        }
+      ]
+    }
+  ]
+}

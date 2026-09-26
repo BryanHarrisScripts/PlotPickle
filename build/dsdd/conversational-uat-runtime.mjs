@@ -12,7 +12,7 @@ export const CONVERSATIONAL_UAT_OBJECT_ID = "conversational-uat-evidence-v1";
 
 export function currentConversationalUatIdentity(env = process.env) {
   const head = String(env.PLOTPICKLE_SOURCE_SHA || env.GITHUB_SHA || "unknown").trim().slice(0, 160) || "unknown";
-  return { head, runtime: "option-3" as const };
+  return { head, runtime: "option-3" };
 }
 
 export function normalizeConversationalUatState(value, identity = currentConversationalUatIdentity()) {
@@ -39,10 +39,10 @@ export async function reconcileConversationalUatCandidates(
   identity = currentConversationalUatIdentity(),
   artifactRoot = defaultArtifactRoot(),
 ) {
-  let document: any = null;
+  let document = null;
   try {
     document = JSON.parse(await readFile(path.join(artifactRoot, "conversational-candidates.json"), "utf8"));
-  } catch (error: any) {
+  } catch (error) {
     if (error?.code !== "ENOENT") throw error;
   }
   if (!document || document.head !== identity.head || !Array.isArray(document.candidates)) return state;

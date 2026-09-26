@@ -113,7 +113,7 @@ async function main() {
     // Candidates are local development evidence. The ordinary closed-loop repair
     // and raw GitHub reporting paths remain unavailable in this mode.
     const identity = {
-      head: argument("--head", process.env.GITHUB_SHA || "unknown"),
+      head: argument("--head", process.env.PLOTPICKLE_SOURCE_SHA || process.env.GITHUB_SHA || "unknown"),
       runtime: "option-3",
     };
     let candidates = [];
@@ -127,6 +127,10 @@ async function main() {
         expectationRef: finding.evidence?.source,
         observed: finding.message,
         evidenceRefs: [finding.evidence?.source || "uat-findings.json"],
+        route: finding.evidence?.route || finding.evidence?.target || "",
+        safeNavigationTarget: typeof finding.evidence?.route === "string" && finding.evidence.route.startsWith("/")
+          ? finding.evidence.route
+          : "",
       }, identity);
     }
     await writeFile(path.join(artifactRoot, "conversational-candidates.json"), `${JSON.stringify({

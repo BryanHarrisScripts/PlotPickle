@@ -131,6 +131,19 @@ test("#2460 defines one privacy-bounded agent/runtime execution vocabulary", () 
   }
 });
 
+test("#2460 registers seven-layer ownership for new production contracts", async () => {
+  const ownership = await json("config/verification/ownership-map.json");
+  const agentRule = ownership.rules.find((rule) => rule.id === "agent-runtime-execution-contracts");
+  const runtimeRule = ownership.rules.find((rule) => rule.id === "managed-runtime-manifest");
+
+  assert.equal(agentRule?.ownerLayer, "agent-runtime");
+  assert.ok(agentRule?.include.includes("lib/agents/agent-runtime-vocabulary.mjs"));
+  assert.ok(agentRule?.include.includes("lib/agents/agent-skill-materialization.mjs"));
+  assert.ok(agentRule?.include.includes("scripts/agent-skills.mjs"));
+  assert.equal(runtimeRule?.ownerLayer, "provider-runtime");
+  assert.deepEqual(runtimeRule?.include, ["config/runtime-manifest.json"]);
+});
+
 test("#2460 developer briefs preserve adoption boundaries", async () => {
   const [sd, paperclip, vocabulary] = await Promise.all([
     read("docs/developer-briefs/2460-stable-diffusion-cpp-runtime.md"),

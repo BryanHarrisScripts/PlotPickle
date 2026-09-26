@@ -49,6 +49,39 @@ test("Windows runtime verifies and repairs the actual Rolldown native file", asy
   assert.doesNotMatch(runtime, /function runtimeReady[\s\S]{0,200}return coreReady\(modulesPath\);/);
 });
 
+test("#2495 Windows runtime requires and can repair the Sharp image runtime", async () => {
+  const [runtime, launcher, packageText, lockText] = await Promise.all([
+    source("scripts/windows-runtime.mjs"),
+    source("Start-PlotPickle.bat"),
+    source("package.json"),
+    source("package-lock.json"),
+  ]);
+  const packageJson = JSON.parse(packageText);
+  const lock = JSON.parse(lockText);
+
+  assert.equal(packageJson.dependencies.sharp, "0.35.4");
+  assert.equal(lock.packages[""].dependencies.sharp, "0.35.4");
+  assert.equal(lock.packages["node_modules/sharp"].version, "0.35.4");
+
+  for (const contract of [
+    "createRequire",
+    "sharpRuntimeStatus",
+    "sharpRuntimeReady",
+    "requireFromRuntime(\"sharp\")",
+    "WINDOWS_SHARP_BINDINGS",
+    "@img/sharp-win32-x64",
+    "installedSharpVersion",
+    "repairSharpRuntime",
+    'command === "repair-sharp"',
+    "Sharp runtime verified",
+  ]) assert.ok(runtime.includes(contract), `Missing Sharp runtime contract: ${contract}`);
+
+  assert.match(runtime, /runtimeReady\(modulesPath\)[\s\S]*sharpRuntimeReady\(modulesPath\)/u);
+  assert.match(runtime, /verifyModules\(modulesPath[\s\S]*sharpRuntimeStatus\(modulesPath\)/u);
+  assert.match(launcher, /repair-sharp "%PLOTPICKLE_RUNTIME_MODULES%"/u);
+  assert.match(launcher, /Sharp Windows image runtime/u);
+});
+
 test("Windows launcher repairs a damaged native runtime before starting", async () => {
   const launcher = await source("Start-PlotPickle.bat");
   for (const contract of [

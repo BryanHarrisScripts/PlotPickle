@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "issue": 2460,
+  "phase": "phases-1-3-oss-adoption",
+  "brief": "docs/developer-briefs/2460-stable-diffusion-cpp-runtime.md",
+  "allowedChanges": [
+    "config/agent-skills.json",
+    "config/development-convergence/2460.json",
+    "config/runtime-manifest.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2460-agent-runtime-vocabulary.md",
+    "docs/developer-briefs/2460-paperclip-deterministic-skill-materialization.md",
+    "docs/developer-briefs/2460-stable-diffusion-cpp-runtime.md",
+    "lib/agents/agent-runtime-vocabulary.mjs",
+    "lib/agents/agent-skill-materialization.mjs",
+    "scripts/agent-skills.mjs",
+    "scripts/run-uat-repair-agent.mjs",
+    "tests/agent-skills-foundation.test.mjs",
+    "tests/issue-1079-managed-desktop-harness.test.mjs",
+    "tests/issue-2460-oss-adoption.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "stable-diffusion.cpp is represented only as an optional disabled local image runtime while Managed ComfyUI remains enabled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/runtime-manifest.json",
+          "contains": "\"id\": \"stable-diffusion-cpp-engine\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/runtime-manifest.json",
+          "contains": "\"source\": { \"name\": \"stable-diffusion.cpp\", \"license\": \"MIT\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2460-oss-adoption.test.mjs",
+          "contains": "assert.equal(sdCpp.enabled, false);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2460-oss-adoption.test.mjs",
+          "contains": "assert.equal(comfy.enabled, true);"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Agent Skill run preparation derives deterministic metadata from the canonical registry and fails closed for unavailable required skills.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/agents/agent-skill-materialization.mjs",
+          "contains": "export async function materializeAgentSkillsForRun"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/agent-skills.mjs",
+          "contains": "materializeAgentSkillRunManifest"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/run-uat-repair-agent.mjs",
+          "contains": "materializeAgentSkillRunManifest(worker, [\"uat-repair\"])"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2460-oss-adoption.test.mjs",
+          "contains": "SKILL_ENTRY_UNAVAILABLE"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Skill materialization preserves progressive disclosure and does not embed skill bodies in the run manifest.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/agent-skills.json",
+          "contains": "\"discovery\": \"progressive\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2460-oss-adoption.test.mjs",
+          "contains": "assert.equal(\"content\" in skill, false);"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2460-paperclip-deterministic-skill-materialization.md",
+          "contains": "Do not concatenate every SKILL.md into every system prompt."
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The canonical execution vocabulary distinguishes Session, Turn, Agent Run, Provider Request, Tool Call and Tool Result with a privacy-safe trace boundary.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/agents/agent-runtime-vocabulary.mjs",
+          "contains": "\"provider-request\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/agent-runtime-vocabulary.mjs",
+          "contains": "\"hidden-reasoning\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/agent-runtime-vocabulary.mjs",
+          "contains": "\"private-story-text\""
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2460-agent-runtime-vocabulary.md",
+          "contains": "They do not replace narrative uses"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The three source-specific developer briefs preserve PlotPickle ownership and explicitly avoid wholesale dependency adoption.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "docs/developer-briefs/2460-stable-diffusion-cpp-runtime.md"
+        },
+        {
+          "type": "path-exists",
+          "path": "docs/developer-briefs/2460-paperclip-deterministic-skill-materialization.md"
+        },
+        {
+          "type": "path-exists",
+          "path": "docs/developer-briefs/2460-agent-runtime-vocabulary.md"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "New Agent Skill/runtime execution modules and the managed runtime manifest have explicit seven-layer production ownership.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"agent-runtime-execution-contracts\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"managed-runtime-manifest\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"ownerLayer\": \"provider-runtime\""
+        }
+      ]
+    }
+  ]
+}

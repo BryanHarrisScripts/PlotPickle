@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { materializeAgentSkillsForRun } from "../lib/agents/agent-skill-materialization.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(repoRoot, "config", "agent-skills.json");
@@ -44,6 +45,18 @@ export async function loadAgentSkillRegistry() {
 export async function listAgentSkills() {
   const registry = await loadAgentSkillRegistry();
   return registry.skills.map((skill) => ({ ...skill }));
+}
+
+export async function materializeAgentSkillRunManifest(consumer, requiredSkillIds = []) {
+  const registry = await loadAgentSkillRegistry();
+  return materializeAgentSkillsForRun(registry, {
+    consumer,
+    requiredSkillIds,
+    entryExists: async (entry) => access(safeEntry(entry)).then(
+      () => true,
+      () => false,
+    ),
+  });
 }
 
 export async function loadAgentSkill(id) {
@@ -100,16 +113,28 @@ async function main() {
     process.stdout.write(`${(await skillIndexResource()).text}\n`);
     return;
   }
+  const materializeIndex = args.indexOf("--materialize-for");
+  if (materializeIndex >= 0) {
+    const consumer = args[materializeIndex + 1];
+    if (!consumer) throw new Error("--materialize-for requires a consumer id.");
+    const requireIndex = args.indexOf("--require");
+    const requiredSkillIds = requireIndex >= 0 && args[requireIndex + 1]
+      ? args[requireIndex + 1].split(",").map((value) => value.trim()).filter(Boolean)
+      : [];
+    process.stdout.write(`${JSON.stringify(await materializeAgentSkillRunManifest(consumer, requiredSkillIds), null, 2)}\n`);
+    return;
+  }
   if (args.includes("--self-test")) {
     const skills = await listAgentSkills();
     for (const skill of skills) await loadAgentSkill(skill.id);
+    await materializeAgentSkillRunManifest("pi", ["uat-repair"]);
     if (!skills.some((skill) => skill.id === "uat-repair" && skill.primaryWorker === "pi")) {
       throw new Error("The Pi UAT repair skill is missing from the PlotPickle skill registry.");
     }
     process.stdout.write(`PlotPickle agent skills self-test PASS: ${skills.length} skill(s).\n`);
     return;
   }
-  process.stdout.write("Usage: node scripts/agent-skills.mjs --list | --read <id> | --index-json | --self-test\n");
+  process.stdout.write("Usage: node scripts/agent-skills.mjs --list | --read <id> | --index-json | --materialize-for <consumer> [--require id,id] | --self-test\n");
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

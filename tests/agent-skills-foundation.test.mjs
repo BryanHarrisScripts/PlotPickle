@@ -29,7 +29,7 @@ test("PlotPickle has a progressive local skill registry with Pi UAT repair as th
     uri: "skill://plotpickle/uat-repair",
     roles: ["repair"],
     primaryWorker: "pi",
-    consumers: ["pi"],
+    consumers: ["cline", "mastra-qwen", "pi"],
     mcpReady: true,
     localOnly: true,
   });

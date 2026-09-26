@@ -16,6 +16,8 @@
       ],
       "primaryWorker": "pi",
       "consumers": [
+        "cline",
+        "mastra-qwen",
         "pi"
       ],
       "mcpReady": true,

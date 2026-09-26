@@ -232,6 +232,22 @@
       ]
     },
     {
+      "id": "agent-runtime-execution-contracts",
+      "classification": "production",
+      "include": [
+        "lib/agents/agent-runtime-vocabulary.mjs",
+        "lib/agents/agent-skill-materialization.mjs",
+        "scripts/agent-skills.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "skill",
+        "mcp",
+        "security"
+      ]
+    },
+    {
       "id": "color-expert-skill",
       "classification": "production",
       "include": [
@@ -397,6 +413,19 @@
         "surface",
         "native",
         "test-harness"
+      ]
+    },
+    {
+      "id": "managed-runtime-manifest",
+      "classification": "production",
+      "include": [
+        "config/runtime-manifest.json"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "provider",
+        "native",
+        "security"
       ]
     },
     {

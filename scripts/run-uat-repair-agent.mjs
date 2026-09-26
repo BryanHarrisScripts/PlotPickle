@@ -9,6 +9,7 @@ import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { materializeAgentSkillRunManifest, readAgentSkillProcedure } from "./agent-skills.mjs";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
 import { resolvePiExecutable, runPortableCommand } from "./pi-worker-runtime.mjs";
 
@@ -232,6 +233,19 @@ export async function repairPreflight(worker = requestedWorker) {
   if (!SUPPORTED_REPAIR_WORKERS.has(worker)) {
     return { ready: false, worker, workerLabel: worker, workerAvailable: false, message: `Unsupported repair worker: ${worker}` };
   }
+  let skillManifest;
+  try {
+    skillManifest = await materializeAgentSkillRunManifest(worker, ["uat-repair"]);
+  } catch (error) {
+    return {
+      ready: false,
+      worker,
+      workerLabel: REPAIR_WORKER_LABELS[worker] || worker,
+      workerAvailable: false,
+      skillMaterialization: "failed",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
   const workerAvailable = await commandAvailable(worker);
   const provenance = worker === "pi" ? piProvenance() : {};
   if (!workerAvailable) {
@@ -248,7 +262,7 @@ export async function repairPreflight(worker = requestedWorker) {
   }
   try {
     const runtime = await resolveRepairRuntime(worker);
-    return { ready: true, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, ...provenance, runtime };
+    return { ready: true, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, ...provenance, runtime, skillManifest };
   } catch (error) {
     return {
       ready: false,
@@ -336,9 +350,13 @@ function repairInstructions() {
   ].join("\n");
 }
 
-function repairPrompt(finding) {
+async function repairPrompt(finding) {
+  const skillProcedure = await readAgentSkillProcedure("uat-repair");
   return [
     repairInstructions(),
+    "",
+    "Materialized PlotPickle Agent Skill procedure:",
+    skillProcedure,
     "",
     "Repair this PlotPickle UAT blocker.",
     "",
@@ -358,6 +376,7 @@ function repairPrompt(finding) {
 }
 
 async function runMastraAgent({ finding, runtime, worktreeRoot }) {
+  const prompt = await repairPrompt(finding);
   const filesystem = new LocalFilesystem({
     basePath: worktreeRoot,
     instructions: "This is an isolated PlotPickle UAT repair worktree. Never read or write outside it.",
@@ -382,7 +401,7 @@ async function runMastraAgent({ finding, runtime, worktreeRoot }) {
     maxRetries: 1,
   });
 
-  const result = await agent.generate(repairPrompt(finding), {
+  const result = await agent.generate(prompt, {
     maxSteps: 48,
     modelSettings: { temperature: 0.1 },
   });
@@ -391,7 +410,7 @@ async function runMastraAgent({ finding, runtime, worktreeRoot }) {
 
 async function writeExternalPrompt(finding, worktreeRoot) {
   const promptPath = path.join(worktreeRoot, ".plotpickle-uat-repair.md");
-  await writeFile(promptPath, `${repairPrompt(finding)}\n`, "utf8");
+  await writeFile(promptPath, `${await repairPrompt(finding)}\n`, "utf8");
   return promptPath;
 }
 

@@ -24,7 +24,8 @@
           "tests/layer1-skin-surface-contract.test.mjs",
           "tests/issue-2418-storyboard-batch-progression.test.mjs",
           "tests/issue-2420-storyboard-frame-review.test.mjs",
-          "tests/issue-2428-storyboard-frame-review-controls.test.mjs"
+          "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+          "tests/issue-2471-previs-graphic-novel-playback.test.mjs"
         ]
       },
       "cost": "fast",
@@ -50,7 +51,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners."
     },
     {
       "id": "experience.navigation-continuity",
@@ -1575,6 +1576,50 @@
         ]
       },
       "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft."
+    },
+    {
+      "id": "story-canon.previs-graphic-novel-2471",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "visual",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2471-previs-graphic-novel-playback.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority."
     }
   ]
 }

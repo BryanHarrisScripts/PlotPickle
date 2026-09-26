@@ -920,6 +920,7 @@
         "core/contracts/story-command.ts",
         "core/project/apply-command.ts",
         "app/_components/previs/previs-projection-model.ts",
+        "app/_components/previs/previs-graphic-novel-presentation.ts",
         "app/_components/previs/previs-readiness-workspace.tsx",
         "app/previs/page.tsx"
       ],

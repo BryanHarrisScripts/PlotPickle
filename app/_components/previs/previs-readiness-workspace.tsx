@@ -26,6 +26,14 @@ import {
   shotNeedsReview,
   type PrevisAnchorProjection,
 } from "./previs-projection-model";
+import {
+  PREVIS_FLIP_BOOK_INTERVAL_MS,
+  PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
+  buildPrevisGraphicNovelExportHtml,
+  buildPrevisGraphicNovelPanel,
+  graphicNovelExportFileName,
+  type PrevisGraphicNovelPanel,
+} from "./previs-graphic-novel-presentation";
 import styles from "./previs-readiness-workspace.module.css";
 
 function requestedAddress() {
@@ -70,6 +78,8 @@ export default function PrevisReadinessWorkspace({
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => address?.miniBlockNumber ?? requestedAddress().miniBlockNumber);
   const [selectedFramePosition, setSelectedFramePosition] = useState(1);
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
+  const [graphicNovelMode, setGraphicNovelMode] = useState(false);
+  const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
   useEffect(() => {
     if (!address) return;
     const timer = window.setTimeout(() => {
@@ -123,18 +133,63 @@ export default function PrevisReadinessWorkspace({
   const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
   const selectedFrameShot = selectedAddressAnchor?.shots.find((shot) => shot.order === selectedFramePosition) ?? null;
 
+  function graphicNovelPanelFor(position: number): PrevisGraphicNovelPanel {
+    const frame = flipBookFrames[position - 1];
+    const progression = storyboardPositionProgression(position);
+    const shot = selectedAddressAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
+    return buildPrevisGraphicNovelPanel({
+      position,
+      assetUrl: frame?.locked?.assetUrl ?? "",
+      authoritative: Boolean(frame?.locked),
+      narrativeIntention: frame?.locked?.narrativeIntention ?? "",
+      sceneNumbers: selectedFrameSceneNumbers.map((number) => String(number)),
+      beatLabel: progression.label,
+      beatDirection: progression.direction,
+      shotLabel: shot ? `Shot ${String(shot.order).padStart(2, "0")} · ${shot.shotSize || "size open"}` : "Shot intent open",
+      shotContext: shot ? [shot.angle, shot.movement, shot.visualIntent].filter(Boolean).join(" · ") : "",
+    });
+  }
+
+  const graphicNovelPanels = flipBookFrames.map((frame) => graphicNovelPanelFor(frame.position));
+  const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];
+
   useEffect(() => {
     setSelectedFramePosition(1);
     setFlipBookPlaying(false);
+    setGraphicNovelMode(false);
+    setGraphicNovelPlaying(false);
   }, [selectedBlockNumber, selectedMiniBlockNumber]);
 
   useEffect(() => {
-    if (!flipBookPlaying) return;
+    if (!flipBookPlaying && !graphicNovelPlaying) return;
     const timer = window.setInterval(() => {
       setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
-    }, 220);
+    }, graphicNovelPlaying ? PREVIS_GRAPHIC_NOVEL_INTERVAL_MS : PREVIS_FLIP_BOOK_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [flipBookPlaying]);
+  }, [flipBookPlaying, graphicNovelPlaying]);
+
+  function exportGraphicNovel() {
+    if (!selectedAddressAnchor) return;
+    setFlipBookPlaying(false);
+    setGraphicNovelPlaying(false);
+    const exportPanels = graphicNovelPanels.map((panel) => ({
+      ...panel,
+      assetUrl: panel.authoritative && panel.assetUrl ? new URL(panel.assetUrl, window.location.origin).toString() : "",
+    }));
+    const html = buildPrevisGraphicNovelExportHtml({
+      projectTitle: project.title || "Untitled Story",
+      blockNumber: selectedAddressAnchor.blockNumber,
+      miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
+      panels: exportPanels,
+    });
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = graphicNovelExportFileName(project.title || "Untitled Story", selectedAddressAnchor.blockNumber, selectedAddressAnchor.miniBlockNumber);
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setMessage(`Graphic Novel exported with ${lockedFrameCount} locked panel${lockedFrameCount === 1 ? "" : "s"}. Images remain linked to this local PlotPickle installation; derived narration is presentation-only and did not change story canon or Storyboard approval.`);
+  }
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);
@@ -360,13 +415,39 @@ export default function PrevisReadinessWorkspace({
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
                     </div>
                   )}
+                  {graphicNovelMode ? (
+                    <aside className={styles.graphicNovelCaption} aria-live="polite">
+                      <small>{selectedGraphicNovelPanel.caption}</small>
+                      <strong>{selectedGraphicNovelPanel.narration}</strong>
+                      <span>{selectedGraphicNovelPanel.shotLabel}{selectedGraphicNovelPanel.shotContext ? ` · ${selectedGraphicNovelPanel.shotContext}` : ""}</span>
+                      <em>Derived Previs narration · presentation only</em>
+                    </aside>
+                  ) : null}
                   <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>
                 </div>
 
-                <div className={styles.flipBookControls} aria-label="Flip Book playback">
-                  <button type="button" onClick={() => setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1)}>Previous</button>
-                  <button aria-pressed={flipBookPlaying} type="button" onClick={() => setFlipBookPlaying((playing) => !playing)}>{flipBookPlaying ? "Pause" : "Play Flip Book"}</button>
-                  <button type="button" onClick={() => setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1)}>Next</button>
+                <div className={styles.flipBookControls} aria-label="Previs presentation playback">
+                  <button type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelPlaying(false);
+                    setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1);
+                  }}>Previous</button>
+                  <button aria-pressed={flipBookPlaying} type="button" onClick={() => {
+                    setGraphicNovelMode(false);
+                    setGraphicNovelPlaying(false);
+                    setFlipBookPlaying((playing) => !playing);
+                  }}>{flipBookPlaying ? "Pause Flip Book" : "Play Flip Book"}</button>
+                  <button aria-pressed={graphicNovelMode} type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelMode(true);
+                    setGraphicNovelPlaying((playing) => !playing);
+                  }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
+                  <button disabled={!lockedFrameCount} type="button" onClick={exportGraphicNovel}>Export Graphic Novel</button>
+                  <button type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelPlaying(false);
+                    setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
+                  }}>Next</button>
                 </div>
               </div>
 
@@ -379,6 +460,7 @@ export default function PrevisReadinessWorkspace({
                     key={frame.position}
                     onClick={() => {
                       setFlipBookPlaying(false);
+                      setGraphicNovelPlaying(false);
                       setSelectedFramePosition(frame.position);
                     }}
                     type="button"

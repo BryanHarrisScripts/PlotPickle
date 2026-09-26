@@ -22,12 +22,12 @@ The existing Previs Flip Book is visually useful but its 220ms playback flickers
 
 ## Phase 3 — Export Graphic Novel
 
-- export the selected Mini-Block as local HTML;
+- export the selected Mini-Block as local HTML using absolute loopback asset links;
 - ordered 25-position presentation;
 - only Keep/Locked images are authoritative panels;
 - review/missing positions are visibly omitted;
-- embed locked local images when retrievable;
-- preserve text when an image cannot be embedded;
+- use only locked local image URLs and preserve caption text if an image is unavailable;
+- clearly state that images remain linked to the local PlotPickle installation;
 - no PPF/canon/approval mutation.
 
 ## Phase 4 — verification

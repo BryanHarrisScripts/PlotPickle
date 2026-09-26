@@ -5,6 +5,7 @@
   "brief": "docs/developer-briefs/2470-observation-foundation.md",
   "allowedChanges": [
     "config/development-convergence/2470-phase1.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/2470-observation-foundation.md",
     "lib/verification/conversational-uat/referee.mjs",
     "scripts/run-uat-closed-loop.mjs",

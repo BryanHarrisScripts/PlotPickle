@@ -106,7 +106,7 @@ export function visualBaselineReviewLines({
   return [
     "Visual review complete.",
     `${targets.length} surfaces captured.`,
-    `Currently locked: ${locked.length ? locked.join(", ") : "none"}`,
+    `Currently locked visual baselines: ${locked.length ? locked.join(", ") : "none"}`,
   ];
 }
 
@@ -360,7 +360,7 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
       storageStatePath: auth.storageStatePath,
     });
     await onEvent?.({ type: "stage", label: "Checking navigation contract", detail: "Verifying menu reachability and safe return paths." });
-    await runSkinV1MenuContractAudit({
+    const menuContract = await runSkinV1MenuContractAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
@@ -369,7 +369,7 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     const evidence = await writeEvidence("pass", {
       findingsReport,
       findingCount: 0,
-      standardSurfaceCatalogue: standardCatalogue,
+      standardSurfaceCatalogue: standardCatalogue, dashboardMaturity: menuContract.dashboardMaturity,
       visualDirector: {
         report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
         surfaces: visualDirector.totals.surfaces,
@@ -379,7 +379,7 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     });
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
-    console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
+    console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked visual baselines enforced.\n${pass} Dashboard maturity: ${menuContract.dashboardMaturity.locked.length} LOCKED, ${menuContract.dashboardMaturity.inReview.length} IN REVIEW, ${menuContract.dashboardMaturity.unavailable.length} UNAVAILABLE.\n${pass} Currently locked surfaces: ${menuContract.dashboardMaturity.locked.length ? menuContract.dashboardMaturity.locked.join(", ") : "none"}`);
     console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
     console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
     console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);

@@ -1598,6 +1598,33 @@
       "runtimeRoute": "/diagnostics"
     },
     {
+      "id": "screening",
+      "label": "Screening",
+      "family": "review",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 4,
+          "slug": "screening",
+          "label": "Screening"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-dashboard-review-surface='screening']",
+      "runtimeReadySelector": "[data-dashboard-review-surface='screening']",
+      "orchestrated": true
+    },
+    {
       "id": "reports",
       "label": "Reports",
       "family": "review",
@@ -2173,6 +2200,87 @@
         "suggest-report"
       ],
       "route": "/suggest-report"
+    },
+    {
+      "id": "sound-foley",
+      "label": "Foley",
+      "family": "production",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "sound-foley",
+          "label": "Foley"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-dashboard-review-surface='sound-foley']",
+      "runtimeReadySelector": "[data-dashboard-review-surface='sound-foley']",
+      "orchestrated": true
+    },
+    {
+      "id": "sound-narration",
+      "label": "Narration",
+      "family": "production",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 16,
+          "slug": "sound-narration",
+          "label": "Narration"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-dashboard-review-surface='sound-narration']",
+      "runtimeReadySelector": "[data-dashboard-review-surface='sound-narration']",
+      "orchestrated": true
+    },
+    {
+      "id": "sound-music",
+      "label": "Music",
+      "family": "production",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 17,
+          "slug": "sound-music",
+          "label": "Music"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-dashboard-review-surface='sound-music']",
+      "runtimeReadySelector": "[data-dashboard-review-surface='sound-music']",
+      "orchestrated": true
     }
   ],
   "navigationIdentity": {

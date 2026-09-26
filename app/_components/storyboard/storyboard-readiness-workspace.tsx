@@ -142,14 +142,7 @@ export default function StoryboardReadinessWorkspace({
   const visualStory = projectVisualStory({ project, legacyProject, blockNumber: selectedNumber, miniBlockNumber: selectedMiniBlockNumber });
   const blockBeats = visualStory.anchors.flatMap((anchor) => anchor.beats.map((beat) => ({ ...beat, anchorRef: anchor.anchorRef })));
   const selectedVisualAnchor = visualStory.anchors.find((anchor) => anchor.anchorRef === sequenceDirectorAnchorRef(selectedNumber, selectedMiniBlockNumber));
-  const miniReferences = selectedReferences.filter((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber);
   const visualArtifacts = [...project.build.foundations.visualArtifacts, ...project.build.world.visualArtifacts];
-  const miniReferenceImages = miniReferences.map((reference) => ({
-    id: reference.id,
-    assetUrl: reference.assetUrl,
-    label: reference.caption,
-    prompt: "",
-  }));
   const frameArtifacts = project.build.foundations.visualArtifacts.filter((artifact) =>
     artifact.workflow === "storyboard-frame-webp-v2"
     && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
@@ -576,7 +569,7 @@ export default function StoryboardReadinessWorkspace({
                       prompt: artifact?.workflow === "storyboard-frame-webp-v2" ? exactStoryboardPrompt(artifact.prompt) : "",
                     }];
                   });
-                  const positionImages = [...generatedPositionImages, ...linkedPositionImages, ...miniReferenceImages]
+                  const positionImages = [...generatedPositionImages, ...linkedPositionImages]
                     .filter((image, imageIndex, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === imageIndex);
                   const latestGeneratedArtifact = [...positionArtifacts].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
                   const requestedImageId = selectedImageByPosition[selectionKey] ?? "";

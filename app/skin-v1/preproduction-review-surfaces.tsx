@@ -20,12 +20,6 @@ export type PreproductionReviewAddress = Readonly<{
   miniBlockNumber: number;
 }>;
 
-type MiniBlockVisualCoverage = Readonly<{
-  miniBlockNumber: number;
-  state: "accepted" | "candidate" | "missing";
-  candidateCount: number;
-}>;
-
 function bounded(value: number, maximum: number) {
   return Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.trunc(value))) : 1;
 }
@@ -35,30 +29,6 @@ function normalizedAddress(address: PreproductionReviewAddress): PreproductionRe
     blockNumber: bounded(address.blockNumber, 24),
     miniBlockNumber: bounded(address.miniBlockNumber, 4),
   };
-}
-
-function visualCoverageForBlock(project: PPFProject, blockNumber: number): readonly MiniBlockVisualCoverage[] {
-  const blockId = `block-${String(blockNumber).padStart(2, "0")}`;
-  const artifacts = [
-    ...project.build.foundations.visualArtifacts,
-    ...project.build.world.visualArtifacts,
-  ].filter((artifact) => artifact.reviewState !== "rejected");
-  const acceptedIds = new Set([
-    ...project.build.foundations.acceptedVisualArtifactIds,
-    ...project.build.world.acceptedVisualArtifactIds,
-  ]);
-
-  return Array.from({ length: 4 }, (_, index): MiniBlockVisualCoverage => {
-    const miniBlockNumber = index + 1;
-    const anchor = `storyboard-anchor:block:${blockId}:mini-${miniBlockNumber}`;
-    const candidates = artifacts.filter((artifact) => (artifact.sourceDecisionKeys ?? []).includes(anchor));
-    const accepted = candidates.some((artifact) => acceptedIds.has(artifact.id) && artifact.reviewState === "accepted");
-    return {
-      miniBlockNumber,
-      state: accepted ? "accepted" : candidates.length ? "candidate" : "missing",
-      candidateCount: candidates.length,
-    };
-  });
 }
 
 export function SkinV1StoryboardReviewSurface({
@@ -227,11 +197,6 @@ export function SkinV1PrevisReviewSurface({
   const [project, setProject] = useState<PPFProject | null>(null);
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
-  const coverage = useMemo(
-    () => project ? visualCoverageForBlock(project, normalized.blockNumber) : [],
-    [normalized.blockNumber, project],
-  );
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
@@ -254,28 +219,6 @@ export function SkinV1PrevisReviewSurface({
 
   return (
     <div data-skin-v1-preproduction-review="previs">
-      <section className="pp-skin-v1-previs-coverage" aria-labelledby="previs-visual-coverage-title">
-        <header>
-          <div><p>VISUAL COVERAGE</p><h2 id="previs-visual-coverage-title">Block {String(normalized.blockNumber).padStart(2, "0")} preview</h2></div>
-          <span>{coverage.filter((item) => item.state === "accepted").length}/4 accepted visuals</span>
-        </header>
-        <p>Start with what you can already see. Previs then adds timing and camera intent without turning technical render slots into creative Shots.</p>
-        <div className="pp-skin-v1-previs-coverage-grid" aria-label={`Block ${normalized.blockNumber} Mini-Block visual coverage`}>
-          {coverage.map((item) => (
-            <button
-              aria-pressed={item.miniBlockNumber === normalized.miniBlockNumber}
-              data-visual-coverage-state={item.state}
-              key={item.miniBlockNumber}
-              onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber: item.miniBlockNumber })}
-              type="button"
-            >
-              <strong>MINI {item.miniBlockNumber}</strong>
-              <span>{item.state === "accepted" ? "Accepted visual" : item.state === "candidate" ? `${item.candidateCount} candidate${item.candidateCount === 1 ? "" : "s"}` : "No visual yet"}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
       <div className="pp-skin-v1-preproduction-context" role="status">
         <strong>BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
         <span>Previs is the visual preview/readiness view first, then downstream camera and timing intent for the same selected story address.</span>

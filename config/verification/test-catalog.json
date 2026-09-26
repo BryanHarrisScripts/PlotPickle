@@ -25,7 +25,8 @@
           "tests/issue-2418-storyboard-batch-progression.test.mjs",
           "tests/issue-2420-storyboard-frame-review.test.mjs",
           "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
-          "tests/issue-2471-previs-graphic-novel-playback.test.mjs"
+          "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+          "tests/issue-2475-previs-surface-convergence.test.mjs"
         ]
       },
       "cost": "fast",
@@ -51,7 +52,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail."
     },
     {
       "id": "experience.navigation-continuity",

@@ -78,6 +78,7 @@ export default function PrevisReadinessWorkspace({
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => address?.miniBlockNumber ?? requestedAddress().miniBlockNumber);
   const [selectedFramePosition, setSelectedFramePosition] = useState(1);
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
+  const [graphicNovelMode, setGraphicNovelMode] = useState(false);
   const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
   useEffect(() => {
     if (!address) return;
@@ -155,6 +156,7 @@ export default function PrevisReadinessWorkspace({
   useEffect(() => {
     setSelectedFramePosition(1);
     setFlipBookPlaying(false);
+    setGraphicNovelMode(false);
     setGraphicNovelPlaying(false);
   }, [selectedBlockNumber, selectedMiniBlockNumber]);
 
@@ -413,7 +415,7 @@ export default function PrevisReadinessWorkspace({
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
                     </div>
                   )}
-                  {graphicNovelPlaying ? (
+                  {graphicNovelMode ? (
                     <aside className={styles.graphicNovelCaption} aria-live="polite">
                       <small>{selectedGraphicNovelPanel.caption}</small>
                       <strong>{selectedGraphicNovelPanel.narration}</strong>
@@ -431,13 +433,15 @@ export default function PrevisReadinessWorkspace({
                     setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1);
                   }}>Previous</button>
                   <button aria-pressed={flipBookPlaying} type="button" onClick={() => {
+                    setGraphicNovelMode(false);
                     setGraphicNovelPlaying(false);
                     setFlipBookPlaying((playing) => !playing);
                   }}>{flipBookPlaying ? "Pause Flip Book" : "Play Flip Book"}</button>
-                  <button aria-pressed={graphicNovelPlaying} type="button" onClick={() => {
+                  <button aria-pressed={graphicNovelMode} type="button" onClick={() => {
                     setFlipBookPlaying(false);
+                    setGraphicNovelMode(true);
                     setGraphicNovelPlaying((playing) => !playing);
-                  }}>{graphicNovelPlaying ? "Pause Graphic Novel" : "Play Graphic Novel"}</button>
+                  }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
                   <button disabled={!lockedFrameCount} type="button" onClick={exportGraphicNovel}>Export Graphic Novel</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);

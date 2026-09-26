@@ -1197,7 +1197,7 @@
     },
     "previs": {
       "surfaceId": "previs",
-      "label": "Previs / Graphic Novel",
+      "label": "Previs",
       "parent": "dashboard",
       "runtimeSelector": "main[aria-labelledby='previs-title']",
       "formatProfile": {
@@ -1208,7 +1208,7 @@
         "typography": "project-workspace"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Previs / Graphic Novel",
+        "globalSurfaceLabel": "Previs",
         "workspaceTitlePolicy": "rendered-project-aware-content",
         "alignment": "left"
       },

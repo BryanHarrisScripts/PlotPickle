@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "issue": 2485,
+  "phase": "previs-runtime-ownership",
+  "brief": "docs/developer-briefs/2485-previs-runtime-ownership.md",
+  "allowedChanges": [
+    "app/skin-v1/surface-orchestrator.tsx",
+    "config/development-convergence/2485.json",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "config/skin-v1-surface-registry.json",
+    "config/ui-continuity-agent-registry.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2485-previs-runtime-ownership.md",
+    "lib/verification/browser-probes/continuity.mjs",
+    "lib/verification/skin-v1-surface-registry.mjs",
+    "tests/issue-2404-storyboard-inline-continuity.test.mjs",
+    "tests/issue-2485-previs-runtime-ownership.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2485-A1",
+      "criterion": "Inline governed-surface ownership is canonical registry data, not a Storyboard-only runtime special case.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "ownsInlineSurfaces"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/surface-orchestrator.tsx",
+          "contains": "ownedInlineSurfaceIds"
+        }
+      ]
+    },
+    {
+      "id": "P2485-A2",
+      "criterion": "Previs remains the settled owner while its shared progressive Story Map stays visible.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"label\": \"Previs\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "normal-dashboard-stage-open-after-orchestrator-settle"
+        }
+      ]
+    },
+    {
+      "id": "P2485-A3",
+      "criterion": "Rendered continuity blocks requested-surface versus settled-surface mismatches.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "settled-orchestrator-surface-identity"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2485-previs-runtime-ownership.test.mjs",
+          "contains": "settled Option 1 stage identity"
+        }
+      ]
+    }
+  ]
+}

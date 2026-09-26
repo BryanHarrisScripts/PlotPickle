@@ -413,13 +413,37 @@ export default function PrevisReadinessWorkspace({
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
                     </div>
                   )}
+                  {graphicNovelPlaying ? (
+                    <aside className={styles.graphicNovelCaption} aria-live="polite">
+                      <small>{selectedGraphicNovelPanel.caption}</small>
+                      <strong>{selectedGraphicNovelPanel.narration}</strong>
+                      <span>{selectedGraphicNovelPanel.shotLabel}{selectedGraphicNovelPanel.shotContext ? ` · ${selectedGraphicNovelPanel.shotContext}` : ""}</span>
+                      <em>Derived Previs narration · presentation only</em>
+                    </aside>
+                  ) : null}
                   <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>
                 </div>
 
-                <div className={styles.flipBookControls} aria-label="Flip Book playback">
-                  <button type="button" onClick={() => setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1)}>Previous</button>
-                  <button aria-pressed={flipBookPlaying} type="button" onClick={() => setFlipBookPlaying((playing) => !playing)}>{flipBookPlaying ? "Pause" : "Play Flip Book"}</button>
-                  <button type="button" onClick={() => setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1)}>Next</button>
+                <div className={styles.flipBookControls} aria-label="Previs presentation playback">
+                  <button type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelPlaying(false);
+                    setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1);
+                  }}>Previous</button>
+                  <button aria-pressed={flipBookPlaying} type="button" onClick={() => {
+                    setGraphicNovelPlaying(false);
+                    setFlipBookPlaying((playing) => !playing);
+                  }}>{flipBookPlaying ? "Pause Flip Book" : "Play Flip Book"}</button>
+                  <button aria-pressed={graphicNovelPlaying} type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelPlaying((playing) => !playing);
+                  }}>{graphicNovelPlaying ? "Pause Graphic Novel" : "Play Graphic Novel"}</button>
+                  <button disabled={!lockedFrameCount} type="button" onClick={exportGraphicNovel}>Export Graphic Novel</button>
+                  <button type="button" onClick={() => {
+                    setFlipBookPlaying(false);
+                    setGraphicNovelPlaying(false);
+                    setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
+                  }}>Next</button>
                 </div>
               </div>
 
@@ -432,6 +456,7 @@ export default function PrevisReadinessWorkspace({
                     key={frame.position}
                     onClick={() => {
                       setFlipBookPlaying(false);
+                      setGraphicNovelPlaying(false);
                       setSelectedFramePosition(frame.position);
                     }}
                     type="button"

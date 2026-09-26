@@ -49,11 +49,13 @@ export function graphicNovelSpeechBubbles(
   passages: readonly StoryboardPlanningPassage[],
   position: number,
 ): readonly PrevisGraphicNovelBubble[] {
-  const evidence = storyboardPassageWindowForPosition(passages, position);
+  const evidenceIds = new Set(
+    storyboardPassageWindowForPosition(passages, position).map((passage) => passage.id),
+  );
   const bubbles: PrevisGraphicNovelBubble[] = [];
   let speaker = "";
 
-  for (const passage of evidence) {
+  for (const passage of passages) {
     const type = passage.type.toLocaleLowerCase();
     if (type === "character") {
       speaker = speakerName(passage.text);
@@ -61,6 +63,7 @@ export function graphicNovelSpeechBubbles(
     }
     if (type === "parenthetical") continue;
     if (type === "dialogue" || type === "dual-dialogue") {
+      if (!evidenceIds.has(passage.id)) continue;
       const text = clean(passage.text, 180);
       if (speaker && text) bubbles.push({ speaker, text, style: "speech" });
       if (bubbles.length >= 2) break;

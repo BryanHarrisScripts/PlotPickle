@@ -99,7 +99,8 @@ test("#2466 reads saved source-project approval metadata without switching the a
 test("#2466 requires exact saved Storyboard approval evidence before restoring a lock", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
-  assert.match(source, /sourceProjects\.find\(\(candidate\) => candidate\.id === resource\.originProjectId\)/u);
+  assert.match(source, /const directOrigin = source\.id === resource\.originProjectId/u);
+  assert.match(source, /provenanceMatches = directOrigin/u);
   assert.match(source, /artifact\.assetUrl === resource\.assetUrl/u);
   assert.match(source, /artifact\.workflow === "storyboard-frame-webp-v2"/u);
   assert.match(source, /artifact\.frameNumber === resource\.position/u);
@@ -114,7 +115,7 @@ test("#2466 keeps recovery draft-first and uses canonical acceptance only when p
   assert.match(source, /reviewState: "draft"/u);
   assert.match(source, /const priorApproval = priorAcceptedStoryboardArtifact\(resource, sourceProjects\)/u);
   assert.match(source, /if \(priorApproval\) \{[\s\S]*?type: "foundations\.visual\.accept",[\s\S]*?artifactId: id/u);
-  assert.match(source, /recovery-approved-artifact:\$\{priorApproval\.id\}/u);
+  assert.match(source, /recovery-approved-artifact:\$\{priorApproval\.artifact\.id\}/u);
   assert.match(source, /recovery-approval-source:saved-library/u);
   assert.match(source, /restoredLockedCount \+= 1/u);
 });

@@ -7,7 +7,7 @@ import {
   confirmedFindingNarration,
   normalizeConversationalUatState,
   pendingConversationalCandidates,
-} from "../build/dsdd/conversational-uat-runtime.ts";
+} from "../build/dsdd/conversational-uat-runtime.mjs";
 import { correlateConversationalFindings } from "../lib/verification/conversational-uat/referee.mjs";
 import { readFile } from "node:fs/promises";
 

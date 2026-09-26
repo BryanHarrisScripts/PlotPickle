@@ -576,7 +576,7 @@ export function storyboardPositionsForScope(
   return Array.from({ length: 5 }, (_, index) => start + index);
 }
 
-export function storyboardPassageWindowForPosition(
+function passageWindow(
   passages: readonly StoryboardPlanningPassage[],
   position: number,
 ) {
@@ -588,6 +588,13 @@ export function storyboardPassageWindowForPosition(
   const proportionalEnd = Math.ceil((position * passages.length) / 25);
   const end = Math.min(passages.length, Math.max(start + 1, proportionalEnd));
   return passages.slice(start, end);
+}
+
+export function storyboardPassageWindowForPosition(
+  passages: readonly StoryboardPlanningPassage[],
+  position: number,
+) {
+  return passageWindow(passages, position);
 }
 
 function clean(value: string, limit = 700) {

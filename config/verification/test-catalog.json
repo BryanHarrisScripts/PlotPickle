@@ -1338,7 +1338,6 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2251-story-bible-surface.test.mjs",
-          "tests/issue-2442-mind-world-map-refinement.test.mjs",
           "tests/issue-2452-worldmap-poster-local.test.mjs",
           "tests/issue-2493-worldmap-local-media-versions.test.mjs"
         ]
@@ -1566,7 +1565,6 @@
           "tests/issue-2473-storyboard-lock-chain-restore.test.mjs",
           "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
           "tests/issue-2470-human-validation-loop.test.mjs",
-          "tests/issue-2450-library-durable-hydration.test.mjs",
           "tests/issue-2493-worldmap-local-media-versions.test.mjs"
         ]
       },

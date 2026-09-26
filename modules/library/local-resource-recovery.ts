@@ -227,7 +227,10 @@ export function restoreLocalStoryboardResources(
         && existingArtifact.workflow === "storyboard-frame-webp-v2"
         && existingArtifact.frameNumber === resource.position
         && existingArtifact.reviewState !== "rejected"
-        && !current.build.foundations.acceptedVisualArtifactIds.includes(existingArtifact.id)
+        && (
+          existingArtifact.reviewState !== "accepted"
+          || !current.build.foundations.acceptedVisualArtifactIds.includes(existingArtifact.id)
+        )
       ) {
         current = applyStoryCommand(current, {
           type: "foundations.visual.accept",

@@ -189,6 +189,13 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
   return result.activeProject;
 }
 
+export function loadLibraryProjectSnapshot(projectId: string): LibraryPPFProject | null {
+  return libraryCore.readProfileProjectSnapshot({
+    ...coreInput(),
+    projectId,
+  }) as LibraryPPFProject | null;
+}
+
 export function listLibraryProjects() {
   return libraryCore.listProfileProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
 }

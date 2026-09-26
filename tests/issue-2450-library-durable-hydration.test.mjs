@@ -8,6 +8,10 @@ import { createInMemoryAuthStateStore, createPlotPickleAuthService } from "../co
 import { createServerSessionBoundary } from "../core/auth/server-session/server-session-boundary-core.mjs";
 import { createEmptyProject } from "../core/project/project.ts";
 import { WORLD_MAP_CHARACTER_VIEWS } from "../core/contracts/world-map/index.ts";
+import {
+  FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
+  FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
+} from "../core/contracts/build-progress.ts";
 import { normalizeLibraryProject } from "../core/storage/library-project.ts";
 import {
   hydrateProfileProjectLibrary,
@@ -30,21 +34,50 @@ class MemoryStorage {
 
 function richAfterglowProject() {
   const base = createEmptyProject({ id: "afterglow-working-copy", now: NOW, title: "Afterglow" });
-  const references = WORLD_MAP_CHARACTER_VIEWS.map((view, index) => ({
-    id: `wren-${view.id}`,
-    characterId: "wren",
-    characterName: "Wren",
-    view: view.id,
-    assetUrl: `/api/local-ai/assets/afterglow/wren-${index + 1}.webp`,
-    prompt: `Wren locked character reference · ${view.label}`,
-    provider: "local-comfyui",
-    model: "qwen-image",
-    createdAt: NOW,
-    reviewState: "approved",
-  }));
+  const references = Array.from({ length: 5 }, (_, versionIndex) => {
+    const version = versionIndex + 1;
+    const createdAt = `2026-09-25T17:${String(45 + version).padStart(2, "0")}:00.000Z`;
+    return WORLD_MAP_CHARACTER_VIEWS.map((view, viewIndex) => ({
+      id: `wren-v${version}-${view.id}`,
+      versionId: `wren-version-${version}`,
+      characterId: "wren",
+      characterName: "Wren",
+      view: view.id,
+      assetUrl: `/api/local-ai/assets/afterglow/wren-v${version}-${viewIndex + 1}.webp`,
+      prompt: `Wren saved character version ${version} · ${view.label}`,
+      provider: "local-comfyui",
+      model: "qwen-image",
+      createdAt,
+      reviewState: version === 5 ? "approved" : "draft",
+    }));
+  }).flat();
+  const posterArtifacts = Array.from({ length: 5 }, (_, index) => {
+    const version = index + 1;
+    return {
+      id: `afterglow-poster-version-${version}`,
+      assetUrl: `/api/local-ai/assets/afterglow/worldmap-poster-afterglow-working-copy-v${version}.webp`,
+      prompt: `Afterglow poster saved version ${version}`,
+      createdAt: `2026-09-25T17:${String(45 + version).padStart(2, "0")}:30.000Z`,
+      provider: "local-comfyui",
+      model: "qwen-image",
+      narrativeIntention: "PPF Marketing Reference · WorldMap poster",
+      curriculumFrontier: FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
+      sourceDecisionKeys: ["surface:worldmap"],
+      workflow: FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
+      reviewState: version === 5 ? "accepted" : "draft",
+      parentArtifactId: null,
+    };
+  });
   return normalizeLibraryProject({
     ...base,
     revision: 12,
+    build: {
+      ...base.build,
+      foundations: {
+        visualArtifacts: [...posterArtifacts].reverse(),
+        acceptedVisualArtifactIds: ["afterglow-poster-version-5"],
+      },
+    },
     discovery: {
       version: 1,
       cards: [
@@ -90,6 +123,7 @@ function richAfterglowProject() {
         characterId: "wren",
         characterName: "Wren",
         references,
+        lockedVersionId: "wren-version-5",
         approvedAt: NOW,
         updatedAt: NOW,
       }],
@@ -152,10 +186,13 @@ test("#2450 complete MindMap + Wren WorldMap state survives browser Library hydr
   ]);
   const wren = hydrated.activeProject.worldMap.characterVisuals.find((item) => item.characterId === "wren");
   assert.ok(wren);
-  assert.equal(wren.references.length, 8);
-  assert.equal(wren.references.every((reference) => reference.reviewState === "approved"), true);
+  assert.equal(wren.references.length, 40);
+  assert.equal(wren.references.filter((reference) => reference.reviewState === "approved").length, 8);
+  assert.equal(wren.lockedVersionId, "wren-version-5");
   assert.equal(wren.approvedAt, NOW);
-  assert.equal(wren.references[0].assetUrl, "/api/local-ai/assets/afterglow/wren-1.webp");
+  assert.equal(wren.references.every((reference) => reference.assetUrl.startsWith("/api/local-ai/assets/")), true);
+  assert.equal(hydrated.activeProject.build.foundations.visualArtifacts.filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW).length, 5);
+  assert.equal(hydrated.activeProject.build.foundations.acceptedVisualArtifactIds.includes("afterglow-poster-version-5"), true);
 
   const summaries = listProfileProjectSummaries(input);
   assert.equal(summaries.length, 1);
@@ -166,7 +203,9 @@ test("#2450 complete MindMap + Wren WorldMap state survives browser Library hydr
   const restarted = initializeProfileProjectLibrary(input);
   assert.equal(restarted.activeProject.id, project.id);
   assert.equal(restarted.activeProject.discovery.cards.length, 2);
-  assert.equal(restarted.activeProject.worldMap.characterVisuals[0].references.length, 8);
+  assert.equal(restarted.activeProject.worldMap.characterVisuals[0].references.length, 40);
+  assert.equal(restarted.activeProject.worldMap.characterVisuals[0].lockedVersionId, "wren-version-5");
+  assert.equal(restarted.activeProject.build.foundations.visualArtifacts.filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW).length, 5);
 });
 
 test("#2450 encrypted profile storage restores active full LibraryPPFProject in a new authenticated session", async (context) => {
@@ -218,9 +257,12 @@ test("#2450 encrypted profile storage restores active full LibraryPPFProject in 
   assert.equal(restored.id, "afterglow-working-copy");
   assert.equal(restored.discovery.cards.find((card) => card.sourceState === "agent-proposal")?.placement?.lane, "plot");
   const wren = restored.worldMap.characterVisuals.find((item) => item.characterId === "wren");
-  assert.equal(wren.references.length, 8);
-  assert.equal(wren.references.every((reference) => reference.reviewState === "approved"), true);
+  assert.equal(wren.references.length, 40);
+  assert.equal(wren.references.filter((reference) => reference.reviewState === "approved").length, 8);
+  assert.equal(wren.lockedVersionId, "wren-version-5");
   assert.equal(wren.approvedAt, NOW);
+  assert.equal(restored.build.foundations.visualArtifacts.filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW).length, 5);
+  assert.equal(restored.build.foundations.acceptedVisualArtifactIds.includes("afterglow-poster-version-5"), true);
 
   const summaries = await storage.listProjects(reopened.authContext);
   assert.equal(summaries.length, 2);
@@ -259,4 +301,12 @@ test("#2450 browser/profile boundaries use complete hydration and live MindMap/W
   assert.match(workspace, /Afterglow default · fresh copy/u);
   assert.match(workspace, /resume the saved Afterglow story listed below instead/u);
   assert.match(workspace, /Resume/u);
+});
+
+test("#2493 five saved WorldMap media versions remain bounded after normalization", () => {
+  const project = richAfterglowProject();
+  const wren = project.worldMap.characterVisuals.find((item) => item.characterId === "wren");
+  assert.equal(new Set(wren.references.map((reference) => reference.versionId)).size, 5);
+  assert.equal(project.build.foundations.visualArtifacts.filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW).length, 5);
+  assert.equal(wren.lockedVersionId, "wren-version-5");
 });

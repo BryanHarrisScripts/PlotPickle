@@ -19,7 +19,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
   );
   assert.deepEqual(
     rows.filter((row) => row.group === "PITCH").map((row) => row.label),
-    ["Package", "Deck", "Feedback"],
+    ["Deck", "Package", "Feedback"],
   );
 
   const roughCut = rows.find((row) => row.label === "Rough Cut");

@@ -66,7 +66,7 @@ $mode = if ($WebMCPTesting) {
       }
     } catch {
       # Some non-interactive PowerShell hosts cannot poll Console.KeyAvailable.
-      # Keep the timed default active rather than blocking on Read-Host.
+      # Keep the timed default active rather than blocking for input.
     }
 
     Start-Sleep -Milliseconds 100

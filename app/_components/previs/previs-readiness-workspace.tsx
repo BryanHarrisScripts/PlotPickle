@@ -155,15 +155,16 @@ export default function PrevisReadinessWorkspace({
   useEffect(() => {
     setSelectedFramePosition(1);
     setFlipBookPlaying(false);
+    setGraphicNovelPlaying(false);
   }, [selectedBlockNumber, selectedMiniBlockNumber]);
 
   useEffect(() => {
-    if (!flipBookPlaying) return;
+    if (!flipBookPlaying && !graphicNovelPlaying) return;
     const timer = window.setInterval(() => {
       setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
-    }, 220);
+    }, graphicNovelPlaying ? PREVIS_GRAPHIC_NOVEL_INTERVAL_MS : PREVIS_FLIP_BOOK_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [flipBookPlaying]);
+  }, [flipBookPlaying, graphicNovelPlaying]);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);

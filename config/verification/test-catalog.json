@@ -1681,6 +1681,49 @@
         ]
       },
       "notes": "#2495 proves Sharp is a direct production dependency, Windows startup refuses an unloadable Sharp runtime, targeted repair is wired, and Previs defers Sharp loading until the export operation can handle failure."
+    },
+    {
+      "id": "production.windows-runtime-native-media-readiness",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-harness"
+      ],
+      "triggerTokens": [
+        "native",
+        "windows",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/windows-native-runtime.test.mjs",
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#2495 proves the reusable Windows runtime owns a loadable Sharp image engine and that Previs WebP export fails cleanly if that engine is unavailable."
     }
   ]
 }

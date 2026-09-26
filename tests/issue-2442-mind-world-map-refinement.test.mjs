@@ -4,12 +4,14 @@ import test from "node:test";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog.ts";
 import { buildWorldPlanLessons } from "../core/contracts/world-plan/index.ts";
 import {
+  WORLD_MAP_CHARACTER_MAX_VERSIONS,
   WORLD_MAP_CHARACTER_VIEWS,
-  approveWorldMapCharacterVisualPackage,
   approvedWorldMapCharacterReferences,
   createEmptyWorldMapState,
+  lockWorldMapCharacterVisualVersion,
   normalizeWorldMapState,
-  upsertWorldMapCharacterVisualPackage,
+  saveWorldMapCharacterVisualVersion,
+  worldMapCharacterVisualVersions,
 } from "../core/contracts/world-map/index.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -89,8 +91,9 @@ test("#2442 World Map exposes World-agent proposal edit save without silent cano
   assert.equal(parsed.surfaces.find((item) => item.id === "story-bible")?.label, "World Map");
 });
 
-test("#2442 World Map character visuals use eight governed views and require Human approval", async () => {
+test("#2442/#2493 World Map character visuals use eight governed views, explicit Save, and one lock", async () => {
   assert.equal(WORLD_MAP_CHARACTER_VIEWS.length, 8);
+  assert.equal(WORLD_MAP_CHARACTER_MAX_VERSIONS, 5);
   assert.deepEqual(
     WORLD_MAP_CHARACTER_VIEWS.map((item) => item.id),
     [
@@ -106,8 +109,10 @@ test("#2442 World Map character visuals use eight governed views and require Hum
   );
 
   const createdAt = "2026-09-25T12:00:00.000Z";
+  const versionId = "joy-version-1";
   const refs = WORLD_MAP_CHARACTER_VIEWS.map((view) => ({
     id: `ref-${view.id}`,
+    versionId,
     characterId: "joy",
     characterName: "Joy",
     view: view.id,
@@ -118,23 +123,27 @@ test("#2442 World Map character visuals use eight governed views and require Hum
     createdAt,
     reviewState: "draft",
   }));
-  let state = upsertWorldMapCharacterVisualPackage(createEmptyWorldMapState(), {
+  let state = saveWorldMapCharacterVisualVersion(createEmptyWorldMapState(), {
     characterId: "joy",
     characterName: "Joy",
+    versionId,
     references: refs,
-    approvedAt: null,
-    updatedAt: createdAt,
+    savedAt: createdAt,
   });
   assert.equal(approvedWorldMapCharacterReferences(state, "joy").length, 0);
-  state = approveWorldMapCharacterVisualPackage(state, "joy", "2026-09-25T12:05:00.000Z");
+  assert.equal(worldMapCharacterVisualVersions(state, "joy").length, 1);
+  state = lockWorldMapCharacterVisualVersion(state, "joy", versionId, "2026-09-25T12:05:00.000Z");
   assert.equal(approvedWorldMapCharacterReferences(state, "joy").length, 8);
-  assert.equal(normalizeWorldMapState(state).characterVisuals[0].references.every((ref) => ref.reviewState === "approved"), true);
+  assert.equal(worldMapCharacterVisualVersions(state, "joy")[0].locked, true);
+  assert.equal(normalizeWorldMapState(state).characterVisuals[0].lockedVersionId, versionId);
 
   const source = await read("app/skin-v1/story-bible-surface.tsx");
   assert.match(source, /Generate Character Visual/u);
   assert.match(source, /Generate eight character-reference views/u);
-  assert.match(source, /complete all eight views before approval/u);
-  assert.match(source, /Approve \/ Lock Character Visuals/u);
+  assert.match(source, /Save this Version/u);
+  assert.match(source, /Lock this Version/u);
+  assert.match(source, /exactly one may be locked/u);
+  assert.doesNotMatch(source, /Approve \/ Lock Character Visuals/u);
   assert.match(source, /billingAcknowledged: true/u);
 });
 

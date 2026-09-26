@@ -21,6 +21,7 @@ export interface FoundationsVisualArtifact {
 export const FOUNDATIONS_MARKETING_REFERENCE_RECIPE = "foundations-first-poster-v1" as const;
 export const FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW = `marquee-director/${FOUNDATIONS_MARKETING_REFERENCE_RECIPE}` as const;
 export const FOUNDATIONS_MARKETING_REFERENCE_FRONTIER = "Foundations" as const;
+export const MARKETING_REFERENCE_MAX_VERSIONS = 5 as const;
 
 export type MarketingReferenceArtifact = FoundationsVisualArtifact & {
   readonly workflow: typeof FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW;
@@ -33,8 +34,24 @@ export function isMarketingReferenceArtifact(artifact: FoundationsVisualArtifact
     && artifact.reviewState !== "rejected";
 }
 
+export function marketingReferenceVersions(artifacts: readonly FoundationsVisualArtifact[]) {
+  return artifacts
+    .filter(isMarketingReferenceArtifact)
+    .slice()
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, MARKETING_REFERENCE_MAX_VERSIONS);
+}
+
+export function lockedMarketingReference(
+  artifacts: readonly FoundationsVisualArtifact[],
+  acceptedVisualArtifactIds: readonly string[],
+) {
+  const accepted = new Set(acceptedVisualArtifactIds);
+  return marketingReferenceVersions(artifacts).find((artifact) => accepted.has(artifact.id)) ?? null;
+}
+
 export function currentMarketingReference(artifacts: readonly FoundationsVisualArtifact[]) {
-  return artifacts.find(isMarketingReferenceArtifact) ?? null;
+  return marketingReferenceVersions(artifacts)[0] ?? null;
 }
 
 export function marketingReferenceSourceKeys(input: {

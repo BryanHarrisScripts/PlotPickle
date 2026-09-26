@@ -1337,7 +1337,9 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2251-story-bible-surface.test.mjs"
+          "tests/issue-2251-story-bible-surface.test.mjs",
+          "tests/issue-2452-worldmap-poster-local.test.mjs",
+          "tests/issue-2493-worldmap-local-media-versions.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1362,7 +1364,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2251 protects Story Bible connectivity, active-story gating, the canonical read-only projection surface and the frozen 30-surface standard capture set. #2266 supersedes the former Write-adjacent companion layout with the Pre-Production boundary. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
+      "notes": "#2251 protects Story Bible connectivity, active-story gating, the canonical read-only projection surface and the frozen 30-surface standard capture set. #2266 supersedes the former Write-adjacent companion layout with the Pre-Production boundary. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites. #2493 separates WorldMap Generate, Save and Lock and adds bounded saved-version browsing."
     },
     {
       "id": "verification.browser-verification-broker-2246",
@@ -1562,7 +1564,8 @@
           "tests/issue-2466-storyboard-lock-restore.test.mjs",
           "tests/issue-2473-storyboard-lock-chain-restore.test.mjs",
           "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
-          "tests/issue-2470-human-validation-loop.test.mjs"
+          "tests/issue-2470-human-validation-loop.test.mjs",
+          "tests/issue-2493-worldmap-local-media-versions.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1588,7 +1591,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven. #2483 keeps Storyboard browsing presentation-only, excludes rejected candidates, and treats recovery prompt placeholders as unavailable rather than as canon/provenance truth. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
+      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven. #2483 keeps Storyboard browsing presentation-only, excludes rejected candidates, and treats recovery prompt placeholders as unavailable rather than as canon/provenance truth. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage. #2493 proves WorldMap poster/character saved-version history and single locks survive Library/profile-private persistence."
     },
     {
       "id": "story-canon.previs-graphic-novel-2471",

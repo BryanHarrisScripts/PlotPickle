@@ -4,12 +4,20 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import {
+  WORLD_MAP_CHARACTER_MAX_VERSIONS,
   WORLD_MAP_CHARACTER_VIEWS,
-  approveWorldMapCharacterVisualPackage,
-  upsertWorldMapCharacterVisualPackage,
-  worldMapCharacterVisualPackage,
+  approvedWorldMapCharacterReferences,
+  lockWorldMapCharacterVisualVersion,
+  saveWorldMapCharacterVisualVersion,
+  worldMapCharacterVisualVersions,
   type WorldMapCharacterVisualReference,
 } from "../../core/contracts/world-map";
+import {
+  MARKETING_REFERENCE_MAX_VERSIONS,
+  lockedMarketingReference,
+  marketingReferenceVersions,
+  type MarketingReferenceArtifact,
+} from "../../core/contracts/build-progress";
 import { projectStoryBible, type StoryBibleCharacter, type StoryBibleFact, type StoryBibleFactGroup } from "../../core/project/story-bible-projection";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import { saveActiveLibraryProject } from "../../core/storage/project-library-browser";
@@ -239,26 +247,35 @@ function characterVisualEvidence(character: StoryBibleCharacter, project: Librar
 }
 
 function CharacterVisualSheet({ character, project }: { readonly character: StoryBibleCharacter; readonly project: LibraryPPFProject }) {
-  const visualPackage = worldMapCharacterVisualPackage(project.worldMap, character.id);
+  const versions = worldMapCharacterVisualVersions(project.worldMap, character.id);
+  const lockedReferences = approvedWorldMapCharacterReferences(project.worldMap, character.id);
+  const lockedIndex = Math.max(0, versions.findIndex((version) => version.locked));
+  const [selectedVersionIndex, setSelectedVersionIndex] = useState(lockedIndex);
+  const [candidate, setCandidate] = useState<Readonly<{
+    versionId: string;
+    references: readonly WorldMapCharacterVisualReference[];
+  }> | null>(null);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("");
-  const draftCount = visualPackage?.references.filter((reference) => reference.reviewState === "draft").length ?? 0;
-  const approvedCount = visualPackage?.references.filter((reference) => reference.reviewState === "approved").length ?? 0;
-  const completeViewCoverage = WORLD_MAP_CHARACTER_VIEWS.every((view) => (
-    visualPackage?.references.some((reference) => reference.view === view.id) ?? false
+  const safeVersionIndex = Math.min(selectedVersionIndex, Math.max(versions.length - 1, 0));
+  const selectedVersion = versions[safeVersionIndex] ?? null;
+  const displayedReferences = candidate?.references ?? selectedVersion?.references ?? [];
+  const completeCandidateCoverage = WORLD_MAP_CHARACTER_VIEWS.every((view) => (
+    displayedReferences.some((reference) => reference.view === view.id)
   ));
+  const atVersionLimit = versions.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS;
 
   async function generateSheet() {
-    if (working) return;
+    if (working || candidate || atVersionLimit) return;
     const billingAcknowledged = window.confirm("Generate eight character-reference views? A connected cloud image provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
     if (!billingAcknowledged) {
       setNotice("Character visual generation cancelled. No provider request was made.");
       return;
     }
     setWorking(true);
+    const versionId = globalThis.crypto?.randomUUID?.() ?? `worldmap-character-version-${Date.now()}`;
     const generated: WorldMapCharacterVisualReference[] = [];
     const failures: string[] = [];
-    const existingApproved = visualPackage?.references.filter((reference) => reference.reviewState === "approved").map((reference) => reference.assetUrl) ?? [];
     const identityEvidence = characterVisualEvidence(character, project);
     try {
       for (let index = 0; index < WORLD_MAP_CHARACTER_VIEWS.length; index += 1) {
@@ -273,14 +290,14 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
           "If a physical trait is not established by the supplied evidence, keep it neutral and proposal-level rather than presenting an invented trait as canon.",
         ].join(" ");
         try {
-          const identityReference = generated[0]?.assetUrl ?? existingApproved[0] ?? "";
+          const identityReference = generated[0]?.assetUrl ?? lockedReferences[0] ?? "";
           const response = await fetch("/api/local-ai/generate/image", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               prompt,
               characterId: character.id,
-              assetId: `world-map-character-${character.id}-${view.id}`,
+              assetId: `world-map-character-${character.id}-${versionId}-${view.id}`,
               aspect: "portrait",
               quality: "low",
               referenceImages: identityReference ? [identityReference] : [],
@@ -290,8 +307,10 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
           });
           const result = await response.json() as ImageResponse;
           if (!response.ok || !result.ok || !result.assetUrl) throw new Error(result.message || "Image provider returned no image.");
+          if (!result.assetUrl.startsWith("/api/local-ai/assets/")) throw new Error("Generated character media was not saved to PlotPickle local assets.");
           generated.push({
-            id: globalThis.crypto.randomUUID(),
+            id: globalThis.crypto?.randomUUID?.() ?? `worldmap-character-${character.id}-${Date.now()}-${index}`,
+            versionId,
             characterId: character.id,
             characterName: character.name,
             view: view.id,
@@ -308,59 +327,110 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       }
 
       if (generated.length) {
-        const now = new Date().toISOString();
-        const nextPackage = {
-          characterId: character.id,
-          characterName: character.name,
-          references: [...(visualPackage?.references ?? []), ...generated],
-          approvedAt: visualPackage?.approvedAt ?? null,
-          updatedAt: now,
-        };
-        saveActiveLibraryProject({
-          ...project,
-          revision: project.revision + 1,
-          updatedAt: now,
-          worldMap: upsertWorldMapCharacterVisualPackage(project.worldMap, nextPackage),
-        });
+        setCandidate({ versionId, references: generated });
+        setNotice(
+          `${generated.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} character views generated but NOT SAVED. Choose Save this Version to keep this generation with the story.`
+          + (failures.length ? ` ${failures.join(" ")}` : ""),
+        );
+      } else {
+        setNotice(failures.join(" ") || "No character views were generated.");
       }
-      setNotice(
-        `${generated.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} draft character views generated.`
-        + (failures.length ? ` ${failures.join(" ")}` : " Review the sheet, then approve it before Storyboard can use it."),
-      );
     } finally {
       setWorking(false);
     }
   }
 
-  function approveSheet() {
-    if (!visualPackage?.references.some((reference) => reference.reviewState === "draft")) return;
+  function saveCandidate() {
+    if (!candidate || atVersionLimit) return;
+    const now = new Date().toISOString();
+    const worldMap = saveWorldMapCharacterVisualVersion(project.worldMap, {
+      characterId: character.id,
+      characterName: character.name,
+      versionId: candidate.versionId,
+      references: candidate.references,
+      savedAt: now,
+    });
+    saveActiveLibraryProject({
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: now,
+      worldMap,
+    });
+    setCandidate(null);
+    setSelectedVersionIndex(0);
+    setNotice("SAVED locally with this story. You can keep up to five versions and lock one for downstream use.");
+  }
+
+  function lockSelectedVersion() {
+    if (!selectedVersion?.complete || selectedVersion.locked) return;
     const now = new Date().toISOString();
     saveActiveLibraryProject({
       ...project,
       revision: project.revision + 1,
       updatedAt: now,
-      worldMap: approveWorldMapCharacterVisualPackage(project.worldMap, character.id, now),
+      worldMap: lockWorldMapCharacterVisualVersion(project.worldMap, character.id, selectedVersion.id, now),
     });
-    setNotice("Character visual package approved and locked for downstream Storyboard reference use.");
+    setNotice("LOCKED. This saved character generation is now the only WorldMap identity package used downstream.");
   }
 
   return (
     <div className={styles.visualSheet} data-world-map-character-visual={character.id}>
       <div className={styles.actions}>
-        <button className={styles.primaryAction} type="button" disabled={working} onClick={() => void generateSheet()}>
-          {working ? "Generating character views…" : "Generate Character Visual"}
+        <button
+          className={styles.primaryAction}
+          type="button"
+          disabled={working || Boolean(candidate) || atVersionLimit}
+          onClick={() => void generateSheet()}
+        >
+          {working ? "Generating character views…" : atVersionLimit ? "5 Saved Versions" : "Generate Character Visual"}
         </button>
-        <button type="button" disabled={!draftCount || !completeViewCoverage || working} onClick={approveSheet}>Approve / Lock Character Visuals</button>
+        {candidate ? (
+          <button type="button" disabled={!candidate.references.length || atVersionLimit || working} onClick={saveCandidate}>
+            Save this Version
+          </button>
+        ) : selectedVersion ? (
+          <button type="button" disabled={!selectedVersion.complete || selectedVersion.locked || working} onClick={lockSelectedVersion}>
+            {selectedVersion.locked ? "Locked" : "Lock this Version"}
+          </button>
+        ) : null}
       </div>
-      <small>{approvedCount} approved · {draftCount} draft · target {WORLD_MAP_CHARACTER_VIEWS.length} governed views{completeViewCoverage ? "" : " · complete all eight views before approval"}</small>
-      {visualPackage?.references.length ? (
+
+      <div className={styles.versionBar} aria-label={`${character.name} saved character versions`}>
+        <button
+          aria-label="Previous saved version"
+          disabled={Boolean(candidate) || safeVersionIndex <= 0}
+          onClick={() => setSelectedVersionIndex((index) => Math.max(0, index - 1))}
+          type="button"
+        >‹</button>
+        <strong>
+          {candidate
+            ? `UNSAVED · ${candidate.references.length}/${WORLD_MAP_CHARACTER_VIEWS.length} views`
+            : selectedVersion
+              ? `${selectedVersion.locked ? "LOCKED" : "SAVED"} · Version ${safeVersionIndex + 1} of ${versions.length}`
+              : "NO SAVED VERSIONS"}
+        </strong>
+        <button
+          aria-label="Next saved version"
+          disabled={Boolean(candidate) || safeVersionIndex >= versions.length - 1}
+          onClick={() => setSelectedVersionIndex((index) => Math.min(versions.length - 1, index + 1))}
+          type="button"
+        >›</button>
+      </div>
+
+      <small>{versions.length}/{WORLD_MAP_CHARACTER_MAX_VERSIONS} saved generation{versions.length === 1 ? "" : "s"} · exactly one may be locked</small>
+      {displayedReferences.length ? (
         <div className={styles.referenceGrid}>
           {WORLD_MAP_CHARACTER_VIEWS.map((view) => {
-            const reference = [...visualPackage.references].reverse().find((item) => item.view === view.id);
+            const reference = displayedReferences.find((item) => item.view === view.id);
             return reference ? (
-              <figure key={view.id} data-review-state={reference.reviewState}>
+              <figure
+                key={view.id}
+                data-review-state={candidate ? "candidate" : selectedVersion?.locked ? "approved" : "draft"}
+              >
                 <Image src={reference.assetUrl} alt={`${character.name} · ${view.label}`} width={240} height={320} unoptimized />
-                <figcaption>{view.label} · {reference.reviewState.toUpperCase()}</figcaption>
+                <figcaption>
+                  {view.label} · {candidate ? "GENERATED / NOT SAVED" : selectedVersion?.locked ? "LOCKED" : "SAVED"}
+                </figcaption>
               </figure>
             ) : (
               <div className={styles.referenceEmpty} key={view.id}>{view.label}<br />NOT GENERATED</div>
@@ -368,6 +438,7 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
           })}
         </div>
       ) : null}
+      {candidate && !completeCandidateCoverage ? <small>Partial generation may be saved, but only a complete eight-view saved version can be locked.</small> : null}
       {notice ? <small role="status">{notice}</small> : null}
     </div>
   );
@@ -375,11 +446,26 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
 
 export default function StoryBibleSurface({ project }: { readonly project: LibraryPPFProject }) {
   const bible = useMemo(() => projectStoryBible(project, plotPickleCurriculum), [project]);
+  const posterVersions = useMemo(
+    () => marketingReferenceVersions(project.build.foundations.visualArtifacts),
+    [project.build.foundations.visualArtifacts],
+  );
+  const lockedPoster = useMemo(
+    () => lockedMarketingReference(project.build.foundations.visualArtifacts, project.build.foundations.acceptedVisualArtifactIds),
+    [project.build.foundations.visualArtifacts, project.build.foundations.acceptedVisualArtifactIds],
+  );
+  const initialPosterIndex = Math.max(0, posterVersions.findIndex((artifact) => artifact.id === lockedPoster?.id));
+  const [posterVersionIndex, setPosterVersionIndex] = useState(initialPosterIndex);
+  const [posterCandidate, setPosterCandidate] = useState<MarketingReferenceArtifact | null>(null);
   const [posterWorking, setPosterWorking] = useState(false);
   const [posterNotice, setPosterNotice] = useState("");
+  const safePosterIndex = Math.min(posterVersionIndex, Math.max(posterVersions.length - 1, 0));
+  const selectedPoster = posterVersions[safePosterIndex] ?? null;
+  const displayedPoster = posterCandidate ?? selectedPoster;
+  const posterAtVersionLimit = posterVersions.length >= MARKETING_REFERENCE_MAX_VERSIONS;
 
   async function generatePosterVisual() {
-    if (posterWorking || bible.posterUrl) return;
+    if (posterWorking || posterCandidate || posterAtVersionLimit) return;
     if (bible.logline.state === "not-established" || !bible.logline.value.trim()) {
       setPosterNotice("Establish the story logline before generating the WorldMap poster.");
       return;
@@ -391,7 +477,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
     }
 
     setPosterWorking(true);
-    setPosterNotice("Generating the WorldMap poster and saving it to local PlotPickle assets…");
+    setPosterNotice("Generating the WorldMap poster to local PlotPickle assets. It will remain UNSAVED until you choose Save this Version.");
     const prompt = worldMapPosterPrompt({
       title: bible.title,
       logline: bible.logline.value,
@@ -406,7 +492,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt,
-          assetId: `worldmap-poster-${project.id}`,
+          assetId: `worldmap-poster-${project.id}-${Date.now()}`,
           aspect: "portrait",
           quality: "low",
           requestCount: 1,
@@ -424,13 +510,13 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
       const baseArtifact = createFirstMarketingReferenceArtifact({
         id: globalThis.crypto?.randomUUID?.() ?? `worldmap-poster-${Date.now()}`,
         assetUrl: result.assetUrl,
-        prompt,
+        prompt: result.revisedPrompt || prompt,
         createdAt: now,
         provider: result.provider || "configured image route",
         model: result.model || "",
         context,
       });
-      const artifact = {
+      setPosterCandidate({
         ...baseArtifact,
         narrativeIntention: "PPF Marketing Reference · WorldMap poster",
         sourceDecisionKeys: [
@@ -441,19 +527,49 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           "billing:producer:tbd",
           "billing:musical-score:tbd",
         ],
-      };
-      const next = applyStoryCommand(project, {
-        type: "foundations.visual.store",
-        artifact,
-        occurredAt: now,
-      }) as LibraryPPFProject;
-      saveActiveLibraryProject(next);
-      setPosterNotice("Poster saved with this story as a local PPF Marketing Reference. Credit identities remain TBD until established.");
+      });
+      setPosterNotice("Poster generated but NOT SAVED. Choose Save this Version to keep it with this story.");
     } catch (error) {
       setPosterNotice(error instanceof Error ? error.message : "The WorldMap poster could not be generated.");
     } finally {
       setPosterWorking(false);
     }
+  }
+
+  function savePosterVersion() {
+    if (!posterCandidate || posterAtVersionLimit) return;
+    const now = new Date().toISOString();
+    const next = applyStoryCommand(project, {
+      type: "foundations.visual.store",
+      artifact: posterCandidate,
+      occurredAt: now,
+    }) as LibraryPPFProject;
+    saveActiveLibraryProject(next);
+    setPosterCandidate(null);
+    setPosterVersionIndex(0);
+    setPosterNotice("SAVED locally with this story. You can keep up to five poster versions and lock one.");
+  }
+
+  function lockPosterVersion() {
+    if (!selectedPoster || selectedPoster.id === lockedPoster?.id) return;
+    const now = new Date().toISOString();
+    let next: LibraryPPFProject = project;
+    for (const artifact of posterVersions) {
+      if (artifact.id !== selectedPoster.id && project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id)) {
+        next = applyStoryCommand(next, {
+          type: "foundations.visual.unaccept",
+          artifactId: artifact.id,
+          occurredAt: now,
+        }) as LibraryPPFProject;
+      }
+    }
+    next = applyStoryCommand(next, {
+      type: "foundations.visual.accept",
+      artifactId: selectedPoster.id,
+      occurredAt: now,
+    }) as LibraryPPFProject;
+    saveActiveLibraryProject(next);
+    setPosterNotice("LOCKED. This saved poster is now the selected WorldMap Marketing Reference; other saved versions remain available.");
   }
 
   return (
@@ -467,23 +583,58 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
     >
       <section className={styles.hero}>
         <div className={styles.poster}>
-          {bible.posterUrl ? (
+          {displayedPoster ? (
             <Image
-              src={bible.posterUrl}
+              src={displayedPoster.assetUrl}
               alt={`${bible.title} poster / marketing reference`}
               width={640}
               height={960}
               unoptimized
             />
           ) : (
-            <div className={styles.posterAction}>
-              <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
-              <button className={styles.primaryAction} disabled={posterWorking} onClick={() => void generatePosterVisual()} type="button">
-                {posterWorking ? "Generating Poster…" : "Generate Poster Visual"}
-              </button>
-            </div>
+            <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
           )}
-          <small>{bible.posterLabel}</small>
+
+          <div className={styles.versionBar} aria-label="Saved poster versions">
+            <button
+              aria-label="Previous saved version"
+              disabled={Boolean(posterCandidate) || safePosterIndex <= 0}
+              onClick={() => setPosterVersionIndex((index) => Math.max(0, index - 1))}
+              type="button"
+            >‹</button>
+            <strong>
+              {posterCandidate
+                ? "UNSAVED · generated candidate"
+                : selectedPoster
+                  ? `${selectedPoster.id === lockedPoster?.id ? "LOCKED" : "SAVED"} · Version ${safePosterIndex + 1} of ${posterVersions.length}`
+                  : "NO SAVED VERSIONS"}
+            </strong>
+            <button
+              aria-label="Next saved version"
+              disabled={Boolean(posterCandidate) || safePosterIndex >= posterVersions.length - 1}
+              onClick={() => setPosterVersionIndex((index) => Math.min(posterVersions.length - 1, index + 1))}
+              type="button"
+            >›</button>
+          </div>
+
+          <div className={styles.actions}>
+            <button
+              className={styles.primaryAction}
+              disabled={posterWorking || Boolean(posterCandidate) || posterAtVersionLimit}
+              onClick={() => void generatePosterVisual()}
+              type="button"
+            >
+              {posterWorking ? "Generating Poster…" : posterAtVersionLimit ? "5 Saved Versions" : "Generate Poster Visual"}
+            </button>
+            {posterCandidate ? (
+              <button disabled={posterWorking || posterAtVersionLimit} onClick={savePosterVersion} type="button">Save this Version</button>
+            ) : selectedPoster ? (
+              <button disabled={selectedPoster.id === lockedPoster?.id} onClick={lockPosterVersion} type="button">
+                {selectedPoster.id === lockedPoster?.id ? "Locked" : "Lock this Version"}
+              </button>
+            ) : null}
+          </div>
+          <small>{posterVersions.length}/{MARKETING_REFERENCE_MAX_VERSIONS} saved poster version{posterVersions.length === 1 ? "" : "s"} · exactly one may be locked</small>
           {posterNotice ? <small role="status">{posterNotice}</small> : null}
         </div>
 

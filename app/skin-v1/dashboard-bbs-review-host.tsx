@@ -456,7 +456,7 @@ export default function DashboardBbsReviewHost({
     return (
       <section
         aria-label={label}
-        data-dashboard-review-surface="sound"
+        data-dashboard-review-surface={itemId}
         data-review-state="in-review"
         onKeyDown={(event) => {
           if (event.key === "Escape") { event.preventDefault(); returnDashboard(itemId); }

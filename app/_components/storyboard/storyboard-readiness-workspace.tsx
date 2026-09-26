@@ -566,14 +566,15 @@ export default function StoryboardReadinessWorkspace({
                     label: artifact.narrativeIntention || "Generated frame candidate",
                     prompt: exactStoryboardPrompt(artifact.prompt),
                   }));
-                  const linkedPositionImages = (shot?.frames ?? []).map((frame) => {
+                  const linkedPositionImages = (shot?.frames ?? []).flatMap((frame) => {
                     const artifact = visualArtifacts.find((candidate) => candidate.id === frame.id);
-                    return {
+                    if (artifact?.reviewState === "rejected") return [];
+                    return [{
                       id: frame.id,
                       assetUrl: frame.assetUrl,
                       label: `${frame.accepted ? "Kept" : "Candidate"} · ${frame.narrativePurpose || frame.id}`,
-                      prompt: exactStoryboardPrompt(artifact?.prompt),
-                    };
+                      prompt: artifact?.workflow === "storyboard-frame-webp-v2" ? exactStoryboardPrompt(artifact.prompt) : "",
+                    }];
                   });
                   const positionImages = [...generatedPositionImages, ...linkedPositionImages, ...miniReferenceImages]
                     .filter((image, imageIndex, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === imageIndex);

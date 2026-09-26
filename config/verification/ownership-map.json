@@ -403,6 +403,21 @@
       ]
     },
     {
+      "id": "windows-persistent-runtime",
+      "classification": "production",
+      "include": [
+        "Start-PlotPickle.bat",
+        "scripts/windows-runtime.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "provider",
+        "security",
+        "windows"
+      ]
+    },
+    {
       "id": "root-vite-runtime-config",
       "classification": "production",
       "include": [
@@ -494,7 +509,8 @@
         "build/media-provider-common.ts",
         "build/media-routing-gateway.ts",
         "build/media-routing-store.ts",
-        "lib/runtime/ai/local-runtime.ts"
+        "lib/runtime/ai/local-runtime.ts",
+        "build/media-storage-common.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

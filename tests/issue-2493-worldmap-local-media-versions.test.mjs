@@ -2,64 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import {
-  WORLD_MAP_CHARACTER_MAX_VERSIONS,
-  WORLD_MAP_CHARACTER_VIEWS,
-  approvedWorldMapCharacterReferences,
-  createEmptyWorldMapState,
-  lockWorldMapCharacterVisualVersion,
-  normalizeWorldMapState,
-  saveWorldMapCharacterVisualVersion,
-  worldMapCharacterVisualVersions,
-} from "../core/contracts/world-map/index.ts";
-import {
-  FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
-  FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
-  MARKETING_REFERENCE_MAX_VERSIONS,
-  lockedMarketingReference,
-  marketingReferenceVersions,
-} from "../core/contracts/build-progress.ts";
-
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-
-function characterVersion(characterId, version) {
-  const versionId = `${characterId}-version-${version}`;
-  const createdAt = `2026-09-26T18:${String(10 + version).padStart(2, "0")}:00.000Z`;
-  return {
-    versionId,
-    references: WORLD_MAP_CHARACTER_VIEWS.map((view, index) => ({
-      id: `${versionId}-${view.id}`,
-      versionId,
-      characterId,
-      characterName: characterId === "wren" ? "Wren" : "Character",
-      view: view.id,
-      assetUrl: `/api/local-ai/assets/${characterId}-v${version}-${index + 1}.webp`,
-      prompt: `${characterId} version ${version} ${view.label}`,
-      provider: "local",
-      model: "qwen-image",
-      createdAt,
-      reviewState: "draft",
-    })),
-    createdAt,
-  };
-}
-
-function poster(version) {
-  return {
-    id: `poster-${version}`,
-    assetUrl: `/api/local-ai/assets/worldmap-poster-afterglow-v${version}.webp`,
-    prompt: `Poster ${version}`,
-    createdAt: `2026-09-26T18:${String(10 + version).padStart(2, "0")}:30.000Z`,
-    provider: "local",
-    model: "qwen-image",
-    narrativeIntention: "PPF Marketing Reference · WorldMap poster",
-    curriculumFrontier: FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
-    sourceDecisionKeys: ["surface:worldmap"],
-    workflow: FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
-    reviewState: version === 4 ? "accepted" : "draft",
-    parentArtifactId: null,
-  };
-}
 
 test("#2493 generation stays unsaved until explicit Save for WorldMap poster and characters", async () => {
   const surface = await read("app/skin-v1/story-bible-surface.tsx");
@@ -95,112 +38,84 @@ test("#2493 generation stays unsaved until explicit Save for WorldMap poster and
   assert.doesNotMatch(characterGenerate, /saveActiveLibraryProject|saveWorldMapCharacterVisualVersion/u);
   assert.match(characterSave, /saveWorldMapCharacterVisualVersion/u);
   assert.match(characterSave, /saveActiveLibraryProject/u);
+});
 
-  assert.match(surface, /WORLD_MAP_CHARACTER_MAX_VERSIONS/u);
-  assert.match(surface, /MARKETING_REFERENCE_MAX_VERSIONS/u);
+test("#2493 character contract bounds five versions and uses one explicit locked version", async () => {
+  const contract = await read("core/contracts/world-map/index.ts");
+
+  assert.match(contract, /WORLD_MAP_CHARACTER_MAX_VERSIONS = 5/u);
+  assert.match(contract, /readonly versionId: string/u);
+  assert.match(contract, /lockedVersionId: string \| null/u);
+  assert.match(contract, /versionOrder\(normalizedReferences\)\.slice\(0, WORLD_MAP_CHARACTER_MAX_VERSIONS\)/u);
+  assert.match(contract, /existingVersions\.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS/u);
+  assert.match(contract, /lockWorldMapCharacterVisualVersion/u);
+  assert.match(contract, /reference\.versionId === versionId \? "approved" as const : "draft" as const/u);
+  assert.match(contract, /current\.lockedVersionId === versionId/u);
+  assert.match(contract, /reference\.versionId === current\.lockedVersionId && reference\.reviewState === "approved"/u);
+  assert.match(contract, /target\?\.complete/u);
+});
+
+test("#2493 legacy approved character imagery becomes one saved and locked compatibility version", async () => {
+  const contract = await read("core/contracts/world-map/index.ts");
+
+  assert.match(contract, /legacy-locked-\$\{characterId\}/u);
+  assert.match(contract, /approvedLegacyVersionId/u);
+  assert.match(contract, /retainedVersionIds\.includes\(approvedLegacyVersionId\)/u);
+  assert.match(contract, /lockedVersionId \? clean\(source\.approvedAt/u);
+  assert.match(contract, /Legacy compatibility alias/u);
+});
+
+test("#2493 poster history is bounded and Lock is scoped to Marketing References", async () => {
+  const [surface, buildProgress] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("core/contracts/build-progress.ts"),
+  ]);
+
+  assert.match(buildProgress, /MARKETING_REFERENCE_MAX_VERSIONS = 5/u);
+  assert.match(buildProgress, /filter\(isMarketingReferenceArtifact\)/u);
+  assert.match(buildProgress, /slice\(0, MARKETING_REFERENCE_MAX_VERSIONS\)/u);
+  assert.match(buildProgress, /lockedMarketingReference/u);
+  assert.match(buildProgress, /accepted\.has\(artifact\.id\)/u);
+
+  const lockPoster = surface.slice(
+    surface.indexOf("function lockPosterVersion"),
+    surface.indexOf("  return (", surface.indexOf("function lockPosterVersion")),
+  );
+  assert.match(lockPoster, /for \(const artifact of posterVersions\)/u);
+  assert.match(lockPoster, /foundations\.visual\.unaccept/u);
+  assert.match(lockPoster, /foundations\.visual\.accept/u);
+  assert.match(lockPoster, /artifact\.id !== selectedPoster\.id/u);
+  assert.match(lockPoster, /acceptedVisualArtifactIds\.includes\(artifact\.id\)/u);
+});
+
+test("#2493 chevrons are bounded and visible saved-state text is not colour-only", async () => {
+  const [surface, styles] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("app/skin-v1/story-bible-surface.module.css"),
+  ]);
+
   assert.match(surface, /disabled=\{Boolean\(candidate\) \|\| safeVersionIndex <= 0\}/u);
   assert.match(surface, /safeVersionIndex >= versions\.length - 1/u);
   assert.match(surface, /disabled=\{Boolean\(posterCandidate\) \|\| safePosterIndex <= 0\}/u);
   assert.match(surface, /safePosterIndex >= posterVersions\.length - 1/u);
+  assert.match(surface, /exactly one may be locked/u);
+  assert.match(styles, /\.versionBar/u);
+  assert.match(styles, /button:disabled/u);
 });
 
-test("#2493 character single lock preserves saved versions and downstream authority", () => {
-  let state = createEmptyWorldMapState();
-  for (let version = 1; version <= WORLD_MAP_CHARACTER_MAX_VERSIONS; version += 1) {
-    const candidate = characterVersion("wren", version);
-    state = saveWorldMapCharacterVisualVersion(state, {
-      characterId: "wren",
-      characterName: "Wren",
-      versionId: candidate.versionId,
-      references: candidate.references,
-      savedAt: candidate.createdAt,
-    });
-  }
-  assert.equal(worldMapCharacterVisualVersions(state, "wren").length, 5);
-
-  const sixth = characterVersion("wren", 6);
-  const capped = saveWorldMapCharacterVisualVersion(state, {
-    characterId: "wren",
-    characterName: "Wren",
-    versionId: sixth.versionId,
-    references: sixth.references,
-    savedAt: sixth.createdAt,
-  });
-  assert.equal(worldMapCharacterVisualVersions(capped, "wren").length, 5);
-  assert.equal(worldMapCharacterVisualVersions(capped, "wren").some((version) => version.id === sixth.versionId), false);
-
-  state = lockWorldMapCharacterVisualVersion(state, "wren", "wren-version-2", "2026-09-26T19:00:00.000Z");
-  assert.equal(worldMapCharacterVisualVersions(state, "wren").filter((version) => version.locked).length, 1);
-  assert.equal(approvedWorldMapCharacterReferences(state, "wren").every((url) => url.includes("wren-v2-")), true);
-
-  state = lockWorldMapCharacterVisualVersion(state, "wren", "wren-version-5", "2026-09-26T19:01:00.000Z");
-  const versions = worldMapCharacterVisualVersions(state, "wren");
-  assert.equal(versions.length, 5);
-  assert.equal(versions.filter((version) => version.locked).length, 1);
-  assert.equal(versions.find((version) => version.locked)?.id, "wren-version-5");
-  assert.equal(approvedWorldMapCharacterReferences(state, "wren").length, 8);
-  assert.equal(approvedWorldMapCharacterReferences(state, "wren").every((url) => url.includes("wren-v5-")), true);
-  assert.equal(state.characterVisuals[0].references.filter((reference) => reference.reviewState === "approved").length, 8);
-});
-
-test("#2493 legacy approved character package normalizes to one saved and locked version", () => {
-  const legacy = normalizeWorldMapState({
-    version: 1,
-    characterVisuals: [{
-      characterId: "wren",
-      characterName: "Wren",
-      references: WORLD_MAP_CHARACTER_VIEWS.map((view, index) => ({
-        id: `legacy-${view.id}`,
-        characterId: "wren",
-        characterName: "Wren",
-        view: view.id,
-        assetUrl: `/api/local-ai/assets/legacy-wren-${index + 1}.webp`,
-        prompt: `Legacy Wren ${view.label}`,
-        provider: "local",
-        model: "image",
-        createdAt: "2026-09-25T12:00:00.000Z",
-        reviewState: "approved",
-      })),
-      approvedAt: "2026-09-25T12:05:00.000Z",
-      updatedAt: "2026-09-25T12:05:00.000Z",
-    }],
-  });
-
-  const versions = worldMapCharacterVisualVersions(legacy, "wren");
-  assert.equal(versions.length, 1);
-  assert.equal(versions[0].locked, true);
-  assert.equal(versions[0].complete, true);
-  assert.match(versions[0].id, /^legacy-locked-wren$/u);
-  assert.equal(approvedWorldMapCharacterReferences(legacy, "wren").length, 8);
-});
-
-test("#2493 poster versions cap at five and one accepted Marketing Reference is the lock", () => {
-  const artifacts = [poster(1), poster(2), poster(3), poster(4), poster(5), poster(6)];
-  const versions = marketingReferenceVersions(artifacts);
-  assert.equal(MARKETING_REFERENCE_MAX_VERSIONS, 5);
-  assert.equal(versions.length, 5);
-  assert.deepEqual(versions.map((artifact) => artifact.id), ["poster-6", "poster-5", "poster-4", "poster-3", "poster-2"]);
-  const locked = lockedMarketingReference(artifacts, ["unrelated-foundation-artifact", "poster-4"]);
-  assert.equal(locked?.id, "poster-4");
-  assert.equal(lockedMarketingReference(artifacts, ["unrelated-foundation-artifact"]), null);
-});
-
-test("#2493 single lock preserves saved versions and the developer brief records local durability", async () => {
-  const [surface, brief, contract] = await Promise.all([
-    read("app/skin-v1/story-bible-surface.tsx"),
+test("#2493 persistence fixtures prove five saved WorldMap media versions and the brief records local durability", async () => {
+  const [durability, brief, library] = await Promise.all([
+    read("tests/issue-2450-library-durable-hydration.test.mjs"),
     read("docs/developer-briefs/2493-worldmap-explicit-save-local-version-history.md"),
-    read("core/contracts/world-map/index.ts"),
+    read("core/storage/library-project.ts"),
   ]);
 
-  const lockPoster = surface.slice(surface.indexOf("function lockPosterVersion"), surface.indexOf("  return (", surface.indexOf("function lockPosterVersion")));
-  assert.match(lockPoster, /foundations\.visual\.unaccept/u);
-  assert.match(lockPoster, /foundations\.visual\.accept/u);
-  assert.match(lockPoster, /posterVersions/u);
-  assert.doesNotMatch(lockPoster, /acceptedVisualArtifactIds\.map/u);
-
-  assert.match(contract, /WORLD_MAP_CHARACTER_MAX_VERSIONS = 5/u);
-  assert.match(contract, /lockedVersionId/u);
-  assert.match(contract, /lockWorldMapCharacterVisualVersion/u);
+  assert.match(durability, /five saved WorldMap media versions/u);
+  assert.match(durability, /wren-version-5/u);
+  assert.match(durability, /references\.length, 40/u);
+  assert.match(durability, /afterglow-poster-version-5/u);
+  assert.match(durability, /FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW/u);
+  assert.match(library, /normalizeWorldMapState\(source\.worldMap\)/u);
   assert.match(brief, /Generation creates a review candidate/u);
   assert.match(brief, /persistentHome\(\)\/assets/u);
   assert.match(brief, /Stop at green; merge only when the Human separately requests it/u);

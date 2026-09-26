@@ -1,5 +1,4 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../../core/auth/profile-experience/profile-experience-runtime";
-import { PREVIS_GRAPHIC_NOVEL_INTERVAL_MS } from "../../../../_components/previs/previs-graphic-novel-presentation";
 import { buildPrevisGraphicNovelWebp, type PrevisGraphicNovelWebpPanel } from "../../../../../build/previs-graphic-novel-webp";
 
 export const runtime = "nodejs";
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
       return json({ ok: false, message: "Choose a valid Previs Block and Mini-Block before exporting." }, 400);
     }
     if (!Array.isArray(input.panels) || input.panels.length > 25) {
-      return json({ ok: false, message: "Animated WebP export accepts between 1 and 25 locked Storyboard panels." }, 400);
+      return json({ ok: false, message: "WebP export accepts between 1 and 25 locked Storyboard panels." }, 400);
     }
 
     const result = await buildPrevisGraphicNovelWebp({
@@ -62,7 +61,6 @@ export async function POST(request: Request) {
       blockNumber,
       miniBlockNumber,
       panels: input.panels as PrevisGraphicNovelWebpPanel[],
-      delayMs: PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
     });
 
     return new Response(new Uint8Array(result.bytes), {
@@ -74,13 +72,12 @@ export async function POST(request: Request) {
         "Referrer-Policy": "no-referrer",
         "X-Content-Type-Options": "nosniff",
         "X-PlotPickle-Graphic-Novel-Panels": String(result.panelCount),
-        "X-PlotPickle-Graphic-Novel-Delay-Ms": String(result.delayMs),
       },
     });
   } catch (error) {
     return json({
       ok: false,
-      message: error instanceof Error ? error.message : "Animated WebP export failed.",
+      message: error instanceof Error ? error.message : "WebP export failed.",
     }, 400);
   }
 }

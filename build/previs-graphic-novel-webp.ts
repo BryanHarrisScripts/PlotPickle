@@ -1,12 +1,27 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
-import { ASSET_PATH, MAX_ASSET_BYTES, assetsDirectory, safeAssetStem } from "./media-provider-common";
+import { ASSET_PATH, MAX_ASSET_BYTES, assetsDirectory, safeAssetStem } from "./media-storage-common";
 
 export const PREVIS_GRAPHIC_NOVEL_CANVAS = Object.freeze({ width: 1280, height: 720 });
 export const PREVIS_GRAPHIC_NOVEL_MAX_PANELS = 25;
 const MAX_INPUT_PIXELS = 40_000_000;
 const MAX_INPUT_DIMENSION = 8_192;
+
+type SharpFactory = typeof import("sharp").default;
+let cachedSharp: SharpFactory | null = null;
+
+async function sharpEngine(): Promise<SharpFactory> {
+  if (cachedSharp) return cachedSharp;
+  try {
+    const module = await import("sharp");
+    const sharp = module.default;
+    if (typeof sharp !== "function") throw new Error("Sharp loaded without an image-processing entry point.");
+    cachedSharp = sharp;
+    return sharp;
+  } catch {
+    throw new Error("PlotPickle's local image runtime is unavailable. Fully restart PlotPickle so startup can repair Sharp, then try Export Animated WebP again.");
+  }
+}
 
 export type PrevisGraphicNovelWebpPanel = Readonly<{
   position: number;
@@ -99,6 +114,7 @@ function graphicNovelCaptionSvg(panel: PrevisGraphicNovelWebpPanel) {
 }
 
 async function preparedFrame(panel: PrevisGraphicNovelWebpPanel) {
+  const sharp = await sharpEngine();
   const filePath = localAssetFilePath(panel.assetUrl);
   const bytes = await readFile(filePath);
   if (!bytes.length || bytes.length > MAX_ASSET_BYTES) {
@@ -172,6 +188,7 @@ export async function buildPrevisGraphicNovelWebp(input: Readonly<{
   delayMs: number;
 }>): Promise<PrevisGraphicNovelWebpResult> {
   const panels = validatedPanels(input.panels);
+  const sharp = await sharpEngine();
   const delayMs = Number.isInteger(input.delayMs) && input.delayMs >= 250 && input.delayMs <= 60_000 ? input.delayMs : 3_000;
   const frames: Buffer[] = [];
   for (const panel of panels) frames.push(await preparedFrame(panel));

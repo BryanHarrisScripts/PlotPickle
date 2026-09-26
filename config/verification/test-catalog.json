@@ -662,7 +662,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/local-ai-plugin-registry.test.mjs"
+          "tests/local-ai-plugin-registry.test.mjs",
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
         ]
       },
       "cost": "fast",
@@ -688,7 +689,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification."
+      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification. #2495 also protects the shared local image-runtime/storage seam used by Animated WebP export."
     },
     {
       "id": "provider.qwen-image-21-experimental",
@@ -1610,7 +1611,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
-          "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs"
+          "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1636,7 +1638,49 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority. #2491 keeps the same derived presentation authority while replacing HTML export with a bounded local Animated WebP encoder over locked Storyboard frames only."
+      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority. #2491 keeps the same derived presentation authority while replacing HTML export with a bounded local Animated WebP encoder over locked Storyboard frames only. #2495 hardens the Sharp runtime boundary so Animated WebP export cannot surface a module-load BUILD ERROR when the native image runtime is missing."
+    },
+    {
+      "id": "production.windows-sharp-runtime-2495",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "native",
+        "provider",
+        "security",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#2495 proves Sharp is a direct production dependency, Windows startup refuses an unloadable Sharp runtime, targeted repair is wired, and Previs defers Sharp loading until the export operation can handle failure."
     }
   ]
 }

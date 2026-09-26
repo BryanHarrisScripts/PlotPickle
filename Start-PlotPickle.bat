@@ -556,16 +556,16 @@ if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready >nul 2>&1
   if errorlevel 1 exit /b 1
   if "!PLOTPICKLE_RUNTIME_REUSED!"=="1" (
-    echo !SUCCESS! Matching PlotPickle components and the Windows native binding were reused from the persistent runtime.
+    echo !SUCCESS! Matching PlotPickle components, Windows native binding, and Sharp image runtime were reused from the persistent runtime.
     echo No package download or first-time installation was needed.
   ) else (
-    echo !OK! Required components and the Windows native binding are installed and verified.
+    echo !OK! Required components, the Windows native binding, and the Sharp image runtime are installed and verified.
   )
   exit /b 0
 )
 
 if exist "node_modules\rolldown\package.json" (
-  echo !REPAIR! The matching runtime is present, but its Windows native binding is missing or damaged.
+  echo !REPAIR! The matching runtime is present, but a required Windows native or image runtime is missing or damaged.
   echo PlotPickle will repair the exact native package before considering a full reinstall.
   echo.
 ) else (
@@ -586,7 +586,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo This required step may install a new runtime or repair the matching runtime if its native binding is incomplete.
+echo This required step may install a new runtime or repair the matching runtime if a native or image dependency is incomplete.
 choice /C YN /N /M "Continue with this local runtime installation? [Y/N]: "
 if errorlevel 2 exit /b 2
 
@@ -607,7 +607,7 @@ if not errorlevel 1 (
   if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
-  echo !SUCCESS! Persistent package installation completed, including the Windows native binding.
+  echo !SUCCESS! Persistent package installation completed, including the Windows native binding and Sharp image runtime.
   exit /b 0
 )
 
@@ -628,6 +628,21 @@ if not errorlevel 1 (
 )
 
 echo.
+echo !REPAIR! Checking whether the Sharp Windows image runtime needs a targeted repair...
+node "%RUNTIME_MANAGER%" repair-sharp "%PLOTPICKLE_RUNTIME_MODULES%"
+if not errorlevel 1 (
+  call :dependencies_ready
+  if not errorlevel 1 (
+    node "%RUNTIME_MANAGER%" mark-ready
+    if errorlevel 1 exit /b 1
+    set "INSTALL_PERFORMED=1"
+    echo.
+    echo !SUCCESS! The Sharp Windows image runtime was repaired without rebuilding the full runtime.
+    exit /b 0
+  )
+)
+
+echo.
 echo ------------------------------------------------------------
 echo   INSTALL ATTEMPT 2 OF 2 - Interrupted-download repair
 echo ------------------------------------------------------------
@@ -640,8 +655,14 @@ call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev --prefer-offline
 call :dependencies_ready
 if errorlevel 1 (
   echo.
-  echo !REPAIR! The rebuilt runtime still needs its exact Windows native binding.
+  echo !REPAIR! The rebuilt runtime still needs a native runtime repair.
   node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"
+  if not errorlevel 1 call :dependencies_ready
+)
+if errorlevel 1 (
+  echo.
+  echo !REPAIR! The rebuilt runtime still needs its Sharp Windows image runtime.
+  node "%RUNTIME_MANAGER%" repair-sharp "%PLOTPICKLE_RUNTIME_MODULES%"
   if not errorlevel 1 call :dependencies_ready
 )
 if not errorlevel 1 (
@@ -649,7 +670,7 @@ if not errorlevel 1 (
   if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
-  echo !SUCCESS! Persistent package repair completed, including the Windows native binding.
+  echo !SUCCESS! Persistent package repair completed, including the Windows native binding and Sharp image runtime.
   exit /b 0
 )
 
@@ -675,7 +696,7 @@ echo !RED!============================================================!RESET!
 echo !RED!  PLOTPICKLE SETUP COULD NOT FINISH!RESET!
 echo !RED!============================================================!RESET!
 echo.
-echo !ERROR_TAG! The required local components or Windows native binding are still missing or incomplete.
+echo !ERROR_TAG! The required local components, Windows native binding, or Sharp image runtime are still missing or incomplete.
 echo Nothing was installed as a Windows service, and no server was started.
 echo Optional Ollama, ComfyUI, Buzz, GitHub, Google, and cloud-provider settings were not changed.
 echo.

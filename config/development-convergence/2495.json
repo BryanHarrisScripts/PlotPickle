@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "issue": 2495,
+  "phase": "previs-webp-sharp-windows-runtime-repair",
+  "brief": "docs/developer-briefs/2495-previs-webp-sharp-windows-runtime.md",
+  "allowedChanges": [
+    "Start-PlotPickle.bat",
+    "package.json",
+    "package-lock.json",
+    "scripts/windows-runtime.mjs",
+    "build/media-storage-common.ts",
+    "build/media-provider-common.ts",
+    "build/previs-graphic-novel-webp.ts",
+    "config/development-convergence/2495.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2495-previs-webp-sharp-windows-runtime.md",
+    "tests/windows-native-runtime.test.mjs",
+    "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2495-A1",
+      "criterion": "Sharp is a direct production dependency.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "package.json",
+          "contains": "\"sharp\": \"0.35.4\""
+        },
+        {
+          "type": "file-contains",
+          "path": "package-lock.json",
+          "contains": "\"sharp\": \"0.35.4\""
+        }
+      ]
+    },
+    {
+      "id": "P2495-A2",
+      "criterion": "Windows runtime readiness proves Sharp can load and can repair its native package.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-runtime.mjs",
+          "contains": "sharpRuntimeStatus"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-runtime.mjs",
+          "contains": "repairSharpRuntime"
+        }
+      ]
+    },
+    {
+      "id": "P2495-A3",
+      "criterion": "Previs export handles Sharp loader failure without static route-build failure.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/previs-graphic-novel-webp.ts",
+          "contains": "await import(\"sharp\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
+          "contains": "does not statically load Sharp"
+        }
+      ]
+    }
+  ]
+}

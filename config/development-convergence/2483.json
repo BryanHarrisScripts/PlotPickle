@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "issue": 2483,
+  "phase": "storyboard-frame-chevrons-prompt-provenance",
+  "brief": "docs/developer-briefs/2483-storyboard-frame-chevrons-prompt-provenance.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "config/development-convergence/2483.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2483-storyboard-frame-chevrons-prompt-provenance.md",
+    "tests/issue-2404-storyboard-inline-continuity.test.mjs",
+    "tests/issue-2406-outline-storyboard-hierarchy.test.mjs",
+    "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+    "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2483-E1",
+      "criterion": "Storyboard position cards replace the Frame pull-down with bounded accessible previous/next image navigation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Previous frame for Storyboard position"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
+          "contains": "replaces the Storyboard Frame pull-down"
+        }
+      ]
+    },
+    {
+      "id": "P2483-E2",
+      "criterion": "Each displayed generated Storyboard image shows its exact persisted prompt while recovered placeholders are presented as unavailable provenance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Storyboard Prompt"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "Original Storyboard prompt unavailable for this image."
+        }
+      ]
+    },
+    {
+      "id": "P2483-E3",
+      "criterion": "Browsing is position-scoped and presentation-only; existing Keep/Lock, Redo and Reject authority remains unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+          "contains": "artifact.frameNumber === position && artifact.reviewState !== \"rejected\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
+          "contains": "preserves frame review authority"
+        }
+      ]
+    }
+  ]
+}

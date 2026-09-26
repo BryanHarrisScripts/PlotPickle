@@ -44,6 +44,14 @@ const STATE_LABELS = {
   locked: "LOCKED",
 } as const;
 
+const RECOVERED_STORYBOARD_PROMPT_UNAVAILABLE = "Recovered local Storyboard resource. Original prompt metadata was unavailable in the loaded project.";
+
+function exactStoryboardPrompt(prompt: string | undefined) {
+  const value = prompt?.trim() ?? "";
+  if (!value || value === RECOVERED_STORYBOARD_PROMPT_UNAVAILABLE || value.startsWith("Recovered local Storyboard resource.")) return "";
+  return value;
+}
+
 function blockNumber(target: VisualReadinessTarget) {
   const match = target.id.match(/^block:block-(\d{2})$/);
   return match ? Number(match[1]) : 0;
@@ -134,20 +142,7 @@ export default function StoryboardReadinessWorkspace({
   const visualStory = projectVisualStory({ project, legacyProject, blockNumber: selectedNumber, miniBlockNumber: selectedMiniBlockNumber });
   const blockBeats = visualStory.anchors.flatMap((anchor) => anchor.beats.map((beat) => ({ ...beat, anchorRef: anchor.anchorRef })));
   const selectedVisualAnchor = visualStory.anchors.find((anchor) => anchor.anchorRef === sequenceDirectorAnchorRef(selectedNumber, selectedMiniBlockNumber));
-  const miniReferences = selectedReferences.filter((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber);
-  const availablePositionImages = [
-    ...project.build.foundations.visualArtifacts.filter((artifact) => (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`) && artifact.reviewState !== "rejected").map((artifact) => ({ id: artifact.id, assetUrl: artifact.assetUrl, label: artifact.narrativeIntention || "Generated frame candidate" })),
-    ...(selectedVisualAnchor?.frames ?? []).map((frame) => ({
-      id: frame.id,
-      assetUrl: frame.assetUrl,
-      label: `${frame.accepted ? "Kept" : "Candidate"} · ${frame.narrativePurpose || frame.id}`,
-    })),
-    ...miniReferences.map((reference) => ({
-      id: reference.id,
-      assetUrl: reference.assetUrl,
-      label: reference.caption,
-    })),
-  ].filter((image, index, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === index);
+  const visualArtifacts = [...project.build.foundations.visualArtifacts, ...project.build.world.visualArtifacts];
   const frameArtifacts = project.build.foundations.visualArtifacts.filter((artifact) =>
     artifact.workflow === "storyboard-frame-webp-v2"
     && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
@@ -558,9 +553,30 @@ export default function StoryboardReadinessWorkspace({
                   const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
                   const selectionKey = `${selectedNumber}.${selectedMiniBlockNumber}.${position}`;
                   const positionArtifacts = frameArtifacts.filter((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected");
+                  const generatedPositionImages = positionArtifacts.map((artifact) => ({
+                    id: artifact.id,
+                    assetUrl: artifact.assetUrl,
+                    label: artifact.narrativeIntention || "Generated frame candidate",
+                    prompt: exactStoryboardPrompt(artifact.prompt),
+                  }));
+                  const linkedPositionImages = (shot?.frames ?? []).flatMap((frame) => {
+                    const artifact = visualArtifacts.find((candidate) => candidate.id === frame.id);
+                    if (artifact?.reviewState === "rejected") return [];
+                    return [{
+                      id: frame.id,
+                      assetUrl: frame.assetUrl,
+                      label: `${frame.accepted ? "Kept" : "Candidate"} · ${frame.narrativePurpose || frame.id}`,
+                      prompt: artifact?.workflow === "storyboard-frame-webp-v2" ? exactStoryboardPrompt(artifact.prompt) : "",
+                    }];
+                  });
+                  const positionImages = [...generatedPositionImages, ...linkedPositionImages]
+                    .filter((image, imageIndex, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === imageIndex);
                   const latestGeneratedArtifact = [...positionArtifacts].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
-                  const selectedImageId = selectedImageByPosition[selectionKey] ?? latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? "";
-                  const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
+                  const requestedImageId = selectedImageByPosition[selectionKey] ?? "";
+                  const fallbackImageId = latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? positionImages[0]?.id ?? "";
+                  const selectedImageId = positionImages.some((image) => image.id === requestedImageId) ? requestedImageId : fallbackImageId;
+                  const selectedImage = positionImages.find((image) => image.id === selectedImageId) ?? null;
+                  const selectedImageIndex = positionImages.findIndex((image) => image.id === selectedImageId);
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
                   const reviewState = accepted ? "locked" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
@@ -575,9 +591,29 @@ export default function StoryboardReadinessWorkspace({
                         <span>{shotLabel}</span>
                       </div>
                       <div className={styles.positionImage}>
+                        {positionImages.length > 1 ? <button
+                          aria-label={`Previous frame for Storyboard position ${String(position).padStart(2, "0")}`}
+                          className={`${styles.frameChevron} ${styles.frameChevronPrevious}`}
+                          disabled={selectedImageIndex <= 0}
+                          type="button"
+                          onClick={() => {
+                            if (selectedImageIndex <= 0) return;
+                            setSelectedImageByPosition((current) => ({ ...current, [selectionKey]: positionImages[selectedImageIndex - 1].id }));
+                          }}
+                        >‹</button> : null}
                         {selectedImage
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
                           : <span>No Frame selected</span>}
+                        {positionImages.length > 1 ? <button
+                          aria-label={`Next frame for Storyboard position ${String(position).padStart(2, "0")}`}
+                          className={`${styles.frameChevron} ${styles.frameChevronNext}`}
+                          disabled={selectedImageIndex < 0 || selectedImageIndex >= positionImages.length - 1}
+                          type="button"
+                          onClick={() => {
+                            if (selectedImageIndex < 0 || selectedImageIndex >= positionImages.length - 1) return;
+                            setSelectedImageByPosition((current) => ({ ...current, [selectionKey]: positionImages[selectedImageIndex + 1].id }));
+                          }}
+                        >›</button> : null}
                       </div>
                       <div className={styles.frameReview} aria-label={`Review frame at position ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
@@ -598,21 +634,10 @@ export default function StoryboardReadinessWorkspace({
                           onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "discard")}
                         >Reject</button>
                       </div>
-                      <label className={styles.positionSelector}>
-                        <span>Frame</span>
-                        <select
-                          aria-label={`Select Frame for Storyboard position ${position}`}
-                          value={selectedImageId}
-                          onChange={(event) => setSelectedImageByPosition((current) => ({ ...current, [selectionKey]: event.target.value }))}
-                        >
-                          <option value="">No Frame selected</option>
-                          {availablePositionImages.map((image) => {
-                            const artifact = project.build.foundations.visualArtifacts.find((candidate) => candidate.id === image.id);
-                            return !artifact || artifact.workflow !== "storyboard-frame-webp-v2" || artifact.frameNumber === position
-                              ? <option key={image.id} value={image.id}>{image.label}</option> : null;
-                          })}
-                        </select>
-                      </label>
+                      {selectedImage ? <div className={styles.framePromptProvenance}>
+                        <strong>Storyboard Prompt</strong>
+                        <p>{selectedImage.prompt || "Original Storyboard prompt unavailable for this image."}</p>
+                      </div> : null}
                       {!selectedImage ? <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button> : null}
                     </div>
                   );

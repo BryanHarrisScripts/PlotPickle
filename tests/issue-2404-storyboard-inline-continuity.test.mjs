@@ -33,7 +33,7 @@ test("#2404 keeps Scenes Beats and Beat Shot Frame on one continuous Storyboard 
   assert.doesNotMatch(css, /storyboard"\]:has[\s\S]*display:\s*none/u);
 });
 
-test("#2404 presents 25 vertical Scene Beat rows with adjacent image selection", async () => {
+test("#2404 presents 25 vertical Shot Frame rows with adjacent image navigation", async () => {
   const [workspace, css] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
@@ -42,14 +42,16 @@ test("#2404 presents 25 vertical Scene Beat rows with adjacent image selection",
   assert.match(workspace, /Array\.from\(\{ length: 25 \}/u);
   assert.match(workspace, /className=\{styles\.positionList\}/u);
   assert.match(workspace, /className=\{styles\.positionRow\}/u);
-  assert.match(workspace, /Select Frame for Storyboard position/u);
-  assert.match(workspace, /availablePositionImages\.map/u);
+  assert.match(workspace, /Previous frame for Storyboard position/u);
+  assert.match(workspace, /Next frame for Storyboard position/u);
+  assert.match(workspace, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
   assert.match(workspace, /Storyboard Positions 01–25 · Shot \/ Frame capacity/u);
   assert.doesNotMatch(workspace, /Existing visuals at this Mini-Block/u);
   assert.match(css, /\.positionList \{ display: grid/u);
   assert.match(css, /\.positionRow \{[\s\S]*grid-template-columns/u);
   assert.match(css, /\.positionImage img/u);
-  assert.match(css, /\.positionSelector select/u);
+  assert.match(css, /\.frameChevron \{/u);
+  assert.doesNotMatch(css, /\.positionSelector/u);
 });
 
 test("#2404 keeps inline Visual Story governed by the Storyboard parent", async () => {

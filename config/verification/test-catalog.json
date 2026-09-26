@@ -25,6 +25,7 @@
           "tests/issue-2418-storyboard-batch-progression.test.mjs",
           "tests/issue-2420-storyboard-frame-review.test.mjs",
           "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+          "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
           "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
           "tests/issue-2475-previs-surface-convergence.test.mjs",
           "tests/issue-2485-previs-runtime-ownership.test.mjs",
@@ -55,7 +56,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority."
     },
     {
       "id": "experience.navigation-continuity",
@@ -1559,6 +1560,7 @@
           "tests/issue-2432-library-local-resource-restore.test.mjs",
           "tests/issue-2466-storyboard-lock-restore.test.mjs",
           "tests/issue-2473-storyboard-lock-chain-restore.test.mjs",
+          "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
           "tests/issue-2470-human-validation-loop.test.mjs"
         ]
       },
@@ -1585,7 +1587,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
+      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft. #2473 extends the same authority to later saved recovered working copies only when exact asset/position/anchor approval plus recovery origin and content-hash provenance are proven. #2483 keeps Storyboard browsing presentation-only, excludes rejected candidates, and treats recovery prompt placeholders as unavailable rather than as canon/provenance truth. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "story-canon.previs-graphic-novel-2471",

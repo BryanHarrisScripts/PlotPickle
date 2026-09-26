@@ -388,7 +388,12 @@ export default function LibraryWorkspace() {
       }
       const storyboardResources = selected.filter((resource): resource is RecoveredStoryboardResource => resource.kind === "storyboard-frame");
       const posterResources = selected.filter((resource): resource is RecoveredWorldMapPosterResource => resource.kind === "worldmap-poster");
-      const storyboardSourceProjects = [...new Set(storyboardResources.map((resource) => resource.originProjectId))]
+      const storyboardApprovalProjectIds = [...new Set([
+        ...storyboardResources.map((resource) => resource.originProjectId),
+        ...listLibraryProjects().map((item) => item.id),
+        ...listArchivedLibraryProjects().map((item) => item.id),
+      ])].sort();
+      const storyboardSourceProjects = storyboardApprovalProjectIds
         .map((projectId) => loadLibraryProjectSnapshot(projectId))
         .filter((project): project is LibraryPPFProject => Boolean(project));
       const storyboardResult = restoreLocalStoryboardResources(current, storyboardResources, storyboardSourceProjects);

@@ -34,6 +34,7 @@ set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
 set "WEBMCP_STARTUP_RUNNER=scripts\run-webmcp-startup-uat.mjs"
 set "WEBMCP_QA_RUNNER=lib\verification\webmcp-qa\cli.mjs"
+set "CONVERSATIONAL_UAT_OBSERVER=scripts\run-uat-closed-loop.mjs"
 set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
@@ -447,14 +448,7 @@ call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
-call :start_conversational_uat_observer
-if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" exit /b 0
-if not exist "%CONVERSATIONAL_UAT_OBSERVER%" exit /b 1
-echo !INFO! Conversational UAT will run a read-only deterministic observer after PlotPickle reports ready.
-start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { & node $env:CONVERSATIONAL_UAT_OBSERVER --base-url $base --conversational-observe --head $env:PLOTPICKLE_SOURCE_SHA; exit $LASTEXITCODE } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] Conversational UAT observer did not start because PlotPickle did not become ready.' -ForegroundColor Yellow; exit 1"
-exit /b 0
-
-:cleanup_webmcp_testing
+call :cleanup_webmcp_testing
 if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
   del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
   del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
@@ -490,6 +484,13 @@ if not exist "%WEBMCP_QA_RUNNER%" (
 echo !INFO! Waiting for the completed PlotPickle startup contract before launching the bounded WebMCP UAT.
 echo !INFO! The UAT window will open only after readiness and will remain open with its PASS/FAIL report.
 start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_QA_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '" --profile "' + $env:PLOTPICKLE_WEBMCP_QA_PROFILE + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
+exit /b 0
+
+:start_conversational_uat_observer
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" exit /b 0
+if not exist "%CONVERSATIONAL_UAT_OBSERVER%" exit /b 1
+echo !INFO! Conversational UAT will run a read-only deterministic observer after PlotPickle reports ready.
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { & node $env:CONVERSATIONAL_UAT_OBSERVER --base-url $base --conversational-observe --head $env:PLOTPICKLE_SOURCE_SHA; exit $LASTEXITCODE } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] Conversational UAT observer did not start because PlotPickle did not become ready.' -ForegroundColor Yellow; exit 1"
 exit /b 0
 
 :cleanup_webmcp_testing

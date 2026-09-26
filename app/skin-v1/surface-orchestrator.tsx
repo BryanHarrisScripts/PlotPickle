@@ -27,6 +27,7 @@ type RuntimeSurface = {
   runtimeRoute?: string;
   route?: string;
   navigationPath?: Array<{ order: number; slug: string; label: string }>;
+  ownsInlineSurfaces?: string[];
   formatProfile?: FormatProfile;
 };
 
@@ -94,10 +95,10 @@ function findActiveSurface(): ActiveSurface | null {
     : directRouteMatches.length
       ? directRouteMatches
       : matches;
-  const storyboardOwnsInlineChildren = routeCandidates.some((surface) => surface.id === "storyboard");
-  const candidates = storyboardOwnsInlineChildren
-    ? routeCandidates.filter((surface) => !["story-map", "visual-story"].includes(surface.id))
-    : routeCandidates;
+  const ownedInlineSurfaceIds = new Set(
+    routeCandidates.flatMap((surface) => surface.ownsInlineSurfaces ?? []),
+  );
+  const candidates = routeCandidates.filter((surface) => !ownedInlineSurfaceIds.has(surface.id));
   candidates.sort((a, b) =>
     surfaceDepth(b) - surfaceDepth(a)
     || domDepth(b.root) - domDepth(a.root)

@@ -28,6 +28,7 @@
           "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
           "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
           "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+          "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs",
           "tests/issue-2475-previs-surface-convergence.test.mjs",
           "tests/issue-2485-previs-runtime-ownership.test.mjs",
           "tests/issue-2489-post-2457-live-reconciliation.test.mjs",
@@ -57,7 +58,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 supersedes the earlier HTML Graphic Novel export with one authenticated local Animated WebP export while retaining 25-position and Keep/Lock authority."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority."
     },
     {
       "id": "experience.navigation-continuity",
@@ -1612,7 +1613,8 @@
         "targets": [
           "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
           "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
-          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs"
+          "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
+          "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1638,7 +1640,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority. #2491 keeps the same derived presentation authority while replacing HTML export with a bounded local Animated WebP encoder over locked Storyboard frames only. #2495 hardens the Sharp runtime boundary so Animated WebP export cannot surface a module-load BUILD ERROR when the native image runtime is missing."
+      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority. #2491 removed HTML export; #2497 keeps the same derived presentation authority while exporting locked Storyboard frames as one bounded static WebP sheet with observed screenplay speech bubbles only. #2495 hardens the Sharp runtime boundary so WebP export cannot surface a module-load BUILD ERROR when the native image runtime is missing."
     },
     {
       "id": "production.windows-sharp-runtime-2495",

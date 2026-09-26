@@ -9,6 +9,9 @@
     "config/development-convergence/2483.json",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2483-storyboard-frame-chevrons-prompt-provenance.md",
+    "tests/issue-2404-storyboard-inline-continuity.test.mjs",
+    "tests/issue-2406-outline-storyboard-hierarchy.test.mjs",
+    "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
     "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs"
   ],
   "acceptance": [

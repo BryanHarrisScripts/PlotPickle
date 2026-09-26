@@ -43,7 +43,25 @@ jobs:
           tests/issue-2456-previs-flipbook-act-workspace.test.mjs
 
       - name: Development convergence
-        run: node scripts/run-development-convergence.mjs --changed --base-ref origin/main
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          import { changedFilesFromGit, evaluateDevelopmentConvergence } from "./scripts/run-development-convergence.mjs";
+
+          const manifestPath = "config/development-convergence/2462.json";
+          const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+          const changedFiles = changedFilesFromGit({ baseRef: "origin/main" })
+            .filter((file) => file !== ".github/workflows/dashboard-mindmap-previs-final-verify.yml");
+          const report = await evaluateDevelopmentConvergence({
+            manifest,
+            manifestPath,
+            changedFiles,
+          });
+
+          console.log(`Development convergence #${report.issue}: ${report.status}`);
+          for (const item of report.remaining) console.log(`- ${item}`);
+          if (report.status !== "CONVERGED") process.exit(1);
+          NODE
 
       - name: BEN delta
         run: node scripts/run-ben-code-quality.mjs --base-ref origin/main

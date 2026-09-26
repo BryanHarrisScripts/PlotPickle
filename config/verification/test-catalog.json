@@ -1547,7 +1547,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2432-library-local-resource-restore.test.mjs"
+          "tests/issue-2432-library-local-resource-restore.test.mjs",
+          "tests/issue-2466-storyboard-lock-restore.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1573,7 +1574,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines."
+      "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft."
     }
   ]
 }

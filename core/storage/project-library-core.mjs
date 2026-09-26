@@ -543,6 +543,14 @@ export function restoreProfileProject(input) {
   };
 }
 
+export function readProfileProjectSnapshot(input) {
+  const storage = requireStorage(input.storage);
+  const profileId = normalizeProjectLibraryProfileId(input.profileId);
+  const projectId = requireProjectId(input.projectId);
+  const loaded = readProject(storage, profileId, projectId, input.normalizeProject, input.now());
+  return loaded?.project ?? null;
+}
+
 export function listProfileProjectSummaries(input) {
   return activeSummaries(initializeProfileProjectLibrary(input).registry);
 }

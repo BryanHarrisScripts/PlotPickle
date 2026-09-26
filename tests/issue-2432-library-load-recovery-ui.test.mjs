@@ -24,7 +24,9 @@ test("#2432 keeps project defaults and local resource restore as separate Human 
   assert.match(source, /group\.selectedByDefault/u);
   assert.match(source, /requires your explicit selection/u);
   assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
-  assert.match(source, /restoreLocalStoryboardResources\(current, storyboardResources\)/u);
+  assert.match(source, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
+  assert.match(source, /saved Library metadata proves the same frame was previously Keep\/Locked/u);
+  assert.match(source, /does not overwrite project defaults, invent approvals, promote story canon/u);
   assert.match(source, /restoreLocalWorldMapPosterResources\(storyboardResult\.project, posterResources\)/u);
   assert.match(source, /saveActiveLibraryProject\(posterResult\.project\)/u);
   assert.match(source, /Local media restore is additive/u);

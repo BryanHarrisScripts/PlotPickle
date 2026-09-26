@@ -57,8 +57,9 @@ test("#2470 UI/server preserve safe checkpoint, no-canon, and automatic Y public
     readFile(new URL("../scripts/run-uat-closed-loop.mjs", import.meta.url), "utf8"),
   ]);
   assert.match(panel, /data-dsdd-finding-card/u);
-  assert.match(panel, /event\.key\.toUpperCase\(\) === "Y"/u);
-  assert.match(panel, /event\.key\.toUpperCase\(\) === "N"/u);
+  assert.match(panel, /const key = event\.key\.toUpperCase\(\)/u);
+  assert.match(panel, /key !== "Y" && key !== "N"/u);
+  assert.match(panel, /validateFinding\(key as "Y" \| "N"\)/u);
   assert.match(panel, /Pending findings/u);
   assert.match(gateway, /action === "observe-journey"/u);
   assert.match(gateway, /action === "validate-finding"/u);

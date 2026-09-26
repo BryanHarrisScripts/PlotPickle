@@ -13,7 +13,7 @@ test("#2420 reviews only the generated candidate at its Storyboard position", as
   assert.match(source, /foundations\.visual\.accept" : "foundations\.visual\.discard"/u);
   assert.match(source, /saveFoundationProject\(next\)/u);
   assert.match(source, /setGenerationScope\("single"\)/u);
-  assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?Keep \/ Lock[\s\S]*?>Redo<[\s\S]*?>Reject</u);
+  assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?Save this Version[\s\S]*?Lock this Version[\s\S]*?>Redo<[\s\S]*?>Reject</u);
   assert.match(source, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
   assert.match(source, /selectedArtifact && reviewFrame\(selectedArtifact, "discard"\)/u);
 });

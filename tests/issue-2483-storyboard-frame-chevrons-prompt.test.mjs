@@ -28,7 +28,9 @@ test("#2483 keeps chevron browsing presentation-only and preserves frame review 
   assert.doesNotMatch(imageControls, /reviewFrame|applyStoryCommand|saveFoundationProject/u);
 
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
-  assert.match(loop, /Keep \/ Lock/u);
+  assert.match(loop, /Save this Version/u);
+  assert.match(loop, /Lock this Version/u);
+  assert.match(loop, /frameVersionLabel/u);
   assert.match(loop, />Redo</u);
   assert.match(loop, />Reject</u);
   assert.match(loop, /project\.build\.foundations\.acceptedVisualArtifactIds\.includes\(selectedArtifact\.id\)/u);
@@ -53,5 +55,6 @@ test("#2483 styles chevrons on the image and removes the old selector styling", 
   assert.match(css, /\.frameChevronPrevious \{ left:/u);
   assert.match(css, /\.frameChevronNext \{ right:/u);
   assert.match(css, /\.framePromptProvenance \{/u);
+  assert.match(css, /\.frameVersionCount \{/u);
   assert.doesNotMatch(css, /\.positionSelector/u);
 });

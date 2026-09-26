@@ -1575,6 +1575,95 @@
         ]
       },
       "notes": "#2432 protects additive local Storyboard resource recovery, duplicate prevention, explicit unmatched-group selection, and revision-aware Load Session baselines. #2466 additionally proves that exact saved Library approval metadata can restore a prior Storyboard Keep/Lock while file-only recovery remains draft."
+    },
+    {
+      "id": "experience.previs-graphic-novel-2471",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "navigation",
+        "mcp"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2471-previs-graphic-novel-playback.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2471 protects readable Previs Flip Book timing, narrated Graphic Novel presentation controls and local export while retaining the canonical 25-position Matrix surface."
+    },
+    {
+      "id": "story-canon.previs-graphic-novel-2471",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "visual",
+        "previs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2471-previs-graphic-novel-playback.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2471 proves Graphic Novel narration/export remains a derived presentation over Human-kept Storyboard frames and does not create Beats, mutate PPF canon or change Storyboard approval authority."
     }
   ]
 }

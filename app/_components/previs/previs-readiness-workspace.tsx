@@ -15,6 +15,7 @@ import {
 } from "@/core/contracts/previs";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
+import { authenticatedProfileFetch } from "@/core/auth/profile-request-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
   storyboardAnchorEvidence,
@@ -29,9 +30,8 @@ import {
 import {
   PREVIS_FLIP_BOOK_INTERVAL_MS,
   PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
-  buildPrevisGraphicNovelExportHtml,
   buildPrevisGraphicNovelPanel,
-  graphicNovelExportFileName,
+  graphicNovelWebpExportFileName,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
 import styles from "./previs-readiness-workspace.module.css";
@@ -80,6 +80,7 @@ export default function PrevisReadinessWorkspace({
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
   const [graphicNovelMode, setGraphicNovelMode] = useState(false);
   const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
+  const [graphicNovelExporting, setGraphicNovelExporting] = useState(false);
   useEffect(() => {
     if (!address) return;
     const timer = window.setTimeout(() => {
@@ -168,27 +169,52 @@ export default function PrevisReadinessWorkspace({
     return () => window.clearInterval(timer);
   }, [flipBookPlaying, graphicNovelPlaying]);
 
-  function exportGraphicNovel() {
-    if (!selectedAddressAnchor) return;
+  async function exportGraphicNovel() {
+    if (!selectedAddressAnchor || graphicNovelExporting) return;
     setFlipBookPlaying(false);
     setGraphicNovelPlaying(false);
-    const exportPanels = graphicNovelPanels.map((panel) => ({
-      ...panel,
-      assetUrl: panel.authoritative && panel.assetUrl ? new URL(panel.assetUrl, window.location.origin).toString() : "",
-    }));
-    const html = buildPrevisGraphicNovelExportHtml({
-      projectTitle: project.title || "Untitled Story",
-      blockNumber: selectedAddressAnchor.blockNumber,
-      miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
-      panels: exportPanels,
-    });
-    const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = graphicNovelExportFileName(project.title || "Untitled Story", selectedAddressAnchor.blockNumber, selectedAddressAnchor.miniBlockNumber);
-    anchor.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    setMessage(`Graphic Novel exported with ${lockedFrameCount} locked panel${lockedFrameCount === 1 ? "" : "s"}. Images remain linked to this local PlotPickle installation; derived narration is presentation-only and did not change story canon or Storyboard approval.`);
+    const exportPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
+    if (!exportPanels.length) {
+      setMessage("Keep / Lock at least one Storyboard frame before exporting Animated WebP.");
+      return;
+    }
+
+    setGraphicNovelExporting(true);
+    try {
+      const response = await authenticatedProfileFetch("/api/previs/graphic-novel/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectTitle: project.title || "Untitled Story",
+          blockNumber: selectedAddressAnchor.blockNumber,
+          miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
+          panels: exportPanels,
+        }),
+      });
+      if (!response.ok) {
+        const failure = await response.json().catch(() => ({})) as { message?: string };
+        throw new Error(failure.message || "Animated WebP export failed.");
+      }
+      const blob = await response.blob();
+      if (blob.type && blob.type !== "image/webp") throw new Error("Animated WebP export returned an unexpected media type.");
+      const disposition = response.headers.get("Content-Disposition") ?? "";
+      const serverName = /filename="?([^";]+\.webp)"?/iu.exec(disposition)?.[1] ?? "";
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = serverName || graphicNovelWebpExportFileName(
+        project.title || "Untitled Story",
+        selectedAddressAnchor.blockNumber,
+        selectedAddressAnchor.miniBlockNumber,
+      );
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      setMessage(`Animated WebP exported with ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}. Derived narration is presentation-only; story canon and Storyboard approval were unchanged.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Animated WebP export failed.");
+    } finally {
+      setGraphicNovelExporting(false);
+    }
   }
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
@@ -442,7 +468,7 @@ export default function PrevisReadinessWorkspace({
                     setGraphicNovelMode(true);
                     setGraphicNovelPlaying((playing) => !playing);
                   }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
-                  <button disabled={!lockedFrameCount} type="button" onClick={exportGraphicNovel}>Export Graphic Novel</button>
+                  <button disabled={!lockedFrameCount || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Export Animated WebP</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);
                     setGraphicNovelPlaying(false);

@@ -21,6 +21,7 @@ test("#2456 Dashboard Previs uses Act-first navigation and the canonical 24/96 m
 
   assert.match(surfaces, /export function SkinV1PrevisStoryMap/u);
   assert.match(surfaces, /surfaceLabel="Previs"/u);
+  assert.match(map, /surfaceLabel === "Previs" \? "Previs" : "The story is the navigation\."/u);
   assert.match(surfaces, /<PrevisReadinessWorkspace[\s\S]*embeddedNavigation/u);
   assert.match(map, /missing: "AVAILABLE"/u);
   assert.match(map, /locked: "BLOCKED"/u);

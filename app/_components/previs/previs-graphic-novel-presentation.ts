@@ -26,7 +26,6 @@ export type PrevisGraphicNovelPanel = Readonly<{
 }>;
 
 export type PrevisGraphicNovelExportPanel = PrevisGraphicNovelPanel & Readonly<{
-  embeddedAssetUrl?: string;
 }>;
 
 function clean(value: string, maximum = 420) {
@@ -84,8 +83,8 @@ export function buildPrevisGraphicNovelExportHtml(input: Readonly<{
   const authoritative = input.panels.filter((panel) => panel.authoritative);
   const skipped = input.panels.filter((panel) => !panel.authoritative);
   const panels = input.panels.map((panel) => {
-    const image = panel.authoritative && (panel.embeddedAssetUrl || panel.assetUrl)
-      ? `<img src="${escapeHtml(panel.embeddedAssetUrl || panel.assetUrl)}" alt="Graphic Novel frame ${panel.position}">`
+    const image = panel.authoritative && panel.assetUrl
+      ? `<img src="${escapeHtml(panel.assetUrl)}" alt="Graphic Novel frame ${panel.position}">`
       : '<div class="missing">NOT KEEP / LOCKED — OMITTED FROM AUTHORITATIVE VISUAL STORY</div>';
     return [
       `<article class="panel ${panel.authoritative ? "locked" : "omitted"}">`,
@@ -114,7 +113,7 @@ export function buildPrevisGraphicNovelExportHtml(input: Readonly<{
 <main>
 <header class="hero">
 <h1>${escapeHtml(input.projectTitle || "Untitled Story")} · Previs Graphic Novel</h1>
-<p>Block ${String(input.blockNumber).padStart(2, "0")} · Mini-Block ${input.miniBlockNumber} · ${authoritative.length} locked panel${authoritative.length === 1 ? "" : "s"} · ${skipped.length} omitted position${skipped.length === 1 ? "" : "s"}. Derived presentation only; story canon and Storyboard approval are unchanged.</p>
+<p>Block ${String(input.blockNumber).padStart(2, "0")} · Mini-Block ${input.miniBlockNumber} · ${authoritative.length} locked panel${authoritative.length === 1 ? "" : "s"} · ${skipped.length} omitted position${skipped.length === 1 ? "" : "s"}. Derived presentation only; story canon and Storyboard approval are unchanged. Images remain linked to this PlotPickle installation.</p>
 </header>
 ${panels}
 </main>

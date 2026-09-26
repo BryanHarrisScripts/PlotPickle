@@ -35,15 +35,15 @@ test("#2432 preselects only exact-project resource groups and keeps unmatched le
   assert.match(source, /Number\(right\.exactProject\) - Number\(left\.exactProject\)/u);
 });
 
-test("#2432 restores selected Storyboard resources additively as draft candidates without accepting or overwriting defaults", () => {
-  assert.match(source, /existingUrls\.has\(resource\.assetUrl\) \|\| existingIds\.has\(id\)/u);
+test("#2432 keeps file-only Storyboard recovery draft-first and never infers approval from the filename", () => {
   assert.match(source, /type: "foundations\.visual\.store"/u);
   assert.match(source, /workflow: "storyboard-frame-webp-v2"/u);
   assert.match(source, /reviewState: "draft"/u);
   assert.match(source, /provider: "local recovery"/u);
   assert.match(source, /storyboard-anchor:block:block-\$\{blockRef\}:mini-\$\{resource\.miniBlockNumber\}/u);
   assert.match(source, /storyboard-position:\$\{resource\.position\}/u);
-  assert.doesNotMatch(source, /foundations\.visual\.accept/u);
+  assert.match(source, /const priorApproval = priorAcceptedStoryboardArtifact\(resource, sourceProjects\)/u);
+  assert.match(source, /if \(priorApproval\) \{[\s\S]*?type: "foundations\.visual\.accept"/u);
   assert.doesNotMatch(source, /foundations\.visual\.discard/u);
 });
 

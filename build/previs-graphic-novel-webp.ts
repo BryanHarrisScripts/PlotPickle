@@ -2,8 +2,12 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ASSET_PATH, MAX_ASSET_BYTES, assetsDirectory, safeAssetStem } from "./media-storage-common";
 
-export const PREVIS_GRAPHIC_NOVEL_CANVAS = Object.freeze({ width: 1280, height: 720 });
+export const PREVIS_GRAPHIC_NOVEL_PANEL = Object.freeze({ width: 720, height: 405 });
 export const PREVIS_GRAPHIC_NOVEL_MAX_PANELS = 25;
+export const PREVIS_GRAPHIC_NOVEL_COLUMNS = 2;
+const PANEL_GAP = 20;
+const SHEET_MARGIN = 20;
+const SHEET_HEADER_HEIGHT = 72;
 const MAX_INPUT_PIXELS = 40_000_000;
 const MAX_INPUT_DIMENSION = 8_192;
 
@@ -19,9 +23,15 @@ async function sharpEngine(): Promise<SharpFactory> {
     cachedSharp = sharp;
     return sharp;
   } catch {
-    throw new Error("PlotPickle's local image runtime is unavailable. Fully restart PlotPickle so startup can repair Sharp, then try Export Animated WebP again.");
+    throw new Error("PlotPickle's local image runtime is unavailable. Fully restart PlotPickle so startup can repair Sharp, then try Export WebP again.");
   }
 }
+
+export type PrevisGraphicNovelWebpBubble = Readonly<{
+  speaker: string;
+  text: string;
+  style: "speech";
+}>;
 
 export type PrevisGraphicNovelWebpPanel = Readonly<{
   position: number;
@@ -31,13 +41,15 @@ export type PrevisGraphicNovelWebpPanel = Readonly<{
   narration: string;
   shotLabel: string;
   shotContext: string;
+  bubbles?: readonly PrevisGraphicNovelWebpBubble[];
 }>;
 
 export type PrevisGraphicNovelWebpResult = Readonly<{
   bytes: Buffer;
   fileName: string;
   panelCount: number;
-  delayMs: number;
+  width: number;
+  height: number;
 }>;
 
 function cleanText(value: unknown, maximum: number) {
@@ -96,24 +108,45 @@ function localAssetFilePath(value: unknown) {
   return filePath;
 }
 
-function graphicNovelCaptionSvg(panel: PrevisGraphicNovelWebpPanel) {
-  const caption = wrapText(panel.caption, 62, 2);
-  const narration = wrapText(panel.narration, 78, 3);
-  const shot = wrapText([panel.shotLabel, panel.shotContext].filter(Boolean).join(" · "), 90, 1);
-  const captionText = caption.map((line, index) => `<tspan x="48" y="${538 + index * 28}">${escapeXml(line)}</tspan>`).join("");
-  const narrationStart = 598;
-  const narrationText = narration.map((line, index) => `<tspan x="48" y="${narrationStart + index * 25}">${escapeXml(line)}</tspan>`).join("");
-  const shotText = shot.length ? `<text x="48" y="698" fill="#b7c4bc" font-size="15" font-family="monospace">${escapeXml(shot[0])}</text>` : "";
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${PREVIS_GRAPHIC_NOVEL_CANVAS.width}" height="${PREVIS_GRAPHIC_NOVEL_CANVAS.height}">
-    <rect x="0" y="492" width="1280" height="228" fill="rgba(5,8,7,0.82)"/>
-    <rect x="0" y="492" width="1280" height="2" fill="#70d6a1"/>
-    <text fill="#70d6a1" font-size="20" font-weight="700" font-family="monospace">${captionText}</text>
-    <text fill="#f2f5f3" font-size="18" font-family="sans-serif">${narrationText}</text>
+function speechBubbleSvg(bubble: PrevisGraphicNovelWebpBubble, index: number) {
+  const width = 292;
+  const x = index % 2 === 0 ? 26 : PREVIS_GRAPHIC_NOVEL_PANEL.width - width - 26;
+  const y = index % 2 === 0 ? 24 : 76;
+  const height = 112;
+  const speaker = escapeXml(cleanText(bubble.speaker, 48));
+  const lines = wrapText(bubble.text, 30, 3);
+  const text = lines.map((line, lineIndex) => (
+    `<tspan x="${x + width / 2}" y="${y + 48 + lineIndex * 21}">${escapeXml(line)}</tspan>`
+  )).join("");
+  const tailX = index % 2 === 0 ? x + 62 : x + width - 76;
+  return `
+    <g data-graphic-novel-bubble="speech">
+      <rect x="${x}" y="${y}" width="${width}" height="${height}" rx="48" ry="42" fill="#ffffff" stroke="#111111" stroke-width="3"/>
+      <polygon points="${tailX},${y + height - 4} ${tailX + 20},${y + height + 24} ${tailX + 38},${y + height - 1}" fill="#ffffff" stroke="#111111" stroke-width="3" stroke-linejoin="round"/>
+      <text x="${x + width / 2}" y="${y + 25}" text-anchor="middle" fill="#111111" font-size="13" font-weight="700" font-family="Arial, sans-serif">${speaker}</text>
+      <text text-anchor="middle" fill="#111111" font-size="17" font-family="Arial, sans-serif">${text}</text>
+    </g>`;
+}
+
+function graphicNovelOverlaySvg(panel: PrevisGraphicNovelWebpPanel) {
+  const bubbles = (panel.bubbles ?? []).slice(0, 2).map(speechBubbleSvg).join("");
+  const caption = wrapText(panel.caption, 52, 1);
+  const narration = wrapText(panel.narration, 58, 2);
+  const shot = wrapText([panel.shotLabel, panel.shotContext].filter(Boolean).join(" · "), 72, 1);
+  const captionText = caption.map((line) => `<tspan x="24" y="326">${escapeXml(line)}</tspan>`).join("");
+  const narrationText = narration.map((line, index) => `<tspan x="24" y="${350 + index * 20}">${escapeXml(line)}</tspan>`).join("");
+  const shotText = shot.length ? `<text x="24" y="397" fill="#c7d4cc" font-size="12" font-family="monospace">${escapeXml(shot[0])}</text>` : "";
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${PREVIS_GRAPHIC_NOVEL_PANEL.width}" height="${PREVIS_GRAPHIC_NOVEL_PANEL.height}">
+    ${bubbles}
+    <rect x="0" y="300" width="${PREVIS_GRAPHIC_NOVEL_PANEL.width}" height="105" fill="rgba(5,8,7,0.82)"/>
+    <rect x="0" y="300" width="${PREVIS_GRAPHIC_NOVEL_PANEL.width}" height="2" fill="#70d6a1"/>
+    <text fill="#70d6a1" font-size="14" font-weight="700" font-family="monospace">${captionText}</text>
+    <text fill="#f2f5f3" font-size="14" font-family="Arial, sans-serif">${narrationText}</text>
     ${shotText}
   </svg>`);
 }
 
-async function preparedFrame(panel: PrevisGraphicNovelWebpPanel) {
+async function preparedPanel(panel: PrevisGraphicNovelWebpPanel) {
   const sharp = await sharpEngine();
   const filePath = localAssetFilePath(panel.assetUrl);
   const bytes = await readFile(filePath);
@@ -132,21 +165,21 @@ async function preparedFrame(panel: PrevisGraphicNovelWebpPanel) {
   }
   const base = await sharp(bytes, { limitInputPixels: MAX_INPUT_PIXELS })
     .rotate()
-    .resize(PREVIS_GRAPHIC_NOVEL_CANVAS.width, PREVIS_GRAPHIC_NOVEL_CANVAS.height, {
+    .resize(PREVIS_GRAPHIC_NOVEL_PANEL.width, PREVIS_GRAPHIC_NOVEL_PANEL.height, {
       fit: "cover",
       position: "centre",
     })
     .png()
     .toBuffer();
   return sharp(base)
-    .composite([{ input: graphicNovelCaptionSvg(panel), top: 0, left: 0 }])
+    .composite([{ input: graphicNovelOverlaySvg(panel), top: 0, left: 0 }])
     .png()
     .toBuffer();
 }
 
 function validatedPanels(value: readonly PrevisGraphicNovelWebpPanel[]) {
   if (!Array.isArray(value) || value.length === 0) {
-    throw new Error("Keep / Lock at least one Storyboard frame before exporting Animated WebP.");
+    throw new Error("Keep / Lock at least one Storyboard frame before exporting WebP.");
   }
   if (value.length > PREVIS_GRAPHIC_NOVEL_MAX_PANELS) {
     throw new Error("Graphic Novel export is limited to 25 Storyboard positions.");
@@ -167,6 +200,13 @@ function validatedPanels(value: readonly PrevisGraphicNovelWebpPanel[]) {
       narration: cleanText(panel.narration, 640),
       shotLabel: cleanText(panel.shotLabel, 180),
       shotContext: cleanText(panel.shotContext, 320),
+      bubbles: Array.isArray(panel.bubbles)
+        ? panel.bubbles.slice(0, 2).flatMap((bubble) => {
+          const speaker = cleanText(bubble?.speaker, 80);
+          const text = cleanText(bubble?.text, 180);
+          return speaker && text ? [{ speaker, text, style: "speech" as const }] : [];
+        })
+        : [],
     } satisfies PrevisGraphicNovelWebpPanel;
   }).sort((left, right) => left.position - right.position);
   if (new Set(panels.map((panel) => panel.position)).size !== panels.length) {
@@ -180,32 +220,63 @@ export function graphicNovelWebpFileName(projectTitle: string, blockNumber: numb
   return `${slug}-previs-graphic-novel-${String(blockNumber).padStart(2, "0")}-${miniBlockNumber}.webp`;
 }
 
+function sheetHeaderSvg(title: string, blockNumber: number, miniBlockNumber: number, width: number) {
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${SHEET_HEADER_HEIGHT}">
+    <rect width="${width}" height="${SHEET_HEADER_HEIGHT}" fill="#09100d"/>
+    <text x="${SHEET_MARGIN}" y="30" fill="#70d6a1" font-size="18" font-weight="700" font-family="monospace">PREVIS GRAPHIC NOVEL</text>
+    <text x="${SHEET_MARGIN}" y="54" fill="#f2f5f3" font-size="16" font-family="Arial, sans-serif">${escapeXml(cleanText(title, 120))} · Block ${String(blockNumber).padStart(2, "0")} · Mini-Block ${miniBlockNumber}</text>
+  </svg>`);
+}
+
 export async function buildPrevisGraphicNovelWebp(input: Readonly<{
   projectTitle: string;
   blockNumber: number;
   miniBlockNumber: number;
   panels: readonly PrevisGraphicNovelWebpPanel[];
-  delayMs: number;
 }>): Promise<PrevisGraphicNovelWebpResult> {
   const panels = validatedPanels(input.panels);
   const sharp = await sharpEngine();
-  const delayMs = Number.isInteger(input.delayMs) && input.delayMs >= 250 && input.delayMs <= 60_000 ? input.delayMs : 3_000;
-  const frames: Buffer[] = [];
-  for (const panel of panels) frames.push(await preparedFrame(panel));
+  const prepared: Buffer[] = [];
+  for (const panel of panels) prepared.push(await preparedPanel(panel));
 
-  const bytes = frames.length === 1
-    ? await sharp(frames[0]).webp({ quality: 86 }).toBuffer()
-    : await sharp(frames.map((frame) => ({ input: frame })), { join: { animated: true } })
-      .webp({ quality: 86, loop: 0, delay: frames.map(() => delayMs) })
-      .toBuffer();
+  const rows = Math.ceil(prepared.length / PREVIS_GRAPHIC_NOVEL_COLUMNS);
+  const width = SHEET_MARGIN * 2
+    + PREVIS_GRAPHIC_NOVEL_COLUMNS * PREVIS_GRAPHIC_NOVEL_PANEL.width
+    + (PREVIS_GRAPHIC_NOVEL_COLUMNS - 1) * PANEL_GAP;
+  const height = SHEET_HEADER_HEIGHT
+    + SHEET_MARGIN
+    + rows * PREVIS_GRAPHIC_NOVEL_PANEL.height
+    + Math.max(0, rows - 1) * PANEL_GAP
+    + SHEET_MARGIN;
+
+  const composites = prepared.map((inputBuffer, index) => {
+    const row = Math.floor(index / PREVIS_GRAPHIC_NOVEL_COLUMNS);
+    const column = index % PREVIS_GRAPHIC_NOVEL_COLUMNS;
+    return {
+      input: inputBuffer,
+      left: SHEET_MARGIN + column * (PREVIS_GRAPHIC_NOVEL_PANEL.width + PANEL_GAP),
+      top: SHEET_HEADER_HEIGHT + SHEET_MARGIN + row * (PREVIS_GRAPHIC_NOVEL_PANEL.height + PANEL_GAP),
+    };
+  });
+
+  const bytes = await sharp({
+    create: { width, height, channels: 3, background: "#050807" },
+  })
+    .composite([
+      { input: sheetHeaderSvg(input.projectTitle, input.blockNumber, input.miniBlockNumber, width), left: 0, top: 0 },
+      ...composites,
+    ])
+    .webp({ quality: 86 })
+    .toBuffer();
 
   if (!bytes.length || bytes.length > MAX_ASSET_BYTES) {
-    throw new Error("Animated WebP export was empty or exceeded the local image size limit.");
+    throw new Error("WebP export was empty or exceeded the local image size limit.");
   }
   return {
     bytes,
     fileName: graphicNovelWebpFileName(input.projectTitle, input.blockNumber, input.miniBlockNumber),
     panelCount: panels.length,
-    delayMs,
+    width,
+    height,
   };
 }

@@ -148,6 +148,7 @@ export default function PrevisReadinessWorkspace({
       beatDirection: progression.direction,
       shotLabel: shot ? `Shot ${String(shot.order).padStart(2, "0")} · ${shot.shotSize || "size open"}` : "Shot intent open",
       shotContext: shot ? [shot.angle, shot.movement, shot.visualIntent].filter(Boolean).join(" · ") : "",
+      passages: selectedFrameEvidence?.passages ?? [],
     });
   }
 
@@ -175,7 +176,7 @@ export default function PrevisReadinessWorkspace({
     setGraphicNovelPlaying(false);
     const exportPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
     if (!exportPanels.length) {
-      setMessage("Keep / Lock at least one Storyboard frame before exporting Animated WebP.");
+      setMessage("Keep / Lock at least one Storyboard frame before exporting WebP.");
       return;
     }
 
@@ -193,10 +194,10 @@ export default function PrevisReadinessWorkspace({
       });
       if (!response.ok) {
         const failure = await response.json().catch(() => ({})) as { message?: string };
-        throw new Error(failure.message || "Animated WebP export failed.");
+        throw new Error(failure.message || "WebP export failed.");
       }
       const blob = await response.blob();
-      if (blob.type && blob.type !== "image/webp") throw new Error("Animated WebP export returned an unexpected media type.");
+      if (blob.type && blob.type !== "image/webp") throw new Error("WebP export returned an unexpected media type.");
       const disposition = response.headers.get("Content-Disposition") ?? "";
       const serverName = /filename="?([^";]+\.webp)"?/iu.exec(disposition)?.[1] ?? "";
       const url = URL.createObjectURL(blob);
@@ -209,9 +210,9 @@ export default function PrevisReadinessWorkspace({
       );
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      setMessage(`Animated WebP exported with ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}. Derived narration is presentation-only; story canon and Storyboard approval were unchanged.`);
+      setMessage(`WebP exported as one static Graphic Novel sheet with ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}. Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Animated WebP export failed.");
+      setMessage(error instanceof Error ? error.message : "WebP export failed.");
     } finally {
       setGraphicNovelExporting(false);
     }
@@ -442,12 +443,28 @@ export default function PrevisReadinessWorkspace({
                     </div>
                   )}
                   {graphicNovelMode ? (
-                    <aside className={styles.graphicNovelCaption} aria-live="polite">
-                      <small>{selectedGraphicNovelPanel.caption}</small>
-                      <strong>{selectedGraphicNovelPanel.narration}</strong>
-                      <span>{selectedGraphicNovelPanel.shotLabel}{selectedGraphicNovelPanel.shotContext ? ` · ${selectedGraphicNovelPanel.shotContext}` : ""}</span>
-                      <em>Derived Previs narration · presentation only</em>
-                    </aside>
+                    <>
+                      {selectedGraphicNovelPanel.bubbles.length ? (
+                        <div className={styles.graphicNovelBubbles} aria-label="Observed screenplay dialogue">
+                          {selectedGraphicNovelPanel.bubbles.map((bubble, index) => (
+                            <blockquote
+                              className={styles.graphicNovelBubble}
+                              data-bubble-side={index % 2 === 0 ? "left" : "right"}
+                              key={`${bubble.speaker}-${index}`}
+                            >
+                              <strong>{bubble.speaker}</strong>
+                              <p>{bubble.text}</p>
+                            </blockquote>
+                          ))}
+                        </div>
+                      ) : null}
+                      <aside className={styles.graphicNovelCaption} aria-live="polite">
+                        <small>{selectedGraphicNovelPanel.caption}</small>
+                        <strong>{selectedGraphicNovelPanel.narration}</strong>
+                        <span>{selectedGraphicNovelPanel.shotLabel}{selectedGraphicNovelPanel.shotContext ? ` · ${selectedGraphicNovelPanel.shotContext}` : ""}</span>
+                        <em>Observed dialogue + derived Previs caption · presentation only</em>
+                      </aside>
+                    </>
                   ) : null}
                   <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>
                 </div>
@@ -468,7 +485,7 @@ export default function PrevisReadinessWorkspace({
                     setGraphicNovelMode(true);
                     setGraphicNovelPlaying((playing) => !playing);
                   }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
-                  <button disabled={!lockedFrameCount || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Export Animated WebP</button>
+                  <button disabled={!lockedFrameCount || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Export WebP</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);
                     setGraphicNovelPlaying(false);

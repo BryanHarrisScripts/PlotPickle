@@ -18,8 +18,7 @@ import OpenSourceSkinPanel from "./open-source-skin-panel";
 import StoryBibleSurface from "./story-bible-surface";
 import {
   SkinV1BuildReviewSurface,
-  SkinV1PrevisReviewSurface,
-  SkinV1PrevisStoryMap,
+  SkinV1PrevisCompositeSurface,
   SkinV1ProductionReviewSurface,
   SkinV1ScreeningReviewSurface,
   SkinV1SoundReviewSurface,
@@ -675,11 +674,7 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>
         <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("previs", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />
-        <SkinV1PrevisStoryMap
-          address={reviewAddress}
-          onAddressChange={(address) => updateReviewAddress("previs", address)}
-        />
-        <SkinV1PrevisReviewSurface
+        <SkinV1PrevisCompositeSurface
           address={reviewAddress}
           onAddressChange={(address) => updateReviewAddress("previs", address)}
           onOpenStoryboard={openStoryboard}

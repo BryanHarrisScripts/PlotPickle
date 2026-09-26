@@ -757,6 +757,62 @@
   color: var(--pp-skin-warning);
 }
 
+.graphicNovelBubbles {
+  position: absolute;
+  inset: var(--pp-skin-space-3) var(--pp-skin-space-3) auto;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.graphicNovelBubble {
+  position: relative;
+  width: min(38%, 360px);
+  margin: 0;
+  padding: 12px 18px 14px;
+  border: 2px solid #111;
+  border-radius: 48% 52% 46% 54% / 55% 44% 56% 45%;
+  background: #fff;
+  box-shadow: 2px 2px 0 #111;
+  color: #111;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  line-height: 1.25;
+}
+
+.graphicNovelBubble::after {
+  position: absolute;
+  bottom: -12px;
+  width: 18px;
+  height: 18px;
+  border-right: 2px solid #111;
+  border-bottom: 2px solid #111;
+  background: #fff;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.graphicNovelBubble[data-bubble-side="left"]::after { left: 18%; }
+.graphicNovelBubble[data-bubble-side="right"]::after { right: 18%; }
+
+.graphicNovelBubble strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.graphicNovelBubble p {
+  margin: 0;
+  color: #111;
+  font-size: clamp(12px, 1.5vw, 18px);
+  overflow-wrap: anywhere;
+}
+
 .graphicNovelCaption {
   position: absolute;
   left: var(--pp-skin-space-3);

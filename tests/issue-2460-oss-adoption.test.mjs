@@ -94,6 +94,18 @@ test("#2460 fails closed when required Agent Skill materialization is unknown, i
   );
 });
 
+
+test("#2460 UAT repair handoff requires and loads the materialized uat-repair skill", async () => {
+  const source = await read("scripts/run-uat-repair-agent.mjs");
+  const registryScript = await read("scripts/agent-skills.mjs");
+
+  assert.match(source, /materializeAgentSkillRunManifest\(worker, \["uat-repair"\]\)/u);
+  assert.match(source, /readAgentSkillProcedure\("uat-repair"\)/u);
+  assert.match(source, /skillMaterialization:\s*"failed"/u);
+  assert.match(registryScript, /materializeAgentSkillsForRun/u);
+  assert.match(registryScript, /--materialize-for/u);
+});
+
 test("#2460 defines one privacy-bounded agent/runtime execution vocabulary", () => {
   assert.deepEqual(AGENT_RUNTIME_KINDS, [
     "session",

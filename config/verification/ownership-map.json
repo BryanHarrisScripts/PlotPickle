@@ -922,7 +922,9 @@
         "app/_components/previs/previs-projection-model.ts",
         "app/_components/previs/previs-graphic-novel-presentation.ts",
         "app/_components/previs/previs-readiness-workspace.tsx",
-        "app/previs/page.tsx"
+        "app/previs/page.tsx",
+        "build/previs-graphic-novel-webp.ts",
+        "app/api/previs/graphic-novel/export/route.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

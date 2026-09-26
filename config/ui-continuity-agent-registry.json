@@ -170,7 +170,7 @@
     },
     {
       "id": "previs",
-      "label": "Previs / Graphic Novel",
+      "label": "Previs",
       "path": "/previs",
       "kind": "workspace",
       "migrationClass": "canonical",

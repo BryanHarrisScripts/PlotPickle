@@ -1,4 +1,4 @@
-import { currentMarketingReference } from "../contracts/build-progress";
+import { currentMarketingReference, lockedMarketingReference } from "../contracts/build-progress";
 import type { CurriculumLesson } from "../contracts/curriculum";
 import {
   buildFoundationPlanLessons,
@@ -210,7 +210,11 @@ export function projectStoryBible(
   const foundationGroups = curriculumGroups(curriculum, project, "foundations");
   const worldGroups = curriculumGroups(curriculum, project, "world");
   const allGroups = [...foundationGroups, ...worldGroups];
-  const marketingReference = currentMarketingReference(project.build.foundations.visualArtifacts);
+  const lockedPosterReference = lockedMarketingReference(
+    project.build.foundations.visualArtifacts,
+    project.build.foundations.acceptedVisualArtifactIds,
+  );
+  const marketingReference = lockedPosterReference ?? currentMarketingReference(project.build.foundations.visualArtifacts);
   const evidence = normalizeProjectSourceEvidence(project.sourceEvidence);
 
   const screenplay = evidence.screenplay;
@@ -250,7 +254,7 @@ export function projectStoryBible(
     revision: project.revision,
     updatedAt: project.updatedAt,
     posterUrl: marketingReference?.assetUrl ?? null,
-    posterLabel: marketingReference ? "Current Marketing Reference" : "No poster yet",
+    posterLabel: lockedPosterReference ? "Locked Marketing Reference" : marketingReference ? "Saved Marketing Reference" : "No poster yet",
     logline: pickFact(foundationGroups, "spotlight-logline", "Logline", /\blogline\b/iu),
     premise: pickFact(foundationGroups, "spotlight-premise", "Premise / what the movie is about", /\bpremise\b|story promise|what.*(?:movie|story)|\bpitch\b/iu),
     theme: pickFact(allGroups, "spotlight-theme", "Theme", /\btheme\b|anti-theme|dramatic question/iu),

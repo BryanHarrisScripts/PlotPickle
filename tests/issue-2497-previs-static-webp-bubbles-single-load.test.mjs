@@ -32,7 +32,7 @@ test("#2497 derives speech bubbles from observed screenplay character and dialog
     read("app/_components/storyboard/storyboard-editorial-model.ts"),
   ]);
 
-  assert.match(editorial, /export function storyboardPassageWindowForPosition/u);
+  assert.match(editorial, /export const storyboardPassageWindowForPosition = passageWindow/u);
   assert.match(presentation, /storyboardPassageWindowForPosition\(passages, position\)/u);
   assert.match(presentation, /type === "character"/u);
   assert.match(presentation, /type === "dialogue" \|\| type === "dual-dialogue"/u);

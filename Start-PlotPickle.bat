@@ -41,9 +41,11 @@ set "INSTALL_PERFORMED=0"
 set "READY_TIMEOUT_SECONDS=240"
 set "READY_REQUEST_TIMEOUT_SECONDS=30"
 set "BROWSER_FAILURE_GRACE_SECONDS=12"
+if /I "%~1"=="--normal" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
+if /I "%~1"=="--human-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
 if /I "%~1"=="--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
-if /I "%~1"=="--human-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
-if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
+if /I "%~1"=="--conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
+if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
 set "NODE_ENV=development"
@@ -106,21 +108,23 @@ if "!PLOTPICKLE_SOURCE_MODE!"=="sync-error" echo !READY_WARN! The application up
 if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4-!PLOTPICKLE_SOURCE_SHA!"
 echo.
 
-if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" set "PLOTPICKLE_STARTUP_TESTING_MODE="
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE="
 if not defined PLOTPICKLE_STARTUP_TESTING_MODE (
-  echo !CYAN![TESTING MODE]!RESET!
-  echo Human Testing or WebMCP Testing
+  echo !CYAN![STARTUP MODE]!RESET!
+  echo [1] Open PlotPickle normally
+  echo [2] WebMCP Testing
+  echo [3] Conversational UAT
   echo.
-  echo Y = WebMCP Testing - run the autonomous interface, surface and Skin V1 UAT.
-  echo N = Human Testing - open PlotPickle normally so you can test it yourself.
-  echo.
-  choice /C YN /N /M "Run WebMCP Testing? [Y/N] - Y = WebMCP Testing, N = Human Testing: "
-  if errorlevel 2 (
-    set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
-  ) else (
+  choice /C 123 /N /M "Choose startup mode [1-3]: "
+  if errorlevel 3 (
+    set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
+  ) else if errorlevel 2 (
     set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
+  ) else (
+    set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
   )
 )
+set "PLOTPICKLE_STARTUP_MARKER=!PLOTPICKLE_STARTUP_MARKER!-!PLOTPICKLE_STARTUP_TESTING_MODE!"
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   if not defined PLOTPICKLE_WEBMCP_QA_PROFILE (
     echo.
@@ -142,8 +146,10 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
     set "PLOTPICKLE_WEBMCP_QA_PROFILE=!ERRORLEVEL!"
   )
   echo !READY! WebMCP Testing selected. QA profile !PLOTPICKLE_WEBMCP_QA_PROFILE! will run in the isolated test session after readiness.
+) else if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" (
+  echo !READY! Conversational UAT selected. DSDD and Human-validation development tools will be enabled after readiness.
 ) else (
-  echo !READY! Human Testing selected. PlotPickle will open its owned app window after readiness.
+  echo !READY! Normal PlotPickle selected. The pristine current product will open without developer UAT controls.
 )
 echo.
 
@@ -168,7 +174,7 @@ if "!PROBE_RESULT!"=="0" (
 )
 if "!PROBE_RESULT!"=="3" (
   echo.
-  echo !WARNING! A PlotPickle page is already using port %PLOTPICKLE_PORT%, but it is stale or unverified.
+  echo !WARNING! A PlotPickle page is already using port %PLOTPICKLE_PORT%, but it is stale, unverified, or running a different startup mode.
   echo Close the older PlotPickle command window with Ctrl+C, then run Start-PlotPickle.bat again.
   echo The launcher will not open it or replace dependencies underneath a running server.
   echo.
@@ -293,7 +299,10 @@ if errorlevel 1 goto :setup_failed
 for /f %%V in ('node -p "require('./node_modules/@mastra/core/package.json').version"') do set "MASTRA_VERSION=%%V"
 echo !OK! Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents.
 
-if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" (
+set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=0"
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_PREPARE_LOCAL_DICTATION=1"
+if "!PLOTPICKLE_PREPARE_LOCAL_DICTATION!"=="1" (
   echo.
   echo !CYAN![LOCAL DICTATION CHECK]!RESET! Verifying the reviewed local speech runtime...
   call :prepare_local_dictation
@@ -332,14 +341,14 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   if not exist "%WEBMCP_STARTUP_RUNNER%" (
     echo.
     echo !ERROR_TAG! The WebMCP startup UAT runner is missing from this PlotPickle build.
-    echo Update PlotPickle or choose Human Testing.
+    echo Update PlotPickle or choose normal PlotPickle.
     pause
     exit /b 1
   )
   if not exist "%WEBMCP_QA_RUNNER%" (
     echo.
     echo !ERROR_TAG! The WebMCP QA profile runner is missing from this PlotPickle build.
-    echo Update PlotPickle or choose Human Testing.
+    echo Update PlotPickle or choose normal PlotPickle.
     pause
     exit /b 1
   )

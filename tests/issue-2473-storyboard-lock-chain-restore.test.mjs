@@ -46,7 +46,7 @@ function harness(storage) {
   };
 }
 
-const read = (path) => readFile(new URL(\`../\${path}\`, import.meta.url), "utf8");
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#2473 keeps archived saved Library snapshots readable without switching the active story", () => {
   const storage = new MemoryStorage();
@@ -69,37 +69,37 @@ test("#2473 keeps archived saved Library snapshots readable without switching th
 test("#2473 accepts proof from direct origin or an exact recovered-working-copy provenance chain", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
-  assert.match(source, /source\.id === resource\.originProjectId/u);
-  assert.match(source, /recovery-origin-project:\$\{resource\.originProjectId\}/u);
-  assert.match(source, /recovery-content-hash:\$\{resource\.contentHash\}/u);
-  assert.match(source, /directOrigin \|\| \(decisionKeys\.includes\(originKey\) && decisionKeys\.includes\(contentHashKey\)\)/u);
-  assert.match(source, /artifact\.assetUrl === resource\.assetUrl/u);
-  assert.match(source, /artifact\.workflow === "storyboard-frame-webp-v2"/u);
-  assert.match(source, /artifact\.frameNumber === resource\.position/u);
-  assert.match(source, /decisionKeys\.includes\(anchorKey\)/u);
-  assert.match(source, /artifact\.reviewState !== "rejected"/u);
-  assert.match(source, /artifact\.reviewState === "accepted" \|\| acceptedIds\.has\(artifact\.id\)/u);
+  assert.match(source, /sourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).id === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).originProjectId/u);
+  assert.match(source, /recovery-origin-project:candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)$candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).originProjectIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)}/u);
+  assert.match(source, /recovery-content-hash:candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)$candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).contentHashcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)}/u);
+  assert.match(source, /directOrigin candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)|candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)| candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(decisionKeyscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).includescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(originKeycandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)) && decisionKeyscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).includescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(contentHashKeycandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).assetUrl === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).assetUrl/u);
+  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).workflow === "storyboard-frame-webp-v2"/u);
+  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).frameNumber === resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).position/u);
+  assert.match(source, /decisionKeyscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).includescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(anchorKeycandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(source, /candidatecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).reviewState !== "rejected"/u);
+  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)|candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)|candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/u);
 });
 
 test("#2473 records the saved approval project and artifact on a newly recovered locked frame", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
 
-  assert.match(source, /priorApproval\.artifact\.id/u);
-  assert.match(source, /priorApproval\.projectId/u);
-  assert.match(source, /recovery-approved-artifact:\$\{priorApproval\.artifact\.id\}/u);
-  assert.match(source, /recovery-approved-project:\$\{priorApproval\.projectId\}/u);
+  assert.match(source, /priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).id/u);
+  assert.match(source, /priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).projectId/u);
+  assert.match(source, /recovery-approved-artifact:candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)$candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).idcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)}/u);
+  assert.match(source, /recovery-approved-project:candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)$candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\){priorApprovalcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).projectIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)}/u);
   assert.match(source, /recovery-approval-source:saved-library/u);
-  assert.match(source, /type: "foundations\.visual\.accept"/u);
+  assert.match(source, /type: "foundationscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).visualcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).accept"/u);
 });
 
 test("#2473 Library restore searches current-profile active, archived and direct-origin snapshots", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(workspace, /listLibraryProjects\(\)/u);
-  assert.match(workspace, /listArchivedLibraryProjects\(\)/u);
-  assert.match(workspace, /storyboardResources\.map\(\(resource\) => resource\.originProjectId\)/u);
-  assert.match(workspace, /loadLibraryProjectSnapshot\(projectId\)/u);
-  assert.match(workspace, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
+  assert.match(workspace, /listLibraryProjectscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(workspace, /listArchivedLibraryProjectscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(workspace, /storyboardResourcescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).mapcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)) => resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).originProjectIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(workspace, /loadLibraryProjectSnapshotcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(projectIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(workspace, /restoreLocalStoryboardResourcescandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(current, storyboardResources, storyboardSourceProjectscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
 });
 
 test("#2473 preserves draft-first recovery and adds no Previs approval bypass", async () => {
@@ -109,7 +109,7 @@ test("#2473 preserves draft-first recovery and adds no Previs approval bypass", 
   ]);
 
   assert.match(recovery, /reviewState: "draft"/u);
-  assert.match(recovery, /recoveryArtifactId\(resource\)/u);
-  assert.match(previs, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);
+  assert.match(recovery, /recoveryArtifactIdcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(resourcecandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\))/u);
+  assert.match(previs, /acceptedVisualIdscandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).hascandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)(artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).idcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)) && artifactcandidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\).reviewState === "accepted"/u);
   assert.doesNotMatch(previs, /recovery-approved-project|recovery-origin-project/u);
 });

@@ -304,7 +304,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>{act ? `${surfaceLabel} · Act ${act}` : `${surfaceLabel} · 4 Acts / 24 Blocks / 96 Mini-Blocks`}</p>
-          <h2 id="progressive-story-map-title">The story is the navigation.</h2>
+          <h2 id="progressive-story-map-title">{surfaceLabel === "Previs" ? "Previs" : "The story is the navigation."}</h2>
           <p>{act ? `Act ${act} · Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select a Block and one of its four Mini-Blocks to develop this part of the story.` : "Select a Block and one of its four Mini-Blocks to develop this part of the story."}</p>
         </div>
         <div className={styles.sourceSummary}>

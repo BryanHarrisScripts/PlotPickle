@@ -31,7 +31,7 @@ test("#2452 uses WorldMap as one word and graduates the connected Dashboard row 
   assert.match(surface, /WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT/u);
 });
 
-test("#2452 exposes a truthful, explicit Generate Poster Visual action and saves only durable local output", async () => {
+test("#2452/#2493 exposes truthful poster generation and explicit local Save", async () => {
   const [surface, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
@@ -48,14 +48,23 @@ test("#2452 exposes a truthful, explicit Generate Poster Visual action and saves
   assert.match(surface, /MUSICAL SCORE BY TBD/u);
   assert.match(surface, /Do not invent actor identities, director names, producer names, composer names/u);
   assert.match(surface, /fetch\("\/api\/local-ai\/generate\/image"/u);
-  assert.match(surface, /assetId: `worldmap-poster-\$\{project\.id\}`/u);
+  assert.match(surface, /assetId: `worldmap-poster-\$\{project\.id\}-\$\{Date\.now\(\)\}`/u);
   assert.match(surface, /result\.assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
   assert.match(surface, /createFirstMarketingReferenceArtifact/u);
-  assert.match(surface, /type: "foundations\.visual\.store"/u);
-  assert.match(surface, /saveActiveLibraryProject\(next\)/u);
-  assert.match(surface, /className=\{styles\.primaryAction\}[^>]*Generate/u);
+  assert.match(surface, /Poster generated but NOT SAVED/u);
+  assert.match(surface, /Save this Version/u);
+  const generateBlock = surface.slice(surface.indexOf("async function generatePosterVisual"), surface.indexOf("function savePosterVersion"));
+  assert.doesNotMatch(generateBlock, /foundations\.visual\.store|saveActiveLibraryProject/u);
+  const saveBlock = surface.slice(surface.indexOf("function savePosterVersion"), surface.indexOf("function lockPosterVersion"));
+  assert.match(saveBlock, /type: "foundations\.visual\.store"/u);
+  assert.match(saveBlock, /saveActiveLibraryProject\(next\)/u);
+  assert.match(surface, /MARKETING_REFERENCE_MAX_VERSIONS/u);
+  assert.match(surface, /Previous saved version/u);
+  assert.match(surface, /Next saved version/u);
+  assert.match(surface, /Lock this Version/u);
   assert.match(surface, /Generate Character Visual/u);
   assert.match(styles, /\.primaryAction/u);
+  assert.match(styles, /\.versionBar/u);
   assert.match(styles, /--pp-skin-accent-bright/u);
   assert.match(styles, /cursor: pointer/u);
   assert.doesNotMatch(styles, /#[0-9a-f]{3,8}\b|rgba?\(/iu);

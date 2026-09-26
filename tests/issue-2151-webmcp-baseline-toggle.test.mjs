@@ -80,7 +80,7 @@ test("#2151 derives numbered locked states from the supplied catalogue and manif
     assert.deepEqual(visualBaselineReviewLines({ manifest: fixture.manifest, targets: TARGETS, labels: LABELS }), [
       "Visual review complete.",
       "3 surfaces captured.",
-      "Currently locked: [1] Dashboard",
+      "Currently locked visual baselines: [1] Dashboard",
     ]);
     const listing = visualBaselineSelectionLines({ manifest: fixture.manifest, targets: TARGETS, labels: LABELS }).join("\n");
     assert.match(listing, /\[1\] Dashboard\s+\[LOCKED\]/u);

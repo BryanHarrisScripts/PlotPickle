@@ -105,7 +105,7 @@ type DsddIntent = {
 type DsddSession = {
   schemaVersion: 1;
   sessionId: string;
-  piVersion: "0.87.0";
+  piVersion: "0.87.1";
   piSessionId: string;
   piSessionFile: string;
   createdAt: string;
@@ -179,7 +179,7 @@ function emptySession(): DsddSession {
   return {
     schemaVersion: 1,
     sessionId: randomUUID(),
-    piVersion: "0.87.0",
+    piVersion: "0.87.1",
     piSessionId: "",
     piSessionFile: "",
     createdAt: now,
@@ -196,7 +196,7 @@ function normalizeSession(value: unknown): DsddSession {
   return {
     schemaVersion: 1,
     sessionId: source.sessionId,
-    piVersion: "0.87.0",
+    piVersion: "0.87.1",
     piSessionId: typeof source.piSessionId === "string" ? source.piSessionId : "",
     piSessionFile: typeof source.piSessionFile === "string" ? source.piSessionFile : "",
     createdAt: typeof source.createdAt === "string" ? source.createdAt : new Date().toISOString(),

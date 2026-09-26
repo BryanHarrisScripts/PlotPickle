@@ -8,6 +8,6 @@
     "pi-subagents": "^0.35.1"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.87.0"
+    "@earendil-works/pi-coding-agent": "0.87.1"
   }
 }

@@ -56,7 +56,7 @@ export function runDsddPiAction(input: DsddPiAction): Promise<DsddPiResult> {
       }
       try {
         const parsed = JSON.parse(stdout) as DsddPiResult;
-        if (!parsed.ok || parsed.piVersion !== "0.87.0") throw new Error("DSDD Pi session bridge returned an invalid result.");
+        if (!parsed.ok || parsed.piVersion !== "0.87.1") throw new Error("DSDD Pi session bridge returned an invalid result.");
         resolve(parsed);
       } catch (error) {
         reject(error instanceof Error ? error : new Error("DSDD Pi session bridge returned invalid JSON."));

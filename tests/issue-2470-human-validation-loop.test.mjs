@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  appendConversationalJourney,
-  applyConversationalHumanDecision,
-  confirmedFindingInterpretation,
-  confirmedFindingNarration,
-  normalizeConversationalUatState,
-  pendingConversationalCandidates,
-} from "../build/dsdd/conversational-uat-runtime.mjs";
-import { correlateConversationalFindings } from "../lib/verification/conversational-uat/referee.mjs";
+  correlateConversationalFindings,
+  decideConversationalFinding,
+  semanticJourneyEvent,
+} from "../lib/verification/conversational-uat/referee.mjs";
 import { readFile } from "node:fs/promises";
 
 const identity = { head: "c".repeat(40), runtime: "option-3" };
@@ -25,28 +21,22 @@ const candidate = {
   safeNavigationTarget: "/storyboard",
 };
 
-test("#2470 Option 3 state is head-aware and journey evidence stays semantic", () => {
-  let state = normalizeConversationalUatState({}, identity);
-  state = appendConversationalJourney(state, { from: "DASHBOARD", to: "STORYBOARD", actionId: "nav.storyboard", prose: "private story", key: "secret" });
-  assert.equal(state.head, identity.head);
-  assert.equal(state.journey.length, 1);
-  assert.equal(JSON.stringify(state.journey).includes("private story"), false);
-  assert.equal(JSON.stringify(state.journey).includes("secret"), false);
+test("#2470 journey evidence stays semantic and data-minimized", () => {
+  const event = semanticJourneyEvent({ from: "DASHBOARD", to: "STORYBOARD", actionId: "nav.storyboard", prose: "private story", key: "secret" });
+  assert.equal(event.from, "DASHBOARD");
+  assert.equal(event.to, "STORYBOARD");
+  assert.equal(JSON.stringify(event).includes("private story"), false);
+  assert.equal(JSON.stringify(event).includes("secret"), false);
 });
 
-test("#2470 Y/N keeps Human authority and Y creates bounded DSDD source text", () => {
-  let state = normalizeConversationalUatState({}, identity);
-  state = { ...state, findings: correlateConversationalFindings([], candidate, identity) };
-  assert.equal(pendingConversationalCandidates(state).length, 1);
-  const rejected = applyConversationalHumanDecision(state, candidate.fingerprint, "N", identity);
-  assert.equal(rejected.findings[0].state, "human-rejected");
+test("#2470 Y/N keeps Human authority in the shared referee lifecycle", () => {
+  const findings = correlateConversationalFindings([], candidate, identity);
+  assert.equal(findings.length, 1);
+  const rejected = decideConversationalFinding(findings, candidate.fingerprint, "N", identity);
+  assert.equal(rejected[0].state, "human-rejected");
 
-  state = normalizeConversationalUatState({}, identity);
-  state = { ...state, findings: correlateConversationalFindings([], candidate, identity) };
-  const confirmed = applyConversationalHumanDecision(state, candidate.fingerprint, "Y", identity);
-  assert.equal(confirmed.findings[0].state, "human-confirmed");
-  assert.match(confirmedFindingNarration(confirmed.findings[0]), /Human-confirmed Conversational UAT finding/u);
-  assert.match(confirmedFindingInterpretation(confirmed.findings[0]), /specification publication only/u);
+  const confirmed = decideConversationalFinding(findings, candidate.fingerprint, "Y", identity);
+  assert.equal(confirmed[0].state, "human-confirmed");
 });
 
 test("#2470 UI/server preserve safe checkpoint, no-canon, and automatic Y publication boundaries", async () => {
@@ -66,6 +56,9 @@ test("#2470 UI/server preserve safe checkpoint, no-canon, and automatic Y public
   assert.match(gateway, /await draftDeveloperBrief\(\)/u);
   assert.match(gateway, /await publishBriefIssue\(\)/u);
   assert.match(gateway, /CONVERSATIONAL_UAT_OBJECT_ID/u);
+  assert.match(gateway, /source\.head === identity\.head/u);
+  assert.match(gateway, /Human-confirmed Conversational UAT finding/u);
+  assert.match(gateway, /specification publication only/u);
   assert.doesNotMatch(gateway, /--repair|github-report/u);
   assert.match(launcher, /CONVERSATIONAL_UAT_OBSERVER=scripts\\run-uat-closed-loop\.mjs/u);
   assert.match(launcher, /--conversational-observe/u);

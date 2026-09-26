@@ -576,7 +576,7 @@ export function storyboardPositionsForScope(
   return Array.from({ length: 5 }, (_, index) => start + index);
 }
 
-function passageWindow(
+export function storyboardPassageWindowForPosition(
   passages: readonly StoryboardPlanningPassage[],
   position: number,
 ) {
@@ -625,7 +625,7 @@ export function storyboardFrameBriefs(input: Readonly<{
   const characters = input.characters ?? [];
   return input.positions.map((rawPosition) => {
     const position = boundedPosition(rawPosition);
-    const evidence = passageWindow(input.passages, position);
+    const evidence = storyboardPassageWindowForPosition(input.passages, position);
     const evidenceSummary = evidence.map((passage) => clean(passage.text)).filter(Boolean).join(" | ");
     const matchingCharacters = characters.filter((character) => mentionsCharacter(evidenceSummary, character));
     const approvedVisualRefs = [...new Set(matchingCharacters.flatMap((character) => character.approvedVisualRefs))];
@@ -637,8 +637,8 @@ export function storyboardFrameBriefs(input: Readonly<{
       : approvedVisualRefs.length && identityLocks.length
         ? "approved-reference"
         : "exploratory";
-    const previousEvidence = passageWindow(input.passages, Math.max(1, position - 1));
-    const nextEvidence = passageWindow(input.passages, Math.min(25, position + 1));
+    const previousEvidence = storyboardPassageWindowForPosition(input.passages, Math.max(1, position - 1));
+    const nextEvidence = storyboardPassageWindowForPosition(input.passages, Math.min(25, position + 1));
     const previousSummary = previousEvidence.map((passage) => clean(passage.text, 260)).join(" | ");
     const nextSummary = nextEvidence.map((passage) => clean(passage.text, 260)).join(" | ");
     return {

@@ -89,9 +89,6 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
       if (!shutdownToken) throw new Error("PlotPickle did not issue a graceful shutdown proof.");
       setNode(begun);
 
-      await persistActiveProfileProject();
-      await flushProfilePrivateWrites();
-
       const currentProfile = await parseJson<ProfileStatus>(await fetch("/api/auth/profile", {
         credentials: "same-origin",
         cache: "no-store",
@@ -100,6 +97,11 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
         if (!currentProfile.csrfToken) {
           throw new Error("PlotPickle could not verify the active Human session for safe release.");
         }
+        await persistActiveProfileProject(currentProfile.csrfToken);
+        await flushProfilePrivateWrites();
+      }
+
+      if (currentProfile.authenticated && currentProfile.csrfToken) {
         await logoutHumanProfile(currentProfile.csrfToken);
       }
 
@@ -107,7 +109,10 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
       window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
       setNode(await nodeAction("complete-shutdown", { shutdownToken }));
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : String(cause);
+      const detail = cause instanceof Error ? cause.message : String(cause);
+      const message = /Human profile is locked/i.test(detail)
+        ? "Shutdown could not verify the active Human Profile for saving. Your work was not discarded. Return to Dashboard, unlock the profile, then try Shut Down again."
+        : detail;
       setError(message);
       if (shutdownToken) {
         try {

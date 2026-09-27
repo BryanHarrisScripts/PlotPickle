@@ -227,6 +227,33 @@ function priorStoryboardArtifact(
   return null;
 }
 
+function priorDeletedStoryboardArtifact(
+  resource: RecoveredStoryboardResource,
+  sourceProjects: readonly LibraryPPFProject[],
+): PriorStoryboardApproval | null {
+  const blockRef = String(resource.blockNumber).padStart(2, "0");
+  const anchorKey = `storyboard-anchor:block:block-${blockRef}:mini-${resource.miniBlockNumber}`;
+  const originKey = `recovery-origin-project:${resource.originProjectId}`;
+  const contentHashKey = `recovery-content-hash:${resource.contentHash}`;
+
+  for (const source of orderedStoryboardSources(resource, sourceProjects)) {
+    const directOrigin = source.id === resource.originProjectId;
+    const artifact = source.build.foundations.visualArtifacts.find((candidate) => {
+      const decisionKeys = candidate.sourceDecisionKeys ?? [];
+      const provenanceMatches = directOrigin || (decisionKeys.includes(originKey) && decisionKeys.includes(contentHashKey));
+      return provenanceMatches
+        && candidate.assetUrl === resource.assetUrl
+        && candidate.workflow === "storyboard-frame-webp-v2"
+        && candidate.frameNumber === resource.position
+        && candidate.reviewState === "rejected"
+        && decisionKeys.includes(anchorKey)
+        && decisionKeys.includes("storyboard-deleted:v1");
+    });
+    if (artifact) return { artifact, projectId: source.id };
+  }
+  return null;
+}
+
 function priorAcceptedStoryboardArtifact(
   resource: RecoveredStoryboardResource,
   sourceProjects: readonly LibraryPPFProject[],
@@ -291,6 +318,11 @@ export function restoreLocalStoryboardResources(
   let restoredSavedCount = 0;
   for (const resource of resources) {
     const id = recoveryArtifactId(resource);
+    const priorDeletedArtifact = priorDeletedStoryboardArtifact(resource, sourceProjects);
+    if (priorDeletedArtifact) {
+      skippedCount += 1;
+      continue;
+    }
     const priorArtifact = priorStoryboardArtifact(resource, sourceProjects);
     const priorApproval = priorAcceptedStoryboardArtifact(resource, sourceProjects);
     const existingArtifact = current.build.foundations.visualArtifacts.find((artifact) =>

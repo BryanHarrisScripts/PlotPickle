@@ -228,6 +228,23 @@ export default function DashboardBbsReviewHost({
     if (previsOpen) onSurfaceNameChange("PREVIS");
   }, [previsOpen, onSurfaceNameChange]);
 
+  useEffect(() => {
+    if (timelineOpen) onSurfaceNameChange("TIMELINE");
+  }, [timelineOpen, onSurfaceNameChange]);
+
+  useEffect(() => {
+    if (productionOpen) onSurfaceNameChange("ROUGH CUT");
+  }, [productionOpen, onSurfaceNameChange]);
+
+  useEffect(() => {
+    if (!soundOpen) return;
+    onSurfaceNameChange(soundOpen === "narration" ? "NARRATION" : soundOpen === "music" ? "MUSIC" : "FOLEY");
+  }, [soundOpen, onSurfaceNameChange]);
+
+  useEffect(() => {
+    if (screeningOpen) onSurfaceNameChange("SCREENING");
+  }, [screeningOpen, onSurfaceNameChange]);
+
   function openPrevis(address: PreproductionReviewAddress = reviewAddress) {
     updateReviewAddress("previs", address);
     closePreproductionSurfaces();
@@ -627,7 +644,6 @@ export default function DashboardBbsReviewHost({
       >
         <div className="pp-skin-v1-bbs-banner">
           <h1>PREVIS</h1>
-          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>
         <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("previs", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />

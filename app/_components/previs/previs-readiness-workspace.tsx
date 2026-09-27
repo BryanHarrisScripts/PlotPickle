@@ -374,21 +374,6 @@ export default function PrevisReadinessWorkspace({
                 data-selected={selectedMiniBlockNumber === anchor.miniBlockNumber ? "true" : undefined}
                 data-state={anchor.state}
                 key={anchor.id}
-                onClick={() => {
-                  setSelectedMiniBlockNumber(anchor.miniBlockNumber);
-                  preservePrevisAddress(selectedBlock.blockNumber, anchor.miniBlockNumber);
-                  onAddressChange?.({ blockNumber: selectedBlock.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    setSelectedMiniBlockNumber(anchor.miniBlockNumber);
-                    preservePrevisAddress(selectedBlock.blockNumber, anchor.miniBlockNumber);
-                    onAddressChange?.({ blockNumber: selectedBlock.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
                 <div className={styles.videoFrame}>
                   {anchor.storyboardAssetUrl
@@ -401,6 +386,15 @@ export default function PrevisReadinessWorkspace({
                     <span>Mini-Block</span>
                     <strong>{selectedBlock.blockNumber}.{anchor.miniBlockNumber}</strong>
                   </div>
+                  <button
+                    aria-pressed={selectedMiniBlockNumber === anchor.miniBlockNumber}
+                    onClick={() => {
+                      setSelectedMiniBlockNumber(anchor.miniBlockNumber);
+                      preservePrevisAddress(selectedBlock.blockNumber, anchor.miniBlockNumber);
+                      onAddressChange?.({ blockNumber: selectedBlock.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
+                    }}
+                    type="button"
+                  >Select</button>
                   <span aria-label={`Status: ${STATE_LABELS[anchor.state]}`} className={styles.anchorState} data-state={anchor.state}>
                     <i aria-hidden="true" className={styles.stateLight} />
                     <b>{STATE_LABELS[anchor.state]}</b>

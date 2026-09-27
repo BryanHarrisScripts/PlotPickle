@@ -14,7 +14,7 @@ test("#2475 keeps Previs identity explicit from host through the shared Story Ma
   assert.match(host, /if \(previsOpen\)[\s\S]*<h1>PREVIS<\/h1>/u);
   assert.match(host, /if \(previsOpen\) onSurfaceNameChange\("PREVIS"\)/u);
   assert.match(surfaces, /data-skin-v1-previs-map-review="true"[\s\S]*surfaceLabel="Previs"/u);
-  assert.match(map, /surfaceLabel === "Previs" \? "Previs"/u);
+  assert.match(map, /surfaceLabel === "Outline" \? "The story is the navigation\." : surfaceLabel/u);
 });
 
 test("#2475 applies the same centered four-Act rail contract to Outline, Storyboard and Previs", async () => {

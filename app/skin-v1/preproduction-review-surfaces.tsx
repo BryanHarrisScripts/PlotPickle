@@ -101,9 +101,7 @@ export function SkinV1StoryboardStoryMap({
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly surfaceLabel?: StoryNavigationSurfaceLabel;
 }) {
-  const [project, setProject] = useState<LibraryPPFProject | null>(() => {
-    try { return loadFoundationProject(); } catch { return null; }
-  });
+  const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
   const act = Math.ceil(normalized.blockNumber / 6);
@@ -154,9 +152,7 @@ export function SkinV1PrevisCompositeSurface({
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
 }) {
-  const [project, setProject] = useState<LibraryPPFProject | null>(() => {
-    try { return loadFoundationProject(); } catch { return null; }
-  });
+  const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
   const act = Math.ceil(normalized.blockNumber / 6);

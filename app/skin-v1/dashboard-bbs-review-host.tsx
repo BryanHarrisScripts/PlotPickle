@@ -443,7 +443,6 @@ export default function DashboardBbsReviewHost({
         <SkinV1SoundReviewSurface
           kind={soundOpen}
           address={reviewAddress}
-          onAddressChange={(address) => updateReviewAddress("timeline", address)}
         />
       </section>
     );
@@ -686,7 +685,6 @@ export default function DashboardBbsReviewHost({
         />
         <SkinV1TimelineReviewSurface
           address={reviewAddress}
-          onAddressChange={(address) => updateReviewAddress("timeline", address)}
           onOpenStoryboard={openStoryboard}
         />
       </section>
@@ -723,7 +721,6 @@ export default function DashboardBbsReviewHost({
         />
         <SkinV1ProductionReviewSurface
           address={reviewAddress}
-          onAddressChange={(address) => updateReviewAddress("production", address)}
         />
       </section>
     );

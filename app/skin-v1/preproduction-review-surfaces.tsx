@@ -115,7 +115,6 @@ export function SkinV1StoryboardStoryMap({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
@@ -221,14 +220,12 @@ export function SkinV1PrevisCompositeSurface({
 
 export function SkinV1TimelineReviewSurface({
   address,
-  onAddressChange,
   onOpenStoryboard,
 }: {
   readonly address: PreproductionReviewAddress;
-  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
 }) {
-  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
 
@@ -240,7 +237,6 @@ export function SkinV1TimelineReviewSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
@@ -263,18 +259,6 @@ export function SkinV1TimelineReviewSurface({
         <strong>TIMELINE · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
         <span>Script, Dialogue, Action, Shot and Audio stay synchronized against the same canonical story address. Missing Scene or timing evidence remains visibly missing.</span>
       </div>
-      <nav className="pp-skin-v1-preproduction-address-rail" aria-label="Timeline Mini-Block address">
-        {[1, 2, 3, 4].map((miniBlockNumber) => (
-          <button
-            aria-current={miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
-            key={miniBlockNumber}
-            onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber })}
-            type="button"
-          >
-            Mini {miniBlockNumber}
-          </button>
-        ))}
-      </nav>
       <VisualStoryWorkspace
         blockNumber={normalized.blockNumber}
         initialView="timeline"
@@ -290,12 +274,10 @@ export function SkinV1TimelineReviewSurface({
 
 export function SkinV1ProductionReviewSurface({
   address,
-  onAddressChange,
 }: {
   readonly address: PreproductionReviewAddress;
-  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
 }) {
-  const [project, setProject] = useState<PPFProject | null>(null);
+  const [project, setProject] = useState<PPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
@@ -329,7 +311,6 @@ export function SkinV1ProductionReviewSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
@@ -455,19 +436,6 @@ export function SkinV1ProductionReviewSurface({
           <strong data-production-readiness={readiness.label.toLowerCase().replaceAll(" ", "-")}>{readiness.label}</strong>
         </header>
 
-        <nav className="pp-skin-v1-production-addresses" aria-label="Rough Cut Mini-Block address">
-          {(selectedBlock?.anchors ?? []).map((anchor) => (
-            <button
-              aria-current={anchor.miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
-              key={anchor.id}
-              onClick={() => onAddressChange({ blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber })}
-              type="button"
-            >
-              <strong>MINI {anchor.miniBlockNumber}</strong>
-              <span>{anchor.storyboardCoverage === "kept" ? "Kept visual" : anchor.storyboardCoverage === "candidate" ? "Candidate visual" : "No visual"}</span>
-            </button>
-          ))}
-        </nav>
 
         {selectedAnchor ? (
           <>
@@ -577,13 +545,11 @@ export function SkinV1ProductionReviewSurface({
 export function SkinV1SoundReviewSurface({
   kind,
   address,
-  onAddressChange,
 }: {
   readonly kind: ProductionSoundCueKind;
   readonly address: PreproductionReviewAddress;
-  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
 }) {
-  const [project, setProject] = useState<PPFProject | null>(null);
+  const [project, setProject] = useState<PPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const normalized = normalizedAddress(address);
@@ -597,7 +563,6 @@ export function SkinV1SoundReviewSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
@@ -678,18 +643,6 @@ export function SkinV1SoundReviewSurface({
         <strong>{label.toUpperCase()} · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
         <span>Sound intent attaches to the same story/shot identity as Timeline and Rough Cut. Blank timing stays untimed rather than receiving an invented timestamp.</span>
       </div>
-      <nav className="pp-skin-v1-preproduction-address-rail" aria-label={`${label} Mini-Block address`}>
-        {[1, 2, 3, 4].map((miniBlockNumber) => (
-          <button
-            aria-current={miniBlockNumber === normalized.miniBlockNumber ? "step" : undefined}
-            key={miniBlockNumber}
-            onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber })}
-            type="button"
-          >
-            Mini {miniBlockNumber}
-          </button>
-        ))}
-      </nav>
       <section className="pp-skin-v1-production-stage" aria-labelledby="sound-stage-title" data-production-stage="sound-intent">
         <header>
           <div><p>SOUND INTENT</p><h2 id="sound-stage-title">{label}</h2></div>
@@ -733,7 +686,7 @@ export function SkinV1SoundReviewSurface({
 }
 
 export function SkinV1ScreeningReviewSurface() {
-  const [project, setProject] = useState<PPFProject | null>(null);
+  const [project, setProject] = useState<PPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -745,7 +698,6 @@ export function SkinV1ScreeningReviewSurface() {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);

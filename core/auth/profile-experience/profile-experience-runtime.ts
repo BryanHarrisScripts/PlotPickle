@@ -61,6 +61,15 @@ function enabled(value: string | undefined) {
   return value?.trim().toLowerCase() === "true";
 }
 
+function equivalentDesktopLoopbackOrigins(origin: URL) {
+  const port = origin.port ? `:${origin.port}` : "";
+  return Object.freeze([
+    `${origin.protocol}//127.0.0.1${port}`,
+    `${origin.protocol}//localhost${port}`,
+    `${origin.protocol}//[::1]${port}`,
+  ]);
+}
+
 function accessMode() {
   if (process.env.PLOTPICKLE_ACCESS_MODE?.trim() !== "server-network") return "desktop-loopback" as const;
   const bindHost = process.env.PLOTPICKLE_BIND_HOST?.trim() || "";
@@ -117,13 +126,16 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
       if (mode === "desktop-loopback" && !new Set(["127.0.0.1", "localhost", "[::1]"]).has(parsed.hostname)) {
         throw new Error("The desktop profile experience accepts loopback requests only.");
       }
+      const loopbackOrigins = mode === "desktop-loopback" ? equivalentDesktopLoopbackOrigins(parsed) : [];
       const exposure: ServerExposureInput = mode === "desktop-loopback" ? {
         accessMode: mode,
         externalOrigin: parsed.origin,
-        allowedOrigins: [parsed.origin],
-        allowedHosts: [parsed.host],
+        allowedOrigins: loopbackOrigins,
+        allowedHosts: loopbackOrigins.map((origin) => new URL(origin).host),
       } : serverExposure();
-      const key = mode === "desktop-loopback" ? parsed.origin : "server-network";
+      const key = mode === "desktop-loopback"
+        ? `${parsed.protocol}//loopback${parsed.port ? `:${parsed.port}` : ""}`
+        : "server-network";
       let boundary = boundaries.get(key);
       if (!boundary) {
         boundary = createServerSessionBoundary({

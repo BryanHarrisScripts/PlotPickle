@@ -81,6 +81,8 @@ export default function PrevisReadinessWorkspace({
   const [graphicNovelMode, setGraphicNovelMode] = useState(false);
   const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
   const [graphicNovelExporting, setGraphicNovelExporting] = useState(false);
+  const [graphicNovelExportState, setGraphicNovelExportState] = useState<"idle" | "working" | "success" | "error">("idle");
+  const [graphicNovelExportMessage, setGraphicNovelExportMessage] = useState("");
   useEffect(() => {
     if (!address) return;
     const timer = window.setTimeout(() => {
@@ -176,11 +178,16 @@ export default function PrevisReadinessWorkspace({
     setGraphicNovelPlaying(false);
     const exportPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
     if (!exportPanels.length) {
-      setMessage("Keep / Lock at least one Storyboard frame before exporting WebP.");
+      const failure = "WebP export failed: Keep / Lock at least one Storyboard frame before exporting.";
+      setGraphicNovelExportState("error");
+      setGraphicNovelExportMessage(failure);
+      setMessage(failure);
       return;
     }
 
     setGraphicNovelExporting(true);
+    setGraphicNovelExportState("working");
+    setGraphicNovelExportMessage("Exporting WebP…");
     try {
       const response = await authenticatedProfileFetch("/api/previs/graphic-novel/export", {
         method: "POST",
@@ -210,9 +217,16 @@ export default function PrevisReadinessWorkspace({
       );
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      setMessage(`WebP exported as one static Graphic Novel sheet with ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}. Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);
+      const success = `WebP exported successfully as one static Graphic Novel sheet · ${anchor.download} · ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}.`;
+      setGraphicNovelExportState("success");
+      setGraphicNovelExportMessage(success);
+      setMessage(`${success} Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "WebP export failed.");
+      const detail = error instanceof Error ? error.message : "WebP export failed.";
+      const failure = /^WebP export failed:/u.test(detail) ? detail : `WebP export failed: ${detail}`;
+      setGraphicNovelExportState("error");
+      setGraphicNovelExportMessage(failure);
+      setMessage(failure);
     } finally {
       setGraphicNovelExporting(false);
     }
@@ -492,6 +506,13 @@ export default function PrevisReadinessWorkspace({
                     setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
                   }}>Next</button>
                 </div>
+                {graphicNovelExportMessage ? (
+                  <p
+                    className={styles.exportStatus}
+                    data-export-state={graphicNovelExportState}
+                    role={graphicNovelExportState === "error" ? "alert" : "status"}
+                  >{graphicNovelExportMessage}</p>
+                ) : null}
               </div>
 
               <div className={styles.flipBookStrip} aria-label="25 Previs Flip Book positions">

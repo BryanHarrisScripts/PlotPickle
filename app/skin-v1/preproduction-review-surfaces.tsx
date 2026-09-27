@@ -169,7 +169,6 @@ export function SkinV1PrevisCompositeSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);

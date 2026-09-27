@@ -72,3 +72,19 @@ test("#2503 Rough Cut and downstream projections no longer use timer-delayed fir
     assert.doesNotMatch(source, /window\.setTimeout\(sync, 0\)/u);
   }
 });
+
+
+test("#2503 Timeline owns its inline Story Map for deterministic WebMCP surface detection", async () => {
+  const [registryText, canonical, catalogue] = await Promise.all([
+    read("config/skin-v1-surface-registry.json"),
+    read("lib/verification/webmcp-canonical-surface-registry.mjs"),
+    read("lib/verification/webmcp-standard-surface-catalogue.mjs"),
+  ]);
+  const registry = JSON.parse(registryText);
+  const timeline = registry.surfaces.find((surface) => surface.id === "scene-timeline");
+  assert.deepEqual(timeline?.ownsInlineSurfaces, ["story-map"]);
+  assert.match(canonical, /ownsInlineSurfaces: Object\.freeze/u);
+  assert.match(catalogue, /const inlineOwner = visibleContracts\.find/u);
+  assert.match(catalogue, /contract\.ownsInlineSurfaces/u);
+  assert.doesNotMatch(catalogue, /const storyboardOwner = visibleContracts\.find/u);
+});

@@ -32,6 +32,7 @@
           "tests/issue-2475-previs-surface-convergence.test.mjs",
           "tests/issue-2485-previs-runtime-ownership.test.mjs",
           "tests/issue-2489-post-2457-live-reconciliation.test.mjs",
+          "tests/issue-2487-story-to-screen-live-parity.test.mjs",
           "tests/issue-2469-webmcp-surface-maturity.test.mjs",
           "tests/issue-2499-storyboard-save-count.test.mjs"
         ]
@@ -59,7 +60,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard."
     },
     {
       "id": "experience.navigation-continuity",
@@ -82,7 +83,8 @@
           "tests/layer1-navigation-continuity.test.mjs",
           "tests/issue-2422-library-load-import-export.test.mjs",
           "tests/issue-2310-surface-coverage-convergence.test.mjs",
-          "tests/issue-2432-library-load-recovery-ui.test.mjs"
+          "tests/issue-2432-library-load-recovery-ui.test.mjs",
+          "tests/issue-2487-story-to-screen-live-parity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -108,7 +110,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology. #2310 adds lifecycle-aware Surface Census coverage so in-transit inventory remains visible without becoming a current Matrix governance obligation until navigation reconnects it."
+      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology. #2310 adds lifecycle-aware Surface Census coverage so in-transit inventory remains visible without becoming a current Matrix governance obligation until navigation reconnects it. #2487 adds rendered open-and-return continuity for Timeline, Foley, Narration, Music, Rough Cut and Screening."
     },
     {
       "id": "experience.webmcp-live-observer",

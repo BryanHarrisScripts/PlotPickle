@@ -50,7 +50,7 @@ test("graceful shutdown source preserves save, Human release, supervisor and own
   assert.match(shell, /<NodeControl \/>/);
   assert.match(shell, /Shut down this PlotPickle Node\?/);
   assert.match(shell, /PlotPickle will save your work, close the current session, stop local services, and close this PlotPickle window\./);
-  assert.ok(shell.indexOf("persistActiveProfileProject()") < shell.indexOf("logoutHumanProfile(currentProfile.csrfToken)"));
+  assert.ok(shell.indexOf("persistActiveProfileProject(currentProfile.csrfToken)") < shell.indexOf("logoutHumanProfile(currentProfile.csrfToken)"));
   assert.ok(shell.indexOf("logoutHumanProfile(currentProfile.csrfToken)") < shell.indexOf('nodeAction("complete-shutdown"'));
   assert.match(shell, /flushProfilePrivateWrites\(\)/);
   assert.match(shell, /clearProfilePrivateBrowser\(\)/);

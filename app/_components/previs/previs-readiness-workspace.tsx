@@ -15,7 +15,6 @@ import {
 } from "@/core/contracts/previs";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
-import { authenticatedProfileFetch } from "@/core/auth/profile-request-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
   storyboardAnchorEvidence,
@@ -34,6 +33,7 @@ import {
   graphicNovelWebpExportFileName,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
+import { buildBrowserGraphicNovelWebp } from "./previs-graphic-novel-browser-export";
 import styles from "./previs-readiness-workspace.module.css";
 
 function requestedAddress() {
@@ -186,35 +186,23 @@ export default function PrevisReadinessWorkspace({
     setGraphicNovelExportState("working");
     setGraphicNovelExportMessage("Exporting WebP…");
     try {
-      const response = await authenticatedProfileFetch("/api/previs/graphic-novel/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectTitle: project.title || "Untitled Story",
-          blockNumber: selectedAddressAnchor.blockNumber,
-          miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
-          panels: exportPanels,
-        }),
+      const rendered = await buildBrowserGraphicNovelWebp({
+        projectTitle: project.title || "Untitled Story",
+        blockNumber: selectedAddressAnchor.blockNumber,
+        miniBlockNumber: selectedAddressAnchor.miniBlockNumber,
+        panels: exportPanels,
       });
-      if (!response.ok) {
-        const failure = await response.json().catch(() => ({})) as { message?: string };
-        throw new Error(failure.message || "WebP export failed.");
-      }
-      const blob = await response.blob();
-      if (blob.type && blob.type !== "image/webp") throw new Error("WebP export returned an unexpected media type.");
-      const disposition = response.headers.get("Content-Disposition") ?? "";
-      const serverName = /filename="?([^";]+\.webp)"?/iu.exec(disposition)?.[1] ?? "";
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(rendered.blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = serverName || graphicNovelWebpExportFileName(
+      anchor.download = graphicNovelWebpExportFileName(
         project.title || "Untitled Story",
         selectedAddressAnchor.blockNumber,
         selectedAddressAnchor.miniBlockNumber,
       );
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      const success = `WebP exported successfully as one static Graphic Novel sheet · ${anchor.download} · ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}.`;
+      const success = `WebP exported successfully as one static Graphic Novel sheet · ${anchor.download} · ${rendered.panelCount} locked panel${rendered.panelCount === 1 ? "" : "s"}.`;
       setGraphicNovelExportState("success");
       setGraphicNovelExportMessage(success);
       setMessage(`${success} Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);

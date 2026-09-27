@@ -1,0 +1,19 @@
+.confirmation {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 0.45rem;
+}
+
+.confirmation strong,
+.confirmation span {
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

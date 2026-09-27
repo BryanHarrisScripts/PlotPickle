@@ -10,12 +10,12 @@ test("#2420 reviews only the generated candidate at its Storyboard position", as
   assert.match(source, /artifact\.frameNumber === position && artifact\.reviewState !== "rejected"/u);
   assert.match(source, /candidate\.frameNumber === artifact\.frameNumber/u);
   assert.match(source, /foundations\.visual\.unaccept/u);
-  assert.match(source, /foundations\.visual\.accept" : "foundations\.visual\.discard"/u);
+  assert.match(source, /foundations\.visual\.accept" : "foundations\.visual\.delete"/u);
   assert.match(source, /saveFoundationProject\(next\)/u);
   assert.match(source, /setGenerationScope\("single"\)/u);
-  assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?Save this Version[\s\S]*?Lock this Version[\s\S]*?>Redo<[\s\S]*?>Reject</u);
+  assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?>Save<[\s\S]*?>Lock<[\s\S]*?>Redo<[\s\S]*?>Delete</u);
   assert.match(source, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
-  assert.match(source, /selectedArtifact && reviewFrame\(selectedArtifact, "discard"\)/u);
+  assert.match(source, /setPendingDeleteArtifactId\(selectedArtifact\.id\)/u);\n  assert.match(source, /reviewFrame\(selectedArtifact, "delete"\)/u);
 });
 
 test("#2420 keeps Previs evidence in place without legacy navigation links", async () => {

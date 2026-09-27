@@ -79,6 +79,11 @@ export type StoryCommand =
       readonly occurredAt: string;
     }
   | {
+      readonly type: "foundations.visual.delete";
+      readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
       readonly type: "foundations.visual.accept";
       readonly artifactId: string;
       readonly occurredAt: string;

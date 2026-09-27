@@ -28,11 +28,11 @@ test("#2483 keeps chevron browsing presentation-only and preserves frame review 
   assert.doesNotMatch(imageControls, /reviewFrame|applyStoryCommand|saveFoundationProject/u);
 
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
-  assert.match(loop, /Save this Version/u);
-  assert.match(loop, /Lock this Version/u);
+  assert.match(loop, />Save<\/button>/u);
+  assert.match(loop, />Lock<\/button>/u);
   assert.match(loop, /frameVersionLabel/u);
   assert.match(loop, />Redo</u);
-  assert.match(loop, />Reject</u);
+  assert.match(loop, />Delete</u);
   assert.match(loop, /project\.build\.foundations\.acceptedVisualArtifactIds\.includes\(selectedArtifact\.id\)/u);
 });
 

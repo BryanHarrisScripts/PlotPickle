@@ -118,6 +118,7 @@ export default function StoryboardReadinessWorkspace({
   const [frameConsent, setFrameConsent] = useState(false);
   const [frameBusy, setFrameBusy] = useState(false);
   const [frameNotice, setFrameNotice] = useState("");
+  const [pendingDeleteArtifactId, setPendingDeleteArtifactId] = useState<string | null>(null);
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
   const activeAddressRef = useRef({ block: selectedNumber, mini: selectedMiniBlockNumber });
@@ -175,7 +176,7 @@ export default function StoryboardReadinessWorkspace({
     setFrameNotice(`Position ${String(artifact.frameNumber ?? 0).padStart(2, "0")} saved locally with this story.`);
   }
 
-  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "discard") {
+  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "delete") {
     if (qaOnlyAccess || !storyboardAccessible) return;
     const now = new Date().toISOString();
     let next: PPFProject = project;
@@ -186,14 +187,19 @@ export default function StoryboardReadinessWorkspace({
         next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: previous.id, occurredAt: now });
       }
     }
-    next = applyStoryCommand(next, { type: decision === "accept" ? "foundations.visual.accept" : "foundations.visual.discard", artifactId: artifact.id, occurredAt: now });
+    next = applyStoryCommand(next, {
+      type: decision === "accept" ? "foundations.visual.accept" : "foundations.visual.delete",
+      artifactId: artifact.id,
+      occurredAt: now,
+    });
     saveFoundationProject(next);
     onProjectChange(next);
-    if (decision === "discard") {
+    if (decision === "delete") {
       const key = `${selectedNumber}.${selectedMiniBlockNumber}.${artifact.frameNumber}`;
       setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
+      setPendingDeleteArtifactId(null);
     }
-    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "kept and locked" : "rejected"}.`);
+    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "kept and locked" : "deleted"}.`);
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -415,7 +421,7 @@ export default function StoryboardReadinessWorkspace({
         onProjectChange(current);
         setSelectedImageByPosition((values) => ({ ...values, ...selectedArtifacts }));
       }
-      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save this Version to mark the versions you want saved locally for review.";
+      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save to mark the versions you want saved locally for review.";
       const failureText = failures.length ? " " + failures.join(" ") : " None were kept or made canon.";
       setFrameNotice(successText + failureText);
     } finally {
@@ -660,13 +666,13 @@ export default function StoryboardReadinessWorkspace({
                           disabled={!selectedArtifact || savedLocally || qaOnlyAccess || frameBusy}
                           type="button"
                           onClick={() => selectedArtifact && saveFrameVersion(selectedArtifact)}
-                        >{savedLocally ? "Saved locally" : "Save this Version"}</button>
+                        >Save</button>
                         <button
                           aria-pressed={accepted}
                           disabled={!selectedArtifact || accepted || qaOnlyAccess || frameBusy}
                           type="button"
                           onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "accept")}
-                        >{accepted ? "Locked" : "Lock this Version"}</button>
+                        >Lock</button>
                         <button
                           disabled={!selectedImage || frameBusy}
                           type="button"
@@ -675,8 +681,15 @@ export default function StoryboardReadinessWorkspace({
                         <button
                           disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
                           type="button"
-                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "discard")}
-                        >Reject</button>
+                          onClick={() => selectedArtifact && setPendingDeleteArtifactId(selectedArtifact.id)}
+                        >Delete</button>
+                        {selectedArtifact && pendingDeleteArtifactId === selectedArtifact.id ? (
+                          <>
+                            <span role="alert">Delete this version forever? This cannot be undone.</span>
+                            <button type="button" onClick={() => reviewFrame(selectedArtifact, "delete")}>Yes</button>
+                            <button type="button" onClick={() => setPendingDeleteArtifactId(null)}>No</button>
+                          </>
+                        ) : null}
                       </div>
                       {selectedImage ? <div className={styles.framePromptProvenance}>
                         <strong>Storyboard Prompt</strong>

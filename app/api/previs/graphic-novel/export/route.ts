@@ -1,4 +1,6 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../../core/auth/profile-experience/profile-experience-runtime";
+import { PlotPickleAuthError, toPublicAuthError } from "../../../../../core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../../core/auth/server-session/server-session-boundary";
 import { buildPrevisGraphicNovelWebp, type PrevisGraphicNovelWebpPanel } from "../../../../../build/previs-graphic-novel-webp";
 
 export const runtime = "nodejs";
@@ -22,6 +24,12 @@ function json(value: unknown, status = 200) {
   });
 }
 
+function publicAuthorizationError(error: unknown) {
+  if (error instanceof PlotPickleServerSessionError) return toPublicServerSessionError(error);
+  if (error instanceof PlotPickleAuthError) return toPublicAuthError(error);
+  return { code: "PREVIS_EXPORT_AUTH_REJECTED", message: "The active PlotPickle Human session could not authorize this export." } as const;
+}
+
 async function authorize(request: Request) {
   const runtimeState = await getProfileExperienceRuntime();
   const origin = new URL(request.url).origin;
@@ -41,8 +49,9 @@ function cleanProjectTitle(value: unknown) {
 export async function POST(request: Request) {
   try {
     await authorize(request);
-  } catch {
-    return json({ ok: false, message: "Unlock a PlotPickle Human profile before exporting the Previs Graphic Novel." }, 403);
+  } catch (error) {
+    const detail = publicAuthorizationError(error);
+    return json({ ok: false, code: detail.code, message: detail.message }, 403);
   }
 
   try {

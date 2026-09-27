@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { voiceInputFieldAllowed } from "../../lib/voice-input";
-import StoryboardVersionControlBridge from "./storyboard/storyboard-version-control-bridge";
 import VoiceInputControl from "./voice-input-control";
 
 type VoiceField = HTMLInputElement | HTMLTextAreaElement;
@@ -112,34 +111,31 @@ export default function UniversalVoiceInputLayer() {
     };
   }, []);
 
-  const style = position ? ({
+  if (!target || !position) return null;
+
+  const style = {
     position: "fixed",
     top: `${position.top}px`,
     left: `${position.left}px`,
     zIndex: 2147483000,
     pointerEvents: "auto",
-  } satisfies CSSProperties) : null;
+  } satisfies CSSProperties;
 
   return (
-    <>
-      <StoryboardVersionControlBridge />
-      {target && style ? (
-        <div ref={layerRef} style={style} data-plotpickle-universal-voice-input="true">
-          <VoiceInputControl
-            value={value}
-            onValueChange={(next) => {
-              const field = fieldRef.current;
-              if (!field) return;
-              setNativeFieldValue(field, next);
-              setValue(next);
-            }}
-            inputRef={fieldRef}
-            disabled={target.disabled || target.readOnly}
-            inputType={target instanceof HTMLTextAreaElement ? "textarea" : target.type}
-            purpose={target.getAttribute("data-purpose") || "natural-language"}
-          />
-        </div>
-      ) : null}
-    </>
+    <div ref={layerRef} style={style} data-plotpickle-universal-voice-input="true">
+      <VoiceInputControl
+        value={value}
+        onValueChange={(next) => {
+          const field = fieldRef.current;
+          if (!field) return;
+          setNativeFieldValue(field, next);
+          setValue(next);
+        }}
+        inputRef={fieldRef}
+        disabled={target.disabled || target.readOnly}
+        inputType={target instanceof HTMLTextAreaElement ? "textarea" : target.type}
+        purpose={target.getAttribute("data-purpose") || "natural-language"}
+      />
+    </div>
   );
 }

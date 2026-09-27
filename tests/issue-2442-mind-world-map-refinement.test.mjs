@@ -78,7 +78,10 @@ test("#2442 World Map exposes World-agent proposal edit save without silent cano
   assert.match(surface, /agentId: "world"/u);
   assert.match(surface, /Ask World Agent/u);
   assert.match(surface, /Agent proposal · edit before saving/u);
-  assert.match(surface, /data-world-agent-review-actions="three-decision"/u);\n  assert.match(surface, />Save<\/button>/u);\n  assert.match(surface, />Redo<\/button>/u);\n  assert.match(surface, />Discard<\/button>/u);
+  assert.match(surface, /data-world-agent-review-actions="three-decision"/u);
+  assert.match(surface, />Save<\/button>/u);
+  assert.match(surface, />Redo<\/button>/u);
+  assert.match(surface, />Discard<\/button>/u);
   assert.match(surface, /Proposal discarded\. Canon was not changed\./u);
   assert.match(surface, /saveActiveLibraryProject/u);
   assert.match(surface, /answers: \{ \.\.\.lesson\.answers, \[address\.fieldId\]: proposal\.trim\(\)/u);

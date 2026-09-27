@@ -65,7 +65,7 @@ test("#2497 single-load Previs shares one canonical project between Story Map an
   const end = surfaces.indexOf("export function SkinV1TimelineReviewSurface", start);
   const composite = surfaces.slice(start, end);
   assert.ok(start >= 0 && end > start);
-  assert.match(composite, /useState<LibraryPPFProject \| null>\(\(\) => \{[\s\S]*?return loadFoundationProject\(\)/u);
+  assert.match(composite, /useState<LibraryPPFProject \| null>\(\(\) => loadFoundationProject\(\)\)/u);
   assert.equal((composite.match(/FOUNDATION_PROJECT_SAVED_EVENT/gu) ?? []).length, 2);
   assert.doesNotMatch(composite, /setTimeout/u);
   assert.doesNotMatch(composite, /const sync = \(\) => \{[\s\S]*?\};[\s\S]*?sync\(\);[\s\S]*?window\.addEventListener/u);

@@ -26,7 +26,7 @@ test("#2491/#2497 removes HTML and exposes one static WebP action", async () => 
 
   assert.match(workspace, />Export WebP</u);
   assert.doesNotMatch(workspace, /Export Animated WebP/u);
-  assert.match(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
+  assert.match(workspace, /buildBrowserGraphicNovelWebp/u);\n  assert.match(workspace, /canvas\.toBlob/u);\n  assert.doesNotMatch(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.doesNotMatch(workspace, /buildPrevisGraphicNovelExportHtml|text\/html|>Export Graphic Novel</u);
   assert.doesNotMatch(presentation, /<!doctype html>|buildPrevisGraphicNovelExportHtml|\.html`/u);

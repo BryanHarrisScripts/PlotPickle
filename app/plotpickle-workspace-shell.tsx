@@ -142,16 +142,11 @@ function NodeControl() {
       setNode(begun);
 
       const currentProfile = await parseJson<ProfileStatus>(await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" }));
-      if (currentProfile.authenticated) {
-        if (!currentProfile.csrfToken) throw new Error("PlotPickle could not verify the active Human session for safe release.");
-        await persistActiveProfileProject(currentProfile.csrfToken);
-        await flushProfilePrivateWrites();
-      }
+      if (!currentProfile.authenticated || !currentProfile.csrfToken) throw new Error("The Human profile is locked.");
+      await persistActiveProfileProject(currentProfile.csrfToken);
+      await flushProfilePrivateWrites();
       setSave(getProfilePrivateSaveState());
-
-      if (currentProfile.authenticated && currentProfile.csrfToken) {
-        await logoutHumanProfile(currentProfile.csrfToken);
-      }
+      await logoutHumanProfile(currentProfile.csrfToken);
       clearProfilePrivateBrowser();
       window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
 

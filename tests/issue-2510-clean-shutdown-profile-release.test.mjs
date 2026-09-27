@@ -17,6 +17,7 @@ for (const path of [
     const releaseAt = source.indexOf("clearProfilePrivateBrowser()", logoutAt);
     const shutdownAt = source.indexOf('nodeAction("complete-shutdown"', releaseAt);
     assert.ok(profileAt >= 0, "profile status must be read");
+    assert.match(source.slice(profileAt, saveAt), /!currentProfile\.authenticated \|\| !currentProfile\.csrfToken/u);
     assert.ok(profileAt < saveAt, "authenticated profile proof must precede save");
     assert.ok(saveAt < flushAt, "save must precede write flush");
     assert.ok(flushAt < logoutAt, "writes must flush before logout");

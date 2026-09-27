@@ -85,11 +85,8 @@ export default function PrevisReadinessWorkspace({
   const [graphicNovelExportMessage, setGraphicNovelExportMessage] = useState("");
   useEffect(() => {
     if (!address) return;
-    const timer = window.setTimeout(() => {
-      setSelectedBlockNumber(address.blockNumber);
-      setSelectedMiniBlockNumber(address.miniBlockNumber);
-    }, 0);
-    return () => window.clearTimeout(timer);
+    setSelectedBlockNumber(address.blockNumber);
+    setSelectedMiniBlockNumber(address.miniBlockNumber);
   }, [address?.blockNumber, address?.miniBlockNumber]);
   const [selectedShotId, setSelectedShotId] = useState("");
   const [message, setMessage] = useState("");
@@ -389,6 +386,21 @@ export default function PrevisReadinessWorkspace({
                 data-selected={selectedMiniBlockNumber === anchor.miniBlockNumber ? "true" : undefined}
                 data-state={anchor.state}
                 key={anchor.id}
+                onClick={() => {
+                  setSelectedMiniBlockNumber(anchor.miniBlockNumber);
+                  preservePrevisAddress(selectedBlock.blockNumber, anchor.miniBlockNumber);
+                  onAddressChange?.({ blockNumber: selectedBlock.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedMiniBlockNumber(anchor.miniBlockNumber);
+                    preservePrevisAddress(selectedBlock.blockNumber, anchor.miniBlockNumber);
+                    onAddressChange?.({ blockNumber: selectedBlock.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <div className={styles.videoFrame}>
                   {anchor.storyboardAssetUrl

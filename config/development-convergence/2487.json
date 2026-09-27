@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2487,
+  "phase": "story-to-screen-live-parity-closure",
+  "brief": "docs/developer-briefs/2487-story-to-screen-live-parity.md",
+  "allowedChanges": [
+    "config/development-convergence/2487.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2487-story-to-screen-live-parity.md",
+    "lib/verification/browser-probes/continuity.mjs",
+    "tests/issue-2487-story-to-screen-live-parity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2487-A1",
+      "criterion": "Canonical production identity remains Rough Cut without renaming the stable production id.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"id\": \"production\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"label\": \"Rough Cut\""
+        }
+      ]
+    },
+    {
+      "id": "P2487-A2",
+      "criterion": "Live Dashboard continuity covers Timeline, Sound, Rough Cut and Screening with settled governed identity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "{ id: \"timeline\", menuId: \"timeline\", governed: \"scene-timeline\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "{ id: \"production\", menuId: \"production\", governed: \"production\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "{ id: \"screening\", menuId: \"screening\", governed: \"screening\" }"
+        }
+      ]
+    },
+    {
+      "id": "P2487-A3",
+      "criterion": "Every Dashboard stage journey returns through the visible control and proves Dashboard settles.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "name: \"Back to Dashboard\", exact: true"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "normal-dashboard-stage-return-after-orchestrator-settle"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2487-story-to-screen-live-parity.test.mjs",
+          "contains": "returns to Dashboard cleanly"
+        }
+      ]
+    }
+  ]
+}

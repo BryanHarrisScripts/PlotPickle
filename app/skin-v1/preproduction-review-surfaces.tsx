@@ -231,14 +231,16 @@ export function SkinV1TimelineReviewSurface({
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function applyProjectChange(next: PPFProject) {
@@ -318,14 +320,16 @@ export function SkinV1ProductionReviewSurface({
           : { label: "UPSTREAM READY", detail: "Approved upstream shot evidence exists. #2173 still validates Scene semantics and provider-neutral Director Specification readiness before execution." };
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function registerTake(event: FormEvent<HTMLFormElement>) {
@@ -591,12 +595,9 @@ export function SkinV1SoundReviewSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    const timer = window.setTimeout(sync, 0);
+    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    };
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   const shots = useMemo(
@@ -735,14 +736,16 @@ export function SkinV1ScreeningReviewSurface() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function createObservation(event: FormEvent<HTMLFormElement>) {

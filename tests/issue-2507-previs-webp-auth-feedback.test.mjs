@@ -15,17 +15,20 @@ test("#2507 desktop Human profile mutations accept equivalent loopback browser o
   assert.match(runtime, /parsed\.protocol.*loopback/u);
 });
 
-test("#2507 keeps Previs export behind authenticated mutation authority and returns public denial detail", async () => {
-  const [route, workspace] = await Promise.all([
+test("#2507 keeps the legacy server endpoint authenticated while the live presentation-only export stays in the local browser", async () => {
+  const [route, workspace, browserExport] = await Promise.all([
     read("app/api/previs/graphic-novel/export/route.ts"),
     read("app/_components/previs/previs-readiness-workspace.tsx"),
+    read("app/_components/previs/previs-graphic-novel-browser-export.ts"),
   ]);
-  assert.match(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
   assert.match(route, /publicAuthorizationError/u);
-  assert.match(route, /toPublicServerSessionError/u);
-  assert.match(route, /toPublicAuthError/u);
-  assert.match(route, /return json\(\{ ok: false, code: detail\.code, message: detail\.message \}, 403\)/u);
+  assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
+  assert.doesNotMatch(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
+  assert.match(browserExport, /assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
+  assert.match(browserExport, /fetch\(assetUrl, \{ credentials: "same-origin"/u);
+  assert.match(browserExport, /canvas\.toBlob/u);
+  assert.match(browserExport, /"image\/webp"/u);
 });
 
 test("#2507 presents WebP export progress, visible success filename and visible failure next to playback controls", async () => {

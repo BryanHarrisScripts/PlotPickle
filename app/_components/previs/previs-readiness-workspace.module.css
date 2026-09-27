@@ -873,6 +873,26 @@
   gap: var(--pp-skin-space-2);
 }
 
+.exportStatus {
+  margin: var(--pp-skin-space-2) 0 0;
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.exportStatus[data-export-state="success"] {
+  border-color: var(--pp-skin-accent-bright);
+  color: var(--pp-skin-accent-bright);
+}
+
+.exportStatus[data-export-state="error"] {
+  border-color: var(--pp-skin-warning);
+  color: var(--pp-skin-warning);
+}
+
 .flipBookControls button[aria-pressed="true"] {
   border-color: var(--pp-skin-accent-bright);
   background: var(--pp-skin-accent-deep);

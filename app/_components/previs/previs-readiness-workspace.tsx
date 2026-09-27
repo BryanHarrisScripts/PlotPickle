@@ -217,7 +217,7 @@ export default function PrevisReadinessWorkspace({
       );
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      const success = `WebP exported successfully · ${anchor.download} · ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}.`;
+      const success = `WebP exported successfully as one static Graphic Novel sheet · ${anchor.download} · ${exportPanels.length} locked panel${exportPanels.length === 1 ? "" : "s"}.`;
       setGraphicNovelExportState("success");
       setGraphicNovelExportMessage(success);
       setMessage(`${success} Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);

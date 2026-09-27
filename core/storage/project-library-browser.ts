@@ -39,6 +39,15 @@ export const PROJECT_LIBRARY_CHANGED_EVENT = libraryCore.PROJECT_LIBRARY_CHANGED
 export const PROJECT_LIBRARY_ACTIVE_PROFILE_KEY = libraryCore.PROJECT_LIBRARY_ACTIVE_PROFILE_KEY as string;
 export const DEFAULT_LOCAL_PROFILE_ID = libraryCore.DEFAULT_LOCAL_PROFILE_ID as string;
 
+type ActiveProjectReadCache = Readonly<{
+  profileId: string;
+  registryRaw: string;
+  projectRaw: string;
+  project: LibraryPPFProject;
+}>;
+
+let activeProjectReadCache: ActiveProjectReadCache | null = null;
+
 function storage() {
   if (typeof window === "undefined") throw new Error("Project Library is available only in the local PlotPickle browser session.");
   return window.sessionStorage;
@@ -101,6 +110,51 @@ function coreInput() {
   };
 }
 
+function readActiveProjectSnapshotFast(): LibraryPPFProject | null {
+  const browserStorage = storage();
+  const activeProfileId = profileId();
+  const registryKey = libraryCore.projectLibraryRegistryKey(activeProfileId) as string;
+  const registryRaw = browserStorage.getItem(registryKey);
+  if (!registryRaw) return null;
+
+  try {
+    const registry = JSON.parse(registryRaw) as Readonly<Record<string, unknown>>;
+    if (
+      registry.version !== libraryCore.PROJECT_LIBRARY_VERSION
+      || registry.profileId !== activeProfileId
+      || typeof registry.activeProjectId !== "string"
+      || !registry.activeProjectId.trim()
+    ) return null;
+
+    const activeProjectId = registry.activeProjectId.trim();
+    const projectKey = libraryCore.projectLibraryProjectKey(activeProfileId, activeProjectId) as string;
+    const projectRaw = browserStorage.getItem(projectKey);
+    if (!projectRaw) return null;
+
+    if (
+      activeProjectReadCache?.profileId === activeProfileId
+      && activeProjectReadCache.registryRaw === registryRaw
+      && activeProjectReadCache.projectRaw === projectRaw
+    ) return activeProjectReadCache.project;
+
+    const entry = JSON.parse(projectRaw) as Readonly<Record<string, unknown>>;
+    if (
+      entry.version !== libraryCore.PROJECT_LIBRARY_VERSION
+      || entry.profileId !== activeProfileId
+      || entry.projectId !== activeProjectId
+      || !entry.project
+      || typeof entry.project !== "object"
+      || Array.isArray(entry.project)
+    ) return null;
+
+    const project = normalizeLibraryProject(entry.project);
+    activeProjectReadCache = { profileId: activeProfileId, registryRaw, projectRaw, project };
+    return project;
+  } catch {
+    return null;
+  }
+}
+
 function announceChange() {
   window.dispatchEvent(new Event(PROJECT_LIBRARY_CHANGED_EVENT));
 }
@@ -133,10 +187,13 @@ export function initializeProjectLibrary() {
 }
 
 export function hasActiveLibraryProject() {
-  return Boolean(initializeProjectLibrary().activeProject);
+  const fast = readActiveProjectSnapshotFast();
+  return Boolean(fast ?? initializeProjectLibrary().activeProject);
 }
 
 export function loadActiveLibraryProject(): LibraryPPFProject {
+  const fast = readActiveProjectSnapshotFast();
+  if (fast) return fast;
   const initialized = initializeProjectLibrary();
   if (initialized.activeProject) return initialized.activeProject;
   return createEmptyLibraryProject({

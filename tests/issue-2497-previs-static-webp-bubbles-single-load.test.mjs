@@ -34,8 +34,8 @@ test("#2497 derives speech bubbles from observed screenplay character and dialog
 
   assert.match(editorial, /export const storyboardPassageWindowForPosition = passageWindow/u);
   assert.match(presentation, /storyboardPassageWindowForPosition\(passages, position\)/u);
-  assert.match(presentation, /type === "character"/u);
-  assert.match(presentation, /type === "dialogue" \|\| type === "dual-dialogue"/u);
+  assert.match(presentation, /previousType === "character"/u);
+  assert.match(presentation, /type !== "dialogue" && type !== "dual-dialogue"/u);
   assert.match(presentation, /if \(speaker && text\) bubbles\.push/u);
   assert.match(presentation, /bubbles\.length >= 2/u);
   assert.match(presentation, /speakerName\(previous\.text\)/u);

@@ -216,6 +216,28 @@ export function applyStoryCommand(
           },
         },
       };
+    case "foundations.visual.delete":
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            ...project.build.foundations,
+            visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId
+                ? {
+                    ...artifact,
+                    reviewState: "rejected" as const,
+                    sourceDecisionKeys: [...new Set([...(artifact.sourceDecisionKeys ?? []), "storyboard-deleted:v1"])],
+                  }
+                : artifact
+            )),
+            acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
+              (artifactId) => artifactId !== command.artifactId,
+            ),
+          },
+        },
+      };
     case "foundations.visual.accept": {
       const accepted = project.build.foundations.acceptedVisualArtifactIds;
       const artifactExists = project.build.foundations.visualArtifacts.some(

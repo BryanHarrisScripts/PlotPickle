@@ -172,33 +172,44 @@
 }
 
 .blockTab {
+  --story-state: var(--pp-skin-disabled);
   min-width: 38px;
   display: grid;
   gap: var(--pp-skin-space-1);
   justify-items: center;
   padding: var(--pp-skin-space-2) var(--pp-skin-space-1) !important;
+  border-color: color-mix(in srgb, var(--story-state) 48%, var(--pp-skin-line));
+  color: var(--story-state);
+}
+
+.blockTab:hover:not(:disabled),
+.blockTab:focus-visible {
+  border-color: var(--story-state);
+  background: color-mix(in srgb, var(--story-state) 10%, var(--pp-skin-surface-0));
 }
 
 .blockTab[aria-selected="true"] {
-  border-color: var(--pp-skin-accent);
-  background: var(--pp-skin-accent-deep);
-  color: var(--pp-skin-ink);
+  border-color: var(--story-state);
+  background: color-mix(in srgb, var(--story-state) 14%, var(--pp-skin-accent-deep));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--story-state) 40%, transparent);
+  color: var(--story-state);
 }
 
 .stateLight {
   display: inline-block;
   width: var(--pp-skin-status-dot);
   height: var(--pp-skin-status-dot);
-  border: var(--pp-skin-border-thin) solid currentColor;
+  border: var(--pp-skin-border-thin) solid var(--story-state, currentColor);
   border-radius: var(--pp-skin-radius);
-  background: currentColor;
+  background: var(--story-state, currentColor);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--story-state, currentColor) 48%, transparent);
 }
 
-[data-state="defined"] { color: var(--pp-skin-accent-bright); }
-[data-state="observed"] { color: var(--pp-skin-ink-soft); }
-[data-state="emerging"] { color: var(--pp-skin-warning); }
-[data-state="missing"] { color: var(--pp-skin-danger); }
-[data-state="locked"] { color: var(--pp-skin-disabled); }
+.workspace [data-state="defined"] { --story-state: var(--story-defined, var(--pp-skin-accent-bright)); }
+.workspace [data-state="observed"] { --story-state: var(--story-observed, #3bb8ff); }
+.workspace [data-state="emerging"] { --story-state: var(--story-emerging, var(--pp-skin-warning)); }
+.workspace [data-state="missing"] { --story-state: var(--story-missing, var(--pp-skin-danger)); }
+.workspace [data-state="locked"] { --story-state: var(--story-locked, #a875ff); }
 
 .blockWorkspace,
 .timelinePreview,
@@ -224,6 +235,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--pp-skin-space-2);
+  border-color: var(--story-state);
+  color: var(--story-state);
   white-space: nowrap;
   font-size: var(--pp-skin-font-meta);
   letter-spacing: var(--pp-skin-tracking-meta);
@@ -236,19 +249,25 @@
 }
 
 .anchorCard {
+  --story-state: var(--pp-skin-disabled);
   display: grid;
   gap: var(--pp-skin-space-3);
   padding: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border: var(--pp-skin-border-thin) solid color-mix(in srgb, var(--story-state) 56%, var(--pp-skin-line));
   border-radius: var(--pp-skin-radius);
-  background: var(--pp-skin-surface-1);
+  background: color-mix(in srgb, var(--story-state) 5%, var(--pp-skin-surface-1));
   box-shadow: var(--pp-skin-inset-highlight);
   color: var(--pp-skin-ink);
 }
 
+.anchorCard:hover {
+  border-color: color-mix(in srgb, var(--story-state) 78%, var(--pp-skin-line-strong));
+}
+
 .anchorCard[data-selected="true"] {
-  border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-accent-deep);
+  border-color: var(--story-state);
+  background: color-mix(in srgb, var(--story-state) 12%, var(--pp-skin-accent-deep));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--story-state) 24%, transparent), var(--pp-skin-inset-highlight);
 }
 
 .videoFrame {

@@ -716,7 +716,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
         <header>
           <p className={styles.kicker}>WORLD / CONTINUITY</p>
           <h2 id="story-bible-world">Places, rules, chronology, genre and known constraints</h2>
-          <p>Ask the World agent for a proposal, edit it, then explicitly Save / Accept before it becomes a canonical World decision.</p>
+          <p>Ask the World agent for a proposal, read or edit it, then choose Save, Redo, or Discard. Only Save makes it a canonical World decision.</p>
         </header>
         <div className={styles.groupStack}>
           {bible.worldGroups.map((group) => <WorldFactGroup key={group.id} group={group} project={project} />)}

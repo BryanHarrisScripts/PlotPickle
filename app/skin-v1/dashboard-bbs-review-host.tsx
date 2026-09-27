@@ -174,9 +174,15 @@ export default function DashboardBbsReviewHost({
     }
   }
 
+  function schedulePreproductionContextPersistence(stage: PreproductionStage, address: PreproductionReviewAddress) {
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => rememberPreproductionContext(stage, address), 0);
+    });
+  }
+
   function updateReviewAddress(stage: PreproductionStage, address: PreproductionReviewAddress) {
     setReviewAddress(address);
-    rememberPreproductionContext(stage, address);
+    schedulePreproductionContextPersistence(stage, address);
     if (stage === "storyboard") {
       const url = new URL(window.location.href);
       url.searchParams.set("block", String(address.blockNumber));

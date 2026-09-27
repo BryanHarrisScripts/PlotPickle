@@ -111,7 +111,9 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, surfaceLabel = "Outline", outlineReadiness, onSelectAddress, onSelectTurningPoint, turningPointSelected = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly surfaceLabel?: "Outline" | "Storyboard" | "Previs"; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[]; readonly onSelectAddress?: (address: { blockNumber: number; miniBlockNumber: number }) => void; readonly onSelectTurningPoint?: (act: number) => void; readonly turningPointSelected?: boolean }) {
+export type StoryNavigationSurfaceLabel = "Outline" | "Storyboard" | "Previs" | "Timeline" | "Rough Cut" | "Foley" | "Narration" | "Music" | "Screening";
+
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, surfaceLabel = "Outline", outlineReadiness, onSelectAddress, onSelectTurningPoint, turningPointSelected = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly surfaceLabel?: StoryNavigationSurfaceLabel; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[]; readonly onSelectAddress?: (address: { blockNumber: number; miniBlockNumber: number }) => void; readonly onSelectTurningPoint?: (act: number) => void; readonly turningPointSelected?: boolean }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;

@@ -49,53 +49,6 @@ function initialReviewAddress(): PreproductionReviewAddress {
 type BuildReturnTarget = "outline" | "storyboard" | "previs";
 type PreproductionStage = "outline" | "storyboard" | "previs" | "timeline" | "production";
 
-const PREPRODUCTION_STAGES: readonly Readonly<{ id: PreproductionStage; label: string; shortcut: string }>[] = [
-  { id: "outline", label: "Outline", shortcut: "O" },
-  { id: "storyboard", label: "Storyboard", shortcut: "S" },
-  { id: "previs", label: "Previs", shortcut: "P" },
-  { id: "timeline", label: "Timeline", shortcut: "T" },
-  { id: "production", label: "Rough Cut", shortcut: "D" },
-];
-
-function PreproductionStageRail({
-  active,
-  onOpen,
-}: {
-  readonly active: PreproductionStage;
-  readonly onOpen: (stage: PreproductionStage) => void;
-}) {
-  return (
-    <nav
-      aria-label="Pre-production stages"
-      className="pp-skin-v1-preproduction-stage-rail"
-      data-preproduction-stage-rail="five-stage"
-      data-horizontal-directory-reference="library"
-      onKeyDown={(event) => {
-        if (event.key.length !== 1) return;
-        const shortcut = event.key.toUpperCase();
-        const stage = PREPRODUCTION_STAGES.find((candidate) => candidate.shortcut === shortcut);
-        if (!stage) return;
-        event.preventDefault();
-        onOpen(stage.id);
-      }}
-    >
-      {PREPRODUCTION_STAGES.map((stage) => (
-        <button
-          aria-current={stage.id === active ? "step" : undefined}
-          aria-keyshortcuts={stage.shortcut}
-          data-preproduction-stage={stage.id}
-          data-preproduction-shortcut={stage.shortcut}
-          key={stage.id}
-          onClick={() => onOpen(stage.id)}
-          type="button"
-        >
-          <span aria-hidden="true">[{stage.shortcut}] </span>{stage.label}
-        </button>
-      ))}
-    </nav>
-  );
-}
-
 function StoryActRail({ activeAct, onOpen }: { readonly activeAct: number; readonly onOpen: (act: number) => void }) {
   return (
     <nav aria-label="Story Map acts" className="pp-skin-v1-preproduction-stage-rail" data-story-act-rail="four-acts" onKeyDown={(event) => {
@@ -296,17 +249,6 @@ export default function DashboardBbsReviewHost({
     onSurfaceNameChange("ROUGH CUT");
   }
 
-  function openPreproductionStage(
-    stage: PreproductionStage,
-    address: PreproductionReviewAddress = reviewAddress,
-  ) {
-    if (stage === "outline") return openOutline(address);
-    if (stage === "storyboard") return openStoryboard(address);
-    if (stage === "previs") return openPrevis(address);
-    if (stage === "timeline") return openTimeline(address);
-    return openProduction(address);
-  }
-
   function openBuild(
     address: PreproductionReviewAddress = reviewAddress,
     returnTarget: BuildReturnTarget = "outline",
@@ -458,6 +400,7 @@ export default function DashboardBbsReviewHost({
   if (soundOpen) {
     const itemId = soundOpen === "narration" ? "sound-narration" : soundOpen === "music" ? "sound-music" : "sound-foley";
     const label = soundOpen === "narration" ? "NARRATION" : soundOpen === "music" ? "MUSIC" : "FOLEY";
+    const storyNavigationLabel = soundOpen === "narration" ? "Narration" : soundOpen === "music" ? "Music" : "Foley";
     return (
       <section
         aria-label={label}
@@ -473,17 +416,17 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard(itemId)}>Back to Dashboard</button>
         </div>
         <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => {
-          const next = { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 };
-          setReviewAddress(next);
-          rememberPreproductionContext("timeline", next);
+          updateReviewAddress("timeline", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 });
         }} />
+        <SkinV1StoryboardStoryMap
+          address={reviewAddress}
+          surfaceLabel={storyNavigationLabel}
+          onAddressChange={(address) => updateReviewAddress("timeline", address)}
+        />
         <SkinV1SoundReviewSurface
           kind={soundOpen}
           address={reviewAddress}
-          onAddressChange={(address) => {
-            setReviewAddress(address);
-            rememberPreproductionContext("timeline", address);
-          }}
+          onAddressChange={(address) => updateReviewAddress("timeline", address)}
         />
       </section>
     );
@@ -504,6 +447,14 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("screening")}>Back to Dashboard</button>
         </div>
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => {
+          updateReviewAddress("production", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 });
+        }} />
+        <SkinV1StoryboardStoryMap
+          address={reviewAddress}
+          surfaceLabel="Screening"
+          onAddressChange={(address) => updateReviewAddress("production", address)}
+        />
         <SkinV1ScreeningReviewSurface />
       </section>
     );
@@ -704,7 +655,14 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("timeline")}>Back to Dashboard</button>
         </div>
-        <PreproductionStageRail active="timeline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => {
+          updateReviewAddress("timeline", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 });
+        }} />
+        <SkinV1StoryboardStoryMap
+          address={reviewAddress}
+          surfaceLabel="Timeline"
+          onAddressChange={(address) => updateReviewAddress("timeline", address)}
+        />
         <BlockVisualJourneyWorkspace
           address={reviewAddress}
           stage="timeline"
@@ -734,7 +692,14 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("production")}>Back to Dashboard</button>
         </div>
-        <PreproductionStageRail active="production" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => {
+          updateReviewAddress("production", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 });
+        }} />
+        <SkinV1StoryboardStoryMap
+          address={reviewAddress}
+          surfaceLabel="Rough Cut"
+          onAddressChange={(address) => updateReviewAddress("production", address)}
+        />
         <BlockVisualJourneyWorkspace
           address={reviewAddress}
           stage="production"

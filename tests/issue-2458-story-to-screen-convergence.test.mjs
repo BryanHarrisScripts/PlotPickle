@@ -127,7 +127,7 @@ test("#2458 preserves the current Act-first Previs Flip Book boundary", async ()
   const previs = host.slice(start, end);
 
   assert.match(previs, /<StoryActRail activeAct=/u);
-  assert.match(previs, /<SkinV1PrevisStoryMap/u);
-  assert.match(previs, /<SkinV1PrevisReviewSurface/u);
+  assert.match(previs, /<SkinV1PrevisCompositeSurface/u);
+  assert.match(previs, /<SkinV1PrevisCompositeSurface/u);
   assert.doesNotMatch(previs, /<PreproductionStageRail/u);
 });

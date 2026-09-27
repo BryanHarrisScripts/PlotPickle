@@ -8,7 +8,7 @@ import type { ProductionSoundCueKind } from "@/core/contracts/previs";
 import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
-import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
+import ProgressiveStoryMap, { type StoryNavigationSurfaceLabel } from "@/modules/build/ui/progressive-story-map";
 import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
@@ -94,9 +94,11 @@ export function SkinV1StoryboardReviewSurface({
 export function SkinV1StoryboardStoryMap({
   address,
   onAddressChange,
+  surfaceLabel = "Storyboard",
 }: {
   readonly address: PreproductionReviewAddress;
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+  readonly surfaceLabel?: StoryNavigationSurfaceLabel;
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [error, setError] = useState("");
@@ -111,27 +113,27 @@ export function SkinV1StoryboardStoryMap({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    const timer = window.setTimeout(sync, 0);
+    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    };
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   if (error) return <p role="alert">{error}</p>;
-  if (!project) return <p role="status">Opening Storyboard Story Map…</p>;
+  if (!project) return <p role="status">{`Opening ${surfaceLabel} Story Map…`}</p>;
 
   return (
-    <div data-skin-v1-storyboard-map-review="true">
+    <div
+      data-skin-v1-story-navigation-map={surfaceLabel.toLowerCase().replaceAll(" ", "-")}
+      data-skin-v1-storyboard-map-review={surfaceLabel === "Storyboard" ? "true" : undefined}
+    >
       <ProgressiveStoryMap
-        key={`${project.id}-storyboard-act-${act}`}
+        key={`${project.id}-${surfaceLabel.toLowerCase().replaceAll(" ", "-")}-act-${act}`}
         project={project}
         act={act}
         initialBlockNumber={normalized.blockNumber}
         initialMiniBlockNumber={normalized.miniBlockNumber}
         navigationOnly
-        surfaceLabel="Storyboard"
+        surfaceLabel={surfaceLabel}
         onSelectAddress={onAddressChange}
       />
     </div>
@@ -229,14 +231,16 @@ export function SkinV1TimelineReviewSurface({
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function applyProjectChange(next: PPFProject) {
@@ -316,14 +320,16 @@ export function SkinV1ProductionReviewSurface({
           : { label: "UPSTREAM READY", detail: "Approved upstream shot evidence exists. #2173 still validates Scene semantics and provider-neutral Director Specification readiness before execution." };
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function registerTake(event: FormEvent<HTMLFormElement>) {
@@ -589,12 +595,9 @@ export function SkinV1SoundReviewSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    const timer = window.setTimeout(sync, 0);
+    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
-    };
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   const shots = useMemo(
@@ -733,14 +736,16 @@ export function SkinV1ScreeningReviewSurface() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    sync();
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);
 
   function createObservation(event: FormEvent<HTMLFormElement>) {

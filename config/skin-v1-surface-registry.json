@@ -554,7 +554,10 @@
       },
       "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
       "runtimeReadySelector": "[data-scene-workspace='dialogue-action-shot-audio']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     },
     {
       "id": "visual-story",

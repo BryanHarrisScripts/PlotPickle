@@ -31,23 +31,27 @@ test("#2285 exposes the Human-approved five-stage pre-production flow vertically
   assert.match(host, /<SkinV1ProductionReviewSurface/u);
 });
 
-test("#2285 keeps shared downstream stage routing while later visual surfaces use Act-first navigation", async () => {
+test("#2285 keeps five Dashboard destinations while downstream visual surfaces use Act-first Story navigation", async () => {
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
 
   assert.match(host, /type PreproductionStage = "outline" \| "storyboard" \| "previs" \| "timeline" \| "production"/u);
-  assert.match(host, /data-preproduction-stage-rail="five-stage"/u);
-  for (const stage of ["timeline", "production"]) {
-    assert.match(host, new RegExp('PreproductionStageRail active="' + stage + '"', "u"));
-  }
-  for (const stage of ["storyboard", "previs"]) {
-    const start = host.indexOf("if (" + stage + "Open)");
-    const end = host.indexOf("if (", start + 4);
-    const section = host.slice(start, end > start ? end : undefined);
-    assert.match(section, /<StoryActRail activeAct=/u);
-    assert.doesNotMatch(section, new RegExp('PreproductionStageRail active="' + stage + '"', "u"));
-  }
-  assert.match(host, /openPreproductionStage\([\s\S]*address: PreproductionReviewAddress = reviewAddress/u);
-  assert.match(host, /setReviewAddress\(address\)/u);
+  assert.doesNotMatch(host, /data-preproduction-stage-rail="five-stage"/u);
+  assert.doesNotMatch(host, /function PreproductionStageRail/u);
+
+  const storyboard = host.slice(host.indexOf("if (storyboardOpen)"), host.indexOf("if (previsOpen)"));
+  const previs = host.slice(host.indexOf("if (previsOpen)"), host.indexOf("if (timelineOpen)"));
+  const timeline = host.slice(host.indexOf("if (timelineOpen)"), host.indexOf("if (productionOpen)"));
+  const production = host.slice(host.indexOf("if (productionOpen)"), host.indexOf("if (openSourceOpen)"));
+
+  assert.match(storyboard, /<StoryActRail activeAct=/u);
+  assert.match(storyboard, /<SkinV1StoryboardStoryMap/u);
+  assert.match(previs, /<StoryActRail activeAct=/u);
+  assert.match(previs, /<SkinV1PrevisCompositeSurface/u);
+  assert.match(timeline, /<StoryActRail activeAct=/u);
+  assert.match(timeline, /surfaceLabel="Timeline"/u);
+  assert.match(production, /<StoryActRail activeAct=/u);
+  assert.match(production, /surfaceLabel="Rough Cut"/u);
+  assert.doesNotMatch(storyboard + previs + timeline + production, /<PreproductionStageRail/u);
 });
 
 test("#2285 Timeline reuses the existing synchronized scene authority at one real story address", async () => {

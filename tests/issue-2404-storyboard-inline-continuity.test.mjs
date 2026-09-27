@@ -76,6 +76,7 @@ test("#2404 keeps inline Visual Story governed by the Storyboard parent", async 
   assert.match(orchestrator, /surface\.ownsInlineSurfaces \?\? \[\]/u);
   assert.match(orchestrator, /ownedInlineSurfaceIds\.has\(surface\.id\)/u);
   assert.doesNotMatch(orchestrator, /storyboardOwnsInlineChildren/u);
-  assert.match(catalogue, /const storyboardOwner = visibleContracts\.find/u);
-  assert.match(catalogue, /if \(storyboardOwner\) return storyboardOwner\.contract/u);
+  assert.match(catalogue, /const inlineOwner = visibleContracts\.find/u);
+  assert.match(catalogue, /contract\.ownsInlineSurfaces/u);
+  assert.match(catalogue, /if \(inlineOwner\) return inlineOwner\.contract/u);
 });

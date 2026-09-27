@@ -55,7 +55,7 @@ test("#2521 Storyboard and Previs propagate Mini-Block selection without timer-d
 test("#2521 Previs first paint owns the loaded project without a second mount-time hydration", async () => {
   const surfaces = await read("app/skin-v1/preproduction-review-surfaces.tsx");
   const previs = section(surfaces, "export function SkinV1PrevisCompositeSurface", "export function SkinV1TimelineReviewSurface");
-  assert.match(previs, /useState<LibraryPPFProject \| null>\(\(\) => \{[\s\S]*?return loadFoundationProject\(\)/u);
+  assert.match(previs, /useState<LibraryPPFProject \| null>\(\(\) => loadFoundationProject\(\)\)/u);
   assert.doesNotMatch(previs, /const sync = \(\) => \{[\s\S]*?\};[\s\S]*?sync\(\);[\s\S]*?window\.addEventListener/u);
   assert.doesNotMatch(previs, /window\.setTimeout/u);
 });

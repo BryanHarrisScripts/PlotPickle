@@ -649,6 +649,8 @@ export default function StoryboardReadinessWorkspace({
                         {selectedImage
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
                           : <span>No Frame selected</span>}
+                        {savedLocally ? <span className={`${styles.frameStateBadge} ${styles.frameSavedBadge}`}>Saved locally</span> : null}
+                        {accepted ? <span className={`${styles.frameStateBadge} ${styles.frameLockedBadge}`}>Locked</span> : null}
                         {positionImages.length > 1 ? <button
                           aria-label={`Next frame for Storyboard position ${String(position).padStart(2, "0")}`}
                           className={`${styles.frameChevron} ${styles.frameChevronNext}`}

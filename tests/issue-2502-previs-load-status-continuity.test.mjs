@@ -4,16 +4,17 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2502 Previs keeps one project hydration owner and one intentional opening state", async () => {
+test("#2502 Previs hydrates the loaded project before first paint and avoids a second mount-time reload", async () => {
   const surfaces = await read("app/skin-v1/preproduction-review-surfaces.tsx");
   const start = surfaces.indexOf("export function SkinV1PrevisCompositeSurface");
   const end = surfaces.indexOf("export function SkinV1TimelineReviewSurface", start);
   const previs = surfaces.slice(start, end);
   assert.ok(start >= 0 && end > start);
-  assert.equal((previs.match(/loadFoundationProject\(\)/g) ?? []).length, 1);
-  assert.equal((previs.match(/Opening Previs…/g) ?? []).length, 1);
+  assert.match(previs, /useState<LibraryPPFProject \| null>\(\(\) => loadFoundationProject\(\)\)/u);
   assert.match(previs, /window\.addEventListener\(FOUNDATION_PROJECT_SAVED_EVENT, sync\)/u);
   assert.match(previs, /window\.removeEventListener\(FOUNDATION_PROJECT_SAVED_EVENT, sync\)/u);
+  assert.doesNotMatch(previs, /const sync = \(\) => \{[\s\S]*?\};[\s\S]*?sync\(\);[\s\S]*?window\.addEventListener/u);
+  assert.doesNotMatch(previs, /window\.setTimeout/u);
 });
 
 test("#2502 stage activation yields to the surface before durable context persistence", async () => {

@@ -9,6 +9,7 @@ import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject, saveFoundationPr
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
 import ProgressiveStoryMap, { type StoryNavigationSurfaceLabel } from "@/modules/build/ui/progressive-story-map";
+import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
@@ -100,10 +101,11 @@ export function SkinV1StoryboardStoryMap({
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly surfaceLabel?: StoryNavigationSurfaceLabel;
 }) {
-  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
   const act = Math.ceil(normalized.blockNumber / 6);
+  const outlineReadiness = useMemo(() => project ? deriveOutlineReadiness(project) : [], [project]);
 
   useEffect(() => {
     const sync = () => {
@@ -134,6 +136,7 @@ export function SkinV1StoryboardStoryMap({
         initialMiniBlockNumber={normalized.miniBlockNumber}
         navigationOnly
         surfaceLabel={surfaceLabel}
+        outlineReadiness={outlineReadiness}
         onSelectAddress={onAddressChange}
       />
     </div>
@@ -149,7 +152,7 @@ export function SkinV1PrevisCompositeSurface({
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
 }) {
-  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
   const act = Math.ceil(normalized.blockNumber / 6);
@@ -162,7 +165,6 @@ export function SkinV1PrevisCompositeSurface({
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
     };
-    sync();
     window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
     return () => window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
   }, []);

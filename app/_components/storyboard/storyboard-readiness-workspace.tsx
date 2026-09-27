@@ -105,11 +105,8 @@ export default function StoryboardReadinessWorkspace({
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedMiniBlockNumber(initialMiniBlockNumber));
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setSelectedBlockNumber(boundedBlockNumber(initialBlockNumber));
-      setSelectedMiniBlockNumber(boundedMiniBlockNumber(initialMiniBlockNumber));
-    }, 0);
-    return () => window.clearTimeout(timer);
+    setSelectedBlockNumber(boundedBlockNumber(initialBlockNumber));
+    setSelectedMiniBlockNumber(boundedMiniBlockNumber(initialMiniBlockNumber));
   }, [initialBlockNumber, initialMiniBlockNumber]);
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
   const [promptPosition, setPromptPosition] = useState<number | null>(null);
@@ -531,6 +528,15 @@ export default function StoryboardReadinessWorkspace({
                   data-selected={selectedMiniBlockNumber === miniNumber ? "true" : undefined}
                   data-story-decision-target={storyboardAnchorTargetRef(selectedTarget.id, miniNumber)}
                   key={miniNumber}
+                  onClick={() => selectStoryboardAddress(selectedNumber, miniNumber)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      selectStoryboardAddress(selectedNumber, miniNumber);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className={styles.miniPreview}>
                     {reference

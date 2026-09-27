@@ -34,11 +34,11 @@ test("#2497 derives speech bubbles from observed screenplay character and dialog
 
   assert.match(editorial, /export const storyboardPassageWindowForPosition = passageWindow/u);
   assert.match(presentation, /storyboardPassageWindowForPosition\(passages, position\)/u);
-  assert.match(presentation, /type === "character"/u);
-  assert.match(presentation, /type === "dialogue" \|\| type === "dual-dialogue"/u);
+  assert.match(presentation, /previousType === "character"/u);
+  assert.match(presentation, /type !== "dialogue" && type !== "dual-dialogue"/u);
   assert.match(presentation, /if \(speaker && text\) bubbles\.push/u);
   assert.match(presentation, /bubbles\.length >= 2/u);
-  assert.match(presentation, /speakerName\(passage\.text\)/u);
+  assert.match(presentation, /speakerName\(previous\.text\)/u);
   assert.doesNotMatch(presentation, /OpenAI|Ollama|fetch\(/u);
 
   assert.match(workspace, /className=\{styles\.graphicNovelBubbles\}/u);
@@ -65,10 +65,10 @@ test("#2497 single-load Previs shares one canonical project between Story Map an
   const end = surfaces.indexOf("export function SkinV1TimelineReviewSurface", start);
   const composite = surfaces.slice(start, end);
   assert.ok(start >= 0 && end > start);
-  assert.equal((composite.match(/loadFoundationProject\(\)/gu) ?? []).length, 1);
+  assert.match(composite, /useState<LibraryPPFProject \| null>\(\(\) => loadFoundationProject\(\)\)/u);
   assert.equal((composite.match(/FOUNDATION_PROJECT_SAVED_EVENT/gu) ?? []).length, 2);
   assert.doesNotMatch(composite, /setTimeout/u);
-  assert.match(composite, /Opening Previs…/u);
+  assert.doesNotMatch(composite, /const sync = \(\) => \{[\s\S]*?\};[\s\S]*?sync\(\);[\s\S]*?window\.addEventListener/u);
   assert.doesNotMatch(composite, /Opening Previs Story Map|Opening canonical Previs projection/u);
   assert.match(composite, /<ProgressiveStoryMap/u);
   assert.match(composite, /<PrevisReadinessWorkspace/u);

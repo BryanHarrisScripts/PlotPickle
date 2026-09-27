@@ -49,28 +49,32 @@ export function graphicNovelSpeechBubbles(
   passages: readonly StoryboardPlanningPassage[],
   position: number,
 ): readonly PrevisGraphicNovelBubble[] {
-  const evidenceIds = new Set(
-    storyboardPassageWindowForPosition(passages, position).map((passage) => passage.id),
-  );
+  const evidence = storyboardPassageWindowForPosition(passages, position);
+  const evidenceIds = new Set(evidence.map((passage) => passage.id));
   const bubbles: PrevisGraphicNovelBubble[] = [];
-  let speaker = "";
 
-  for (const passage of passages) {
+  for (let index = 0; index < passages.length; index += 1) {
+    const passage = passages[index];
     const type = passage.type.toLocaleLowerCase();
-    if (type === "character") {
-      speaker = speakerName(passage.text);
-      continue;
+    if ((type !== "dialogue" && type !== "dual-dialogue") || !evidenceIds.has(passage.id)) continue;
+
+    let speaker = "";
+    for (let previousIndex = index - 1; previousIndex >= 0; previousIndex -= 1) {
+      const previous = passages[previousIndex];
+      const previousType = previous.type.toLocaleLowerCase();
+      if (previousType === "parenthetical") continue;
+      if (previousType === "character") {
+        speaker = speakerName(previous.text);
+        break;
+      }
+      if (previousType === "action" || previousType === "scene-heading" || previousType === "transition") break;
     }
-    if (type === "parenthetical") continue;
-    if (type === "dialogue" || type === "dual-dialogue") {
-      if (!evidenceIds.has(passage.id)) continue;
-      const text = clean(passage.text, 180);
-      if (speaker && text) bubbles.push({ speaker, text, style: "speech" });
-      if (bubbles.length >= 2) break;
-      continue;
-    }
-    if (type === "action" || type === "scene-heading" || type === "transition") speaker = "";
+
+    const text = clean(passage.text, 180);
+    if (speaker && text) bubbles.push({ speaker, text, style: "speech" });
+    if (bubbles.length >= 2) break;
   }
+
   return bubbles;
 }
 

@@ -49,3 +49,12 @@ test("#2510 preserves launcher-owned shutdown and avoids unrelated process termi
   assert.match(launcher, /Stop-Process -Id \$browser\.Id/u);
   assert.doesNotMatch(gateway + launcher, /taskkill|killall|pkill/iu);
 });
+
+
+test("#2510 root workspace shutdown owner is mapped in architecture verification", async () => {
+  const ownership = JSON.parse(await read("config/verification/ownership-map.json"));
+  const rule = ownership.rules.find((candidate) => candidate.id === "root-workspace-shell-experience");
+  assert.ok(rule, "root workspace shell must have explicit production ownership");
+  assert.equal(rule.ownerLayer, "experience-contract");
+  assert.ok(rule.include.includes("app/plotpickle-workspace-shell.tsx"));
+});

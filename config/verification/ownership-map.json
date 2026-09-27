@@ -997,6 +997,20 @@
       ]
     },
     {
+      "id": "root-workspace-shell-experience",
+      "classification": "production",
+      "include": [
+        "app/plotpickle-workspace-shell.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "security",
+        "native"
+      ]
+    },
+    {
       "id": "root-story-startup",
       "classification": "production",
       "include": [

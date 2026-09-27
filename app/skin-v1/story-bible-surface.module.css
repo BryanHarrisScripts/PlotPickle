@@ -23,7 +23,36 @@
   min-width: 0;
 }
 
-.poster img,
+.posterFrame,
+.referenceFrame {
+  position: relative;
+  min-width: 0;
+}
+
+.versionBadge {
+  position: absolute;
+  bottom: var(--pp-skin-space-1);
+  z-index: 2;
+  max-width: calc(50% - var(--pp-skin-space-3));
+  padding: 2px 7px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: color-mix(in srgb, var(--pp-skin-surface-0) 88%, transparent);
+  color: var(--pp-skin-ink);
+  font: 700 var(--pp-skin-font-meta)/1 var(--pp-skin-font-ui);
+  letter-spacing: var(--pp-skin-tracking-meta);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.savedBadge { left: var(--pp-skin-space-1); }
+
+.lockedBadge {
+  right: var(--pp-skin-space-1);
+  border-color: var(--pp-skin-accent-bright);
+  color: var(--pp-skin-accent-bright);
+}
+
+.posterFrame > img,
 .posterEmpty {
   display: block;
   width: 100%;
@@ -287,7 +316,7 @@
   background: var(--pp-skin-surface-0);
 }
 
-.referenceGrid figure img {
+.referenceFrame img {
   display: block;
   width: 100%;
   height: auto;

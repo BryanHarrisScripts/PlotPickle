@@ -129,7 +129,7 @@ function WorldFactEditor({ fact, project }: { readonly fact: StoryBibleFact; rea
       const text = result.text?.trim() ?? "";
       if (!response.ok || !text) throw new Error(result.message || "World agent returned no proposal.");
       setProposal(text.slice(0, 12_000));
-      setNotice("Proposal ready. Edit it if needed, then Save / Accept to make it a World decision.");
+      setNotice("Proposal ready. Read or edit it, then choose Save, Redo, or Discard.");
       setState("idle");
     } catch (error) {
       setState("error");
@@ -178,9 +178,10 @@ function WorldFactEditor({ fact, project }: { readonly fact: StoryBibleFact; rea
                 <span>Agent proposal · edit before saving</span>
                 <textarea rows={5} value={proposal} onChange={(event) => setProposal(event.target.value)} />
               </label>
-              <div className={styles.actions}>
-                <button type="button" onClick={saveProposal}>Save / Accept</button>
-                <button type="button" onClick={() => { setProposal(""); setNotice("Proposal discarded. Canon was not changed."); }}>Discard proposal</button>
+              <div className={styles.actions} data-world-agent-review-actions="three-decision">
+                <button type="button" onClick={saveProposal}>Save</button>
+                <button type="button" disabled={state === "working"} onClick={() => { setProposal(""); void askWorldAgent(); }}>Redo</button>
+                <button type="button" onClick={() => { setProposal(""); setNotice("Proposal discarded. Canon was not changed."); }}>Discard</button>
               </div>
             </>
           ) : null}
@@ -329,7 +330,7 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       if (generated.length) {
         setCandidate({ versionId, references: generated });
         setNotice(
-          `${generated.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} character views generated but NOT SAVED. Choose Save this Version to keep this generation with the story.`
+          `${generated.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} character views generated but NOT SAVED. Choose Save to keep this generation with the story.`
           + (failures.length ? ` ${failures.join(" ")}` : ""),
         );
       } else {
@@ -386,11 +387,11 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
         </button>
         {candidate ? (
           <button type="button" disabled={!candidate.references.length || atVersionLimit || working} onClick={saveCandidate}>
-            Save this Version
+            Save
           </button>
         ) : selectedVersion ? (
           <button type="button" disabled={!selectedVersion.complete || selectedVersion.locked || working} onClick={lockSelectedVersion}>
-            {selectedVersion.locked ? "Locked" : "Lock this Version"}
+            Lock
           </button>
         ) : null}
       </div>
@@ -406,8 +407,8 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
           {candidate
             ? `UNSAVED · ${candidate.references.length}/${WORLD_MAP_CHARACTER_VIEWS.length} views`
             : selectedVersion
-              ? `${selectedVersion.locked ? "LOCKED" : "SAVED"} · Version ${safeVersionIndex + 1} of ${versions.length}`
-              : "NO SAVED VERSIONS"}
+              ? `${safeVersionIndex + 1}/${versions.length}`
+              : "0/0"}
         </strong>
         <button
           aria-label="Next saved version"
@@ -427,10 +428,12 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
                 key={view.id}
                 data-review-state={candidate ? "candidate" : selectedVersion?.locked ? "approved" : "draft"}
               >
-                <Image src={reference.assetUrl} alt={`${character.name} · ${view.label}`} width={240} height={320} unoptimized />
-                <figcaption>
-                  {view.label} · {candidate ? "GENERATED / NOT SAVED" : selectedVersion?.locked ? "LOCKED" : "SAVED"}
-                </figcaption>
+                <div className={styles.referenceFrame}>
+                  <Image src={reference.assetUrl} alt={`${character.name} · ${view.label}`} width={240} height={320} unoptimized />
+                  {!candidate ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
+                  {!candidate && selectedVersion?.locked ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
+                </div>
+                <figcaption>{view.label}</figcaption>
               </figure>
             ) : (
               <div className={styles.referenceEmpty} key={view.id}>{view.label}<br />NOT GENERATED</div>
@@ -477,7 +480,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
     }
 
     setPosterWorking(true);
-    setPosterNotice("Generating the WorldMap poster to local PlotPickle assets. It will remain UNSAVED until you choose Save this Version.");
+    setPosterNotice("Generating the WorldMap poster to local PlotPickle assets. It will remain UNSAVED until you choose Save.");
     const prompt = worldMapPosterPrompt({
       title: bible.title,
       logline: bible.logline.value,
@@ -528,7 +531,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           "billing:musical-score:tbd",
         ],
       });
-      setPosterNotice("Poster generated but NOT SAVED. Choose Save this Version to keep it with this story.");
+      setPosterNotice("Poster generated but NOT SAVED. Choose Save to keep it with this story.");
     } catch (error) {
       setPosterNotice(error instanceof Error ? error.message : "The WorldMap poster could not be generated.");
     } finally {
@@ -583,17 +586,21 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
     >
       <section className={styles.hero}>
         <div className={styles.poster}>
-          {displayedPoster ? (
-            <Image
-              src={displayedPoster.assetUrl}
-              alt={`${bible.title} poster / marketing reference`}
-              width={640}
-              height={960}
-              unoptimized
-            />
-          ) : (
-            <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
-          )}
+          <div className={styles.posterFrame}>
+            {displayedPoster ? (
+              <Image
+                src={displayedPoster.assetUrl}
+                alt={`${bible.title} poster / marketing reference`}
+                width={640}
+                height={960}
+                unoptimized
+              />
+            ) : (
+              <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
+            )}
+            {!posterCandidate && selectedPoster ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
+            {!posterCandidate && selectedPoster?.id === lockedPoster?.id ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
+          </div>
 
           <div className={styles.versionBar} aria-label="Saved poster versions">
             <button
@@ -606,8 +613,8 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               {posterCandidate
                 ? "UNSAVED · generated candidate"
                 : selectedPoster
-                  ? `${selectedPoster.id === lockedPoster?.id ? "LOCKED" : "SAVED"} · Version ${safePosterIndex + 1} of ${posterVersions.length}`
-                  : "NO SAVED VERSIONS"}
+                  ? `${safePosterIndex + 1}/${posterVersions.length}`
+                  : "0/0"}
             </strong>
             <button
               aria-label="Next saved version"
@@ -627,11 +634,9 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               {posterWorking ? "Generating Poster…" : posterAtVersionLimit ? "5 Saved Versions" : "Generate Poster Visual"}
             </button>
             {posterCandidate ? (
-              <button disabled={posterWorking || posterAtVersionLimit} onClick={savePosterVersion} type="button">Save this Version</button>
+              <button disabled={posterWorking || posterAtVersionLimit} onClick={savePosterVersion} type="button">Save</button>
             ) : selectedPoster ? (
-              <button disabled={selectedPoster.id === lockedPoster?.id} onClick={lockPosterVersion} type="button">
-                {selectedPoster.id === lockedPoster?.id ? "Locked" : "Lock this Version"}
-              </button>
+              <button disabled={selectedPoster.id === lockedPoster?.id} onClick={lockPosterVersion} type="button">Lock</button>
             ) : null}
           </div>
           <small>{posterVersions.length}/{MARKETING_REFERENCE_MAX_VERSIONS} saved poster version{posterVersions.length === 1 ? "" : "s"} · exactly one may be locked</small>
@@ -711,7 +716,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
         <header>
           <p className={styles.kicker}>WORLD / CONTINUITY</p>
           <h2 id="story-bible-world">Places, rules, chronology, genre and known constraints</h2>
-          <p>Ask the World agent for a proposal, edit it, then explicitly Save / Accept before it becomes a canonical World decision.</p>
+          <p>Ask the World agent for a proposal, read or edit it, then choose Save, Redo, or Discard. Only Save makes it a canonical World decision.</p>
         </header>
         <div className={styles.groupStack}>
           {bible.worldGroups.map((group) => <WorldFactGroup key={group.id} group={group} project={project} />)}

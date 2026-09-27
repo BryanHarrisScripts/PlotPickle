@@ -78,8 +78,11 @@ test("#2442 World Map exposes World-agent proposal edit save without silent cano
   assert.match(surface, /agentId: "world"/u);
   assert.match(surface, /Ask World Agent/u);
   assert.match(surface, /Agent proposal · edit before saving/u);
-  assert.match(surface, /Save \/ Accept/u);
-  assert.match(surface, /Discard proposal/u);
+  assert.match(surface, /data-world-agent-review-actions="three-decision"/u);
+  assert.match(surface, />Save<\/button>/u);
+  assert.match(surface, />Redo<\/button>/u);
+  assert.match(surface, />Discard<\/button>/u);
+  assert.match(surface, /Proposal discarded\. Canon was not changed\./u);
   assert.match(surface, /saveActiveLibraryProject/u);
   assert.match(surface, /answers: \{ \.\.\.lesson\.answers, \[address\.fieldId\]: proposal\.trim\(\)/u);
 
@@ -140,8 +143,8 @@ test("#2442/#2493 World Map character visuals use eight governed views, explicit
   const source = await read("app/skin-v1/story-bible-surface.tsx");
   assert.match(source, /Generate Character Visual/u);
   assert.match(source, /Generate eight character-reference views/u);
-  assert.match(source, /Save this Version/u);
-  assert.match(source, /Lock this Version/u);
+  assert.match(source, />Save<\/button>/u);
+  assert.match(source, />Lock<\/button>/u);
   assert.match(source, /exactly one may be locked/u);
   assert.doesNotMatch(source, /Approve \/ Lock Character Visuals/u);
   assert.match(source, /billingAcknowledged: true/u);

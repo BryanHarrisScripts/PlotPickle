@@ -23,8 +23,8 @@ test("#2493 generation stays unsaved until explicit Save for WorldMap poster and
     surface.indexOf("function lockSelectedVersion"),
   );
 
-  assert.match(surface, /Save this Version/u);
-  assert.match(surface, /Lock this Version/u);
+  assert.match(surface, />Save<\/button>/u);
+  assert.match(surface, />Lock<\/button>/u);
   assert.match(surface, /UNSAVED/u);
   assert.match(surface, /SAVED/u);
   assert.match(surface, /LOCKED/u);

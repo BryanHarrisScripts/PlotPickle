@@ -70,16 +70,13 @@ test("#2521 Graphic Novel live preview recovers the speaker cue immediately befo
 });
 
 test("#2521 WebP export is a local presentation derivative and no longer depends on a second route auth runtime", async () => {
-  const [workspace, browserExport] = await Promise.all([
-    read("app/_components/previs/previs-readiness-workspace.tsx"),
-    read("app/_components/previs/previs-graphic-novel-browser-export.ts"),
-  ]);
+  const workspace = await read("app/_components/previs/previs-readiness-workspace.tsx");
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.doesNotMatch(workspace, /authenticatedProfileFetch/u);
   assert.doesNotMatch(workspace, /\/api\/previs\/graphic-novel\/export/u);
-  assert.match(browserExport, /assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
-  assert.match(browserExport, /credentials: "same-origin"/u);
-  assert.match(browserExport, /canvas\.toBlob/u);
-  assert.match(browserExport, /"image\/webp", 0\.86/u);
-  assert.match(browserExport, /panel\.bubbles\.slice\(0, 2\)/u);
+  assert.match(workspace, /assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
+  assert.match(workspace, /credentials: "same-origin"/u);
+  assert.match(workspace, /canvas\.toBlob/u);
+  assert.match(workspace, /"image\/webp", 0\.86/u);
+  assert.match(workspace, /panel\.bubbles\.slice\(0, 2\)/u);
 });

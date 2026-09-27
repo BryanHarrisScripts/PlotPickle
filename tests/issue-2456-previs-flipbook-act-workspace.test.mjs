@@ -15,17 +15,18 @@ test("#2456 Dashboard Previs uses Act-first navigation and the canonical 24/96 m
   const end = host.indexOf("if (timelineOpen)", start);
   const previs = host.slice(start, end);
   assert.match(previs, /<StoryActRail activeAct=/u);
-  assert.match(previs, /<SkinV1PrevisStoryMap/u);
+  assert.match(previs, /<SkinV1PrevisCompositeSurface/u);
   assert.doesNotMatch(previs, /PreproductionStageRail active="previs"/u);
   assert.doesNotMatch(previs, /BlockVisualJourneyWorkspace/u);
 
-  assert.match(surfaces, /export function SkinV1PrevisStoryMap/u);
+  assert.match(surfaces, /export function SkinV1PrevisCompositeSurface/u);
   assert.match(surfaces, /surfaceLabel="Previs"/u);
   assert.match(map, /surfaceLabel === "Previs" \? "Previs" : "The story is the navigation\."/u);
   assert.match(surfaces, /<PrevisReadinessWorkspace[\s\S]*embeddedNavigation/u);
   assert.match(map, /missing: "AVAILABLE"/u);
   assert.match(map, /locked: "BLOCKED"/u);
-  assert.match(map, /surfaceLabel\?: "Outline" \| "Storyboard" \| "Previs"/u);
+  assert.match(map, /export type StoryNavigationSurfaceLabel/u);
+  assert.match(map, /"Outline" \| "Storyboard" \| "Previs"/u);
 });
 
 test("#2456 Previs Flip Book exposes 25 positions but only locked Storyboard frames are authoritative", async () => {

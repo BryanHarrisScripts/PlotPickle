@@ -370,6 +370,11 @@ export default function LibraryWorkspace() {
       : [...current, originProjectId]);
   }
 
+  function loadAllLocalResources() {
+    if (!recovery || restoringResources) return;
+    setSelectedRecoveryOrigins(recovery.inventory.groups.map((group) => group.originProjectId));
+  }
+
   function restoreSelectedLocalResources() {
     if (!recovery || restoringResources) return;
     const selected = recovery.inventory.groups
@@ -711,6 +716,12 @@ export default function LibraryWorkspace() {
             {recovery.inventory.groups.length ? (
               <fieldset className={styles.recoveryGroups}>
                 <legend>Resource groups</legend>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={restoringResources || selectedRecoveryOrigins.length === recovery.inventory.groups.length}
+                  onClick={loadAllLocalResources}
+                  type="button"
+                >Load All</button>
                 {recovery.inventory.groups.map((group) => (
                   <label key={group.originProjectId}>
                     <input
@@ -719,7 +730,7 @@ export default function LibraryWorkspace() {
                       type="checkbox"
                     />
                     <span>
-                      <strong>{group.exactProject ? "Current project resources" : "Legacy / unmatched resources"}</strong>
+                      <strong>{group.exactProject ? "Current project resources" : "Legacy"}</strong>
                       <small>{group.resources.filter((resource) => resource.kind === "storyboard-frame").length} frame(s) · {group.resources.filter((resource) => resource.kind === "worldmap-poster").length} poster(s) · origin <code>{group.originProjectId}</code>{group.exactProject ? " · selected automatically" : " · requires your explicit selection"}</small>
                     </span>
                   </label>

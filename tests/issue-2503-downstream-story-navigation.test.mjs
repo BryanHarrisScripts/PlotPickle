@@ -59,18 +59,32 @@ test("#2503 downstream labels are first-class consumers of the same Progressive 
   }
 });
 
-test("#2503 Rough Cut and downstream projections no longer use timer-delayed first hydration", async () => {
+test("#2503 downstream projections hydrate before first paint and subscribe without a second mount-time load", async () => {
   const surfaces = await read("app/skin-v1/preproduction-review-surfaces.tsx");
+  const storyMap = section(surfaces, "export function SkinV1StoryboardStoryMap", "export function SkinV1PrevisCompositeSurface");
+  const timeline = section(surfaces, "export function SkinV1TimelineReviewSurface", "export function SkinV1ProductionReviewSurface");
   const production = section(surfaces, "export function SkinV1ProductionReviewSurface", "export function SkinV1SoundReviewSurface");
   const sound = section(surfaces, "export function SkinV1SoundReviewSurface", "export function SkinV1ScreeningReviewSurface");
-  const screening = surfaces.slice(surfaces.indexOf("export function SkinV1ScreeningReviewSurface"));
+  const screening = section(surfaces, "export function SkinV1ScreeningReviewSurface", "export function SkinV1BuildReviewSurface");
 
-  for (const source of [production, sound, screening]) {
+  for (const source of [storyMap, timeline, production, sound, screening]) {
+    assert.match(source, /useState<[^>]+ \| null>\(\(\) => loadFoundationProject\(\)\)/u);
     assert.match(source, /const sync = \(\) =>/u);
-    assert.match(source, /sync\(\);/u);
     assert.match(source, /FOUNDATION_PROJECT_SAVED_EVENT/u);
+    assert.doesNotMatch(source, /\n\s*sync\(\);\n/u);
     assert.doesNotMatch(source, /window\.setTimeout\(sync, 0\)/u);
   }
+});
+
+test("#2503 inner downstream workspaces do not expose a second competing Mini-Block selector", async () => {
+  const surfaces = await read("app/skin-v1/preproduction-review-surfaces.tsx");
+  const timeline = section(surfaces, "export function SkinV1TimelineReviewSurface", "export function SkinV1ProductionReviewSurface");
+  const production = section(surfaces, "export function SkinV1ProductionReviewSurface", "export function SkinV1SoundReviewSurface");
+  const sound = section(surfaces, "export function SkinV1SoundReviewSurface", "export function SkinV1ScreeningReviewSurface");
+
+  assert.doesNotMatch(timeline, /Timeline Mini-Block address|pp-skin-v1-preproduction-address-rail/u);
+  assert.doesNotMatch(production, /Rough Cut Mini-Block address|pp-skin-v1-production-addresses/u);
+  assert.doesNotMatch(sound, /Mini-Block address|pp-skin-v1-preproduction-address-rail/u);
 });
 
 

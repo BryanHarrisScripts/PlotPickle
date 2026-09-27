@@ -15,7 +15,8 @@ test("#2420 reviews only the generated candidate at its Storyboard position", as
   assert.match(source, /setGenerationScope\("single"\)/u);
   assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?>Save<[\s\S]*?>Lock<[\s\S]*?>Redo<[\s\S]*?>Delete</u);
   assert.match(source, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
-  assert.match(source, /setPendingDeleteArtifactId\(selectedArtifact\.id\)/u);\n  assert.match(source, /reviewFrame\(selectedArtifact, "delete"\)/u);
+  assert.match(source, /setPendingDeleteArtifactId\(selectedArtifact\.id\)/u);
+  assert.match(source, /reviewFrame\(selectedArtifact, "delete"\)/u);
 });
 
 test("#2420 keeps Previs evidence in place without legacy navigation links", async () => {

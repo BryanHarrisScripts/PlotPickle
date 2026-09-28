@@ -5,6 +5,7 @@ import {
   hydrateProfilePrivateBrowser,
   migrateLegacyBrowserProjects,
   persistActiveProfileProject,
+  profilePrivateBrowserAuthorityMatches,
 } from "../../core/storage/profile-private-browser";
 import type {
   ExperienceAuthGateway,
@@ -52,7 +53,14 @@ function safeSnapshot(status: RawProfileStatus): ExperienceAuthSnapshot {
 
 export const browserProfileAuthGateway: ExperienceAuthGateway = {
   async read() {
-    return safeSnapshot(await readRawProfileStatus());
+    const status = await readRawProfileStatus();
+    if (status.authenticated && status.profile) {
+      if (!status.csrfToken) throw new Error("AUTHENTICATION_SESSION_NOT_ESTABLISHED");
+      if (!profilePrivateBrowserAuthorityMatches(status.profile.profileId, status.csrfToken)) {
+        await hydrateProfilePrivateBrowser(status.profile.profileId, status.csrfToken);
+      }
+    }
+    return safeSnapshot(status);
   },
 
   async createFirstProfile(input) {

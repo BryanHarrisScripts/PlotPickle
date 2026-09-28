@@ -227,54 +227,32 @@
 }
 
 .exampleGrid { display: block; }
-.exampleCard { display: grid; grid-template-columns: minmax(180px, 35%) minmax(0, 1fr); }
-.examplePoster {
-  position: relative;
-  min-height: 350px;
+.exampleCard { display: grid; grid-template-columns: minmax(260px, 42%) minmax(0, 1fr); }
+.exampleGatewayCard { overflow: hidden; }
+
+.examplePoster,
+.gatewayPoster {
   overflow: hidden;
   background: var(--pp-skin-fill-panel);
 }
-.examplePoster img { object-fit: cover; }
 
-.examplePosterNavigation {
-  position: absolute;
-  z-index: 2;
-  right: var(--pp-skin-space-3);
-  bottom: var(--pp-skin-space-3);
-  left: var(--pp-skin-space-3);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+.examplePoster img,
+.gatewayPoster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.gatewayPoster {
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.exampleActions {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--pp-skin-space-2);
   align-items: center;
-  padding: var(--pp-skin-space-2);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  border-radius: var(--pp-skin-radius);
-  background: var(--pp-skin-surface-0);
-  box-shadow: var(--pp-skin-shadow-panel);
-}
-
-.examplePosterNavigation button {
-  width: var(--pp-skin-control-height);
-  height: var(--pp-skin-control-height);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  border-radius: var(--pp-skin-radius);
-  color: var(--pp-skin-ink);
-  background: var(--pp-skin-surface-1);
-  font: inherit;
-  font-size: var(--pp-skin-font-title);
-  cursor: pointer;
-}
-
-.examplePosterNavigation button:disabled {
-  cursor: not-allowed;
-  opacity: .45;
-}
-
-.examplePosterNavigation span {
-  color: var(--pp-skin-ink-soft);
-  font-size: var(--pp-skin-font-meta);
-  font-weight: 700;
-  text-align: center;
 }
 
 .exampleLogline {
@@ -718,7 +696,7 @@
   .coverage { grid-template-columns: 1fr; }
   .coverage span:last-child { grid-column: auto; }
   .exampleCard { grid-template-columns: 1fr; }
-  .examplePoster { min-height: 250px; }
+  .exampleActions { align-items: stretch; flex-direction: column; }
   .dialog > div { flex-direction: column-reverse; }
   .recoverySummary { grid-template-columns: 1fr; }
   .recoveryActions { flex-direction: column-reverse; }

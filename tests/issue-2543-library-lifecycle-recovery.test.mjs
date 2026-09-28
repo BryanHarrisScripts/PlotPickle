@@ -30,7 +30,7 @@ test("#2543 keeps recovery failures actionable and never strands the loaded stor
   assert.match(source, /finally \{[\s\S]*setRestoringResources\(false\)[\s\S]*\}/u);
 });
 
-test("#2543 preserves stable saved-project identity and creates copies only from explicit catalog starts", async () => {
+test("#2543 keeps saved-project identity stable while LOAD becomes an Examples gateway", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const confirmStart = source.indexOf("async function confirmLoad()");
   const confirmEnd = source.indexOf("function useProjectDefaults()", confirmStart);
@@ -42,8 +42,10 @@ test("#2543 preserves stable saved-project identity and creates copies only from
   assert.match(confirmLoad, /if \(pending\.kind === "story"\) \{[\s\S]*openedProject = switchActiveLibraryProject\(pending\.item\.id\)/u);
   assert.match(confirmLoad, /else \{[\s\S]*openedProject = createLibraryWorkingCopy\(/u);
   assert.match(confirmLoad, /markCurrentSessionLibraryProject\(openedProject\.id\)/u);
-  assert.match(loadSurface, />\s*Start Fresh Afterglow Copy\s*</u);
-  assert.match(loadSurface, /onOpen=\{\(\) => setPending\(\{ kind: "story", item \}\)\}/u);
+  assert.match(loadSurface, /<ExampleGatewayCard/u);
+  assert.match(loadSurface, /setDestination\("examples"\)/u);
+  assert.match(source, />Open Example<\/button>/u);
+  assert.doesNotMatch(loadSurface, /StoryCard|Archive story|Open Saved Story|Start Fresh Afterglow Copy/u);
 });
 
 test("#2543 restores only into the active recovery project and keeps controls retryable on failure", async () => {

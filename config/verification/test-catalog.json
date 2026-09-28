@@ -35,7 +35,8 @@
           "tests/issue-2487-story-to-screen-live-parity.test.mjs",
           "tests/issue-2469-webmcp-surface-maturity.test.mjs",
           "tests/issue-2499-storyboard-save-count.test.mjs",
-          "tests/issue-2557-learn-topic-spine.test.mjs"
+          "tests/issue-2557-learn-topic-spine.test.mjs",
+          "tests/issue-2559-library-example-gateway.test.mjs"
         ]
       },
       "cost": "fast",

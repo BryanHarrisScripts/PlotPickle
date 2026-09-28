@@ -7,6 +7,11 @@ import {
   type DiscoveryCard,
   type DiscoveryLaneId,
 } from "../../core/contracts/discovery";
+import {
+  LEARN_TOPIC_SPINE,
+  learnTopicHref,
+  type LearnTopicSpineId,
+} from "../../modules/learn/model/story-learning-context";
 import { projectDiscoveryPins } from "../../core/project/discovery";
 import {
   saveActiveLibraryProject,
@@ -22,7 +27,6 @@ type AgentResponse = {
 type ComposerLane = DiscoveryLaneId | "unsorted";
 
 const MIND_MAP_ACTS: readonly DiscoveryAct[] = [1, 2, 3, 4];
-const ALL_LANE_IDS: readonly DiscoveryLaneId[] = DISCOVERY_LANES.map((lane) => lane.id);
 
 function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, cards: readonly DiscoveryCard[]) {
   const blockNumbers = new Set(project.structure.blocks.filter((block) => block.actNumber === act).map((block) => block.number));
@@ -93,6 +97,7 @@ function humanPlacement(act: DiscoveryAct, lane: DiscoveryLaneId, occurredAt: st
 
 export default function DiscoverySurface({ project }: { readonly project: LibraryPPFProject | null }) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
+  const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>("foundations");
   const [content, setContent] = useState("");
   const [composerLane, setComposerLane] = useState<ComposerLane>("story");
   const [notice, setNotice] = useState("");
@@ -113,11 +118,14 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   const selectedActLocalCards = workingCards.filter((card) => (
     card.placement?.act === selectedAct || (!card.placement && (card.inboxAct ?? 1) === selectedAct)
   ));
+  const selectedTopicLanes = DISCOVERY_LANES.filter((lane) => lane.topic === selectedTopic);
+  const selectedTopicLaneIds = new Set<DiscoveryLaneId>(selectedTopicLanes.map((lane) => lane.id));
   const selectedActLaneCards = selectedActLocalCards.filter((card) => card.placement);
+  const selectedActTopicCards = selectedActLaneCards.filter((card) => card.placement && selectedTopicLaneIds.has(card.placement.lane));
   const selectedActUnsorted = selectedActLocalCards.filter((card) => !card.placement);
-  const agentCount = selectedActLocalCards.filter((card) => card.sourceState === "agent-proposal").length;
-  const humanCount = selectedActLocalCards.filter((card) => card.sourceState === "new-local").length;
-  const lockedCount = selectedActLocalCards.filter((card) => Boolean(card.lockedAt)).length;
+  const agentCount = selectedActTopicCards.filter((card) => card.sourceState === "agent-proposal").length;
+  const humanCount = selectedActTopicCards.filter((card) => card.sourceState === "new-local").length;
+  const lockedCount = selectedActTopicCards.filter((card) => Boolean(card.lockedAt)).length;
 
   function persist(cards: readonly DiscoveryCard[]) {
     if (!project) return;
@@ -135,6 +143,19 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
     setNotice("");
     setProposalPickerOpen(false);
     setSelectedProposalLanes([]);
+  }
+
+  function changeTopic(topic: LearnTopicSpineId) {
+    const firstLane = DISCOVERY_LANES.find((lane) => lane.topic === topic);
+    setSelectedTopic(topic);
+    if (firstLane) setComposerLane(firstLane.id);
+    setNotice("");
+    setProposalPickerOpen(false);
+    setSelectedProposalLanes([]);
+  }
+
+  function openLearnTopic() {
+    window.location.assign(learnTopicHref(selectedTopic));
   }
 
   function addHumanIdea() {
@@ -172,7 +193,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
 
   function assignUnsortedLane(card: DiscoveryCard) {
     if (card.placement) return;
-    const lane = unsortedLaneChoices[card.id] ?? "story";
+    const lane = unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story";
     const now = new Date().toISOString();
     const updated = workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
       ...candidate,
@@ -314,7 +335,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   }
 
   return (
-    <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct}>
+    <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic}>
       <section className={styles.summary}>
         <div>
           <small>MindMap · ACT {selectedAct} · NON-CANON WORKSPACE</small>
@@ -344,6 +365,25 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
         ))}
       </nav>
 
+      <nav className={styles.topicRail} aria-label="MindMap Learn topics">
+        {LEARN_TOPIC_SPINE.map((topic) => (
+          <button
+            type="button"
+            key={topic.id}
+            aria-current={selectedTopic === topic.id ? "page" : undefined}
+            data-mind-map-topic={topic.id}
+            onClick={() => changeTopic(topic.id)}
+          >
+            {topic.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className={styles.topicToolbar}>
+        <strong>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</strong>
+        <button type="button" onClick={openLearnTopic}>Open in Learn</button>
+      </div>
+
       <section className={styles.composer} aria-label={`Act ${selectedAct} MindMap Human Idea composer`}>
         <div>
           <span>Source</span>
@@ -354,15 +394,15 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
           <strong>Act {selectedAct}</strong>
         </div>
         <label>
-          <span>Lane</span>
+          <span>Element</span>
           <select value={composerLane} onChange={(event) => setComposerLane(event.target.value as ComposerLane)}>
-            {DISCOVERY_LANES.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
+            {selectedTopicLanes.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
             <option value="unsorted">Unsorted</option>
           </select>
         </label>
         <label className={styles.ideaField}>
           <span>Human Idea</span>
-          <textarea rows={5} value={content} onChange={(event) => setContent(event.target.value)} placeholder={`Act ${selectedAct}: write the story, plot, character, scene, dialogue, world, research, theme, motif, visual or image idea you want to explore…`} />
+          <textarea rows={5} value={content} onChange={(event) => setContent(event.target.value)} placeholder={`Act ${selectedAct} · ${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}: write the idea you want to explore…`} />
         </label>
         <div className={styles.actions}>
           <button type="button" onClick={addHumanIdea}>Save Human Idea · Act {selectedAct}</button>
@@ -391,9 +431,9 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
           {developingAct === selectedAct ? `Developing Agent Proposals · Act ${selectedAct}…` : `Develop Agent Proposals · Act ${selectedAct}`}
         </button>
         {proposalPickerOpen ? <div className={styles.proposalPicker}>
-          <strong>Select lanes to develop</strong>
+          <strong>Select elements to develop</strong>
           <div className={styles.laneChoices}>
-            {DISCOVERY_LANES.map((lane) => (
+            {selectedTopicLanes.map((lane) => (
               <label key={lane.id}>
                 <input
                   type="checkbox"
@@ -407,7 +447,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
           </div>
           <div className={styles.actions}>
             <button type="button" disabled={developingAct !== null || selectedProposalLanes.length === 0} onClick={() => void developLanes(selectedAct, selectedProposalLanes)}>Generate Selected</button>
-            <button type="button" disabled={developingAct !== null} onClick={() => void developLanes(selectedAct, ALL_LANE_IDS)}>Build All</button>
+            <button type="button" disabled={developingAct !== null || selectedTopicLanes.length === 0} onClick={() => void developLanes(selectedAct, selectedTopicLanes.map((lane) => lane.id))}>Build Topic</button>
           </div>
         </div> : null}
       </section>
@@ -423,8 +463,8 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
               <header><strong>HUMAN IDEA</strong><span className={styles.status}>{card.savedAt ? "SAVED" : "DRAFT"}</span></header>
               <p>{card.content}</p>
               <label className={styles.assignLane}>Lane
-                <select value={unsortedLaneChoices[card.id] ?? "story"} onChange={(event) => setUnsortedLaneChoices((current) => ({ ...current, [card.id]: event.target.value as DiscoveryLaneId }))}>
-                  {DISCOVERY_LANES.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
+                <select value={unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story"} onChange={(event) => setUnsortedLaneChoices((current) => ({ ...current, [card.id]: event.target.value as DiscoveryLaneId }))}>
+                  {selectedTopicLanes.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
                 </select>
               </label>
               <div className={styles.cardActions}>
@@ -440,11 +480,11 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       </section> : null}
 
       <section className={styles.board} aria-label={`Act ${selectedAct} Living MindMap Board`}>
-        <small>THE LIVING MINDMAP · ACT {selectedAct} · ELEVEN GOVERNED LANES</small>
-        <h3>STORY SHAPE · ACT {selectedAct}</h3>
+        <small>THE LIVING MINDMAP · ACT {selectedAct} · 12 LEARN TOPICS</small>
+        <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} · ACT {selectedAct}</h3>
         <div className={styles.laneGrid}>
-          {DISCOVERY_LANES.map((lane) => {
-            const cards = selectedActLaneCards.filter((card) => card.placement?.lane === lane.id);
+          {selectedTopicLanes.map((lane) => {
+            const cards = selectedActTopicCards.filter((card) => card.placement?.lane === lane.id);
             return (
               <section className={styles.lanePanel} data-discovery-act={selectedAct} data-discovery-lane={lane.id} key={lane.id}>
                 <header className={styles.laneHeader}>

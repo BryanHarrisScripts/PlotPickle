@@ -119,7 +119,7 @@ function discoveryMapperSchema() {
     type: "object",
     properties: {
       act: { type: "integer", enum: [1, 2, 3, 4] },
-      lane: { type: "string", enum: ["story", "plot", "character", "scene", "dialogue", "world", "research", "theme", "motif", "visual", "image"] },
+      lane: { type: "string", enum: ["story", "plot", "research", "industry", "theme", "motif", "character", "world", "structure", "dialogue", "visual", "image", "previs", "scene", "drafting", "revision", "responsible-ai", "collaboration"] },
       reason: { type: "string", minLength: 1, maxLength: 800 },
       evidenceRefs: { type: "array", items: { type: "string", minLength: 1, maxLength: 240 }, maxItems: 12 },
     },

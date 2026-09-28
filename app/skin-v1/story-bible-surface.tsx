@@ -26,18 +26,15 @@ import {
   createFirstMarketingReferenceArtifact,
   deriveMarketingContextV1,
 } from "../../modules/learn/model/marquee-director";
+import {
+  LEARN_TOPIC_SPINE,
+  learnTopicHref,
+  type LearnTopicSpineId,
+} from "../../modules/learn/model/story-learning-context";
 import styles from "./story-bible-surface.module.css";
 
-type WorldMapSectionId = "story" | "structure" | "character" | "foundations" | "world" | "provenance";
-
-const WORLD_MAP_SECTIONS: readonly Readonly<{ id: WorldMapSectionId; label: string }>[] = [
-  { id: "story", label: "Story" },
-  { id: "structure", label: "Structure" },
-  { id: "character", label: "Character" },
-  { id: "foundations", label: "Foundations" },
-  { id: "world", label: "World" },
-  { id: "provenance", label: "Provenance" },
-];
+type WorldMapAct = 1 | 2 | 3 | 4;
+const WORLD_MAP_ACTS: readonly WorldMapAct[] = [1, 2, 3, 4];
 
 type AgentResponse = { readonly text?: string; readonly message?: string };
 type ImageResponse = {
@@ -473,11 +470,22 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
   const [posterCandidate, setPosterCandidate] = useState<MarketingReferenceArtifact | null>(null);
   const [posterWorking, setPosterWorking] = useState(false);
   const [posterNotice, setPosterNotice] = useState("");
-  const [activeSection, setActiveSection] = useState<WorldMapSectionId>("story");
+  const [selectedAct, setSelectedAct] = useState<WorldMapAct>(1);
+  const [activeTopic, setActiveTopic] = useState<LearnTopicSpineId>("foundations");
   const safePosterIndex = Math.min(posterVersionIndex, Math.max(posterVersions.length - 1, 0));
   const selectedPoster = posterVersions[safePosterIndex] ?? null;
   const displayedPoster = posterCandidate ?? selectedPoster;
   const posterAtVersionLimit = posterVersions.length >= MARKETING_REFERENCE_MAX_VERSIONS;
+  const selectedActBlockNumbers = new Set(
+    project.structure.blocks.filter((block) => block.actNumber === selectedAct).map((block) => block.number),
+  );
+  const selectedActWriting = project.writing.entries.filter((entry) => selectedActBlockNumbers.has(entry.blockNumber));
+  const activeTopicEntry = LEARN_TOPIC_SPINE.find((topic) => topic.id === activeTopic) ?? LEARN_TOPIC_SPINE[0];
+
+  function openLearnTopic() {
+    window.location.assign(learnTopicHref(activeTopic));
+  }
+
 
   async function generatePosterVisual() {
     if (posterWorking || posterCandidate || posterAtVersionLimit) return;
@@ -590,31 +598,46 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
   return (
     <main
       className={styles.surface}
-      aria-labelledby="world-map-story-title"
+      aria-label="World Map"
       data-story-bible-surface="canonical"
       data-world-map-surface="review"
-      data-world-map-active-section={activeSection}
+      data-world-map-act={selectedAct}
+      data-world-map-topic={activeTopic}
       data-story-bible-project-id={bible.projectId}
       data-story-bible-read-only="false"
     >
-      <nav className={styles.sectionNav} aria-label="World Map sections" role="tablist">
-        {WORLD_MAP_SECTIONS.map((section, index) => {
-          const selected = activeSection === section.id;
+      <nav className={styles.actNav} aria-label="World Map acts">
+        {WORLD_MAP_ACTS.map((act) => (
+          <button
+            type="button"
+            key={act}
+            aria-current={selectedAct === act ? "page" : undefined}
+            data-world-map-act-choice={act}
+            onClick={() => setSelectedAct(act)}
+          >
+            Act {act}
+          </button>
+        ))}
+      </nav>
+
+      <nav className={styles.sectionNav} aria-label="World Map Learn topics" role="tablist">
+        {LEARN_TOPIC_SPINE.map((topic, index) => {
+          const selected = activeTopic === topic.id;
           return (
             <button
-              aria-controls={`world-map-panel-${section.id}`}
+              aria-controls={`world-map-panel-${topic.id}`}
               aria-selected={selected}
               className={selected ? styles.sectionTabActive : styles.sectionTab}
-              id={`world-map-tab-${section.id}`}
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
+              id={`world-map-tab-${topic.id}`}
+              key={topic.id}
+              onClick={() => setActiveTopic(topic.id)}
               onKeyDown={(event) => {
                 if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
                 event.preventDefault();
                 const direction = event.key === "ArrowRight" ? 1 : -1;
-                const nextIndex = (index + direction + WORLD_MAP_SECTIONS.length) % WORLD_MAP_SECTIONS.length;
-                const next = WORLD_MAP_SECTIONS[nextIndex];
-                setActiveSection(next.id);
+                const nextIndex = (index + direction + LEARN_TOPIC_SPINE.length) % LEARN_TOPIC_SPINE.length;
+                const next = LEARN_TOPIC_SPINE[nextIndex];
+                setActiveTopic(next.id);
                 const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
                 buttons?.[nextIndex]?.focus();
               }}
@@ -622,18 +645,23 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               tabIndex={selected ? 0 : -1}
               type="button"
             >
-              {section.label}
+              {topic.label}
             </button>
           );
         })}
       </nav>
 
+      <div className={styles.topicToolbar}>
+        <span>Act {selectedAct} · <strong>{activeTopicEntry.label}</strong></span>
+        <button type="button" onClick={openLearnTopic}>Open in Learn</button>
+      </div>
+
       <div className={styles.panelShell}>
-        {activeSection === "story" ? (
+        {activeTopic === "previs" ? (
           <div
-            aria-labelledby="world-map-tab-story"
+            aria-labelledby="world-map-tab-previs"
             className={styles.panel}
-            id="world-map-panel-story"
+            id="world-map-panel-previs"
             role="tabpanel"
           >
             <section className={styles.hero}>
@@ -696,7 +724,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               </div>
 
               <div className={styles.identity}>
-                <p className={styles.kicker}>WORLDMAP · STORY · HUMAN-REVIEWED DEVELOPMENT</p>
+                <p className={styles.kicker}>WORLDMAP · PREVIS · HUMAN-REVIEWED DEVELOPMENT</p>
                 <h1 id="world-map-story-title">{bible.title}</h1>
                 <p className={styles.meta}>PPF REVISION {bible.revision} · UPDATED {bible.updatedAt || "UNKNOWN"}</p>
                 <div className={styles.spotlight}>
@@ -723,9 +751,9 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           </div>
         ) : null}
 
-        {activeSection === "structure" ? (
+        {activeTopic === "structure" ? (
           <section
-            aria-labelledby="story-bible-plot"
+            aria-labelledby="world-map-tab-structure"
             className={styles.section}
             id="world-map-panel-structure"
             role="tabpanel"
@@ -735,7 +763,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               <h2 id="story-bible-plot">4 Acts · 12 Sequences · 24 Blocks · 96 Mini-Blocks</h2>
             </header>
             <div className={styles.blockGrid}>
-              {bible.blocks.map((block) => (
+              {bible.blocks.filter((block) => block.actNumber === selectedAct).map((block) => (
                 <article key={block.number} className={styles.block} data-story-bible-established={block.established ? "true" : "false"}>
                   <small>ACT {block.actNumber} · SEQUENCE {block.sequenceNumber} · BLOCK {String(block.number).padStart(2, "0")}</small>
                   <strong>{block.title}</strong>
@@ -746,9 +774,9 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           </section>
         ) : null}
 
-        {activeSection === "character" ? (
+        {activeTopic === "character" ? (
           <section
-            aria-labelledby="story-bible-characters"
+            aria-labelledby="world-map-tab-character"
             className={styles.section}
             id="world-map-panel-character"
             role="tabpanel"
@@ -782,9 +810,9 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           </section>
         ) : null}
 
-        {activeSection === "foundations" ? (
+        {activeTopic === "foundations" ? (
           <section
-            aria-labelledby="story-bible-foundations"
+            aria-labelledby="world-map-tab-foundations"
             className={styles.section}
             id="world-map-panel-foundations"
             role="tabpanel"
@@ -793,15 +821,20 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
               <p className={styles.kicker}>FOUNDATIONS</p>
               <h2 id="story-bible-foundations">Writer decisions PlotPickle already knows</h2>
             </header>
+            <div className={styles.spotlight}>
+              <Fact fact={bible.logline} />
+              <Fact fact={bible.premise} />
+              <Fact fact={bible.stakes} />
+            </div>
             <div className={styles.groupStack}>
               {bible.foundationGroups.map((group) => <FactGroup key={group.id} group={group} />)}
             </div>
           </section>
         ) : null}
 
-        {activeSection === "world" ? (
+        {activeTopic === "world" ? (
           <section
-            aria-labelledby="story-bible-world"
+            aria-labelledby="world-map-tab-world"
             className={styles.section}
             id="world-map-panel-world"
             role="tabpanel"
@@ -817,15 +850,72 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
           </section>
         ) : null}
 
-        {activeSection === "provenance" ? (
+        {activeTopic === "theme" ? (
           <section
-            aria-labelledby="story-bible-sources"
+            aria-labelledby="world-map-tab-theme"
             className={styles.section}
-            id="world-map-panel-provenance"
+            id="world-map-panel-theme"
             role="tabpanel"
           >
             <header>
-              <p className={styles.kicker}>PROVENANCE</p>
+              <p className={styles.kicker}>THEME</p>
+              <h2>Theme, tone and story meaning</h2>
+            </header>
+            <div className={styles.factGrid}>
+              <Fact fact={bible.theme} />
+              <Fact fact={bible.tone} />
+            </div>
+          </section>
+        ) : null}
+
+        {activeTopic === "drafting" ? (
+          <section
+            aria-labelledby="world-map-tab-drafting"
+            className={styles.section}
+            id="world-map-panel-drafting"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>DRAFTING · ACT {selectedAct}</p>
+              <h2>Written material currently connected to this Act</h2>
+            </header>
+            {selectedActWriting.length ? (
+              <div className={styles.factGrid}>
+                {selectedActWriting.map((entry) => (
+                  <article className={styles.fact} key={entry.id}>
+                    <strong>Block {entry.blockNumber} · Mini {entry.miniBlockNumber}</strong>
+                    <p>{entry.text}</p>
+                  </article>
+                ))}
+              </div>
+            ) : <p className={styles.empty}>No Drafting material is established for Act {selectedAct} yet.</p>}
+          </section>
+        ) : null}
+
+        {(["industry", "dialogue", "revision", "collaboration"] as const).includes(activeTopic as "industry" | "dialogue" | "revision" | "collaboration") ? (
+          <section
+            aria-labelledby={`world-map-tab-${activeTopic}`}
+            className={styles.section}
+            id={`world-map-panel-${activeTopic}`}
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>{activeTopicEntry.label.toUpperCase()}</p>
+              <h2>{activeTopicEntry.label} material</h2>
+            </header>
+            <p className={styles.empty}>No established {activeTopicEntry.label} material is available in WorldMap yet. Use MindMap to develop project ideas or Open in Learn to study this topic.</p>
+          </section>
+        ) : null}
+
+        {activeTopic === "responsible-ai" ? (
+          <section
+            aria-labelledby="world-map-tab-responsible-ai"
+            className={styles.section}
+            id="world-map-panel-responsible-ai"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>RESPONSIBLE AI · PROVENANCE</p>
               <h2 id="story-bible-sources">Canonical evidence currently available</h2>
             </header>
             <div className={styles.factGrid}>

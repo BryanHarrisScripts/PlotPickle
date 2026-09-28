@@ -4,7 +4,7 @@ description: Classify one Human-authored Discovery item into the most defensible
 license: MIT
 metadata:
   author: PlotPickle
-  version: "1.1.0"
+  version: "1.2.0"
   compatibility: PlotPickle host runtime
   uri: skill://plotpickle/discovery-mapper
   progressiveDisclosure: true
@@ -20,7 +20,7 @@ Use this procedure only when the PlotPickle host supplies one genuinely unplaced
 2. Read only the bounded project evidence supplied by the host: story identity, established foundations/world context, current Block titles/notes, and already pinned Discovery context when relevant.
 3. Treat PlotPickle curriculum checkpoints and Act-specific craft questions as flexible evidence, never mandatory beat placement.
 4. If the host supplies a required Act, keep that Act fixed. Otherwise choose the single most defensible current Act: 1, 2, 3, or 4.
-5. Choose exactly one governed lane: story, plot, character, scene, dialogue, world, research, theme, motif, visual, or image.
+5. Choose exactly one governed MindMap element: story, plot, research, industry, theme, motif, character, world, structure, dialogue, visual, image, previs, scene, drafting, revision, responsible-ai, or collaboration. Keep the element inside the Human-selected Learn topic when the host supplies one.
 6. Give a concise placement reason and cite only supplied evidence references.
 7. If the lane evidence is genuinely ambiguous, choose the best current lane while stating the uncertainty in the reason. Never invent story facts to manufacture certainty.
 

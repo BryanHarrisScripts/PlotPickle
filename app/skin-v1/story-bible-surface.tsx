@@ -30,7 +30,7 @@ import {
   LEARN_TOPIC_SPINE,
   learnTopicHref,
   type LearnTopicSpineId,
-} from "../../core/contracts/learn-topic-spine";
+} from "../../modules/learn/model/story-learning-context";
 import styles from "./story-bible-surface.module.css";
 
 type WorldMapAct = 1 | 2 | 3 | 4;

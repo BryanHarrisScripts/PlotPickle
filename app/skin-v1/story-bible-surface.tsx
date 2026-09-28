@@ -887,24 +887,27 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
             </header>
             {bible.characters.length ? (
               <div className={styles.characterGrid}>
-                {bible.characters.map((character) => (
-                  <article key={character.id} className={styles.character}>
-                    <div className={styles.characterImage}>
-                      {character.imageUrl ? (
-                        <Image src={character.imageUrl} alt={character.name} width={420} height={420} unoptimized />
-                      ) : (
-                        <div role="img" aria-label={`No approved image for ${character.name}`}>NO APPROVED CHARACTER IMAGE YET</div>
-                      )}
-                    </div>
-                    <h3>{character.name}</h3>
-                    <CharacterVisualSheet character={character} project={project} />
-                    {character.facts.length ? (
-                      <div className={styles.characterFacts}>
-                        {character.facts.map((fact) => <Fact key={fact.id} fact={fact} />)}
+                {bible.characters.map((character) => {
+                  const displayName = characterVisualDisplayName(character);
+                  return (
+                    <article key={character.id} className={styles.character}>
+                      <div className={styles.characterImage}>
+                        {character.imageUrl ? (
+                          <Image src={character.imageUrl} alt={displayName} width={420} height={420} unoptimized />
+                        ) : (
+                          <div role="img" aria-label={`No approved image for ${displayName}`}>NO APPROVED CHARACTER IMAGE YET</div>
+                        )}
                       </div>
-                    ) : <p className={styles.empty}>Not established yet.</p>}
-                  </article>
-                ))}
+                      <h3>{displayName}</h3>
+                      <CharacterVisualSheet character={character} project={project} />
+                      {character.facts.length ? (
+                        <div className={styles.characterFacts}>
+                          {character.facts.map((fact) => <Fact key={fact.id} fact={fact} />)}
+                        </div>
+                      ) : <p className={styles.empty}>Not established yet.</p>}
+                    </article>
+                  );
+                })}
               </div>
             ) : <p className={styles.empty}>Character truth has not been established for this story yet.</p>}
           </section>

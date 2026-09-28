@@ -240,6 +240,10 @@ function worldMapPosterPrompt(input: {
   ].filter(Boolean).join("\n");
 }
 
+function characterVisualDisplayName(character: StoryBibleCharacter) {
+  return character.id === "isobel" ? "Summer" : character.name;
+}
+
 function characterVisualEvidence(character: StoryBibleCharacter, project: LibraryPPFProject) {
   const claims = (project.sourceEvidence.characterTruth?.claims ?? [])
     .filter((claim) => claim.characterIds.includes(character.id)
@@ -249,30 +253,140 @@ function characterVisualEvidence(character: StoryBibleCharacter, project: Librar
     .map((claim) => `${claim.kind}: ${claim.summary}`)
     .slice(0, 18);
   return [
-    `Character: ${character.name}.`,
+    `Character: ${characterVisualDisplayName(character)}.`,
     ...claims,
     project.world.brief.content.trim() ? `World context: ${project.world.brief.content.slice(0, 1800)}` : "",
   ].filter(Boolean).join(" ");
 }
 
 function CharacterVisualSheet({ character, project }: { readonly character: StoryBibleCharacter; readonly project: LibraryPPFProject }) {
+  const displayName = characterVisualDisplayName(character);
   const versions = worldMapCharacterVisualVersions(project.worldMap, character.id);
+  const chronologicalVersions = [...versions].reverse();
   const lockedReferences = approvedWorldMapCharacterReferences(project.worldMap, character.id);
-  const lockedIndex = Math.max(0, versions.findIndex((version) => version.locked));
-  const [selectedVersionIndex, setSelectedVersionIndex] = useState(lockedIndex);
+  const savedBrowseItems = chronologicalVersions.flatMap((version, generationIndex) => (
+    version.references.map((reference) => ({
+      version,
+      reference,
+      generationNumber: generationIndex + 1,
+      viewNumber: WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === reference.view) + 1,
+    }))
+  ));
+  const lockedVersionChronologicalIndex = chronologicalVersions.findIndex((version) => version.locked);
+  const lockedReferenceStart = lockedVersionChronologicalIndex > 0
+    ? chronologicalVersions.slice(0, lockedVersionChronologicalIndex).reduce((total, version) => total + version.references.length, 0)
+    : 0;
+  const [selectedReferenceIndex, setSelectedReferenceIndex] = useState(Math.max(0, lockedReferenceStart));
   const [candidate, setCandidate] = useState<Readonly<{
     versionId: string;
+    generationNumber: number;
     references: readonly WorldMapCharacterVisualReference[];
   }> | null>(null);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("");
-  const safeVersionIndex = Math.min(selectedVersionIndex, Math.max(versions.length - 1, 0));
-  const selectedVersion = versions[safeVersionIndex] ?? null;
-  const displayedReferences = candidate?.references ?? selectedVersion?.references ?? [];
-  const completeCandidateCoverage = WORLD_MAP_CHARACTER_VIEWS.every((view) => (
-    displayedReferences.some((reference) => reference.view === view.id)
-  ));
+  const candidateBrowseItems = candidate
+    ? candidate.references
+      .slice()
+      .sort((left, right) => (
+        WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === left.view)
+        - WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === right.view)
+      ))
+      .map((reference) => ({
+        version: null,
+        reference,
+        generationNumber: candidate.generationNumber,
+        viewNumber: WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === reference.view) + 1,
+      }))
+    : [];
+  const browseItems = candidate ? candidateBrowseItems : savedBrowseItems;
+  const safeReferenceIndex = Math.min(selectedReferenceIndex, Math.max(browseItems.length - 1, 0));
+  const selectedBrowseItem = browseItems[safeReferenceIndex] ?? null;
+  const selectedVersion = selectedBrowseItem?.version ?? null;
+  const displayedReference = selectedBrowseItem?.reference ?? null;
+  const selectedView = displayedReference
+    ? WORLD_MAP_CHARACTER_VIEWS.find((view) => view.id === displayedReference.view) ?? null
+    : null;
+  const completeCandidateCoverage = candidate
+    ? WORLD_MAP_CHARACTER_VIEWS.every((view) => candidate.references.some((reference) => reference.view === view.id))
+    : false;
+  const selectedMissingViews = selectedVersion
+    ? WORLD_MAP_CHARACTER_VIEWS.filter((view) => !selectedVersion.references.some((reference) => reference.view === view.id))
+    : [];
   const atVersionLimit = versions.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS;
+
+  function generationNumberForVersion(versionId: string) {
+    const index = chronologicalVersions.findIndex((version) => version.id === versionId);
+    return index >= 0 ? index + 1 : versions.length + 1;
+  }
+
+  function canonicalReferences(references: readonly WorldMapCharacterVisualReference[]) {
+    return references
+      .filter((reference, index, all) => all.findLastIndex((candidate) => candidate.view === reference.view) === index)
+      .slice()
+      .sort((left, right) => (
+        WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === left.view)
+        - WORLD_MAP_CHARACTER_VIEWS.findIndex((view) => view.id === right.view)
+      ));
+  }
+
+  async function generateViews(
+    views: readonly (typeof WORLD_MAP_CHARACTER_VIEWS)[number][],
+    versionId: string,
+    seedReferences: readonly WorldMapCharacterVisualReference[],
+  ) {
+    const generated: WorldMapCharacterVisualReference[] = [];
+    const failures: string[] = [];
+    const identityEvidence = characterVisualEvidence(character, project);
+
+    for (let index = 0; index < views.length; index += 1) {
+      const view = views[index];
+      setNotice(`Generating ${index + 1} of ${views.length} · ${view.label}…`);
+      const prompt = [
+        `Create a production character reference for ${displayName}.`,
+        identityEvidence,
+        `Reference view: ${view.label}. ${view.directive}`,
+        "Preserve the exact same identity, apparent age, face, hair, proportions, wardrobe baseline and distinguishing features across every view.",
+        "Single character, neutral studio background, production-reference lighting, no text, no border, no collage.",
+        "If a physical trait is not established by the supplied evidence, keep it neutral and proposal-level rather than presenting an invented trait as canon.",
+      ].join(" ");
+      try {
+        const identityReference = generated[0]?.assetUrl ?? seedReferences[0]?.assetUrl ?? lockedReferences[0] ?? "";
+        const response = await fetch("/api/local-ai/generate/image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            characterId: character.id,
+            assetId: `world-map-character-${character.id}-${versionId}-${view.id}`,
+            aspect: "portrait",
+            quality: "low",
+            referenceImages: identityReference ? [identityReference] : [],
+            requestCount: 1,
+            billingAcknowledged: true,
+          }),
+        });
+        const result = await response.json() as ImageResponse;
+        if (!response.ok || !result.ok || !result.assetUrl) throw new Error(result.message || "Image provider returned no image.");
+        if (!result.assetUrl.startsWith("/api/local-ai/assets/")) throw new Error("Generated character media was not saved to PlotPickle local assets.");
+        generated.push({
+          id: globalThis.crypto?.randomUUID?.() ?? `worldmap-character-${character.id}-${Date.now()}-${view.id}`,
+          versionId,
+          characterId: character.id,
+          characterName: displayName,
+          view: view.id,
+          assetUrl: result.assetUrl,
+          prompt: result.revisedPrompt || prompt,
+          provider: result.provider || "configured image route",
+          model: result.model || "",
+          createdAt: new Date().toISOString(),
+          reviewState: "draft",
+        });
+      } catch (error) {
+        failures.push(`${view.label}: ${error instanceof Error ? error.message : "generation failed"}`);
+      }
+    }
+    return { generated, failures };
+  }
 
   async function generateSheet() {
     if (working || candidate || atVersionLimit) return;
@@ -283,60 +397,15 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
     }
     setWorking(true);
     const versionId = globalThis.crypto?.randomUUID?.() ?? `worldmap-character-version-${Date.now()}`;
-    const generated: WorldMapCharacterVisualReference[] = [];
-    const failures: string[] = [];
-    const identityEvidence = characterVisualEvidence(character, project);
     try {
-      for (let index = 0; index < WORLD_MAP_CHARACTER_VIEWS.length; index += 1) {
-        const view = WORLD_MAP_CHARACTER_VIEWS[index];
-        setNotice(`Generating ${index + 1} of ${WORLD_MAP_CHARACTER_VIEWS.length} · ${view.label}…`);
-        const prompt = [
-          `Create a production character reference for ${character.name}.`,
-          identityEvidence,
-          `Reference view: ${view.label}. ${view.directive}`,
-          "Preserve the exact same identity, apparent age, face, hair, proportions, wardrobe baseline and distinguishing features across every view.",
-          "Single character, neutral studio background, production-reference lighting, no text, no border, no collage.",
-          "If a physical trait is not established by the supplied evidence, keep it neutral and proposal-level rather than presenting an invented trait as canon.",
-        ].join(" ");
-        try {
-          const identityReference = generated[0]?.assetUrl ?? lockedReferences[0] ?? "";
-          const response = await fetch("/api/local-ai/generate/image", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              prompt,
-              characterId: character.id,
-              assetId: `world-map-character-${character.id}-${versionId}-${view.id}`,
-              aspect: "portrait",
-              quality: "low",
-              referenceImages: identityReference ? [identityReference] : [],
-              requestCount: 1,
-              billingAcknowledged: true,
-            }),
-          });
-          const result = await response.json() as ImageResponse;
-          if (!response.ok || !result.ok || !result.assetUrl) throw new Error(result.message || "Image provider returned no image.");
-          if (!result.assetUrl.startsWith("/api/local-ai/assets/")) throw new Error("Generated character media was not saved to PlotPickle local assets.");
-          generated.push({
-            id: globalThis.crypto?.randomUUID?.() ?? `worldmap-character-${character.id}-${Date.now()}-${index}`,
-            versionId,
-            characterId: character.id,
-            characterName: character.name,
-            view: view.id,
-            assetUrl: result.assetUrl,
-            prompt: result.revisedPrompt || prompt,
-            provider: result.provider || "configured image route",
-            model: result.model || "",
-            createdAt: new Date().toISOString(),
-            reviewState: "draft",
-          });
-        } catch (error) {
-          failures.push(`${view.label}: ${error instanceof Error ? error.message : "generation failed"}`);
-        }
-      }
-
+      const { generated, failures } = await generateViews(WORLD_MAP_CHARACTER_VIEWS, versionId, []);
       if (generated.length) {
-        setCandidate({ versionId, references: generated });
+        setCandidate({
+          versionId,
+          generationNumber: versions.length + 1,
+          references: canonicalReferences(generated),
+        });
+        setSelectedReferenceIndex(0);
         setNotice(
           `${generated.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} character views generated but NOT SAVED. Choose Save to keep this generation with the story.`
           + (failures.length ? ` ${failures.join(" ")}` : ""),
@@ -349,12 +418,44 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
     }
   }
 
+  async function generateMissingViews() {
+    if (working || candidate || !selectedVersion || !selectedMissingViews.length) return;
+    const billingAcknowledged = window.confirm(`Generate ${selectedMissingViews.length} missing character-reference view${selectedMissingViews.length === 1 ? "" : "s"} for generation ${generationNumberForVersion(selectedVersion.id)}? A connected cloud image provider may charge the API account saved by this user.`);
+    if (!billingAcknowledged) {
+      setNotice("Missing-view generation cancelled. No provider request was made.");
+      return;
+    }
+    setWorking(true);
+    try {
+      const { generated, failures } = await generateViews(selectedMissingViews, selectedVersion.id, selectedVersion.references);
+      if (generated.length) {
+        const generationNumber = generationNumberForVersion(selectedVersion.id);
+        setCandidate({
+          versionId: selectedVersion.id,
+          generationNumber,
+          references: canonicalReferences([...selectedVersion.references, ...generated]),
+        });
+        setSelectedReferenceIndex(0);
+        setNotice(
+          `${generated.length} missing view${generated.length === 1 ? "" : "s"} generated for generation ${generationNumber} but NOT SAVED. Choose Save to update that generation.`
+          + (failures.length ? ` ${failures.join(" ")}` : ""),
+        );
+      } else {
+        setNotice(failures.join(" ") || "No missing character views were generated.");
+      }
+    } finally {
+      setWorking(false);
+    }
+  }
+
   function saveCandidate() {
-    if (!candidate || atVersionLimit) return;
+    if (!candidate) return;
+    const replacesSavedVersion = versions.some((version) => version.id === candidate.versionId);
+    if (!replacesSavedVersion && atVersionLimit) return;
     const now = new Date().toISOString();
     const worldMap = saveWorldMapCharacterVisualVersion(project.worldMap, {
       characterId: character.id,
-      characterName: character.name,
+      characterName: displayName,
       versionId: candidate.versionId,
       references: candidate.references,
       savedAt: now,
@@ -365,9 +466,12 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       updatedAt: now,
       worldMap,
     });
+    const savedStart = chronologicalVersions
+      .slice(0, Math.max(0, candidate.generationNumber - 1))
+      .reduce((total, version) => total + version.references.length, 0);
     setCandidate(null);
-    setSelectedVersionIndex(0);
-    setNotice("SAVED locally with this story. You can keep up to five versions and lock one for downstream use.");
+    setSelectedReferenceIndex(savedStart);
+    setNotice("SAVED locally with this story. Complete eight-view generations can be locked; chevrons remain available for every saved image.");
   }
 
   function lockSelectedVersion() {
@@ -379,11 +483,11 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       updatedAt: now,
       worldMap: lockWorldMapCharacterVisualVersion(project.worldMap, character.id, selectedVersion.id, now),
     });
-    setNotice("LOCKED. This saved character generation is now the only WorldMap identity package used downstream.");
+    setNotice("LOCKED. This saved character generation is now the only WorldMap identity package used downstream. Its individual images remain browseable.");
   }
 
   return (
-    <div className={styles.visualSheet} data-world-map-character-visual={character.id}>
+    <div className={styles.visualSheet} data-world-map-character-visual={character.id} data-world-map-character-name={displayName}>
       <div className={styles.actions}>
         <button
           className={styles.primaryAction}
@@ -391,65 +495,61 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
           disabled={working || Boolean(candidate) || atVersionLimit}
           onClick={() => void generateSheet()}
         >
-          {working ? "Generating character views…" : atVersionLimit ? "5 Saved Versions" : "Generate Character Visual"}
+          {working ? "Generating character views…" : atVersionLimit ? "5 Saved Generations" : "Generate Character Visual"}
         </button>
         {candidate ? (
-          <button type="button" disabled={!candidate.references.length || atVersionLimit || working} onClick={saveCandidate}>
+          <button type="button" disabled={!candidate.references.length || working} onClick={saveCandidate}>
             Save
           </button>
+        ) : selectedVersion && !selectedVersion.complete ? (
+          <button type="button" disabled={working} onClick={() => void generateMissingViews()}>
+            Generate Missing Views
+          </button>
         ) : selectedVersion ? (
-          <button type="button" disabled={!selectedVersion.complete || selectedVersion.locked || working} onClick={lockSelectedVersion}>
+          <button type="button" disabled={selectedVersion.locked || working} onClick={lockSelectedVersion}>
             Lock
           </button>
         ) : null}
       </div>
 
-      <div className={styles.versionBar} aria-label={`${character.name} saved character versions`}>
+      <div className={styles.versionBar} aria-label={`${displayName} character reference images`}>
         <button
-          aria-label="Previous saved version"
-          disabled={Boolean(candidate) || safeVersionIndex <= 0}
-          onClick={() => setSelectedVersionIndex((index) => Math.max(0, index - 1))}
+          aria-label="Previous character image"
+          disabled={safeReferenceIndex <= 0}
+          onClick={() => setSelectedReferenceIndex((index) => Math.max(0, index - 1))}
           type="button"
         >‹</button>
         <strong>
-          {candidate
-            ? `UNSAVED · ${candidate.references.length}/${WORLD_MAP_CHARACTER_VIEWS.length} views`
-            : selectedVersion
-              ? `${safeVersionIndex + 1}/${versions.length}`
-              : "0/0"}
+          {selectedBrowseItem
+            ? `${candidate ? "UNSAVED · " : ""}${selectedBrowseItem.generationNumber}.${selectedBrowseItem.viewNumber} · ${selectedView?.label ?? displayedReference?.view}`
+            : "0.0"}
         </strong>
         <button
-          aria-label="Next saved version"
-          disabled={Boolean(candidate) || safeVersionIndex >= versions.length - 1}
-          onClick={() => setSelectedVersionIndex((index) => Math.min(versions.length - 1, index + 1))}
+          aria-label="Next character image"
+          disabled={safeReferenceIndex >= browseItems.length - 1}
+          onClick={() => setSelectedReferenceIndex((index) => Math.min(browseItems.length - 1, index + 1))}
           type="button"
         >›</button>
       </div>
 
-      <small>{versions.length}/{WORLD_MAP_CHARACTER_MAX_VERSIONS} saved generation{versions.length === 1 ? "" : "s"} · exactly one may be locked</small>
-      {displayedReferences.length ? (
-        <div className={styles.referenceGrid}>
-          {WORLD_MAP_CHARACTER_VIEWS.map((view) => {
-            const reference = displayedReferences.find((item) => item.view === view.id);
-            return reference ? (
-              <figure
-                key={view.id}
-                data-review-state={candidate ? "candidate" : selectedVersion?.locked ? "approved" : "draft"}
-              >
-                <div className={styles.referenceFrame}>
-                  <Image src={reference.assetUrl} alt={`${character.name} · ${view.label}`} width={240} height={320} unoptimized />
-                  {!candidate ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
-                  {!candidate && selectedVersion?.locked ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
-                </div>
-                <figcaption>{view.label}</figcaption>
-              </figure>
-            ) : (
-              <div className={styles.referenceEmpty} key={view.id}>{view.label}<br />NOT GENERATED</div>
-            );
-          })}
-        </div>
+      <small>{versions.length}/{WORLD_MAP_CHARACTER_MAX_VERSIONS} saved generation{versions.length === 1 ? "" : "s"} · {savedBrowseItems.length} saved image{savedBrowseItems.length === 1 ? "" : "s"} · exactly one generation may be locked</small>
+      {selectedVersion && selectedMissingViews.length ? (
+        <small role="status">Generation {generationNumberForVersion(selectedVersion.id)} is missing: {selectedMissingViews.map((view) => view.label).join(", ")}. Generate the missing view{selectedMissingViews.length === 1 ? "" : "s"}, Save, then Lock.</small>
       ) : null}
-      {candidate && !completeCandidateCoverage ? <small>Partial generation may be saved, but only a complete eight-view saved version can be locked.</small> : null}
+      {displayedReference ? (
+        <figure
+          className={styles.referenceCarouselFigure}
+          data-review-state={candidate ? "candidate" : selectedVersion?.locked ? "approved" : "draft"}
+        >
+          <div className={styles.referenceFrame}>
+            <Image src={displayedReference.assetUrl} alt={`${displayName} · ${selectedView?.label ?? displayedReference.view}`} width={480} height={640} unoptimized />
+            {!candidate ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
+            {!candidate && selectedVersion?.locked ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
+          </div>
+          <figcaption>{displayName} · Generation {selectedBrowseItem?.generationNumber} · {selectedView?.label ?? displayedReference.view}</figcaption>
+        </figure>
+      ) : null}
+      {candidate && !completeCandidateCoverage ? <small>Partial generation may be saved. Use Generate Missing Views after saving; only a complete eight-view saved generation can be locked.</small> : null}
       {notice ? <small role="status">{notice}</small> : null}
     </div>
   );

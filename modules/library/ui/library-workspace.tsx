@@ -33,11 +33,13 @@ import {
   createLibraryLoadSessionBaseline,
   inventoryLocalResources,
   restoreLocalStoryboardResources,
+  restoreLocalWorldMapCharacterResources,
   restoreLocalWorldMapPosterResources,
   type LibraryLoadSessionBaseline,
   type LocalAssetIndexItem,
   type LocalResourceInventory,
   type RecoveredStoryboardResource,
+  type RecoveredWorldMapCharacterResource,
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
@@ -178,7 +180,7 @@ function StoryCard({ item, activeProjectId, onOpen, onArchive }: {
         <p>{item.frontier} · {item.progress}% complete</p>
         <small>Last saved {displayDate(item.updatedAt)}</small>
         <progress className={styles.progress} max={100} value={item.progress} aria-label={`${item.progress}% complete`} />
-        <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={onOpen} type="button">{active ? "Resume" : "Open Story"}</button>
+        <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={onOpen} type="button">{active ? "Resume Saved Story" : "Open Saved Story"}</button>
       </div>
     </article>
   );
@@ -306,7 +308,10 @@ export default function LibraryWorkspace() {
     const response = await fetch("/api/local-ai/assets", { headers: { Accept: "application/json" }, cache: "no-store" });
     const body = await response.json() as LocalAssetIndexResponse;
     if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
-    return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : []);
+    const sourceProjects = [...listLibraryProjects(), ...listArchivedLibraryProjects()]
+      .map((item) => loadLibraryProjectSnapshot(item.id))
+      .filter((item): item is LibraryPPFProject => Boolean(item));
+    return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
   }
 
   async function confirmLoad() {
@@ -393,6 +398,7 @@ export default function LibraryWorkspace() {
       }
       const storyboardResources = selected.filter((resource): resource is RecoveredStoryboardResource => resource.kind === "storyboard-frame");
       const posterResources = selected.filter((resource): resource is RecoveredWorldMapPosterResource => resource.kind === "worldmap-poster");
+      const characterResources = selected.filter((resource): resource is RecoveredWorldMapCharacterResource => resource.kind === "worldmap-character");
       const storyboardApprovalProjectIds = [...new Set([
         ...storyboardResources.map((resource) => resource.originProjectId),
         ...listLibraryProjects().map((item) => item.id),
@@ -403,10 +409,11 @@ export default function LibraryWorkspace() {
         .filter((project): project is LibraryPPFProject => Boolean(project));
       const storyboardResult = restoreLocalStoryboardResources(current, storyboardResources, storyboardSourceProjects);
       const posterResult = restoreLocalWorldMapPosterResources(storyboardResult.project, posterResources);
-      saveActiveLibraryProject(posterResult.project);
-      const attachedCount = storyboardResult.attachedCount + posterResult.attachedCount;
-      const skippedCount = storyboardResult.skippedCount + posterResult.skippedCount;
-      setNotice(`${attachedCount} local resource${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"} and ${posterResult.attachedCount} WorldMap poster${posterResult.attachedCount === 1 ? "" : "s"}. ${storyboardResult.restoredLockedCount} proven Storyboard lock${storyboardResult.restoredLockedCount === 1 ? "" : "s"} restored. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
+      const characterResult = restoreLocalWorldMapCharacterResources(posterResult.project, characterResources);
+      saveActiveLibraryProject(characterResult.project);
+      const attachedCount = storyboardResult.attachedCount + posterResult.attachedCount + characterResult.attachedVersionCount;
+      const skippedCount = storyboardResult.skippedCount + posterResult.skippedCount + characterResult.skippedVersionCount;
+      setNotice(`${attachedCount} local resource group${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"}, ${posterResult.attachedCount} World Map poster${posterResult.attachedCount === 1 ? "" : "s"}, and ${characterResult.attachedVersionCount} World Map character version${characterResult.attachedVersionCount === 1 ? "" : "s"}. ${storyboardResult.restoredLockedCount} proven Storyboard lock${storyboardResult.restoredLockedCount === 1 ? "" : "s"} and ${characterResult.restoredLockedCount} proven character lock${characterResult.restoredLockedCount === 1 ? "" : "s"} restored. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
       setRecovery(null);
       setSelectedRecoveryOrigins([]);
       openActiveProject();
@@ -544,13 +551,13 @@ export default function LibraryWorkspace() {
           </div>
           {afterglow ? (
             <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="afterglow-load">
-              <div><strong>Afterglow default · fresh copy</strong><p>This starts a new working copy from the packaged Afterglow reference. To keep existing MindMap, WorldMap or locked character work, resume the saved Afterglow story listed below instead.</p></div>
+              <div><strong>Afterglow example · start fresh copy</strong><p>This creates a new Human-owned working copy from the immutable packaged Afterglow reference. It does not carry over World Agent decisions, saved character versions, or other canon from a previous working copy. To continue prior work, open the saved Afterglow story listed below.</p></div>
               <button
                 className={styles.primaryButton}
                 onClick={() => setPending({ kind: "catalog", sourceKind: "example", item: afterglow })}
                 type="button"
               >
-                Load Afterglow
+                Start Fresh Afterglow Copy
               </button>
             </div>
           ) : null}
@@ -695,7 +702,7 @@ export default function LibraryWorkspace() {
           <section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog">
             <p className={styles.eyebrow}>Safe project load</p><h2 id="library-load-title">Load this project?</h2>
             <p>PlotPickle loads the selected base project first. Local resources are a separate choice on the next step.</p><strong>{pending.item.title}</strong>
-            {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Existing local media is not attached automatically.</small> : null}
+            {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Saved World Agent decisions from another working copy are not imported. Existing local media is offered separately and is never treated as canon automatically.</small> : null}
             <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : "Load Project"}</button></div>
           </section>
         </div>
@@ -706,10 +713,11 @@ export default function LibraryWorkspace() {
           <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog">
             <p className={styles.eyebrow}>Load Session · base revision {recovery.baseline.baseRevision}</p>
             <h2 id="library-recovery-title">Restore local resources?</h2>
-            <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames and WorldMap posters. Storyboard frames remain draft unless saved Library metadata proves the same frame was previously Keep/Locked.</p>
+            <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames, World Map posters, and saved World Map character visuals. This restores media only; World Agent decisions and other story canon come from the saved working story itself.</p>
             <div className={styles.recoverySummary}>
               <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
-              <span><b>{recovery.inventory.posterResources.length}</b> recoverable WorldMap poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
+              <span><b>{recovery.inventory.posterResources.length}</b> recoverable World Map poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
+              <span><b>{recovery.inventory.characterResources.length}</b> recoverable World Map character image{recovery.inventory.characterResources.length === 1 ? "" : "s"}</span>
               <span><b>{recovery.inventory.unclassifiedAssets.length}</b> other local asset{recovery.inventory.unclassifiedAssets.length === 1 ? "" : "s"} inventoried only</span>
             </div>
             {recovery.scanError ? <p role="alert">{recovery.scanError} You can continue with project defaults.</p> : null}
@@ -731,13 +739,13 @@ export default function LibraryWorkspace() {
                     />
                     <span>
                       <strong>{group.exactProject ? "Current project resources" : "Legacy"}</strong>
-                      <small>{group.resources.filter((resource) => resource.kind === "storyboard-frame").length} frame(s) · {group.resources.filter((resource) => resource.kind === "worldmap-poster").length} poster(s) · origin <code>{group.originProjectId}</code>{group.exactProject ? " · selected automatically" : " · requires your explicit selection"}</small>
+                      <small>{group.resources.filter((resource) => resource.kind === "storyboard-frame").length} frame(s) · {group.resources.filter((resource) => resource.kind === "worldmap-poster").length} poster(s) · {group.resources.filter((resource) => resource.kind === "worldmap-character").length} character image(s) · origin <code>{group.originProjectId}</code>{group.exactProject ? " · selected automatically" : " · requires your explicit selection"}</small>
                     </span>
                   </label>
                 ))}
               </fieldset>
-            ) : <p>No recoverable Storyboard frames or WorldMap posters were found. The local asset folder remains unchanged.</p>}
-            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. A Storyboard frame restores as Locked only when exact saved Library metadata proves its prior Human Keep/Lock; otherwise it remains draft. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
+            ) : <p>No recoverable Storyboard frames, World Map posters, or saved World Map character visuals were found. The local asset folder remains unchanged.</p>}
+            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock; otherwise they remain saved/draft. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
             <div className={styles.recoveryActions}>
               <button className={styles.secondaryButton} disabled={restoringResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
               <button className={styles.primaryButton} disabled={restoringResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Local Resources"}</button>

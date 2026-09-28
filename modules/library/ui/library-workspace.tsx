@@ -547,7 +547,7 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Load a base project</p><h2 id="load-title">LOAD</h2></div>
-            <p>Resume a saved working story below to keep its MindMap, WorldMap and other project work. Use Afterglow default only when you want a fresh working copy. Local media is never attached or made canon without your choice.</p>
+            <p>Open a saved working story below to keep its Mind Map, World Map, World Agent decisions, and other project work. Start Fresh Afterglow Copy only when you intentionally want a new working copy from the packaged example. Local media is never attached or made canon without your choice.</p>
           </div>
           {afterglow ? (
             <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="afterglow-load">
@@ -574,7 +574,7 @@ export default function LibraryWorkspace() {
               ))}
             </div>
           ) : (
-            <div className={styles.empty}><h3>No saved working stories yet.</h3><p>Load Afterglow above, use NEW to start a clean project, or IMPORT EXPORT to bring in an existing story.</p></div>
+            <div className={styles.empty}><h3>No saved working stories yet.</h3><p>Start a fresh Afterglow copy above, use NEW to start a clean project, or IMPORT EXPORT to bring in an existing story.</p></div>
           )}
         </section>
       );
@@ -701,9 +701,11 @@ export default function LibraryWorkspace() {
         <div className={styles.dialogBackdrop} role="presentation">
           <section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog">
             <p className={styles.eyebrow}>Safe project load</p><h2 id="library-load-title">Load this project?</h2>
-            <p>PlotPickle loads the selected base project first. Local resources are a separate choice on the next step.</p><strong>{pending.item.title}</strong>
+            <p>{pending.kind === "story"
+              ? "PlotPickle opens this exact saved working story, including its saved World Agent decisions and World Map state. Local media recovery remains a separate optional step."
+              : "PlotPickle creates a new working copy from the selected packaged reference. Local resources are a separate optional choice on the next step."}</p><strong>{pending.item.title}</strong>
             {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Saved World Agent decisions from another working copy are not imported. Existing local media is offered separately and is never treated as canon automatically.</small> : null}
-            <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : "Load Project"}</button></div>
+            <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : pending.kind === "story" ? "Open Saved Story" : "Start Fresh Copy"}</button></div>
           </section>
         </div>
       ) : null}

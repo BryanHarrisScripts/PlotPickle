@@ -38,7 +38,20 @@
   text-transform: uppercase;
 }
 
-.notice { margin: var(--pp-skin-space-4) 0 0; }
+.notice {
+  position: fixed;
+  z-index: 40;
+  right: var(--pp-skin-space-5);
+  bottom: var(--pp-skin-space-5);
+  max-width: min(34rem, calc(100vw - (2 * var(--pp-skin-space-5))));
+  margin: 0;
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-inset-highlight);
+}
 
 .kpiGrid {
   display: grid;

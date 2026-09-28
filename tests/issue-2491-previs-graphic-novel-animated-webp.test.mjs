@@ -24,7 +24,7 @@ test("#2491/#2497 removes HTML and exposes one static WebP action", async () => 
     read("build/previs-graphic-novel-webp.ts"),
   ]);
 
-  assert.match(workspace, />Export WebP</u);
+  assert.match(workspace, />Create WebP</u);
   assert.doesNotMatch(workspace, /Export Animated WebP/u);
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.match(workspace, /canvas\.toBlob/u);

@@ -30,7 +30,7 @@ test("#2471 derives Graphic Novel narration without provider or canon mutation",
   assert.match(model, /narrativeIntention \|\| beatDirection \|\| shotContext/u);
   assert.match(model, /excluded from the authoritative Graphic Novel/u);
   assert.match(workspace, /storyboardPositionProgression/u);
-  assert.match(workspace, /Observed dialogue \+ derived Previs caption · presentation only/u);
+  assert.match(workspace, /Review Text/u);
   assert.doesNotMatch(model, /fetch\(|OpenAI|Ollama|provider|applyStoryCommand|saveFoundationProject/u);
   assert.doesNotMatch(model, /acceptedVisualArtifactIds.*=/u);
 });
@@ -42,7 +42,7 @@ test("#2471 retains local presentation-only Graphic Novel export under the super
     read("app/api/previs/graphic-novel/export/route.ts"),
   ]);
 
-  assert.match(workspace, /Export WebP/u);
+  assert.match(workspace, /Create WebP/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.match(workspace, /story canon and Storyboard approval were unchanged/u);
   assert.match(model, /graphicNovelWebpExportFileName/u);

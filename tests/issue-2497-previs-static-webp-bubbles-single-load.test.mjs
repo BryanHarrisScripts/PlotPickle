@@ -11,7 +11,7 @@ test("#2497 exports one static WebP Graphic Novel sheet", async () => {
     read("build/previs-graphic-novel-webp.ts"),
   ]);
 
-  assert.match(workspace, />Export WebP</u);
+  assert.match(workspace, />Create WebP</u);
   assert.doesNotMatch(workspace, /Export Animated WebP|Export HTML/u);
   assert.match(workspace, /one static Graphic Novel sheet/u);
   assert.match(route, /"Content-Type": "image\/webp"/u);

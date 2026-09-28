@@ -166,16 +166,36 @@ export interface ScreeningObservation {
   readonly createdAt: string;
 }
 
+export interface PrevisGraphicNovelTextBubble {
+  readonly speaker: string;
+  readonly text: string;
+}
+
+export interface PrevisGraphicNovelTextApproval {
+  /** Stable Storyboard Mini-Block anchor that owns this 1–25 position. */
+  readonly anchorRef: string;
+  readonly position: number;
+  /** Snapshot key of the locked frame plus derived proposal. A changed source makes approval stale. */
+  readonly sourceKey: string;
+  /** Human-approved presentation text only. This never mutates screenplay/story canon. */
+  readonly narration: string;
+  readonly bubbles: readonly PrevisGraphicNovelTextBubble[];
+  /** Explicit Human intent for a locked panel to contain no narration or bubbles. */
+  readonly noText: boolean;
+  readonly approvedAt: string;
+}
+
 export interface PrevisProductionState {
   readonly shots: readonly ProductionShotIntent[];
   readonly soundCues?: readonly ProductionSoundCue[];
   readonly takes?: readonly ProductionTake[];
   readonly roughCuts?: readonly RoughCutRevision[];
   readonly screeningObservations?: readonly ScreeningObservation[];
+  readonly graphicNovelTextApprovals?: readonly PrevisGraphicNovelTextApproval[];
 }
 
 export function createEmptyPrevisProductionState(): PrevisProductionState {
-  return { shots: [], soundCues: [], takes: [], roughCuts: [], screeningObservations: [] };
+  return { shots: [], soundCues: [], takes: [], roughCuts: [], screeningObservations: [], graphicNovelTextApprovals: [] };
 }
 
 function cleanText(value: unknown, maximum: number) {
@@ -349,6 +369,38 @@ function normalizeScreeningObservation(value: unknown): ScreeningObservation | n
   };
 }
 
+function normalizeGraphicNovelTextApproval(value: unknown): PrevisGraphicNovelTextApproval | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<PrevisGraphicNovelTextApproval>;
+  const anchorRef = cleanText(item.anchorRef, 240);
+  const sourceKey = cleanText(item.sourceKey, 4_000);
+  const position = typeof item.position === "number" && Number.isInteger(item.position)
+    ? Math.min(25, Math.max(1, item.position))
+    : 0;
+  const noText = item.noText === true;
+  const narration = noText ? "" : cleanText(item.narration, 1_200);
+  const bubbles = noText || !Array.isArray(item.bubbles)
+    ? []
+    : item.bubbles.flatMap((value) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+      const bubble = value as Partial<PrevisGraphicNovelTextBubble>;
+      const speaker = cleanText(bubble.speaker, 80);
+      const text = cleanText(bubble.text, 180);
+      return speaker && text ? [{ speaker, text } satisfies PrevisGraphicNovelTextBubble] : [];
+    }).slice(0, 2);
+  if (!/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef) || !position || !sourceKey) return null;
+  if (!noText && !narration && !bubbles.length) return null;
+  return {
+    anchorRef,
+    position,
+    sourceKey,
+    narration,
+    bubbles,
+    noText,
+    approvedAt: cleanText(item.approvedAt, 80) || new Date().toISOString(),
+  };
+}
+
 export function normalizePrevisProductionState(value: unknown): PrevisProductionState {
   if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyPrevisProductionState();
   const source = value as {
@@ -357,6 +409,7 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
     readonly takes?: unknown;
     readonly roughCuts?: unknown;
     readonly screeningObservations?: unknown;
+    readonly graphicNovelTextApprovals?: unknown;
   };
   const shots = Array.isArray(source.shots)
     ? source.shots
@@ -377,5 +430,12 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
   const screeningObservations = Array.isArray(source.screeningObservations)
     ? source.screeningObservations.map(normalizeScreeningObservation).filter((observation): observation is ScreeningObservation => Boolean(observation)).slice(0, 5_000)
     : [];
-  return { shots, soundCues, takes, roughCuts, screeningObservations };
+  const graphicNovelTextApprovals = Array.isArray(source.graphicNovelTextApprovals)
+    ? source.graphicNovelTextApprovals
+      .map(normalizeGraphicNovelTextApproval)
+      .filter((approval): approval is PrevisGraphicNovelTextApproval => Boolean(approval))
+      .filter((approval, index, all) => all.findIndex((candidate) => candidate.anchorRef === approval.anchorRef && candidate.position === approval.position) === index)
+      .slice(0, 2_400)
+    : [];
+  return { shots, soundCues, takes, roughCuts, screeningObservations, graphicNovelTextApprovals };
 }

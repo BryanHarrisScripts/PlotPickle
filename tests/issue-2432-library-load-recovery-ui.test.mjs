@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2432/#2559 keeps local-resource recovery behind Restore Your Changes while LOAD points to Examples", async () => {
+test("#2432/#2566 keeps local-resource recovery behind Open Example with Your Changes while LOAD points to Examples", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
@@ -20,14 +20,13 @@ test("#2432/#2559 keeps local-resource recovery behind Restore Your Changes whil
   assert.match(source, /inventoryLocalResources\(openedProject/u);
 });
 
-test("#2432/#2559 keeps project defaults and local change restore as separate Human choices", async () => {
+test("#2432/#2566 keeps clean example and local-change restore as separate Human choices", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
-  assert.match(source, />Project Defaults<\/button>/u);
-  assert.match(source, />Restore Your Changes<\/button>/u);
-  assert.match(source, />Continue Without Local Media<\/button>/u);
-  assert.doesNotMatch(source, />Use Project Defaults<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Selected Changes"\}<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring All…" : "Load All"\}<\/button>/u);
+  assert.match(source, />Open Example<\/button>/u);
+  assert.match(source, />Open Example with Your Changes<\/button>/u);
+  assert.match(source, />Select All<\/button>/u);
+  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore"\}<\/button>/u);
+  assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);
   assert.match(source, /group\.selectedByDefault/u);
   assert.match(source, /requires your explicit selection/u);
   assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
@@ -45,7 +44,8 @@ test("#2432/#2559 removes saved-story Resume from LOAD without bypassing recover
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
   assert.doesNotMatch(loadSurface, /Resume Saved Story|Open Saved Story|onClick=\{onOpen\}/u);
-  assert.match(source, />Restore Your Changes<\/button>/u);
-  assert.match(source, /openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(source, />Open Example with Your Changes<\/button>/u);
+  assert.match(source, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
+  assert.match(source, /function restoreLocalResources[\s\S]*switchActiveLibraryProject\(recovery\.project\.id\)/u);
 });

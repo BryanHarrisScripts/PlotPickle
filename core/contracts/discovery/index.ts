@@ -1,20 +1,30 @@
+import type { LearnTopicSpineId } from "../learn-topic-spine";
+
 export const DISCOVERY_VERSION = 1 as const;
 
 export const DISCOVERY_LANES = [
-  { id: "story", label: "Story" },
-  { id: "plot", label: "Plot" },
-  { id: "character", label: "Character" },
-  { id: "scene", label: "Scene" },
-  { id: "dialogue", label: "Dialogue" },
-  { id: "world", label: "World" },
-  { id: "research", label: "Research" },
-  { id: "theme", label: "Theme" },
-  { id: "motif", label: "Motif" },
-  { id: "visual", label: "Visual" },
-  { id: "image", label: "Image" },
-] as const;
+  { id: "story", label: "Story", topic: "foundations" },
+  { id: "plot", label: "Plot", topic: "foundations" },
+  { id: "research", label: "Research", topic: "foundations" },
+  { id: "industry", label: "Industry", topic: "industry" },
+  { id: "theme", label: "Theme", topic: "theme" },
+  { id: "motif", label: "Motif", topic: "theme" },
+  { id: "character", label: "Character", topic: "character" },
+  { id: "world", label: "World", topic: "world" },
+  { id: "structure", label: "Structure", topic: "structure" },
+  { id: "dialogue", label: "Dialogue", topic: "dialogue" },
+  { id: "visual", label: "Visual", topic: "previs" },
+  { id: "image", label: "Image", topic: "previs" },
+  { id: "previs", label: "Previs", topic: "previs" },
+  { id: "scene", label: "Scene", topic: "drafting" },
+  { id: "drafting", label: "Drafting", topic: "drafting" },
+  { id: "revision", label: "Revision", topic: "revision" },
+  { id: "responsible-ai", label: "Responsible AI", topic: "responsible-ai" },
+  { id: "collaboration", label: "Collaboration", topic: "collaboration" },
+] as const satisfies readonly Readonly<{ id: string; label: string; topic: LearnTopicSpineId }>[];
 
 export type DiscoveryLaneId = (typeof DISCOVERY_LANES)[number]["id"];
+export type DiscoveryTopicId = (typeof DISCOVERY_LANES)[number]["topic"];
 export type DiscoveryAct = 1 | 2 | 3 | 4;
 export type DiscoveryCardKind = "text" | "visual";
 export type DiscoverySourceState = "project" | "new-local" | "agent-proposal";
@@ -72,6 +82,10 @@ function cleanEvidenceRefs(value: unknown) {
     ? [...new Set(value.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
       .map((item) => item.trim().slice(0, 240)))].slice(0, 12)
     : [];
+}
+
+export function discoveryTopicForLane(lane: DiscoveryLaneId): DiscoveryTopicId {
+  return DISCOVERY_LANES.find((candidate) => candidate.id === lane)?.topic ?? "foundations";
 }
 
 export function isDiscoveryLane(value: unknown): value is DiscoveryLaneId {

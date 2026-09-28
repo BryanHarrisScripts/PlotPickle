@@ -268,7 +268,7 @@ export default function AverySessionHistory() {
         <div><span>Status</span><strong>{latestSession?.completionState || "Idle"}</strong></div>
       </div>
 
-      {notice ? <p className={styles.notice}>{notice}</p> : null}
+      {notice ? <p aria-atomic="true" aria-live="polite" className={styles.notice} role="status">{notice}</p> : null}
 
       <div className={styles.slotGrid}>
         {slots.map((session, index) => (

@@ -888,8 +888,120 @@
 
 .flipBookControls {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--pp-skin-space-2);
+}
+
+.textApprovalGate {
+  margin: 0;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-warning);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-warning);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.graphicNovelTextReview {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+}
+
+.graphicNovelTextReview > header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+  align-items: flex-start;
+  padding-bottom: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.graphicNovelTextReview > header h4,
+.graphicNovelTextReview > header p {
+  margin: var(--pp-skin-space-1) 0 0;
+}
+
+.graphicNovelTextReview > header > div:last-child {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  justify-items: end;
+}
+
+.graphicNovelTextGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+.graphicNovelTextGrid > article {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  min-width: 0;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+
+.graphicNovelTextGrid > article[data-approval-state="approved"] {
+  border-color: var(--pp-skin-accent-bright);
+}
+
+.graphicNovelTextGrid > article[data-approval-state="stale"] {
+  border-color: var(--pp-skin-warning);
+}
+
+.graphicNovelTextGrid > article > header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+}
+
+.graphicNovelTextGrid > article > header span,
+.graphicNovelTextGrid > article > small,
+.graphicNovelTextGrid > article > p {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.graphicNovelTextGrid label,
+.graphicNovelBubbleEditor {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.graphicNovelTextGrid textarea,
+.graphicNovelTextGrid input[type="text"],
+.graphicNovelBubbleEditor input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font: inherit;
+}
+
+.graphicNovelTextGrid textarea {
+  resize: vertical;
+}
+
+.graphicNovelBubbleEditor > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.35fr) minmax(0, 1fr) auto;
+  gap: var(--pp-skin-space-2);
+  align-items: start;
+}
+
+.noTextChoice {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.noTextChoice input {
+  margin-top: 3px;
 }
 
 .exportStatus {
@@ -1018,7 +1130,14 @@
 @media (max-width: 700px) {
   .actRail,
   .flipBookControls,
-  .flipBookDetail {
+  .flipBookDetail,
+  .graphicNovelTextGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .graphicNovelTextReview > header,
+  .graphicNovelBubbleEditor > div {
+    display: grid;
     grid-template-columns: 1fr;
   }
 

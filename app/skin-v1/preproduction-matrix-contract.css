@@ -30,8 +30,18 @@ html[data-plotpickle-skin^="skin-"] :is(
   font-family: var(--pp-skin-font-ui) !important;
 }
 
-/* Restore the five distinct evidence colors on Outline's navigation and legend. */
-html[data-plotpickle-skin^="skin-"] :is([data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"], [data-skin-v1-storyboard-map-review="true"] [data-progressive-story-map="24x96"], [data-skin-v1-preproduction-review="storyboard"], [data-skin-v1-preproduction-review="previs"] [data-progressive-story-map="24x96"], main[aria-labelledby="previs-title"] [data-progressive-story-map="24x96"]) {
+/* #2529 — one canonical story-state palette from Outline through Screening.
+ * The shared Story Map is the state authority; changing surfaces must never
+ * change the colour meaning of the same Block / Mini-Block address.
+ */
+html[data-plotpickle-skin^="skin-"] :is(
+  [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"],
+  [data-skin-v1-story-navigation-map] [data-progressive-story-map="24x96"],
+  [data-skin-v1-previs-map-review="true"] [data-progressive-story-map="24x96"],
+  [data-skin-v1-preproduction-review="storyboard"],
+  [data-skin-v1-preproduction-review="previs"] [data-progressive-story-map="24x96"],
+  main[aria-labelledby="previs-title"] [data-progressive-story-map="24x96"]
+) {
   --story-defined: #35d779;
   --story-observed: #3bb8ff;
   --story-emerging: #f6a93b;

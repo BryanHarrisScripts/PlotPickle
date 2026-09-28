@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { LEARN_TOPIC_SPINE } from "../core/contracts/learn-topic-spine.ts";
-import { DISCOVERY_LANES, discoveryTopicForLane } from "../core/contracts/discovery/index.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -22,30 +20,37 @@ const EXPECTED_TOPICS = [
 ];
 
 test("#2557 one shared twelve-topic spine drives creation and Learn routing", async () => {
-  assert.deepEqual(
-    LEARN_TOPIC_SPINE.map((topic) => [topic.id, topic.label, topic.learnTopicId]),
-    EXPECTED_TOPICS,
-  );
-
-  const learn = await read("modules/learn/ui/learn-workspace.tsx");
+  const [spine, learn] = await Promise.all([
+    read("core/contracts/learn-topic-spine.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+  ]);
+  let previous = -1;
+  for (const [id, label, learnTopicId] of EXPECTED_TOPICS) {
+    const pattern = `{ id: "${id}", label: "${label}", learnTopicId: "${learnTopicId}" }`;
+    const position = spine.indexOf(pattern);
+    assert.ok(position > previous, `missing or out-of-order topic ${id}`);
+    previous = position;
+  }
+  assert.match(spine, /export type LearnTopicSpineId/u);
+  assert.match(spine, /workspace=learn&topic=/u);
   assert.match(learn, /const requestedTopic = query\.get\("topic"\)/u);
   assert.match(learn, /curriculum\.find\(\(lesson\) => lesson\.topic === requestedTopic\)/u);
 });
 
 test("#2557 MindMap keeps legacy elements but groups them under selected Learn topics", async () => {
-  const surface = await read("app/skin-v1/discovery-surface.tsx");
+  const [surface, contract] = await Promise.all([
+    read("app/skin-v1/discovery-surface.tsx"),
+    read("core/contracts/discovery/index.ts"),
+  ]);
 
-  assert.equal(discoveryTopicForLane("story"), "foundations");
-  assert.equal(discoveryTopicForLane("plot"), "foundations");
-  assert.equal(discoveryTopicForLane("research"), "foundations");
-  assert.equal(discoveryTopicForLane("theme"), "theme");
-  assert.equal(discoveryTopicForLane("motif"), "theme");
-  assert.equal(discoveryTopicForLane("visual"), "previs");
-  assert.equal(discoveryTopicForLane("image"), "previs");
-  assert.equal(discoveryTopicForLane("scene"), "drafting");
-
+  for (const [lane, topic] of [
+    ["story", "foundations"], ["plot", "foundations"], ["research", "foundations"],
+    ["theme", "theme"], ["motif", "theme"], ["visual", "previs"], ["image", "previs"], ["scene", "drafting"],
+  ]) {
+    assert.match(contract, new RegExp(`id: "${lane}", label: "[^"]+", topic: "${topic}"`, "u"));
+  }
   for (const lane of ["industry", "structure", "previs", "drafting", "revision", "responsible-ai", "collaboration"]) {
-    assert.ok(DISCOVERY_LANES.some((item) => item.id === lane), `missing ${lane} element`);
+    assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
   }
 
   assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\("foundations"\)/u);

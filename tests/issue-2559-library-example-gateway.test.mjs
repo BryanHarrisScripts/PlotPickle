@@ -63,7 +63,7 @@ test("#2559/#2560 packaged Afterglow artwork stays whole while local poster vers
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
   assert.match(source, /Previous Afterglow poster/u);
   assert.match(source, /Next Afterglow poster/u);
-  assert.match(source, /safePosterIndex \+ 1} \/ \{examplePosters\.length/u);
+  assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);
   assert.match(css, /\.examplePoster \{[\s\S]*aspect-ratio: 2 \/ 3/u);
   assert.match(css, /\.examplePoster img \{[\s\S]*object-fit: contain/u);
   assert.match(css, /\.examplePosterNavigation/u);

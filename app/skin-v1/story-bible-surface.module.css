@@ -6,6 +6,59 @@
   font-family: var(--pp-skin-font-ui);
 }
 
+.sectionNav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--pp-skin-space-1);
+  margin-bottom: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.sectionTab,
+.sectionTabActive {
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  cursor: pointer;
+}
+
+.sectionTab:hover,
+.sectionTab:focus-visible,
+.sectionTabActive:focus-visible {
+  border-color: var(--pp-skin-accent-bright);
+  color: var(--pp-skin-ink);
+  outline: none;
+}
+
+.sectionTabActive {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-accent-bright);
+  box-shadow: var(--pp-skin-inset-highlight);
+}
+
+.panelShell,
+.panel {
+  min-width: 0;
+}
+
+.panel > .section:first-child,
+.panelShell > .section {
+  margin-top: 0;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(220px, 30%) minmax(0, 70%);
@@ -256,6 +309,10 @@
 
 @media (max-width: 760px) {
   .surface { width: calc(100vw - 24px); }
+  .sectionNav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    position: static;
+  }
   .hero,
   .spotlight,
   .factGrid,

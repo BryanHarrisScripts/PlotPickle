@@ -37,7 +37,7 @@ test("#2543/#2566 keeps recovery failures actionable and cancellation non-destru
 test("#2543 keeps saved-project identity stable while LOAD becomes an Examples gateway", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const confirmStart = source.indexOf("async function confirmLoad()");
-  const confirmEnd = source.indexOf("function useProjectDefaults()", confirmStart);
+  const confirmEnd = source.indexOf("function cancelRecovery()", confirmStart);
   const confirmLoad = source.slice(confirmStart, confirmEnd);
   const loadSurfaceStart = source.indexOf('if (destination === "load")');
   const loadSurfaceEnd = source.indexOf('if (destination === "examples"', loadSurfaceStart);
@@ -48,7 +48,8 @@ test("#2543 keeps saved-project identity stable while LOAD becomes an Examples g
   assert.match(confirmLoad, /markCurrentSessionLibraryProject\(openedProject\.id\)/u);
   assert.match(loadSurface, /<ExampleGatewayCard/u);
   assert.match(loadSurface, /setDestination\("examples"\)/u);
-  assert.match(loadSurface, /className=\{styles\.gatewayPosterChoice\}/u);
+  assert.match(loadSurface, /posterUrls=\{afterglowPosters\}/u);
+  assert.match(source, /className=\{styles\.gatewayPosterChoice\}/u);
   assert.doesNotMatch(loadSurface, /StoryCard|Archive story|Open Saved Story|Start Fresh Afterglow Copy/u);
 });
 

@@ -185,10 +185,15 @@ export default function LearnWorkspace({
 
     const query = new URLSearchParams(window.location.search);
     const requestedLessonId = query.get("lesson");
-    if (requestedLessonId && curriculum.some((lesson) => lesson.id === requestedLessonId)) {
+    const requestedTopic = query.get("topic")?.trim() ?? "";
+    const topicLesson = requestedTopic ? curriculum.find((lesson) => lesson.topic === requestedTopic) : null;
+    const lessonToOpen = requestedLessonId && curriculum.some((lesson) => lesson.id === requestedLessonId)
+      ? requestedLessonId
+      : topicLesson?.id;
+    if (lessonToOpen) {
       current = applyStoryCommand(current, {
         type: "lesson.open",
-        lessonId: requestedLessonId,
+        lessonId: lessonToOpen,
         occurredAt: new Date().toISOString(),
       });
       changed = true;

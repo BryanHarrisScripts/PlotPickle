@@ -46,6 +46,6 @@ test("#2432/#2559 removes saved-story Resume from LOAD without bypassing recover
 
   assert.doesNotMatch(loadSurface, /Resume Saved Story|Open Saved Story|onClick=\{onOpen\}/u);
   assert.match(source, />Restore Your Changes<\/button>/u);
-  assert.match(source, /const openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(source, /openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
   assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
 });

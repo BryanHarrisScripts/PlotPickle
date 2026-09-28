@@ -80,10 +80,10 @@ test("#2124 registers the complete currently reachable Matrix capture tree", () 
     assert.ok(Array.isArray(contract.navigation), `${surface} must have deterministic navigation metadata`);
     assert.ok(Array.isArray(contract.viewports) && contract.viewports.length >= 1, `${surface} must declare capture viewport requirements`);
   }
-  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.settings.navigation[0].shortcut, "M");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.settings.navigation[0].shortcut, "6");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.profile.navigation[0].shortcut, "I");
-  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["issue-log"].navigation[0].shortcut, "B");
-  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.licensing.navigation[0].shortcut, "N");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["issue-log"].navigation[0].shortcut, "7");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.licensing.navigation[0].shortcut, "8");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["story-map"].navigation[0].shortcut, "O");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["visual-story"].navigation[0].shortcut, "S");
   assert.deepEqual(

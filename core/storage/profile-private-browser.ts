@@ -5,6 +5,7 @@ import {
 } from "./story-map-context";
 import { normalizeLibraryProject, type LibraryPPFProject } from "./library-project";
 import {
+  clearLibraryProjectSessionCache,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   hydrateProfileProjectLibrary,
   listLibraryProjects,
@@ -130,6 +131,7 @@ export async function migrateLegacyBrowserProjects(token: string) {
 
 export async function hydrateProfilePrivateBrowser(profileId: string, token: string) {
   csrfToken = token;
+  clearLibraryProjectSessionCache();
   window.sessionStorage.clear();
   window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
   const result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
@@ -219,6 +221,7 @@ export function releaseProfilePrivateBrowserAuthority() {
   pendingWrite = Promise.resolve();
   pendingCacheWrite = Promise.resolve();
   saveState = Object.freeze({ state: "saved", message: "Saved" });
+  clearLibraryProjectSessionCache();
 }
 
 export function clearProfilePrivateBrowser() {

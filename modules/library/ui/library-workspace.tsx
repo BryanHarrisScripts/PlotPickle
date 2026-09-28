@@ -89,7 +89,6 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
   storyboard: "Storyboard",
 };
 
-const AFTERGLOW_EXAMPLE_SOURCE_ID = "afterglow-v9";
 const AFTERGLOW_EXAMPLE_FALLBACK_POSTER = "/assets/library/examples/afterglow.svg";
 function currentProfileId() {
   return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;

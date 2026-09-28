@@ -44,7 +44,7 @@ test("#2543 keeps saved-project identity stable while LOAD becomes an Examples g
   assert.match(confirmLoad, /markCurrentSessionLibraryProject\(openedProject\.id\)/u);
   assert.match(loadSurface, /<ExampleGatewayCard/u);
   assert.match(loadSurface, /setDestination\("examples"\)/u);
-  assert.match(loadSurface, />Open Example<\/button>/u);
+  assert.match(source, />Open Example<\/button>/u);
   assert.doesNotMatch(loadSurface, /StoryCard|Archive story|Open Saved Story|Start Fresh Afterglow Copy/u);
 });
 

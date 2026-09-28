@@ -44,7 +44,7 @@ test("#2559 Project Defaults bypasses local scanning while Restore Your Changes 
   assert.match(defaultsSlice, /await openActiveProject\(\)/u);
   assert.doesNotMatch(defaultsSlice, /scanLocalResources/u);
 
-  assert.match(loader, /const openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(loader, /openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
   assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
   assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
   assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*await openActiveProject\(\)/u);

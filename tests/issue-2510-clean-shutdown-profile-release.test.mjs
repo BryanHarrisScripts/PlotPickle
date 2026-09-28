@@ -29,9 +29,9 @@ for (const path of [
 
 test("#2510 blocked profile state is actionable and does not silently discard work", async () => {
   const panel = await read("app/skin-v1/node-shutdown-panel.tsx");
-  assert.match(panel, /Shutdown could not verify the active Human Profile for saving/u);
+  assert.match(panel, /Shutdown is blocked because the active Human Profile is locked/u);
   assert.match(panel, /Your work was not discarded/u);
-  assert.match(panel, /unlock the profile, then try Shut Down again/u);
+  assert.match(panel, /Unlock it here, then try Shut Down again/u);
   assert.match(panel, /nodeAction\("block-shutdown", \{ shutdownToken, message \}\)/u);
 });
 

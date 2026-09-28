@@ -71,6 +71,11 @@ function surfaceDepth(surface: RuntimeSurface) {
   return surface.navigationPath?.length ?? 0;
 }
 
+function displayLabel(surface: RuntimeSurface | null) {
+  if (!surface) return "";
+  return surface.id === "discovery" ? "MindMap" : surface.label;
+}
+
 function findActiveSurface(): ActiveSurface | null {
   const matches: ActiveSurface[] = [];
   for (const surface of ORCHESTRATED_SURFACES) {
@@ -137,7 +142,7 @@ function syncSurfaces() {
 
 function parentLabel(surface: RuntimeSurface | null) {
   if (!surface?.parent) return "Dashboard";
-  return SURFACE_BY_ID.get(surface.parent)?.label ?? "Dashboard";
+  return displayLabel(SURFACE_BY_ID.get(surface.parent) ?? null) || "Dashboard";
 }
 
 type DelegatedReturn = Readonly<{
@@ -229,6 +234,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
 
   const registeredReturnLabel = useMemo(() => parentLabel(active), [active]);
   const returnLabel = delegatedReturnLabel ?? registeredReturnLabel;
+  const activeDisplayLabel = displayLabel(active);
   const profile = active?.formatProfile;
   const preproductionContext = useMemo(() => {
     if (!active || !PREPRODUCTION_SURFACES.has(active.id) || typeof window === "undefined") return null;
@@ -289,7 +295,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
               if (window.location.pathname !== "/skin-v1") window.location.assign("/skin-v1");
               else window.dispatchEvent(new Event("plotpickle:return-dashboard"));
             }}>PLOTPICKLE</button>
-            <span>{active.label}</span>
+            <span>{activeDisplayLabel}</span>
             <span>MATRIX</span>
           </header>
           <div className="pp-skin-v1-orchestrator-actions" data-skin-v1-region-role="surface-action-row">
@@ -306,7 +312,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
           {preproductionContext ? (
             <section className="pp-skin-v1-orchestrator-workspace-header" data-skin-v1-region-role="workspace-header">
               <span className="pp-skin-v1-orchestrator-eyebrow">PRE-PRODUCTION</span>
-              <h1>{active.label}</h1>
+              <h1>{activeDisplayLabel}</h1>
               <p>{preproductionContext}</p>
             </section>
           ) : null}
@@ -317,7 +323,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
 
       {active && active.id !== "dashboard" ? (
         <footer className="pp-skin-v1-orchestrator-footer" data-skin-v1-region-role="status-footer">
-          <span>Surface: {active.label}</span>
+          <span>Surface: {activeDisplayLabel}</span>
           <span>Layout: {profile?.layout ?? "standard"}</span>
           <span>↑↓ Navigate · Enter Select · ? Help</span>
         </footer>

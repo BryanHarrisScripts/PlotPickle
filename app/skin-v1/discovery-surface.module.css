@@ -90,6 +90,18 @@
   box-shadow: 0 8px 18px rgb(0 0 0 / 18%);
 }
 
+.composer::before {
+  content: "Sticky Note";
+  grid-column: 1 / -1;
+  width: fit-content;
+  border-bottom: 1px solid #7c6b20;
+  color: #5d542b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .composer label {
   display: grid;
   gap: var(--pp-skin-space-2);
@@ -257,6 +269,12 @@
   box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-warning);
 }
 
+.card[data-source-state="agent-proposal"] > p {
+  white-space: pre-line;
+  line-height: 1.6;
+  max-width: 78ch;
+}
+
 .card[data-locked="true"] {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
   outline-offset: 2px;
@@ -304,6 +322,7 @@
     grid-template-columns: 1fr;
   }
 
+  .composer::before,
   .composer .ideaField,
   .actions {
     grid-column: 1;

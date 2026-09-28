@@ -64,6 +64,7 @@ type LocalAssetIndexResponse = {
 const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
 const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
 const LOAD_SESSION_KEY_PREFIX = "plotpickle.project-library.load-session";
+const LOCAL_RESOURCE_SCAN_TIMEOUT_MS = 8_000;
 
 const DESTINATIONS: readonly {
   readonly id: LibraryDestination;
@@ -219,6 +220,7 @@ export default function LibraryWorkspace() {
   const [importingPpf, setImportingPpf] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
   const [restoringResources, setRestoringResources] = useState(false);
+  const [rescanningResources, setRescanningResources] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -305,13 +307,28 @@ export default function LibraryWorkspace() {
   }
 
   async function scanLocalResources(project: LibraryPPFProject) {
-    const response = await fetch("/api/local-ai/assets", { headers: { Accept: "application/json" }, cache: "no-store" });
-    const body = await response.json() as LocalAssetIndexResponse;
-    if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
-    const sourceProjects = [...listLibraryProjects(), ...listArchivedLibraryProjects()]
-      .map((item) => loadLibraryProjectSnapshot(item.id))
-      .filter((item): item is LibraryPPFProject => Boolean(item));
-    return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), LOCAL_RESOURCE_SCAN_TIMEOUT_MS);
+    try {
+      const response = await fetch("/api/local-ai/assets", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const body = await response.json() as LocalAssetIndexResponse;
+      if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
+      const sourceProjects = [...listLibraryProjects(), ...listArchivedLibraryProjects()]
+        .map((item) => loadLibraryProjectSnapshot(item.id))
+        .filter((item): item is LibraryPPFProject => Boolean(item));
+      return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new Error("Local resource scan timed out. The story is still loaded; retry the scan or continue with project defaults.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
   }
 
   async function confirmLoad() {
@@ -375,15 +392,28 @@ export default function LibraryWorkspace() {
       : [...current, originProjectId]);
   }
 
-  function loadAllLocalResources() {
-    if (!recovery || restoringResources) return;
-    setSelectedRecoveryOrigins(recovery.inventory.groups.map((group) => group.originProjectId));
+  async function retryLocalResourceScan() {
+    if (!recovery || rescanningResources || restoringResources) return;
+    setRescanningResources(true);
+    try {
+      const inventory = await scanLocalResources(recovery.project);
+      const selectedOrigins = inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId);
+      setSelectedRecoveryOrigins(selectedOrigins);
+      setRecovery((current) => current ? { ...current, inventory, scanError: "" } : current);
+      setNotice("Local resources scanned again. Choose what to restore, load all, or continue with project defaults.");
+    } catch (error) {
+      const scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
+      setRecovery((current) => current ? { ...current, scanError } : current);
+      setNotice(scanError);
+    } finally {
+      setRescanningResources(false);
+    }
   }
 
-  function restoreSelectedLocalResources() {
+  function restoreLocalResources(originProjectIds: readonly string[]) {
     if (!recovery || restoringResources) return;
     const selected = recovery.inventory.groups
-      .filter((group) => selectedRecoveryOrigins.includes(group.originProjectId))
+      .filter((group) => originProjectIds.includes(group.originProjectId))
       .flatMap((group) => group.resources);
     if (!selected.length) {
       setNotice("Choose at least one local resource group, or use the project defaults.");
@@ -424,7 +454,18 @@ export default function LibraryWorkspace() {
     }
   }
 
-    function archiveStory(item: ProjectLibrarySummary) {
+  function loadAllLocalResources() {
+    if (!recovery || restoringResources || rescanningResources) return;
+    const allOrigins = recovery.inventory.groups.map((group) => group.originProjectId);
+    setSelectedRecoveryOrigins(allOrigins);
+    restoreLocalResources(allOrigins);
+  }
+
+  function restoreSelectedLocalResources() {
+    restoreLocalResources(selectedRecoveryOrigins);
+  }
+
+  function archiveStory(item: ProjectLibrarySummary) {
     try {
       const wasCurrentSessionStory = activeProject?.id === item.id;
       archiveLibraryProject(item.id);
@@ -554,6 +595,7 @@ export default function LibraryWorkspace() {
               <div><strong>Afterglow example · start fresh copy</strong><p>This creates a new Human-owned working copy from the immutable packaged Afterglow reference. It does not carry over World Agent decisions, saved character versions, or other canon from a previous working copy. To continue prior work, open the saved Afterglow story listed below.</p></div>
               <button
                 className={styles.primaryButton}
+                disabled={loadingReference || restoringResources || rescanningResources}
                 onClick={() => setPending({ kind: "catalog", sourceKind: "example", item: afterglow })}
                 type="button"
               >
@@ -678,23 +720,23 @@ export default function LibraryWorkspace() {
         </section>
 
         <section
-            className={styles.libraryColumn}
-            aria-label={`${selectedDirectoryItem?.label || destination} Library destination`}
-            data-library-destination={destination}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                openActiveProject();
-              }
-            }}
-          >
-            <button
-              type="button"
-              data-skin-v1-local-return="true"
-              onClick={openActiveProject}
-            >Back to Dashboard</button>
-            {renderSurface()}
-          </section>
+          className={styles.libraryColumn}
+          aria-label={`${selectedDirectoryItem?.label || destination} Library destination`}
+          data-library-destination={destination}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              openActiveProject();
+            }
+          }}
+        >
+          <button
+            type="button"
+            data-skin-v1-local-return="true"
+            onClick={openActiveProject}
+          >Back to Dashboard</button>
+          {renderSurface()}
+        </section>
       </div>
 
       {pending ? (
@@ -722,20 +764,31 @@ export default function LibraryWorkspace() {
               <span><b>{recovery.inventory.characterResources.length}</b> recoverable World Map character image{recovery.inventory.characterResources.length === 1 ? "" : "s"}</span>
               <span><b>{recovery.inventory.unclassifiedAssets.length}</b> other local asset{recovery.inventory.unclassifiedAssets.length === 1 ? "" : "s"} inventoried only</span>
             </div>
-            {recovery.scanError ? <p role="alert">{recovery.scanError} You can continue with project defaults.</p> : null}
+            {recovery.scanError ? (
+              <div>
+                <p role="alert">{recovery.scanError} You can retry the scan or continue with project defaults.</p>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={rescanningResources || restoringResources}
+                  onClick={() => void retryLocalResourceScan()}
+                  type="button"
+                >{rescanningResources ? "Scanning Again…" : "Retry Resource Scan"}</button>
+              </div>
+            ) : null}
             {recovery.inventory.groups.length ? (
               <fieldset className={styles.recoveryGroups}>
                 <legend>Resource groups</legend>
                 <button
                   className={styles.secondaryButton}
-                  disabled={restoringResources || selectedRecoveryOrigins.length === recovery.inventory.groups.length}
+                  disabled={restoringResources || rescanningResources || !recovery.inventory.groups.length}
                   onClick={loadAllLocalResources}
                   type="button"
-                >Load All</button>
+                >{restoringResources ? "Restoring All…" : "Load All"}</button>
                 {recovery.inventory.groups.map((group) => (
                   <label key={group.originProjectId}>
                     <input
                       checked={selectedRecoveryOrigins.includes(group.originProjectId)}
+                      disabled={restoringResources || rescanningResources}
                       onChange={() => toggleRecoveryOrigin(group.originProjectId)}
                       type="checkbox"
                     />
@@ -749,8 +802,8 @@ export default function LibraryWorkspace() {
             ) : <p>No recoverable Storyboard frames, World Map posters, or saved World Map character visuals were found. The local asset folder remains unchanged.</p>}
             <p className={styles.recoveryPolicy}>Local media restore is additive. It does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock; otherwise they remain saved/draft. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
             <div className={styles.recoveryActions}>
-              <button className={styles.secondaryButton} disabled={restoringResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
-              <button className={styles.primaryButton} disabled={restoringResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Local Resources"}</button>
+              <button className={styles.secondaryButton} disabled={restoringResources || rescanningResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
+              <button className={styles.primaryButton} disabled={restoringResources || rescanningResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Local Resources"}</button>
             </div>
           </section>
         </div>

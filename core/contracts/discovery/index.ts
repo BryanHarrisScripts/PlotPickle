@@ -1,4 +1,4 @@
-import type { LearnTopicSpineId } from "../learn-topic-spine";
+import type { LearnTopicSpineId } from "../../../modules/learn/model/story-learning-context";
 
 export const DISCOVERY_VERSION = 1 as const;
 

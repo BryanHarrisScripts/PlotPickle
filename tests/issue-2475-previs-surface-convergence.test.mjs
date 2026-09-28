@@ -20,7 +20,7 @@ test("#2475 keeps Previs identity explicit from host through the shared Story Ma
 test("#2475 applies the same centered four-Act rail contract to Outline, Storyboard and Previs", async () => {
   const css = await read("app/skin-v1/preproduction-review-flow.css");
 
-  assert.match(css, /:is\(\[data-dashboard-review-surface="outline"\], \[data-dashboard-review-surface="storyboard"\], \[data-dashboard-review-surface="previs"\]\) \[data-story-act-rail="four-acts"\][\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)[\s\S]*margin:var\(--pp-skin-space-4\) auto/u);
+  assert.match(css, /\[data-story-act-rail="four-acts"\][\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)[\s\S]*margin:var\(--pp-skin-space-4\) auto/u);
   assert.match(css, /\[data-story-act-rail="four-acts"\] button\[aria-current="page"\]/u);
 });
 

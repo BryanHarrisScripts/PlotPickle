@@ -102,6 +102,37 @@ const STORYBOARD_UPSTREAM_PREFIX = "storyboard-upstream:" as const;
 const STORYBOARD_UPSTREAM_V2_PREFIX = "storyboard-upstream:v2:" as const;
 const STORYBOARD_STALE_PREFIX = "storyboard-stale:" as const;
 
+/*
+ * Previs, Storyboard and downstream story-to-screen surfaces repeatedly ask for
+ * the same immutable editorial projections during one project revision. Cache by
+ * project object identity so a saved/reloaded project naturally gets a fresh set.
+ * Nothing here is persisted and no Human approval/canon state is inferred.
+ */
+const SOURCE_EVIDENCE_CACHE = new WeakMap<PPFProject, ReturnType<typeof normalizeProjectSourceEvidence>>();
+const VISUAL_READINESS_CACHE = new WeakMap<PPFProject, ReturnType<typeof deriveVisualReadiness>>();
+const ANCHOR_EVIDENCE_CACHE = new WeakMap<PPFProject, Map<string, StoryboardAnchorEvidenceProjection>>();
+const REFERENCE_CANDIDATE_CACHE = new WeakMap<PPFProject, Map<string, readonly StoryboardEditorialCandidate[]>>();
+const DEPENDENCY_SOURCE_KEY_CACHE = new WeakMap<PPFProject, Map<string, string>>();
+
+function normalizedSourceEvidence(project: PPFProject) {
+  const existing = SOURCE_EVIDENCE_CACHE.get(project);
+  if (existing) return existing;
+  const normalized = normalizeProjectSourceEvidence(
+    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
+  );
+  SOURCE_EVIDENCE_CACHE.set(project, normalized);
+  return normalized;
+}
+
+function cachedVisualReadiness(project: PPFProject) {
+  const existing = VISUAL_READINESS_CACHE.get(project);
+  if (existing) return existing;
+  const readiness = deriveVisualReadiness({ project });
+  VISUAL_READINESS_CACHE.set(project, readiness);
+  return readiness;
+}
+
+
 export type StoryboardApprovalAuthority = Readonly<{
   readonly authorityClass: "authenticated-human" | "delegated-autonomous-operator";
   readonly humanProfileId?: string;
@@ -198,9 +229,7 @@ function targetBlockNumber(targetId: string) {
 export function storyboardSourceEvidenceForAnchor(project: PPFProject, targetId: string, miniBlockNumber: number) {
   const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];
-  const screenplay = normalizeProjectSourceEvidence(
-    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
-  ).screenplay;
+  const screenplay = normalizedSourceEvidence(project).screenplay;
   return (screenplay?.passages ?? [])
     .filter((passage) => passage.blockNumber === blockNumber && passage.miniBlockNumber === miniBlockNumber)
     .map((passage) => ({
@@ -257,10 +286,13 @@ export function storyboardAnchorEvidence(
   targetId: string,
   miniBlockNumber: number,
 ): StoryboardAnchorEvidenceProjection {
+  const cacheKey = `${targetId}::${miniBlockNumber}`;
+  const projectCache = ANCHOR_EVIDENCE_CACHE.get(project) ?? new Map<string, StoryboardAnchorEvidenceProjection>();
+  const cached = projectCache.get(cacheKey);
+  if (cached) return cached;
+
   const blockNumber = targetBlockNumber(targetId);
-  const evidence = normalizeProjectSourceEvidence(
-    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
-  );
+  const evidence = normalizedSourceEvidence(project);
   const passages = blockNumber
     ? storyboardSourceEvidenceForAnchor(project, targetId, miniBlockNumber)
     : [];
@@ -277,7 +309,7 @@ export function storyboardAnchorEvidence(
         mappingMethod: section.mappingMethod,
       }))
     : [];
-  return {
+  const projection: StoryboardAnchorEvidenceProjection = {
     anchorRef: storyboardAnchorTargetRef(targetId, miniBlockNumber),
     blockNumber,
     miniBlockNumber,
@@ -300,12 +332,13 @@ export function storyboardAnchorEvidence(
       ? acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber)
       : [],
   };
+  projectCache.set(cacheKey, projection);
+  ANCHOR_EVIDENCE_CACHE.set(project, projectCache);
+  return projection;
 }
 
 function isAfterglowReferenceProject(project: PPFProject) {
-  const evidence = normalizeProjectSourceEvidence(
-    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
-  );
+  const evidence = normalizedSourceEvidence(project);
   return evidence.referenceFixture?.fixtureId === AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID
     || evidence.referenceFixture?.sourceId === AFTERGLOW_V9_REFERENCE_SOURCE_ID;
 }
@@ -315,7 +348,12 @@ export function storyboardFrameDependencySourceKey(
   targetId: string,
   miniBlockNumber: number,
 ) {
-  const target = deriveVisualReadiness({ project }).targets.find((candidate) => candidate.id === targetId);
+  const cacheKey = `${targetId}::${miniBlockNumber}`;
+  const projectCache = DEPENDENCY_SOURCE_KEY_CACHE.get(project) ?? new Map<string, string>();
+  const cached = projectCache.get(cacheKey);
+  if (cached) return cached;
+
+  const target = cachedVisualReadiness(project).targets.find((candidate) => candidate.id === targetId);
   const blockNumber = targetBlockNumber(targetId);
   const structure = (project as PPFProject & {
     readonly structure?: {
@@ -360,7 +398,10 @@ export function storyboardFrameDependencySourceKey(
     (value, character, index) => (((value * 33) ^ character.charCodeAt(0) ^ index) >>> 0),
     5381,
   ).toString(36);
-  return `${STORYBOARD_UPSTREAM_V2_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${checksum}`;
+  const key = `${STORYBOARD_UPSTREAM_V2_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${checksum}`;
+  projectCache.set(cacheKey, key);
+  DEPENDENCY_SOURCE_KEY_CACHE.set(project, projectCache);
+  return key;
 }
 
 export function storyboardArtifactStaleReasons(
@@ -407,11 +448,14 @@ function acceptedArtifactForSource(
 }
 
 export function storyboardReferenceCandidates(project: PPFProject, targetId: string): readonly StoryboardEditorialCandidate[] {
+  const projectCache = REFERENCE_CANDIDATE_CACHE.get(project) ?? new Map<string, readonly StoryboardEditorialCandidate[]>();
+  const cached = projectCache.get(targetId);
+  if (cached) return cached;
   if (!isAfterglowReferenceProject(project)) return [];
   const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];
 
-  return createAfterglowStoryboardFrames(blockNumber).map((frame) => {
+  const candidates = createAfterglowStoryboardFrames(blockNumber).map((frame) => {
     const acceptedArtifact = acceptedArtifactForSource(project, targetId, frame.miniBlockNumber, frame.id);
     const anchorEvidence = storyboardAnchorEvidence(project, targetId, frame.miniBlockNumber);
     const sourceKind = blockNumber <= afterglowStoryboardCoverage.sourceBlocks
@@ -435,6 +479,9 @@ export function storyboardReferenceCandidates(project: PPFProject, targetId: str
       acceptedArtifactId: acceptedArtifact?.id ?? null,
     };
   });
+  projectCache.set(targetId, candidates);
+  REFERENCE_CANDIDATE_CACHE.set(project, projectCache);
+  return candidates;
 }
 
 export function currentStoryboardArtifactForFrame(

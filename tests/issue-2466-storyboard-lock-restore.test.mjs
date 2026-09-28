@@ -148,5 +148,5 @@ test("#2466 Library recovery supplies saved origin-project snapshots and explain
   assert.match(workspace, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
   assert.match(workspace, /restoredLockedCount/u);
   assert.match(workspace, /does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon/u);
-  assert.match(workspace, /restores as Locked only when exact saved Library metadata proves its prior Human Keep\/Lock/u);
+  assert.match(workspace, /Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock/u);
 });

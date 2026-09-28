@@ -4,6 +4,13 @@ import {
   type FoundationsVisualArtifact,
 } from "../../core/contracts/build-progress";
 import { applyStoryCommand } from "../../core/project/apply-command";
+import {
+  lockWorldMapCharacterVisualVersion,
+  saveWorldMapCharacterVisualVersion,
+  worldMapCharacterVisualVersions,
+  type WorldMapCharacterView,
+  type WorldMapCharacterVisualReference,
+} from "../../core/contracts/world-map";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 
 export type LocalAssetIndexItem = {
@@ -36,7 +43,29 @@ export type RecoveredWorldMapPosterResource = {
   readonly originProjectId: string;
 };
 
-export type RecoverableLocalResource = RecoveredStoryboardResource | RecoveredWorldMapPosterResource;
+export type RecoveredWorldMapCharacterResource = {
+  readonly kind: "worldmap-character";
+  readonly fileName: string;
+  readonly assetUrl: string;
+  readonly contentHash: string;
+  readonly modifiedAt: string;
+  readonly originProjectId: string;
+  readonly referenceId: string;
+  readonly characterId: string;
+  readonly characterName: string;
+  readonly versionId: string;
+  readonly view: WorldMapCharacterView;
+  readonly prompt: string;
+  readonly provider: string;
+  readonly model: string;
+  readonly createdAt: string;
+  readonly locked: boolean;
+};
+
+export type RecoverableLocalResource =
+  | RecoveredStoryboardResource
+  | RecoveredWorldMapPosterResource
+  | RecoveredWorldMapCharacterResource;
 
 export type LocalResourceGroup = {
   readonly originProjectId: string;
@@ -48,6 +77,7 @@ export type LocalResourceGroup = {
 export type LocalResourceInventory = {
   readonly storyboardResources: readonly RecoveredStoryboardResource[];
   readonly posterResources: readonly RecoveredWorldMapPosterResource[];
+  readonly characterResources: readonly RecoveredWorldMapCharacterResource[];
   readonly groups: readonly LocalResourceGroup[];
   readonly unclassifiedAssets: readonly LocalAssetIndexItem[];
 };
@@ -133,13 +163,70 @@ export function parseRecoverableWorldMapPosterAsset(asset: LocalAssetIndexItem):
   };
 }
 
+function orderedCharacterMetadataSources(
+  preferredProjectId: string,
+  sourceProjects: readonly LibraryPPFProject[],
+) {
+  return [...sourceProjects]
+    .filter((source, index, all) => all.findIndex((candidate) => candidate.id === source.id) === index)
+    .sort((left, right) => (
+      Number(right.id === preferredProjectId) - Number(left.id === preferredProjectId)
+      || right.updatedAt.localeCompare(left.updatedAt)
+      || left.id.localeCompare(right.id)
+    ));
+}
+
+export function parseRecoverableWorldMapCharacterAsset(
+  asset: LocalAssetIndexItem,
+  sourceProjects: readonly LibraryPPFProject[],
+  preferredProjectId = "",
+): RecoveredWorldMapCharacterResource | null {
+  if (!asset.url.startsWith("/api/local-ai/assets/") || !["image/png", "image/jpeg", "image/webp"].includes(asset.mediaType)) return null;
+
+  // Character asset stems are intentionally bounded by the image gateway, so the
+  // filename alone cannot safely recover character/version/view identity. Require
+  // an exact saved Library reference instead of guessing provenance from a truncated name.
+  for (const source of orderedCharacterMetadataSources(preferredProjectId, sourceProjects)) {
+    for (const characterPackage of source.worldMap.characterVisuals) {
+      const reference = characterPackage.references.find((candidate) => candidate.assetUrl === asset.url);
+      if (!reference) continue;
+      return {
+        kind: "worldmap-character",
+        fileName: asset.fileName,
+        assetUrl: asset.url,
+        contentHash: asset.contentHash,
+        modifiedAt: asset.modifiedAt,
+        originProjectId: source.id,
+        referenceId: reference.id,
+        characterId: reference.characterId,
+        characterName: reference.characterName,
+        versionId: reference.versionId,
+        view: reference.view,
+        prompt: reference.prompt,
+        provider: reference.provider,
+        model: reference.model,
+        createdAt: reference.createdAt,
+        locked: characterPackage.lockedVersionId === reference.versionId,
+      };
+    }
+  }
+  return null;
+}
+
 export function inventoryLocalResources(
   project: LibraryPPFProject,
   assets: readonly LocalAssetIndexItem[],
+  sourceProjects: readonly LibraryPPFProject[] = [],
 ): LocalResourceInventory {
   const storyboardResources: RecoveredStoryboardResource[] = [];
   const posterResources: RecoveredWorldMapPosterResource[] = [];
+  const characterResources: RecoveredWorldMapCharacterResource[] = [];
   const unclassifiedAssets: LocalAssetIndexItem[] = [];
+  const characterMetadataSources = [
+    project,
+    ...sourceProjects.filter((source) => source.id !== project.id),
+  ];
+
   for (const asset of assets) {
     const storyboard = parseRecoverableStoryboardAsset(asset);
     if (storyboard) {
@@ -151,6 +238,11 @@ export function inventoryLocalResources(
       posterResources.push(poster);
       continue;
     }
+    const character = parseRecoverableWorldMapCharacterAsset(asset, characterMetadataSources, project.id);
+    if (character) {
+      characterResources.push(character);
+      continue;
+    }
     unclassifiedAssets.push(asset);
   }
 
@@ -159,9 +251,10 @@ export function inventoryLocalResources(
   );
   storyboardResources.sort(byNewest);
   posterResources.sort(byNewest);
+  characterResources.sort(byNewest);
 
   const grouped = new Map<string, RecoverableLocalResource[]>();
-  for (const resource of [...storyboardResources, ...posterResources]) {
+  for (const resource of [...storyboardResources, ...posterResources, ...characterResources]) {
     const existing = grouped.get(resource.originProjectId) ?? [];
     existing.push(resource);
     grouped.set(resource.originProjectId, existing);
@@ -178,7 +271,7 @@ export function inventoryLocalResources(
       } satisfies LocalResourceGroup;
     })
     .sort((left, right) => Number(right.exactProject) - Number(left.exactProject) || left.originProjectId.localeCompare(right.originProjectId));
-  return { storyboardResources, posterResources, groups, unclassifiedAssets };
+  return { storyboardResources, posterResources, characterResources, groups, unclassifiedAssets };
 }
 
 function recoveryArtifactId(resource: RecoverableLocalResource) {
@@ -451,4 +544,82 @@ export function restoreLocalWorldMapPosterResources(
   }
 
   return { project: current, attachedCount, skippedCount };
+}
+
+function characterRecoveryGroupKey(resource: RecoveredWorldMapCharacterResource) {
+  return `${resource.originProjectId}::${resource.characterId}::${resource.versionId}`;
+}
+
+export function restoreLocalWorldMapCharacterResources(
+  project: LibraryPPFProject,
+  resources: readonly RecoveredWorldMapCharacterResource[],
+) {
+  let current = project;
+  let attachedVersionCount = 0;
+  let skippedVersionCount = 0;
+  let restoredLockedCount = 0;
+  const groups = new Map<string, RecoveredWorldMapCharacterResource[]>();
+
+  for (const resource of resources) {
+    const key = characterRecoveryGroupKey(resource);
+    const group = groups.get(key) ?? [];
+    group.push(resource);
+    groups.set(key, group);
+  }
+
+  for (const group of groups.values()) {
+    const first = group[0];
+    if (!first) continue;
+    const occurredAt = group.reduce(
+      (latest, item) => item.modifiedAt > latest ? item.modifiedAt : latest,
+      first.modifiedAt,
+    );
+    const references: WorldMapCharacterVisualReference[] = group.map((resource) => ({
+      id: resource.referenceId,
+      versionId: resource.versionId,
+      characterId: resource.characterId,
+      characterName: resource.characterName,
+      view: resource.view,
+      assetUrl: resource.assetUrl,
+      prompt: resource.prompt || "Recovered saved World Map character reference.",
+      provider: resource.provider || "local recovery",
+      model: resource.model,
+      createdAt: resource.createdAt || resource.modifiedAt,
+      reviewState: "draft",
+    }));
+
+    const before = worldMapCharacterVisualVersions(current.worldMap, first.characterId)
+      .find((version) => version.id === first.versionId);
+    const beforeUrls = new Set(before?.references.map((reference) => reference.assetUrl) ?? []);
+    const addsAsset = references.some((reference) => !beforeUrls.has(reference.assetUrl));
+
+    let worldMap = saveWorldMapCharacterVisualVersion(current.worldMap, {
+      characterId: first.characterId,
+      characterName: first.characterName,
+      versionId: first.versionId,
+      references,
+      savedAt: occurredAt,
+    });
+
+    const recoveredVersion = worldMapCharacterVisualVersions(worldMap, first.characterId)
+      .find((version) => version.id === first.versionId);
+    const lockProven = group.every((resource) => resource.locked);
+    if (lockProven && recoveredVersion?.complete && !recoveredVersion.locked) {
+      worldMap = lockWorldMapCharacterVisualVersion(worldMap, first.characterId, first.versionId, occurredAt);
+      restoredLockedCount += 1;
+    }
+
+    if (!addsAsset && before) {
+      skippedVersionCount += 1;
+      if (worldMap !== current.worldMap) {
+        current = { ...current, worldMap, revision: current.revision + 1, updatedAt: occurredAt };
+      }
+      continue;
+    }
+
+    current = { ...current, worldMap, revision: current.revision + 1, updatedAt: occurredAt };
+    attachedVersionCount += 1;
+  }
+
+  return { project: current, attachedVersionCount, skippedVersionCount, restoredLockedCount };
 }

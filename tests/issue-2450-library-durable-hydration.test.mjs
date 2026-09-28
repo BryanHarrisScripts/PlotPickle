@@ -298,9 +298,11 @@ test("#2450 browser/profile boundaries use complete hydration and live MindMap/W
   assert.match(host, /PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery/u);
   assert.match(host, /setDiscoveryProject\(hasActiveLibraryProject\(\) \? loadActiveLibraryProject\(\) : null\)/u);
 
-  assert.match(workspace, /Afterglow default · fresh copy/u);
-  assert.match(workspace, /resume the saved Afterglow story listed below instead/u);
-  assert.match(workspace, /Resume/u);
+  assert.match(workspace, /Afterglow example · start fresh copy/u);
+  assert.match(workspace, /open the saved Afterglow story listed below/u);
+  assert.match(workspace, /Resume Saved Story/u);
+  assert.match(workspace, /Open Saved Story/u);
+  assert.match(workspace, /Start Fresh Afterglow Copy/u);
 });
 
 test("#2493 five saved WorldMap media versions remain bounded after normalization", () => {

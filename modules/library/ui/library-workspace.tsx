@@ -3,8 +3,10 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
+import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
+  AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID,
   DEFAULT_LOCAL_PROFILE_ID,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -12,7 +14,11 @@ import {
   createLibraryWorkingCopy,
   importLibraryProject,
   initializeProjectLibrary,
+  latestAfterglowExampleProject,
+  listAfterglowExampleProjects,
   listArchivedLibraryProjects,
+  listHumanArchivedLibraryProjects,
+  listHumanLibraryProjects,
   listLibraryProjects,
   loadLibraryProjectSnapshot,
   saveActiveLibraryProject,
@@ -90,6 +96,28 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
 };
 
 const AFTERGLOW_EXAMPLE_FALLBACK_POSTER = "/assets/library/examples/afterglow.svg";
+const MAX_EXAMPLE_POSTERS = 5;
+
+function afterglowExamplePosterUrls(items: readonly ProjectLibrarySummary[]) {
+  const localPosters = items.flatMap((item) => {
+    const snapshot = loadLibraryProjectSnapshot(item.id);
+    if (!snapshot) return [];
+    return snapshot.build.foundations.visualArtifacts
+      .filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW && artifact.assetUrl)
+      .map((artifact) => ({ assetUrl: artifact.assetUrl, createdAt: artifact.createdAt }));
+  })
+    .sort((left, right) => String(right.createdAt).localeCompare(String(left.createdAt)))
+    .map((artifact) => artifact.assetUrl);
+
+  const seen = new Set<string>();
+  return [AFTERGLOW_EXAMPLE_FALLBACK_POSTER, ...localPosters]
+    .filter((assetUrl) => {
+      if (seen.has(assetUrl)) return false;
+      seen.add(assetUrl);
+      return true;
+    })
+    .slice(0, MAX_EXAMPLE_POSTERS);
+}
 function currentProfileId() {
   return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
 }
@@ -163,24 +191,41 @@ function ExampleGatewayCard({ item, onOpen }: {
   );
 }
 
-function CatalogCard({ item, sourceKind, onLoad, disabled = false }: {
+function CatalogCard({ item, sourceKind, onLoad, disabled = false, canRestoreChanges = false, posterUrls = [] }: {
   readonly item: LibraryCatalogItem;
   readonly sourceKind: "example" | "preset";
   readonly onLoad: (mode?: "defaults" | "restore") => void;
   readonly disabled?: boolean;
+  readonly canRestoreChanges?: boolean;
+  readonly posterUrls?: readonly string[];
 }) {
+  const [posterIndex, setPosterIndex] = useState(0);
+  const examplePosters = sourceKind === "example"
+    ? (posterUrls.length ? posterUrls : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER])
+    : [];
+  const safePosterIndex = Math.min(posterIndex, Math.max(0, examplePosters.length - 1));
+  const posterUrl = examplePosters[safePosterIndex] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
+
   return (
     <article className={`${styles.card} ${sourceKind === "example" ? styles.exampleCard : ""}`} data-library-catalog-id={item.id}>
       {sourceKind === "example"
         ? (
-          <div className={styles.examplePoster} data-example-poster="packaged">
+          <div className={styles.examplePoster} data-example-poster-count={examplePosters.length}>
             <Image
-              src={AFTERGLOW_EXAMPLE_FALLBACK_POSTER}
-              alt="Afterglow packaged PlotPickle example poster"
-              width={1200}
-              height={675}
-              priority
+              src={posterUrl}
+              alt={`Afterglow poster ${safePosterIndex + 1} of ${examplePosters.length}`}
+              fill
+              sizes="(max-width: 760px) 100vw, 42vw"
+              unoptimized={posterUrl.startsWith("/api/local-ai/assets/")}
+              priority={safePosterIndex === 0}
             />
+            {examplePosters.length > 1 ? (
+              <div className={styles.examplePosterNavigation} aria-label="Afterglow poster versions">
+                <button aria-label="Previous Afterglow poster" disabled={safePosterIndex <= 0} onClick={() => setPosterIndex(safePosterIndex - 1)} type="button">‹</button>
+                <span aria-live="polite">{safePosterIndex + 1} / {examplePosters.length}</span>
+                <button aria-label="Next Afterglow poster" disabled={safePosterIndex >= examplePosters.length - 1} onClick={() => setPosterIndex(safePosterIndex + 1)} type="button">›</button>
+              </div>
+            ) : null}
           </div>
         )
         : <div className={styles.visual} data-visual-kind={item.id} aria-hidden="true"><span>{item.visualLabel}</span></div>}
@@ -203,7 +248,7 @@ function CatalogCard({ item, sourceKind, onLoad, disabled = false }: {
         {sourceKind === "example" ? (
           <div className={styles.exampleActions}>
             <button className={styles.secondaryButton} disabled={disabled} onClick={() => onLoad("defaults")} type="button">Project Defaults</button>
-            <button className={styles.primaryButton} disabled={disabled} onClick={() => onLoad("restore")} type="button">Restore Your Changes</button>
+            <button className={styles.primaryButton} disabled={disabled || !canRestoreChanges} onClick={() => onLoad("restore")} type="button">Restore Your Changes</button>
           </div>
         ) : (
           <button className={styles.primaryButton} disabled={disabled} onClick={() => onLoad()} type="button">Start from Preset</button>
@@ -239,6 +284,8 @@ export default function LibraryWorkspace() {
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
+  const [afterglowLocalState, setAfterglowLocalState] = useState<ProjectLibrarySummary | null>(null);
+  const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([AFTERGLOW_EXAMPLE_FALLBACK_POSTER]);
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [recovery, setRecovery] = useState<PendingRecovery | null>(null);
   const [selectedRecoveryOrigins, setSelectedRecoveryOrigins] = useState<readonly string[]>([]);
@@ -252,10 +299,13 @@ export default function LibraryWorkspace() {
     const refresh = () => {
       const library = initializeProjectLibrary();
       setActiveProject(currentSessionLibraryProject());
-      const savedStories = listLibraryProjects().filter((item) => item.sourceKind !== "synthetic");
-      const archivedStories = listArchivedLibraryProjects().filter((item) => item.sourceKind !== "synthetic");
+      const savedStories = listHumanLibraryProjects();
+      const archivedStories = listHumanArchivedLibraryProjects();
+      const exampleStories = listAfterglowExampleProjects();
       setStories(savedStories);
       setArchivedCount(archivedStories.length);
+      setAfterglowLocalState(latestAfterglowExampleProject());
+      setAfterglowPosters(afterglowExamplePosterUrls(exampleStories));
       if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
       else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
     };
@@ -364,23 +414,34 @@ export default function LibraryWorkspace() {
   async function loadPackagedExample(item: LibraryCatalogItem, mode: "defaults" | "restore") {
     if (loadingReference) return;
     setLoadingReference(true);
+    setNotice("");
     try {
-      let sourceProject = item.project;
-      if (item.referenceLoader === "afterglow-v9-foundations") {
-        const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
-        sourceProject = createAfterglowV9FoundationsReference();
+      let openedProject: LibraryPPFProject;
+      if (mode === "restore") {
+        if (!afterglowLocalState) {
+          setNotice("No local Afterglow changes are available yet. Open Project Defaults first and make a change.");
+          return;
+        }
+        openedProject = switchActiveLibraryProject(afterglowLocalState.id);
+      } else {
+        let sourceProject = item.project;
+        if (item.referenceLoader === "afterglow-v9-foundations") {
+          const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
+          sourceProject = createAfterglowV9FoundationsReference();
+        }
+        openedProject = createLibraryWorkingCopy({
+          sourceProject,
+          sourceKind: "example",
+          sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID,
+          title: item.title,
+          genre: item.genre,
+          format: item.format,
+        });
       }
-      const openedProject = createLibraryWorkingCopy({
-        sourceProject,
-        sourceKind: "example",
-        sourceId: item.id,
-        title: item.title,
-        genre: item.genre,
-        format: item.format,
-      });
+
       markCurrentSessionLibraryProject(openedProject.id);
       const baseline = createLibraryLoadSessionBaseline(openedProject, {
-        sessionId: globalThis.crypto?.randomUUID?.() ?? `load-${Date.now()}`,
+        sessionId: globalThis.crypto?.randomUUID?.() ?? `afterglow-${mode}-${Date.now()}`,
         startedAt: new Date().toISOString(),
       });
       persistLoadSessionBaseline(baseline);
@@ -397,11 +458,10 @@ export default function LibraryWorkspace() {
       try {
         inventory = await scanLocalResources(openedProject);
       } catch (error) {
-        scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
+        scanError = error instanceof Error ? error.message : "PlotPickle could not scan your local example resources.";
       }
 
       if (!inventory.groups.length && !scanError) {
-        setNotice("No local changes were found. Opening the packaged Project Defaults.");
         await openActiveProject();
         return;
       }
@@ -409,7 +469,7 @@ export default function LibraryWorkspace() {
       setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
       setRecovery({ project: openedProject, baseline, inventory, scanError });
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not load the packaged example.");
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not open the Afterglow example.");
     } finally {
       setLoadingReference(false);
     }
@@ -470,7 +530,7 @@ export default function LibraryWorkspace() {
     }
   }
 
-  function useProjectDefaults() {
+  function continueWithoutLocalMedia() {
     setRecovery(null);
     setSelectedRecoveryOrigins([]);
     void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
@@ -692,14 +752,16 @@ export default function LibraryWorkspace() {
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference story" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
             <p>{isExamples
-              ? "This is the complete Afterglow reference story packaged with PlotPickle. Project Defaults opens a clean working copy. Restore Your Changes starts from those same defaults, then lets you choose which proven local resources to bring back."
+              ? "This is the complete Afterglow reference story packaged with PlotPickle. The packaged source never changes. Project Defaults opens the original example; Restore Your Changes reopens your profile-local learning state and then lets you choose which local media to bring back."
               : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
           </div>
           <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => (
             <CatalogCard
+              canRestoreChanges={!isExamples || Boolean(afterglowLocalState)}
               disabled={loadingReference}
               item={item}
               key={item.id}
+              posterUrls={isExamples ? afterglowPosters : undefined}
               onLoad={(mode) => {
                 if (isExamples) {
                   void loadPackagedExample(item, mode ?? "defaults");
@@ -834,13 +896,13 @@ export default function LibraryWorkspace() {
             if (event.key === "Escape" && !restoringResources && !rescanningResources) {
               event.preventDefault();
               event.stopPropagation();
-              useProjectDefaults();
+              continueWithoutLocalMedia();
             }
           }}>
-            <button aria-label="Close local resource recovery" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={useProjectDefaults} type="button">×</button>
+            <button aria-label="Close local resource recovery" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={continueWithoutLocalMedia} type="button">×</button>
             <p className={styles.eyebrow}>Your local changes · base revision {recovery.baseline.baseRevision}</p>
             <h2 id="library-recovery-title">Restore Your Changes?</h2>
-            <p><strong>{recovery.project.title}</strong> is loaded from the packaged Project Defaults. Choose the local Storyboard frames, World Map posters, and saved World Map character visuals you want to add back, or load them all. This restore is additive and never silently promotes story canon.</p>
+            <p><strong>{recovery.project.title}</strong> is loaded from your profile-local Afterglow learning state. Choose the local Storyboard frames, World Map posters, and saved World Map character visuals you want to add back, or load them all. The packaged Afterglow source remains unchanged.</p>
             <div className={styles.recoverySummary}>
               <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
               <span><b>{recovery.inventory.posterResources.length}</b> recoverable World Map poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
@@ -849,7 +911,7 @@ export default function LibraryWorkspace() {
             </div>
             {recovery.scanError ? (
               <div>
-                <p role="alert">{recovery.scanError} You can retry the scan or continue with project defaults.</p>
+                <p role="alert">{recovery.scanError} You can retry the scan or continue without restoring local media.</p>
                 <button
                   className={styles.secondaryButton}
                   disabled={rescanningResources || restoringResources}
@@ -885,7 +947,7 @@ export default function LibraryWorkspace() {
             ) : <p>No recoverable Storyboard frames, World Map posters, or saved World Map character visuals were found. The local asset folder remains unchanged.</p>}
             <p className={styles.recoveryPolicy}>Local media restore is additive. It does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock; otherwise they remain saved/draft. If a cloud/current story revision later differs from base revision {recovery.baseline.baseRevision}, canonical story changes require reconciliation rather than last-write-wins.</p>
             <div className={styles.recoveryActions}>
-              <button className={styles.secondaryButton} disabled={restoringResources || rescanningResources} onClick={useProjectDefaults} type="button">Use Project Defaults</button>
+              <button className={styles.secondaryButton} disabled={restoringResources || rescanningResources} onClick={continueWithoutLocalMedia} type="button">Continue Without Local Media</button>
               <button className={styles.primaryButton} disabled={restoringResources || rescanningResources || !selectedRecoveryOrigins.length} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore Selected Changes"}</button>
             </div>
           </section>

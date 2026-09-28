@@ -10,6 +10,8 @@ import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
 import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import ActWrittenStoryBoard from "./act-written-story-board";
+import OutlineMiniBlockAnchorWorkspace from "./outline-mini-block-anchor-workspace";
+import styles from "./outline-mini-block-workspace.module.css";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 import StoryCardFoundationBoard from "./story-card-foundation-board";
 
@@ -77,8 +79,11 @@ export default function MatrixStoryMapSurface({
           <strong>{turningPoint.label}</strong><span>After Block {String(turningPoint.blockNumber).padStart(2, "0")} · Confirm the Act change before Storyboard. No separate script address is assigned.</span>
         </button>
       </section>
-      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} outlineReadiness={readiness} selectedAddress={address} onSelectAddress={selectAddress} turningPointSelected={turningPointSelected} onSelectTurningPoint={() => setTurningPointAct(activeAct)} />
-      <ActWrittenStoryBoard project={project} act={activeAct} outlineReadiness={readiness} selectedAddress={address} onSelectAddress={selectAddress} turningPointSelected={turningPointSelected} onSelectTurningPoint={() => setTurningPointAct(activeAct)} />
+      {!turningPointSelected ? <OutlineMiniBlockAnchorWorkspace project={project} blockNumber={address.blockNumber} miniBlockNumber={address.miniBlockNumber} onProjectChange={setProject} /> : null}
+      <div className={!turningPointSelected ? styles.focusedSlice : undefined} data-outline-selected-slice={!turningPointSelected ? `${address.blockNumber}.${address.miniBlockNumber}` : undefined}>
+        <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} outlineReadiness={readiness} selectedAddress={address} onSelectAddress={selectAddress} turningPointSelected={turningPointSelected} onSelectTurningPoint={() => setTurningPointAct(activeAct)} />
+        <ActWrittenStoryBoard project={project} act={activeAct} outlineReadiness={readiness} selectedAddress={address} onSelectAddress={selectAddress} turningPointSelected={turningPointSelected} onSelectTurningPoint={() => setTurningPointAct(activeAct)} />
+      </div>
     </div>
   );
 }

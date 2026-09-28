@@ -28,7 +28,7 @@ test("#2452 uses WorldMap as one word and graduates the connected Dashboard row 
   assert.match(host, /onSurfaceNameChange\("WORLDMAP"\)/u);
   assert.equal(storyBible?.label, "WorldMap");
   assert.equal(storyBible?.navigationPath?.[0]?.label, "WorldMap");
-  assert.match(surface, /WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT/u);
+  assert.match(surface, /WORLDMAP · STORY · HUMAN-REVIEWED DEVELOPMENT/u);
 });
 
 test("#2452/#2493 exposes truthful poster generation and explicit local Save", async () => {

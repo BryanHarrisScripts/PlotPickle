@@ -8,8 +8,8 @@ test("#2432 puts Afterglow and local-resource recovery under Library Load", asyn
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
-  assert.match(loadSurface, /Afterglow default/u);
-  assert.match(loadSurface, />\s*Load Afterglow\s*</u);
+  assert.match(loadSurface, /Afterglow example · start fresh copy/u);
+  assert.match(loadSurface, />\s*Start Fresh Afterglow Copy\s*</u);
   assert.match(loadSurface, /setPending\(\{ kind: "catalog", sourceKind: "example", item: afterglow \}\)/u);
   assert.match(source, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(source, /persistLoadSessionBaseline\(baseline\)/u);
@@ -26,9 +26,9 @@ test("#2432 keeps project defaults and local resource restore as separate Human 
   assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
   assert.match(source, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
   assert.match(source, /saved Library metadata proves the same frame was previously Keep\/Locked/u);
-  assert.match(source, /does not overwrite project defaults, invent approvals, promote story canon/u);
+  assert.match(source, /does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon/u);
   assert.match(source, /restoreLocalWorldMapPosterResources\(storyboardResult\.project, posterResources\)/u);
-  assert.match(source, /saveActiveLibraryProject\(posterResult\.project\)/u);
+  assert.match(source, /restoreLocalWorldMapCharacterResources\(posterResult\.project, characterResources\)/u);\n  assert.match(source, /saveActiveLibraryProject\(characterResult\.project\)/u);
   assert.match(source, /Local media restore is additive/u);
   assert.match(source, /require reconciliation rather than last-write-wins/u);
 });

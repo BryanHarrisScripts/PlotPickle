@@ -6,16 +6,16 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const EXPECTED_TOPICS = [
   ["foundations", "Foundations", "foundations"],
-  ["industry", "Industry", "industry"],
-  ["theme", "Theme", "theme"],
-  ["character", "Character", "character"],
   ["world", "World", "world"],
+  ["character", "Character", "character"],
+  ["theme", "Theme", "theme"],
   ["structure", "Structure", "structure"],
-  ["dialogue", "Dialogue", "dialogue"],
   ["previs", "PREVIS", "visual-storytelling"],
   ["drafting", "Drafting", "drafting"],
+  ["dialogue", "Dialogue", "dialogue"],
   ["revision", "Revision", "revision"],
   ["responsible-ai", "Responsible AI", "responsible-ai"],
+  ["industry", "Industry", "industry"],
   ["collaboration", "Collaboration", "collaboration"],
 ];
 

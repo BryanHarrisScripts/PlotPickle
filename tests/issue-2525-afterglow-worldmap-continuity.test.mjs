@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { WORLD_MAP_CHARACTER_VIEWS } from "../core/contracts/world-map/index.ts";
@@ -10,6 +11,7 @@ import {
 } from "../modules/library/local-resource-recovery.ts";
 
 const NOW = "2026-09-27T23:55:00.000Z";
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function savedAfterglow() {
   const base = createEmptyProject({ id: "afterglow-saved-copy", now: NOW, title: "Afterglow" });
@@ -142,4 +144,31 @@ test("#2525 incomplete character media never regains Lock just because its saved
   assert.ok(restored);
   assert.equal(restored.lockedVersionId, null);
   assert.equal(restored.references.every((reference) => reference.reviewState === "draft"), true);
+});
+
+
+test("#2525 World Map and Storyboard share one visual version-state grammar without forcing identical tool outcomes", async () => {
+  const [worldMap, storyboard] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+  ]);
+
+  for (const label of ["Save", "Lock", "Saved locally", "Locked"]) {
+    assert.ok(worldMap.includes(label), `World Map missing shared state language: ${label}`);
+    assert.ok(storyboard.includes(label), `Storyboard missing shared state language: ${label}`);
+  }
+
+  assert.match(worldMap, /Previous saved version/u);
+  assert.match(worldMap, /Next saved version/u);
+  assert.match(worldMap, /safeVersionIndex \+ 1/u);
+  assert.match(worldMap, /safePosterIndex \+ 1/u);
+  assert.match(storyboard, /Previous frame/u);
+  assert.match(storyboard, /Next frame/u);
+  assert.match(storyboard, /frameVersionLabel/u);
+
+  const worldAgent = worldMap.slice(worldMap.indexOf("function WorldFactEditor"), worldMap.indexOf("function WorldFactGroup"));
+  assert.match(worldAgent, />Save<\/button>/u);
+  assert.match(worldAgent, />Redo<\/button>/u);
+  assert.match(worldAgent, />Discard<\/button>/u);
+  assert.doesNotMatch(worldAgent, />Lock<\/button>/u);
 });

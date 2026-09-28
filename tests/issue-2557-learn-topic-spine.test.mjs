@@ -21,7 +21,7 @@ const EXPECTED_TOPICS = [
 
 test("#2557 one shared twelve-topic spine drives creation and Learn routing", async () => {
   const [spine, learn] = await Promise.all([
-    read("core/contracts/learn-topic-spine.ts"),
+    read("modules/learn/model/story-learning-context.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
   let previous = -1;

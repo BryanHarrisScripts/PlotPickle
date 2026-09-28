@@ -26,103 +26,6 @@ const LOCKED_LATER_FRONTIERS = {
   storyboard: "Locked",
 } as const;
 
-function answeredLesson(answer: string, now: string) {
-  return {
-    answers: { "output-1": answer },
-    proposal: null,
-    proposalAcceptedAt: null,
-    updatedAt: now,
-  };
-}
-
-function exampleProject(input: {
-  readonly id: string;
-  readonly title: string;
-  readonly now: string;
-  readonly pitch: string;
-  readonly logline: string;
-  readonly experience: string;
-  readonly genre: string;
-  readonly world: string;
-  readonly visualAssetUrl: string;
-}) {
-  const empty = createEmptyProject({ id: input.id, now: input.now, title: input.title });
-  const foundationArtifactId = `${input.id}-foundation-reference`;
-  const worldArtifactId = `${input.id}-world-reference`;
-  return normalizeFoundationProject({
-    ...empty,
-    learning: {
-      activeLessonId: "world-building",
-      completedLessonIds: [
-        "pitch",
-        "loglines-that-carry-the-movie",
-        "why-plotpickle-works-in-layers",
-        "essentials-experience",
-        "genres",
-        "world-building",
-      ],
-    },
-    foundations: {
-      activeLessonId: "essentials-experience",
-      lessons: {
-        pitch: answeredLesson(input.pitch, input.now),
-        "loglines-that-carry-the-movie": answeredLesson(input.logline, input.now),
-        "why-plotpickle-works-in-layers": answeredLesson(input.experience, input.now),
-        "essentials-experience": answeredLesson(input.experience, input.now),
-      },
-      brief: { content: `${input.pitch}\n\n${input.logline}\n\n${input.experience}`, savedAt: input.now },
-    },
-    world: {
-      activeLessonId: "world-building",
-      lessons: {
-        genres: answeredLesson(input.genre, input.now),
-        "world-building": answeredLesson(input.world, input.now),
-      },
-      brief: { content: input.world, savedAt: input.now },
-    },
-    build: {
-      foundations: {
-        visualArtifacts: [{
-          id: foundationArtifactId,
-          assetUrl: input.visualAssetUrl,
-          prompt: `Packaged visual reference for ${input.title}.`,
-          createdAt: input.now,
-          provider: "packaged",
-          model: "curated-example",
-          narrativeIntention: input.experience,
-          curriculumFrontier: "Foundations",
-          sourceDecisionKeys: ["pitch", "logline", "experience"],
-          workflow: "library-featured-example-v1",
-          reviewState: "accepted",
-          parentArtifactId: null,
-        }],
-        acceptedVisualArtifactIds: [foundationArtifactId],
-      },
-      world: {
-        visualArtifacts: [{
-          id: worldArtifactId,
-          assetUrl: input.visualAssetUrl,
-          prompt: `Packaged World reference for ${input.title}.`,
-          createdAt: input.now,
-          provider: "packaged",
-          model: "curated-example",
-          frameNumber: 1,
-          narrativeIntention: input.world,
-          curriculumFrontier: "Foundations + World",
-          sourceDecisionKeys: ["pitch", "logline", "experience"],
-          worldDecisionKeys: ["genres", "world-building"],
-          retainedFoundationArtifactIds: [foundationArtifactId],
-          workflow: "library-featured-example-v1",
-          changeKind: "added",
-          reviewState: "accepted",
-          parentArtifactId: foundationArtifactId,
-        }],
-        acceptedVisualArtifactIds: [worldArtifactId],
-      },
-    },
-  });
-}
-
 function presetProject(input: {
   readonly id: string;
   readonly title: string;
@@ -165,30 +68,6 @@ export function createFeaturedExamples(now: string): readonly LibraryCatalogItem
         ...LOCKED_LATER_FRONTIERS,
       },
       referenceLoader: "afterglow-v9-foundations",
-    },
-    {
-      id: "clockmakers-map",
-      title: "The Clockmaker’s Map",
-      description: "A complete fantasy-mystery foundation in which every repaired clock redraws one street in a city that denies it can change.",
-      genre: "Fantasy · Mystery",
-      format: "Novel",
-      visualLabel: "Brass city",
-      project: exampleProject({
-        id: "example-clockmakers-map-source",
-        title: "The Clockmaker’s Map",
-        now,
-        pitch: "An apprentice clockmaker discovers that repairing the city’s oldest mechanisms alters its streets and releases histories the ruling guild buried.",
-        logline: "After one repair erases her family’s district from every official map, an exacting apprentice must reconstruct the forbidden route before the guild resets the city and traps her brother outside time.",
-        experience: "A tactile mystery about memory, civic power, and learning when preservation becomes complicity.",
-        genre: "Dark clockwork fantasy driven by a fair-play mystery.",
-        world: "A vertical guild city whose clocks coordinate transit, law, and public memory; every mechanism has a social owner, a physical cost, and a rule that characters can test.",
-        visualAssetUrl: "/assets/library/examples/clockmakers-map.svg",
-      }),
-      coverage: {
-        foundations: "In progress",
-        world: "In progress",
-        ...LOCKED_LATER_FRONTIERS,
-      },
     },
   ];
 }

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from "react";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
 import { PLOTPICKLE_VERSION } from "@/lib/runtime/application-version";
@@ -41,7 +41,7 @@ type NodeStatus = {
   readonly lifecycle: NodeLifecycle;
   readonly launcher: { readonly browserOwnership: string; readonly shutdownSignalConfigured: boolean };
 };
-type ProfileStatus = { readonly authenticated: boolean; readonly profile: { readonly displayName: string } | null; readonly csrfToken: string | null };
+type ProfileStatus = { readonly authenticated: boolean; readonly profile: { readonly displayName: string } | null; readonly csrfToken: string | null; readonly profiles?: readonly { readonly profileId: string; readonly displayName: string; readonly status: string }[] };
 type TopologyStatus = { readonly currentNode?: { readonly readiness?: string; readonly capabilities?: readonly string[] } };
 
 const NODE_CONTROL_HEADERS = { "Content-Type": "application/json", "X-PlotPickle-Node-Control": "confirmed" } as const;
@@ -90,6 +90,12 @@ function NodeControl() {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [profileBlocked, setProfileBlocked] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockReady, setUnlockReady] = useState(false);
+  const [profiles, setProfiles] = useState<NonNullable<ProfileStatus["profiles"]>>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [passphrase, setPassphrase] = useState("");
 
   const refresh = useCallback(async () => {
     const [nodeStatus, profileStatus, topologyStatus] = await Promise.all([
@@ -132,8 +138,9 @@ function NodeControl() {
   async function shutDown() {
     if (busy || node?.lifecycle.inProgress) return;
     setBusy(true);
-    setConfirming(false);
     setError("");
+    setProfileBlocked(false);
+    setUnlockReady(false);
     let shutdownToken = "";
     try {
       const begun = await nodeAction("begin-shutdown");
@@ -151,11 +158,25 @@ function NodeControl() {
       window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
 
       setNode(await nodeAction("complete-shutdown", { shutdownToken }));
+      setConfirming(false);
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : String(cause);
-      const message = /Human profile is locked/i.test(detail)
-        ? "Shutdown could not verify the active Human Profile for saving. Your work was not discarded. Return to Dashboard, unlock the profile, then try Shut Down again."
+      const locked = /Human profile is locked/i.test(detail);
+      const message = locked
+        ? "Shutdown is blocked because the active Human Profile is locked. Your work was not discarded. Unlock it here, then try Shut Down again."
         : detail;
+      setProfileBlocked(locked);
+      if (locked) {
+        void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" })
+          .then((response) => parseJson<ProfileStatus>(response))
+          .then((status) => {
+            const available = (status.profiles || []).filter((item) => item.status === "active");
+            setProfiles(available);
+            const previous = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+            setSelectedProfileId(available.find((item) => item.profileId === previous)?.profileId || (available.length === 1 ? available[0].profileId : ""));
+          })
+          .catch((failure) => setError(failure instanceof Error ? failure.message : String(failure)));
+      }
       setError(message);
       if (shutdownToken) {
         try { setNode(await nodeAction("block-shutdown", { shutdownToken, message })); }
@@ -170,6 +191,31 @@ function NodeControl() {
         }
       }
       setBusy(false);
+    }
+  }
+
+  async function unlockProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || unlocking || !profileBlocked || !selectedProfileId || !passphrase) return;
+    setUnlocking(true);
+    setError("");
+    try {
+      await parseJson<ProfileStatus>(await fetch("/api/auth/profile", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", locator: selectedProfileId, password: passphrase }),
+      }));
+      const verified = await parseJson<ProfileStatus>(await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" }));
+      if (!verified.authenticated || !verified.csrfToken) throw new Error("Profile unlock could not be verified. PlotPickle remains running.");
+      window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, selectedProfileId);
+      setProfile(verified);
+      setPassphrase("");
+      setProfileBlocked(false);
+      setUnlockReady(true);
+      setNode(await parseJson<NodeStatus>(await fetch("/api/system/node-control", { credentials: "same-origin", cache: "no-store" })));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The profile could not be unlocked. PlotPickle remains running.");
+    } finally {
+      setUnlocking(false);
     }
   }
 
@@ -212,7 +258,15 @@ function NodeControl() {
       <div className={styles.nodeActions}><button type="button" className={styles.nodeDangerButton} disabled={shutdownDisabled} onClick={() => setConfirming(true)}>{busy ? lifecycle : "Shut Down PlotPickle"}</button></div>
     </section> : null}
 
-    {confirming ? <div className={styles.nodeConfirmBackdrop} role="presentation"><section className={styles.nodeConfirmCard} role="dialog" aria-modal="true" aria-labelledby="plotpickle-node-shutdown-title"><h2 id="plotpickle-node-shutdown-title">Shut down this PlotPickle Node?</h2><p>PlotPickle will save your work, close the current session, stop local services, and close this PlotPickle window.</p><div><button type="button" onClick={() => setConfirming(false)}>Cancel</button><button type="button" className={styles.nodeDangerButton} onClick={() => void shutDown()}>Shut Down PlotPickle</button></div></section></div> : null}
+    {confirming ? <div className={styles.nodeConfirmBackdrop} role="presentation"><section className={styles.nodeConfirmCard} role="dialog" aria-modal="true" aria-labelledby="plotpickle-node-shutdown-title"><h2 id="plotpickle-node-shutdown-title">Shut down this PlotPickle Node?</h2><p>PlotPickle will save your work, close the current session, stop local services, and close this PlotPickle window.</p>
+      {error ? <p role="alert">{error}</p> : null}
+      {unlockReady ? <p role="status">Profile unlocked successfully. Shutdown is ready.</p> : null}
+      {profileBlocked ? <form onSubmit={(event) => void unlockProfile(event)}>
+        <label>Human Profile <select value={selectedProfileId} onChange={(event) => setSelectedProfileId(event.target.value)} required disabled={unlocking}><option value="">Select profile</option>{profiles.map((item) => <option key={item.profileId} value={item.profileId}>{item.displayName}</option>)}</select></label>
+        <label>Passphrase <input type="password" autoComplete="current-password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required disabled={unlocking} /></label>
+        <button type="submit" disabled={unlocking || !selectedProfileId || !passphrase}>{unlocking ? "Unlocking…" : "Unlock Profile"}</button>
+      </form> : null}
+      <div><button type="button" disabled={busy || unlocking} onClick={() => setConfirming(false)}>Cancel</button><button type="button" className={styles.nodeDangerButton} disabled={shutdownDisabled || unlocking || profileBlocked} onClick={() => void shutDown()}>Shut Down PlotPickle</button></div></section></div> : null}
   </div>;
 }
 

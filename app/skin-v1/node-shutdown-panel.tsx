@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "@/core/storage/project-library-browser";
 import {
   clearProfilePrivateBrowser,
@@ -19,6 +19,7 @@ type NodeStatus = {
 type ProfileStatus = {
   readonly authenticated: boolean;
   readonly csrfToken: string | null;
+  readonly profiles?: readonly { readonly profileId: string; readonly displayName: string; readonly status: string }[];
 };
 
 const NODE_CONTROL_HEADERS = {
@@ -69,6 +70,12 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
   const [node, setNode] = useState<NodeStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [profileBlocked, setProfileBlocked] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockReady, setUnlockReady] = useState(false);
+  const [profiles, setProfiles] = useState<NonNullable<ProfileStatus["profiles"]>>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [passphrase, setPassphrase] = useState("");
 
   useEffect(() => {
     void fetch("/api/system/node-control", { credentials: "same-origin", cache: "no-store" })
@@ -81,6 +88,8 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
     if (busy || !node || node.lifecycle.inProgress) return;
     setBusy(true);
     setError("");
+    setProfileBlocked(false);
+    setUnlockReady(false);
     let shutdownToken = "";
 
     try {
@@ -105,9 +114,22 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
       setNode(await nodeAction("complete-shutdown", { shutdownToken }));
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : String(cause);
-      const message = /Human profile is locked/i.test(detail)
-        ? "Shutdown could not verify the active Human Profile for saving. Your work was not discarded. Return to Dashboard, unlock the profile, then try Shut Down again."
+      const locked = /Human profile is locked/i.test(detail);
+      const message = locked
+        ? "Shutdown is blocked because the active Human Profile is locked. Your work was not discarded. Unlock it here, then try Shut Down again."
         : detail;
+      setProfileBlocked(locked);
+      if (locked) {
+        void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" })
+          .then((response) => parseJson<ProfileStatus>(response))
+          .then((status) => {
+            const available = (status.profiles || []).filter((item) => item.status === "active");
+            setProfiles(available);
+            const previous = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+            setSelectedProfileId(available.find((item) => item.profileId === previous)?.profileId || (available.length === 1 ? available[0].profileId : ""));
+          })
+          .catch((failure) => setError(failure instanceof Error ? failure.message : String(failure)));
+      }
       setError(message);
       if (shutdownToken) {
         try {
@@ -130,8 +152,36 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
     }
   }
 
+  async function unlockProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (unlocking || busy || !profileBlocked || !selectedProfileId || !passphrase) return;
+    setUnlocking(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/profile", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", locator: selectedProfileId, password: passphrase }),
+      });
+      await parseJson<ProfileStatus>(response);
+      const verified = await parseJson<ProfileStatus>(await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" }));
+      if (!verified.authenticated || !verified.csrfToken) throw new Error("Profile unlock could not be verified. PlotPickle remains running.");
+      window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, selectedProfileId);
+      setPassphrase("");
+      setProfileBlocked(false);
+      setUnlockReady(true);
+      setError("");
+      setNode(await parseJson<NodeStatus>(await fetch("/api/system/node-control", { credentials: "same-origin", cache: "no-store" })));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The profile could not be unlocked. PlotPickle remains running.");
+    } finally {
+      setUnlocking(false);
+    }
+  }
+
   const lifecycle = node?.lifecycle.state || "CHECKING";
-  const shutdownDisabled = busy || !node || node.lifecycle.inProgress || ["SAVING", "SHUTTING DOWN", "STOPPED"].includes(lifecycle);
+  const shutdownDisabled = busy || unlocking || profileBlocked || !node || node.lifecycle.inProgress || ["SAVING", "SHUTTING DOWN", "STOPPED"].includes(lifecycle);
 
   return (
     <section aria-label="Shut Down Node" data-dashboard-review-surface="shutdown-node">
@@ -146,6 +196,15 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
         <p>This shuts down PlotPickle only. It does not shut down or restart Windows.</p>
         <p role="status" aria-live="polite">NODE LIFECYCLE: {lifecycle}</p>
         {error || node?.lifecycle.lastError ? <p role="alert">{error || node?.lifecycle.lastError}</p> : null}
+        {unlockReady ? <p role="status">Profile unlocked successfully. Shutdown is ready.</p> : null}
+        {profileBlocked ? <form onSubmit={(event) => void unlockProfile(event)}>
+          <label>Human Profile <select value={selectedProfileId} onChange={(event) => setSelectedProfileId(event.target.value)} required disabled={unlocking}>
+            <option value="">Select profile</option>
+            {profiles.map((item) => <option key={item.profileId} value={item.profileId}>{item.displayName}</option>)}
+          </select></label>
+          <label>Passphrase <input type="password" autoComplete="current-password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required disabled={unlocking} /></label>
+          <button type="submit" className="pp-skin-v1-return" disabled={unlocking || !selectedProfileId || !passphrase}>{unlocking ? "Unlocking…" : "Unlock Profile"}</button>
+        </form> : null}
         <div style={{ display: "flex", gap: "var(--pp-skin-space-3)", flexWrap: "wrap" }}>
           <button type="button" className="pp-skin-v1-return" onClick={onCancel} disabled={busy}>Cancel</button>
           <button type="button" className="pp-skin-v1-return" onClick={() => void shutDown()} disabled={shutdownDisabled}>

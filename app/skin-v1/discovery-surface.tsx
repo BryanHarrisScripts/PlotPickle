@@ -11,7 +11,7 @@ import {
   LEARN_TOPIC_SPINE,
   learnTopicHref,
   type LearnTopicSpineId,
-} from "../../core/contracts/learn-topic-spine";
+} from "../../modules/learn/model/story-learning-context";
 import { projectDiscoveryPins } from "../../core/project/discovery";
 import {
   saveActiveLibraryProject,

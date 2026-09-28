@@ -164,12 +164,12 @@
     "wrangler": "4.140.0"
   },
   "devDependencies": {
-    "@types/node": "26.6.1",
+    "@types/node": "26.6.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "drizzle-kit": "0.31.10",
-    "eslint": "10.10.0",
-    "eslint-config-next": "16.3.5",
+    "drizzle-kit": "0.31.11",
+    "eslint": "10.11.0",
+    "eslint-config-next": "16.3.6",
     "typescript": "6.0.3"
   },
   "type": "module",

@@ -26,7 +26,7 @@ test("#1969 bare startup does not repair-load the persisted story before the Hum
   assert.doesNotMatch(home, /useEffect\(\(\) => \{\s*repairPersistedProject\(\);/u);
 });
 
-test("#1969 Library keeps saved stories and requires an explicit Resume/Open/Create action to enter story work", async () => {
+test("#1969/#2559 Library startup stays explicit through the example gateway or New Story", async () => {
   const [home, library] = await Promise.all([
     read("app/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),
@@ -34,12 +34,15 @@ test("#1969 Library keeps saved stories and requires an explicit Resume/Open/Cre
 
   assert.match(home, /if \(workspace === "library"\)[\s\S]*?<LibraryWorkspace \/>/u);
   assert.match(library, /async function openActiveProject\(\) \{\s*await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
-  assert.match(library, /switchActiveLibraryProject\(pending\.item\.id\)/u);
-  assert.match(library, />\{active \? "Resume Saved Story" : "Open Saved Story"\}<\/button>/u);
+  assert.match(library, /data-library-example-gateway=\{item\.id\}/u);
+  assert.match(library, />Open Example<\/button>/u);
+  assert.match(library, /setDestination\("examples"\)/u);
+  assert.match(library, />Project Defaults<\/button>/u);
+  assert.match(library, />Restore Your Changes<\/button>/u);
+  assert.doesNotMatch(library, /Resume Saved Story/u);
   assert.match(library, /createLibraryUserProject\(\{ title: "Untitled Story", format: "Feature" \}\)/u);
   assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/u);
 });
-
 test("#1969 does not alter Library persistence authority or add the future startup preference", async () => {
   const [home, browserStore, coreStore] = await Promise.all([
     read("app/page.tsx"),

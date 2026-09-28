@@ -10,6 +10,8 @@ import {
   RENDER_CLIPS_PER_MINI_BLOCK,
   RENDER_KEYFRAMES_PER_FEATURE,
   RENDER_MINI_BLOCK_SECONDS,
+  type PrevisGraphicNovelTextApproval,
+  type PrevisGraphicNovelTextBubble,
   type ProductionShotIntent,
   type ProductionShotReviewState,
 } from "@/core/contracts/previs";
@@ -172,6 +174,7 @@ function drawPanelOverlay(
   x: number,
   y: number,
 ) {
+  if (!panel.caption && !panel.narration && !panel.shotLabel && !panel.shotContext && !panel.bubbles.length) return;
   panel.bubbles.slice(0, 2).forEach((bubble, index) => {
     drawBubble(context, x, y, bubble.speaker, bubble.text, index);
   });
@@ -295,6 +298,37 @@ const STATE_LABELS = {
   locked: "BLOCKED",
 } as const;
 
+type GraphicNovelTextDraft = {
+  narration: string;
+  bubbles: PrevisGraphicNovelTextBubble[];
+  noText: boolean;
+};
+
+function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel) {
+  return JSON.stringify({
+    assetUrl: panel.assetUrl,
+    caption: panel.caption,
+    narration: panel.narration,
+    shotLabel: panel.shotLabel,
+    shotContext: panel.shotContext,
+    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+  });
+}
+
+function approvedGraphicNovelPanel(
+  panel: PrevisGraphicNovelPanel,
+  approval: PrevisGraphicNovelTextApproval,
+): PrevisGraphicNovelPanel {
+  if (approval.noText) {
+    return { ...panel, caption: "", narration: "", shotLabel: "", shotContext: "", bubbles: [] };
+  }
+  return {
+    ...panel,
+    narration: approval.narration,
+    bubbles: approval.bubbles.map((bubble) => ({ ...bubble, style: "speech" as const })),
+  };
+}
+
 export default function PrevisReadinessWorkspace({
   project,
   onProjectChange,
@@ -319,6 +353,8 @@ export default function PrevisReadinessWorkspace({
   const [graphicNovelExporting, setGraphicNovelExporting] = useState(false);
   const [graphicNovelExportState, setGraphicNovelExportState] = useState<"idle" | "working" | "success" | "error">("idle");
   const [graphicNovelExportMessage, setGraphicNovelExportMessage] = useState("");
+  const [graphicNovelTextReviewOpen, setGraphicNovelTextReviewOpen] = useState(false);
+  const [graphicNovelTextDrafts, setGraphicNovelTextDrafts] = useState<Record<number, GraphicNovelTextDraft>>({});
   useEffect(() => {
     if (!address) return;
     setSelectedBlockNumber(address.blockNumber);
@@ -388,13 +424,143 @@ export default function PrevisReadinessWorkspace({
   }
 
   const graphicNovelPanels = flipBookFrames.map((frame) => graphicNovelPanelFor(frame.position));
+  const graphicNovelTextApprovals = (project.production.graphicNovelTextApprovals ?? [])
+    .filter((approval) => approval.anchorRef === selectedAddressAnchor?.id);
+  const currentTextApprovalFor = (panel: PrevisGraphicNovelPanel) => {
+    const approval = graphicNovelTextApprovals.find((candidate) => candidate.position === panel.position) ?? null;
+    return approval && approval.sourceKey === graphicNovelTextSourceKey(panel) ? approval : null;
+  };
   const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];
+  const selectedGraphicNovelApproval = currentTextApprovalFor(selectedGraphicNovelPanel);
+  const selectedGraphicNovelDisplayPanel = selectedGraphicNovelApproval
+    ? approvedGraphicNovelPanel(selectedGraphicNovelPanel, selectedGraphicNovelApproval)
+    : selectedGraphicNovelPanel;
+  const selectedGraphicNovelHasText = Boolean(
+    selectedGraphicNovelDisplayPanel.caption
+    || selectedGraphicNovelDisplayPanel.narration
+    || selectedGraphicNovelDisplayPanel.shotLabel
+    || selectedGraphicNovelDisplayPanel.shotContext
+    || selectedGraphicNovelDisplayPanel.bubbles.length,
+  );
+  const lockedGraphicNovelPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
+  const pendingTextApprovalCount = lockedGraphicNovelPanels.filter((panel) => !currentTextApprovalFor(panel)).length;
+  const graphicNovelTextReady = lockedGraphicNovelPanels.length > 0 && pendingTextApprovalCount === 0;
+
+  function defaultGraphicNovelTextDraft(panel: PrevisGraphicNovelPanel): GraphicNovelTextDraft {
+    const approval = currentTextApprovalFor(panel);
+    if (approval) {
+      return {
+        narration: approval.narration,
+        bubbles: approval.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+        noText: approval.noText,
+      };
+    }
+    return {
+      narration: panel.narration,
+      bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+      noText: false,
+    };
+  }
+
+  function openGraphicNovelTextReview() {
+    setFlipBookPlaying(false);
+    setGraphicNovelPlaying(false);
+    setGraphicNovelMode(true);
+    setGraphicNovelTextDrafts(Object.fromEntries(
+      lockedGraphicNovelPanels.map((panel) => [panel.position, defaultGraphicNovelTextDraft(panel)]),
+    ));
+    setGraphicNovelTextReviewOpen(true);
+  }
+
+  function updateGraphicNovelTextDraft(position: number, update: (draft: GraphicNovelTextDraft) => GraphicNovelTextDraft) {
+    const panel = graphicNovelPanels[position - 1];
+    if (!panel?.authoritative) return;
+    setGraphicNovelTextDrafts((current) => ({
+      ...current,
+      [position]: update(current[position] ?? defaultGraphicNovelTextDraft(panel)),
+    }));
+  }
+
+  function persistGraphicNovelTextApprovals(approvals: readonly PrevisGraphicNovelTextApproval[], notice: string) {
+    const now = new Date().toISOString();
+    const next: PPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: now,
+      production: {
+        ...project.production,
+        graphicNovelTextApprovals: approvals,
+      },
+    };
+    saveFoundationProject(next);
+    onProjectChange(next);
+    setMessage(notice);
+  }
+
+  function approvalFromDraft(panel: PrevisGraphicNovelPanel, draft: GraphicNovelTextDraft, approvedAt: string): PrevisGraphicNovelTextApproval | null {
+    const noText = draft.noText;
+    const narration = noText ? "" : clean(draft.narration, 1200);
+    const bubbles = noText ? [] : draft.bubbles
+      .map((bubble) => ({ speaker: clean(bubble.speaker, 80), text: clean(bubble.text, 180) }))
+      .filter((bubble) => bubble.speaker && bubble.text)
+      .slice(0, 2);
+    if (!noText && !narration && !bubbles.length) return null;
+    if (!selectedAddressAnchor) return null;
+    return {
+      anchorRef: selectedAddressAnchor.id,
+      position: panel.position,
+      sourceKey: graphicNovelTextSourceKey(panel),
+      narration,
+      bubbles,
+      noText,
+      approvedAt,
+    };
+  }
+
+  function approveGraphicNovelText(position: number) {
+    const panel = graphicNovelPanels[position - 1];
+    if (!panel?.authoritative || !selectedAddressAnchor) return;
+    const draft = graphicNovelTextDrafts[position] ?? defaultGraphicNovelTextDraft(panel);
+    const now = new Date().toISOString();
+    const approval = approvalFromDraft(panel, draft, now);
+    if (!approval) {
+      setMessage(`Position ${String(position).padStart(2, "0")}: add narration or a complete speech bubble, or choose No text before approval.`);
+      return;
+    }
+    const existing = project.production.graphicNovelTextApprovals ?? [];
+    const nextApprovals = [
+      ...existing.filter((item) => !(item.anchorRef === selectedAddressAnchor.id && item.position === position)),
+      approval,
+    ];
+    persistGraphicNovelTextApprovals(nextApprovals, `Graphic Novel text approved for position ${String(position).padStart(2, "0")}. Create WebP remains locked until every locked position is current and approved.`);
+  }
+
+  function approveAllGraphicNovelText() {
+    if (!selectedAddressAnchor || !lockedGraphicNovelPanels.length) return;
+    const now = new Date().toISOString();
+    const approvals = lockedGraphicNovelPanels.map((panel) => (
+      approvalFromDraft(panel, graphicNovelTextDrafts[panel.position] ?? defaultGraphicNovelTextDraft(panel), now)
+    ));
+    if (approvals.some((approval) => !approval)) {
+      setMessage("Every locked panel needs text or an explicit No text choice before Approve All.");
+      return;
+    }
+    const existing = project.production.graphicNovelTextApprovals ?? [];
+    const positions = new Set(lockedGraphicNovelPanels.map((panel) => panel.position));
+    const nextApprovals = [
+      ...existing.filter((item) => !(item.anchorRef === selectedAddressAnchor.id && positions.has(item.position))),
+      ...approvals.filter((approval): approval is PrevisGraphicNovelTextApproval => Boolean(approval)),
+    ];
+    persistGraphicNovelTextApprovals(nextApprovals, `Approved Graphic Novel text for all ${lockedGraphicNovelPanels.length} locked panel${lockedGraphicNovelPanels.length === 1 ? "" : "s"}. Create WebP now uses these exact approved text snapshots.`);
+  }
 
   useEffect(() => {
     setSelectedFramePosition(1);
     setFlipBookPlaying(false);
     setGraphicNovelMode(false);
     setGraphicNovelPlaying(false);
+    setGraphicNovelTextReviewOpen(false);
+    setGraphicNovelTextDrafts({});
   }, [selectedBlockNumber, selectedMiniBlockNumber]);
 
   useEffect(() => {
@@ -409,12 +575,24 @@ export default function PrevisReadinessWorkspace({
     if (!selectedAddressAnchor || graphicNovelExporting) return;
     setFlipBookPlaying(false);
     setGraphicNovelPlaying(false);
-    const exportPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
-    if (!exportPanels.length) {
+    const sourcePanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
+    if (!sourcePanels.length) {
       const failure = "WebP export failed: Keep / Lock at least one Storyboard frame before exporting.";
       setGraphicNovelExportState("error");
       setGraphicNovelExportMessage(failure);
       setMessage(failure);
+      return;
+    }
+    const exportPanels = sourcePanels.flatMap((panel) => {
+      const approval = currentTextApprovalFor(panel);
+      return approval ? [approvedGraphicNovelPanel(panel, approval)] : [];
+    });
+    if (exportPanels.length !== sourcePanels.length) {
+      const failure = "Review and approve Graphic Novel text before creating the WebP.";
+      setGraphicNovelExportState("error");
+      setGraphicNovelExportMessage(failure);
+      setMessage(failure);
+      setGraphicNovelTextReviewOpen(true);
       return;
     }
 
@@ -441,7 +619,7 @@ export default function PrevisReadinessWorkspace({
       const success = `WebP exported successfully as one static Graphic Novel sheet · ${anchor.download} · ${rendered.panelCount} locked panel${rendered.panelCount === 1 ? "" : "s"}.`;
       setGraphicNovelExportState("success");
       setGraphicNovelExportMessage(success);
-      setMessage(`${success} Observed dialogue bubbles and derived captions are presentation-only; story canon and Storyboard approval were unchanged.`);
+      setMessage(`${success} It used the exact approved Graphic Novel text snapshot; story canon and Storyboard approval were unchanged.`);
     } catch (error) {
       const detail = error instanceof Error ? error.message : "WebP export failed.";
       const failure = /^WebP export failed:/u.test(detail) ? detail : `WebP export failed: ${detail}`;
@@ -686,11 +864,11 @@ export default function PrevisReadinessWorkspace({
                       <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
                     </div>
                   )}
-                  {graphicNovelMode ? (
+                  {graphicNovelMode && selectedGraphicNovelHasText ? (
                     <>
-                      {selectedGraphicNovelPanel.bubbles.length ? (
+                      {selectedGraphicNovelDisplayPanel.bubbles.length ? (
                         <div className={styles.graphicNovelBubbles} aria-label="Observed screenplay dialogue">
-                          {selectedGraphicNovelPanel.bubbles.map((bubble, index) => (
+                          {selectedGraphicNovelDisplayPanel.bubbles.map((bubble, index) => (
                             <blockquote
                               className={styles.graphicNovelBubble}
                               data-bubble-side={index % 2 === 0 ? "left" : "right"}
@@ -703,9 +881,9 @@ export default function PrevisReadinessWorkspace({
                         </div>
                       ) : null}
                       <aside className={styles.graphicNovelCaption} aria-live="polite">
-                        <small>{selectedGraphicNovelPanel.caption}</small>
-                        <strong>{selectedGraphicNovelPanel.narration}</strong>
-                        <span>{selectedGraphicNovelPanel.shotLabel}{selectedGraphicNovelPanel.shotContext ? ` · ${selectedGraphicNovelPanel.shotContext}` : ""}</span>
+                        <small>{selectedGraphicNovelDisplayPanel.caption}</small>
+                        <strong>{selectedGraphicNovelDisplayPanel.narration}</strong>
+                        <span>{selectedGraphicNovelDisplayPanel.shotLabel}{selectedGraphicNovelDisplayPanel.shotContext ? ` · ${selectedGraphicNovelDisplayPanel.shotContext}` : ""}</span>
                         <em>Observed dialogue + derived Previs caption · presentation only</em>
                       </aside>
                     </>
@@ -729,13 +907,121 @@ export default function PrevisReadinessWorkspace({
                     setGraphicNovelMode(true);
                     setGraphicNovelPlaying((playing) => !playing);
                   }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
-                  <button disabled={!lockedFrameCount || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Export WebP</button>
+                  <button aria-expanded={graphicNovelTextReviewOpen} disabled={!lockedFrameCount} type="button" onClick={openGraphicNovelTextReview}>Review Text</button>
+                  <button disabled={!graphicNovelTextReady || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Create WebP</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);
                     setGraphicNovelPlaying(false);
                     setSelectedFramePosition((position) => position >= 25 ? 1 : position + 1);
                   }}>Next</button>
                 </div>
+                {!graphicNovelTextReady && lockedFrameCount ? (
+                  <p className={styles.textApprovalGate} role="status">
+                    Review and approve Graphic Novel text before creating the WebP. {pendingTextApprovalCount} locked panel{pendingTextApprovalCount === 1 ? "" : "s"} still need current approval.
+                  </p>
+                ) : null}
+                {graphicNovelTextReviewOpen ? (
+                  <section className={styles.graphicNovelTextReview} aria-label="Review Graphic Novel text">
+                    <header>
+                      <div>
+                        <span className={styles.eyebrow}>Graphic Novel text checkpoint</span>
+                        <h4>Review Text</h4>
+                        <p>Approve the words before Create WebP. The export uses this saved snapshot exactly; it does not re-derive dialogue during export.</p>
+                      </div>
+                      <div>
+                        <strong>{lockedGraphicNovelPanels.length - pendingTextApprovalCount}/{lockedGraphicNovelPanels.length} current approvals</strong>
+                        <button disabled={!lockedGraphicNovelPanels.length} onClick={approveAllGraphicNovelText} type="button">Approve All</button>
+                      </div>
+                    </header>
+                    <div className={styles.graphicNovelTextGrid}>
+                      {graphicNovelPanels.map((panel) => {
+                        const frame = flipBookFrames[panel.position - 1];
+                        const savedApproval = graphicNovelTextApprovals.find((approval) => approval.position === panel.position) ?? null;
+                        const currentApproval = currentTextApprovalFor(panel);
+                        const draft = graphicNovelTextDrafts[panel.position] ?? defaultGraphicNovelTextDraft(panel);
+                        const approvalState = currentApproval ? "Approved" : savedApproval ? "Stale approval" : "Needs approval";
+                        return (
+                          <article data-approval-state={currentApproval ? "approved" : savedApproval ? "stale" : "needed"} key={panel.position}>
+                            <header>
+                              <strong>Position {String(panel.position).padStart(2, "0")}</strong>
+                              <span>{frame?.locked ? approvalState : "Not locked"}</span>
+                            </header>
+                            {!frame?.locked ? (
+                              <p>Not locked — excluded from Graphic Novel export.</p>
+                            ) : (
+                              <>
+                                <small>{panel.caption} · {panel.shotLabel}{panel.shotContext ? ` · ${panel.shotContext}` : ""}</small>
+                                <label>
+                                  <span>Narration</span>
+                                  <textarea
+                                    disabled={draft.noText}
+                                    rows={3}
+                                    value={draft.narration}
+                                    onChange={(event) => updateGraphicNovelTextDraft(panel.position, (current) => ({ ...current, narration: event.target.value }))}
+                                  />
+                                </label>
+                                <div className={styles.graphicNovelBubbleEditor}>
+                                  <strong>Speech bubbles</strong>
+                                  {!draft.bubbles.length ? <p>No speech bubble proposed.</p> : null}
+                                  {draft.bubbles.map((bubble, index) => (
+                                    <div key={index}>
+                                      <input
+                                        aria-label={`Position ${panel.position} bubble ${index + 1} speaker`}
+                                        disabled={draft.noText}
+                                        placeholder="Speaker"
+                                        value={bubble.speaker}
+                                        onChange={(event) => updateGraphicNovelTextDraft(panel.position, (current) => ({
+                                          ...current,
+                                          bubbles: current.bubbles.map((item, bubbleIndex) => bubbleIndex === index ? { ...item, speaker: event.target.value } : item),
+                                        }))}
+                                      />
+                                      <textarea
+                                        aria-label={`Position ${panel.position} bubble ${index + 1} text`}
+                                        disabled={draft.noText}
+                                        placeholder="Speech bubble text"
+                                        rows={2}
+                                        value={bubble.text}
+                                        onChange={(event) => updateGraphicNovelTextDraft(panel.position, (current) => ({
+                                          ...current,
+                                          bubbles: current.bubbles.map((item, bubbleIndex) => bubbleIndex === index ? { ...item, text: event.target.value } : item),
+                                        }))}
+                                      />
+                                      <button
+                                        disabled={draft.noText}
+                                        onClick={() => updateGraphicNovelTextDraft(panel.position, (current) => ({
+                                          ...current,
+                                          bubbles: current.bubbles.filter((_, bubbleIndex) => bubbleIndex !== index),
+                                        }))}
+                                        type="button"
+                                      >Remove Bubble</button>
+                                    </div>
+                                  ))}
+                                  <button
+                                    disabled={draft.noText || draft.bubbles.length >= 2}
+                                    onClick={() => updateGraphicNovelTextDraft(panel.position, (current) => ({
+                                      ...current,
+                                      bubbles: [...current.bubbles, { speaker: "", text: "" }].slice(0, 2),
+                                    }))}
+                                    type="button"
+                                  >Add Speech Bubble</button>
+                                </div>
+                                <label className={styles.noTextChoice}>
+                                  <input
+                                    checked={draft.noText}
+                                    onChange={(event) => updateGraphicNovelTextDraft(panel.position, (current) => ({ ...current, noText: event.target.checked }))}
+                                    type="checkbox"
+                                  />
+                                  <span>No text — intentionally export this locked panel without narration or bubbles</span>
+                                </label>
+                                <button onClick={() => approveGraphicNovelText(panel.position)} type="button">Approve Text</button>
+                              </>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
                 {graphicNovelExportMessage ? (
                   <p
                     className={styles.exportStatus}

@@ -37,6 +37,7 @@ const LEGACY_LIBRARY_PREFIX = "plotpickle.library.profile.v1.";
 export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save-state";
 
 let csrfToken = "";
+let hydratedProfileId = "";
 let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapContexts: null };
 let pendingWrite: Promise<void> = Promise.resolve();
 let pendingCacheWrite: Promise<void> = Promise.resolve();
@@ -197,7 +198,13 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
     projects,
     storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
   };
+  hydratedProfileId = profileId;
   updateSaveState("saved", "Saved");
+}
+
+export function profilePrivateBrowserAuthorityMatches(profileId: string, token: string) {
+  const normalizedProfileId = profileId.trim();
+  return Boolean(normalizedProfileId && token && hydratedProfileId === normalizedProfileId && csrfToken === token);
 }
 
 export function hydratedProfilePrivateValue(key: "wyrmwood") {
@@ -259,6 +266,7 @@ export async function flushProfilePrivateWrites() {
 
 export function releaseProfilePrivateBrowserAuthority() {
   csrfToken = "";
+  hydratedProfileId = "";
   hydrated = { project: null, wyrmwood: null, storyMapContexts: null };
   pendingWrite = Promise.resolve();
   pendingCacheWrite = Promise.resolve();

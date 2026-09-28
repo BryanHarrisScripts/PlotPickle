@@ -19,12 +19,12 @@
   "acceptance": [
     {
       "id": "P2432-E1",
-      "criterion": "Library LOAD can start Afterglow directly and always records a Load Session base revision before recovery.",
+      "criterion": "Library LOAD can intentionally start a fresh Afterglow copy and always records a Load Session base revision before recovery.",
       "evidence": [
         {
           "type": "file-contains",
           "path": "modules/library/ui/library-workspace.tsx",
-          "contains": "Load Afterglow"
+          "contains": "Start Fresh Afterglow Copy"
         },
         {
           "type": "file-contains",

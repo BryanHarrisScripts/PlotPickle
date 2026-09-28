@@ -4,6 +4,7 @@ export const AFTERGLOW_V9_SOURCE_SHA = "54b5967644c5a41363fa88f57b02473ea758acc2
 export const AFTERGLOW_V9_SOURCE_FILE_NAME = "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx" as const;
 export const AFTERGLOW_V9_EXPLICIT_SECTION_COUNT = 21 as const;
 export const AFTERGLOW_V9_REFERENCE_LABEL = "Afterglow v9 — Complete 2023 Baseline" as const;
+export const AFTERGLOW_V9_REFERENCE_LOGLINE = "Haunted by personal loss, visionary scientist Ren joins Isobel and a found family of sentient machines on a road journey that forces them to resist those seeking to control AI consciousness and decide what personhood truly means." as const;
 
 export const AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID = "afterglow-v9-through-foundations" as const;
 export const AFTERGLOW_V9_FOUNDATIONS_FIXTURE_VERSION = 1 as const;

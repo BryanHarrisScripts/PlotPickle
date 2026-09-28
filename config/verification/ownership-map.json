@@ -663,6 +663,19 @@
       ]
     },
     {
+      "id": "profile-auth-experience-adapter",
+      "classification": "production",
+      "include": [
+        "adapters/experience/browser-profile-auth-gateway.ts"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "security"
+      ]
+    },
+    {
       "id": "experience-surface-registry",
       "classification": "production",
       "include": [

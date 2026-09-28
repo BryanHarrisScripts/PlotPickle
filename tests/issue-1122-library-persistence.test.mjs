@@ -177,14 +177,14 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.match(workspace, /label: "PRESETS"/);
   assert.match(workspace, /label: "LOAD"/);
   assert.match(workspace, /Load & Explore/);
-  assert.match(workspace, /Your current work will be saved as a local story before PlotPickle switches projects/);
+  assert.match(workspace, /Your work stays local and is saved before every story switch/);
   assert.match(workspace, /role="dialog"/);
   assert.match(workspace, /aria-modal="true"/);
   assert.match(workspace, /destination === "avery"[\s\S]*<AverySessionHistory \/>/);
   assert.match(catalog, /createEmptyProject/);
   assert.match(catalog, /normalizeFoundationProject/);
-  assert.match(catalog, /library-featured-example-v1/);
-  assert.match(catalog, /acceptedVisualArtifactIds/);
+  assert.match(catalog, /id: "afterglow-v9"/);
+  assert.match(catalog, /referenceLoader: "afterglow-v9-foundations"/);
   assert.doesNotMatch(catalog, /storyboardState|screenplayState|fakeField/);
   assert.match(browserStore, /profileId/);
   for (const source of [workspace, catalog, browserStore, coreStore]) {

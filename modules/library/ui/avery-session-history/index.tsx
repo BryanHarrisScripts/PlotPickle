@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createEmptyProject } from "../../../../core/project/project";
+import {
+  archiveLibraryProject, createLibraryWorkingCopy, deleteArchivedLibraryProject,
+  listLibraryProjects, switchActiveLibraryProject,
+} from "../../../../core/storage/project-library-browser";
+import { deleteArchivedProfileProjectFromVault, persistActiveProfileProject } from "../../../../core/storage/profile-private-browser";
 import styles from "./avery-session-history.module.css";
 
 const API = "/api/writer-in-residence/sessions";
@@ -66,22 +72,6 @@ function closeSession() {
   window.location.assign(`${destination.pathname}${destination.search}`);
 }
 
-function artifactButton(label: "POSTER" | "TRAILER", url: string) {
-  return (
-    <button
-      className={styles.artifactPill}
-      disabled={!url}
-      onClick={() => {
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
-      }}
-      title={url ? `Open this Avery session's ${label.toLowerCase()}` : `${label} unavailable for this session`}
-      type="button"
-    >
-      {label}
-    </button>
-  );
-}
-
 function SessionReview({ detail }: { readonly detail: SessionDetail }) {
   const { report, summary } = detail;
   const visited = report.journeyCoverage?.writerVisitedScreens || [];
@@ -105,11 +95,6 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
         <div><span>Last stage</span><strong>{summary.completionFrontier || "Not recorded"}</strong></div>
         <div><span>Status</span><strong>{summary.completionState || "Recorded"}</strong></div>
         <div><span>Review notes</span><strong>{summary.findingCount + summary.frictionCount}</strong></div>
-      </div>
-
-      <div className={styles.artifactReview}>
-        {summary.posterUrl ? <a href={summary.posterUrl} rel="noreferrer" target="_blank">Open session POSTER</a> : <span>POSTER not produced in this session</span>}
-        {summary.trailerUrl ? <a href={summary.trailerUrl} rel="noreferrer" target="_blank">Open session TRAILER</a> : <span>TRAILER not produced in this session</span>}
       </div>
 
       <section className={styles.reviewSection}>
@@ -181,6 +166,7 @@ export default function AverySessionHistory() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [notice, setNotice] = useState("Loading local Avery sessions…");
+  const [deleting, setDeleting] = useState("");
   const requested = useMemo(selectedSessionId, []);
 
   useEffect(() => {
@@ -215,6 +201,56 @@ export default function AverySessionHistory() {
   const latestSession = sessions[0] || null;
   const storyCount = new Set(sessions.map((session) => session.projectName)).size;
 
+  async function openStory(session: SessionSummary) {
+    setNotice("Opening Avery's synthetic story…");
+    try {
+      const existing = listLibraryProjects().find((item) => item.sourceKind === "synthetic" && item.sourceId === session.id);
+      if (existing) switchActiveLibraryProject(existing.id);
+      else {
+        const response = await fetch(`${API}?session=${encodeURIComponent(session.id)}`, { cache: "no-store" });
+        const body = await response.json();
+        if (!response.ok || !body.session?.report) throw new Error(body.message || "Avery session report is unavailable.");
+        const report = body.session.report as SessionDetail["report"];
+        const now = new Date().toISOString();
+        const reference = createEmptyProject({ id: `avery-session-${session.id}`, title: session.projectName, now });
+        const provenance = `Synthetic Avery session ${session.id}. Reconstructed from the saved session report; this is not a complete project snapshot.`;
+        const content = [provenance, report.storySeed?.premise, report.storyMemory].filter(Boolean).join("\n\n");
+        createLibraryWorkingCopy({
+          sourceProject: { ...reference, foundations: { ...reference.foundations, brief: { content, savedAt: now } } },
+          sourceKind: "synthetic", sourceId: session.id, title: session.projectName,
+          genre: "Avery synthetic story", format: report.storySeed?.format || "Story",
+        });
+      }
+      await persistActiveProfileProject();
+      window.location.assign("/?workspace=dashboard");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Avery story could not be opened.");
+    }
+  }
+
+  async function deleteSession(session: SessionSummary) {
+    if (!window.confirm(`Permanently delete Avery story “${session.projectName}”? This cannot be undone.`)) return;
+    setDeleting(session.id);
+    try {
+      const copy = listLibraryProjects().find((item) => item.sourceKind === "synthetic" && item.sourceId === session.id);
+      if (copy) {
+        archiveLibraryProject(copy.id);
+        await persistActiveProfileProject();
+        await deleteArchivedProfileProjectFromVault(copy.id);
+        deleteArchivedLibraryProject(copy.id);
+      }
+      const response = await fetch(`${API}?session=${encodeURIComponent(session.id)}`, { method: "DELETE" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || "Avery story could not be deleted.");
+      setSessions((current) => current.filter((item) => item.id !== session.id));
+      setNotice(`${session.projectName} was deleted permanently.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Avery story could not be deleted.");
+    } finally {
+      setDeleting("");
+    }
+  }
+
   return (
     <section className={styles.panel} aria-label="Avery Writer-in-Residence sessions">
       <header className={styles.heading}>
@@ -237,12 +273,9 @@ export default function AverySessionHistory() {
       <div className={styles.slotGrid}>
         {slots.map((session, index) => (
           <div className={styles.slotWrap} key={session?.id || `empty-${index}`}>
-            <button
+            <div
               className={styles.sessionCard}
               data-empty={!session}
-              disabled={!session}
-              onClick={() => session && openSession(session.id)}
-              type="button"
             >
               <span className={styles.artwork}>
                 <img alt="" src={session?.representativeVisualUrl || EMPTY_ART} />
@@ -263,11 +296,11 @@ export default function AverySessionHistory() {
                   </>
                 )}
               </span>
-            </button>
-            <div className={styles.pills} aria-label={`Avery session ${index + 1} artifacts`}>
-              {artifactButton("POSTER", session?.posterUrl || "")}
-              {artifactButton("TRAILER", session?.trailerUrl || "")}
             </div>
+            {session ? <div className={styles.pills} aria-label={`Avery story ${index + 1} actions`}>
+              <button className={styles.storyAction} onClick={() => void openStory(session)} type="button">Open Story</button>
+              <button className={styles.deleteAction} disabled={deleting === session.id} onClick={() => void deleteSession(session)} type="button">{deleting === session.id ? "Deleting…" : "Delete"}</button>
+            </div> : null}
           </div>
         ))}
       </div>
@@ -277,10 +310,12 @@ export default function AverySessionHistory() {
           <summary>Full Writer-in-Residence history · {sessions.length} sessions</summary>
           <div>
             {sessions.map((session) => (
-              <button key={session.id} onClick={() => openSession(session.id)} type="button">
+              <div key={session.id}>
                 <strong>{session.projectName}</strong>
                 <span>{friendlyDate(session.generatedAt)} · {session.completionState || "Recorded"}</span>
-              </button>
+                <button onClick={() => void openStory(session)} type="button">Open Story</button>
+                <button disabled={deleting === session.id} onClick={() => void deleteSession(session)} type="button">Delete</button>
+              </div>
             ))}
           </div>
         </details>

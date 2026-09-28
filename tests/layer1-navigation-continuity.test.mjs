@@ -62,7 +62,7 @@ test("Layer 1 canonical navigation protects nested Library return continuity", a
     read("lib/verification/skin-v1-menu-contract-audit.mjs"),
   ]);
 
-  assert.match(library, /data-skin-v1-local-return="true"[\s\S]*onClick=\{openActiveProject\}[\s\S]*Back to Dashboard/u);
+  assert.match(library, /data-skin-v1-local-return="true"[\s\S]*onClick=\{\(\) => void openActiveProject\(\)\.catch\([\s\S]*Back to Dashboard/u);
   assert.doesNotMatch(library, /data-library-back="directory"/u);
   assert.match(orchestrator, /activateExistingReturn\(active\)/u);
   assert.match(audit, /dashboard-discovery/u);

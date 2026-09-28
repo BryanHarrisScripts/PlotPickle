@@ -288,7 +288,7 @@ test("#2450 browser/profile boundaries use complete hydration and live MindMap/W
   assert.match(route, /projects\.filter/u);
   assert.match(profileBrowser, /hydrateProfileProjectLibrary\(\{ activeProjectId, projects \}\)/u);
   assert.match(profileBrowser, /normalizeLibraryProject/u);
-  assert.match(profileBrowser, /listLibraryProjects\(\)\.find/u);
+  assert.match(profileBrowser, /\[\.\.\.listLibraryProjects\(\), \.\.\.listArchivedLibraryProjects\(\)\]/u);
   assert.match(libraryBrowser, /normalizeDiscoveryState/u);
   assert.match(libraryBrowser, /normalizeProjectSourceEvidence/u);
   assert.match(libraryBrowser, /projectWithStructure = \{ \.\.\.project, structure, sourceEvidence, writing, discovery, worldMap \}/u);

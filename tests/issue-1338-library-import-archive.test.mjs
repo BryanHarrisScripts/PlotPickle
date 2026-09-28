@@ -4,6 +4,7 @@ import test from "node:test";
 import { createServer } from "vite";
 import {
   archiveProfileProject,
+  deleteArchivedProfileProject,
   initializeProfileProjectLibrary,
   listProfileArchivedProjectSummaries,
   listProfileProjectSummaries,
@@ -144,6 +145,19 @@ test("issue #1338 archiving the last story leaves zero active projects and resto
   assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
 });
 
+test("issue #2545 permanent deletion is limited to an archived snapshot", () => {
+  const input = archiveHarness();
+  const original = initializeProfileProjectLibrary(input).activeProject.id;
+  assert.throws(() => deleteArchivedProfileProject({ ...input, projectId: original }), /Only an archived story/);
+  archiveProfileProject({ ...input, projectId: original });
+  const key = `plotpickle.library.profile.v1.${input.profileId}.projects.${original}`;
+  assert.ok(input.storage.getItem(key));
+  deleteArchivedProfileProject({ ...input, projectId: original });
+  assert.equal(input.storage.getItem(key), null);
+  assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
+  assert.throws(() => restoreProfileProject({ ...input, projectId: original }), /not in this Library/);
+});
+
 test("issue #1338 Library and Settings reuse one Archive component and Library exposes a real New Story action", async () => {
   const [library, settings, archive, css] = await Promise.all([
     source("modules/library/ui/library-workspace.tsx"),
@@ -158,12 +172,12 @@ test("issue #1338 Library and Settings reuse one Archive component and Library e
   assert.match(library, /createLibraryUserProject/);
   assert.match(library, /data-library-new-story-card="ready"/);
   assert.match(library, /Create New Story/);
-  assert.match(library, />New Story<\/button>/);
+  assert.match(library, /label: "NEW", description: "Start a New Story"/);
   assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/);
   assert.doesNotMatch(library, /Coming Soon|Coming soon|data-library-ghost-card="coming-soon"/);
-  assert.match(library, /Import \.PPF/);
+  assert.match(library, /Import a legacy \.ppf story/);
   assert.match(library, /\/api\/library\/import\/ppf/);
   assert.match(css, /\.cardMenu/);
   assert.match(css, /\.ghostCard/);
-  assert.match(css, /\.storyTools/);
+  assert.match(css, /\.actionPanel/);
 });

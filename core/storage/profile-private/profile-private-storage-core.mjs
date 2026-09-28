@@ -219,7 +219,7 @@ function projectSummary(project, supplied, now) {
     : typeof project?.title === "string" && project.title.trim()
       ? project.title.trim()
       : "Untitled Story";
-  const sourceKind = new Set(["user", "example", "preset", "migrated", "import"]).has(supplied?.sourceKind) ? supplied.sourceKind : "user";
+  const sourceKind = new Set(["user", "example", "preset", "migrated", "import", "synthetic"]).has(supplied?.sourceKind) ? supplied.sourceKind : "user";
   return Object.freeze({
     projectId: normalizeObjectId(project?.id, "Project"),
     title,
@@ -394,6 +394,47 @@ export function createProfilePrivateStorageService(options) {
     },
     async saveProject(authContext, input) {
       return withMutation(authContext, (access) => saveProjectInternal(access, input));
+    },
+    async syncLibrary(authContext, input) {
+      return withMutation(authContext, async (access) => {
+        if (!Array.isArray(input?.projects) || input.projects.length > 1000) fail("Profile Library sync inventory is invalid.", "INVALID_PROJECT_INVENTORY");
+        const entries = input.projects.map((entry) => {
+          const project = typeof options.normalizeProject === "function" ? options.normalizeProject(entry?.project) : structuredClone(entry?.project);
+          if (!project || typeof project !== "object" || Array.isArray(project)) fail("Profile project is invalid.", "INVALID_PROJECT");
+          return { project, summary: projectSummary(project, entry?.summary, now()) };
+        });
+        const ids = entries.map((entry) => entry.summary.projectId);
+        if (new Set(ids).size !== ids.length) fail("Profile Library contains duplicate project ids.", "PROFILE_LIBRARY_CORRUPT");
+        const activeProjectId = input.activeProjectId === null ? null : normalizeObjectId(input.activeProjectId, "Project");
+        if (activeProjectId && !entries.some((entry) => entry.summary.projectId === activeProjectId && !entry.summary.archivedAt)) fail("Active project must be available and unarchived.", "INVALID_ACTIVE_PROJECT");
+        for (const entry of entries) await writeObject(access, "projects", entry.summary.projectId, entry.project);
+        const previous = await readLibrary(access);
+        const next = {
+          ...previous, activeProjectId,
+          projects: [
+            ...entries.map((entry) => entry.summary),
+            ...previous.projects.filter((item) => !ids.includes(item.projectId)),
+          ],
+          updatedAt: now(),
+        };
+        await writeLibrary(access, next);
+        if (activeProjectId) activeProjects.set(authContext.sessionId, { profileId: access.profileId, projectId: activeProjectId });
+        else activeProjects.delete(authContext.sessionId);
+        return { activeProjectId, projectCount: entries.length };
+      });
+    },
+    async deleteArchivedProject(authContext, projectId) {
+      return withMutation(authContext, async (access) => {
+        const id = normalizeObjectId(projectId, "Project");
+        const library = await readLibrary(access);
+        const target = library.projects.find((item) => item.projectId === id);
+        if (!target?.archivedAt || library.activeProjectId === id) fail("Only an archived, inactive project can be permanently deleted.", "PROJECT_DELETE_REJECTED");
+        await writeLibrary(access, { ...library, projects: library.projects.filter((item) => item.projectId !== id), updatedAt: now() });
+        const targetPath = objectPath(access, "projects", id).filePath;
+        await assertRegularFile(targetPath);
+        await rm(targetPath);
+        return { deletedProjectId: id };
+      });
     },
     async loadProject(authContext, projectId) {
       const access = await authority(authContext);

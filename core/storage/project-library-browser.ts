@@ -18,7 +18,7 @@ import * as libraryCore from "./project-library-core.mjs";
 
 export type { LibraryPPFProject } from "./library-project";
 
-export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import";
+export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import" | "synthetic";
 
 export type ProjectLibrarySummary = {
   readonly id: string;
@@ -39,6 +39,9 @@ export const PROJECT_LIBRARY_CHANGED_EVENT = libraryCore.PROJECT_LIBRARY_CHANGED
 export const PROJECT_LIBRARY_ACTIVE_PROFILE_KEY = libraryCore.PROJECT_LIBRARY_ACTIVE_PROFILE_KEY as string;
 export const DEFAULT_LOCAL_PROFILE_ID = libraryCore.DEFAULT_LOCAL_PROFILE_ID as string;
 
+const PROJECT_SNAPSHOT_KEY_MARKER = ".projects.";
+const projectSnapshotSessionCache = new Map<string, string>();
+
 type ActiveProjectReadCache = Readonly<{
   profileId: string;
   registryRaw: string;
@@ -48,9 +51,65 @@ type ActiveProjectReadCache = Readonly<{
 
 let activeProjectReadCache: ActiveProjectReadCache | null = null;
 
+function isProjectSnapshotKey(key: string) {
+  // Authenticated Human projects have an encrypted profile-vault backing store.
+  // Autonomous Guest checkpoints still rely on Web Storage and must remain visible there.
+  return key.startsWith("plotpickle.library.profile.v1.profile_") && key.includes(PROJECT_SNAPSHOT_KEY_MARKER);
+}
+
+function storageKeys(browserStorage: Storage) {
+  const keys = Array.from({ length: browserStorage.length }, (_, index) => browserStorage.key(index))
+    .filter((key): key is string => Boolean(key));
+  for (const key of projectSnapshotSessionCache.keys()) {
+    if (!keys.includes(key)) keys.push(key);
+  }
+  return keys;
+}
+
+function sessionLibraryStorage(browserStorage: Storage): Storage {
+  return {
+    get length() {
+      return storageKeys(browserStorage).length;
+    },
+    clear() {
+      projectSnapshotSessionCache.clear();
+      browserStorage.clear();
+      activeProjectReadCache = null;
+    },
+    getItem(key: string) {
+      if (projectSnapshotSessionCache.has(key)) return projectSnapshotSessionCache.get(key) ?? null;
+      return browserStorage.getItem(key);
+    },
+    key(index: number) {
+      return storageKeys(browserStorage)[index] ?? null;
+    },
+    removeItem(key: string) {
+      projectSnapshotSessionCache.delete(key);
+      browserStorage.removeItem(key);
+      activeProjectReadCache = null;
+    },
+    setItem(key: string, value: string) {
+      const normalized = String(value);
+      if (isProjectSnapshotKey(key)) {
+        projectSnapshotSessionCache.set(key, normalized);
+        // Retire any legacy Web Storage copy so large project snapshots cannot consume browser quota.
+        browserStorage.removeItem(key);
+      } else {
+        browserStorage.setItem(key, normalized);
+      }
+      activeProjectReadCache = null;
+    },
+  };
+}
+
 function storage() {
   if (typeof window === "undefined") throw new Error("Project Library is available only in the local PlotPickle browser session.");
-  return window.sessionStorage;
+  return sessionLibraryStorage(window.sessionStorage);
+}
+
+export function clearLibraryProjectSessionCache() {
+  projectSnapshotSessionCache.clear();
+  activeProjectReadCache = null;
 }
 
 function idFactory() {
@@ -283,7 +342,7 @@ export function createLibraryUserProject(input: {
 
 export function createLibraryWorkingCopy(input: {
   readonly sourceProject: PPFProject;
-  readonly sourceKind: "example" | "preset";
+  readonly sourceKind: "example" | "preset" | "synthetic";
   readonly sourceId: string;
   readonly title: string;
   readonly genre: string;
@@ -326,6 +385,14 @@ export function archiveLibraryProject(projectId: string) {
 
 export function restoreArchivedLibraryProject(projectId: string) {
   const result = libraryCore.restoreProfileProject({ ...coreInput(), projectId }) as {
+    readonly activeProject: LibraryPPFProject | null;
+  };
+  announceChange();
+  return result.activeProject;
+}
+
+export function deleteArchivedLibraryProject(projectId: string) {
+  const result = libraryCore.deleteArchivedProfileProject({ ...coreInput(), projectId }) as {
     readonly activeProject: LibraryPPFProject | null;
   };
   announceChange();

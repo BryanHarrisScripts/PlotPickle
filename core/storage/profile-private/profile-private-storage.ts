@@ -27,7 +27,7 @@ export type ProfileProjectSummary = Readonly<{
   progress: number;
   frontier: string;
   thumbnailRef: string;
-  sourceKind: "user" | "example" | "preset" | "migrated" | "import";
+  sourceKind: "user" | "example" | "preset" | "migrated" | "import" | "synthetic";
   sourceId: string | null;
   genre: string;
   format: string;
@@ -48,6 +48,8 @@ export type ProfilePrivateStorageService = {
   readPrivateJson(authContext: AuthContext, input: { readonly domain: ProfileStorageDomain; readonly objectId: string }): Promise<unknown | null>;
   writePrivateJson(authContext: AuthContext, input: { readonly domain: ProfileStorageDomain; readonly objectId: string; readonly value: unknown }): Promise<unknown>;
   saveProject(authContext: AuthContext, input: { readonly project: unknown; readonly summary?: Partial<ProfileProjectSummary>; readonly activate?: boolean }): Promise<{ readonly project: unknown; readonly summary: ProfileProjectSummary }>;
+  syncLibrary(authContext: AuthContext, input: { readonly activeProjectId: string | null; readonly projects: readonly { readonly project: unknown; readonly summary?: Partial<ProfileProjectSummary> }[] }): Promise<{ readonly activeProjectId: string | null; readonly projectCount: number }>;
+  deleteArchivedProject(authContext: AuthContext, projectId: string): Promise<{ readonly deletedProjectId: string }>;
   loadProject(authContext: AuthContext, projectId: string): Promise<unknown | null>;
   listProjects(authContext: AuthContext): Promise<ReadonlyArray<ProfileProjectSummary>>;
   activateProject(authContext: AuthContext, projectId: string): Promise<string>;

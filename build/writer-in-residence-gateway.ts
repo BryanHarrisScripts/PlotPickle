@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, rm, stat } from "node:fs/promises";
 import type { ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
@@ -175,7 +175,7 @@ export function writerInResidenceGateway(): Plugin {
       server.middlewares.use(async (request, response, next) => {
         const url = new URL(request.url || "/", "http://127.0.0.1");
         if (url.pathname !== SESSIONS_API && url.pathname !== ASSET_API) return next();
-        if (request.method !== "GET") return sessionJson(response, 405, { message: "Method not allowed." });
+        if (request.method !== "GET" && !(url.pathname === SESSIONS_API && request.method === "DELETE")) return sessionJson(response, 405, { message: "Method not allowed." });
 
         const remoteAddress = request.socket.remoteAddress;
         const host = request.headers.host || "";
@@ -193,6 +193,14 @@ export function writerInResidenceGateway(): Plugin {
         }
 
         const sessionId = url.searchParams.get("session") || "";
+        if (request.method === "DELETE") {
+          const directory = safeSessionDirectory(sessionId);
+          if (!directory) return sessionJson(response, 400, { message: "Invalid Avery session." });
+          const session = await readSession(sessionId);
+          if (!session) return sessionJson(response, 404, { message: "Avery session was not found." });
+          await rm(directory, { recursive: true });
+          return sessionJson(response, 200, { deleted: sessionId });
+        }
         if (sessionId) {
           const session = await readSession(sessionId);
           return session

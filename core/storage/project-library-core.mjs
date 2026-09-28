@@ -64,7 +64,7 @@ function parseJson(raw) {
 }
 
 function validSourceKind(value) {
-  return value === "user" || value === "example" || value === "preset" || value === "migrated" || value === "import";
+  return value === "user" || value === "example" || value === "preset" || value === "migrated" || value === "import" || value === "synthetic";
 }
 
 function normalizeSummary(value) {
@@ -541,6 +541,21 @@ export function restoreProfileProject(input) {
     registry,
     activeProject: activeProjectId === restored.id ? loaded.project : initialized.activeProject,
   };
+}
+
+export function deleteArchivedProfileProject(input) {
+  const initialized = initializeProfileProjectLibrary(input);
+  const projectId = requireProjectId(input.projectId);
+  const target = initialized.registry.projects.find((item) => item.id === projectId);
+  if (!target?.archivedAt) throw new Error("Only an archived story can be permanently deleted.");
+  if (initialized.registry.activeProjectId === projectId) throw new Error("An active story cannot be deleted.");
+  const registry = writeRegistry(input.storage, {
+    ...initialized.registry,
+    projects: initialized.registry.projects.filter((item) => item.id !== projectId),
+    updatedAt: input.now(),
+  });
+  input.storage.removeItem(projectLibraryProjectKey(input.profileId, projectId));
+  return { registry, activeProject: initialized.activeProject };
 }
 
 export function readProfileProjectSnapshot(input) {

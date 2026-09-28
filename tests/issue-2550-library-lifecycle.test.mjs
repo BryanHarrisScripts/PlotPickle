@@ -1,0 +1,94 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import {
+  archiveProfileProject, createProfileUserProject, deleteArchivedProfileProject,
+  initializeProfileProjectLibrary, listProfileArchivedProjectSummaries, listProfileProjectSummaries,
+} from "../core/storage/project-library-core.mjs";
+
+class MemoryStorage {
+  values = new Map();
+  get length() { return this.values.size; }
+  getItem(key) { return this.values.get(key) ?? null; }
+  setItem(key, value) { this.values.set(key, String(value)); }
+  removeItem(key) { this.values.delete(key); }
+  key(index) { return [...this.values.keys()][index] ?? null; }
+}
+
+test("#2545 delete one/all touches only archived snapshots and preserves the active story", () => {
+  let serial = 0;
+  const storage = new MemoryStorage();
+  const input = {
+    storage, profileId: "profile-library-2550", now: () => "2026-09-28T17:00:00.000Z",
+    idFactory: () => `story-${++serial}`,
+    createProject: ({ id, now, title }) => ({ id, title, createdAt: now, updatedAt: now }),
+    normalizeProject: (project) => structuredClone(project),
+    describeProject: () => ({ progress: 0, frontier: "Foundations", thumbnail: "" }),
+  };
+  const first = initializeProfileProjectLibrary(input).activeProject;
+  const second = createProfileUserProject({ ...input, title: "Second" }).activeProject;
+  const active = createProfileUserProject({ ...input, title: "Active" }).activeProject;
+  assert.throws(() => deleteArchivedProfileProject({ ...input, projectId: active.id }), /Only an archived story/);
+  for (const project of [first, second]) archiveProfileProject({ ...input, projectId: project.id });
+  deleteArchivedProfileProject({ ...input, projectId: first.id });
+  assert.deepEqual(listProfileArchivedProjectSummaries(input).map((item) => item.id), [second.id]);
+  for (const item of listProfileArchivedProjectSummaries(input)) deleteArchivedProfileProject({ ...input, projectId: item.id });
+  assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
+  assert.deepEqual(listProfileProjectSummaries(input).map((item) => item.id), [active.id]);
+  assert.equal(initializeProfileProjectLibrary(input).activeProject.id, active.id);
+  for (const project of [first, second]) assert.equal(storage.getItem(`plotpickle.library.profile.v1.${input.profileId}.projects.${project.id}`), null);
+});
+
+test("#2547/#2548 Example and LOAD semantics stay separate", async () => {
+  const [catalog, workspace, css] = await Promise.all([
+    readFile(new URL("../modules/library/project-library-catalog.ts", import.meta.url), "utf8"),
+    readFile(new URL("../modules/library/ui/library-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../modules/library/ui/library-workspace.module.css", import.meta.url), "utf8"),
+  ]);
+  assert.doesNotMatch(catalog, /clockmakers-map/i);
+  assert.match(workspace, /src="\/assets\/library\/examples\/afterglow\.svg"/);
+  assert.match(css, /\.exampleCard \{ display: grid; grid-template-columns: minmax\(180px, 35%\) minmax\(0, 1fr\)/);
+  assert.doesNotMatch(workspace, /Start Fresh Afterglow Copy/);
+  assert.match(workspace, /Close local resource recovery/);
+  assert.match(workspace, /if \(!inventory\.groups\.length && !scanError\)/);
+  assert.match(workspace, /setStories\(listLibraryProjects\(\)\.filter\(\(item\) => item\.sourceKind !== "synthetic"\)\)/);
+});
+
+test("#2546 Avery opens a synthetic-provenance story and confirms selected deletion", async () => {
+  const [ui, gateway] = await Promise.all([
+    readFile(new URL("../modules/library/ui/avery-session-history/index.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../build/writer-in-residence-gateway.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(ui, /sourceKind: "synthetic", sourceId: session\.id/u);
+  assert.match(ui, /Reconstructed from the saved session report; this is not a complete project snapshot/u);
+  assert.match(ui, /Open Story<\/button>/u);
+  assert.match(ui, /Permanently delete Avery story/u);
+  assert.match(ui, /deleteArchivedProfileProjectFromVault\(copy\.id\)/u);
+  assert.doesNotMatch(ui, /artifactButton|Open session POSTER|Open session TRAILER/u);
+  assert.match(gateway, /request\.method === "DELETE"/u);
+  assert.match(gateway, /safeSessionDirectory\(sessionId\)/u);
+});
+
+test("#2549 browser migration verifies encrypted storage before retiring old session copies", async () => {
+  const source = await readFile(new URL("../core/storage/profile-private-browser.ts", import.meta.url), "utf8");
+  const migration = source.indexOf('await privateMutation("sync-library", { projects, activeProjectId }, token)');
+  const verification = source.indexOf('if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots.');
+  const clear = source.indexOf('window.sessionStorage.clear();', migration);
+  assert.ok(migration > 0 && verification > migration && clear > verification);
+  assert.match(source, /The browser Library snapshot's project identity does not match its profile\. The record remains untouched/u);
+  const browser = await readFile(new URL("../core/storage/project-library-browser.ts", import.meta.url), "utf8");
+  assert.match(browser, /key\.startsWith\("plotpickle\.library\.profile\.v1\.profile_"\)/u);
+});
+
+
+test("#2550 Skin V1 restores private browser authority for an existing authenticated session", async () => {
+  const [gateway, privateBrowser] = await Promise.all([
+    readFile(new URL("../adapters/experience/browser-profile-auth-gateway.ts", import.meta.url), "utf8"),
+    readFile(new URL("../core/storage/profile-private-browser.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(privateBrowser, /let hydratedProfileId = "";/u);
+  assert.match(privateBrowser, /export function profilePrivateBrowserAuthorityMatches\(profileId: string, token: string\)/u);
+  assert.match(privateBrowser, /hydratedProfileId = profileId;\s*updateSaveState\("saved", "Saved"\)/u);
+  assert.match(privateBrowser, /releaseProfilePrivateBrowserAuthority\(\)[\s\S]*hydratedProfileId = "";/u);
+  assert.match(gateway, /async read\(\) \{\s*const status = await readRawProfileStatus\(\);[\s\S]*status\.authenticated && status\.profile[\s\S]*!status\.csrfToken[\s\S]*profilePrivateBrowserAuthorityMatches\(status\.profile\.profileId, status\.csrfToken\)[\s\S]*hydrateProfilePrivateBrowser\(status\.profile\.profileId, status\.csrfToken\)/u);
+});

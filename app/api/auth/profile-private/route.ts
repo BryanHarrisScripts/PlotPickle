@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     const summaries = await runtimeState.privateStorage.listProjects(authContext);
     let project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
     if (!project) {
-      for (const summary of summaries) {
+      for (const summary of summaries.filter((item) => !item.archivedAt)) {
         const candidate = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
         if (!candidate) continue;
         await runtimeState.privateStorage.activateProject(authContext, summary.projectId);
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     ]);
     return response({
       project,
-      activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof project.id === "string" ? project.id : null,
+      activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof (project as { id?: unknown }).id === "string" ? (project as { id: string }).id : null,
       projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),
       wyrmwood,
       storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts),
@@ -77,6 +77,24 @@ export async function POST(request: Request) {
         : undefined;
       const saved = await runtimeState.privateStorage.saveProject(authContext, { project, summary });
       return response({ projectId: saved.summary.projectId });
+    }
+    if (input.action === "sync-library") {
+      if (!Array.isArray(input.projects)) return response({ message: "Invalid Library inventory." }, 400);
+      const projects = input.projects.map((entry) => {
+        const value = entry && typeof entry === "object" && !Array.isArray(entry) ? entry as Record<string, unknown> : {};
+        return {
+          project: normalizeLibraryProject(value.project),
+          summary: value.summary && typeof value.summary === "object" && !Array.isArray(value.summary)
+            ? value.summary as Partial<ProfileProjectSummary> : undefined,
+        };
+      });
+      return response(await runtimeState.privateStorage.syncLibrary(authContext, {
+        activeProjectId: typeof input.activeProjectId === "string" ? input.activeProjectId : null,
+        projects,
+      }));
+    }
+    if (input.action === "delete-archived-project") {
+      return response(await runtimeState.privateStorage.deleteArchivedProject(authContext, String(input.projectId || "")));
     }
     if (input.action === "save-wyrmwood") {
       await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state", value: input.value });

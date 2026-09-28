@@ -513,6 +513,28 @@
   border-style: dashed;
 }
 
+.referenceCarouselFigure {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+
+.referenceCarouselFigure[data-review-state="approved"] {
+  border-color: var(--pp-skin-accent-bright);
+}
+
+.referenceCarouselFigure[data-review-state="candidate"] {
+  border-style: dashed;
+}
+
+.referenceCarouselFigure figcaption {
+  padding: var(--pp-skin-space-2);
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  text-align: center;
+}
+
 .poster > .actions {
   margin-top: var(--pp-skin-space-1);
 }

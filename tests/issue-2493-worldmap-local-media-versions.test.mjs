@@ -28,8 +28,8 @@ test("#2493 generation stays unsaved until explicit Save for WorldMap poster and
   assert.match(surface, /UNSAVED/u);
   assert.match(surface, /SAVED/u);
   assert.match(surface, /LOCKED/u);
-  assert.match(surface, /Previous saved version/u);
-  assert.match(surface, /Next saved version/u);
+  assert.match(surface, /Previous character image/u);
+  assert.match(surface, /Next character image/u);
   assert.doesNotMatch(surface, /Approve \/ Lock Character Visuals/u);
 
   assert.doesNotMatch(posterGenerate, /foundations\.visual\.store|saveActiveLibraryProject/u);
@@ -96,19 +96,46 @@ test("#2493 Story Bible projection prefers the locked poster over merely newest 
   assert.match(projection, /"Saved Marketing Reference"/u);
 });
 
-test("#2493 chevrons are bounded and visible saved-state text is not colour-only", async () => {
+test("#2493/#2564 character chevrons browse individual images while poster chevrons remain version-based", async () => {
   const [surface, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
   ]);
 
-  assert.match(surface, /disabled=\{Boolean\(candidate\) \|\| safeVersionIndex <= 0\}/u);
-  assert.match(surface, /safeVersionIndex >= versions\.length - 1/u);
+  assert.match(surface, /aria-label="Previous character image"/u);
+  assert.match(surface, /disabled=\{safeReferenceIndex <= 0\}/u);
+  assert.match(surface, /safeReferenceIndex >= browseItems\.length - 1/u);
+  assert.match(surface, /selectedBrowseItem\.generationNumber/u);
+  assert.match(surface, /selectedBrowseItem\.viewNumber/u);
   assert.match(surface, /disabled=\{Boolean\(posterCandidate\) \|\| safePosterIndex <= 0\}/u);
   assert.match(surface, /safePosterIndex >= posterVersions\.length - 1/u);
-  assert.match(surface, /exactly one may be locked/u);
+  assert.match(surface, /exactly one generation may be locked/u);
   assert.match(styles, /\.versionBar/u);
+  assert.match(styles, /\.referenceCarouselFigure/u);
   assert.match(styles, /button:disabled/u);
+});
+
+test("#2564 incomplete saved character generations can fill missing views before Lock", async () => {
+  const [surface, contract] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("core/contracts/world-map/index.ts"),
+  ]);
+
+  assert.match(contract, /id: "right-three-quarter", label: "Right 45°"/u);
+  assert.match(surface, /Generate Missing Views/u);
+  assert.match(surface, /selectedMissingViews/u);
+  assert.match(surface, /generateMissingViews/u);
+  assert.match(surface, /versionId: selectedVersion\.id/u);
+  assert.match(surface, /references: canonicalReferences\(\[\.\.\.selectedVersion\.references, \.\.\.generated\]\)/u);
+  assert.match(surface, /only a complete eight-view saved generation can be locked/u);
+  assert.match(surface, /if \(!selectedVersion\?\.complete \|\| selectedVersion\.locked\) return/u);
+});
+
+test("#2564 World Map visual UI presents the Afterglow isobel record simply as Summer", async () => {
+  const surface = await read("app/skin-v1/story-bible-surface.tsx");
+  assert.match(surface, /return character\.id === "isobel" \? "Summer" : character\.name/u);
+  assert.match(surface, /data-world-map-character-name=\{displayName\}/u);
+  assert.match(surface, /<h3>\{displayName\}<\/h3>/u);
 });
 
 test("#2493 persistence fixtures prove five saved WorldMap media versions and the brief records local durability", async () => {

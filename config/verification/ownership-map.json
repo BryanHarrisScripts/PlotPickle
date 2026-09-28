@@ -880,6 +880,7 @@
       "include": [
         "app/navigation/global-shortcuts.ts",
         "modules/learn/model/story-learning-context.ts",
+        "core/contracts/learn-topic-spine.ts",
         "modules/learn/ui/learn-workspace.tsx",
         "modules/write/ui/block-native-write-workspace.tsx",
         "app/_components/plotpickle-system/screen-registry.json",

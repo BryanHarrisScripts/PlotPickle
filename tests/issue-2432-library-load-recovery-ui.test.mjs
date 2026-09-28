@@ -4,13 +4,12 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2432 puts Afterglow and local-resource recovery under Library Load", async () => {
+test("#2432 keeps local-resource recovery on Library Load while Afterglow belongs to Examples", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
-  assert.match(loadSurface, /Afterglow example · start fresh copy/u);
-  assert.match(loadSurface, />\s*Start Fresh Afterglow Copy\s*</u);
-  assert.match(loadSurface, /setPending\(\{ kind: "catalog", sourceKind: "example", item: afterglow \}\)/u);
+  assert.doesNotMatch(loadSurface, /Start Fresh Afterglow Copy|kind: "catalog"/u);
+  assert.match(source, /sourceKind: isExamples \? "example" : "preset"/u);
   assert.match(source, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(source, /persistLoadSessionBaseline\(baseline\)/u);
   assert.match(source, /fetch\("\/api\/local-ai\/assets"/u);

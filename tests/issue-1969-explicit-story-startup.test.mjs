@@ -33,7 +33,7 @@ test("#1969 Library keeps saved stories and requires an explicit Resume/Open/Cre
   ]);
 
   assert.match(home, /if \(workspace === "library"\)[\s\S]*?<LibraryWorkspace \/>/u);
-  assert.match(library, /function openActiveProject\(\) \{\s*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
+  assert.match(library, /async function openActiveProject\(\) \{\s*await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
   assert.match(library, /switchActiveLibraryProject\(pending\.item\.id\)/u);
   assert.match(library, />\{active \? "Resume Saved Story" : "Open Saved Story"\}<\/button>/u);
   assert.match(library, /createLibraryUserProject\(\{ title: "Untitled Story", format: "Feature" \}\)/u);

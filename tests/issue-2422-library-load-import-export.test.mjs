@@ -15,7 +15,7 @@ test("#2422 opens Library on Load and offers Import Export in the requested keyb
   ]);
   assert.match(source, /useState<LibraryDestination>\("load"\)/u);
   assert.match(source, /data-library-destination=\{destination\}/u);
-  assert.match(source, /onClick=\{openActiveProject\}[\s\S]*>Back to Dashboard<\/button>/u);
+  assert.match(source, /onClick=\{\(\) => void openActiveProject\(\)\.catch\([\s\S]*>Back to Dashboard<\/button>/u);
 });
 
 test("#2422 exports a canonical backup and imports it as a separate story while preserving legacy PPF import", async () => {

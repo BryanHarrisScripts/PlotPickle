@@ -408,7 +408,7 @@ export default function LibraryWorkspace() {
       return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
-        throw new Error("Local resource scan timed out. The story is still loaded; retry the scan or continue with project defaults.");
+        throw new Error("Local resource scan timed out. Retry the scan before restoring local media.");
       }
       throw error;
     } finally {
@@ -739,7 +739,7 @@ export default function LibraryWorkspace() {
             <p>Select an Afterglow poster to open EXAMPLES. Generated posters replace the packaged fallback artwork whenever local poster versions are available.</p>
           </div>
           {example ? (
-            <div className={styles.singleCard}>
+            <div className={styles.gatewaySelection}>
               <ExampleGatewayCard
                 item={example}
                 posterUrls={afterglowPosters}
@@ -913,7 +913,7 @@ export default function LibraryWorkspace() {
             <button aria-label="Close local resource recovery" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={cancelRecovery} type="button">×</button>
             <p className={styles.eyebrow}>Afterglow · profile-local learning state</p>
             <h2 id="library-recovery-title">Restore Local Changes</h2>
-            <p><strong>{recovery.project.title}</strong> is loaded from your profile-local Afterglow learning state. Choose the local Storyboard frames, World Map posters, and saved World Map character visuals you want to add back, or load them all. The packaged Afterglow source remains unchanged.</p>
+            <p><strong>{recovery.project.title}</strong> is loaded from your profile-local Afterglow learning state. Choose the local Storyboard frames, World Map posters, and saved World Map character visuals you want to add back, or select them all. The packaged Afterglow source remains unchanged.</p>
             <div className={styles.recoverySummary}>
               <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
               <span><b>{recovery.inventory.posterResources.length}</b> recoverable World Map poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
@@ -958,7 +958,7 @@ export default function LibraryWorkspace() {
             ) : <p>No recoverable Storyboard frames, World Map posters, or saved World Map character visuals were found. The local asset folder remains unchanged.</p>}
             <p className={styles.recoveryPolicy}>Local media restore is additive. It does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock; otherwise they remain saved/draft. If the current story differs from the saved local state, canonical story changes require reconciliation rather than last-write-wins.</p>
             <div className={styles.recoveryActions}>
-              <button className={styles.primaryButton} disabled={restoringResources || rescanningResources} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore"}</button>
+              <button className={styles.primaryButton} disabled={restoringResources || rescanningResources || Boolean(recovery.scanError)} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore"}</button>
             </div>
           </section>
         </div>

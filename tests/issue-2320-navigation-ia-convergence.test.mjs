@@ -16,7 +16,7 @@ test("#2320 flattens Human navigation without changing feature authority", async
     read("config/skin-v1-surface-registry.json"),
   ]);
 
-  assert.match(menu, /id: "reports", shortcut: "A", label: "Reports"/u);
+  assert.match(menu, /id: "reports", shortcut: "5", label: "Reports"/u);
   assert.doesNotMatch(menu, /label: "Analytics"/u);
 
   assert.match(learn, /const \[exploreOpen, setExploreOpen\] = useState\(true\)/u);

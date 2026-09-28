@@ -9,7 +9,7 @@ const read = (relative) => readFile(path.join(root, relative), "utf8");
 test("#2153 removes Review from the Notices description only", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
-  assert.match(menu, /id: "open-source", shortcut: "N", label: "Notices", description: "Open Source Licensing and Attribution"/u);
+  assert.match(menu, /id: "open-source", shortcut: "8", label: "Legal", description: "Open Source Licensing and Attribution"/u);
   assert.doesNotMatch(menu, /Review Open Source Licensing and Attribution/u);
 });
 

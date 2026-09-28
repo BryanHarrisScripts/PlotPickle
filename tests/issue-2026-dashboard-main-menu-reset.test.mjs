@@ -11,10 +11,10 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
 
   const ordered = [
     ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
-    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
-    ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
-    ["screening", "9", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
-    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
+    ["library", "2", "Library", "Load Your Stories", "EXPLORE"],
+    ["community", "3", "Community", "Share and Collaborate", "EXPLORE"],
+    ["screening", "4", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
+    ["reports", "5", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
     ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
     ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
@@ -25,20 +25,20 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "D", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
-    ["sound-narration", "6", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
-    ["sound-music", "7", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
-    ["sound-foley", "8", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
-    ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
-    ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
+    ["sound-foley", "L", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
+    ["sound-narration", "N", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
+    ["sound-music", "M", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["pitch-deck", "C", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
+    ["pitch-package", "A", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
     ["profile", "I", "Identity", "Manage User Profile", "PLAY"],
-    ["wyrmwood", "2", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
-    ["story", "3", "Written", "Story Game Engine", "PLAY"],
-    ["settings", "M", "Settings", "Configure PlotPickle", "SYSTEM"],
-    ["help", "B", "Service", "Prepare a PlotPickle Issue", "SYSTEM"],
-    ["open-source", "N", "Legal", "Open Source Licensing and Attribution", "SYSTEM"],
-    ["logout", "X", "Log Off", "End This Session", "SYSTEM"],
-    ["shutdown", "Q", "Shut Down", "Safely Close PlotPickle and Local Services", "SYSTEM"],
+    ["wyrmwood", "Y", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
+    ["story", "U", "The Unwritten", "Story Game Engine", "PLAY"],
+    ["settings", "6", "Settings", "Configure PlotPickle", "SYSTEM"],
+    ["help", "7", "Service", "Prepare a PlotPickle Issue", "SYSTEM"],
+    ["open-source", "8", "Legal", "Open Source Licensing and Attribution", "SYSTEM"],
+    ["logout", "9", "Log Off", "End This Session", "SYSTEM"],
+    ["shutdown", "0", "Shut Down", "Safely Close PlotPickle and Local Services", "SYSTEM"],
   ];
 
   let cursor = -1;
@@ -51,6 +51,14 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
 
   const shortcuts = ordered.map(([, shortcut]) => shortcut);
   assert.equal(new Set(shortcuts).size, shortcuts.length, "Dashboard keyboard shortcuts must be unique");
+
+  assert.deepEqual(ordered.filter((row) => row[4] === "EXPLORE").map((row) => row[1]), ["1", "2", "3", "4", "5"]);
+  assert.deepEqual(ordered.filter((row) => row[4] === "SYSTEM").map((row) => row[1]), ["6", "7", "8", "9", "0"]);
+  assert.equal(
+    ordered.filter((row) => ["DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY"].includes(row[4])).every((row) => !/^\d$/u.test(row[1])),
+    true,
+    "Creative Dashboard groups must use letter shortcuts so digits remain reserved for Explore/System",
+  );
 
   const groupCounts = new Map();
   for (const [, , , , group] of ordered) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
@@ -74,7 +82,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
-  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"sound-narration"[\s\S]*"sound-music"[\s\S]*"sound-foley"[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
+  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

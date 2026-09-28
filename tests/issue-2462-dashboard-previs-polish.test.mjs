@@ -13,7 +13,7 @@ test("#2462 keeps the approved Dashboard order and labels", async () => {
   assert.deepEqual(rows.filter((row) => row.group === "PITCH").map((row) => row.label), ["Deck", "Package", "Feedback"]);
   assert.deepEqual(
     rows.filter((row) => row.group === "PLAY").map((row) => [row.id, row.shortcut, row.label]),
-    [["profile", "I", "Identity"], ["wyrmwood", "2", "Wyrmwood"], ["story", "3", "The Unwritten"]],
+    [["profile", "I", "Identity"], ["wyrmwood", "Y", "Wyrmwood"], ["story", "U", "The Unwritten"]],
   );
 });
 

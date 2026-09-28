@@ -87,7 +87,7 @@ test("#2557 WorldMap shares Act 1-4 and twelve-topic navigation while preserving
   assert.match(surface, /activeTopic === "responsible-ai"/u);
   assert.match(surface, /No established \{activeTopicEntry\.label\} material is available in WorldMap yet/u);
   assert.match(surface, /Open in Learn/u);
-  assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
+  assert.match(styles, /\.sectionNav \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 
 test("#2557 discovery mapper schema includes every new topic element", async () => {

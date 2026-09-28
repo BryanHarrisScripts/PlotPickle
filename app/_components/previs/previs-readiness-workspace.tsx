@@ -884,7 +884,7 @@ export default function PrevisReadinessWorkspace({
                         <small>{selectedGraphicNovelDisplayPanel.caption}</small>
                         <strong>{selectedGraphicNovelDisplayPanel.narration}</strong>
                         <span>{selectedGraphicNovelDisplayPanel.shotLabel}{selectedGraphicNovelDisplayPanel.shotContext ? ` · ${selectedGraphicNovelDisplayPanel.shotContext}` : ""}</span>
-                        <em>Observed dialogue + derived Previs caption · presentation only</em>
+                        <em>{selectedGraphicNovelApproval ? "Approved Graphic Novel text · presentation only" : "Proposed Graphic Novel text · review before Create WebP"}</em>
                       </aside>
                     </>
                   ) : null}

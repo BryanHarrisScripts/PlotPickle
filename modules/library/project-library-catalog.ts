@@ -1,3 +1,4 @@
+import { AFTERGLOW_V9_REFERENCE_LOGLINE } from "../../data/afterglow-reference-identity";
 import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../../core/project/project";
 
 export type LibraryFrontierCoverage = {
@@ -12,6 +13,7 @@ export type LibraryCatalogItem = {
   readonly id: string;
   readonly title: string;
   readonly description: string;
+  readonly logline?: string;
   readonly genre: string;
   readonly format: string;
   readonly visualLabel: string;
@@ -53,7 +55,8 @@ export function createFeaturedExamples(now: string): readonly LibraryCatalogItem
     {
       id: "afterglow-v9",
       title: "Afterglow: Reflections of Sentience",
-      description: "The complete 2023 v9 screenplay mapped into PlotPickle as the reference workflow story. Load a normal working copy through the current Foundations frontier while the immutable source remains unchanged.",
+      description: "The complete 2023 v9 screenplay mapped into PlotPickle as the reference story.",
+      logline: AFTERGLOW_V9_REFERENCE_LOGLINE,
       genre: "Science Fiction · Drama",
       format: "Screenplay · v9 reference",
       visualLabel: "Pacific road · AI family",

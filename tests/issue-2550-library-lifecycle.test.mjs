@@ -63,6 +63,8 @@ test("#2546 Avery opens a synthetic-provenance story and confirms selected delet
   assert.match(ui, /Reconstructed from the saved session report; this is not a complete project snapshot/u);
   assert.match(ui, /Open Story<\/button>/u);
   assert.match(ui, /Permanently delete Avery story/u);
+  assert.match(ui, /was deleted permanently/u);
+  assert.match(ui, /aria-live="polite".*role="status"/u);
   assert.match(ui, /deleteArchivedProfileProjectFromVault\(copy\.id\)/u);
   assert.doesNotMatch(ui, /artifactButton|Open session POSTER|Open session TRAILER/u);
   assert.match(gateway, /request\.method === "DELETE"/u);

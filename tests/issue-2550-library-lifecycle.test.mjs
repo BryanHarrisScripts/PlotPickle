@@ -79,3 +79,16 @@ test("#2549 browser migration verifies encrypted storage before retiring old ses
   const browser = await readFile(new URL("../core/storage/project-library-browser.ts", import.meta.url), "utf8");
   assert.match(browser, /key\.startsWith\("plotpickle\.library\.profile\.v1\.profile_"\)/u);
 });
+
+
+test("#2550 Skin V1 restores private browser authority for an existing authenticated session", async () => {
+  const [gateway, privateBrowser] = await Promise.all([
+    readFile(new URL("../adapters/experience/browser-profile-auth-gateway.ts", import.meta.url), "utf8"),
+    readFile(new URL("../core/storage/profile-private-browser.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(privateBrowser, /let hydratedProfileId = "";/u);
+  assert.match(privateBrowser, /export function profilePrivateBrowserAuthorityMatches\(profileId: string, token: string\)/u);
+  assert.match(privateBrowser, /hydratedProfileId = profileId;\s*updateSaveState\("saved", "Saved"\)/u);
+  assert.match(privateBrowser, /releaseProfilePrivateBrowserAuthority\(\)[\s\S]*hydratedProfileId = "";/u);
+  assert.match(gateway, /async read\(\) \{\s*const status = await readRawProfileStatus\(\);[\s\S]*status\.authenticated && status\.profile[\s\S]*!status\.csrfToken[\s\S]*profilePrivateBrowserAuthorityMatches\(status\.profile\.profileId, status\.csrfToken\)[\s\S]*hydrateProfilePrivateBrowser\(status\.profile\.profileId, status\.csrfToken\)/u);
+});

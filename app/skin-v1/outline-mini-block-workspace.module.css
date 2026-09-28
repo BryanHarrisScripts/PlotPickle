@@ -1,0 +1,146 @@
+.anchorWorkspace {
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid var(--pp-skin-ink-soft, #5e6a73);
+  border-radius: 14px;
+  background: var(--pp-skin-panel, #10161c);
+}
+
+.header,
+.anchorBody,
+.actions,
+.deleteConfirm {
+  display: flex;
+  gap: 12px;
+}
+
+.header {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.header p,
+.header h2,
+.header span,
+.header strong,
+.status,
+.controls p {
+  margin: 0;
+}
+
+.header strong {
+  max-width: 42%;
+  overflow-wrap: anywhere;
+}
+
+.anchorBody {
+  margin-top: 16px;
+  align-items: stretch;
+}
+
+.preview {
+  position: relative;
+  flex: 1 1 58%;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #05080b;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: contain;
+}
+
+.empty {
+  opacity: .7;
+}
+
+.versionCount,
+.badge {
+  position: absolute;
+  z-index: 2;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .72);
+}
+
+.versionCount {
+  top: 10px;
+  right: 10px;
+}
+
+.badge {
+  bottom: 10px;
+}
+
+.savedBadge {
+  left: 10px;
+}
+
+.lockedBadge {
+  right: 10px;
+}
+
+.chevron {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 40px;
+  min-height: 48px;
+}
+
+.previous {
+  left: 8px;
+}
+
+.next {
+  right: 8px;
+}
+
+.controls {
+  flex: 1 1 42%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.actions,
+.deleteConfirm {
+  flex-wrap: wrap;
+}
+
+.status {
+  min-height: 1.5em;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card-row > .pp-skin-v1-story-card:not([data-selected="true"])) {
+  display: none;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card-minis li:not([data-selected="true"])) {
+  display: none;
+}
+
+.focusedSlice :global(.pp-skin-v1-written-act-mini:not([data-selected="true"])) {
+  display: none;
+}
+
+@media (max-width: 840px) {
+  .anchorBody {
+    flex-direction: column;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .header strong {
+    max-width: none;
+  }
+}

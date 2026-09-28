@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "issue": 2535,
+  "phase": "outline-mini-block-workspace",
+  "brief": "docs/developer-briefs/2535-outline-mini-block-workspace.md",
+  "allowedChanges": [
+    "app/skin-v1/matrix-story-map-surface.tsx",
+    "app/skin-v1/outline-mini-block-anchor-workspace.tsx",
+    "app/skin-v1/outline-mini-block-workspace.module.css",
+    "config/development-convergence/2535.json",
+    "docs/developer-briefs/2535-outline-mini-block-workspace.md",
+    "tests/issue-2535-outline-mini-block-workspace.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2535-A1",
+      "criterion": "Outline renders one shared Storyboard-addressed visual anchor for the selected Mini-Block without displaying the 25-frame sequence.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx", "contains": "storyboardAnchorTargetRef" },
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx", "contains": "full 25-position Storyboard sequence remains in Storyboard" }
+      ]
+    },
+    {
+      "id": "P2535-A2",
+      "criterion": "Anchor versions reuse foundations visual state for create, save, lock, delete, version navigation and persistence markers.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx", "contains": "storyboard-local-save:v1" },
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx", "contains": "foundations.visual.accept" },
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx", "contains": "Previous anchor version" }
+      ]
+    },
+    {
+      "id": "P2535-A3",
+      "criterion": "Story Cards and Written Story remain their existing authorities while Outline visually scopes them to the selected Mini-Block.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/matrix-story-map-surface.tsx", "contains": "data-outline-selected-slice" },
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-workspace.module.css", "contains": "pp-skin-v1-story-card-minis li:not([data-selected=\"true\"])" },
+        { "type": "file-contains", "path": "app/skin-v1/outline-mini-block-workspace.module.css", "contains": "pp-skin-v1-written-act-mini:not([data-selected=\"true\"])" }
+      ]
+    }
+  ]
+}

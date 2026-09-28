@@ -38,9 +38,10 @@ test("#2557 one shared twelve-topic spine drives creation and Learn routing", as
 });
 
 test("#2557 MindMap keeps legacy elements but groups them under selected Learn topics", async () => {
-  const [surface, contract] = await Promise.all([
+  const [surface, contract, styles] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/contracts/discovery/index.ts"),
+    read("app/skin-v1/discovery-surface.module.css"),
   ]);
 
   for (const [lane, topic] of [
@@ -61,10 +62,14 @@ test("#2557 MindMap keeps legacy elements but groups them under selected Learn t
   assert.match(surface, /Open in Learn/u);
   assert.match(surface, /Build Topic/u);
   assert.match(surface, /12 LEARN TOPICS/u);
+  assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 
 test("#2557 WorldMap shares Act 1-4 and twelve-topic navigation while preserving existing tools", async () => {
-  const surface = await read("app/skin-v1/story-bible-surface.tsx");
+  const [surface, styles] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("app/skin-v1/story-bible-surface.module.css"),
+  ]);
 
   assert.match(surface, /const WORLD_MAP_ACTS: readonly WorldMapAct\[\] = \[1, 2, 3, 4\]/u);
   assert.match(surface, /aria-label="World Map acts"/u);
@@ -82,6 +87,7 @@ test("#2557 WorldMap shares Act 1-4 and twelve-topic navigation while preserving
   assert.match(surface, /activeTopic === "responsible-ai"/u);
   assert.match(surface, /No established \{activeTopicEntry\.label\} material is available in WorldMap yet/u);
   assert.match(surface, /Open in Learn/u);
+  assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 
 test("#2557 discovery mapper schema includes every new topic element", async () => {

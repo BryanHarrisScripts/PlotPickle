@@ -164,16 +164,16 @@ export function storyLearningReturnHref(address: StoryLearningAddress) {
 
 export const LEARN_TOPIC_SPINE = [
   { id: "foundations", label: "Foundations", learnTopicId: "foundations" },
-  { id: "industry", label: "Industry", learnTopicId: "industry" },
-  { id: "theme", label: "Theme", learnTopicId: "theme" },
-  { id: "character", label: "Character", learnTopicId: "character" },
   { id: "world", label: "World", learnTopicId: "world" },
+  { id: "character", label: "Character", learnTopicId: "character" },
+  { id: "theme", label: "Theme", learnTopicId: "theme" },
   { id: "structure", label: "Structure", learnTopicId: "structure" },
-  { id: "dialogue", label: "Dialogue", learnTopicId: "dialogue" },
   { id: "previs", label: "PREVIS", learnTopicId: "visual-storytelling" },
   { id: "drafting", label: "Drafting", learnTopicId: "drafting" },
+  { id: "dialogue", label: "Dialogue", learnTopicId: "dialogue" },
   { id: "revision", label: "Revision", learnTopicId: "revision" },
   { id: "responsible-ai", label: "Responsible AI", learnTopicId: "responsible-ai" },
+  { id: "industry", label: "Industry", learnTopicId: "industry" },
   { id: "collaboration", label: "Collaboration", learnTopicId: "collaboration" },
 ] as const;
 

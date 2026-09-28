@@ -28,6 +28,17 @@ import {
 } from "../../modules/learn/model/marquee-director";
 import styles from "./story-bible-surface.module.css";
 
+type WorldMapSectionId = "story" | "structure" | "character" | "foundations" | "world" | "provenance";
+
+const WORLD_MAP_SECTIONS: readonly Readonly<{ id: WorldMapSectionId; label: string }>[] = [
+  { id: "story", label: "Story" },
+  { id: "structure", label: "Structure" },
+  { id: "character", label: "Character" },
+  { id: "foundations", label: "Foundations" },
+  { id: "world", label: "World" },
+  { id: "provenance", label: "Provenance" },
+];
+
 type AgentResponse = { readonly text?: string; readonly message?: string };
 type ImageResponse = {
   readonly ok?: boolean;
@@ -462,6 +473,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
   const [posterCandidate, setPosterCandidate] = useState<MarketingReferenceArtifact | null>(null);
   const [posterWorking, setPosterWorking] = useState(false);
   const [posterNotice, setPosterNotice] = useState("");
+  const [activeSection, setActiveSection] = useState<WorldMapSectionId>("story");
   const safePosterIndex = Math.min(posterVersionIndex, Math.max(posterVersions.length - 1, 0));
   const selectedPoster = posterVersions[safePosterIndex] ?? null;
   const displayedPoster = posterCandidate ?? selectedPoster;
@@ -578,172 +590,250 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
   return (
     <main
       className={styles.surface}
-      aria-labelledby="story-bible-title"
+      aria-labelledby="world-map-story-title"
       data-story-bible-surface="canonical"
       data-world-map-surface="review"
+      data-world-map-active-section={activeSection}
       data-story-bible-project-id={bible.projectId}
       data-story-bible-read-only="false"
     >
-      <section className={styles.hero}>
-        <div className={styles.poster}>
-          <div className={styles.posterFrame}>
-            {displayedPoster ? (
-              <Image
-                src={displayedPoster.assetUrl}
-                alt={`${bible.title} poster / marketing reference`}
-                width={640}
-                height={960}
-                unoptimized
-              />
-            ) : (
-              <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
-            )}
-            {!posterCandidate && selectedPoster ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
-            {!posterCandidate && selectedPoster?.id === lockedPoster?.id ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
-          </div>
-
-          <div className={styles.versionBar} aria-label="Saved poster versions">
+      <nav className={styles.sectionNav} aria-label="World Map sections" role="tablist">
+        {WORLD_MAP_SECTIONS.map((section, index) => {
+          const selected = activeSection === section.id;
+          return (
             <button
-              aria-label="Previous saved version"
-              disabled={Boolean(posterCandidate) || safePosterIndex <= 0}
-              onClick={() => setPosterVersionIndex((index) => Math.max(0, index - 1))}
-              type="button"
-            >‹</button>
-            <strong>
-              {posterCandidate
-                ? "UNSAVED · generated candidate"
-                : selectedPoster
-                  ? `${safePosterIndex + 1}/${posterVersions.length}`
-                  : "0/0"}
-            </strong>
-            <button
-              aria-label="Next saved version"
-              disabled={Boolean(posterCandidate) || safePosterIndex >= posterVersions.length - 1}
-              onClick={() => setPosterVersionIndex((index) => Math.min(posterVersions.length - 1, index + 1))}
-              type="button"
-            >›</button>
-          </div>
-
-          <div className={styles.actions}>
-            <button
-              className={styles.primaryAction}
-              disabled={posterWorking || Boolean(posterCandidate) || posterAtVersionLimit}
-              onClick={() => void generatePosterVisual()}
+              aria-controls={`world-map-panel-${section.id}`}
+              aria-selected={selected}
+              className={selected ? styles.sectionTabActive : styles.sectionTab}
+              id={`world-map-tab-${section.id}`}
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              onKeyDown={(event) => {
+                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                event.preventDefault();
+                const direction = event.key === "ArrowRight" ? 1 : -1;
+                const nextIndex = (index + direction + WORLD_MAP_SECTIONS.length) % WORLD_MAP_SECTIONS.length;
+                const next = WORLD_MAP_SECTIONS[nextIndex];
+                setActiveSection(next.id);
+                const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+                buttons?.[nextIndex]?.focus();
+              }}
+              role="tab"
+              tabIndex={selected ? 0 : -1}
               type="button"
             >
-              {posterWorking ? "Generating Poster…" : posterAtVersionLimit ? "5 Saved Versions" : "Generate Poster Visual"}
+              {section.label}
             </button>
-            {posterCandidate ? (
-              <button disabled={posterWorking || posterAtVersionLimit} onClick={savePosterVersion} type="button">Save</button>
-            ) : selectedPoster ? (
-              <button disabled={selectedPoster.id === lockedPoster?.id} onClick={lockPosterVersion} type="button">Lock</button>
+          );
+        })}
+      </nav>
+
+      <div className={styles.panelShell}>
+        {activeSection === "story" ? (
+          <div
+            aria-labelledby="world-map-tab-story"
+            className={styles.panel}
+            id="world-map-panel-story"
+            role="tabpanel"
+          >
+            <section className={styles.hero}>
+              <div className={styles.poster}>
+                <div className={styles.posterFrame}>
+                  {displayedPoster ? (
+                    <Image
+                      src={displayedPoster.assetUrl}
+                      alt={`${bible.title} poster / marketing reference`}
+                      width={640}
+                      height={960}
+                      unoptimized
+                    />
+                  ) : (
+                    <div className={styles.posterEmpty} role="img" aria-label="No poster yet">NO POSTER YET</div>
+                  )}
+                  {!posterCandidate && selectedPoster ? <span className={`${styles.versionBadge} ${styles.savedBadge}`}>Saved locally</span> : null}
+                  {!posterCandidate && selectedPoster?.id === lockedPoster?.id ? <span className={`${styles.versionBadge} ${styles.lockedBadge}`}>Locked</span> : null}
+                </div>
+
+                <div className={styles.versionBar} aria-label="Saved poster versions">
+                  <button
+                    aria-label="Previous saved version"
+                    disabled={Boolean(posterCandidate) || safePosterIndex <= 0}
+                    onClick={() => setPosterVersionIndex((index) => Math.max(0, index - 1))}
+                    type="button"
+                  >‹</button>
+                  <strong>
+                    {posterCandidate
+                      ? "UNSAVED · generated candidate"
+                      : selectedPoster
+                        ? `${safePosterIndex + 1}/${posterVersions.length}`
+                        : "0/0"}
+                  </strong>
+                  <button
+                    aria-label="Next saved version"
+                    disabled={Boolean(posterCandidate) || safePosterIndex >= posterVersions.length - 1}
+                    onClick={() => setPosterVersionIndex((index) => Math.min(posterVersions.length - 1, index + 1))}
+                    type="button"
+                  >›</button>
+                </div>
+
+                <div className={styles.actions}>
+                  <button
+                    className={styles.primaryAction}
+                    disabled={posterWorking || Boolean(posterCandidate) || posterAtVersionLimit}
+                    onClick={() => void generatePosterVisual()}
+                    type="button"
+                  >
+                    {posterWorking ? "Generating Poster…" : posterAtVersionLimit ? "5 Saved Versions" : "Generate Poster Visual"}
+                  </button>
+                  {posterCandidate ? (
+                    <button disabled={posterWorking || posterAtVersionLimit} onClick={savePosterVersion} type="button">Save</button>
+                  ) : selectedPoster ? (
+                    <button disabled={selectedPoster.id === lockedPoster?.id} onClick={lockPosterVersion} type="button">Lock</button>
+                  ) : null}
+                </div>
+                <small>{posterVersions.length}/{MARKETING_REFERENCE_MAX_VERSIONS} saved poster version{posterVersions.length === 1 ? "" : "s"} · exactly one may be locked</small>
+                {posterNotice ? <small role="status">{posterNotice}</small> : null}
+              </div>
+
+              <div className={styles.identity}>
+                <p className={styles.kicker}>WORLDMAP · STORY · HUMAN-REVIEWED DEVELOPMENT</p>
+                <h1 id="world-map-story-title">{bible.title}</h1>
+                <p className={styles.meta}>PPF REVISION {bible.revision} · UPDATED {bible.updatedAt || "UNKNOWN"}</p>
+                <div className={styles.spotlight}>
+                  <Fact fact={bible.logline} />
+                  <Fact fact={bible.premise} />
+                  <Fact fact={bible.theme} />
+                  <Fact fact={bible.tone} />
+                  <Fact fact={bible.stakes} />
+                </div>
+              </div>
+            </section>
+
+            {bible.curriculumScope.length ? (
+              <section className={styles.section} aria-labelledby="world-map-story-reference">
+                <header>
+                  <p className={styles.kicker}>STORY REFERENCE</p>
+                  <h2 id="world-map-story-reference">What belongs in the living story reference</h2>
+                </header>
+                <ul className={styles.scopeList}>
+                  {bible.curriculumScope.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </section>
             ) : null}
           </div>
-          <small>{posterVersions.length}/{MARKETING_REFERENCE_MAX_VERSIONS} saved poster version{posterVersions.length === 1 ? "" : "s"} · exactly one may be locked</small>
-          {posterNotice ? <small role="status">{posterNotice}</small> : null}
-        </div>
+        ) : null}
 
-        <div className={styles.identity}>
-          <p className={styles.kicker}>WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT</p>
-          <h1 id="story-bible-title">{bible.title}</h1>
-          <p className={styles.meta}>PPF REVISION {bible.revision} · UPDATED {bible.updatedAt || "UNKNOWN"}</p>
-          <div className={styles.spotlight}>
-            <Fact fact={bible.logline} />
-            <Fact fact={bible.premise} />
-            <Fact fact={bible.theme} />
-            <Fact fact={bible.tone} />
-            <Fact fact={bible.stakes} />
-          </div>
-        </div>
-      </section>
+        {activeSection === "structure" ? (
+          <section
+            aria-labelledby="story-bible-plot"
+            className={styles.section}
+            id="world-map-panel-structure"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>PLOT / STRUCTURE</p>
+              <h2 id="story-bible-plot">4 Acts · 12 Sequences · 24 Blocks · 96 Mini-Blocks</h2>
+            </header>
+            <div className={styles.blockGrid}>
+              {bible.blocks.map((block) => (
+                <article key={block.number} className={styles.block} data-story-bible-established={block.established ? "true" : "false"}>
+                  <small>ACT {block.actNumber} · SEQUENCE {block.sequenceNumber} · BLOCK {String(block.number).padStart(2, "0")}</small>
+                  <strong>{block.title}</strong>
+                  <p>{block.summary}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
-      <section className={styles.section} aria-labelledby="story-bible-plot">
-        <header>
-          <p className={styles.kicker}>PLOT / STRUCTURE</p>
-          <h2 id="story-bible-plot">4 Acts · 12 Sequences · 24 Blocks · 96 Mini-Blocks</h2>
-        </header>
-        <div className={styles.blockGrid}>
-          {bible.blocks.map((block) => (
-            <article key={block.number} className={styles.block} data-story-bible-established={block.established ? "true" : "false"}>
-              <small>ACT {block.actNumber} · SEQUENCE {block.sequenceNumber} · BLOCK {String(block.number).padStart(2, "0")}</small>
-              <strong>{block.title}</strong>
-              <p>{block.summary}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+        {activeSection === "character" ? (
+          <section
+            aria-labelledby="story-bible-characters"
+            className={styles.section}
+            id="world-map-panel-character"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>CHARACTER</p>
+              <h2 id="story-bible-characters">Character truth, backstory and reusable visual identity</h2>
+            </header>
+            {bible.characters.length ? (
+              <div className={styles.characterGrid}>
+                {bible.characters.map((character) => (
+                  <article key={character.id} className={styles.character}>
+                    <div className={styles.characterImage}>
+                      {character.imageUrl ? (
+                        <Image src={character.imageUrl} alt={character.name} width={420} height={420} unoptimized />
+                      ) : (
+                        <div role="img" aria-label={`No approved image for ${character.name}`}>NO APPROVED CHARACTER IMAGE YET</div>
+                      )}
+                    </div>
+                    <h3>{character.name}</h3>
+                    <CharacterVisualSheet character={character} project={project} />
+                    {character.facts.length ? (
+                      <div className={styles.characterFacts}>
+                        {character.facts.map((fact) => <Fact key={fact.id} fact={fact} />)}
+                      </div>
+                    ) : <p className={styles.empty}>Not established yet.</p>}
+                  </article>
+                ))}
+              </div>
+            ) : <p className={styles.empty}>Character truth has not been established for this story yet.</p>}
+          </section>
+        ) : null}
 
-      <section className={styles.section} aria-labelledby="story-bible-characters">
-        <header>
-          <p className={styles.kicker}>CHARACTERS</p>
-          <h2 id="story-bible-characters">Character truth, backstory and reusable visual identity</h2>
-        </header>
-        {bible.characters.length ? (
-          <div className={styles.characterGrid}>
-            {bible.characters.map((character) => (
-              <article key={character.id} className={styles.character}>
-                <div className={styles.characterImage}>
-                  {character.imageUrl ? (
-                    <Image src={character.imageUrl} alt={character.name} width={420} height={420} unoptimized />
-                  ) : (
-                    <div role="img" aria-label={`No approved image for ${character.name}`}>NO APPROVED CHARACTER IMAGE YET</div>
-                  )}
-                </div>
-                <h3>{character.name}</h3>
-                <CharacterVisualSheet character={character} project={project} />
-                {character.facts.length ? (
-                  <div className={styles.characterFacts}>
-                    {character.facts.map((fact) => <Fact key={fact.id} fact={fact} />)}
-                  </div>
-                ) : <p className={styles.empty}>Not established yet.</p>}
-              </article>
-            ))}
-          </div>
-        ) : <p className={styles.empty}>Character truth has not been established for this story yet.</p>}
-      </section>
+        {activeSection === "foundations" ? (
+          <section
+            aria-labelledby="story-bible-foundations"
+            className={styles.section}
+            id="world-map-panel-foundations"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>FOUNDATIONS</p>
+              <h2 id="story-bible-foundations">Writer decisions PlotPickle already knows</h2>
+            </header>
+            <div className={styles.groupStack}>
+              {bible.foundationGroups.map((group) => <FactGroup key={group.id} group={group} />)}
+            </div>
+          </section>
+        ) : null}
 
-      <section className={styles.section} aria-labelledby="story-bible-foundations">
-        <header>
-          <p className={styles.kicker}>FOUNDATIONS / WRITER DECISIONS</p>
-          <h2 id="story-bible-foundations">What PlotPickle already knows</h2>
-        </header>
-        <div className={styles.groupStack}>
-          {bible.foundationGroups.map((group) => <FactGroup key={group.id} group={group} />)}
-        </div>
-      </section>
+        {activeSection === "world" ? (
+          <section
+            aria-labelledby="story-bible-world"
+            className={styles.section}
+            id="world-map-panel-world"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>WORLD</p>
+              <h2 id="story-bible-world">Places, rules, chronology, genre and known constraints</h2>
+              <p>Ask the World agent for a proposal, read or edit it, then choose Save, Redo, or Discard. Only Save makes it a canonical World decision.</p>
+            </header>
+            <div className={styles.groupStack}>
+              {bible.worldGroups.map((group) => <WorldFactGroup key={group.id} group={group} project={project} />)}
+            </div>
+          </section>
+        ) : null}
 
-      <section className={styles.section} aria-labelledby="story-bible-world">
-        <header>
-          <p className={styles.kicker}>WORLD / CONTINUITY</p>
-          <h2 id="story-bible-world">Places, rules, chronology, genre and known constraints</h2>
-          <p>Ask the World agent for a proposal, read or edit it, then choose Save, Redo, or Discard. Only Save makes it a canonical World decision.</p>
-        </header>
-        <div className={styles.groupStack}>
-          {bible.worldGroups.map((group) => <WorldFactGroup key={group.id} group={group} project={project} />)}
-        </div>
-      </section>
-
-      <section className={styles.section} aria-labelledby="story-bible-sources">
-        <header>
-          <p className={styles.kicker}>PROVENANCE</p>
-          <h2 id="story-bible-sources">Canonical evidence currently available</h2>
-        </header>
-        <div className={styles.factGrid}>
-          {bible.sourceSummary.map((fact) => <Fact key={fact.id} fact={fact} />)}
-        </div>
-      </section>
-
-      {bible.curriculumScope.length ? (
-        <section className={styles.section} aria-labelledby="story-bible-curriculum">
-          <header>
-            <p className={styles.kicker}>CURRICULUM CONTRACT</p>
-            <h2 id="story-bible-curriculum">What belongs in a living Story Bible</h2>
-          </header>
-          <ul className={styles.scopeList}>
-            {bible.curriculumScope.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </section>
-      ) : null}
+        {activeSection === "provenance" ? (
+          <section
+            aria-labelledby="story-bible-sources"
+            className={styles.section}
+            id="world-map-panel-provenance"
+            role="tabpanel"
+          >
+            <header>
+              <p className={styles.kicker}>PROVENANCE</p>
+              <h2 id="story-bible-sources">Canonical evidence currently available</h2>
+            </header>
+            <div className={styles.factGrid}>
+              {bible.sourceSummary.map((fact) => <Fact key={fact.id} fact={fact} />)}
+            </div>
+          </section>
+        ) : null}
+      </div>
     </main>
   );
 }

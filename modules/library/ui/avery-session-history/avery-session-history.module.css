@@ -95,7 +95,7 @@
   color: var(--pp-skin-ink);
   background: var(--pp-skin-surface-0);
   text-align: left;
-  cursor: pointer;
+  cursor: default;
 }
 
 .sessionCard:disabled {
@@ -160,7 +160,8 @@
   margin-top: var(--pp-skin-space-2);
 }
 
-.artifactPill {
+.storyAction,
+.deleteAction {
   min-height: var(--pp-skin-space-8);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -170,7 +171,10 @@
   letter-spacing: var(--pp-skin-tracking-meta);
 }
 
-.artifactPill:disabled {
+.deleteAction { border-color: var(--pp-skin-danger, #a65a5a); }
+
+.storyAction:disabled,
+.deleteAction:disabled {
   border-color: var(--pp-skin-line-soft);
   color: var(--pp-skin-disabled);
   background: var(--pp-skin-surface-1);

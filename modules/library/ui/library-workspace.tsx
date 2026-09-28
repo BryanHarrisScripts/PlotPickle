@@ -43,6 +43,7 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
+import { flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
@@ -130,7 +131,9 @@ function displayDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-function openActiveProject() {
+async function openActiveProject() {
+  await persistActiveProfileProject();
+  await flushProfilePrivateWrites();
   window.location.assign("/?workspace=dashboard");
 }
 
@@ -140,8 +143,10 @@ function CatalogCard({ item, sourceKind, onLoad }: {
   readonly onLoad: () => void;
 }) {
   return (
-    <article className={styles.card} data-library-catalog-id={item.id}>
-      <div className={styles.visual} data-visual-kind={item.id} aria-hidden="true"><span>{item.visualLabel}</span></div>
+    <article className={`${styles.card} ${sourceKind === "example" ? styles.exampleCard : ""}`} data-library-catalog-id={item.id}>
+      {sourceKind === "example"
+        ? <div className={styles.examplePoster}><Image src="/assets/library/examples/afterglow.svg" alt="Afterglow coastal road poster artwork" fill sizes="(max-width: 760px) 100vw, 35vw" /></div>
+        : <div className={styles.visual} data-visual-kind={item.id} aria-hidden="true"><span>{item.visualLabel}</span></div>}
       <div className={styles.cardBody}>
         <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
         <h3>{item.title}</h3>
@@ -226,8 +231,8 @@ export default function LibraryWorkspace() {
     const refresh = () => {
       const library = initializeProjectLibrary();
       setActiveProject(currentSessionLibraryProject());
-      setStories(listLibraryProjects());
-      setArchivedCount(listArchivedLibraryProjects().length);
+      setStories(listLibraryProjects().filter((item) => item.sourceKind !== "synthetic"));
+      setArchivedCount(listArchivedLibraryProjects().filter((item) => item.sourceKind !== "synthetic").length);
       if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
       else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
     };
@@ -296,10 +301,12 @@ export default function LibraryWorkspace() {
     }
   }
 
-  function createNewStory() {
+  async function createNewStory() {
     try {
       const project = createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
       markCurrentSessionLibraryProject(project.id);
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
       window.location.assign("/?workspace=learn");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
@@ -369,6 +376,12 @@ export default function LibraryWorkspace() {
         scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
       }
 
+      if (!inventory.groups.length && !scanError) {
+        setPending(null);
+        void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
+        return;
+      }
+
       setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
       setRecovery({ project: openedProject, baseline, inventory, scanError });
       setPending(null);
@@ -383,7 +396,7 @@ export default function LibraryWorkspace() {
   function useProjectDefaults() {
     setRecovery(null);
     setSelectedRecoveryOrigins([]);
-    openActiveProject();
+    void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
   }
 
   function toggleRecoveryOrigin(originProjectId: string) {
@@ -446,7 +459,7 @@ export default function LibraryWorkspace() {
       setNotice(`${attachedCount} local resource group${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"}, ${posterResult.attachedCount} World Map poster${posterResult.attachedCount === 1 ? "" : "s"}, and ${characterResult.attachedVersionCount} World Map character version${characterResult.attachedVersionCount === 1 ? "" : "s"}. ${storyboardResult.restoredLockedCount} proven Storyboard lock${storyboardResult.restoredLockedCount === 1 ? "" : "s"} and ${characterResult.restoredLockedCount} proven character lock${characterResult.restoredLockedCount === 1 ? "" : "s"} restored. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
       setRecovery(null);
       setSelectedRecoveryOrigins([]);
-      openActiveProject();
+      void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not restore local resources.");
     } finally {
@@ -619,7 +632,7 @@ export default function LibraryWorkspace() {
               ? "These are complete reference stories supplied with PlotPickle. Loading one creates a user-owned working copy while the packaged source remains unchanged."
               : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
           </div>
-          <div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: isExamples ? "example" : "preset", item })} sourceKind={isExamples ? "example" : "preset"} />)}</div>
+          <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: isExamples ? "example" : "preset", item })} sourceKind={isExamples ? "example" : "preset"} />)}</div>
         </section>
       );
     }
@@ -629,7 +642,7 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="avery-title" className={styles.section} data-library-surface="avery">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Writer-in-Residence</p><h2 id="avery-title">AVERY</h2></div>
-            <p>Avery synthetic work and Writer-in-Residence history stay read-only and separate from Human-owned Library stories.</p>
+            <p>Open saved Avery stories here. Reconstructed working copies remain separate from Human-owned Library stories.</p>
           </div>
           <AverySessionHistory />
         </section>
@@ -712,14 +725,14 @@ export default function LibraryWorkspace() {
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.preventDefault();
-              openActiveProject();
+              void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
             }
           }}
         >
           <button
             type="button"
             data-skin-v1-local-return="true"
-            onClick={openActiveProject}
+            onClick={() => void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."))}
           >Back to Dashboard</button>
           {renderSurface()}
         </section>

@@ -226,6 +226,11 @@
   gap: var(--pp-skin-space-3);
 }
 
+.exampleGrid { display: block; }
+.exampleCard { display: grid; grid-template-columns: minmax(180px, 35%) minmax(0, 1fr); }
+.examplePoster { position: relative; min-height: 350px; background: var(--pp-skin-fill-panel); }
+.examplePoster img { object-fit: cover; }
+
 .card {
   min-width: 0;
   overflow: hidden;
@@ -645,6 +650,8 @@
   .actionPanel { align-items: stretch; flex-direction: column; }
   .coverage { grid-template-columns: 1fr; }
   .coverage span:last-child { grid-column: auto; }
+  .exampleCard { grid-template-columns: 1fr; }
+  .examplePoster { min-height: 250px; }
   .dialog > div { flex-direction: column-reverse; }
   .recoverySummary { grid-template-columns: 1fr; }
   .recoveryActions { flex-direction: column-reverse; }

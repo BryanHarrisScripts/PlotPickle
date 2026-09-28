@@ -153,3 +153,21 @@
     gap: 8px;
   }
 }
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 70%);
+}
+.confirmDialog {
+  width: min(100%, 34rem);
+  padding: 1.5rem;
+  border: 1px solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+}
+.confirmDialog label { display: grid; gap: .5rem; }
+.confirmDialog > div { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }

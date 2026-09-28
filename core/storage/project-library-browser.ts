@@ -18,7 +18,7 @@ import * as libraryCore from "./project-library-core.mjs";
 
 export type { LibraryPPFProject } from "./library-project";
 
-export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import";
+export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import" | "synthetic";
 
 export type ProjectLibrarySummary = {
   readonly id: string;
@@ -52,7 +52,9 @@ type ActiveProjectReadCache = Readonly<{
 let activeProjectReadCache: ActiveProjectReadCache | null = null;
 
 function isProjectSnapshotKey(key: string) {
-  return key.startsWith("plotpickle.library.profile.v1.") && key.includes(PROJECT_SNAPSHOT_KEY_MARKER);
+  // Authenticated Human projects have an encrypted profile-vault backing store.
+  // Autonomous Guest checkpoints still rely on Web Storage and must remain visible there.
+  return key.startsWith("plotpickle.library.profile.v1.profile_") && key.includes(PROJECT_SNAPSHOT_KEY_MARKER);
 }
 
 function storageKeys(browserStorage: Storage) {
@@ -340,7 +342,7 @@ export function createLibraryUserProject(input: {
 
 export function createLibraryWorkingCopy(input: {
   readonly sourceProject: PPFProject;
-  readonly sourceKind: "example" | "preset";
+  readonly sourceKind: "example" | "preset" | "synthetic";
   readonly sourceId: string;
   readonly title: string;
   readonly genre: string;

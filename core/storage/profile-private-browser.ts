@@ -8,8 +8,10 @@ import {
   clearLibraryProjectSessionCache,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   hydrateProfileProjectLibrary,
+  listArchivedLibraryProjects,
   listLibraryProjects,
-  loadActiveLibraryProject,
+  loadLibraryProjectSnapshot,
+  initializeProjectLibrary,
 } from "./project-library-browser";
 
 type HydratedPrivateProjectEntry = Readonly<{
@@ -111,6 +113,22 @@ function legacyBrowserProjects() {
   return [...projects.values()];
 }
 
+function legacySessionLibrary(profileId: string) {
+  const prefix = `${LEGACY_LIBRARY_PREFIX}${profileId}.`;
+  const registryRaw = window.sessionStorage.getItem(`${prefix}registry`);
+  const keys = Array.from({ length: window.sessionStorage.length }, (_, index) => window.sessionStorage.key(index))
+    .filter((key): key is string => Boolean(key?.startsWith(`${prefix}projects.`) && !key.includes(".quarantine.")));
+  if (!keys.length) return null;
+  const registry: { activeProjectId?: string | null; projects?: Array<Record<string, unknown>> } = registryRaw ? JSON.parse(registryRaw) : {};
+  const summaries = new Map((registry.projects || []).map((item) => [item.id, item]));
+  const projects = keys.map((key) => {
+    const entry = JSON.parse(window.sessionStorage.getItem(key) || "");
+    if (entry.profileId !== profileId || !entry.project || entry.projectId !== entry.project.id) throw new Error("The browser Library snapshot's project identity does not match its profile. The record remains untouched.");
+    return { project: normalizeLibraryProject(entry.project), summary: summaries.get(entry.projectId) || {} };
+  });
+  return { projects, activeProjectId: registry.activeProjectId || null };
+}
+
 function retireMigratedLegacyBrowserState() {
   const keys = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))
     .filter((key): key is string => Boolean(key && (key === LEGACY_ACTIVE_PROJECT_KEY || key === PROJECT_LIBRARY_ACTIVE_PROFILE_KEY || key.startsWith(LEGACY_LIBRARY_PREFIX))));
@@ -131,12 +149,36 @@ export async function migrateLegacyBrowserProjects(token: string) {
 
 export async function hydrateProfilePrivateBrowser(profileId: string, token: string) {
   csrfToken = token;
+  const legacy = legacySessionLibrary(profileId);
+  let result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
+  if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
+  let next = await result.json() as HydratedPrivateState;
+  if (legacy) {
+    const remote = Array.isArray(next.projects) && next.projects.length ? next.projects : next.project ? [{ project: next.project }] : [];
+    const merged = new Map(remote.map((item) => [(item.project as { id: string }).id, item]));
+    for (const item of legacy.projects) {
+      const previous = merged.get(item.project.id);
+      const localTime = Date.parse(String((item.summary as { updatedAt?: unknown }).updatedAt || item.project.updatedAt || ""));
+      const remoteTime = Date.parse(String((previous?.summary as { updatedAt?: unknown } | undefined)?.updatedAt || ""));
+      if (!previous || (Number.isFinite(localTime) && (!Number.isFinite(remoteTime) || localTime > remoteTime))) merged.set(item.project.id, item);
+    }
+    const projects = [...merged.values()];
+    const activeProjectId = legacy.activeProjectId && projects.some((item) => (item.project as { id: string }).id === legacy.activeProjectId && !(item.summary as { archivedAt?: unknown })?.archivedAt)
+      ? legacy.activeProjectId : next.activeProjectId || (next.project as { id?: string } | null)?.id || null;
+    await privateMutation("sync-library", { projects, activeProjectId }, token);
+    result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
+    if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
+    next = await result.json() as HydratedPrivateState;
+    const verified = new Map((next.projects || []).map((item) => [(item.project as { id: string }).id, item]));
+    if (projects.some((item) => {
+      const restored = verified.get((item.project as { id: string }).id);
+      return !restored || JSON.stringify(restored.project) !== JSON.stringify(item.project)
+        || Boolean((restored.summary as { archivedAt?: unknown } | undefined)?.archivedAt) !== Boolean((item.summary as { archivedAt?: unknown } | undefined)?.archivedAt);
+    })) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
+  }
   clearLibraryProjectSessionCache();
   window.sessionStorage.clear();
   window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
-  const result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
-  if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
-  const next = await result.json() as HydratedPrivateState;
   const projects = Array.isArray(next.projects) && next.projects.length
     ? next.projects
     : next.project
@@ -167,22 +209,22 @@ export function hydratedStoryMapContext(projectId: string) {
 }
 
 export function persistActiveProfileProject(explicitToken = "") {
-  const project = loadActiveLibraryProject();
-  const librarySummary = listLibraryProjects().find((item) => item.id === project.id);
-  const summary = librarySummary ? {
-    title: librarySummary.title,
-    updatedAt: librarySummary.updatedAt,
-    createdAt: librarySummary.createdAt,
-    progress: librarySummary.progress,
-    frontier: librarySummary.frontier,
-    thumbnailRef: librarySummary.thumbnail,
-    sourceKind: librarySummary.sourceKind,
-    sourceId: librarySummary.sourceId,
-    genre: librarySummary.genre,
-    format: librarySummary.format,
-    archivedAt: librarySummary.archivedAt,
-  } : undefined;
-  return queueWrite("save-project", { project, ...(summary ? { summary } : {}) }, explicitToken);
+  const { registry } = initializeProjectLibrary();
+  const projects = [...listLibraryProjects(), ...listArchivedLibraryProjects()].map((item) => {
+    const project = loadLibraryProjectSnapshot(item.id);
+    if (!project) throw new Error(`Library snapshot for ${item.title} is unavailable; the last saved profile state was preserved.`);
+    return { project, summary: {
+      title: item.title, updatedAt: item.updatedAt, createdAt: item.createdAt,
+      progress: item.progress, frontier: item.frontier, thumbnailRef: item.thumbnail,
+      sourceKind: item.sourceKind, sourceId: item.sourceId, genre: item.genre,
+      format: item.format, archivedAt: item.archivedAt,
+    } };
+  });
+  return queueWrite("sync-library", { projects, activeProjectId: registry.activeProjectId }, explicitToken);
+}
+
+export function deleteArchivedProfileProjectFromVault(projectId: string) {
+  return queueWrite("delete-archived-project", { projectId });
 }
 
 export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {

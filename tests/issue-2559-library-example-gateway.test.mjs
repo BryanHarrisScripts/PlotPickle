@@ -11,16 +11,18 @@ test("#2559 LOAD is a read-only gateway to EXAMPLES", async () => {
   const load = source.slice(loadStart, loadEnd);
 
   assert.match(load, /<ExampleGatewayCard/u);
+  assert.match(load, /posterUrls=\{afterglowPosters\}/u);
   assert.match(load, /setDestination\("examples"\)/u);
-  assert.match(source, />Open Example<\/button>/u);
-  assert.doesNotMatch(load, /StoryCard|Archive story|Open Saved Story|Resume Saved Story|setPending/u);
+  assert.doesNotMatch(load, />Open Example<\/button>|StoryCard|Archive story|Open Saved Story|Resume Saved Story|setPending/u);
+  assert.match(source, /className=\{styles\.gatewayPosterChoice\}/u);
 });
 
 test("#2559 Examples exposes exactly the clean-default and restore choices for Afterglow", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(source, />Project Defaults<\/button>/u);
-  assert.match(source, />Restore Your Changes<\/button>/u);
+  assert.match(source, />Open Example<\/button>/u);
+  assert.match(source, />Open Example with Your Changes<\/button>/u);
+  assert.doesNotMatch(source, />Project Defaults<\/button>|>Restore Your Changes<\/button>/u);
   assert.doesNotMatch(source, /Load & Explore/u);
 
   const examplesStart = source.indexOf('if (destination === "examples" || destination === "presets")');
@@ -30,7 +32,7 @@ test("#2559 Examples exposes exactly the clean-default and restore choices for A
   assert.doesNotMatch(examples, /sourceKind: isExamples \? "example"/u);
 });
 
-test("#2559 Project Defaults bypasses local scanning while Restore Your Changes owns recovery", async () => {
+test("#2559/#2566 Open Example bypasses scanning while local changes wait for one final Restore", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf('async function loadPackagedExample(');
   const end = source.indexOf('async function confirmLoad()', start);
@@ -44,13 +46,14 @@ test("#2559 Project Defaults bypasses local scanning while Restore Your Changes 
   assert.match(defaultsSlice, /await openActiveProject\(\)/u);
   assert.doesNotMatch(defaultsSlice, /scanLocalResources/u);
 
-  assert.match(loader, /openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(loader, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
   assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
-  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*await openActiveProject\(\)/u);
+  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*switchActiveLibraryProject\(openedProject\.id\)[\s\S]*await openActiveProject\(\)/u);
   assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
-  assert.match(source, />\{restoringResources \? "Restoring All…" : "Load All"\}<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Selected Changes"\}<\/button>/u);
+  assert.match(source, />Select All<\/button>/u);
+  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore"\}<\/button>/u);
+  assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);
 });
 
 test("#2559/#2560 packaged Afterglow artwork stays whole while local poster versions can be browsed", async () => {
@@ -60,7 +63,9 @@ test("#2559/#2560 packaged Afterglow artwork stays whole while local poster vers
   ]);
   assert.match(source, /AFTERGLOW_EXAMPLE_FALLBACK_POSTER/u);
   assert.match(source, /afterglowExamplePosterUrls/u);
+  assert.match(source, /return generatedPosters\.length \? generatedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
+  assert.match(source, /gatewayPosterChoice/u);
   assert.match(source, /Previous Afterglow poster/u);
   assert.match(source, /Next Afterglow poster/u);
   assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);

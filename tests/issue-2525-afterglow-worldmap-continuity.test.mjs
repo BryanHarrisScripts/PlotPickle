@@ -158,9 +158,10 @@ test("#2525 World Map and Storyboard share one visual version-state grammar with
     assert.ok(storyboard.includes(label), `Storyboard missing shared state language: ${label}`);
   }
 
-  assert.match(worldMap, /Previous saved version/u);
-  assert.match(worldMap, /Next saved version/u);
-  assert.match(worldMap, /safeVersionIndex \+ 1/u);
+  assert.match(worldMap, /Previous character image/u);
+  assert.match(worldMap, /Next character image/u);
+  assert.match(worldMap, /selectedBrowseItem\.generationNumber/u);
+  assert.match(worldMap, /selectedBrowseItem\.viewNumber/u);
   assert.match(worldMap, /safePosterIndex \+ 1/u);
   assert.match(storyboard, /Previous frame/u);
   assert.match(storyboard, /Next frame/u);

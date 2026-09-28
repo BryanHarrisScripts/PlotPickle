@@ -236,12 +236,62 @@
   background: var(--pp-skin-fill-panel);
 }
 
-.examplePoster img,
+.examplePoster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  min-height: 0;
+}
+
+.examplePoster img {
+  object-fit: contain;
+}
+
 .gatewayPoster img {
   display: block;
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+.examplePosterNavigation {
+  position: absolute;
+  z-index: 2;
+  right: var(--pp-skin-space-3);
+  bottom: var(--pp-skin-space-3);
+  left: var(--pp-skin-space-3);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--pp-skin-space-2);
+  align-items: center;
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel);
+}
+
+.examplePosterNavigation button {
+  width: var(--pp-skin-control-height);
+  height: var(--pp-skin-control-height);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  color: var(--pp-skin-ink);
+  background: var(--pp-skin-surface-1);
+  font: inherit;
+  font-size: var(--pp-skin-font-title);
+  cursor: pointer;
+}
+
+.examplePosterNavigation button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.examplePosterNavigation span {
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  text-align: center;
 }
 
 .gatewayPoster {

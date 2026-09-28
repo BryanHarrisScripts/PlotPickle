@@ -39,6 +39,8 @@ export type DiscoveryCard = {
   readonly createdAt: string;
   readonly inboxAct?: DiscoveryAct | null;
   readonly placement: DiscoveryPlacement | null;
+  readonly savedAt?: string | null;
+  readonly lockedAt?: string | null;
 };
 
 export type DiscoveryState = {
@@ -128,6 +130,8 @@ export function normalizeDiscoveryState(value: unknown): DiscoveryState {
       createdAt: cleanText(card.createdAt, 80) || new Date().toISOString(),
       inboxAct: isDiscoveryAct(card.inboxAct) ? card.inboxAct : null,
       placement: normalizeDiscoveryPlacement(card.placement),
+      savedAt: cleanText(card.savedAt, 80) || null,
+      lockedAt: cleanText(card.lockedAt, 80) || null,
     });
   }
   return { version: DISCOVERY_VERSION, cards: normalized };

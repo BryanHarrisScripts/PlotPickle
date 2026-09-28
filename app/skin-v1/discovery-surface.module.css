@@ -8,11 +8,11 @@
 }
 
 .summary,
-.composer,
 .inbox,
 .board,
 .actRail,
-.developAction {
+.developAction,
+.projectContext {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-4);
@@ -27,14 +27,32 @@
 
 .summary p,
 .card p,
+.projectCard p,
+.projectContext > p,
+.inbox > p,
 .empty,
 .notice {
   margin: 0;
 }
 
 .summary small,
-.card small {
+.card small,
+.projectCard small {
   color: var(--pp-skin-ink-muted);
+}
+
+.scoreboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pp-skin-space-2);
+}
+
+.scoreboard span {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  white-space: nowrap;
 }
 
 .actRail {
@@ -46,7 +64,8 @@
 .actRail button,
 .developAction button,
 .actions button,
-.card button {
+.card button,
+.deleteConfirm button {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-ink);
@@ -63,45 +82,118 @@
 .composer {
   display: grid;
   gap: var(--pp-skin-space-3);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #c3a72a;
+  background: #f2d96b;
+  color: #17160f;
+  padding: var(--pp-skin-space-4);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 18%);
 }
 
 .composer label {
   display: grid;
   gap: var(--pp-skin-space-2);
+  color: #17160f;
 }
 
-.composer label:last-of-type {
+.composer .ideaField {
   grid-column: 1 / -1;
 }
 
 .composer textarea,
-.composer input,
-.composer select {
+.composer select,
+.assignLane select {
   width: 100%;
   box-sizing: border-box;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-  background: var(--pp-skin-surface-2);
-  color: var(--pp-skin-ink);
+  border: 1px solid #7c6b20;
+  background: #fff3a6;
+  color: #17160f;
   font: inherit;
   padding: var(--pp-skin-space-2);
 }
 
-.actions {
+.composer textarea::placeholder {
+  color: #5d542b;
+}
+
+.composer .actions button {
+  background: #2b2815;
+  border-color: #2b2815;
+  color: #fff8cc;
+}
+
+.actions,
+.cardActions,
+.deleteConfirm {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--pp-skin-space-2);
+}
+
+.actions {
   grid-column: 1 / -1;
 }
 
 .developAction {
-  display: flex;
-  justify-content: flex-start;
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  justify-items: start;
 }
 
+.proposalPicker {
+  display: grid;
+  width: min(100%, 900px);
+  gap: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  padding: var(--pp-skin-space-3);
+}
+
+.laneChoices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+.laneChoices label {
+  display: flex;
+  gap: var(--pp-skin-space-2);
+  align-items: center;
+}
+
+.projectContext summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  cursor: pointer;
+  color: var(--pp-skin-accent-bright);
+}
+
+.projectContext > p {
+  margin-top: var(--pp-skin-space-3);
+  color: var(--pp-skin-ink-muted);
+}
+
+.projectContextList,
 .inboxList {
   display: grid;
   gap: var(--pp-skin-space-2);
   margin-top: var(--pp-skin-space-3);
+}
+
+.projectCard {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  padding: var(--pp-skin-space-3);
+}
+
+.projectCard header,
+.card header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
 }
 
 .laneGrid {
@@ -165,10 +257,9 @@
   box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-warning);
 }
 
-.card header {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--pp-skin-space-2);
+.card[data-locked="true"] {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  outline-offset: 2px;
 }
 
 .status {
@@ -178,9 +269,20 @@
   white-space: nowrap;
 }
 
+.assignLane {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+
 .visualRef {
   overflow-wrap: anywhere;
   color: var(--pp-skin-accent-bright);
+}
+
+.deleteConfirm {
+  align-items: center;
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-warning);
+  padding-left: var(--pp-skin-space-3);
 }
 
 .notice {
@@ -194,18 +296,27 @@
     flex-direction: column;
   }
 
+  .scoreboard {
+    justify-content: flex-start;
+  }
+
   .composer {
     grid-template-columns: 1fr;
   }
 
-  .composer label:last-of-type,
+  .composer .ideaField,
   .actions {
     grid-column: 1;
+  }
+
+  .laneChoices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 620px) {
-  .actRail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .actRail,
+  .laneChoices {
+    grid-template-columns: 1fr;
   }
 }

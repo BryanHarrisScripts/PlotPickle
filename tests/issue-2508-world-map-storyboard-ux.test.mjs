@@ -24,19 +24,21 @@ test("#2508 World Map poster uses Storyboard-style concise controls, chevrons, c
   assert.match(css, /\.lockedBadge \{[\s\S]*?right: var\(--pp-skin-space-1\)/u);
 });
 
-test("#2508 character visual versions use the same concise version-review language and badges", async () => {
+test("#2508/#2564 character visual review uses image-level chevrons with concise saved/locked badges", async () => {
   const surface = await read("app/skin-v1/story-bible-surface.tsx");
   const start = surface.indexOf("function CharacterVisualSheet");
   const end = surface.indexOf("export default function StoryBibleSurface", start);
   const character = surface.slice(start, end);
-  assert.match(character, /Previous saved version/u);
-  assert.match(character, /Next saved version/u);
-  assert.match(character, /safeVersionIndex \+ 1/u);
+  assert.match(character, /Previous character image/u);
+  assert.match(character, /Next character image/u);
+  assert.match(character, /selectedBrowseItem\.generationNumber/u);
+  assert.match(character, /selectedBrowseItem\.viewNumber/u);
   assert.match(character, /versions\.length/u);
   assert.match(character, />Save<\/button>/u);
   assert.match(character, />Lock<\/button>/u);
   assert.match(character, />Saved locally<\/span>/u);
   assert.match(character, />Locked<\/span>/u);
+  assert.match(character, /Generate Missing Views/u);
   assert.match(character, /saveWorldMapCharacterVisualVersion/u);
   assert.match(character, /lockWorldMapCharacterVisualVersion/u);
   assert.doesNotMatch(character, /Save this Version|Lock this Version/u);

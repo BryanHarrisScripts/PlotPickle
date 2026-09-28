@@ -140,8 +140,9 @@ export default function NodeShutdownPanel({ onCancel }: { readonly onCancel: () 
               credentials: "same-origin",
               cache: "no-store",
             })));
-          } catch {
-            // Preserve the original shutdown failure as the writer-facing error.
+          } catch (refreshError) {
+            const detail = refreshError instanceof Error ? refreshError.message : String(refreshError);
+            setError(`${message} PlotPickle also could not refresh the Node state: ${detail}`);
           }
           if (blockError instanceof Error) {
             console.warn("PlotPickle could not record the blocked Node state.", blockError);

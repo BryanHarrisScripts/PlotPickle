@@ -67,10 +67,11 @@ test("#2555/#2559/#2560 Afterglow stays packaged while local learning state rema
   assert.match(identity, /AFTERGLOW_V9_REFERENCE_LOGLINE/u);
   assert.match(catalog, /logline: AFTERGLOW_V9_REFERENCE_LOGLINE/u);
   assert.match(workspace, /The packaged source never changes/u);
-  assert.match(workspace, />Project Defaults<\/button>/u);
-  assert.match(workspace, />Restore Your Changes<\/button>/u);
+  assert.match(workspace, />Open Example<\/button>/u);
+  assert.match(workspace, />Open Example with Your Changes<\/button>/u);
   assert.match(workspace, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
-  assert.match(workspace, /switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /return generatedPosters\.length \? generatedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
   assert.match(workspace, /Previous Afterglow poster/u);
   assert.match(workspace, /Next Afterglow poster/u);
   assert.match(css, /aspect-ratio: 2 \/ 3/u);

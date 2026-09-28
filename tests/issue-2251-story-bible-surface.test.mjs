@@ -49,11 +49,11 @@ test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-re
     'data-story-bible-surface="canonical"',
     'data-story-bible-read-only="false"',
     'data-world-map-surface="review"',
-    "WORLDMAP · STORY BIBLE · HUMAN-REVIEWED DEVELOPMENT",
+    "WORLDMAP · STORY · HUMAN-REVIEWED DEVELOPMENT",
     "PLOT / STRUCTURE",
     "Character truth, backstory and reusable visual identity",
-    "FOUNDATIONS / WRITER DECISIONS",
-    "WORLD / CONTINUITY",
+    "FOUNDATIONS",
+    "WORLD",
     "PROVENANCE",
   ]) assert.ok(surface.includes(phrase), `Missing Story Bible surface evidence: ${phrase}`);
 

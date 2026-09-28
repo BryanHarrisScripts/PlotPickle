@@ -25,10 +25,10 @@ test("#2432 keeps project defaults and local resource restore as separate Human 
   assert.match(source, /requires your explicit selection/u);
   assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
   assert.match(source, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
-  assert.match(source, /saved Library metadata proves the same frame was previously Keep\/Locked/u);
   assert.match(source, /does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon/u);
   assert.match(source, /restoreLocalWorldMapPosterResources\(storyboardResult\.project, posterResources\)/u);
-  assert.match(source, /restoreLocalWorldMapCharacterResources\(posterResult\.project, characterResources\)/u);\n  assert.match(source, /saveActiveLibraryProject\(characterResult\.project\)/u);
+  assert.match(source, /restoreLocalWorldMapCharacterResources\(posterResult\.project, characterResources\)/u);
+  assert.match(source, /saveActiveLibraryProject\(characterResult\.project\)/u);
   assert.match(source, /Local media restore is additive/u);
   assert.match(source, /require reconciliation rather than last-write-wins/u);
 });

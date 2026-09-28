@@ -27,7 +27,7 @@
         {
           "type": "file-contains",
           "path": "app/_components/previs/previs-readiness-workspace.tsx",
-          "contains": "Export WebP"
+          "contains": "Create WebP"
         },
         {
           "type": "file-contains",

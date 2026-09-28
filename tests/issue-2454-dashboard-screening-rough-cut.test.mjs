@@ -28,11 +28,11 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
 
   const reports = rows.find((row) => row.id === "reports");
   assert.equal(reports?.group, "EXPLORE");
-  assert.equal(reports?.shortcut, "A");
+  assert.equal(reports?.shortcut, "5");
 
   const screening = rows.find((row) => row.id === "screening");
   assert.equal(screening?.group, "EXPLORE");
-  assert.equal(screening?.shortcut, "9");
+  assert.equal(screening?.shortcut, "4");
 
   assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
 });

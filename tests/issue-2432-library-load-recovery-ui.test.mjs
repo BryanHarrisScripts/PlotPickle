@@ -24,7 +24,8 @@ test("#2432/#2559 keeps project defaults and local change restore as separate Hu
   const source = await read("modules/library/ui/library-workspace.tsx");
   assert.match(source, />Project Defaults<\/button>/u);
   assert.match(source, />Restore Your Changes<\/button>/u);
-  assert.match(source, />Use Project Defaults<\/button>/u);
+  assert.match(source, />Continue Without Local Media<\/button>/u);
+  assert.doesNotMatch(source, />Use Project Defaults<\/button>/u);
   assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Selected Changes"\}<\/button>/u);
   assert.match(source, />\{restoringResources \? "Restoring All…" : "Load All"\}<\/button>/u);
   assert.match(source, /group\.selectedByDefault/u);
@@ -45,5 +46,6 @@ test("#2432/#2559 removes saved-story Resume from LOAD without bypassing recover
 
   assert.doesNotMatch(loadSurface, /Resume Saved Story|Open Saved Story|onClick=\{onOpen\}/u);
   assert.match(source, />Restore Your Changes<\/button>/u);
+  assert.match(source, /const openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
   assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
 });

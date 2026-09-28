@@ -621,7 +621,10 @@
       },
       "runtimeSelector": "[data-skin-v1-preproduction-review='production']",
       "runtimeReadySelector": "[data-skin-v1-preproduction-review='production'] [data-production-stage='provider-neutral-handoff']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     },
     {
       "id": "profile",
@@ -1632,7 +1635,10 @@
       },
       "runtimeSelector": "[data-dashboard-review-surface='screening']",
       "runtimeReadySelector": "[data-dashboard-review-surface='screening']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     },
     {
       "id": "reports",
@@ -2236,7 +2242,10 @@
       },
       "runtimeSelector": "[data-dashboard-review-surface='sound-foley']",
       "runtimeReadySelector": "[data-dashboard-review-surface='sound-foley']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     },
     {
       "id": "sound-narration",
@@ -2263,7 +2272,10 @@
       },
       "runtimeSelector": "[data-dashboard-review-surface='sound-narration']",
       "runtimeReadySelector": "[data-dashboard-review-surface='sound-narration']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     },
     {
       "id": "sound-music",
@@ -2290,7 +2302,10 @@
       },
       "runtimeSelector": "[data-dashboard-review-surface='sound-music']",
       "runtimeReadySelector": "[data-dashboard-review-surface='sound-music']",
-      "orchestrated": true
+      "orchestrated": true,
+      "ownsInlineSurfaces": [
+        "story-map"
+      ]
     }
   ],
   "navigationIdentity": {

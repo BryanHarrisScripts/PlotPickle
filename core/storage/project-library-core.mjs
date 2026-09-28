@@ -543,6 +543,21 @@ export function restoreProfileProject(input) {
   };
 }
 
+export function deleteArchivedProfileProject(input) {
+  const initialized = initializeProfileProjectLibrary(input);
+  const projectId = requireProjectId(input.projectId);
+  const target = initialized.registry.projects.find((item) => item.id === projectId);
+  if (!target?.archivedAt) throw new Error("Only an archived story can be permanently deleted.");
+  if (initialized.registry.activeProjectId === projectId) throw new Error("An active story cannot be deleted.");
+  const registry = writeRegistry(input.storage, {
+    ...initialized.registry,
+    projects: initialized.registry.projects.filter((item) => item.id !== projectId),
+    updatedAt: input.now(),
+  });
+  input.storage.removeItem(projectLibraryProjectKey(input.profileId, projectId));
+  return { registry, activeProject: initialized.activeProject };
+}
+
 export function readProfileProjectSnapshot(input) {
   const storage = requireStorage(input.storage);
   const profileId = normalizeProjectLibraryProfileId(input.profileId);

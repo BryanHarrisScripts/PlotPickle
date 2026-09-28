@@ -583,26 +583,12 @@ export default function LibraryWorkspace() {
     }
 
     if (destination === "load") {
-      const afterglow = examples.find((item) => item.referenceLoader === "afterglow-v9-foundations") ?? null;
       return (
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Load a base project</p><h2 id="load-title">LOAD</h2></div>
-            <p>Open a saved working story below to keep its Mind Map, World Map, World Agent decisions, and other project work. Start Fresh Afterglow Copy only when you intentionally want a new working copy from the packaged example. Local media is never attached or made canon without your choice.</p>
+            <p>Open a saved working story below to continue its Mind Map, World Map, World Agent decisions, and other project work. Start a fresh Afterglow copy from EXAMPLES. Local media is never attached or made canon without your choice.</p>
           </div>
-          {afterglow ? (
-            <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="afterglow-load">
-              <div><strong>Afterglow example · start fresh copy</strong><p>This creates a new Human-owned working copy from the immutable packaged Afterglow reference. It does not carry over World Agent decisions, saved character versions, or other canon from a previous working copy. To continue prior work, open the saved Afterglow story listed below.</p></div>
-              <button
-                className={styles.primaryButton}
-                disabled={loadingReference || restoringResources || rescanningResources}
-                onClick={() => setPending({ kind: "catalog", sourceKind: "example", item: afterglow })}
-                type="button"
-              >
-                Start Fresh Afterglow Copy
-              </button>
-            </div>
-          ) : null}
           {stories.length ? (
             <div className={styles.grid}>
               {stories.map((item) => (
@@ -616,7 +602,7 @@ export default function LibraryWorkspace() {
               ))}
             </div>
           ) : (
-            <div className={styles.empty}><h3>No saved working stories yet.</h3><p>Start a fresh Afterglow copy above, use NEW to start a clean project, or IMPORT EXPORT to bring in an existing story.</p></div>
+            <div className={styles.empty}><h3>No saved working stories yet.</h3><p>Use EXAMPLES for a fresh Afterglow copy, NEW to start a clean project, or IMPORT EXPORT to bring in an existing story.</p></div>
           )}
         </section>
       );
@@ -754,7 +740,14 @@ export default function LibraryWorkspace() {
 
       {recovery ? (
         <div className={styles.dialogBackdrop} role="presentation">
-          <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog">
+          <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog" onKeyDown={(event) => {
+            if (event.key === "Escape" && !restoringResources && !rescanningResources) {
+              event.preventDefault();
+              event.stopPropagation();
+              useProjectDefaults();
+            }
+          }}>
+            <button aria-label="Close local resource recovery" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={useProjectDefaults} type="button">×</button>
             <p className={styles.eyebrow}>Load Session · base revision {recovery.baseline.baseRevision}</p>
             <h2 id="library-recovery-title">Restore local resources?</h2>
             <p><strong>{recovery.project.title}</strong> is loaded. You can keep the project defaults or add selected local Storyboard frames, World Map posters, and saved World Map character visuals. This restores media only; World Agent decisions and other story canon come from the saved working story itself.</p>

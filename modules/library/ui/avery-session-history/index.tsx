@@ -181,6 +181,7 @@ export default function AverySessionHistory() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [notice, setNotice] = useState("Loading local Avery sessions…");
+  const [deleting, setDeleting] = useState("");
   const requested = useMemo(selectedSessionId, []);
 
   useEffect(() => {
@@ -214,6 +215,22 @@ export default function AverySessionHistory() {
   const slots = Array.from({ length: SLOT_COUNT }, (_, index) => sessions[index] || null);
   const latestSession = sessions[0] || null;
   const storyCount = new Set(sessions.map((session) => session.projectName)).size;
+
+  async function deleteSession(session: SessionSummary) {
+    if (!window.confirm(`Permanently delete Avery story “${session.projectName}”? This cannot be undone.`)) return;
+    setDeleting(session.id);
+    try {
+      const response = await fetch(`${API}?session=${encodeURIComponent(session.id)}`, { method: "DELETE" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || "Avery story could not be deleted.");
+      setSessions((current) => current.filter((item) => item.id !== session.id));
+      setNotice(`${session.projectName} was deleted permanently.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Avery story could not be deleted.");
+    } finally {
+      setDeleting("");
+    }
+  }
 
   return (
     <section className={styles.panel} aria-label="Avery Writer-in-Residence sessions">
@@ -264,10 +281,10 @@ export default function AverySessionHistory() {
                 )}
               </span>
             </button>
-            <div className={styles.pills} aria-label={`Avery session ${index + 1} artifacts`}>
-              {artifactButton("POSTER", session?.posterUrl || "")}
-              {artifactButton("TRAILER", session?.trailerUrl || "")}
-            </div>
+            {session ? <div className={styles.pills} aria-label={`Avery story ${index + 1} actions`}>
+              <button onClick={() => openSession(session.id)} type="button">Review Session</button>
+              <button disabled={deleting === session.id} onClick={() => void deleteSession(session)} type="button">{deleting === session.id ? "Deleting…" : "Delete"}</button>
+            </div> : null}
           </div>
         ))}
       </div>

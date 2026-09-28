@@ -4,6 +4,7 @@ import test from "node:test";
 import { createServer } from "vite";
 import {
   archiveProfileProject,
+  deleteArchivedProfileProject,
   initializeProfileProjectLibrary,
   listProfileArchivedProjectSummaries,
   listProfileProjectSummaries,
@@ -142,6 +143,19 @@ test("issue #1338 archiving the last story leaves zero active projects and resto
   assert.equal(restored.activeProject.id, originalId);
   assert.equal(restored.registry.activeProjectId, originalId);
   assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
+});
+
+test("issue #2545 permanent deletion is limited to an archived snapshot", () => {
+  const input = archiveHarness();
+  const original = initializeProfileProjectLibrary(input).activeProject.id;
+  assert.throws(() => deleteArchivedProfileProject({ ...input, projectId: original }), /Only an archived story/);
+  archiveProfileProject({ ...input, projectId: original });
+  const key = `plotpickle.library.profile.v1.${input.profileId}.projects.${original}`;
+  assert.ok(input.storage.getItem(key));
+  deleteArchivedProfileProject({ ...input, projectId: original });
+  assert.equal(input.storage.getItem(key), null);
+  assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
+  assert.throws(() => restoreProfileProject({ ...input, projectId: original }), /not in this Library/);
 });
 
 test("issue #1338 Library and Settings reuse one Archive component and Library exposes a real New Story action", async () => {

@@ -388,3 +388,11 @@ export function restoreArchivedLibraryProject(projectId: string) {
   announceChange();
   return result.activeProject;
 }
+
+export function deleteArchivedLibraryProject(projectId: string) {
+  const result = libraryCore.deleteArchivedProfileProject({ ...coreInput(), projectId }) as {
+    readonly activeProject: LibraryPPFProject | null;
+  };
+  announceChange();
+  return result.activeProject;
+}

@@ -510,9 +510,18 @@
 
 
 .recoveryDialog {
+  position: relative;
   width: min(100%, 760px);
   max-height: min(84dvh, 760px);
   overflow: auto;
+}
+
+.recoveryClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 .recoverySummary {

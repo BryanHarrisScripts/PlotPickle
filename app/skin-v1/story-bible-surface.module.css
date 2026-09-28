@@ -6,6 +6,31 @@
   font-family: var(--pp-skin-font-ui);
 }
 
+.actNav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin-bottom: var(--pp-skin-space-2);
+}
+
+.actNav button,
+.topicToolbar button {
+  min-height: 42px;
+  padding: 0 var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actNav button[aria-current="page"] {
+  border-color: var(--pp-skin-accent-bright);
+  color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-surface-0);
+}
+
 .sectionNav {
   position: sticky;
   top: 0;
@@ -47,6 +72,21 @@
   background: var(--pp-skin-surface-0);
   color: var(--pp-skin-accent-bright);
   box-shadow: var(--pp-skin-inset-highlight);
+}
+
+.topicToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  margin-bottom: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+
+.topicToolbar strong {
+  color: var(--pp-skin-accent-bright);
 }
 
 .panelShell,
@@ -309,9 +349,15 @@
 
 @media (max-width: 760px) {
   .surface { width: calc(100vw - 24px); }
+  .actNav,
   .sectionNav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     position: static;
+  }
+
+  .topicToolbar {
+    align-items: stretch;
+    flex-direction: column;
   }
   .hero,
   .spotlight,

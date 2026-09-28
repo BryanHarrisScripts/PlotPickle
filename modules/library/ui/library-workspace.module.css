@@ -228,28 +228,52 @@
 
 .exampleGrid { display: block; }
 .exampleCard { display: grid; grid-template-columns: minmax(260px, 42%) minmax(0, 1fr); }
-.exampleGatewayCard { overflow: hidden; }
-
-.examplePoster,
-.gatewayPoster {
-  overflow: hidden;
-  background: var(--pp-skin-fill-panel);
-}
 
 .examplePoster {
   position: relative;
   aspect-ratio: 2 / 3;
   min-height: 0;
+  overflow: hidden;
+  background: var(--pp-skin-fill-panel);
 }
 
 .examplePoster img {
   object-fit: contain;
 }
 
-.gatewayPoster img {
+.gatewaySelection {
+  width: 100%;
+}
+
+.gatewayPosterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 320px));
+  gap: var(--pp-skin-space-3);
+  align-items: start;
+}
+
+.gatewayPosterChoice {
+  padding: 0;
+  overflow: hidden;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-inset-highlight);
+  cursor: pointer;
+}
+
+.gatewayPosterChoice:hover,
+.gatewayPosterChoice:focus-visible {
+  border-color: var(--pp-skin-accent-bright);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}
+
+.gatewayPosterChoice img {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 2 / 3;
   object-fit: contain;
 }
 
@@ -294,9 +318,6 @@
   text-align: center;
 }
 
-.gatewayPoster {
-  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-}
 
 .exampleActions {
   display: flex;

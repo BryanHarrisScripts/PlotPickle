@@ -193,7 +193,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
 
   function assignUnsortedLane(card: DiscoveryCard) {
     if (card.placement) return;
-    const lane = unsortedLaneChoices[card.id] ?? "story";
+    const lane = unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story";
     const now = new Date().toISOString();
     const updated = workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
       ...candidate,
@@ -463,7 +463,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
               <header><strong>HUMAN IDEA</strong><span className={styles.status}>{card.savedAt ? "SAVED" : "DRAFT"}</span></header>
               <p>{card.content}</p>
               <label className={styles.assignLane}>Lane
-                <select value={unsortedLaneChoices[card.id] ?? "story"} onChange={(event) => setUnsortedLaneChoices((current) => ({ ...current, [card.id]: event.target.value as DiscoveryLaneId }))}>
+                <select value={unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story"} onChange={(event) => setUnsortedLaneChoices((current) => ({ ...current, [card.id]: event.target.value as DiscoveryLaneId }))}>
                   {selectedTopicLanes.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
                 </select>
               </label>

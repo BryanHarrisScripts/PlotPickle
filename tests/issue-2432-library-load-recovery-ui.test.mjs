@@ -4,22 +4,29 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2432 keeps local-resource recovery on Library Load while Afterglow belongs to Examples", async () => {
+test("#2432/#2559 keeps local-resource recovery behind Restore Your Changes while LOAD points to Examples", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
-  assert.doesNotMatch(loadSurface, /Start Fresh Afterglow Copy|kind: "catalog"/u);
-  assert.match(source, /sourceKind: isExamples \? "example" : "preset"/u);
+  assert.match(loadSurface, /<ExampleGatewayCard/u);
+  assert.match(loadSurface, /setDestination\("examples"\)/u);
+  assert.doesNotMatch(loadSurface, /kind: "catalog"|StoryCard|Open Saved Story|Resume Saved Story/u);
+  assert.match(source, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
   assert.match(source, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(source, /persistLoadSessionBaseline\(baseline\)/u);
+  assert.match(source, /if \(mode === "defaults"\)[\s\S]*await openActiveProject\(\)[\s\S]*return;/u);
+  assert.match(source, /inventory = await scanLocalResources\(openedProject\)/u);
   assert.match(source, /fetch\("\/api\/local-ai\/assets"/u);
   assert.match(source, /inventoryLocalResources\(openedProject/u);
 });
 
-test("#2432 keeps project defaults and local resource restore as separate Human choices", async () => {
+test("#2432/#2559 keeps project defaults and local change restore as separate Human choices", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
+  assert.match(source, />Project Defaults<\/button>/u);
+  assert.match(source, />Restore Your Changes<\/button>/u);
   assert.match(source, />Use Project Defaults<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Local Resources"\}<\/button>/u);
+  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Selected Changes"\}<\/button>/u);
+  assert.match(source, />\{restoringResources \? "Restoring All…" : "Load All"\}<\/button>/u);
   assert.match(source, /group\.selectedByDefault/u);
   assert.match(source, /requires your explicit selection/u);
   assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
@@ -32,9 +39,11 @@ test("#2432 keeps project defaults and local resource restore as separate Human 
   assert.match(source, /require reconciliation rather than last-write-wins/u);
 });
 
-test("#2432 routes Resume through Load recovery instead of bypassing it", async () => {
+test("#2432/#2559 removes saved-story Resume from LOAD without bypassing recovery authority", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
-  const card = source.slice(source.indexOf("function StoryCard"), source.indexOf("function NewStoryCard"));
-  assert.match(card, /onClick=\{onOpen\}/u);
-  assert.doesNotMatch(card, /onClick=\{active \? openActiveProject : onOpen\}/u);
+  const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
+
+  assert.doesNotMatch(loadSurface, /Resume Saved Story|Open Saved Story|onClick=\{onOpen\}/u);
+  assert.match(source, />Restore Your Changes<\/button>/u);
+  assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
 });

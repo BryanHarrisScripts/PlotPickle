@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
+import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   DEFAULT_LOCAL_PROFILE_ID,
@@ -90,6 +91,33 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
   storyboard: "Storyboard",
 };
 
+const AFTERGLOW_EXAMPLE_SOURCE_ID = "afterglow-v9";
+const AFTERGLOW_EXAMPLE_FALLBACK_POSTER = "/assets/library/examples/afterglow.svg";
+const MAX_EXAMPLE_POSTERS = 5;
+
+function afterglowExamplePosterUrls(items: readonly ProjectLibrarySummary[]) {
+  const artifacts = items
+    .filter((item) => item.sourceKind === "example" && item.sourceId === AFTERGLOW_EXAMPLE_SOURCE_ID)
+    .flatMap((item) => {
+      const snapshot = loadLibraryProjectSnapshot(item.id);
+      if (!snapshot) return [];
+      return snapshot.build.foundations.visualArtifacts
+        .filter((artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW && artifact.assetUrl)
+        .map((artifact) => ({ assetUrl: artifact.assetUrl, createdAt: artifact.createdAt }));
+    })
+    .sort((left, right) => String(right.createdAt).localeCompare(String(left.createdAt)));
+
+  const seen = new Set<string>();
+  return artifacts
+    .map((artifact) => artifact.assetUrl)
+    .filter((assetUrl) => {
+      if (seen.has(assetUrl)) return false;
+      seen.add(assetUrl);
+      return true;
+    })
+    .slice(0, MAX_EXAMPLE_POSTERS);
+}
+
 function currentProfileId() {
   return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
 }
@@ -137,26 +165,67 @@ async function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
 }
 
-function CatalogCard({ item, sourceKind, onLoad }: {
+function CatalogCard({ item, sourceKind, onLoad, posterUrls = [] }: {
   readonly item: LibraryCatalogItem;
   readonly sourceKind: "example" | "preset";
   readonly onLoad: () => void;
+  readonly posterUrls?: readonly string[];
 }) {
+  const [posterIndex, setPosterIndex] = useState(0);
+  const examplePosters = sourceKind === "example"
+    ? (posterUrls.length ? posterUrls : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER])
+    : [];
+  const safePosterIndex = Math.min(posterIndex, Math.max(0, examplePosters.length - 1));
+  const posterUrl = examplePosters[safePosterIndex] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
+
   return (
     <article className={`${styles.card} ${sourceKind === "example" ? styles.exampleCard : ""}`} data-library-catalog-id={item.id}>
       {sourceKind === "example"
-        ? <div className={styles.examplePoster}><Image src="/assets/library/examples/afterglow.svg" alt="Afterglow coastal road poster artwork" fill sizes="(max-width: 760px) 100vw, 35vw" /></div>
+        ? (
+          <div className={styles.examplePoster} data-example-poster-count={examplePosters.length}>
+            <Image
+              src={posterUrl}
+              alt={`Afterglow poster ${safePosterIndex + 1} of ${examplePosters.length}`}
+              fill
+              sizes="(max-width: 760px) 100vw, 35vw"
+              unoptimized={posterUrl.startsWith("/api/local-ai/assets/")}
+            />
+            {examplePosters.length > 1 ? (
+              <div className={styles.examplePosterNavigation} aria-label="Afterglow poster versions">
+                <button
+                  aria-label="Previous Afterglow poster"
+                  disabled={safePosterIndex <= 0}
+                  onClick={() => setPosterIndex(safePosterIndex - 1)}
+                  type="button"
+                >‹</button>
+                <span aria-live="polite">{safePosterIndex + 1} / {examplePosters.length}</span>
+                <button
+                  aria-label="Next Afterglow poster"
+                  disabled={safePosterIndex >= examplePosters.length - 1}
+                  onClick={() => setPosterIndex(safePosterIndex + 1)}
+                  type="button"
+                >›</button>
+              </div>
+            ) : null}
+          </div>
+        )
         : <div className={styles.visual} data-visual-kind={item.id} aria-hidden="true"><span>{item.visualLabel}</span></div>}
       <div className={styles.cardBody}>
         <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
         <h3>{item.title}</h3>
         <p>{item.description}</p>
-        <div className={styles.coverage} aria-label={`${item.title} curriculum coverage`}>
-          {(Object.keys(COVERAGE_LABELS) as (keyof LibraryFrontierCoverage)[]).map((key) => (
-            <span data-coverage-state={item.coverage[key]} key={key}><b>{COVERAGE_LABELS[key]}</b><strong>{item.coverage[key]}</strong></span>
-          ))}
-        </div>
-        {item.referenceLoader === "afterglow-v9-foundations" ? <small>Reference frontier: Foundations complete · later story detail remains reviewable or locked.</small> : null}
+        {sourceKind === "example" ? (
+          <div className={styles.exampleLogline}>
+            <span>Logline</span>
+            <p>{item.logline}</p>
+          </div>
+        ) : (
+          <div className={styles.coverage} aria-label={`${item.title} curriculum coverage`}>
+            {(Object.keys(COVERAGE_LABELS) as (keyof LibraryFrontierCoverage)[]).map((key) => (
+              <span data-coverage-state={item.coverage[key]} key={key}><b>{COVERAGE_LABELS[key]}</b><strong>{item.coverage[key]}</strong></span>
+            ))}
+          </div>
+        )}
         <button className={styles.primaryButton} onClick={onLoad} type="button">{sourceKind === "example" ? "Load & Explore" : "Start from Preset"}</button>
       </div>
     </article>
@@ -218,6 +287,7 @@ export default function LibraryWorkspace() {
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
+  const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [recovery, setRecovery] = useState<PendingRecovery | null>(null);
   const [selectedRecoveryOrigins, setSelectedRecoveryOrigins] = useState<readonly string[]>([]);
@@ -231,8 +301,11 @@ export default function LibraryWorkspace() {
     const refresh = () => {
       const library = initializeProjectLibrary();
       setActiveProject(currentSessionLibraryProject());
-      setStories(listLibraryProjects().filter((item) => item.sourceKind !== "synthetic"));
-      setArchivedCount(listArchivedLibraryProjects().filter((item) => item.sourceKind !== "synthetic").length);
+      const savedStories = listLibraryProjects().filter((item) => item.sourceKind !== "synthetic");
+      const archivedStories = listArchivedLibraryProjects().filter((item) => item.sourceKind !== "synthetic");
+      setStories(savedStories);
+      setArchivedCount(archivedStories.length);
+      setAfterglowPosters(afterglowExamplePosterUrls([...savedStories, ...archivedStories]));
       if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
       else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
     };
@@ -627,12 +700,12 @@ export default function LibraryWorkspace() {
       return (
         <section aria-labelledby={`${destination}-title`} className={styles.section} data-library-surface={destination}>
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference stories" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
+            <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference story" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
             <p>{isExamples
-              ? "These are complete reference stories supplied with PlotPickle. Loading one creates a user-owned working copy while the packaged source remains unchanged."
+              ? "This is a complete reference story supplied with PlotPickle. Loading creates a user-owned working copy while the packaged source remains unchanged. Changes made in your working copy can be saved locally and revisited later for learning and comparison."
               : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
           </div>
-          <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: isExamples ? "example" : "preset", item })} sourceKind={isExamples ? "example" : "preset"} />)}</div>
+          <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: isExamples ? "example" : "preset", item })} posterUrls={isExamples ? afterglowPosters : undefined} sourceKind={isExamples ? "example" : "preset"} />)}</div>
         </section>
       );
     }

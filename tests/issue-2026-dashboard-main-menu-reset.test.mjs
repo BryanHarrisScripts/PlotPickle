@@ -52,6 +52,14 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   const shortcuts = ordered.map(([, shortcut]) => shortcut);
   assert.equal(new Set(shortcuts).size, shortcuts.length, "Dashboard keyboard shortcuts must be unique");
 
+  assert.deepEqual(ordered.filter((row) => row[4] === "EXPLORE").map((row) => row[1]), ["1", "2", "3", "4", "5"]);
+  assert.deepEqual(ordered.filter((row) => row[4] === "SYSTEM").map((row) => row[1]), ["6", "7", "8", "9", "0"]);
+  assert.equal(
+    ordered.filter((row) => ["DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY"].includes(row[4])).every((row) => !/^\d$/u.test(row[1])),
+    true,
+    "Creative Dashboard groups must use letter shortcuts so digits remain reserved for Explore/System",
+  );
+
   const groupCounts = new Map();
   for (const [, , , , group] of ordered) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
   assert.deepEqual([...groupCounts.entries()], [

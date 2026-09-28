@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   deleteArchivedLibraryProject,
-  listArchivedLibraryProjects,
+  listHumanArchivedLibraryProjects,
   restoreArchivedLibraryProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
@@ -48,7 +48,7 @@ export default function ArchiveStoriesPanel() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const refresh = () => setStories(listArchivedLibraryProjects().filter((item) => item.sourceKind !== "synthetic"));
+    const refresh = () => setStories(listHumanArchivedLibraryProjects());
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);

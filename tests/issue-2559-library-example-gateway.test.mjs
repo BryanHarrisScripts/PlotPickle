@@ -44,19 +44,27 @@ test("#2559 Project Defaults bypasses local scanning while Restore Your Changes 
   assert.match(defaultsSlice, /await openActiveProject\(\)/u);
   assert.doesNotMatch(defaultsSlice, /scanLocalResources/u);
 
+  assert.match(loader, /openedProject = switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
   assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
-  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*Opening the packaged Project Defaults\.[\s\S]*await openActiveProject\(\)/u);
+  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*await openActiveProject\(\)/u);
   assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
   assert.match(source, />\{restoringResources \? "Restoring All…" : "Load All"\}<\/button>/u);
   assert.match(source, />\{restoringResources \? "Restoring…" : "Restore Selected Changes"\}<\/button>/u);
 });
 
-test("#2559 packaged Afterglow artwork is shown whole and local posters are not used as the example card", async () => {
+test("#2559/#2560 packaged Afterglow artwork stays whole while local poster versions can be browsed", async () => {
   const [source, css] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/ui/library-workspace.module.css"),
   ]);
-  assert.match(source, /src=\{AFTERGLOW_EXAMPLE_FALLBACK_POSTER\}[\s\S]*width=\{1200\}[\s\S]*height=\{675\}/u);
-  assert.doesNotMatch(source, /afterglowExamplePosterUrls|MAX_EXAMPLE_POSTERS|Previous Afterglow poster|Next Afterglow poster/u);
-  assert.match(css, /\.examplePoster img,[\s\S]*\.gatewayPoster img[\s\S]*width: 100%;[\s\S]*height: auto;[\s\S]*object-fit: contain/u);
+  assert.match(source, /AFTERGLOW_EXAMPLE_FALLBACK_POSTER/u);
+  assert.match(source, /afterglowExamplePosterUrls/u);
+  assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
+  assert.match(source, /Previous Afterglow poster/u);
+  assert.match(source, /Next Afterglow poster/u);
+  assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);
+  assert.match(css, /\.examplePoster \{[\s\S]*aspect-ratio: 2 \/ 3/u);
+  assert.match(css, /\.examplePoster img \{[\s\S]*object-fit: contain/u);
+  assert.match(css, /\.examplePosterNavigation/u);
 });

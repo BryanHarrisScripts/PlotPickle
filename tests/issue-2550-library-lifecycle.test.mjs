@@ -46,34 +46,42 @@ test("#2547/#2548 Example and LOAD semantics stay separate", async () => {
     readFile(new URL("../modules/library/ui/library-workspace.module.css", import.meta.url), "utf8"),
   ]);
   assert.doesNotMatch(catalog, /clockmakers-map/i);
-  assert.match(workspace, /src="\/assets\/library\/examples\/afterglow\.svg"/);
-  assert.match(css, /\.exampleCard \{ display: grid; grid-template-columns: minmax\(180px, 35%\) minmax\(0, 1fr\)/);
+  assert.match(workspace, /AFTERGLOW_EXAMPLE_FALLBACK_POSTER/u);
+  assert.match(css, /\.exampleCard \{ display: grid; grid-template-columns: minmax\(260px, 42%\) minmax\(0, 1fr\)/u);
   assert.doesNotMatch(workspace, /Start Fresh Afterglow Copy/);
   assert.match(workspace, /Close local resource recovery/);
   assert.match(workspace, /if \(!inventory\.groups\.length && !scanError\)/);
-  assert.match(workspace, /setStories\(listLibraryProjects\(\)\.filter\(\(item\) => item\.sourceKind !== "synthetic"\)\)/);
+  assert.match(workspace, /const savedStories = listHumanLibraryProjects\(\)/u);
+  assert.match(workspace, /const archivedStories = listHumanArchivedLibraryProjects\(\)/u);
 });
 
-test("#2555/#2559 Afterglow Example is packaged, uncropped and keeps the canonical logline", async () => {
-  const [identity, catalog, workspace, css] = await Promise.all([
+test("#2555/#2559/#2560 Afterglow stays packaged while local learning state remains hidden", async () => {
+  const [identity, catalog, workspace, css, browser, archive] = await Promise.all([
     readFile(new URL("../data/afterglow-reference-identity.ts", import.meta.url), "utf8"),
     readFile(new URL("../modules/library/project-library-catalog.ts", import.meta.url), "utf8"),
     readFile(new URL("../modules/library/ui/library-workspace.tsx", import.meta.url), "utf8"),
     readFile(new URL("../modules/library/ui/library-workspace.module.css", import.meta.url), "utf8"),
+    readFile(new URL("../core/storage/project-library-browser.ts", import.meta.url), "utf8"),
+    readFile(new URL("../modules/library/ui/archive-stories-panel.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(identity, /AFTERGLOW_V9_REFERENCE_LOGLINE/u);
   assert.match(catalog, /logline: AFTERGLOW_V9_REFERENCE_LOGLINE/u);
-  assert.match(workspace, /Afterglow packaged PlotPickle example poster/u);
-  assert.match(workspace, /width=\{1200\}[\s\S]*height=\{675\}/u);
-  assert.match(workspace, /className=\{styles\.exampleLogline\}/u);
-  assert.match(workspace, /<p>\{item\.logline\}<\/p>/u);
+  assert.match(workspace, /The packaged source never changes/u);
   assert.match(workspace, />Project Defaults<\/button>/u);
   assert.match(workspace, />Restore Your Changes<\/button>/u);
-  assert.doesNotMatch(workspace, /Previous Afterglow poster|Next Afterglow poster|MAX_EXAMPLE_POSTERS|afterglowExamplePosterUrls/u);
-  assert.match(css, /\.examplePoster img,[\s\S]*\.gatewayPoster img[\s\S]*object-fit: contain/u);
-  assert.doesNotMatch(css, /\.examplePosterNavigation/u);
-  assert.match(css, /\.exampleLogline/u);
+  assert.match(workspace, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
+  assert.match(workspace, /switchActiveLibraryProject\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /Previous Afterglow poster/u);
+  assert.match(workspace, /Next Afterglow poster/u);
+  assert.match(css, /aspect-ratio: 2 \/ 3/u);
+  assert.match(css, /\.examplePoster img \{[\s\S]*object-fit: contain/u);
+  assert.match(browser, /listHumanLibraryProjects\(\)[\s\S]*item\.sourceKind !== "example"/u);
+  assert.match(browser, /listHumanArchivedLibraryProjects\(\)[\s\S]*item\.sourceKind !== "example"/u);
+  assert.match(browser, /AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
+  assert.match(browser, /priorSummary\?\.sourceId === AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID && project\.revision === 0/u);
+  assert.match(archive, /listHumanArchivedLibraryProjects\(\)/u);
 });
+
 test("#2546 Avery opens a synthetic-provenance story and confirms selected deletion", async () => {
   const [ui, gateway] = await Promise.all([
     readFile(new URL("../modules/library/ui/avery-session-history/index.tsx", import.meta.url), "utf8"),

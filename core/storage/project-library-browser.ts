@@ -20,6 +20,9 @@ export type { LibraryPPFProject } from "./library-project";
 
 export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import" | "synthetic";
 
+export const AFTERGLOW_EXAMPLE_SOURCE_ID = "afterglow-v9" as const;
+export const AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID = "afterglow-v9-defaults" as const;
+
 export type ProjectLibrarySummary = {
   readonly id: string;
   readonly title: string;
@@ -294,10 +297,18 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
   const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
+  const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);
+  const afterglowSourceId = afterglowReference
+    ? (
+      priorSummary?.sourceId === AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID && project.revision === 0
+        ? AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID
+        : AFTERGLOW_EXAMPLE_SOURCE_ID
+    )
+    : null;
   const result = libraryCore.saveProfileActiveProject({
     ...coreInput(),
     project: projectWithStructure,
-    ...(afterglowReference ? { sourceKind: "example", sourceId: "afterglow-v9" } : {}),
+    ...(afterglowReference ? { sourceKind: "example", sourceId: afterglowSourceId } : {}),
   }) as {
     readonly activeProject: LibraryPPFProject;
   };
@@ -318,6 +329,24 @@ export function listLibraryProjects() {
 
 export function listArchivedLibraryProjects() {
   return libraryCore.listProfileArchivedProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
+}
+
+export function listHumanLibraryProjects() {
+  return listLibraryProjects().filter((item) => item.sourceKind !== "example" && item.sourceKind !== "synthetic");
+}
+
+export function listHumanArchivedLibraryProjects() {
+  return listArchivedLibraryProjects().filter((item) => item.sourceKind !== "example" && item.sourceKind !== "synthetic");
+}
+
+export function listAfterglowExampleProjects() {
+  return listLibraryProjects()
+    .filter((item) => item.sourceKind === "example" && item.sourceId === AFTERGLOW_EXAMPLE_SOURCE_ID)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+export function latestAfterglowExampleProject() {
+  return listAfterglowExampleProjects()[0] ?? null;
 }
 
 export function switchActiveLibraryProject(projectId: string) {

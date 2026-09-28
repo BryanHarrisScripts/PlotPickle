@@ -54,7 +54,7 @@ test("#2547/#2548 Example and LOAD semantics stay separate", async () => {
   assert.match(workspace, /setStories\(listLibraryProjects\(\)\.filter\(\(item\) => item\.sourceKind !== "synthetic"\)\)/);
 });
 
-test("#2555 Afterglow Example is story-first and browses saved poster versions", async () => {
+test("#2555/#2559 Afterglow Example is packaged, uncropped and keeps the canonical logline", async () => {
   const [identity, catalog, workspace, css] = await Promise.all([
     readFile(new URL("../data/afterglow-reference-identity.ts", import.meta.url), "utf8"),
     readFile(new URL("../modules/library/project-library-catalog.ts", import.meta.url), "utf8"),
@@ -63,22 +63,17 @@ test("#2555 Afterglow Example is story-first and browses saved poster versions",
   ]);
   assert.match(identity, /AFTERGLOW_V9_REFERENCE_LOGLINE/u);
   assert.match(catalog, /logline: AFTERGLOW_V9_REFERENCE_LOGLINE/u);
-  assert.doesNotMatch(catalog, /current Foundations frontier/u);
-  assert.match(workspace, /This is a complete reference story supplied with PlotPickle/u);
-  assert.match(workspace, /Changes made in your working copy can be saved locally and revisited later for learning and comparison/u);
-  assert.match(workspace, /FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW/u);
-  assert.match(workspace, /item\.sourceKind === "example" && item\.sourceId === AFTERGLOW_EXAMPLE_SOURCE_ID/u);
-  assert.match(workspace, /\.slice\(0, MAX_EXAMPLE_POSTERS\)/u);
-  assert.match(workspace, /Previous Afterglow poster/u);
-  assert.match(workspace, /Next Afterglow poster/u);
-  assert.match(workspace, /safePosterIndex \+ 1} \/ \{examplePosters\.length/u);
+  assert.match(workspace, /Afterglow packaged PlotPickle example poster/u);
+  assert.match(workspace, /width=\{1200\}[\s\S]*height=\{675\}/u);
   assert.match(workspace, /className=\{styles\.exampleLogline\}/u);
   assert.match(workspace, /<p>\{item\.logline\}<\/p>/u);
-  assert.doesNotMatch(workspace, /Reference frontier:/u);
-  assert.match(css, /\.examplePosterNavigation/u);
+  assert.match(workspace, />Project Defaults<\/button>/u);
+  assert.match(workspace, />Restore Your Changes<\/button>/u);
+  assert.doesNotMatch(workspace, /Previous Afterglow poster|Next Afterglow poster|MAX_EXAMPLE_POSTERS|afterglowExamplePosterUrls/u);
+  assert.match(css, /\.examplePoster img,[\s\S]*\.gatewayPoster img[\s\S]*object-fit: contain/u);
+  assert.doesNotMatch(css, /\.examplePosterNavigation/u);
   assert.match(css, /\.exampleLogline/u);
 });
-
 test("#2546 Avery opens a synthetic-provenance story and confirms selected deletion", async () => {
   const [ui, gateway] = await Promise.all([
     readFile(new URL("../modules/library/ui/avery-session-history/index.tsx", import.meta.url), "utf8"),

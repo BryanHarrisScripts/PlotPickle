@@ -168,7 +168,8 @@ function parseArgs(argv) {
 }
 
 async function readJson(filePath) {
-  return JSON.parse(await readFile(filePath, "utf8"));
+  const text = await readFile(filePath, "utf8");
+  return JSON.parse(text.replace(/^\uFEFF/u, ""));
 }
 
 function defaultSourceFileForUrl(url) {

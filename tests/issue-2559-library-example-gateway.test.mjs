@@ -74,7 +74,7 @@ test("#2559/#2566 Open Example bypasses scanning while local changes wait for on
   assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);
 });
 
-test("#2559/#2560 packaged Afterglow artwork stays whole while local poster versions can be browsed", async () => {
+test("#2559/#2560/#2570 packaged Afterglow artwork stays whole while Load and Examples browse one poster at a time", async () => {
   const [source, css] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/ui/library-workspace.module.css"),
@@ -83,7 +83,8 @@ test("#2559/#2560 packaged Afterglow artwork stays whole while local poster vers
   assert.match(source, /afterglowExamplePosterUrls/u);
   assert.match(source, /return generatedPosters\.length \? generatedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
-  assert.match(source, /gatewayPosterChoice/u);
+  assert.match(source, /className=\{styles\.loadPosterButton\}/u);
+  assert.match(source, /className=\{styles\.loadPosterNavigation\}/u);
   assert.match(source, /Previous Afterglow poster/u);
   assert.match(source, /Next Afterglow poster/u);
   assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);

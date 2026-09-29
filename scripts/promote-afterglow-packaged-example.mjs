@@ -178,6 +178,19 @@ function defaultSourceFileForUrl(url) {
   return path.join(localAppData, "PlotPickle", "assets", fileName);
 }
 
+export function packagedPosterUrls(project) {
+  const foundations = record(record(record(project).build).foundations);
+  const artifacts = Array.isArray(foundations.visualArtifacts) ? foundations.visualArtifacts : [];
+  return artifacts
+    .map((item) => record(item))
+    .filter((item) => item.workflow === "marquee-director/foundations-first-poster-v1")
+    .filter((item) => typeof item.assetUrl === "string" && item.assetUrl.startsWith(PACKAGED_ASSET_PUBLIC_ROOT + "/"))
+    .sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")))
+    .map((item) => item.assetUrl)
+    .filter((url, index, all) => all.indexOf(url) === index)
+    .slice(0, 5);
+}
+
 export function scanTemplate(project) {
   return {
     schemaVersion: 1,
@@ -230,6 +243,7 @@ export async function promoteAfterglowSnapshot({ root = process.cwd(), projectPa
       updatedAt: typeof rawProject.updatedAt === "string" ? rawProject.updatedAt : null,
     },
     snapshotSha256: sha256Text(snapshotText),
+    featuredPosterUrls: packagedPosterUrls(project),
     assets: assetRecords,
   };
 

@@ -1,14 +1,508 @@
 {
   "schemaVersion": 1,
-  "status": "pending-human-export",
+  "status": "promoted",
   "assetRoot": "/assets/library/examples/afterglow/current",
   "source": {
     "referenceSourceId": "afterglow-v9-complete-baseline",
-    "projectId": null,
-    "revision": null,
-    "updatedAt": null
+    "projectId": "712c256b-e907-40f5-9a47-30fca9c4114f",
+    "revision": 556,
+    "updatedAt": "2026-09-28T21:31:51.836Z"
   },
-  "snapshotSha256": null,
-  "assets": [],
-  "featuredPosterUrls": []
+  "snapshotSha256": "1dc3be43b43821c2786616baff7a1e1bbdb0ebb57915fe087941ddd84a2f6e2c",
+  "featuredPosterUrls": [
+    "/assets/library/examples/afterglow/current/generated/worldmap-poster-8651d8bb-cb1c-4d47-8102-7b860fb81e7a-1790543027384-1790543053689.webp",
+    "/assets/library/examples/afterglow/current/generated/worldmap-poster-e12dcea3-7f75-4c5d-8686-fd2b6dd033d5-1790448802366.webp"
+  ],
+  "assets": [
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-11-1790356277268-1790356298525.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-11-1790356277268-1790356298525.webp",
+      "contentHash": "sha256:a9aec7ea1d2c63dceb644f463158a5671be5a833ee3455f0e2ddc2fe1ce58175"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-11-1790356277268-1790356298738.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-11-1790356277268-1790356298738.webp",
+      "contentHash": "sha256:44f861e2c386a4355ef42c450a338ecf9ffc4ed73dc9e4997a5aef4fa0d80d88"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-12-1790356299137-1790356320423.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-12-1790356299137-1790356320423.webp",
+      "contentHash": "sha256:954954f58363d386f128a1ff9f8a47008a442c4ba318f646d5f6d5d0c407bc37"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-12-1790356299137-1790356320600.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-12-1790356299137-1790356320600.webp",
+      "contentHash": "sha256:7bc3546641f3d88ceb5eaa5090cfa09e63ccc947906db82a36104652871e6fdb"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-13-1790356321033-1790356341353.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-13-1790356321033-1790356341353.webp",
+      "contentHash": "sha256:a83de1ba59135ecb4377a97dbcb99089f322c3b7e1f7d9cd2e68dbfc5ac9824f"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-13-1790356321033-1790356341525.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-13-1790356321033-1790356341525.webp",
+      "contentHash": "sha256:afeb28a609841b9483a9a1145f6581bd946246a951622b86f9ece24b10bbb507"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-14-1790356341933-1790356365546.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-14-1790356341933-1790356365546.webp",
+      "contentHash": "sha256:82c8166e50f8a66f6d3538f01f929d3eba79ce7e2d7863b8ae5b098e36541442"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-14-1790356341933-1790356365713.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-14-1790356341933-1790356365713.webp",
+      "contentHash": "sha256:7ec5b93549778a01bc8f9b8b2a9c4db256937f4e550834694d859807c363cb57"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-15-1790356366136-1790356386215.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-15-1790356366136-1790356386215.webp",
+      "contentHash": "sha256:29fae246b38855a5d276beceea12e3a65b57c2d2a928317693e833f2ed0bd043"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-15-1790356366136-1790356386402.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-15-1790356366136-1790356386402.webp",
+      "contentHash": "sha256:ba03eb6cf61cc34a2bbce755ab40fc20a359858a0489dac2e3ef637cff1c0c51"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-16-1790356518820-1790356536703.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-16-1790356518820-1790356536703.webp",
+      "contentHash": "sha256:aa9cc69b02114530ed89eb920443c8de6affdf982645f0f9c554f9eb0ec95cbc"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-16-1790356518820-1790356536860.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-16-1790356518820-1790356536860.webp",
+      "contentHash": "sha256:9fef065f9e6addd25b066cc77d35fd755540f99d54c0f5c106ba3af996f555ac"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-17-1790356537273-1790356555468.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-17-1790356537273-1790356555468.webp",
+      "contentHash": "sha256:0731e3d013feeb2e735792cda0959c9d73feb4c4a4530045a6f72d893d1e6a38"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-17-1790356537273-1790356555640.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-17-1790356537273-1790356555640.webp",
+      "contentHash": "sha256:9d800ac84927d0109bd704bc75986e9004e01f3db4461bb9f096aed72ea8bd9e"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-18-1790356556040-1790356576013.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-18-1790356556040-1790356576013.webp",
+      "contentHash": "sha256:8452f4783b918d6ac7fc3cce25a4a8732fc506cba0f07673bfb03d2823f8565b"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-18-1790356556040-1790356576247.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-18-1790356556040-1790356576247.webp",
+      "contentHash": "sha256:6439c43a4580e28cfb9127a5dabfed6e05732f4cdb93ebf19231dbce58c4f43f"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-19-1790356576666-1790356598616.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-19-1790356576666-1790356598616.webp",
+      "contentHash": "sha256:ddd2c559d4527eb732d8ab2ebc9efa87f51a86192adaca911120fcd544aea6a9"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-19-1790356576666-1790356598830.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-19-1790356576666-1790356598830.webp",
+      "contentHash": "sha256:10c5788339b5be894f44ebf4756f4da281062e6fbb3ab361b6f392c72c02f218"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-20-1790356599237-1790356618489.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-20-1790356599237-1790356618489.webp",
+      "contentHash": "sha256:6663ee6fae2349c6da1cf2d68f7aa68857248c9105256b16f2bea5237c435adb"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-20-1790356599237-1790356618697.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-20-1790356599237-1790356618697.webp",
+      "contentHash": "sha256:4e0077c1f1ac4207a8844c1e1525ac6dd6230e1ee1aecd8fa0b2c4b66edf4e50"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-21-1790356644420-1790356665284.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-21-1790356644420-1790356665284.webp",
+      "contentHash": "sha256:d6211bb96165f36a5dff954579306f6717abc80ca242b48804fef97a0bb28456"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-21-1790356644420-1790356665453.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-21-1790356644420-1790356665453.webp",
+      "contentHash": "sha256:191114fbf900947686fe9f168277cf75ed0c00782646877b8b6866d97b8357d6"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-22-1790356665895-1790356685497.webp",
+      "target": "generated/storyboard-17a3ff2d-9026-41ed-8e84-eb3497249c14-1-1-22-1790356665895-1790356685497.webp",
+      "contentHash": "sha256:c5f383d5293e8066ad51b6c3ecdbbe4f2e2fbb99f2188c0be5a788e54a1845d4"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790281094106-1790281112677.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790281094106-1790281112677.webp",
+      "contentHash": "sha256:7a3c78d70e24ad4fd87fe79ed7ecee2215d7d32a5d0fdb5571a40c812c51d823"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790281094106-1790281112847.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790281094106-1790281112847.webp",
+      "contentHash": "sha256:27b0162ea6acdc17348b34923531eb0964f3873c54660f0cbda12cd5d9950145"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790291347460-1790291368665.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790291347460-1790291368665.webp",
+      "contentHash": "sha256:2e42ba466ca9e7c90458d16970f63ae1822aee64b168ce8a6f3e77345089a59c"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790291347460-1790291368876.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-1-1790291347460-1790291368876.webp",
+      "contentHash": "sha256:68567ada183a03248dc9fe3377665b2069ee3495891956d3f689e8f8a1c3fcc1"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-10-1790291571219-1790291589248.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-10-1790291571219-1790291589248.webp",
+      "contentHash": "sha256:90454bb985fab97a28c3745e93e9371a8e9659071af3390cfaa9ec9566266fa2"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-10-1790291571219-1790291589423.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-10-1790291571219-1790291589423.webp",
+      "contentHash": "sha256:0d43679c09f7cfac528d65a61170d309dd80f468f002694450a2a6a9920ee8cc"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-14-1790281311786-1790281331207.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-14-1790281311786-1790281331207.webp",
+      "contentHash": "sha256:f1a40a3c2c2cc6b39b24c2feb8d1db0473c96825d5082400e0c9db7930637d4d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-14-1790281311786-1790281331361.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-14-1790281311786-1790281331361.webp",
+      "contentHash": "sha256:ac2789b4e78e568f9c9deb867784b0d76779936043ce1de87ce45d28e1240bed"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-17-1790281384394-1790281405241.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-17-1790281384394-1790281405241.webp",
+      "contentHash": "sha256:2a19cacc779367a8c067f996952526eb51d1cf5ba07419ffc968ca7991de66d8"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-17-1790281384394-1790281405441.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-17-1790281384394-1790281405441.webp",
+      "contentHash": "sha256:59327a8f7b4c6f64dbb389be6e43954b823903d8f8dab193e6877a3b27fe6ab6"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-18-1790281426794-1790281445664.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-18-1790281426794-1790281445664.webp",
+      "contentHash": "sha256:267e83583f4cbc7fa9f1000f8473966c90904e9e1c5fb006755d742835820a8d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-18-1790281426794-1790281445832.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-18-1790281426794-1790281445832.webp",
+      "contentHash": "sha256:4d9a1b4c59ba5e9bffddd7423b3849192158de6e27cb488d6e40b67f2095df4a"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790281193074-1790281213677.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790281193074-1790281213677.webp",
+      "contentHash": "sha256:ff1f205c73373e935645912a5436fee000b88a4ab407da631c01485b4f233f55"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790281193074-1790281213844.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790281193074-1790281213844.webp",
+      "contentHash": "sha256:85cdc8ddd87bf3c3644bee34026abc68b6b3562dfd4c047ab2baa04a0c4f208d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790291369281-1790291390791.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790291369281-1790291390791.webp",
+      "contentHash": "sha256:a1c1c1609ee7e2b28fa0ab2cd23a29381bd66c17fb63faba2e0a72e50293825a"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790291369281-1790291391021.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-2-1790291369281-1790291391021.webp",
+      "contentHash": "sha256:81c786abb54c8dac983260578119918e1eba182536f69a1d8ad7cc03d6f2792e"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-22-1790281057162-1790281077451.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-22-1790281057162-1790281077451.webp",
+      "contentHash": "sha256:11758cbbe9ff529dddcc0a5f368429fa959e42c09eba17615742f59cae0be00d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-22-1790281057162-1790281077611.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-22-1790281057162-1790281077611.webp",
+      "contentHash": "sha256:ea3988ddbe5accfbc10c5f498fa976ce48bdf2fe341c37b611f015866be28efa"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-23-1790281020522-1790281041935.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-23-1790281020522-1790281041935.webp",
+      "contentHash": "sha256:8b0b1443b460a61c69dc9410ec5172135e586f64501df07d2804f0e9a660f2a3"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-23-1790281020522-1790281042113.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-23-1790281020522-1790281042113.webp",
+      "contentHash": "sha256:873f1da3a77512f52dc522138f1cfec3b68bfeb10c7cb69f3568852075674cde"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-24-1790280987754-1790281009763.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-24-1790280987754-1790281009763.webp",
+      "contentHash": "sha256:2d809930cb9e8405699083863527d8bfc9e2a4e727fabb4c55e620d371fea152"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-24-1790280987754-1790281009939.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-24-1790280987754-1790281009939.webp",
+      "contentHash": "sha256:f868969d4725a8b8a3ca4dec1d4e717aac6c890b00a4e763be4325219593d860"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-25-1790280951666-1790280972721.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-25-1790280951666-1790280972721.webp",
+      "contentHash": "sha256:484e1422658c38732e343685b9fc9addb660bbf4add065366500a1068bb853fa"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-25-1790280951666-1790280972883.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-25-1790280951666-1790280972883.webp",
+      "contentHash": "sha256:3d296f881f52bc7429ea3c2e3a788ef9ae9671d66e2ac7243f7a30433127afd8"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790281277762-1790281299928.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790281277762-1790281299928.webp",
+      "contentHash": "sha256:b9f0f21198378235af6e2a07bbc1c158247c24b99bf1f76694b85c57ed3eb646"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790281277762-1790281300093.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790281277762-1790281300093.webp",
+      "contentHash": "sha256:c60b86546e37f625c53e20724b0209a41827c9dedd3d6bd3e80c5325fc76c6d3"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790291391423-1790291409579.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790291391423-1790291409579.webp",
+      "contentHash": "sha256:409826f59d473585fedda1b9c3e935af672acbec0b123c05caebeaa4a92fd2f3"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790291391423-1790291409747.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-3-1790291391423-1790291409747.webp",
+      "contentHash": "sha256:610cea03449d6b05f776eb955997130a3dfffd9cc05fb58666b7d22e843c23f8"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790281138042-1790281157645.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790281138042-1790281157645.webp",
+      "contentHash": "sha256:1a12051b2bf2d9acca1744b8d0245307a2881422b1153b34b4ff75860205eac7"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790281138042-1790281157825.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790281138042-1790281157825.webp",
+      "contentHash": "sha256:ca21632da60fceb309cfb8657ed3abd08100fc336ccd84d3707e857e1f014794"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790291410167-1790291426304.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790291410167-1790291426304.webp",
+      "contentHash": "sha256:947bdb2c0f44bfdf0e00751f6d305fc82f52f671ce19159caa6d5c1f81fc6bea"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790291410167-1790291426472.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-4-1790291410167-1790291426472.webp",
+      "contentHash": "sha256:daf36bdf58370577611e27845314ab48ce3d2762c38c34391d56d424125a2f69"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-5-1790291426888-1790291447218.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-5-1790291426888-1790291447218.webp",
+      "contentHash": "sha256:dc31fe0fc38cc2e5843af022a2a2e7e1fae219dda105db0ecdd69377be92063c"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-5-1790291426888-1790291447392.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-5-1790291426888-1790291447392.webp",
+      "contentHash": "sha256:fabbe20ad6358212c8997ca4fc5fe78fdfc7a11010d970878e13dffc8802768e"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-6-1790291493853-1790291512857.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-6-1790291493853-1790291512857.webp",
+      "contentHash": "sha256:ae7e4dc307caa6e7f41e03958ee1c8862b66dd1eaf7f0c0b6842f802e4ffa782"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-6-1790291493853-1790291513052.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-6-1790291493853-1790291513052.webp",
+      "contentHash": "sha256:6ed67668717379e5365ab0515f6e75d378ad5f24dd96639f33b913fa16bf7a79"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-7-1790291513480-1790291532370.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-7-1790291513480-1790291532370.webp",
+      "contentHash": "sha256:02619d6ad5e180aa72e5c6916f5b53b67dfcaf1facc436331d96600e74650897"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-7-1790291513480-1790291532543.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-7-1790291513480-1790291532543.webp",
+      "contentHash": "sha256:882afee1ca68b932108b96c82c18552e11b91d177ba8171ed580bd8fc83bbdae"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790281229338-1790281250030.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790281229338-1790281250030.webp",
+      "contentHash": "sha256:8eab3e5f163368a46e913f60eed054b03d5e400a1e8d7a68638e974ed8e6f27e"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790281229338-1790281250199.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790281229338-1790281250199.webp",
+      "contentHash": "sha256:9c121f110f4077adc5ec2e873c20df287204c3fc7c0a407e52ddad4df8b1675a"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790291532947-1790291550232.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790291532947-1790291550232.webp",
+      "contentHash": "sha256:16684b42357529a8cbd163fa8b30235c8f15a8b2c7f647c4f041773d4f3e39d6"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790291532947-1790291550402.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-8-1790291532947-1790291550402.webp",
+      "contentHash": "sha256:1626bd44af81d58c1e8ddd877fd14c2ff84b858f922f6d7bf315e8bfc13ef04c"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-9-1790291550815-1790291570631.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-9-1790291550815-1790291570631.webp",
+      "contentHash": "sha256:e2b30f9bbe35d3c62cb4d7301ad5866e4ccf459561c1a5e0dbc58d9e0e3ef562"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-9-1790291550815-1790291570810.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-1-1-9-1790291550815-1790291570810.webp",
+      "contentHash": "sha256:ccaa2be169b97f73d6c50025c74b95ef24c9620c9920e95ecb85f61b73007cdf"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-19-1-21-1790279085664-1790279107725.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-19-1-21-1790279085664-1790279107725.webp",
+      "contentHash": "sha256:3f56e72f7700e27b7918403d4e660979474270d69deb4dc567b678c456592244"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-19-1-21-1790279085664-1790279107931.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-19-1-21-1790279085664-1790279107931.webp",
+      "contentHash": "sha256:b1a42d951451d6660c0a24be3a3d9494646fccac0420adfab6ba4f7218c3ff15"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-20-1-21-1790278792480-1790278814826.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-20-1-21-1790278792480-1790278814826.webp",
+      "contentHash": "sha256:97a13fb39c66941dc9ab5aec5c2be6ba0eefb9a5e278de14c9659f476332c675"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-20-1-21-1790278792480-1790278815031.webp",
+      "target": "generated/storyboard-7bc4da93-9f7d-4adc-ac10-eec3b9dba573-20-1-21-1790278792480-1790278815031.webp",
+      "contentHash": "sha256:7561078e6fb26245731ab2b2d5f4b46bc4575ccf492a5c00c3be7f28fa278d54"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-fe17f5a9-3afb-4d5f-988c-a63e5fad2682-2-1-1-1790342389398-1790342410566.webp",
+      "target": "generated/storyboard-fe17f5a9-3afb-4d5f-988c-a63e5fad2682-2-1-1-1790342389398-1790342410566.webp",
+      "contentHash": "sha256:c0203330acb55b646dede7be3675053f212e1cad85f1562c4a4378285152d438"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/storyboard-fe17f5a9-3afb-4d5f-988c-a63e5fad2682-2-1-1-1790342389398-1790342410754.webp",
+      "target": "generated/storyboard-fe17f5a9-3afb-4d5f-988c-a63e5fad2682-2-1-1-1790342389398-1790342410754.webp",
+      "contentHash": "sha256:aea9d7cbf60b2059d13bdf2650bb8c34566edd425e5a13eb2cee3ef0cada38a9"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-back-full-1790630793534.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-back-full-1790630793534.webp",
+      "contentHash": "sha256:c8874a5fd0d5a071bb2929ff6a152df04698b3f839f4c84d3bdaccbd72d52481"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-front-ful-1790630774480.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-front-ful-1790630774480.webp",
+      "contentHash": "sha256:1c242105028a52ba10bcdeb8c1ef10f4c2a198287215e5a6d2e1f73d1d4f0a80"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-left-prof-1790630813959.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-left-prof-1790630813959.webp",
+      "contentHash": "sha256:01e1f2aa9901a7544aeb12e3a9168af088bb711499446a85d6619ea59ebb0e92"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-left-thre-1790630849545.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-left-thre-1790630849545.webp",
+      "contentHash": "sha256:db33956fc9d6c0735766c30661e0b71bc04ab935f90867943e5f7b93108fa03b"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-neutral-s-1790630886044.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-neutral-s-1790630886044.webp",
+      "contentHash": "sha256:4a065f89afeeafc3e8eff7a919392d51620f50163f79fb6d6cb04b2e752552dd"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-right-pro-1790630832018.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-right-pro-1790630832018.webp",
+      "contentHash": "sha256:e9b4d06da105693da66c0f50ce78935611e404be7b19d7464c36730f1f40c6d3"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-right-thr-1790630868338.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-right-thr-1790630868338.webp",
+      "contentHash": "sha256:d19af28ef4fbb03277af11b66bfff50179d9f1ed139b6338cd830b3d8a447925"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-secondary-1790630904124.webp",
+      "target": "generated/world-map-character-amy-f1ab2299-1357-4c72-be8b-c89fb369f413-secondary-1790630904124.webp",
+      "contentHash": "sha256:c9ee3cbf68aae247a1c5096fa65afc053f3da4225e76608032108b9b306025e0"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-back-f-1790630996302.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-back-f-1790630996302.webp",
+      "contentHash": "sha256:08f268bd49e9aca3c48c5a85ca01f40921a08f83e08305d3467c32892f3df04e"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-front--1790630979689.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-front--1790630979689.webp",
+      "contentHash": "sha256:bf5e1581e7eceabc9030b2b2db28c28084d50a049eb9c97b3142cb6e3cfa327d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-left-p-1790631016295.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-left-p-1790631016295.webp",
+      "contentHash": "sha256:7dbf5553e750f281ee3ed54953339e3c0200efa3c4add3ff1299945bd3869c7a"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-left-t-1790631053667.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-left-t-1790631053667.webp",
+      "contentHash": "sha256:313ed6e1c08b26efdfb644b57707012041a19a0407d9c144038070e19ba6c553"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-neutra-1790631078184.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-neutra-1790631078184.webp",
+      "contentHash": "sha256:aa965aa5756c397b18988cdb38a220d64386abfda4d1561e9952c6f4c485567b"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-right--1790631036879.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-right--1790631036879.webp",
+      "contentHash": "sha256:3e861222a9a912fdf72d6dc4c82508a26dfc1baa19d97cb31258bf5964d580b8"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-second-1790631111835.webp",
+      "target": "generated/world-map-character-isobel-c7937df5-5587-4043-8ac2-a82e18dcbc3a-second-1790631111835.webp",
+      "contentHash": "sha256:8d5ed40a04bc68f023878e1efd43f4b5a1f6821d34e367ffeb395f3ebd66db8f"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-back-full-1790543136262.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-back-full-1790543136262.webp",
+      "contentHash": "sha256:089520237666d2f634fe66725e3206317b5eacde7ddb5c626b9bda4bd1c58caf"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-front-ful-1790543120432.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-front-ful-1790543120432.webp",
+      "contentHash": "sha256:a7c7060cbcdac16d8bb0b4f31c5f658ef0699ea9965949a668497bed9c7ad83d"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-left-prof-1790543152294.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-left-prof-1790543152294.webp",
+      "contentHash": "sha256:f9a2583cd4b2df011b53fb57c98138ea8a131a020190a42aa542b1c918c55328"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-left-thre-1790543185556.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-left-thre-1790543185556.webp",
+      "contentHash": "sha256:4ae352876040378a4d8bc564ce344793b4049280818c4823415145613fe8b583"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-neutral-s-1790543221784.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-neutral-s-1790543221784.webp",
+      "contentHash": "sha256:b07e1a36d8b484fc5b334a3256a5ab700ded23d2505d7efc04244d63fa4d4077"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-right-pro-1790543169045.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-right-pro-1790543169045.webp",
+      "contentHash": "sha256:46d26124a42f7de572ca6589cce6b6b70da974969f498a39bc88e0e78920a0ec"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-right-thr-1790543203621.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-right-thr-1790543203621.webp",
+      "contentHash": "sha256:4fbb177ace5acb99f8041572bbf0b09c8dc4e51c497b7a6b7be31d16c4cbae07"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-secondary-1790543238469.webp",
+      "target": "generated/world-map-character-ren-05e3ec53-37c1-4f36-88d3-ce5fa99d7d67-secondary-1790543238469.webp",
+      "contentHash": "sha256:ca970d4f7b98be41a037e9482411b3b2936dc35a464ff7c0f309d862d9976474"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/worldmap-poster-8651d8bb-cb1c-4d47-8102-7b860fb81e7a-1790543027384-1790543053689.webp",
+      "target": "generated/worldmap-poster-8651d8bb-cb1c-4d47-8102-7b860fb81e7a-1790543027384-1790543053689.webp",
+      "contentHash": "sha256:2d7232ca4cc6a089a989f8ceb1976d28583428e8b68a1d6c337ef232e28dc61c"
+    },
+    {
+      "publicUrl": "/assets/library/examples/afterglow/current/generated/worldmap-poster-e12dcea3-7f75-4c5d-8686-fd2b6dd033d5-1790448802366.webp",
+      "target": "generated/worldmap-poster-e12dcea3-7f75-4c5d-8686-fd2b6dd033d5-1790448802366.webp",
+      "contentHash": "sha256:09a9e071663354b14970dbf2cf2c92942cdafc9c164c3c144625b5dadac1ef1c"
+    }
+  ]
 }

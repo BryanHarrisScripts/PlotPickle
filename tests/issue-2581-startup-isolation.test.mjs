@@ -80,3 +80,20 @@ test("#2581 restart isolation keeps saved work while requiring a fresh session s
   assert.match(profile, /hydrateProfileProjectLibrary\(\{ activeProjectId, projects \}\)/u);
   assert.match(profile, /persistActiveProfileProject[\s\S]*activeProjectId: persistedActiveProjectId/u);
 });
+
+
+test("#2581 Library Load uses a text-first resume-state summary for saved stories", async () => {
+  const workspace = await read("modules/library/ui/library-workspace.tsx");
+  const styles = await read("modules/library/ui/library-workspace.module.css");
+
+  assert.match(workspace, /Resume your story/u);
+  assert.match(workspace, /Last working area/u);
+  assert.match(workspace, /Tracked progress/u);
+  assert.match(workspace, /Nothing loads into the workspace until you choose it/u);
+  assert.match(workspace, /role="progressbar"/u);
+  assert.doesNotMatch(workspace, /function SavedStoryLoadCard[\s\S]*item\.thumbnail/u);
+
+  assert.match(styles, /\.savedStoryResumeHeader/u);
+  assert.match(styles, /\.savedStoryResumeSummary/u);
+  assert.match(styles, /\.savedStoryProgressTrack/u);
+});

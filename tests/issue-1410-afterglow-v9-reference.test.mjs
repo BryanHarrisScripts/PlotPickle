@@ -93,7 +93,7 @@ test("#1410 replaces the fake Afterglow catalog story and lazy-loads the heavy v
 
   assert.match(catalog, /id: "afterglow-v9"/);
   assert.match(catalog, /title: "Afterglow: Reflections of Sentience"/);
-  assert.match(catalog, /referenceLoader: "afterglow-v9-foundations"/);
+  assert.match(catalog, /referenceLoader: "afterglow-packaged-current"/);
   assert.doesNotMatch(catalog, /missing brother|memory archive|destabilized coast/i,
     "the old disconnected synthetic Afterglow card must not survive");
 

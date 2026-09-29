@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
+import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID,
@@ -118,7 +119,14 @@ function afterglowExamplePosterUrls(items: readonly ProjectLibrarySummary[]) {
       return true;
     })
     .slice(0, MAX_EXAMPLE_POSTERS);
-  return generatedPosters.length ? generatedPosters : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER];
+  if (generatedPosters.length) return generatedPosters;
+
+  const packagedPosters = Array.isArray(packagedAfterglowManifest.featuredPosterUrls)
+    ? packagedAfterglowManifest.featuredPosterUrls
+      .filter((assetUrl): assetUrl is string => typeof assetUrl === "string" && assetUrl.startsWith("/assets/library/examples/afterglow/current/"))
+      .slice(0, MAX_EXAMPLE_POSTERS)
+    : [];
+  return packagedPosters.length ? packagedPosters : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER];
 }
 function currentProfileId() {
   return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
@@ -473,7 +481,10 @@ export default function LibraryWorkspace() {
     try {
       if (mode === "defaults") {
         let sourceProject = item.project;
-        if (item.referenceLoader === "afterglow-v9-foundations") {
+        if (item.referenceLoader === "afterglow-packaged-current") {
+          const { createAfterglowPackagedCurrentReference } = await import("../reference/afterglow-packaged-current");
+          sourceProject = createAfterglowPackagedCurrentReference();
+        } else if (item.referenceLoader === "afterglow-v9-foundations") {
           const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
           sourceProject = createAfterglowV9FoundationsReference();
         }
@@ -545,7 +556,10 @@ export default function LibraryWorkspace() {
         openedProject = switchActiveLibraryProject(pending.item.id);
       } else {
         let sourceProject = pending.item.project;
-        if (pending.item.referenceLoader === "afterglow-v9-foundations") {
+        if (pending.item.referenceLoader === "afterglow-packaged-current") {
+          const { createAfterglowPackagedCurrentReference } = await import("../reference/afterglow-packaged-current");
+          sourceProject = createAfterglowPackagedCurrentReference();
+        } else if (pending.item.referenceLoader === "afterglow-v9-foundations") {
           const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
           sourceProject = createAfterglowV9FoundationsReference();
         }

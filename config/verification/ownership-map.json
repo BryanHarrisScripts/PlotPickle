@@ -818,6 +818,35 @@
       ]
     },
     {
+      "id": "afterglow-packaged-current-example",
+      "classification": "production",
+      "include": [
+        "data/afterglow-packaged-current/**",
+        "modules/library/reference/afterglow-packaged-current.ts",
+        "scripts/promote-afterglow-packaged-example.mjs",
+        "public/assets/library/examples/afterglow/current/**"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "visual",
+        "cli"
+      ]
+    },
+    {
+      "id": "repository-local-state-ignore-boundary",
+      "classification": "verification",
+      "include": [
+        ".gitignore"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "security",
+        "test-harness"
+      ]
+    },
+    {
       "id": "afterglow-character-truth-fixture",
       "classification": "production",
       "include": [

@@ -96,6 +96,7 @@
     "test:google-calendar": "node --test tests/issue-185-google-calendar.test.mjs",
     "test:google-meet": "node --test tests/issue-187-google-meet.test.mjs",
     "test:afterglow-persistence": "node --test tests/issue-190-afterglow-persistence.test.mjs",
+    "afterglow:package-example": "node scripts/promote-afterglow-packaged-example.mjs",
     "test:visual-storyworld-positioning": "node --test tests/issue-193-visual-storyworld-positioning.test.mjs",
     "test:ppf-relationship-assets": "node --test tests/issue-194-ppf-relationship-assets.test.mjs",
     "test:storyworld-map": "node --test tests/issue-195-storyworld-map.test.mjs",

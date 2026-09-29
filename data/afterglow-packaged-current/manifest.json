@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "pending-human-export",
+  "assetRoot": "/assets/library/examples/afterglow/current",
+  "source": {
+    "referenceSourceId": "afterglow-v9-complete-baseline",
+    "projectId": null,
+    "revision": null,
+    "updatedAt": null
+  },
+  "snapshotSha256": null,
+  "assets": [],
+  "featuredPosterUrls": []
+}

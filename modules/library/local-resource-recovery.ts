@@ -12,6 +12,7 @@ import {
   type WorldMapCharacterVisualReference,
 } from "../../core/contracts/world-map";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
+import packagedAfterglowManifest from "../../data/afterglow-packaged-current/manifest.json";
 
 export type LocalAssetIndexItem = {
   readonly fileName: string;
@@ -21,6 +22,19 @@ export type LocalAssetIndexItem = {
   readonly contentHash: string;
   readonly modifiedAt: string;
 };
+
+const PACKAGED_AFTERGLOW_CONTENT_HASHES = new Set(
+  Array.isArray(packagedAfterglowManifest.assets)
+    ? packagedAfterglowManifest.assets
+      .map((item) => item && typeof item === "object" && "contentHash" in item ? String(item.contentHash || "") : "")
+      .filter(Boolean)
+    : [],
+);
+
+export function isAlreadyPackagedAfterglowAsset(asset: LocalAssetIndexItem) {
+  return Boolean(asset.contentHash && PACKAGED_AFTERGLOW_CONTENT_HASHES.has(asset.contentHash));
+}
+
 
 export type RecoveredStoryboardResource = {
   readonly kind: "storyboard-frame";
@@ -228,6 +242,7 @@ export function inventoryLocalResources(
   ];
 
   for (const asset of assets) {
+    if (isAlreadyPackagedAfterglowAsset(asset)) continue;
     const storyboard = parseRecoverableStoryboardAsset(asset);
     if (storyboard) {
       storyboardResources.push(storyboard);

@@ -99,6 +99,11 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
 const AFTERGLOW_EXAMPLE_FALLBACK_POSTER = "/assets/library/examples/afterglow.svg";
 const MAX_EXAMPLE_POSTERS = 5;
 const LOAD_CARDS_PER_PAGE = 4;
+const AFTERGLOW_PACKAGED_ASSET_COUNTS = {
+  storyboard: packagedAfterglowManifest.assets.filter((asset) => asset.publicUrl.includes("/storyboard-")).length,
+  characters: packagedAfterglowManifest.assets.filter((asset) => asset.publicUrl.includes("/world-map-character-")).length,
+  posters: packagedAfterglowManifest.featuredPosterUrls.length,
+} as const;
 
 function afterglowExamplePosterUrls(items: readonly ProjectLibrarySummary[]) {
   const localPosters = items.flatMap((item) => {
@@ -351,31 +356,65 @@ function CatalogCard({ item, sourceKind, onLoad, disabled = false, canRestoreCha
           </div>
         )
         : <div className={styles.visual} data-visual-kind={item.id} aria-hidden="true"><span>{item.visualLabel}</span></div>}
-      <div className={styles.cardBody}>
-        <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
-        <h3>{item.title}</h3>
-        <p>{item.description}</p>
-        {sourceKind === "example" ? (
-          <div className={styles.exampleLogline}>
-            <span>Logline</span>
-            <p>{item.logline}</p>
+      {sourceKind === "example" ? (
+        <div className={`${styles.cardBody} ${styles.exampleDetails}`}>
+          <p className={styles.exampleEyebrow}>Packaged Reference Story</p>
+          <h3 className={styles.exampleTitle}>{item.title}</h3>
+          <div className={styles.exampleMetaLine} aria-label="Example metadata">
+            <span>{item.genre}</span>
+            <span>{item.format}</span>
+            <span>Canonical package</span>
           </div>
-        ) : (
+          <p className={styles.exampleDescriptor}>{item.description}</p>
+
+          <section className={styles.exampleLogline} aria-labelledby={`example-logline-${item.id}`}>
+            <span id={`example-logline-${item.id}`}>Logline</span>
+            <p>{item.logline}</p>
+          </section>
+
+          <section className={styles.exampleIncluded} aria-labelledby={`example-included-${item.id}`}>
+            <span id={`example-included-${item.id}`}>What’s included</span>
+            <div>
+              <strong>Complete v9 screenplay</strong>
+              <small>Packaged project snapshot and story structure</small>
+            </div>
+            <div>
+              <strong>{AFTERGLOW_PACKAGED_ASSET_COUNTS.storyboard} storyboard visuals</strong>
+              <small>Repository-backed reference imagery</small>
+            </div>
+            <div>
+              <strong>{AFTERGLOW_PACKAGED_ASSET_COUNTS.characters} character references</strong>
+              <small>World Map production-reference views</small>
+            </div>
+            <div>
+              <strong>{AFTERGLOW_PACKAGED_ASSET_COUNTS.posters} poster versions</strong>
+              <small>Packaged marketing-reference visuals</small>
+            </div>
+          </section>
+
+          <div className={styles.exampleActionArea}>
+            <div className={styles.exampleActions}>
+              <button className={styles.primaryButton} disabled={disabled} onClick={() => onLoad("defaults")} type="button">Open Example</button>
+              <button className={styles.secondaryButton} disabled={disabled || !canRestoreChanges} onClick={() => onLoad("restore")} type="button">Open Example with Your Changes</button>
+            </div>
+            <p className={styles.exampleActionHelp}>
+              Open Example starts from the canonical packaged reference. Your Changes adds your profile-local Afterglow overlay only when you choose it.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.cardBody}>
+          <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
           <div className={styles.coverage} aria-label={`${item.title} curriculum coverage`}>
             {(Object.keys(COVERAGE_LABELS) as (keyof LibraryFrontierCoverage)[]).map((key) => (
               <span data-coverage-state={item.coverage[key]} key={key}><b>{COVERAGE_LABELS[key]}</b><strong>{item.coverage[key]}</strong></span>
             ))}
           </div>
-        )}
-        {sourceKind === "example" ? (
-          <div className={styles.exampleActions}>
-            <button className={styles.secondaryButton} disabled={disabled} onClick={() => onLoad("defaults")} type="button">Open Example</button>
-            <button className={styles.primaryButton} disabled={disabled || !canRestoreChanges} onClick={() => onLoad("restore")} type="button">Open Example with Your Changes</button>
-          </div>
-        ) : (
           <button className={styles.primaryButton} disabled={disabled} onClick={() => onLoad()} type="button">Start from Preset</button>
-        )}
-      </div>
+        </div>
+      )}
     </article>
   );
 }
@@ -935,7 +974,7 @@ export default function LibraryWorkspace() {
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference story" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
             <p>{isExamples
-              ? "This is the complete Afterglow reference story packaged with PlotPickle. The packaged source never changes. Open Example starts the current packaged reference; Open Example with Your Changes reopens your profile-local learning state and lets you choose which local changes to restore."
+              ? "Explore Afterglow as PlotPickle’s complete packaged reference story. The project profile below shows the story, what is included, and the two ways to open it."
               : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
           </div>
           <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => (

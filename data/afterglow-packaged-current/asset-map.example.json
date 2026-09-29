@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "sourceUrl": "/api/local-ai/assets/EXAMPLE.webp",
+      "sourceFile": "C:\\Users\\<you>\\AppData\\Local\\PlotPickle\\assets\\EXAMPLE.webp",
+      "target": "characters/ren/generation-1/front.webp"
+    }
+  ]
+}

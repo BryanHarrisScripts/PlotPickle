@@ -344,6 +344,7 @@ export default function LibraryWorkspace() {
   const [destination, setDestination] = useState<LibraryDestination>("load");
   const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
+  const [canExportCurrentStory, setCanExportCurrentStory] = useState(false);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
   const [afterglowLocalState, setAfterglowLocalState] = useState<ProjectLibrarySummary | null>(null);
@@ -361,7 +362,9 @@ export default function LibraryWorkspace() {
   useEffect(() => {
     const refresh = () => {
       const library = initializeProjectLibrary();
-      setActiveProject(currentSessionLibraryProject());
+      const sessionProject = currentSessionLibraryProject();
+      setActiveProject(sessionProject);
+      setCanExportCurrentStory(Boolean(sessionProject ?? library.activeProject));
       const savedStories = listHumanLibraryProjects();
       const archivedStories = listHumanArchivedLibraryProjects();
       const exampleStories = listAfterglowExampleProjects();
@@ -788,7 +791,7 @@ export default function LibraryWorkspace() {
           </div>
           <div className={styles.actionPanel}>
             <div><strong>Export current story</strong><p>Download a .ppf.json backup of the current Library story. Keep local image files alongside your backup.</p></div>
-            <button className={styles.primaryButton} disabled={!stories.length} onClick={exportCurrentStory} type="button">Export story</button>
+            <button className={styles.primaryButton} disabled={!canExportCurrentStory} onClick={exportCurrentStory} type="button">Export story</button>
           </div>
         </section>
       );

@@ -473,7 +473,10 @@ export default function LibraryWorkspace() {
     try {
       if (mode === "defaults") {
         let sourceProject = item.project;
-        if (item.referenceLoader === "afterglow-v9-foundations") {
+        if (item.referenceLoader === "afterglow-packaged-current") {
+          const { createAfterglowPackagedCurrentReference } = await import("../reference/afterglow-packaged-current");
+          sourceProject = createAfterglowPackagedCurrentReference();
+        } else if (item.referenceLoader === "afterglow-v9-foundations") {
           const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
           sourceProject = createAfterglowV9FoundationsReference();
         }
@@ -545,7 +548,10 @@ export default function LibraryWorkspace() {
         openedProject = switchActiveLibraryProject(pending.item.id);
       } else {
         let sourceProject = pending.item.project;
-        if (pending.item.referenceLoader === "afterglow-v9-foundations") {
+        if (pending.item.referenceLoader === "afterglow-packaged-current") {
+          const { createAfterglowPackagedCurrentReference } = await import("../reference/afterglow-packaged-current");
+          sourceProject = createAfterglowPackagedCurrentReference();
+        } else if (pending.item.referenceLoader === "afterglow-v9-foundations") {
           const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
           sourceProject = createAfterglowV9FoundationsReference();
         }

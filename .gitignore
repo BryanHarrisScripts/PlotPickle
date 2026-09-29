@@ -24,6 +24,10 @@
 /credentials/
 credentials.json
 
+# local Afterglow promotion inputs (generated packaged outputs remain versioned)
+/data/afterglow-packaged-current/asset-map.local.json
+/data/afterglow-packaged-current/input.local.ppf.json
+
 # testing and generated reports
 /coverage
 /reports/lighthouse/

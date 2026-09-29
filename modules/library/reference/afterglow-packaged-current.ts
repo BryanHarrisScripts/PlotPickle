@@ -15,7 +15,6 @@ export type AfterglowPackagedCurrentManifest = Readonly<{
   }>;
   snapshotSha256: string | null;
   assets: readonly Readonly<{
-    sourceUrl: string;
     publicUrl: string;
     target: string;
     contentHash: string;

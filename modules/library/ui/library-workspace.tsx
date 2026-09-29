@@ -97,6 +97,7 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
 
 const AFTERGLOW_EXAMPLE_FALLBACK_POSTER = "/assets/library/examples/afterglow.svg";
 const MAX_EXAMPLE_POSTERS = 5;
+const LOAD_CARDS_PER_PAGE = 4;
 
 function afterglowExamplePosterUrls(items: readonly ProjectLibrarySummary[]) {
   const localPosters = items.flatMap((item) => {
@@ -172,27 +173,75 @@ function ExampleGatewayCard({ item, posterUrls, onOpen }: {
   readonly onOpen: () => void;
 }) {
   const posters = posterUrls.length ? posterUrls : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER];
+  const [posterIndex, setPosterIndex] = useState(0);
+  const safePosterIndex = Math.min(posterIndex, Math.max(0, posters.length - 1));
+  const posterUrl = posters[safePosterIndex] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
+
   return (
-    <div className={styles.gatewayPosterGrid} data-library-example-gateway={item.id}>
-      {posters.map((posterUrl, index) => (
+    <article className={`${styles.card} ${styles.loadStoryCard}`} data-library-example-gateway={item.id}>
+      <div className={styles.loadPosterFrame}>
         <button
-          aria-label={`Open ${item.title} example · poster ${index + 1} of ${posters.length}`}
-          className={styles.gatewayPosterChoice}
-          key={posterUrl}
+          aria-label={`Open ${item.title} example · poster ${safePosterIndex + 1} of ${posters.length}`}
+          className={styles.loadPosterButton}
           onClick={onOpen}
           type="button"
         >
           <Image
             src={posterUrl}
-            alt={`${item.title} poster ${index + 1} of ${posters.length}`}
-            width={800}
-            height={1200}
+            alt={`${item.title} poster ${safePosterIndex + 1} of ${posters.length}`}
+            fill
+            sizes="(max-width: 760px) 100vw, 25vw"
             unoptimized={posterUrl.startsWith("/api/local-ai/assets/")}
-            priority={index === 0}
+            priority={safePosterIndex === 0}
           />
         </button>
-      ))}
-    </div>
+        {posters.length > 1 ? (
+          <div className={styles.loadPosterNavigation} aria-label="Afterglow poster versions">
+            <button aria-label="Previous Afterglow poster" disabled={safePosterIndex <= 0} onClick={() => setPosterIndex(safePosterIndex - 1)} type="button">‹</button>
+            <span aria-live="polite">{safePosterIndex + 1} / {posters.length}</span>
+            <button aria-label="Next Afterglow poster" disabled={safePosterIndex >= posters.length - 1} onClick={() => setPosterIndex(safePosterIndex + 1)} type="button">›</button>
+          </div>
+        ) : null}
+      </div>
+      <div className={styles.loadCardBody}>
+        <span>Example</span>
+        <strong>{item.title}</strong>
+      </div>
+    </article>
+  );
+}
+
+function SavedStoryLoadCard({ item, onOpen }: {
+  readonly item: ProjectLibrarySummary;
+  readonly onOpen: () => void;
+}) {
+  return (
+    <button
+      aria-label={`Open saved story ${item.title}`}
+      className={`${styles.card} ${styles.loadStoryCard} ${styles.savedStoryLoadCard}`}
+      data-library-load-story={item.id}
+      onClick={onOpen}
+      type="button"
+    >
+      <div className={styles.loadPosterFrame}>
+        {item.thumbnail ? (
+          <Image
+            src={item.thumbnail}
+            alt={`${item.title} poster`}
+            fill
+            sizes="(max-width: 760px) 100vw, 25vw"
+            unoptimized={item.thumbnail.startsWith("/api/local-ai/assets/")}
+          />
+        ) : (
+          <div className={styles.loadPosterPlaceholder} aria-hidden="true"><span>STORY</span></div>
+        )}
+      </div>
+      <div className={styles.loadCardBody}>
+        <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
+        <strong>{item.title}</strong>
+        <small>{displayDate(item.updatedAt)}</small>
+      </div>
+    </button>
   );
 }
 
@@ -291,6 +340,7 @@ export default function LibraryWorkspace() {
   const [archivedCount, setArchivedCount] = useState(0);
   const [afterglowLocalState, setAfterglowLocalState] = useState<ProjectLibrarySummary | null>(null);
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
+  const [loadPage, setLoadPage] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [recovery, setRecovery] = useState<PendingRecovery | null>(null);
   const [selectedRecoveryOrigins, setSelectedRecoveryOrigins] = useState<readonly string[]>([]);
@@ -732,25 +782,70 @@ export default function LibraryWorkspace() {
 
     if (destination === "load") {
       const example = examples[0];
+      const loadCards: readonly (
+        | { readonly kind: "example"; readonly item: LibraryCatalogItem }
+        | { readonly kind: "story"; readonly item: ProjectLibrarySummary }
+      )[] = [
+        ...(example ? [{ kind: "example" as const, item: example }] : []),
+        ...stories.map((item) => ({ kind: "story" as const, item })),
+      ];
+      const loadPageCount = Math.max(1, Math.ceil(loadCards.length / LOAD_CARDS_PER_PAGE));
+      const safeLoadPage = Math.min(loadPage, loadPageCount - 1);
+      const visibleLoadCards = loadCards.slice(
+        safeLoadPage * LOAD_CARDS_PER_PAGE,
+        (safeLoadPage + 1) * LOAD_CARDS_PER_PAGE,
+      );
+      const loadPaged = loadPageCount > 1;
+
       return (
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
-          <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>Packaged PlotPickle example</p><h2 id="load-title">LOAD</h2></div>
-            <p>Select an Afterglow poster to open EXAMPLES. Generated posters replace the packaged fallback artwork whenever local poster versions are available.</p>
+          <div className={`${styles.sectionHeading} ${styles.loadSectionHeading}`}>
+            <div><p className={styles.eyebrow}>Stories</p><h2 id="load-title">LOAD</h2></div>
           </div>
-          {example ? (
-            <div className={styles.gatewaySelection}>
-              <ExampleGatewayCard
-                item={example}
-                posterUrls={afterglowPosters}
-                onOpen={() => {
-                  const examplesIndex = DESTINATIONS.findIndex((item) => item.id === "examples");
-                  setDirectorySelectedIndex(examplesIndex);
-                  setDestination("examples");
-                }}
-              />
+          {visibleLoadCards.length ? (
+            <div className={`${styles.loadCarousel} ${loadPaged ? styles.loadCarouselPaged : ""}`} data-library-load-pages={loadPageCount}>
+              {loadPaged ? (
+                <button
+                  aria-label="Previous Load stories"
+                  className={styles.loadCarouselButton}
+                  disabled={safeLoadPage <= 0}
+                  onClick={() => setLoadPage(Math.max(0, safeLoadPage - 1))}
+                  type="button"
+                >‹</button>
+              ) : null}
+              <div className={styles.loadCardGrid} data-library-load-page={safeLoadPage + 1}>
+                {visibleLoadCards.map((entry) => (
+                  entry.kind === "example" ? (
+                    <ExampleGatewayCard
+                      item={entry.item}
+                      key={`example:${entry.item.id}`}
+                      posterUrls={afterglowPosters}
+                      onOpen={() => {
+                        const examplesIndex = DESTINATIONS.findIndex((item) => item.id === "examples");
+                        setDirectorySelectedIndex(examplesIndex);
+                        setDestination("examples");
+                      }}
+                    />
+                  ) : (
+                    <SavedStoryLoadCard
+                      item={entry.item}
+                      key={`story:${entry.item.id}`}
+                      onOpen={() => setPending({ kind: "story", item: entry.item })}
+                    />
+                  )
+                ))}
+              </div>
+              {loadPaged ? (
+                <button
+                  aria-label="Next Load stories"
+                  className={styles.loadCarouselButton}
+                  disabled={safeLoadPage >= loadPageCount - 1}
+                  onClick={() => setLoadPage(Math.min(loadPageCount - 1, safeLoadPage + 1))}
+                  type="button"
+                >›</button>
+              ) : null}
             </div>
-          ) : <div className={styles.empty}><h3>No packaged example is available.</h3></div>}
+          ) : <div className={styles.empty}><h3>No stories are available to load.</h3></div>}
         </section>
       );
     }

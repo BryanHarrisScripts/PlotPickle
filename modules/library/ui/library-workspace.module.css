@@ -241,40 +241,166 @@
   object-fit: contain;
 }
 
-.gatewaySelection {
+.loadSectionHeading {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.loadCarousel {
   width: 100%;
 }
 
-.gatewayPosterGrid {
+.loadCarouselPaged {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 320px));
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   gap: var(--pp-skin-space-3);
-  align-items: start;
+  align-items: center;
 }
 
-.gatewayPosterChoice {
-  padding: 0;
-  overflow: hidden;
+.loadCarouselButton {
+  width: 44px;
+  height: 72px;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
-  background: var(--pp-skin-surface-0);
-  box-shadow: var(--pp-skin-inset-highlight);
+  color: var(--pp-skin-ink);
+  background: var(--pp-skin-surface-1);
+  font: inherit;
+  font-size: 28px;
   cursor: pointer;
 }
 
-.gatewayPosterChoice:hover,
-.gatewayPosterChoice:focus-visible {
+.loadCarouselButton:hover,
+.loadCarouselButton:focus-visible {
   border-color: var(--pp-skin-accent-bright);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: 2px;
 }
 
-.gatewayPosterChoice img {
-  display: block;
+.loadCarouselButton:disabled {
+  cursor: not-allowed;
+  opacity: .4;
+}
+
+.loadCardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-3);
+  align-items: start;
+}
+
+.loadStoryCard {
+  min-width: 0;
+}
+
+.savedStoryLoadCard {
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.savedStoryLoadCard:hover,
+.savedStoryLoadCard:focus-visible {
+  border-color: var(--pp-skin-accent-bright);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}
+
+.loadPosterFrame {
+  position: relative;
   width: 100%;
-  height: auto;
   aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-fill-panel);
+}
+
+.loadPosterFrame > img,
+.loadPosterButton img {
   object-fit: contain;
+}
+
+.loadPosterButton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.loadPosterButton:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: -3px;
+}
+
+.loadPosterPlaceholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: var(--pp-skin-ink-muted);
+  background: var(--pp-skin-surface-0);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+.loadPosterNavigation {
+  position: absolute;
+  z-index: 2;
+  right: var(--pp-skin-space-2);
+  bottom: var(--pp-skin-space-2);
+  left: var(--pp-skin-space-2);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--pp-skin-space-2);
+  align-items: center;
+  padding: var(--pp-skin-space-1);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel);
+}
+
+.loadPosterNavigation button {
+  width: 34px;
+  height: 34px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  color: var(--pp-skin-ink);
+  background: var(--pp-skin-surface-1);
+  font: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.loadPosterNavigation button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.loadPosterNavigation span {
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  text-align: center;
+}
+
+.loadCardBody {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-3);
+}
+
+.loadCardBody > span,
+.loadCardBody > small {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.loadCardBody > strong {
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-title);
 }
 
 .examplePosterNavigation {
@@ -757,7 +883,16 @@
   gap: var(--pp-skin-space-2);
 }
 
+@media (max-width: 1050px) {
+  .loadCardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
+  .loadCardGrid { grid-template-columns: 1fr; }
+  .loadCarouselPaged { grid-template-columns: 36px minmax(0, 1fr) 36px; gap: var(--pp-skin-space-2); }
+  .loadCarouselButton { width: 36px; }
   .workspace { padding: var(--pp-skin-space-5) var(--pp-skin-space-3) var(--pp-skin-space-8); }
   .hero,
   .libraryLayout,

@@ -18,7 +18,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
   );
   for (const id of ["learn", "community", "library", "pitch-package"]) assert.match(connected, new RegExp(`"${id}"`, "u"));
-  assert.doesNotMatch(connected, /"pitch-package"|"pitch-deck"/u);
+  assert.doesNotMatch(connected, /"pitch-deck"/u);
 
   const review = menu.slice(
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
@@ -44,7 +44,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   assert.match(dashboard, /aria-description=\{unavailable \? "Surface unavailable; row remains selectable\." : undefined\}/u);
   assert.doesNotMatch(dashboard, /if \(!item \|\| DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) return/u);
   assert.match(host, /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u);
-  assert.doesNotMatch(host, /window\.location\.assign\("\/pitch-review\?scope=pitch&return=dashboard"\)/u);
+  assert.match(host, /"pitch-package": "\/pitch-review\?scope=pitch&return=dashboard"/u);
 
   assert.match(styles, /\[data-dashboard-review="in-review"\] \.pp-skin-v1-dashboard-status-box[\s\S]*--pp-skin-warning/u);
   assert.doesNotMatch(styles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);

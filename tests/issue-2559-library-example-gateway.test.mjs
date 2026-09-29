@@ -4,8 +4,11 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2559 LOAD is a read-only gateway to EXAMPLES", async () => {
-  const source = await read("modules/library/ui/library-workspace.tsx");
+test("#2559/#2570 LOAD keeps Afterglow as one poster card and restores Human-owned story cards", async () => {
+  const [source, css] = await Promise.all([
+    read("modules/library/ui/library-workspace.tsx"),
+    read("modules/library/ui/library-workspace.module.css"),
+  ]);
   const loadStart = source.indexOf('if (destination === "load")');
   const loadEnd = source.indexOf('if (destination === "examples"', loadStart);
   const load = source.slice(loadStart, loadEnd);
@@ -13,10 +16,25 @@ test("#2559 LOAD is a read-only gateway to EXAMPLES", async () => {
   assert.match(load, /<ExampleGatewayCard/u);
   assert.match(load, /posterUrls=\{afterglowPosters\}/u);
   assert.match(load, /setDestination\("examples"\)/u);
-  assert.doesNotMatch(load, />Open Example<\/button>|StoryCard|Archive story|Open Saved Story|Resume Saved Story|setPending/u);
-  assert.match(source, /className=\{styles\.gatewayPosterChoice\}/u);
-});
+  assert.match(load, /<SavedStoryLoadCard/u);
+  assert.match(load, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
+  assert.match(load, /LOAD_CARDS_PER_PAGE/u);
+  assert.match(load, /Previous Load stories/u);
+  assert.match(load, /Next Load stories/u);
+  assert.doesNotMatch(load, /Select an Afterglow poster to open EXAMPLES/u);
+  assert.doesNotMatch(load, /Generated posters replace the packaged fallback artwork whenever local poster versions are available/u);
+  assert.doesNotMatch(load, />Open Example<\/button>|Archive story|Resume Saved Story/u);
 
+  const gatewayStart = source.indexOf("function ExampleGatewayCard");
+  const gatewayEnd = source.indexOf("function SavedStoryLoadCard", gatewayStart);
+  const gateway = source.slice(gatewayStart, gatewayEnd);
+  assert.match(gateway, /const \[posterIndex, setPosterIndex\] = useState\(0\)/u);
+  assert.match(gateway, /src=\{posterUrl\}/u);
+  assert.match(gateway, /Previous Afterglow poster/u);
+  assert.match(gateway, /Next Afterglow poster/u);
+  assert.doesNotMatch(gateway, /posters\.map/u);
+  assert.match(css, /\.loadCardGrid \{[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/u);
+});
 test("#2559 Examples exposes exactly the clean-default and restore choices for Afterglow", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
 

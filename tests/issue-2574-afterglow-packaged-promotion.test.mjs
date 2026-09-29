@@ -201,3 +201,13 @@ test("#2574 docs give the Human an explicit no-base64 Windows export/copy workfl
   assert.match(ignore, /asset-map\.local\.json/u);
   assert.match(ignore, /input\.local\.ppf\.json/u);
 });
+
+
+test("#2576 Library export stays available for the active profile-local Afterglow state", async () => {
+  const workspace = await read("modules/library/ui/library-workspace.tsx");
+
+  assert.match(workspace, /const \[canExportCurrentStory, setCanExportCurrentStory\] = useState\(false\)/u);
+  assert.match(workspace, /setCanExportCurrentStory\(Boolean\(sessionProject \?\? library\.activeProject\)\)/u);
+  assert.match(workspace, /disabled=\{!canExportCurrentStory\} onClick=\{exportCurrentStory\}/u);
+  assert.doesNotMatch(workspace, /disabled=\{!stories\.length\} onClick=\{exportCurrentStory\}/u);
+});

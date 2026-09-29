@@ -12,9 +12,9 @@ test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three
   assert.deepEqual(
     rows.filter((row) => row.group === "SOUND").map((row) => [row.id, row.shortcut, row.label]),
     [
-      ["sound-foley", "L", "Foley"],
+      ["sound-foley", "F", "Foley"],
       ["sound-narration", "N", "Narration"],
-      ["sound-music", "M", "Music"],
+      ["sound-music", "A", "Music"],
     ],
   );
   assert.deepEqual(
@@ -34,7 +34,8 @@ test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
   for (const id of ["screening", "sound-narration", "sound-music", "sound-foley"]) assert.doesNotMatch(unavailable, new RegExp(`"${id}"`, "u"));
-  for (const id of ["pitch-package", "pitch-deck"]) assert.match(unavailable, new RegExp(`"${id}"`, "u"));
+  assert.doesNotMatch(unavailable, /"pitch-package"/u);
+  assert.match(unavailable, /"pitch-deck"/u);
 });
 
 test("#2446/#2458 keeps only truly unavailable rows inert while Sound opens governed review surfaces", async () => {

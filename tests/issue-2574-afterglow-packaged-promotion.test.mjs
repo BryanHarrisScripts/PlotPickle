@@ -152,8 +152,8 @@ test("#2574 scan produces Windows persistent-home asset candidates and normal re
   }
 });
 
-test("#2574 packaged loader preserves immutable v9 fallback until a Human promotion exists", async () => {
-  const [loader, catalog, workspace, manifest, snapshot] = await Promise.all([
+test("#2574 packaged loader preserves fallback before promotion and accepts the promoted Human snapshot after write", async () => {
+  const [loader, catalog, workspace, manifestText, snapshotText] = await Promise.all([
     read("modules/library/reference/afterglow-packaged-current.ts"),
     read("modules/library/project-library-catalog.ts"),
     read("modules/library/ui/library-workspace.tsx"),
@@ -166,9 +166,20 @@ test("#2574 packaged loader preserves immutable v9 fallback until a Human promot
   assert.match(loader, /normalizeLibraryProject\(candidate\.project\)/u);
   assert.match(catalog, /referenceLoader: "afterglow-packaged-current"/u);
   assert.match(workspace, /createAfterglowPackagedCurrentReference/u);
-  assert.equal(JSON.parse(manifest).status, "pending-human-export");
-  assert.equal(JSON.parse(snapshot).status, "pending-human-export");
-  assert.equal(JSON.parse(snapshot).project, null);
+
+  const manifest = JSON.parse(manifestText);
+  const snapshot = JSON.parse(snapshotText);
+  assert.ok(["pending-human-export", "promoted"].includes(manifest.status));
+  assert.equal(snapshot.status, manifest.status);
+
+  if (manifest.status === "pending-human-export") {
+    assert.equal(snapshot.project, null);
+    assert.equal(manifest.snapshotSha256, null);
+  } else {
+    assert.ok(snapshot.project && typeof snapshot.project === "object" && !Array.isArray(snapshot.project));
+    assert.equal(snapshot.project.id, PACKAGED_PROJECT_ID);
+    assert.match(manifest.snapshotSha256, /^[a-f0-9]{64}$/u);
+  }
 });
 
 test("#2574 packaged manifest hashes suppress identical local media during later restore", async () => {

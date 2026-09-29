@@ -81,7 +81,9 @@ test("#2559/#2560/#2570 packaged Afterglow artwork stays whole while Load and Ex
   ]);
   assert.match(source, /AFTERGLOW_EXAMPLE_FALLBACK_POSTER/u);
   assert.match(source, /afterglowExamplePosterUrls/u);
-  assert.match(source, /if \(generatedPosters\.length\) return generatedPosters/u);\n  assert.match(source, /packagedAfterglowManifest\.featuredPosterUrls/u);\n  assert.match(source, /return packagedPosters\.length \? packagedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
+  assert.match(source, /if \(generatedPosters\.length\) return generatedPosters/u);
+  assert.match(source, /packagedAfterglowManifest\.featuredPosterUrls/u);
+  assert.match(source, /return packagedPosters\.length \? packagedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
   assert.match(source, /className=\{styles\.loadPosterButton\}/u);
   assert.match(source, /className=\{styles\.loadPosterNavigation\}/u);

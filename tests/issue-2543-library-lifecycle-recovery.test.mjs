@@ -34,7 +34,7 @@ test("#2543/#2566 keeps recovery failures actionable and cancellation non-destru
   assert.match(source, /finally \{[\s\S]*setRestoringResources\(false\)[\s\S]*\}/u);
 });
 
-test("#2543 keeps saved-project identity stable while LOAD becomes an Examples gateway", async () => {
+test("#2543/#2570 keeps saved-project identity stable while LOAD shows examples and Human stories", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const confirmStart = source.indexOf("async function confirmLoad()");
   const confirmEnd = source.indexOf("function cancelRecovery()", confirmStart);
@@ -44,15 +44,15 @@ test("#2543 keeps saved-project identity stable while LOAD becomes an Examples g
   const loadSurface = source.slice(loadSurfaceStart, loadSurfaceEnd);
 
   assert.match(confirmLoad, /if \(pending\.kind === "story"\) \{[\s\S]*openedProject = switchActiveLibraryProject\(pending\.item\.id\)/u);
-  assert.match(confirmLoad, /else \{[\s\S]*openedProject = createLibraryWorkingCopy\(/u);
   assert.match(confirmLoad, /markCurrentSessionLibraryProject\(openedProject\.id\)/u);
   assert.match(loadSurface, /<ExampleGatewayCard/u);
   assert.match(loadSurface, /setDestination\("examples"\)/u);
   assert.match(loadSurface, /posterUrls=\{afterglowPosters\}/u);
-  assert.match(source, /className=\{styles\.gatewayPosterChoice\}/u);
-  assert.doesNotMatch(loadSurface, /StoryCard|Archive story|Open Saved Story|Start Fresh Afterglow Copy/u);
+  assert.match(loadSurface, /<SavedStoryLoadCard/u);
+  assert.match(loadSurface, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
+  assert.match(source, /className=\{styles\.loadPosterButton\}/u);
+  assert.doesNotMatch(loadSurface, /Archive story|Start Fresh Afterglow Copy/u);
 });
-
 test("#2543/#2566 switches into the recovery project only when final Restore is chosen", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const restoreStart = source.indexOf("function restoreLocalResources(");

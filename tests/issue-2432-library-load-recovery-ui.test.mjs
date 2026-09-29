@@ -4,13 +4,15 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2432/#2566 keeps local-resource recovery behind Open Example with Your Changes while LOAD points to Examples", async () => {
+test("#2432/#2570 keeps example recovery behind Examples while LOAD also exposes saved Human stories", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
   assert.match(loadSurface, /<ExampleGatewayCard/u);
   assert.match(loadSurface, /setDestination\("examples"\)/u);
-  assert.doesNotMatch(loadSurface, /kind: "catalog"|StoryCard|Open Saved Story|Resume Saved Story/u);
+  assert.doesNotMatch(loadSurface, /kind: "catalog"|Resume Saved Story/u);
+  assert.match(loadSurface, /<SavedStoryLoadCard/u);
+  assert.match(loadSurface, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
   assert.match(source, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
   assert.match(source, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(source, /persistLoadSessionBaseline\(baseline\)/u);
@@ -39,11 +41,13 @@ test("#2432/#2566 keeps clean example and local-change restore as separate Human
   assert.match(source, /require reconciliation rather than last-write-wins/u);
 });
 
-test("#2432/#2559 removes saved-story Resume from LOAD without bypassing recovery authority", async () => {
+test("#2432/#2570 restores saved-story selection to LOAD without bypassing example recovery authority", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const loadSurface = source.slice(source.indexOf('if (destination === "load")'), source.indexOf('if (destination === "examples"'));
 
-  assert.doesNotMatch(loadSurface, /Resume Saved Story|Open Saved Story|onClick=\{onOpen\}/u);
+  assert.doesNotMatch(loadSurface, /Resume Saved Story/u);
+  assert.match(loadSurface, /<SavedStoryLoadCard/u);
+  assert.match(loadSurface, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
   assert.match(source, />Open Example with Your Changes<\/button>/u);
   assert.match(source, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);

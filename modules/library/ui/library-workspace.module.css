@@ -306,6 +306,62 @@
   outline-offset: 2px;
 }
 
+.savedStoryResumeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+
+.savedStoryResumeHeader > span {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+  text-transform: uppercase;
+}
+
+.savedStoryResumeHeader > small {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.savedStoryResumeSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2) 0;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.savedStoryResumeSummary > span {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.savedStoryResumeSummary > b {
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-sm);
+  text-align: right;
+}
+
+.savedStoryProgressTrack {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+}
+
+.savedStoryProgressTrack > span {
+  display: block;
+  height: 100%;
+  background: var(--pp-skin-accent-bright);
+}
+
 .loadPosterFrame {
   position: relative;
   width: 100%;

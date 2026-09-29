@@ -9,9 +9,10 @@ import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   hydrateProfileProjectLibrary,
   listArchivedLibraryProjects,
-  listLibraryProjects,
+  listPersistableLibraryProjects,
   loadLibraryProjectSnapshot,
   initializeProjectLibrary,
+  sessionActiveProjectId,
 } from "./project-library-browser";
 
 type HydratedPrivateProjectEntry = Readonly<{
@@ -216,8 +217,9 @@ export function hydratedStoryMapContext(projectId: string) {
 }
 
 export function persistActiveProfileProject(explicitToken = "") {
-  const { registry } = initializeProjectLibrary();
-  const projects = [...listLibraryProjects(), ...listArchivedLibraryProjects()].map((item) => {
+  const activeProjectId = sessionActiveProjectId();
+  const active = listPersistableLibraryProjects();
+  const projects = [...active, ...listArchivedLibraryProjects()].map((item) => {
     const project = loadLibraryProjectSnapshot(item.id);
     if (!project) throw new Error(`Library snapshot for ${item.title} is unavailable; the last saved profile state was preserved.`);
     return { project, summary: {
@@ -227,7 +229,10 @@ export function persistActiveProfileProject(explicitToken = "") {
       format: item.format, archivedAt: item.archivedAt,
     } };
   });
-  return queueWrite("sync-library", { projects, activeProjectId: registry.activeProjectId }, explicitToken);
+  const persistedActiveProjectId = activeProjectId && active.some((item) => item.id === activeProjectId)
+    ? activeProjectId
+    : null;
+  return queueWrite("sync-library", { projects, activeProjectId: persistedActiveProjectId }, explicitToken);
 }
 
 export function deleteArchivedProfileProjectFromVault(projectId: string) {

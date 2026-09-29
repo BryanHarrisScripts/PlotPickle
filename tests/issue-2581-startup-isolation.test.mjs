@@ -47,6 +47,29 @@ test("#2581 explicit Library choices establish the current-session project", asy
   assert.match(workspace, /switchActiveLibraryProject\(openedProject\.id\)/u);
 });
 
+test("#2581 packaged Afterglow and profile-local Afterglow remain separate explicit open modes", async () => {
+  const workspace = await read("modules/library/ui/library-workspace.tsx");
+
+  assert.match(workspace, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
+  assert.match(workspace, /if \(mode === "defaults"\)[\s\S]*createLibraryWorkingCopy\(\{[\s\S]*sourceKind: "example"[\s\S]*sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
+  assert.match(workspace, /if \(!afterglowLocalState\)[\s\S]*No local Afterglow changes are available yet/u);
+  assert.match(workspace, /loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /The packaged Afterglow source remains unchanged/u);
+});
+
+test("#2581 local media restoration remains an explicit additive step", async () => {
+  const workspace = await read("modules/library/ui/library-workspace.tsx");
+
+  assert.match(workspace, /inventoryLocalResources\(openedProject, \[\]\)/u);
+  assert.match(workspace, /Restore Local Changes/u);
+  assert.match(workspace, /function restoreLocalResources\(originProjectIds: readonly string\[\]\)/u);
+  assert.match(workspace, /restoreLocalStoryboardResources/u);
+  assert.match(workspace, /restoreLocalWorldMapPosterResources/u);
+  assert.match(workspace, /restoreLocalWorldMapCharacterResources/u);
+  assert.match(workspace, /Local media restore is additive/u);
+  assert.match(workspace, /does not copy World Agent answers/u);
+});
+
 test("#2581 restart isolation keeps saved work while requiring a fresh session selection", async () => {
   const browser = await read("core/storage/project-library-browser.ts");
   const profile = await read("core/storage/profile-private-browser.ts");

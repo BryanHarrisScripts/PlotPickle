@@ -200,7 +200,7 @@ async function copyMappedAssets(root, mappings) {
       sourceUrl: item.sourceUrl,
       publicUrl: item.publicUrl,
       target: item.target,
-      sha256: sha256Bytes(bytes),
+      contentHash: `sha256:${sha256Bytes(bytes)}`,
     });
   }
   return records;
@@ -218,7 +218,7 @@ export async function promoteAfterglowSnapshot({ root = process.cwd(), projectPa
     sourceUrl: item.sourceUrl,
     publicUrl: item.publicUrl,
     target: item.target,
-    sha256: "<computed-on-write>",
+    contentHash: "<computed-on-write>",
   }));
   const manifest = {
     schemaVersion: 1,

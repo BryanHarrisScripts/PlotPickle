@@ -184,7 +184,7 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.match(catalog, /createEmptyProject/);
   assert.match(catalog, /normalizeFoundationProject/);
   assert.match(catalog, /id: "afterglow-v9"/);
-  assert.match(catalog, /referenceLoader: "afterglow-v9-foundations"/);
+  assert.match(catalog, /referenceLoader: "afterglow-packaged-current"/);
   assert.doesNotMatch(catalog, /storyboardState|screenplayState|fakeField/);
   assert.match(browserStore, /profileId/);
   for (const source of [workspace, catalog, browserStore, coreStore]) {

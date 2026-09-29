@@ -17,7 +17,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
     menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
   );
-  for (const id of ["learn", "community", "library"]) assert.match(connected, new RegExp(`"${id}"`, "u"));
+  for (const id of ["learn", "community", "library", "pitch-package"]) assert.match(connected, new RegExp(`"${id}"`, "u"));
   assert.doesNotMatch(connected, /"pitch-package"|"pitch-deck"/u);
 
   const review = menu.slice(
@@ -35,7 +35,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...disabled.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["pitch-package", "pitch-deck"],
+    ["pitch-deck"],
   );
 
   assert.match(dashboard, /const locked = connected && !inReview && !unavailable/u);
@@ -56,8 +56,8 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
 test("#2438/#2452 keeps the Develop Story row as one-word WorldMap without changing its shortcut or position", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
-  assert.match(menu, /\{ id: "discovery", shortcut: "G", label: "MindMap"/u);
-  assert.match(menu, /\{ id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" \}/u);
+  assert.match(menu, /\{ id: "discovery", shortcut: "M", label: "MindMap"/u);
+  assert.match(menu, /\{ id: "story-bible", shortcut: "W", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" \}/u);
   assert.doesNotMatch(menu, /label: "Story", description: "Story, Logline, Theme and Visual Reference"/u);
   assert.ok(menu.indexOf('id: "discovery"') < menu.indexOf('id: "story-bible"'));
   assert.ok(menu.indexOf('id: "story-bible"') < menu.indexOf('id: "write"'));

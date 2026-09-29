@@ -115,20 +115,52 @@ test("#2493/#2564 character chevrons browse individual images while poster chevr
   assert.match(styles, /button:disabled/u);
 });
 
-test("#2564 incomplete saved character generations can fill missing views before Lock", async () => {
-  const [surface, contract] = await Promise.all([
+test("#2564/#2572 incomplete saved character generations can fill missing views before durable Lock", async () => {
+  const [surface, contract, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("core/contracts/world-map/index.ts"),
+    read("app/skin-v1/story-bible-surface.module.css"),
   ]);
 
   assert.match(contract, /id: "right-three-quarter", label: "Right 45°"/u);
   assert.match(surface, /Generate Missing Views/u);
+  assert.match(surface, /className=\{styles\.missingViewAction\}/u);
+  assert.match(styles, /\.missingViewAction \{[\s\S]*var\(--pp-skin-warning\)[\s\S]*var\(--pp-skin-warning-surface\)[\s\S]*var\(--pp-skin-warning-ink\)/u);
   assert.match(surface, /selectedMissingViews/u);
   assert.match(surface, /generateMissingViews/u);
   assert.match(surface, /versionId: selectedVersion\.id/u);
   assert.match(surface, /references: canonicalReferences\(\[\.\.\.selectedVersion\.references, \.\.\.generated\]\)/u);
   assert.match(surface, /only a complete eight-view saved generation can be locked/u);
-  assert.match(surface, /if \(!selectedVersion\?\.complete \|\| selectedVersion\.locked\) return/u);
+  assert.match(surface, /if \(!selectedVersion\?\.complete \|\| \(selectedVersion\.locked && durabilityRetry !== "lock"\) \|\| persisting\) return/u);
+});
+
+test("#2572 character Save and Lock await profile durability before reporting success", async () => {
+  const surface = await read("app/skin-v1/story-bible-surface.tsx");
+  const durabilityStart = surface.indexOf('async function confirmCharacterDurability');
+  const durabilityEnd = surface.indexOf('async function saveCandidate()', durabilityStart);
+  const durability = surface.slice(durabilityStart, durabilityEnd);
+  const saveStart = surface.indexOf('async function saveCandidate()');
+  const saveEnd = surface.indexOf('async function lockSelectedVersion()', saveStart);
+  const save = surface.slice(saveStart, saveEnd);
+  const lockStart = surface.indexOf('async function lockSelectedVersion()');
+  const lockEnd = surface.indexOf('  return (', lockStart);
+  const lock = surface.slice(lockStart, lockEnd);
+
+  assert.match(surface, /flushProfilePrivateWrites, persistActiveProfileProject/u);
+  assert.match(durability, /await persistActiveProfileProject\(\)/u);
+  assert.match(durability, /await flushProfilePrivateWrites\(\)/u);
+  assert.ok(durability.indexOf("await persistActiveProfileProject()") < durability.indexOf("await flushProfilePrivateWrites()"));
+  assert.match(durability, /SAVED locally and confirmed in your profile/u);
+  assert.match(durability, /LOCKED and confirmed in your profile/u);
+  assert.match(durability, /setDurabilityRetry\(kind\)/u);
+  assert.match(surface, /Retry Save/u);
+  assert.match(surface, /Retry Lock/u);
+  assert.match(surface, /Saving…/u);
+  assert.match(surface, /Locking…/u);
+  assert.match(save, /saveActiveLibraryProject/u);
+  assert.match(save, /await confirmCharacterDurability\("save"\)/u);
+  assert.match(lock, /saveActiveLibraryProject/u);
+  assert.match(lock, /await confirmCharacterDurability\("lock"\)/u);
 });
 
 test("#2564 World Map visual UI presents the Afterglow isobel record simply as Summer", async () => {

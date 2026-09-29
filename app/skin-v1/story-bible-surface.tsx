@@ -21,6 +21,7 @@ import {
 import { projectStoryBible, type StoryBibleCharacter, type StoryBibleFact, type StoryBibleFactGroup } from "../../core/project/story-bible-projection";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import { saveActiveLibraryProject } from "../../core/storage/project-library-browser";
+import { flushProfilePrivateWrites, persistActiveProfileProject } from "../../core/storage/profile-private-browser";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import {
   createFirstMarketingReferenceArtifact,
@@ -283,6 +284,8 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
     references: readonly WorldMapCharacterVisualReference[];
   }> | null>(null);
   const [working, setWorking] = useState(false);
+  const [persisting, setPersisting] = useState<"save" | "lock" | null>(null);
+  const [durabilityRetry, setDurabilityRetry] = useState<"save" | "lock" | null>(null);
   const [notice, setNotice] = useState("");
   const candidateBrowseItems = candidate
     ? candidate.references
@@ -389,7 +392,7 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
   }
 
   async function generateSheet() {
-    if (working || candidate || atVersionLimit) return;
+    if (working || persisting || candidate || atVersionLimit) return;
     const billingAcknowledged = window.confirm("Generate eight character-reference views? A connected cloud image provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
     if (!billingAcknowledged) {
       setNotice("Character visual generation cancelled. No provider request was made.");
@@ -419,7 +422,7 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
   }
 
   async function generateMissingViews() {
-    if (working || candidate || !selectedVersion || !selectedMissingViews.length) return;
+    if (working || persisting || candidate || !selectedVersion || !selectedMissingViews.length) return;
     const billingAcknowledged = window.confirm(`Generate ${selectedMissingViews.length} missing character-reference view${selectedMissingViews.length === 1 ? "" : "s"} for generation ${generationNumberForVersion(selectedVersion.id)}? A connected cloud image provider may charge the API account saved by this user.`);
     if (!billingAcknowledged) {
       setNotice("Missing-view generation cancelled. No provider request was made.");
@@ -448,8 +451,36 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
     }
   }
 
-  function saveCandidate() {
-    if (!candidate) return;
+  async function confirmCharacterDurability(kind: "save" | "lock") {
+    if (persisting) return;
+    setPersisting(kind);
+    setNotice(kind === "save" ? "Saving character generation to your local profile…" : "Saving character lock to your local profile…");
+    try {
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      setDurabilityRetry(null);
+      if (kind === "save") {
+        const savedStart = chronologicalVersions
+          .slice(0, Math.max(0, (candidate?.generationNumber ?? 1) - 1))
+          .reduce((total, version) => total + version.references.length, 0);
+        setCandidate(null);
+        setSelectedReferenceIndex(savedStart);
+        setNotice("SAVED locally and confirmed in your profile. This character generation will be available when you restore Afterglow local changes.");
+      } else {
+        setNotice("LOCKED and confirmed in your profile. This character generation will be restored with your Afterglow local changes.");
+      }
+    } catch (error) {
+      setDurabilityRetry(kind);
+      setNotice(
+        `${kind === "save" ? "Save" : "Lock"} updated the current Library session, but the profile-backed save was not confirmed. ${error instanceof Error ? error.message : "Choose Retry to persist it before reloading Afterglow."}`,
+      );
+    } finally {
+      setPersisting(null);
+    }
+  }
+
+  async function saveCandidate() {
+    if (!candidate || persisting) return;
     const replacesSavedVersion = versions.some((version) => version.id === candidate.versionId);
     if (!replacesSavedVersion && atVersionLimit) return;
     const now = new Date().toISOString();
@@ -466,24 +497,21 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       updatedAt: now,
       worldMap,
     });
-    const savedStart = chronologicalVersions
-      .slice(0, Math.max(0, candidate.generationNumber - 1))
-      .reduce((total, version) => total + version.references.length, 0);
-    setCandidate(null);
-    setSelectedReferenceIndex(savedStart);
-    setNotice("SAVED locally with this story. Complete eight-view generations can be locked; chevrons remain available for every saved image.");
+    await confirmCharacterDurability("save");
   }
 
-  function lockSelectedVersion() {
-    if (!selectedVersion?.complete || selectedVersion.locked) return;
-    const now = new Date().toISOString();
-    saveActiveLibraryProject({
-      ...project,
-      revision: project.revision + 1,
-      updatedAt: now,
-      worldMap: lockWorldMapCharacterVisualVersion(project.worldMap, character.id, selectedVersion.id, now),
-    });
-    setNotice("LOCKED. This saved character generation is now the only WorldMap identity package used downstream. Its individual images remain browseable.");
+  async function lockSelectedVersion() {
+    if (!selectedVersion?.complete || (selectedVersion.locked && durabilityRetry !== "lock") || persisting) return;
+    if (durabilityRetry !== "lock") {
+      const now = new Date().toISOString();
+      saveActiveLibraryProject({
+        ...project,
+        revision: project.revision + 1,
+        updatedAt: now,
+        worldMap: lockWorldMapCharacterVisualVersion(project.worldMap, character.id, selectedVersion.id, now),
+      });
+    }
+    await confirmCharacterDurability("lock");
   }
 
   return (
@@ -492,22 +520,35 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
         <button
           className={styles.primaryAction}
           type="button"
-          disabled={working || Boolean(candidate) || atVersionLimit}
+          disabled={working || Boolean(persisting) || Boolean(candidate) || atVersionLimit}
           onClick={() => void generateSheet()}
         >
           {working ? "Generating character views…" : atVersionLimit ? "5 Saved Generations" : "Generate Character Visual"}
         </button>
         {candidate ? (
-          <button type="button" disabled={!candidate.references.length || working} onClick={saveCandidate}>
-            Save
+          <button
+            type="button"
+            disabled={!candidate.references.length || working || Boolean(persisting)}
+            onClick={() => void (durabilityRetry === "save" ? confirmCharacterDurability("save") : saveCandidate())}
+          >
+            {persisting === "save" ? "Saving…" : durabilityRetry === "save" ? "Retry Save" : "Save"}
           </button>
         ) : selectedVersion && !selectedVersion.complete ? (
-          <button type="button" disabled={working} onClick={() => void generateMissingViews()}>
+          <button
+            className={styles.missingViewAction}
+            type="button"
+            disabled={working || Boolean(persisting)}
+            onClick={() => void generateMissingViews()}
+          >
             Generate Missing Views
           </button>
         ) : selectedVersion ? (
-          <button type="button" disabled={selectedVersion.locked || working} onClick={lockSelectedVersion}>
-            Lock
+          <button
+            type="button"
+            disabled={(selectedVersion.locked && durabilityRetry !== "lock") || working || Boolean(persisting)}
+            onClick={() => void lockSelectedVersion()}
+          >
+            {persisting === "lock" ? "Locking…" : durabilityRetry === "lock" ? "Retry Lock" : "Lock"}
           </button>
         ) : null}
       </div>

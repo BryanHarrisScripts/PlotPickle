@@ -330,6 +330,21 @@ export default function DashboardBbsReviewHost({
       onSurfaceNameChange("DASHBOARD");
       return;
     }
+    const canonicalRoutes: Readonly<Record<string, string>> = {
+      write: "/write",
+      edit: "/edit",
+      refine: "/diagnostics",
+      feedback: "/feedback",
+      "pitch-package": "/pitch-review?scope=pitch&return=dashboard",
+      wyrmwood: "/?workspace=wyrmwood",
+      story: "/story",
+    };
+    const canonicalRoute = canonicalRoutes[item.id];
+    if (canonicalRoute) {
+      onActivate(index);
+      window.location.assign(canonicalRoute);
+      return;
+    }
     if (item.id === "screening") {
       onActivate(index);
       setScreeningOpen(true);

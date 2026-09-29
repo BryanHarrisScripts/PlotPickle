@@ -198,7 +198,6 @@ async function copyMappedAssets(root, mappings) {
     await mkdir(path.dirname(targetPath), { recursive: true });
     await copyFile(item.sourceFile, targetPath);
     records.push({
-      sourceUrl: item.sourceUrl,
       publicUrl: item.publicUrl,
       target: item.target,
       contentHash: `sha256:${sha256Bytes(bytes)}`,
@@ -216,7 +215,6 @@ export async function promoteAfterglowSnapshot({ root = process.cwd(), projectPa
   const snapshot = { schemaVersion: 1, status: "promoted", project };
   const snapshotText = stableJson(snapshot);
   const assetRecords = write ? await copyMappedAssets(root, mappings) : mappings.map((item) => ({
-    sourceUrl: item.sourceUrl,
     publicUrl: item.publicUrl,
     target: item.target,
     contentHash: "<computed-on-write>",

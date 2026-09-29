@@ -49,7 +49,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
   ]);
 
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
-  assert.doesNotMatch(connected, /"pitch-package"/u);
+  assert.match(connected, /"pitch-package"/u);
   assert.doesNotMatch(connected, /"pitch-deck"/u);
   assert.match(menu, /DASHBOARD_REVIEW_ITEM_IDS/u);
   assert.match(menu, /DASHBOARD_UNAVAILABLE_ITEM_IDS/u);

@@ -22,6 +22,7 @@ export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated
 
 export const AFTERGLOW_EXAMPLE_SOURCE_ID = "afterglow-v9" as const;
 export const AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID = "afterglow-v9-defaults" as const;
+export const PROJECT_LIBRARY_SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project" as const;
 
 export type ProjectLibrarySummary = {
   readonly id: string;
@@ -52,7 +53,13 @@ type ActiveProjectReadCache = Readonly<{
   project: LibraryPPFProject;
 }>;
 
+type DetachedProjectCache = Readonly<{
+  profileId: string;
+  project: LibraryPPFProject;
+}>;
+
 let activeProjectReadCache: ActiveProjectReadCache | null = null;
+let detachedProjectCache: DetachedProjectCache | null = null;
 
 function isProjectSnapshotKey(key: string) {
   // Authenticated Human projects have an encrypted profile-vault backing store.
@@ -78,6 +85,7 @@ function sessionLibraryStorage(browserStorage: Storage): Storage {
       projectSnapshotSessionCache.clear();
       browserStorage.clear();
       activeProjectReadCache = null;
+      detachedProjectCache = null;
     },
     getItem(key: string) {
       if (projectSnapshotSessionCache.has(key)) return projectSnapshotSessionCache.get(key) ?? null;
@@ -113,6 +121,7 @@ function storage() {
 export function clearLibraryProjectSessionCache() {
   projectSnapshotSessionCache.clear();
   activeProjectReadCache = null;
+  detachedProjectCache = null;
 }
 
 function idFactory() {
@@ -158,6 +167,26 @@ function describeProject(project: PPFProject) {
 
 function profileId() {
   return libraryCore.resolveProjectLibraryProfileId(storage()) as string;
+}
+
+function sessionProjectKey(activeProfileId = profileId()) {
+  return `${PROJECT_LIBRARY_SESSION_PROJECT_KEY_PREFIX}:${activeProfileId}`;
+}
+
+export function sessionActiveProjectId() {
+  return window.sessionStorage.getItem(sessionProjectKey())?.trim() || null;
+}
+
+function markSessionActiveProject(projectId: string) {
+  const normalized = projectId.trim();
+  if (!normalized) throw new Error("A current-session story requires a project ID.");
+  window.sessionStorage.setItem(sessionProjectKey(), normalized);
+  detachedProjectCache = null;
+}
+
+export function clearSessionActiveProject() {
+  window.sessionStorage.removeItem(sessionProjectKey());
+  detachedProjectCache = null;
 }
 
 function coreInput() {
@@ -217,6 +246,15 @@ function readActiveProjectSnapshotFast(): LibraryPPFProject | null {
   }
 }
 
+function isImplicitStartupPlaceholder(summary: ProjectLibrarySummary) {
+  return summary.sourceKind === "user"
+    && summary.sourceId === null
+    && summary.title === "Untitled Story"
+    && summary.progress === 0
+    && !summary.thumbnail
+    && summary.createdAt === summary.updatedAt;
+}
+
 function announceChange() {
   window.dispatchEvent(new Event(PROJECT_LIBRARY_CHANGED_EVENT));
 }
@@ -249,20 +287,32 @@ export function initializeProjectLibrary() {
 }
 
 export function hasActiveLibraryProject() {
-  const fast = readActiveProjectSnapshotFast();
-  return Boolean(fast ?? initializeProjectLibrary().activeProject);
+  const currentProjectId = sessionActiveProjectId();
+  return Boolean(currentProjectId && loadLibraryProjectSnapshot(currentProjectId));
 }
 
 export function loadActiveLibraryProject(): LibraryPPFProject {
-  const fast = readActiveProjectSnapshotFast();
-  if (fast) return fast;
+  const currentProjectId = sessionActiveProjectId();
+  if (currentProjectId) {
+    const currentProject = loadLibraryProjectSnapshot(currentProjectId);
+    if (currentProject) return currentProject;
+    clearSessionActiveProject();
+  }
+
+  const activeProfileId = profileId();
+  if (detachedProjectCache?.profileId === activeProfileId) return detachedProjectCache.project;
+
   const initialized = initializeProjectLibrary();
-  if (initialized.activeProject) return initialized.activeProject;
-  return createEmptyLibraryProject({
+  const implicitPlaceholder = initialized.registry.projects.find((item) => isImplicitStartupPlaceholder(item));
+  const placeholderProject = implicitPlaceholder ? loadLibraryProjectSnapshot(implicitPlaceholder.id) : null;
+  const now = new Date().toISOString();
+  const project = placeholderProject ?? createEmptyLibraryProject({
     id: idFactory(),
-    now: new Date().toISOString(),
+    now,
     title: "Untitled Story",
   });
+  detachedProjectCache = { profileId: activeProfileId, project };
+  return project;
 }
 
 export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject) {
@@ -305,13 +355,19 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
         : AFTERGLOW_EXAMPLE_SOURCE_ID
     )
     : null;
+  const firstMeaningfulSave = !sessionActiveProjectId() && Boolean(priorSummary && isImplicitStartupPlaceholder(priorSummary));
   const result = libraryCore.saveProfileActiveProject({
     ...coreInput(),
     project: projectWithStructure,
-    ...(afterglowReference ? { sourceKind: "example", sourceId: afterglowSourceId } : {}),
+    ...(afterglowReference
+      ? { sourceKind: "example", sourceId: afterglowSourceId }
+      : firstMeaningfulSave
+        ? { sourceKind: "user", sourceId: "first-meaningful-save" }
+        : {}),
   }) as {
     readonly activeProject: LibraryPPFProject;
   };
+  markSessionActiveProject(result.activeProject.id);
   announceChange();
   return result.activeProject;
 }
@@ -327,12 +383,16 @@ export function listLibraryProjects() {
   return libraryCore.listProfileProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
 }
 
+export function listPersistableLibraryProjects() {
+  return listLibraryProjects().filter((item) => !isImplicitStartupPlaceholder(item));
+}
+
 export function listArchivedLibraryProjects() {
   return libraryCore.listProfileArchivedProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
 }
 
 export function listHumanLibraryProjects() {
-  return listLibraryProjects().filter((item) => item.sourceKind !== "example" && item.sourceKind !== "synthetic");
+  return listPersistableLibraryProjects().filter((item) => item.sourceKind !== "example" && item.sourceKind !== "synthetic");
 }
 
 export function listHumanArchivedLibraryProjects() {
@@ -353,6 +413,7 @@ export function switchActiveLibraryProject(projectId: string) {
   const result = libraryCore.switchProfileActiveProject({ ...coreInput(), projectId }) as {
     readonly activeProject: LibraryPPFProject;
   };
+  markSessionActiveProject(result.activeProject.id);
   announceChange();
   return result.activeProject;
 }
@@ -362,9 +423,18 @@ export function createLibraryUserProject(input: {
   readonly genre?: string;
   readonly format?: string;
 }) {
-  const result = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
+  const created = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
     readonly activeProject: LibraryPPFProject;
   };
+  const result = libraryCore.saveProfileActiveProject({
+    ...coreInput(),
+    project: created.activeProject,
+    sourceKind: "user",
+    sourceId: "human-new-story",
+    genre: input.genre || "",
+    format: input.format || "Story",
+  }) as { readonly activeProject: LibraryPPFProject };
+  markSessionActiveProject(result.activeProject.id);
   announceChange();
   return result.activeProject;
 }
@@ -380,6 +450,7 @@ export function createLibraryWorkingCopy(input: {
   const result = libraryCore.createProfileWorkingCopy({ ...coreInput(), ...input }) as {
     readonly activeProject: LibraryPPFProject;
   };
+  markSessionActiveProject(result.activeProject.id);
   announceChange();
   return result.activeProject;
 }
@@ -400,6 +471,7 @@ export function importLibraryProject(input: {
     genre: input.genre || "",
     format: input.format || "Imported screenplay",
   }) as { readonly activeProject: LibraryPPFProject };
+  markSessionActiveProject(result.activeProject.id);
   announceChange();
   return result.activeProject;
 }
@@ -408,6 +480,7 @@ export function archiveLibraryProject(projectId: string) {
   const result = libraryCore.archiveProfileProject({ ...coreInput(), projectId }) as {
     readonly activeProject: LibraryPPFProject | null;
   };
+  if (sessionActiveProjectId() === projectId) clearSessionActiveProject();
   announceChange();
   return result.activeProject;
 }

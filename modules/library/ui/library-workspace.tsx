@@ -223,31 +223,41 @@ function SavedStoryLoadCard({ item, onOpen }: {
   readonly item: ProjectLibrarySummary;
   readonly onOpen: () => void;
 }) {
+  const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
+  const resumePoint = item.frontier || "Getting Started";
+
   return (
     <button
-      aria-label={`Open saved story ${item.title}`}
+      aria-label={`Resume saved story ${item.title} from ${resumePoint}`}
       className={`${styles.card} ${styles.loadStoryCard} ${styles.savedStoryLoadCard}`}
       data-library-load-story={item.id}
       onClick={onOpen}
       type="button"
     >
-      <div className={styles.loadPosterFrame}>
-        {item.thumbnail ? (
-          <Image
-            src={item.thumbnail}
-            alt={`${item.title} poster`}
-            fill
-            sizes="(max-width: 760px) 100vw, 25vw"
-            unoptimized={item.thumbnail.startsWith("/api/local-ai/assets/")}
-          />
-        ) : (
-          <div className={styles.loadPosterPlaceholder} aria-hidden="true"><span>STORY</span></div>
-        )}
+      <div className={styles.savedStoryResumeHeader}>
+        <span>Resume your story</span>
+        <small>{displayDate(item.updatedAt)}</small>
       </div>
       <div className={styles.loadCardBody}>
         <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
         <strong>{item.title}</strong>
-        <small>{displayDate(item.updatedAt)}</small>
+        <div className={styles.savedStoryResumeSummary}>
+          <span>Last working area</span>
+          <b>{resumePoint}</b>
+          <span>Tracked progress</span>
+          <b>{progress}%</b>
+        </div>
+        <div
+          aria-label={`${progress}% tracked story progress`}
+          className={styles.savedStoryProgressTrack}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          <span style={{ width: `${progress}%` }} />
+        </div>
+        <small>Open this saved state to continue. Nothing loads into the workspace until you choose it.</small>
       </div>
     </button>
   );

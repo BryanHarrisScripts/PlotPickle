@@ -219,12 +219,56 @@ function ExampleGatewayCard({ item, posterUrls, onOpen }: {
   );
 }
 
+function plural(count: number, singular: string, pluralForm = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+function savedStoryResumeDetails(project: LibraryPPFProject | null) {
+  if (!project) {
+    return {
+      summary: "This saved story is ready to resume. Its detailed project-state summary is unavailable in this session.",
+      actions: [] as string[],
+    };
+  }
+
+  const actions: string[] = [];
+  const mindMapCount = project.discovery.cards.length;
+  const characterCount = project.worldMap.characterVisuals.length;
+  const writingCount = project.writing.entries.length;
+  const miniBlocks = project.structure.blocks.flatMap((block) => block.miniBlocks);
+  const outlineCount = miniBlocks.filter((mini) => (
+    Boolean(mini.note.trim()) || Boolean(mini.stages.plan.content.trim())
+  )).length;
+  const storyboardCount = miniBlocks.filter((mini) => (
+    Boolean(mini.stages.storyboard.content.trim())
+    || mini.stages.storyboard.state === "ready"
+    || mini.stages.storyboard.state === "accepted"
+  )).length;
+  const posterCount = project.build.foundations.visualArtifacts.filter((artifact) => (
+    artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW && Boolean(artifact.assetUrl)
+  )).length;
+
+  if (mindMapCount) actions.push(`${plural(mindMapCount, "Mind Map idea")} captured`);
+  if (characterCount) actions.push(`${plural(characterCount, "World Map character visual")} saved`);
+  if (writingCount) actions.push(`${plural(writingCount, "writing section")} drafted`);
+  if (outlineCount) actions.push(`${plural(outlineCount, "Outline mini-block")} developed`);
+  if (storyboardCount) actions.push(`${plural(storyboardCount, "Storyboard mini-block")} developed`);
+  if (posterCount) actions.push(`${plural(posterCount, "poster visual")} saved`);
+
+  const summary = actions.length
+    ? `Your saved project includes ${actions.slice(0, 3).join(", ")}${actions.length > 3 ? `, plus ${plural(actions.length - 3, "other completed area")}.` : "."}`
+    : "This story is saved locally and ready to continue. No completed creative areas are summarized yet.";
+
+  return { summary, actions };
+}
+
 function SavedStoryLoadCard({ item, onOpen }: {
   readonly item: ProjectLibrarySummary;
   readonly onOpen: () => void;
 }) {
   const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
+  const resumeDetails = savedStoryResumeDetails(loadLibraryProjectSnapshot(item.id));
 
   return (
     <button
@@ -241,6 +285,12 @@ function SavedStoryLoadCard({ item, onOpen }: {
       <div className={styles.loadCardBody}>
         <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
         <strong>{item.title}</strong>
+        <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
+        {resumeDetails.actions.length ? (
+          <ul className={styles.savedStoryActionSummary} aria-label="Meaningful saved work">
+            {resumeDetails.actions.slice(0, 4).map((action) => <li key={action}>{action}</li>)}
+          </ul>
+        ) : null}
         <div className={styles.savedStoryResumeSummary}>
           <span>Last working area</span>
           <b>{resumePoint}</b>

@@ -64,7 +64,6 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "refine",
   "feedback",
   "pitch-package",
-  "profile",
   "wyrmwood",
   "story",
   "plan",

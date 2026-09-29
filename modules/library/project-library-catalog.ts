@@ -19,7 +19,7 @@ export type LibraryCatalogItem = {
   readonly visualLabel: string;
   readonly project: PPFProject;
   readonly coverage: LibraryFrontierCoverage;
-  readonly referenceLoader?: "afterglow-v9-foundations";
+  readonly referenceLoader?: "afterglow-v9-foundations" | "afterglow-packaged-current";
 };
 
 const LOCKED_LATER_FRONTIERS = {
@@ -70,7 +70,7 @@ export function createFeaturedExamples(now: string): readonly LibraryCatalogItem
         world: "Not started",
         ...LOCKED_LATER_FRONTIERS,
       },
-      referenceLoader: "afterglow-v9-foundations",
+      referenceLoader: "afterglow-packaged-current",
     },
   ];
 }

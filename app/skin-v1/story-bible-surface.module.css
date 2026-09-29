@@ -472,6 +472,31 @@
   opacity: 0.65;
 }
 
+.missingViewAction {
+  min-height: 38px;
+  padding: 0 var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-warning);
+  background: var(--pp-skin-warning-surface);
+  color: var(--pp-skin-warning-ink);
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  cursor: pointer;
+}
+
+.missingViewAction:hover,
+.missingViewAction:focus-visible {
+  border-color: var(--pp-skin-warning-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.missingViewAction:disabled {
+  border-color: var(--pp-skin-warning-line);
+  color: var(--pp-skin-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .posterAction {
   display: grid;
   gap: var(--pp-skin-space-1);

@@ -26,7 +26,7 @@ test("#1969 bare startup does not repair-load the persisted story before the Hum
   assert.doesNotMatch(home, /useEffect\(\(\) => \{\s*repairPersistedProject\(\);/u);
 });
 
-test("#1969/#2559 Library startup stays explicit through the example gateway or New Story", async () => {
+test("#1969/#2570 Library startup stays explicit through Load story cards or New Story", async () => {
   const [home, library] = await Promise.all([
     read("app/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),
@@ -35,7 +35,7 @@ test("#1969/#2559 Library startup stays explicit through the example gateway or 
   assert.match(home, /if \(workspace === "library"\)[\s\S]*?<LibraryWorkspace \/>/u);
   assert.match(library, /async function openActiveProject\(\) \{\s*await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
   assert.match(library, /data-library-example-gateway=\{item\.id\}/u);
-  assert.match(library, /className=\{styles\.gatewayPosterChoice\}/u);
+  assert.match(library, /className=\{styles\.loadPosterButton\}/u);
   assert.match(library, /setDestination\("examples"\)/u);
   assert.match(library, />Open Example<\/button>/u);
   assert.match(library, />Open Example with Your Changes<\/button>/u);

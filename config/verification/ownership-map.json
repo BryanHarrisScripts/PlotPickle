@@ -318,7 +318,10 @@
         "config/pi-tool-exposure-policy.json",
         "lib/agents/developer-tool-authorization.mjs",
         "scripts/setup-developer-agent-stack.ps1",
-        "scripts/developer-agent-mcp.mjs"
+        "scripts/developer-agent-mcp.mjs",
+        "config/pi-codemode-policy.json",
+        "lib/agents/pi-codemode-governance.mjs",
+        "lib/agents/pi-nested-call-evidence.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

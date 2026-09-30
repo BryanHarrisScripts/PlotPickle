@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "issue": 2592,
+  "phase2ToolPolicy": "config/pi-tool-exposure-policy.json",
+  "context": "governed-developer-task",
+  "enabledPhases": [
+    "inspect",
+    "build",
+    "test",
+    "repair",
+    "verify"
+  ],
+  "codemode": {
+    "mode": "on",
+    "inlineBudget": 1600,
+    "parallelReadEvidence": true,
+    "sourceMutation": false,
+    "destructiveAdmin": false,
+    "secretsCredentials": false
+  },
+  "taskScope": {
+    "requiresAuthorizedTask": true,
+    "requiresAllowedToolGrant": true,
+    "carriesRequiredSkillIds": true,
+    "carriesReadScopes": true,
+    "writeScopes": "empty-in-phase-3"
+  },
+  "verification": {
+    "authority": "deterministic-contract-only",
+    "codemodeMayCollectEvidence": true,
+    "codemodeMaySelfCertifyPass": false
+  },
+  "nestedEvidence": {
+    "canonicalVocabulary": "lib/agents/agent-runtime-vocabulary.mjs",
+    "parentField": "parentToolCallId",
+    "maxCalls": 256,
+    "storeArguments": false,
+    "storeGeneratedJavaScript": false,
+    "storePromptOrResponse": false,
+    "storePrivateStoryText": false,
+    "storeCredentials": false,
+    "storeRawUserFiles": false
+  },
+  "rule": "Codemode may compose only the task-scoped read/evidence loadout. It does not expand Human authorization, mutation scope, verification authority, provider permission, or privacy scope.",
+  "piExtension": ".pi/extensions/plotpickle-codemode-governor.mjs",
+  "taskEnvironment": "PLOTPICKLE_CODEMODE_TASK_JSON",
+  "liveEnforcement": {
+    "nestedToolHook": "tool_call",
+    "nestedOnly": true,
+    "directToolWorkflowsRemainAvailable": true,
+    "failClosedWithoutCurrentTask": true,
+    "denyUnknownNestedTools": true,
+    "denyHostMutationTools": [
+      "bash",
+      "powershell",
+      "edit",
+      "write"
+    ],
+    "enforceReadScopesFor": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ]
+  }
+}

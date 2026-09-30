@@ -19,5 +19,9 @@
   ],
   "defaultTools": [
     "+codemode"
-  ]
+  ],
+  "codemode": {
+    "mode": "on",
+    "inlineBudget": 1600
+  }
 }

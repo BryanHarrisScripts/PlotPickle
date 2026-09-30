@@ -32,10 +32,9 @@ test("#2603 login Blank is a real empty project shape, not an Afterglow or last-
   assert.doesNotMatch(libraryProjectSource, /Afterglow|\bRen\b|\bAmy\b|Summer|Isobel/u);
 
   assert.match(profile, /clearLibraryProjectSessionCache\(\);[\s\S]*window\.sessionStorage\.clear\(\)/u);
-  assert.match(browser, /export function loadWorkspaceLibraryProject\(\): LibraryPPFProject \{[\s\S]*return loadActiveLibraryProject\(\)/u);
   assert.match(browser, /detachedProjectCache = \{ profileId: activeProfileId, project \}/u);
-  assert.match(host, /setDiscoveryProject\(loadWorkspaceLibraryProject\(\)\)/u);
-  assert.match(host, /setStoryBibleProject\(loadWorkspaceLibraryProject\(\)\)/u);
+  assert.match(host, /setDiscoveryProject\(loadActiveLibraryProject\(\)\)/u);
+  assert.match(host, /setStoryBibleProject\(loadActiveLibraryProject\(\)\)/u);
   assert.doesNotMatch(host, /Please load a story\./u);
   assert.doesNotMatch(host, /Afterglow|createAfterglow/u);
 });

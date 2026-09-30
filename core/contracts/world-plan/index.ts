@@ -1,4 +1,4 @@
-import { curriculumApplicationPrompts, type CurriculumLesson } from "./curriculum";
+import { curriculumApplicationPrompts, type CurriculumLesson } from "../curriculum";
 
 export interface WorldPlanField {
   readonly id: string;

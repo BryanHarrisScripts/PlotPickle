@@ -147,29 +147,20 @@ test("#2525 incomplete character media never regains Lock just because its saved
 });
 
 
-test("#2525 World Map and Storyboard share one visual version-state grammar without forcing identical tool outcomes", async () => {
+test("#2525/#2605 World Map reviews durable visual state while Storyboard keeps editing controls", async () => {
   const [worldMap, storyboard] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
   ]);
 
-  for (const label of ["Save", "Lock", "Saved locally", "Locked"]) {
-    assert.ok(worldMap.includes(label), `World Map missing shared state language: ${label}`);
-    assert.ok(storyboard.includes(label), `Storyboard missing shared state language: ${label}`);
-  }
+  assert.match(worldMap, /Current approved marketing reference/u);
+  assert.match(worldMap, /Approved character truth and visual identity/u);
+  assert.match(worldMap, /character\.imageUrl/u);
+  assert.doesNotMatch(worldMap, />Save<\/button>|>Lock<\/button>|>Redo<\/button>|>Discard<\/button>/u);
+  assert.doesNotMatch(worldMap, /WorldFactEditor|Previous character image|Next character image/u);
 
-  assert.match(worldMap, /Previous character image/u);
-  assert.match(worldMap, /Next character image/u);
-  assert.match(worldMap, /selectedBrowseItem\.generationNumber/u);
-  assert.match(worldMap, /selectedBrowseItem\.viewNumber/u);
-  assert.match(worldMap, /safePosterIndex \+ 1/u);
   assert.match(storyboard, /Previous frame/u);
   assert.match(storyboard, /Next frame/u);
   assert.match(storyboard, /frameVersionLabel/u);
-
-  const worldAgent = worldMap.slice(worldMap.indexOf("function WorldFactEditor"), worldMap.indexOf("function WorldFactGroup"));
-  assert.match(worldAgent, />Save<\/button>/u);
-  assert.match(worldAgent, />Redo<\/button>/u);
-  assert.match(worldAgent, />Discard<\/button>/u);
-  assert.doesNotMatch(worldAgent, />Lock<\/button>/u);
+  assert.match(storyboard, /Saved locally/u);
 });

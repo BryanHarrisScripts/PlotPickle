@@ -3,9 +3,9 @@ import { createEmptyWorldLessonAnswers } from "../contracts/world-plan";
 import {
   createEmptyStoryDevelopmentFieldState,
   storyDevelopmentFieldState,
+  type LibraryPPFProject,
   type StoryDevelopmentAcceptedSource,
-} from "../contracts/story-development";
-import type { LibraryPPFProject } from "../storage/library-project";
+} from "../storage/library-project";
 import type { StoryDevelopmentFieldDefinition } from "../../modules/learn/model/story-development-fields";
 
 export type StoryDevelopmentFieldView = {

@@ -28,7 +28,7 @@ function packageRoot(base, packageName) {
   return path.join(base, "node_modules", ...packageName.split("/"));
 }
 
-async function scanForbiddenImports(root, forbidden) {
+async function scanForbiddenImports(root, forbidden, probeLabel = "pi-0.99.1") {
   const findings = [];
   async function visit(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -207,7 +207,7 @@ async function runRpcProbe(candidateRoot) {
     let stdout = "";
     let stderr = "";
     let settled = false;
-    const finish = (error, value) => {
+    const finish = (error, value, probeLabel = "pi-0.99.1-rpc") => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
@@ -216,7 +216,7 @@ async function runRpcProbe(candidateRoot) {
       else resolve(value);
     };
     const timer = setTimeout(
-      () => finish(new Error(`Pi 0.99.1 stdio RPC probe timed out. stderr=${stderr.slice(-1000)}`)),
+      () => finish(new Error(`Pi 0.99.1 stdio RPC probe timed out. stderr=${stderr.slice(-1000)}`), undefined, "timeout"),
       20_000,
     );
     child.stderr.setEncoding("utf8");
@@ -230,8 +230,8 @@ async function runRpcProbe(candidateRoot) {
         try {
           const message = JSON.parse(trimmed);
           if (message.id === "plotpickle-2590-rpc" && message.type === "response") {
-            if (message.success === false) finish(new Error(`Pi 0.99.1 RPC get_state failed: ${trimmed}`));
-            else finish(null, { ready: true, command: message.command || "get_state" });
+            if (message.success === false) finish(new Error(`Pi 0.99.1 RPC get_state failed: ${trimmed}`), undefined, "rpc-error");
+            else finish(null, { ready: true, command: message.command || "get_state" }, "rpc-success");
             return;
           }
         } catch (error) {
@@ -240,12 +240,12 @@ async function runRpcProbe(candidateRoot) {
         }
       }
     });
-    child.on("error", (error) => finish(error));
+    child.on("error", (error) => finish(error, undefined, "child-error"));
     child.on("close", (code) => {
       if (!settled) {
         finish(new Error(
           `Pi 0.99.1 RPC process exited before get_state response (code ${code}). stderr=${stderr.slice(-1000)}`,
-        ));
+        ), undefined, "early-exit");
       }
     });
     child.stdin.write(`${JSON.stringify({ type: "get_state", id: "plotpickle-2590-rpc" })}\n`);
@@ -266,7 +266,7 @@ async function main() {
   await mkdir(artifactDir, { recursive: true });
   let candidateRoot = "";
   try {
-    const forbidden = await scanForbiddenImports(repoRoot, contract.forbiddenPlotPickleImports || []);
+    const forbidden = await scanForbiddenImports(repoRoot, contract.forbiddenPlotPickleImports || [], "pi-0.99.1");
     if (forbidden.length) {
       throw new Error(`PlotPickle uses Pi source-only/experimental imports: ${JSON.stringify(forbidden)}`);
     }

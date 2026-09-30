@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "story-learning-surface-parity.schema.json",
+  "title": "PlotPickle Learn / Mind Map / World Map parity audit",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "issue",
+    "parentIssue",
+    "status",
+    "canonicalTopicOrder",
+    "canonicalFieldIdentity",
+    "blankStartupAudit",
+    "topics",
+    "afterglowMigrationCandidates",
+    "phase2Preconditions",
+    "summaryFindings"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "issue": {
+      "const": 2602
+    },
+    "parentIssue": {
+      "const": 2601
+    },
+    "status": {
+      "const": "audit-baseline"
+    },
+    "canonicalTopicOrder": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "canonicalFieldIdentity": {
+      "type": "object",
+      "required": [
+        "learnBackedField",
+        "projectArtifact",
+        "rules"
+      ],
+      "properties": {
+        "learnBackedField": {
+          "type": "string"
+        },
+        "projectArtifact": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "blankStartupAudit": {
+      "type": "object",
+      "required": [
+        "factoryStatus",
+        "runtimeObservationToMigrate",
+        "phase2Rule"
+      ]
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "learnTopicId",
+          "learnFile",
+          "lessonCount",
+          "lessonIds",
+          "mindMap",
+          "worldMap",
+          "target",
+          "gaps"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "learnTopicId": {
+            "type": "string"
+          },
+          "learnFile": {
+            "type": "string"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "lessonIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "mindMap": {
+            "type": "object",
+            "required": [
+              "lanes",
+              "valueModel",
+              "agentAction",
+              "coverage"
+            ]
+          },
+          "worldMap": {
+            "type": "object",
+            "required": [
+              "panel",
+              "valueSources",
+              "authoringActions",
+              "learnLink",
+              "coverage"
+            ]
+          },
+          "target": {
+            "type": "object",
+            "required": [
+              "mindMapRole",
+              "worldMapRole",
+              "learnRole"
+            ]
+          },
+          "gaps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "afterglowMigrationCandidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "storagePath",
+          "blankPolicy",
+          "examplePolicy"
+        ]
+      }
+    },
+    "phase2Preconditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "summaryFindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

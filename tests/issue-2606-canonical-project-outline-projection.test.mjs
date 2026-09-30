@@ -32,11 +32,13 @@ test("#2606 keeps Blank as the default while first Save creates durable project 
     readJson("config/blank-example-project-policy.json"),
   ]);
 
-  assert.match(browser, /createDetachedBlankLibraryProject/u);
-  assert.match(browser, /loadActiveLibraryProject/u);
+  assert.match(browser, /detachedProjectCache = \{ profileId: activeProfileId, project \}/u);
+  assert.match(browser, /export function loadActiveLibraryProject/u);
+  assert.match(browser, /export function saveDetachedLibraryProjectAs/u);
   assert.match(mindMap, /Save as New Project/u);
   assert.match(mindMap, /saveDetachedLibraryProjectAs/u);
-  assert.equal(policy.defaultStartupState, "blank");
+  assert.equal(policy.blankToProject.actionLabel, "Save as New Project");
+  assert.equal(policy.blankToProject.createsFreshIdentity, true);
 });
 
 test("#2606 preserves the Mind Map -> World Map -> Learn -> Mind Map canonical loop", async () => {

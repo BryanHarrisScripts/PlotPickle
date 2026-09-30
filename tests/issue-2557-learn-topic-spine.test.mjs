@@ -54,7 +54,7 @@ test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed 
     assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
   }
 
-  assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\("foundations"\)/u);
+  assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\(initialTopic\)/u);
   assert.match(surface, /aria-label="MindMap Learn topics"/u);
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic\)/u);
   assert.match(surface, /lane\.topic === selectedTopic/u);

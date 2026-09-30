@@ -14,7 +14,9 @@ import {
 } from "../../modules/learn/model/story-learning-context";
 import { projectDiscoveryPins } from "../../core/project/discovery";
 import {
+  hasActiveLibraryProject,
   saveActiveLibraryProject,
+  saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
 import styles from "./discovery-surface.module.css";
@@ -128,14 +130,33 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   const lockedCount = selectedActTopicCards.filter((card) => Boolean(card.lockedAt)).length;
 
   function persist(cards: readonly DiscoveryCard[]) {
-    if (!project) return;
-    setWorkingCards(cards);
-    saveActiveLibraryProject({
+    if (!project) return false;
+    const next: LibraryPPFProject = {
       ...project,
       revision: project.revision + 1,
       updatedAt: new Date().toISOString(),
       discovery: { ...project.discovery, cards },
-    });
+    };
+
+    if (!hasActiveLibraryProject()) {
+      const suggested = project.title === "Untitled Story" ? "" : project.title;
+      const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
+      if (!title) {
+        setNotice("Save cancelled. The blank workspace was not added to Library.");
+        return false;
+      }
+      const saved = saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
+      setWorkingCards(saved.discovery.cards);
+      return true;
+    }
+
+    const saved = saveActiveLibraryProject(next);
+    setWorkingCards(saved.discovery.cards);
+    return true;
+  }
+
+  function keepDraftCards(cards: readonly DiscoveryCard[]) {
+    setWorkingCards(cards);
   }
 
   function changeAct(act: DiscoveryAct) {
@@ -183,7 +204,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       savedAt: now,
       lockedAt: null,
     };
-    persist([...workingCards, card]);
+    if (!persist([...workingCards, card])) return;
     setContent("");
     const destination = placement
       ? DISCOVERY_LANES.find((lane) => lane.id === placement.lane)?.label ?? placement.lane
@@ -199,14 +220,14 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       ...candidate,
       placement: humanPlacement(card.inboxAct ?? selectedAct, lane, now),
     } : candidate);
-    persist(updated);
+    if (!persist(updated)) return;
     setNotice(`Human Idea assigned to ${DISCOVERY_LANES.find((candidate) => candidate.id === lane)?.label ?? lane}.`);
   }
 
   function saveCard(card: DiscoveryCard) {
     if (card.savedAt) return;
     const now = new Date().toISOString();
-    persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? { ...candidate, savedAt: now } : candidate));
+    if (!persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? { ...candidate, savedAt: now } : candidate))) return;
     setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} saved with the project.`);
   }
 
@@ -217,11 +238,11 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
     }
     const now = new Date().toISOString();
     const unlocking = Boolean(card.lockedAt);
-    persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
+    if (!persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
       ...candidate,
       savedAt: candidate.savedAt ?? now,
       lockedAt: unlocking ? null : now,
-    } : candidate));
+    } : candidate))) return;
     setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} ${unlocking ? "unlocked" : "locked"}.`);
   }
 
@@ -231,7 +252,9 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       setPendingDeleteId(null);
       return;
     }
-    persist(workingCards.filter((candidate) => candidate.id !== card.id));
+    const remaining = workingCards.filter((candidate) => candidate.id !== card.id);
+    if (hasActiveLibraryProject()) persist(remaining);
+    else keepDraftCards(remaining);
     setPendingDeleteId(null);
     setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} deleted.`);
   }
@@ -306,7 +329,9 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
           && card.placement?.act === act
           && successfulLaneIds.has(card.placement.lane)
         ));
-        persist([...retained, ...proposals]);
+        const nextCards = [...retained, ...proposals];
+        if (hasActiveLibraryProject()) persist(nextCards);
+        else keepDraftCards(nextCards);
       }
       setNotice(
         `Creative Director completed ${proposals.length} of ${laneIds.length} selected Agent Proposal lanes for Act ${act}.`

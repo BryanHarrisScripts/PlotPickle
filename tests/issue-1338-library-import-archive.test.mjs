@@ -158,7 +158,7 @@ test("issue #2545 permanent deletion is limited to an archived snapshot", () => 
   assert.throws(() => restoreProfileProject({ ...input, projectId: original }), /not in this Library/);
 });
 
-test("issue #1338 Library and Settings reuse one Archive component and Library exposes a real New Story action", async () => {
+test("issue #1338/#2603 Library and Settings reuse one Archive component and Library exposes a real New Project action", async () => {
   const [library, settings, archive, css] = await Promise.all([
     source("modules/library/ui/library-workspace.tsx"),
     source("app/sage-settings-workspace.tsx"),
@@ -171,7 +171,7 @@ test("issue #1338 Library and Settings reuse one Archive component and Library e
   assert.match(archive, /Restore to Library/);
   assert.match(library, /createLibraryUserProject/);
   assert.match(library, /data-library-new-story-card="ready"/);
-  assert.match(library, /Create New Story/);
+  assert.match(library, /Create New Project/);
   assert.match(library, /label: "NEW", description: "Start a New Story"/);
   assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/);
   assert.doesNotMatch(library, /Coming Soon|Coming soon|data-library-ghost-card="coming-soon"/);

@@ -26,16 +26,16 @@ test("#2251 Story Bible remains connected after the #2266 Pre-Production consoli
   assert.equal(shortcuts.length, new Set(shortcuts).size);
 });
 
-test("#2251 refuses to manufacture an empty Bible when no story is active", async () => {
+test("#2251/#2603 World Map opens the detached Blank without manufacturing a durable Library project", async () => {
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
   const browser = await read("core/storage/project-library-browser.ts");
 
-  assert.match(host, /if \(!hasActiveLibraryProject\(\)\)[\s\S]*setDashboardNotice\("Please load a story\."\)/u);
   assert.match(host, /setStoryBibleProject\(loadActiveLibraryProject\(\)\)/u);
-  assert.match(browser, /export function hasActiveLibraryProject\(\)/u);
+  assert.doesNotMatch(host, /Please load a story\./u);
+  assert.match(browser, /export function loadActiveLibraryProject\(\): LibraryPPFProject/u);
   assert.match(browser, /loadActiveLibraryProject[\s\S]*createEmptyLibraryProject/u);
-  assert.ok(host.indexOf("hasActiveLibraryProject()") < host.indexOf("setStoryBibleProject(loadActiveLibraryProject())"));
-  assert.doesNotMatch(host, /createEmptyLibraryProject|Untitled Story/);
+  assert.match(browser, /detachedProjectCache = \{ profileId: activeProfileId, project \}/u);
+  assert.doesNotMatch(host, /createEmptyLibraryProject|createAfterglow/u);
 });
 
 test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-reviewed World Map surface", async () => {

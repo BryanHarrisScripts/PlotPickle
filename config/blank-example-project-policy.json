@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 2603,
+  "parentIssue": 2601,
+  "dependsOn": 2602,
+  "entryStates": [
+    {
+      "id": "blank",
+      "defaultAtLogin": true,
+      "durable": false,
+      "projectAuthority": "core/project/project.ts#createEmptyProject",
+      "runtimeAuthority": "core/storage/project-library-browser.ts#loadActiveLibraryProject",
+      "rules": [
+        "No Library project or example is selected automatically.",
+        "Story values are empty while schemas, Learn taxonomy and creation capability remain available.",
+        "The first explicit Save requests a project name and creates a fresh durable Library identity.",
+        "Unsaved agent proposals may remain runtime-local without silently creating a project."
+      ]
+    },
+    {
+      "id": "example",
+      "defaultAtLogin": false,
+      "durable": true,
+      "projectAuthority": "data/afterglow-packaged-current/snapshot.json",
+      "runtimeAuthority": "modules/library/ui/library-workspace.tsx#loadPackagedExample",
+      "rules": [
+        "Afterglow loads only after an explicit Library action.",
+        "The packaged example carries approved story values and repository-backed resources.",
+        "Profile-local Afterglow changes remain a separate explicit restore mode.",
+        "Example assets must not use data:, file:, or /api/local-ai/assets/ URLs."
+      ]
+    }
+  ],
+  "notStates": [
+    "local-changes"
+  ],
+  "blankToProject": {
+    "actionLabel": "Save as New Project",
+    "storageFunction": "saveDetachedLibraryProjectAs",
+    "createsFreshIdentity": true,
+    "sourceId": "first-meaningful-save",
+    "routeAfterLibraryNew": "/?workspace=dashboard"
+  },
+  "afterglowMigration": {
+    "auditSource": "config/story-learning-surface-parity.json",
+    "packageLoader": "modules/library/reference/afterglow-packaged-current.ts",
+    "packageSnapshot": "data/afterglow-packaged-current/snapshot.json",
+    "packageManifest": "data/afterglow-packaged-current/manifest.json",
+    "assetRoot": "/assets/library/examples/afterglow/current/",
+    "currentApprovedSignals": [
+      "Foundations decisions and brief",
+      "Logline / premise / stakes signals",
+      "Theme and tone signals used by World Map projection",
+      "Character Truth including Ren, Amy and Summer/Isobel",
+      "24-Block structure",
+      "Packaged poster and character-reference resources"
+    ],
+    "preserveWhenApproved": [
+      "world.lessons.*.answers",
+      "world.brief.content",
+      "writing.entries",
+      "discovery.cards",
+      "production"
+    ],
+    "unresolvedRule": "If the current approved package has no value in a migration-candidate domain, keep the blank/example field empty rather than manufacture story content."
+  },
+  "surfaceBehavior": {
+    "mindMap": "Blank opens with an empty detached project; Human can create immediately; first explicit save establishes identity.",
+    "worldMap": "Blank opens as an empty read/review projection; current legacy authoring controls must establish identity before any save.",
+    "libraryNew": "Creates the same empty project shape with a durable identity immediately.",
+    "libraryExample": "Explicitly opens the canonical packaged Afterglow working copy."
+  },
+  "futureBoundary": "Phase 3/4 will unify the full Learn field model and move creation controls to Mind Map. Phase 2 changes entry/data ownership only."
+}

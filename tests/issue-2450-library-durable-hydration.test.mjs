@@ -296,7 +296,7 @@ test("#2450 browser/profile boundaries use complete hydration and live MindMap/W
   assert.match(host, /PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible/u);
   assert.match(host, /setStoryBibleProject\(loadActiveLibraryProject\(\)\)/u);
   assert.match(host, /PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery/u);
-  assert.match(host, /setDiscoveryProject\(hasActiveLibraryProject\(\) \? loadActiveLibraryProject\(\) : null\)/u);
+  assert.match(host, /setDiscoveryProject\(loadActiveLibraryProject\(\)\)/u);
 
   assert.match(workspace, /Afterglow example · start fresh copy/u);
   assert.match(workspace, /open the saved Afterglow story listed below/u);

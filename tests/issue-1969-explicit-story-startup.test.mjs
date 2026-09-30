@@ -26,7 +26,7 @@ test("#1969 bare startup does not repair-load the persisted story before the Hum
   assert.doesNotMatch(home, /useEffect\(\(\) => \{\s*repairPersistedProject\(\);/u);
 });
 
-test("#1969/#2570 Library startup stays explicit through Load story cards or New Story", async () => {
+test("#1969/#2570/#2603 Library startup stays explicit through Load story cards or New Project", async () => {
   const [home, library] = await Promise.all([
     read("app/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),
@@ -41,7 +41,7 @@ test("#1969/#2570 Library startup stays explicit through Load story cards or New
   assert.match(library, />Open Example with Your Changes<\/button>/u);
   assert.doesNotMatch(library, /Resume Saved Story/u);
   assert.match(library, /createLibraryUserProject\(\{ title: "Untitled Story", format: "Feature" \}\)/u);
-  assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/u);
+  assert.match(library, /window\.location\.assign\("\/\?workspace=dashboard"\)/u);
 });
 test("#1969 does not alter Library persistence authority or add the future startup preference", async () => {
   const [home, browserStore, coreStore] = await Promise.all([

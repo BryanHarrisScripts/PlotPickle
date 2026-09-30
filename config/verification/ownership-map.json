@@ -1578,6 +1578,20 @@
         "surface",
         "navigation"
       ]
+    },
+    {
+      "id": "blank-example-project-policy",
+      "classification": "production",
+      "include": [
+        "config/blank-example-project-policy.json"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "surface",
+        "navigation"
+      ]
     }
   ]
 }

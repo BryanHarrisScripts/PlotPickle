@@ -291,6 +291,13 @@ export function hasActiveLibraryProject() {
   return Boolean(currentProjectId && loadLibraryProjectSnapshot(currentProjectId));
 }
 
+/**
+ * Return the project currently visible to authoring/review surfaces.
+ *
+ * With an explicit Library choice this is the active durable project. Without
+ * one it is a detached, empty project that exists only for the current browser
+ * runtime until the Human chooses Save as New Project.
+ */
 export function loadActiveLibraryProject(): LibraryPPFProject {
   const currentProjectId = sessionActiveProjectId();
   if (currentProjectId) {
@@ -435,6 +442,55 @@ export function createLibraryUserProject(input: {
     format: input.format || "Story",
   }) as { readonly activeProject: LibraryPPFProject };
   markSessionActiveProject(result.activeProject.id);
+  announceChange();
+  return result.activeProject;
+}
+
+/**
+ * Turn the detached blank workspace into a Human-owned Library project.
+ *
+ * The durable project receives a fresh Library identity. The detached runtime
+ * id is never promoted directly, which keeps login Blank distinct from saved
+ * projects and packaged examples.
+ */
+export function saveDetachedLibraryProjectAs(
+  project: PPFProject | LibraryPPFProject,
+  input: {
+    readonly title: string;
+    readonly genre?: string;
+    readonly format?: string;
+  },
+) {
+  if (hasActiveLibraryProject()) {
+    throw new Error("Save as New Project is only valid before a Library project has been selected.");
+  }
+  const title = input.title.trim();
+  if (!title) throw new Error("Save as New Project requires a project name.");
+
+  const created = libraryCore.createProfileUserProject({
+    ...coreInput(),
+    title,
+    genre: input.genre || "",
+    format: input.format || "Feature",
+  }) as { readonly activeProject: LibraryPPFProject };
+  const now = new Date().toISOString();
+  const adopted = normalizeLibraryProject({
+    ...project,
+    id: created.activeProject.id,
+    title,
+    createdAt: created.activeProject.createdAt,
+    updatedAt: now,
+  });
+  const result = libraryCore.saveProfileActiveProject({
+    ...coreInput(),
+    project: adopted,
+    sourceKind: "user",
+    sourceId: "first-meaningful-save",
+    genre: input.genre || "",
+    format: input.format || "Feature",
+  }) as { readonly activeProject: LibraryPPFProject };
+  markSessionActiveProject(result.activeProject.id);
+  detachedProjectCache = null;
   announceChange();
   return result.activeProject;
 }

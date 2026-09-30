@@ -34,10 +34,10 @@ test("#2493 generation stays unsaved until explicit Save for WorldMap poster and
 
   assert.doesNotMatch(posterGenerate, /foundations\.visual\.store|saveActiveLibraryProject/u);
   assert.match(posterSave, /foundations\.visual\.store/u);
-  assert.match(posterSave, /saveActiveLibraryProject/u);
+  assert.match(posterSave, /saveWorldMapProject/u);
   assert.doesNotMatch(characterGenerate, /saveActiveLibraryProject|saveWorldMapCharacterVisualVersion/u);
   assert.match(characterSave, /saveWorldMapCharacterVisualVersion/u);
-  assert.match(characterSave, /saveActiveLibraryProject/u);
+  assert.match(characterSave, /saveWorldMapProject/u);
 });
 
 test("#2493 character contract bounds five versions and uses one explicit locked version", async () => {
@@ -157,9 +157,10 @@ test("#2572 character Save and Lock await profile durability before reporting su
   assert.match(surface, /Retry Lock/u);
   assert.match(surface, /Saving…/u);
   assert.match(surface, /Locking…/u);
-  assert.match(save, /saveActiveLibraryProject/u);
+  assert.match(surface, /function saveWorldMapProject\(project: LibraryPPFProject\)[\s\S]*hasActiveLibraryProject\(\)[\s\S]*saveActiveLibraryProject\(project\)[\s\S]*saveDetachedLibraryProjectAs/u);
+  assert.match(save, /saveWorldMapProject/u);
   assert.match(save, /await confirmCharacterDurability\("save"\)/u);
-  assert.match(lock, /saveActiveLibraryProject/u);
+  assert.match(lock, /saveWorldMapProject/u);
   assert.match(lock, /await confirmCharacterDurability\("lock"\)/u);
 });
 

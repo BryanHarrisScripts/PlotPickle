@@ -23,17 +23,16 @@ test("#2487 keeps canonical production id while Human-facing identity is Rough C
   assert.match(host, /<h1>ROUGH CUT<\/h1>/u);
 });
 
-test("#2487 live browser continuity opens all six downstream Option 1 destinations", async () => {
+test("#2487/#2612 live browser continuity opens only currently active downstream Dashboard destinations", async () => {
   const probe = await read("lib/verification/browser-probes/continuity.mjs");
 
   for (const stage of [
     '{ id: "timeline", menuId: "timeline", governed: "scene-timeline" }',
-    '{ id: "sound-foley", menuId: "sound-foley", governed: "sound-foley" }',
-    '{ id: "sound-narration", menuId: "sound-narration", governed: "sound-narration" }',
-    '{ id: "sound-music", menuId: "sound-music", governed: "sound-music" }',
     '{ id: "production", menuId: "production", governed: "production" }',
-    '{ id: "screening", menuId: "screening", governed: "screening" }',
-  ]) assert.ok(probe.includes(stage), "missing #2487 live stage " + stage);
+  ]) assert.ok(probe.includes(stage), "missing active #2487 live stage " + stage);
+  for (const deferred of ["sound-foley", "sound-narration", "sound-music", "screening"]) {
+    assert.doesNotMatch(probe, new RegExp(`menuId: "${deferred}"`, "u"));
+  }
 
   assert.match(probe, /openWebMcpGovernedSurface\(page, serverUrl, "dashboard"\)/u);
   assert.match(probe, /\[data-dashboard-menu-item='\$\{stage\.menuId\}'\]/u);

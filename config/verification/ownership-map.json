@@ -312,7 +312,12 @@
         ".pi/npm/package-lock.json",
         "scripts/dsdd-pi-draft.mjs",
         "scripts/dsdd-integrity.mjs",
-        "scripts/dsdd-publish-brief.mjs"
+        "scripts/dsdd-publish-brief.mjs",
+        ".pi/settings.json",
+        ".pi/extensions/**",
+        "config/pi-tool-exposure-policy.json",
+        "lib/agents/developer-tool-authorization.mjs",
+        "scripts/setup-developer-agent-stack.ps1"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

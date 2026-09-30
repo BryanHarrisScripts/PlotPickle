@@ -233,5 +233,14 @@
       "finalGate": "github-ci"
     }
   },
-  "mergePolicy": "green-exact-head-only"
+  "mergePolicy": "green-exact-head-only",
+  "governedDelivery": {
+    "policy": "config/development-delivery-policy.json",
+    "contract": "lib/agents/governed-development-delivery.mjs",
+    "authority": "human-dsdd-github",
+    "durableTaskRequiredForMutation": true,
+    "exactHeadRequiredForMerge": true,
+    "globalAutonomousMergePermission": false,
+    "storyCanonAffected": false
+  }
 }

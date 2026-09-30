@@ -1,0 +1,691 @@
+{
+  "$schema": "./story-learning-surface-parity.schema.json",
+  "schemaVersion": "1.0",
+  "issue": 2602,
+  "parentIssue": 2601,
+  "status": "audit-baseline",
+  "purpose": "Deterministic migration map for the canonical Learn taxonomy, Mind Map authoring, World Map review, blank startup, and packaged Afterglow migration.",
+  "authority": {
+    "topicSpine": "modules/learn/model/story-learning-context.ts#LEARN_TOPIC_SPINE",
+    "learnArchive": "learn/*.json",
+    "mindMap": "core/contracts/discovery/index.ts + app/skin-v1/discovery-surface.tsx",
+    "worldMap": "core/project/story-bible-projection.ts + app/skin-v1/story-bible-surface.tsx",
+    "blankFactory": "core/project/project.ts#createEmptyProject",
+    "afterglowExample": "modules/library/reference/afterglow-packaged-current.ts",
+    "projectPersistence": "core/storage/project-library-browser.ts"
+  },
+  "canonicalTopicOrder": [
+    "foundations",
+    "world",
+    "character",
+    "theme",
+    "structure",
+    "previs",
+    "drafting",
+    "dialogue",
+    "revision",
+    "responsible-ai",
+    "industry",
+    "collaboration"
+  ],
+  "canonicalFieldIdentity": {
+    "learnBackedField": "<topic>:<lessonId>:<fieldId>",
+    "projectArtifact": "<topic>:artifact:<artifactId>",
+    "rules": [
+      "A canonical field key is stable across Mind Map and World Map.",
+      "Mind Map and World Map may render the same field differently but may not own separate values.",
+      "Existing Foundations and World field ids already use <topic>:<lessonId>:<fieldId> in Story Bible projection and are the compatibility baseline.",
+      "Instructional-only Learn material must be marked instructional-only instead of manufacturing a project value."
+    ]
+  },
+  "blankStartupAudit": {
+    "factoryStatus": "empty-by-construction",
+    "evidence": [
+      "createEmptyProject initializes empty Foundations, World, Build and Production state.",
+      "createEmptyLibraryProject normalizes createEmptyProject rather than loading Afterglow.",
+      "loadActiveLibraryProject can create a detached Untitled Story when no current-session project is selected."
+    ],
+    "runtimeObservationToMigrate": [
+      {
+        "topic": "character",
+        "observedExampleContent": [
+          "Ren",
+          "Amy",
+          "Summer / Isobel"
+        ],
+        "candidateStorage": [
+          "sourceEvidence.characterTruth",
+          "worldMap.characterVisuals"
+        ],
+        "classification": "Afterglow-owned when these identities originate from the Afterglow example"
+      },
+      {
+        "topic": "foundations",
+        "observedExampleContent": [
+          "logline",
+          "premise",
+          "stakes",
+          "central conflict"
+        ],
+        "candidateStorage": [
+          "foundations.lessons.*.answers",
+          "foundations.brief.content"
+        ],
+        "classification": "Afterglow-owned when populated with Afterglow story decisions"
+      },
+      {
+        "topic": "theme",
+        "observedExampleContent": [
+          "theme",
+          "tone",
+          "mood"
+        ],
+        "candidateStorage": [
+          "foundations.lessons.*.answers",
+          "world.lessons.*.answers",
+          "discovery.cards"
+        ],
+        "classification": "Afterglow-owned when populated with Afterglow story decisions"
+      }
+    ],
+    "phase2Rule": "Treat runtime-visible Afterglow values as migration candidates, but do not delete anything until its exact project storage path and packaged-example destination are proven."
+  },
+  "topics": [
+    {
+      "id": "foundations",
+      "label": "Foundations",
+      "learnTopicId": "foundations",
+      "learnFile": "learn/foundations.json",
+      "lessonCount": 4,
+      "lessonIds": [
+        "pitch",
+        "loglines-that-carry-the-movie",
+        "why-plotpickle-works-in-layers",
+        "essentials-experience"
+      ],
+      "mindMap": {
+        "lanes": [
+          "story",
+          "plot",
+          "research"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "foundationGroups + spotlight logline/premise/stakes",
+        "valueSources": [
+          "foundations.lessons.*.answers",
+          "foundations.brief.content"
+        ],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "structured-read"
+      },
+      "target": {
+        "mindMapRole": "create-edit canonical Foundation fields",
+        "worldMapRole": "read-review canonical Foundation fields",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Mind Map lanes are not the same structured Foundation fields rendered by World Map.",
+        "World Map Learn link is topic-level rather than field-level."
+      ]
+    },
+    {
+      "id": "world",
+      "label": "World",
+      "learnTopicId": "world",
+      "learnFile": "learn/world.json",
+      "lessonCount": 5,
+      "lessonIds": [
+        "genres",
+        "world-building",
+        "story-bible",
+        "ai-revision-genre-world-continuity",
+        "ai-revision-representation-research"
+      ],
+      "mindMap": {
+        "lanes": [
+          "world"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "worldGroups",
+        "valueSources": [
+          "world.lessons.*.answers",
+          "world.brief.content"
+        ],
+        "authoringActions": [
+          "Ask World Agent",
+          "Save",
+          "Redo",
+          "Discard"
+        ],
+        "learnLink": "topic-only",
+        "coverage": "structured-read-write"
+      },
+      "target": {
+        "mindMapRole": "create-edit canonical World fields",
+        "worldMapRole": "read-review canonical World fields",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Structured World fields exist in World Map but not Mind Map.",
+        "World Map currently owns agent proposal/edit/save behavior that belongs in Mind Map.",
+        "Learn link is topic-level rather than field-level."
+      ]
+    },
+    {
+      "id": "character",
+      "label": "Character",
+      "learnTopicId": "character",
+      "learnFile": "learn/character.json",
+      "lessonCount": 10,
+      "lessonIds": [
+        "character-bible",
+        "ai-revision-character-choice-arc",
+        "characters-engine",
+        "characters-choice-proof",
+        "characters-inner-journey",
+        "characters-conflict",
+        "characters-opposition",
+        "characters-relationships",
+        "characters-voiceprint",
+        "characters-cast-system"
+      ],
+      "mindMap": {
+        "lanes": [
+          "character"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "character truth + visual sheet",
+        "valueSources": [
+          "sourceEvidence.characterTruth",
+          "worldMap.characterVisuals"
+        ],
+        "authoringActions": [
+          "Generate Character Visual",
+          "Generate Missing Views",
+          "Save",
+          "Lock"
+        ],
+        "learnLink": "topic-only",
+        "coverage": "derived-read-write"
+      },
+      "target": {
+        "mindMapRole": "create-edit canonical Character fields and proposals",
+        "worldMapRole": "read-review character truth and approved references",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Character Learn lessons are not represented as a structured Mind Map field set.",
+        "World Map contains character visual generation/save/lock authoring actions.",
+        "Character values are evidence-derived rather than mapped to a single shared field model."
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "learnTopicId": "theme",
+      "learnFile": "learn/theme.json",
+      "lessonCount": 5,
+      "lessonIds": [
+        "mood-colour-visual-language",
+        "ai-revision-theme-motif-foreshadowing",
+        "essentials-tone",
+        "essentials-theme",
+        "essentials-motif"
+      ],
+      "mindMap": {
+        "lanes": [
+          "theme",
+          "motif"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "spotlight theme + tone",
+        "valueSources": [
+          "projectStoryBible derived from Foundations/World curriculum answers"
+        ],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "derived-read"
+      },
+      "target": {
+        "mindMapRole": "create-edit canonical Theme/Tone/Mood/Motif fields",
+        "worldMapRole": "read-review the same values",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Mood and motif are not full canonical World Map fields.",
+        "World Map theme/tone are heuristic projections instead of stable shared field identities."
+      ]
+    },
+    {
+      "id": "structure",
+      "label": "Structure",
+      "learnTopicId": "structure",
+      "learnFile": "learn/structure.json",
+      "lessonCount": 11,
+      "lessonIds": [
+        "structures",
+        "24b-new-spin",
+        "24b-structure-guide",
+        "24b-structures-role",
+        "24b-story-beats",
+        "24b-principle-three",
+        "24b-dramatic-question",
+        "24b-structure-diversity",
+        "24b-reflection",
+        "24b-dynamic-scenes",
+        "essentials-pacing"
+      ],
+      "mindMap": {
+        "lanes": [
+          "structure"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "Act-filtered 24 Block projection",
+        "valueSources": [
+          "structure.blocks"
+        ],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "derived-read"
+      },
+      "target": {
+        "mindMapRole": "create-edit structure ideas and canonical structural decisions",
+        "worldMapRole": "read-review current structure projection",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Learn Structure concepts and Mind Map structure cards are not mapped field-for-field to structure.blocks.",
+        "World Map shows block truth but not the complete Learn application field model."
+      ]
+    },
+    {
+      "id": "previs",
+      "label": "Previs",
+      "learnTopicId": "visual-storytelling",
+      "learnFile": "learn/visual-storytelling.json",
+      "lessonCount": 3,
+      "lessonIds": [
+        "early-visual-development",
+        "ai-revision-visual-pageflow",
+        "essentials-screen-evidence"
+      ],
+      "mindMap": {
+        "lanes": [
+          "visual",
+          "image",
+          "previs"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "poster + story spotlights",
+        "valueSources": [
+          "build.foundations.visualArtifacts",
+          "worldMap character references"
+        ],
+        "authoringActions": [
+          "Generate Poster Visual",
+          "Save",
+          "Lock"
+        ],
+        "learnLink": "topic-only",
+        "coverage": "derived-read-write"
+      },
+      "target": {
+        "mindMapRole": "create-edit visual intent/proposals",
+        "worldMapRole": "read-review approved visual story reference",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "World Map still contains poster generation/save/lock authoring.",
+        "Previs Learn material is not represented as stable canonical project fields."
+      ]
+    },
+    {
+      "id": "drafting",
+      "label": "Drafting",
+      "learnTopicId": "drafting",
+      "learnFile": "learn/drafting.json",
+      "lessonCount": 8,
+      "lessonIds": [
+        "writing-process",
+        "concept-to-draft",
+        "pickle-draft",
+        "formatting",
+        "books-scripts",
+        "challenges",
+        "essentials-scene",
+        "essentials-formatting"
+      ],
+      "mindMap": {
+        "lanes": [
+          "scene",
+          "drafting"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "Act-filtered writing entries",
+        "valueSources": [
+          "writing.entries"
+        ],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "derived-read"
+      },
+      "target": {
+        "mindMapRole": "create-edit drafting intent/proposals",
+        "worldMapRole": "read-review current written material",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "Mind Map drafting cards and writing.entries are separate models.",
+        "Not every Drafting lesson should become a stored story field; instructional-only distinctions are required."
+      ]
+    },
+    {
+      "id": "dialogue",
+      "label": "Dialogue",
+      "learnTopicId": "dialogue",
+      "learnFile": "learn/dialogue.json",
+      "lessonCount": 10,
+      "lessonIds": [
+        "ai-revision-dialogue-voiceprint",
+        "ai-revision-subtext-status-silence",
+        "dialogue-action",
+        "dialogue-voiceprint",
+        "dialogue-subtext",
+        "dialogue-conflict",
+        "dialogue-speech-silence-action",
+        "dialogue-exposition-genre",
+        "dialogue-exchange-turn",
+        "dialogue-revision"
+      ],
+      "mindMap": {
+        "lanes": [
+          "dialogue"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "empty placeholder",
+        "valueSources": [],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "missing"
+      },
+      "target": {
+        "mindMapRole": "create-edit dialogue intent/proposals and mapped project decisions",
+        "worldMapRole": "read-review established dialogue-related project truth",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "World Map has no established Dialogue projection.",
+        "Instructional lessons versus durable project fields are not classified."
+      ]
+    },
+    {
+      "id": "revision",
+      "label": "Revision",
+      "learnTopicId": "revision",
+      "learnFile": "learn/revision.json",
+      "lessonCount": 8,
+      "lessonIds": [
+        "ai-revision-diagnose-only",
+        "ai-revision-structure-causality",
+        "ai-revision-scene-purpose-turn",
+        "ai-revision-conflict-stakes-escalation",
+        "ai-revision-pacing-repetition",
+        "ai-revision-formatting-readability",
+        "ai-revision-pitch-audience-language",
+        "essentials-audit"
+      ],
+      "mindMap": {
+        "lanes": [
+          "revision"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "empty placeholder",
+        "valueSources": [],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "missing"
+      },
+      "target": {
+        "mindMapRole": "create-edit revision findings/proposals",
+        "worldMapRole": "read-review established revision state/evidence where project-owned",
+        "learnRole": "craft-reference"
+      },
+      "gaps": [
+        "World Map has no Revision projection.",
+        "Many Revision lessons describe process/evidence rather than durable story facts."
+      ]
+    },
+    {
+      "id": "responsible-ai",
+      "label": "Responsible AI",
+      "learnTopicId": "responsible-ai",
+      "learnFile": "learn/responsible-ai.json",
+      "lessonCount": 3,
+      "lessonIds": [
+        "responsible-ai",
+        "24b-ai",
+        "collaboration-ai-github-publishing"
+      ],
+      "mindMap": {
+        "lanes": [
+          "responsible-ai"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "source/provenance summary",
+        "valueSources": [
+          "sourceEvidence"
+        ],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "derived-read"
+      },
+      "target": {
+        "mindMapRole": "record project-specific AI/provenance decisions only where applicable",
+        "worldMapRole": "read-review provenance and current project evidence",
+        "learnRole": "primarily instructional-reference"
+      },
+      "gaps": [
+        "Responsible AI curriculum should not be converted wholesale into story fields.",
+        "Current World Map source summary is not mapped to specific Learn application targets."
+      ]
+    },
+    {
+      "id": "industry",
+      "label": "Industry",
+      "learnTopicId": "industry",
+      "learnFile": "learn/industry.json",
+      "lessonCount": 2,
+      "lessonIds": [
+        "industry",
+        "collaboration-ownership-sharing"
+      ],
+      "mindMap": {
+        "lanes": [
+          "industry"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "empty placeholder",
+        "valueSources": [],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "missing"
+      },
+      "target": {
+        "mindMapRole": "record creator-selected project-facing industry decisions only where applicable",
+        "worldMapRole": "read-review established project-facing industry material",
+        "learnRole": "primarily instructional-reference"
+      },
+      "gaps": [
+        "World Map has no Industry projection.",
+        "Industry orientation itself is instructional and must not become invented story canon."
+      ]
+    },
+    {
+      "id": "collaboration",
+      "label": "Collaboration",
+      "learnTopicId": "collaboration",
+      "learnFile": "learn/collaboration.json",
+      "lessonCount": 12,
+      "lessonIds": [
+        "collaboration-choose-workflow",
+        "collaboration-source-of-truth",
+        "collaboration-formats-that-travel",
+        "working-together-model",
+        "working-together-authority",
+        "working-together-brief",
+        "working-together-canon",
+        "working-together-proposal",
+        "working-together-review",
+        "working-together-disagreements",
+        "working-together-rights",
+        "working-together-scale"
+      ],
+      "mindMap": {
+        "lanes": [
+          "collaboration"
+        ],
+        "valueModel": "free-form discovery cards",
+        "agentAction": "generic Develop Agent Proposals",
+        "coverage": "partial"
+      },
+      "worldMap": {
+        "panel": "empty placeholder",
+        "valueSources": [],
+        "authoringActions": [],
+        "learnLink": "topic-only",
+        "coverage": "missing"
+      },
+      "target": {
+        "mindMapRole": "create-edit project collaboration decisions/artifacts where applicable",
+        "worldMapRole": "read-review established collaboration state",
+        "learnRole": "primarily instructional-reference"
+      },
+      "gaps": [
+        "World Map has no Collaboration projection.",
+        "Collaboration process lessons require explicit classification before becoming project data."
+      ]
+    }
+  ],
+  "afterglowMigrationCandidates": [
+    {
+      "storagePath": "foundations.lessons.*.answers",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow values"
+    },
+    {
+      "storagePath": "foundations.brief.content",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow brief"
+    },
+    {
+      "storagePath": "world.lessons.*.answers",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow values"
+    },
+    {
+      "storagePath": "world.brief.content",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow brief"
+    },
+    {
+      "storagePath": "sourceEvidence.characterTruth",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow character truth"
+    },
+    {
+      "storagePath": "structure.blocks",
+      "blankPolicy": "empty/default structural shell only",
+      "examplePolicy": "package approved Afterglow structural content"
+    },
+    {
+      "storagePath": "writing.entries",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow writing where included"
+    },
+    {
+      "storagePath": "discovery.cards",
+      "blankPolicy": "empty",
+      "examplePolicy": "package only intentional Afterglow Mind Map material"
+    },
+    {
+      "storagePath": "build.foundations.visualArtifacts",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow poster/visual references by resource path"
+    },
+    {
+      "storagePath": "build.world.visualArtifacts",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow world visuals by resource path"
+    },
+    {
+      "storagePath": "worldMap.characterVisuals",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow character views by resource path"
+    },
+    {
+      "storagePath": "production",
+      "blankPolicy": "empty",
+      "examplePolicy": "package approved Afterglow production/previs state only when explicitly included"
+    }
+  ],
+  "phase2Preconditions": [
+    "Do not delete seeded/runtime-visible content until its exact storage path is proven.",
+    "Do not remove reusable schema, lesson definitions, topic navigation, or creation capability from blank.",
+    "Do not encode example images/resources as Base64.",
+    "Keep Library explicit-open behavior and session startup isolation.",
+    "Use the packaged Afterglow example as the destination for approved Afterglow-owned values/resources."
+  ],
+  "summaryFindings": [
+    "The twelve-topic navigation spine is already shared.",
+    "Mind Map currently uses free-form Discovery lanes rather than the structured fields World Map exposes for Foundations and World.",
+    "World Map is already partly a review projection, but it still contains authoring/generation controls for World, Character visuals and Previs poster work.",
+    "Dialogue, Revision, Industry and Collaboration currently have World Map placeholders only.",
+    "Theme, Structure, Previs, Drafting and Responsible AI are derived projections rather than stable shared field models.",
+    "Blank project construction is empty by code; Phase 2 must specifically trace and migrate the runtime path that makes Afterglow values visible in the user's apparent blank state."
+  ]
+}

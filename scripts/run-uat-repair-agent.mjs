@@ -11,7 +11,13 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { materializeAgentSkillRunManifest, readAgentSkillProcedure } from "./agent-skills.mjs";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
-import { resolvePiExecutable, runPortableCommand } from "./pi-worker-runtime.mjs";
+import {
+  piDeveloperEnvironment,
+  piDeveloperRouteProjection,
+  piDeveloperVirtualArgs,
+  resolvePiExecutable,
+  runPortableCommand,
+} from "./pi-worker-runtime.mjs";
 
 const exec = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -473,6 +479,7 @@ function codemodeTaskForRepair(finding) {
 async function runPiAgent({ finding, runtime, worktreeRoot }) {
   const promptPath = await writeExternalPrompt(finding, worktreeRoot);
   const agentDir = await configurePiRuntime(runtime);
+  const routeProjection = piDeveloperRouteProjection(runtime, { localOnly: true });
   const resolution = piResolution?.ready ? piResolution : await resolvePiExecutable();
   if (!resolution.ready) {
     await unlink(promptPath).catch(() => {});
@@ -490,17 +497,13 @@ async function runPiAgent({ finding, runtime, worktreeRoot }) {
       "--mode", "json",
       "-p",
       ...sessionArgs,
-      "--provider", "plotpickle-local",
-      "--model", runtime.model,
+      ...piDeveloperVirtualArgs(worktreeRoot),
       "Read .plotpickle-uat-repair.md and execute every repair instruction in that file.",
     ], {
       cwd: worktreeRoot,
       timeout: 1_800_000,
       env: {
-        PI_CODING_AGENT_DIR: agentDir,
-        PI_OFFLINE: "1",
-        PI_SKIP_VERSION_CHECK: "1",
-        PI_TELEMETRY: "0",
+        ...piDeveloperEnvironment(agentDir, routeProjection),
         PLOTPICKLE_CODEMODE_TASK_JSON: JSON.stringify(codemodeTaskForRepair(finding)),
         ...(dsddBuildPacket ? { PLOTPICKLE_DSDD_BUILD_PACKET: path.resolve(dsddBuildPacket) } : {}),
       },

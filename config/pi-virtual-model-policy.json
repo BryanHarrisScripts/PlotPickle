@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "issue": 2593,
+  "scope": "developer-agent-only",
+  "authority": "plotpickle-agent-compute",
+  "agentComputeStore": "build/agent-compute-store.ts",
+  "capabilityResolver": "scripts/pi-worker-runtime.mjs",
+  "logicalModel": {
+    "provider": "plotpickle",
+    "model": "developer",
+    "extension": ".pi/extensions/plotpickle-virtual-model.mjs"
+  },
+  "routeEnvironment": "PLOTPICKLE_PI_ROUTE_JSON",
+  "cloud": {
+    "provider": "openai",
+    "loginCommand": "/login openai",
+    "loginTriggeredByPlotPickle": false,
+    "credentialsStoredInRepository": false,
+    "existingCredentialsEnableRouting": false,
+    "requiresExplicitHumanConsent": true,
+    "automaticFallback": false
+  },
+  "classifier": {
+    "optional": true,
+    "preferredLocalApi": "llama-cpp-classify",
+    "requiredLocality": "local",
+    "allowedDecisions": [
+      "task-category",
+      "complexity",
+      "read-only-sufficiency",
+      "model-family"
+    ],
+    "forbiddenDecisions": [
+      "human-approval",
+      "dsdd-intent-lock",
+      "story-canon",
+      "source-mutation",
+      "destructive-action",
+      "merge-authorization",
+      "final-correctness",
+      "evidence-sufficiency"
+    ]
+  },
+  "observability": {
+    "logicalAndPhysicalModelsSeparate": true,
+    "safeFields": [
+      "logicalProviderId",
+      "logicalModelId",
+      "providerId",
+      "modelId",
+      "thinkingLevel",
+      "inputTokens",
+      "outputTokens",
+      "cachedTokens",
+      "estimatedCost"
+    ],
+    "storePrompts": false,
+    "storeResponses": false,
+    "storeCredentials": false
+  },
+  "storyModeAffected": false
+}

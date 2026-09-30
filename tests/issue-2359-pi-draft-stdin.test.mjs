@@ -57,7 +57,8 @@ test("#2359 read-only Pi receives a large prompt once outside argv and batch env
   assert.deepEqual(received.args, [
     "-p", "--no-session", "--tools", "read,grep,find,ls",
     "--no-extensions", "--no-skills", "--no-prompt-templates", "--no-themes",
-    "--provider", "plotpickle-local", "--model", "fixture-model",
+    "--extension", path.resolve(root, ".pi", "extensions", "plotpickle-virtual-model.mjs"),
+    "--provider", "plotpickle", "--model", "developer",
   ]);
   assert.ok(received.batch.every(([, value]) => !value.includes("Human:")));
 });

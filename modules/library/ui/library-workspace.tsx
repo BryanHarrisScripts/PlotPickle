@@ -425,10 +425,10 @@ function NewStoryCard({ onCreate }: { readonly onCreate: () => void }) {
       <div className={styles.storyVisual}><span aria-hidden="true">+</span><strong>Ready</strong></div>
       <div className={styles.cardBody}>
         <div className={styles.meta}><span>Story</span><span>Local PPF</span></div>
-        <h3>New Story</h3>
-        <p>Start a clean local PlotPickle story. Nothing is automatically treated as canon.</p>
-        <small>This is the primary entry point for creating a new Human-owned story.</small>
-        <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Story</button>
+        <h3>New Project</h3>
+        <p>Start a clean local PlotPickle project. Nothing is automatically treated as canon.</p>
+        <small>This creates the same blank project state used at login, but gives it a durable Library identity immediately.</small>
+        <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Project</button>
       </div>
     </article>
   );
@@ -545,7 +545,7 @@ export default function LibraryWorkspace() {
       markCurrentSessionLibraryProject(project.id);
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
-      window.location.assign("/?workspace=learn");
+      window.location.assign("/?workspace=dashboard");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
     }
@@ -868,8 +868,8 @@ export default function LibraryWorkspace() {
       return (
         <section aria-labelledby="new-title" className={styles.section} data-library-surface="new">
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>Create a Human-owned story</p><h2 id="new-title">NEW</h2></div>
-            <p>Start a clean local project. Nothing is automatically treated as canon, so creative decisions remain yours from the beginning.</p>
+            <div><p className={styles.eyebrow}>Create a Human-owned project</p><h2 id="new-title">NEW</h2></div>
+            <p>Start the same clean blank project state used at login, but save it to Library immediately with its own project identity.</p>
           </div>
           <div className={styles.singleCard}><NewStoryCard onCreate={createNewStory} /></div>
         </section>

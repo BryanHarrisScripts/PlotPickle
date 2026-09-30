@@ -58,6 +58,10 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-2593-pi-virtual-routing.test.mjs
 
+      - name: Prove governed development delivery, exact-head recovery and claims on Windows
+        shell: pwsh
+        run: node --test tests/issue-2594-governed-development-delivery.test.mjs
+
       - name: Verify Pi Draft prompt transport through a Windows batch shim
         shell: pwsh
         run: node --test tests/issue-2359-pi-draft-stdin.test.mjs

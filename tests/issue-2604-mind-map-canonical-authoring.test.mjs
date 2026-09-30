@@ -98,7 +98,7 @@ test("#2604 field-specific agent proposals stay proposals until the Human uses t
   assert.match(surface, /editable before use/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal/u);
   assert.match(adapter, /source: "agent-proposal"/u);
-  assert.match(adapter, /proposal: ""/[u]);
+  assert.match(adapter, /proposal: ""/u);
 });
 
 test("#2604 Blank stays empty while Afterglow Foundations populate the same canonical controls", async () => {

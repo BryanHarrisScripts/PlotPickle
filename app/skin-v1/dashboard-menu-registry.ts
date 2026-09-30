@@ -63,6 +63,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "edit",
   "refine",
   "feedback",
+  "pitch-deck",
   "pitch-package",
   "wyrmwood",
   "story",
@@ -84,9 +85,7 @@ export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
   "production",
 ]);
 
-export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set([
-  "pitch-deck",
-]);
+export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([]);
 
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },

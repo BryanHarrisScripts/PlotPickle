@@ -849,7 +849,8 @@
           "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
           "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
           "tests/issue-2468-three-runtime-modes.test.mjs",
-          "tests/issue-2470-human-validation-loop.test.mjs"
+          "tests/issue-2470-human-validation-loop.test.mjs",
+          "tests/issue-2590-pi-099-compatibility.test.mjs"
         ]
       },
       "cost": "fast",

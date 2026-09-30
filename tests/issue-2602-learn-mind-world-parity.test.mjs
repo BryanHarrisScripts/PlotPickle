@@ -60,7 +60,7 @@ test("#2602 Mind Map lane inventory is exact and every lane belongs to one audit
   assert.ok(audit.topics.every((topic) => topic.mindMap.agentAction === "generic Develop Agent Proposals"));
 });
 
-test("#2602 World Map audit records current authoring ownership and missing review projections before migration", async () => {
+test("#2602 audit preserves the pre-migration baseline while #2605 removes those World Map authoring gaps", async () => {
   const [audit, surface] = await Promise.all([
     readJson("config/story-learning-surface-parity.json"),
     read("app/skin-v1/story-bible-surface.tsx"),
@@ -70,14 +70,14 @@ test("#2602 World Map audit records current authoring ownership and missing revi
   assert.deepEqual(byId.world.worldMap.authoringActions, ["Ask World Agent", "Save", "Redo", "Discard"]);
   assert.deepEqual(byId.character.worldMap.authoringActions, ["Generate Character Visual", "Generate Missing Views", "Save", "Lock"]);
   assert.deepEqual(byId.previs.worldMap.authoringActions, ["Generate Poster Visual", "Save", "Lock"]);
+  assert.equal(audit.status, "audit-baseline");
 
   for (const phrase of ["Ask World Agent", "Generate Character Visual", "Generate Poster Visual"]) {
-    assert.match(surface, new RegExp(phrase, "u"));
+    assert.doesNotMatch(surface, new RegExp(phrase, "u"));
   }
-  for (const id of ["dialogue", "revision", "industry", "collaboration"]) {
-    assert.equal(byId[id].worldMap.coverage, "missing");
-  }
-  assert.match(surface, /No established \{activeTopicEntry\.label\} material is available in WorldMap yet/u);
+  assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface, /data-world-map-canonical-field=\{field\.canonicalId\}/u);
+  assert.match(surface, /data-story-bible-read-only="true"/u);
 });
 
 test("#2602 stable field identity policy matches existing Foundations and World projection keys", async () => {

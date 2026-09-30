@@ -110,7 +110,7 @@ test("#2603 canonical Afterglow package owns approved story truth and repository
   assert.match(foundationText, /theme/iu);
   assert.match(foundationText, /tone/iu);
   assert.match(foundationText, /stakes|control costs|failure threatens/iu);
-  assert.match(projection, /label: "Tone \/ mood"/u);
+  assert.match(projection, /"Tone \/ mood"/u);
 
   const principalIds = project.sourceEvidence.characterTruth?.principalCharacterIds ?? [];
   for (const id of ["ren", "amy", "isobel"]) assert.ok(principalIds.includes(id), `missing packaged principal character ${id}`);

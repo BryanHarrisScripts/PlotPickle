@@ -51,7 +51,9 @@
       "enabled": true,
       "extension": ".pi/extensions/plotpickle-native-mcp.mjs",
       "policy": "config/pi-tool-exposure-policy.json",
-      "legacyAdapter": "retired-from-loaded-package-set"
+      "legacyAdapter": "retired-from-loaded-package-set",
+      "legacyAdapterRollbackPackage": "npm:pi-mcp-adapter@2.26.0",
+      "legacyAdapterRollbackPolicy": "dormant-audit-only-not-loaded"
     }
   },
   "mcp": {

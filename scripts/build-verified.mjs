@@ -81,6 +81,7 @@ async function validateArtifact() {
   try {
     await access(workerPath);
   } catch {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=missing-worker-entry");
     throw new Error("Missing Sites Worker entry: dist/server/index.js");
   }
 
@@ -88,14 +89,22 @@ async function validateArtifact() {
   try {
     hosting = JSON.parse(await readFile(hostingPath, "utf8"));
   } catch (error) {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=missing-or-invalid-hosting-manifest");
     throw new Error(`Missing or invalid packaged Sites manifest: dist/.openai/hosting.json (${error.message})`);
   }
   void hosting;
 
   const workerUrl = pathToFileURL(workerPath);
   workerUrl.searchParams.set("sites-validation", `${process.pid}-${Date.now()}`);
-  const worker = await import(workerUrl.href);
+  let worker;
+  try {
+    worker = await import(workerUrl.href);
+  } catch {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=worker-import-failed");
+    throw new Error("Built Sites Worker could not be imported during artifact validation.");
+  }
   if (!worker.default || typeof worker.default.fetch !== "function") {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
     throw new Error("dist/server/index.js must have an ESM default export with fetch(request, env, ctx)");
   }
 
@@ -136,8 +145,7 @@ async function main() {
   await validateArtifact();
 }
 
-main().catch((error) => {
+main().catch(() => {
   console.error("Verified build failed. Review the preceding build output for the failing step.");
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error));
   process.exitCode = 1;
 });

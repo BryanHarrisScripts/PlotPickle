@@ -317,7 +317,8 @@
         ".pi/extensions/**",
         "config/pi-tool-exposure-policy.json",
         "lib/agents/developer-tool-authorization.mjs",
-        "scripts/setup-developer-agent-stack.ps1"
+        "scripts/setup-developer-agent-stack.ps1",
+        "scripts/developer-agent-mcp.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

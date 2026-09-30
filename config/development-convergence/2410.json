@@ -23,7 +23,7 @@
   ],
   "acceptance": [
     {"id":"A1","criterion":"Mastra is pinned to 1.69.0 in the root manifest and exact lockfile.","evidence":[{"type":"file-contains","path":"package.json","contains":"\"@mastra/core\": \"1.69.0\""},{"type":"file-contains","path":"package-lock.json","contains":"\"@mastra/core\": \"1.69.0\""}]},
-    {"id":"A2","criterion":"Managed Pi is pinned to 0.87.1 in the runtime and package lockfile.","evidence":[{"type":"file-contains","path":"scripts/pi-managed-install.mjs","contains":"PLOTPICKLE_MANAGED_PI_VERSION = \"0.87.1\""},{"type":"file-contains","path":".pi/npm/package-lock.json","contains":"\"@earendil-works/pi-coding-agent\": \"0.87.1\""}]},
-    {"id":"A3","criterion":"Live DSDD bridge, developer stack, and OSS inventory track the current Pi version.","evidence":[{"type":"file-contains","path":"scripts/dsdd-pi-session.mjs","contains":"managed.version !== \"0.87.1\""},{"type":"file-contains","path":"config/developer-agent-stack.json","contains":"\"managedVersion\": \"0.87.1\""},{"type":"file-contains","path":"config/third-party-oss.json","contains":"\"version\": \"0.87.1\""}]}
+    {"id":"A2","criterion":"Managed Pi is pinned to 0.99.1 in the runtime and package lockfile.","evidence":[{"type":"file-contains","path":"scripts/pi-managed-install.mjs","contains":"PLOTPICKLE_MANAGED_PI_VERSION = \"0.99.1\""},{"type":"file-contains","path":".pi/npm/package-lock.json","contains":"\"@earendil-works/pi-coding-agent\": \"0.99.1\""}]},
+    {"id":"A3","criterion":"Live DSDD bridge, developer stack, and OSS inventory track the current Pi version.","evidence":[{"type":"file-contains","path":"scripts/dsdd-pi-session.mjs","contains":"managed.version !== \"0.99.1\""},{"type":"file-contains","path":"config/developer-agent-stack.json","contains":"\"managedVersion\": \"0.99.1\""},{"type":"file-contains","path":"config/third-party-oss.json","contains":"\"version\": \"0.99.1\""}]}
   ]
 }

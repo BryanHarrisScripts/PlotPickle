@@ -19,12 +19,11 @@ test("#2444/#2454 keeps Refine in Develop, moves Reports to Explore, and leaves 
 test("#2444 preserves moved-item identity, shortcut, copy and lifecycle sets", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
   assert.match(menu, /\{ id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "DEVELOP" \}/u);
-  assert.match(menu, /\{ id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" \}/u);
+  assert.match(menu, /\{ id: "feedback", shortcut: "B", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" \}/u);
   assert.match(menu, /\{ id: "reports", shortcut: "5", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" \}/u);
 
   const disabled = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  assert.match(disabled, /"pitch-package"/u);
-  assert.match(disabled, /"pitch-deck"/u);
+  assert.doesNotMatch(disabled, /"pitch-package"|"pitch-deck"/u);
   assert.doesNotMatch(disabled, /"feedback"|"reports"|"refine"/u);
 
   const reviewState = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));

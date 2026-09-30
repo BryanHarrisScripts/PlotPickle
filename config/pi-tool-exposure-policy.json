@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "issue": 2591,
+  "canonicalConfig": ".mcp.json",
+  "piExtension": ".pi/extensions/plotpickle-native-mcp.mjs",
+  "server": "plotpickle-dev",
+  "description": "PlotPickle deterministic developer harness and verification tools. DSDD and governed task state remain the authorization boundary.",
+  "serverExposure": "codemode",
+  "toolExposure": {
+    "plotpickle_status": "direct",
+    "plotpickle_hooks": "direct",
+    "plotpickle_uat_findings": "codemode",
+    "plotpickle_focused_uat": "codemode",
+    "plotpickle_build": "codemode",
+    "plotpickle_validate": "codemode"
+  },
+  "authorization": {
+    "readInspect": "available",
+    "testEvidence": "available-with-deterministic-result-contract",
+    "sourceMutation": "governed-task-required",
+    "destructiveAdmin": "separate-explicit-authorization-required",
+    "secretsCredentials": "never-model-readable-by-default"
+  },
+  "rule": "Exposure controls reachability and prompt footprint. It never grants Human authorization. Any mutating or destructive tool must enforce governed task authorization inside the runtime/tool handler."
+}

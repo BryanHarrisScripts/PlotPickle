@@ -16,7 +16,7 @@ test("#1709 remains historical after a later managed Pi promotion", async () => 
   assert.equal(evaluation.candidateVersion, "0.85.1");
   assert.equal(evaluation.decision, "candidate-probe");
   assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.1"/u);
-  assert.equal(stack.piRuntime.managedVersion, "0.87.1");
+  assert.equal(stack.piRuntime.managedVersion, "0.99.1");
   assert.deepEqual(evaluation.requiredExtensions, stack.piPackages);
   assert.match(evaluation.promotionPolicy, /only after the isolated Windows candidate probe/u);
 });

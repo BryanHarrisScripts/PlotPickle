@@ -7,6 +7,11 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
+import {
+  PI_DEVELOPER_LOGICAL_MODEL,
+  PI_DEVELOPER_ROUTE_ENV,
+  buildPiDeveloperRouteProjection,
+} from "../lib/agents/pi-developer-routing.mjs";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
 import { windowsBatchInvocation } from "./windows-batch-command.mjs";
 
@@ -428,6 +433,60 @@ export function piAgentDirectory(purpose = "repair") {
   return path.join(localRoot(), "PlotPickle", "developer-agent", `pi-${purpose}`);
 }
 
+export function piDeveloperRouteProjection(runtime, options = {}) {
+  if (!runtime?.model) throw new Error("PlotPickle Pi developer routing requires a resolved physical model.");
+  const environment = options.env || process.env;
+  const localOnly = options.localOnly !== false;
+  const explicitCloudConsent = environment.PLOTPICKLE_PI_ALLOW_CLOUD === "1";
+  const cloudProvider = String(environment.PLOTPICKLE_PI_CLOUD_PROVIDER || "openai").trim();
+  const cloudModel = String(environment.PLOTPICKLE_PI_CLOUD_MODEL || "").trim();
+  if (cloudModel && cloudProvider !== "openai") {
+    throw new Error("PlotPickle Phase 4 supports only the explicitly enabled OpenAI/ChatGPT cloud developer route.");
+  }
+  const cloudRoute = cloudModel ? {
+    id: "openai-explicit",
+    provider: "openai",
+    model: cloudModel,
+    purpose: "complex",
+    thinkingLevel: String(environment.PLOTPICKLE_PI_CLOUD_THINKING || "high").trim(),
+    ready: true,
+  } : null;
+  return buildPiDeveloperRouteProjection({
+    localRoute: {
+      id: "local-primary",
+      provider: "plotpickle-local",
+      model: runtime.model,
+      purpose: "default",
+      thinkingLevel: "off",
+      ready: true,
+    },
+    cloudRoute,
+    localOnly,
+    explicitCloudConsent,
+    preferCloud: environment.PLOTPICKLE_PI_ROUTE === "cloud",
+  });
+}
+
+export function piDeveloperEnvironment(agentDir, projection) {
+  const selected = projection.authorizedRoutes.find((route) => route.id === projection.selectedRouteId);
+  const environment = {
+    PI_CODING_AGENT_DIR: agentDir,
+    PI_SKIP_VERSION_CHECK: "1",
+    PI_TELEMETRY: "0",
+    [PI_DEVELOPER_ROUTE_ENV]: JSON.stringify(projection),
+  };
+  if (!selected || selected.locality === "local") environment.PI_OFFLINE = "1";
+  return environment;
+}
+
+export function piDeveloperVirtualArgs(cwd = process.cwd()) {
+  return [
+    "--extension", path.resolve(cwd, ".pi", "extensions", "plotpickle-virtual-model.mjs"),
+    "--provider", PI_DEVELOPER_LOGICAL_MODEL.provider,
+    "--model", PI_DEVELOPER_LOGICAL_MODEL.model,
+  ];
+}
+
 function requireLoopbackEndpoint(baseUrl) {
   const raw = String(baseUrl || "");
   if (!URL.canParse(raw)) throw new Error(`Pi local runtime URL is invalid: ${baseUrl}`);
@@ -521,18 +580,18 @@ export async function runPiSmoke({ command, runtime, purpose = "repair", timeout
 
 export async function runPiReadOnly({ command, runtime, prompt, cwd, purpose = "code-review", timeout = 10 * 60_000 }) {
   const configured = await configurePiLocalRuntime(runtime, { purpose });
+  const projection = piDeveloperRouteProjection(runtime, { localOnly: true });
   return runPortableCommand(command, [
     "-p",
     "--no-session",
     "--tools", "read,grep,find,ls",
     ...QUIET_RESOURCE_FLAGS,
-    "--provider", "plotpickle-local",
-    "--model", runtime.model,
+    ...piDeveloperVirtualArgs(cwd),
   ], {
     input: prompt,
     cwd,
     timeout,
-    env: piLocalEnvironment(configured.agentDir),
+    env: piDeveloperEnvironment(configured.agentDir, projection),
     maxBuffer: 64 * 1024 * 1024,
   });
 }

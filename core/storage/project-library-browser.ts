@@ -11,7 +11,9 @@ import {
   normalizeStoryStructureV2,
 } from "../project/story-structure-v2";
 import {
+  createEmptyStoryDevelopmentState,
   normalizeLibraryProject,
+  normalizeStoryDevelopmentState,
   type LibraryPPFProject,
 } from "./library-project";
 import * as libraryCore from "./project-library-core.mjs";
@@ -351,7 +353,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.sourceEvidence
       : createEmptyProjectSourceEvidence();
-  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap };
+  const storyDevelopment = "storyDevelopment" in incoming
+    ? normalizeStoryDevelopmentState(incoming.storyDevelopment)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.storyDevelopment
+      : createEmptyStoryDevelopmentState();
+  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);

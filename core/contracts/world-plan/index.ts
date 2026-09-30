@@ -1,4 +1,4 @@
-import type { CurriculumLesson } from "./curriculum";
+import { curriculumApplicationPrompts, type CurriculumLesson } from "../curriculum";
 
 export interface WorldPlanField {
   readonly id: string;
@@ -44,14 +44,6 @@ export function isUsableWorldAnswer(value: string | null | undefined) {
   return Boolean(text) && text.toLowerCase() !== "provisional";
 }
 
-function applicationPrompts(lesson: CurriculumLesson) {
-  const application = [...lesson.sections].reverse().find(
-    (section) => section.heading.trim().toLowerCase() === "apply this to your story",
-  );
-  const prompts = application?.points?.filter((point) => point.trim()) ?? [];
-  return prompts.length ? prompts : [lesson.exercise];
-}
-
 export function buildWorldPlanLessons(curriculum: readonly CurriculumLesson[]): readonly WorldPlanLesson[] {
   return curriculum
     .filter((lesson) => lesson.topic === "world")
@@ -62,7 +54,7 @@ export function buildWorldPlanLessons(curriculum: readonly CurriculumLesson[]): 
       number: lesson.number,
       title: lesson.title,
       overview: lesson.overview,
-      fields: applicationPrompts(lesson).map((prompt, index) => ({ id: `output-${index + 1}`, prompt })),
+      fields: curriculumApplicationPrompts(lesson).map((prompt, index) => ({ id: `output-${index + 1}`, prompt })),
     }));
 }
 

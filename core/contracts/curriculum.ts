@@ -41,3 +41,11 @@ export interface CurriculumSource {
   readonly url: string;
   readonly content: string;
 }
+
+export function curriculumApplicationPrompts(lesson: CurriculumLesson) {
+  const application = [...lesson.sections].reverse().find(
+    (section) => section.heading.trim().toLowerCase() === "apply this to your story",
+  );
+  const prompts = application?.points?.filter((point) => point.trim()) ?? [];
+  return prompts.length ? prompts : [lesson.exercise];
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import {
   DISCOVERY_LANES,
   type DiscoveryAct,
@@ -12,7 +13,17 @@ import {
   learnTopicHref,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
+import {
+  buildStoryDevelopmentFields,
+  type StoryDevelopmentFieldDefinition,
+} from "../../modules/learn/model/story-development-fields";
 import { projectDiscoveryPins } from "../../core/project/discovery";
+import {
+  acceptStoryDevelopmentFieldProposal,
+  storyDevelopmentFieldView,
+  writeStoryDevelopmentFieldProposal,
+  writeStoryDevelopmentFieldValue,
+} from "../../core/project/story-development";
 import {
   hasActiveLibraryProject,
   saveActiveLibraryProject,
@@ -103,19 +114,36 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   const [content, setContent] = useState("");
   const [composerLane, setComposerLane] = useState<ComposerLane>("story");
   const [notice, setNotice] = useState("");
-  const [developingAct, setDevelopingAct] = useState<DiscoveryAct | null>(null);
-  const [proposalPickerOpen, setProposalPickerOpen] = useState(false);
-  const [selectedProposalLanes, setSelectedProposalLanes] = useState<readonly DiscoveryLaneId[]>([]);
+  const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
+  const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
+  const [proposalDrafts, setProposalDrafts] = useState<Readonly<Record<string, string>>>({});
   const [projectContextOpen, setProjectContextOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [unsortedLaneChoices, setUnsortedLaneChoices] = useState<Readonly<Record<string, DiscoveryLaneId>>>({});
   const [workingCards, setWorkingCards] = useState<readonly DiscoveryCard[]>(project?.discovery.cards ?? []);
+  const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
 
   useEffect(() => {
     setWorkingCards(project?.discovery.cards ?? []);
   }, [project?.id, project?.revision, project?.discovery.cards]);
 
+  useEffect(() => {
+    if (!project) {
+      setFieldDrafts({});
+      setProposalDrafts({});
+      return;
+    }
+    setFieldDrafts(Object.fromEntries(canonicalFields.map((field) => [
+      field.canonicalId,
+      storyDevelopmentFieldView(project, field).value,
+    ])));
+    setProposalDrafts(Object.fromEntries(canonicalFields
+      .map((field) => [field.canonicalId, storyDevelopmentFieldView(project, field).proposal] as const)
+      .filter(([, proposal]) => Boolean(proposal))));
+  }, [project?.id, project?.revision, canonicalFields]);
+
   const projectContextCards = useMemo(() => project ? projectDiscoveryPins(project) : [], [project]);
+  const selectedCanonicalFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
   const selectedActProjectCards = projectContextCards.filter((card) => card.placement?.act === selectedAct);
   const selectedActLocalCards = workingCards.filter((card) => (
     card.placement?.act === selectedAct || (!card.placement && (card.inboxAct ?? 1) === selectedAct)
@@ -162,8 +190,6 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   function changeAct(act: DiscoveryAct) {
     setSelectedAct(act);
     setNotice("");
-    setProposalPickerOpen(false);
-    setSelectedProposalLanes([]);
   }
 
   function changeTopic(topic: LearnTopicSpineId) {
@@ -171,8 +197,6 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
     setSelectedTopic(topic);
     if (firstLane) setComposerLane(firstLane.id);
     setNotice("");
-    setProposalPickerOpen(false);
-    setSelectedProposalLanes([]);
   }
 
   function openLearnTopic() {
@@ -259,89 +283,104 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
     setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} deleted.`);
   }
 
-  function toggleProposalLane(lane: DiscoveryLaneId) {
-    setSelectedProposalLanes((current) => current.includes(lane)
-      ? current.filter((candidate) => candidate !== lane)
-      : [...current, lane]);
+  function persistCanonicalProject(next: LibraryPPFProject) {
+    if (!project) return null;
+    if (!hasActiveLibraryProject()) {
+      const suggested = project.title === "Untitled Story" ? "" : project.title;
+      const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
+      if (!title) {
+        setNotice("Save cancelled. The blank workspace was not added to Library.");
+        return null;
+      }
+      return saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
+    }
+    return saveActiveLibraryProject(next);
   }
 
-  async function developLanes(act: DiscoveryAct, laneIds: readonly DiscoveryLaneId[]) {
-    if (!project || developingAct || !laneIds.length) return;
-    setDevelopingAct(act);
-    const context = compactProjectContext(project, act, workingCards);
-    const proposals: DiscoveryCard[] = [];
-    const successfulLaneIds = new Set<DiscoveryLaneId>();
-    const failures: string[] = [];
-    try {
-      for (const lane of DISCOVERY_LANES.filter((candidate) => laneIds.includes(candidate.id))) {
-        setNotice(`Creative Director is developing Agent Proposal · Act ${act} · ${lane.label}…`);
-        try {
-          const response = await fetch("/api/writing-assistant/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              agentId: "creative-director",
-              modelRole: "quality",
-              tone: "direct",
-              conversationMode: true,
-              message: [
-                "MIND_MAP_ACT_DEVELOPMENT_REQUEST",
-                `Develop one substantial written MindMap proposal for Act ${act}, lane "${lane.label}".`,
-                "Use only the supplied project evidence. Expand the narrative implications, relationships, pressure, choices, imagery or research needs appropriate to this lane. Do not claim the proposal is accepted canon. Do not return JSON, headings or process notes; return the proposed written idea only.",
-                JSON.stringify({ act, lane: lane.id, context }),
-              ].join("\n\n"),
-            }),
-          });
-          const payload = await response.json() as AgentResponse;
-          const text = payload.text?.trim() ?? "";
-          if (!response.ok || !text) throw new Error(payload.message || "Creative Director returned no proposal.");
-          const now = new Date().toISOString();
-          successfulLaneIds.add(lane.id);
-          proposals.push({
-            id: globalThis.crypto.randomUUID(),
-            kind: "text",
-            content: text.slice(0, 12_000),
-            assetRef: "",
-            sourceState: "agent-proposal",
-            sourceRef: `agent:creative-director:mind-map:act-${act}:${lane.id}`,
-            createdAt: now,
-            inboxAct: act,
-            placement: {
-              act,
-              lane: lane.id,
-              reason: `Creative Director proposal for Act ${act} · ${lane.label}; review before treating any idea as approved direction.`,
-              evidenceRefs: [],
-              classifierId: "creative-director",
-              classifierVersion: "mind-map-v2",
-              pinnedAt: now,
-            },
-            savedAt: null,
-            lockedAt: null,
-          });
-        } catch (error) {
-          failures.push(`${lane.label}: ${error instanceof Error ? error.message : "proposal failed"}`);
-        }
-      }
+  function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
+    if (!project) return;
+    const value = fieldDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).value;
+    const next = writeStoryDevelopmentFieldValue({
+      project,
+      field,
+      value,
+      source: "human",
+    });
+    const saved = persistCanonicalProject(next);
+    if (!saved) return;
+    setFieldDrafts((current) => ({
+      ...current,
+      [field.canonicalId]: storyDevelopmentFieldView(saved, field).value,
+    }));
+    setNotice(`${field.lessonTitle} saved to the canonical project field.`);
+  }
 
-      if (proposals.length) {
-        const retained = workingCards.filter((card) => !(
-          card.sourceState === "agent-proposal"
-          && card.placement?.act === act
-          && successfulLaneIds.has(card.placement.lane)
-        ));
-        const nextCards = [...retained, ...proposals];
-        if (hasActiveLibraryProject()) persist(nextCards);
-        else keepDraftCards(nextCards);
+  async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
+    if (!project || developingFieldId) return;
+    setDevelopingFieldId(field.canonicalId);
+    setNotice(`${field.actionLabel}…`);
+    try {
+      const response = await fetch("/api/writing-assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId: "creative-director",
+          modelRole: "quality",
+          tone: "direct",
+          conversationMode: true,
+          message: [
+            "MIND_MAP_CANONICAL_FIELD_PROPOSAL",
+            `Create one proposal for ${field.canonicalId}.`,
+            `Craft prompt: ${field.prompt}`,
+            "Use only the supplied project evidence. Do not claim the proposal is accepted canon. Return only the proposed field value, without JSON, headings, scoring or process notes.",
+            JSON.stringify({
+              topic: field.topicId,
+              lessonId: field.lessonId,
+              fieldId: field.fieldId,
+              currentValue: fieldDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).value,
+              context: compactProjectContext(project, selectedAct, workingCards),
+            }),
+          ].join("\n\n"),
+        }),
+      });
+      const payload = await response.json() as AgentResponse;
+      const proposal = payload.text?.trim() ?? "";
+      if (!response.ok || !proposal) throw new Error(payload.message || "Creative Director returned no proposal.");
+
+      setProposalDrafts((current) => ({ ...current, [field.canonicalId]: proposal }));
+      if (hasActiveLibraryProject()) {
+        saveActiveLibraryProject(writeStoryDevelopmentFieldProposal({
+          project,
+          field,
+          proposal,
+          sourceRef: `agent:creative-director:mind-map:${field.canonicalId}`,
+        }));
       }
-      setNotice(
-        `Creative Director completed ${proposals.length} of ${laneIds.length} selected Agent Proposal lanes for Act ${act}.`
-        + (failures.length ? ` ${failures.join(" ")}` : " Save and Lock remain explicit Human decisions."),
-      );
-      setProposalPickerOpen(false);
-      setSelectedProposalLanes([]);
+      setNotice(`${field.lessonTitle} proposal is ready for Human review.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Agent proposal failed.");
     } finally {
-      setDevelopingAct(null);
+      setDevelopingFieldId(null);
     }
+  }
+
+  function useCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
+    if (!project) return;
+    const proposal = (proposalDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).proposal).trim();
+    if (!proposal) return;
+    const withProposal = writeStoryDevelopmentFieldProposal({
+      project,
+      field,
+      proposal,
+      sourceRef: `agent:creative-director:mind-map:${field.canonicalId}`,
+    });
+    const next = acceptStoryDevelopmentFieldProposal({ project: withProposal, field });
+    const saved = persistCanonicalProject(next);
+    if (!saved) return;
+    const value = storyDevelopmentFieldView(saved, field).value;
+    setFieldDrafts((current) => ({ ...current, [field.canonicalId]: value }));
+    setProposalDrafts((current) => ({ ...current, [field.canonicalId]: "" }));
+    setNotice(`${field.lessonTitle} proposal accepted into the canonical project field and remains editable.`);
   }
 
   if (!project) {
@@ -409,6 +448,61 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
         <button type="button" onClick={openLearnTopic}>Open in Learn</button>
       </div>
 
+      <section className={styles.fieldWorkspace} aria-label={`${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} canonical story fields`}>
+        <header className={styles.fieldWorkspaceHeader}>
+          <div>
+            <small>CANONICAL PROJECT FIELDS</small>
+            <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</h3>
+          </div>
+          <span>{selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
+        </header>
+        <p className={styles.fieldWorkspaceHelp}>Write directly or ask the agent for a proposal. A proposal never replaces your value until you choose Use Proposal.</p>
+        <div className={styles.fieldGrid}>
+          {selectedCanonicalFields.map((field) => {
+            const persisted = storyDevelopmentFieldView(project, field);
+            const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
+            return (
+              <article className={styles.fieldCard} data-canonical-field-id={field.canonicalId} data-field-classification={field.classification} key={field.canonicalId}>
+                <header>
+                  <div>
+                    <strong>{field.lessonTitle}</strong>
+                    <small>{field.canonicalId}</small>
+                  </div>
+                  <span>{persisted.acceptedSource === "agent-proposal" ? "AGENT-ASSISTED" : persisted.value ? "SAVED" : "OPEN"}</span>
+                </header>
+                <p>{field.prompt}</p>
+                <label>
+                  <span>Your project value</span>
+                  <textarea
+                    rows={4}
+                    value={fieldDrafts[field.canonicalId] ?? persisted.value}
+                    onChange={(event) => setFieldDrafts((current) => ({ ...current, [field.canonicalId]: event.target.value }))}
+                    placeholder="Write the project decision or application note…"
+                  />
+                </label>
+                <div className={styles.fieldActions}>
+                  <button type="button" onClick={() => saveCanonicalField(field)}>Save {field.lessonTitle}</button>
+                  <button type="button" disabled={developingFieldId !== null} onClick={() => void createCanonicalFieldProposal(field)}>
+                    {developingFieldId === field.canonicalId ? "Creating Proposal…" : field.actionLabel}
+                  </button>
+                </div>
+                {proposal ? <div className={styles.fieldProposal} data-canonical-field-proposal={field.canonicalId}>
+                  <label>
+                    <span>Agent Proposal · editable before use</span>
+                    <textarea
+                      rows={4}
+                      value={proposal}
+                      onChange={(event) => setProposalDrafts((current) => ({ ...current, [field.canonicalId]: event.target.value }))}
+                    />
+                  </label>
+                  <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Proposal</button>
+                </div> : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       <section className={styles.composer} aria-label={`Act ${selectedAct} MindMap Human Idea composer`}>
         <div>
           <span>Source</span>
@@ -450,32 +544,6 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
           )) : <p className={styles.empty}>No deterministic project context is available for Act {selectedAct} yet.</p>}
         </div>
       </details>
-
-      <section className={styles.developAction} aria-label="MindMap Agent Proposal development">
-        <button type="button" disabled={developingAct !== null} onClick={() => setProposalPickerOpen((open) => !open)}>
-          {developingAct === selectedAct ? `Developing Agent Proposals · Act ${selectedAct}…` : `Develop Agent Proposals · Act ${selectedAct}`}
-        </button>
-        {proposalPickerOpen ? <div className={styles.proposalPicker}>
-          <strong>Select elements to develop</strong>
-          <div className={styles.laneChoices}>
-            {selectedTopicLanes.map((lane) => (
-              <label key={lane.id}>
-                <input
-                  type="checkbox"
-                  checked={selectedProposalLanes.includes(lane.id)}
-                  disabled={developingAct !== null}
-                  onChange={() => toggleProposalLane(lane.id)}
-                />
-                {lane.label}
-              </label>
-            ))}
-          </div>
-          <div className={styles.actions}>
-            <button type="button" disabled={developingAct !== null || selectedProposalLanes.length === 0} onClick={() => void developLanes(selectedAct, selectedProposalLanes)}>Generate Selected</button>
-            <button type="button" disabled={developingAct !== null || selectedTopicLanes.length === 0} onClick={() => void developLanes(selectedAct, selectedTopicLanes.map((lane) => lane.id))}>Build Topic</button>
-          </div>
-        </div> : null}
-      </section>
 
       {notice ? <p className={styles.notice} aria-live="polite">{notice}</p> : null}
 
@@ -532,7 +600,6 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
                         <div className={styles.cardActions}>
                           <button type="button" disabled={Boolean(card.savedAt)} onClick={() => saveCard(card)}>{card.savedAt ? "Saved" : "Save"}</button>
                           <button type="button" onClick={() => toggleLock(card)}>{isLocked ? "Unlock" : "Lock"}</button>
-                          {isAgent ? <button type="button" disabled={developingAct !== null} onClick={() => void developLanes(selectedAct, [lane.id])}>Redo</button> : null}
                           <button type="button" disabled={isLocked} onClick={() => setPendingDeleteId(card.id)}>Delete</button>
                         </div>
                         {pendingDeleteId === card.id ? <div className={styles.deleteConfirm} role="alert"><span>Delete this {isAgent ? "Agent Proposal" : "Human Idea"}?</span><button type="button" onClick={() => deleteCard(card)}>Yes</button><button type="button" onClick={() => setPendingDeleteId(null)}>No</button></div> : null}

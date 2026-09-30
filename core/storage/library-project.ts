@@ -16,6 +16,38 @@ import {
 import { normalizeFoundationProject, PPF_FOUNDATION_VERSION, type PPFProject } from "../project/project";
 import { createEmptyWorldMapState, normalizeWorldMapState, type WorldMapState } from "../contracts/world-map";
 import { createEmptyDiscoveryState, normalizeDiscoveryState, type DiscoveryState } from "../contracts/discovery";
+export const STORY_DEVELOPMENT_VERSION = 1 as const;
+
+export type StoryDevelopmentAcceptedSource = "human" | "agent-proposal";
+
+export type StoryDevelopmentFieldState = {
+  readonly value: string;
+  readonly acceptedSource: StoryDevelopmentAcceptedSource | null;
+  readonly proposal: string;
+  readonly proposalSourceRef: string | null;
+  readonly proposalGeneratedAt: string | null;
+  readonly updatedAt: string | null;
+};
+
+export type StoryDevelopmentState = {
+  readonly version: typeof STORY_DEVELOPMENT_VERSION;
+  readonly fields: Readonly<Record<string, StoryDevelopmentFieldState>>;
+};
+
+export function createEmptyStoryDevelopmentFieldState(): StoryDevelopmentFieldState {
+  return {
+    value: "",
+    acceptedSource: null,
+    proposal: "",
+    proposalSourceRef: null,
+    proposalGeneratedAt: null,
+    updatedAt: null,
+  };
+}
+
+export function createEmptyStoryDevelopmentState(): StoryDevelopmentState {
+  return { version: STORY_DEVELOPMENT_VERSION, fields: {} };
+}
 
 export type LibraryPPFProject = PPFProject & {
   readonly structure: StoryStructureV2;
@@ -23,12 +55,53 @@ export type LibraryPPFProject = PPFProject & {
   readonly writing: BlockWritingState;
   readonly discovery: DiscoveryState;
   readonly worldMap: WorldMapState;
+  readonly storyDevelopment: StoryDevelopmentState;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Readonly<Record<string, unknown>>
     : {};
+}
+
+function cleanStoryDevelopmentText(value: unknown, limit = 12_000) {
+  return typeof value === "string"
+    ? value.replace(/\u0000/g, "").trim().slice(0, limit)
+    : "";
+}
+
+export function normalizeStoryDevelopmentState(value: unknown): StoryDevelopmentState {
+  const source = objectRecord(value);
+  const rawFields = objectRecord(source.fields);
+  const fields: Record<string, StoryDevelopmentFieldState> = {};
+
+  for (const [rawKey, rawValue] of Object.entries(rawFields).slice(0, 2_000)) {
+    const key = cleanStoryDevelopmentText(rawKey, 360);
+    if (!key) continue;
+    const field = objectRecord(rawValue);
+    const acceptedSource: StoryDevelopmentAcceptedSource | null = field.acceptedSource === "human"
+      ? "human"
+      : field.acceptedSource === "agent-proposal"
+        ? "agent-proposal"
+        : null;
+    fields[key] = {
+      value: cleanStoryDevelopmentText(field.value),
+      acceptedSource,
+      proposal: cleanStoryDevelopmentText(field.proposal),
+      proposalSourceRef: cleanStoryDevelopmentText(field.proposalSourceRef, 320) || null,
+      proposalGeneratedAt: cleanStoryDevelopmentText(field.proposalGeneratedAt, 80) || null,
+      updatedAt: cleanStoryDevelopmentText(field.updatedAt, 80) || null,
+    };
+  }
+
+  return { version: STORY_DEVELOPMENT_VERSION, fields };
+}
+
+export function storyDevelopmentFieldState(
+  state: StoryDevelopmentState,
+  canonicalId: string,
+): StoryDevelopmentFieldState {
+  return state.fields[canonicalId] ?? createEmptyStoryDevelopmentFieldState();
 }
 
 /**
@@ -56,7 +129,10 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const worldMap = source.worldMap === undefined
     ? createEmptyWorldMapState()
     : normalizeWorldMapState(source.worldMap);
-  return { ...project, structure, sourceEvidence, writing, discovery, worldMap };
+  const storyDevelopment = source.storyDevelopment === undefined
+    ? createEmptyStoryDevelopmentState()
+    : normalizeStoryDevelopmentState(source.storyDevelopment);
+  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment };
 }
 
 export function libraryBackupFileName(title: string) {

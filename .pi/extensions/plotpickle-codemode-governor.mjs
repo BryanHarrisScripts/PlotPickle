@@ -25,12 +25,8 @@ const PATH_SCOPED_READ_TOOLS = new Set(["read", "grep", "find", "ls"]);
 function parseCurrentTask() {
   const source = process.env[CODEMODE_TASK_ENV];
   if (!source) return null;
-  try {
-    const value = JSON.parse(source);
-    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-  } catch {
-    return null;
-  }
+  const value = JSON.parse(source);
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
 function toolClassFor(toolName) {

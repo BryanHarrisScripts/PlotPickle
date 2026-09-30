@@ -2,7 +2,6 @@ import { createEmptyProject, type PPFProject } from "../project/project";
 import { createEmptyWorldMapState, normalizeWorldMapState } from "../contracts/world-map";
 import { createEmptyDiscoveryState, normalizeDiscoveryState } from "../contracts/discovery";
 import { createEmptyProjectSourceEvidence, normalizeProjectSourceEvidence } from "../contracts/imported-screenplay-evidence";
-import { createEmptyStoryDevelopmentState, normalizeStoryDevelopmentState } from "../contracts/story-development";
 import {
   createEmptyBlockWritingState,
   normalizeBlockWritingState,
@@ -12,7 +11,9 @@ import {
   normalizeStoryStructureV2,
 } from "../project/story-structure-v2";
 import {
+  createEmptyStoryDevelopmentState,
   normalizeLibraryProject,
+  normalizeStoryDevelopmentState,
   type LibraryPPFProject,
 } from "./library-project";
 import * as libraryCore from "./project-library-core.mjs";

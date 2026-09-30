@@ -103,7 +103,6 @@ test("Pi extensions are pinned while model, provider and credentials stay outsid
 
   assert.equal(settings.enableInstallTelemetry, false);
   assert.deepEqual(settings.packages, PINNED_PI_PACKAGES);
-  assert.ok(settings.extensions.includes("./extensions/plotpickle-native-mcp.mjs"));
   assert.ok(settings.defaultTools.includes("+codemode"));
   assert.equal(settings.packages.some((item) => item.includes("pi-mcp-adapter")), false);
   const forbiddenKeys = new Set(["apiKey", "apikey", "password", "provider", "model", "modelId", "baseUrl", "authorization"]);

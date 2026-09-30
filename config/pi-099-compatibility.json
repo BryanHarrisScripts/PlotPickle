@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "issue": 2590,
+  "package": "@earendil-works/pi-coding-agent",
+  "currentManagedVersion": "0.87.1",
+  "candidateVersion": "0.99.1",
+  "releaseTag": "v0.99.1",
+  "releaseUrl": "https://github.com/earendil-works/pi/releases/tag/v0.99.1",
+  "decision": "promote-after-green-candidate-proof",
+  "requiredExtensions": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
+  ],
+  "extensionAudit": [
+    {
+      "package": "@dietrichgebert/ponytail",
+      "classification": "KEEP"
+    },
+    {
+      "package": "pi-subagents",
+      "classification": "KEEP"
+    },
+    {
+      "package": "@ff-labs/pi-fff",
+      "classification": "KEEP"
+    },
+    {
+      "package": "pi-mcp-adapter",
+      "classification": "REPLACE_WITH_PI_BUILT_IN_IN_PHASE_2"
+    },
+    {
+      "package": "pi-context-view",
+      "classification": "KEEP"
+    }
+  ],
+  "requiredCapabilities": {
+    "supportedPackageRootSdk": true,
+    "canonicalSessionContext": true,
+    "contextEditEntry": true,
+    "customEntry": true,
+    "contextWithSystemExtensionEvent": true,
+    "stdioRpc": true,
+    "windowsPrivateManagedInstall": true,
+    "noExtensionsBuiltInsAudit": true
+  },
+  "noExtensionsAudit": {
+    "behavior": "Pi 0.99.x --no-extensions disables built-in extensions as well as project/user extensions.",
+    "policy": "A probe or worker that needs a built-in extension must load it explicitly; the bare RPC compatibility probe intentionally needs none."
+  },
+  "forbiddenPlotPickleImports": [
+    "@earendil-works/pi-coding-agent/client",
+    "@earendil-works/pi-coding-agent/experimental/plugin"
+  ],
+  "promotionPolicy": "Promote the managed Pi pin to exactly 0.99.1 only after the isolated candidate install proves package-root SDK imports, persistent session/context semantics, compatible KEEP extensions, context_with_system registration, stdio RPC, and fail-closed exact-version handling. Native MCP, Codemode and virtual-model adoption remain later phases."
+}

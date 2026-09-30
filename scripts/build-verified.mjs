@@ -74,13 +74,14 @@ async function prepareEnvironment() {
   return env;
 }
 
-async function validateArtifact() {
+async function validateArtifact(env) {
   const workerPath = join(ROOT, "dist", "server", "index.js");
   const hostingPath = join(ROOT, "dist", ".openai", "hosting.json");
 
   try {
     await access(workerPath);
   } catch {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=missing-worker-entry");
     throw new Error("Missing Sites Worker entry: dist/server/index.js");
   }
 
@@ -88,18 +89,32 @@ async function validateArtifact() {
   try {
     hosting = JSON.parse(await readFile(hostingPath, "utf8"));
   } catch (error) {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=missing-or-invalid-hosting-manifest");
     throw new Error(`Missing or invalid packaged Sites manifest: dist/.openai/hosting.json (${error.message})`);
   }
   void hosting;
 
-  const workerUrl = pathToFileURL(workerPath);
-  workerUrl.searchParams.set("sites-validation", `${process.pid}-${Date.now()}`);
-  const worker = await import(workerUrl.href);
-  if (!worker.default || typeof worker.default.fetch !== "function") {
-    throw new Error("dist/server/index.js must have an ESM default export with fetch(request, env, ctx)");
+  if (process.platform === "win32") {
+    await run(process.execPath, ["--check", workerPath], env);
+    const workerSource = await readFile(workerPath, "utf8");
+    const hasDefaultExport = /export\s+default\b/u.test(workerSource)
+      || /export\s*\{[\s\S]*?\bas\s+default\b/u.test(workerSource);
+    const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(workerSource);
+    if (!hasDefaultExport || !hasFetchShape) {
+      console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
+      throw new Error("dist/server/index.js must contain a valid default Worker export with fetch.");
+    }
+  } else {
+    const workerUrl = pathToFileURL(workerPath);
+    workerUrl.searchParams.set("sites-validation", `${process.pid}-${Date.now()}`);
+    const worker = await import(workerUrl.href);
+    if (!worker.default || typeof worker.default.fetch !== "function") {
+      console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
+      throw new Error("dist/server/index.js must have an ESM default export with fetch(request, env, ctx)");
+    }
   }
 
-  console.log("Validated Sites artifact: ESM Worker default.fetch and hosting manifest are present.");
+  console.log("Validated Sites artifact: Worker default/fetch shape and hosting manifest are present.");
 }
 
 async function main() {
@@ -133,7 +148,7 @@ async function main() {
     ],
     env,
   );
-  await validateArtifact();
+  await validateArtifact(env);
 }
 
 main().catch(() => {

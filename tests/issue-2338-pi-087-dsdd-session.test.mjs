@@ -22,9 +22,9 @@ test("#2338 promotes Pi 0.87 only with the candidate proof and authoritative met
   assert.equal(contract.requiredCapabilities.contextEditEntry, true);
   assert.equal(contract.requiredCapabilities.contextWithSystemExtensionEvent, true);
   assert.deepEqual(contract.requiredExtensions, stack.piPackages);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.1"/u);
-  assert.equal(stack.piRuntime.managedVersion, "0.87.1");
-  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.87.1");
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.99\.1"/u);
+  assert.equal(stack.piRuntime.managedVersion, "0.99.1");
+  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.99.1");
   assert.match(brief, /TALK[\s\S]*CONFIRM[\s\S]*BUILD[\s\S]*PROVE/u);
   assert.match(brief, /Original Human language remains immutable provenance/u);
 });
@@ -63,8 +63,8 @@ test("#2338 keeps Windows Pi proof while deterministic DSDD contracts are catalo
     read(".github/workflows/product-gate.yml"),
     readJson("config/verification/test-catalog.json"),
   ]);
-  assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
-  assert.match(productGate, /node scripts\/evaluate-pi-087-dsdd-session\.mjs/u);
+  assert.match(productGate, /Evaluate Pi 0\.99\.1 compatibility/u);
+  assert.match(productGate, /node scripts\/evaluate-pi-099-compatibility\.mjs/u);
   const dsdd = catalog.entries.find((entry) => entry.id === "agent.dsdd-intent-pi-contract-2350");
   assert.equal(dsdd?.ownerLayer, "agent-runtime");
   assert.ok(dsdd?.runner.targets.includes("tests/issue-2338-pi-087-dsdd-session.test.mjs"));
@@ -121,6 +121,6 @@ test("#2338 Windows Product Gate runs automatically only for Pi/session integrat
   assert.match(piScope, /pi-087-dsdd-session-evaluation/u);
   assert.doesNotMatch(piScope, /voice-input-control|local-voice|install-whisper/u);
   assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
-  assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
+  assert.match(productGate, /Evaluate Pi 0\.99\.1 compatibility/u);
   assert.doesNotMatch(productGate, /run-uat-autopilot\.mjs --contracts-only/u);
 });

@@ -297,6 +297,8 @@
       "id": "dsdd-pi-managed-runtime",
       "classification": "production",
       "include": [
+        "scripts/evaluate-pi-099-compatibility.mjs",
+        "config/pi-099-compatibility.json",
         "config/pi-087-dsdd-session-evaluation.json",
         "scripts/evaluate-pi-087-dsdd-session.mjs",
         "scripts/dsdd-pi-session.mjs",
@@ -1535,6 +1537,19 @@
         "windows",
         "provider",
         "security"
+      ]
+    },
+    {
+      "id": "oss-third-party-verification",
+      "classification": "verification",
+      "include": [
+        "scripts/third-party-oss-audit.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "security",
+        "provider",
+        "test-harness"
       ]
     }
   ]

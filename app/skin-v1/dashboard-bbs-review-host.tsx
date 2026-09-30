@@ -6,6 +6,7 @@ import { hydratedStoryMapContext, persistStoryMapContext } from "../../core/stor
 import { loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
 import type { ProductionSoundCueKind } from "../../core/contracts/previs";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
+import type { LearnTopicSpineId } from "../../modules/learn/model/story-learning-context";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
@@ -84,6 +85,8 @@ export default function DashboardBbsReviewHost({
   const [soundOpen, setSoundOpen] = useState<ProductionSoundCueKind | null>(null);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
   const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
+  const [discoveryInitialTopic, setDiscoveryInitialTopic] = useState<LearnTopicSpineId>("foundations");
+  const [discoveryInitialFieldId, setDiscoveryInitialFieldId] = useState<string | null>(null);
   const [storyBibleOpen, setStoryBibleOpen] = useState(false);
   const [storyBibleProject, setStoryBibleProject] = useState<LibraryPPFProject | null>(null);
   const [dashboardNotice, setDashboardNotice] = useState("");
@@ -181,6 +184,16 @@ export default function DashboardBbsReviewHost({
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
   }, [discoveryOpen]);
+
+  function openMindMapField(topic: LearnTopicSpineId, canonicalFieldId: string) {
+    setStoryBibleOpen(false);
+    setStoryBibleProject(null);
+    setDiscoveryProject(loadActiveLibraryProject());
+    setDiscoveryInitialTopic(topic);
+    setDiscoveryInitialFieldId(canonicalFieldId);
+    setDiscoveryOpen(true);
+    onSurfaceNameChange("MindMap");
+  }
 
   function restoreDashboardFocus(itemId: string) {
     window.requestAnimationFrame(() => {
@@ -355,6 +368,8 @@ export default function DashboardBbsReviewHost({
     if (item.id === "discovery") {
       onActivate(index);
       setDiscoveryProject(loadActiveLibraryProject());
+      setDiscoveryInitialTopic("foundations");
+      setDiscoveryInitialFieldId(null);
       setDiscoveryOpen(true);
       onSurfaceNameChange("MindMap");
       return;
@@ -496,7 +511,11 @@ export default function DashboardBbsReviewHost({
           <h1>MindMap</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
         </div>
-        <DiscoverySurface project={discoveryProject} />
+        <DiscoverySurface
+          project={discoveryProject}
+          initialTopic={discoveryInitialTopic}
+          initialFieldId={discoveryInitialFieldId}
+        />
       </section>
     );
   }
@@ -530,7 +549,7 @@ export default function DashboardBbsReviewHost({
             }}
           >Back to Dashboard</button>
         </div>
-        <StoryBibleSurface project={storyBibleProject} />
+        <StoryBibleSurface project={storyBibleProject} onEditField={openMindMapField} />
       </section>
     );
   }

@@ -41,7 +41,7 @@ test("#1969/#2570/#2603 Library startup stays explicit through Load story cards 
   assert.match(library, />Open Example with Your Changes<\/button>/u);
   assert.doesNotMatch(library, /Resume Saved Story/u);
   assert.match(library, /createLibraryUserProject\(\{ title: "Untitled Story", format: "Feature" \}\)/u);
-  assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/u);
+  assert.match(library, /window\.location\.assign\("\/\?workspace=dashboard"\)/u);
 });
 test("#1969 does not alter Library persistence authority or add the future startup preference", async () => {
   const [home, browserStore, coreStore] = await Promise.all([

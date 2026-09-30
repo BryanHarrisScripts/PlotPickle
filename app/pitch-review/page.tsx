@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import PitchReviewWorkspace, { type PitchReviewScope } from "../pitch-review-workspace";
+import PitchReviewWorkspace, { type PitchReviewScope, type PitchReviewView } from "../pitch-review-workspace";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -11,12 +11,15 @@ export default function PitchReviewPage() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [status, setStatus] = useState("Loading the active PlotPickle project…");
   const [scope, setScope] = useState<PitchReviewScope>("pitch");
+  const [entryView, setEntryView] = useState<PitchReviewView>("logline");
   const [returnWorkspace, setReturnWorkspace] = useState("pitch");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const parameters = new URLSearchParams(window.location.search);
       const requestedScope = parameters.get("scope");
+      const requestedView = parameters.get("view");
+      if (requestedView === "logline" || requestedView === "package" || requestedView === "exports") setEntryView(requestedView);
       if (requestedScope === "feedback") {
         window.location.replace("/feedback");
         return;
@@ -57,7 +60,7 @@ export default function PitchReviewPage() {
           <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "plan" ? "Plan" : returnWorkspace === "dashboard" ? "Dashboard" : "Pitch"}</Link>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/working-together">Working Together</Link><Link href="/labs">Specialist Labs</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/draftlens">DraftLens</Link><Link href="/structure">Structure</Link></div>
         </nav>
-        <PitchReviewWorkspace project={project} onProjectChange={save} scope={scope} />
+        <PitchReviewWorkspace project={project} onProjectChange={save} scope={scope} initialView={entryView} />
         <p style={{ color: "#57706d" }} aria-live="polite">{status}</p>
       </div>
     </main>

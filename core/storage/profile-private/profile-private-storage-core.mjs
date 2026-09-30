@@ -423,6 +423,36 @@ export function createProfilePrivateStorageService(options) {
         return { activeProjectId, projectCount: entries.length };
       });
     },
+    async syncLibraryIndex(authContext, input) {
+      return withMutation(authContext, async (access) => {
+        if (!Array.isArray(input?.summaries) || input.summaries.length > 1000) fail("Profile Library index inventory is invalid.", "INVALID_PROJECT_INVENTORY");
+        const entries = input.summaries.map((summary) => {
+          const projectId = normalizeObjectId(summary?.projectId, "Project");
+          return projectSummary({ id: projectId }, summary, now());
+        });
+        const ids = entries.map((entry) => entry.projectId);
+        if (new Set(ids).size !== ids.length) fail("Profile Library contains duplicate project ids.", "PROFILE_LIBRARY_CORRUPT");
+        const activeProjectId = input.activeProjectId === null ? null : normalizeObjectId(input.activeProjectId, "Project");
+        if (activeProjectId && !entries.some((entry) => entry.projectId === activeProjectId && !entry.archivedAt)) fail("Active project must be available and unarchived.", "INVALID_ACTIVE_PROJECT");
+        for (const entry of entries) {
+          if (await readObject(access, "projects", entry.projectId) === null) fail("Profile Library project is unavailable.", "PROJECT_NOT_FOUND");
+        }
+        const previous = await readLibrary(access);
+        const next = {
+          ...previous,
+          activeProjectId,
+          projects: [
+            ...entries,
+            ...previous.projects.filter((item) => !ids.includes(item.projectId)),
+          ],
+          updatedAt: now(),
+        };
+        await writeLibrary(access, next);
+        if (activeProjectId) activeProjects.set(authContext.sessionId, { profileId: access.profileId, projectId: activeProjectId });
+        else activeProjects.delete(authContext.sessionId);
+        return { activeProjectId, projectCount: entries.length };
+      });
+    },
     async deleteArchivedProject(authContext, projectId) {
       return withMutation(authContext, async (access) => {
         const id = normalizeObjectId(projectId, "Project");

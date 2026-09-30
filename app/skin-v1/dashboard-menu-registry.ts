@@ -89,6 +89,11 @@ export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([
   "sound-foley",
   "sound-narration",
   "sound-music",
+  "pitch-deck",
+  "pitch-package",
+  "feedback",
+  "wyrmwood",
+  "story",
 ]);
 
 export const DASHBOARD_STARTUP_CHOICES = [

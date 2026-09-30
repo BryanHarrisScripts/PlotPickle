@@ -10,7 +10,6 @@ const PINNED_PI_PACKAGES = [
   "npm:@dietrichgebert/ponytail@4.8.4",
   "npm:pi-subagents@0.35.1",
   "npm:@ff-labs/pi-fff@0.10.1",
-  "npm:pi-mcp-adapter@2.26.0",
   "npm:pi-context-view@0.4.2",
 ];
 
@@ -52,6 +51,10 @@ test("the canonical developer stack contains only Pi and Cline as required codin
   assert.equal(stack.mcp.sharedConfig, ".mcp.json");
   assert.equal(stack.mcp.clineConfig, ".cline/mcp.json");
   assert.equal(stack.mcp.args[0], "scripts/developer-agent-mcp.mjs");
+  assert.equal(stack.mcp.piNative, true);
+  assert.equal(stack.mcp.exposurePolicy, "config/pi-tool-exposure-policy.json");
+  assert.equal(stack.piRuntime.nativeMcp.enabled, true);
+  assert.equal(stack.piRuntime.nativeMcp.legacyAdapter, "retired-from-loaded-package-set");
   assert.deepEqual(stack.agentBench.agents, ["pi", "cline"]);
   assert.equal(stack.mergePolicy, "green-exact-head-only");
 });
@@ -100,6 +103,9 @@ test("Pi extensions are pinned while model, provider and credentials stay outsid
 
   assert.equal(settings.enableInstallTelemetry, false);
   assert.deepEqual(settings.packages, PINNED_PI_PACKAGES);
+  assert.ok(settings.extensions.includes("./extensions/plotpickle-native-mcp.mjs"));
+  assert.ok(settings.defaultTools.includes("+codemode"));
+  assert.equal(settings.packages.some((item) => item.includes("pi-mcp-adapter")), false);
   const forbiddenKeys = new Set(["apiKey", "apikey", "password", "provider", "model", "modelId", "baseUrl", "authorization"]);
   const committedForbiddenKeys = collectKeys(settings).filter((key) => forbiddenKeys.has(key));
   assert.deepEqual(committedForbiddenKeys, []);

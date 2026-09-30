@@ -17,5 +17,11 @@
     "npm:@ff-labs/pi-fff@0.10.1",
     "npm:pi-mcp-adapter@2.26.0",
     "npm:pi-context-view@0.4.2"
+  ],
+  "extensions": [
+    "./extensions/plotpickle-native-mcp.mjs"
+  ],
+  "defaultTools": [
+    "+codemode"
   ]
 }

@@ -1706,6 +1706,48 @@
         ]
       },
       "notes": "#2495 proves Sharp is a direct production dependency, Windows startup refuses an unloadable Sharp runtime, targeted repair is wired, and Previs defers Sharp loading until the export operation can handle failure."
+    },
+    {
+      "id": "agent.profile-skill-registry-integrity",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2614-quillan-skill-registry.test.mjs",
+          "tests/issue-962-agent-profiles.test.mjs",
+          "tests/issue-976-agent-skill-trust.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2614 makes Agent Profile → Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
     }
   ]
 }

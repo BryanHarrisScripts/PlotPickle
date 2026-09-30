@@ -313,6 +313,42 @@
       ],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "sequence-director",
+      "name": "Sequence Director",
+      "description": "Provider-neutral procedure for turning one approved 24/96 Mini-Block into PLAN intent, STORYBOARD visual beats, PREVIS timing, deterministic render-clip prompts and post-generation Sequence Evidence.",
+      "entry": ".agents/skills/sequence-director/SKILL.md",
+      "path": ".agents/skills/sequence-director",
+      "uri": "skill://plotpickle/sequence-director",
+      "roles": [
+        "creative-coordination",
+        "sequence-director"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "creative-director"
+      ],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "storyboard-frame-director",
+      "name": "Storyboard Frame Director",
+      "description": "Provider-neutral Storyboard skill for turning one selected Mini-Block's available 25 Shot / Frame positions into distinct, continuity-aware single-frame prompts that visibly progress the approved story without inventing Beats or canon.",
+      "entry": ".agents/skills/storyboard-frame-director/SKILL.md",
+      "path": ".agents/skills/storyboard-frame-director",
+      "uri": "skill://plotpickle/storyboard-frame-director",
+      "roles": [
+        "creative-coordination",
+        "storyboard-frame-direction"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "creative-director"
+      ],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

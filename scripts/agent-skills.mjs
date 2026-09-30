@@ -8,6 +8,7 @@ import { materializeAgentSkillsForRun } from "../lib/agents/agent-skill-material
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(repoRoot, "config", "agent-skills.json");
+const profileRegistryPath = path.join(repoRoot, "config", "agent-profiles.json");
 
 function safeEntry(entry) {
   const resolved = path.resolve(repoRoot, String(entry || ""));
@@ -130,6 +131,15 @@ async function main() {
     await materializeAgentSkillRunManifest("pi", ["uat-repair"]);
     if (!skills.some((skill) => skill.id === "uat-repair" && skill.primaryWorker === "pi")) {
       throw new Error("The Pi UAT repair skill is missing from the PlotPickle skill registry.");
+    }
+    const profileRegistry = JSON.parse(await readFile(profileRegistryPath, "utf8"));
+    const registeredUris = new Set(skills.map((skill) => skill.uri));
+    for (const profile of profileRegistry?.profiles || []) {
+      for (const uri of profile?.skillUris || []) {
+        if (!registeredUris.has(uri)) {
+          throw new Error(`Agent Profile ${profile.id || "(unknown)"} references unknown Agent Skill ${uri}.`);
+        }
+      }
     }
     process.stdout.write(`PlotPickle agent skills self-test PASS: ${skills.length} skill(s).\n`);
     return;

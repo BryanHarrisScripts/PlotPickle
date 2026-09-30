@@ -4,28 +4,33 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import {
-  createInMemoryAuthStateStore,
-  createPlotPickleAuthService,
-} from "../core/auth/plotpickle-auth-core.mjs";
 import { createProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage-core.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 test("#2616 segmented Library persistence survives an inventory larger than the former 8 MiB gateway envelope", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-2616-library-"));
-  const auth = await createPlotPickleAuthService({
-    nodeId: "node-2616",
-    accessMode: "desktop-loopback",
-    stateStore: createInMemoryAuthStateStore(),
-  });
-  const created = await auth.createFirstProfile({
-    displayName: "Library Segmentation Test",
-    password: "Long local profile passphrase 2616",
-    avatarRef: null,
-  });
-  const storage = createProfilePrivateStorageService({ root, authService: auth });
-  const context = created.authContext;
+  const context = { sessionId: "session-2616" };
+  const authService = {
+    createProfileVaultCapability() {
+      return {
+        profileId: "profile_2616",
+        async wrapSecret({ secret }) {
+          return { payload: Buffer.from(secret).toString("base64") };
+        },
+        async unwrapSecret({ envelope }) {
+          return Uint8Array.from(Buffer.from(envelope.payload, "base64"));
+        },
+      };
+    },
+    registerVaultCleanupHook() {
+      return () => undefined;
+    },
+    resolveSession() {
+      return { profileId: "profile_2616" };
+    },
+  };
+  const storage = createProfilePrivateStorageService({ root, authService });
 
   const first = { id: "story-first", title: "First", text: "A".repeat(5 * 1024 * 1024) };
   const afterglow = { id: "afterglow-working-copy", title: "Afterglow: Reflections of Sentience", text: "B".repeat(5 * 1024 * 1024) };
@@ -65,7 +70,6 @@ test("#2616 segmented Library persistence survives an inventory larger than the 
     assert.equal(summaries.find((item) => item.projectId === afterglow.id)?.sourceId, "afterglow-v9-defaults");
   } finally {
     storage.close();
-    auth.close();
     await rm(root, { recursive: true, force: true });
   }
 });

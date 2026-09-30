@@ -1592,6 +1592,22 @@
         "surface",
         "navigation"
       ]
+    },
+    {
+      "id": "mind-map-canonical-story-development",
+      "classification": "production",
+      "include": [
+        "core/contracts/story-development.ts",
+        "core/project/story-development.ts",
+        "modules/learn/model/story-development-fields.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "surface",
+        "navigation"
+      ]
     }
   ]
 }

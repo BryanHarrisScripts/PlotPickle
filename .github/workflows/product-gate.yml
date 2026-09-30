@@ -42,13 +42,9 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
 
-      - name: Evaluate Pi 0.85.1 compatibility
+      - name: Evaluate Pi 0.99.1 compatibility
         shell: pwsh
-        run: node scripts/evaluate-pi-managed-upgrade.mjs
-
-      - name: Evaluate Pi 0.87 DSDD session compatibility
-        shell: pwsh
-        run: node scripts/evaluate-pi-087-dsdd-session.mjs
+        run: node scripts/evaluate-pi-099-compatibility.mjs
 
       - name: Verify Pi Draft prompt transport through a Windows batch shim
         shell: pwsh

@@ -73,7 +73,7 @@ if (-not $VerifyOnly) {
   if ($LASTEXITCODE -ne 0) { throw "Cline installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing Pi coding agent"
-  & npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+  & npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.99.1
   if ($LASTEXITCODE -ne 0) { throw "Pi installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing pinned Pi project extensions"
@@ -81,7 +81,6 @@ if (-not $VerifyOnly) {
     "npm:@dietrichgebert/ponytail@4.8.4",
     "npm:pi-subagents@0.35.1",
     "npm:@ff-labs/pi-fff@0.10.1",
-    "npm:pi-mcp-adapter@2.26.0",
     "npm:pi-context-view@0.4.2"
   )
   foreach ($package in $packages) {

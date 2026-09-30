@@ -323,7 +323,9 @@
         "lib/agents/pi-codemode-governance.mjs",
         "lib/agents/pi-nested-call-evidence.mjs",
         "config/pi-virtual-model-policy.json",
-        "lib/agents/pi-developer-routing.mjs"
+        "lib/agents/pi-developer-routing.mjs",
+        "config/development-delivery-policy.json",
+        "lib/agents/governed-development-delivery.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

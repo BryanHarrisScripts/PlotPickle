@@ -1628,6 +1628,21 @@
         "surface",
         "navigation"
       ]
+    },
+    {
+      "id": "outline-canonical-project-projection",
+      "classification": "production",
+      "include": [
+        "modules/plan/canonical-project-outline-projection.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "surface",
+        "navigation"
+      ]
     }
   ]
 }

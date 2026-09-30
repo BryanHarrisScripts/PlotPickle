@@ -47,7 +47,7 @@ test("#2153 makes existing Story Mode readiness visually legible without a new a
   assert.doesNotMatch(host, /new readiness|readiness service|readiness API/iu);
 });
 
-test("#2153/#2438/#2452 marks current review destinations yellow while green means locked", async () => {
+test("#2153/#2438/#2452/#2612 marks only active review destinations yellow while green means locked", async () => {
   const [dashboard, styles, audit] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/issue-2061.css"),
@@ -60,11 +60,10 @@ test("#2153/#2438/#2452 marks current review destinations yellow while green mea
   assert.match(dashboard, /inReview \? " is-review" : ""/u);
   assert.match(dashboard, /locked \? "locked"/u);
   assert.match(styles, /\[data-dashboard-review="in-review"\][^}]*--pp-skin-warning/su);
-  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley", "previs", "timeline", "production"]) {
-    assert.ok(audit.includes('"' + id + '"'), "Menu audit is missing review destination: " + id);
-  }
-  assert.match(audit, /DASHBOARD_REVIEW_IDS\.has\(row\.id\)/u);
-  assert.match(audit, /expectedSurfaceState = isDashboardReviewItem \? "in-review" : row\.connected \? "locked" : "unavailable"/u);
+  assert.doesNotMatch(audit, /DASHBOARD_REVIEW_IDS/u);
+  assert.match(audit, /dashboardState === "in-review"/u);
+  assert.match(audit, /dashboardState === "unavailable"/u);
+  assert.match(audit, /row\.surfaceState === "locked"/u);
 });
 
 test("#2153 keeps Local and Cloud in the existing Dashboard rail and Hybrid and Mode on Story Mode", async () => {

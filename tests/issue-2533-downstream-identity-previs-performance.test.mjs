@@ -81,16 +81,15 @@ test("#2533 Previs remains one synchronous project hydration owner with no dupli
   assert.match(previs, /<PrevisReadinessWorkspace/u);
 });
 
-test("#2533 browser continuity profile covers every Human-tested downstream identity", async () => {
+test("#2533/#2612 browser continuity profile covers every currently active downstream Dashboard identity", async () => {
   const probe = await read("lib/verification/browser-probes/continuity.mjs");
   for (const tuple of [
     '{ id: "timeline", menuId: "timeline", governed: "scene-timeline" }',
-    '{ id: "sound-foley", menuId: "sound-foley", governed: "sound-foley" }',
-    '{ id: "sound-narration", menuId: "sound-narration", governed: "sound-narration" }',
-    '{ id: "sound-music", menuId: "sound-music", governed: "sound-music" }',
     '{ id: "production", menuId: "production", governed: "production" }',
-    '{ id: "screening", menuId: "screening", governed: "screening" }',
-  ]) assert.ok(probe.includes(tuple), `Continuity browser profile missing ${tuple}`);
+  ]) assert.ok(probe.includes(tuple), `Continuity browser profile missing active stage ${tuple}`);
+  for (const deferred of ["sound-foley", "sound-narration", "sound-music", "screening"]) {
+    assert.doesNotMatch(probe, new RegExp(`menuId: "${deferred}"`, "u"));
+  }
   assert.match(probe, /expectedLabel: surface\.label/u);
   assert.match(probe, /settled-orchestrator-surface-label/u);
 });

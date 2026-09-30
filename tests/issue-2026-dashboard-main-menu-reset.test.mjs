@@ -6,7 +6,7 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
@@ -82,7 +82,11 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
-  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>\(\[\]\)/u);
+  const unavailableSet = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  for (const id of ["write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "screening", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"]) {
+    assert.match(unavailableSet, new RegExp(`"${id}"`, "u"));
+  }
+  assert.match(menu, /!DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

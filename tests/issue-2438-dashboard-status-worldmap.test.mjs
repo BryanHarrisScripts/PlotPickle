@@ -25,7 +25,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["screening", "sound-narration", "sound-music", "sound-foley", "previs", "timeline", "production"],
+    ["previs", "timeline", "production"],
   );
 
   const disabled = menu.slice(
@@ -34,7 +34,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...disabled.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    [],
+    ["screening", "write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"],
   );
 
   assert.match(dashboard, /const locked = connected && !inReview && !unavailable/u);
@@ -49,8 +49,8 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   assert.match(styles, /\[data-dashboard-review="in-review"\] \.pp-skin-v1-dashboard-status-box[\s\S]*--pp-skin-warning/u);
   assert.doesNotMatch(styles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);
 
-  assert.match(audit, /expectedSurfaceState = isDashboardReviewItem \? "in-review" : row\.connected \? "locked" : "unavailable"/u);
-  assert.match(audit, /expectedLocked = row\.connected && !isDashboardReviewItem/u);
+  assert.match(audit, /const dashboardState = menuName === "dashboard" \? row\.surfaceState : ""/u);
+  assert.match(audit, /const expectedLocked = row\.surfaceState === "locked"/u);
 });
 
 test("#2438/#2452 keeps the Develop Story row as one-word WorldMap without changing its shortcut or position", async () => {

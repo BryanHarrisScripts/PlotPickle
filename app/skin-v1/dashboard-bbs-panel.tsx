@@ -84,7 +84,11 @@ export default function DashboardBbsPanel({
   }, [onSurfaceNameChange]);
 
   const selectedDashboardItem = items[selectedIndex];
-  const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEM_IDS.has(selectedDashboardItem.id));
+  const selectedDashboardConnected = Boolean(
+    selectedDashboardItem
+      && CONNECTED_DASHBOARD_ITEM_IDS.has(selectedDashboardItem.id)
+      && !DASHBOARD_UNAVAILABLE_ITEM_IDS.has(selectedDashboardItem.id),
+  );
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
 

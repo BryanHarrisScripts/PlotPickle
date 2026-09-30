@@ -50,15 +50,17 @@ test("#2587 displayed shortcuts and keypress activation share one canonical regi
   assert.match(panel, /activateItem\(shortcutIndex\)/u);
 });
 
-test("#2587 routes available creative destinations to their canonical authorities", async () => {
+test("#2587/#2612 preserves canonical authorities behind deferred Dashboard maturity gates", async () => {
   const [menu, host] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
 
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
+  const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
   for (const id of ["write", "edit", "refine", "feedback", "pitch-deck", "pitch-package", "wyrmwood", "story"]) {
-    const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
-    assert.match(connected, new RegExp(`"${id}"`, "u"), `${id} should be connected`);
+    assert.match(connected, new RegExp(`"${id}"`, "u"), `${id} should remain connected underneath the maturity gate`);
+    assert.match(unavailable, new RegExp(`"${id}"`, "u"), `${id} should be gray/deferred on Dashboard`);
   }
 
   const routes = new Map([
@@ -75,6 +77,10 @@ test("#2587 routes available creative destinations to their canonical authoritie
     assert.ok(host.includes(`${JSON.stringify(id)}: ${JSON.stringify(route)}`) || host.includes(`${id}: ${JSON.stringify(route)}`), `Missing canonical route for ${id}`);
   }
   assert.match(host, /window\.location\.assign\(canonicalRoute\)/u);
+  assert.ok(
+    host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf("const canonicalRoutes"),
+    "Gray maturity guard must run before canonical route activation",
+  );
 });
 
 test("#2587 gives Deck and Package real canonical pitch subviews without changing the pitch workspace", async () => {
@@ -87,7 +93,8 @@ test("#2587 gives Deck and Package real canonical pitch subviews without changin
 
   assert.match(connected, /"pitch-deck"/u);
   assert.match(connected, /"pitch-package"/u);
-  assert.doesNotMatch(unavailable, /"pitch-deck"|"pitch-package"/u);
+  assert.match(unavailable, /"pitch-deck"/u);
+  assert.match(unavailable, /"pitch-package"/u);
   assert.match(page, /requestedView === "logline" \|\| requestedView === "package" \|\| requestedView === "exports"/u);
   assert.match(page, /entryView === "package" \? "Pitch Package" : "Exports"/u);
   assert.match(page, /nav\[aria-label="Pitch and review workflows"\] button/u);

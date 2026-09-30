@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three destinations into review", async () => {
+test("#2446/#2458/#2612 keeps Sound between Visualize and Pitch while deferring its three destinations", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
   const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
     .map((match) => ({ id: match[1], shortcut: match[2], label: match[3], description: match[4], group: match[5] }));
@@ -33,11 +33,11 @@ test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
-  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley"]) assert.doesNotMatch(unavailable, new RegExp(`"${id}"`, "u"));
+  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley"]) assert.match(unavailable, new RegExp(`"${id}"`, "u"));
   assert.doesNotMatch(unavailable, /"pitch-package"|"pitch-deck"/u);
 });
 
-test("#2446/#2458 keeps only truly unavailable rows inert while Sound opens governed review surfaces", async () => {
+test("#2446/#2458/#2612 keeps deferred Sound rows selectable but inert before legacy review branches", async () => {
   const [panel, host, client] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -61,6 +61,10 @@ test("#2446/#2458 keeps only truly unavailable rows inert while Sound opens gove
   assert.match(host, /item\.id === "sound-narration" \|\| item\.id === "sound-music" \|\| item\.id === "sound-foley"/u);
   assert.match(host, /setSoundOpen\(kind\)/u);
   assert.match(host, /<SkinV1SoundReviewSurface/u);
+  assert.ok(
+    host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf('item.id === "sound-narration"'),
+    "Unavailable guard must run before the retained Sound review branch",
+  );
 });
 
 test("#2446 brief remains historical while #2458 supplies the Sound surfaces", async () => {

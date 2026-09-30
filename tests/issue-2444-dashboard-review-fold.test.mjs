@@ -24,7 +24,9 @@ test("#2444 preserves moved-item identity, shortcut, copy and lifecycle sets", a
 
   const disabled = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
   assert.doesNotMatch(disabled, /"pitch-package"|"pitch-deck"/u);
-  assert.doesNotMatch(disabled, /"feedback"|"reports"|"refine"/u);
+  assert.match(disabled, /"feedback"/u);
+  assert.match(disabled, /"refine"/u);
+  assert.doesNotMatch(disabled, /"reports"/u);
 
   const reviewState = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewState, /"feedback"|"reports"|"refine"/u);

@@ -291,10 +291,6 @@ export function hasActiveLibraryProject() {
   return Boolean(currentProjectId && loadLibraryProjectSnapshot(currentProjectId));
 }
 
-export function isDetachedLibraryWorkspaceProject(project: Pick<PPFProject, "id">) {
-  return sessionActiveProjectId() !== project.id;
-}
-
 /**
  * Return the project currently visible to authoring/review surfaces.
  *

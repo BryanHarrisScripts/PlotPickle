@@ -4,72 +4,47 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2508 World Map poster uses Storyboard-style concise controls, chevrons, count and per-version badges", async () => {
+test("#2508/#2605 World Map poster is a concise read-only reference", async () => {
   const [surface, css] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
   ]);
-  const poster = surface.slice(surface.indexOf('<div className={styles.poster}>'), surface.indexOf('<div className={styles.identity}>'));
-  assert.match(poster, /Previous saved version/u);
-  assert.match(poster, /Next saved version/u);
-  assert.match(poster, /safePosterIndex \+ 1/u);
-  assert.match(poster, /posterVersions\.length/u);
-  assert.match(poster, />Save<\/button>/u);
-  assert.match(poster, />Lock<\/button>/u);
-  assert.match(poster, />Saved locally<\/span>/u);
-  assert.match(poster, />Locked<\/span>/u);
-  assert.doesNotMatch(poster, /Save this Version|Lock this Version/u);
-  assert.match(css, /\.posterFrame,[\s\S]*?\.referenceFrame \{[\s\S]*?position: relative/u);
-  assert.match(css, /\.savedBadge \{ left: var\(--pp-skin-space-1\); \}/u);
-  assert.match(css, /\.lockedBadge \{[\s\S]*?right: var\(--pp-skin-space-1\)/u);
+  assert.match(surface, /Current approved marketing reference/u);
+  assert.match(surface, /bible\.posterUrl/u);
+  assert.match(surface, /bible\.posterLabel/u);
+  assert.match(surface, /NO POSTER YET/u);
+  assert.doesNotMatch(surface, /Generate Poster Visual|savePosterVersion|lockPosterVersion/u);
+  assert.match(css, /\.posterFrame/u);
+  assert.match(css, /\.posterReview/u);
 });
 
-test("#2508/#2564 character visual review uses image-level chevrons with concise saved/locked badges", async () => {
+test("#2508/#2564/#2605 character visual identity is reviewed without save or lock controls", async () => {
   const surface = await read("app/skin-v1/story-bible-surface.tsx");
-  const start = surface.indexOf("function CharacterVisualSheet");
-  const end = surface.indexOf("export default function StoryBibleSurface", start);
-  const character = surface.slice(start, end);
-  assert.match(character, /Previous character image/u);
-  assert.match(character, /Next character image/u);
-  assert.match(character, /selectedBrowseItem\.generationNumber/u);
-  assert.match(character, /selectedBrowseItem\.viewNumber/u);
-  assert.match(character, /versions\.length/u);
-  assert.match(character, />Save<\/button>/u);
-  assert.match(character, />Lock<\/button>/u);
-  assert.match(character, />Saved locally<\/span>/u);
-  assert.match(character, />Locked<\/span>/u);
-  assert.match(character, /Generate Missing Views/u);
-  assert.match(character, /saveWorldMapCharacterVisualVersion/u);
-  assert.match(character, /lockWorldMapCharacterVisualVersion/u);
-  assert.doesNotMatch(character, /Save this Version|Lock this Version/u);
+  assert.match(surface, /function CharacterReview/u);
+  assert.match(surface, /Approved character truth and visual identity/u);
+  assert.match(surface, /character\.imageUrl/u);
+  assert.match(surface, /NO APPROVED CHARACTER IMAGE YET/u);
+  assert.doesNotMatch(surface, /Generate Missing Views|Generate Character Visual|saveWorldMapCharacterVisualVersion|lockWorldMapCharacterVisualVersion/u);
 });
 
-test("#2508 World Agent results always use one read-and-decide Save / Redo / Discard flow", async () => {
+test("#2508/#2605 World Agent proposal decisions moved out of World Map", async () => {
   const surface = await read("app/skin-v1/story-bible-surface.tsx");
-  const start = surface.indexOf("function WorldFactEditor");
-  const end = surface.indexOf("function WorldFactGroup", start);
-  const editor = surface.slice(start, end);
-  assert.match(editor, /Ask World Agent/u);
-  assert.match(editor, /Agent proposal · edit before saving/u);
-  assert.match(editor, /data-world-agent-review-actions="three-decision"/u);
-  assert.match(editor, />Save<\/button>/u);
-  assert.match(editor, />Redo<\/button>/u);
-  assert.match(editor, />Discard<\/button>/u);
-  assert.match(editor, /onClick=\{saveProposal\}/u);
-  assert.match(editor, /void askWorldAgent\(\)/u);
-  assert.match(editor, /Proposal discarded\. Canon was not changed\./u);
+  assert.match(surface, /World Map does not edit, approve, or generate them/u);
+  assert.match(surface, /Edit in Mind Map/u);
+  assert.doesNotMatch(surface, /WorldFactEditor|Ask World Agent|data-world-agent-review-actions/u);
+  assert.doesNotMatch(surface, />Redo<\/button>|>Discard<\/button>/u);
 });
 
-test("#2508 preserves durable World Map version authorities rather than adding UI-only state", async () => {
-  const [surface, worldContract, library] = await Promise.all([
+test("#2508 durable World Map media authorities remain project data even though this surface no longer mutates them", async () => {
+  const [surface, worldContract, library, projection] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("core/contracts/world-map/index.ts"),
     read("core/storage/library-project.ts"),
+    read("core/project/story-bible-projection.ts"),
   ]);
-  assert.match(surface, /saveActiveLibraryProject/u);
-  assert.match(surface, /foundations\.visual\.store/u);
-  assert.match(surface, /foundations\.visual\.accept/u);
+  assert.doesNotMatch(surface, /saveActiveLibraryProject|foundations\.visual\.store|foundations\.visual\.accept/u);
   assert.match(worldContract, /saveWorldMapCharacterVisualVersion/u);
   assert.match(worldContract, /lockWorldMapCharacterVisualVersion/u);
   assert.match(library, /normalizeWorldMapState\(source\.worldMap\)/u);
+  assert.match(projection, /approvedWorldMapCharacterReferences\(project\.worldMap, characterId\)/u);
 });

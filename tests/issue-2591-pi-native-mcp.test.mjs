@@ -31,6 +31,7 @@ test("#2591 Pi uses the canonical PlotPickle MCP server through native 0.99 regi
   assert.ok(settings.defaultTools.includes("+codemode"));
   assert.equal(settings.packages.some((item) => item.includes("pi-mcp-adapter")), false);
   assert.equal(stack.piRuntime.nativeMcp.enabled, true);
+  assert.equal(stack.piRuntime.nativeMcp.legacyAdapterRollbackPolicy, "dormant-audit-only-not-loaded");
   assert.equal(stack.mcp.piNative, true);
 });
 
@@ -111,6 +112,8 @@ test("#2591 retires pi-mcp-adapter from every loaded project package path", asyn
 
   assert.equal(settings.packages.some((item) => item.includes("pi-mcp-adapter")), false);
   assert.equal(stack.piPackages.some((item) => item.includes("pi-mcp-adapter")), false);
+  assert.equal(stack.piRuntime.nativeMcp.legacyAdapterRollbackPackage, "npm:pi-mcp-adapter@2.26.0");
+  assert.equal(stack.piRuntime.nativeMcp.legacyAdapterRollbackPolicy, "dormant-audit-only-not-loaded");
   assert.doesNotMatch(setup, /pi-mcp-adapter/u);
   assert.match(setup, /@earendil-works\/pi-coding-agent@0\.99\.1/u);
   assert.equal(compatibility.phase2Migration.nativeMcp, true);

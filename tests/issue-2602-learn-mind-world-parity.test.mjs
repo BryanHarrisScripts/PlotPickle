@@ -109,7 +109,7 @@ test("#2602 blank factory remains empty while observed Afterglow content is trac
     "createEmptyBuildProgressState()",
     "createEmptyPrevisProductionState()",
   ]) {
-    assert.match(project, new RegExp(constructor.replace(/[()]/gu, "\\$&"), "u"));
+    assert.ok(project.includes(constructor), `missing blank constructor ${constructor}`);
   }
   assert.match(browser, /createEmptyLibraryProject[\s\S]*createEmptyProject/u);
   assert.match(browser, /placeholderProject \?\? createEmptyLibraryProject/u);

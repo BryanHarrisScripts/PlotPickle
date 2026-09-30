@@ -321,7 +321,9 @@
         "scripts/developer-agent-mcp.mjs",
         "config/pi-codemode-policy.json",
         "lib/agents/pi-codemode-governance.mjs",
-        "lib/agents/pi-nested-call-evidence.mjs"
+        "lib/agents/pi-nested-call-evidence.mjs",
+        "config/pi-virtual-model-policy.json",
+        "lib/agents/pi-developer-routing.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

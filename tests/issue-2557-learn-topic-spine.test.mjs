@@ -37,7 +37,7 @@ test("#2557 one shared twelve-topic spine drives creation and Learn routing", as
   assert.match(learn, /curriculum\.find\(\(lesson\) => lesson\.topic === requestedTopic\)/u);
 });
 
-test("#2557 MindMap keeps legacy elements but groups them under selected Learn topics", async () => {
+test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed authoring", async () => {
   const [surface, contract, styles] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/contracts/discovery/index.ts"),
@@ -60,7 +60,7 @@ test("#2557 MindMap keeps legacy elements but groups them under selected Learn t
   assert.match(surface, /lane\.topic === selectedTopic/u);
   assert.match(surface, /selectedActTopicCards/u);
   assert.match(surface, /Open in Learn/u);
-  assert.match(surface, /Build Topic/u);
+  assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);\n  assert.match(surface, /field\.actionLabel/u);\n  assert.match(surface, /Use Proposal/u);\n  assert.doesNotMatch(surface, /Build Topic|Develop Agent Proposals/u);
   assert.match(surface, /12 LEARN TOPICS/u);
   assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });

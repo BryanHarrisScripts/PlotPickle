@@ -1611,6 +1611,23 @@
         "surface",
         "navigation"
       ]
+    },
+    {
+      "id": "world-map-canonical-read-review",
+      "classification": "production",
+      "include": [
+        "app/skin-v1/story-bible-surface.tsx",
+        "app/skin-v1/story-bible-surface.module.css",
+        "app/skin-v1/dashboard-bbs-review-host.tsx",
+        "app/skin-v1/discovery-surface.tsx",
+        "modules/learn/model/story-learning-context.ts"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "canon",
+        "surface",
+        "navigation"
+      ]
     }
   ]
 }

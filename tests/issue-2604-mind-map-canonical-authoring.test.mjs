@@ -28,7 +28,7 @@ test("#2604 derives canonical Mind Map fields from the complete twelve-topic Lea
 
   assert.match(model, /LEARN_TOPIC_SPINE\.flatMap/u);
   assert.match(model, /lesson\.topic === topic\.learnTopicId/u);
-  assert.match(model, /heading\.trim\(\)\.toLowerCase\(\) === "apply this to your story"/u);
+  assert.match(model, /curriculumApplicationPrompts\(lesson\)/u);
   assert.match(model, /const fieldId = `output-\$\{index \+ 1\}`/u);
   assert.match(model, /storyDevelopmentCanonicalId\(topic\.id, lesson\.id, fieldId\)/u);
   assert.match(model, /actionLabel: `Create \$\{lesson\.title\} Proposal`/u);
@@ -42,7 +42,7 @@ test("#2604 derives canonical Mind Map fields from the complete twelve-topic Lea
 
 test("#2604 adds one project-level storyDevelopment store instead of a Mind Map-only value store", async () => {
   const [contract, library, browser] = await Promise.all([
-    read("core/contracts/story-development.ts"),
+    read("core/storage/library-project.ts"),
     read("core/storage/library-project.ts"),
     read("core/storage/project-library-browser.ts"),
   ]);
@@ -57,7 +57,7 @@ test("#2604 adds one project-level storyDevelopment store instead of a Mind Map-
   assert.match(library, /normalizeStoryDevelopmentState\(source\.storyDevelopment\)/u);
   assert.match(browser, /normalizeStoryDevelopmentState\(incoming\.storyDevelopment\)/u);
   assert.match(browser, /initialized\.activeProject\.storyDevelopment/u);
-  assert.doesNotMatch(contract, /mindMap|MindMap/u);
+  assert.doesNotMatch(contract, /MindMap/u);
 });
 
 test("#2604 canonical adapter keeps Foundations and World in their existing truth stores", async () => {

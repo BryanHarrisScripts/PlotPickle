@@ -60,5 +60,15 @@
     "legacyAdapterLoaded": false,
     "canonicalConfig": ".mcp.json",
     "exposurePolicy": "config/pi-tool-exposure-policy.json"
+  },
+  "phase4Migration": {
+    "virtualModel": true,
+    "logicalModel": "plotpickle/developer",
+    "authority": "plotpickle-agent-compute",
+    "policy": "config/pi-virtual-model-policy.json",
+    "classifierAuthority": "non-authoritative-routing-only",
+    "localClassifierSupported": true,
+    "optionalOpenAiLogin": "/login openai",
+    "automaticCloudFallback": false
   }
 }

@@ -77,11 +77,10 @@ test("#2587 routes available creative destinations to their canonical authoritie
   assert.match(host, /window\.location\.assign\(canonicalRoute\)/u);
 });
 
-test("#2587 gives Deck and Package real canonical pitch subviews", async () => {
-  const [menu, page, workspace] = await Promise.all([
+test("#2587 gives Deck and Package real canonical pitch subviews without changing the pitch workspace", async () => {
+  const [menu, page] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/pitch-review/page.tsx"),
-    read("app/pitch-review-workspace.tsx"),
   ]);
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
@@ -90,7 +89,7 @@ test("#2587 gives Deck and Package real canonical pitch subviews", async () => {
   assert.match(connected, /"pitch-package"/u);
   assert.doesNotMatch(unavailable, /"pitch-deck"|"pitch-package"/u);
   assert.match(page, /requestedView === "logline" \|\| requestedView === "package" \|\| requestedView === "exports"/u);
-  assert.match(page, /initialView=\{entryView\}/u);
-  assert.match(workspace, /initialView\?: PitchReviewView/u);
-  assert.match(workspace, /setView\(initialView\)/u);
+  assert.match(page, /entryView === "package" \? "Pitch Package" : "Exports"/u);
+  assert.match(page, /nav\[aria-label="Pitch and review workflows"\] button/u);
+  assert.match(page, /target\?\.click\(\)/u);
 });

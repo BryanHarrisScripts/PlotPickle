@@ -181,9 +181,9 @@ export function auditThirdPartyOss() {
 
   const pi = byId.get("pi-coding-agent");
   if (pi) {
-    const piLock = readJson(".pi/npm/package-lock.json");
-    const record = piLock.packages?.["node_modules/@earendil-works/pi-coding-agent"];
-    if (!record || record.version !== pi.version || record.license !== pi.license) failures.push("Pi coding agent registry record disagrees with .pi/npm/package-lock.json.");
+    const stack = readJson("config/developer-agent-stack.json");
+    const managedVersion = stack?.piRuntime?.managedVersion;
+    if (managedVersion !== pi.version || pi.license !== "MIT") failures.push("Pi coding agent registry record disagrees with the managed developer-agent runtime authority.");
   }
 
   const lightricksWorkflow = byId.get("lightricks-comfyui-ltx-workflow");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./pitch-review-workspace.module.css";
 import DialecticWorksheet from "./dialectic-worksheet";
 import LoglineLab from "./logline-lab";
@@ -18,7 +18,8 @@ import {
 } from "@/lib/pitch-review";
 import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/projects/project";
 
-type View = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
+export type PitchReviewView = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
+type View = PitchReviewView;
 export type PitchReviewScope = "pitch" | "plan";
 
 type AnchorOption = ReviewAnchor & { value: string };
@@ -69,14 +70,19 @@ export default function PitchReviewWorkspace({
   project,
   onProjectChange,
   scope = "pitch",
+  initialView = "logline",
 }: {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   scope?: PitchReviewScope;
+  initialView?: PitchReviewView;
 }) {
   const active = useMemo(() => ensureReviewWorkspace(project), [project]);
   const scopedWorkflows = useMemo(() => WORKFLOWS.filter((workflow) => workflow[2] === scope), [scope]);
-  const [selectedView, setView] = useState<View>(scopedWorkflows[0]?.[0] ?? "logline");
+  const [selectedView, setView] = useState<View>(initialView);
+  useEffect(() => {
+    if (scopedWorkflows.some(([id]) => id === initialView)) setView(initialView);
+  }, [initialView, scopedWorkflows]);
   const view = scopedWorkflows.some(([id]) => id === selectedView)
     ? selectedView
     : scopedWorkflows[0]?.[0] ?? "logline";

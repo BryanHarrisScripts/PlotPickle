@@ -440,6 +440,36 @@ async function configurePiRuntime(runtime) {
   return agentDir;
 }
 
+function codemodeTaskForRepair(finding) {
+  return {
+    schemaVersion: 1,
+    id: `uat-repair:${String(finding?.fingerprint || "unknown").slice(0, 160)}`,
+    authorized: true,
+    state: "repairing",
+    phase: "repair",
+    allowedTools: [
+      "read",
+      "grep",
+      "find",
+      "ls",
+      "plotpickle_status",
+      "plotpickle_hooks",
+      "plotpickle_uat_findings",
+      "plotpickle_focused_uat",
+      "plotpickle_build",
+      "plotpickle_validate",
+    ],
+    requiredSkillIds: ["uat-repair"],
+    readScopes: ["."],
+    mutationAuthorized: false,
+    destructiveAuthorized: false,
+    privacyPolicy: {
+      localOnly: true,
+      cloudAllowed: false,
+    },
+  };
+}
+
 async function runPiAgent({ finding, runtime, worktreeRoot }) {
   const promptPath = await writeExternalPrompt(finding, worktreeRoot);
   const agentDir = await configurePiRuntime(runtime);
@@ -471,6 +501,7 @@ async function runPiAgent({ finding, runtime, worktreeRoot }) {
         PI_OFFLINE: "1",
         PI_SKIP_VERSION_CHECK: "1",
         PI_TELEMETRY: "0",
+        PLOTPICKLE_CODEMODE_TASK_JSON: JSON.stringify(codemodeTaskForRepair(finding)),
         ...(dsddBuildPacket ? { PLOTPICKLE_DSDD_BUILD_PACKET: path.resolve(dsddBuildPacket) } : {}),
       },
     });

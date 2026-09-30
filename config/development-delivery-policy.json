@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 2594,
+  "scope": "developer-delivery-only",
+  "authority": {
+    "intent": "human-dsdd",
+    "implementation": "human-authorized-development-task",
+    "routing": "plotpickle-agent-compute",
+    "verification": "verification-catalog-and-github-exact-head",
+    "merge": "task-pr-head-scoped-human-policy",
+    "githubIdentity": true
+  },
+  "storage": {
+    "namespace": "LOCALAPPDATA/PlotPickle/development-delivery",
+    "storyCanon": false,
+    "ppf": false,
+    "restartSafe": true,
+    "appendOnlyLedger": true,
+    "secretsAllowed": false,
+    "unrestrictedTranscriptsAllowed": false
+  },
+  "lifecycle": [
+    "proposed",
+    "authorized",
+    "active",
+    "testing",
+    "repair",
+    "pr-open",
+    "verifying",
+    "ready-to-merge",
+    "merged",
+    "blocked",
+    "cancelled"
+  ],
+  "mutation": {
+    "authorizationInferredFromTaskCreation": false,
+    "requiresHumanAuthorization": true,
+    "requiresBranchAndWorktree": true,
+    "requiresWriteScopeClaim": true,
+    "codemodeExpandsAuthority": false
+  },
+  "exactHead": {
+    "greenBoundToHeadSha": true,
+    "newCommitInvalidatesGreen": true,
+    "repairMayMutateLockedIntent": false
+  },
+  "mergePolicies": [
+    "review-before-merge",
+    "merge-when-current-head-green"
+  ],
+  "recovery": {
+    "autoResumeMutationWithoutAuthorization": false,
+    "reconcileStaleClaims": true,
+    "verifyCurrentPrHead": true,
+    "providerReadinessRequired": true
+  }
+}

@@ -335,7 +335,8 @@ export default function DashboardBbsReviewHost({
       edit: "/edit",
       refine: "/diagnostics",
       feedback: "/feedback",
-      "pitch-package": "/pitch-review?scope=pitch&return=dashboard",
+      "pitch-deck": "/pitch-review?scope=pitch&view=exports&return=dashboard",
+      "pitch-package": "/pitch-review?scope=pitch&view=package&return=dashboard",
       wyrmwood: "/?workspace=wyrmwood",
       story: "/story",
     };

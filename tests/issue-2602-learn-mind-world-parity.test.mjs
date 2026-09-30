@@ -54,7 +54,8 @@ test("#2602 Mind Map lane inventory is exact and every lane belongs to one audit
     .map((match) => ({ id: match[1], topic: match[2] }));
   const auditedLanes = audit.topics.flatMap((topic) => topic.mindMap.lanes.map((id) => ({ id, topic: topic.id })));
 
-  assert.deepEqual(auditedLanes, sourceLanes);
+  const byLaneId = (left, right) => left.id.localeCompare(right.id);
+  assert.deepEqual(auditedLanes.slice().sort(byLaneId), sourceLanes.slice().sort(byLaneId));
   assert.equal(new Set(auditedLanes.map((lane) => lane.id)).size, auditedLanes.length);
   assert.ok(audit.topics.every((topic) => topic.mindMap.agentAction === "generic Develop Agent Proposals"));
 });

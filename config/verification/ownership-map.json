@@ -1633,7 +1633,7 @@
       "id": "outline-canonical-project-projection",
       "classification": "production",
       "include": [
-        "modules/plan/canonical-project-outline-projection.ts"
+        "modules/plan/projections/canonical-project-outline.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

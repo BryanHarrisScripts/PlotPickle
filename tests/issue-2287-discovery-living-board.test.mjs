@@ -95,7 +95,7 @@ test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without e
 test("#2287/#2603 Discovery opens the detached Blank and defers durable identity until first Save", async () => {
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
   const surface = await read("app/skin-v1/discovery-surface.tsx");
-  assert.match(host, /item\.id === "discovery"[\s\S]*setDiscoveryProject\(loadWorkspaceLibraryProject\(\)\)/u);
+  assert.match(host, /item\.id === "discovery"[\s\S]*setDiscoveryProject\(loadActiveLibraryProject\(\)\)/u);
   assert.match(host, /<DiscoverySurface project=\{discoveryProject\}/u);
   assert.match(surface, /window\.prompt\("Save as New Project", suggested\)/u);
   assert.match(surface, /saveDetachedLibraryProjectAs/u);

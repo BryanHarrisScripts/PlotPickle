@@ -8,6 +8,7 @@ import {
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
 import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
+import { projectCanonicalProjectForOutline } from "@/modules/plan/projections/canonical-project-outline";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import ActWrittenStoryBoard from "./act-written-story-board";
 import OutlineMiniBlockAnchorWorkspace from "./outline-mini-block-anchor-workspace";
@@ -28,6 +29,7 @@ export default function MatrixStoryMapSurface({
   const turningPointSelected = turningPointAct === activeAct;
   const turningPoint = outlineTurningPoint(activeAct);
   const readiness = useMemo(() => project ? deriveOutlineReadiness(project) : [], [project]);
+  const canonicalProjection = useMemo(() => project ? projectCanonicalProjectForOutline(project) : null, [project]);
   const actReadiness = readiness.filter((block) => Math.floor((block.blockNumber - 1) / 6) + 1 === activeAct);
 
   useEffect(() => {
@@ -46,9 +48,15 @@ export default function MatrixStoryMapSurface({
     onAddressChange?.(next);
   }
 
-  if (!project) return <p role="status">Opening Story Map…</p>;
+  if (!project || !canonicalProjection) return <p role="status">Opening Story Map…</p>;
   return (
-    <div data-canonical-project-id={project.id} data-skin-v1-story-map-review="true">
+    <div
+      data-canonical-project-id={canonicalProjection.projectId}
+      data-canonical-project-revision={canonicalProjection.projectRevision}
+      data-outline-canonical-projection-version={canonicalProjection.version}
+      data-outline-canonical-field-count={canonicalProjection.fields.length}
+      data-skin-v1-story-map-review="true"
+    >
       <ProgressiveStoryMap
         key={`${project.id}-act-${activeAct}`}
         project={project}

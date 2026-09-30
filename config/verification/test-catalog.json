@@ -852,7 +852,8 @@
           "tests/issue-2470-human-validation-loop.test.mjs",
           "tests/issue-2590-pi-099-compatibility.test.mjs",
           "tests/issue-2591-pi-native-mcp.test.mjs",
-          "tests/issue-2592-pi-codemode-evidence.test.mjs"
+          "tests/issue-2592-pi-codemode-evidence.test.mjs",
+          "tests/issue-2593-pi-virtual-routing.test.mjs"
         ]
       },
       "cost": "fast",

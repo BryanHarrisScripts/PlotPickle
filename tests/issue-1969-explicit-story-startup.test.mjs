@@ -26,7 +26,7 @@ test("#1969 bare startup does not repair-load the persisted story before the Hum
   assert.doesNotMatch(home, /useEffect\(\(\) => \{\s*repairPersistedProject\(\);/u);
 });
 
-test("#1969/#2570 Library startup stays explicit through Load story cards or New Story", async () => {
+test("#1969/#2570/#2603 Library startup stays explicit through Load story cards or New Project", async () => {
   const [home, library] = await Promise.all([
     read("app/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),

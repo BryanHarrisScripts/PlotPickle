@@ -75,7 +75,11 @@ export async function POST(request: Request) {
       const summary = input.summary && typeof input.summary === "object" && !Array.isArray(input.summary)
         ? input.summary as Partial<ProfileProjectSummary>
         : undefined;
-      const saved = await runtimeState.privateStorage.saveProject(authContext, { project, summary });
+      const saved = await runtimeState.privateStorage.saveProject(authContext, {
+        project,
+        summary,
+        activate: input.activate === false ? false : true,
+      });
       return response({ projectId: saved.summary.projectId });
     }
     if (input.action === "sync-library") {
@@ -91,6 +95,18 @@ export async function POST(request: Request) {
       return response(await runtimeState.privateStorage.syncLibrary(authContext, {
         activeProjectId: typeof input.activeProjectId === "string" ? input.activeProjectId : null,
         projects,
+      }));
+    }
+    if (input.action === "sync-library-index") {
+      if (!Array.isArray(input.summaries)) return response({ message: "Invalid Library index inventory." }, 400);
+      const summaries = input.summaries.map((value) => (
+        value && typeof value === "object" && !Array.isArray(value)
+          ? value as Partial<ProfileProjectSummary>
+          : {}
+      ));
+      return response(await runtimeState.privateStorage.syncLibraryIndex(authContext, {
+        activeProjectId: typeof input.activeProjectId === "string" ? input.activeProjectId : null,
+        summaries,
       }));
     }
     if (input.action === "delete-archived-project") {

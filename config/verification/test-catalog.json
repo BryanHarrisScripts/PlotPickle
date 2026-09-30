@@ -1748,6 +1748,51 @@
         ]
       },
       "notes": "#2614 makes Agent Profile → Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
+    },
+    {
+      "id": "production.profile-library-segmented-persistence-2616",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "profile-private-storage",
+        "library-persistence",
+        "desktop-loopback-auth"
+      ],
+      "triggerTokens": [
+        "api",
+        "security",
+        "storage",
+        "native"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2616-library-segmented-profile-persistence.test.mjs",
+          "tests/issue-1196-full-verification-synthetic-human.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "#2616 replaces monolithic browser Library sync payloads with bounded per-project encrypted writes plus a registry-only index sync, aligns the loopback request envelope with the per-object storage bound, and preserves truthful request-size diagnostics."
     }
   ]
 }

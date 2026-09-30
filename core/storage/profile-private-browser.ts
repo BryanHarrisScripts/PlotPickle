@@ -62,13 +62,11 @@ async function privateMutation(action: string, payload: Record<string, unknown>,
   return body;
 }
 
-function queueWrite(action: string, payload: Record<string, unknown>, explicitToken = "") {
+function queueWriteOperation(operation: (token: string) => Promise<void>, explicitToken = "") {
   const token = explicitToken || csrfToken;
   if (!token) return Promise.reject(new Error("The Human profile is locked."));
   updateSaveState("saving", "Unsaved changes");
-  const current = pendingWrite.catch(() => undefined).then(async () => {
-    await privateMutation(action, payload, token);
-  });
+  const current = pendingWrite.catch(() => undefined).then(() => operation(token));
   pendingWrite = current;
   void current.then(
     () => { if (pendingWrite === current) updateSaveState("saved", "Saved"); },
@@ -77,6 +75,12 @@ function queueWrite(action: string, payload: Record<string, unknown>, explicitTo
     },
   );
   return current;
+}
+
+function queueWrite(action: string, payload: Record<string, unknown>, explicitToken = "") {
+  return queueWriteOperation(async (token) => {
+    await privateMutation(action, payload, token);
+  }, explicitToken);
 }
 
 function queueCacheWrite(action: string, payload: Record<string, unknown>) {
@@ -223,6 +227,7 @@ export function persistActiveProfileProject(explicitToken = "") {
     const project = loadLibraryProjectSnapshot(item.id);
     if (!project) throw new Error(`Library snapshot for ${item.title} is unavailable; the last saved profile state was preserved.`);
     return { project, summary: {
+      projectId: item.id,
       title: item.title, updatedAt: item.updatedAt, createdAt: item.createdAt,
       progress: item.progress, frontier: item.frontier, thumbnailRef: item.thumbnail,
       sourceKind: item.sourceKind, sourceId: item.sourceId, genre: item.genre,
@@ -232,7 +237,19 @@ export function persistActiveProfileProject(explicitToken = "") {
   const persistedActiveProjectId = activeProjectId && active.some((item) => item.id === activeProjectId)
     ? activeProjectId
     : null;
-  return queueWrite("sync-library", { projects, activeProjectId: persistedActiveProjectId }, explicitToken);
+  return queueWriteOperation(async (token) => {
+    for (const entry of projects) {
+      await privateMutation("save-project", {
+        project: entry.project,
+        summary: entry.summary,
+        activate: false,
+      }, token);
+    }
+    await privateMutation("sync-library-index", {
+      summaries: projects.map((entry) => entry.summary),
+      activeProjectId: persistedActiveProjectId,
+    }, token);
+  }, explicitToken);
 }
 
 export function deleteArchivedProfileProjectFromVault(projectId: string) {

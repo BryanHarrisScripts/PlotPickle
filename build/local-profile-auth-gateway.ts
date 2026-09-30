@@ -14,7 +14,7 @@ const LOOPBACK_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 const BODY_LIMITS = new Map<string, number>([
   [PROFILE_API, 64 * 1024],
   [PROFILE_PRESENTATION_API, 64 * 1024],
-  [PROFILE_PRIVATE_API, 8 * 1024 * 1024],
+  [PROFILE_PRIVATE_API, 20 * 1024 * 1024],
   [PROFILE_BACKUP_API, 32 * 1024 * 1024],
 ]);
 
@@ -103,12 +103,12 @@ async function sendWebResponse(result: Response, response: ServerResponse) {
   response.end(body);
 }
 
-function sendRejected(response: ServerResponse, statusCode: number, message: string) {
+function sendRejected(response: ServerResponse, statusCode: number, message: string, code = "ACCESS_DENIED") {
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify({ code: "ACCESS_DENIED", message }));
+  response.end(JSON.stringify({ code, message }));
 }
 
 export function localProfileAuthGateway(): Plugin {
@@ -135,9 +135,13 @@ export function localProfileAuthGateway(): Plugin {
           const web = await webRequest(request, origin, contract.maximumBodyBytes);
           const result = await handler(web);
           await sendWebResponse(result, response);
-        })().catch(() => {
+        })().catch((error) => {
           if (response.headersSent) {
             response.destroy();
+            return;
+          }
+          if (error instanceof Error && error.message === "PlotPickle local profile request body is too large.") {
+            sendRejected(response, 413, error.message, "REQUEST_TOO_LARGE");
             return;
           }
           sendRejected(response, 403, "The local profile request could not be authorized.");

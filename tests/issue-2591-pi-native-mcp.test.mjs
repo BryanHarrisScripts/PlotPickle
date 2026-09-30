@@ -84,6 +84,23 @@ test("#2591 tool exposure never substitutes for governed authorization", () => {
   }).allowed, false);
 });
 
+test("#2591 live MCP dispatcher classifies every exposed tool before execution", async () => {
+  const source = await read("scripts/developer-agent-mcp.mjs");
+  for (const tool of [
+    "plotpickle_status",
+    "plotpickle_hooks",
+    "plotpickle_uat_findings",
+    "plotpickle_focused_uat",
+    "plotpickle_build",
+    "plotpickle_validate",
+  ]) {
+    assert.match(source, new RegExp(`${tool}: DeveloperToolClass\\.`));
+  }
+  assert.match(source, /assertDeveloperToolAuthorized\(\{ toolName: name, toolClass \}\)/u);
+  assert.doesNotMatch(source, /DeveloperToolClass\.SOURCE_MUTATION/u);
+  assert.doesNotMatch(source, /DeveloperToolClass\.DESTRUCTIVE_ADMIN/u);
+});
+
 test("#2591 retires pi-mcp-adapter from every loaded project package path", async () => {
   const [settings, stack, setup, compatibility] = await Promise.all([
     json(".pi/settings.json"),

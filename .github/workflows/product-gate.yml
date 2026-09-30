@@ -50,6 +50,10 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-2591-pi-native-mcp.test.mjs
 
+      - name: Prove governed Codemode and nested evidence on Windows
+        shell: pwsh
+        run: node --test tests/issue-2592-pi-codemode-evidence.test.mjs
+
       - name: Verify Pi Draft prompt transport through a Windows batch shim
         shell: pwsh
         run: node --test tests/issue-2359-pi-draft-stdin.test.mjs

@@ -9,7 +9,7 @@
       "defaultAtLogin": true,
       "durable": false,
       "projectAuthority": "core/project/project.ts#createEmptyProject",
-      "runtimeAuthority": "core/storage/project-library-browser.ts#loadWorkspaceLibraryProject",
+      "runtimeAuthority": "core/storage/project-library-browser.ts#loadActiveLibraryProject",
       "rules": [
         "No Library project or example is selected automatically.",
         "Story values are empty while schemas, Learn taxonomy and creation capability remain available.",

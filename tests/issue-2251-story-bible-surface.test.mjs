@@ -38,7 +38,7 @@ test("#2251/#2603 World Map opens the detached Blank without manufacturing a dur
   assert.doesNotMatch(host, /createEmptyLibraryProject|createAfterglow/u);
 });
 
-test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-reviewed World Map surface", async () => {
+test("#2251/#2605 keeps the canonical Story Bible projection inside the read-only World Map surface", async () => {
   const [surface, styles, host] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
@@ -47,24 +47,22 @@ test("#2251/#2442 keeps the canonical Story Bible projection inside the Human-re
 
   for (const phrase of [
     'data-story-bible-surface="canonical"',
-    'data-story-bible-read-only="false"',
+    'data-story-bible-read-only="true"',
     'data-world-map-surface="review"',
-    "WORLDMAP · STORY · HUMAN-REVIEWED DEVELOPMENT",
-    "PLOT / STRUCTURE",
-    "Character truth, backstory and reusable visual identity",
-    "FOUNDATIONS",
-    "WORLD",
-    "PROVENANCE",
-  ]) assert.ok(surface.includes(phrase), `Missing Story Bible surface evidence: ${phrase}`);
+    "Current canonical project truth",
+    "Approved character truth and visual identity",
+    "4 Acts · 12 Sequences · 24 Blocks · 96 Mini-Blocks",
+    "Canonical evidence currently available",
+  ]) assert.ok(surface.includes(phrase), `Missing World Map review evidence: ${phrase}`);
 
   assert.match(surface, /projectStoryBible\(project, plotPickleCurriculum\)/u);
+  assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface, /storyDevelopmentFieldView\(project, field\)/u);
   assert.match(surface, /NO POSTER YET/u);
-  assert.match(surface, /Generate Poster Visual/u);
-  assert.match(surface, /className=\{styles\.primaryAction\}/u);
   assert.match(surface, /NO APPROVED CHARACTER IMAGE YET/u);
-  assert.match(surface, /Ask World Agent/u);
-  assert.match(surface, /Generate Character Visual/u);
-  assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\}/u);
+  assert.match(surface, /Edit in Mind Map/u);
+  assert.doesNotMatch(surface, /Ask World Agent|Generate Poster Visual|Generate Character Visual/u);
+  assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\} onEditField=\{openMindMapField\} \/>/u);
   assert.match(styles, /var\(--pp-skin-/u);
   assert.doesNotMatch(styles, /#[0-9a-f]{3,8}\b|rgba?\(/iu);
 });

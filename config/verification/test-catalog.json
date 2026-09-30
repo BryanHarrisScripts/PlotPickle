@@ -579,7 +579,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-1918-learn-program-map.test.mjs"
+          "tests/issue-1918-learn-program-map.test.mjs",
+          "tests/issue-2602-learn-mind-world-parity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -605,7 +606,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work."
+      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn → Mind Map → World Map parity/migration audit and stable shared-field identity policy."
     },
     {
       "id": "story-canon.learn-curriculum-integrity",

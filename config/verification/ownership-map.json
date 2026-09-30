@@ -1564,6 +1564,20 @@
         "provider",
         "test-harness"
       ]
+    },
+    {
+      "id": "learn-mind-world-parity-audit",
+      "classification": "production",
+      "include": [
+        "config/story-learning-surface-parity.json",
+        "config/story-learning-surface-parity.schema.json"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "surface",
+        "navigation"
+      ]
     }
   ]
 }

@@ -24,7 +24,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
 
   const roughCut = rows.find((row) => row.label === "Rough Cut");
   assert.equal(roughCut?.id, "production");
-  assert.equal(roughCut?.shortcut, "D");
+  assert.equal(roughCut?.shortcut, "C");
 
   const reports = rows.find((row) => row.id === "reports");
   assert.equal(reports?.group, "EXPLORE");

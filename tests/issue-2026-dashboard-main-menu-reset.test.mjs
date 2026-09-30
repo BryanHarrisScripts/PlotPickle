@@ -15,22 +15,22 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["community", "3", "Community", "Share and Collaborate", "EXPLORE"],
     ["screening", "4", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
     ["reports", "5", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
-    ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
-    ["story-bible", "V", "WorldMap", "Map the Story World", "DEVELOP"],
-    ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
+    ["discovery", "M", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
+    ["story-bible", "W", "WorldMap", "Map the Story World", "DEVELOP"],
+    ["write", "D", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
     ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
     ["refine", "R", "Refine", "Polish Dialogue and Story Choices", "DEVELOP"],
     ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
     ["storyboard", "S", "Storyboard", "Visualize Scenes Before You Write", "VISUALIZE"],
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
-    ["production", "D", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
-    ["sound-foley", "L", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
+    ["production", "C", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
+    ["sound-foley", "F", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
     ["sound-narration", "N", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
-    ["sound-music", "M", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
-    ["pitch-deck", "C", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
-    ["pitch-package", "A", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
-    ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
+    ["sound-music", "A", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["pitch-deck", "K", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
+    ["pitch-package", "G", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
+    ["feedback", "B", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
     ["profile", "I", "Identity", "Manage User Profile", "PLAY"],
     ["wyrmwood", "Y", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
     ["story", "U", "The Unwritten", "Story Game Engine", "PLAY"],
@@ -77,12 +77,12 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   }
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
-  assert.doesNotMatch(connected, /"pitch-package"/u);
-  assert.doesNotMatch(connected, /"pitch-deck"/u);
+  assert.match(connected, /"pitch-package"/u);
+  assert.match(connected, /"pitch-deck"/u);
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
-  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"pitch-package"[\s\S]*"pitch-deck"/u);
+  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>\(\[\]\)/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

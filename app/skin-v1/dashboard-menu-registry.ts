@@ -13,9 +13,9 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "screening", shortcut: "4", label: "Screening", description: "Screen Stories and Gather Reactions", group: "EXPLORE" },
   { id: "reports", shortcut: "5", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" },
 
-  { id: "discovery", shortcut: "G", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
-  { id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
-  { id: "write", shortcut: "W", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "DEVELOP" },
+  { id: "discovery", shortcut: "M", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
+  { id: "story-bible", shortcut: "W", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
+  { id: "write", shortcut: "D", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "DEVELOP" },
   { id: "edit", shortcut: "E", label: "Edit", description: "Review and Improve Screenplay Flow", group: "DEVELOP" },
   { id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "DEVELOP" },
 
@@ -23,15 +23,15 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "VISUALIZE" },
   { id: "previs", shortcut: "P", label: "Previs", description: "Preview Shots, Timing and Camera Motion", group: "VISUALIZE" },
   { id: "timeline", shortcut: "T", label: "Timeline", description: "Synchronize Script, Shots, Timing and Audio", group: "VISUALIZE" },
-  { id: "production", shortcut: "D", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
+  { id: "production", shortcut: "C", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
-  { id: "sound-foley", shortcut: "L", label: "Foley", description: "Develop Foley, Room Tone and Environmental Sound", group: "SOUND" },
+  { id: "sound-foley", shortcut: "F", label: "Foley", description: "Develop Foley, Room Tone and Environmental Sound", group: "SOUND" },
   { id: "sound-narration", shortcut: "N", label: "Narration", description: "Develop Narration, Voice-Over and Spoken Story", group: "SOUND" },
-  { id: "sound-music", shortcut: "M", label: "Music", description: "Develop Score, Music and Ambient Cues", group: "SOUND" },
+  { id: "sound-music", shortcut: "A", label: "Music", description: "Develop Score, Music and Ambient Cues", group: "SOUND" },
 
-  { id: "pitch-deck", shortcut: "C", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
-  { id: "pitch-package", shortcut: "A", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
-  { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" },
+  { id: "pitch-deck", shortcut: "K", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
+  { id: "pitch-package", shortcut: "G", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
+  { id: "feedback", shortcut: "B", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PITCH" },
 
   { id: "profile", shortcut: "I", label: "Identity", description: "Manage User Profile", group: "PLAY" },
   { id: "wyrmwood", shortcut: "Y", label: "Wyrmwood", description: "Practice Narrative Craft", group: "PLAY" },
@@ -59,6 +59,14 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "learn",
   "discovery",
   "library",
+  "write",
+  "edit",
+  "refine",
+  "feedback",
+  "pitch-deck",
+  "pitch-package",
+  "wyrmwood",
+  "story",
   "plan",
   "storyboard",
   "previs",
@@ -77,10 +85,7 @@ export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
   "production",
 ]);
 
-export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set([
-  "pitch-package",
-  "pitch-deck",
-]);
+export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([]);
 
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },

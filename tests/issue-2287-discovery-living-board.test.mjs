@@ -18,8 +18,8 @@ test("#2287 exposes the approved Development and Pre-Production hierarchy", asyn
     assert.ok(next > cursor, "Dashboard hierarchy drifted at " + id);
     cursor = next;
   }
-  assert.match(menu, /id: "discovery", shortcut: "G", label: "MindMap"/u);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "WorldMap"/u);
+  assert.match(menu, /id: "discovery", shortcut: "M", label: "MindMap"/u);
+  assert.match(menu, /id: "story-bible", shortcut: "W", label: "WorldMap"/u);
   assert.doesNotMatch(menu, /id: "story-bible"[\s\S]{0,120}label: "Pre-Production"/u);
   assert.match(menu, /"discovery"[\s\S]*"library"/u);
 });

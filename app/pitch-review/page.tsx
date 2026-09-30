@@ -6,17 +6,21 @@ import PitchReviewWorkspace, { type PitchReviewScope } from "../pitch-review-wor
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
+type PitchEntryView = "logline" | "package" | "exports";
 
 export default function PitchReviewPage() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [status, setStatus] = useState("Loading the active PlotPickle project…");
   const [scope, setScope] = useState<PitchReviewScope>("pitch");
+  const [entryView, setEntryView] = useState<PitchEntryView>("logline");
   const [returnWorkspace, setReturnWorkspace] = useState("pitch");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const parameters = new URLSearchParams(window.location.search);
       const requestedScope = parameters.get("scope");
+      const requestedView = parameters.get("view");
+      if (requestedView === "logline" || requestedView === "package" || requestedView === "exports") setEntryView(requestedView);
       if (requestedScope === "feedback") {
         window.location.replace("/feedback");
         return;
@@ -43,6 +47,17 @@ export default function PitchReviewPage() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (entryView === "logline") return;
+    const label = entryView === "package" ? "Pitch Package" : "Exports";
+    const timer = window.setTimeout(() => {
+      const target = [...document.querySelectorAll<HTMLButtonElement>('nav[aria-label="Pitch and review workflows"] button')]
+        .find((button) => button.textContent?.trim() === label);
+      target?.click();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [entryView]);
 
   function save(next: PlotPickleProject) {
     setProject(next);

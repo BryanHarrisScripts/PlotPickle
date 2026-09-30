@@ -187,3 +187,13 @@ export function learnTopicHref(id: LearnTopicSpineId) {
   const topic = learnTopicSpineEntry(id);
   return `/?workspace=learn&topic=${encodeURIComponent(topic.learnTopicId)}`;
 }
+
+export function learnLessonHref(id: LearnTopicSpineId, lessonId: string) {
+  const topic = learnTopicSpineEntry(id);
+  const query = new URLSearchParams({
+    workspace: "learn",
+    topic: topic.learnTopicId,
+    lesson: lessonId,
+  });
+  return `/?${query.toString()}`;
+}

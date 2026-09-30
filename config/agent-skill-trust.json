@@ -214,6 +214,30 @@
       ],
       "evalStatus": "covered",
       "lastEvaluatedRevision": "issue-971"
+    },
+    {
+      "uri": "skill://plotpickle/sequence-director",
+      "displayName": "Sequence Director",
+      "requestedCapabilityClasses": [
+        "bounded-project-context",
+        "visual-continuity-read",
+        "proposal-draft",
+        "verification-evidence-read"
+      ],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1776"
+    },
+    {
+      "uri": "skill://plotpickle/storyboard-frame-director",
+      "displayName": "Storyboard Frame Director",
+      "requestedCapabilityClasses": [
+        "bounded-project-context",
+        "visual-continuity-read",
+        "generation-prompt-draft",
+        "proposal-draft"
+      ],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-2414"
     }
   ]
 }

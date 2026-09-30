@@ -182,10 +182,11 @@ test("#2593 route evidence separates logical and physical model IDs without prom
 });
 
 test("#2593 live configuration wires the virtual route without changing Story Mode", async () => {
-  const [policy, stack, worker, vocabulary, compatibility] = await Promise.all([
+  const [policy, stack, worker, routing, vocabulary, compatibility] = await Promise.all([
     read("config/pi-virtual-model-policy.json").then(JSON.parse),
     read("config/developer-agent-stack.json").then(JSON.parse),
     read("scripts/pi-worker-runtime.mjs"),
+    read("lib/agents/pi-developer-routing.mjs"),
     read("lib/agents/agent-runtime-vocabulary.mjs"),
     read("config/pi-099-compatibility.json").then(JSON.parse),
   ]);
@@ -196,7 +197,8 @@ test("#2593 live configuration wires the virtual route without changing Story Mo
   assert.equal(stack.piRuntime.virtualModel.provider, "plotpickle");
   assert.equal(stack.piRuntime.virtualModel.model, "developer");
   assert.equal(stack.piRuntime.virtualModel.authority, "plotpickle-agent-compute");
-  assert.match(worker, /PLOTPICKLE_PI_ROUTE_JSON/u);
+  assert.match(worker, /PI_DEVELOPER_ROUTE_ENV/u);
+  assert.match(routing, /PLOTPICKLE_PI_ROUTE_JSON/u);
   assert.match(worker, /plotpickle-virtual-model\.mjs/u);
   assert.match(worker, /provider", PI_DEVELOPER_LOGICAL_MODEL\.provider/u);
   assert.match(vocabulary, /logicalProviderId/u);

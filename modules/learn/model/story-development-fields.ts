@@ -1,4 +1,4 @@
-import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import { curriculumApplicationPrompts, type CurriculumLesson } from "../../../core/contracts/curriculum";
 import {
   LEARN_TOPIC_SPINE,
   type LearnTopicSpineId,
@@ -22,14 +22,6 @@ export type StoryDevelopmentFieldDefinition = {
   readonly classification: StoryDevelopmentFieldClassification;
 };
 
-function applicationPrompts(lesson: CurriculumLesson) {
-  const application = [...lesson.sections].reverse().find(
-    (section) => section.heading.trim().toLowerCase() === "apply this to your story",
-  );
-  const prompts = application?.points?.filter((point) => point.trim()) ?? [];
-  return prompts.length ? prompts : [lesson.exercise];
-}
-
 function classification(topicId: LearnTopicSpineId): StoryDevelopmentFieldClassification {
   if (["foundations", "world", "character", "theme", "structure"].includes(topicId)) return "story-decision";
   if (["previs", "drafting", "dialogue"].includes(topicId)) return "craft-decision";
@@ -51,7 +43,7 @@ export function buildStoryDevelopmentFields(
     .filter((lesson) => lesson.topic === topic.learnTopicId)
     .slice()
     .sort((left, right) => left.number - right.number)
-    .flatMap((lesson) => applicationPrompts(lesson).map((prompt, index) => {
+    .flatMap((lesson) => curriculumApplicationPrompts(lesson).map((prompt, index) => {
       const fieldId = `output-${index + 1}`;
       return {
         canonicalId: storyDevelopmentCanonicalId(topic.id, lesson.id, fieldId),

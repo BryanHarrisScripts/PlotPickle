@@ -3,7 +3,7 @@
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { loadFoundationProject } from "../../core/storage/foundation-project-browser";
 import { hydratedStoryMapContext, persistStoryMapContext } from "../../core/storage/profile-private-browser";
-import { loadWorkspaceLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
+import { loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
 import type { ProductionSoundCueKind } from "../../core/contracts/previs";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
@@ -167,7 +167,7 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const refreshStoryBible = () => {
       if (!storyBibleOpen) return;
-      setStoryBibleProject(loadWorkspaceLibraryProject());
+      setStoryBibleProject(loadActiveLibraryProject());
     };
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible);
@@ -176,7 +176,7 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const refreshDiscovery = () => {
       if (!discoveryOpen) return;
-      setDiscoveryProject(loadWorkspaceLibraryProject());
+      setDiscoveryProject(loadActiveLibraryProject());
     };
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
@@ -354,7 +354,7 @@ export default function DashboardBbsReviewHost({
     }
     if (item.id === "discovery") {
       onActivate(index);
-      setDiscoveryProject(loadWorkspaceLibraryProject());
+      setDiscoveryProject(loadActiveLibraryProject());
       setDiscoveryOpen(true);
       onSurfaceNameChange("MindMap");
       return;
@@ -392,7 +392,7 @@ export default function DashboardBbsReviewHost({
     }
     if (item.id === "story-bible") {
       onActivate(index);
-      setStoryBibleProject(loadWorkspaceLibraryProject());
+      setStoryBibleProject(loadActiveLibraryProject());
       setStoryBibleOpen(true);
       onSurfaceNameChange("WORLDMAP");
       return;

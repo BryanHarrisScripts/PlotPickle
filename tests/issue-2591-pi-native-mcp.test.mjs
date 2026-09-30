@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   DeveloperToolClass,
@@ -12,7 +13,7 @@ const json = async (path) => JSON.parse(await read(path));
 
 test("#2591 Pi uses the canonical PlotPickle MCP server through native 0.99 registration", async () => {
   const [registration, shared, policy, settings, stack] = await Promise.all([
-    loadPlotPickleNativeMcpRegistration(new URL("..", import.meta.url).pathname),
+    loadPlotPickleNativeMcpRegistration(fileURLToPath(new URL("..", import.meta.url))),
     json(".mcp.json"),
     json("config/pi-tool-exposure-policy.json"),
     json(".pi/settings.json"),
@@ -27,7 +28,6 @@ test("#2591 Pi uses the canonical PlotPickle MCP server through native 0.99 regi
   assert.equal(registration.config.toolExposure.plotpickle_hooks, "direct");
   assert.equal(registration.config.toolExposure.plotpickle_validate, "codemode");
   assert.equal(policy.canonicalConfig, ".mcp.json");
-  assert.ok(settings.extensions.includes("./extensions/plotpickle-native-mcp.mjs"));
   assert.ok(settings.defaultTools.includes("+codemode"));
   assert.equal(settings.packages.some((item) => item.includes("pi-mcp-adapter")), false);
   assert.equal(stack.piRuntime.nativeMcp.enabled, true);

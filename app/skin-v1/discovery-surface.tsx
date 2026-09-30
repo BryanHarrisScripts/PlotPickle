@@ -108,9 +108,17 @@ function humanPlacement(act: DiscoveryAct, lane: DiscoveryLaneId, occurredAt: st
   };
 }
 
-export default function DiscoverySurface({ project }: { readonly project: LibraryPPFProject | null }) {
+export default function DiscoverySurface({
+  project,
+  initialTopic = "foundations",
+  initialFieldId = null,
+}: {
+  readonly project: LibraryPPFProject | null;
+  readonly initialTopic?: LearnTopicSpineId;
+  readonly initialFieldId?: string | null;
+}) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
-  const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>("foundations");
+  const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
   const [content, setContent] = useState("");
   const [composerLane, setComposerLane] = useState<ComposerLane>("story");
   const [notice, setNotice] = useState("");
@@ -126,6 +134,22 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
   useEffect(() => {
     setWorkingCards(project?.discovery.cards ?? []);
   }, [project?.id, project?.revision, project?.discovery.cards]);
+
+  useEffect(() => {
+    setSelectedTopic(initialTopic);
+    const firstLane = DISCOVERY_LANES.find((lane) => lane.topic === initialTopic);
+    if (firstLane) setComposerLane(firstLane.id);
+  }, [initialTopic]);
+
+  useEffect(() => {
+    if (!initialFieldId || selectedTopic !== initialTopic) return;
+    window.requestAnimationFrame(() => {
+      const target = Array.from(document.querySelectorAll<HTMLElement>("[data-canonical-field-id]"))
+        .find((element) => element.dataset.canonicalFieldId === initialFieldId);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus({ preventScroll: true });
+    });
+  }, [initialFieldId, initialTopic, selectedTopic]);
 
   useEffect(() => {
     if (!project) {
@@ -462,7 +486,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
             const persisted = storyDevelopmentFieldView(project, field);
             const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
             return (
-              <article className={styles.fieldCard} data-canonical-field-id={field.canonicalId} data-field-classification={field.classification} key={field.canonicalId}>
+              <article className={styles.fieldCard} data-canonical-field-id={field.canonicalId} data-field-classification={field.classification} key={field.canonicalId} tabIndex={-1}>
                 <header>
                   <div>
                     <strong>{field.lessonTitle}</strong>

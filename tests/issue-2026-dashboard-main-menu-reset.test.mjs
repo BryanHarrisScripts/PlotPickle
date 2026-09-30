@@ -78,11 +78,11 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   assert.match(connected, /"pitch-package"/u);
-  assert.doesNotMatch(connected, /"pitch-deck"/u);
+  assert.match(connected, /"pitch-deck"/u);
   assert.match(menu, /export const DASHBOARD_REVIEW_ITEM_IDS = new Set\(\[[\s\S]*"previs"[\s\S]*"timeline"[\s\S]*"production"/u);
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
-  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set\(\[[\s\S]*"pitch-deck"/u);
+  assert.match(menu, /export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>\(\[\]\)/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

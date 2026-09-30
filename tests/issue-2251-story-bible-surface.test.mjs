@@ -30,9 +30,9 @@ test("#2251/#2603 World Map opens the detached Blank without manufacturing a dur
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
   const browser = await read("core/storage/project-library-browser.ts");
 
-  assert.match(host, /setStoryBibleProject\(loadWorkspaceLibraryProject\(\)\)/u);
+  assert.match(host, /setStoryBibleProject\(loadActiveLibraryProject\(\)\)/u);
   assert.doesNotMatch(host, /Please load a story\./u);
-  assert.match(browser, /export function loadWorkspaceLibraryProject\(\): LibraryPPFProject/u);
+  assert.match(browser, /export function loadActiveLibraryProject\(\): LibraryPPFProject/u);
   assert.match(browser, /loadActiveLibraryProject[\s\S]*createEmptyLibraryProject/u);
   assert.match(browser, /detachedProjectCache = \{ profileId: activeProfileId, project \}/u);
   assert.doesNotMatch(host, /createEmptyLibraryProject|createAfterglow/u);

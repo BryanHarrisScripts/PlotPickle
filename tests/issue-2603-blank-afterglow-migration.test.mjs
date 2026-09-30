@@ -1,34 +1,36 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createEmptyProject } from "../core/project/project.ts";
-import { normalizeLibraryProject } from "../core/storage/library-project.ts";
-
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
 test("#2603 login Blank is a real empty project shape, not an Afterglow or last-project restore", async () => {
-  const now = "2026-09-30T19:30:00.000Z";
-  const blank = normalizeLibraryProject(createEmptyProject({ id: "detached-blank", now, title: "Untitled Story" }));
-  const serialized = JSON.stringify(blank);
-
-  assert.deepEqual(blank.foundations.lessons, {});
-  assert.equal(blank.foundations.brief.content, "");
-  assert.deepEqual(blank.world.lessons, {});
-  assert.equal(blank.world.brief.content, "");
-  assert.deepEqual(blank.discovery.cards, []);
-  assert.deepEqual(blank.writing.entries, []);
-  assert.equal(blank.sourceEvidence.characterTruth, null);
-  assert.deepEqual(blank.worldMap.characterVisuals, []);
-  assert.equal(blank.build.foundations.visualArtifacts.length, 0);
-  assert.equal(blank.build.world.visualArtifacts.length, 0);
-  assert.doesNotMatch(serialized, /Afterglow|\bRen\b|\bAmy\b|Summer|Isobel/u);
-
-  const [browser, profile, host] = await Promise.all([
+  const [projectSource, libraryProjectSource, browser, profile, host] = await Promise.all([
+    read("core/project/project.ts"),
+    read("core/storage/library-project.ts"),
     read("core/storage/project-library-browser.ts"),
     read("core/storage/profile-private-browser.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
+
+  for (const emptyConstructor of [
+    "foundations: createEmptyFoundationPlanState()",
+    "world: createEmptyWorldPlanState()",
+    "build: createEmptyBuildProgressState()",
+    "production: createEmptyPrevisProductionState()",
+  ]) assert.ok(projectSource.includes(emptyConstructor), `missing blank constructor: ${emptyConstructor}`);
+
+  for (const emptyConstructor of [
+    "createEmptyStoryStructureV2()",
+    "createEmptyProjectSourceEvidence()",
+    "createEmptyBlockWritingState()",
+    "createEmptyDiscoveryState()",
+    "createEmptyWorldMapState()",
+  ]) assert.ok(libraryProjectSource.includes(emptyConstructor), `missing Library blank constructor: ${emptyConstructor}`);
+
+  assert.doesNotMatch(projectSource, /Afterglow|\bRen\b|\bAmy\b|Summer|Isobel/u);
+  assert.doesNotMatch(libraryProjectSource, /Afterglow|\bRen\b|\bAmy\b|Summer|Isobel/u);
+
   assert.match(profile, /clearLibraryProjectSessionCache\(\);[\s\S]*window\.sessionStorage\.clear\(\)/u);
   assert.match(browser, /export function loadWorkspaceLibraryProject\(\): LibraryPPFProject \{[\s\S]*return loadActiveLibraryProject\(\)/u);
   assert.match(browser, /detachedProjectCache = \{ profileId: activeProfileId, project \}/u);

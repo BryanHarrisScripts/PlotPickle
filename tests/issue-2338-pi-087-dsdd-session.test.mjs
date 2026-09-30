@@ -21,7 +21,10 @@ test("#2338 promotes Pi 0.87 only with the candidate proof and authoritative met
   assert.equal(contract.promotedManagedVersion, "0.87.0");
   assert.equal(contract.requiredCapabilities.contextEditEntry, true);
   assert.equal(contract.requiredCapabilities.contextWithSystemExtensionEvent, true);
-  assert.deepEqual(contract.requiredExtensions, stack.piPackages);
+  const historicalExtensionsWithoutRetiredMcp = contract.requiredExtensions.filter((item) => !item.includes("pi-mcp-adapter"));
+  assert.deepEqual(historicalExtensionsWithoutRetiredMcp, stack.piPackages);
+  assert.equal(contract.requiredExtensions.some((item) => item.includes("pi-mcp-adapter")), true);
+  assert.equal(stack.piPackages.some((item) => item.includes("pi-mcp-adapter")), false);
   assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.99\.1"/u);
   assert.equal(stack.piRuntime.managedVersion, "0.99.1");
   assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.99.1");

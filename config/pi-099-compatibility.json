@@ -29,7 +29,7 @@
     },
     {
       "package": "pi-mcp-adapter",
-      "classification": "REPLACE_WITH_PI_BUILT_IN_IN_PHASE_2"
+      "classification": "RETIRED_FROM_LOADED_PACKAGE_SET_IN_PHASE_2"
     },
     {
       "package": "pi-context-view",
@@ -54,5 +54,11 @@
     "@earendil-works/pi-coding-agent/client",
     "@earendil-works/pi-coding-agent/experimental/plugin"
   ],
-  "promotionPolicy": "Promote the managed Pi pin to exactly 0.99.1 only after the isolated candidate install proves package-root SDK imports, persistent session/context semantics, compatible KEEP extensions, context_with_system registration, stdio RPC, and fail-closed exact-version handling. Native MCP, Codemode and virtual-model adoption remain later phases."
+  "promotionPolicy": "Promote the managed Pi pin to exactly 0.99.1 only after the isolated candidate install proves package-root SDK imports, persistent session/context semantics, compatible KEEP extensions, context_with_system registration, stdio RPC, and fail-closed exact-version handling. Native MCP, Codemode and virtual-model adoption remain later phases.",
+  "phase2Migration": {
+    "nativeMcp": true,
+    "legacyAdapterLoaded": false,
+    "canonicalConfig": ".mcp.json",
+    "exposurePolicy": "config/pi-tool-exposure-policy.json"
+  }
 }

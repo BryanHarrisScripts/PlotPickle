@@ -311,7 +311,7 @@ async function main() {
 
     const classification = new Map((contract.extensionAudit || []).map((item) => [item.package, item.classification]));
     const extensionRoots = extensionSpecs
-      .filter(({ name }) => classification.get(name) !== "REPLACE_WITH_PI_BUILT_IN_IN_PHASE_2")
+      .filter(({ name }) => !["REPLACE_WITH_PI_BUILT_IN_IN_PHASE_2", "RETIRED_FROM_LOADED_PACKAGE_SET_IN_PHASE_2"].includes(classification.get(name)))
       .map(({ name }) => packageRoot(candidateRoot, name));
     report.checks.extensionAudit = contract.extensionAudit || [];
     report.checks.extensions = await runExtensionLoadProbe(candidateRoot, extensionRoots);

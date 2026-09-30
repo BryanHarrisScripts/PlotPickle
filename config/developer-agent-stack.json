@@ -33,7 +33,6 @@
     "npm:@dietrichgebert/ponytail@4.8.4",
     "npm:pi-subagents@0.35.1",
     "npm:@ff-labs/pi-fff@0.10.1",
-    "npm:pi-mcp-adapter@2.26.0",
     "npm:pi-context-view@0.4.2"
   ],
   "piRuntime": {
@@ -47,7 +46,15 @@
     "cloudFallback": false,
     "providerConfigScope": "LOCALAPPDATA/PlotPickle/developer-agent",
     "compatibilityProof": "scripts/evaluate-pi-099-compatibility.mjs",
-    "builtInExtensionsPolicy": "0.99.x --no-extensions disables built-ins; probes must load required built-ins explicitly."
+    "builtInExtensionsPolicy": "0.99.x --no-extensions disables built-ins; probes must load required built-ins explicitly.",
+    "nativeMcp": {
+      "enabled": true,
+      "extension": ".pi/extensions/plotpickle-native-mcp.mjs",
+      "policy": "config/pi-tool-exposure-policy.json",
+      "legacyAdapter": "retired-from-loaded-package-set",
+      "legacyAdapterRollbackPackage": "npm:pi-mcp-adapter@2.26.0",
+      "legacyAdapterRollbackPolicy": "dormant-audit-only-not-loaded"
+    }
   },
   "mcp": {
     "sharedConfig": ".mcp.json",
@@ -56,7 +63,10 @@
     "command": "node",
     "args": [
       "scripts/developer-agent-mcp.mjs"
-    ]
+    ],
+    "piNative": true,
+    "exposurePolicy": "config/pi-tool-exposure-policy.json",
+    "authorizationGuard": "lib/agents/developer-tool-authorization.mjs"
   },
   "repair": {
     "command": "scripts/run-uat-repair-agent.mjs",

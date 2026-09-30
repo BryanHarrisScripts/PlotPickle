@@ -76,21 +76,27 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 ]);
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
-  "screening",
-  "sound-narration",
-  "sound-music",
-  "sound-foley",
   "previs",
   "timeline",
   "production",
 ]);
 
-export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([]);
+export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([
+  "screening",
+  "write",
+  "edit",
+  "refine",
+  "sound-foley",
+  "sound-narration",
+  "sound-music",
+]);
 
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },
   ...DASHBOARD_MENU
-    .filter((item) => !["logout", "shutdown"].includes(item.id) && CONNECTED_DASHBOARD_ITEM_IDS.has(item.id))
+    .filter((item) => !["logout", "shutdown"].includes(item.id)
+      && CONNECTED_DASHBOARD_ITEM_IDS.has(item.id)
+      && !DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id))
     .map((item) => ({ id: item.id, label: item.label })),
 ] as const;
 

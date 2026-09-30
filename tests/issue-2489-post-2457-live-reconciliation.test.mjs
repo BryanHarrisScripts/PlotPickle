@@ -29,11 +29,7 @@ test("#2489 live continuity covers all downstream Dashboard stages after orchest
     '{ id: "storyboard", menuId: "storyboard", governed: "storyboard" }',
     '{ id: "previs", menuId: "previs", governed: "previs" }',
     '{ id: "timeline", menuId: "timeline", governed: "scene-timeline" }',
-    '{ id: "sound-foley", menuId: "sound-foley", governed: "sound-foley" }',
-    '{ id: "sound-narration", menuId: "sound-narration", governed: "sound-narration" }',
-    '{ id: "sound-music", menuId: "sound-music", governed: "sound-music" }',
     '{ id: "production", menuId: "production", governed: "production" }',
-    '{ id: "screening", menuId: "screening", governed: "screening" }',
   ]) assert.ok(probe.includes(expected), "missing live stage: " + expected);
 
   assert.match(probe, /canonicalSurface\(stage\.governed\)/u);

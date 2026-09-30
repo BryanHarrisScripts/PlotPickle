@@ -92,13 +92,14 @@ test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without e
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes("discovery"), false);
 });
 
-test("#2287 Discovery is connected from Dashboard and does not manufacture a project when none is active", async () => {
+test("#2287/#2603 Discovery opens the detached Blank and defers durable identity until first Save", async () => {
   const host = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
   const surface = await read("app/skin-v1/discovery-surface.tsx");
-  assert.match(host, /item\.id === "discovery"[\s\S]*setDiscoveryProject\(hasActiveLibraryProject\(\) \? loadActiveLibraryProject\(\) : null\)/u);
+  assert.match(host, /item\.id === "discovery"[\s\S]*setDiscoveryProject\(loadWorkspaceLibraryProject\(\)\)/u);
   assert.match(host, /<DiscoverySurface project=\{discoveryProject\}/u);
-  assert.match(surface, /Load or create a story in Library before persistent project pinning/u);
-  assert.doesNotMatch(surface, /createLibraryUserProject|createEmptyProject|Untitled Story/u);
+  assert.match(surface, /window\.prompt\("Save as New Project", suggested\)/u);
+  assert.match(surface, /saveDetachedLibraryProjectAs/u);
+  assert.doesNotMatch(host, /createAfterglow|createEmptyLibraryProject/u);
 });
 
 

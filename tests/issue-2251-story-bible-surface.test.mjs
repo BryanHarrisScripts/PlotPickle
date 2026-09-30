@@ -13,7 +13,7 @@ test("#2251 Story Bible remains connected after the #2266 Pre-Production consoli
   const plan = menu.indexOf('id: "plan"');
 
   assert.ok(discovery >= 0 && bible > discovery && write > bible && plan > write);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "WorldMap", description: "Map the Story World", group: "DEVELOP"/u);
+  assert.match(menu, /id: "story-bible", shortcut: "W", label: "WorldMap", description: "Map the Story World", group: "DEVELOP"/u);
   assert.match(menu, /"story-bible"/u);
 
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");

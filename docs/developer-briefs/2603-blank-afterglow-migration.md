@@ -18,7 +18,7 @@ The existing empty PPF factory was already clean. The missing product behavior w
 
 Phase 2 makes both surfaces consume the same workspace loader:
 
-`loadWorkspaceLibraryProject()`
+`loadActiveLibraryProject()`
 
 When no Library project is selected, that loader returns the detached empty runtime project. When a project/example has been explicitly selected, it returns that durable project.
 

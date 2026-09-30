@@ -37,7 +37,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
   assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
 });
 
-test("#2454/#2458 keeps the approved IA while Screening becomes a governed review surface", async () => {
+test("#2454/#2458/#2612 keeps the approved IA while Screening is a gray selectable placeholder", async () => {
   const [menu, host] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -47,8 +47,12 @@ test("#2454/#2458 keeps the approved IA while Screening becomes a governed revie
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
-  assert.doesNotMatch(unavailable, /"screening"/u);
+  assert.match(unavailable, /"screening"/u);
   assert.match(host, /item\.id === "screening"[\s\S]*setScreeningOpen\(true\)/u);
+  assert.ok(
+    host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf('item.id === "screening"'),
+    "Unavailable guard must run before the retained Screening review branch",
+  );
   assert.match(host, /item\.id === "production"[\s\S]*openProduction\(reviewAddress\)/u);
   assert.match(host, /onSurfaceNameChange\("MindMap"\)/u);
   assert.match(host, /<h1>MindMap<\/h1>/u);
@@ -57,6 +61,6 @@ test("#2454/#2458 keeps the approved IA while Screening becomes a governed revie
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
   );
-  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["screening", "sound-narration", "sound-music", "sound-foley", "previs", "timeline", "production"]);
+  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["previs", "timeline", "production"]);
   for (const id of ["discovery", "story-bible", "plan", "storyboard"]) assert.doesNotMatch(review, new RegExp(`"${id}"`, "u"));
 });

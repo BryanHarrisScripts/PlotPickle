@@ -46,6 +46,10 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-099-compatibility.mjs
 
+      - name: Prove Pi native MCP registration and stdio on Windows
+        shell: pwsh
+        run: node --test tests/issue-2591-pi-native-mcp.test.mjs
+
       - name: Verify Pi Draft prompt transport through a Windows batch shim
         shell: pwsh
         run: node --test tests/issue-2359-pi-draft-stdin.test.mjs

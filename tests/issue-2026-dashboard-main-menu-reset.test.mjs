@@ -83,7 +83,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Huma
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
   const unavailableSet = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  for (const id of ["write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "screening"]) {
+  for (const id of ["write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "screening", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"]) {
     assert.match(unavailableSet, new RegExp(`"${id}"`, "u"));
   }
   assert.match(menu, /!DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)/u);

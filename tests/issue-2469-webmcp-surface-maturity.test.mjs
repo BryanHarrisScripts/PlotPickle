@@ -17,7 +17,7 @@ test("#2469 projects Dashboard maturity as locked, in-review and unavailable", (
   assert.deepEqual(summary.unavailable, ["pitch-deck"]);
 });
 
-test("#2469 registers current Screening and Sound destinations without promoting maturity", async () => {
+test("#2469/#2612 keeps Screening and Sound governed while deferring Dashboard maturity", async () => {
   const [registryText, menu] = await Promise.all([
     read("config/skin-v1-surface-registry.json"),
     read("app/skin-v1/dashboard-menu-registry.ts"),
@@ -30,7 +30,9 @@ test("#2469 registers current Screening and Sound destinations without promoting
     assert.equal(surface.governance, "census");
   }
   const review = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
-  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) assert.match(review, new RegExp('"' + id + '"'));
+  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) assert.doesNotMatch(review, new RegExp('"' + id + '"'));
+  const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) assert.match(unavailable, new RegExp('"' + id + '"'));
 });
 
 test("#2469 keeps sound surfaces individually identifiable in rendered governance", async () => {

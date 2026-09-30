@@ -56,7 +56,7 @@ test("#2587 routes available creative destinations to their canonical authoritie
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
 
-  for (const id of ["write", "edit", "refine", "feedback", "pitch-package", "wyrmwood", "story"]) {
+  for (const id of ["write", "edit", "refine", "feedback", "pitch-deck", "pitch-package", "wyrmwood", "story"]) {
     const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
     assert.match(connected, new RegExp(`"${id}"`, "u"), `${id} should be connected`);
   }
@@ -66,7 +66,8 @@ test("#2587 routes available creative destinations to their canonical authoritie
     ["edit", "/edit"],
     ["refine", "/diagnostics"],
     ["feedback", "/feedback"],
-    ["pitch-package", "/pitch-review?scope=pitch&return=dashboard"],
+    ["pitch-deck", "/pitch-review?scope=pitch&view=exports&return=dashboard"],
+    ["pitch-package", "/pitch-review?scope=pitch&view=package&return=dashboard"],
     ["wyrmwood", "/?workspace=wyrmwood"],
     ["story", "/story"],
   ]);
@@ -76,10 +77,20 @@ test("#2587 routes available creative destinations to their canonical authoritie
   assert.match(host, /window\.location\.assign\(canonicalRoute\)/u);
 });
 
-test("#2587 keeps Deck truthfully unavailable until a canonical route exists", async () => {
-  const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
+test("#2587 gives Deck and Package real canonical pitch subviews", async () => {
+  const [menu, page, workspace] = await Promise.all([
+    read("app/skin-v1/dashboard-menu-registry.ts"),
+    read("app/pitch-review/page.tsx"),
+    read("app/pitch-review-workspace.tsx"),
+  ]);
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
 
-  assert.match(unavailable, /"pitch-deck"/u);
-  assert.doesNotMatch(unavailable, /"pitch-package"/u);
+  assert.match(connected, /"pitch-deck"/u);
+  assert.match(connected, /"pitch-package"/u);
+  assert.doesNotMatch(unavailable, /"pitch-deck"|"pitch-package"/u);
+  assert.match(page, /requestedView === "logline" \|\| requestedView === "package" \|\| requestedView === "exports"/u);
+  assert.match(page, /initialView=\{entryView\}/u);
+  assert.match(workspace, /initialView\?: PitchReviewView/u);
+  assert.match(workspace, /setView\(initialView\)/u);
 });

@@ -20,7 +20,11 @@ import {
 } from "../../core/contracts/build-progress";
 import { projectStoryBible, type StoryBibleCharacter, type StoryBibleFact, type StoryBibleFactGroup } from "../../core/project/story-bible-projection";
 import { applyStoryCommand } from "../../core/project/apply-command";
-import { saveActiveLibraryProject } from "../../core/storage/project-library-browser";
+import {
+  hasActiveLibraryProject,
+  saveActiveLibraryProject,
+  saveDetachedLibraryProjectAs,
+} from "../../core/storage/project-library-browser";
 import { flushProfilePrivateWrites, persistActiveProfileProject } from "../../core/storage/profile-private-browser";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import {
@@ -46,6 +50,14 @@ type ImageResponse = {
   readonly model?: string;
   readonly message?: string;
 };
+
+function saveWorldMapProject(project: LibraryPPFProject) {
+  if (hasActiveLibraryProject()) return saveActiveLibraryProject(project);
+  const suggested = project.title === "Untitled Story" ? "" : project.title;
+  const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
+  if (!title) return null;
+  return saveDetachedLibraryProjectAs(project, { title, format: "Feature" });
+}
 
 function Fact({ fact }: { readonly fact: StoryBibleFact }) {
   return (
@@ -150,7 +162,7 @@ function WorldFactEditor({ fact, project }: { readonly fact: StoryBibleFact; rea
     if (!address || !proposal.trim()) return;
     const now = new Date().toISOString();
     const lesson = project.world.lessons[address.lessonId] ?? { answers: {}, updatedAt: null };
-    saveActiveLibraryProject({
+    const saved = saveWorldMapProject({
       ...project,
       revision: project.revision + 1,
       updatedAt: now,
@@ -166,6 +178,10 @@ function WorldFactEditor({ fact, project }: { readonly fact: StoryBibleFact; rea
         },
       },
     });
+    if (!saved) {
+      setNotice("Save cancelled. The blank workspace was not added to Library.");
+      return;
+    }
     setProposal("");
     setNotice("Saved as an accepted World decision.");
     setState("idle");
@@ -491,12 +507,16 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
       references: candidate.references,
       savedAt: now,
     });
-    saveActiveLibraryProject({
+    const saved = saveWorldMapProject({
       ...project,
       revision: project.revision + 1,
       updatedAt: now,
       worldMap,
     });
+    if (!saved) {
+      setNotice("Save cancelled. The blank workspace was not added to Library.");
+      return;
+    }
     await confirmCharacterDurability("save");
   }
 
@@ -504,12 +524,16 @@ function CharacterVisualSheet({ character, project }: { readonly character: Stor
     if (!selectedVersion?.complete || (selectedVersion.locked && durabilityRetry !== "lock") || persisting) return;
     if (durabilityRetry !== "lock") {
       const now = new Date().toISOString();
-      saveActiveLibraryProject({
+      const saved = saveWorldMapProject({
         ...project,
         revision: project.revision + 1,
         updatedAt: now,
         worldMap: lockWorldMapCharacterVisualVersion(project.worldMap, character.id, selectedVersion.id, now),
       });
+      if (!saved) {
+        setNotice("Lock cancelled. Save this blank workspace as a new project first.");
+        return;
+      }
     }
     await confirmCharacterDurability("lock");
   }
@@ -708,7 +732,11 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
       artifact: posterCandidate,
       occurredAt: now,
     }) as LibraryPPFProject;
-    saveActiveLibraryProject(next);
+    const saved = saveWorldMapProject(next);
+    if (!saved) {
+      setPosterNotice("Save cancelled. The blank workspace was not added to Library.");
+      return;
+    }
     setPosterCandidate(null);
     setPosterVersionIndex(0);
     setPosterNotice("SAVED locally with this story. You can keep up to five poster versions and lock one.");
@@ -732,7 +760,11 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
       artifactId: selectedPoster.id,
       occurredAt: now,
     }) as LibraryPPFProject;
-    saveActiveLibraryProject(next);
+    const saved = saveWorldMapProject(next);
+    if (!saved) {
+      setPosterNotice("Lock cancelled. Save this blank workspace as a new project first.");
+      return;
+    }
     setPosterNotice("LOCKED. This saved poster is now the selected WorldMap Marketing Reference; other saved versions remain available.");
   }
 

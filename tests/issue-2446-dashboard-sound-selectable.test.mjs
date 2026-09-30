@@ -34,8 +34,7 @@ test("#2446/#2458 keeps Sound between Visualize and Pitch and promotes the three
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
   for (const id of ["screening", "sound-narration", "sound-music", "sound-foley"]) assert.doesNotMatch(unavailable, new RegExp(`"${id}"`, "u"));
-  assert.doesNotMatch(unavailable, /"pitch-package"/u);
-  assert.match(unavailable, /"pitch-deck"/u);
+  assert.doesNotMatch(unavailable, /"pitch-package"|"pitch-deck"/u);
 });
 
 test("#2446/#2458 keeps only truly unavailable rows inert while Sound opens governed review surfaces", async () => {

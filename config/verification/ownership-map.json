@@ -1538,6 +1538,19 @@
         "provider",
         "security"
       ]
+    },
+    {
+      "id": "oss-third-party-verification",
+      "classification": "verification",
+      "include": [
+        "scripts/third-party-oss-audit.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "security",
+        "provider",
+        "test-harness"
+      ]
     }
   ]
 }

@@ -6,7 +6,7 @@ Complete Phase 5 of #2601 by proving Blank and Afterglow use the same canonical 
 
 ## Implementation
 
-- Add `modules/plan/canonical-project-outline-projection.ts`.
+- Add `modules/plan/projections/canonical-project-outline.ts`.
 - Version the projection contract independently from persisted project schema.
 - Derive all Learn-backed canonical fields through `storyDevelopmentFieldView`.
 - Derive the 24 Block / 96 Mini-Block structure from `project.structure`.

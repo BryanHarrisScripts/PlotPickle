@@ -302,10 +302,6 @@ export function isDetachedLibraryWorkspaceProject(project: Pick<PPFProject, "id"
  * one it is a detached, empty project that exists only for the current browser
  * runtime until the Human chooses Save as New Project.
  */
-export function loadWorkspaceLibraryProject(): LibraryPPFProject {
-  return loadActiveLibraryProject();
-}
-
 export function loadActiveLibraryProject(): LibraryPPFProject {
   const currentProjectId = sessionActiveProjectId();
   if (currentProjectId) {

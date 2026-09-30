@@ -88,6 +88,9 @@ export type AgentRuntimeExecutionRequest<TContext = unknown> = {
   projectId?: string;
   provider: TextProvider;
   model: string;
+  logicalProviderId?: string;
+  logicalModelId?: string;
+  thinkingLevel?: "off" | "low" | "medium" | "high" | "xhigh";
   runtime: AgentRuntimeId;
   instructions: string;
   input: string;

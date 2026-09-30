@@ -14,7 +14,7 @@
       "id": "pi",
       "label": "Pi",
       "role": "primary-or-reviewer",
-      "installCommand": "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.87.1",
+      "installCommand": "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.99.1",
       "projectSettings": ".pi/settings.json"
     },
     {
@@ -25,7 +25,10 @@
       "projectSettings": ".cline"
     }
   ],
-  "excludedRequiredTools": ["OpenHands", "Herdr"],
+  "excludedRequiredTools": [
+    "OpenHands",
+    "Herdr"
+  ],
   "piPackages": [
     "npm:@dietrichgebert/ponytail@4.8.4",
     "npm:pi-subagents@0.35.1",
@@ -35,26 +38,33 @@
   ],
   "piRuntime": {
     "requiredForFullVerification": true,
-    "managedVersion": "0.87.1",
+    "managedVersion": "0.99.1",
     "managedExecutablePolicy": "full-verification-managed-only",
     "autoProvisionMissingCli": true,
     "ensureCommand": "scripts/ensure-pi-repair-stack.mjs",
     "verifyCommand": "scripts/verify-pi-repair-worker.mjs",
     "localOnly": true,
     "cloudFallback": false,
-    "providerConfigScope": "LOCALAPPDATA/PlotPickle/developer-agent"
+    "providerConfigScope": "LOCALAPPDATA/PlotPickle/developer-agent",
+    "compatibilityProof": "scripts/evaluate-pi-099-compatibility.mjs",
+    "builtInExtensionsPolicy": "0.99.x --no-extensions disables built-ins; probes must load required built-ins explicitly."
   },
   "mcp": {
     "sharedConfig": ".mcp.json",
     "clineConfig": ".cline/mcp.json",
     "server": "plotpickle-dev",
     "command": "node",
-    "args": ["scripts/developer-agent-mcp.mjs"]
+    "args": [
+      "scripts/developer-agent-mcp.mjs"
+    ]
   },
   "repair": {
     "command": "scripts/run-uat-repair-agent.mjs",
     "defaultWorker": "pi",
-    "selectableWorkers": ["pi", "cline"],
+    "selectableWorkers": [
+      "pi",
+      "cline"
+    ],
     "legacyWorker": "mastra-qwen",
     "skill": "uat-repair",
     "localOnly": true,
@@ -68,7 +78,12 @@
     "deterministicCommand": "scripts/run-ben-code-quality.mjs",
     "advisoryReviewer": "pi",
     "advisoryCommand": "scripts/run-pi-code-quality-review.mjs",
-    "piTools": ["read", "grep", "find", "ls"],
+    "piTools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
     "writesAllowed": false,
     "authoritative": false,
     "artifactRoot": "LOCALAPPDATA/PlotPickle/full-verification/pi-code-quality"
@@ -76,7 +91,10 @@
   "agentBench": {
     "runner": "scripts/run-agent-bench.mjs",
     "tasks": "config/agent-bench/tasks.json",
-    "agents": ["pi", "cline"],
+    "agents": [
+      "pi",
+      "cline"
+    ],
     "artifactRoot": ".artifacts/agent-bench"
   },
   "gates": [
@@ -181,8 +199,13 @@
       }
     ],
     "flows": {
-      "prePr": ["focused-uat", "build"],
-      "liveUi": ["webmcp-ui"],
+      "prePr": [
+        "focused-uat",
+        "build"
+      ],
+      "liveUi": [
+        "webmcp-ui"
+      ],
       "closedLoop": "verified finding -> existing UAT report -> bounded semantic repair -> rerun originating hook",
       "finalGate": "github-ci"
     }

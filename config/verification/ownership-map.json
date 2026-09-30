@@ -1597,9 +1597,10 @@
       "id": "mind-map-canonical-story-development",
       "classification": "production",
       "include": [
-        "core/contracts/story-development.ts",
+        "core/storage/library-project.ts",
         "core/project/story-development.ts",
-        "modules/learn/model/story-development-fields.ts"
+        "modules/learn/model/story-development-fields.ts",
+        "core/contracts/curriculum.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

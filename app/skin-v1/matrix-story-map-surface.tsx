@@ -8,7 +8,7 @@ import {
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
 import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
-import { projectCanonicalProjectForOutline } from "@/modules/plan/canonical-project-outline-projection";
+import { projectCanonicalProjectForOutline } from "@/modules/plan/projections/canonical-project-outline";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import ActWrittenStoryBoard from "./act-written-story-board";
 import OutlineMiniBlockAnchorWorkspace from "./outline-mini-block-anchor-workspace";

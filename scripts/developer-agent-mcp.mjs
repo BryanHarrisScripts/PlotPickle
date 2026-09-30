@@ -335,9 +335,8 @@ async function selfTest() {
     stack = await readDeveloperStack();
     harness = safeHarnessProjection(stack);
   } catch (error) {
-    console.error(`PlotPickle MCP self-test FAIL: ${error instanceof Error ? error.message : "developer harness registry is invalid."}`);
-    process.exitCode = 1;
-    return;
+    console.error("PlotPickle MCP self-test FAIL: developer harness registry is invalid.");
+    throw error;
   }
 
   const hookIds = new Set(harness.hooks.map((hook) => hook.id));

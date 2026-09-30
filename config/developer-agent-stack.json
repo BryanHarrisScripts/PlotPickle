@@ -54,6 +54,19 @@
       "legacyAdapter": "retired-from-loaded-package-set",
       "legacyAdapterRollbackPackage": "npm:pi-mcp-adapter@2.26.0",
       "legacyAdapterRollbackPolicy": "dormant-audit-only-not-loaded"
+    },
+    "virtualModel": {
+      "provider": "plotpickle",
+      "model": "developer",
+      "extension": ".pi/extensions/plotpickle-virtual-model.mjs",
+      "policy": "config/pi-virtual-model-policy.json",
+      "routeEnvironment": "PLOTPICKLE_PI_ROUTE_JSON",
+      "authority": "plotpickle-agent-compute",
+      "cloudProvider": "openai",
+      "cloudLoginCommand": "/login openai",
+      "cloudRequiresExplicitHumanAction": true,
+      "cloudFallback": false,
+      "credentialsInRepository": false
     }
   },
   "mcp": {

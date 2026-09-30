@@ -58,9 +58,8 @@ test("#2603 first explicit Save from Blank requests a name and promotes to a fre
   assert.match(mindMap, /setProposalDrafts\(\(current\) => \(\{ \.\.\.current, \[field\.canonicalId\]: proposal \}\)\)/u);
   assert.match(mindMap, /if \(hasActiveLibraryProject\(\)\) \{[\s\S]*writeStoryDevelopmentFieldProposal/u);
 
-  assert.match(worldMap, /function saveWorldMapProject\(project: LibraryPPFProject\)/u);
-  assert.match(worldMap, /window\.prompt\("Save as New Project", suggested\)/u);
-  assert.match(worldMap, /saveDetachedLibraryProjectAs\(project, \{ title, format: "Feature" \}\)/u);
+  assert.match(worldMap, /data-story-bible-read-only="true"/u);
+  assert.doesNotMatch(worldMap, /saveWorldMapProject|saveDetachedLibraryProjectAs|window\.prompt\("Save as New Project"/u);
 
   assert.equal(policy.blankToProject.actionLabel, "Save as New Project");
   assert.equal(policy.blankToProject.createsFreshIdentity, true);

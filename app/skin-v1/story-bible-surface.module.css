@@ -342,6 +342,56 @@
   color: var(--pp-skin-ink-muted);
 }
 
+.reviewHelp {
+  margin: var(--pp-skin-space-2) 0 0;
+  color: var(--pp-skin-ink-soft);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-2);
+  margin-top: var(--pp-skin-space-3);
+}
+
+.reviewActions a,
+.reviewActions button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.reviewActions a:hover,
+.reviewActions a:focus-visible,
+.reviewActions button:hover,
+.reviewActions button:focus-visible {
+  border-color: var(--pp-skin-accent-bright);
+  color: var(--pp-skin-accent-bright);
+  outline: none;
+}
+
+.posterReview {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  gap: var(--pp-skin-space-4);
+  align-items: start;
+}
+
+.posterReview h3,
+.posterReview p {
+  margin-top: 0;
+}
+
 @media (max-width: 1050px) {
   .blockGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .characterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -363,7 +413,8 @@
   .spotlight,
   .factGrid,
   .blockGrid,
-  .characterGrid {
+  .characterGrid,
+  .posterReview {
     grid-template-columns: 1fr;
   }
 }

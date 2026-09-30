@@ -54,7 +54,7 @@ test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed 
     assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
   }
 
-  assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\("foundations"\)/u);
+  assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\(initialTopic\)/u);
   assert.match(surface, /aria-label="MindMap Learn topics"/u);
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic\)/u);
   assert.match(surface, /lane\.topic === selectedTopic/u);
@@ -68,7 +68,7 @@ test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed 
   assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 
-test("#2557 WorldMap shares Act 1-4 and twelve-topic navigation while preserving existing tools", async () => {
+test("#2557/#2605 WorldMap shares Act 1-4 and twelve-topic read/review navigation", async () => {
   const [surface, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
@@ -79,17 +79,11 @@ test("#2557 WorldMap shares Act 1-4 and twelve-topic navigation while preserving
   assert.match(surface, /aria-label="World Map Learn topics"/u);
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
   assert.match(surface, /data-world-map-topic=\{activeTopic\}/u);
-  assert.match(surface, /block\.actNumber === selectedAct/u);
-  assert.match(surface, /activeTopic === "character"/u);
-  assert.match(surface, /Generate Character Visual/u);
-  assert.match(surface, /activeTopic === "world"/u);
-  assert.match(surface, /Ask World Agent/u);
-  assert.match(surface, /activeTopic === "structure"/u);
-  assert.match(surface, /activeTopic === "previs"/u);
-  assert.match(surface, /Generate Poster Visual/u);
-  assert.match(surface, /activeTopic === "responsible-ai"/u);
-  assert.match(surface, /No established \{activeTopicEntry\.label\} material is available in WorldMap yet/u);
-  assert.match(surface, /Open in Learn/u);
+  assert.match(surface, /data-world-map-canonical-topic=\{activeTopic\}/u);
+  assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface, /Edit in Mind Map/u);
+  assert.match(surface, /Open Topic in Learn/u);
+  assert.doesNotMatch(surface, /Ask World Agent|Generate Character Visual|Generate Poster Visual/u);
   assert.match(styles, /\.sectionNav \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 

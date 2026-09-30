@@ -7,7 +7,7 @@ const readJson = async (path) => JSON.parse(await read(path));
 
 test("#2606 defines a stable derived canonical project projection for Outline", async () => {
   const [projection, library, outline] = await Promise.all([
-    read("modules/plan/canonical-project-outline-projection.ts"),
+    read("modules/plan/projections/canonical-project-outline.ts"),
     read("core/storage/library-project.ts"),
     read("app/skin-v1/matrix-story-map-surface.tsx"),
   ]);

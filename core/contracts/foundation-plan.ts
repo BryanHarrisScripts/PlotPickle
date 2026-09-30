@@ -1,4 +1,4 @@
-import type { CurriculumLesson } from "./curriculum";
+import { curriculumApplicationPrompts, type CurriculumLesson } from "./curriculum";
 
 export const FOUNDATION_PROJECT_STORAGE_KEY = "plotpickle.foundation.project.v1";
 export const FOUNDATION_SEQUENCE_SHIFT_METADATA_ID = "__story-map-sequence-shifts__";
@@ -69,14 +69,6 @@ export function guidingQuestionsForFoundationField(field: FoundationPlanField): 
   ];
 }
 
-function applicationPrompts(lesson: CurriculumLesson) {
-  const application = [...lesson.sections].reverse().find(
-    (section) => section.heading.trim().toLowerCase() === "apply this to your story",
-  );
-  const prompts = application?.points?.filter((point) => point.trim()) ?? [];
-  return prompts.length ? prompts : [lesson.exercise];
-}
-
 export function buildFoundationPlanLessons(curriculum: readonly CurriculumLesson[]): readonly FoundationPlanLesson[] {
   return curriculum
     .filter((lesson) => lesson.topic === "foundations")
@@ -86,7 +78,7 @@ export function buildFoundationPlanLessons(curriculum: readonly CurriculumLesson
       number: lesson.number,
       title: lesson.title,
       overview: lesson.overview,
-      fields: applicationPrompts(lesson).map((prompt, index) => ({ id: `output-${index + 1}`, prompt })),
+      fields: curriculumApplicationPrompts(lesson).map((prompt, index) => ({ id: `output-${index + 1}`, prompt })),
     }));
 }
 

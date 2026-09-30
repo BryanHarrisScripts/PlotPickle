@@ -3,12 +3,22 @@ import { readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DeveloperToolClass, assertDeveloperToolAuthorized } from "../lib/agents/developer-tool-authorization.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const DEVELOPER_STACK_PATH = path.join(REPO_ROOT, "config", "developer-agent-stack.json");
 const PROTOCOL_VERSION = "2025-06-18";
 const MAX_OUTPUT = 20_000;
+
+const TOOL_CLASSES = Object.freeze({
+  plotpickle_status: DeveloperToolClass.READ,
+  plotpickle_hooks: DeveloperToolClass.READ,
+  plotpickle_uat_findings: DeveloperToolClass.READ,
+  plotpickle_focused_uat: DeveloperToolClass.EVIDENCE,
+  plotpickle_build: DeveloperToolClass.EVIDENCE,
+  plotpickle_validate: DeveloperToolClass.EVIDENCE,
+});
 
 const TOOLS = [
   {
@@ -235,6 +245,9 @@ async function validate() {
 }
 
 async function callTool(name) {
+  const toolClass = TOOL_CLASSES[name];
+  if (!toolClass) return null;
+  assertDeveloperToolAuthorized({ toolName: name, toolClass });
   switch (name) {
     case "plotpickle_status":
       return repositoryStatus();

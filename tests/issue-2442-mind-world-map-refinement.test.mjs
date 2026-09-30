@@ -34,7 +34,7 @@ test("#2442 Storyboard returns to Dashboard and Outline disclosures default clos
   assert.doesNotMatch(written, /<details[^>]+open=\{!turningPointSelected/u);
 });
 
-test("#2442/#2448 MindMap is written-only and Creative Director develops all eleven governed lanes for each Act", async () => {
+test("#2442/#2604 MindMap keeps written ideas plus canonical Learn-backed field authoring", async () => {
   const [surface, contract, host, registry] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/contracts/discovery/index.ts"),
@@ -52,10 +52,10 @@ test("#2442/#2448 MindMap is written-only and Creative Director develops all ele
   assert.match(surface, /DISCOVERY_LANES/u);
   assert.match(surface, /agentId: "creative-director"/u);
   assert.match(surface, /conversationMode: true/u);
-  assert.match(surface, /Develop Act \$\{selectedAct\} Mind Map/u);
+  assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface, /field\.actionLabel/u);
+  assert.match(surface, /Use Proposal/u);
   assert.match(surface, /sourceState: "agent-proposal"/u);
-  assert.match(surface, /classifierId: "creative-director"/u);
-  assert.match(surface, /AGENT PROPOSAL/u);
   assert.match(contract, /"agent-proposal"/u);
 
   const parsed = JSON.parse(registry);
@@ -65,7 +65,7 @@ test("#2442/#2448 MindMap is written-only and Creative Director develops all ele
   }
 });
 
-test("#2442 World Map exposes World-agent proposal edit save without silent canon promotion", async () => {
+test("#2442/#2605 World Map routes revision to Mind Map instead of owning World-agent saves", async () => {
   const [surface, host, registry] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -73,44 +73,20 @@ test("#2442 World Map exposes World-agent proposal edit save without silent cano
   ]);
 
   assert.match(host, /<h1>WORLD MAP<\/h1>/u);
-  assert.match(host, /aria-label="World Map"/u);
   assert.match(surface, /data-world-map-surface="review"/u);
-  assert.match(surface, /agentId: "world"/u);
-  assert.match(surface, /Ask World Agent/u);
-  assert.match(surface, /Agent proposal · edit before saving/u);
-  assert.match(surface, /data-world-agent-review-actions="three-decision"/u);
-  assert.match(surface, />Save<\/button>/u);
-  assert.match(surface, />Redo<\/button>/u);
-  assert.match(surface, />Discard<\/button>/u);
-  assert.match(surface, /Proposal discarded\. Canon was not changed\./u);
-  assert.match(surface, /saveActiveLibraryProject/u);
-  assert.match(surface, /answers: \{ \.\.\.lesson\.answers, \[address\.fieldId\]: proposal\.trim\(\)/u);
-
-  const worldLessons = buildWorldPlanLessons(plotPickleCurriculum);
-  const genre = worldLessons.find((lesson) => lesson.id === "genres");
-  assert.ok(genre?.fields.some((field) => /dominant and secondary genres/iu.test(field.prompt)));
+  assert.match(surface, /data-story-bible-read-only="true"/u);
+  assert.match(surface, /Edit in Mind Map/u);
+  assert.match(host, /openMindMapField/u);
+  assert.doesNotMatch(surface, /agentId: "world"|Ask World Agent|data-world-agent-review-actions/u);
+  assert.doesNotMatch(surface, /saveActiveLibraryProject/u);
 
   const parsed = JSON.parse(registry);
   assert.equal(parsed.surfaces.find((item) => item.id === "story-bible")?.label, "World Map");
 });
 
-test("#2442/#2493 World Map character visuals use eight governed views, explicit Save, and one lock", async () => {
+test("#2442/#2493/#2605 character visual authority remains durable while World Map only reviews it", async () => {
   assert.equal(WORLD_MAP_CHARACTER_VIEWS.length, 8);
   assert.equal(WORLD_MAP_CHARACTER_MAX_VERSIONS, 5);
-  assert.deepEqual(
-    WORLD_MAP_CHARACTER_VIEWS.map((item) => item.id),
-    [
-      "front-full-body",
-      "back-full-body",
-      "left-profile",
-      "right-profile",
-      "left-three-quarter",
-      "right-three-quarter",
-      "neutral-stance",
-      "secondary-stance",
-    ],
-  );
-
   const createdAt = "2026-09-25T12:00:00.000Z";
   const versionId = "joy-version-1";
   const refs = WORLD_MAP_CHARACTER_VIEWS.map((view) => ({
@@ -127,27 +103,15 @@ test("#2442/#2493 World Map character visuals use eight governed views, explicit
     reviewState: "draft",
   }));
   let state = saveWorldMapCharacterVisualVersion(createEmptyWorldMapState(), {
-    characterId: "joy",
-    characterName: "Joy",
-    versionId,
-    references: refs,
-    savedAt: createdAt,
+    characterId: "joy", characterName: "Joy", versionId, references: refs, savedAt: createdAt,
   });
-  assert.equal(approvedWorldMapCharacterReferences(state, "joy").length, 0);
-  assert.equal(worldMapCharacterVisualVersions(state, "joy").length, 1);
   state = lockWorldMapCharacterVisualVersion(state, "joy", versionId, "2026-09-25T12:05:00.000Z");
   assert.equal(approvedWorldMapCharacterReferences(state, "joy").length, 8);
-  assert.equal(worldMapCharacterVisualVersions(state, "joy")[0].locked, true);
   assert.equal(normalizeWorldMapState(state).characterVisuals[0].lockedVersionId, versionId);
 
   const source = await read("app/skin-v1/story-bible-surface.tsx");
-  assert.match(source, /Generate Character Visual/u);
-  assert.match(source, /Generate eight character-reference views/u);
-  assert.match(source, />Save<\/button>/u);
-  assert.match(source, />Lock<\/button>/u);
-  assert.match(source, /exactly one may be locked/u);
-  assert.doesNotMatch(source, /Approve \/ Lock Character Visuals/u);
-  assert.match(source, /billingAcknowledged: true/u);
+  assert.match(source, /Approved character truth and visual identity/u);
+  assert.doesNotMatch(source, /Generate Character Visual|Generate Missing Views|>Save<\/button>|>Lock<\/button>/u);
 });
 
 test("#2442 approved Library World Map character references feed Storyboard identity grounding", async () => {

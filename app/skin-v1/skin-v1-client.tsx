@@ -51,6 +51,91 @@ const LOADING_VIEW: LogonViewModel = {
   message: null,
 };
 
+type LockedNodeControlResponse = {
+  readonly lifecycle?: { readonly state?: string };
+  readonly shutdownToken?: string;
+  readonly message?: string;
+};
+
+const LOCKED_NODE_CONTROL_HEADERS = {
+  "Content-Type": "application/json",
+  "X-PlotPickle-Node-Control": "confirmed",
+} as const;
+
+async function lockedSkinNodeAction(action: string, payload: Record<string, unknown> = {}) {
+  const response = await fetch("/api/system/node-control", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: LOCKED_NODE_CONTROL_HEADERS,
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const body = await response.json() as LockedNodeControlResponse;
+  if (!response.ok) throw new Error(body.message || "PlotPickle Node control is unavailable.");
+  return body;
+}
+
+function SkinV1LockedNodeShutdown() {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [lifecycle, setLifecycle] = useState("RUNNING");
+
+  async function shutDown() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    let shutdownToken = "";
+    try {
+      const profileResponse = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
+      const profileStatus = await profileResponse.json() as { readonly authenticated?: boolean; readonly message?: string };
+      if (!profileResponse.ok) throw new Error(profileStatus.message || "PlotPickle could not verify the locked profile state.");
+      if (profileStatus.authenticated) {
+        throw new Error("A Human profile is active. Use the Dashboard Shut Down action so current work can be saved first.");
+      }
+
+      const begun = await lockedSkinNodeAction("begin-shutdown");
+      shutdownToken = String(begun.shutdownToken || "");
+      if (!shutdownToken) throw new Error("PlotPickle did not issue a graceful shutdown proof.");
+      setLifecycle(String(begun.lifecycle?.state || "SHUTTING_DOWN"));
+
+      const completed = await lockedSkinNodeAction("complete-shutdown", { shutdownToken });
+      setLifecycle(String(completed.lifecycle?.state || "STOPPED"));
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      let finalMessage = message;
+      if (shutdownToken) {
+        try {
+          await lockedSkinNodeAction("block-shutdown", { shutdownToken, message });
+        } catch (blockError) {
+          const detail = blockError instanceof Error ? blockError.message : String(blockError);
+          finalMessage = `${message} PlotPickle also could not record the blocked Node state: ${detail}`;
+        }
+      }
+      setError(finalMessage);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="pp-skin-v1-logon-shutdown" data-skin-v1-locked-shutdown="true" aria-label="Locked PlotPickle Node controls">
+      {!confirming ? (
+        <button type="button" onClick={() => setConfirming(true)}>SHUT DOWN PLOTPICKLE</button>
+      ) : (
+        <div className="pp-skin-v1-logon-shutdown-confirm" data-skin-v1-locked-shutdown-confirmation="true" role="dialog" aria-modal="true" aria-labelledby="skin-v1-locked-shutdown-title">
+          <strong id="skin-v1-locked-shutdown-title">SHUT DOWN THIS PLOTPICKLE NODE?</strong>
+          <p>PlotPickle will stop its local services and close the PlotPickle-owned window. Windows will remain running.</p>
+          <small role="status" aria-live="polite">NODE LIFECYCLE: {lifecycle}</small>
+          {error ? <p role="alert">{error}</p> : null}
+          <div>
+            <button type="button" disabled={busy} onClick={() => { setConfirming(false); setError(""); }}>CANCEL</button>
+            <button type="button" disabled={busy} onClick={() => void shutDown()}>{busy ? "SHUTTING DOWN..." : "CONFIRM SHUT DOWN"}</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function webMcpProfileGateCaptureRequested() {
   return (window as Window & { __PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__?: string })
     .__PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__ === "initializing";
@@ -488,6 +573,8 @@ export default function SkinV1Client() {
             <button type="submit" disabled={busy}>{busy ? "ENTERING..." : "ENTER"}</button>
           </form>
         ) : null}
+
+        {!recovery ? <SkinV1LockedNodeShutdown /> : null}
 
         <footer className="pp-skin-v1-status">
           <span>BUSINESS USE CASE: LOGON</span>

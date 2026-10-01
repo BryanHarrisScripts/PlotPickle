@@ -82,6 +82,7 @@ test("#2654 launcher classifies warmup and liveness probes without turning post-
 
   assert.match(launcher, /X-PlotPickle-Startup-Probe'='existing-session'/);
   assert.match(launcher, /X-PlotPickle-Startup-Probe'='warmup'/);
+  assert.match(launcher, /\$base=\$env:PLOTPICKLE_URL \+ '\/skin-v1'/);
   assert.match(launcher, /X-PlotPickle-Startup-Probe'='liveness'/);
   assert.match(liveness, /startupProbePurpose/);
   assert.match(liveness, /isLauncherWarmupProbe/);

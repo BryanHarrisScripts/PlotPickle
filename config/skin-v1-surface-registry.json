@@ -179,8 +179,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
       },
-      "runtimeSelector": "[data-discovery-surface='living-board']",
-      "runtimeReadySelector": "[data-discovery-surface='living-board']",
+      "runtimeSelector": "[data-discovery-surface='canonical-authoring']",
+      "runtimeReadySelector": "[data-discovery-surface='canonical-authoring']",
       "orchestrated": true,
       "primitiveContract": {
         "familyProfile": "story",

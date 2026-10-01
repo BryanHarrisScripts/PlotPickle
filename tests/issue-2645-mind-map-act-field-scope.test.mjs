@@ -67,11 +67,11 @@ test("#2645 scope rules explicitly distinguish project-wide, Act-specific and re
     readJson("config/mind-map-field-scope-audit.json"),
   ]);
 
-  assert.match(model, /export type StoryDevelopmentFieldScope =[sS]*"project-wide"[sS]*"act-specific"[sS]*"repeatable-by-act"/u);
+  assert.match(model, /export type StoryDevelopmentFieldScope =[\s\S]*"project-wide"[\s\S]*"act-specific"[\s\S]*"repeatable-by-act"/u);
   assert.match(model, /export function storyDevelopmentFieldScopeDecision/u);
   assert.match(model, /export function storyDevelopmentFieldAppliesToAct/u);
   assert.match(model, /export function storyDevelopmentFieldsForAct/u);
-  assert.match(model, /return `${field\.canonicalId}::act-${act}`/u);
+  assert.match(model, /return `\$\{field\.canonicalId\}::act-\$\{act\}`/u);
 
   const byId = new Map(audit.rows.map((row) => [row.canonicalFieldId, row]));
   assert.deepEqual(byId.get("foundations:pitch:output-1")?.validActs, [1]);
@@ -94,7 +94,7 @@ test("#2645 Act-qualified values stay inside the existing storyDevelopment owner
   assert.match(adapter, /if \(!hasScopedActivity\(scopedState\)\) return \{ \.\.\.baseState, value \}/u);
   assert.match(adapter, /hasAcceptedScopedValue \? scopedState\.value : value/u);
   assert.match(adapter, /usesActStorage = input\.act !== undefined && input\.field\.scope !== "project-wide"/u);
-  assert.match(adapter, /if \(input\.act !== undefined && !storyDevelopmentFieldAppliesToAct\(input\.field, input\.act\)\) \{[sS]*return input\.project/u);
+  assert.match(adapter, /if \(input\.act !== undefined && !storyDevelopmentFieldAppliesToAct\(input\.field, input\.act\)\) \{[\s\S]*return input\.project/u);
   assert.match(adapter, /project\.foundations\.lessons\[field\.lessonId\]\?\.answers\[field\.fieldId\]/u);
   assert.match(adapter, /project\.world\.lessons\[field\.lessonId\]\?\.answers\[field\.fieldId\]/u);
   assert.doesNotMatch(adapter, /readonly actValues|mindMapActValues|actFieldStore/u);
@@ -125,11 +125,11 @@ test("#2645 Mind Map filters by Act before pagination and Act navigation never w
 test("#2645 Mind Map saves and Agent suggestions target the selected Act without silently changing project-wide identity", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
-  assert.match(surface, /writeStoryDevelopmentFieldValue\(\{[sS]*act: selectedAct/u);
+  assert.match(surface, /writeStoryDevelopmentFieldValue\(\{[\s\S]*act: selectedAct/u);
   assert.match(surface, /currentValue: fieldDrafts\[storyDevelopmentFieldStorageId\(field, selectedAct\)\]/u);
-  assert.match(surface, /writeStoryDevelopmentFieldProposal\(\{[sS]*act: selectedAct/u);
+  assert.match(surface, /writeStoryDevelopmentFieldProposal\(\{[\s\S]*act: selectedAct/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal\(\{ project: withProposal, field, act: selectedAct \}\)/u);
-  assert.match(surface, /sourceRef: `agent:creative-director:mind-map:${field\.canonicalId}:act-${selectedAct}`/u);
+  assert.match(surface, /sourceRef: `agent:creative-director:mind-map:\$\{field\.canonicalId\}:act-\$\{selectedAct\}`/u);
 });
 
 test("#2645 World Map reads the same Act-scoped owner and preserves Act when returning to Mind Map", async () => {

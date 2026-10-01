@@ -45,7 +45,7 @@ test("#2287 derives existing project pins from canonical Block addresses instead
   assert.doesNotMatch(projection, /fetch\(|askPlotPickleAgent|\/api\/writing-assistant/u);
 });
 
-test("#2287 Pin routes only genuinely unplaced local cards through the Discovery Mapper", async () => {
+test("#2287/#2632 keeps the Discovery Mapper as backward-compatible infrastructure but removes it from canonical Mind Map", async () => {
   const [surface, runtime, registry, skill, trust] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("build/mastra-agent-runtime.ts"),
@@ -54,13 +54,7 @@ test("#2287 Pin routes only genuinely unplaced local cards through the Discovery
     readJson("config/agent-skill-trust.json"),
   ]);
 
-  assert.match(surface, /globalThis\.crypto\.randomUUID\(\)/u);
-  assert.doesNotMatch(surface, /Math\.random/u);
-  assert.match(surface, /agentId: "discovery-mapper"/u);
-  assert.match(surface, /modelRole: "quality"/u);
-  assert.doesNotMatch(surface, /provider:\s*"(?:local|ollama|openai|minimax|gemini)"/u);
-  assert.match(surface, /normalizeDiscoveryMapperResult/u);
-  assert.match(surface, /The card remains unpinned/u);
+  assert.doesNotMatch(surface, /agentId: "discovery-mapper"|normalizeDiscoveryMapperResult|globalThis\.crypto\.randomUUID/u);
   assert.match(runtime, /"discovery-mapper": "Classify one unplaced Human-authored Discovery item/u);
   assert.match(runtime, /schema: discoveryMapperSchema\(\)/u);
   assert.ok(registry.skills.some((item) => item.id === "discovery-mapper" && item.primaryWorker === "mastra"));
@@ -68,17 +62,16 @@ test("#2287 Pin routes only genuinely unplaced local cards through the Discovery
   assert.match(skill, /This skill classifies; it does not write/u);
 });
 
-test("#2287/#2442 pinned placement distinguishes PROJECT, NEW LOCAL and AGENT PROPOSAL without color alone", async () => {
-  const surface = await read("app/skin-v1/discovery-surface.tsx");
-  const css = await read("app/skin-v1/discovery-surface.module.css");
-  assert.match(surface, /"PROJECT"/u);
-  assert.match(surface, /"NEW LOCAL"/u);
-  assert.match(surface, /"AGENT PROPOSAL"/u);
-  assert.match(surface, /sourceState: "agent-proposal"/u);
-  assert.match(surface, /Placement is read-only in v1/u);
-  assert.doesNotMatch(surface, /draggable=|onDragStart|onDrop|Move earlier|Move later/u);
-  assert.match(css, /data-source-state="new-local"/u);
-  assert.match(css, /var\(--pp-skin-accent-bright\)/u);
+test("#2287/#2442/#2632 preserves historical discovery source states without rendering the retired board", async () => {
+  const [surface, css, contract] = await Promise.all([
+    read("app/skin-v1/discovery-surface.tsx"),
+    read("app/skin-v1/discovery-surface.module.css"),
+    read("core/contracts/discovery/index.ts"),
+  ]);
+  assert.match(contract, /export type DiscoverySourceState = "project" \| "new-local" \| "agent-proposal"/u);
+  assert.match(contract, /sourceState: DiscoverySourceState/u);
+  assert.doesNotMatch(surface, /data-source-state=|Save Human Idea|Living MindMap|Assign Lane/u);
+  assert.doesNotMatch(css, /data-source-state="new-local"|data-source-state="agent-proposal"/u);
 });
 
 test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without expanding the standard 30", async () => {
@@ -86,7 +79,7 @@ test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without e
   const discovery = registry.surfaces.find((surface) => surface.id === "discovery");
   assert.equal(discovery?.label, "Mind Map");
   assert.equal(discovery?.capturePolicy, "census-only");
-  assert.equal(discovery?.runtimeSelector, "[data-discovery-surface='living-board']");
+  assert.equal(discovery?.runtimeSelector, "[data-discovery-surface='canonical-authoring']");
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly.includes("discovery"));
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes("discovery"), false);

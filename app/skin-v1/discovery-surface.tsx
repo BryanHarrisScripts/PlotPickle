@@ -12,6 +12,8 @@ import {
   buildStoryDevelopmentFields,
   storyDevelopmentFieldPageCount,
   storyDevelopmentFieldPageForId,
+  storyDevelopmentFieldStorageId,
+  storyDevelopmentFieldsForAct,
   storyDevelopmentFieldsForPage,
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
@@ -43,6 +45,12 @@ type ProfileStatus = {
 
 
 const MIND_MAP_ACTS: readonly DiscoveryAct[] = [1, 2, 3, 4];
+
+function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: DiscoveryAct) {
+  if (field.scope === "project-wide") return "PROJECT-WIDE";
+  if (field.scope === "act-specific") return `ACT ${field.validActs.join(" / ")} ONLY`;
+  return `ACT ${act}`;
+}
 
 function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct) {
   const blockNumbers = new Set(project.structure.blocks.filter((block) => block.actNumber === act).map((block) => block.number));
@@ -91,12 +99,14 @@ export default function DiscoverySurface({
   project,
   initialTopic = "foundations",
   initialFieldId = null,
+  initialAct = 1,
 }: {
   readonly project: LibraryPPFProject | null;
   readonly initialTopic?: LearnTopicSpineId;
   readonly initialFieldId?: string | null;
+  readonly initialAct?: DiscoveryAct;
 }) {
-  const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
+  const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(initialAct);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
   const [selectedFieldPage, setSelectedFieldPage] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(initialFieldId);
@@ -111,10 +121,11 @@ export default function DiscoverySurface({
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
 
   useEffect(() => {
+    setSelectedAct(initialAct);
     setSelectedTopic(initialTopic);
     setSelectedFieldPage(1);
     setSelectedFieldId(initialFieldId);
-  }, [initialFieldId, initialTopic]);
+  }, [initialAct, initialFieldId, initialTopic]);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,7 +146,16 @@ export default function DiscoverySurface({
   useEffect(() => {
     if (!initialFieldId || selectedTopic !== initialTopic) return;
     const topicFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
-    const targetPage = storyDevelopmentFieldPageForId(topicFields, initialFieldId);
+    const initialField = topicFields.find((field) => field.canonicalId === initialFieldId);
+    if (initialField && !initialField.validActs.includes(selectedAct)) {
+      const firstValidAct = initialField.validActs[0];
+      if (firstValidAct !== undefined && firstValidAct !== selectedAct) {
+        setSelectedAct(firstValidAct);
+        return;
+      }
+    }
+    const actFields = storyDevelopmentFieldsForAct(topicFields, selectedAct);
+    const targetPage = storyDevelopmentFieldPageForId(actFields, initialFieldId);
     if (selectedFieldPage !== targetPage) {
       setSelectedFieldPage(targetPage);
       return;
@@ -147,7 +167,7 @@ export default function DiscoverySurface({
       target?.scrollIntoView({ behavior: "smooth", block: "center" });
       target?.focus({ preventScroll: true });
     });
-  }, [canonicalFields, initialFieldId, initialTopic, selectedFieldPage, selectedTopic]);
+  }, [canonicalFields, initialFieldId, initialTopic, selectedAct, selectedFieldPage, selectedTopic]);
 
   useEffect(() => {
     if (!project) {
@@ -157,12 +177,18 @@ export default function DiscoverySurface({
       setSavedNoteTexts({});
       return;
     }
-    setFieldDrafts(Object.fromEntries(canonicalFields.map((field) => [
-      field.canonicalId,
-      storyDevelopmentFieldView(project, field).value,
+    const scopedFieldViews = canonicalFields.flatMap((field) => MIND_MAP_ACTS
+      .filter((act) => field.validActs.includes(act))
+      .map((act) => {
+        const storageId = storyDevelopmentFieldStorageId(field, act);
+        return [storageId, storyDevelopmentFieldView(project, field, act)] as const;
+      }));
+    setFieldDrafts(Object.fromEntries(scopedFieldViews.map(([storageId, view]) => [
+      storageId,
+      view.value,
     ])));
-    setProposalDrafts(Object.fromEntries(canonicalFields
-      .map((field) => [field.canonicalId, storyDevelopmentFieldView(project, field).proposal] as const)
+    setProposalDrafts(Object.fromEntries(scopedFieldViews
+      .map(([storageId, view]) => [storageId, view.proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
     const incomingNotes = Object.fromEntries(canonicalFields.map((field) => [
       field.canonicalId,
@@ -176,7 +202,8 @@ export default function DiscoverySurface({
     setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);
 
-  const selectedCanonicalFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
+  const selectedTopicFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
+  const selectedCanonicalFields = storyDevelopmentFieldsForAct(selectedTopicFields, selectedAct);
   const selectedFieldPageCount = storyDevelopmentFieldPageCount(selectedCanonicalFields);
   const visibleCanonicalFields = storyDevelopmentFieldsForPage(selectedCanonicalFields, selectedFieldPage);
   const selectedField = visibleCanonicalFields.find((field) => field.canonicalId === selectedFieldId)
@@ -200,6 +227,8 @@ export default function DiscoverySurface({
 
   function changeAct(act: DiscoveryAct) {
     setSelectedAct(act);
+    setSelectedFieldPage(1);
+    setSelectedFieldId(null);
     setNotice("");
   }
 
@@ -231,20 +260,22 @@ export default function DiscoverySurface({
 
   function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
     if (!project) return;
-    const value = fieldDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).value;
+    const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
+    const value = fieldDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).value;
     const next = writeStoryDevelopmentFieldValue({
       project,
       field,
       value,
       source: "human",
+      act: selectedAct,
     });
     const saved = persistCanonicalProject(next);
     if (!saved) return;
     setFieldDrafts((current) => ({
       ...current,
-      [field.canonicalId]: storyDevelopmentFieldView(saved, field).value,
+      [storageId]: storyDevelopmentFieldView(saved, field, selectedAct).value,
     }));
-    setNotice(`${field.lessonTitle} saved to the canonical project field.`);
+    setNotice(`${field.lessonTitle} saved for ${field.scope === "project-wide" ? "the project" : `Act ${selectedAct}`}.`);
   }
 
   function saveSelectedFieldNotes() {
@@ -294,7 +325,8 @@ export default function DiscoverySurface({
               topic: field.topicId,
               lessonId: field.lessonId,
               fieldId: field.fieldId,
-              currentValue: fieldDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).value,
+              currentValue: fieldDrafts[storyDevelopmentFieldStorageId(field, selectedAct)]
+                ?? storyDevelopmentFieldView(project, field, selectedAct).value,
               context: compactProjectContext(project, selectedAct),
             }),
           ].join("\n\n"),
@@ -304,13 +336,15 @@ export default function DiscoverySurface({
       const proposal = payload.text?.trim() ?? "";
       if (!response.ok || !proposal) throw new Error(payload.message || "Creative Director returned no proposal.");
 
-      setProposalDrafts((current) => ({ ...current, [field.canonicalId]: proposal }));
+      const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
+      setProposalDrafts((current) => ({ ...current, [storageId]: proposal }));
       if (hasActiveLibraryProject()) {
         saveActiveLibraryProject(writeStoryDevelopmentFieldProposal({
           project,
           field,
           proposal,
-          sourceRef: `agent:creative-director:mind-map:${field.canonicalId}`,
+          sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
+          act: selectedAct,
         }));
       }
       setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review.`);
@@ -323,21 +357,23 @@ export default function DiscoverySurface({
 
   function useCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
     if (!project) return;
-    const proposal = (proposalDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).proposal).trim();
+    const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
+    const proposal = (proposalDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).proposal).trim();
     if (!proposal) return;
     const withProposal = writeStoryDevelopmentFieldProposal({
       project,
       field,
       proposal,
-      sourceRef: `agent:creative-director:mind-map:${field.canonicalId}`,
+      sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
+      act: selectedAct,
     });
-    const next = acceptStoryDevelopmentFieldProposal({ project: withProposal, field });
+    const next = acceptStoryDevelopmentFieldProposal({ project: withProposal, field, act: selectedAct });
     const saved = persistCanonicalProject(next);
     if (!saved) return;
-    const value = storyDevelopmentFieldView(saved, field).value;
-    setFieldDrafts((current) => ({ ...current, [field.canonicalId]: value }));
-    setProposalDrafts((current) => ({ ...current, [field.canonicalId]: "" }));
-    setNotice(`${field.lessonTitle} suggestion accepted into Project Value and remains editable.`);
+    const value = storyDevelopmentFieldView(saved, field, selectedAct).value;
+    setFieldDrafts((current) => ({ ...current, [storageId]: value }));
+    setProposalDrafts((current) => ({ ...current, [storageId]: "" }));
+    setNotice(`${field.lessonTitle} suggestion accepted into ${field.scope === "project-wide" ? "project-wide" : `Act ${selectedAct}`} Project Value and remains editable.`);
   }
 
   if (!project) {
@@ -428,6 +464,7 @@ export default function DiscoverySurface({
           <div>
             <small>SELECTED FIELD</small>
             <strong>{selectedField.lessonTitle}</strong>
+            <span data-selected-field-scope={selectedField.scope}>{fieldScopeLabel(selectedField, selectedAct)}</span>
             <code>{selectedField.canonicalId}</code>
           </div>
           <div className={styles.contextualActionButtons}>
@@ -480,16 +517,25 @@ export default function DiscoverySurface({
           <span>PAGE {selectedFieldPage} OF {selectedFieldPageCount} · {visibleCanonicalFields.length} VISIBLE / {selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
         </header>
         <p className={styles.fieldWorkspaceHelp}>Write directly or ask the Agent for a suggestion. A suggestion never replaces Project Value until you choose Use Suggestion.</p>
+        {!selectedCanonicalFields.length ? (
+          <p className={styles.emptyActFields} data-mind-map-empty-act-fields={selectedTopic}>
+            No {selectedTopicLabel} fields require separate Act {selectedAct} input.
+          </p>
+        ) : null}
         <div className={styles.fieldGrid}>
           {visibleCanonicalFields.map((field) => {
-            const persisted = storyDevelopmentFieldView(project, field);
-            const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
+            const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
+            const persisted = storyDevelopmentFieldView(project, field, selectedAct);
+            const proposal = proposalDrafts[storageId] ?? persisted.proposal;
             const relevantContext = relevantProjectContextForField(project, field, selectedAct);
             return (
               <article
                 className={styles.fieldCard}
                 data-canonical-field-id={field.canonicalId}
                 data-field-classification={field.classification}
+                data-field-scope={field.scope}
+                data-field-storage-id={storageId}
+                data-field-valid-acts={field.validActs.join(",")}
                 data-selected-field={selectedField?.canonicalId === field.canonicalId ? "true" : "false"}
                 key={field.canonicalId}
                 tabIndex={0}
@@ -504,7 +550,7 @@ export default function DiscoverySurface({
                 <header>
                   <div>
                     <strong>{field.lessonTitle}</strong>
-                    <small>{field.canonicalId}</small>
+                    <small>{fieldScopeLabel(field, selectedAct)} · {field.canonicalId}</small>
                   </div>
                   <div className={styles.fieldStatus}>
                     {selectedField?.canonicalId === field.canonicalId ? <strong>SELECTED</strong> : null}
@@ -516,8 +562,8 @@ export default function DiscoverySurface({
                   <span>PROJECT VALUE</span>
                   <textarea
                     rows={4}
-                    value={fieldDrafts[field.canonicalId] ?? persisted.value}
-                    onChange={(event) => setFieldDrafts((current) => ({ ...current, [field.canonicalId]: event.target.value }))}
+                    value={fieldDrafts[storageId] ?? persisted.value}
+                    onChange={(event) => setFieldDrafts((current) => ({ ...current, [storageId]: event.target.value }))}
                     placeholder="Write the project decision or application note…"
                   />
                 </label>
@@ -527,7 +573,7 @@ export default function DiscoverySurface({
                     <textarea
                       rows={4}
                       value={proposal}
-                      onChange={(event) => setProposalDrafts((current) => ({ ...current, [field.canonicalId]: event.target.value }))}
+                      onChange={(event) => setProposalDrafts((current) => ({ ...current, [storageId]: event.target.value }))}
                     />
                   </label>
                   <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Suggestion</button>

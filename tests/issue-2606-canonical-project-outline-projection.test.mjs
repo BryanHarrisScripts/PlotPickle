@@ -49,11 +49,11 @@ test("#2606 preserves the Mind Map -> World Map -> Learn -> Mind Map canonical l
     read("modules/learn/model/story-learning-context.ts"),
   ]);
 
-  assert.match(mindMap, /storyDevelopmentFieldView\(project, field\)/u);
-  assert.match(worldMap, /storyDevelopmentFieldView\(project, field\)/u);
+  assert.match(mindMap, /storyDevelopmentFieldView\(project, field, selectedAct\)/u);
+  assert.match(worldMap, /storyDevelopmentFieldView\(project, field, act\)/u);
   assert.match(worldMap, /learnLessonHref\(field\.topicId, field\.lessonId\)/u);
-  assert.match(worldMap, /onEditField\(field\.topicId, field\.canonicalId\)/u);
-  assert.match(host, /openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string\)/u);
+  assert.match(worldMap, /onEditField\(field\.topicId, field\.canonicalId, act\)/u);
+  assert.match(host, /openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct\)/u);
   assert.match(learning, /lesson: lessonId/u);
 });
 

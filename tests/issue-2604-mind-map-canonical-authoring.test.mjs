@@ -76,9 +76,10 @@ test("#2604 Mind Map directly edits canonical fields and removes the generic pro
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
-  assert.match(surface, /selectedCanonicalFields = canonicalFields\.filter\(\(field\) => field\.topicId === selectedTopic\)/u);
+  assert.match(surface, /const selectedTopicFields = canonicalFields\.filter\(\(field\) => field\.topicId === selectedTopic\)/u);
+  assert.match(surface, /const selectedCanonicalFields = storyDevelopmentFieldsForAct\(selectedTopicFields, selectedAct\)/u);
   assert.match(surface, /data-canonical-field-id=\{field\.canonicalId\}/u);
-  assert.match(surface, /value=\{fieldDrafts\[field\.canonicalId\] \?\? persisted\.value\}/u);
+  assert.match(surface, /value=\{fieldDrafts\[storageId\] \?\? persisted\.value\}/u);
   assert.match(surface, /writeStoryDevelopmentFieldValue/u);
   assert.match(surface, />Save Changes<\/button>/u);
   assert.match(surface, /selectedField\.actionLabel/u);
@@ -94,7 +95,7 @@ test("#2604 field-specific agent proposals stay proposals until the Human uses t
   assert.match(surface, /Create one proposal for \$\{field\.canonicalId\}/u);
   assert.match(surface, /Do not claim the proposal is accepted canon/u);
   assert.match(surface, /if \(hasActiveLibraryProject\(\)\) \{[\s\S]*writeStoryDevelopmentFieldProposal/u);
-  assert.match(surface, /proposalDrafts\[field\.canonicalId\] \?\? persisted\.proposal/u);
+  assert.match(surface, /proposalDrafts\[storageId\] \?\? persisted\.proposal/u);
   assert.match(surface, /AGENT SUGGESTION · editable before use/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal/u);
   assert.match(adapter, /source: "agent-proposal"/u);

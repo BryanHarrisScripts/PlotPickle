@@ -128,7 +128,8 @@
 }
 
 .contextualActions small,
-.contextualActions code {
+.contextualActions code,
+.contextualActions [data-selected-field-scope] {
   color: var(--pp-skin-ink-muted);
 }
 
@@ -220,6 +221,13 @@
 
 .fieldWorkspaceHeader h3 {
   color: var(--pp-skin-accent-bright);
+}
+
+.emptyActFields {
+  margin: 0;
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
+  padding-left: var(--pp-skin-space-3);
+  color: var(--pp-skin-ink-muted);
 }
 
 .fieldGrid {

@@ -24,6 +24,7 @@ import {
   writeStoryDevelopmentFieldProposal,
   writeStoryDevelopmentFieldValue,
 } from "../../core/project/story-development";
+import { mindMapTopicNote } from "../../core/storage/library-project";
 import {
   hasActiveLibraryProject,
   saveActiveLibraryProject,
@@ -35,6 +36,11 @@ import styles from "./discovery-surface.module.css";
 type AgentResponse = {
   readonly text?: string;
   readonly message?: string;
+};
+
+type ProfileStatus = {
+  readonly authenticated?: boolean;
+  readonly profile?: { readonly displayName?: string } | null;
 };
 
 type ComposerLane = DiscoveryLaneId | "unsorted";
@@ -125,6 +131,9 @@ export default function DiscoverySurface({
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
   const [proposalDrafts, setProposalDrafts] = useState<Readonly<Record<string, string>>>({});
+  const [humanDisplayName, setHumanDisplayName] = useState("");
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [projectContextOpen, setProjectContextOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [unsortedLaneChoices, setUnsortedLaneChoices] = useState<Readonly<Record<string, DiscoveryLaneId>>>({});
@@ -142,6 +151,22 @@ export default function DiscoverySurface({
   }, [initialTopic]);
 
   useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" }).then(
+      async (response) => {
+        if (!response.ok || cancelled) return;
+        const status = await response.json() as ProfileStatus;
+        if (cancelled) return;
+        setHumanDisplayName(status.authenticated ? status.profile?.displayName?.trim() || "" : "");
+      },
+      () => {
+        if (!cancelled) setHumanDisplayName("");
+      },
+    );
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
     if (!initialFieldId || selectedTopic !== initialTopic) return;
     window.requestAnimationFrame(() => {
       const target = Array.from(document.querySelectorAll<HTMLElement>("[data-canonical-field-id]"))
@@ -155,6 +180,7 @@ export default function DiscoverySurface({
     if (!project) {
       setFieldDrafts({});
       setProposalDrafts({});
+      setNoteDrafts({});
       return;
     }
     setFieldDrafts(Object.fromEntries(canonicalFields.map((field) => [
@@ -164,6 +190,10 @@ export default function DiscoverySurface({
     setProposalDrafts(Object.fromEntries(canonicalFields
       .map((field) => [field.canonicalId, storyDevelopmentFieldView(project, field).proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
+    setNoteDrafts(Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => [
+      topic.id,
+      mindMapTopicNote(project.mindMapNotes, topic.id).text,
+    ])));
   }, [project?.id, project?.revision, canonicalFields]);
 
   const projectContextCards = useMemo(() => project ? projectDiscoveryPins(project) : [], [project]);
@@ -180,6 +210,11 @@ export default function DiscoverySurface({
   const agentCount = selectedActTopicCards.filter((card) => card.sourceState === "agent-proposal").length;
   const humanCount = selectedActTopicCards.filter((card) => card.sourceState === "new-local").length;
   const lockedCount = selectedActTopicCards.filter((card) => Boolean(card.lockedAt)).length;
+  const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
+  const persistedTopicNote = mindMapTopicNote(project.mindMapNotes, selectedTopic);
+  const selectedTopicNoteDraft = noteDrafts[selectedTopic] ?? persistedTopicNote.text;
+  const notesDirty = selectedTopicNoteDraft !== persistedTopicNote.text;
+  const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";
 
   function persist(cards: readonly DiscoveryCard[]) {
     if (!project) return false;
@@ -339,6 +374,29 @@ export default function DiscoverySurface({
     setNotice(`${field.lessonTitle} saved to the canonical project field.`);
   }
 
+  function saveTopicNotes() {
+    if (!project) return;
+    const now = new Date().toISOString();
+    const text = selectedTopicNoteDraft.slice(0, 24_000);
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: now,
+      mindMapNotes: {
+        ...project.mindMapNotes,
+        topics: {
+          ...project.mindMapNotes.topics,
+          [selectedTopic]: { text, updatedAt: now },
+        },
+      },
+    };
+    const saved = persistCanonicalProject(next);
+    if (!saved) return;
+    const savedNote = mindMapTopicNote(saved.mindMapNotes, selectedTopic);
+    setNoteDrafts((current) => ({ ...current, [selectedTopic]: savedNote.text }));
+    setNotice(`${selectedTopicLabel} notes saved with this project.`);
+  }
+
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
     if (!project || developingFieldId) return;
     setDevelopingFieldId(field.canonicalId);
@@ -468,9 +526,41 @@ export default function DiscoverySurface({
       </nav>
 
       <div className={styles.topicToolbar}>
-        <strong>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</strong>
-        <button type="button" onClick={openLearnTopic}>Open in Learn</button>
+        <strong>{selectedTopicLabel}</strong>
+        <div className={styles.topicToolbarActions}>
+          <button
+            type="button"
+            aria-expanded={notesOpen}
+            data-mind-map-human-notes-toggle={selectedTopic}
+            onClick={() => setNotesOpen((current) => !current)}
+          >
+            {notesOwnerLabel}
+          </button>
+          <button type="button" onClick={openLearnTopic}>Open in Learn</button>
+        </div>
       </div>
+
+      {notesOpen ? (
+        <section className={styles.humanNotes} data-mind-map-human-notes={selectedTopic} aria-label={`${selectedTopicLabel} Human notes`}>
+          <header>
+            <div>
+              <small>HUMAN WORKING NOTES · NON-CANON</small>
+              <h3>{selectedTopicLabel} · {notesOwnerLabel}</h3>
+            </div>
+            <span data-notes-save-state={notesDirty ? "unsaved" : "saved"}>{notesDirty ? "UNSAVED CHANGES" : "SAVED"}</span>
+          </header>
+          <p>Private working notes for this topic. Saving notes does not change Project Value or accept an Agent Suggestion.</p>
+          <textarea
+            rows={6}
+            value={selectedTopicNoteDraft}
+            onChange={(event) => setNoteDrafts((current) => ({ ...current, [selectedTopic]: event.target.value }))}
+            placeholder={`Write your ${selectedTopicLabel} notes…`}
+          />
+          <div className={styles.fieldActions}>
+            <button type="button" disabled={!notesDirty} onClick={saveTopicNotes}>Save Notes</button>
+          </div>
+        </section>
+      ) : null}
 
       <section className={styles.fieldWorkspace} aria-label={`${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} canonical story fields`}>
         <header className={styles.fieldWorkspaceHeader}>

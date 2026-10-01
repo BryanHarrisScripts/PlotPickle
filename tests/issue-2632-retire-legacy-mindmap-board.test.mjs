@@ -49,12 +49,12 @@ test("#2632 canonical Mind Map saves never delete or rewrite discovery cards", a
   assert.doesNotMatch(surface, /project\.discovery|discovery:\s*\{|\.discovery\.cards/u);
 
   const saveFieldStart = surface.indexOf("function saveCanonicalField");
-  const saveFieldEnd = surface.indexOf("function saveTopicNotes", saveFieldStart);
+  const saveFieldEnd = surface.indexOf("function saveSelectedFieldNotes", saveFieldStart);
   const saveField = surface.slice(saveFieldStart, saveFieldEnd);
   assert.match(saveField, /writeStoryDevelopmentFieldValue/u);
   assert.doesNotMatch(saveField, /discovery/u);
 
-  const notesStart = surface.indexOf("function saveTopicNotes");
+  const notesStart = surface.indexOf("function saveSelectedFieldNotes");
   const notesEnd = surface.indexOf("async function createCanonicalFieldProposal", notesStart);
   const notes = surface.slice(notesStart, notesEnd);
   assert.match(notes, /mindMapNotes:/u);

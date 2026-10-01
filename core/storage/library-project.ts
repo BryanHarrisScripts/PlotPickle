@@ -43,6 +43,7 @@ export type MindMapTopicNote = {
 export type MindMapNotesState = {
   readonly version: typeof MIND_MAP_NOTES_VERSION;
   readonly topics: Readonly<Record<string, MindMapTopicNote>>;
+  readonly fields: Readonly<Record<string, MindMapTopicNote>>;
 };
 
 export function createEmptyStoryDevelopmentFieldState(): StoryDevelopmentFieldState {
@@ -61,7 +62,7 @@ export function createEmptyStoryDevelopmentState(): StoryDevelopmentState {
 }
 
 export function createEmptyMindMapNotesState(): MindMapNotesState {
-  return { version: MIND_MAP_NOTES_VERSION, topics: {} };
+  return { version: MIND_MAP_NOTES_VERSION, topics: {}, fields: {} };
 }
 
 export type LibraryPPFProject = PPFProject & {
@@ -128,24 +129,33 @@ function cleanMindMapNoteText(value: unknown, limit = 24_000) {
 
 export function normalizeMindMapNotesState(value: unknown): MindMapNotesState {
   const source = objectRecord(value);
-  const rawTopics = objectRecord(source.topics);
-  const topics: Record<string, MindMapTopicNote> = {};
+  const normalizeNotes = (raw: unknown, limit: number) => {
+    const notes: Record<string, MindMapTopicNote> = {};
+    for (const [rawKey, rawValue] of Object.entries(objectRecord(raw)).slice(0, limit)) {
+      const key = cleanStoryDevelopmentText(rawKey, 360);
+      if (!key) continue;
+      const note = objectRecord(rawValue);
+      notes[key] = {
+        text: cleanMindMapNoteText(note.text),
+        updatedAt: cleanStoryDevelopmentText(note.updatedAt, 80) || null,
+      };
+    }
+    return notes;
+  };
 
-  for (const [rawKey, rawValue] of Object.entries(rawTopics).slice(0, 100)) {
-    const key = cleanStoryDevelopmentText(rawKey, 120);
-    if (!key) continue;
-    const note = objectRecord(rawValue);
-    topics[key] = {
-      text: cleanMindMapNoteText(note.text),
-      updatedAt: cleanStoryDevelopmentText(note.updatedAt, 80) || null,
-    };
-  }
-
-  return { version: MIND_MAP_NOTES_VERSION, topics };
+  return {
+    version: MIND_MAP_NOTES_VERSION,
+    topics: normalizeNotes(source.topics, 100),
+    fields: normalizeNotes(source.fields, 2_000),
+  };
 }
 
 export function mindMapTopicNote(state: MindMapNotesState, topicId: string): MindMapTopicNote {
   return state.topics[topicId] ?? { text: "", updatedAt: null };
+}
+
+export function mindMapFieldNote(state: MindMapNotesState, canonicalFieldId: string): MindMapTopicNote {
+  return state.fields[canonicalFieldId] ?? { text: "", updatedAt: null };
 }
 
 /**

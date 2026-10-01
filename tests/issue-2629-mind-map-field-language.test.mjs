@@ -14,7 +14,7 @@ test("#2629 canonical field actions use one consistent Human-facing language", a
   assert.doesNotMatch(model, /actionLabel: `Create \$\{lesson\.title\} Proposal`/u);
 
   assert.match(surface, />Save Changes<\/button>/u);
-  assert.match(surface, /field\.actionLabel/u);
+  assert.match(surface, /selectedField\.actionLabel/u);
   assert.match(surface, />Use Suggestion<\/button>/u);
   assert.match(surface, /Asking Agent…/u);
   assert.doesNotMatch(surface, /Save \{field\.lessonTitle\}|Use Proposal|Creating Proposal…/u);

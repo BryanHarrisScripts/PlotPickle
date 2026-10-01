@@ -5,7 +5,7 @@ import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog"
 import { type DiscoveryAct } from "../../core/contracts/discovery";
 import {
   LEARN_TOPIC_SPINE,
-  learnTopicHref,
+  learnLessonHref,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
 import {
@@ -22,7 +22,7 @@ import {
   writeStoryDevelopmentFieldProposal,
   writeStoryDevelopmentFieldValue,
 } from "../../core/project/story-development";
-import { mindMapTopicNote } from "../../core/storage/library-project";
+import { mindMapFieldNote } from "../../core/storage/library-project";
 import {
   hasActiveLibraryProject,
   saveActiveLibraryProject,
@@ -99,6 +99,7 @@ export default function DiscoverySurface({
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
   const [selectedFieldPage, setSelectedFieldPage] = useState(1);
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(initialFieldId);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -112,7 +113,8 @@ export default function DiscoverySurface({
   useEffect(() => {
     setSelectedTopic(initialTopic);
     setSelectedFieldPage(1);
-  }, [initialTopic]);
+    setSelectedFieldId(initialFieldId);
+  }, [initialFieldId, initialTopic]);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,6 +140,7 @@ export default function DiscoverySurface({
       setSelectedFieldPage(targetPage);
       return;
     }
+    setSelectedFieldId(initialFieldId);
     window.requestAnimationFrame(() => {
       const target = Array.from(document.querySelectorAll<HTMLElement>("[data-canonical-field-id]"))
         .find((element) => element.dataset.canonicalFieldId === initialFieldId);
@@ -161,14 +164,14 @@ export default function DiscoverySurface({
     setProposalDrafts(Object.fromEntries(canonicalFields
       .map((field) => [field.canonicalId, storyDevelopmentFieldView(project, field).proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
-    const incomingNotes = Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => [
-      topic.id,
-      mindMapTopicNote(project.mindMapNotes, topic.id).text,
+    const incomingNotes = Object.fromEntries(canonicalFields.map((field) => [
+      field.canonicalId,
+      mindMapFieldNote(project.mindMapNotes, field.canonicalId).text,
     ]));
-    setNoteDrafts((current) => Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => {
-      const currentDraft = current[topic.id];
-      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[topic.id] ?? "");
-      return [topic.id, wasDirty ? currentDraft : incomingNotes[topic.id]];
+    setNoteDrafts((current) => Object.fromEntries(canonicalFields.map((field) => {
+      const currentDraft = current[field.canonicalId];
+      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[field.canonicalId] ?? "");
+      return [field.canonicalId, wasDirty ? currentDraft : incomingNotes[field.canonicalId]];
     })));
     setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);
@@ -176,14 +179,23 @@ export default function DiscoverySurface({
   const selectedCanonicalFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
   const selectedFieldPageCount = storyDevelopmentFieldPageCount(selectedCanonicalFields);
   const visibleCanonicalFields = storyDevelopmentFieldsForPage(selectedCanonicalFields, selectedFieldPage);
+  const selectedField = visibleCanonicalFields.find((field) => field.canonicalId === selectedFieldId)
+    ?? visibleCanonicalFields[0]
+    ?? null;
   const selectedFieldContextCount = selectedCanonicalFields.reduce(
     (total, field) => total + relevantProjectContextForField(project, field, selectedAct).length,
     0,
   );
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
-  const persistedTopicNote = project ? mindMapTopicNote(project.mindMapNotes, selectedTopic) : { text: "", updatedAt: null };
-  const selectedTopicNoteDraft = noteDrafts[selectedTopic] ?? persistedTopicNote.text;
-  const notesDirty = selectedTopicNoteDraft !== (savedNoteTexts[selectedTopic] ?? persistedTopicNote.text);
+  const persistedFieldNote = project && selectedField
+    ? mindMapFieldNote(project.mindMapNotes, selectedField.canonicalId)
+    : { text: "", updatedAt: null };
+  const selectedFieldNoteDraft = selectedField
+    ? noteDrafts[selectedField.canonicalId] ?? persistedFieldNote.text
+    : "";
+  const notesDirty = selectedField
+    ? selectedFieldNoteDraft !== (savedNoteTexts[selectedField.canonicalId] ?? persistedFieldNote.text)
+    : false;
   const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";
 
   function changeAct(act: DiscoveryAct) {
@@ -194,11 +206,13 @@ export default function DiscoverySurface({
   function changeTopic(topic: LearnTopicSpineId) {
     setSelectedTopic(topic);
     setSelectedFieldPage(1);
+    setSelectedFieldId(null);
     setNotice("");
   }
 
-  function openLearnTopic() {
-    window.location.assign(learnTopicHref(selectedTopic));
+  function openSelectedFieldInLearn() {
+    if (!selectedField) return;
+    window.location.assign(learnLessonHref(selectedField.topicId, selectedField.lessonId));
   }
 
   function persistCanonicalProject(next: LibraryPPFProject) {
@@ -233,28 +247,29 @@ export default function DiscoverySurface({
     setNotice(`${field.lessonTitle} saved to the canonical project field.`);
   }
 
-  function saveTopicNotes() {
-    if (!project) return;
+  function saveSelectedFieldNotes() {
+    if (!project || !selectedField) return;
     const now = new Date().toISOString();
-    const text = selectedTopicNoteDraft.slice(0, 24_000);
+    const text = selectedFieldNoteDraft.slice(0, 24_000);
+    const canonicalFieldId = selectedField.canonicalId;
     const next: LibraryPPFProject = {
       ...project,
       revision: project.revision + 1,
       updatedAt: now,
       mindMapNotes: {
         ...project.mindMapNotes,
-        topics: {
-          ...project.mindMapNotes.topics,
-          [selectedTopic]: { text, updatedAt: now },
+        fields: {
+          ...project.mindMapNotes.fields,
+          [canonicalFieldId]: { text, updatedAt: now },
         },
       },
     };
     const saved = persistCanonicalProject(next);
     if (!saved) return;
-    const savedNote = mindMapTopicNote(saved.mindMapNotes, selectedTopic);
-    setNoteDrafts((current) => ({ ...current, [selectedTopic]: savedNote.text }));
-    setSavedNoteTexts((current) => ({ ...current, [selectedTopic]: savedNote.text }));
-    setNotice(`${selectedTopicLabel} notes saved with this project.`);
+    const savedNote = mindMapFieldNote(saved.mindMapNotes, canonicalFieldId);
+    setNoteDrafts((current) => ({ ...current, [canonicalFieldId]: savedNote.text }));
+    setSavedNoteTexts((current) => ({ ...current, [canonicalFieldId]: savedNote.text }));
+    setNotice(`${selectedField.lessonTitle} notes saved with this project.`);
   }
 
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
@@ -351,7 +366,7 @@ export default function DiscoverySurface({
         <div className={styles.scoreboard} aria-label={`Act ${selectedAct} MindMap authoring summary`}>
           <span>FIELDS <strong>{selectedCanonicalFields.length}</strong></span>
           <span>CONTEXT <strong>{selectedFieldContextCount}</strong></span>
-          <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedTopicNote.text ? "SAVED" : "EMPTY"}</strong></span>
+          <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedFieldNote.text ? "SAVED" : "EMPTY"}</strong></span>
         </div>
       </section>
 
@@ -385,17 +400,7 @@ export default function DiscoverySurface({
 
       <div className={styles.topicToolbar}>
         <strong>{selectedTopicLabel}</strong>
-        <div className={styles.topicToolbarActions}>
-          <button
-            type="button"
-            aria-expanded={notesOpen}
-            data-mind-map-human-notes-toggle={selectedTopic}
-            onClick={() => setNotesOpen((current) => !current)}
-          >
-            {notesOwnerLabel}
-          </button>
-          <button type="button" onClick={openLearnTopic}>Open in Learn</button>
-        </div>
+        <span>{selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
       </div>
 
       {selectedFieldPageCount > 1 ? (
@@ -408,6 +413,7 @@ export default function DiscoverySurface({
               data-mind-map-field-page={page}
               onClick={() => {
                 setSelectedFieldPage(page);
+                setSelectedFieldId(null);
                 setNotice("");
               }}
             >
@@ -417,24 +423,50 @@ export default function DiscoverySurface({
         </nav>
       ) : null}
 
-      {notesOpen ? (
-        <section className={styles.humanNotes} data-mind-map-human-notes={selectedTopic} aria-label={`${selectedTopicLabel} Human notes`}>
+      {selectedField ? (
+        <section className={styles.contextualActions} data-mind-map-selected-field-actions={selectedField.canonicalId} aria-label="Selected Mind Map field actions">
+          <div>
+            <small>SELECTED FIELD</small>
+            <strong>{selectedField.lessonTitle}</strong>
+            <code>{selectedField.canonicalId}</code>
+          </div>
+          <div className={styles.contextualActionButtons}>
+            <button type="button" onClick={() => saveCanonicalField(selectedField)}>Save Changes</button>
+            <button type="button" disabled={developingFieldId !== null} onClick={() => void createCanonicalFieldProposal(selectedField)}>
+              {developingFieldId === selectedField.canonicalId ? "Asking Agent…" : selectedField.actionLabel}
+            </button>
+            <button
+              type="button"
+              aria-expanded={notesOpen}
+              data-mind-map-human-notes-toggle={selectedField.canonicalId}
+              onClick={() => setNotesOpen((current) => !current)}
+            >
+              {notesOwnerLabel}
+            </button>
+            <button type="button" onClick={openSelectedFieldInLearn}>Open in Learn</button>
+          </div>
+        </section>
+      ) : null}
+
+      {notesOpen && selectedField ? (
+        <section className={styles.humanNotes} data-mind-map-human-notes={selectedField.canonicalId} aria-label={`${selectedField.lessonTitle} Human notes`}>
           <header>
             <div>
               <small>HUMAN WORKING NOTES · NON-CANON</small>
-              <h3>{selectedTopicLabel} · {notesOwnerLabel}</h3>
+              <h3>{selectedField.lessonTitle} · {notesOwnerLabel}</h3>
+              <code>{selectedField.canonicalId}</code>
             </div>
             <span data-notes-save-state={notesDirty ? "unsaved" : "saved"}>{notesDirty ? "UNSAVED CHANGES" : "SAVED"}</span>
           </header>
-          <p>Private working notes for this topic. Saving notes does not change Project Value or accept an Agent Suggestion.</p>
+          <p>Private working notes for the selected field. Saving notes does not change Project Value or accept an Agent Suggestion.</p>
           <textarea
             rows={6}
-            value={selectedTopicNoteDraft}
-            onChange={(event) => setNoteDrafts((current) => ({ ...current, [selectedTopic]: event.target.value }))}
-            placeholder={`Write your ${selectedTopicLabel} notes…`}
+            value={selectedFieldNoteDraft}
+            onChange={(event) => setNoteDrafts((current) => ({ ...current, [selectedField.canonicalId]: event.target.value }))}
+            placeholder={`Write notes for ${selectedField.lessonTitle}…`}
           />
           <div className={styles.fieldActions}>
-            <button type="button" disabled={!notesDirty} onClick={saveTopicNotes}>Save Notes</button>
+            <button type="button" disabled={!notesDirty} onClick={saveSelectedFieldNotes}>Save Notes</button>
           </div>
         </section>
       ) : null}
@@ -454,13 +486,30 @@ export default function DiscoverySurface({
             const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
             const relevantContext = relevantProjectContextForField(project, field, selectedAct);
             return (
-              <article className={styles.fieldCard} data-canonical-field-id={field.canonicalId} data-field-classification={field.classification} key={field.canonicalId} tabIndex={-1}>
+              <article
+                className={styles.fieldCard}
+                data-canonical-field-id={field.canonicalId}
+                data-field-classification={field.classification}
+                data-selected-field={selectedField?.canonicalId === field.canonicalId ? "true" : "false"}
+                key={field.canonicalId}
+                tabIndex={0}
+                onClick={() => setSelectedFieldId(field.canonicalId)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  setSelectedFieldId(field.canonicalId);
+                }}
+              >
                 <header>
                   <div>
                     <strong>{field.lessonTitle}</strong>
                     <small>{field.canonicalId}</small>
                   </div>
-                  <span>{persisted.acceptedSource === "agent-proposal" ? "AGENT-ASSISTED" : persisted.value ? "SAVED" : "OPEN"}</span>
+                  <div className={styles.fieldStatus}>
+                    {selectedField?.canonicalId === field.canonicalId ? <strong>SELECTED</strong> : null}
+                    <span>{persisted.acceptedSource === "agent-proposal" ? "AGENT-ASSISTED" : persisted.value ? "SAVED" : "OPEN"}</span>
+                  </div>
                 </header>
                 <p>{field.prompt}</p>
                 <label className={styles.projectValue}>
@@ -472,12 +521,6 @@ export default function DiscoverySurface({
                     placeholder="Write the project decision or application note…"
                   />
                 </label>
-                <div className={styles.fieldActions}>
-                  <button type="button" onClick={() => saveCanonicalField(field)}>Save Changes</button>
-                  <button type="button" disabled={developingFieldId !== null} onClick={() => void createCanonicalFieldProposal(field)}>
-                    {developingFieldId === field.canonicalId ? "Asking Agent…" : field.actionLabel}
-                  </button>
-                </div>
                 {proposal ? <div className={styles.fieldProposal} data-canonical-field-proposal={field.canonicalId}>
                   <label>
                     <span>AGENT SUGGESTION · editable before use</span>

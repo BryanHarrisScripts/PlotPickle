@@ -98,13 +98,15 @@ function LockedNodeShutdown() {
       setLifecycle(completed.lifecycle.state);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause);
+      let finalMessage = message;
       if (shutdownToken) {
         try { await lockedNodeAction("block-shutdown", { shutdownToken, message }); }
         catch (blockError) {
-          console.warn("PlotPickle could not record the blocked locked-gate shutdown state.", blockError);
+          const blockDetail = blockError instanceof Error ? blockError.message : String(blockError);
+          finalMessage = `${message} PlotPickle also could not record the blocked Node state: ${blockDetail}`;
         }
       }
-      setError(message);
+      setError(finalMessage);
       setBusy(false);
     }
   }

@@ -1,0 +1,1526 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 2645,
+  "description": "Deterministic Mind Map field-scope audit. Canonical field IDs remain stable; Act-qualified storage IDs are derived at runtime only for non-project-wide fields.",
+  "canonicalFieldCount": 81,
+  "rows": [
+    {
+      "canonicalFieldId": "foundations:pitch:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "pitch",
+      "lessonNumber": 1,
+      "lessonTitle": "The Pitch",
+      "application": "Foundations brief",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:loglines-that-carry-the-movie:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "loglines-that-carry-the-movie",
+      "lessonNumber": 15,
+      "lessonTitle": "Loglines That Carry the Movie",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:why-plotpickle-works-in-layers:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "why-plotpickle-works-in-layers",
+      "lessonNumber": 18,
+      "lessonTitle": "Why PlotPickle Works in Layers",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:essentials-experience:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "essentials-experience",
+      "lessonNumber": 73,
+      "lessonTitle": "Build the Story Experience",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "world:genres:output-1",
+      "topic": "world",
+      "learnTopic": "world",
+      "lessonId": "genres",
+      "lessonNumber": 2,
+      "lessonTitle": "Tropes and Genres",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "world",
+      "rationale": "Genre, story-bible and research authority remain single project-wide World decisions."
+    },
+    {
+      "canonicalFieldId": "world:world-building:output-1",
+      "topic": "world",
+      "learnTopic": "world",
+      "lessonId": "world-building",
+      "lessonNumber": 6,
+      "lessonTitle": "World-Building",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "world+story-development-act-overrides",
+      "rationale": "Locations, setting conditions, world pressure and continuity can legitimately change from Act to Act while the project-wide World answer remains the fallback."
+    },
+    {
+      "canonicalFieldId": "world:story-bible:output-1",
+      "topic": "world",
+      "learnTopic": "world",
+      "lessonId": "story-bible",
+      "lessonNumber": 8,
+      "lessonTitle": "The Story Bible",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "world",
+      "rationale": "Genre, story-bible and research authority remain single project-wide World decisions."
+    },
+    {
+      "canonicalFieldId": "world:ai-revision-genre-world-continuity:output-1",
+      "topic": "world",
+      "learnTopic": "world",
+      "lessonId": "ai-revision-genre-world-continuity",
+      "lessonNumber": 39,
+      "lessonTitle": "Genre, world and continuity pass",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "world+story-development-act-overrides",
+      "rationale": "Locations, setting conditions, world pressure and continuity can legitimately change from Act to Act while the project-wide World answer remains the fallback."
+    },
+    {
+      "canonicalFieldId": "world:ai-revision-representation-research:output-1",
+      "topic": "world",
+      "learnTopic": "world",
+      "lessonId": "ai-revision-representation-research",
+      "lessonNumber": 40,
+      "lessonTitle": "Representation and research-question pass",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "world",
+      "rationale": "Genre, story-bible and research authority remain single project-wide World decisions."
+    },
+    {
+      "canonicalFieldId": "character:character-bible:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "character-bible",
+      "lessonNumber": 7,
+      "lessonTitle": "Story Bible: Character",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character identity, engine, opposition, voiceprint and cast-system decisions remain project-wide truth."
+    },
+    {
+      "canonicalFieldId": "character:ai-revision-character-choice-arc:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "ai-revision-character-choice-arc",
+      "lessonNumber": 31,
+      "lessonTitle": "Character choice and arc audit",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character choices, relationships, conflict and inner-journey evidence can develop independently across Acts."
+    },
+    {
+      "canonicalFieldId": "character:characters-engine:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-engine",
+      "lessonNumber": 57,
+      "lessonTitle": "Build the Character Engine",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character identity, engine, opposition, voiceprint and cast-system decisions remain project-wide truth."
+    },
+    {
+      "canonicalFieldId": "character:characters-choice-proof:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-choice-proof",
+      "lessonNumber": 58,
+      "lessonTitle": "Prove Character Through Choice",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "act-specific",
+      "validActs": [
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Ending proof is evaluated in Act 4 rather than manufactured in earlier Acts."
+    },
+    {
+      "canonicalFieldId": "character:characters-inner-journey:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-inner-journey",
+      "lessonNumber": 59,
+      "lessonTitle": "Map the Inner Journey Without Forcing It",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character choices, relationships, conflict and inner-journey evidence can develop independently across Acts."
+    },
+    {
+      "canonicalFieldId": "character:characters-conflict:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-conflict",
+      "lessonNumber": 60,
+      "lessonTitle": "Join Inner and Outer Conflict",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character choices, relationships, conflict and inner-journey evidence can develop independently across Acts."
+    },
+    {
+      "canonicalFieldId": "character:characters-opposition:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-opposition",
+      "lessonNumber": 61,
+      "lessonTitle": "Build Opposition as a Competing Worldview",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character identity, engine, opposition, voiceprint and cast-system decisions remain project-wide truth."
+    },
+    {
+      "canonicalFieldId": "character:characters-relationships:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-relationships",
+      "lessonNumber": 62,
+      "lessonTitle": "Design Relationships That Change Both People",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character choices, relationships, conflict and inner-journey evidence can develop independently across Acts."
+    },
+    {
+      "canonicalFieldId": "character:characters-voiceprint:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-voiceprint",
+      "lessonNumber": 63,
+      "lessonTitle": "Give Every Character a Playable Voice",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character identity, engine, opposition, voiceprint and cast-system decisions remain project-wide truth."
+    },
+    {
+      "canonicalFieldId": "character:characters-cast-system:output-1",
+      "topic": "character",
+      "learnTopic": "character",
+      "lessonId": "characters-cast-system",
+      "lessonNumber": 64,
+      "lessonTitle": "Design the Cast as a Dramatic System",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Character identity, engine, opposition, voiceprint and cast-system decisions remain project-wide truth."
+    },
+    {
+      "canonicalFieldId": "theme:mood-colour-visual-language:output-1",
+      "topic": "theme",
+      "learnTopic": "theme",
+      "lessonId": "mood-colour-visual-language",
+      "lessonNumber": 16,
+      "lessonTitle": "Mood, Colour and Visual Language",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Theme, tone and motif decisions remain one project-wide dramatic argument."
+    },
+    {
+      "canonicalFieldId": "theme:ai-revision-theme-motif-foreshadowing:output-1",
+      "topic": "theme",
+      "learnTopic": "theme",
+      "lessonId": "ai-revision-theme-motif-foreshadowing",
+      "lessonNumber": 38,
+      "lessonTitle": "Theme, motif and foreshadowing pass",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Theme, tone and motif decisions remain one project-wide dramatic argument."
+    },
+    {
+      "canonicalFieldId": "theme:essentials-tone:output-1",
+      "topic": "theme",
+      "learnTopic": "theme",
+      "lessonId": "essentials-tone",
+      "lessonNumber": 75,
+      "lessonTitle": "Design Tone Without Monotony",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Theme, tone and motif decisions remain one project-wide dramatic argument."
+    },
+    {
+      "canonicalFieldId": "theme:essentials-theme:output-1",
+      "topic": "theme",
+      "learnTopic": "theme",
+      "lessonId": "essentials-theme",
+      "lessonNumber": 76,
+      "lessonTitle": "Make Theme a Dramatic Argument",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Theme, tone and motif decisions remain one project-wide dramatic argument."
+    },
+    {
+      "canonicalFieldId": "theme:essentials-motif:output-1",
+      "topic": "theme",
+      "learnTopic": "theme",
+      "lessonId": "essentials-motif",
+      "lessonNumber": 79,
+      "lessonTitle": "Build Motifs, Symbols and Echoes",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Theme, tone and motif decisions remain one project-wide dramatic argument."
+    },
+    {
+      "canonicalFieldId": "structure:structures:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "structures",
+      "lessonNumber": 3,
+      "lessonTitle": "Story Structures: Screenplays to Improv",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-new-spin:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-new-spin",
+      "lessonNumber": 19,
+      "lessonTitle": "Why 24 Blocks Work",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-structure-guide:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-structure-guide",
+      "lessonNumber": 20,
+      "lessonTitle": "The Grid Is a Guide, Not a Cage",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-structures-role:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-structures-role",
+      "lessonNumber": 21,
+      "lessonTitle": "Structure Creates Pressure and Choice",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-story-beats:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-story-beats",
+      "lessonNumber": 22,
+      "lessonTitle": "From Beat to Act",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-principle-three:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-principle-three",
+      "lessonNumber": 23,
+      "lessonTitle": "Promise, Progress, Pressure, Payoff",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-dramatic-question:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-dramatic-question",
+      "lessonNumber": 24,
+      "lessonTitle": "Questions That Pull the Story Forward",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "act-specific",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "story-development",
+      "rationale": "The setup and central dramatic-question field is constrained to Act 1."
+    },
+    {
+      "canonicalFieldId": "structure:24b-structure-diversity:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-structure-diversity",
+      "lessonNumber": 25,
+      "lessonTitle": "One Grid, Many Story Shapes",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:24b-reflection:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-reflection",
+      "lessonNumber": 26,
+      "lessonTitle": "Setup, Payoff and the Closing Image",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "act-specific",
+      "validActs": [
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Closing-image, payoff and reflection work is constrained to Act 4."
+    },
+    {
+      "canonicalFieldId": "structure:24b-dynamic-scenes:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "24b-dynamic-scenes",
+      "lessonNumber": 28,
+      "lessonTitle": "Scenes That Turn and Hand Off",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:essentials-pacing:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "essentials-pacing",
+      "lessonNumber": 74,
+      "lessonTitle": "Control Pacing Through Change",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "previs:early-visual-development:output-1",
+      "topic": "previs",
+      "learnTopic": "visual-storytelling",
+      "lessonId": "early-visual-development",
+      "lessonNumber": 17,
+      "lessonTitle": "From Concept Card to Storyboard Frame",
+      "application": "Storyboard",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "The project visual-development approach is selected once and reused across Acts."
+    },
+    {
+      "canonicalFieldId": "previs:ai-revision-visual-pageflow:output-1",
+      "topic": "previs",
+      "learnTopic": "visual-storytelling",
+      "lessonId": "ai-revision-visual-pageflow",
+      "lessonNumber": 37,
+      "lessonTitle": "Visual action and PageFlow pass",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Visual action, PageFlow and screen-evidence decisions can be reviewed independently for each Act."
+    },
+    {
+      "canonicalFieldId": "previs:essentials-screen-evidence:output-1",
+      "topic": "previs",
+      "learnTopic": "visual-storytelling",
+      "lessonId": "essentials-screen-evidence",
+      "lessonNumber": 78,
+      "lessonTitle": "Turn Inner Meaning Into Screen Evidence",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Visual action, PageFlow and screen-evidence decisions can be reviewed independently for each Act."
+    },
+    {
+      "canonicalFieldId": "drafting:writing-process:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "writing-process",
+      "lessonNumber": 4,
+      "lessonTitle": "The Writing Process",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:concept-to-draft:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "concept-to-draft",
+      "lessonNumber": 5,
+      "lessonTitle": "Concept to Final Draft",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:pickle-draft:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "pickle-draft",
+      "lessonNumber": 9,
+      "lessonTitle": "The Pickle Draft",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Draft and scene-change decisions can be developed separately for each Act."
+    },
+    {
+      "canonicalFieldId": "drafting:formatting:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "formatting",
+      "lessonNumber": 10,
+      "lessonTitle": "Script Formatting",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:books-scripts:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "books-scripts",
+      "lessonNumber": 11,
+      "lessonTitle": "Books, Screenplays and Deliberate Study",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:challenges:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "challenges",
+      "lessonNumber": 12,
+      "lessonTitle": "Screenplay Challenges Guide",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:essentials-scene:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "essentials-scene",
+      "lessonNumber": 77,
+      "lessonTitle": "Write Scenes That Change Conditions",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Draft and scene-change decisions can be developed separately for each Act."
+    },
+    {
+      "canonicalFieldId": "drafting:essentials-formatting:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "essentials-formatting",
+      "lessonNumber": 80,
+      "lessonTitle": "Use Advanced Screenplay Forms Clearly",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "dialogue:ai-revision-dialogue-voiceprint:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "ai-revision-dialogue-voiceprint",
+      "lessonNumber": 34,
+      "lessonTitle": "Dialogue and Voiceprint pass",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Voiceprint decisions remain stable project-wide character/dialogue guidance."
+    },
+    {
+      "canonicalFieldId": "dialogue:ai-revision-subtext-status-silence:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "ai-revision-subtext-status-silence",
+      "lessonNumber": 35,
+      "lessonTitle": "Subtext, status and silence pass",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-action:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-action",
+      "lessonNumber": 65,
+      "lessonTitle": "Dialogue Is Action",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-voiceprint:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-voiceprint",
+      "lessonNumber": 66,
+      "lessonTitle": "Build a Playable Voiceprint",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Voiceprint decisions remain stable project-wide character/dialogue guidance."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-subtext:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-subtext",
+      "lessonNumber": 67,
+      "lessonTitle": "Write Subtext and Withheld Information",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-conflict:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-conflict",
+      "lessonNumber": 68,
+      "lessonTitle": "Create Conflict Without Constant Arguments",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-speech-silence-action:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-speech-silence-action",
+      "lessonNumber": 69,
+      "lessonTitle": "Balance Speech, Silence and Physical Action",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-exposition-genre:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-exposition-genre",
+      "lessonNumber": 70,
+      "lessonTitle": "Handle Exposition, World and Genre",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-exchange-turn:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-exchange-turn",
+      "lessonNumber": 71,
+      "lessonTitle": "Shape the Exchange and Scene Turn",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "dialogue:dialogue-revision:output-1",
+      "topic": "dialogue",
+      "learnTopic": "dialogue",
+      "lessonId": "dialogue-revision",
+      "lessonNumber": 72,
+      "lessonTitle": "Revise for Voice, Purpose and Performance",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Dialogue purpose, subtext, conflict, exposition and scene-turn choices can vary by Act."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-diagnose-only:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-diagnose-only",
+      "lessonNumber": 29,
+      "lessonTitle": "Diagnose without rewriting",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Revision method, formatting, pitch language and whole-project audit choices remain project-wide."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-structure-causality:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-structure-causality",
+      "lessonNumber": 30,
+      "lessonTitle": "Structure and causality audit",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, scene, conflict and pacing revision passes can target independent Act evidence."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-scene-purpose-turn:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-scene-purpose-turn",
+      "lessonNumber": 32,
+      "lessonTitle": "Scene purpose and turn audit",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, scene, conflict and pacing revision passes can target independent Act evidence."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-conflict-stakes-escalation:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-conflict-stakes-escalation",
+      "lessonNumber": 33,
+      "lessonTitle": "Conflict, stakes and escalation audit",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, scene, conflict and pacing revision passes can target independent Act evidence."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-pacing-repetition:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-pacing-repetition",
+      "lessonNumber": 36,
+      "lessonTitle": "Pacing and repetition pass",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, scene, conflict and pacing revision passes can target independent Act evidence."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-formatting-readability:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-formatting-readability",
+      "lessonNumber": 41,
+      "lessonTitle": "Formatting and readability pass",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Revision method, formatting, pitch language and whole-project audit choices remain project-wide."
+    },
+    {
+      "canonicalFieldId": "revision:ai-revision-pitch-audience-language:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "ai-revision-pitch-audience-language",
+      "lessonNumber": 42,
+      "lessonTitle": "Pitch, synopsis and audience-language pass",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Revision method, formatting, pitch language and whole-project audit choices remain project-wide."
+    },
+    {
+      "canonicalFieldId": "revision:essentials-audit:output-1",
+      "topic": "revision",
+      "learnTopic": "revision",
+      "lessonId": "essentials-audit",
+      "lessonNumber": 81,
+      "lessonTitle": "Run the Essential Craft Audit",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Revision method, formatting, pitch language and whole-project audit choices remain project-wide."
+    },
+    {
+      "canonicalFieldId": "responsible-ai:responsible-ai:output-1",
+      "topic": "responsible-ai",
+      "learnTopic": "responsible-ai",
+      "lessonId": "responsible-ai",
+      "lessonNumber": 14,
+      "lessonTitle": "Responsible AI-Assisted Writing",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Responsible-AI and publishing boundaries are project-wide policy decisions."
+    },
+    {
+      "canonicalFieldId": "responsible-ai:24b-ai:output-1",
+      "topic": "responsible-ai",
+      "learnTopic": "responsible-ai",
+      "lessonId": "24b-ai",
+      "lessonNumber": 27,
+      "lessonTitle": "AI at Every Structural Level",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structural-level AI assistance can be scoped independently to each Act while Human authority remains unchanged."
+    },
+    {
+      "canonicalFieldId": "responsible-ai:collaboration-ai-github-publishing:output-1",
+      "topic": "responsible-ai",
+      "learnTopic": "responsible-ai",
+      "lessonId": "collaboration-ai-github-publishing",
+      "lessonNumber": 47,
+      "lessonTitle": "AI, GitHub and Public Publishing as Optional Tools",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Responsible-AI and publishing boundaries are project-wide policy decisions."
+    },
+    {
+      "canonicalFieldId": "industry:industry:output-1",
+      "topic": "industry",
+      "learnTopic": "industry",
+      "lessonId": "industry",
+      "lessonNumber": 13,
+      "lessonTitle": "The Film Industry",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Industry and ownership decisions apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "industry:collaboration-ownership-sharing:output-1",
+      "topic": "industry",
+      "learnTopic": "industry",
+      "lessonId": "collaboration-ownership-sharing",
+      "lessonNumber": 46,
+      "lessonTitle": "Ownership, Licences and Sharing Choices",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Industry and ownership decisions apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:collaboration-choose-workflow:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "collaboration-choose-workflow",
+      "lessonNumber": 43,
+      "lessonTitle": "Choose Your PlotPickle Workflow",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:collaboration-source-of-truth:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "collaboration-source-of-truth",
+      "lessonNumber": 44,
+      "lessonTitle": "Collaborate Without Losing the Source of Truth",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:collaboration-formats-that-travel:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "collaboration-formats-that-travel",
+      "lessonNumber": 45,
+      "lessonTitle": "Formats That Travel",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-model:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-model",
+      "lessonNumber": 48,
+      "lessonTitle": "Choose the Collaboration Model",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-authority:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-authority",
+      "lessonNumber": 49,
+      "lessonTitle": "Define Roles and Decision Authority",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-brief:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-brief",
+      "lessonNumber": 50,
+      "lessonTitle": "Create a Contribution Brief",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-canon:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-canon",
+      "lessonNumber": 51,
+      "lessonTitle": "Start From the Approved Story",
+      "application": "Block plan",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-proposal:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-proposal",
+      "lessonNumber": 52,
+      "lessonTitle": "Submit a Reviewable Proposal",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-review:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-review",
+      "lessonNumber": 53,
+      "lessonTitle": "Review the Change, Not the Person",
+      "application": "Screenplay",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-disagreements:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-disagreements",
+      "lessonNumber": 54,
+      "lessonTitle": "Decide, Disagree and Record Canon",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-rights:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-rights",
+      "lessonNumber": 55,
+      "lessonTitle": "Record Credit, Ownership and Permissions",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:working-together-scale:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "working-together-scale",
+      "lessonNumber": 56,
+      "lessonTitle": "Protect Privacy and Scale the Review Queue",
+      "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    }
+  ]
+}

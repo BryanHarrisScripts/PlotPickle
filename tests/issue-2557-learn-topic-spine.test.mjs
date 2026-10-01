@@ -37,34 +37,35 @@ test("#2557 one shared twelve-topic spine drives creation and Learn routing", as
   assert.match(learn, /curriculum\.find\(\(lesson\) => lesson\.topic === requestedTopic\)/u);
 });
 
-test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed authoring", async () => {
+test("#2557/#2604/#2632 MindMap uses the shared Learn spine without rendering the retired discovery board", async () => {
   const [surface, contract, styles] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/contracts/discovery/index.ts"),
     read("app/skin-v1/discovery-surface.module.css"),
   ]);
 
+  // Historical discovery lanes stay normalized for old saved projects.
   for (const [lane, topic] of [
     ["story", "foundations"], ["plot", "foundations"], ["research", "foundations"],
     ["theme", "theme"], ["motif", "theme"], ["visual", "previs"], ["image", "previs"], ["scene", "drafting"],
   ]) {
     assert.match(contract, new RegExp(`id: "${lane}", label: "[^"]+", topic: "${topic}"`, "u"));
   }
-  for (const lane of ["industry", "structure", "previs", "drafting", "revision", "responsible-ai", "collaboration"]) {
-    assert.match(contract, new RegExp(`id: "${lane}"`, "u"));
-  }
 
   assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\(initialTopic\)/u);
   assert.match(surface, /aria-label="MindMap Learn topics"/u);
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic\)/u);
-  assert.match(surface, /lane\.topic === selectedTopic/u);
-  assert.match(surface, /selectedActTopicCards/u);
   assert.match(surface, /Open in Learn/u);
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
   assert.match(surface, /field\.actionLabel/u);
   assert.match(surface, /Use Suggestion/u);
-  assert.doesNotMatch(surface, /Build Topic|Develop Agent Proposals/u);
-  assert.match(surface, /12 LEARN TOPICS/u);
+  assert.match(surface, /data-discovery-surface="canonical-authoring"/u);
+  assert.match(surface, /data-mind-map-human-notes/u);
+  assert.match(surface, /data-relevant-project-context/u);
+
+  assert.doesNotMatch(surface, /DISCOVERY_LANES|selectedActTopicCards|selectedActUnsorted|Save Human Idea|Living MindMap|Unsorted Human Ideas/u);
+  assert.doesNotMatch(surface, /project\.discovery\.cards|workingCards|DiscoveryCard/u);
+  assert.doesNotMatch(styles, /\.composer\s*\{|\.board\s*\{|\.laneGrid\s*\{|\.inbox\s*\{|\.cardActions\s*\{/u);
   assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
 });
 

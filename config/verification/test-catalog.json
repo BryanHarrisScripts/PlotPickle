@@ -1793,6 +1793,51 @@
         ]
       },
       "notes": "#2616 replaces monolithic browser Library sync payloads with bounded per-project encrypted writes plus a registry-only index sync, aligns the loopback request envelope with the per-object storage bound, and preserves truthful request-size diagnostics."
+    },
+    {
+      "id": "production.library-active-handoff-2621",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "profile-private-storage",
+        "library-session-selection",
+        "explicit-project-navigation"
+      ],
+      "triggerTokens": [
+        "storage",
+        "security",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2621-library-active-handoff.test.mjs",
+          "tests/issue-2581-startup-isolation.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "#2621 preserves Blank-at-launch while allowing a fresh one-shot explicit Library selection to survive the immediate authenticated profile hydration reload and expose the already-packaged Afterglow story/resources to downstream surfaces."
     }
   ]
 }

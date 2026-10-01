@@ -25,6 +25,7 @@ export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated
 export const AFTERGLOW_EXAMPLE_SOURCE_ID = "afterglow-v9" as const;
 export const AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID = "afterglow-v9-defaults" as const;
 export const PROJECT_LIBRARY_SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project" as const;
+export const PROJECT_LIBRARY_SESSION_HANDOFF_KEY_PREFIX = libraryCore.PROJECT_LIBRARY_SESSION_HANDOFF_KEY_PREFIX as string;
 
 export type ProjectLibrarySummary = {
   readonly id: string;
@@ -177,6 +178,33 @@ function sessionProjectKey(activeProfileId = profileId()) {
 
 export function sessionActiveProjectId() {
   return window.sessionStorage.getItem(sessionProjectKey())?.trim() || null;
+}
+
+export function stageSessionActiveProjectHandoff() {
+  const projectId = sessionActiveProjectId();
+  if (!projectId) return null;
+  return libraryCore.stageProjectLibrarySessionHandoff({
+    storage: window.sessionStorage,
+    profileId: profileId(),
+    projectId,
+    nowMs: Date.now(),
+  }) as string;
+}
+
+export function consumeSessionActiveProjectHandoff(activeProfileId: string) {
+  return libraryCore.consumeProjectLibrarySessionHandoff({
+    storage: window.sessionStorage,
+    profileId: activeProfileId,
+    nowMs: Date.now(),
+  }) as string | null;
+}
+
+export function resumeSessionActiveProject(projectId: string) {
+  const snapshot = loadLibraryProjectSnapshot(projectId);
+  if (!snapshot) return null;
+  markSessionActiveProject(projectId);
+  announceChange();
+  return snapshot;
 }
 
 function markSessionActiveProject(projectId: string) {

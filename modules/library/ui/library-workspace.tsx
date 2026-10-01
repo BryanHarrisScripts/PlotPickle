@@ -23,6 +23,7 @@ import {
   listLibraryProjects,
   loadLibraryProjectSnapshot,
   saveActiveLibraryProject,
+  stageSessionActiveProjectHandoff,
   switchActiveLibraryProject,
   type LibraryPPFProject,
   type ProjectLibrarySummary,
@@ -177,6 +178,7 @@ function displayDate(value: string) {
 async function openActiveProject() {
   await persistActiveProfileProject();
   await flushProfilePrivateWrites();
+  stageSessionActiveProjectHandoff();
   window.location.assign("/?workspace=dashboard");
 }
 
@@ -545,6 +547,7 @@ export default function LibraryWorkspace() {
       markCurrentSessionLibraryProject(project.id);
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
+      stageSessionActiveProjectHandoff();
       window.location.assign("/?workspace=dashboard");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");

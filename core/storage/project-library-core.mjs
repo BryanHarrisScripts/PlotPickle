@@ -2,6 +2,9 @@ export const PROJECT_LIBRARY_VERSION = 1;
 export const PROJECT_LIBRARY_ACTIVE_PROFILE_KEY = "plotpickle.human-profile.active.v1";
 export const DEFAULT_LOCAL_PROFILE_ID = "profile-local-primary";
 export const LEGACY_ACTIVE_PROJECT_KEY = "plotpickle.foundation.project.v1";
+export const PROJECT_LIBRARY_SESSION_HANDOFF_VERSION = 1;
+export const PROJECT_LIBRARY_SESSION_HANDOFF_MAX_AGE_MS = 60 * 1000;
+export const PROJECT_LIBRARY_SESSION_HANDOFF_KEY_PREFIX = "plotpickle.project-library.session-handoff";
 export const PROJECT_LIBRARY_CHANGED_EVENT = "plotpickle:project-library-changed";
 
 const PROFILE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
@@ -37,6 +40,46 @@ export function projectLibraryProjectKey(profileId, projectId) {
 
 export function projectLibraryMigrationKey(profileId) {
   return `plotpickle.library.profile.v1.${normalizeProjectLibraryProfileId(profileId)}.migration`;
+}
+
+export function projectLibrarySessionHandoffKey(profileId) {
+  return `${PROJECT_LIBRARY_SESSION_HANDOFF_KEY_PREFIX}:${normalizeProjectLibraryProfileId(profileId)}`;
+}
+
+export function stageProjectLibrarySessionHandoff(input) {
+  const storage = requireStorage(input.storage);
+  const profileId = normalizeProjectLibraryProfileId(input.profileId);
+  const projectId = requireProjectId(input.projectId);
+  const issuedAt = Number.isFinite(input.nowMs) ? Number(input.nowMs) : Date.now();
+  storage.setItem(projectLibrarySessionHandoffKey(profileId), JSON.stringify({
+    version: PROJECT_LIBRARY_SESSION_HANDOFF_VERSION,
+    profileId,
+    projectId,
+    issuedAt,
+  }));
+  return projectId;
+}
+
+export function consumeProjectLibrarySessionHandoff(input) {
+  const storage = requireStorage(input.storage);
+  const profileId = normalizeProjectLibraryProfileId(input.profileId);
+  const key = projectLibrarySessionHandoffKey(profileId);
+  const raw = storage.getItem(key);
+  storage.removeItem(key);
+  if (!raw) return null;
+  const nowMs = Number.isFinite(input.nowMs) ? Number(input.nowMs) : Date.now();
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value)
+      || value.version !== PROJECT_LIBRARY_SESSION_HANDOFF_VERSION
+      || value.profileId !== profileId
+      || !Number.isFinite(value.issuedAt)) return null;
+    const age = nowMs - Number(value.issuedAt);
+    if (age < 0 || age > PROJECT_LIBRARY_SESSION_HANDOFF_MAX_AGE_MS) return null;
+    return requireProjectId(value.projectId);
+  } catch {
+    return null;
+  }
 }
 
 function quarantine(storage, key, raw, now, reason) {

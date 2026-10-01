@@ -48,6 +48,94 @@ type Status = {
 type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "autonomous-guest" | "ready" | "server-unavailable";
 type Recovery = { readonly profile: Profile; readonly secret: string; readonly password: string; readonly guestDraft: string; readonly migrateLegacyBrowser: boolean };
 
+type LockedNodeStatus = {
+  readonly lifecycle: { readonly state: string; readonly inProgress: boolean; readonly lastError: string };
+  readonly shutdownToken?: string;
+};
+
+const LOCKED_NODE_CONTROL_HEADERS = {
+  "Content-Type": "application/json",
+  "X-PlotPickle-Node-Control": "confirmed",
+} as const;
+
+async function lockedNodeAction(action: string, payload: Record<string, unknown> = {}) {
+  const response = await fetch("/api/system/node-control", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: LOCKED_NODE_CONTROL_HEADERS,
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const body = await response.json() as LockedNodeStatus & { readonly message?: string };
+  if (!response.ok) throw new Error(body.message || "PlotPickle Node control is unavailable.");
+  return body;
+}
+
+function LockedNodeShutdown() {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [lifecycle, setLifecycle] = useState("RUNNING");
+
+  async function shutDown() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    let shutdownToken = "";
+    try {
+      const profileResponse = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
+      const profileStatus = await profileResponse.json() as Status & { readonly message?: string };
+      if (!profileResponse.ok) throw new Error(profileStatus.message || "PlotPickle could not verify the locked profile state.");
+      if (profileStatus.authenticated) {
+        throw new Error("A Human profile is active. Return to PlotPickle and use the Dashboard Shut Down action so current work can be saved first.");
+      }
+
+      const begun = await lockedNodeAction("begin-shutdown");
+      shutdownToken = String(begun.shutdownToken || "");
+      if (!shutdownToken) throw new Error("PlotPickle did not issue a graceful shutdown proof.");
+      setLifecycle(begun.lifecycle.state);
+
+      const completed = await lockedNodeAction("complete-shutdown", { shutdownToken });
+      setLifecycle(completed.lifecycle.state);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      let finalMessage = message;
+      if (shutdownToken) {
+        try { await lockedNodeAction("block-shutdown", { shutdownToken, message }); }
+        catch (blockError) {
+          const blockDetail = blockError instanceof Error ? blockError.message : String(blockError);
+          finalMessage = `${message} PlotPickle also could not record the blocked Node state: ${blockDetail}`;
+        }
+      }
+      setError(finalMessage);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.lockedShutdown} aria-label="Locked PlotPickle Node controls">
+      {!confirming ? (
+        <button type="button" className={styles.shutdownButton} onClick={() => setConfirming(true)}>
+          Shut Down PlotPickle
+        </button>
+      ) : (
+        <div className={styles.shutdownConfirm} role="dialog" aria-modal="true" aria-labelledby="locked-node-shutdown-title">
+          <h2 id="locked-node-shutdown-title">Shut down this PlotPickle Node?</h2>
+          <p>No Human profile is currently open. PlotPickle will stop its local services and close the PlotPickle-owned window.</p>
+          <p>This does not shut down or restart Windows.</p>
+          <p role="status" aria-live="polite">Node lifecycle: {lifecycle}</p>
+          {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+          <div className={styles.actions}>
+            <button type="button" disabled={busy} onClick={() => { setConfirming(false); setError(""); }}>Cancel</button>
+            <button type="button" className={styles.shutdownButton} disabled={busy} onClick={() => void shutDown()}>
+              {busy ? "Shutting Down…" : "Shut Down PlotPickle"}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 async function profileRequest(action: string, payload: Record<string, unknown> = {}, csrfToken?: string | null) {
   const result = await fetch("/api/auth/profile", {
     method: "POST",
@@ -297,16 +385,16 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
 
   if (screen === "create") {
     const firstServerProfile = status?.accessMode === "server-network" && status.configured === false;
-    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>{status?.configured ? "Add Human" : "Welcome to PlotPickle"}</p><h1>{status?.configured ? "Create another local profile" : firstServerProfile ? "Create the first PlotPickle profile" : "Create your local profile"}</h1><p>No email, phone, cloud account, Internet connection, BUZZ identity, GitHub, or Google login is required. This passphrase protects the encrypted Human profile and cannot be reset by email.</p><form onSubmit={createProfile}><label className={styles.field}><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" maxLength={120} required autoFocus /></label>{firstServerProfile ? <label className={styles.field}><span>Server bootstrap proof</span><input type="password" autoComplete="off" value={bootstrapProof} onChange={(event) => setBootstrapProof(event.target.value)} required /><small>This one-time operator proof prevents an exposed fresh server from being claimed by the first remote visitor. It is used only for first-profile creation.</small></label> : null}<PasswordField value={password} onChange={setPassword} purpose="new" /><PasswordField value={confirmation} onChange={setConfirmation} purpose="new" confirm /><small>Use a long, memorable passphrase. Password-manager paste and autofill are allowed; arbitrary symbol and uppercase rules are not imposed.</small>{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Creating…" : "Create local profile"}</button>{status?.configured || addingProfile ? <button type="button" onClick={() => { setAddingProfile(false); setBootstrapProof(""); setScreen(status?.authenticated ? "ready" : "chooser"); }}>Cancel</button> : null}</div></form></section></main>;
+    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>{status?.configured ? "Add Human" : "Welcome to PlotPickle"}</p><h1>{status?.configured ? "Create another local profile" : firstServerProfile ? "Create the first PlotPickle profile" : "Create your local profile"}</h1><p>No email, phone, cloud account, Internet connection, BUZZ identity, GitHub, or Google login is required. This passphrase protects the encrypted Human profile and cannot be reset by email.</p><form onSubmit={createProfile}><label className={styles.field}><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" maxLength={120} required autoFocus /></label>{firstServerProfile ? <label className={styles.field}><span>Server bootstrap proof</span><input type="password" autoComplete="off" value={bootstrapProof} onChange={(event) => setBootstrapProof(event.target.value)} required /><small>This one-time operator proof prevents an exposed fresh server from being claimed by the first remote visitor. It is used only for first-profile creation.</small></label> : null}<PasswordField value={password} onChange={setPassword} purpose="new" /><PasswordField value={confirmation} onChange={setConfirmation} purpose="new" confirm /><small>Use a long, memorable passphrase. Password-manager paste and autofill are allowed; arbitrary symbol and uppercase rules are not imposed.</small>{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Creating…" : "Create local profile"}</button>{status?.configured || addingProfile ? <button type="button" onClick={() => { setAddingProfile(false); setBootstrapProof(""); setScreen(status?.authenticated ? "ready" : "chooser"); }}>Cancel</button> : null}</div></form>{!status?.authenticated ? <LockedNodeShutdown /> : null}</section></main>;
   }
 
   if (screen === "login" && (selected || status?.accessMode === "server-network")) {
-    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setBootstrapProof(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form></section></main>;
+    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setBootstrapProof(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form><LockedNodeShutdown /></section></main>;
   }
 
   if (screen === "server-unavailable") {
-    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed operator bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}</section></main>;
+    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed operator bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}<LockedNodeShutdown /></section></main>;
   }
 
-  return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card} aria-busy={screen === "loading"}><AccessBrand /><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setBootstrapProof(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}</section></main>;
+  return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card} aria-busy={screen === "loading"}><AccessBrand /><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setBootstrapProof(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}<LockedNodeShutdown /></section></main>;
 }

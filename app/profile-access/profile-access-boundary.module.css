@@ -715,3 +715,51 @@ form .actions button[type="submit"]:hover:not(:disabled),
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-ink);
 }
+
+
+.lockedShutdown {
+  display: grid;
+  gap: var(--pp-space-3);
+  padding-top: var(--pp-space-4);
+  border-top: 1px solid var(--pp-profile-casper);
+}
+
+.shutdownButton {
+  min-height: var(--pp-touch-target);
+  justify-self: start;
+  padding: var(--pp-space-2) var(--pp-space-4);
+  border: 1px solid var(--pp-danger);
+  border-radius: var(--pp-radius-profile-control);
+  background: var(--pp-profile-danger-surface);
+  color: var(--pp-profile-danger-text);
+  font-family: var(--pp-font-interface);
+  font-size: var(--pp-text-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.shutdownButton:hover:not(:disabled),
+.shutdownButton:focus-visible {
+  border-color: var(--pp-profile-danger-text);
+  outline: 2px solid var(--pp-danger);
+  outline-offset: var(--pp-space-1);
+}
+
+.shutdownButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.shutdownConfirm {
+  display: grid;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-danger);
+  border-radius: var(--pp-radius-profile-control);
+  background: var(--pp-profile-danger-surface);
+}
+
+.shutdownConfirm h2,
+.shutdownConfirm p {
+  margin: 0;
+}

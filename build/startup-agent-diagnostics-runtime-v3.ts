@@ -292,6 +292,7 @@ async function runFoundationsProbe(baseUrl: string): Promise<FoundationProbeResu
       }
     } catch {
       // A bounded local provider failure, including structured-output truncation, falls through to the next recovery step.
+      continue;
     }
   }
 
@@ -321,6 +322,7 @@ async function runFoundationsProbe(baseUrl: string): Promise<FoundationProbeResu
         break;
       } catch {
         // Try the next bounded local one-field attempt before declaring the probe unrecoverable.
+        continue;
       }
     }
     if (!fieldRecovered) {

@@ -19,7 +19,7 @@ test("#2605 World Map projects the same twelve canonical Learn-backed fields as 
   ]);
 
   assert.match(worldMap, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
-  assert.match(worldMap, /storyDevelopmentFieldView\(project, field\)/u);
+  assert.match(worldMap, /storyDevelopmentFieldView\(project, field, act\)/u);
   assert.match(worldMap, /data-world-map-canonical-field=\{field\.canonicalId\}/u);
   assert.match(worldMap, /data-world-map-canonical-topic=\{activeTopic\}/u);
   assert.match(mindMap, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
@@ -61,18 +61,18 @@ test("#2605 every canonical review card can reopen its Learn lesson and exact Mi
 
   assert.match(surface, /learnLessonHref\(field\.topicId, field\.lessonId\)/u);
   assert.match(surface, /Edit in Mind Map/u);
-  assert.match(surface, /onEditField\(field\.topicId, field\.canonicalId\)/u);
+  assert.match(surface, /onEditField\(field\.topicId, field\.canonicalId, act\)/u);
   assert.match(spine, /export function learnLessonHref/u);
   assert.match(spine, /lesson: lessonId/u);
 
-  assert.match(host, /function openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string\)/u);
+  assert.match(host, /function openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct\)/u);
   assert.match(host, /setDiscoveryInitialTopic\(topic\)/u);
   assert.match(host, /setDiscoveryInitialFieldId\(canonicalFieldId\)/u);
   assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\} onEditField=\{openMindMapField\} \/>/u);
   assert.match(host, /initialTopic=\{discoveryInitialTopic\}/u);
-  assert.match(host, /initialFieldId=\{discoveryInitialFieldId\}/u);
+  assert.match(host, /initialFieldId=\{discoveryInitialFieldId\}/u);\n  assert.match(host, /initialAct=\{discoveryInitialAct\}/u);
 
-  assert.match(mindMap, /setSelectedTopic\(initialTopic\)/u);
+  assert.match(mindMap, /setSelectedTopic\(initialTopic\)/u);\n  assert.match(mindMap, /setSelectedAct\(initialAct\)/u);
   assert.match(mindMap, /element\.dataset\.canonicalFieldId === initialFieldId/u);
   assert.match(mindMap, /scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/u);
 });
@@ -91,7 +91,7 @@ test("#2605 shared project storage makes Mind Map edits visible in World Map wit
   assert.match(library, /readonly storyDevelopment: StoryDevelopmentState/u);
   assert.match(host, /PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible/u);
   assert.match(host, /setStoryBibleProject\(loadActiveLibraryProject\(\)\)/u);
-  assert.match(worldMap, /storyDevelopmentFieldView\(project, field\)/u);
+  assert.match(worldMap, /storyDevelopmentFieldView\(project, field, act\)/u);
 });
 
 test("#2605 Blank stays structurally complete and empty while packaged Afterglow is reviewed through the same surface", async () => {

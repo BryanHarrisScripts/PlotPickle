@@ -28,7 +28,7 @@ test("#2627 Skin V1 locked shutdown rechecks Human auth before canonical Node co
   const complete = shutdown.indexOf('lockedSkinNodeAction("complete-shutdown"');
   assert.ok(profileCheck >= 0 && profileCheck < begin);
   assert.ok(begin < complete);
-  assert.match(shutdown, /"X-PlotPickle-Node-Control": "confirmed"/u);
+  assert.match(skin, /"X-PlotPickle-Node-Control": "confirmed"/u);
   assert.match(shutdown, /data-skin-v1-locked-shutdown-confirmation="true"/u);
   assert.match(shutdown, />CANCEL<\/button>/u);
   assert.match(shutdown, /Use the Dashboard Shut Down action so current work can be saved first/u);

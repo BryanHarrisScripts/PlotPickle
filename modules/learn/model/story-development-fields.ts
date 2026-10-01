@@ -54,7 +54,7 @@ export function buildStoryDevelopmentFields(
         lessonTitle: lesson.title,
         fieldId,
         prompt,
-        actionLabel: `Create ${lesson.title} Proposal`,
+        actionLabel: "Ask Agent",
         classification: classification(topic.id),
       } satisfies StoryDevelopmentFieldDefinition;
     })));

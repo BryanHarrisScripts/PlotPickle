@@ -20,7 +20,17 @@ import {
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
-import { mindMapCharacterRoster } from "../../modules/learn/model/mind-map-character-roster";
+import {
+  createMindMapCharacter,
+  mindMapCharacterRoster,
+} from "../../modules/learn/model/mind-map-character-roster";
+import {
+  WORLD_MAP_CHARACTER_MAX_VERSIONS,
+  WORLD_MAP_CHARACTER_VIEWS,
+  approvedWorldMapCharacterReferences,
+  saveWorldMapCharacterVisualVersion,
+  type WorldMapCharacterVisualReference,
+} from "../../core/contracts/world-map";
 import {
   acceptStoryDevelopmentFieldProposal,
   storyDevelopmentFieldView,
@@ -38,6 +48,14 @@ import styles from "./discovery-surface.module.css";
 
 type AgentResponse = {
   readonly text?: string;
+  readonly message?: string;
+};
+
+type ImageGenerationResponse = {
+  readonly assetUrl?: string;
+  readonly revisedPrompt?: string;
+  readonly provider?: string;
+  readonly model?: string;
   readonly message?: string;
 };
 
@@ -115,6 +133,9 @@ export default function DiscoverySurface({
   const [selectedFieldPage, setSelectedFieldPage] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(initialFieldId);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [characterProject, setCharacterProject] = useState<LibraryPPFProject | null>(project);
+  const [newCharacterName, setNewCharacterName] = useState("");
+  const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -124,7 +145,10 @@ export default function DiscoverySurface({
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
-  const characterRoster = useMemo(() => project ? mindMapCharacterRoster(project) : [], [project]);
+  const characterRoster = useMemo(
+    () => characterProject ? mindMapCharacterRoster(characterProject) : [],
+    [characterProject],
+  );
 
   useEffect(() => {
     setSelectedAct(initialAct);
@@ -132,6 +156,10 @@ export default function DiscoverySurface({
     setSelectedFieldPage(1);
     setSelectedFieldId(initialFieldId);
   }, [initialAct, initialFieldId, initialTopic]);
+
+  useEffect(() => {
+    setCharacterProject(project);
+  }, [project?.id, project?.revision]);
 
   useEffect(() => {
     if (selectedTopic !== "character") return;
@@ -231,8 +259,14 @@ export default function DiscoverySurface({
     ?? characterRoster[0]
     ?? null;
   const activeCharacterId = selectedTopic === "character" ? selectedCharacter?.id ?? null : null;
+  const characterContextProject = characterProject ?? project;
   const selectedFieldContextCount = selectedCanonicalFields.reduce(
-    (total, field) => total + relevantProjectContextForField(project, field, selectedAct, field.topicId === "character" ? activeCharacterId : null).length,
+    (total, field) => total + relevantProjectContextForField(
+      field.topicId === "character" ? characterContextProject : project,
+      field,
+      selectedAct,
+      field.topicId === "character" ? activeCharacterId : null,
+    ).length,
     0,
   );
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
@@ -241,8 +275,9 @@ export default function DiscoverySurface({
       ? `${selectedField.canonicalId}::character-${selectedCharacter.id}`
       : selectedField.canonicalId
     : null;
-  const persistedFieldNote = project && selectedFieldNoteKey
-    ? mindMapFieldNote(project.mindMapNotes, selectedFieldNoteKey)
+  const notesProject = selectedTopic === "character" ? characterContextProject : project;
+  const persistedFieldNote = notesProject && selectedFieldNoteKey
+    ? mindMapFieldNote(notesProject.mindMapNotes, selectedFieldNoteKey)
     : { text: "", updatedAt: null };
   const selectedFieldNoteDraft = selectedFieldNoteKey
     ? noteDrafts[selectedFieldNoteKey] ?? persistedFieldNote.text
@@ -274,7 +309,7 @@ export default function DiscoverySurface({
   function persistCanonicalProject(next: LibraryPPFProject) {
     if (!project) return null;
     if (!hasActiveLibraryProject()) {
-      const suggested = project.title === "Untitled Story" ? "" : project.title;
+      const suggested = next.title === "Untitled Story" ? "" : next.title;
       const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
       if (!title) {
         setNotice("Save cancelled. The blank workspace was not added to Library.");
@@ -286,11 +321,12 @@ export default function DiscoverySurface({
   }
 
   function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
-    if (!project) return;
+    const baseProject = field.topicId === "character" ? characterContextProject : project;
+    if (!baseProject) return;
     const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
-    const value = fieldDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).value;
+    const value = fieldDrafts[storageId] ?? storyDevelopmentFieldView(baseProject, field, selectedAct).value;
     const next = writeStoryDevelopmentFieldValue({
-      project,
+      project: baseProject,
       field,
       value,
       source: "human",
@@ -298,6 +334,7 @@ export default function DiscoverySurface({
     });
     const saved = persistCanonicalProject(next);
     if (!saved) return;
+    if (field.topicId === "character") setCharacterProject(saved);
     setFieldDrafts((current) => ({
       ...current,
       [storageId]: storyDevelopmentFieldView(saved, field, selectedAct).value,
@@ -306,23 +343,25 @@ export default function DiscoverySurface({
   }
 
   function saveSelectedFieldNotes() {
-    if (!project || !selectedField || !selectedFieldNoteKey) return;
+    const baseProject = selectedTopic === "character" ? characterContextProject : project;
+    if (!baseProject || !selectedField || !selectedFieldNoteKey) return;
     const now = new Date().toISOString();
     const text = selectedFieldNoteDraft.slice(0, 24_000);
     const next: LibraryPPFProject = {
-      ...project,
-      revision: project.revision + 1,
+      ...baseProject,
+      revision: baseProject.revision + 1,
       updatedAt: now,
       mindMapNotes: {
-        ...project.mindMapNotes,
+        ...baseProject.mindMapNotes,
         fields: {
-          ...project.mindMapNotes.fields,
+          ...baseProject.mindMapNotes.fields,
           [selectedFieldNoteKey]: { text, updatedAt: now },
         },
       },
     };
     const saved = persistCanonicalProject(next);
     if (!saved) return;
+    if (selectedTopic === "character") setCharacterProject(saved);
     const savedNote = mindMapFieldNote(saved.mindMapNotes, selectedFieldNoteKey);
     setNoteDrafts((current) => ({ ...current, [selectedFieldNoteKey]: savedNote.text }));
     setSavedNoteTexts((current) => ({ ...current, [selectedFieldNoteKey]: savedNote.text }));
@@ -330,8 +369,129 @@ export default function DiscoverySurface({
     setNotice(`${selectedField.lessonTitle} notes${target} saved with this project.`);
   }
 
+  function createCharacter() {
+    const baseProject = characterContextProject;
+    if (!baseProject) return;
+    try {
+      const created = createMindMapCharacter(baseProject, newCharacterName);
+      const saved = persistCanonicalProject(created.project);
+      if (!saved) return;
+      setCharacterProject(saved);
+      setSelectedCharacterId(created.characterId);
+      setNewCharacterName("");
+      setNotesOpen(false);
+      setNotice("Character created in canonical Character Truth and selected for development.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Character creation failed.");
+    }
+  }
+
+  async function generateSelectedCharacterVisuals() {
+    const baseProject = characterContextProject;
+    if (!baseProject || !selectedCharacter || generatingCharacterId) return;
+    if (selectedCharacter.visualVersions.length >= WORLD_MAP_CHARACTER_MAX_VERSIONS) {
+      setNotice(`${selectedCharacter.name} already has the maximum of ${WORLD_MAP_CHARACTER_MAX_VERSIONS} saved visual versions. Existing review/lock authority must resolve a version before another is generated.`);
+      return;
+    }
+
+    const billingAcknowledged = window.confirm(
+      `Generate ${WORLD_MAP_CHARACTER_VIEWS.length} character-reference images for ${selectedCharacter.name}? A connected cloud image provider may charge the API account saved by this user. Existing locked visuals will not be replaced.`,
+    );
+    if (!billingAcknowledged) {
+      setNotice("Character visual generation was cancelled. No provider request was made.");
+      return;
+    }
+
+    const approvedTruth = selectedCharacter.claims
+      .filter((claim) => claim.reviewState === "human-approved")
+      .map((claim) => `${claim.kind}: ${claim.summary}`);
+    const approvedReferences = approvedWorldMapCharacterReferences(baseProject.worldMap, selectedCharacter.id);
+    const versionStamp = Date.now();
+    const versionId = `${selectedCharacter.id}-mind-map-${versionStamp}`;
+    const safeCharacterId = selectedCharacter.id.replace(/[^a-z0-9_-]+/giu, "-");
+    const references: WorldMapCharacterVisualReference[] = [];
+    const failures: string[] = [];
+
+    setGeneratingCharacterId(selectedCharacter.id);
+    setNotice(`Generating ${WORLD_MAP_CHARACTER_VIEWS.length} governed character views for ${selectedCharacter.name}…`);
+    try {
+      for (const view of WORLD_MAP_CHARACTER_VIEWS) {
+        const prompt = [
+          `Character: ${selectedCharacter.name}.`,
+          approvedTruth.length ? `Human-approved Character Truth: ${approvedTruth.join(" | ")}` : "No additional Human-approved appearance facts are established.",
+          `Reference view: ${view.label}. ${view.directive}`,
+          "Single character only. Preserve identity across the full reference package. Neutral production-reference setting and lighting. No text, caption, logo, watermark or border.",
+        ].join(" ");
+        try {
+          const response = await fetch("/api/local-ai/generate/image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt,
+              characterId: selectedCharacter.id,
+              assetId: `mind-map-character-${safeCharacterId}-${view.id}-${versionStamp}`,
+              aspect: "portrait",
+              referenceImages: approvedReferences,
+              requestCount: 1,
+              billingAcknowledged,
+            }),
+          });
+          const result = await response.json() as ImageGenerationResponse;
+          if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image provider returned no image.");
+          const createdAt = new Date().toISOString();
+          references.push({
+            id: `mind-map-character:${selectedCharacter.id}:${versionId}:${view.id}`,
+            versionId,
+            characterId: selectedCharacter.id,
+            characterName: selectedCharacter.name,
+            view: view.id,
+            assetUrl: result.assetUrl,
+            prompt: result.revisedPrompt?.trim() || prompt,
+            provider: result.provider?.trim() || "configured image route",
+            model: result.model?.trim() || "",
+            createdAt,
+            reviewState: "draft",
+          });
+        } catch (error) {
+          failures.push(`${view.label}: ${error instanceof Error ? error.message : "generation failed"}`);
+        }
+      }
+
+      if (!references.length) {
+        setNotice(failures[0] || "Character visual generation returned no saved images.");
+        return;
+      }
+
+      const savedAt = new Date().toISOString();
+      const worldMap = saveWorldMapCharacterVisualVersion(baseProject.worldMap, {
+        characterId: selectedCharacter.id,
+        characterName: selectedCharacter.name,
+        versionId,
+        references,
+        savedAt,
+      });
+      const next: LibraryPPFProject = {
+        ...baseProject,
+        revision: baseProject.revision + 1,
+        updatedAt: savedAt,
+        worldMap,
+      };
+      const saved = persistCanonicalProject(next);
+      if (!saved) return;
+      setCharacterProject(saved);
+      setNotice(
+        failures.length
+          ? `Saved ${references.length} of ${WORLD_MAP_CHARACTER_VIEWS.length} draft views for ${selectedCharacter.name}. ${failures.length} view(s) need Redo. Existing locked visuals were preserved.`
+          : `Saved a complete ${references.length}-view draft visual version for ${selectedCharacter.name}. Existing locked visuals were preserved.`,
+      );
+    } finally {
+      setGeneratingCharacterId(null);
+    }
+  }
+
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
-    if (!project || developingFieldId) return;
+    const baseProject = field.topicId === "character" ? characterContextProject : project;
+    if (!baseProject || developingFieldId) return;
     setDevelopingFieldId(field.canonicalId);
     setNotice("Asking Agent for a suggestion…");
     try {
@@ -353,11 +513,11 @@ export default function DiscoverySurface({
               lessonId: field.lessonId,
               fieldId: field.fieldId,
               currentValue: fieldDrafts[storyDevelopmentFieldStorageId(field, selectedAct)]
-                ?? storyDevelopmentFieldView(project, field, selectedAct).value,
+                ?? storyDevelopmentFieldView(baseProject, field, selectedAct).value,
               characterTarget: field.topicId === "character" && selectedCharacter
                 ? { id: selectedCharacter.id, name: selectedCharacter.name }
                 : null,
-              context: compactProjectContext(project, selectedAct, field.topicId === "character" ? selectedCharacter?.id : null),
+              context: compactProjectContext(baseProject, selectedAct, field.topicId === "character" ? selectedCharacter?.id : null),
             }),
           ].join("\n\n"),
         }),
@@ -369,13 +529,14 @@ export default function DiscoverySurface({
       const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
       setProposalDrafts((current) => ({ ...current, [storageId]: proposal }));
       if (hasActiveLibraryProject()) {
-        saveActiveLibraryProject(writeStoryDevelopmentFieldProposal({
-          project,
+        const savedProposal = saveActiveLibraryProject(writeStoryDevelopmentFieldProposal({
+          project: baseProject,
           field,
           proposal,
           sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
           act: selectedAct,
         }));
+        if (field.topicId === "character" && savedProposal) setCharacterProject(savedProposal);
       }
       setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review.`);
     } catch (error) {
@@ -386,12 +547,13 @@ export default function DiscoverySurface({
   }
 
   function useCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
-    if (!project) return;
+    const baseProject = field.topicId === "character" ? characterContextProject : project;
+    if (!baseProject) return;
     const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
-    const proposal = (proposalDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).proposal).trim();
+    const proposal = (proposalDrafts[storageId] ?? storyDevelopmentFieldView(baseProject, field, selectedAct).proposal).trim();
     if (!proposal) return;
     const withProposal = writeStoryDevelopmentFieldProposal({
-      project,
+      project: baseProject,
       field,
       proposal,
       sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
@@ -400,6 +562,7 @@ export default function DiscoverySurface({
     const next = acceptStoryDevelopmentFieldProposal({ project: withProposal, field, act: selectedAct });
     const saved = persistCanonicalProject(next);
     if (!saved) return;
+    if (field.topicId === "character") setCharacterProject(saved);
     const value = storyDevelopmentFieldView(saved, field, selectedAct).value;
     setFieldDrafts((current) => ({ ...current, [storageId]: value }));
     setProposalDrafts((current) => ({ ...current, [storageId]: "" }));
@@ -495,10 +658,30 @@ export default function DiscoverySurface({
             <div>
               <small>CANONICAL CHARACTER ROSTER</small>
               <h3>Characters</h3>
-              <p>Roster identity comes from saved Character Truth. Visual history comes from the existing World Map character resource store.</p>
+              <p>Roster identity comes from saved Character Truth. Generated visuals are saved as reviewable drafts in the existing World Map character resource store.</p>
             </div>
             <span>{characterRoster.length} {characterRoster.length === 1 ? "CHARACTER" : "CHARACTERS"}</span>
           </header>
+          <div className={styles.characterWorkspaceActions}>
+            <label>
+              <span>NEW CHARACTER</span>
+              <input
+                value={newCharacterName}
+                onChange={(event) => setNewCharacterName(event.target.value)}
+                placeholder="Character name"
+                maxLength={160}
+              />
+            </label>
+            <button type="button" disabled={!newCharacterName.trim() || generatingCharacterId !== null} onClick={createCharacter}>Create Character</button>
+            <button
+              type="button"
+              disabled={!selectedCharacter || generatingCharacterId !== null}
+              data-mind-map-generate-character-visuals={selectedCharacter?.id ?? ""}
+              onClick={() => void generateSelectedCharacterVisuals()}
+            >
+              {generatingCharacterId ? "Generating Character Visuals…" : "Generate Character Visuals"}
+            </button>
+          </div>
           {!characterRoster.length ? (
             <p className={styles.emptyActFields} data-mind-map-character-roster-empty="true">No canonical characters are established for this project yet.</p>
           ) : (

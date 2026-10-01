@@ -55,7 +55,7 @@ test("#2603 first explicit Save from Blank requests a name and promotes to a fre
 
   assert.match(mindMap, /window\.prompt\("Save as New Project", suggested\)/u);
   assert.match(mindMap, /saveDetachedLibraryProjectAs\(next, \{ title, format: "Feature" \}\)/u);
-  assert.match(mindMap, /setProposalDrafts\(\(current\) => \(\{ \.\.\.current, \[field\.canonicalId\]: proposal \}\)\)/u);
+  assert.match(mindMap, /setProposalDrafts\(\(current\) => \(\{ \.\.\.current, \[storageId\]: proposal \}\)\)/u);
   assert.match(mindMap, /if \(hasActiveLibraryProject\(\)\) \{[\s\S]*writeStoryDevelopmentFieldProposal/u);
 
   assert.match(worldMap, /data-story-bible-read-only="true"/u);

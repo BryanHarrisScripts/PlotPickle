@@ -222,8 +222,14 @@ export default function AverySessionHistory() {
         });
       }
       await persistActiveProfileProject();
-      stageSessionActiveProjectHandoff();
-      window.location.assign("/?workspace=dashboard");
+      if (window.location.pathname === "/skin-v1") {
+        window.dispatchEvent(new CustomEvent("plotpickle:return-dashboard", {
+          detail: { sourceSurface: "library-avery" },
+        }));
+      } else {
+        stageSessionActiveProjectHandoff();
+        window.location.assign("/?workspace=dashboard");
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Avery story could not be opened.");
     }

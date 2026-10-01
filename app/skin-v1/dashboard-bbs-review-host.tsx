@@ -7,6 +7,7 @@ import { loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../c
 import type { ProductionSoundCueKind } from "../../core/contracts/previs";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import type { LearnTopicSpineId } from "../../modules/learn/model/story-learning-context";
+import type { StoryDevelopmentAct } from "../../modules/learn/model/story-development-fields";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
@@ -87,6 +88,7 @@ export default function DashboardBbsReviewHost({
   const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
   const [discoveryInitialTopic, setDiscoveryInitialTopic] = useState<LearnTopicSpineId>("foundations");
   const [discoveryInitialFieldId, setDiscoveryInitialFieldId] = useState<string | null>(null);
+  const [discoveryInitialAct, setDiscoveryInitialAct] = useState<StoryDevelopmentAct>(1);
   const [storyBibleOpen, setStoryBibleOpen] = useState(false);
   const [storyBibleProject, setStoryBibleProject] = useState<LibraryPPFProject | null>(null);
   const [dashboardNotice, setDashboardNotice] = useState("");
@@ -185,12 +187,13 @@ export default function DashboardBbsReviewHost({
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
   }, [discoveryOpen]);
 
-  function openMindMapField(topic: LearnTopicSpineId, canonicalFieldId: string) {
+  function openMindMapField(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct) {
     setStoryBibleOpen(false);
     setStoryBibleProject(null);
     setDiscoveryProject(loadActiveLibraryProject());
     setDiscoveryInitialTopic(topic);
     setDiscoveryInitialFieldId(canonicalFieldId);
+    setDiscoveryInitialAct(act);
     setDiscoveryOpen(true);
     onSurfaceNameChange("MindMap");
   }
@@ -370,6 +373,7 @@ export default function DashboardBbsReviewHost({
       setDiscoveryProject(loadActiveLibraryProject());
       setDiscoveryInitialTopic("foundations");
       setDiscoveryInitialFieldId(null);
+      setDiscoveryInitialAct(1);
       setDiscoveryOpen(true);
       onSurfaceNameChange("MindMap");
       return;
@@ -515,6 +519,7 @@ export default function DashboardBbsReviewHost({
           project={discoveryProject}
           initialTopic={discoveryInitialTopic}
           initialFieldId={discoveryInitialFieldId}
+          initialAct={discoveryInitialAct}
         />
       </section>
     );

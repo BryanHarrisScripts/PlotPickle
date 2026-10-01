@@ -6,12 +6,14 @@ import {
 import { normalizeLibraryProject, type LibraryPPFProject } from "./library-project";
 import {
   clearLibraryProjectSessionCache,
+  consumeSessionActiveProjectHandoff,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   hydrateProfileProjectLibrary,
   listArchivedLibraryProjects,
   listPersistableLibraryProjects,
   loadLibraryProjectSnapshot,
   initializeProjectLibrary,
+  resumeSessionActiveProject,
   sessionActiveProjectId,
 } from "./project-library-browser";
 
@@ -182,6 +184,7 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
         || Boolean((restored.summary as { archivedAt?: unknown } | undefined)?.archivedAt) !== Boolean((item.summary as { archivedAt?: unknown } | undefined)?.archivedAt);
     })) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
   }
+  const explicitSessionProjectId = consumeSessionActiveProjectHandoff(profileId);
   clearLibraryProjectSessionCache();
   window.sessionStorage.clear();
   window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
@@ -196,6 +199,9 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
       ? String((next.project as { readonly id: string }).id)
       : null;
   const restored = hydrateProfileProjectLibrary({ activeProjectId, projects });
+  if (explicitSessionProjectId && restored.registry.activeProjectId === explicitSessionProjectId) {
+    resumeSessionActiveProject(explicitSessionProjectId);
+  }
   hydrated = {
     ...next,
     project: restored.activeProject,

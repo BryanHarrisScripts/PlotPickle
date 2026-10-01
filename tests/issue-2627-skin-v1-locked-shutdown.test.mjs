@@ -55,8 +55,11 @@ test("#2627 WebMCP proves shutdown visibility and clickability at 1366x768 befor
   assert.match(capture, /getByRole\("button", \{ name: "CANCEL" \}\)\.click\(\)/u);
 });
 
-test("#2627 WebMCP logs out a real authenticated Skin V1 session and re-proves locked shutdown", async () => {
-  const capture = await read("lib/verification/skin-v1/profile-gate-capture.mjs");
+test("#2627 WebMCP logs out a real authenticated Skin V1 session and re-proves locked shutdown after authenticated checks", async () => {
+  const [capture, startup] = await Promise.all([
+    read("lib/verification/skin-v1/profile-gate-capture.mjs"),
+    read("scripts/run-webmcp-startup-uat.mjs"),
+  ]);
   const start = capture.indexOf("export async function verifyWebMcpPostLogoutShutdown");
   const end = capture.indexOf("export async function prepareWebMcpProfileGateSession", start);
   const postLogout = capture.slice(start, end);
@@ -66,5 +69,9 @@ test("#2627 WebMCP logs out a real authenticated Skin V1 session and re-proves l
   assert.match(postLogout, /await logout\.click\(\)/u);
   assert.match(postLogout, /main\.pp-skin-v1-logon\[data-skin-v1-logon-state='locked'\]/u);
   assert.match(postLogout, /assertLockedShutdownVisible\(page, "post-logout profile gate"\)/u);
-  assert.match(capture, /verifyWebMcpPostLogoutShutdown\([\s\S]*storageStatePath: auth\.storageStatePath/u);
+  const menuAudit = startup.indexOf("const menuContract = await runSkinV1MenuContractAudit");
+  const postLogoutAudit = startup.indexOf("const postLogoutShutdown = await verifyWebMcpPostLogoutShutdown");
+  assert.ok(menuAudit >= 0 && menuAudit < postLogoutAudit);
+  assert.match(startup, /storageStatePath: auth\.storageStatePath/u);
+  assert.match(startup, /profileGatePostLogoutShutdown: postLogoutShutdown/u);
 });

@@ -465,6 +465,21 @@
       ]
     },
     {
+      "id": "startup-vite-compatibility-runtime",
+      "classification": "production",
+      "include": [
+        "build/startup/**",
+        "scripts/vite-native-config-report.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "windows",
+        "surface",
+        "test-harness"
+      ]
+    },
+    {
       "id": "managed-runtime-manifest",
       "classification": "production",
       "include": [
@@ -1300,6 +1315,20 @@
         "graph",
         "test-harness",
         "cli"
+      ]
+    },
+    {
+      "id": "startup-performance-verification",
+      "classification": "verification",
+      "include": [
+        "scripts/performance/run-windows-startup-benchmark.mjs",
+        "tests/issue-1411-performance-benchmark.test.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "test-harness",
+        "windows",
+        "native"
       ]
     },
     {

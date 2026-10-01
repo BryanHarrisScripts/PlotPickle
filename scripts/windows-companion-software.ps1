@@ -426,5 +426,5 @@ if ($script:MaintenanceWarningCount -gt 0) {
   exit 10
 }
 
-Write-Host "[READY] Companion inventory and reviewed maintenance finished without detected failures."
+Write-Host "[READY] Companion inventory and reviewed maintenance finished without companion software failures; Agent Health is reported separately."
 exit 0

@@ -57,7 +57,7 @@ test("#2647 governed Character visual generation uses approved truth, locked ref
   ]);
 
   assert.match(surface, /data-mind-map-character-generation=\{selectedCharacter\.id\}/u);
-  assert.match(surface, />Generate Character Visual<\/button>/u);
+  assert.match(surface, /"Generate Character Visual"/u);
   assert.match(surface, /fetch\("\/api\/local-ai\/generate\/image"/u);
   assert.match(surface, /referenceImages: plan\.approvedReferenceImages/u);
   assert.match(surface, /saveWorldMapCharacterVisualVersion\(project\.worldMap/u);
@@ -88,7 +88,7 @@ test("#2647 complete Character visual versions require an explicit Human lock ac
     read("core/contracts/world-map/index.ts"),
   ]);
 
-  assert.match(surface, />Lock Complete Version<\/button>/u);
+  assert.match(surface, /Lock Complete Version/u);
   assert.match(surface, /disabled=\{!version\.complete\}/u);
   assert.match(surface, /lockWorldMapCharacterVisualVersion\(project\.worldMap, selectedCharacter\.id, versionId, now\)/u);
   assert.match(worldMap, /if \(!target\?\.complete\) return state/u);
@@ -113,7 +113,7 @@ test("#2647 World Map and downstream projection read the same Character Truth ow
     read("core/storage/project-library-browser.ts"),
   ]);
 
-  assert.match(projection, /const evidence = project\.sourceEvidence\.characterTruth/u);
+  assert.match(projection, /const evidence = normalizeProjectSourceEvidence\(project\.sourceEvidence\)\.characterTruth/u);
   assert.match(projection, /evidence\.principalCharacterIds/u);
   assert.match(library, /const sourceEvidence = "sourceEvidence" in incoming[\s\S]*normalizeProjectSourceEvidence\(incoming\.sourceEvidence\)/u);
   assert.match(library, /const worldMap = "worldMap" in incoming[\s\S]*normalizeWorldMapState\(incoming\.worldMap\)/u);

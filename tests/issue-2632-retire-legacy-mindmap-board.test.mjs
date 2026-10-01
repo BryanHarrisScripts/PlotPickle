@@ -68,8 +68,8 @@ test("#2632 Ask Agent cannot silently consume hidden legacy discovery cards", as
   const compact = surface.slice(contextStart, contextEnd);
 
   assert.doesNotMatch(compact, /mindMap|discovery|cards/u);
-  assert.match(surface, /context: compactProjectContext\(project, selectedAct\)/u);
-  assert.doesNotMatch(surface, /compactProjectContext\(project, selectedAct,/u);
+  assert.match(surface, /context: compactProjectContext\(project, selectedAct, field\.topicId === "character" \? selectedCharacter\?\.id : null\)/u);
+  assert.doesNotMatch(compact, /project\.discovery|discovery:\s*\{|\.discovery\.cards/u);
 });
 
 test("#2632 Act rail remains only because field-scoped context can be Act-sensitive", async () => {
@@ -80,7 +80,7 @@ test("#2632 Act rail remains only because field-scoped context can be Act-sensit
 
   assert.match(surface, /const MIND_MAP_ACTS: readonly DiscoveryAct\[\] = \[1, 2, 3, 4\]/u);
   assert.match(surface, /data-mind-map-act-choice=\{act\}/u);
-  assert.match(surface, /relevantProjectContextForField\(project, field, selectedAct\)/u);
+  assert.match(surface, /relevantProjectContextForField\([\s\S]*project,[\s\S]*field,[\s\S]*selectedAct,[\s\S]*field\.topicId === "character" \? selectedCharacter\?\.id : null[\s\S]*\)/u);
   assert.match(context, /case "structure":[\s\S]*structureContext\(project, act\)/u);
   assert.match(context, /case "drafting":[\s\S]*draftingContext\(project, act\)/u);
   assert.match(context, /case "dialogue":[\s\S]*dialogueContext\(project, act\)/u);

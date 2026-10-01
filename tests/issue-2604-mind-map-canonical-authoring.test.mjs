@@ -76,7 +76,8 @@ test("#2604 Mind Map directly edits canonical fields and removes the generic pro
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
-  assert.match(surface, /const selectedTopicFields = canonicalFields\.filter\(\(field\) => field\.topicId === selectedTopic\)/u);\n  assert.match(surface, /const selectedCanonicalFields = storyDevelopmentFieldsForAct\(selectedTopicFields, selectedAct\)/u);
+  assert.match(surface, /const selectedTopicFields = canonicalFields\.filter\(\(field\) => field\.topicId === selectedTopic\)/u);
+  assert.match(surface, /const selectedCanonicalFields = storyDevelopmentFieldsForAct\(selectedTopicFields, selectedAct\)/u);
   assert.match(surface, /data-canonical-field-id=\{field\.canonicalId\}/u);
   assert.match(surface, /value=\{fieldDrafts\[storageId\] \?\? persisted\.value\}/u);
   assert.match(surface, /writeStoryDevelopmentFieldValue/u);

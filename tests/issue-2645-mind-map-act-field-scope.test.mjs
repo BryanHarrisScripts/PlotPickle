@@ -28,26 +28,30 @@ function applicationPromptCount(lesson) {
   return prompts.length || 1;
 }
 
-test("#2645 every canonical Learn application field has one deterministic scope audit row", async () => {
-  const audit = await readJson("config/mind-map-field-scope-audit.json");
-  const expectedIds = [];
-
-  for (const [topicId, learnTopicId] of TOPICS) {
-    const document = await readJson(`learn/${learnTopicId}.json`);
-    for (const lesson of document.lessons) {
-      const count = applicationPromptCount(lesson);
-      for (let index = 1; index <= count; index += 1) {
-        expectedIds.push(`${topicId}:${lesson.id}:output-${index}`);
-      }
-    }
-  }
+test("#2645 every canonical presentation field has one deterministic scope audit row", async () => {
+  const [audit, catalog] = await Promise.all([
+    readJson("config/mind-map-field-scope-audit.json"),
+    read("adapters/curriculum/current-catalog-integrated.ts"),
+  ]);
 
   const auditedIds = audit.rows.map((row) => row.canonicalFieldId);
   assert.equal(audit.schemaVersion, "1.0");
   assert.equal(audit.issue, 2645);
-  assert.equal(audit.canonicalFieldCount, expectedIds.length);
+  assert.equal(audit.presentationLessonCount, 96);
+  assert.equal(audit.canonicalFieldCount, 118);
+  assert.equal(audit.rows.filter((row) => row.topic === "foundations").length, 33);
   assert.equal(new Set(auditedIds).size, auditedIds.length, "scope audit must not duplicate canonical field IDs");
-  assert.deepEqual([...auditedIds].sort(), [...expectedIds].sort());
+  assert.match(catalog, /standalonePlotPickleCurriculum\.length !== 96/u);
+  assert.match(catalog, /standaloneFoundations\.length !== 11/u);
+
+  for (const id of [
+    "foundations:foundations-general-readme-md:output-1",
+    "foundations:essentials-experience:output-3",
+    "drafting:scene-craft-pressure-and-turn:output-1",
+    "industry:professional-pitching-and-representation:output-1",
+    "structure:series-engine-and-bible:output-1",
+    "collaboration:writers-room-story-breaking:output-1",
+  ]) assert.ok(auditedIds.includes(id), `scope audit is missing presentation field ${id}`);
 
   for (const row of audit.rows) {
     assert.ok(["project-wide", "act-specific", "repeatable-by-act"].includes(row.scope));
@@ -60,7 +64,6 @@ test("#2645 every canonical Learn application field has one deterministic scope 
     assert.equal(typeof row.application, "string");
   }
 });
-
 test("#2645 scope rules explicitly distinguish project-wide, Act-specific and repeatable fields", async () => {
   const [model, audit] = await Promise.all([
     read("modules/learn/model/story-development-fields.ts"),
@@ -69,8 +72,9 @@ test("#2645 scope rules explicitly distinguish project-wide, Act-specific and re
 
   assert.match(model, /export type StoryDevelopmentFieldScope =[\s\S]*"project-wide"[\s\S]*"act-specific"[\s\S]*"repeatable-by-act"/u);
   assert.match(model, /export function storyDevelopmentFieldScopeDecision/u);
-  assert.match(model, /export function storyDevelopmentFieldAppliesToAct/u);
   assert.match(model, /export function storyDevelopmentFieldsForAct/u);
+  assert.match(model, /fields\.filter\(\(field\) => field\.validActs\.includes\(act\)\)/u);
+  assert.doesNotMatch(model, /storyDevelopmentFieldAppliesToAct/u);
   assert.match(model, /return `\$\{field\.canonicalId\}::act-\$\{act\}`/u);
 
   const byId = new Map(audit.rows.map((row) => [row.canonicalFieldId, row]));
@@ -94,7 +98,7 @@ test("#2645 Act-qualified values stay inside the existing storyDevelopment owner
   assert.match(adapter, /if \(!hasScopedActivity\(scopedState\)\) return \{ \.\.\.baseState, value \}/u);
   assert.match(adapter, /hasAcceptedScopedValue \? scopedState\.value : value/u);
   assert.match(adapter, /usesActStorage = input\.act !== undefined && input\.field\.scope !== "project-wide"/u);
-  assert.match(adapter, /if \(input\.act !== undefined && !storyDevelopmentFieldAppliesToAct\(input\.field, input\.act\)\) \{[\s\S]*return input\.project/u);
+  assert.match(adapter, /if \(input\.act !== undefined && !input\.field\.validActs\.includes\(input\.act\)\) \{[\s\S]*return input\.project/u);
   assert.match(adapter, /project\.foundations\.lessons\[field\.lessonId\]\?\.answers\[field\.fieldId\]/u);
   assert.match(adapter, /project\.world\.lessons\[field\.lessonId\]\?\.answers\[field\.fieldId\]/u);
   assert.doesNotMatch(adapter, /readonly actValues|mindMapActValues|actFieldStore/u);

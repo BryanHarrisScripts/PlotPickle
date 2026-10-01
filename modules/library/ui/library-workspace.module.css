@@ -1,6 +1,6 @@
 .workspace {
   min-height: 0;
-  padding: var(--pp-skin-space-6) var(--pp-skin-space-4) var(--pp-skin-space-8);
+  padding: var(--pp-skin-space-4) var(--pp-skin-space-4) var(--pp-skin-space-6);
   color: var(--pp-skin-ink);
   background: var(--pp-skin-canvas);
   font-family: var(--pp-skin-font-ui);
@@ -18,7 +18,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
   gap: var(--pp-skin-space-4);
   align-items: end;
-  margin-bottom: var(--pp-skin-space-5);
+  margin-bottom: var(--pp-skin-space-3);
   padding-bottom: var(--pp-skin-space-3);
   border-bottom: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
 }
@@ -74,7 +74,7 @@
 .libraryLayout {
   display: grid;
   grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
-  gap: var(--pp-skin-space-5);
+  gap: var(--pp-skin-space-3);
   align-items: start;
 }
 

@@ -145,8 +145,7 @@ test("#2646 Character visual history has no UI subset and preserves resource/pro
 test("#2646 local resource restoration remains additive across every recovered Character group", async () => {
   const recovery = await read("modules/library/local-resource-recovery.ts");
   const start = recovery.indexOf("export function restoreLocalWorldMapCharacterResources");
-  const end = recovery.indexOf("\n}", start) + 2;
-  const body = recovery.slice(start, end);
+  const body = recovery.slice(start);
 
   assert.match(body, /const groups = new Map/u);
   assert.match(body, /for \(const resource of resources\)/u);

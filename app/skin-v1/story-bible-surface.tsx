@@ -142,7 +142,7 @@ export default function StoryBibleSurface({
       data-story-bible-read-only="true"
       onKeyDown={(event) => handleStoryActShortcut(event, setSelectedAct)}
     >
-      <StoryActRail activeAct={selectedAct} ariaLabel="World Map acts" onOpen={setSelectedAct} />
+      <StoryActRail activeAct={selectedAct} ariaLabel="World Map acts" choiceDataAttribute="data-world-map-act-choice" onOpen={setSelectedAct} />
 
       <nav className={styles.sectionNav} aria-label="World Map Learn topics" role="tablist">
         {LEARN_TOPIC_SPINE.map((topic, index) => {

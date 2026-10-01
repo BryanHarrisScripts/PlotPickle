@@ -271,7 +271,7 @@ function uniqueCanonicalCharacterId(base: string, occupied: ReadonlySet<string>)
     const candidate = `${base.slice(0, 150)}-${suffix}`;
     if (!occupied.has(candidate)) return candidate;
   }
-  return `${base.slice(0, 140)}-${Date.now()}`;
+  return `${base.slice(0, 150)}-1000`;
 }
 
 export function createCanonicalCharacterTruth(

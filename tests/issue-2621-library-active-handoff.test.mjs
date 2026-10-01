@@ -91,9 +91,10 @@ test("#2621 explicit Library opens stage the handoff only after durable persiste
     read("modules/library/ui/avery-session-history/index.tsx"),
   ]);
 
-  assert.match(workspace, /await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*stageSessionActiveProjectHandoff\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\)/u);
+  assert.match(workspace, /await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*if \(returnToMatrixDashboardFromLibrary\(\)\) return;[\s\S]*stageSessionActiveProjectHandoff\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\)/u);
+  assert.match(workspace, /window\.location\.pathname !== "\/skin-v1"[\s\S]*plotpickle:return-dashboard/u);
   assert.match(workspace, /async function loadPackagedExample[\s\S]*if \(mode === "defaults"\)[\s\S]*createAfterglowPackagedCurrentReference[\s\S]*await openActiveProject\(\)/u);
-  assert.match(avery, /await persistActiveProfileProject\(\);\s*stageSessionActiveProjectHandoff\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\)/u);
+  assert.match(avery, /await persistActiveProfileProject\(\);[\s\S]*window\.location\.pathname === "\/skin-v1"[\s\S]*plotpickle:return-dashboard[\s\S]*else \{[\s\S]*stageSessionActiveProjectHandoff\(\);[\s\S]*window\.location\.assign\("\/\?workspace=dashboard"\)/u);
 });
 
 test("#2621 canonical packaged Afterglow already contains the data World Map and Previs must reveal once active", async () => {

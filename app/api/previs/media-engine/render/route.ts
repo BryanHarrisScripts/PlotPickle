@@ -9,10 +9,14 @@ export const dynamic = "force-dynamic";
 function json(value: unknown, status = 200) {
   return Response.json(value, { status, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff" } });
 }
-function publicAuthorizationError(error: unknown) {
-  if (error instanceof PlotPickleServerSessionError) return toPublicServerSessionError(error);
-  if (error instanceof PlotPickleAuthError) return toPublicAuthError(error);
-  return { code: "PREVIS_MEDIA_AUTH_REJECTED", message: "The active PlotPickle Human session could not authorize this render." } as const;
+function mediaAuthorizationDetail(error: unknown) {
+  let detail: { readonly code: string; readonly message: string } = {
+    code: "PREVIS_MEDIA_AUTH_REJECTED",
+    message: "The active PlotPickle Human session could not authorize this render.",
+  };
+  if (error instanceof PlotPickleServerSessionError) detail = toPublicServerSessionError(error);
+  else if (error instanceof PlotPickleAuthError) detail = toPublicAuthError(error);
+  return detail;
 }
 async function authorize(request: Request) {
   const runtimeState = await getProfileExperienceRuntime();
@@ -25,7 +29,7 @@ function integer(value: unknown, minimum: number, maximum: number) {
 
 export async function POST(request: Request) {
   try { await authorize(request); } catch (error) {
-    const detail = publicAuthorizationError(error);
+    const detail = mediaAuthorizationDetail(error);
     return json({ ok: false, code: detail.code, message: detail.message }, 403);
   }
   try {

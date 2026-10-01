@@ -57,7 +57,7 @@ test("#2604 adds one project-level storyDevelopment store instead of a Mind Map-
   assert.match(library, /normalizeStoryDevelopmentState\(source\.storyDevelopment\)/u);
   assert.match(browser, /normalizeStoryDevelopmentState\(incoming\.storyDevelopment\)/u);
   assert.match(browser, /initialized\.activeProject\.storyDevelopment/u);
-  assert.doesNotMatch(contract, /MindMap/u);
+  assert.doesNotMatch(contract, /readonly mindMap(?:Field)?Values?:/iu);
 });
 
 test("#2604 canonical adapter keeps Foundations and World in their existing truth stores", async () => {

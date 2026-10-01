@@ -102,8 +102,64 @@
   padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
 }
 
+.topicToolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pp-skin-space-2);
+}
+
 .topicToolbar strong {
   color: var(--pp-skin-accent-bright);
+}
+
+
+.humanNotes {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  padding: var(--pp-skin-space-4);
+}
+
+.humanNotes header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+}
+
+.humanNotes h3,
+.humanNotes p,
+.humanNotes small {
+  margin: 0;
+}
+
+.humanNotes small,
+.humanNotes p {
+  color: var(--pp-skin-ink-muted);
+}
+
+.humanNotes header > span {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  padding: 2px var(--pp-skin-space-2);
+  white-space: nowrap;
+}
+
+.humanNotes [data-notes-save-state="unsaved"] {
+  border-color: var(--pp-skin-warning);
+  color: var(--pp-skin-warning);
+}
+
+.humanNotes textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-3);
 }
 
 .fieldWorkspace {
@@ -464,6 +520,12 @@
   }
 
   .topicToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topicToolbarActions,
+  .humanNotes header {
     align-items: stretch;
     flex-direction: column;
   }

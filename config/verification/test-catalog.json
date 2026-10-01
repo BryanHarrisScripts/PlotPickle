@@ -45,7 +45,8 @@
           "tests/issue-2606-canonical-project-outline-projection.test.mjs",
           "tests/issue-2623-profile-gate-shutdown.test.mjs",
           "tests/issue-2625-library-unload-active-story.test.mjs",
-          "tests/issue-2627-skin-v1-locked-shutdown.test.mjs"
+          "tests/issue-2627-skin-v1-locked-shutdown.test.mjs",
+          "tests/issue-2629-mind-map-field-language.test.mjs"
         ]
       },
       "cost": "fast",
@@ -591,7 +592,8 @@
           "tests/issue-2602-learn-mind-world-parity.test.mjs",
           "tests/issue-2604-mind-map-canonical-authoring.test.mjs",
           "tests/issue-2605-world-map-read-review-parity.test.mjs",
-          "tests/issue-2606-canonical-project-outline-projection.test.mjs"
+          "tests/issue-2606-canonical-project-outline-projection.test.mjs",
+          "tests/issue-2629-mind-map-field-language.test.mjs"
         ]
       },
       "cost": "fast",

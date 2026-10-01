@@ -108,7 +108,7 @@ function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, ch
         text: passage.text.slice(0, 300),
       })),
     characterTruth: (project.sourceEvidence.characterTruth?.claims ?? [])
-      .filter((claim) => claim.reviewState !== "rejected" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
+      .filter((claim) => claim.reviewState === "human-approved" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
       .filter((claim) => !characterId || claim.characterIds.includes(characterId))
       .slice(0, 36)
       .map((claim) => ({

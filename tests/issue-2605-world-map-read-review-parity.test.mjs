@@ -59,7 +59,8 @@ test("#2605 every canonical review card can reopen its Learn lesson and exact Mi
     read("app/skin-v1/discovery-surface.tsx"),
   ]);
 
-  assert.match(surface, /learnLessonHref\(field\.topicId, field\.lessonId\)/u);
+  assert.match(surface, /onOpenLearn\(field\.topicId, field\.lessonId, act\)/u);
+  assert.doesNotMatch(surface, /learnLessonHref|learnTopicHref|window\.location\.assign/u);
   assert.match(surface, /Edit in Mind Map/u);
   assert.match(surface, /onEditField\(field\.topicId, field\.canonicalId, act\)/u);
   assert.match(spine, /export function learnLessonHref/u);
@@ -68,7 +69,7 @@ test("#2605 every canonical review card can reopen its Learn lesson and exact Mi
   assert.match(host, /function openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct\)/u);
   assert.match(host, /setDiscoveryInitialTopic\(topic\)/u);
   assert.match(host, /setDiscoveryInitialFieldId\(canonicalFieldId\)/u);
-  assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\} onEditField=\{openMindMapField\} \/>/u);
+  assert.match(host, /<StoryBibleSurface[\s\S]*onEditField=\{openMindMapField\}[\s\S]*onOpenLearn=/u);
   assert.match(host, /initialTopic=\{discoveryInitialTopic\}/u);
   assert.match(host, /initialFieldId=\{discoveryInitialFieldId\}/u);
   assert.match(host, /initialAct=\{discoveryInitialAct\}/u);

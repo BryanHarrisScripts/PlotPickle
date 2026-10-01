@@ -11,8 +11,10 @@ import {
   normalizeStoryStructureV2,
 } from "../project/story-structure-v2";
 import {
+  createEmptyMindMapNotesState,
   createEmptyStoryDevelopmentState,
   normalizeLibraryProject,
+  normalizeMindMapNotesState,
   normalizeStoryDevelopmentState,
   type LibraryPPFProject,
 } from "./library-project";
@@ -394,7 +396,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.storyDevelopment
       : createEmptyStoryDevelopmentState();
-  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment };
+  const mindMapNotes = "mindMapNotes" in incoming
+    ? normalizeMindMapNotesState(incoming.mindMapNotes)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.mindMapNotes
+      : createEmptyMindMapNotesState();
+  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);

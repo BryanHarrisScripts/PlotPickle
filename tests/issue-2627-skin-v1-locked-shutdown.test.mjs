@@ -55,11 +55,8 @@ test("#2627 WebMCP proves shutdown visibility and clickability at 1366x768 befor
   assert.match(capture, /getByRole\("button", \{ name: "CANCEL" \}\)\.click\(\)/u);
 });
 
-test("#2627 WebMCP logs out a real authenticated Skin V1 session and re-proves locked shutdown after authenticated checks", async () => {
-  const [capture, startup] = await Promise.all([
-    read("lib/verification/skin-v1/profile-gate-capture.mjs"),
-    read("scripts/run-webmcp-startup-uat.mjs"),
-  ]);
+test("#2627 WebMCP logs out a real authenticated Skin V1 session, proves shutdown, then re-authenticates for the remaining UAT", async () => {
+  const capture = await read("lib/verification/skin-v1/profile-gate-capture.mjs");
   const start = capture.indexOf("export async function verifyWebMcpPostLogoutShutdown");
   const end = capture.indexOf("export async function prepareWebMcpProfileGateSession", start);
   const postLogout = capture.slice(start, end);
@@ -69,9 +66,16 @@ test("#2627 WebMCP logs out a real authenticated Skin V1 session and re-proves l
   assert.match(postLogout, /await logout\.click\(\)/u);
   assert.match(postLogout, /main\.pp-skin-v1-logon\[data-skin-v1-logon-state='locked'\]/u);
   assert.match(postLogout, /assertLockedShutdownVisible\(page, "post-logout profile gate"\)/u);
-  const menuAudit = startup.indexOf("const menuContract = await runSkinV1MenuContractAudit");
-  const postLogoutAudit = startup.indexOf("const postLogoutShutdown = await verifyWebMcpPostLogoutShutdown");
-  assert.ok(menuAudit >= 0 && menuAudit < postLogoutAudit);
-  assert.match(startup, /storageStatePath: auth\.storageStatePath/u);
-  assert.match(startup, /profileGatePostLogoutShutdown: postLogoutShutdown/u);
+
+  const prepareStart = capture.indexOf("export async function prepareWebMcpProfileGateSession");
+  const prepare = capture.slice(prepareStart);
+  const firstAuth = prepare.indexOf("const logoutProofAuth = await authenticateVerificationSyntheticProfile");
+  const logoutProof = prepare.indexOf("const postLogout = await verifyWebMcpPostLogoutShutdown", firstAuth);
+  const secondAuth = prepare.indexOf("const auth = await authenticateVerificationSyntheticProfile", logoutProof);
+  const report = prepare.indexOf("await writeProfileGateCaptureReport({ initializing, locked, postLogout })", secondAuth);
+  assert.ok(firstAuth >= 0 && firstAuth < logoutProof);
+  assert.ok(logoutProof < secondAuth);
+  assert.ok(secondAuth < report);
+  assert.match(prepare, /storageStatePath: logoutProofAuth\.storageStatePath/u);
+  assert.match(prepare, /return auth/u);
 });

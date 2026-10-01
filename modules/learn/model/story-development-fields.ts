@@ -236,18 +236,11 @@ export function storyDevelopmentFieldScopeDecision(
   return projectWide("story-development", "Collaboration roles, authority, rights and review workflow apply to the project as a whole.");
 }
 
-export function storyDevelopmentFieldAppliesToAct(
-  field: StoryDevelopmentFieldDefinition,
-  act: StoryDevelopmentAct,
-) {
-  return field.validActs.includes(act);
-}
-
 export function storyDevelopmentFieldsForAct(
   fields: readonly StoryDevelopmentFieldDefinition[],
   act: StoryDevelopmentAct,
 ) {
-  return fields.filter((field) => storyDevelopmentFieldAppliesToAct(field, act));
+  return fields.filter((field) => field.validActs.includes(act));
 }
 
 export function storyDevelopmentFieldStorageId(

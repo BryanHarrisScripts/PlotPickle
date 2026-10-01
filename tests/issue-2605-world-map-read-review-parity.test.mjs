@@ -70,9 +70,11 @@ test("#2605 every canonical review card can reopen its Learn lesson and exact Mi
   assert.match(host, /setDiscoveryInitialFieldId\(canonicalFieldId\)/u);
   assert.match(host, /<StoryBibleSurface project=\{storyBibleProject\} onEditField=\{openMindMapField\} \/>/u);
   assert.match(host, /initialTopic=\{discoveryInitialTopic\}/u);
-  assert.match(host, /initialFieldId=\{discoveryInitialFieldId\}/u);\n  assert.match(host, /initialAct=\{discoveryInitialAct\}/u);
+  assert.match(host, /initialFieldId=\{discoveryInitialFieldId\}/u);
+  assert.match(host, /initialAct=\{discoveryInitialAct\}/u);
 
-  assert.match(mindMap, /setSelectedTopic\(initialTopic\)/u);\n  assert.match(mindMap, /setSelectedAct\(initialAct\)/u);
+  assert.match(mindMap, /setSelectedTopic\(initialTopic\)/u);
+  assert.match(mindMap, /setSelectedAct\(initialAct\)/u);
   assert.match(mindMap, /element\.dataset\.canonicalFieldId === initialFieldId/u);
   assert.match(mindMap, /scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/u);
 });

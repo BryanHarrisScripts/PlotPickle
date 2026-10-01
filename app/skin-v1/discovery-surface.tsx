@@ -134,6 +134,7 @@ export default function DiscoverySurface({
   const [humanDisplayName, setHumanDisplayName] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
+  const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
   const [projectContextOpen, setProjectContextOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [unsortedLaneChoices, setUnsortedLaneChoices] = useState<Readonly<Record<string, DiscoveryLaneId>>>({});
@@ -181,6 +182,7 @@ export default function DiscoverySurface({
       setFieldDrafts({});
       setProposalDrafts({});
       setNoteDrafts({});
+      setSavedNoteTexts({});
       return;
     }
     setFieldDrafts(Object.fromEntries(canonicalFields.map((field) => [
@@ -190,10 +192,16 @@ export default function DiscoverySurface({
     setProposalDrafts(Object.fromEntries(canonicalFields
       .map((field) => [field.canonicalId, storyDevelopmentFieldView(project, field).proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
-    setNoteDrafts(Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => [
+    const incomingNotes = Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => [
       topic.id,
       mindMapTopicNote(project.mindMapNotes, topic.id).text,
-    ])));
+    ]));
+    setNoteDrafts((current) => Object.fromEntries(LEARN_TOPIC_SPINE.map((topic) => {
+      const currentDraft = current[topic.id];
+      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[topic.id] ?? "");
+      return [topic.id, wasDirty ? currentDraft : incomingNotes[topic.id]];
+    })));
+    setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);
 
   const projectContextCards = useMemo(() => project ? projectDiscoveryPins(project) : [], [project]);
@@ -213,7 +221,7 @@ export default function DiscoverySurface({
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
   const persistedTopicNote = project ? mindMapTopicNote(project.mindMapNotes, selectedTopic) : { text: "", updatedAt: null };
   const selectedTopicNoteDraft = noteDrafts[selectedTopic] ?? persistedTopicNote.text;
-  const notesDirty = selectedTopicNoteDraft !== persistedTopicNote.text;
+  const notesDirty = selectedTopicNoteDraft !== (savedNoteTexts[selectedTopic] ?? persistedTopicNote.text);
   const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";
 
   function persist(cards: readonly DiscoveryCard[]) {
@@ -394,6 +402,7 @@ export default function DiscoverySurface({
     if (!saved) return;
     const savedNote = mindMapTopicNote(saved.mindMapNotes, selectedTopic);
     setNoteDrafts((current) => ({ ...current, [selectedTopic]: savedNote.text }));
+    setSavedNoteTexts((current) => ({ ...current, [selectedTopic]: savedNote.text }));
     setNotice(`${selectedTopicLabel} notes saved with this project.`);
   }
 

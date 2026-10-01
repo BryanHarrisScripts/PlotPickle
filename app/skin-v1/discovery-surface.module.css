@@ -1,9 +1,9 @@
 .surface {
   display: grid;
-  gap: var(--pp-skin-space-4);
+  gap: var(--pp-skin-space-3);
   width: min(100%, var(--pp-skin-shell-max));
   margin: 0 auto;
-  padding: var(--pp-skin-space-4);
+  padding: var(--pp-skin-space-3);
   color: var(--pp-skin-ink);
 }
 
@@ -17,7 +17,7 @@
 .fieldWorkspace {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
-  padding: var(--pp-skin-space-4);
+  padding: var(--pp-skin-space-3);
 }
 
 .summary {

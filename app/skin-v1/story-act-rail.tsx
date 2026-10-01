@@ -29,10 +29,12 @@ export function StoryActRail({
   activeAct,
   onOpen,
   ariaLabel = "Story acts",
+  choiceDataAttribute,
 }: {
   readonly activeAct: number;
   readonly onOpen: (act: StoryAct) => void;
   readonly ariaLabel?: string;
+  readonly choiceDataAttribute?: "data-mind-map-act-choice" | "data-world-map-act-choice";
 }) {
   return (
     <nav
@@ -42,8 +44,11 @@ export function StoryActRail({
       data-story-act-rail="four-acts"
       onKeyDown={(event) => handleStoryActShortcut(event, onOpen)}
     >
-      {STORY_ACTS.map((act) => (
+      {STORY_ACTS.map((act) => {
+        const choiceData = choiceDataAttribute ? { [choiceDataAttribute]: act } : {};
+        return (
         <button
+          {...choiceData}
           key={act}
           type="button"
           aria-current={act === activeAct ? "page" : undefined}
@@ -53,7 +58,8 @@ export function StoryActRail({
         >
           <span aria-hidden="true">[{act}] </span>Act {act}
         </button>
-      ))}
+        );
+      })}
     </nav>
   );
 }

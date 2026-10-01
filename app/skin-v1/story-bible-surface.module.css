@@ -1,7 +1,7 @@
 .surface {
   width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
-  padding: var(--pp-skin-space-4) 0 var(--pp-skin-space-7);
+  padding: var(--pp-skin-space-3) 0 var(--pp-skin-space-6);
   color: var(--pp-skin-ink);
   font-family: var(--pp-skin-font-ui);
 }
@@ -240,8 +240,8 @@
 }
 
 .section {
-  margin-top: var(--pp-skin-space-5);
-  padding: var(--pp-skin-space-4);
+  margin-top: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-surface-0);
 }

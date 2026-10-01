@@ -342,7 +342,7 @@ export default function DiscoverySurface({
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
     if (!project || developingFieldId) return;
     setDevelopingFieldId(field.canonicalId);
-    setNotice(`${field.actionLabel}…`);
+    setNotice("Asking Agent for a suggestion…");
     try {
       const response = await fetch("/api/writing-assistant/chat", {
         method: "POST",
@@ -380,9 +380,9 @@ export default function DiscoverySurface({
           sourceRef: `agent:creative-director:mind-map:${field.canonicalId}`,
         }));
       }
-      setNotice(`${field.lessonTitle} proposal is ready for Human review.`);
+      setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Agent proposal failed.");
+      setNotice(error instanceof Error ? error.message : "Agent suggestion failed.");
     } finally {
       setDevelopingFieldId(null);
     }
@@ -404,7 +404,7 @@ export default function DiscoverySurface({
     const value = storyDevelopmentFieldView(saved, field).value;
     setFieldDrafts((current) => ({ ...current, [field.canonicalId]: value }));
     setProposalDrafts((current) => ({ ...current, [field.canonicalId]: "" }));
-    setNotice(`${field.lessonTitle} proposal accepted into the canonical project field and remains editable.`);
+    setNotice(`${field.lessonTitle} suggestion accepted into Project Value and remains editable.`);
   }
 
   if (!project) {
@@ -480,7 +480,7 @@ export default function DiscoverySurface({
           </div>
           <span>{selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
         </header>
-        <p className={styles.fieldWorkspaceHelp}>Write directly or ask the agent for a proposal. A proposal never replaces your value until you choose Use Proposal.</p>
+        <p className={styles.fieldWorkspaceHelp}>Write directly or ask the Agent for a suggestion. A suggestion never replaces Project Value until you choose Use Suggestion.</p>
         <div className={styles.fieldGrid}>
           {selectedCanonicalFields.map((field) => {
             const persisted = storyDevelopmentFieldView(project, field);
@@ -495,8 +495,8 @@ export default function DiscoverySurface({
                   <span>{persisted.acceptedSource === "agent-proposal" ? "AGENT-ASSISTED" : persisted.value ? "SAVED" : "OPEN"}</span>
                 </header>
                 <p>{field.prompt}</p>
-                <label>
-                  <span>Your project value</span>
+                <label className={styles.projectValue}>
+                  <span>PROJECT VALUE</span>
                   <textarea
                     rows={4}
                     value={fieldDrafts[field.canonicalId] ?? persisted.value}
@@ -505,21 +505,21 @@ export default function DiscoverySurface({
                   />
                 </label>
                 <div className={styles.fieldActions}>
-                  <button type="button" onClick={() => saveCanonicalField(field)}>Save {field.lessonTitle}</button>
+                  <button type="button" onClick={() => saveCanonicalField(field)}>Save Changes</button>
                   <button type="button" disabled={developingFieldId !== null} onClick={() => void createCanonicalFieldProposal(field)}>
-                    {developingFieldId === field.canonicalId ? "Creating Proposal…" : field.actionLabel}
+                    {developingFieldId === field.canonicalId ? "Asking Agent…" : field.actionLabel}
                   </button>
                 </div>
                 {proposal ? <div className={styles.fieldProposal} data-canonical-field-proposal={field.canonicalId}>
                   <label>
-                    <span>Agent Proposal · editable before use</span>
+                    <span>AGENT SUGGESTION · editable before use</span>
                     <textarea
                       rows={4}
                       value={proposal}
                       onChange={(event) => setProposalDrafts((current) => ({ ...current, [field.canonicalId]: event.target.value }))}
                     />
                   </label>
-                  <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Proposal</button>
+                  <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Suggestion</button>
                 </div> : null}
               </article>
             );

@@ -180,6 +180,22 @@
   gap: var(--pp-skin-space-2);
 }
 
+.projectValue {
+  border: 1px solid var(--pp-skin-warning);
+  padding: var(--pp-skin-space-3);
+  background: var(--pp-skin-surface-1);
+}
+
+.projectValue > span {
+  color: var(--pp-skin-warning);
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+.projectValue textarea {
+  border-color: var(--pp-skin-warning);
+}
+
 .fieldProposal {
   border-left: var(--pp-skin-border-strong) solid var(--pp-skin-warning);
   padding-left: var(--pp-skin-space-3);

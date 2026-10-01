@@ -31,7 +31,7 @@ test("#2604 derives canonical Mind Map fields from the complete twelve-topic Lea
   assert.match(model, /curriculumApplicationPrompts\(lesson\)/u);
   assert.match(model, /const fieldId = `output-\$\{index \+ 1\}`/u);
   assert.match(model, /storyDevelopmentCanonicalId\(topic\.id, lesson\.id, fieldId\)/u);
-  assert.match(model, /actionLabel: `Create \$\{lesson\.title\} Proposal`/u);
+  assert.match(model, /actionLabel: "Ask Agent"/u);
 
   for (const [id, learnTopicId] of TOPICS) {
     assert.match(spine, new RegExp(`id: "${id}", label: "[^"]+", learnTopicId: "${learnTopicId}"`, "u"));
@@ -80,9 +80,9 @@ test("#2604 Mind Map directly edits canonical fields and removes the generic pro
   assert.match(surface, /data-canonical-field-id=\{field\.canonicalId\}/u);
   assert.match(surface, /value=\{fieldDrafts\[field\.canonicalId\] \?\? persisted\.value\}/u);
   assert.match(surface, /writeStoryDevelopmentFieldValue/u);
-  assert.match(surface, /Save \{field\.lessonTitle\}/u);
+  assert.match(surface, />Save Changes<\/button>/u);
   assert.match(surface, /field\.actionLabel/u);
-  assert.match(surface, /Use Proposal/u);
+  assert.match(surface, />Use Suggestion<\/button>/u);
   assert.doesNotMatch(surface, /Develop Agent Proposals|Developing Agent Proposals|Generate Selected|Build Topic/u);
 });
 
@@ -95,7 +95,7 @@ test("#2604 field-specific agent proposals stay proposals until the Human uses t
   assert.match(surface, /Do not claim the proposal is accepted canon/u);
   assert.match(surface, /if \(hasActiveLibraryProject\(\)\) \{[\s\S]*writeStoryDevelopmentFieldProposal/u);
   assert.match(surface, /proposalDrafts\[field\.canonicalId\] \?\? persisted\.proposal/u);
-  assert.match(surface, /editable before use/u);
+  assert.match(surface, /AGENT SUGGESTION · editable before use/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal/u);
   assert.match(adapter, /source: "agent-proposal"/u);
   assert.match(adapter, /proposal: ""/u);

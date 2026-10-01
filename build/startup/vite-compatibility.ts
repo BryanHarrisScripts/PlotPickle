@@ -1,4 +1,4 @@
-import { createLogger, type EnvironmentOptions, type Plugin } from "vite";
+import type { EnvironmentOptions, Plugin } from "vite";
 
 export const VINEXT_PACKAGE = "vinext";
 export const VINEXT_LINK_SHIM = "vinext/shims/link";
@@ -10,21 +10,6 @@ const TARGET_OPTIMIZER_ENVIRONMENTS = new Set(["client", "rsc", "ssr"]);
 const REQUEST_TIMING_GUARD = Symbol.for("plotpickle.vinextRequestTimingGuard");
 const MAX_CROSS_RUNTIME_CLOCK_DRIFT_MS = 60_000;
 
-export const REACT_DEVELOPMENT_EVAL_ADVISORY = "eval() is not supported in this environment";
-
-export function isKnownReactDevelopmentEvalAdvisory(message: string, nodeEnv = process.env.NODE_ENV) {
-  return nodeEnv === "development" && message.includes(REACT_DEVELOPMENT_EVAL_ADVISORY);
-}
-
-export function createPlotPickleViteLogger() {
-  const logger = createLogger();
-  const warn = logger.warn.bind(logger);
-  logger.warn = (message, options) => {
-    if (isKnownReactDevelopmentEvalAdvisory(message)) return;
-    warn(message, options);
-  };
-  return logger;
-}
 
 function durationMs(value: string, unit: string) {
   const amount = Number(value);

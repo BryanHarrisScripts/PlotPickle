@@ -8,6 +8,7 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID,
+  AFTERGLOW_EXAMPLE_SOURCE_ID,
   DEFAULT_LOCAL_PROFILE_ID,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -25,6 +26,7 @@ import {
   saveActiveLibraryProject,
   stageSessionActiveProjectHandoff,
   switchActiveLibraryProject,
+  unloadActiveLibraryProject,
   type LibraryPPFProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
@@ -157,11 +159,6 @@ function markCurrentSessionLibraryProject(projectId: string) {
   window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
 }
 
-function clearCurrentSessionLibraryProject() {
-  window.sessionStorage.removeItem(currentSessionProjectKey());
-  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
-}
-
 function currentSessionLibraryProject(): LibraryPPFProject | null {
   const projectId = window.sessionStorage.getItem(currentSessionProjectKey())?.trim();
   if (!projectId) return null;
@@ -182,10 +179,13 @@ async function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
 }
 
-function ExampleGatewayCard({ item, posterUrls, onOpen }: {
+function ExampleGatewayCard({ item, posterUrls, onOpen, active = false, unloading = false, onUnload }: {
   readonly item: LibraryCatalogItem;
   readonly posterUrls: readonly string[];
   readonly onOpen: () => void;
+  readonly active?: boolean;
+  readonly unloading?: boolean;
+  readonly onUnload?: () => void;
 }) {
   const posters = posterUrls.length ? posterUrls : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER];
   const [posterIndex, setPosterIndex] = useState(0);
@@ -193,7 +193,7 @@ function ExampleGatewayCard({ item, posterUrls, onOpen }: {
   const posterUrl = posters[safePosterIndex] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
 
   return (
-    <article className={`${styles.card} ${styles.loadStoryCard}`} data-library-example-gateway={item.id}>
+    <article className={`${styles.card} ${styles.loadStoryCard} ${active ? styles.activeCard : ""}`} data-library-example-gateway={item.id} data-library-currently-loaded={active ? "true" : "false"}>
       <div className={styles.loadPosterFrame}>
         <button
           aria-label={`Open ${item.title} example · poster ${safePosterIndex + 1} of ${posters.length}`}
@@ -219,7 +219,10 @@ function ExampleGatewayCard({ item, posterUrls, onOpen }: {
         ) : null}
       </div>
       <div className={styles.loadCardBody}>
-        <span>Example</span>
+        <div className={styles.loadCardStatusRow}>
+          {active ? <span className={styles.currentlyLoadedBadge}>Currently loaded</span> : <span>Example</span>}
+          {active && onUnload ? <button className={styles.unloadButton} disabled={unloading} onClick={onUnload} type="button">{unloading ? "Unloading…" : "Unload"}</button> : null}
+        </div>
         <strong>{item.title}</strong>
       </div>
     </article>
@@ -269,54 +272,68 @@ function savedStoryResumeDetails(project: LibraryPPFProject | null) {
   return { summary, actions };
 }
 
-function SavedStoryLoadCard({ item, onOpen }: {
+function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, onUnload }: {
   readonly item: ProjectLibrarySummary;
   readonly onOpen: () => void;
+  readonly active?: boolean;
+  readonly unloading?: boolean;
+  readonly onUnload?: () => void;
 }) {
   const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
   const resumeDetails = savedStoryResumeDetails(loadLibraryProjectSnapshot(item.id));
 
   return (
-    <button
-      aria-label={`Resume saved story ${item.title} from ${resumePoint}`}
-      className={`${styles.card} ${styles.loadStoryCard} ${styles.savedStoryLoadCard}`}
+    <article
+      className={`${styles.card} ${styles.loadStoryCard} ${styles.savedStoryLoadCard} ${active ? styles.activeCard : ""}`}
       data-library-load-story={item.id}
-      onClick={onOpen}
-      type="button"
+      data-library-currently-loaded={active ? "true" : "false"}
     >
-      <div className={styles.savedStoryResumeHeader}>
-        <span>Resume your story</span>
-        <small>{displayDate(item.updatedAt)}</small>
-      </div>
-      <div className={styles.loadCardBody}>
-        <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
-        <strong>{item.title}</strong>
-        <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
-        {resumeDetails.actions.length ? (
-          <ul className={styles.savedStoryActionSummary} aria-label="Meaningful saved work">
-            {resumeDetails.actions.slice(0, 4).map((action) => <li key={action}>{action}</li>)}
-          </ul>
-        ) : null}
-        <div className={styles.savedStoryResumeSummary}>
-          <span>Last working area</span>
-          <b>{resumePoint}</b>
-          <span>Tracked progress</span>
-          <b>{progress}%</b>
+      {active ? (
+        <div className={styles.loadCardStatusRow}>
+          <span className={styles.currentlyLoadedBadge}>Currently loaded</span>
+          {onUnload ? <button className={styles.unloadButton} disabled={unloading} onClick={onUnload} type="button">{unloading ? "Unloading…" : "Unload"}</button> : null}
         </div>
-        <div
-          aria-label={`${progress}% tracked story progress`}
-          className={styles.savedStoryProgressTrack}
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progress}
-        >
-          <span style={{ width: `${progress}%` }} />
+      ) : null}
+      <button
+        aria-label={`Resume saved story ${item.title} from ${resumePoint}`}
+        className={styles.savedStoryOpenButton}
+        onClick={onOpen}
+        type="button"
+      >
+        <div className={styles.savedStoryResumeHeader}>
+          <span>Resume your story</span>
+          <small>{displayDate(item.updatedAt)}</small>
         </div>
-        <small>Open this saved state to continue. Nothing loads into the workspace until you choose it.</small>
-      </div>
-    </button>
+        <div className={styles.loadCardBody}>
+          <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
+          <strong>{item.title}</strong>
+          <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
+          {resumeDetails.actions.length ? (
+            <ul className={styles.savedStoryActionSummary} aria-label="Meaningful saved work">
+              {resumeDetails.actions.slice(0, 4).map((action) => <li key={action}>{action}</li>)}
+            </ul>
+          ) : null}
+          <div className={styles.savedStoryResumeSummary}>
+            <span>Last working area</span>
+            <b>{resumePoint}</b>
+            <span>Tracked progress</span>
+            <b>{progress}%</b>
+          </div>
+          <div
+            aria-label={`${progress}% tracked story progress`}
+            className={styles.savedStoryProgressTrack}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
+            <span style={{ width: `${progress}%` }} />
+          </div>
+          <small>Open this saved state to continue. Nothing loads into the workspace until you choose it.</small>
+        </div>
+      </button>
+    </article>
   );
 }
 
@@ -445,6 +462,7 @@ export default function LibraryWorkspace() {
   const [destination, setDestination] = useState<LibraryDestination>("load");
   const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
+  const [activeProjectSummary, setActiveProjectSummary] = useState<ProjectLibrarySummary | null>(null);
   const [canExportCurrentStory, setCanExportCurrentStory] = useState(false);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
@@ -457,6 +475,7 @@ export default function LibraryWorkspace() {
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
+  const [unloadingStory, setUnloadingStory] = useState(false);
   const [restoringResources, setRestoringResources] = useState(false);
   const [rescanningResources, setRescanningResources] = useState(false);
 
@@ -465,6 +484,9 @@ export default function LibraryWorkspace() {
       const library = initializeProjectLibrary();
       const sessionProject = currentSessionLibraryProject();
       setActiveProject(sessionProject);
+      setActiveProjectSummary(sessionProject
+        ? library.registry.projects.find((item) => item.id === sessionProject.id) ?? null
+        : null);
       setCanExportCurrentStory(Boolean(sessionProject ?? library.activeProject));
       const savedStories = listHumanLibraryProjects();
       const archivedStories = listHumanArchivedLibraryProjects();
@@ -538,6 +560,39 @@ export default function LibraryWorkspace() {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       activateDestination(index);
+    }
+  }
+
+  async function unloadCurrentStory() {
+    if (unloadingStory || !activeProject) return;
+    const projectId = activeProject.id;
+    let detached = false;
+    setUnloadingStory(true);
+    setNotice("");
+    try {
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+
+      const unloadedProjectId = unloadActiveLibraryProject();
+      if (unloadedProjectId !== projectId) throw new Error("PlotPickle could not verify the story selected for unload.");
+      detached = true;
+
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      window.location.assign("/?workspace=dashboard");
+    } catch (error) {
+      let message = error instanceof Error ? error.message : "PlotPickle could not unload the active story.";
+      if (detached) {
+        try {
+          switchActiveLibraryProject(projectId);
+        } catch (restoreError) {
+          const detail = restoreError instanceof Error ? restoreError.message : String(restoreError);
+          message = `${message} PlotPickle also could not restore the prior active-story selection: ${detail}`;
+        }
+      }
+      setNotice(message);
+    } finally {
+      setUnloadingStory(false);
     }
   }
 
@@ -915,6 +970,11 @@ export default function LibraryWorkspace() {
         (safeLoadPage + 1) * LOAD_CARDS_PER_PAGE,
       );
       const loadPaged = loadPageCount > 1;
+      const afterglowCurrentlyLoaded = activeProjectSummary?.sourceKind === "example"
+        && (
+          activeProjectSummary.sourceId === AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID
+          || activeProjectSummary.sourceId === AFTERGLOW_EXAMPLE_SOURCE_ID
+        );
 
       return (
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
@@ -939,6 +999,9 @@ export default function LibraryWorkspace() {
                       item={entry.item}
                       key={`example:${entry.item.id}`}
                       posterUrls={afterglowPosters}
+                      active={afterglowCurrentlyLoaded}
+                      unloading={unloadingStory}
+                      onUnload={() => void unloadCurrentStory()}
                       onOpen={() => {
                         const examplesIndex = DESTINATIONS.findIndex((item) => item.id === "examples");
                         setDirectorySelectedIndex(examplesIndex);
@@ -949,6 +1012,9 @@ export default function LibraryWorkspace() {
                     <SavedStoryLoadCard
                       item={entry.item}
                       key={`story:${entry.item.id}`}
+                      active={activeProjectSummary?.id === entry.item.id}
+                      unloading={unloadingStory}
+                      onUnload={() => void unloadCurrentStory()}
                       onOpen={() => setPending({ kind: "story", item: entry.item })}
                     />
                   )

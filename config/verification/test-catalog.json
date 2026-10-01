@@ -43,7 +43,8 @@
           "tests/issue-2604-mind-map-canonical-authoring.test.mjs",
           "tests/issue-2605-world-map-read-review-parity.test.mjs",
           "tests/issue-2606-canonical-project-outline-projection.test.mjs",
-          "tests/issue-2623-profile-gate-shutdown.test.mjs"
+          "tests/issue-2623-profile-gate-shutdown.test.mjs",
+          "tests/issue-2625-library-unload-active-story.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1839,6 +1840,52 @@
         ]
       },
       "notes": "#2621 preserves Blank-at-launch while allowing a fresh one-shot explicit Library selection to survive the immediate authenticated profile hydration reload and expose the already-packaged Afterglow story/resources to downstream surfaces."
+    },
+    {
+      "id": "story-canon.library-unload-active-story-2625",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "project-library",
+        "profile-library-index",
+        "blank-session-selection"
+      ],
+      "triggerTokens": [
+        "canon",
+        "storage",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2625-library-unload-active-story.test.mjs",
+          "tests/issue-2581-startup-isolation.test.mjs",
+          "tests/issue-2621-library-active-handoff.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2625 verifies that Unload preserves the durable story while clearing only the current-session selection, writes a null active-project index, returns to Blank without a #2621 handoff, and leaves explicit Open Example behavior intact."
     }
   ]
 }

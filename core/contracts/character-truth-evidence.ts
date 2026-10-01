@@ -249,6 +249,84 @@ function normalizeCheckpoint(value: unknown): CharacterArcCheckpointEvidence | n
   };
 }
 
+export type CreateCanonicalCharacterResult = Readonly<{
+  characterId: string;
+  evidence: CharacterTruthEvidence;
+}>;
+
+function canonicalCharacterSlug(value: string) {
+  const slug = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "")
+    .slice(0, 120);
+  return slug || "character";
+}
+
+function uniqueCanonicalCharacterId(base: string, occupied: ReadonlySet<string>) {
+  if (!occupied.has(base)) return base;
+  for (let suffix = 2; suffix <= 999; suffix += 1) {
+    const candidate = `${base.slice(0, 150)}-${suffix}`;
+    if (!occupied.has(candidate)) return candidate;
+  }
+  return `${base.slice(0, 150)}-1000`;
+}
+
+export function createCanonicalCharacterTruth(
+  evidence: CharacterTruthEvidence | null,
+  input: Readonly<{
+    projectId: string;
+    characterName: string;
+    occurredAt: string;
+  }>,
+): CreateCanonicalCharacterResult | null {
+  const characterName = clean(input.characterName, 300);
+  const projectId = clean(input.projectId, 160);
+  const occurredAt = clean(input.occurredAt, 80);
+  if (!characterName || !projectId || !occurredAt) return null;
+
+  const current = normalizeCharacterTruthEvidence(evidence) ?? {
+    schemaVersion: 1 as const,
+    fixtureId: `project-${projectId}-character-truth`,
+    sources: [],
+    claims: [],
+    principalCharacterIds: [],
+    arcCells: [],
+    checkpoints: [],
+    governingRule: "Human-authored canonical character identity is project truth. Generated visual candidates remain non-canon until explicitly approved.",
+  };
+  const occupied = new Set([
+    ...current.principalCharacterIds,
+    ...current.claims.flatMap((claim) => claim.characterIds),
+  ]);
+  const characterId = uniqueCanonicalCharacterId(canonicalCharacterSlug(characterName), occupied);
+  const identityClaim: CharacterTruthClaim = {
+    id: `human-identity-${characterId}`,
+    characterIds: [characterId],
+    kind: "identity",
+    summary: characterName,
+    sourceId: `human-project-${projectId}`,
+    sourceRef: `project:${projectId}:character:${characterId}`,
+    sourceVersion: occurredAt,
+    reviewState: "human-approved",
+    targetArcField: null,
+    handling: "writer-reference",
+    canonEffect: "none",
+    note: "Created by the Human in Mind Map.",
+  };
+
+  return {
+    characterId,
+    evidence: {
+      ...current,
+      claims: [...current.claims, identityClaim],
+      principalCharacterIds: [...current.principalCharacterIds, characterId],
+    },
+  };
+}
+
 export function normalizeCharacterTruthEvidence(value: unknown): CharacterTruthEvidence | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const source = value as Partial<CharacterTruthEvidence>;

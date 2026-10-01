@@ -5,6 +5,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import { type DiscoveryAct } from "../../core/contracts/discovery";
+import { createCanonicalCharacterTruth } from "../../core/contracts/character-truth-evidence";
+import {
+  WORLD_MAP_CHARACTER_VIEWS,
+  lockWorldMapCharacterVisualVersion,
+  saveWorldMapCharacterVisualVersion,
+  type WorldMapCharacterView,
+  type WorldMapCharacterVisualReference,
+} from "../../core/contracts/world-map";
 import {
   LEARN_TOPIC_SPINE,
   learnLessonHref,
@@ -20,7 +28,11 @@ import {
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
-import { mindMapCharacterRoster } from "../../modules/learn/model/mind-map-character-roster";
+import {
+  mindMapCharacterRoster,
+  mindMapCharacterVisualGenerationPlan,
+  mindMapCharacterVisualPrompt,
+} from "../../modules/learn/model/mind-map-character-roster";
 import {
   acceptStoryDevelopmentFieldProposal,
   storyDevelopmentFieldView,
@@ -38,6 +50,14 @@ import styles from "./discovery-surface.module.css";
 
 type AgentResponse = {
   readonly text?: string;
+  readonly message?: string;
+};
+
+type ImageGenerationResponse = {
+  readonly assetUrl?: string;
+  readonly revisedPrompt?: string;
+  readonly provider?: string;
+  readonly model?: string;
   readonly message?: string;
 };
 
@@ -88,7 +108,7 @@ function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, ch
         text: passage.text.slice(0, 300),
       })),
     characterTruth: (project.sourceEvidence.characterTruth?.claims ?? [])
-      .filter((claim) => claim.reviewState !== "rejected" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
+      .filter((claim) => claim.reviewState === "human-approved" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
       .filter((claim) => !characterId || claim.characterIds.includes(characterId))
       .slice(0, 36)
       .map((claim) => ({
@@ -115,6 +135,9 @@ export default function DiscoverySurface({
   const [selectedFieldPage, setSelectedFieldPage] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(initialFieldId);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [newCharacterName, setNewCharacterName] = useState("");
+  const [selectedCharacterView, setSelectedCharacterView] = useState<WorldMapCharacterView>(WORLD_MAP_CHARACTER_VIEWS[0].id);
+  const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -283,6 +306,144 @@ export default function DiscoverySurface({
       return saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
     }
     return saveActiveLibraryProject(next);
+  }
+
+  function createCharacter() {
+    if (!project) return;
+    const characterName = newCharacterName.trim();
+    if (!characterName) {
+      setNotice("Enter a character name before creating the character.");
+      return;
+    }
+    const now = new Date().toISOString();
+    const created = createCanonicalCharacterTruth(project.sourceEvidence.characterTruth ?? null, {
+      projectId: project.id,
+      characterName,
+      occurredAt: now,
+    });
+    if (!created) {
+      setNotice("Character creation needs a valid name and active project.");
+      return;
+    }
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: now,
+      sourceEvidence: {
+        ...project.sourceEvidence,
+        characterTruth: created.evidence,
+      },
+    };
+    const saved = persistCanonicalProject(next);
+    if (!saved) return;
+    setNewCharacterName("");
+    setSelectedCharacterId(created.characterId);
+    setNotice(`${characterName} created as canonical Character Truth and selected for development.`);
+  }
+
+  async function generateCharacterVisual() {
+    if (!project || !selectedCharacter || generatingCharacterId) return;
+    const now = new Date().toISOString();
+    const plan = mindMapCharacterVisualGenerationPlan(project, selectedCharacter.id, now);
+    if (!plan.versionId) {
+      setNotice(plan.blockedReason ?? "Character visual generation is unavailable.");
+      return;
+    }
+    const prompt = mindMapCharacterVisualPrompt(project, selectedCharacter.id, selectedCharacterView);
+    if (!prompt) {
+      setNotice("Character visual generation needs canonical Character Truth.");
+      return;
+    }
+    const billingAcknowledged = window.confirm(
+      `Generate one ${WORLD_MAP_CHARACTER_VIEWS.find((item) => item.id === selectedCharacterView)?.label ?? selectedCharacterView} reference for ${selectedCharacter.name}? A configured cloud image provider may charge the API account saved by this user.`,
+    );
+    if (!billingAcknowledged) {
+      setNotice("Character visual generation was cancelled. No provider request was made.");
+      return;
+    }
+
+    setGeneratingCharacterId(selectedCharacter.id);
+    setNotice(`Generating ${selectedCharacter.name} · ${selectedCharacterView}…`);
+    try {
+      const response = await fetch("/api/local-ai/generate/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          characterId: selectedCharacter.id,
+          assetId: `mind-map-character-${selectedCharacter.id}-${selectedCharacterView}-${Date.now()}`,
+          aspect: "portrait",
+          referenceImages: plan.approvedReferenceImages,
+          identityLock: {
+            characterId: selectedCharacter.id,
+            source: "world-map-locked-character-reference",
+            approvedReferences: plan.approvedReferenceImages,
+          },
+          requestCount: 1,
+          billingAcknowledged,
+        }),
+      });
+      const result = await response.json() as ImageGenerationResponse;
+      if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image provider returned no image.");
+
+      const generatedAt = new Date().toISOString();
+      const reference: WorldMapCharacterVisualReference = {
+        id: `mind-map-${selectedCharacter.id}-${selectedCharacterView}-${Date.now()}`,
+        versionId: plan.versionId,
+        characterId: selectedCharacter.id,
+        characterName: selectedCharacter.name,
+        view: selectedCharacterView,
+        assetUrl: result.assetUrl,
+        prompt: result.revisedPrompt?.trim() || prompt,
+        provider: result.provider?.trim() || "configured-image-route",
+        model: result.model?.trim() || "configured-image-model",
+        createdAt: generatedAt,
+        reviewState: "draft",
+      };
+      const references = [
+        ...plan.existingReferences.filter((item) => item.view !== selectedCharacterView),
+        reference,
+      ];
+      const worldMap = saveWorldMapCharacterVisualVersion(project.worldMap, {
+        characterId: selectedCharacter.id,
+        characterName: selectedCharacter.name,
+        versionId: plan.versionId,
+        references,
+        savedAt: generatedAt,
+      });
+      const next: LibraryPPFProject = {
+        ...project,
+        revision: project.revision + 1,
+        updatedAt: generatedAt,
+        worldMap,
+      };
+      const saved = persistCanonicalProject(next);
+      if (!saved) return;
+      setNotice(`${selectedCharacter.name} ${selectedCharacterView} generated as a saved draft visual. Existing locked/approved references were not replaced.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Character visual generation failed.");
+    } finally {
+      setGeneratingCharacterId(null);
+    }
+  }
+
+  function lockCharacterVisualVersion(versionId: string) {
+    if (!project || !selectedCharacter) return;
+    const now = new Date().toISOString();
+    const worldMap = lockWorldMapCharacterVisualVersion(project.worldMap, selectedCharacter.id, versionId, now);
+    if (worldMap === project.worldMap) {
+      setNotice("Only a complete eight-view Character visual version can be locked.");
+      return;
+    }
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: now,
+      worldMap,
+    };
+    const saved = persistCanonicalProject(next);
+    if (!saved) return;
+    setNotice(`${selectedCharacter.name} visual version ${versionId} locked and approved for downstream use.`);
   }
 
   function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
@@ -499,6 +660,26 @@ export default function DiscoverySurface({
             </div>
             <span>{characterRoster.length} {characterRoster.length === 1 ? "CHARACTER" : "CHARACTERS"}</span>
           </header>
+          <form
+            className={styles.characterCreate}
+            data-mind-map-create-character="true"
+            onSubmit={(event) => {
+              event.preventDefault();
+              createCharacter();
+            }}
+          >
+            <label>
+              <span>NEW CHARACTER</span>
+              <input
+                type="text"
+                maxLength={300}
+                value={newCharacterName}
+                onChange={(event) => setNewCharacterName(event.target.value)}
+                placeholder="Character name"
+              />
+            </label>
+            <button type="submit" disabled={!newCharacterName.trim()}>Create Character</button>
+          </form>
           {!characterRoster.length ? (
             <p className={styles.emptyActFields} data-mind-map-character-roster-empty="true">No canonical characters are established for this project yet.</p>
           ) : (
@@ -536,6 +717,11 @@ export default function DiscoverySurface({
                         <header>
                           <strong>{version.locked ? "LOCKED" : "SAVED"} · {version.id}</strong>
                           <span>{version.references.length} / 8 views · {version.complete ? "COMPLETE" : "INCOMPLETE"}</span>
+                          {!version.locked ? (
+                            <button type="button" disabled={!version.complete} onClick={() => lockCharacterVisualVersion(version.id)}>
+                              Lock Complete Version
+                            </button>
+                          ) : null}
                         </header>
                         <div className={styles.characterVisualGrid}>
                           {version.references.map((reference) => (
@@ -552,6 +738,28 @@ export default function DiscoverySurface({
               ))}
             </div>
           )}
+          {selectedCharacter ? (
+            <section className={styles.characterGeneration} data-mind-map-character-generation={selectedCharacter.id}>
+              <div>
+                <small>SELECTED CHARACTER VISUAL</small>
+                <strong>{selectedCharacter.name}</strong>
+                <p>Generation uses Human-approved Character Truth plus permitted project context. Locked approved references are supplied for identity continuity and are never overwritten by generation.</p>
+              </div>
+              <label>
+                <span>REFERENCE VIEW</span>
+                <select value={selectedCharacterView} onChange={(event) => setSelectedCharacterView(event.target.value as WorldMapCharacterView)}>
+                  {WORLD_MAP_CHARACTER_VIEWS.map((view) => <option value={view.id} key={view.id}>{view.label}</option>)}
+                </select>
+              </label>
+              <button
+                type="button"
+                disabled={generatingCharacterId !== null}
+                onClick={() => void generateCharacterVisual()}
+              >
+                {generatingCharacterId === selectedCharacter.id ? "Generating Character Visual…" : "Generate Character Visual"}
+              </button>
+            </section>
+          ) : null}
         </section>
       ) : null}
 

@@ -50,7 +50,8 @@
           "tests/issue-2630-mind-map-human-notes.test.mjs",
           "tests/issue-2631-field-scoped-project-context.test.mjs",
           "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
-          "tests/issue-2643-mind-map-field-pagination.test.mjs"
+          "tests/issue-2643-mind-map-field-pagination.test.mjs",
+          "tests/issue-2644-mind-map-selected-field-actions.test.mjs"
         ]
       },
       "cost": "fast",

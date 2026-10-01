@@ -50,6 +50,8 @@ export default function DashboardBbsPanel({
   onSurfaceNameChange,
   setItemRef,
   notice,
+  learnRequest = null,
+  onLearnRequestConsumed,
 }: {
   readonly items: readonly DashboardBbsItem[];
   readonly selectedIndex: number;
@@ -58,6 +60,8 @@ export default function DashboardBbsPanel({
   readonly onSurfaceNameChange: (name: string) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
   readonly notice?: string;
+  readonly learnRequest?: Readonly<{ requestId: number; topicId?: string | null; lessonId?: string | null }> | null;
+  readonly onLearnRequestConsumed?: () => void;
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
@@ -66,12 +70,14 @@ export default function DashboardBbsPanel({
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
+  const [learnTarget, setLearnTarget] = useState<Readonly<{ topicId?: string | null; lessonId?: string | null }> | null>(null);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     const returnDashboard = () => {
       setWriterCraftMenuOpen(false);
+      setLearnTarget(null);
       setSettingsMenuOpen(false);
       setSettingsWorkspace(null);
       setStoryModeView(null);
@@ -82,6 +88,13 @@ export default function DashboardBbsPanel({
     window.addEventListener("plotpickle:return-dashboard", returnDashboard);
     return () => window.removeEventListener("plotpickle:return-dashboard", returnDashboard);
   }, [onSurfaceNameChange]);
+
+  useEffect(() => {
+    if (!learnRequest) return;
+    setLearnTarget({ topicId: learnRequest.topicId ?? null, lessonId: learnRequest.lessonId ?? null });
+    setWriterCraftMenuOpen(true);
+    onLearnRequestConsumed?.();
+  }, [learnRequest, onLearnRequestConsumed]);
 
   const selectedDashboardItem = items[selectedIndex];
   const selectedDashboardConnected = Boolean(
@@ -147,6 +160,7 @@ export default function DashboardBbsPanel({
       return;
     }
     if (item.id === "learn") {
+      setLearnTarget(null);
       setWriterCraftMenuOpen(true);
       return;
     }
@@ -352,6 +366,15 @@ export default function DashboardBbsPanel({
   }
 
   if (writerCraftMenuOpen) {
+    if (learnTarget?.topicId || learnTarget?.lessonId) {
+      return (
+        <LearnJourneyPreview
+          onBack={() => { setWriterCraftMenuOpen(false); setLearnTarget(null); }}
+          initialTopicId={learnTarget.topicId ?? null}
+          initialLessonId={learnTarget.lessonId ?? null}
+        />
+      );
+    }
     return <LearnJourneyPreview onBack={() => setWriterCraftMenuOpen(false)} />;
   }
 

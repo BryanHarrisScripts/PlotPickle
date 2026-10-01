@@ -274,16 +274,26 @@ async function runFoundationsProbe(baseUrl: string): Promise<FoundationProbeResu
   const message = "Use only these disposable startup-test facts. output-1: A cartographer discovers her coastal maps are changing overnight. output-2: She must decide whether to expose the impossible changes or protect the town that depends on her charts. Return JSON only as {\"values\":{\"output-1\":\"...\",\"output-2\":\"...\"}} with both fields answered substantively.";
   let attempts = 0;
 
-  let result = await requestFoundationProbe(baseUrl, fieldIds, message);
-  attempts += 1;
-  if (parseFoundationValues(result.text?.trim() || "", fieldIds)) {
-    return { latencyMs: result.latencyMs || Date.now() - started, structured: true, route: "Quality", attempts };
-  }
-
-  result = await requestFoundationProbe(baseUrl, fieldIds, `${FOUNDATION_REPAIR_INSTRUCTION}\n\n${message}`);
-  attempts += 1;
-  if (parseFoundationValues(result.text?.trim() || "", fieldIds)) {
-    return { latencyMs: Date.now() - started, structured: true, route: "Quality retry", attempts };
+  const batchAttempts = [
+    { message, route: "Quality" as const },
+    { message: `${FOUNDATION_REPAIR_INSTRUCTION}\n\n${message}`, route: "Quality retry" as const },
+  ];
+  for (const attempt of batchAttempts) {
+    attempts += 1;
+    try {
+      const result = await requestFoundationProbe(baseUrl, fieldIds, attempt.message);
+      if (parseFoundationValues(result.text?.trim() || "", fieldIds)) {
+        return {
+          latencyMs: result.latencyMs || Date.now() - started,
+          structured: true,
+          route: attempt.route,
+          attempts,
+        };
+      }
+    } catch {
+      // A bounded local provider failure, including structured-output truncation, falls through to the next recovery step.
+      continue;
+    }
   }
 
   const recovered: Record<string, string> = {};
@@ -291,12 +301,33 @@ async function runFoundationsProbe(baseUrl: string): Promise<FoundationProbeResu
     const fact = fieldId === "output-1"
       ? "A cartographer discovers her coastal maps are changing overnight."
       : "She must decide whether to expose the impossible changes or protect the town that depends on her charts.";
-    const oneFieldMessage = `${FOUNDATION_REPAIR_INSTRUCTION}\nField ID: ${fieldId}\nDisposable startup-test fact: ${fact}\nReturn only {\"values\":{\"${fieldId}\":\"a substantive answer\"}}.`;
-    const one = await requestFoundationProbe(baseUrl, [fieldId], oneFieldMessage);
-    attempts += 1;
-    const parsed = parseFoundationValues(one.text?.trim() || "", [fieldId]);
-    if (!parsed) return { latencyMs: Date.now() - started, structured: false, route: "failed", attempts };
-    recovered[fieldId] = parsed[fieldId];
+    const oneFieldMessage = [
+      `Field ID: ${fieldId}`,
+      `Disposable startup-test fact: ${fact}`,
+      `Return only {\"values\":{\"${fieldId}\":\"a substantive answer\"}}.`,
+    ].join("\n");
+    const fieldAttempts = [
+      oneFieldMessage,
+      `${FOUNDATION_REPAIR_INSTRUCTION}\nKeep this single field concise enough to finish within the local output budget.\n\n${oneFieldMessage}`,
+    ];
+    let fieldRecovered = false;
+    for (const fieldMessage of fieldAttempts) {
+      attempts += 1;
+      try {
+        const one = await requestFoundationProbe(baseUrl, [fieldId], fieldMessage);
+        const parsed = parseFoundationValues(one.text?.trim() || "", [fieldId]);
+        if (!parsed) continue;
+        recovered[fieldId] = parsed[fieldId];
+        fieldRecovered = true;
+        break;
+      } catch {
+        // Try the next bounded local one-field attempt before declaring the probe unrecoverable.
+        continue;
+      }
+    }
+    if (!fieldRecovered) {
+      return { latencyMs: Date.now() - started, structured: false, route: "failed", attempts };
+    }
   }
   return {
     latencyMs: Date.now() - started,

@@ -196,35 +196,35 @@ function patchMastraVersion(line: string, version: string) {
   return line.replace(/v\d+\.\d+\.\d+(?:-[^\s]+)?/g, `v${version}`);
 }
 
-function repairedTranscript(lines: string[], warnings: boolean, version: string) {
+function repairedTranscript(
+  lines: string[],
+  options: {
+    readonly antiEchoRecovered: boolean;
+    readonly qualityRecovered: boolean;
+    readonly healthy: boolean;
+    readonly warnings: boolean;
+    readonly version: string;
+  },
+) {
   return lines.map((original) => {
-    let line = patchMastraVersion(original, version);
+    let line = patchMastraVersion(original, options.version);
     const readable = plain(line);
-    if (readable.includes("Sage anti-echo check") && readable.includes("FAIL")) {
+    if (options.antiEchoRecovered && readable.includes("Sage anti-echo check") && readable.includes("FAIL")) {
       line = line
         .replace(`${ANSI_RED}FAIL${ANSI_RESET}`, `${ANSI_GREEN}PASS${ANSI_RESET}`)
         .replace(/\s{2,}$/, "") + "  verified by strict no-restatement probe";
     }
-    if (readable.includes("OVERALL: NEEDS ATTENTION")) {
-      return warnings
-        ? line.replace(`${ANSI_RED}OVERALL: NEEDS ATTENTION${ANSI_RESET}`, `${ANSI_YELLOW}OVERALL: HEALTHY WITH OPTIONAL WARNINGS${ANSI_RESET}`)
-        : line.replace(`${ANSI_RED}OVERALL: NEEDS ATTENTION${ANSI_RESET}`, `${ANSI_GREEN}OVERALL: HEALTHY${ANSI_RESET}`);
-    }
-    return line;
-  });
-}
-
-function qualityRepairedTranscript(lines: string[], warnings: boolean, version: string) {
-  return lines.map((original) => {
-    let line = patchMastraVersion(original, version);
-    const readable = plain(line);
-    if ((readable.includes("Sage repetition guard") || readable.includes("Curriculum grounding")) && readable.includes("FAIL")) {
+    if (
+      options.qualityRecovered
+      && (readable.includes("Sage repetition guard") || readable.includes("Curriculum grounding"))
+      && readable.includes("FAIL")
+    ) {
       line = line
         .replace(`${ANSI_RED}FAIL${ANSI_RESET}`, `${ANSI_GREEN}PASS${ANSI_RESET}`)
         .replace(/\s{2,}$/, "") + "  recovered via Quality repair";
     }
-    if (readable.includes("OVERALL: NEEDS ATTENTION")) {
-      return warnings
+    if (readable.includes("OVERALL: NEEDS ATTENTION") && options.healthy) {
+      return options.warnings
         ? line.replace(`${ANSI_RED}OVERALL: NEEDS ATTENTION${ANSI_RESET}`, `${ANSI_YELLOW}OVERALL: HEALTHY WITH OPTIONAL WARNINGS${ANSI_RESET}`)
         : line.replace(`${ANSI_RED}OVERALL: NEEDS ATTENTION${ANSI_RESET}`, `${ANSI_GREEN}OVERALL: HEALTHY${ANSI_RESET}`);
     }
@@ -255,14 +255,15 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
   const failedChecks = buffered
     .map(plain)
     .filter((line) => /\bFAIL\b/.test(line) && !line.includes("OVERALL:"));
-  const onlyAntiEchoFailed = failedChecks.length === 1 && failedChecks[0].includes("Sage anti-echo check");
+  let remainingFailures = [...failedChecks];
+  let antiEchoRecovered = false;
+  let qualityRecovered = false;
 
-  if (onlyAntiEchoFailed) {
+  if (remainingFailures.some((line) => line.includes("Sage anti-echo check"))) {
     try {
-      const antiEcho = await verifySageAntiEcho(baseUrl);
-      if (antiEcho) {
-        for (const line of repairedTranscript(buffered, result.warnings, version)) originalLog(line);
-        return { healthy: true, warnings: result.warnings };
+      if (await verifySageAntiEcho(baseUrl)) {
+        antiEchoRecovered = true;
+        remainingFailures = remainingFailures.filter((line) => !line.includes("Sage anti-echo check"));
       }
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
@@ -270,14 +271,16 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     }
   }
 
-  const qualityRepairable = failedChecks.length > 0 && failedChecks.every((line) =>
+  const qualityRepairable = remainingFailures.length > 0 && remainingFailures.every((line) =>
     line.includes("Sage repetition guard") || line.includes("Curriculum grounding"),
   );
   if (qualityRepairable) {
     try {
       if (await verifySageQualityRepair(baseUrl)) {
-        for (const line of qualityRepairedTranscript(buffered, result.warnings, version)) originalLog(line);
-        return { healthy: true, warnings: result.warnings };
+        qualityRecovered = true;
+        remainingFailures = remainingFailures.filter((line) =>
+          !line.includes("Sage repetition guard") && !line.includes("Curriculum grounding")
+        );
       }
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
@@ -285,6 +288,15 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     }
   }
 
-  for (const line of buffered) originalLog(patchMastraVersion(line, version));
-  return result;
+  const recoveredHealthy = failedChecks.length > 0 && remainingFailures.length === 0;
+  for (const line of repairedTranscript(buffered, {
+    antiEchoRecovered,
+    qualityRecovered,
+    healthy: recoveredHealthy,
+    warnings: result.warnings,
+    version,
+  })) {
+    originalLog(line);
+  }
+  return recoveredHealthy ? { healthy: true, warnings: result.warnings } : result;
 }

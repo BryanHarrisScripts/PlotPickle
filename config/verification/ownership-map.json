@@ -235,6 +235,20 @@
       ]
     },
     {
+      "id": "startup-agent-health-runtime",
+      "classification": "production",
+      "include": [
+        "build/startup-agent-diagnostics.ts",
+        "build/startup-agent-diagnostics-runtime*.ts"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "provider",
+        "test-harness"
+      ]
+    },
+    {
       "id": "agent-runtime-execution-contracts",
       "classification": "production",
       "include": [
@@ -425,7 +439,9 @@
       "classification": "production",
       "include": [
         "Start-PlotPickle.bat",
-        "scripts/windows-runtime.mjs"
+        "scripts/windows-runtime.mjs",
+        "scripts/windows-companion-software.ps1",
+        "scripts/windows-companion-maintenance-after-ready.ps1"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

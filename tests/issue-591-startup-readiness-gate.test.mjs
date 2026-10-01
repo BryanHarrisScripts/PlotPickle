@@ -81,5 +81,5 @@ test("companion maintenance reports optional failures truthfully without blockin
   assert.match(manager, /\[READY WITH WARNINGS\] Companion inventory and maintenance finished/);
   assert.match(manager, /No AI mode and manual workflows remain available/);
   assert.match(manager, /exit 10/);
-  assert.match(manager, /\[READY\] Companion inventory and reviewed maintenance finished without detected failures/);
+  assert.match(manager, /\[READY\] Companion inventory and reviewed maintenance finished without companion software failures; Agent Health is reported separately/);
 });

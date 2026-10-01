@@ -392,6 +392,11 @@ export function createPlotPickleMastra(profile: ProviderProfile) {
   return new Mastra({ agents, logger: false });
 }
 
+export function foundationPlannerMaxOutputTokens(fieldCount: number) {
+  const boundedFieldCount = Math.max(1, Math.min(12, Math.trunc(fieldCount) || 1));
+  return Math.min(2_600, 640 + boundedFieldCount * 320);
+}
+
 export async function askPlotPickleAgent(input: {
   profile: ProviderProfile;
   agentId: PlotPickleAgentId;
@@ -421,7 +426,7 @@ export async function askPlotPickleAgent(input: {
   const abortSignal = AbortSignal.timeout(MASTRA_AGENT_TIMEOUT_MS);
   const standardModelSettings = {
     temperature: input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
-    maxOutputTokens: input.agentId === "foundations-planner" ? 720 : input.agentId === "wyrmwood-rival-director" ? 1100 : input.agentId === "discovery-mapper" ? 420 : 480,
+    maxOutputTokens: input.agentId === "foundations-planner" ? foundationPlannerMaxOutputTokens(input.foundationFieldIds?.length ?? 1) : input.agentId === "wyrmwood-rival-director" ? 1100 : input.agentId === "discovery-mapper" ? 420 : 480,
   };
   const storyCouncilModelSettings = {
     temperature: 0.2,

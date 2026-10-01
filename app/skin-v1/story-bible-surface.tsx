@@ -12,6 +12,7 @@ import { storyDevelopmentFieldView } from "../../core/project/story-development"
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import {
   buildStoryDevelopmentFields,
+  storyDevelopmentFieldsForAct,
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import {
@@ -24,6 +25,12 @@ import styles from "./story-bible-surface.module.css";
 
 type WorldMapAct = 1 | 2 | 3 | 4;
 const WORLD_MAP_ACTS: readonly WorldMapAct[] = [1, 2, 3, 4];
+
+function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: WorldMapAct) {
+  if (field.scope === "project-wide") return "PROJECT-WIDE";
+  if (field.scope === "act-specific") return `ACT ${field.validActs.join(" / ")} ONLY`;
+  return `ACT ${act}`;
+}
 
 function Fact({ fact }: { readonly fact: StoryBibleFact }) {
   return (
@@ -42,13 +49,15 @@ function characterDisplayName(character: StoryBibleCharacter) {
 function CanonicalFieldCard({
   field,
   project,
+  act,
   onEditField,
 }: {
   readonly field: StoryDevelopmentFieldDefinition;
   readonly project: LibraryPPFProject;
-  readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string) => void;
+  readonly act: WorldMapAct;
+  readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string, act: WorldMapAct) => void;
 }) {
-  const view = storyDevelopmentFieldView(project, field);
+  const view = storyDevelopmentFieldView(project, field, act);
   const value = view.value.trim();
   const established = Boolean(value);
 
@@ -57,13 +66,14 @@ function CanonicalFieldCard({
       className={styles.fact}
       data-story-bible-fact-state={established ? "established" : "not-established"}
       data-world-map-canonical-field={field.canonicalId}
+      data-world-map-field-scope={field.scope}
     >
       <strong>{field.lessonTitle}</strong>
       <p>{established ? value : "Not established yet."}</p>
-      <small>{field.prompt}</small>
+      <small>{fieldScopeLabel(field, act)} · {field.prompt}</small>
       <div className={styles.reviewActions}>
         <a href={learnLessonHref(field.topicId, field.lessonId)}>Open in Learn</a>
-        <button type="button" onClick={() => onEditField(field.topicId, field.canonicalId)}>
+        <button type="button" onClick={() => onEditField(field.topicId, field.canonicalId, act)}>
           Edit in Mind Map
         </button>
       </div>
@@ -97,15 +107,18 @@ export default function StoryBibleSurface({
   onEditField,
 }: {
   readonly project: LibraryPPFProject;
-  readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string) => void;
+  readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string, act: WorldMapAct) => void;
 }) {
   const bible = useMemo(() => projectStoryBible(project, plotPickleCurriculum), [project]);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   const [selectedAct, setSelectedAct] = useState<WorldMapAct>(1);
   const [activeTopic, setActiveTopic] = useState<LearnTopicSpineId>("foundations");
   const activeTopicEntry = LEARN_TOPIC_SPINE.find((topic) => topic.id === activeTopic) ?? LEARN_TOPIC_SPINE[0];
-  const topicFields = canonicalFields.filter((field) => field.topicId === activeTopic);
-  const establishedCount = topicFields.filter((field) => storyDevelopmentFieldView(project, field).value.trim()).length;
+  const topicFields = storyDevelopmentFieldsForAct(
+    canonicalFields.filter((field) => field.topicId === activeTopic),
+    selectedAct,
+  );
+  const establishedCount = topicFields.filter((field) => storyDevelopmentFieldView(project, field, selectedAct).value.trim()).length;
   const selectedActBlockNumbers = new Set(
     project.structure.blocks.filter((block) => block.actNumber === selectedAct).map((block) => block.number),
   );
@@ -191,12 +204,14 @@ export default function StoryBibleSurface({
               These are the same canonical fields used by Mind Map. World Map does not edit, approve, or generate them.
             </p>
           </header>
+          {!topicFields.length ? <p className={styles.empty}>No {activeTopicEntry.label} fields require separate Act {selectedAct} input.</p> : null}
           <div className={styles.factGrid}>
             {topicFields.map((field) => (
               <CanonicalFieldCard
                 field={field}
                 key={field.canonicalId}
                 project={project}
+                act={selectedAct}
                 onEditField={onEditField}
               />
             ))}

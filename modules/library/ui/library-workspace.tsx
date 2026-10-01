@@ -8,6 +8,7 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID,
+  AFTERGLOW_EXAMPLE_SOURCE_ID,
   DEFAULT_LOCAL_PROFILE_ID,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -25,6 +26,7 @@ import {
   saveActiveLibraryProject,
   stageSessionActiveProjectHandoff,
   switchActiveLibraryProject,
+  unloadActiveLibraryProject,
   type LibraryPPFProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
@@ -154,11 +156,6 @@ function markCurrentSessionLibraryProject(projectId: string) {
   const normalized = projectId.trim();
   if (!normalized) throw new Error("A current-session story requires a project ID.");
   window.sessionStorage.setItem(currentSessionProjectKey(), normalized);
-  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
-}
-
-function clearCurrentSessionLibraryProject() {
-  window.sessionStorage.removeItem(currentSessionProjectKey());
   window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
 }
 
@@ -445,6 +442,7 @@ export default function LibraryWorkspace() {
   const [destination, setDestination] = useState<LibraryDestination>("load");
   const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
+  const [activeProjectSummary, setActiveProjectSummary] = useState<ProjectLibrarySummary | null>(null);
   const [canExportCurrentStory, setCanExportCurrentStory] = useState(false);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
@@ -457,6 +455,7 @@ export default function LibraryWorkspace() {
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
+  const [unloadingStory, setUnloadingStory] = useState(false);
   const [restoringResources, setRestoringResources] = useState(false);
   const [rescanningResources, setRescanningResources] = useState(false);
 
@@ -465,6 +464,9 @@ export default function LibraryWorkspace() {
       const library = initializeProjectLibrary();
       const sessionProject = currentSessionLibraryProject();
       setActiveProject(sessionProject);
+      setActiveProjectSummary(sessionProject
+        ? library.registry.projects.find((item) => item.id === sessionProject.id) ?? null
+        : null);
       setCanExportCurrentStory(Boolean(sessionProject ?? library.activeProject));
       const savedStories = listHumanLibraryProjects();
       const archivedStories = listHumanArchivedLibraryProjects();

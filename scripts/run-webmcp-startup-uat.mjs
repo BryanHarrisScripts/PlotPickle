@@ -10,7 +10,10 @@ import {
   cleanupVerificationSyntheticHome,
   prepareVerificationSyntheticHome,
 } from "./full-verification-auth.mjs";
-import { prepareWebMcpProfileGateSession } from "../lib/verification/skin-v1/profile-gate-capture.mjs";
+import {
+  prepareWebMcpProfileGateSession,
+  verifyWebMcpPostLogoutShutdown,
+} from "../lib/verification/skin-v1/profile-gate-capture.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
@@ -365,11 +368,19 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
+    await onEvent?.({ type: "stage", label: "Checking post-logoff shutdown", detail: "Ending the synthetic Human session only after authenticated surface verification is complete." });
+    const postLogoutShutdown = await verifyWebMcpPostLogoutShutdown({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
     const findingsReport = await writeWebMcpFindingsReport({ status: "pass", target: server.origin, findings: [] });
     const evidence = await writeEvidence("pass", {
       findingsReport,
       findingCount: 0,
-      standardSurfaceCatalogue: standardCatalogue, dashboardMaturity: menuContract.dashboardMaturity,
+      standardSurfaceCatalogue: standardCatalogue,
+      profileGatePostLogoutShutdown: postLogoutShutdown,
+      dashboardMaturity: menuContract.dashboardMaturity,
       visualDirector: {
         report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
         surfaces: visualDirector.totals.surfaces,

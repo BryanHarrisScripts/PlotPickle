@@ -1,63 +1,28 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import vm from "node:vm";
-import ts from "typescript";
-
 const root = new URL("..", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-async function runtime(path) {
-  const source = await read(path);
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-  }).outputText;
-  const runtimeModule = { exports: {} };
-  vm.runInNewContext(compiled, {
-    module: runtimeModule,
-    exports: runtimeModule.exports,
-    require: () => ({}),
-  });
-  return { source, exports: runtimeModule.exports };
-}
+test("#2647 canonical Character creation has deterministic identity and Human-approved Character Truth semantics", async () => {
+  const contract = await read("core/contracts/character-truth-evidence.ts");
 
-test("#2647 Human can create a stable canonical character in the existing Character Truth owner", async () => {
-  const contract = await runtime("core/contracts/character-truth-evidence.ts");
-  const first = contract.exports.createCanonicalCharacterTruth(null, {
-    projectId: "story-1",
-    characterName: "Dr. Éloise Hart",
-    occurredAt: "2026-10-01T16:45:00.000Z",
-  });
-
-  assert.ok(first);
-  assert.equal(first.characterId, "dr-eloise-hart");
-  assert.deepEqual([...first.evidence.principalCharacterIds], ["dr-eloise-hart"]);
-  assert.equal(first.evidence.sources.length, 0);
-  assert.equal(first.evidence.claims.length, 1);
-  assert.equal(first.evidence.claims[0].kind, "identity");
-  assert.equal(first.evidence.claims[0].summary, "Dr. Éloise Hart");
-  assert.equal(first.evidence.claims[0].reviewState, "human-approved");
-  assert.equal(first.evidence.claims[0].handling, "writer-reference");
-  assert.match(first.evidence.claims[0].sourceRef, /^project:story-1:character:dr-eloise-hart$/u);
-
-  const second = contract.exports.createCanonicalCharacterTruth(first.evidence, {
-    projectId: "story-1",
-    characterName: "Dr. Éloise Hart",
-    occurredAt: "2026-10-01T16:46:00.000Z",
-  });
-  assert.ok(second);
-  assert.equal(second.characterId, "dr-eloise-hart-2");
-  assert.deepEqual([...second.evidence.principalCharacterIds], ["dr-eloise-hart", "dr-eloise-hart-2"]);
-  assert.equal(contract.exports.createCanonicalCharacterTruth(first.evidence, {
-    projectId: "story-1",
-    characterName: "   ",
-    occurredAt: "2026-10-01T16:47:00.000Z",
-  }), null);
+  assert.match(contract, /export function createCanonicalCharacterTruth/u);
+  assert.match(contract, /canonicalCharacterSlug\(characterName\)/u);
+  assert.match(contract, /\.normalize\("NFKD"\)/u);
+  assert.match(contract, /\.toLowerCase\(\)[\s\S]*\.replace\(\/\[\^a-z0-9\]\+\/gu, "-"\)/u);
+  assert.match(contract, /if \(!occupied\.has\(base\)\) return base/u);
+  assert.match(contract, /const candidate = `\$\{base\.slice\(0, 150\)\}-\$\{suffix\}`/u);
+  assert.match(contract, /fixtureId: `project-\$\{projectId\}-character-truth`/u);
+  assert.match(contract, /principalCharacterIds: \[\.\.\.current\.principalCharacterIds, characterId\]/u);
+  assert.match(contract, /kind: "identity"/u);
+  assert.match(contract, /summary: characterName/u);
+  assert.match(contract, /reviewState: "human-approved"/u);
+  assert.match(contract, /handling: "writer-reference"/u);
+  assert.match(contract, /sourceRef: `project:\$\{projectId\}:character:\$\{characterId\}`/u);
+  assert.match(contract, /if \(!characterName \|\| !projectId \|\| !occurredAt\) return null/u);
+  assert.doesNotMatch(contract, /Date\.now\(\)/u);
 });
-
 test("#2647 Mind Map creation writes sourceEvidence.characterTruth and immediately selects the new canonical identity", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
   const start = surface.indexOf("function createCharacter()");

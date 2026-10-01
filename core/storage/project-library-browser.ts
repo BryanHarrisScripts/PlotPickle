@@ -219,6 +219,14 @@ export function clearSessionActiveProject() {
   detachedProjectCache = null;
 }
 
+export function unloadActiveLibraryProject() {
+  const projectId = sessionActiveProjectId();
+  if (!projectId) return null;
+  clearSessionActiveProject();
+  announceChange();
+  return projectId;
+}
+
 function coreInput() {
   return {
     storage: storage(),

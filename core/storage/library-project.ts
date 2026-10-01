@@ -17,6 +17,7 @@ import { normalizeFoundationProject, PPF_FOUNDATION_VERSION, type PPFProject } f
 import { createEmptyWorldMapState, normalizeWorldMapState, type WorldMapState } from "../contracts/world-map";
 import { createEmptyDiscoveryState, normalizeDiscoveryState, type DiscoveryState } from "../contracts/discovery";
 export const STORY_DEVELOPMENT_VERSION = 1 as const;
+export const MIND_MAP_NOTES_VERSION = 1 as const;
 
 export type StoryDevelopmentAcceptedSource = "human" | "agent-proposal";
 
@@ -34,6 +35,16 @@ export type StoryDevelopmentState = {
   readonly fields: Readonly<Record<string, StoryDevelopmentFieldState>>;
 };
 
+export type MindMapTopicNote = {
+  readonly text: string;
+  readonly updatedAt: string | null;
+};
+
+export type MindMapNotesState = {
+  readonly version: typeof MIND_MAP_NOTES_VERSION;
+  readonly topics: Readonly<Record<string, MindMapTopicNote>>;
+};
+
 export function createEmptyStoryDevelopmentFieldState(): StoryDevelopmentFieldState {
   return {
     value: "",
@@ -49,6 +60,10 @@ export function createEmptyStoryDevelopmentState(): StoryDevelopmentState {
   return { version: STORY_DEVELOPMENT_VERSION, fields: {} };
 }
 
+export function createEmptyMindMapNotesState(): MindMapNotesState {
+  return { version: MIND_MAP_NOTES_VERSION, topics: {} };
+}
+
 export type LibraryPPFProject = PPFProject & {
   readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
@@ -56,6 +71,7 @@ export type LibraryPPFProject = PPFProject & {
   readonly discovery: DiscoveryState;
   readonly worldMap: WorldMapState;
   readonly storyDevelopment: StoryDevelopmentState;
+  readonly mindMapNotes: MindMapNotesState;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
@@ -104,6 +120,34 @@ export function storyDevelopmentFieldState(
   return state.fields[canonicalId] ?? createEmptyStoryDevelopmentFieldState();
 }
 
+function cleanMindMapNoteText(value: unknown, limit = 24_000) {
+  return typeof value === "string"
+    ? value.replace(/\u0000/g, "").slice(0, limit)
+    : "";
+}
+
+export function normalizeMindMapNotesState(value: unknown): MindMapNotesState {
+  const source = objectRecord(value);
+  const rawTopics = objectRecord(source.topics);
+  const topics: Record<string, MindMapTopicNote> = {};
+
+  for (const [rawKey, rawValue] of Object.entries(rawTopics).slice(0, 100)) {
+    const key = cleanStoryDevelopmentText(rawKey, 120);
+    if (!key) continue;
+    const note = objectRecord(rawValue);
+    topics[key] = {
+      text: cleanMindMapNoteText(note.text),
+      updatedAt: cleanStoryDevelopmentText(note.updatedAt, 80) || null,
+    };
+  }
+
+  return { version: MIND_MAP_NOTES_VERSION, topics };
+}
+
+export function mindMapTopicNote(state: MindMapNotesState, topicId: string): MindMapTopicNote {
+  return state.topics[topicId] ?? { text: "", updatedAt: null };
+}
+
 /**
  * Canonical normalizer for the current profile-owned Library PPF shape.
  *
@@ -132,7 +176,10 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const storyDevelopment = source.storyDevelopment === undefined
     ? createEmptyStoryDevelopmentState()
     : normalizeStoryDevelopmentState(source.storyDevelopment);
-  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment };
+  const mindMapNotes = source.mindMapNotes === undefined
+    ? createEmptyMindMapNotesState()
+    : normalizeMindMapNotesState(source.mindMapNotes);
+  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes };
 }
 
 export function libraryBackupFileName(title: string) {

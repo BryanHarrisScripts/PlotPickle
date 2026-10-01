@@ -1,0 +1,14 @@
+[package]
+name = "plotpickle-fframes-bridge"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+fframes = { version = "=1.1.0", features = ["cli"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[[bin]]
+name = "plotpickle-fframes-bridge"
+path = "src/main.rs"

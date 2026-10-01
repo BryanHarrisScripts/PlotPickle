@@ -17,9 +17,13 @@ export function startupProbePurpose(request: IncomingMessage): StartupProbePurpo
   return value === "warmup" || value === "liveness" || value === "existing-session" ? value : null;
 }
 
+function isManagedAppRoute(url: string | undefined) {
+  return url === "/" || url === "/skin-v1";
+}
+
 export function isLauncherWarmupProbe(request: IncomingMessage) {
   return request.method === "GET"
-    && request.url === "/"
+    && isManagedAppRoute(request.url)
     && startupProbePurpose(request) === "warmup";
 }
 
@@ -28,7 +32,7 @@ export function isLauncherLivenessProbe(request: IncomingMessage) {
   const explicitLiveness = startupProbePurpose(request) === "liveness";
   return Boolean(
     request.method === "GET"
-      && request.url === "/"
+      && isManagedAppRoute(request.url)
       && (
         explicitLiveness
         || (

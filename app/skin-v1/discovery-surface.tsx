@@ -211,7 +211,7 @@ export default function DiscoverySurface({
   const humanCount = selectedActTopicCards.filter((card) => card.sourceState === "new-local").length;
   const lockedCount = selectedActTopicCards.filter((card) => Boolean(card.lockedAt)).length;
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
-  const persistedTopicNote = mindMapTopicNote(project.mindMapNotes, selectedTopic);
+  const persistedTopicNote = project ? mindMapTopicNote(project.mindMapNotes, selectedTopic) : { text: "", updatedAt: null };
   const selectedTopicNoteDraft = noteDrafts[selectedTopic] ?? persistedTopicNote.text;
   const notesDirty = selectedTopicNoteDraft !== persistedTopicNote.text;
   const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";

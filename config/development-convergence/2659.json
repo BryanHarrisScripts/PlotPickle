@@ -14,6 +14,7 @@
     "docs/developer-briefs/2659-shared-compact-surface-shell.md",
     "tests/issue-2442-mind-world-map-refinement.test.mjs",
     "tests/issue-2448-mindmap-act-workspace.test.mjs",
+    "tests/issue-2557-learn-topic-spine.test.mjs",
     "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
     "tests/issue-2659-compact-surface-shell.test.mjs"
   ],

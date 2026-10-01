@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createEmptyProject } from "../../../../core/project/project";
 import {
   archiveLibraryProject, createLibraryWorkingCopy, deleteArchivedLibraryProject,
-  listLibraryProjects, switchActiveLibraryProject,
+  listLibraryProjects, stageSessionActiveProjectHandoff, switchActiveLibraryProject,
 } from "../../../../core/storage/project-library-browser";
 import { deleteArchivedProfileProjectFromVault, persistActiveProfileProject } from "../../../../core/storage/profile-private-browser";
 import styles from "./avery-session-history.module.css";
@@ -222,6 +222,7 @@ export default function AverySessionHistory() {
         });
       }
       await persistActiveProfileProject();
+      stageSessionActiveProjectHandoff();
       window.location.assign("/?workspace=dashboard");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Avery story could not be opened.");

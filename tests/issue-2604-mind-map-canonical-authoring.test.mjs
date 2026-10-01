@@ -95,7 +95,7 @@ test("#2604 field-specific agent proposals stay proposals until the Human uses t
   assert.match(surface, /Do not claim the proposal is accepted canon/u);
   assert.match(surface, /if \(hasActiveLibraryProject\(\)\) \{[\s\S]*writeStoryDevelopmentFieldProposal/u);
   assert.match(surface, /proposalDrafts\[field\.canonicalId\] \?\? persisted\.proposal/u);
-  assert.match(surface, /editable before use/u);
+  assert.match(surface, /AGENT SUGGESTION · editable before use/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal/u);
   assert.match(adapter, /source: "agent-proposal"/u);
   assert.match(adapter, /proposal: ""/u);

@@ -130,7 +130,15 @@ function assertJourneyContent(value: JourneyContentPayload) {
   }
 }
 
-export default function LearnJourneyPreview({ onBack }: { readonly onBack: () => void }) {
+export default function LearnJourneyPreview({
+  onBack,
+  initialTopicId = null,
+  initialLessonId = null,
+}: {
+  readonly onBack: () => void;
+  readonly initialTopicId?: string | null;
+  readonly initialLessonId?: string | null;
+}) {
   const [preview, setPreview] = useState<JourneyPreview | null>(null);
   const [journeyContent, setJourneyContent] = useState<JourneyContentPayload | null>(null);
   const [project, setProject] = useState<PPFProject | null>(null);
@@ -324,6 +332,8 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
         onDashboard={onBack}
         onLessonOpen={(lessonId) => commit({ type: "lesson.open", lessonId, occurredAt: new Date().toISOString() })}
         onToggleLessonCompletion={toggleLessonCompletion}
+        initialTopicId={initialTopicId}
+        initialLessonId={initialLessonId}
       />
     );
   }

@@ -37,7 +37,8 @@ test("#2644 one shared action bar targets Save, Agent, Human Notes and exact Lea
   assert.match(surface, /saveCanonicalField\(selectedField\)/u);
   assert.match(surface, /createCanonicalFieldProposal\(selectedField\)/u);
   assert.match(surface, /data-mind-map-human-notes-toggle=\{selectedFieldNoteKey \?\? selectedField\.canonicalId\}/u);
-  assert.match(surface, /learnLessonHref\(selectedField\.topicId, selectedField\.lessonId\)/u);
+  assert.match(surface, /onOpenLearn\(selectedField\.topicId, selectedField\.lessonId, selectedAct\)/u);
+  assert.doesNotMatch(surface, /learnLessonHref|window\.location\.assign/u);
 
   const gridStart = surface.indexOf('<div className={styles.fieldGrid}>');
   const gridEnd = surface.indexOf("</section>", gridStart);

@@ -172,9 +172,18 @@ function displayDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+function returnToMatrixDashboardFromLibrary() {
+  if (window.location.pathname !== "/skin-v1") return false;
+  window.dispatchEvent(new CustomEvent("plotpickle:return-dashboard", {
+    detail: { sourceSurface: "library" },
+  }));
+  return true;
+}
+
 async function openActiveProject() {
   await persistActiveProfileProject();
   await flushProfilePrivateWrites();
+  if (returnToMatrixDashboardFromLibrary()) return;
   stageSessionActiveProjectHandoff();
   window.location.assign("/?workspace=dashboard");
 }
@@ -579,7 +588,7 @@ export default function LibraryWorkspace() {
 
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
-      window.location.assign("/?workspace=dashboard");
+      if (!returnToMatrixDashboardFromLibrary()) window.location.assign("/?workspace=dashboard");
     } catch (error) {
       let message = error instanceof Error ? error.message : "PlotPickle could not unload the active story.";
       if (detached) {
@@ -602,8 +611,10 @@ export default function LibraryWorkspace() {
       markCurrentSessionLibraryProject(project.id);
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
-      stageSessionActiveProjectHandoff();
-      window.location.assign("/?workspace=dashboard");
+      if (!returnToMatrixDashboardFromLibrary()) {
+        stageSessionActiveProjectHandoff();
+        window.location.assign("/?workspace=dashboard");
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
     }

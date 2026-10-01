@@ -103,7 +103,8 @@
           "tests/issue-2422-library-load-import-export.test.mjs",
           "tests/issue-2310-surface-coverage-convergence.test.mjs",
           "tests/issue-2432-library-load-recovery-ui.test.mjs",
-          "tests/issue-2487-story-to-screen-live-parity.test.mjs"
+          "tests/issue-2487-story-to-screen-live-parity.test.mjs",
+          "tests/issue-2657-matrix-navigation-continuity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -129,7 +130,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology. #2310 adds lifecycle-aware Surface Census coverage so in-transit inventory remains visible without becoming a current Matrix governance obligation until navigation reconnects it. #2487 adds rendered open-and-return continuity for Timeline, Foley, Narration, Music, Rough Cut and Screening."
+      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology. #2310 adds lifecycle-aware Surface Census coverage so in-transit inventory remains visible without becoming a current Matrix governance obligation until navigation reconnects it. #2487 adds rendered open-and-return continuity for Timeline, Foley, Narration, Music, Rough Cut and Screening. #2657 extends the canonical navigation owner across every primary Dashboard destination: available non-terminal Matrix navigation remains in-shell, active story identity survives Library/World Map/Mind Map/Learn transitions, and document reload/project handoff is reserved for legacy compatibility boundaries."
     },
     {
       "id": "experience.webmcp-live-observer",
@@ -1853,7 +1854,7 @@
           ".artifacts/verification-shadow/production-harness.comparison.json"
         ]
       },
-      "notes": "#2621 preserves Blank-at-launch while allowing a fresh one-shot explicit Library selection to survive the immediate authenticated profile hydration reload and expose the already-packaged Afterglow story/resources to downstream surfaces."
+      "notes": "#2621 preserves Blank-at-launch with a fresh one-shot explicit Library handoff for document-level compatibility navigation. #2657 makes canonical /skin-v1 Library navigation in-shell so ordinary Matrix transitions no longer need that handoff or profile rehydration."
     },
     {
       "id": "story-canon.library-unload-active-story-2625",

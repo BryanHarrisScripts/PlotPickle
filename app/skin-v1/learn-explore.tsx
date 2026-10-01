@@ -61,6 +61,8 @@ type LearnExploreProps = Readonly<{
   onDashboard: () => void;
   onLessonOpen: (lessonId: string) => void;
   onToggleLessonCompletion: (lesson: CurriculumLesson) => void;
+  initialTopicId?: string | null;
+  initialLessonId?: string | null;
 }>;
 
 function craftModuleNumber(courseId: string) {
@@ -138,6 +140,8 @@ export default function LearnExplore({
   onDashboard,
   onLessonOpen,
   onToggleLessonCompletion,
+  initialTopicId = null,
+  initialLessonId = null,
 }: LearnExploreProps) {
   const [payload, setPayload] = useState<ExplorePayload | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -147,6 +151,7 @@ export default function LearnExplore({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [openEntry, setOpenEntry] = useState<ExploreEntry | null>(null);
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const initialTargetAppliedRef = useRef("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -165,6 +170,36 @@ export default function LearnExplore({
       });
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (!payload) return;
+    const signature = `${initialTopicId ?? ""}|${initialLessonId ?? ""}`;
+    if (signature === "|" || initialTargetAppliedRef.current === signature) return;
+    initialTargetAppliedRef.current = signature;
+
+    const target = initialLessonId
+      ? payload.entries.find((entry) => (
+        entry.lesson.id === initialLessonId
+        || entry.canonicalLessonId === initialLessonId
+        || entry.presentationId === initialLessonId
+      ))
+      : null;
+
+    if (target) {
+      setQuery("");
+      setCraftModuleFilter("all");
+      setTopicFilter(target.topic.id);
+      setOpenEntry(target);
+      onLessonOpen(target.lesson.id);
+      return;
+    }
+
+    if (initialTopicId && payload.topics.some((topic) => topic.id === initialTopicId)) {
+      setQuery("");
+      setCraftModuleFilter("all");
+      setTopicFilter(initialTopicId);
+    }
+  }, [initialLessonId, initialTopicId, onLessonOpen, payload]);
 
   const filteredEntries = useMemo(() => {
     if (!payload) return [] as readonly ExploreEntry[];

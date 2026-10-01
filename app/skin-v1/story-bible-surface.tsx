@@ -17,8 +17,6 @@ import {
 } from "../../modules/learn/model/story-development-fields";
 import {
   LEARN_TOPIC_SPINE,
-  learnLessonHref,
-  learnTopicHref,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
 import styles from "./story-bible-surface.module.css";
@@ -51,11 +49,13 @@ function CanonicalFieldCard({
   project,
   act,
   onEditField,
+  onOpenLearn,
 }: {
   readonly field: StoryDevelopmentFieldDefinition;
   readonly project: LibraryPPFProject;
   readonly act: WorldMapAct;
   readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string, act: WorldMapAct) => void;
+  readonly onOpenLearn: (topic: LearnTopicSpineId, lessonId: string | null, act: WorldMapAct) => void;
 }) {
   const view = storyDevelopmentFieldView(project, field, act);
   const value = view.value.trim();
@@ -72,7 +72,7 @@ function CanonicalFieldCard({
       <p>{established ? value : "Not established yet."}</p>
       <small>{fieldScopeLabel(field, act)} · {field.prompt}</small>
       <div className={styles.reviewActions}>
-        <a href={learnLessonHref(field.topicId, field.lessonId)}>Open in Learn</a>
+        <button type="button" onClick={() => onOpenLearn(field.topicId, field.lessonId, act)}>Open in Learn</button>
         <button type="button" onClick={() => onEditField(field.topicId, field.canonicalId, act)}>
           Edit in Mind Map
         </button>
@@ -105,9 +105,11 @@ function CharacterReview({ character }: { readonly character: StoryBibleCharacte
 export default function StoryBibleSurface({
   project,
   onEditField,
+  onOpenLearn,
 }: {
   readonly project: LibraryPPFProject;
   readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string, act: WorldMapAct) => void;
+  readonly onOpenLearn: (topic: LearnTopicSpineId, lessonId: string | null, act: WorldMapAct) => void;
 }) {
   const bible = useMemo(() => projectStoryBible(project, plotPickleCurriculum), [project]);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
@@ -125,7 +127,7 @@ export default function StoryBibleSurface({
   const selectedActWriting = project.writing.entries.filter((entry) => selectedActBlockNumbers.has(entry.blockNumber));
 
   function openLearnTopic() {
-    window.location.assign(learnTopicHref(activeTopic));
+    onOpenLearn(activeTopic, null, selectedAct);
   }
 
   return (
@@ -213,6 +215,7 @@ export default function StoryBibleSurface({
                 project={project}
                 act={selectedAct}
                 onEditField={onEditField}
+                onOpenLearn={onOpenLearn}
               />
             ))}
           </div>

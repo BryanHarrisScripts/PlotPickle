@@ -110,3 +110,17 @@ export type DashboardStartupId = (typeof DASHBOARD_STARTUP_CHOICES)[number]["id"
 export function isDashboardStartupId(value: unknown): value is DashboardStartupId {
   return typeof value === "string" && DASHBOARD_STARTUP_CHOICES.some((item) => item.id === value);
 }
+
+export type MatrixPrimaryNavigationMode = "in-shell" | "terminal" | "unavailable";
+
+const MATRIX_TERMINAL_DASHBOARD_ITEM_IDS = new Set(["logout", "shutdown"]);
+
+export function matrixPrimaryNavigationMode(id: string): MatrixPrimaryNavigationMode {
+  if (MATRIX_TERMINAL_DASHBOARD_ITEM_IDS.has(id)) return "terminal";
+  if (!CONNECTED_DASHBOARD_ITEM_IDS.has(id) || DASHBOARD_UNAVAILABLE_ITEM_IDS.has(id)) return "unavailable";
+  return "in-shell";
+}
+
+export const MATRIX_PRIMARY_NAVIGATION_POLICY = Object.freeze(Object.fromEntries(
+  DASHBOARD_MENU.map((item) => [item.id, matrixPrimaryNavigationMode(item.id)]),
+)) as Readonly<Record<string, MatrixPrimaryNavigationMode>>;

@@ -51,10 +51,12 @@ test("#2606 preserves the Mind Map -> World Map -> Learn -> Mind Map canonical l
 
   assert.match(mindMap, /storyDevelopmentFieldView\(project, field, selectedAct\)/u);
   assert.match(worldMap, /storyDevelopmentFieldView\(project, field, act\)/u);
-  assert.match(worldMap, /learnLessonHref\(field\.topicId, field\.lessonId\)/u);
+  assert.match(worldMap, /onOpenLearn\(field\.topicId, field\.lessonId, act\)/u);
   assert.match(worldMap, /onEditField\(field\.topicId, field\.canonicalId, act\)/u);
   assert.match(host, /openMindMapField\(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct\)/u);
   assert.match(learning, /lesson: lessonId/u);
+  assert.match(host, /function openContextualLearn/u);
+  assert.doesNotMatch(worldMap, /window\.location\.assign/u);
 });
 
 test("#2606 packaged Afterglow remains explicit and projects through the same canonical stores", async () => {

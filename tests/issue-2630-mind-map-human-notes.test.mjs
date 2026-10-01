@@ -33,7 +33,7 @@ test("#2630 Library normalization preserves notes and Blank defaults them empty"
   assert.match(contract, /fields: normalizeNotes\(source\.fields, 2_000\)/u);
 });
 
-test("#2630/#2644 Human notes use the profile name and retarget by stable canonical field ID", async () => {
+test("#2630/#2644/#2646 Human notes use the profile name and can target a selected Character without a second notes store", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
   assert.match(surface, /canonicalFields\.map\(\(field\) => \[[\s\S]*field\.canonicalId,[\s\S]*mindMapFieldNote\(project\.mindMapNotes, field\.canonicalId\)\.text/u);
@@ -41,8 +41,9 @@ test("#2630/#2644 Human notes use the profile name and retarget by stable canoni
   assert.match(surface, /status\.profile\?\.displayName\?\.trim\(\)/u);
   assert.match(surface, /humanDisplayName \? `\$\{humanDisplayName\}’s Notes` : "My Notes"/u);
   assert.doesNotMatch(surface, /Bryan’s Notes|Brian’s Notes/u);
-  assert.match(surface, /data-mind-map-human-notes-toggle=\{selectedField\.canonicalId\}/u);
-  assert.match(surface, /data-mind-map-human-notes=\{selectedField\.canonicalId\}/u);
+  assert.match(surface, /const selectedFieldNoteKey = selectedField[\s\S]*selectedTopic === "character" && selectedCharacter[\s\S]*::character-\$\{selectedCharacter\.id\}/u);
+  assert.match(surface, /data-mind-map-human-notes-toggle=\{selectedFieldNoteKey \?\? selectedField\.canonicalId\}/u);
+  assert.match(surface, /data-mind-map-human-notes=\{selectedFieldNoteKey \?\? selectedField\.canonicalId\}/u);
   assert.match(surface, /<h3>\{selectedField\.lessonTitle\} · \{notesOwnerLabel\}<\/h3>/u);
 });
 
@@ -52,14 +53,13 @@ test("#2630/#2644 Save Notes increments revision and changes only the selected f
   const end = surface.indexOf("async function createCanonicalFieldProposal", start);
   const save = surface.slice(start, end);
 
-  assert.match(save, /if \(!project \|\| !selectedField\) return/u);
-  assert.match(save, /const canonicalFieldId = selectedField\.canonicalId/u);
+  assert.match(save, /if \(!project \|\| !selectedField \|\| !selectedFieldNoteKey\) return/u);
   assert.match(save, /revision: project\.revision \+ 1/u);
   assert.match(save, /updatedAt: now/u);
   assert.match(save, /mindMapNotes: \{/u);
   assert.match(save, /fields: \{/u);
   assert.match(save, /\.\.\.project\.mindMapNotes\.fields/u);
-  assert.match(save, /\[canonicalFieldId\]: \{ text, updatedAt: now \}/u);
+  assert.match(save, /\[selectedFieldNoteKey\]: \{ text, updatedAt: now \}/u);
   assert.match(save, /persistCanonicalProject\(next\)/u);
   assert.match(save, /setSavedNoteTexts/u);
   assert.doesNotMatch(save, /storyDevelopment:|foundations:|world:|discovery:/u);

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 2618,
+  "phase": "buzz-desktop-0-5-26",
+  "brief": "docs/developer-briefs/2618-buzz-desktop-0-5-26.md",
+  "allowedChanges": [
+    "config/buzz-desktop.json",
+    "config/development-convergence/2618.json",
+    "docs/buzz-live-health.md",
+    "docs/developer-briefs/2618-buzz-desktop-0-5-26.md",
+    "tests/issue-620-buzz-startup-updater.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2618-E1",
+      "criterion": "The reviewed BUZZ Desktop fallback is desktop-v0.5.26 with the verified Windows asset, source/tag commit and SHA-256.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/buzz-desktop.json",
+          "contains": "desktop-v0.5.26"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/buzz-desktop.json",
+          "contains": "2b4b138dc5cf2d9cc1a0ceb21d9063ff56fe8bf4"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "df0b5412a786678f0dc76d8949c40569b3707ff10340b186b254388dac08f101"
+        }
+      ]
+    },
+    {
+      "id": "P2618-E2",
+      "criterion": "The existing newest-compatible-release lookup and digest verification remain authoritative and cannot downgrade below the reviewed fallback.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "live release lookup can never downgrade below the reviewed fallback"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-620-buzz-startup-updater.test.mjs",
+          "contains": "verify release digests"
+        }
+      ]
+    },
+    {
+      "id": "P2618-E3",
+      "criterion": "The 0.5.26 review records upstream NIP-AR/HPKE/admin capabilities without transferring PlotPickle canon, workflow, or release authority to BUZZ.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/buzz-live-health.md",
+          "contains": "does not make NIP-AR artifacts part of PPF canon"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2618-buzz-desktop-0-5-26.md",
+          "contains": "does not transfer PlotPickle workflow authority to BUZZ"
+        }
+      ]
+    }
+  ]
+}

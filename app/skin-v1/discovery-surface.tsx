@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
-import {
-  DISCOVERY_LANES,
-  type DiscoveryAct,
-  type DiscoveryCard,
-  type DiscoveryLaneId,
-} from "../../core/contracts/discovery";
+import { type DiscoveryAct } from "../../core/contracts/discovery";
 import {
   LEARN_TOPIC_SPINE,
   learnTopicHref,
@@ -43,11 +38,10 @@ type ProfileStatus = {
   readonly profile?: { readonly displayName?: string } | null;
 };
 
-type ComposerLane = DiscoveryLaneId | "unsorted";
 
 const MIND_MAP_ACTS: readonly DiscoveryAct[] = [1, 2, 3, 4];
 
-function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, cards: readonly DiscoveryCard[]) {
+function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct) {
   const blockNumbers = new Set(project.structure.blocks.filter((block) => block.actNumber === act).map((block) => block.number));
   return {
     project: { id: project.id, title: project.title, revision: project.revision },
@@ -87,30 +81,6 @@ function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, ca
         kind: claim.kind,
         summary: claim.summary.slice(0, 300),
       })),
-    mindMap: cards
-      .filter((card) => card.placement?.act === act || (!card.placement && (card.inboxAct ?? 1) === act))
-      .slice(-36)
-      .map((card) => ({
-        content: card.content.slice(0, 320),
-        act: card.placement?.act ?? card.inboxAct ?? 1,
-        lane: card.placement?.lane ?? null,
-        source: card.sourceState,
-        saved: Boolean(card.savedAt),
-        locked: Boolean(card.lockedAt),
-      })),
-  };
-}
-
-function humanPlacement(act: DiscoveryAct, lane: DiscoveryLaneId, occurredAt: string) {
-  const label = DISCOVERY_LANES.find((candidate) => candidate.id === lane)?.label ?? lane;
-  return {
-    act,
-    lane,
-    reason: `Human selected Act ${act} · ${label}.`,
-    evidenceRefs: [] as readonly string[],
-    classifierId: "human-direct-placement",
-    classifierVersion: "mind-map-v2",
-    pinnedAt: occurredAt,
   };
 }
 
@@ -125,8 +95,6 @@ export default function DiscoverySurface({
 }) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
-  const [content, setContent] = useState("");
-  const [composerLane, setComposerLane] = useState<ComposerLane>("story");
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -135,19 +103,10 @@ export default function DiscoverySurface({
   const [notesOpen, setNotesOpen] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [unsortedLaneChoices, setUnsortedLaneChoices] = useState<Readonly<Record<string, DiscoveryLaneId>>>({});
-  const [workingCards, setWorkingCards] = useState<readonly DiscoveryCard[]>(project?.discovery.cards ?? []);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
 
   useEffect(() => {
-    setWorkingCards(project?.discovery.cards ?? []);
-  }, [project?.id, project?.revision, project?.discovery.cards]);
-
-  useEffect(() => {
     setSelectedTopic(initialTopic);
-    const firstLane = DISCOVERY_LANES.find((lane) => lane.topic === initialTopic);
-    if (firstLane) setComposerLane(firstLane.id);
   }, [initialTopic]);
 
   useEffect(() => {
@@ -208,52 +167,11 @@ export default function DiscoverySurface({
     (total, field) => total + relevantProjectContextForField(project, field, selectedAct).length,
     0,
   );
-  const selectedActLocalCards = workingCards.filter((card) => (
-    card.placement?.act === selectedAct || (!card.placement && (card.inboxAct ?? 1) === selectedAct)
-  ));
-  const selectedTopicLanes = DISCOVERY_LANES.filter((lane) => lane.topic === selectedTopic);
-  const selectedTopicLaneIds = new Set<DiscoveryLaneId>(selectedTopicLanes.map((lane) => lane.id));
-  const selectedActLaneCards = selectedActLocalCards.filter((card) => card.placement);
-  const selectedActTopicCards = selectedActLaneCards.filter((card) => card.placement && selectedTopicLaneIds.has(card.placement.lane));
-  const selectedActUnsorted = selectedActLocalCards.filter((card) => !card.placement);
-  const agentCount = selectedActTopicCards.filter((card) => card.sourceState === "agent-proposal").length;
-  const humanCount = selectedActTopicCards.filter((card) => card.sourceState === "new-local").length;
-  const lockedCount = selectedActTopicCards.filter((card) => Boolean(card.lockedAt)).length;
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
   const persistedTopicNote = project ? mindMapTopicNote(project.mindMapNotes, selectedTopic) : { text: "", updatedAt: null };
   const selectedTopicNoteDraft = noteDrafts[selectedTopic] ?? persistedTopicNote.text;
   const notesDirty = selectedTopicNoteDraft !== (savedNoteTexts[selectedTopic] ?? persistedTopicNote.text);
   const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";
-
-  function persist(cards: readonly DiscoveryCard[]) {
-    if (!project) return false;
-    const next: LibraryPPFProject = {
-      ...project,
-      revision: project.revision + 1,
-      updatedAt: new Date().toISOString(),
-      discovery: { ...project.discovery, cards },
-    };
-
-    if (!hasActiveLibraryProject()) {
-      const suggested = project.title === "Untitled Story" ? "" : project.title;
-      const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
-      if (!title) {
-        setNotice("Save cancelled. The blank workspace was not added to Library.");
-        return false;
-      }
-      const saved = saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
-      setWorkingCards(saved.discovery.cards);
-      return true;
-    }
-
-    const saved = saveActiveLibraryProject(next);
-    setWorkingCards(saved.discovery.cards);
-    return true;
-  }
-
-  function keepDraftCards(cards: readonly DiscoveryCard[]) {
-    setWorkingCards(cards);
-  }
 
   function changeAct(act: DiscoveryAct) {
     setSelectedAct(act);
@@ -261,94 +179,12 @@ export default function DiscoverySurface({
   }
 
   function changeTopic(topic: LearnTopicSpineId) {
-    const firstLane = DISCOVERY_LANES.find((lane) => lane.topic === topic);
     setSelectedTopic(topic);
-    if (firstLane) setComposerLane(firstLane.id);
     setNotice("");
   }
 
   function openLearnTopic() {
     window.location.assign(learnTopicHref(selectedTopic));
-  }
-
-  function addHumanIdea() {
-    if (!project) {
-      setNotice("Load or create a story in Library before saving MindMap material.");
-      return;
-    }
-    const cleaned = content.trim();
-    if (!cleaned) {
-      setNotice("Write the idea before saving it.");
-      return;
-    }
-    const now = new Date().toISOString();
-    const placement = composerLane === "unsorted" ? null : humanPlacement(selectedAct, composerLane, now);
-    const card: DiscoveryCard = {
-      id: globalThis.crypto.randomUUID(),
-      kind: "text",
-      content: cleaned.slice(0, 12_000),
-      assetRef: "",
-      sourceState: "new-local",
-      sourceRef: "human:mind-map",
-      createdAt: now,
-      inboxAct: selectedAct,
-      placement,
-      savedAt: now,
-      lockedAt: null,
-    };
-    if (!persist([...workingCards, card])) return;
-    setContent("");
-    const destination = placement
-      ? DISCOVERY_LANES.find((lane) => lane.id === placement.lane)?.label ?? placement.lane
-      : "Unsorted";
-    setNotice(`Human Idea saved to Act ${selectedAct} · ${destination}.`);
-  }
-
-  function assignUnsortedLane(card: DiscoveryCard) {
-    if (card.placement) return;
-    const lane = unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story";
-    const now = new Date().toISOString();
-    const updated = workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
-      ...candidate,
-      placement: humanPlacement(card.inboxAct ?? selectedAct, lane, now),
-    } : candidate);
-    if (!persist(updated)) return;
-    setNotice(`Human Idea assigned to ${DISCOVERY_LANES.find((candidate) => candidate.id === lane)?.label ?? lane}.`);
-  }
-
-  function saveCard(card: DiscoveryCard) {
-    if (card.savedAt) return;
-    const now = new Date().toISOString();
-    if (!persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? { ...candidate, savedAt: now } : candidate))) return;
-    setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} saved with the project.`);
-  }
-
-  function toggleLock(card: DiscoveryCard) {
-    if (!card.placement) {
-      setNotice("Assign a lane before locking this Human Idea.");
-      return;
-    }
-    const now = new Date().toISOString();
-    const unlocking = Boolean(card.lockedAt);
-    if (!persist(workingCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
-      ...candidate,
-      savedAt: candidate.savedAt ?? now,
-      lockedAt: unlocking ? null : now,
-    } : candidate))) return;
-    setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} ${unlocking ? "unlocked" : "locked"}.`);
-  }
-
-  function deleteCard(card: DiscoveryCard) {
-    if (card.lockedAt) {
-      setNotice("Unlock this idea before deleting it.");
-      setPendingDeleteId(null);
-      return;
-    }
-    const remaining = workingCards.filter((candidate) => candidate.id !== card.id);
-    if (hasActiveLibraryProject()) persist(remaining);
-    else keepDraftCards(remaining);
-    setPendingDeleteId(null);
-    setNotice(`${card.sourceState === "agent-proposal" ? "Agent Proposal" : "Human Idea"} deleted.`);
   }
 
   function persistCanonicalProject(next: LibraryPPFProject) {
@@ -430,7 +266,7 @@ export default function DiscoverySurface({
               lessonId: field.lessonId,
               fieldId: field.fieldId,
               currentValue: fieldDrafts[field.canonicalId] ?? storyDevelopmentFieldView(project, field).value,
-              context: compactProjectContext(project, selectedAct, workingCards),
+              context: compactProjectContext(project, selectedAct),
             }),
           ].join("\n\n"),
         }),
@@ -477,33 +313,31 @@ export default function DiscoverySurface({
 
   if (!project) {
     return (
-      <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true">
+      <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true">
         <section className={styles.summary}>
           <div>
             <h2>MindMap</h2>
-            <p>Capture written ideas before they become formal 24/96 structure.</p>
+            <p>Load or create a story to author canonical story-development fields and Human Notes.</p>
           </div>
           <strong>NO ACTIVE STORY</strong>
         </section>
-        <p className={styles.notice}>Load or create a story in Library before saving MindMap material.</p>
+        <p className={styles.notice}>Load or create a story in Library before editing Mind Map material.</p>
       </main>
     );
   }
 
   return (
-    <main className={styles.surface} data-discovery-surface="living-board" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic}>
+    <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic}>
       <section className={styles.summary}>
         <div>
-          <small>MindMap · ACT {selectedAct} · NON-CANON WORKSPACE</small>
+          <small>MindMap · ACT {selectedAct} · CANONICAL AUTHORING</small>
           <h2>{project.title}</h2>
-          <p>Relevant Project Context now appears inside the canonical field it can inform. Human Ideas and Agent Proposals remain working material.</p>
+          <p>Human Notes support thinking. Project Value is story truth. Agent Suggestions remain separate until the Human chooses Use Suggestion.</p>
         </div>
-        <div className={styles.scoreboard} aria-label={`Act ${selectedAct} MindMap source scoreboard`}>
+        <div className={styles.scoreboard} aria-label={`Act ${selectedAct} MindMap authoring summary`}>
+          <span>FIELDS <strong>{selectedCanonicalFields.length}</strong></span>
           <span>CONTEXT <strong>{selectedFieldContextCount}</strong></span>
-          <span>AGENT <strong>{agentCount}</strong></span>
-          <span>HUMAN <strong>{humanCount}</strong></span>
-          <span>LOCKED <strong>{lockedCount}</strong></span>
-          {selectedActUnsorted.length ? <span>UNSORTED <strong>{selectedActUnsorted.length}</strong></span> : null}
+          <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedTopicNote.text ? "SAVED" : "EMPTY"}</strong></span>
         </div>
       </section>
 
@@ -649,98 +483,8 @@ export default function DiscoverySurface({
         </div>
       </section>
 
-      <section className={styles.composer} aria-label={`Act ${selectedAct} MindMap Human Idea composer`}>
-        <div>
-          <span>Source</span>
-          <strong>Human Idea</strong>
-        </div>
-        <div>
-          <span>Act</span>
-          <strong>Act {selectedAct}</strong>
-        </div>
-        <label>
-          <span>Element</span>
-          <select value={composerLane} onChange={(event) => setComposerLane(event.target.value as ComposerLane)}>
-            {selectedTopicLanes.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
-            <option value="unsorted">Unsorted</option>
-          </select>
-        </label>
-        <label className={styles.ideaField}>
-          <span>Human Idea</span>
-          <textarea rows={5} value={content} onChange={(event) => setContent(event.target.value)} placeholder={`Act ${selectedAct} · ${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}: write the idea you want to explore…`} />
-        </label>
-        <div className={styles.actions}>
-          <button type="button" onClick={addHumanIdea}>Save Human Idea · Act {selectedAct}</button>
-        </div>
-      </section>
-
       {notice ? <p className={styles.notice} aria-live="polite">{notice}</p> : null}
 
-      {selectedActUnsorted.length ? <section className={styles.inbox} aria-label={`Act ${selectedAct} MindMap Unsorted Human Ideas`}>
-        <h3>ACT {selectedAct} · UNSORTED HUMAN IDEAS</h3>
-        <p>Choose a lane directly. No AI classification is required.</p>
-        <div className={styles.inboxList}>
-          {selectedActUnsorted.map((card) => (
-            <article className={styles.card} data-source-state="new-local" key={card.id}>
-              <header><strong>HUMAN IDEA</strong><span className={styles.status}>{card.savedAt ? "SAVED" : "DRAFT"}</span></header>
-              <p>{card.content}</p>
-              <label className={styles.assignLane}>Lane
-                <select value={unsortedLaneChoices[card.id] ?? selectedTopicLanes[0]?.id ?? "story"} onChange={(event) => setUnsortedLaneChoices((current) => ({ ...current, [card.id]: event.target.value as DiscoveryLaneId }))}>
-                  {selectedTopicLanes.map((lane) => <option value={lane.id} key={lane.id}>{lane.label}</option>)}
-                </select>
-              </label>
-              <div className={styles.cardActions}>
-                <button type="button" onClick={() => assignUnsortedLane(card)}>Assign Lane</button>
-                <button type="button" disabled={Boolean(card.savedAt)} onClick={() => saveCard(card)}>{card.savedAt ? "Saved" : "Save"}</button>
-                <button type="button" disabled>Lock</button>
-                <button type="button" onClick={() => setPendingDeleteId(card.id)}>Delete</button>
-              </div>
-              {pendingDeleteId === card.id ? <div className={styles.deleteConfirm} role="alert"><span>Delete this Human Idea?</span><button type="button" onClick={() => deleteCard(card)}>Yes</button><button type="button" onClick={() => setPendingDeleteId(null)}>No</button></div> : null}
-            </article>
-          ))}
-        </div>
-      </section> : null}
-
-      <section className={styles.board} aria-label={`Act ${selectedAct} Living MindMap Board`}>
-        <small>THE LIVING MINDMAP · ACT {selectedAct} · 12 LEARN TOPICS</small>
-        <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} · ACT {selectedAct}</h3>
-        <div className={styles.laneGrid}>
-          {selectedTopicLanes.map((lane) => {
-            const cards = selectedActTopicCards.filter((card) => card.placement?.lane === lane.id);
-            return (
-              <section className={styles.lanePanel} data-discovery-act={selectedAct} data-discovery-lane={lane.id} key={lane.id}>
-                <header className={styles.laneHeader}>
-                  <h4>{lane.label}</h4>
-                  <span>{cards.length} {cards.length === 1 ? "IDEA" : "IDEAS"}</span>
-                </header>
-                <div className={styles.laneCards}>
-                  {cards.length ? cards.map((card) => {
-                    const isAgent = card.sourceState === "agent-proposal";
-                    const isLocked = Boolean(card.lockedAt);
-                    return (
-                      <article className={styles.card} data-source-state={card.sourceState} data-locked={isLocked ? "true" : "false"} key={card.id}>
-                        <header>
-                          <strong>{isAgent ? "AGENT PROPOSAL" : "HUMAN IDEA"}</strong>
-                          <span className={styles.status}>{isLocked ? "LOCKED" : card.savedAt ? "SAVED" : "DRAFT"}</span>
-                        </header>
-                        <p>{card.content}</p>
-                        {card.assetRef ? <small className={styles.visualRef}>{card.assetRef}</small> : null}
-                        <small>{card.placement?.reason}</small>
-                        <div className={styles.cardActions}>
-                          <button type="button" disabled={Boolean(card.savedAt)} onClick={() => saveCard(card)}>{card.savedAt ? "Saved" : "Save"}</button>
-                          <button type="button" onClick={() => toggleLock(card)}>{isLocked ? "Unlock" : "Lock"}</button>
-                          <button type="button" disabled={isLocked} onClick={() => setPendingDeleteId(card.id)}>Delete</button>
-                        </div>
-                        {pendingDeleteId === card.id ? <div className={styles.deleteConfirm} role="alert"><span>Delete this {isAgent ? "Agent Proposal" : "Human Idea"}?</span><button type="button" onClick={() => deleteCard(card)}>Yes</button><button type="button" onClick={() => setPendingDeleteId(null)}>No</button></div> : null}
-                      </article>
-                    );
-                  }) : <p className={styles.empty}>No Act {selectedAct} ideas in this lane yet.</p>}
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      </section>
     </main>
   );
 }

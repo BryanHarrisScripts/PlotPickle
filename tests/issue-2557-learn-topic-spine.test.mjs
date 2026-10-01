@@ -75,8 +75,7 @@ test("#2557/#2605 WorldMap shares Act 1-4 and twelve-topic read/review navigatio
     read("app/skin-v1/story-bible-surface.module.css"),
   ]);
 
-  assert.match(surface, /const WORLD_MAP_ACTS: readonly WorldMapAct\[\] = \[1, 2, 3, 4\]/u);
-  assert.match(surface, /aria-label="World Map acts"/u);
+  assert.match(surface, /<StoryActRail activeAct=\{selectedAct\} ariaLabel="World Map acts" choiceDataAttribute="data-world-map-act-choice" onOpen=\{setSelectedAct\} \/>/u);
   assert.match(surface, /aria-label="World Map Learn topics"/u);
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
   assert.match(surface, /data-world-map-topic=\{activeTopic\}/u);

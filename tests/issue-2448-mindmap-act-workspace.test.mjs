@@ -15,10 +15,7 @@ test("#2448 MindMap uses one-word header and one selected Act rail", async () =>
   assert.match(host, /aria-label="MindMap"/u);
   assert.match(host, /onSurfaceNameChange\("MindMap"\)/u);
   assert.match(surface, /const \[selectedAct, setSelectedAct\] = useState<DiscoveryAct>\(1\)/u);
-  assert.match(surface, /aria-label="MindMap acts"/u);
-  assert.match(surface, /data-mind-map-act-choice=\{act\}/u);
-  assert.match(surface, /aria-current=\{selectedAct === act \? "page" : undefined\}/u);
-  assert.match(surface, /onClick=\{\(\) => changeAct\(act\)\}/u);
+  assert.match(surface, /<StoryActRail activeAct=\{selectedAct\} ariaLabel="MindMap acts" choiceDataAttribute="data-mind-map-act-choice" onOpen=\{changeAct\} \/>/u);
 });
 
 test("#2448 Written Ideas and Inbox are scoped to the selected Act", async () => {

@@ -19,16 +19,10 @@ import {
   LEARN_TOPIC_SPINE,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
+import { handleStoryActShortcut, StoryActRail } from "./story-act-rail";
 import styles from "./story-bible-surface.module.css";
 
 type WorldMapAct = 1 | 2 | 3 | 4;
-const WORLD_MAP_ACTS: readonly WorldMapAct[] = [1, 2, 3, 4];
-
-function isEditableActShortcutTarget(target: EventTarget | null) {
-  const element = target instanceof HTMLElement ? target : null;
-  if (!element) return false;
-  return element.isContentEditable || Boolean(element.closest("input, textarea, select, [contenteditable=\"true\"]"));
-}
 
 function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: WorldMapAct) {
   if (field.scope === "project-wide") return "PROJECT-WIDE";
@@ -146,28 +140,9 @@ export default function StoryBibleSurface({
       data-world-map-topic={activeTopic}
       data-story-bible-project-id={bible.projectId}
       data-story-bible-read-only="true"
-      onKeyDown={(event) => {
-        if (isEditableActShortcutTarget(event.target)) return;
-        const act = Number(event.key) as WorldMapAct;
-        if (!WORLD_MAP_ACTS.includes(act)) return;
-        event.preventDefault();
-        setSelectedAct(act);
-      }}
+      onKeyDown={(event) => handleStoryActShortcut(event, setSelectedAct)}
     >
-      <nav className={styles.actNav} aria-label="World Map acts">
-        {WORLD_MAP_ACTS.map((act) => (
-          <button
-            type="button"
-            key={act}
-            aria-current={selectedAct === act ? "page" : undefined}
-            aria-keyshortcuts={String(act)}
-            data-world-map-act-choice={act}
-            onClick={() => setSelectedAct(act)}
-          >
-            Act {act}
-          </button>
-        ))}
-      </nav>
+      <StoryActRail activeAct={selectedAct} ariaLabel="World Map acts" choiceDataAttribute="data-world-map-act-choice" onOpen={setSelectedAct} />
 
       <nav className={styles.sectionNav} aria-label="World Map Learn topics" role="tablist">
         {LEARN_TOPIC_SPINE.map((topic, index) => {

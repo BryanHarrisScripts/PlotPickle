@@ -18,6 +18,7 @@ import MatrixStoryMapSurface from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import StoryBibleSurface from "./story-bible-surface";
+import { StoryActRail } from "./story-act-rail";
 import {
   SkinV1BuildReviewSurface,
   SkinV1PrevisCompositeSurface,
@@ -58,23 +59,6 @@ type MatrixLearnRequest = Readonly<{
   act: StoryDevelopmentAct;
   sourceSurface: "world-map" | "mind-map";
 }>;
-
-function StoryActRail({ activeAct, onOpen }: { readonly activeAct: number; readonly onOpen: (act: number) => void }) {
-  return (
-    <nav aria-label="Story Map acts" className="pp-skin-v1-preproduction-stage-rail" data-story-act-rail="four-acts" onKeyDown={(event) => {
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.isContentEditable || target?.closest("input, textarea, select, [contenteditable=\"true\"]")) return;
-      const act = Number(event.key);
-      if (act >= 1 && act <= 4) { event.preventDefault(); onOpen(act); }
-    }}>
-      {[1, 2, 3, 4].map((act) => (
-        <button key={act} type="button" aria-current={act === activeAct ? "page" : undefined} aria-keyshortcuts={String(act)} data-story-act={act} onClick={() => onOpen(act)}>
-          <span aria-hidden="true">[{act}] </span>Act {act}
-        </button>
-      ))}
-    </nav>
-  );
-}
 
 export default function DashboardBbsReviewHost({
   items,

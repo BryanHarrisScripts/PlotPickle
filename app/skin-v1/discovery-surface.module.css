@@ -50,12 +50,6 @@
   white-space: nowrap;
 }
 
-.actRail {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--pp-skin-space-2);
-}
-
 .topicRail {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -80,7 +74,6 @@
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
 }
 
-.actRail button[aria-current="page"],
 .topicRail button[aria-current="page"],
 .fieldPager button[aria-current="page"] {
   border-color: var(--pp-skin-accent-bright);
@@ -599,7 +592,6 @@
 }
 
 @media (max-width: 620px) {
-  .actRail,
   .topicRail {
     grid-template-columns: 1fr;
   }

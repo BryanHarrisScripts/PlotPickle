@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "issue": 2659,
+  "phase": "shared-act-shell-correction",
+  "brief": "docs/developer-briefs/2659-shared-compact-surface-shell.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/discovery-surface.module.css",
+    "app/skin-v1/discovery-surface.tsx",
+    "app/skin-v1/story-act-rail.tsx",
+    "app/skin-v1/story-bible-surface.module.css",
+    "app/skin-v1/story-bible-surface.tsx",
+    "config/development-convergence/2659.json",
+    "docs/developer-briefs/2659-shared-compact-surface-shell.md",
+    "tests/issue-2442-mind-world-map-refinement.test.mjs",
+    "tests/issue-2448-mindmap-act-workspace.test.mjs",
+    "tests/issue-2557-learn-topic-spine.test.mjs",
+    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+    "tests/issue-2659-compact-surface-shell.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2659-E1",
+      "criterion": "Mind Map, World Map, and Outline consume one reusable four-Act rail.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-act-rail.tsx",
+          "contains": "data-shared-story-act-rail=\"true\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "<StoryActRail activeAct={selectedAct}"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-bible-surface.tsx",
+          "contains": "<StoryActRail activeAct={selectedAct}"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "import { StoryActRail } from \"./story-act-rail\""
+        }
+      ]
+    },
+    {
+      "id": "P2659-E2",
+      "criterion": "The shared rail owns safe 1-4 shortcuts and preserves surface-specific test selectors.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-act-rail.tsx",
+          "contains": "aria-keyshortcuts={String(act)}"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-act-rail.tsx",
+          "contains": "input, textarea, select"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "choiceDataAttribute=\"data-mind-map-act-choice\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-bible-surface.tsx",
+          "contains": "choiceDataAttribute=\"data-world-map-act-choice\""
+        }
+      ]
+    },
+    {
+      "id": "P2659-E3",
+      "criterion": "Duplicate local rail implementations are prevented by focused regression coverage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2659-compact-surface-shell.test.mjs",
+          "contains": "consume one shared Story Act rail"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2659-compact-surface-shell.test.mjs",
+          "contains": "duplicate Act rail styling is removed"
+        }
+      ]
+    }
+  ]
+}

@@ -78,8 +78,8 @@ test("#2632 Act rail remains only because field-scoped context can be Act-sensit
     read("modules/learn/model/relevant-project-context.ts"),
   ]);
 
-  assert.match(surface, /const MIND_MAP_ACTS: readonly DiscoveryAct\[\] = \[1, 2, 3, 4\]/u);
-  assert.match(surface, /data-mind-map-act-choice=\{act\}/u);
+  assert.match(surface, /<StoryActRail activeAct=\{selectedAct\} ariaLabel="MindMap acts" choiceDataAttribute="data-mind-map-act-choice" onOpen=\{changeAct\} \/>/u);
+  assert.match(surface, /STORY_ACTS/u);
   assert.match(surface, /relevantProjectContextForField\([\s\S]*project,[\s\S]*field,[\s\S]*selectedAct,[\s\S]*field\.topicId === "character" \? selectedCharacter\?\.id : null[\s\S]*\)/u);
   assert.match(context, /case "structure":[\s\S]*structureContext\(project, act\)/u);
   assert.match(context, /case "drafting":[\s\S]*draftingContext\(project, act\)/u);

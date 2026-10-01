@@ -48,7 +48,7 @@ test("#2442/#2604 MindMap keeps written ideas plus canonical Learn-backed field 
   assert.match(surface, /Material type[\s\S]*Written idea/u);
   assert.doesNotMatch(surface, /<select/u);
   assert.doesNotMatch(surface, /Visual reference<\/option>/u);
-  assert.match(surface, /const MIND_MAP_ACTS: readonly DiscoveryAct\[\] = \[1, 2, 3, 4\]/u);
+  assert.match(surface, /<StoryActRail activeAct=\{selectedAct\} ariaLabel="MindMap acts" choiceDataAttribute="data-mind-map-act-choice" onOpen=\{changeAct\} \/>/u);
   assert.match(surface, /DISCOVERY_LANES/u);
   assert.match(surface, /agentId: "creative-director"/u);
   assert.match(surface, /conversationMode: true/u);

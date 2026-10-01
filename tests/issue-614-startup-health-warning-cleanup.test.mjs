@@ -19,7 +19,7 @@ test("startup validates profiles before the v5 health adapter, v4 grounding and 
   assert.match(profileAdapter, /assertAgentProfilesValid/);
   assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
   assert.match(contractAdapter, /runStartupAgentDiagnostics as runV4/);
-  assert.match(contractAdapter, /onlyAntiEchoFailed/);
+  assert.match(contractAdapter, /remainingFailures\.some\(\(line\) => line\.includes\("Sage anti-echo check"\)\)/);
   assert.match(contractAdapter, /verifySageAntiEcho/);
   assert.match(contractAdapter, /strictAntiEchoPass/);
   assert.match(contractAdapter, /node_modules\/@mastra\/core\/package\.json/);
@@ -65,7 +65,28 @@ test("runaway Sage repetition remains a hard startup failure", async () => {
   assert.match(diagnostic, /sage\.repetitionSafe \? "PASS" : "FAIL"/);
   assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
   assert.match(groundingAdapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Curriculum grounding"\)/);
-  assert.match(contractAdapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Sage anti-echo check"\)/);
+  assert.match(contractAdapter, /remainingFailures\.some\(\(line\) => line\.includes\("Sage anti-echo check"\)\)/);
+  assert.match(contractAdapter, /return recoveredHealthy \? \{ healthy: true, warnings: result\.warnings \} : result/);
+});
+
+
+test("#2653 Foundations startup recovery survives truncated requests and uses a bounded field-count-aware output budget", async () => {
+  const [diagnostic, runtime] = await Promise.all([
+    read("build/startup-agent-diagnostics-runtime-v3.ts"),
+    read("build/mastra-agent-runtime.ts"),
+  ]);
+
+  assert.match(diagnostic, /const batchAttempts = \[/);
+  assert.match(diagnostic, /structured-output truncation/);
+  assert.match(diagnostic, /const fieldAttempts = \[/);
+  assert.match(diagnostic, /Try the next bounded local one-field attempt/);
+  assert.match(diagnostic, /route: "per-field recovery"/);
+
+  assert.match(runtime, /export function foundationPlannerMaxOutputTokens/);
+  assert.match(runtime, /Math\.max\(1, Math\.min\(12, Math\.trunc\(fieldCount\) \|\| 1\)\)/);
+  assert.match(runtime, /return Math\.min\(2_600, 640 \+ boundedFieldCount \* 320\)/);
+  assert.match(runtime, /foundationPlannerMaxOutputTokens\(input\.foundationFieldIds\?\.length \?\? 1\)/);
+  assert.doesNotMatch(runtime, /foundations-planner" \? 720/);
 });
 
 test("Next startup uses proxy instead of the deprecated middleware convention", async () => {

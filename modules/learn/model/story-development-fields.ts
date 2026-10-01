@@ -60,6 +60,32 @@ export function buildStoryDevelopmentFields(
     })));
 }
 
+export const MIND_MAP_FIELD_PAGE_SIZE = 6;
+
+export function storyDevelopmentFieldPageCount(
+  fields: readonly StoryDevelopmentFieldDefinition[],
+) {
+  return Math.max(1, Math.ceil(fields.length / MIND_MAP_FIELD_PAGE_SIZE));
+}
+
+export function storyDevelopmentFieldPageForId(
+  fields: readonly StoryDevelopmentFieldDefinition[],
+  canonicalId: string,
+) {
+  const index = fields.findIndex((field) => field.canonicalId === canonicalId);
+  return index < 0 ? 1 : Math.floor(index / MIND_MAP_FIELD_PAGE_SIZE) + 1;
+}
+
+export function storyDevelopmentFieldsForPage(
+  fields: readonly StoryDevelopmentFieldDefinition[],
+  page: number,
+) {
+  const pageCount = storyDevelopmentFieldPageCount(fields);
+  const safePage = Math.min(Math.max(Math.trunc(page) || 1, 1), pageCount);
+  const start = (safePage - 1) * MIND_MAP_FIELD_PAGE_SIZE;
+  return fields.slice(start, start + MIND_MAP_FIELD_PAGE_SIZE);
+}
+
 export function storyDevelopmentFieldsForTopic(
   curriculum: readonly CurriculumLesson[],
   topicId: LearnTopicSpineId,

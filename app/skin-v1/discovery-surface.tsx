@@ -10,6 +10,9 @@ import {
 } from "../../modules/learn/model/story-learning-context";
 import {
   buildStoryDevelopmentFields,
+  storyDevelopmentFieldPageCount,
+  storyDevelopmentFieldPageForId,
+  storyDevelopmentFieldsForPage,
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
@@ -95,6 +98,7 @@ export default function DiscoverySurface({
 }) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(1);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
+  const [selectedFieldPage, setSelectedFieldPage] = useState(1);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -107,6 +111,7 @@ export default function DiscoverySurface({
 
   useEffect(() => {
     setSelectedTopic(initialTopic);
+    setSelectedFieldPage(1);
   }, [initialTopic]);
 
   useEffect(() => {
@@ -127,13 +132,19 @@ export default function DiscoverySurface({
 
   useEffect(() => {
     if (!initialFieldId || selectedTopic !== initialTopic) return;
+    const topicFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
+    const targetPage = storyDevelopmentFieldPageForId(topicFields, initialFieldId);
+    if (selectedFieldPage !== targetPage) {
+      setSelectedFieldPage(targetPage);
+      return;
+    }
     window.requestAnimationFrame(() => {
       const target = Array.from(document.querySelectorAll<HTMLElement>("[data-canonical-field-id]"))
         .find((element) => element.dataset.canonicalFieldId === initialFieldId);
       target?.scrollIntoView({ behavior: "smooth", block: "center" });
       target?.focus({ preventScroll: true });
     });
-  }, [initialFieldId, initialTopic, selectedTopic]);
+  }, [canonicalFields, initialFieldId, initialTopic, selectedFieldPage, selectedTopic]);
 
   useEffect(() => {
     if (!project) {
@@ -163,6 +174,8 @@ export default function DiscoverySurface({
   }, [project?.id, project?.revision, canonicalFields]);
 
   const selectedCanonicalFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
+  const selectedFieldPageCount = storyDevelopmentFieldPageCount(selectedCanonicalFields);
+  const visibleCanonicalFields = storyDevelopmentFieldsForPage(selectedCanonicalFields, selectedFieldPage);
   const selectedFieldContextCount = selectedCanonicalFields.reduce(
     (total, field) => total + relevantProjectContextForField(project, field, selectedAct).length,
     0,
@@ -180,6 +193,7 @@ export default function DiscoverySurface({
 
   function changeTopic(topic: LearnTopicSpineId) {
     setSelectedTopic(topic);
+    setSelectedFieldPage(1);
     setNotice("");
   }
 
@@ -384,6 +398,25 @@ export default function DiscoverySurface({
         </div>
       </div>
 
+      {selectedFieldPageCount > 1 ? (
+        <nav className={styles.fieldPager} aria-label={`${selectedTopicLabel} field pages`} data-mind-map-field-pager={selectedTopic}>
+          {Array.from({ length: selectedFieldPageCount }, (_, index) => index + 1).map((page) => (
+            <button
+              type="button"
+              key={page}
+              aria-current={selectedFieldPage === page ? "page" : undefined}
+              data-mind-map-field-page={page}
+              onClick={() => {
+                setSelectedFieldPage(page);
+                setNotice("");
+              }}
+            >
+              {page}
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
       {notesOpen ? (
         <section className={styles.humanNotes} data-mind-map-human-notes={selectedTopic} aria-label={`${selectedTopicLabel} Human notes`}>
           <header>
@@ -412,11 +445,11 @@ export default function DiscoverySurface({
             <small>CANONICAL PROJECT FIELDS</small>
             <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</h3>
           </div>
-          <span>{selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
+          <span>PAGE {selectedFieldPage} OF {selectedFieldPageCount} · {visibleCanonicalFields.length} VISIBLE / {selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
         </header>
         <p className={styles.fieldWorkspaceHelp}>Write directly or ask the Agent for a suggestion. A suggestion never replaces Project Value until you choose Use Suggestion.</p>
         <div className={styles.fieldGrid}>
-          {selectedCanonicalFields.map((field) => {
+          {visibleCanonicalFields.map((field) => {
             const persisted = storyDevelopmentFieldView(project, field);
             const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
             const relevantContext = relevantProjectContextForField(project, field, selectedAct);

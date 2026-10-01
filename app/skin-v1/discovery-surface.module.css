@@ -11,6 +11,7 @@
 .actRail,
 .topicRail,
 .topicToolbar,
+.fieldPager,
 .fieldWorkspace {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
@@ -62,6 +63,7 @@
 
 .topicRail button,
 .topicToolbar button,
+.fieldPager button,
 .actRail button,
 .fieldActions button,
 .fieldProposal button {
@@ -73,7 +75,8 @@
 }
 
 .actRail button[aria-current="page"],
-.topicRail button[aria-current="page"] {
+.topicRail button[aria-current="page"],
+.fieldPager button[aria-current="page"] {
   border-color: var(--pp-skin-accent-bright);
   background: var(--pp-skin-accent);
   box-shadow: inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-accent-bright);
@@ -96,6 +99,17 @@
 
 .topicToolbar strong {
   color: var(--pp-skin-accent-bright);
+}
+
+.fieldPager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+}
+
+.fieldPager button {
+  min-width: 2.75rem;
 }
 
 .humanNotes {

@@ -17,7 +17,7 @@ import {
   buildStoryDevelopmentFields,
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
-import { projectDiscoveryPins } from "../../core/project/discovery";
+import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
 import {
   acceptStoryDevelopmentFieldProposal,
   storyDevelopmentFieldView,
@@ -135,7 +135,6 @@ export default function DiscoverySurface({
   const [notesOpen, setNotesOpen] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
-  const [projectContextOpen, setProjectContextOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [unsortedLaneChoices, setUnsortedLaneChoices] = useState<Readonly<Record<string, DiscoveryLaneId>>>({});
   const [workingCards, setWorkingCards] = useState<readonly DiscoveryCard[]>(project?.discovery.cards ?? []);
@@ -204,9 +203,11 @@ export default function DiscoverySurface({
     setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);
 
-  const projectContextCards = useMemo(() => project ? projectDiscoveryPins(project) : [], [project]);
   const selectedCanonicalFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
-  const selectedActProjectCards = projectContextCards.filter((card) => card.placement?.act === selectedAct);
+  const selectedFieldContextCount = selectedCanonicalFields.reduce(
+    (total, field) => total + relevantProjectContextForField(project, field, selectedAct).length,
+    0,
+  );
   const selectedActLocalCards = workingCards.filter((card) => (
     card.placement?.act === selectedAct || (!card.placement && (card.inboxAct ?? 1) === selectedAct)
   ));
@@ -495,10 +496,10 @@ export default function DiscoverySurface({
         <div>
           <small>MindMap · ACT {selectedAct} · NON-CANON WORKSPACE</small>
           <h2>{project.title}</h2>
-          <p>Project Context is deterministic reference material. Human Ideas and Agent Proposals are the working material you can save and lock.</p>
+          <p>Relevant Project Context now appears inside the canonical field it can inform. Human Ideas and Agent Proposals remain working material.</p>
         </div>
         <div className={styles.scoreboard} aria-label={`Act ${selectedAct} MindMap source scoreboard`}>
-          <span>PROJECT <strong>{selectedActProjectCards.length}</strong></span>
+          <span>CONTEXT <strong>{selectedFieldContextCount}</strong></span>
           <span>AGENT <strong>{agentCount}</strong></span>
           <span>HUMAN <strong>{humanCount}</strong></span>
           <span>LOCKED <strong>{lockedCount}</strong></span>
@@ -584,6 +585,7 @@ export default function DiscoverySurface({
           {selectedCanonicalFields.map((field) => {
             const persisted = storyDevelopmentFieldView(project, field);
             const proposal = proposalDrafts[field.canonicalId] ?? persisted.proposal;
+            const relevantContext = relevantProjectContextForField(project, field, selectedAct);
             return (
               <article className={styles.fieldCard} data-canonical-field-id={field.canonicalId} data-field-classification={field.classification} key={field.canonicalId} tabIndex={-1}>
                 <header>
@@ -620,6 +622,27 @@ export default function DiscoverySurface({
                   </label>
                   <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Suggestion</button>
                 </div> : null}
+                {relevantContext.length ? (
+                  <details className={styles.fieldContext} data-relevant-project-context={field.canonicalId}>
+                    <summary>
+                      <span>RELEVANT PROJECT CONTEXT</span>
+                      <strong>{relevantContext.length}</strong>
+                    </summary>
+                    <p>Read-only evidence selected by explicit PlotPickle rules for this field. It does not change Project Value.</p>
+                    <div className={styles.fieldContextList}>
+                      {relevantContext.map((item) => (
+                        <article key={item.id} data-relevant-context-item={item.id}>
+                          <header><strong>{item.label}</strong><span>READ ONLY</span></header>
+                          <p>{item.text}</p>
+                          <small>{item.reason}</small>
+                          <div className={styles.evidenceRefs} aria-label="Evidence references">
+                            {item.evidenceRefs.map((ref) => <code key={ref}>{ref}</code>)}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </article>
             );
           })}
@@ -650,23 +673,6 @@ export default function DiscoverySurface({
           <button type="button" onClick={addHumanIdea}>Save Human Idea · Act {selectedAct}</button>
         </div>
       </section>
-
-      <details className={styles.projectContext} open={projectContextOpen} onToggle={(event) => setProjectContextOpen(event.currentTarget.open)}>
-        <summary>
-          <span>PROJECT CONTEXT · DETERMINISTIC FROM PLOTPICKLE</span>
-          <strong>{selectedActProjectCards.length}</strong>
-        </summary>
-        <p>Read-only reference material derived from the saved canonical story. It does not need Save, Lock, Delete or Redo.</p>
-        <div className={styles.projectContextList}>
-          {selectedActProjectCards.length ? selectedActProjectCards.map((card) => (
-            <article className={styles.projectCard} data-source-state="project" key={card.id}>
-              <header><strong>PROJECT CONTEXT</strong><span>ACT {selectedAct}</span></header>
-              <p>{card.content}</p>
-              <small>{card.placement?.reason}</small>
-            </article>
-          )) : <p className={styles.empty}>No deterministic project context is available for Act {selectedAct} yet.</p>}
-        </div>
-      </details>
 
       {notice ? <p className={styles.notice} aria-live="polite">{notice}</p> : null}
 

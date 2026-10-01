@@ -14,7 +14,6 @@
 .topicRail,
 .topicToolbar,
 .developAction,
-.projectContext,
 .fieldWorkspace {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
@@ -30,8 +29,6 @@
 
 .summary p,
 .card p,
-.projectCard p,
-.projectContext > p,
 .inbox > p,
 .empty,
 .notice {
@@ -39,8 +36,7 @@
 }
 
 .summary small,
-.card small,
-.projectCard small {
+.card small {
   color: var(--pp-skin-ink-muted);
 }
 
@@ -351,39 +347,66 @@
   align-items: center;
 }
 
-.projectContext summary {
+.fieldContext {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  padding-top: var(--pp-skin-space-3);
+}
+
+.fieldContext summary {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: var(--pp-skin-space-3);
   cursor: pointer;
   color: var(--pp-skin-accent-bright);
 }
 
-.projectContext > p {
-  margin-top: var(--pp-skin-space-3);
+.fieldContext > p {
+  margin: 0;
   color: var(--pp-skin-ink-muted);
 }
 
-.projectContextList,
-.inboxList {
+.fieldContextList {
   display: grid;
   gap: var(--pp-skin-space-2);
-  margin-top: var(--pp-skin-space-3);
 }
 
-.projectCard {
+.fieldContextList article {
   display: grid;
   gap: var(--pp-skin-space-2);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-surface-2);
+  background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-3);
 }
 
-.projectCard header,
-.card header {
+.fieldContextList article > header {
   display: flex;
   justify-content: space-between;
   gap: var(--pp-skin-space-2);
+}
+
+.fieldContextList article > p,
+.fieldContextList article > small {
+  margin: 0;
+}
+
+.fieldContextList article > small {
+  color: var(--pp-skin-ink-muted);
+}
+
+.evidenceRefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-1);
+}
+
+.evidenceRefs code {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-2);
+  padding: 2px var(--pp-skin-space-1);
+  overflow-wrap: anywhere;
 }
 
 .laneGrid {

@@ -67,6 +67,7 @@
 .topicToolbar button,
 .fieldPager button,
 .contextualActions button,
+.characterWorkspaceActions button,
 .actRail button,
 .fieldActions button,
 .fieldProposal button {
@@ -167,6 +168,33 @@
 .characterWorkspaceHeader small,
 .characterWorkspaceHeader > span {
   color: var(--pp-skin-ink-muted);
+}
+
+.characterWorkspaceActions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-2);
+}
+
+.characterWorkspaceActions label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  min-width: min(20rem, 100%);
+}
+
+.characterWorkspaceActions label > span {
+  color: var(--pp-skin-ink-muted);
+  font-size: 0.75rem;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+.characterWorkspaceActions input {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
 }
 
 .characterRoster {
@@ -553,6 +581,7 @@
 
   .topicToolbarActions,
   .contextualActionButtons,
+  .characterWorkspaceActions,
   .humanNotes header {
     align-items: stretch;
     flex-direction: column;

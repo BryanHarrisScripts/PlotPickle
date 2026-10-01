@@ -123,7 +123,7 @@ test("Vite native-loader advisories are saved locally instead of flooding the st
   assert.match(report, /kept out of the normal PlotPickle command window/);
   assert.match(report, /Known development-runtime advisory/);
   assert.match(report, /eval\(\) is not supported in this environment/);
-  assert.match(report, /all other Vite warnings remain visible/);
+  assert.match(report, /React emits this exact message only from its development diagnostics when eval is unavailable/);
 });
 
 test("diagnostics are advisory and do not block the Vite server from listening", async () => {

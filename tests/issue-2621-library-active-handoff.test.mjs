@@ -79,6 +79,12 @@ test("#2621 profile hydration restores only the explicit project that durable hy
   assert.doesNotMatch(profile, /resumeSessionActiveProject\(activeProjectId\)/u);
 });
 
+test("#2621 Blank Library return does not require or invent a project handoff", async () => {
+  const browser = await read("core/storage/project-library-browser.ts");
+  assert.match(browser, /export function stageSessionActiveProjectHandoff\(\)[\s\S]*if \(!projectId\) return null/u);
+  assert.doesNotMatch(browser, /An explicit Library handoff requires a current-session story/u);
+});
+
 test("#2621 explicit Library opens stage the handoff only after durable persistence completes", async () => {
   const [workspace, avery] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),

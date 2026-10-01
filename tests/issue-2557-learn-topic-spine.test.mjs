@@ -57,7 +57,7 @@ test("#2557/#2604/#2632 MindMap uses the shared Learn spine without rendering th
   assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic\)/u);
   assert.match(surface, /Open in Learn/u);
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
-  assert.match(surface, /field\.actionLabel/u);
+  assert.match(surface, /selectedField\.actionLabel/u);
   assert.match(surface, /Use Suggestion/u);
   assert.match(surface, /data-discovery-surface="canonical-authoring"/u);
   assert.match(surface, /data-mind-map-human-notes/u);

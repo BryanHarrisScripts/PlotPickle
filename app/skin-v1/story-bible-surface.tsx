@@ -24,6 +24,12 @@ import styles from "./story-bible-surface.module.css";
 type WorldMapAct = 1 | 2 | 3 | 4;
 const WORLD_MAP_ACTS: readonly WorldMapAct[] = [1, 2, 3, 4];
 
+function isEditableActShortcutTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null;
+  if (!element) return false;
+  return element.isContentEditable || Boolean(element.closest("input, textarea, select, [contenteditable=\"true\"]"));
+}
+
 function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: WorldMapAct) {
   if (field.scope === "project-wide") return "PROJECT-WIDE";
   if (field.scope === "act-specific") return `ACT ${field.validActs.join(" / ")} ONLY`;
@@ -140,6 +146,13 @@ export default function StoryBibleSurface({
       data-world-map-topic={activeTopic}
       data-story-bible-project-id={bible.projectId}
       data-story-bible-read-only="true"
+      onKeyDown={(event) => {
+        if (isEditableActShortcutTarget(event.target)) return;
+        const act = Number(event.key) as WorldMapAct;
+        if (!WORLD_MAP_ACTS.includes(act)) return;
+        event.preventDefault();
+        setSelectedAct(act);
+      }}
     >
       <nav className={styles.actNav} aria-label="World Map acts">
         {WORLD_MAP_ACTS.map((act) => (
@@ -147,6 +160,7 @@ export default function StoryBibleSurface({
             type="button"
             key={act}
             aria-current={selectedAct === act ? "page" : undefined}
+            aria-keyshortcuts={String(act)}
             data-world-map-act-choice={act}
             onClick={() => setSelectedAct(act)}
           >

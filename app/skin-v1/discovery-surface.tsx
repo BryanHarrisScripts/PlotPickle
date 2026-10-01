@@ -68,6 +68,12 @@ type ProfileStatus = {
 
 const MIND_MAP_ACTS: readonly DiscoveryAct[] = [1, 2, 3, 4];
 
+function isEditableActShortcutTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null;
+  if (!element) return false;
+  return element.isContentEditable || Boolean(element.closest("input, textarea, select, [contenteditable=\"true\"]"));
+}
+
 function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: DiscoveryAct) {
   if (field.scope === "project-wide") return "PROJECT-WIDE";
   if (field.scope === "act-specific") return `ACT ${field.validActs.join(" / ")} ONLY`;
@@ -584,7 +590,13 @@ export default function DiscoverySurface({
   }
 
   return (
-    <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic}>
+    <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic} onKeyDown={(event) => {
+      if (isEditableActShortcutTarget(event.target)) return;
+      const act = Number(event.key) as DiscoveryAct;
+      if (!MIND_MAP_ACTS.includes(act)) return;
+      event.preventDefault();
+      changeAct(act);
+    }}>
       <section className={styles.summary}>
         <div>
           <small>MindMap · ACT {selectedAct} · CANONICAL AUTHORING</small>
@@ -604,6 +616,7 @@ export default function DiscoverySurface({
             type="button"
             key={act}
             aria-current={selectedAct === act ? "page" : undefined}
+            aria-keyshortcuts={String(act)}
             data-mind-map-act-choice={act}
             onClick={() => changeAct(act)}
           >

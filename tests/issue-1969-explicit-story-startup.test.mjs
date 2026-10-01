@@ -33,7 +33,8 @@ test("#1969/#2570/#2603 Library startup stays explicit through Load story cards 
   ]);
 
   assert.match(home, /if \(workspace === "library"\)[\s\S]*?<LibraryWorkspace \/>/u);
-  assert.match(library, /async function openActiveProject\(\) \{\s*await persistActiveProfileProject\(\);\s*await flushProfilePrivateWrites\(\);\s*stageSessionActiveProjectHandoff\(\);\s*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
+  assert.match(library, /function returnToMatrixDashboardFromLibrary\(\)[\s\S]*window\.location\.pathname !== "\/skin-v1"[\s\S]*plotpickle:return-dashboard/u);
+  assert.match(library, /async function openActiveProject\(\)[\s\S]*await persistActiveProfileProject\(\);[\s\S]*await flushProfilePrivateWrites\(\);[\s\S]*if \(returnToMatrixDashboardFromLibrary\(\)\) return;[\s\S]*stageSessionActiveProjectHandoff\(\);[\s\S]*window\.location\.assign\("\/\?workspace=dashboard"\);/u);
   assert.match(library, /data-library-example-gateway=\{item\.id\}/u);
   assert.match(library, /className=\{styles\.loadPosterButton\}/u);
   assert.match(library, /setDestination\("examples"\)/u);

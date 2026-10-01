@@ -15,7 +15,6 @@ import {
 } from "../../core/contracts/world-map";
 import {
   LEARN_TOPIC_SPINE,
-  learnLessonHref,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
 import {
@@ -124,11 +123,13 @@ export default function DiscoverySurface({
   initialTopic = "foundations",
   initialFieldId = null,
   initialAct = 1,
+  onOpenLearn,
 }: {
   readonly project: LibraryPPFProject | null;
   readonly initialTopic?: LearnTopicSpineId;
   readonly initialFieldId?: string | null;
   readonly initialAct?: DiscoveryAct;
+  readonly onOpenLearn: (topic: LearnTopicSpineId, lessonId: string, act: DiscoveryAct) => void;
 }) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(initialAct);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
@@ -291,7 +292,7 @@ export default function DiscoverySurface({
 
   function openSelectedFieldInLearn() {
     if (!selectedField) return;
-    window.location.assign(learnLessonHref(selectedField.topicId, selectedField.lessonId));
+    onOpenLearn(selectedField.topicId, selectedField.lessonId, selectedAct);
   }
 
   function persistCanonicalProject(next: LibraryPPFProject) {

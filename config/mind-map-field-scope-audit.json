@@ -1,18 +1,195 @@
 {
   "schemaVersion": "1.0",
   "issue": 2645,
-  "description": "Deterministic Mind Map field-scope audit. Canonical field IDs remain stable; Act-qualified storage IDs are derived at runtime only for non-project-wide fields.",
-  "canonicalFieldCount": 81,
+  "description": "Deterministic audit over the 96-lesson presentation curriculum used by buildStoryDevelopmentFields(plotPickleCurriculum). Foundations uses the 11-lesson deep curriculum and its 33 story outputs; issue #1976 canonical enrichment contributes eight presentation lessons. Canonical IDs remain stable; Act-qualified storage IDs are derived only for non-project-wide fields.",
+  "presentationLessonCount": 96,
+  "canonicalFieldCount": 118,
   "rows": [
+    {
+      "canonicalFieldId": "foundations:foundations-general-readme-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-readme-md",
+      "lessonNumber": 1,
+      "lessonTitle": "The Anatomy of a Screenplay",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-general-readme-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-readme-md",
+      "lessonNumber": 1,
+      "lessonTitle": "The Anatomy of a Screenplay",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-general-readme-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-readme-md",
+      "lessonNumber": 1,
+      "lessonTitle": "The Anatomy of a Screenplay",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-readme-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-readme-md",
+      "lessonNumber": 2,
+      "lessonTitle": "The Screenwriting Essentials Roadmap",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-readme-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-readme-md",
+      "lessonNumber": 2,
+      "lessonTitle": "The Screenwriting Essentials Roadmap",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-readme-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-readme-md",
+      "lessonNumber": 2,
+      "lessonTitle": "The Screenwriting Essentials Roadmap",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-2-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-2-md",
+      "lessonNumber": 3,
+      "lessonTitle": "Story Essentials: Theme, Plot, Character and Stakes",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-2-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-2-md",
+      "lessonNumber": 3,
+      "lessonTitle": "Story Essentials: Theme, Plot, Character and Stakes",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-2-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-2-md",
+      "lessonNumber": 3,
+      "lessonTitle": "Story Essentials: Theme, Plot, Character and Stakes",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
     {
       "canonicalFieldId": "foundations:pitch:output-1",
       "topic": "foundations",
       "learnTopic": "foundations",
       "lessonId": "pitch",
-      "lessonNumber": 1,
+      "lessonNumber": 4,
       "lessonTitle": "The Pitch",
-      "application": "Foundations brief",
+      "application": "Active story · Foundations",
       "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:pitch:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "pitch",
+      "lessonNumber": 4,
+      "lessonTitle": "The Pitch",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:pitch:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "pitch",
+      "lessonNumber": 4,
+      "lessonTitle": "The Pitch",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
       "scope": "project-wide",
       "validActs": [
         1
@@ -25,10 +202,90 @@
       "topic": "foundations",
       "learnTopic": "foundations",
       "lessonId": "loglines-that-carry-the-movie",
-      "lessonNumber": 15,
+      "lessonNumber": 5,
       "lessonTitle": "Loglines That Carry the Movie",
-      "application": "Block plan",
+      "application": "Active story · Foundations",
       "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:loglines-that-carry-the-movie:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "loglines-that-carry-the-movie",
+      "lessonNumber": 5,
+      "lessonTitle": "Loglines That Carry the Movie",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:loglines-that-carry-the-movie:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "loglines-that-carry-the-movie",
+      "lessonNumber": 5,
+      "lessonTitle": "Loglines That Carry the Movie",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-loglines-loglines-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-loglines-loglines-md",
+      "lessonNumber": 6,
+      "lessonTitle": "Crafting and Testing Loglines",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-loglines-loglines-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-loglines-loglines-md",
+      "lessonNumber": 6,
+      "lessonTitle": "Crafting and Testing Loglines",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-loglines-loglines-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-loglines-loglines-md",
+      "lessonNumber": 6,
+      "lessonTitle": "Crafting and Testing Loglines",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
       "scope": "project-wide",
       "validActs": [
         1
@@ -41,10 +298,186 @@
       "topic": "foundations",
       "learnTopic": "foundations",
       "lessonId": "why-plotpickle-works-in-layers",
-      "lessonNumber": 18,
+      "lessonNumber": 7,
       "lessonTitle": "Why PlotPickle Works in Layers",
-      "application": "Block plan",
+      "application": "Active story · Foundations",
       "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:why-plotpickle-works-in-layers:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "why-plotpickle-works-in-layers",
+      "lessonNumber": 7,
+      "lessonTitle": "Why PlotPickle Works in Layers",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:why-plotpickle-works-in-layers:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "why-plotpickle-works-in-layers",
+      "lessonNumber": 7,
+      "lessonTitle": "Why PlotPickle Works in Layers",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-1-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-1-md",
+      "lessonNumber": 8,
+      "lessonTitle": "Screenplay Essentials: Structure, Dialogue and Visuals",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-1-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-1-md",
+      "lessonNumber": 8,
+      "lessonTitle": "Screenplay Essentials: Structure, Dialogue and Visuals",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-essential-aspects-1-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-essential-aspects-1-md",
+      "lessonNumber": 8,
+      "lessonTitle": "Screenplay Essentials: Structure, Dialogue and Visuals",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-storytelling-dynamics-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-storytelling-dynamics-md",
+      "lessonNumber": 9,
+      "lessonTitle": "Pacing and Tone: Storytelling Dynamics",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-storytelling-dynamics-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-storytelling-dynamics-md",
+      "lessonNumber": 9,
+      "lessonTitle": "Pacing and Tone: Storytelling Dynamics",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-essentials-storytelling-dynamics-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-essentials-storytelling-dynamics-md",
+      "lessonNumber": 9,
+      "lessonTitle": "Pacing and Tone: Storytelling Dynamics",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-general-general-the-pitch-md:output-1",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-general-the-pitch-md",
+      "lessonNumber": 10,
+      "lessonTitle": "Pitch Components and Project Positioning",
+      "application": "Active story · Foundations",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-general-general-the-pitch-md:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-general-the-pitch-md",
+      "lessonNumber": 10,
+      "lessonTitle": "Pitch Components and Project Positioning",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:foundations-general-general-the-pitch-md:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "foundations-general-general-the-pitch-md",
+      "lessonNumber": 10,
+      "lessonTitle": "Pitch Components and Project Positioning",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
       "scope": "project-wide",
       "validActs": [
         1
@@ -57,10 +490,42 @@
       "topic": "foundations",
       "learnTopic": "foundations",
       "lessonId": "essentials-experience",
-      "lessonNumber": 73,
+      "lessonNumber": 11,
       "lessonTitle": "Build the Story Experience",
-      "application": "Treatment",
+      "application": "Active story · Foundations",
       "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:essentials-experience:output-2",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "essentials-experience",
+      "lessonNumber": 11,
+      "lessonTitle": "Build the Story Experience",
+      "application": "Active story · Foundations",
+      "fieldId": "output-2",
+      "scope": "project-wide",
+      "validActs": [
+        1
+      ],
+      "storageOwner": "foundations",
+      "rationale": "Foundations are authored once as project truth and concentrated in Act 1 instead of being copied into later Acts."
+    },
+    {
+      "canonicalFieldId": "foundations:essentials-experience:output-3",
+      "topic": "foundations",
+      "learnTopic": "foundations",
+      "lessonId": "essentials-experience",
+      "lessonNumber": 11,
+      "lessonTitle": "Build the Story Experience",
+      "application": "Active story · Foundations",
+      "fieldId": "output-3",
       "scope": "project-wide",
       "validActs": [
         1
@@ -649,6 +1114,63 @@
       "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
     },
     {
+      "canonicalFieldId": "structure:series-episode-season-architecture:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "series-episode-season-architecture",
+      "lessonNumber": 901,
+      "lessonTitle": "Series Craft: Episode and Season Architecture",
+      "application": "Episode / pilot / season map",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:series-engine-and-bible:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "series-engine-and-bible",
+      "lessonNumber": 902,
+      "lessonTitle": "Series Engine and Bible Design",
+      "application": "Series engine / creative bible",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
+      "canonicalFieldId": "structure:half-hour-comedy-craft:output-1",
+      "topic": "structure",
+      "learnTopic": "structure",
+      "lessonId": "half-hour-comedy-craft",
+      "lessonNumber": 903,
+      "lessonTitle": "Half-Hour Comedy Craft",
+      "application": "Half-hour episode / comic scene",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Structure, pressure, pacing, scene turns and PPPP application legitimately require independent Act answers."
+    },
+    {
       "canonicalFieldId": "previs:early-visual-development:output-1",
       "topic": "previs",
       "learnTopic": "visual-storytelling",
@@ -856,6 +1378,63 @@
       ],
       "storageOwner": "story-development",
       "rationale": "Writing-process, study and formatting choices remain project-wide craft decisions."
+    },
+    {
+      "canonicalFieldId": "drafting:scene-craft-pressure-and-turn:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "scene-craft-pressure-and-turn",
+      "lessonNumber": 901,
+      "lessonTitle": "Scene Craft: Objective, Pressure and Turn",
+      "application": "Screenplay scene",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Draft and scene-change decisions can be developed separately for each Act."
+    },
+    {
+      "canonicalFieldId": "drafting:screenplay-format-and-delivery:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "screenplay-format-and-delivery",
+      "lessonNumber": 902,
+      "lessonTitle": "Screenplay Format and Delivery",
+      "application": "Screenplay export",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Draft and scene-change decisions can be developed separately for each Act."
+    },
+    {
+      "canonicalFieldId": "drafting:adaptation-source-to-screen:output-1",
+      "topic": "drafting",
+      "learnTopic": "drafting",
+      "lessonId": "adaptation-source-to-screen",
+      "lessonNumber": 903,
+      "lessonTitle": "Adaptation: Source to Screen",
+      "application": "Adaptation treatment",
+      "fieldId": "output-1",
+      "scope": "repeatable-by-act",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Draft and scene-change decisions can be developed separately for each Act."
     },
     {
       "canonicalFieldId": "dialogue:ai-revision-dialogue-voiceprint:output-1",
@@ -1295,6 +1874,25 @@
       "rationale": "Industry and ownership decisions apply to the project as a whole."
     },
     {
+      "canonicalFieldId": "industry:professional-pitching-and-representation:output-1",
+      "topic": "industry",
+      "learnTopic": "industry",
+      "lessonId": "professional-pitching-and-representation",
+      "lessonNumber": 901,
+      "lessonTitle": "Professional Practice: Pitching and Representation",
+      "application": "Professional readiness sheet",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Industry and ownership decisions apply to the project as a whole."
+    },
+    {
       "canonicalFieldId": "collaboration:collaboration-choose-workflow:output-1",
       "topic": "collaboration",
       "learnTopic": "collaboration",
@@ -1511,6 +2109,25 @@
       "lessonNumber": 56,
       "lessonTitle": "Protect Privacy and Scale the Review Queue",
       "application": "Treatment",
+      "fieldId": "output-1",
+      "scope": "project-wide",
+      "validActs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "storageOwner": "story-development",
+      "rationale": "Collaboration roles, authority, rights and review workflow apply to the project as a whole."
+    },
+    {
+      "canonicalFieldId": "collaboration:writers-room-story-breaking:output-1",
+      "topic": "collaboration",
+      "learnTopic": "collaboration",
+      "lessonId": "writers-room-story-breaking",
+      "lessonNumber": 901,
+      "lessonTitle": "Writers' Room: Story Breaking and Notes",
+      "application": "Story-break board / episode outline",
       "fieldId": "output-1",
       "scope": "project-wide",
       "validActs": [

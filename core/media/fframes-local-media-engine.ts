@@ -10,7 +10,7 @@ import type {
   PlotPickleMediaEngineEvidence,
   PlotPickleMediaEngineRunOptions,
   PlotPickleMiniBlockMediaRequest,
-} from "@/core/contracts/media-engine";
+} from "./media-engine-contract";
 
 const ENGINE_ID = "fframes-local";
 const ENGINE_VERSION = "fframes-1.1.0/plotpickle-bridge-0.1.0";

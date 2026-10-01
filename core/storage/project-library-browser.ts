@@ -182,7 +182,7 @@ export function sessionActiveProjectId() {
 
 export function stageSessionActiveProjectHandoff() {
   const projectId = sessionActiveProjectId();
-  if (!projectId) throw new Error("An explicit Library handoff requires a current-session story.");
+  if (!projectId) return null;
   return libraryCore.stageProjectLibrarySessionHandoff({
     storage: window.sessionStorage,
     profileId: profileId(),

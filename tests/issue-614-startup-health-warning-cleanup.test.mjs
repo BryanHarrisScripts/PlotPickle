@@ -150,6 +150,25 @@ test("issue #1404 removes only impossible cross-runtime compile timings from dev
   assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
 });
 
+test("#2654 filters only the exact React development eval advisory and records the runtime evidence", async () => {
+  const [config, compatibility, report] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/startup/vite-compatibility.ts"),
+    read("scripts/vite-native-config-report.mjs"),
+  ]);
+
+  assert.match(config, /customLogger: command === "serve" \? createPlotPickleViteLogger\(\) : undefined/);
+  assert.match(compatibility, /REACT_DEVELOPMENT_EVAL_ADVISORY = "eval\(\) is not supported in this environment"/);
+  assert.match(compatibility, /nodeEnv === "development"/);
+  assert.match(compatibility, /message\.includes\(REACT_DEVELOPMENT_EVAL_ADVISORY\)/);
+  assert.match(compatibility, /const warn = logger\.warn\.bind\(logger\)/);
+  assert.match(compatibility, /if \(isKnownReactDevelopmentEvalAdvisory\(message\)\) return/);
+  assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
+  assert.match(report, /Known development-runtime advisory/);
+  assert.match(report, /Runtime versions: React/);
+  assert.match(report, /all other Vite warnings remain visible/);
+});
+
 test("issue #1404 launcher liveness probes do not render or log the application root after the browser is owned", async () => {
   const [config, liveness] = await Promise.all([
     read("vite.config.ts"),

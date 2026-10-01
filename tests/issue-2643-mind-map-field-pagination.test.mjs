@@ -38,10 +38,10 @@ test("#2643 topic changes reset to page one while deep-linked fields open their 
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
   assert.match(surface, /function changeTopic\(topic: LearnTopicSpineId\) \{[\s\S]*setSelectedTopic\(topic\);[\s\S]*setSelectedFieldPage\(1\);/u);
-  assert.match(surface, /const targetPage = storyDevelopmentFieldPageForId\(topicFields, initialFieldId\)/u);
+  assert.match(surface, /const actFields = storyDevelopmentFieldsForAct\(topicFields, selectedAct\)/u);\n  assert.match(surface, /const targetPage = storyDevelopmentFieldPageForId\(actFields, initialFieldId\)/u);
   assert.match(surface, /if \(selectedFieldPage !== targetPage\) \{[\s\S]*setSelectedFieldPage\(targetPage\);[\s\S]*return;/u);
-  assert.match(surface, /fieldDrafts\[field\.canonicalId\] \?\? persisted\.value/u);
-  assert.match(surface, /setFieldDrafts\(Object\.fromEntries\(canonicalFields\.map/u);
+  assert.match(surface, /fieldDrafts\[storageId\] \?\? persisted\.value/u);
+  assert.match(surface, /setFieldDrafts\(Object\.fromEntries\(scopedFieldViews\.map/u);
 });
 
 test("#2643 pager uses the same visible selected-state language as other Mind Map navigation", async () => {

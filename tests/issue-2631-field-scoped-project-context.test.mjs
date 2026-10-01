@@ -20,7 +20,7 @@ test("#2631 explicit topic mappings never fall back to generic Act Blocks for Th
 
   assert.match(projection, /case "foundations":[\s\S]*return foundationsContext\(project\)/u);
   assert.match(projection, /case "world":[\s\S]*return worldContext\(project\)/u);
-  assert.match(projection, /case "character":[\s\S]*return characterContext\(project\)/u);
+  assert.match(projection, /case "character":[\s\S]*return characterContext\(project, characterId\)/u);
   assert.match(projection, /case "structure":[\s\S]*return structureContext\(project, act\)/u);
   assert.match(projection, /case "drafting":[\s\S]*return draftingContext\(project, act\)/u);
   assert.match(projection, /case "dialogue":[\s\S]*return dialogueContext\(project, act\)/u);
@@ -55,7 +55,7 @@ test("#2631 Character, Dialogue and PREVIS context use existing reviewed/read-on
 test("#2631 Mind Map renders context inside each canonical field and removes the generic context dump", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
 
-  assert.match(surface, /const relevantContext = relevantProjectContextForField\(project, field, selectedAct\)/u);
+  assert.match(surface, /const relevantContext = relevantProjectContextForField\([\s\S]*field\.topicId === "character" \? selectedCharacter\?\.id : null[\s\S]*\);/u);
   assert.match(surface, /data-relevant-project-context=\{field\.canonicalId\}/u);
   assert.match(surface, /RELEVANT PROJECT CONTEXT/u);
   assert.match(surface, /data-relevant-context-item=\{item\.id\}/u);

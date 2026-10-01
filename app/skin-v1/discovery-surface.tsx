@@ -205,14 +205,17 @@ export default function DiscoverySurface({
     setProposalDrafts(Object.fromEntries(scopedFieldViews
       .map(([storageId, view]) => [storageId, view.proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
-    const incomingNotes = Object.fromEntries(canonicalFields.map((field) => [
-      field.canonicalId,
-      mindMapFieldNote(project.mindMapNotes, field.canonicalId).text,
-    ]));
-    setNoteDrafts((current) => Object.fromEntries(canonicalFields.map((field) => {
-      const currentDraft = current[field.canonicalId];
-      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[field.canonicalId] ?? "");
-      return [field.canonicalId, wasDirty ? currentDraft : incomingNotes[field.canonicalId]];
+    const incomingNotes = Object.fromEntries([
+      ...Object.entries(project.mindMapNotes.fields).map(([key, note]) => [key, note.text] as const),
+      ...canonicalFields.map((field) => [
+        field.canonicalId,
+        mindMapFieldNote(project.mindMapNotes, field.canonicalId).text,
+      ] as const),
+    ]);
+    setNoteDrafts((current) => Object.fromEntries(Object.entries(incomingNotes).map(([key, incoming]) => {
+      const currentDraft = current[key];
+      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[key] ?? "");
+      return [key, wasDirty ? currentDraft : incoming];
     })));
     setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);

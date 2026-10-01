@@ -58,7 +58,7 @@ test("#2630 Save Notes increments revision and changes only the notes domain bef
 test("#2630 notes stay non-canon and outside automatic Agent context", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
   const contextStart = surface.indexOf("function compactProjectContext");
-  const contextEnd = surface.indexOf("function humanPlacement", contextStart);
+  const contextEnd = surface.indexOf("export default function DiscoverySurface", contextStart);
   const context = surface.slice(contextStart, contextEnd);
 
   assert.doesNotMatch(context, /mindMapNotes|selectedTopicNoteDraft|noteDrafts/u);

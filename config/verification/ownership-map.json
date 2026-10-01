@@ -1692,6 +1692,23 @@
         "surface",
         "navigation"
       ]
+    },
+    {
+      "id": "fframes-local-media-engine",
+      "classification": "production",
+      "include": [
+        "core/media/fframes-local-media-engine.ts",
+        "core/media/media-engine-contract.ts",
+        "tools/fframes-bridge/**"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "provider",
+        "visual",
+        "security",
+        "windows"
+      ]
     }
   ]
 }

@@ -45,7 +45,7 @@ import {
   saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
-import { handleStoryActShortcut, StoryActRail } from "./story-act-rail";
+import { handleStoryActShortcut, STORY_ACTS, StoryActRail } from "./story-act-rail";
 import styles from "./discovery-surface.module.css";
 
 type AgentResponse = {
@@ -215,7 +215,7 @@ export default function DiscoverySurface({
       setSavedNoteTexts({});
       return;
     }
-    const scopedFieldViews = canonicalFields.flatMap((field) => MIND_MAP_ACTS
+    const scopedFieldViews = canonicalFields.flatMap((field) => STORY_ACTS
       .filter((act) => field.validActs.includes(act))
       .map((act) => {
         const storageId = storyDevelopmentFieldStorageId(field, act);
@@ -570,7 +570,7 @@ export default function DiscoverySurface({
   if (!project) {
     return (
       <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true">
-        <StoryActRail activeAct={selectedAct} ariaLabel="Mind Map acts" onOpen={changeAct} />
+        <StoryActRail activeAct={selectedAct} ariaLabel="MindMap acts" choiceDataAttribute="data-mind-map-act-choice" onOpen={changeAct} />
 
       <section className={styles.summary}>
           <div>

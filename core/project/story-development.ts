@@ -7,7 +7,6 @@ import {
   type StoryDevelopmentAcceptedSource,
 } from "../storage/library-project";
 import {
-  storyDevelopmentFieldAppliesToAct,
   storyDevelopmentFieldStorageId,
   type StoryDevelopmentAct,
   type StoryDevelopmentFieldDefinition,
@@ -48,7 +47,7 @@ export function storyDevelopmentFieldView(
   const baseState = storyDevelopmentFieldState(project.storyDevelopment, field.canonicalId);
   const value = baseFieldValue(project, field);
 
-  if (field.scope === "project-wide" || act === undefined || !storyDevelopmentFieldAppliesToAct(field, act)) {
+  if (field.scope === "project-wide" || act === undefined || !field.validActs.includes(act)) {
     return { ...baseState, value };
   }
 
@@ -88,7 +87,7 @@ export function writeStoryDevelopmentFieldValue(input: {
   readonly act?: StoryDevelopmentAct;
   readonly occurredAt?: string;
 }) {
-  if (input.act !== undefined && !storyDevelopmentFieldAppliesToAct(input.field, input.act)) {
+  if (input.act !== undefined && !input.field.validActs.includes(input.act)) {
     return input.project;
   }
 
@@ -159,7 +158,7 @@ export function writeStoryDevelopmentFieldProposal(input: {
   readonly act?: StoryDevelopmentAct;
   readonly occurredAt?: string;
 }) {
-  if (input.act !== undefined && !storyDevelopmentFieldAppliesToAct(input.field, input.act)) {
+  if (input.act !== undefined && !input.field.validActs.includes(input.act)) {
     return input.project;
   }
 
@@ -182,7 +181,7 @@ export function acceptStoryDevelopmentFieldProposal(input: {
   readonly act?: StoryDevelopmentAct;
   readonly occurredAt?: string;
 }) {
-  if (input.act !== undefined && !storyDevelopmentFieldAppliesToAct(input.field, input.act)) {
+  if (input.act !== undefined && !input.field.validActs.includes(input.act)) {
     return input.project;
   }
 

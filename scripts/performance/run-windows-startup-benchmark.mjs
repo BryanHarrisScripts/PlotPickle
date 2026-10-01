@@ -93,7 +93,7 @@ async function waitForPlotPickle(started, child, outputTail) {
       throw new Error(`PlotPickle launcher exited ${child.exitCode} before readiness. ${outputTail().slice(-2000)}`);
     }
     try {
-      const response = await fetch(baseUrl, {
+      const response = await fetch(`${baseUrl}/skin-v1`, {
         cache: "no-store",
         signal: AbortSignal.timeout(3_000),
         headers: {
@@ -166,7 +166,7 @@ async function runEvidence() {
   try {
     const ready = await waitForPlotPickle(started, child, () => clean(chunks.join("")));
     phases.firstValidHttpResponseMs = ready.elapsedMs;
-    const dashboard = await fetch(`${baseUrl}/?workspace=dashboard`, { signal: AbortSignal.timeout(10_000) });
+    const dashboard = await fetch(`${baseUrl}/skin-v1?workspace=dashboard`, { signal: AbortSignal.timeout(10_000) });
     await dashboard.arrayBuffer();
     if (!dashboard.ok) throw new Error(`Dashboard readiness returned HTTP ${dashboard.status}.`);
     phases.firstUsableCoreWorkspaceMs = elapsed(started);
@@ -205,7 +205,7 @@ async function runEvidence() {
       phaseDurations: startupPhaseDurations(phases),
       probeContract: {
         warmupHeader: "X-PlotPickle-Startup-Probe: warmup",
-        warmupPurpose: "intentional first root render so the managed browser opens against an already-compiled app",
+        warmupPurpose: "intentional first /skin-v1 render so the managed browser opens against an already-compiled canonical app route without a root redirect",
         livenessPurpose: "post-browser PowerShell probes are answered with HTTP 204 before Vinext rendering",
       },
     };

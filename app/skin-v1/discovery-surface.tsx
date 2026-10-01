@@ -495,6 +495,7 @@ export default function DiscoverySurface({
                 tabIndex={0}
                 onClick={() => setSelectedFieldId(field.canonicalId)}
                 onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
                   if (event.key !== "Enter" && event.key !== " ") return;
                   event.preventDefault();
                   setSelectedFieldId(field.canonicalId);

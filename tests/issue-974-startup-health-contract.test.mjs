@@ -31,9 +31,11 @@ test("anti-echo adapter remains active beneath host-owned Agent Profile validati
   assert.match(entrypoint, /startup-agent-diagnostics-runtime-v6/);
   assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
   assert.match(profileAdapter, /assertAgentProfilesValid/);
-  assert.match(antiEchoAdapter, /failedChecks\.length === 1/);
-  assert.match(antiEchoAdapter, /failedChecks\[0\]\.includes\("Sage anti-echo check"\)/);
+  assert.match(antiEchoAdapter, /remainingFailures\.some\(\(line\) => line\.includes\("Sage anti-echo check"\)\)/);
+  assert.match(antiEchoAdapter, /remainingFailures = remainingFailures\.filter\(\(line\) => !line\.includes\("Sage anti-echo check"\)\)/);
   assert.match(antiEchoAdapter, /verifySageAntiEcho/);
   assert.match(antiEchoAdapter, /verified by strict no-restatement probe/);
-  assert.match(antiEchoAdapter, /return \{ healthy: true, warnings: result\.warnings \}/);
+  assert.match(antiEchoAdapter, /const recoveredHealthy = failedChecks\.length > 0 && remainingFailures\.length === 0/);
+  assert.match(antiEchoAdapter, /return recoveredHealthy \? \{ healthy: true, warnings: result\.warnings \} : result/);
+  assert.doesNotMatch(antiEchoAdapter, /failedChecks\.length === 1/);
 });

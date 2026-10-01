@@ -14,6 +14,23 @@ const ESC = "\u001b[";
 const cyan = `${ESC}96m`;
 const reset = `${ESC}0m`;
 
+function installedPackageVersion(packagePath) {
+  const file = path.join(projectRoot, "node_modules", ...packagePath.split("/"), "package.json");
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    return typeof parsed.version === "string" ? parsed.version : "unknown";
+  } catch {
+    return "not-installed";
+  }
+}
+
+const runtimeVersions = {
+  react: installedPackageVersion("react"),
+  reactServerDomWebpack: installedPackageVersion("react-server-dom-webpack"),
+  vinext: installedPackageVersion("vinext"),
+  cloudflareVitePlugin: installedPackageVersion("@cloudflare/vite-plugin"),
+};
+
 const sourceRoots = [
   path.join(projectRoot, "vite.config.ts"),
   path.join(projectRoot, "build"),
@@ -73,6 +90,13 @@ const body = [
   "",
   "These are forward-compatibility advisories for Vite's future native config loader.",
   "They are not startup failures and are intentionally kept out of the normal PlotPickle command window.",
+  "",
+  "Known development-runtime advisory:",
+  "  - eval() is not supported in this environment",
+  "    PlotPickle intentionally runs the local Vite app with NODE_ENV=development for the source-on-machine workflow.",
+  "    React emits this exact message only from its development diagnostics when eval is unavailable. PlotPickle leaves it visible instead of masking runtime warnings.",
+  `    Runtime versions: React ${runtimeVersions.react}; react-server-dom-webpack ${runtimeVersions.reactServerDomWebpack}; Vinext ${runtimeVersions.vinext}; @cloudflare/vite-plugin ${runtimeVersions.cloudflareVitePlugin}.`,
+  "    React states the eval path is not used in production. Production build and Architecture Verification remain separate correctness authorities; this advisory is documented rather than treated as a product failure.",
   "",
   ...(findings.length ? findings : ["No extensionless relative imports or JSON import-attribute warnings were found by the local scanner."]),
   "",

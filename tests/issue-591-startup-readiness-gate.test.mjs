@@ -74,6 +74,24 @@ test("browser launch follows required readiness while optional companion mainten
   assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
 });
 
+test("#2654 launcher classifies warmup and liveness probes without turning post-browser checks into app renders", async () => {
+  const [launcher, liveness] = await Promise.all([
+    read("Start-PlotPickle.bat"),
+    read("build/startup/launcher-liveness-gateway.ts"),
+  ]);
+
+  assert.match(launcher, /X-PlotPickle-Startup-Probe'='existing-session'/);
+  assert.match(launcher, /X-PlotPickle-Startup-Probe'='warmup'/);
+  assert.match(launcher, /\$base=\$env:PLOTPICKLE_URL \+ '\/skin-v1'/);
+  assert.match(launcher, /X-PlotPickle-Startup-Probe'='liveness'/);
+  assert.match(liveness, /startupProbePurpose/);
+  assert.match(liveness, /isLauncherWarmupProbe/);
+  assert.match(liveness, /warmup-render/);
+  assert.match(liveness, /liveness-no-render/);
+  assert.match(liveness, /response\.statusCode = 204/);
+  assert.match(liveness, /return next\(\)/);
+});
+
 test("companion maintenance reports optional failures truthfully without blocking core mode", async () => {
   const manager = await read("scripts/windows-companion-software.ps1");
   assert.match(manager, /MaintenanceWarningCount/);

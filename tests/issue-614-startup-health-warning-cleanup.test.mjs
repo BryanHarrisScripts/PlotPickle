@@ -150,6 +150,23 @@ test("issue #1404 removes only impossible cross-runtime compile timings from dev
   assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
 });
 
+test("#2654 documents the React development eval advisory without hiding unrelated runtime warnings", async () => {
+  const [config, compatibility, report] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/startup/vite-compatibility.ts"),
+    read("scripts/vite-native-config-report.mjs"),
+  ]);
+
+  assert.doesNotMatch(config, /customLogger/);
+  assert.doesNotMatch(compatibility, /createLogger|createPlotPickleViteLogger|REACT_DEVELOPMENT_EVAL_ADVISORY/);
+  assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
+  assert.match(report, /Known development-runtime advisory/);
+  assert.match(report, /eval\(\) is not supported in this environment/);
+  assert.match(report, /React emits this exact message only from its development diagnostics when eval is unavailable/);
+  assert.match(report, /React states the eval path is not used in production/);
+  assert.match(report, /Runtime versions: React/);
+});
+
 test("issue #1404 launcher liveness probes do not render or log the application root after the browser is owned", async () => {
   const [config, liveness] = await Promise.all([
     read("vite.config.ts"),

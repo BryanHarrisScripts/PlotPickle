@@ -42,6 +42,25 @@ export function isolatedBenchmarkEnvironment(environment = process.env) {
   return isolated;
 }
 
+export function startupPhaseDurations(phases) {
+  const between = (start, end) => (
+    Number.isFinite(start) && Number.isFinite(end) && end >= start
+      ? Number((end - start).toFixed(2))
+      : null
+  );
+  return {
+    sourceCheckToRuntimeReadyMs: between(phases.sourceCheckStartedMs, phases.runtimeReadyMs),
+    runtimePreparationMs: between(phases.runtimePreparationStartedMs, phases.runtimeReadyMs),
+    agentSkillsMs: between(phases.agentSkillsCheckStartedMs, phases.agentSkillsReadyMs),
+    viteLaunchToReadyMs: between(phases.viteLaunchStartedMs, phases.viteReadyMs),
+    viteReadyToFirstValidHttpMs: between(phases.viteReadyMs, phases.firstValidHttpResponseMs),
+    firstValidHttpToUsableWorkspaceMs: between(phases.firstValidHttpResponseMs, phases.firstUsableCoreWorkspaceMs),
+    totalToUsableWorkspaceMs: Number.isFinite(phases.firstUsableCoreWorkspaceMs)
+      ? Number(phases.firstUsableCoreWorkspaceMs.toFixed(2))
+      : null,
+  };
+}
+
 export function observeStartupOutput(phases, text, nowMs) {
   const line = clean(text);
   const mark = (field, pattern) => {
@@ -74,10 +93,13 @@ async function waitForPlotPickle(started, child, outputTail) {
       throw new Error(`PlotPickle launcher exited ${child.exitCode} before readiness. ${outputTail().slice(-2000)}`);
     }
     try {
-      const response = await fetch(baseUrl, {
+      const response = await fetch(`${baseUrl}/skin-v1`, {
         cache: "no-store",
         signal: AbortSignal.timeout(3_000),
-        headers: { Accept: "text/html,application/xhtml+xml" },
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "X-PlotPickle-Startup-Probe": "warmup",
+        },
       });
       const body = await response.text();
       if (response.ok && /PlotPickle/i.test(body) && /plotpickle-startup-v4/i.test(body)) {
@@ -144,7 +166,7 @@ async function runEvidence() {
   try {
     const ready = await waitForPlotPickle(started, child, () => clean(chunks.join("")));
     phases.firstValidHttpResponseMs = ready.elapsedMs;
-    const dashboard = await fetch(`${baseUrl}/?workspace=dashboard`, { signal: AbortSignal.timeout(10_000) });
+    const dashboard = await fetch(`${baseUrl}/skin-v1?workspace=dashboard`, { signal: AbortSignal.timeout(10_000) });
     await dashboard.arrayBuffer();
     if (!dashboard.ok) throw new Error(`Dashboard readiness returned HTTP ${dashboard.status}.`);
     phases.firstUsableCoreWorkspaceMs = elapsed(started);
@@ -180,6 +202,12 @@ async function runEvidence() {
       browserSuppressed: true,
       optionalCompanionMaintenanceSuppressed: true,
       ...phases,
+      phaseDurations: startupPhaseDurations(phases),
+      probeContract: {
+        warmupHeader: "X-PlotPickle-Startup-Probe: warmup",
+        warmupPurpose: "intentional first /skin-v1 render so the managed browser opens against an already-compiled canonical app route without a root redirect",
+        livenessPurpose: "post-browser PowerShell probes are answered with HTTP 204 before Vinext rendering",
+      },
     };
     evidence.result.startupHealthy = phases.firstUsableCoreWorkspaceMs != null;
     await writeFile(output, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");

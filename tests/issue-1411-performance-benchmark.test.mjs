@@ -11,7 +11,7 @@ import {
 } from "../scripts/performance/contracts/classify-measured-work.mjs";
 import { browserRoutes, findPerformanceBrowser } from "../scripts/performance/measure-browser-responsiveness.mjs";
 import { measureStoryWorkflowContract } from "../scripts/performance/measure-story-workflow-contract.mjs";
-import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath } from "../scripts/performance/run-windows-startup-benchmark.mjs";
+import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath, startupPhaseDurations } from "../scripts/performance/run-windows-startup-benchmark.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -195,6 +195,37 @@ test("#1411 real launcher phases are timestamped from truthful Windows startup o
     viteLaunchStartedMs: 60,
     viteReadyMs: 70,
   });
+});
+
+test("#2654 startup evidence breaks cold boot into actionable phase durations and preserves the intentional warmup render", async () => {
+  const source = await read("scripts/performance/run-windows-startup-benchmark.mjs");
+  const durations = startupPhaseDurations({
+    sourceCheckStartedMs: 10,
+    runtimePreparationStartedMs: 20,
+    runtimeReadyMs: 50,
+    agentSkillsCheckStartedMs: 60,
+    agentSkillsReadyMs: 80,
+    viteLaunchStartedMs: 90,
+    viteReadyMs: 140,
+    firstValidHttpResponseMs: 200,
+    firstUsableCoreWorkspaceMs: 260,
+  });
+
+  assert.deepEqual(durations, {
+    sourceCheckToRuntimeReadyMs: 40,
+    runtimePreparationMs: 30,
+    agentSkillsMs: 20,
+    viteLaunchToReadyMs: 50,
+    viteReadyToFirstValidHttpMs: 60,
+    firstValidHttpToUsableWorkspaceMs: 60,
+    totalToUsableWorkspaceMs: 260,
+  });
+  assert.match(source, /fetch\(`\$\{baseUrl\}\/skin-v1`/);
+  assert.match(source, /skin-v1\?workspace=dashboard/);
+  assert.match(source, /"X-PlotPickle-Startup-Probe": "warmup"/);
+  assert.match(source, /warmupPurpose: "intentional first \/skin-v1 render/);
+  assert.match(source, /livenessPurpose: "post-browser PowerShell probes are answered with HTTP 204/);
+  assert.match(source, /phaseDurations: startupPhaseDurations\(phases\)/);
 });
 
 test("#1411 Windows workflow separates fresh startup from repeated warm samples", async () => {

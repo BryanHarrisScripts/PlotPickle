@@ -563,6 +563,39 @@ export default function LibraryWorkspace() {
     }
   }
 
+  async function unloadCurrentStory() {
+    if (unloadingStory || !activeProject) return;
+    const projectId = activeProject.id;
+    let detached = false;
+    setUnloadingStory(true);
+    setNotice("");
+    try {
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+
+      const unloadedProjectId = unloadActiveLibraryProject();
+      if (unloadedProjectId !== projectId) throw new Error("PlotPickle could not verify the story selected for unload.");
+      detached = true;
+
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      window.location.assign("/?workspace=dashboard");
+    } catch (error) {
+      let message = error instanceof Error ? error.message : "PlotPickle could not unload the active story.";
+      if (detached) {
+        try {
+          switchActiveLibraryProject(projectId);
+        } catch (restoreError) {
+          const detail = restoreError instanceof Error ? restoreError.message : String(restoreError);
+          message = `${message} PlotPickle also could not restore the prior active-story selection: ${detail}`;
+        }
+      }
+      setNotice(message);
+    } finally {
+      setUnloadingStory(false);
+    }
+  }
+
   async function createNewStory() {
     try {
       const project = createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
@@ -937,6 +970,11 @@ export default function LibraryWorkspace() {
         (safeLoadPage + 1) * LOAD_CARDS_PER_PAGE,
       );
       const loadPaged = loadPageCount > 1;
+      const afterglowCurrentlyLoaded = activeProjectSummary?.sourceKind === "example"
+        && (
+          activeProjectSummary.sourceId === AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID
+          || activeProjectSummary.sourceId === AFTERGLOW_EXAMPLE_SOURCE_ID
+        );
 
       return (
         <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
@@ -961,6 +999,9 @@ export default function LibraryWorkspace() {
                       item={entry.item}
                       key={`example:${entry.item.id}`}
                       posterUrls={afterglowPosters}
+                      active={afterglowCurrentlyLoaded}
+                      unloading={unloadingStory}
+                      onUnload={() => void unloadCurrentStory()}
                       onOpen={() => {
                         const examplesIndex = DESTINATIONS.findIndex((item) => item.id === "examples");
                         setDirectorySelectedIndex(examplesIndex);
@@ -971,6 +1012,9 @@ export default function LibraryWorkspace() {
                     <SavedStoryLoadCard
                       item={entry.item}
                       key={`story:${entry.item.id}`}
+                      active={activeProjectSummary?.id === entry.item.id}
+                      unloading={unloadingStory}
+                      onUnload={() => void unloadCurrentStory()}
                       onOpen={() => setPending({ kind: "story", item: entry.item })}
                     />
                   )

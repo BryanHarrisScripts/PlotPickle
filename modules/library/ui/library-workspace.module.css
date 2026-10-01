@@ -301,7 +301,73 @@
   color: inherit;
   text-align: left;
   font: inherit;
+}
+
+.savedStoryOpenButton {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
+}
+
+.savedStoryOpenButton:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: -3px;
+}
+
+.loadCardStatusRow {
+  display: flex;
+  min-height: var(--pp-skin-control-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+
+.currentlyLoadedBadge {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 2px var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  font-size: var(--pp-skin-font-xs);
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-label);
+  text-transform: uppercase;
+}
+
+.unloadButton {
+  min-height: 30px;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  color: var(--pp-skin-ink);
+  background: var(--pp-skin-surface-0);
+  font: inherit;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.unloadButton:hover:not(:disabled),
+.unloadButton:focus-visible {
+  border-color: var(--pp-skin-accent-bright);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 1px;
+}
+
+.unloadButton:disabled {
+  cursor: not-allowed;
+  opacity: .55;
 }
 
 .savedStoryLoadCard:hover,

@@ -62,6 +62,8 @@ type MatrixLearnRequest = Readonly<{
 function StoryActRail({ activeAct, onOpen }: { readonly activeAct: number; readonly onOpen: (act: number) => void }) {
   return (
     <nav aria-label="Story Map acts" className="pp-skin-v1-preproduction-stage-rail" data-story-act-rail="four-acts" onKeyDown={(event) => {
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target?.isContentEditable || target?.closest("input, textarea, select, [contenteditable=\"true\"]")) return;
       const act = Number(event.key);
       if (act >= 1 && act <= 4) { event.preventDefault(); onOpen(act); }
     }}>

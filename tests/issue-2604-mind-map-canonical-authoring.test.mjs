@@ -81,7 +81,7 @@ test("#2604 Mind Map directly edits canonical fields and removes the generic pro
   assert.match(surface, /value=\{fieldDrafts\[field\.canonicalId\] \?\? persisted\.value\}/u);
   assert.match(surface, /writeStoryDevelopmentFieldValue/u);
   assert.match(surface, />Save Changes<\/button>/u);
-  assert.match(surface, /field\.actionLabel/u);
+  assert.match(surface, /selectedField\.actionLabel/u);
   assert.match(surface, />Use Suggestion<\/button>/u);
   assert.doesNotMatch(surface, /Develop Agent Proposals|Developing Agent Proposals|Generate Selected|Build Topic/u);
 });

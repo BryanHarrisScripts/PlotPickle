@@ -12,6 +12,7 @@
 .topicRail,
 .topicToolbar,
 .fieldPager,
+.contextualActions,
 .fieldWorkspace {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
@@ -64,6 +65,7 @@
 .topicRail button,
 .topicToolbar button,
 .fieldPager button,
+.contextualActions button,
 .actRail button,
 .fieldActions button,
 .fieldProposal button {
@@ -110,6 +112,35 @@
 
 .fieldPager button {
   min-width: 2.75rem;
+}
+
+.contextualActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+}
+
+.contextualActions > div:first-child {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  min-width: 0;
+}
+
+.contextualActions small,
+.contextualActions code {
+  color: var(--pp-skin-ink-muted);
+}
+
+.contextualActions code {
+  overflow-wrap: anywhere;
+}
+
+.contextualActionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pp-skin-space-2);
 }
 
 .humanNotes {
@@ -202,6 +233,27 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-surface-2);
   padding: var(--pp-skin-space-3);
+}
+
+.fieldCard[data-selected-field="true"] {
+  border-color: var(--pp-skin-accent-bright);
+  box-shadow: inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-accent-bright);
+}
+
+.fieldCard[data-selected-field="true"] > header > div:first-child > strong {
+  color: var(--pp-skin-accent-bright);
+}
+
+.fieldStatus {
+  display: flex;
+  align-items: start;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pp-skin-space-2);
+}
+
+.fieldStatus > strong {
+  color: var(--pp-skin-accent-bright);
 }
 
 .fieldCard > header {
@@ -343,12 +395,14 @@
     grid-template-columns: 1fr;
   }
 
-  .topicToolbar {
+  .topicToolbar,
+  .contextualActions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .topicToolbarActions,
+  .contextualActionButtons,
   .humanNotes header {
     align-items: stretch;
     flex-direction: column;

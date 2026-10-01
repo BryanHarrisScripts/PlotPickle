@@ -53,7 +53,6 @@ import {
   VINEXT_NAVIGATION_SHIM,
   VINEXT_PACKAGE,
   VINEXT_PREFETCH_QUEUE_SHIM,
-  createPlotPickleViteLogger,
   installVinextRequestTimingOutputGuard,
   vinextRscOptimizationCompatibilityPlugin,
 } from "./build/startup/vite-compatibility";
@@ -94,7 +93,6 @@ export default defineConfig(async ({ command }) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    customLogger: command === "serve" ? createPlotPickleViteLogger() : undefined,
     define: {
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",

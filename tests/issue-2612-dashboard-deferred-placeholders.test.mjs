@@ -56,12 +56,13 @@ test("#2612 gray rows stay selectable but activation cannot leave Dashboard", as
   const guard = host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)");
   assert.ok(guard >= 0);
   for (const downstream of [
-    "const canonicalRoutes",
     'item.id === "screening"',
     'item.id === "sound-narration"',
+    'item.id === "story-bible"',
   ]) {
     assert.ok(guard < host.indexOf(downstream), `Gray guard must run before ${downstream}`);
   }
+  assert.doesNotMatch(host, /const canonicalRoutes|window\.location\.assign/u);
   assert.match(
     host,
     /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u,
@@ -69,22 +70,29 @@ test("#2612 gray rows stay selectable but activation cannot leave Dashboard", as
 });
 
 test("#2612 defers Dashboard entry without deleting underlying future implementations", async () => {
-  const [host, probe] = await Promise.all([
+  const [host, probe, write, edit, diagnostics, feedback, pitch, wyrmwood, story] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("lib/verification/browser-probes/continuity.mjs"),
+    read("app/write/page.tsx"),
+    read("app/edit/page.tsx"),
+    read("app/diagnostics/page.tsx"),
+    read("app/feedback/page.tsx"),
+    read("app/pitch-review/page.tsx"),
+    read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
+    read("app/story/page.tsx"),
   ]);
 
-  for (const route of [
-    'write: "/write"',
-    'edit: "/edit"',
-    'refine: "/diagnostics"',
-    'feedback: "/feedback"',
-    '"pitch-deck": "/pitch-review?scope=pitch&view=exports&return=dashboard"',
-    '"pitch-package": "/pitch-review?scope=pitch&view=package&return=dashboard"',
-    'wyrmwood: "/?workspace=wyrmwood"',
-    'story: "/story"',
-  ]) assert.ok(host.includes(route), `Underlying future route was removed: ${route}`);
+  for (const [label, source] of [
+    ["write", write],
+    ["edit", edit],
+    ["refine", diagnostics],
+    ["feedback", feedback],
+    ["pitch", pitch],
+    ["wyrmwood", wyrmwood],
+    ["story", story],
+  ]) assert.ok(source.trim().length > 0, `Underlying future implementation was removed: ${label}`);
 
+  assert.doesNotMatch(host, /canonicalRoutes|window\.location\.assign/u);
   assert.match(host, /<SkinV1SoundReviewSurface/u);
   assert.match(host, /<SkinV1ScreeningReviewSurface/u);
   for (const deferred of ["sound-foley", "sound-narration", "sound-music", "screening"]) {

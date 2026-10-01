@@ -53,10 +53,11 @@ function worldContext(project: LibraryPPFProject): readonly RelevantProjectConte
   }] : [];
 }
 
-function characterContext(project: LibraryPPFProject): readonly RelevantProjectContextItem[] {
+function characterContext(project: LibraryPPFProject, characterId?: string | null): readonly RelevantProjectContextItem[] {
   const claims = project.sourceEvidence.characterTruth?.claims ?? [];
   return claims
     .filter((claim) => claim.reviewState !== "rejected" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
+    .filter((claim) => !characterId || claim.characterIds.includes(characterId))
     .slice(0, 3)
     .map((claim) => ({
       id: `character-truth:${claim.id}`,
@@ -129,6 +130,7 @@ export function relevantProjectContextForField(
   project: LibraryPPFProject,
   field: StoryDevelopmentFieldDefinition,
   act: DiscoveryAct,
+  characterId?: string | null,
 ): readonly RelevantProjectContextItem[] {
   const exact = exactReferenceFixtureContext(project, field);
   if (exact.length) return exact;
@@ -139,7 +141,7 @@ export function relevantProjectContextForField(
     case "world":
       return worldContext(project);
     case "character":
-      return characterContext(project);
+      return characterContext(project, characterId);
     case "structure":
       return structureContext(project, act);
     case "drafting":

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- Character roster renders project-owned local/example media references. */
+
 import { useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import { type DiscoveryAct } from "../../core/contracts/discovery";
@@ -18,6 +20,7 @@ import {
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
+import { mindMapCharacterRoster } from "../../modules/learn/model/mind-map-character-roster";
 import {
   acceptStoryDevelopmentFieldProposal,
   storyDevelopmentFieldView,
@@ -52,7 +55,7 @@ function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: DiscoveryA
   return `ACT ${act}`;
 }
 
-function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct) {
+function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct, characterId?: string | null) {
   const blockNumbers = new Set(project.structure.blocks.filter((block) => block.actNumber === act).map((block) => block.number));
   return {
     project: { id: project.id, title: project.title, revision: project.revision },
@@ -86,6 +89,7 @@ function compactProjectContext(project: LibraryPPFProject, act: DiscoveryAct) {
       })),
     characterTruth: (project.sourceEvidence.characterTruth?.claims ?? [])
       .filter((claim) => claim.reviewState !== "rejected" && claim.handling === "writer-reference" && claim.kind !== "sensitive-source")
+      .filter((claim) => !characterId || claim.characterIds.includes(characterId))
       .slice(0, 36)
       .map((claim) => ({
         characters: claim.characterIds,
@@ -110,6 +114,7 @@ export default function DiscoverySurface({
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
   const [selectedFieldPage, setSelectedFieldPage] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(initialFieldId);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
@@ -119,6 +124,7 @@ export default function DiscoverySurface({
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
+  const characterRoster = useMemo(() => project ? mindMapCharacterRoster(project) : [], [project]);
 
   useEffect(() => {
     setSelectedAct(initialAct);
@@ -126,6 +132,15 @@ export default function DiscoverySurface({
     setSelectedFieldPage(1);
     setSelectedFieldId(initialFieldId);
   }, [initialAct, initialFieldId, initialTopic]);
+
+  useEffect(() => {
+    if (selectedTopic !== "character") return;
+    setSelectedCharacterId((current) => (
+      current && characterRoster.some((character) => character.id === current)
+        ? current
+        : characterRoster[0]?.id ?? null
+    ));
+  }, [characterRoster, selectedTopic]);
 
   useEffect(() => {
     let cancelled = false;
@@ -190,14 +205,17 @@ export default function DiscoverySurface({
     setProposalDrafts(Object.fromEntries(scopedFieldViews
       .map(([storageId, view]) => [storageId, view.proposal] as const)
       .filter(([, proposal]) => Boolean(proposal))));
-    const incomingNotes = Object.fromEntries(canonicalFields.map((field) => [
-      field.canonicalId,
-      mindMapFieldNote(project.mindMapNotes, field.canonicalId).text,
-    ]));
-    setNoteDrafts((current) => Object.fromEntries(canonicalFields.map((field) => {
-      const currentDraft = current[field.canonicalId];
-      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[field.canonicalId] ?? "");
-      return [field.canonicalId, wasDirty ? currentDraft : incomingNotes[field.canonicalId]];
+    const incomingNotes = Object.fromEntries([
+      ...Object.entries(project.mindMapNotes.fields).map(([key, note]) => [key, note.text] as const),
+      ...canonicalFields.map((field) => [
+        field.canonicalId,
+        mindMapFieldNote(project.mindMapNotes, field.canonicalId).text,
+      ] as const),
+    ]);
+    setNoteDrafts((current) => Object.fromEntries(Object.entries(incomingNotes).map(([key, incoming]) => {
+      const currentDraft = current[key];
+      const wasDirty = currentDraft !== undefined && currentDraft !== (savedNoteTexts[key] ?? "");
+      return [key, wasDirty ? currentDraft : incoming];
     })));
     setSavedNoteTexts(incomingNotes);
   }, [project?.id, project?.revision, canonicalFields]);
@@ -209,19 +227,28 @@ export default function DiscoverySurface({
   const selectedField = visibleCanonicalFields.find((field) => field.canonicalId === selectedFieldId)
     ?? visibleCanonicalFields[0]
     ?? null;
+  const selectedCharacter = characterRoster.find((character) => character.id === selectedCharacterId)
+    ?? characterRoster[0]
+    ?? null;
+  const activeCharacterId = selectedTopic === "character" ? selectedCharacter?.id ?? null : null;
   const selectedFieldContextCount = selectedCanonicalFields.reduce(
-    (total, field) => total + relevantProjectContextForField(project, field, selectedAct).length,
+    (total, field) => total + relevantProjectContextForField(project, field, selectedAct, field.topicId === "character" ? activeCharacterId : null).length,
     0,
   );
   const selectedTopicLabel = LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label ?? selectedTopic;
-  const persistedFieldNote = project && selectedField
-    ? mindMapFieldNote(project.mindMapNotes, selectedField.canonicalId)
+  const selectedFieldNoteKey = selectedField
+    ? selectedTopic === "character" && selectedCharacter
+      ? `${selectedField.canonicalId}::character-${selectedCharacter.id}`
+      : selectedField.canonicalId
+    : null;
+  const persistedFieldNote = project && selectedFieldNoteKey
+    ? mindMapFieldNote(project.mindMapNotes, selectedFieldNoteKey)
     : { text: "", updatedAt: null };
-  const selectedFieldNoteDraft = selectedField
-    ? noteDrafts[selectedField.canonicalId] ?? persistedFieldNote.text
+  const selectedFieldNoteDraft = selectedFieldNoteKey
+    ? noteDrafts[selectedFieldNoteKey] ?? persistedFieldNote.text
     : "";
-  const notesDirty = selectedField
-    ? selectedFieldNoteDraft !== (savedNoteTexts[selectedField.canonicalId] ?? persistedFieldNote.text)
+  const notesDirty = selectedFieldNoteKey
+    ? selectedFieldNoteDraft !== (savedNoteTexts[selectedFieldNoteKey] ?? persistedFieldNote.text)
     : false;
   const notesOwnerLabel = humanDisplayName ? `${humanDisplayName}’s Notes` : "My Notes";
 
@@ -279,10 +306,9 @@ export default function DiscoverySurface({
   }
 
   function saveSelectedFieldNotes() {
-    if (!project || !selectedField) return;
+    if (!project || !selectedField || !selectedFieldNoteKey) return;
     const now = new Date().toISOString();
     const text = selectedFieldNoteDraft.slice(0, 24_000);
-    const canonicalFieldId = selectedField.canonicalId;
     const next: LibraryPPFProject = {
       ...project,
       revision: project.revision + 1,
@@ -291,16 +317,17 @@ export default function DiscoverySurface({
         ...project.mindMapNotes,
         fields: {
           ...project.mindMapNotes.fields,
-          [canonicalFieldId]: { text, updatedAt: now },
+          [selectedFieldNoteKey]: { text, updatedAt: now },
         },
       },
     };
     const saved = persistCanonicalProject(next);
     if (!saved) return;
-    const savedNote = mindMapFieldNote(saved.mindMapNotes, canonicalFieldId);
-    setNoteDrafts((current) => ({ ...current, [canonicalFieldId]: savedNote.text }));
-    setSavedNoteTexts((current) => ({ ...current, [canonicalFieldId]: savedNote.text }));
-    setNotice(`${selectedField.lessonTitle} notes saved with this project.`);
+    const savedNote = mindMapFieldNote(saved.mindMapNotes, selectedFieldNoteKey);
+    setNoteDrafts((current) => ({ ...current, [selectedFieldNoteKey]: savedNote.text }));
+    setSavedNoteTexts((current) => ({ ...current, [selectedFieldNoteKey]: savedNote.text }));
+    const target = selectedTopic === "character" && selectedCharacter ? ` for ${selectedCharacter.name}` : "";
+    setNotice(`${selectedField.lessonTitle} notes${target} saved with this project.`);
   }
 
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
@@ -327,7 +354,10 @@ export default function DiscoverySurface({
               fieldId: field.fieldId,
               currentValue: fieldDrafts[storyDevelopmentFieldStorageId(field, selectedAct)]
                 ?? storyDevelopmentFieldView(project, field, selectedAct).value,
-              context: compactProjectContext(project, selectedAct),
+              characterTarget: field.topicId === "character" && selectedCharacter
+                ? { id: selectedCharacter.id, name: selectedCharacter.name }
+                : null,
+              context: compactProjectContext(project, selectedAct, field.topicId === "character" ? selectedCharacter?.id : null),
             }),
           ].join("\n\n"),
         }),
@@ -459,12 +489,79 @@ export default function DiscoverySurface({
         </nav>
       ) : null}
 
+      {selectedTopic === "character" ? (
+        <section className={styles.characterWorkspace} data-mind-map-character-workspace="true">
+          <header className={styles.characterWorkspaceHeader}>
+            <div>
+              <small>CANONICAL CHARACTER ROSTER</small>
+              <h3>Characters</h3>
+              <p>Roster identity comes from saved Character Truth. Visual history comes from the existing World Map character resource store.</p>
+            </div>
+            <span>{characterRoster.length} {characterRoster.length === 1 ? "CHARACTER" : "CHARACTERS"}</span>
+          </header>
+          {!characterRoster.length ? (
+            <p className={styles.emptyActFields} data-mind-map-character-roster-empty="true">No canonical characters are established for this project yet.</p>
+          ) : (
+            <div className={styles.characterRoster} data-mind-map-character-roster-count={characterRoster.length}>
+              {characterRoster.map((character) => (
+                <article
+                  className={styles.characterCard}
+                  data-mind-map-character-id={character.id}
+                  data-selected-character={selectedCharacter?.id === character.id ? "true" : "false"}
+                  key={character.id}
+                >
+                  <button
+                    type="button"
+                    className={styles.characterSelect}
+                    aria-pressed={selectedCharacter?.id === character.id}
+                    onClick={() => {
+                      setSelectedCharacterId(character.id);
+                      setNotesOpen(false);
+                      setNotice("");
+                    }}
+                  >
+                    {character.previewUrl ? <img src={character.previewUrl} alt={`${character.name} visual reference`} /> : <span className={styles.characterMissingVisual}>NO SAVED VISUAL</span>}
+                    <span>
+                      <strong>{character.name}</strong>
+                      <small>{character.id}</small>
+                      <small>{character.references.length} saved visual {character.references.length === 1 ? "reference" : "references"} · {character.visualVersions.length} {character.visualVersions.length === 1 ? "version" : "versions"}</small>
+                    </span>
+                    {selectedCharacter?.id === character.id ? <b>SELECTED</b> : null}
+                  </button>
+                  <details className={styles.characterVisualHistory}>
+                    <summary>Saved visual resources · {character.references.length}</summary>
+                    {!character.visualVersions.length ? <p>No saved/generated character visual resources yet.</p> : null}
+                    {character.visualVersions.map((version) => (
+                      <section data-character-visual-version={version.id} key={version.id}>
+                        <header>
+                          <strong>{version.locked ? "LOCKED" : "SAVED"} · {version.id}</strong>
+                          <span>{version.references.length} / 8 views · {version.complete ? "COMPLETE" : "INCOMPLETE"}</span>
+                        </header>
+                        <div className={styles.characterVisualGrid}>
+                          {version.references.map((reference) => (
+                            <figure data-character-visual-reference={reference.id} key={reference.id}>
+                              <img src={reference.assetUrl} alt={`${character.name} · ${reference.view}`} />
+                              <figcaption>{reference.view} · {reference.reviewState}</figcaption>
+                            </figure>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </details>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
+
       {selectedField ? (
         <section className={styles.contextualActions} data-mind-map-selected-field-actions={selectedField.canonicalId} aria-label="Selected Mind Map field actions">
           <div>
             <small>SELECTED FIELD</small>
             <strong>{selectedField.lessonTitle}</strong>
             <span data-selected-field-scope={selectedField.scope}>{fieldScopeLabel(selectedField, selectedAct)}</span>
+            {selectedTopic === "character" && selectedCharacter ? <span data-mind-map-character-target={selectedCharacter.id}>CHARACTER TARGET · {selectedCharacter.name}</span> : null}
             <code>{selectedField.canonicalId}</code>
           </div>
           <div className={styles.contextualActionButtons}>
@@ -475,7 +572,7 @@ export default function DiscoverySurface({
             <button
               type="button"
               aria-expanded={notesOpen}
-              data-mind-map-human-notes-toggle={selectedField.canonicalId}
+              data-mind-map-human-notes-toggle={selectedFieldNoteKey ?? selectedField.canonicalId}
               onClick={() => setNotesOpen((current) => !current)}
             >
               {notesOwnerLabel}
@@ -486,12 +583,13 @@ export default function DiscoverySurface({
       ) : null}
 
       {notesOpen && selectedField ? (
-        <section className={styles.humanNotes} data-mind-map-human-notes={selectedField.canonicalId} aria-label={`${selectedField.lessonTitle} Human notes`}>
+        <section className={styles.humanNotes} data-mind-map-human-notes={selectedFieldNoteKey ?? selectedField.canonicalId} aria-label={`${selectedField.lessonTitle} Human notes`}>
           <header>
             <div>
               <small>HUMAN WORKING NOTES · NON-CANON</small>
               <h3>{selectedField.lessonTitle} · {notesOwnerLabel}</h3>
-              <code>{selectedField.canonicalId}</code>
+              {selectedTopic === "character" && selectedCharacter ? <strong>CHARACTER TARGET · {selectedCharacter.name}</strong> : null}
+              <code>{selectedFieldNoteKey ?? selectedField.canonicalId}</code>
             </div>
             <span data-notes-save-state={notesDirty ? "unsaved" : "saved"}>{notesDirty ? "UNSAVED CHANGES" : "SAVED"}</span>
           </header>
@@ -499,7 +597,7 @@ export default function DiscoverySurface({
           <textarea
             rows={6}
             value={selectedFieldNoteDraft}
-            onChange={(event) => setNoteDrafts((current) => ({ ...current, [selectedField.canonicalId]: event.target.value }))}
+            onChange={(event) => selectedFieldNoteKey && setNoteDrafts((current) => ({ ...current, [selectedFieldNoteKey]: event.target.value }))}
             placeholder={`Write notes for ${selectedField.lessonTitle}…`}
           />
           <div className={styles.fieldActions}>
@@ -527,7 +625,12 @@ export default function DiscoverySurface({
             const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
             const persisted = storyDevelopmentFieldView(project, field, selectedAct);
             const proposal = proposalDrafts[storageId] ?? persisted.proposal;
-            const relevantContext = relevantProjectContextForField(project, field, selectedAct);
+            const relevantContext = relevantProjectContextForField(
+              project,
+              field,
+              selectedAct,
+              field.topicId === "character" ? selectedCharacter?.id : null,
+            );
             return (
               <article
                 className={styles.fieldCard}

@@ -36,7 +36,7 @@ test("#2644 one shared action bar targets Save, Agent, Human Notes and exact Lea
   assert.match(surface, /<strong>\{selectedField\.lessonTitle\}<\/strong>/u);
   assert.match(surface, /saveCanonicalField\(selectedField\)/u);
   assert.match(surface, /createCanonicalFieldProposal\(selectedField\)/u);
-  assert.match(surface, /data-mind-map-human-notes-toggle=\{selectedField\.canonicalId\}/u);
+  assert.match(surface, /data-mind-map-human-notes-toggle=\{selectedFieldNoteKey \?\? selectedField\.canonicalId\}/u);
   assert.match(surface, /learnLessonHref\(selectedField\.topicId, selectedField\.lessonId\)/u);
 
   const gridStart = surface.indexOf('<div className={styles.fieldGrid}>');
@@ -46,7 +46,7 @@ test("#2644 one shared action bar targets Save, Agent, Human Notes and exact Lea
   assert.doesNotMatch(grid, /createCanonicalFieldProposal\(field\)/u);
 });
 
-test("#2644 Human Notes extend the same project-owned notes store by canonical field ID", async () => {
+test("#2644/#2646 Human Notes remain in the same project-owned notes store with selected-field or Character-qualified keys", async () => {
   const [surface, storage] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("core/storage/library-project.ts"),
@@ -57,10 +57,10 @@ test("#2644 Human Notes extend the same project-owned notes store by canonical f
   assert.match(storage, /fields: normalizeNotes\(source\.fields, 2_000\)/u);
   assert.match(storage, /mindMapFieldNote\(state: MindMapNotesState, canonicalFieldId: string\)/u);
 
-  assert.match(surface, /const canonicalFieldId = selectedField\.canonicalId/u);
+  assert.match(surface, /const selectedFieldNoteKey = selectedField/u);
   assert.match(surface, /\.\.\.project\.mindMapNotes\.fields/u);
-  assert.match(surface, /\[canonicalFieldId\]: \{ text, updatedAt: now \}/u);
-  assert.match(surface, /data-mind-map-human-notes=\{selectedField\.canonicalId\}/u);
+  assert.match(surface, /\[selectedFieldNoteKey\]: \{ text, updatedAt: now \}/u);
+  assert.match(surface, /data-mind-map-human-notes=\{selectedFieldNoteKey \?\? selectedField\.canonicalId\}/u);
   assert.match(surface, /Private working notes for the selected field/u);
 });
 

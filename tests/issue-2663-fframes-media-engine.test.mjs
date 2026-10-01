@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const contract = await readFile(new URL("../core/contracts/media-engine.ts", import.meta.url), "utf8");
+const contract = await readFile(new URL("../core/media/media-engine-contract.ts", import.meta.url), "utf8");
 const adapter = await readFile(new URL("../core/media/fframes-local-media-engine.ts", import.meta.url), "utf8");
 const cargo = await readFile(new URL("../tools/fframes-bridge/Cargo.toml", import.meta.url), "utf8");
 const bridge = await readFile(new URL("../tools/fframes-bridge/src/main.rs", import.meta.url), "utf8");

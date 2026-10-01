@@ -100,7 +100,9 @@ function LockedNodeShutdown() {
       const message = cause instanceof Error ? cause.message : String(cause);
       if (shutdownToken) {
         try { await lockedNodeAction("block-shutdown", { shutdownToken, message }); }
-        catch { /* Preserve the original shutdown error for the Human. */ }
+        catch (blockError) {
+          console.warn("PlotPickle could not record the blocked locked-gate shutdown state.", blockError);
+        }
       }
       setError(message);
       setBusy(false);

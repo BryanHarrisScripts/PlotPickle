@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { loadFoundationProject } from "../../core/storage/foundation-project-browser";
 import { hydratedStoryMapContext, persistStoryMapContext } from "../../core/storage/profile-private-browser";
 import { loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
@@ -50,6 +50,14 @@ function initialReviewAddress(): PreproductionReviewAddress {
 
 type BuildReturnTarget = "outline" | "storyboard" | "previs";
 type PreproductionStage = "outline" | "storyboard" | "previs" | "timeline" | "production";
+type MatrixLearnRequest = Readonly<{
+  requestId: number;
+  projectId: string;
+  topicId: LearnTopicSpineId;
+  lessonId: string | null;
+  act: StoryDevelopmentAct;
+  sourceSurface: "world-map" | "mind-map";
+}>;
 
 function StoryActRail({ activeAct, onOpen }: { readonly activeAct: number; readonly onOpen: (act: number) => void }) {
   return (
@@ -104,6 +112,8 @@ export default function DashboardBbsReviewHost({
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
   const [dashboardGeneration, setDashboardGeneration] = useState(0);
+  const [learnRequest, setLearnRequest] = useState<MatrixLearnRequest | null>(null);
+  const learnRequestSequence = useRef(0);
 
   function closePreproductionSurfaces() {
     setOutlineOpen(false);
@@ -152,6 +162,7 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
+      setLearnRequest(null);
       setScreeningOpen(false);
       setSoundOpen(null);
       setDiscoveryOpen(false);
@@ -186,6 +197,36 @@ export default function DashboardBbsReviewHost({
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
   }, [discoveryOpen]);
+
+  function openContextualLearn(
+    topicId: LearnTopicSpineId,
+    lessonId: string | null,
+    act: StoryDevelopmentAct,
+    sourceSurface: "world-map" | "mind-map",
+  ) {
+    const projectId = loadActiveLibraryProject().id;
+    setLibraryOpen(false);
+    setScreeningOpen(false);
+    setSoundOpen(null);
+    setDiscoveryOpen(false);
+    setDiscoveryProject(null);
+    setStoryBibleOpen(false);
+    setStoryBibleProject(null);
+    closePreproductionSurfaces();
+    setOpenSourceOpen(false);
+    setHelpIssueLogOpen(false);
+    setShutdownOpen(false);
+    learnRequestSequence.current += 1;
+    setLearnRequest({
+      requestId: learnRequestSequence.current,
+      projectId,
+      topicId,
+      lessonId,
+      act,
+      sourceSurface,
+    });
+    onSurfaceNameChange("LEARN");
+  }
 
   function openMindMapField(topic: LearnTopicSpineId, canonicalFieldId: string, act: StoryDevelopmentAct) {
     setStoryBibleOpen(false);
@@ -337,22 +378,6 @@ export default function DashboardBbsReviewHost({
     if (DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)) {
       onActivate(index);
       onSurfaceNameChange("DASHBOARD");
-      return;
-    }
-    const canonicalRoutes: Readonly<Record<string, string>> = {
-      write: "/write",
-      edit: "/edit",
-      refine: "/diagnostics",
-      feedback: "/feedback",
-      "pitch-deck": "/pitch-review?scope=pitch&view=exports&return=dashboard",
-      "pitch-package": "/pitch-review?scope=pitch&view=package&return=dashboard",
-      wyrmwood: "/?workspace=wyrmwood",
-      story: "/story",
-    };
-    const canonicalRoute = canonicalRoutes[item.id];
-    if (canonicalRoute) {
-      onActivate(index);
-      window.location.assign(canonicalRoute);
       return;
     }
     if (item.id === "screening") {
@@ -520,6 +545,7 @@ export default function DashboardBbsReviewHost({
           initialTopic={discoveryInitialTopic}
           initialFieldId={discoveryInitialFieldId}
           initialAct={discoveryInitialAct}
+          onOpenLearn={(topic, lessonId, act) => openContextualLearn(topic, lessonId, act, "mind-map")}
         />
       </section>
     );
@@ -554,7 +580,11 @@ export default function DashboardBbsReviewHost({
             }}
           >Back to Dashboard</button>
         </div>
-        <StoryBibleSurface project={storyBibleProject} onEditField={openMindMapField} />
+        <StoryBibleSurface
+          project={storyBibleProject}
+          onEditField={openMindMapField}
+          onOpenLearn={(topic, lessonId, act) => openContextualLearn(topic, lessonId, act, "world-map")}
+        />
       </section>
     );
   }
@@ -803,6 +833,12 @@ export default function DashboardBbsReviewHost({
         onSurfaceNameChange={onSurfaceNameChange}
         setItemRef={setItemRef}
         notice={dashboardNotice}
+        learnRequest={learnRequest ? {
+          requestId: learnRequest.requestId,
+          topicId: learnRequest.topicId,
+          lessonId: learnRequest.lessonId,
+        } : null}
+        onLearnRequestConsumed={() => setLearnRequest(null)}
       />
     </div>
   );

@@ -10,7 +10,6 @@ import {
 } from "../../modules/learn/model/story-learning-context";
 import {
   buildStoryDevelopmentFields,
-  storyDevelopmentFieldAppliesToAct,
   storyDevelopmentFieldPageCount,
   storyDevelopmentFieldPageForId,
   storyDevelopmentFieldStorageId,
@@ -148,7 +147,7 @@ export default function DiscoverySurface({
     if (!initialFieldId || selectedTopic !== initialTopic) return;
     const topicFields = canonicalFields.filter((field) => field.topicId === selectedTopic);
     const initialField = topicFields.find((field) => field.canonicalId === initialFieldId);
-    if (initialField && !storyDevelopmentFieldAppliesToAct(initialField, selectedAct)) {
+    if (initialField && !initialField.validActs.includes(selectedAct)) {
       const firstValidAct = initialField.validActs[0];
       if (firstValidAct !== undefined && firstValidAct !== selectedAct) {
         setSelectedAct(firstValidAct);
@@ -179,7 +178,7 @@ export default function DiscoverySurface({
       return;
     }
     const scopedFieldViews = canonicalFields.flatMap((field) => MIND_MAP_ACTS
-      .filter((act) => storyDevelopmentFieldAppliesToAct(field, act))
+      .filter((act) => field.validActs.includes(act))
       .map((act) => {
         const storageId = storyDevelopmentFieldStorageId(field, act);
         return [storageId, storyDevelopmentFieldView(project, field, act)] as const;

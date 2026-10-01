@@ -62,7 +62,7 @@ test("#2557/#2604 MindMap keeps legacy elements and adds canonical Learn-backed 
   assert.match(surface, /Open in Learn/u);
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
   assert.match(surface, /field\.actionLabel/u);
-  assert.match(surface, /Use Proposal/u);
+  assert.match(surface, /Use Suggestion/u);
   assert.doesNotMatch(surface, /Build Topic|Develop Agent Proposals/u);
   assert.match(surface, /12 LEARN TOPICS/u);
   assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);

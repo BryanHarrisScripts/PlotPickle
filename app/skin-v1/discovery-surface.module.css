@@ -67,6 +67,9 @@
 .topicToolbar button,
 .fieldPager button,
 .contextualActions button,
+.characterCreate button,
+.characterGeneration button,
+.characterVisualHistory button,
 .actRail button,
 .fieldActions button,
 .fieldProposal button {
@@ -167,6 +170,63 @@
 .characterWorkspaceHeader small,
 .characterWorkspaceHeader > span {
   color: var(--pp-skin-ink-muted);
+}
+
+.characterCreate,
+.characterGeneration {
+  display: flex;
+  align-items: end;
+  gap: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-2);
+  padding: var(--pp-skin-space-3);
+}
+
+.characterCreate label,
+.characterGeneration label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  flex: 1 1 16rem;
+}
+
+.characterCreate label > span,
+.characterGeneration label > span,
+.characterGeneration small,
+.characterGeneration p {
+  color: var(--pp-skin-ink-muted);
+}
+
+.characterCreate input,
+.characterGeneration select {
+  width: 100%;
+  box-sizing: border-box;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+}
+
+.characterGeneration {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.characterGeneration > div {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  flex: 2 1 24rem;
+}
+
+.characterGeneration p {
+  margin: 0;
+}
+
+.characterVisualHistory button:disabled,
+.characterGeneration button:disabled,
+.characterCreate button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .characterRoster {
@@ -546,7 +606,9 @@
 
   .topicToolbar,
   .contextualActions,
-  .characterWorkspaceHeader {
+  .characterWorkspaceHeader,
+  .characterCreate,
+  .characterGeneration {
     align-items: stretch;
     flex-direction: column;
   }

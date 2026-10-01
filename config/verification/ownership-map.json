@@ -1603,7 +1603,8 @@
         "modules/learn/model/story-development-fields.ts",
         "core/contracts/curriculum.ts",
         "core/contracts/foundation-plan.ts",
-        "core/contracts/world-plan/index.ts"
+        "core/contracts/world-plan/index.ts",
+        "modules/learn/model/relevant-project-context.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

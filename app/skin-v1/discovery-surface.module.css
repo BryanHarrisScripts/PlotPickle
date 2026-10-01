@@ -8,12 +8,9 @@
 }
 
 .summary,
-.inbox,
-.board,
 .actRail,
 .topicRail,
 .topicToolbar,
-.developAction,
 .fieldWorkspace {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
@@ -28,15 +25,11 @@
 }
 
 .summary p,
-.card p,
-.inbox > p,
-.empty,
 .notice {
   margin: 0;
 }
 
-.summary small,
-.card small {
+.summary small {
   color: var(--pp-skin-ink-muted);
 }
 
@@ -70,10 +63,6 @@
 .topicRail button,
 .topicToolbar button,
 .actRail button,
-.developAction button,
-.actions button,
-.card button,
-.deleteConfirm button,
 .fieldActions button,
 .fieldProposal button {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
@@ -108,7 +97,6 @@
 .topicToolbar strong {
   color: var(--pp-skin-accent-bright);
 }
-
 
 .humanNotes {
   display: grid;
@@ -253,100 +241,6 @@
   padding-left: var(--pp-skin-space-3);
 }
 
-.composer {
-  display: grid;
-  gap: var(--pp-skin-space-3);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid #c3a72a;
-  background: #f2d96b;
-  color: #17160f;
-  padding: var(--pp-skin-space-4);
-  box-shadow: 0 8px 18px rgb(0 0 0 / 18%);
-}
-
-.composer::before {
-  content: "Sticky Note";
-  grid-column: 1 / -1;
-  width: fit-content;
-  border-bottom: 1px solid #7c6b20;
-  color: #5d542b;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.composer label {
-  display: grid;
-  gap: var(--pp-skin-space-2);
-  color: #17160f;
-}
-
-.composer .ideaField {
-  grid-column: 1 / -1;
-}
-
-.composer textarea,
-.composer select,
-.assignLane select {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #7c6b20;
-  background: #fff3a6;
-  color: #17160f;
-  font: inherit;
-  padding: var(--pp-skin-space-2);
-}
-
-.composer textarea::placeholder {
-  color: #5d542b;
-}
-
-.composer .actions button {
-  background: #2b2815;
-  border-color: #2b2815;
-  color: #fff8cc;
-}
-
-.actions,
-.cardActions,
-.deleteConfirm {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--pp-skin-space-2);
-}
-
-.actions {
-  grid-column: 1 / -1;
-}
-
-.developAction {
-  display: grid;
-  gap: var(--pp-skin-space-3);
-  justify-items: start;
-}
-
-.proposalPicker {
-  display: grid;
-  width: min(100%, 900px);
-  gap: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-surface-2);
-  padding: var(--pp-skin-space-3);
-}
-
-.laneChoices {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--pp-skin-space-2);
-}
-
-.laneChoices label {
-  display: flex;
-  gap: var(--pp-skin-space-2);
-  align-items: center;
-}
-
 .fieldContext {
   display: grid;
   gap: var(--pp-skin-space-3);
@@ -409,101 +303,6 @@
   overflow-wrap: anywhere;
 }
 
-.laneGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--pp-skin-space-3);
-  margin-top: var(--pp-skin-space-3);
-}
-
-.lanePanel {
-  min-width: 0;
-  min-height: 220px;
-  display: grid;
-  align-content: start;
-  gap: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-  background: var(--pp-skin-surface-1);
-  padding: var(--pp-skin-space-3);
-}
-
-.laneHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--pp-skin-space-3);
-  padding-bottom: var(--pp-skin-space-2);
-  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-}
-
-.laneHeader h4 {
-  margin: 0;
-  color: var(--pp-skin-accent-bright);
-}
-
-.laneHeader span {
-  color: var(--pp-skin-ink-muted);
-  white-space: nowrap;
-}
-
-.laneCards {
-  display: grid;
-  gap: var(--pp-skin-space-2);
-}
-
-.card {
-  display: grid;
-  gap: var(--pp-skin-space-2);
-  min-width: 0;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-surface-2);
-  padding: var(--pp-skin-space-3);
-}
-
-.card[data-source-state="new-local"] {
-  border-color: var(--pp-skin-accent-bright);
-  box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-accent);
-}
-
-.card[data-source-state="agent-proposal"] {
-  border-color: var(--pp-skin-warning);
-  box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-warning);
-}
-
-.card[data-source-state="agent-proposal"] > p {
-  white-space: pre-line;
-  line-height: 1.6;
-  max-width: 78ch;
-}
-
-.card[data-locked="true"] {
-  outline: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
-  outline-offset: 2px;
-}
-
-.status {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
-  background: var(--pp-skin-accent-deep);
-  padding: 2px var(--pp-skin-space-2);
-  white-space: nowrap;
-}
-
-.assignLane {
-  display: grid;
-  gap: var(--pp-skin-space-2);
-}
-
-.visualRef {
-  overflow-wrap: anywhere;
-  color: var(--pp-skin-accent-bright);
-}
-
-.deleteConfirm {
-  align-items: center;
-  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-warning);
-  padding-left: var(--pp-skin-space-3);
-}
-
 .notice {
   border-left: var(--pp-skin-border-strong) solid var(--pp-skin-accent-bright);
   padding-left: var(--pp-skin-space-3);
@@ -519,17 +318,6 @@
     justify-content: flex-start;
   }
 
-  .composer {
-    grid-template-columns: 1fr;
-  }
-
-  .composer::before,
-  .composer .ideaField,
-  .actions {
-    grid-column: 1;
-  }
-
-  .laneChoices,
   .topicRail {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -537,8 +325,7 @@
 
 @media (max-width: 620px) {
   .actRail,
-  .topicRail,
-  .laneChoices {
+  .topicRail {
     grid-template-columns: 1fr;
   }
 

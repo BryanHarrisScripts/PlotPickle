@@ -48,7 +48,8 @@
           "tests/issue-2627-skin-v1-locked-shutdown.test.mjs",
           "tests/issue-2629-mind-map-field-language.test.mjs",
           "tests/issue-2630-mind-map-human-notes.test.mjs",
-          "tests/issue-2631-field-scoped-project-context.test.mjs"
+          "tests/issue-2631-field-scoped-project-context.test.mjs",
+          "tests/issue-2632-retire-legacy-mindmap-board.test.mjs"
         ]
       },
       "cost": "fast",
@@ -597,7 +598,8 @@
           "tests/issue-2606-canonical-project-outline-projection.test.mjs",
           "tests/issue-2629-mind-map-field-language.test.mjs",
           "tests/issue-2630-mind-map-human-notes.test.mjs",
-          "tests/issue-2631-field-scoped-project-context.test.mjs"
+          "tests/issue-2631-field-scoped-project-context.test.mjs",
+          "tests/issue-2632-retire-legacy-mindmap-board.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1893,6 +1895,53 @@
         ]
       },
       "notes": "#2625 verifies that Unload preserves the durable story while clearing only the current-session selection, writes a null active-project index, returns to Blank without a #2621 handoff, and leaves explicit Open Example behavior intact."
+    },
+    {
+      "id": "story-canon.mind-map-retirement-2632",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "mind-map-canonical-authoring",
+        "legacy-discovery-compatibility",
+        "project-library"
+      ],
+      "triggerTokens": [
+        "canon",
+        "storage",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+          "tests/issue-2625-library-unload-active-story.test.mjs",
+          "tests/issue-2621-library-active-handoff.test.mjs",
+          "tests/issue-2581-startup-isolation.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2632 retires the legacy sticky-note/Living MindMap UI while preserving historical discovery-card storage and re-verifying Blank, explicit-open and unload lifecycle continuity."
     }
   ]
 }

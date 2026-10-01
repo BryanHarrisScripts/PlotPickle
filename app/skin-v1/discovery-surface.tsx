@@ -45,6 +45,7 @@ import {
   saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
+import { handleStoryActShortcut, StoryActRail } from "./story-act-rail";
 import styles from "./discovery-surface.module.css";
 
 type AgentResponse = {
@@ -65,14 +66,6 @@ type ProfileStatus = {
   readonly profile?: { readonly displayName?: string } | null;
 };
 
-
-const MIND_MAP_ACTS: readonly DiscoveryAct[] = [1, 2, 3, 4];
-
-function isEditableActShortcutTarget(target: EventTarget | null) {
-  const element = target instanceof HTMLElement ? target : null;
-  if (!element) return false;
-  return element.isContentEditable || Boolean(element.closest("input, textarea, select, [contenteditable=\"true\"]"));
-}
 
 function fieldScopeLabel(field: StoryDevelopmentFieldDefinition, act: DiscoveryAct) {
   if (field.scope === "project-wide") return "PROJECT-WIDE";
@@ -577,7 +570,9 @@ export default function DiscoverySurface({
   if (!project) {
     return (
       <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true">
-        <section className={styles.summary}>
+        <StoryActRail activeAct={selectedAct} ariaLabel="Mind Map acts" onOpen={changeAct} />
+
+      <section className={styles.summary}>
           <div>
             <h2>MindMap</h2>
             <p>Load or create a story to author canonical story-development fields and Human Notes.</p>
@@ -590,13 +585,7 @@ export default function DiscoverySurface({
   }
 
   return (
-    <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic} onKeyDown={(event) => {
-      if (isEditableActShortcutTarget(event.target)) return;
-      const act = Number(event.key) as DiscoveryAct;
-      if (!MIND_MAP_ACTS.includes(act)) return;
-      event.preventDefault();
-      changeAct(act);
-    }}>
+    <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic} onKeyDown={(event) => handleStoryActShortcut(event, changeAct)}>
       <section className={styles.summary}>
         <div>
           <small>MindMap · ACT {selectedAct} · CANONICAL AUTHORING</small>
@@ -609,21 +598,6 @@ export default function DiscoverySurface({
           <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedFieldNote.text ? "SAVED" : "EMPTY"}</strong></span>
         </div>
       </section>
-
-      <nav className={styles.actRail} aria-label="MindMap acts">
-        {MIND_MAP_ACTS.map((act) => (
-          <button
-            type="button"
-            key={act}
-            aria-current={selectedAct === act ? "page" : undefined}
-            aria-keyshortcuts={String(act)}
-            data-mind-map-act-choice={act}
-            onClick={() => changeAct(act)}
-          >
-            Act {act}
-          </button>
-        ))}
-      </nav>
 
       <nav className={styles.topicRail} aria-label="MindMap Learn topics">
         {LEARN_TOPIC_SPINE.map((topic) => (

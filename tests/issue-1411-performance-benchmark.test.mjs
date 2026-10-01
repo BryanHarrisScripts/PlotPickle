@@ -220,8 +220,10 @@ test("#2654 startup evidence breaks cold boot into actionable phase durations an
     firstValidHttpToUsableWorkspaceMs: 60,
     totalToUsableWorkspaceMs: 260,
   });
+  assert.match(source, /fetch\(`\$\{baseUrl\}\/skin-v1`/);
+  assert.match(source, /skin-v1\?workspace=dashboard/);
   assert.match(source, /"X-PlotPickle-Startup-Probe": "warmup"/);
-  assert.match(source, /warmupPurpose: "intentional first root render/);
+  assert.match(source, /warmupPurpose: "intentional first \/skin-v1 render/);
   assert.match(source, /livenessPurpose: "post-browser PowerShell probes are answered with HTTP 204/);
   assert.match(source, /phaseDurations: startupPhaseDurations\(phases\)/);
 });

@@ -1853,7 +1853,7 @@
           ".artifacts/verification-shadow/production-harness.comparison.json"
         ]
       },
-      "notes": "#2621 preserves Blank-at-launch while allowing a fresh one-shot explicit Library selection to survive the immediate authenticated profile hydration reload and expose the already-packaged Afterglow story/resources to downstream surfaces."
+      "notes": "#2621 preserves Blank-at-launch with a fresh one-shot explicit Library handoff for document-level compatibility navigation. #2657 makes canonical /skin-v1 Library navigation in-shell so ordinary Matrix transitions no longer need that handoff or profile rehydration."
     },
     {
       "id": "story-canon.library-unload-active-story-2625",
@@ -1947,6 +1947,52 @@
         ]
       },
       "notes": "#2632 retires the legacy sticky-note/Living MindMap UI while preserving historical discovery-card storage and re-verifying Blank, explicit-open and unload lifecycle continuity."
+    },
+    {
+      "id": "experience.matrix-navigation-continuity-2657",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness",
+        "library-session-selection"
+      ],
+      "triggerTokens": [
+        "navigation",
+        "surface",
+        "skin",
+        "storage",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2657-matrix-navigation-continuity.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2657 makes available non-terminal Dashboard navigation in-shell, keeps active story identity stable through Library/World Map/Mind Map/Learn transitions, and reserves project handoff plus document reload for legacy compatibility boundaries only."
     }
   ]
 }

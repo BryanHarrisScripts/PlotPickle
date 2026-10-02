@@ -41,6 +41,14 @@ test("#2694 sidecar supervisor can record bounded unavailable evidence without t
   assert.equal(supervisor.status("pi-durable").evidence[0].kind, "not-installed");
 });
 
+test("#2694 normal launcher starts the supervisor asynchronously without making it a Vite prerequisite", async () => {
+  const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
+  assert.match(launcher, /call :open_when_ready[\s\S]*call :start_runtime_sidecar_supervisor[\s\S]*call :start_deferred_companion_maintenance/);
+  assert.match(launcher, /start "" \/b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"/);
+  assert.match(launcher, /Runtime sidecars will initialize asynchronously after core readiness|Governed runtime sidecars will initialize asynchronously after core readiness/);
+  assert.ok(launcher.indexOf('call :start_runtime_sidecar_supervisor') < launcher.lastIndexOf('call "%VITE_CMD%"'));
+});
+
 test("#2694 status evidence separates product core from sidecar convergence", () => {
   const document = runtimeStatusDocument({
     supervisor: { state: "starting", pid: 10 },

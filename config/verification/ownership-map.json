@@ -1794,13 +1794,17 @@
       "id": "local-development-sidecars",
       "classification": "production",
       "include": [
-        "core/sidecars/**"
+        "core/sidecars/**",
+        "config/runtime-sidecars.json",
+        "scripts/runtime-sidecar-supervisor.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [
         "cli",
         "provider",
-        "security"
+        "security",
+        "windows",
+        "native"
       ]
     },
     {

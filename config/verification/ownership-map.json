@@ -1802,6 +1802,23 @@
         "provider",
         "security"
       ]
+    },
+    {
+      "id": "pi-durable-adapter",
+      "classification": "production",
+      "include": [
+        "core/sidecars/durable-execution-contract.mjs",
+        "core/sidecars/pi-durable-adapter.mjs",
+        "config/pi-durable-adapter.json",
+        "docs/architecture/PI-DURABLE-ADAPTER.md"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "provider",
+        "security",
+        "windows",
+        "native"
+      ]
     }
   ]
 }

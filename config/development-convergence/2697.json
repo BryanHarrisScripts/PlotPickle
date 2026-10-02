@@ -22,7 +22,8 @@
     "tsconfig.json",
     "core/media/screening-media-evidence.ts",
     "app/_components/previs/previs-readiness-workspace.tsx",
-    "config/verification/test-catalog.json"
+    "config/verification/test-catalog.json",
+    "scripts/verification-shadow.mjs"
   ],
   "acceptance": [
     {

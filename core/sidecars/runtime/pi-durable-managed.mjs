@@ -29,15 +29,15 @@ async function exists(file) {
   return access(file).then(() => true, () => false);
 }
 
-export async function inspectManagedPiDurable(home) {
+export async function inspectManagedPiDurable(home, { nodeVersion = process.versions.node } = {}) {
   const root = managedPiDurableRoot(home);
   const manifestPath = path.join(root, "node_modules", "@earendil-works", "pi-durable", "package.json");
-  if (!nodeSupportsPiDurable()) {
+  if (!nodeSupportsPiDurable(nodeVersion)) {
     return Object.freeze({
       ready: false,
       root,
       version: "",
-      reason: `Node ${process.versions.node} is below Pi Durable's supported minimum ${MANAGED_PI_DURABLE_MINIMUM_NODE}.`,
+      reason: `Node ${nodeVersion} is below Pi Durable's supported minimum ${MANAGED_PI_DURABLE_MINIMUM_NODE}.`,
     });
   }
   if (!await exists(manifestPath)) {
@@ -57,10 +57,11 @@ export async function inspectManagedPiDurable(home) {
 export async function ensureManagedPiDurable(home, {
   install = null,
   allowInstall = true,
+  nodeVersion = process.versions.node,
 } = {}) {
-  let inspection = await inspectManagedPiDurable(home);
+  let inspection = await inspectManagedPiDurable(home, { nodeVersion });
   if (inspection.ready) return inspection;
-  if (!nodeSupportsPiDurable()) throw new Error(inspection.reason);
+  if (!nodeSupportsPiDurable(nodeVersion)) throw new Error(inspection.reason);
   if (!allowInstall) throw new Error(`Pi Durable is not ready and managed installation is disabled: ${inspection.reason}`);
   if (typeof install !== "function") throw new Error("Pi Durable managed installation requires the reviewed npm installer callback.");
 
@@ -77,7 +78,7 @@ export async function ensureManagedPiDurable(home, {
     root,
     packageSpec: `${MANAGED_PI_DURABLE_PACKAGE}@${MANAGED_PI_DURABLE_VERSION}`,
   });
-  inspection = await inspectManagedPiDurable(home);
+  inspection = await inspectManagedPiDurable(home, { nodeVersion });
   if (!inspection.ready) throw new Error(`Managed Pi Durable installation did not validate: ${inspection.reason}`);
   return inspection;
 }

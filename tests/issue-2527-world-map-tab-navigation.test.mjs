@@ -4,15 +4,18 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2527/#2605 World Map uses the shared twelve-topic spine", async () => {
-  const source = await read("app/skin-v1/story-bible-surface.tsx");
-  assert.match(source, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
+test("#2527/#2605/#2667 World Map uses the shared twelve-topic spine", async () => {
+  const [source, sharedHeader] = await Promise.all([
+    read("app/skin-v1/story-bible-surface.tsx"),
+    read("app/skin-v1/story-development-surface-header.tsx"),
+  ]);
   assert.match(source, /useState<LearnTopicSpineId>\("foundations"\)/u);
-  assert.match(source, /aria-label="World Map Learn topics"/u);
-  assert.match(source, /role="tablist"/u);
-  assert.match(source, /role="tab"/u);
-  assert.match(source, /ArrowLeft/u);
-  assert.match(source, /ArrowRight/u);
+  assert.match(source, /<StoryDevelopmentSurfaceHeader/u);
+  assert.match(sharedHeader, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
+  assert.match(sharedHeader, /role="tablist"/u);
+  assert.match(sharedHeader, /role="tab"/u);
+  assert.match(sharedHeader, /ArrowLeft/u);
+  assert.match(sharedHeader, /ArrowRight/u);
 });
 
 test("#2527/#2605 renders one active canonical topic panel instead of a separate World Map field model", async () => {

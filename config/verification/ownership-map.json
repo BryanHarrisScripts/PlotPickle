@@ -1820,6 +1820,21 @@
         "windows",
         "native"
       ]
+    },
+    {
+      "id": "chatgpt-mcp-gateway",
+      "classification": "production",
+      "include": [
+        "core/sidecars/chatgpt-mcp-gateway-contract.mjs",
+        "config/chatgpt-mcp-gateway-evaluation.json",
+        "docs/architecture/CHATGPT-MCP-GATEWAY.md"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "mcp",
+        "security",
+        "provider"
+      ]
     }
   ]
 }

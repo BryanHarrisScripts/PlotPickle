@@ -1149,7 +1149,8 @@
         "targets": [
           "tests/issue-1938-verification-core.test.mjs",
           "tests/issue-2348-verification-routing.test.mjs",
-          "tests/issue-2697-ben-line-shift.test.mjs"
+          "tests/issue-2697-ben-line-shift.test.mjs",
+          "tests/issue-2707-agent-durability-audit.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1997,6 +1998,90 @@
         ]
       },
       "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape."
+    },
+    {
+      "id": "production.agent-checkpoint-contract-2709",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "agent",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2709-agent-checkpoint-task.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "Host-scoped durable agent checkpoint contract; actual JSONL recovery is proven separately in the Windows Pi product gate."
+    },
+    {
+      "id": "story-canon.outline-durable-input-2711",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "agent",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2711-outline-durable-input.test.mjs",
+          "tests/issue-outline-agent-assessment.test.mjs",
+          "tests/issue-2440-story-architect-structured-execution.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json"
+        ]
+      },
+      "notes": "Story Architect shared bounded request and material identity. Actual Mastra cancellation/usage fixture runs separately in the Windows Product Gate; application resume remains unproven."
     }
   ]
 }

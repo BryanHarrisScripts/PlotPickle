@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 2711,
+  "phase": "story-architect-worker-input",
+  "brief": "docs/developer-briefs/2711-story-architect-durable-review.md",
+  "allowedChanges": [
+    "modules/plan/outline-agent-assessment.ts",
+    "build/mastra-agent-runtime.ts",
+    "scripts/pi/durable/story-architect-proof.mjs",
+    "tests/issue-2711-outline-durable-input.test.mjs",
+    "docs/developer-briefs/2711-story-architect-durable-review.md",
+    "config/development-convergence/2711-story-architect-worker-input.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml"
+  ],
+  "acceptance": [
+    {
+      "id": "I1",
+      "criterion": "Browser and future host share one bounded request builder; existing evidence validation remains authoritative.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/plan/outline-agent-assessment.ts",
+          "contains": "const payload = buildOutlineAgentAssessmentRequest(project, blockNumber);"
+        }
+      ]
+    },
+    {
+      "id": "I2",
+      "criterion": "Strong project material identity excludes only Outline advisory collections and top-level revision bookkeeping.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/plan/outline-agent-assessment.ts",
+          "contains": "globalThis.crypto.subtle.digest(\"SHA-256\""
+        }
+      ]
+    },
+    {
+      "id": "I3",
+      "criterion": "Writer cancellation and awaited usage reporting precede structured result admission.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/mastra-agent-runtime.ts",
+          "contains": "await input.onAssessmentUsage({ inputTokens, outputTokens, totalTokens });"
+        }
+      ]
+    },
+    {
+      "id": "I4",
+      "criterion": "Real Mastra execution is tested with a synthetic provider separately from product resume.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi/durable/story-architect-proof.mjs",
+          "contains": "productResume: \"UNPROVEN\""
+        }
+      ]
+    },
+    {
+      "id": "I5",
+      "criterion": "Windows Product Gate independently runs the native Mastra fixture and production build.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "node scripts/pi/durable/story-architect-proof.mjs"
+        }
+      ]
+    },
+    {
+      "id": "I6",
+      "criterion": "Focused tests cover advisory self-updates, genuine source changes, stable persistence identity and bounded citations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-durable-input.test.mjs",
+          "contains": "source, planning, character and project edits invalidate material even outside the bounded sample"
+        }
+      ]
+    }
+  ]
+}

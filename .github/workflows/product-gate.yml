@@ -50,6 +50,65 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-durable-adapter.mjs
 
+      - name: Detect Story Architect proof scope
+        id: outline-scope
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+        run: |
+          $changed = git diff --name-only $env:BASE_SHA HEAD
+          $required = [bool]($changed | Select-String -Pattern '^(build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
+          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Prove real Mastra Story Architect against a synthetic provider on Windows
+        if: steps.outline-scope.outputs.required == 'true'
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/issue-2711-outline-durable-input.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/pi/durable/story-architect-proof.mjs
+
+      - name: Upload Story Architect fixture evidence
+        if: always() && steps.outline-scope.outputs.required == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-architect-${{ github.run_id }}
+          path: .artifacts/story-architect-2711/proof.json
+          if-no-files-found: warn
+          retention-days: 5
+
+      - name: Detect agent checkpoint proof scope
+        id: checkpoint-scope
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+        run: |
+          $changed = git diff --name-only $env:BASE_SHA HEAD
+          $required = [bool]($changed | Select-String -Pattern '^(core/sidecars/tasks/|scripts/pi/durable/|tests/issue-2709-|\.github/workflows/product-gate\.yml$)')
+          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Prove scoped agent checkpoints and real JSONL recovery on Windows
+        if: steps.checkpoint-scope.outputs.required == 'true'
+        shell: pwsh
+        env:
+          PLOTPICKLE_CHECKPOINT_PROOF_HOME: ${{ runner.temp }}\plotpickle-checkpoint-proof
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/issue-2709-agent-checkpoint-task.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/pi/durable/checkpoint-proof.mjs
+
+      - name: Upload agent checkpoint product evidence
+        if: always() && steps.checkpoint-scope.outputs.required == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-checkpoint-${{ github.run_id }}
+          path: .artifacts/agent-checkpoint-2709/proof.json
+          if-no-files-found: warn
+          retention-days: 5
+
       - name: Prove active-default Pi Durable runtime on Windows
         shell: pwsh
         run: node --test tests/issue-2696-pi-durable-active-default.test.mjs

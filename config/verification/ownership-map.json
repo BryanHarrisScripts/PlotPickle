@@ -1827,6 +1827,7 @@
         "docs/architecture/PI-DURABLE-ADAPTER.md",
         "scripts/evaluate-pi-durable-adapter.mjs",
         "scripts/pi-durable-managed-install.mjs",
+        "scripts/pi/durable/**",
         "scripts/sidecars/pi-durable-service.mjs"
       ],
       "ownerLayer": "production-harness",
@@ -1884,6 +1885,18 @@
       "riskTokens": [
         "cli",
         "test-harness"
+      ]
+    },
+    {
+      "id": "agent-durability-inventory-2707",
+      "classification": "verification",
+      "include": [
+        "scripts/developer-diagnostics/agents/durability-audit.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "test-harness",
+        "cli"
       ]
     }
   ]

@@ -408,7 +408,11 @@ export async function askPlotPickleAgent(input: {
   conversationMode?: boolean;
   craftContext?: readonly string[];
   craftMode?: "learn" | "authoring-proposal";
+  signal?: AbortSignal;
+  /** Structured Story Architect accounting; absence of provider usage stays unknown. */
+  onAssessmentUsage?: (usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number }) => void | Promise<void>;
 }) {
+  input.signal?.throwIfAborted();
   const mastra = createPlotPickleMastra(input.profile);
   const agent = mastra.getAgent(input.agentId);
   const storyCouncilMode = isStoryCouncilRuntimeMessage(input.message);
@@ -427,7 +431,8 @@ export async function askPlotPickleAgent(input: {
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");
-  const abortSignal = AbortSignal.timeout(MASTRA_AGENT_TIMEOUT_MS);
+  const timeoutSignal = AbortSignal.timeout(MASTRA_AGENT_TIMEOUT_MS);
+  const abortSignal = input.signal ? AbortSignal.any([input.signal, timeoutSignal]) : timeoutSignal;
   const standardModelSettings = {
     temperature: input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
     maxOutputTokens: input.agentId === "foundations-planner" ? foundationPlannerMaxOutputTokens(input.foundationFieldIds?.length ?? 1) : input.agentId === "wyrmwood-rival-director" ? 1100 : input.agentId === "discovery-mapper" ? 420 : 480,
@@ -470,6 +475,17 @@ export async function askPlotPickleAgent(input: {
           jsonPromptInjection: false,
         },
       });
+      const usage = result.usage;
+      if (input.onAssessmentUsage) {
+        const count = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+        const inputTokens = count(usage?.inputTokens);
+        const outputTokens = count(usage?.outputTokens);
+        const total = count(usage?.totalTokens);
+        // Mastra aggregates absent usage into totalTokens=0; keep that unknown.
+        const totalTokens = total === 0 && inputTokens === undefined && outputTokens === undefined ? undefined : total;
+        await input.onAssessmentUsage({ inputTokens, outputTokens, totalTokens });
+      }
+      abortSignal.throwIfAborted();
       if (!result.object) throw new Error("Story Architect did not return a structured assessment.");
       return JSON.stringify(result.object);
     }
@@ -520,6 +536,7 @@ export async function askPlotPickleAgent(input: {
     const result = await agent.generate(prompt, executionOptions);
     return result.text.trim();
   } catch (error) {
+    if (input.signal?.aborted) throw new Error("The Mastra agent request was cancelled. No finding was saved.", { cause: error });
     if (abortSignal.aborted) {
       throw new Error("The Mastra agent did not finish within PlotPickle's 30-second response limit. Try again or choose a faster local model.");
     }

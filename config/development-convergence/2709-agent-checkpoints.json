@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "issue": 2709,
+  "phase": "shared-checkpoint-contract",
+  "brief": "docs/developer-briefs/2709-agent-checkpoint-contract.md",
+  "allowedChanges": [
+    "core/sidecars/tasks/agent-checkpoint-task.mjs",
+    "scripts/pi/durable/checkpoint-proof.mjs",
+    "tests/issue-2709-agent-checkpoint-task.test.mjs",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "docs/developer-briefs/2709-agent-checkpoint-contract.md",
+    "config/development-convergence/2709-agent-checkpoints.json"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "Host scope identity and per-step authorization govern replayable proposal work.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/agent-checkpoint-task.mjs",
+          "contains": "assertAgentTaskAuthorization(input.scope, await authorize(input.scope, step, context))"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Admission and checkpoints reuse Pi atomic storage rather than a new task store.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/agent-checkpoint-task.mjs",
+          "contains": "index.tasks[input.identity] = id;"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "criterion": "Real JSONL close/reopen proof distinguishes persistence from live Mastra/product recovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi/durable/checkpoint-proof.mjs",
+          "contains": "Admission identity must survive real JSONL reopen."
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "criterion": "Unsafe replay, corrupt state and cancellation have executable focused regressions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2709-agent-checkpoint-task.test.mjs",
+          "contains": "cancellation during worker execution rejects result admission"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "criterion": "Existing Windows Pi product gate independently runs the actual storage proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "node scripts/pi/durable/checkpoint-proof.mjs"
+        }
+      ]
+    }
+  ]
+}

@@ -54,7 +54,7 @@ export function registeredServiceLaunch(registry, id, { repoRoot, node = process
   return Object.freeze({
     id: service.id,
     command: node,
-    args: Object.freeze([entrypoint]),
+    args: Object.freeze(["--experimental-strip-types", entrypoint]),
     enabled: service.defaultEnabled,
     label: service.label,
     entrypoint,

@@ -1796,7 +1796,8 @@
       "include": [
         "core/sidecars/**",
         "config/runtime-sidecars.json",
-        "scripts/runtime-sidecar-supervisor.mjs"
+        "scripts/runtime-sidecar-supervisor.mjs",
+        "scripts/sidecars/**"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [
@@ -1804,7 +1805,10 @@
         "provider",
         "security",
         "windows",
-        "native"
+        "native",
+        "test-harness",
+        "agent",
+        "mcp"
       ]
     },
     {

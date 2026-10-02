@@ -17,6 +17,7 @@ const shutdownSignal = path.resolve(process.env.PLOTPICKLE_SHUTDOWN_SIGNAL || pa
 const statusFile = path.resolve(home, registry.statusFile);
 const startupMarker = String(process.env.PLOTPICKLE_STARTUP_CONTRACT || "");
 const supervisor = new LocalSidecarSupervisor();
+const reportedStates = new Map();
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const exists = async (file) => access(file).then(() => true, () => false);
@@ -47,6 +48,13 @@ async function snapshot(supervisorState, coreState) {
     label: service.label,
     ...supervisor.status(service.id),
   }));
+  for (const service of services) {
+    const previous = reportedStates.get(service.id);
+    if (previous !== service.state && service.state !== "starting") {
+      console.log(`[SIDECARS] ${service.label}: ${service.state}`);
+    }
+    reportedStates.set(service.id, service.state);
+  }
   await writeRuntimeStatus(statusFile, runtimeStatusDocument({
     supervisor: { state: supervisorState, pid: process.pid },
     core: { state: coreState, url: server },
@@ -93,6 +101,7 @@ async function main() {
       command: launch.command,
       args: [...launch.args, "--home", home, "--server", server, "--status-file", statusFile],
       enabled: launch.enabled,
+      ipc: true,
     });
     console.log(`[SIDECARS] ${service.label}: starting`);
   }

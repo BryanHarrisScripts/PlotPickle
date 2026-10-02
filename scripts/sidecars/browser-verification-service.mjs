@@ -3,6 +3,7 @@
 import { access, mkdir } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { WEBMCP_ACCEPTANCE_JOURNEYS, normalizeWebMcpAcceptanceRequest, runWebMcpAcceptanceJourney } from "../../core/sidecars/webmcp-acceptance-sidecar.mjs";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";
 import {
@@ -135,7 +136,7 @@ export async function runBrowserVerificationRuntimeService({ home, server, toolR
   }
 }
 
-const direct = process.argv[1] && new URL(import.meta.url).pathname.replace(/^\/(?=[A-Za-z]:)/u, "") === process.argv[1].replaceAll("\\", "/");
+const direct = Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (direct) {
   const args = parseArgs(process.argv.slice(2));
   let stopped = false;

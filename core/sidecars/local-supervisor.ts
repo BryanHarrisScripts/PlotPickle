@@ -1,14 +1,10 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import type { SidecarEvidence, SidecarState, SidecarStatus } from "./contract";
 
-export type SidecarMessage = Readonly<{
-  kind: "status" | "request" | "result";
-  state?: SidecarState;
+export type SidecarStatusMessage = Readonly<{
+  kind: "status";
+  state: SidecarState;
   evidence?: readonly SidecarEvidence[];
-  target?: string;
-  source?: string;
-  request?: unknown;
-  result?: unknown;
 }>;
 
 export type SidecarSpec = Readonly<{
@@ -17,7 +13,6 @@ export type SidecarSpec = Readonly<{
   args?: readonly string[];
   enabled?: boolean;
   ipc?: boolean;
-  onMessage?: (message: SidecarMessage) => void;
 }>;
 
 function isSidecarState(value: unknown): value is SidecarState {
@@ -61,11 +56,9 @@ export class LocalSidecarSupervisor {
     if (spec.ipc) {
       child.on("message", (raw) => {
         if (!raw || typeof raw !== "object") return;
-        const message = raw as SidecarMessage;
-        if (message.kind === "status" && isSidecarState(message.state)) {
-          this.mark(spec.id, message.state, normalizeEvidence(message.evidence));
-        }
-        spec.onMessage?.(message);
+        const message = raw as SidecarStatusMessage;
+        if (message.kind !== "status" || !isSidecarState(message.state)) return;
+        this.mark(spec.id, message.state, normalizeEvidence(message.evidence));
       });
     }
     child.once("error", (error) => this.states.set(spec.id, {
@@ -79,13 +72,6 @@ export class LocalSidecarSupervisor {
       if (current.state !== "failed") this.states.set(spec.id, { ...current, state: code === 0 ? "stopped" : "degraded" });
     });
     return this.status(spec.id);
-  }
-
-  send(id: string, message: SidecarMessage): boolean {
-    const child = this.children.get(id);
-    if (!child?.connected) return false;
-    child.send(message);
-    return true;
   }
 
   stop(id: string): void {

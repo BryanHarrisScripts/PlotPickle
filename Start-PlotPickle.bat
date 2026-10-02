@@ -36,6 +36,7 @@ set "WEBMCP_STARTUP_RUNNER=scripts\run-webmcp-startup-uat.mjs"
 set "WEBMCP_QA_RUNNER=lib\verification\webmcp-qa\cli.mjs"
 set "CONVERSATIONAL_UAT_OBSERVER=scripts\run-uat-closed-loop.mjs"
 set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
+set "RUNTIME_SIDECAR_SUPERVISOR=scripts\runtime-sidecar-supervisor.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
@@ -441,7 +442,17 @@ if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" (
   ) else (
     if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" call :start_conversational_uat_observer
     call :open_when_ready
-    call :start_deferred_companion_maintenance
+    call :start_runtime_sidecar_supervisor
+    call :start_runtime_sidecar_supervisor
+if not exist "%RUNTIME_SIDECAR_SUPERVISOR%" (
+  echo !READY_WARN! Runtime sidecar supervisor is unavailable. Core PlotPickle will continue normally.
+  exit /b 0
+)
+echo !INFO! Governed runtime sidecars will initialize asynchronously after core readiness.
+start "" /b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"
+exit /b 0
+
+:start_deferred_companion_maintenance
   )
 )
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort

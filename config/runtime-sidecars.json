@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "startupPolicy": "after-core-ready",
+  "statusFile": "node/runtime/sidecars/status.json",
+  "services": [
+    {
+      "id": "dsdd",
+      "label": "Headless DSDD",
+      "entrypoint": "scripts/sidecars/dsdd-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    },
+    {
+      "id": "browser-verification",
+      "label": "Browser Verification",
+      "entrypoint": "scripts/sidecars/browser-verification-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    },
+    {
+      "id": "pi-durable",
+      "label": "Pi Durable",
+      "entrypoint": "scripts/sidecars/pi-durable-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    },
+    {
+      "id": "craft-runtime",
+      "label": "Craft Runtime",
+      "entrypoint": "scripts/sidecars/craft-runtime-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    },
+    {
+      "id": "media-runtime",
+      "label": "Media Runtime",
+      "entrypoint": "scripts/sidecars/media-runtime-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    },
+    {
+      "id": "chatgpt-mcp-gateway",
+      "label": "ChatGPT/MCP Gateway",
+      "entrypoint": "scripts/sidecars/chatgpt-mcp-gateway-service.mjs",
+      "defaultEnabled": true,
+      "requiredForCore": false
+    }
+  ]
+}

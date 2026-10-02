@@ -103,6 +103,62 @@ async function firstControlBox(page, selector) {
   return box ? { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height) } : null;
 }
 
+const EXPECTED_STORY_DEVELOPMENT_TOPICS = Object.freeze([
+  "Foundations", "World", "Character", "Theme", "Structure", "PREVIS",
+  "Drafting", "Dialogue", "Revision", "Responsible AI", "Industry", "Collaboration",
+]);
+
+async function ensureKnownActiveProject(page) {
+  let projectId = await sessionActiveProjectId(page);
+  if (projectId) return projectId;
+
+  await page.locator("[data-dashboard-menu-item='library']").first().click();
+  await page.locator("[data-library-nav='examples']").first().waitFor({ state: "visible", timeout: 30_000 });
+  await page.locator("[data-library-nav='examples']").first().click();
+  const example = page.locator("[data-library-catalog-id]").first();
+  await example.waitFor({ state: "visible", timeout: 30_000 });
+  await example.getByRole("button", { name: "Open Example", exact: true }).click();
+  await page.locator("[data-dashboard-menu-item='discovery']").first().waitFor({ state: "visible", timeout: 30_000 });
+  projectId = await sessionActiveProjectId(page);
+  if (!projectId) throw new Error("Rendered acceptance could not establish a known active PlotPickle project through Library.");
+  return projectId;
+}
+
+async function storyDevelopmentLayout(page, surfaceId) {
+  const header = page.locator(`[data-story-development-surface-header='shared'][data-story-development-surface="${surfaceId}"]`).first();
+  const work = page.locator(`[data-story-development-work-region="${surfaceId}"]`).first();
+  const firstAct = header.locator("[data-story-development-act]").first();
+  const firstTopic = header.locator("[data-story-development-topic]").first();
+  const [headerBox, workBox, actBox, topicBox] = await Promise.all([
+    header.boundingBox(), work.boundingBox(), firstAct.boundingBox(), firstTopic.boundingBox(),
+  ]);
+  const style = async (locator) => locator.evaluate((node) => {
+    const value = getComputedStyle(node);
+    return {
+      fontFamily: value.fontFamily,
+      fontSize: value.fontSize,
+      minHeight: value.minHeight,
+      borderTopWidth: value.borderTopWidth,
+      borderRadius: value.borderRadius,
+    };
+  });
+  return {
+    headerCount: await page.locator(`[data-story-development-surface-header='shared'][data-story-development-surface="${surfaceId}"]`).count(),
+    workCount: await page.locator(`[data-story-development-work-region="${surfaceId}"]`).count(),
+    headerBox,
+    workBox,
+    actBox,
+    topicBox,
+    actStyle: await style(firstAct),
+    topicStyle: await style(firstTopic),
+  };
+}
+
+function closeGeometry(left, right, tolerance = 2) {
+  if (!left || !right) return false;
+  return ["x", "width", "height"].every((key) => Math.abs(Number(left[key]) - Number(right[key])) <= tolerance);
+}
+
 function aligned(left, right, tolerance = 24) {
   return Boolean(left && right && Math.abs(left.x - right.x) <= tolerance);
 }
@@ -121,7 +177,7 @@ async function runMindMapWorldMapJourney({ page, serverUrl, session }) {
 
   await page.goto(serverUrl, { waitUntil: "domcontentloaded" });
   await page.locator("[data-dashboard-menu-item='discovery']").first().waitFor({ state: "visible", timeout: 30_000 });
-  const initialProject = await sessionActiveProjectId(page);
+  const initialProject = await ensureKnownActiveProject(page);
   assertions.push(assertion("active-project-present-before-journey", Boolean(initialProject), "known active project id", initialProject || "none"));
 
   await page.locator("[data-dashboard-menu-item='discovery']").first().click();
@@ -133,11 +189,25 @@ async function runMindMapWorldMapJourney({ page, serverUrl, session }) {
   const mindActCount = await page.locator("[data-mind-map-act-choice]").count();
   const mindActBox = await firstControlBox(page, "[data-mind-map-act-choice]");
   const mindTopicBox = await firstControlBox(page, "nav[aria-label='MindMap Learn topics'] button");
+  const mindLayout = await storyDevelopmentLayout(page, "mind-map");
+  const mindWork = page.locator("[data-story-development-work-region='mind-map']").first();
+  const mindSaveVisible = await mindWork.getByRole("button", { name: "Save Changes", exact: true }).first().isVisible();
+  const mindAskVisible = await mindWork.getByRole("button", { name: "Ask Agent", exact: true }).first().isVisible();
+  const mindLearnVisible = await mindWork.getByRole("button", { name: "Open in Learn", exact: true }).first().isVisible();
+  const mindNotesVisible = await mindWork.locator("[data-mind-map-human-notes-toggle]").first().isVisible();
+  const mindPageCount = await mindWork.locator("[data-mind-map-field-page]").count();
+  const mindHeaderTitle = (await page.locator("[data-story-development-surface='mind-map'] h1").first().textContent())?.trim() || "";
   assertions.push(
     assertion("mind-map-settled-identity", mindIdentity === "discovery", "discovery", mindIdentity),
     assertion("mind-map-project-continuity", Boolean(initialProject) && mindProject === initialProject, initialProject || "known active project", mindProject || "none"),
     assertion("mind-map-four-act-controls", mindActCount === 4, "4", mindActCount),
     assertion("mind-map-topic-rail-alignment", aligned(mindActBox, mindTopicBox), "first Act/topic controls left-aligned within 24px", JSON.stringify({ act: mindActBox, topic: mindTopicBox })),
+    assertion("mind-map-shared-header-singleton", mindLayout.headerCount === 1, "1 shared family header", mindLayout.headerCount),
+    assertion("mind-map-work-region-singleton", mindLayout.workCount === 1, "1 consolidated work region", mindLayout.workCount),
+    assertion("mind-map-header-title", mindHeaderTitle === "MIND MAP", "MIND MAP", mindHeaderTitle),
+    assertion("mind-map-actions-preserved", mindSaveVisible && mindAskVisible && mindNotesVisible && mindLearnVisible, "Save Changes, Ask Agent, Human Notes and Open in Learn visible inside compact region", JSON.stringify({ mindSaveVisible, mindAskVisible, mindNotesVisible, mindLearnVisible })),
+    assertion("mind-map-page-navigation-preserved", mindPageCount > 0, "visible canonical page controls", String(mindPageCount)),
+    assertion("mind-map-exact-topic-spine", JSON.stringify(mindTopics) === JSON.stringify(EXPECTED_STORY_DEVELOPMENT_TOPICS), JSON.stringify(EXPECTED_STORY_DEVELOPMENT_TOPICS), JSON.stringify(mindTopics)),
   );
   await page.locator("[data-mind-map-act-choice]").first().focus();
   await page.keyboard.press("2");
@@ -157,12 +227,25 @@ async function runMindMapWorldMapJourney({ page, serverUrl, session }) {
   const worldActCount = await page.locator("[data-world-map-act-choice]").count();
   const worldActBox = await firstControlBox(page, "[data-world-map-act-choice]");
   const worldTopicBox = await firstControlBox(page, "nav[aria-label='World Map Learn topics'] button");
+  const worldLayout = await storyDevelopmentLayout(page, "world-map");
+  const worldWork = page.locator("[data-story-development-work-region='world-map']").first();
+  const worldLearnVisible = await worldWork.getByRole("button", { name: "Open Topic in Learn", exact: true }).first().isVisible();
+  const worldHeaderTitle = (await page.locator("[data-story-development-surface='world-map'] h1").first().textContent())?.trim() || "";
   assertions.push(
     assertion("world-map-settled-identity", worldIdentity === "story-bible", "story-bible", worldIdentity),
     assertion("world-map-project-continuity", Boolean(initialProject) && worldProject === initialProject, initialProject || "known active project", worldProject || "none"),
     assertion("world-map-four-act-controls", worldActCount === 4, "4", worldActCount),
     assertion("world-map-topic-rail-alignment", aligned(worldActBox, worldTopicBox), "first Act/topic controls left-aligned within 24px", JSON.stringify({ act: worldActBox, topic: worldTopicBox })),
     assertion("shared-topic-spine-same-order", mindTopics.length === 12 && JSON.stringify(mindTopics) === JSON.stringify(worldTopics), JSON.stringify(mindTopics), JSON.stringify(worldTopics)),
+    assertion("world-map-exact-topic-spine", JSON.stringify(worldTopics) === JSON.stringify(EXPECTED_STORY_DEVELOPMENT_TOPICS), JSON.stringify(EXPECTED_STORY_DEVELOPMENT_TOPICS), JSON.stringify(worldTopics)),
+    assertion("world-map-shared-header-singleton", worldLayout.headerCount === 1, "1 shared family header", worldLayout.headerCount),
+    assertion("world-map-work-region-singleton", worldLayout.workCount === 1, "1 compact review region", worldLayout.workCount),
+    assertion("world-map-header-title", worldHeaderTitle === "WORLD MAP", "WORLD MAP", worldHeaderTitle),
+    assertion("world-map-read-review-action", worldLearnVisible, "Open Topic in Learn visible inside compact review region", String(worldLearnVisible)),
+    assertion("shared-header-geometry", closeGeometry(mindLayout.headerBox, worldLayout.headerBox), "matching header x/width/height within 2px", JSON.stringify({ mind: mindLayout.headerBox, world: worldLayout.headerBox })),
+    assertion("shared-act-control-geometry", closeGeometry(mindLayout.actBox, worldLayout.actBox), "matching first Act control geometry within 2px", JSON.stringify({ mind: mindLayout.actBox, world: worldLayout.actBox })),
+    assertion("shared-topic-control-geometry", closeGeometry(mindLayout.topicBox, worldLayout.topicBox), "matching first topic control geometry within 2px", JSON.stringify({ mind: mindLayout.topicBox, world: worldLayout.topicBox })),
+    assertion("shared-control-style", JSON.stringify(mindLayout.actStyle) === JSON.stringify(worldLayout.actStyle) && JSON.stringify(mindLayout.topicStyle) === JSON.stringify(worldLayout.topicStyle), "matching computed common control style", JSON.stringify({ mindAct: mindLayout.actStyle, worldAct: worldLayout.actStyle, mindTopic: mindLayout.topicStyle, worldTopic: worldLayout.topicStyle })),
   );
   await page.locator("[data-world-map-act-choice]").first().focus();
   await page.keyboard.press("2");

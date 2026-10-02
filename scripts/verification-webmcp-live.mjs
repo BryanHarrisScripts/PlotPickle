@@ -185,6 +185,7 @@ async function writeSummary(status, details = {}) {
       ".artifacts/webmcp-startup/uat-findings.json",
       ".artifacts/visual-readiness/dashboard-canonical.png",
       ".artifacts/visual-readiness/visual-director-report.json",
+      ".artifacts/webmcp-acceptance/mind-map-world-map-shared-header/exact-head.json",
     ],
     ...details,
   }, null, 2)}\n`, "utf8");
@@ -245,12 +246,36 @@ export async function runLiveWebMcpEvidence() {
     }
 
     coldMediaRetryUsed = await runAuditWithColdMediaRetry({ node, home, toolRoot, serverEnv, serverExited });
+    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
+    const acceptanceStorageStatePath = path.join(home, "verification-browser", "storage-state.json");
+    const mindWorldAcceptance = await runWebMcpAcceptanceJourney({
+      request: {
+        requestId: `architecture-${jobRef}-mind-world-shared-header`,
+        operation: "rendered-acceptance",
+        target: "mind-map-world-map-shared-header",
+        mode: "exact-head",
+        commitSha: process.env.GITHUB_SHA || "",
+      },
+      serverUrl,
+      toolRoot,
+      storageStatePath: acceptanceStorageStatePath,
+      artifactRoot: path.join(repoRoot, ".artifacts", "webmcp-acceptance"),
+    });
+    if (mindWorldAcceptance.status !== "PASS") {
+      throw new Error(`Mind Map / World Map rendered acceptance failed: ${mindWorldAcceptance.reportPath}`);
+    }
+
     await writeSummary("pass", {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
       coldMediaRetryUsed,
       nodeDependencies,
+      mindWorldAcceptance: {
+        status: mindWorldAcceptance.status,
+        report: mindWorldAcceptance.reportPath,
+        journeyId: mindWorldAcceptance.journeyId,
+      },
     });
     return 0;
   } catch (error) {

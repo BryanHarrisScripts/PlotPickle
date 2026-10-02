@@ -599,3 +599,79 @@
 .poster > .actions {
   margin-top: var(--pp-skin-space-1);
 }
+
+
+/* #2667: World Map uses the same compact framed work-region grammar as Mind Map. */
+.workRegion {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.workRegionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  padding-bottom: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.workRegionHeader > div {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.workRegionHeader small {
+  color: var(--pp-skin-ink-muted);
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+
+.workRegionHeader strong {
+  color: var(--pp-skin-accent-bright);
+}
+
+.workRegionHeader button {
+  min-height: 38px;
+  padding: 0 var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-accent-bright);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.workRegionHeader button:hover,
+.workRegionHeader button:focus-visible {
+  background: var(--pp-skin-surface-0);
+  outline: none;
+  box-shadow: var(--pp-skin-inset-highlight);
+}
+
+.topicSupplement {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  padding-top: var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.topicSupplement > header {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.topicSupplement > header h2,
+.topicSupplement > header p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .workRegionHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

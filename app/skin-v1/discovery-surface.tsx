@@ -45,7 +45,8 @@ import {
   saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
-import { handleStoryActShortcut, STORY_ACTS, StoryActRail } from "./story-act-rail";
+import { handleStoryActShortcut, STORY_ACTS } from "./story-act-rail";
+import StoryDevelopmentSurfaceHeader from "./story-development-surface-header";
 import styles from "./discovery-surface.module.css";
 
 type AgentResponse = {
@@ -123,12 +124,14 @@ export default function DiscoverySurface({
   initialFieldId = null,
   initialAct = 1,
   onOpenLearn,
+  onBackDashboard,
 }: {
   readonly project: LibraryPPFProject | null;
   readonly initialTopic?: LearnTopicSpineId;
   readonly initialFieldId?: string | null;
   readonly initialAct?: DiscoveryAct;
   readonly onOpenLearn: (topic: LearnTopicSpineId, lessonId: string, act: DiscoveryAct) => void;
+  readonly onBackDashboard: () => void;
 }) {
   const [selectedAct, setSelectedAct] = useState<DiscoveryAct>(initialAct);
   const [selectedTopic, setSelectedTopic] = useState<LearnTopicSpineId>(initialTopic);
@@ -569,74 +572,83 @@ export default function DiscoverySurface({
 
   if (!project) {
     return (
-      <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true">
-        <StoryActRail activeAct={selectedAct} ariaLabel="MindMap acts" choiceDataAttribute="data-mind-map-act-choice" onOpen={changeAct} />
-
-      <section className={styles.summary}>
-          <div>
-            <h2>MindMap</h2>
-            <p>Load or create a story to author canonical story-development fields and Human Notes.</p>
+      <main
+        className={styles.surface}
+        data-discovery-surface="canonical-authoring"
+        data-mind-map-surface="true"
+        onKeyDown={(event) => handleStoryActShortcut(event, changeAct)}
+      >
+        <StoryDevelopmentSurfaceHeader
+          surfaceId="mind-map"
+          title="MIND MAP"
+          activeAct={selectedAct}
+          activeTopic={selectedTopic}
+          onActChange={changeAct}
+          onTopicChange={changeTopic}
+          onBackDashboard={onBackDashboard}
+          actChoiceDataAttribute="data-mind-map-act-choice"
+        />
+        <section className={styles.workRegion} data-story-development-work-region="mind-map">
+          <div className={styles.workRegionHeader}>
+            <div>
+              <small>CANONICAL AUTHORING</small>
+              <strong>NO ACTIVE STORY</strong>
+            </div>
           </div>
-          <strong>NO ACTIVE STORY</strong>
+          <p>Load or create a story in Library before editing Mind Map material.</p>
         </section>
-        <p className={styles.notice}>Load or create a story in Library before editing Mind Map material.</p>
       </main>
     );
   }
 
   return (
     <main className={styles.surface} data-discovery-surface="canonical-authoring" data-mind-map-surface="true" data-discovery-project={project.id} data-mind-map-act={selectedAct} data-mind-map-topic={selectedTopic} onKeyDown={(event) => handleStoryActShortcut(event, changeAct)}>
-      <section className={styles.summary}>
-        <div>
-          <small>MindMap · ACT {selectedAct} · CANONICAL AUTHORING</small>
-          <h2>{project.title}</h2>
-          <p>Human Notes support thinking. Project Value is story truth. Agent Suggestions remain separate until the Human chooses Use Suggestion.</p>
-        </div>
-        <div className={styles.scoreboard} aria-label={`Act ${selectedAct} MindMap authoring summary`}>
-          <span>FIELDS <strong>{selectedCanonicalFields.length}</strong></span>
-          <span>CONTEXT <strong>{selectedFieldContextCount}</strong></span>
-          <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedFieldNote.text ? "SAVED" : "EMPTY"}</strong></span>
-        </div>
-      </section>
+      <StoryDevelopmentSurfaceHeader
+        surfaceId="mind-map"
+        title="MIND MAP"
+        activeAct={selectedAct}
+        activeTopic={selectedTopic}
+        onActChange={changeAct}
+        onTopicChange={changeTopic}
+        onBackDashboard={onBackDashboard}
+        actChoiceDataAttribute="data-mind-map-act-choice"
+      />
 
-      <nav className={styles.topicRail} aria-label="MindMap Learn topics">
-        {LEARN_TOPIC_SPINE.map((topic) => (
-          <button
-            type="button"
-            key={topic.id}
-            aria-current={selectedTopic === topic.id ? "page" : undefined}
-            data-mind-map-topic={topic.id}
-            onClick={() => changeTopic(topic.id)}
-          >
-            {topic.label}
-          </button>
-        ))}
-      </nav>
+      <section className={styles.workRegion} data-story-development-work-region="mind-map">
+        <header className={styles.workRegionHeader}>
+          <div>
+            <small>ACT {selectedAct} · {selectedTopicLabel} · CANONICAL AUTHORING</small>
+            <strong>{project.title}</strong>
+          </div>
+          <div className={styles.scoreboard} aria-label={`Act ${selectedAct} Mind Map authoring summary`}>
+            <span>FIELDS <strong>{selectedCanonicalFields.length}</strong></span>
+            <span>CONTEXT <strong>{selectedFieldContextCount}</strong></span>
+            <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedFieldNote.text ? "SAVED" : "EMPTY"}</strong></span>
+          </div>
+        </header>
+        <p className={styles.workRegionHelp}>
+          Human Notes support thinking. Project Value is story truth. Agent Suggestions remain separate until the Human chooses Use Suggestion.
+        </p>
 
-      <div className={styles.topicToolbar}>
-        <strong>{selectedTopicLabel}</strong>
-        <span>{selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
-      </div>
-
-      {selectedFieldPageCount > 1 ? (
-        <nav className={styles.fieldPager} aria-label={`${selectedTopicLabel} field pages`} data-mind-map-field-pager={selectedTopic}>
-          {Array.from({ length: selectedFieldPageCount }, (_, index) => index + 1).map((page) => (
-            <button
-              type="button"
-              key={page}
-              aria-current={selectedFieldPage === page ? "page" : undefined}
-              data-mind-map-field-page={page}
-              onClick={() => {
-                setSelectedFieldPage(page);
-                setSelectedFieldId(null);
-                setNotice("");
-              }}
-            >
-              {page}
-            </button>
-          ))}
-        </nav>
-      ) : null}
+        {selectedFieldPageCount > 1 ? (
+          <nav className={styles.fieldPager} aria-label={`${selectedTopicLabel} field pages`} data-mind-map-field-pager={selectedTopic}>
+            {Array.from({ length: selectedFieldPageCount }, (_, index) => index + 1).map((page) => (
+              <button
+                type="button"
+                key={page}
+                aria-current={selectedFieldPage === page ? "page" : undefined}
+                data-mind-map-field-page={page}
+                onClick={() => {
+                  setSelectedFieldPage(page);
+                  setSelectedFieldId(null);
+                  setNotice("");
+                }}
+              >
+                {page}
+              </button>
+            ))}
+          </nav>
+        ) : null}
 
       {selectedTopic === "character" ? (
         <section className={styles.characterWorkspace} data-mind-map-character-workspace="true">
@@ -805,8 +817,8 @@ export default function DiscoverySurface({
       <section className={styles.fieldWorkspace} aria-label={`${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} canonical story fields`}>
         <header className={styles.fieldWorkspaceHeader}>
           <div>
-            <small>CANONICAL PROJECT FIELDS</small>
-            <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</h3>
+            <small>SELECTED PAGE</small>
+            <h3>Canonical project fields</h3>
           </div>
           <span>PAGE {selectedFieldPage} OF {selectedFieldPageCount} · {visibleCanonicalFields.length} VISIBLE / {selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
         </header>
@@ -904,8 +916,8 @@ export default function DiscoverySurface({
         </div>
       </section>
 
-      {notice ? <p className={styles.notice} aria-live="polite">{notice}</p> : null}
-
+        {notice ? <p className={styles.notice} aria-live="polite">{notice}</p> : null}
+      </section>
     </main>
   );
 }

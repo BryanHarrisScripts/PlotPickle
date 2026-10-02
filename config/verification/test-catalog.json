@@ -1148,7 +1148,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-1938-verification-core.test.mjs",
-          "tests/issue-2348-verification-routing.test.mjs"
+          "tests/issue-2348-verification-routing.test.mjs",
+          "tests/issue-2697-ben-line-shift.test.mjs"
         ]
       },
       "cost": "fast",

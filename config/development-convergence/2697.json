@@ -23,7 +23,9 @@
     "core/media/screening-media-evidence.ts",
     "app/_components/previs/previs-readiness-workspace.tsx",
     "config/verification/test-catalog.json",
-    "scripts/verification-shadow.mjs"
+    "scripts/verification-shadow.mjs",
+    "scripts/run-ben-code-quality.mjs",
+    "tests/issue-2697-ben-line-shift.test.mjs"
   ],
   "acceptance": [
     {
@@ -45,6 +47,17 @@
           "type": "file-contains",
           "path": "tests/issue-2697-live-modular-runtimes.test.mjs",
           "contains": "registered modular services initialize and stop without model or remote transport"
+        }
+      ]
+    },
+    {
+      "id": "P2697-E3",
+      "criterion": "BEN preserves only byte-unmodified finding lines moved by the PR diff, retaining new/worsened finding enforcement.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2697-ben-line-shift.test.mjs",
+          "contains": "BEN still blocks changed evidence, severity, score and edited finding lines"
         }
       ]
     }

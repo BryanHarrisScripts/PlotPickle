@@ -182,6 +182,39 @@ export function changedPathRelocationPreservesExistingFinding(report, change, fi
   });
 }
 
+export function unchangedLineAfterPatch(line, patch) {
+  let offset = 0;
+  for (const match of String(patch).matchAll(/^@@ -(\d+)(?:,(\d+))? \+\d+(?:,(\d+))? @@/gm)) {
+    const start = Number(match[1]);
+    const removed = match[2] === undefined ? 1 : Number(match[2]);
+    const added = match[3] === undefined ? 1 : Number(match[3]);
+    if (removed === 0) {
+      if (line <= start) break;
+    } else {
+      if (line < start) break;
+      if (line < start + removed) return null;
+    }
+    offset += added - removed;
+  }
+  return line + offset;
+}
+
+export function lineShiftPreservesExistingFinding(pathReport, change, patch) {
+  if (change?.status !== "added" || !change.head) return false;
+  const head = change.head;
+  const headLocation = head.primaryLocation || head.locations?.[0];
+  if (!headLocation?.line) return false;
+  return (pathReport?.changes || []).some((candidate) => {
+    const base = candidate.base;
+    if (candidate.status !== "resolved" || candidate.ruleId !== change.ruleId || !base) return false;
+    const location = base.primaryLocation || base.locations?.[0];
+    if (!location?.line || unchangedLineAfterPatch(location.line, patch) !== headLocation.line) return false;
+    if (location.column !== headLocation.column || base.score !== head.score || base.severity !== head.severity || base.message !== head.message) return false;
+    const evidence = (base.evidence || []).map((item) => String(item).replace(/\bline (\d+)\b/g, (_, number) => `line ${unchangedLineAfterPatch(Number(number), patch)}`));
+    return JSON.stringify(evidence) === JSON.stringify(head.evidence || []);
+  });
+}
+
 function findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths) {
   if (!pathIntersectsChange(findingPath, changedPaths)) return false;
   if (change?.ruleId === "structure.directory-fanout-hotspot" && change?.scope === "directory") {
@@ -191,13 +224,14 @@ function findingIsCausallyRelevant(change, findingPath, changedEntries, changedP
   return true;
 }
 
-function relevantDeltaFindings(report, changedEntries, changedPaths) {
+function relevantDeltaFindings(report, changedEntries, changedPaths, patches = new Map()) {
   const failOn = new Set(policy.slopScan.failOn);
   const relevant = [];
   for (const pathReport of report?.paths || []) {
     for (const change of pathReport?.changes || []) {
       if (!failOn.has(change?.status)) continue;
       const findingPath = change?.head?.path || change?.path || pathReport?.path || "";
+      if (patches.has(findingPath) && lineShiftPreservesExistingFinding(pathReport, change, patches.get(findingPath))) continue;
       if (renamePreservesExistingFinding(report, change, findingPath, changedEntries)) continue;
       if (changedPathRelocationPreservesExistingFinding(report, change, findingPath, changedEntries)) continue;
       if (findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths)) relevant.push(change);
@@ -264,7 +298,12 @@ async function main() {
     await writeScannerEvidence(deltaReport, delta.stdout, "delta");
     const changedEntries = changedEntriesSince(baseRef);
     const changedPaths = changedPathsFromEntries(changedEntries);
-    const relevantFindings = relevantDeltaFindings(report, changedEntries, changedPaths);
+    const patches = new Map(changedPaths.map((file) => {
+      const diff = run("git", ["diff", "--unified=0", baseRef, "--", file]);
+      requireSuccess(diff, `BEN line mapping ${file}`);
+      return [file, diff.stdout];
+    }));
+    const relevantFindings = relevantDeltaFindings(report, changedEntries, changedPaths, patches);
     const scannerFailed = delta.status !== 0 && delta.status !== 1;
     const passed = !scannerFailed && relevantFindings.length === 0;
     await writeFile(resultReport, `${JSON.stringify({

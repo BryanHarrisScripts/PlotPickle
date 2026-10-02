@@ -18,6 +18,7 @@ const services = ["dsdd", "browser-verification", "pi-durable", "craft-runtime",
 await mkdir(auditRoot, { recursive: true });
 const env = { ...process.env, PLOTPICKLE_HOME: home, PLOTPICKLE_STARTUP_TESTING_MODE: "normal", WRANGLER_SEND_METRICS: "false", PLOTPICKLE_BUZZ_MODE: "disabled" };
 for (const key of Object.keys(env)) if (/TOKEN|API_KEY|PASSWORD|SECRET/.test(key)) delete env[key];
+env.PSModulePath = [path.join(env.ProgramFiles, "WindowsPowerShell", "Modules"), path.join(env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "Modules")].join(path.delimiter);
 delete env.PLOTPICKLE_PERFORMANCE_BENCHMARK;
 delete env.PLOTPICKLE_ACCEPTANCE_MODE;
 const report = { schemaVersion: 1, issue: 2698, platform: process.platform, node: process.versions.node, provisioning: {}, runs: [], result: "UNPROVEN" };
@@ -46,7 +47,10 @@ async function command(executable, args, options = {}) {
     child.once("exit", (code) => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
   });
 }
-function alive(pid) { try { process.kill(pid, 0); return true; } catch { return false; } }
+function alive(pid) {
+  try { process.kill(pid, 0); return true; }
+  catch (error) { if (error.code !== "ESRCH") throw error; return false; }
+}
 async function coreAvailable() {
   try {
     const response = await fetch(`${base}/skin-v1`, { headers: { "X-PlotPickle-Startup-Probe": "warmup" }, signal: AbortSignal.timeout(5000) });

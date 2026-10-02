@@ -437,7 +437,7 @@ set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 call :cleanup_webmcp_testing
 if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
-  node scripts\sidecars\wait-owned-shutdown.mjs
+  node core\sidecars\runtime\shutdown-wait.mjs
   if errorlevel 1 (
     echo !WARNING! The core server stopped, but launcher-owned cleanup could not be confirmed. Review the runtime status before restarting.
     exit /b 1

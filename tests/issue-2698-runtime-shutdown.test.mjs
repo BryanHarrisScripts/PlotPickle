@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
-import { waitForOwnedShutdown } from "../scripts/sidecars/wait-owned-shutdown.mjs";
+import { waitForOwnedShutdown } from "../core/sidecars/runtime/shutdown-wait.mjs";
 
 async function waitForState(supervisor, id, state) {
   const deadline = Date.now() + 5000;

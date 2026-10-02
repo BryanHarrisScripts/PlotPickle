@@ -182,7 +182,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ] || git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|scripts/windows-companion-maintenance-after-ready\.ps1|config/runtime-sidecars\.json|core/sidecars/|tests/issue-269[78]-)'; then
+          if [ "${{ github.event_name }}" = "push" ] || git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|scripts/windows-companion-maintenance-after-ready\.ps1|config/runtime-sidecars\.json|core/sidecars/|build/startup-agent-diagnostics|build/startup/agent-inventory\.mjs|tests/issue-269[78]-)'; then
             echo 'required=true' >> "$GITHUB_OUTPUT"
           else
             echo 'required=false' >> "$GITHUB_OUTPUT"
@@ -209,7 +209,7 @@ jobs:
         run: npm run build
       - name: Prove modular child-process lifecycle and media contract on Windows
         shell: pwsh
-        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2698-runtime-shutdown.test.mjs tests/issue-2698-launcher-probe.test.mjs tests/issue-2698-media-retention.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
+        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2698-startup-agent-inventory.test.mjs tests/issue-2698-runtime-shutdown.test.mjs tests/issue-2698-launcher-probe.test.mjs tests/issue-2698-media-retention.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
       - name: Prove deferred companion readiness on Windows
         shell: pwsh
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/issue-2698-companion-readiness.ps1

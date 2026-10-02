@@ -1740,7 +1740,8 @@
         "targets": [
           "tests/issue-2614-quillan-skill-registry.test.mjs",
           "tests/issue-962-agent-profiles.test.mjs",
-          "tests/issue-976-agent-skill-trust.test.mjs"
+          "tests/issue-976-agent-skill-trust.test.mjs",
+          "tests/issue-2698-startup-agent-inventory.test.mjs"
         ]
       },
       "cost": "fast",

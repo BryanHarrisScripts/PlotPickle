@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "issue": 2698,
+  "phase": "startup-agent-inventory",
+  "brief": "docs/developer-briefs/2698-startup-agent-inventory.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "build/startup-agent-diagnostics.ts",
+    "build/startup-agent-diagnostics-runtime-v6.ts",
+    "build/startup/agent-inventory.mjs",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "tests/issue-636-startup-uat-decision.test.mjs",
+    "tests/issue-2698-startup-agent-inventory.test.mjs",
+    "tests/issue-2698-windows-startup-proof.mjs",
+    "docs/developer-briefs/2698-startup-agent-inventory.md",
+    "config/development-convergence/2698-startup-inventory.json",
+    "core/sidecars/runtime/status-store.mjs",
+    "tests/issue-2698-runtime-shutdown.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "Automatic startup checks registration only.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/startup-agent-diagnostics.ts",
+          "contains": "await runStartupAgentInventory();"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Configured agents report no inference without provider transport.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-startup-agent-inventory.test.mjs",
+          "contains": "configured agents report registration without generating a response"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "criterion": "Actual Windows normal startup observes registration completion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-windows-startup-proof.mjs",
+          "contains": "automatic agent registration inventory"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "criterion": "Transient Windows status replacement locks are retried without destroying the last valid snapshot.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-runtime-shutdown.test.mjs",
+          "contains": "status replacement retries Windows sharing locks"
+        }
+      ]
+    }
+  ]
+}

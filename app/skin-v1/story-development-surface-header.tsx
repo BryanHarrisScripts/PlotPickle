@@ -52,7 +52,7 @@ export default function StoryDevelopmentSurfaceHeader({
         <button
           autoFocus
           type="button"
-          className={styles.backButton}
+          className={`${styles.backButton} pp-skin-v1-return`}
           data-story-development-back="dashboard"
           onClick={onBackDashboard}
         >

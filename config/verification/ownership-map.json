@@ -849,6 +849,13 @@
       ]
     },
     {
+      "id": "outline-task-controller",
+      "classification": "production",
+      "include": ["build/projects/outline-task-controller.ts"],
+      "ownerLayer": "story-canon",
+      "riskTokens": ["canon", "agent", "provider", "security", "storage"]
+    },
+    {
       "id": "afterglow-golden-story-fixture",
       "classification": "production",
       "include": [

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "issue": 2711,
+  "phase": "story-architect-protected-controller",
+  "brief": "docs/developer-briefs/2711-story-architect-controller.md",
+  "allowedChanges": [
+    "build/projects/outline-task-controller.ts",
+    "tests/issue-2711-outline-task-controller.test.mjs",
+    "scripts/pi/durable/story-architect-proof.mjs",
+    "docs/developer-briefs/2711-story-architect-controller.md",
+    "config/development-convergence/2711-story-architect-controller.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml"
+  ],
+  "acceptance": [
+    { "id": "C1", "criterion": "Reopen and status require explicit activation before inference; protected proposals skip repeated provider calls.", "evidence": [{ "type": "file-contains", "path": "tests/issue-2711-outline-task-controller.test.mjs", "contains": "protected controller reopen requires explicit activation and reuses committed proposals without inference" }] },
+    { "id": "C2", "criterion": "Cancellation is responsive and durable, denying late result admission.", "evidence": [{ "type": "file-contains", "path": "tests/issue-2711-outline-task-controller.test.mjs", "contains": "cancel during inference is responsive, durable, and denies late admission" }] },
+    { "id": "C3", "criterion": "Auth/profile, material, project, compute and grant boundaries fail closed.", "evidence": [{ "type": "file-contains", "path": "tests/issue-2711-outline-task-controller.test.mjs", "contains": "changed material, active project, compute or grants deny resumed work before inference" }, { "type": "file-contains", "path": "tests/issue-2711-outline-task-controller.test.mjs", "contains": "another profile and locked owner cannot read, resume or cancel protected tasks" }] },
+    { "id": "C4", "criterion": "Reservations survive interrupted inference and cannot be reset by resume.", "evidence": [{ "type": "file-contains", "path": "tests/issue-2711-outline-task-controller.test.mjs", "contains": "interrupted final attempt remains spent and resume cannot replenish it" }, { "type": "file-contains", "path": "build/projects/outline-task-controller.ts", "contains": "Crash-safe reservation BEFORE any worker/provider call." }] },
+    { "id": "C5", "criterion": "Native Pi, actual Mastra and encrypted storage prove remaining-Block recovery, separately from rendered product resume.", "evidence": [{ "type": "file-contains", "path": "scripts/pi/durable/story-architect-proof.mjs", "contains": "protectedTaskRecovery: \"PASS\"" }, { "type": "file-contains", "path": "scripts/pi/durable/story-architect-proof.mjs", "contains": "productResume: \"UNPROVEN\"" }] },
+    { "id": "C6", "criterion": "Windows Product Gate runs controller regressions and native recovery proof independently.", "evidence": [{ "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "tests/issue-2711-outline-task-controller.test.mjs" }, { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "node scripts/pi/durable/story-architect-proof.mjs" }] }
+  ]
+}

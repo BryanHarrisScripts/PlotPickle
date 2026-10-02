@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_ROOT = fileURLToPath(new URL("../../", import.meta.url));
+const DEFAULT_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
 // This audit reads registration sources only. Availability does not prove task wiring.
 export function auditAgentDurability({ profiles, runtimeRoles }) {

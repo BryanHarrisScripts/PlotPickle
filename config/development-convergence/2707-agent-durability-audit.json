@@ -5,7 +5,7 @@
   "brief": "docs/developer-briefs/2707-agent-task-durability.md",
   "allowedChanges": [
     "docs/developer-briefs/2707-agent-task-durability.md",
-    "scripts/developer-diagnostics/agent-durability.mjs",
+    "scripts/developer-diagnostics/agents/durability-audit.mjs",
     "tests/issue-2707-agent-durability-audit.test.mjs",
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
@@ -18,7 +18,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/developer-diagnostics/agent-durability.mjs",
+          "path": "scripts/developer-diagnostics/agents/durability-audit.mjs",
           "contains": "config/agent-profile-extensions/community.json"
         }
       ]

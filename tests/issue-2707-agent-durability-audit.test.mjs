@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { auditAgentDurability, loadAgentDurabilityAudit } from "../scripts/developer-diagnostics/agent-durability.mjs";
+import { auditAgentDurability, loadAgentDurabilityAudit } from "../scripts/developer-diagnostics/agents/durability-audit.mjs";
 
 test("#2707 source-backed inventory distinguishes profiles, embedded roles and external owners", async () => {
   const audit = await loadAgentDurabilityAudit();

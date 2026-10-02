@@ -41,7 +41,7 @@ Implement the inventory/ownership audit and brief first, then deliver the shared
 
 ## Reproducible Phase 0 audit
 
-Run `node scripts/developer-diagnostics/agent-durability.mjs` from the repository. It reads the base and community profile registries and the canonical Mastra role literal without loading providers or issuing inference. It rejects unknown execution owners and inconsistent registrations. Audit output is an implementation assessment, never runtime or recovery evidence.
+Run `node scripts/developer-diagnostics/agents/durability-audit.mjs` from the repository. It reads the base and community profile registries and the canonical Mastra role literal without loading providers or issuing inference. It rejects unknown execution owners and inconsistent registrations. Audit output is an implementation assessment, never runtime or recovery evidence.
 
 ## Agent-by-agent adoption plan
 

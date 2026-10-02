@@ -1890,7 +1890,7 @@
       "id": "agent-durability-inventory-2707",
       "classification": "verification",
       "include": [
-        "scripts/developer-diagnostics/agent-durability.mjs"
+        "scripts/developer-diagnostics/agents/durability-audit.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

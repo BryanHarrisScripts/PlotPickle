@@ -42,14 +42,15 @@ export async function createNativePiDurableDriver({
   models,
   registry,
   context,
+  agent,
   resolveExtension = (name) => name,
   resolveTool = (name) => name,
 } = {}) {
   if (!nodeMeetsMinimum()) {
     throw new Error("@earendil-works/pi-durable@1.0.0 requires Node >=22.19.0; this host is below the supported runtime.");
   }
-  if (!storageRoot || !models || !registry || !context) {
-    throw new Error("Pi Durable driver requires host-owned storage, models, registry and context.");
+  if (!storageRoot || !models || !registry || !context || !agent?.model) {
+    throw new Error("Pi Durable driver requires host-owned storage, models, registry, context and host-selected model.");
   }
 
   let durable;
@@ -77,6 +78,7 @@ export async function createNativePiDurableDriver({
       const { folder, harness, root } = await open(normalized.id);
       try {
         await root.configure({
+          ...agent,
           extensions: normalized.extensions.map(resolveExtension),
           tools: normalized.tools.map(resolveTool),
           instructions: "PlotPickle DSDD owns acceptance and authority. Do not approve canon, merge code, or convert deterministic failures to PASS.",

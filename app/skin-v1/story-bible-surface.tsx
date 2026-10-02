@@ -173,7 +173,7 @@ export default function StoryBibleSurface({
             <button type="button" onClick={openLearnTopic}>Open Topic in Learn</button>
           </header>
           <p className={styles.reviewHelp}>
-            Current canonical project truth. These are the same canonical fields used by Mind Map; World Map remains read/review only.
+            Current canonical project truth. These are the same canonical fields used by Mind Map. World Map does not edit, approve, or generate them.
           </p>
           {!topicFields.length ? <p className={styles.empty}>No {activeTopicEntry.label} fields require separate Act {selectedAct} input.</p> : null}
           <div className={styles.factGrid}>

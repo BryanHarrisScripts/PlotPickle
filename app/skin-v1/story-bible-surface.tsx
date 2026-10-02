@@ -19,7 +19,8 @@ import {
   LEARN_TOPIC_SPINE,
   type LearnTopicSpineId,
 } from "../../modules/learn/model/story-learning-context";
-import { handleStoryActShortcut, StoryActRail } from "./story-act-rail";
+import { handleStoryActShortcut } from "./story-act-rail";
+import StoryDevelopmentSurfaceHeader from "./story-development-surface-header";
 import styles from "./story-bible-surface.module.css";
 
 type WorldMapAct = 1 | 2 | 3 | 4;
@@ -106,10 +107,12 @@ export default function StoryBibleSurface({
   project,
   onEditField,
   onOpenLearn,
+  onBackDashboard,
 }: {
   readonly project: LibraryPPFProject;
   readonly onEditField: (topic: LearnTopicSpineId, canonicalFieldId: string, act: WorldMapAct) => void;
   readonly onOpenLearn: (topic: LearnTopicSpineId, lessonId: string | null, act: WorldMapAct) => void;
+  readonly onBackDashboard: () => void;
 }) {
   const bible = useMemo(() => projectStoryBible(project, plotPickleCurriculum), [project]);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
@@ -142,59 +145,36 @@ export default function StoryBibleSurface({
       data-story-bible-read-only="true"
       onKeyDown={(event) => handleStoryActShortcut(event, setSelectedAct)}
     >
-      <StoryActRail activeAct={selectedAct} ariaLabel="World Map acts" choiceDataAttribute="data-world-map-act-choice" onOpen={setSelectedAct} />
-
-      <nav className={styles.sectionNav} aria-label="World Map Learn topics" role="tablist">
-        {LEARN_TOPIC_SPINE.map((topic, index) => {
-          const selected = activeTopic === topic.id;
-          return (
-            <button
-              aria-controls={`world-map-panel-${topic.id}`}
-              aria-selected={selected}
-              className={selected ? styles.sectionTabActive : styles.sectionTab}
-              id={`world-map-tab-${topic.id}`}
-              key={topic.id}
-              onClick={() => setActiveTopic(topic.id)}
-              onKeyDown={(event) => {
-                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-                event.preventDefault();
-                const direction = event.key === "ArrowRight" ? 1 : -1;
-                const nextIndex = (index + direction + LEARN_TOPIC_SPINE.length) % LEARN_TOPIC_SPINE.length;
-                const next = LEARN_TOPIC_SPINE[nextIndex];
-                setActiveTopic(next.id);
-                const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-                buttons?.[nextIndex]?.focus();
-              }}
-              role="tab"
-              tabIndex={selected ? 0 : -1}
-              type="button"
-            >
-              {topic.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className={styles.topicToolbar}>
-        <span>Act {selectedAct} · <strong>{activeTopicEntry.label}</strong> · {establishedCount}/{topicFields.length} established</span>
-        <button type="button" onClick={openLearnTopic}>Open Topic in Learn</button>
-      </div>
+      <StoryDevelopmentSurfaceHeader
+        surfaceId="world-map"
+        title="WORLD MAP"
+        activeAct={selectedAct}
+        activeTopic={activeTopic}
+        onActChange={setSelectedAct}
+        onTopicChange={setActiveTopic}
+        onBackDashboard={onBackDashboard}
+        actChoiceDataAttribute="data-world-map-act-choice"
+      />
 
       <div className={styles.panelShell}>
         <section
-          aria-labelledby={`world-map-tab-${activeTopic}`}
-          className={styles.section}
+          aria-labelledby={`world-map-topic-tab-${activeTopic}`}
+          className={styles.workRegion}
           id={`world-map-panel-${activeTopic}`}
           role="tabpanel"
           data-world-map-canonical-topic={activeTopic}
+          data-story-development-work-region="world-map"
         >
-          <header>
-            <p className={styles.kicker}>{activeTopicEntry.label.toUpperCase()} · READ / REVIEW</p>
-            <h2>Current canonical project truth</h2>
-            <p className={styles.reviewHelp}>
-              These are the same canonical fields used by Mind Map. World Map does not edit, approve, or generate them.
-            </p>
+          <header className={styles.workRegionHeader}>
+            <div>
+              <small>ACT {selectedAct} · {activeTopicEntry.label} · READ / REVIEW</small>
+              <strong>{establishedCount}/{topicFields.length} established</strong>
+            </div>
+            <button type="button" onClick={openLearnTopic}>Open Topic in Learn</button>
           </header>
+          <p className={styles.reviewHelp}>
+            Current canonical project truth. These are the same canonical fields used by Mind Map; World Map remains read/review only.
+          </p>
           {!topicFields.length ? <p className={styles.empty}>No {activeTopicEntry.label} fields require separate Act {selectedAct} input.</p> : null}
           <div className={styles.factGrid}>
             {topicFields.map((field) => (
@@ -211,7 +191,7 @@ export default function StoryBibleSurface({
         </section>
 
         {activeTopic === "character" ? (
-          <section className={styles.section} aria-label="Character reference review">
+          <div className={styles.topicSupplement} aria-label="Character reference review">
             <header>
               <p className={styles.kicker}>CHARACTER REFERENCE</p>
               <h2>Approved character truth and visual identity</h2>
@@ -221,11 +201,11 @@ export default function StoryBibleSurface({
                 {bible.characters.map((character) => <CharacterReview character={character} key={character.id} />)}
               </div>
             ) : <p className={styles.empty}>Character truth has not been established for this project yet.</p>}
-          </section>
+          </div>
         ) : null}
 
         {activeTopic === "structure" ? (
-          <section className={styles.section} aria-label="Structure review">
+          <div className={styles.topicSupplement} aria-label="Structure review">
             <header>
               <p className={styles.kicker}>STRUCTURE · ACT {selectedAct}</p>
               <h2>4 Acts · 12 Sequences · 24 Blocks · 96 Mini-Blocks</h2>
@@ -239,11 +219,11 @@ export default function StoryBibleSurface({
                 </article>
               ))}
             </div>
-          </section>
+          </div>
         ) : null}
 
         {activeTopic === "previs" ? (
-          <section className={styles.section} aria-label="Previs reference review">
+          <div className={styles.topicSupplement} aria-label="Previs reference review">
             <header>
               <p className={styles.kicker}>PREVIS REFERENCE</p>
               <h2>Current approved marketing reference</h2>
@@ -268,11 +248,11 @@ export default function StoryBibleSurface({
                 <small>Visual creation and revision belong in Mind Map / downstream visual tools, not World Map.</small>
               </div>
             </div>
-          </section>
+          </div>
         ) : null}
 
         {activeTopic === "drafting" ? (
-          <section className={styles.section} aria-label="Drafting reference review">
+          <div className={styles.topicSupplement} aria-label="Drafting reference review">
             <header>
               <p className={styles.kicker}>DRAFTING · ACT {selectedAct}</p>
               <h2>Written material currently connected to this Act</h2>
@@ -287,11 +267,11 @@ export default function StoryBibleSurface({
                 ))}
               </div>
             ) : <p className={styles.empty}>No Drafting material is established for Act {selectedAct} yet.</p>}
-          </section>
+          </div>
         ) : null}
 
         {activeTopic === "responsible-ai" ? (
-          <section className={styles.section} aria-label="Responsible AI provenance review">
+          <div className={styles.topicSupplement} aria-label="Responsible AI provenance review">
             <header>
               <p className={styles.kicker}>RESPONSIBLE AI · PROVENANCE</p>
               <h2>Canonical evidence currently available</h2>
@@ -299,8 +279,9 @@ export default function StoryBibleSurface({
             <div className={styles.factGrid}>
               {bible.sourceSummary.map((fact) => <Fact key={fact.id} fact={fact} />)}
             </div>
-          </section>
+          </div>
         ) : null}
+        </section>
       </div>
     </main>
   );

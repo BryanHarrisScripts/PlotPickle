@@ -2,7 +2,8 @@
 
 import { access, mkdir } from "node:fs/promises";
 import path from "node:path";
-import process from "node:process";\nimport { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
+import process from "node:process";
+import { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
 import { fileURLToPath } from "node:url";
 import { WEBMCP_ACCEPTANCE_JOURNEYS, normalizeWebMcpAcceptanceRequest, runWebMcpAcceptanceJourney } from "../../core/sidecars/webmcp-acceptance-sidecar.mjs";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";

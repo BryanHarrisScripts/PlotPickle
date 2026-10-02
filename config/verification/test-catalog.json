@@ -1997,6 +1997,45 @@
         ]
       },
       "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape."
+    },
+    {
+      "id": "verification.agent-durability-inventory-2707",
+      "ownerLayer": "verification",
+      "architectureComponents": [
+        "verification-core"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "cli"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2707-agent-durability-audit.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification/verification.json"
+        ]
+      },
+      "notes": "Phase 0 source-backed agent inventory; does not prove task execution or recovery."
     }
   ]
 }

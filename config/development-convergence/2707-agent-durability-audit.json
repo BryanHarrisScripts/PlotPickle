@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "issue": 2707,
+  "phase": "inventory-only",
+  "brief": "docs/developer-briefs/2707-agent-task-durability.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2707-agent-task-durability.md",
+    "scripts/developer-diagnostics/agent-durability.mjs",
+    "tests/issue-2707-agent-durability-audit.test.mjs",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2707-agent-durability-audit.json"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "All canonical profile sources and runtime roles are assessed without loading providers.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/agent-durability.mjs",
+          "contains": "config/agent-profile-extensions/community.json"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Audit never presents startup registration as task recovery proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2707-agent-durability-audit.test.mjs",
+          "contains": "availability never grants recovery or safe replay"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "criterion": "Canonical brief distinguishes external owners and stages actual task integration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2707-agent-task-durability.md",
+          "contains": "Phase 2: first real vertical slice"
+        }
+      ]
+    }
+  ]
+}

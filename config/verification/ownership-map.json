@@ -1736,9 +1736,7 @@
       "riskTokens": [
         "canon",
         "provider",
-        "media",
-        "timeline",
-        "audio"
+        "visual"
       ]
     }
   ]

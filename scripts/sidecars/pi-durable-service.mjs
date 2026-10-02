@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import process from "node:process";
+import process from "node:process";\nimport { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
 import { fileURLToPath } from "node:url";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";
 import {
@@ -27,18 +27,9 @@ function evidence(kind, summary) {
   return Object.freeze({ kind, summary, observedAt: new Date().toISOString() });
 }
 
-function publishRuntimeStatus(status) {
-  if (typeof process.send !== "function") return;
-  process.send({
-    kind: "status",
-    state: status.state,
-    evidence: Array.isArray(status.evidence) ? status.evidence : [],
-  });
-}
-
 async function persistAndPublish(home, status) {
   await writeServiceStatus(home, PI_DURABLE_RUNTIME_SERVICE_ID, status);
-  publishRuntimeStatus(status);
+  publishSidecarStatus(status);
   return status;
 }
 
@@ -102,15 +93,6 @@ export async function executePiDurableRuntimeRequest(descriptor, rawRequest) {
   });
 }
 
-function parseArgs(argv) {
-  const values = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    if (!argv[index].startsWith("--")) continue;
-    values[argv[index].slice(2)] = argv[index + 1] && !argv[index + 1].startsWith("--") ? argv[++index] : "1";
-  }
-  return values;
-}
-
 export async function runPiDurableRuntimeService({ home, signal = () => false } = {}) {
   if (!home) throw new Error("Pi Durable runtime requires PlotPickle home.");
 
@@ -162,13 +144,13 @@ export async function runPiDurableRuntimeService({ home, signal = () => false } 
 
 const direct = Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (direct) {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseSidecarArgs(process.argv.slice(2));
   let stopped = false;
   process.on("SIGINT", () => { stopped = true; });
   process.on("SIGTERM", () => { stopped = true; });
   runPiDurableRuntimeService({ home: args.home, signal: () => stopped }).catch((error) => {
     const message = error instanceof Error ? error.message : String(error);
-    publishRuntimeStatus({ state: "degraded", evidence: [evidence("fatal-runtime-error", message)] });
+    publishSidecarStatus({ state: "degraded", evidence: [evidence("fatal-runtime-error", message)] });
     console.error(`[SIDECAR:PI-DURABLE] degraded: ${message}`);
     process.exitCode = 0;
   });

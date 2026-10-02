@@ -25,7 +25,8 @@
     "config/verification/test-catalog.json",
     "scripts/verification-shadow.mjs",
     "scripts/run-ben-code-quality.mjs",
-    "tests/issue-2697-ben-line-shift.test.mjs"
+    "tests/issue-2697-ben-line-shift.test.mjs",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {

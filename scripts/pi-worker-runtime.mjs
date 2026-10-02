@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";
+import process from "node:process";\nimport { versionAtLeast } from "./pi-version.mjs";
 import { promisify } from "node:util";
 import {
   PI_DEVELOPER_LOGICAL_MODEL,
@@ -26,20 +26,6 @@ const PI_RUNTIME_CANDIDATES = [
   { kind: "llama.cpp", label: "llama.cpp", baseUrl: "http://127.0.0.1:8080/v1" },
   { kind: "openai-compatible", label: "OpenAI-compatible", baseUrl: "http://127.0.0.1:8000/v1" },
 ];
-
-function versionTuple(value) {
-  return String(value || "").split(".").slice(0, 3).map((item) => Number(item) || 0);
-}
-
-function versionAtLeast(actual, minimum) {
-  const left = versionTuple(actual);
-  const right = versionTuple(minimum);
-  for (let index = 0; index < 3; index += 1) {
-    if (left[index] > right[index]) return true;
-    if (left[index] < right[index]) return false;
-  }
-  return true;
-}
 
 function windowsBatchWrapper(command) {
   return process.platform === "win32" && /\.(?:cmd|bat)$/iu.test(String(command));

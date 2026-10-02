@@ -7,6 +7,7 @@ import test from "node:test";
 import { enqueueServiceRequest, claimServiceRequests, completeServiceRequest, readServiceResult } from "../core/sidecars/runtime/service-bus.mjs";
 import { browserVerificationRuntimeDescriptor, executeBrowserRuntimeRequest } from "../scripts/sidecars/browser-verification-service.mjs";
 import { dsddRuntimeDescriptor, routeDsddRuntimeRequest } from "../scripts/sidecars/dsdd-service.mjs";
+import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime/service-registry.mjs";
 
 test("#2695 headless DSDD is startup-ready with zero UI/provider authority", () => {
   const descriptor = dsddRuntimeDescriptor();
@@ -98,4 +99,20 @@ test("#2695 supervisor waits for service-reported readiness instead of treating 
   assert.match(supervisor, /message\.kind !== "status"/);
   assert.match(dsdd, /publishRuntimeStatus\(descriptor\)/);
   assert.match(browser, /publishRuntimeStatus\(descriptor\)/);
+});
+
+
+test("#2695 reviewed sidecar launch supports TypeScript DSDD without widening the executable surface", async () => {
+  const config = JSON.parse(await readFile(new URL("../config/runtime-sidecars.json", import.meta.url), "utf8"));
+  const registry = createRuntimeServiceRegistry(config);
+  const launch = registeredServiceLaunch(registry, "dsdd", { repoRoot: process.cwd(), node: "node" });
+  assert.deepEqual(launch.args.slice(0, 1), ["--experimental-strip-types"]);
+  assert.match(launch.args[1].replaceAll("\\", "/"), /scripts\/sidecars\/dsdd-service\.mjs$/);
+});
+
+test("#2695 normal supervisor requests IPC lifecycle evidence from registered services", async () => {
+  const source = await readFile(new URL("../scripts/runtime-sidecar-supervisor.mjs", import.meta.url), "utf8");
+  assert.match(source, /ipc:\s*true/);
+  assert.match(source, /Headless DSDD|service\.label/);
+  assert.match(source, /reportedStates/);
 });

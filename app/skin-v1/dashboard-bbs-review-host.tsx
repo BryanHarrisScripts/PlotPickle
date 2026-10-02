@@ -241,6 +241,13 @@ export default function DashboardBbsReviewHost({
     if (itemId) restoreDashboardFocus(itemId);
   }
 
+  function returnWorldMapDashboard() {
+    setStoryBibleOpen(false);
+    setStoryBibleProject(null);
+    onSurfaceNameChange("DASHBOARD");
+    restoreDashboardFocus("story-bible");
+  }
+
   function closeReview(itemId: "library" | "plan") {
     if (itemId === "library") setLibraryOpen(false);
     else setOutlineOpen(false);
@@ -522,16 +529,13 @@ export default function DashboardBbsReviewHost({
           }
         }}
       >
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>MindMap</h1>
-          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
-        </div>
         <DiscoverySurface
           project={discoveryProject}
           initialTopic={discoveryInitialTopic}
           initialFieldId={discoveryInitialFieldId}
           initialAct={discoveryInitialAct}
           onOpenLearn={(topic, lessonId, act) => openContextualLearn(topic, lessonId, act, "mind-map")}
+          onBackDashboard={() => returnDashboard("discovery")}
         />
       </section>
     );
@@ -545,31 +549,15 @@ export default function DashboardBbsReviewHost({
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
-            setStoryBibleOpen(false);
-            setStoryBibleProject(null);
-            onSurfaceNameChange("DASHBOARD");
-            restoreDashboardFocus("story-bible");
+            returnWorldMapDashboard();
           }
         }}
       >
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>WORLD MAP</h1>
-          <button
-            autoFocus
-            type="button"
-            className="pp-skin-v1-return"
-            onClick={() => {
-              setStoryBibleOpen(false);
-              setStoryBibleProject(null);
-              onSurfaceNameChange("DASHBOARD");
-              restoreDashboardFocus("story-bible");
-            }}
-          >Back to Dashboard</button>
-        </div>
         <StoryBibleSurface
           project={storyBibleProject}
           onEditField={openMindMapField}
           onOpenLearn={(topic, lessonId, act) => openContextualLearn(topic, lessonId, act, "world-map")}
+          onBackDashboard={returnWorldMapDashboard}
         />
       </section>
     );

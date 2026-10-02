@@ -1862,6 +1862,18 @@
         "cli",
         "native"
       ]
+    },
+    {
+      "id": "ben-code-quality-delta",
+      "classification": "production",
+      "include": [
+        "scripts/run-ben-code-quality.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "cli",
+        "test-harness"
+      ]
     }
   ]
 }

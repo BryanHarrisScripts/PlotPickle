@@ -1789,6 +1789,19 @@
         "provider",
         "native"
       ]
+    },
+    {
+      "id": "local-development-sidecars",
+      "classification": "production",
+      "include": [
+        "core/sidecars/**"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "cli",
+        "provider",
+        "security"
+      ]
     }
   ]
 }

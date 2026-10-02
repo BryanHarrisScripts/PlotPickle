@@ -1776,6 +1776,19 @@
         "canon",
         "provider"
       ]
+    },
+    {
+      "id": "craft-runtime-adapters",
+      "classification": "production",
+      "include": [
+        "core/learning/craft-runtime-adapters.ts"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "canon",
+        "provider",
+        "native"
+      ]
     }
   ]
 }

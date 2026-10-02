@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile, readFile, readdir, rename } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
@@ -73,5 +73,48 @@ test("#2698 managed Pi runtime uses native import-only package exports", async (
     await writeFile(path.join(folder, "context.mjs"), "export const BACKGROUND_CONTEXT = 'managed-context';\n");
     const module = await importPiDurableModule(root, "@earendil-works/chord/context");
     assert.equal(module.BACKGROUND_CONTEXT, "managed-context");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("#2698 status replacement retries Windows sharing locks without losing the last snapshot", async () => {
+  const { writeRuntimeStatus } = await import("../core/sidecars/runtime/status-store.mjs");
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-status-"));
+  const file = path.join(root, "status.json");
+  try {
+    await writeRuntimeStatus(file, { state: "starting" });
+    let attempts = 0;
+    await writeRuntimeStatus(file, { state: "ready" }, {
+      renameFile: async (from, to) => {
+        if (++attempts <= 3) {
+          assert.equal(JSON.parse(await readFile(file, "utf8")).state, "starting");
+          throw Object.assign(new Error("Windows reader holds the file"), { code: "EPERM" });
+        }
+        return rename(from, to);
+      }, wait: async () => {},
+    });
+    assert.equal(attempts, 4);
+    assert.equal(JSON.parse(await readFile(file, "utf8")).state, "ready");
+    await Promise.all(Array.from({ length: 30 }, (_, sequence) => writeRuntimeStatus(file, { sequence })));
+    assert.equal(JSON.parse(await readFile(file, "utf8")).sequence, 29);
+    assert.deepEqual(await readdir(root), ["status.json"]);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("#2698 persistent status replacement failure is bounded and keeps the previous valid snapshot", async () => {
+  const { writeRuntimeStatus } = await import("../core/sidecars/runtime/status-store.mjs");
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-status-failure-"));
+  const file = path.join(root, "status.json");
+  try {
+    await writeRuntimeStatus(file, { state: "ready" });
+    let attempts = 0;
+    await assert.rejects(writeRuntimeStatus(file, { state: "stopped" }, {
+      renameFile: async () => { attempts++; throw Object.assign(new Error("still locked"), { code: "EACCES" }); },
+      wait: async () => {},
+    }), /still locked/);
+    assert.equal(attempts, 10);
+    assert.equal(JSON.parse(await readFile(file, "utf8")).state, "ready");
+    assert.deepEqual(await readdir(root), ["status.json"]);
+    await writeRuntimeStatus(file, { state: "stopped" });
+    assert.equal(JSON.parse(await readFile(file, "utf8")).state, "stopped");
   } finally { await rm(root, { recursive: true, force: true }); }
 });

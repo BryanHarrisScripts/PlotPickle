@@ -16,3 +16,7 @@ Normal startup validates agent profiles and the embedded Mastra agent registrati
 4. Focused startup contracts, production build, independent convergence and all seven exact-head architecture checks pass before merge.
 
 Scope: the startup diagnostics entry point, its current adapter, a helper under the existing startup owner, focused tests and verification wiring. Optional Media remains degraded when its renderer is absent. This follow-up does not claim an actual generated video or a multi-sample Afterglow performance benchmark.
+
+## Windows proof follow-up
+
+The first follow-up Windows run observed inventory readiness with inference not run, then exposed EPERM during replacement of the supervisor status file. Serialize writes per status path, use unique temporary files, and retry only transient sharing/permission errors with a bounded delay. Preserve the last valid snapshot and propagate persistent errors. Tests must cover temporary locks, concurrent writes, bounded failure and recovery; real Windows launcher proof remains required.

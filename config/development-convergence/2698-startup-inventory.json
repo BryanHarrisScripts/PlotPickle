@@ -14,7 +14,9 @@
     "tests/issue-2698-startup-agent-inventory.test.mjs",
     "tests/issue-2698-windows-startup-proof.mjs",
     "docs/developer-briefs/2698-startup-agent-inventory.md",
-    "config/development-convergence/2698-startup-inventory.json"
+    "config/development-convergence/2698-startup-inventory.json",
+    "core/sidecars/runtime/status-store.mjs",
+    "tests/issue-2698-runtime-shutdown.test.mjs"
   ],
   "acceptance": [
     {
@@ -47,6 +49,17 @@
           "type": "file-contains",
           "path": "tests/issue-2698-windows-startup-proof.mjs",
           "contains": "automatic agent registration inventory"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "criterion": "Transient Windows status replacement locks are retried without destroying the last valid snapshot.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-runtime-shutdown.test.mjs",
+          "contains": "status replacement retries Windows sharing locks"
         }
       ]
     }

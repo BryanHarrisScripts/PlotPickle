@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { runStartupAgentDiagnostics } from "./startup-agent-diagnostics-runtime-v6";
+import { runStartupAgentDiagnostics, runStartupAgentInventory } from "./startup-agent-diagnostics-runtime-v6";
 
 export { runStartupAgentDiagnostics };
 
@@ -8,16 +8,14 @@ export function startupAgentDiagnosticsPlugin(): Plugin {
     name: "plotpickle-startup-agent-diagnostics",
     configureServer(server) {
       server.httpServer?.once("listening", () => {
-        const port = server.config.server.port || 5173;
-        const baseUrl = `http://127.0.0.1:${port}`;
         setTimeout(() => {
           void (async () => {
             try {
-              await runStartupAgentDiagnostics(baseUrl);
+              await runStartupAgentInventory();
             } catch (error) {
               const message = error instanceof Error ? error.message : "unexpected diagnostic failure";
-              console.error(`[STARTUP] Agent health check failed unexpectedly: ${message}`);
-              console.error("OVERALL: NEEDS ATTENTION");
+              console.error(`[STARTUP] Agent inventory failed unexpectedly: ${message}`);
+              console.error("RUNTIME INVENTORY: NEEDS ATTENTION");
             }
           })();
         }, 750);

@@ -239,7 +239,8 @@
       "classification": "production",
       "include": [
         "build/startup-agent-diagnostics.ts",
-        "build/startup-agent-diagnostics-runtime*.ts"
+        "build/startup-agent-diagnostics-runtime*.ts",
+        "build/startup/agent-inventory.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

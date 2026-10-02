@@ -96,9 +96,18 @@ try {
     const run = { mode: baseline ? "warm-core-baseline" : attempt ? "warm-persistent-restart" : "prepared-runtime", startedAt: new Date(started).toISOString(), failureIsolation: [] };
     report.runs.push(run);
     tail = "";
+    let agentInventoryReady = false;
+    let inferenceTestsSkipped = false;
+    let automaticInferenceLogged = false;
+    const observeLauncherOutput = (data) => {
+      tail = (tail + data).slice(-10000);
+      agentInventoryReady ||= tail.includes("RUNTIME INVENTORY: READY");
+      inferenceTestsSkipped ||= tail.includes("Inference tests: NOT RUN");
+      automaticInferenceLogged ||= /Mastra and Agent Health Check|Sage response.*PASS|Foundations Planner response.*PASS/.test(tail);
+    };
     launcher = spawn("cmd.exe", ["/d", "/s", "/c", "Start-PlotPickle.bat"], { cwd: repo, env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
-    launcher.stdout.on("data", (data) => { tail = (tail + data).slice(-10000); });
-    launcher.stderr.on("data", (data) => { tail = (tail + data).slice(-10000); });
+    launcher.stdout.on("data", observeLauncherOutput);
+    launcher.stderr.on("data", observeLauncherOutput);
     await wait("normal core startup", async () => {
       if (launcher.exitCode !== null) throw new Error(`Launcher exited ${launcher.exitCode}: ${tail}`);
       return coreAvailable();
@@ -146,6 +155,10 @@ try {
       assert.equal(readiness.managedStart.attempted, false);
       return readiness;
     }, 90000);
+    await wait("automatic agent registration inventory", async () => agentInventoryReady, 90000);
+    assert.equal(inferenceTestsSkipped, true);
+    assert.equal(automaticInferenceLogged, false);
+    run.agentInventory = { ready: true, inferenceAttempted: false };
     if (!attempt) {
       for (const id of services) {
         const service = status.services.find((item) => item.id === id);

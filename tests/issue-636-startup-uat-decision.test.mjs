@@ -4,10 +4,10 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("normal startup diagnostics finish after agent health without offering UAT", async () => {
+test("normal startup diagnostics finish after agent inventory without offering UAT", async () => {
   const entry = await read("build/startup-agent-diagnostics.ts");
 
-  assert.match(entry, /await runStartupAgentDiagnostics\(baseUrl\)/);
+  assert.match(entry, /await runStartupAgentInventory\(\)/);
   assert.doesNotMatch(entry, /offerStartupUatDecision|startup-uat-decision|Start the PlotPickle UAT Agent now/);
   assert.doesNotMatch(entry, /finally\s*\{[\s\S]*UatDecision/);
 });

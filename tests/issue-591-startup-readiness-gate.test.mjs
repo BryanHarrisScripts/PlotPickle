@@ -70,8 +70,9 @@ test("browser launch follows required readiness while optional companion mainten
   assert.match(launcher, /echo !READY! Optional companion inventory is deferred until after local server readiness/);
   assert.doesNotMatch(launcher, /-File "%COMPANION_MANAGER%" -Mode Maintain/);
   assert.match(deferred, /Test-PlotPickleReady/);
-  assert.match(deferred, /-Mode Maintain -NoPrompt/);
-  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
+  assert.match(deferred, /-Mode Report -NoPrompt/);
+  assert.doesNotMatch(deferred, /-Mode Maintain/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Report -NoPrompt"));
 });
 
 test("#2654 launcher classifies warmup and liveness probes without turning post-browser checks into app renders", async () => {

@@ -68,9 +68,9 @@ if (-not (Test-Path -LiteralPath $CompanionManager)) {
   exit 0
 }
 
-Write-Host "[INFO] Starting non-interactive optional companion inventory and reviewed maintenance." -ForegroundColor Cyan
+Write-Host "[INFO] Starting non-interactive, read-only optional companion inventory." -ForegroundColor Cyan
 try {
-  & $CompanionManager -Mode Maintain -NoPrompt
+  & $CompanionManager -Mode Report -NoPrompt
   if ($LASTEXITCODE -ne 0) {
     Write-Host "[WARNING] Optional companion maintenance reported warnings. PlotPickle remains available." -ForegroundColor Yellow
   }

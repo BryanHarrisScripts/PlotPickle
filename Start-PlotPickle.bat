@@ -75,7 +75,7 @@ echo ============================================================
 echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Required PlotPickle runtime checks finish first; optional companion inventory and reviewed maintenance begin only after the local server is ready.
+echo Required PlotPickle runtime checks finish first; read-only optional companion inventory begins only after the local server is ready.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -381,7 +381,7 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
 ) else (
   if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
     echo.
-    echo !INFO! Optional companion inventory and reviewed maintenance are deferred until PlotPickle is reachable.
+    echo !INFO! Read-only optional companion inventory is deferred until PlotPickle is reachable.
     echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
   ) else (
     echo.

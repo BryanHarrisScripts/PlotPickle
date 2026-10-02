@@ -1,9 +1,9 @@
 .surface {
   display: grid;
-  gap: var(--pp-skin-space-3);
-  width: min(100%, var(--pp-skin-shell-max));
+  gap: var(--pp-skin-space-2);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
-  padding: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2) 0 var(--pp-skin-space-6);
   color: var(--pp-skin-ink);
 }
 
@@ -624,5 +624,76 @@
 
   .characterSelect > b {
     grid-column: 1 / -1;
+  }
+}
+
+
+/* #2667: Mind Map uses one framed work region beneath the shared Mind/World header. */
+.workRegion {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.workRegionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  padding-bottom: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.workRegionHeader > div:first-child {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.workRegionHeader small {
+  color: var(--pp-skin-ink-muted);
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+
+.workRegionHeader > div:first-child > strong {
+  color: var(--pp-skin-ink);
+  font-size: 1.05rem;
+}
+
+.workRegion > .fieldPager,
+.workRegion > .contextualActions,
+.workRegion > .characterWorkspace,
+.workRegion > .fieldWorkspace,
+.workRegion > .humanNotes {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.workRegion > .fieldPager {
+  padding-bottom: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.workRegion > .contextualActions,
+.workRegion > .humanNotes,
+.workRegion > .fieldWorkspace,
+.workRegion > .characterWorkspace {
+  padding-top: var(--pp-skin-space-2);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+@media (max-width: 760px) {
+  .surface {
+    width: calc(100vw - 24px);
+  }
+
+  .workRegionHeader {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

@@ -39,6 +39,32 @@ export async function loadAgentSkillRegistry() {
     if (!skill.entry || !skill.uri) throw new Error(`Skill ${skill.id} is missing entry or URI metadata.`);
     if (skill.uri !== `skill://plotpickle/${skill.id}`) throw new Error(`Skill ${skill.id} has a non-canonical PlotPickle URI.`);
     safeEntry(skill.entry);
+    if (skill.learning) {
+      const learning = skill.learning;
+      const actions = new Set(["explain", "diagnose", "exercise", "compare", "reader-response"]);
+      const visibility = new Set(["learner", "internal"]);
+      if (!Array.isArray(learning.domains) || !learning.domains.length || learning.domains.some((value) => typeof value !== "string" || !value.trim())) {
+        throw new Error(`Skill ${skill.id} has invalid craft-learning domains.`);
+      }
+      if (!Array.isArray(learning.actions) || !learning.actions.length || learning.actions.some((value) => !actions.has(value))) {
+        throw new Error(`Skill ${skill.id} has invalid craft-learning actions.`);
+      }
+      if (!visibility.has(learning.visibility)) throw new Error(`Skill ${skill.id} has invalid learner visibility.`);
+      if (!Array.isArray(learning.lessonRefs) || learning.lessonRefs.some((value) => typeof value !== "string" || !value.trim())) {
+        throw new Error(`Skill ${skill.id} has invalid lesson mappings.`);
+      }
+      if (!Array.isArray(learning.contextClasses) || learning.contextClasses.some((value) => typeof value !== "string" || !value.trim())) {
+        throw new Error(`Skill ${skill.id} has invalid learner context classes.`);
+      }
+      if (!Array.isArray(learning.runtimeCompatibility) || !learning.runtimeCompatibility.length || learning.runtimeCompatibility.some((value) => typeof value !== "string" || !value.trim())) {
+        throw new Error(`Skill ${skill.id} has invalid runtime compatibility.`);
+      }
+      if (!["covered", "partial", "planned"].includes(learning.evaluationCoverage) || !["built-in", "reviewed-external", "quarantined-external"].includes(learning.provenanceClass)) {
+        throw new Error(`Skill ${skill.id} has invalid learning evaluation/provenance metadata.`);
+      }
+      const forbidden = new Set(["network-egress-by-skill", "credential-read", "provider-selection-by-skill", "ppf-direct-write"]);
+      if (learning.contextClasses.some((value) => forbidden.has(value))) throw new Error(`Skill ${skill.id} learning metadata requests forbidden authority.`);
+    }
   }
   return registry;
 }

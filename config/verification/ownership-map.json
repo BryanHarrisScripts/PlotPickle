@@ -1827,6 +1827,7 @@
         "docs/architecture/PI-DURABLE-ADAPTER.md",
         "scripts/evaluate-pi-durable-adapter.mjs",
         "scripts/pi-durable-managed-install.mjs",
+        "scripts/pi/durable/**",
         "scripts/sidecars/pi-durable-service.mjs"
       ],
       "ownerLayer": "production-harness",

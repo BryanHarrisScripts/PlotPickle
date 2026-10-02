@@ -1998,6 +1998,46 @@
         ]
       },
       "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape."
+    },
+    {
+      "id": "production.agent-checkpoint-contract-2709",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "agent",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2709-agent-checkpoint-task.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "Host-scoped durable agent checkpoint contract; actual JSONL recovery is proven separately in the Windows Pi product gate."
     }
   ]
 }

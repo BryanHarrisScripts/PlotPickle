@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "issue": 2672,
+  "package": "@earendil-works/pi-durable",
+  "candidateVersion": "1.0.0",
+  "minimumNode": "22.19.0",
+  "defaultEnabled": false,
+  "decision": "continue-optional-adapter-disabled-by-default",
+  "authority": {
+    "governance": "dsdd",
+    "canonApproval": false,
+    "mergeAuthority": false,
+    "deterministicFailureOverride": false
+  },
+  "replay": {
+    "safe": "may resume after interruption using the same durable request identity",
+    "nonReplayable": "requires explicit Human re-authorization after interruption"
+  },
+  "storage": {
+    "preferred": "jsonl",
+    "reason": "portable crash-recovery prototype without making SQLite/native bindings a startup dependency"
+  },
+  "windows": {
+    "status": "prototype-feasible-with-runtime-upgrade",
+    "currentConstraint": "Pi Durable 1.0.0 declares Node >=22.19.0; PlotPickle CI currently includes Node 22.13.0 jobs, so the adapter remains disabled by default until the supported Node baseline and Windows proof are promoted."
+  },
+  "upstream": "https://github.com/earendil-works/pi/tree/main/packages/durable"
+}

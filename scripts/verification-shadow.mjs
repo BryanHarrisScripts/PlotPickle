@@ -91,7 +91,7 @@ function safeTypedRunners() {
   return {
     "node-test": async ({ entry }) => {
       const started = Date.now();
-      const result = spawnChecked(process.execPath, ["--test", ...entry.runner.targets]);
+      const result = spawnChecked(process.execPath, ["--experimental-strip-types", "--test", ...entry.runner.targets]);
       return { result, durationMs: Date.now() - started, artifacts: [], security: {} };
     },
     "node-script": runEach(process.execPath),

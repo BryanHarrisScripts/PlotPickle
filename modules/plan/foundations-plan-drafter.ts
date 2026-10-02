@@ -1,3 +1,4 @@
+import { craftContextForQuestion } from "../../core/learning/live-craft-runtime";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import {
   isUsableFoundationAnswer,
@@ -205,6 +206,7 @@ async function requestFoundationProposal(
   fieldIds: readonly string[],
   timeoutMs: number,
   modelRole: PlanModelRole = "quality",
+  craftContext: readonly string[] = [],
 ) {
   await preparePlanRole(modelRole);
   let response: Response;
@@ -220,6 +222,8 @@ async function requestFoundationProposal(
         provider: "local",
         modelRole,
         tone: "collaborative",
+        craftMode: "authoring-proposal",
+        craftContext,
         foundationFieldIds: fieldIds,
         message,
       }),
@@ -341,7 +345,7 @@ async function recoverFieldsIndividually(
     ];
     for (const attempt of attempts) {
       try {
-        const result = await requestFoundationProposal(attempt.message, [field.id], attempt.timeoutMs, attempt.role);
+        const result = await requestFoundationProposal(attempt.message, [field.id], attempt.timeoutMs, attempt.role, craftContextForQuestion(field.prompt, input.curriculumLesson.topic));
         const parsed = parseProposal(result.text || "", singleLesson);
         values[field.id] = parsed[field.id];
         lastModel = result.model || lastModel;
@@ -372,7 +376,7 @@ export async function draftFoundationLesson(
 
   for (const attemptMessage of [message, `${repairInstruction()}\n\n${message}`]) {
     try {
-      const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000, "quality");
+      const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000, "quality", craftContextForQuestion(input.lesson.fields.map((field) => field.prompt).join(" "), input.curriculumLesson.topic));
       lastModel = result.model || lastModel;
       const values = parseProposal(result.text || "", input.lesson);
       return {

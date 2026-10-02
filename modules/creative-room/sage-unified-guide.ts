@@ -1,3 +1,4 @@
+import { craftContextForQuestion } from "../../core/learning/live-craft-runtime";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import type { CurriculumGuide, CurriculumGuideAnswer, CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
 import { retrieveCurriculumContext, type CurriculumRetrieval } from "./curriculum-retrieval";
@@ -158,6 +159,7 @@ async function askModel(request: CurriculumGuideRequest, retrieval: CurriculumRe
       provider: "local",
       modelRole: role,
       tone: "collaborative",
+      craftContext: craftContextForQuestion(request.question, request.curriculum.find((lesson) => lesson.id === request.activeLessonId)?.topic),
       message: buildPrompt(request, retrieval, repair),
     }),
     signal: AbortSignal.timeout(role === "fast" ? 25_000 : 45_000),

@@ -5,8 +5,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
-import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime-service-registry.mjs";
-import { runtimeStatusDocument, writeRuntimeStatus } from "../core/sidecars/runtime-status-store.mjs";
+import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime/service-registry.mjs";
+import { runtimeStatusDocument, writeRuntimeStatus } from "../core/sidecars/runtime/status-store.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(repoRoot, "config", "runtime-sidecars.json"), "utf8"));

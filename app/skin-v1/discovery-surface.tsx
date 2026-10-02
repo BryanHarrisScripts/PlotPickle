@@ -814,8 +814,8 @@ export default function DiscoverySurface({
       <section className={styles.fieldWorkspace} aria-label={`${LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label} canonical story fields`}>
         <header className={styles.fieldWorkspaceHeader}>
           <div>
-            <small>CANONICAL PROJECT FIELDS</small>
-            <h3>{LEARN_TOPIC_SPINE.find((topic) => topic.id === selectedTopic)?.label}</h3>
+            <small>SELECTED PAGE</small>
+            <h3>Canonical project fields</h3>
           </div>
           <span>PAGE {selectedFieldPage} OF {selectedFieldPageCount} · {visibleCanonicalFields.length} VISIBLE / {selectedCanonicalFields.length} {selectedCanonicalFields.length === 1 ? "FIELD" : "FIELDS"}</span>
         </header>

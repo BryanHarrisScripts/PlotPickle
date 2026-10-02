@@ -46,6 +46,10 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-099-compatibility.mjs
 
+      - name: Evaluate optional Pi Durable adapter
+        shell: pwsh
+        run: node scripts/evaluate-pi-durable-adapter.mjs
+
       - name: Prove Pi native MCP registration and stdio on Windows
         shell: pwsh
         run: node --test tests/issue-2591-pi-native-mcp.test.mjs

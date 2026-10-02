@@ -388,6 +388,19 @@
       ],
       "plotpickleUse": "Reviewed knowledge/methodology source for PlotPickle's independently authored Color Expert adapter Skill. PlotPickle does not vendor the upstream reference corpus and does not create a second palette or visual authority.",
       "readme": false
+    },
+    {
+      "id": "pi-durable",
+      "name": "Pi Durable",
+      "category": "developer-tool",
+      "usage": "optional-adapter",
+      "version": "1.0.0",
+      "source": "https://www.npmjs.com/package/@earendil-works/pi-durable",
+      "license": "MIT",
+      "licenseSource": "https://github.com/earendil-works/pi/blob/v1.0.0/packages/durable/package.json",
+      "manifestPath": "config/pi-durable-adapter.json",
+      "plotpickleUse": "Optional durable execution substrate behind PlotPickle-owned DSDD sidecar contracts; disabled by default pending Node >=22.19 and Windows resilience proof.",
+      "readme": true
     }
   ],
   "thirdPartyAssets": [

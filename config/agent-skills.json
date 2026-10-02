@@ -117,7 +117,33 @@
         "curriculum-guide"
       ],
       "mcpReady": true,
-      "localOnly": true
+      "localOnly": true,
+      "learning": {
+        "domains": [
+          "story-craft",
+          "curriculum-guidance"
+        ],
+        "lessonRefs": [
+          "learn:*"
+        ],
+        "actions": [
+          "explain",
+          "diagnose",
+          "exercise",
+          "compare"
+        ],
+        "contextClasses": [
+          "curriculum-read",
+          "bounded-project-context"
+        ],
+        "visibility": "learner",
+        "runtimeCompatibility": [
+          "host",
+          "mastra"
+        ],
+        "evaluationCoverage": "covered",
+        "provenanceClass": "built-in"
+      }
     },
     {
       "id": "plan-foundations",

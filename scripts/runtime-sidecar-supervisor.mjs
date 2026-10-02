@@ -5,7 +5,6 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
-import { validateVerificationRequest } from "../core/sidecars/contract.ts";
 import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime/service-registry.mjs";
 import { runtimeStatusDocument, writeRuntimeStatus } from "../core/sidecars/runtime/status-store.mjs";
 
@@ -65,29 +64,6 @@ async function waitForCore() {
   return false;
 }
 
-function routeServiceMessage(sourceId, message) {
-  if (!message || typeof message !== "object") return;
-  const target = String(message.target || "");
-  if (!target || !registry.get(target) || target === sourceId) return;
-
-  if (message.kind === "request") {
-    try {
-      const request = validateVerificationRequest(message.request);
-      supervisor.send(target, { kind: "request", source: sourceId, target, request });
-    } catch (error) {
-      supervisor.mark(sourceId, "degraded", [evidence(
-        "request-rejected",
-        error instanceof Error ? error.message : String(error),
-      )]);
-    }
-    return;
-  }
-
-  if (message.kind === "result") {
-    supervisor.send(target, { kind: "result", source: sourceId, target, result: message.result });
-  }
-}
-
 async function stopAll() {
   for (const service of registry.services) supervisor.stop(service.id);
   await snapshot("stopped", "stopped").catch(() => {});
@@ -118,7 +94,6 @@ async function main() {
       args: [...launch.args, "--home", home, "--server", server, "--status-file", statusFile],
       enabled: launch.enabled,
       ipc: true,
-      onMessage: (message) => routeServiceMessage(service.id, message),
     });
     console.log(`[SIDECARS] ${service.label}: starting`);
   }

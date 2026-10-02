@@ -83,6 +83,7 @@ jobs:
             .artifacts/verification-live/webmcp-app-server.log
             .artifacts/webmcp-startup/summary.json
             .artifacts/webmcp-startup/uat-findings.json
+            .artifacts/webmcp-acceptance/**/*.json
             .artifacts/visual-readiness/*.png
             .artifacts/visual-readiness/visual-director-report.json
           if-no-files-found: warn

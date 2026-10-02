@@ -13,7 +13,6 @@ import {
   runSkinV1VisualDirector,
 } from "../lib/verification/skin-v1-visual-director.mjs";
 import { runWebMcpSurfaceVisualAudit } from "../lib/verification/webmcp-surface-visual-audit.mjs";
-import { runWebMcpAcceptanceJourney } from "../core/sidecars/webmcp-acceptance-sidecar.mjs";
 import { validateLocalServer, waitForUiServer } from "../lib/verification/ui-axe-audit.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -247,6 +246,7 @@ export async function runLiveWebMcpEvidence() {
     }
 
     coldMediaRetryUsed = await runAuditWithColdMediaRetry({ node, home, toolRoot, serverEnv, serverExited });
+    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
     const acceptanceStorageStatePath = path.join(home, "verification-browser", "storage-state.json");
     const mindWorldAcceptance = await runWebMcpAcceptanceJourney({
       request: {

@@ -1725,6 +1725,19 @@
         "api",
         "native"
       ]
+    },
+    {
+      "id": "timeline-rough-cut-media-assembly",
+      "classification": "production",
+      "include": [
+        "core/media/timeline-rough-cut-assembly.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "provider",
+        "visual"
+      ]
     }
   ]
 }

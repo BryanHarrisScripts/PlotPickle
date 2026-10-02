@@ -4,7 +4,7 @@ import {
   createPlotPickleMiniBlockMediaRequest,
   type PlotPickleMediaEngineEvidence,
 } from "../core/media/media-engine-contract";
-import { FFramesLocalMediaEngine } from "../core/media/fframes-local-media-engine";
+import { liveMediaEngine } from "../core/media/live-media-runtime";
 
 export type PrevisLockedStoryboardFrame = Readonly<{
   position: number;
@@ -65,7 +65,7 @@ export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMedi
     miniBlockNumber: input.miniBlockNumber,
     frames,
   });
-  const engine = new FFramesLocalMediaEngine();
+  const engine = liveMediaEngine();
   const capability = await engine.capabilities();
   if (capability.state !== "ready") {
     return { mode: "fallback", message: "FFrames is unavailable. Flip Book, Graphic Novel, and WebP remain available.", evidence: null };

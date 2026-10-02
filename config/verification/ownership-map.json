@@ -1764,6 +1764,18 @@
         "canon",
         "provider"
       ]
+    },
+    {
+      "id": "pilot-craft-learning-capabilities",
+      "classification": "production",
+      "include": [
+        "core/learning/pilot-craft-capabilities.ts"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "canon",
+        "provider"
+      ]
     }
   ]
 }

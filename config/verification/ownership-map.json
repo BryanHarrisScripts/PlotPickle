@@ -1819,7 +1819,9 @@
         "core/sidecars/pi-durable-adapter.mjs",
         "config/pi-durable-adapter.json",
         "docs/architecture/PI-DURABLE-ADAPTER.md",
-        "scripts/evaluate-pi-durable-adapter.mjs"
+        "scripts/evaluate-pi-durable-adapter.mjs",
+        "scripts/pi-durable-managed-install.mjs",
+        "scripts/sidecars/pi-durable-service.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

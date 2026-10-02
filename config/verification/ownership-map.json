@@ -1810,7 +1810,8 @@
         "core/sidecars/durable-execution-contract.mjs",
         "core/sidecars/pi-durable-adapter.mjs",
         "config/pi-durable-adapter.json",
-        "docs/architecture/PI-DURABLE-ADAPTER.md"
+        "docs/architecture/PI-DURABLE-ADAPTER.md",
+        "scripts/evaluate-pi-durable-adapter.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

@@ -44,3 +44,15 @@ test("#2697 registered modular services initialize and stop without model or rem
     }
   } finally { await rm(home, { recursive: true, force: true }); }
 });
+
+test("#2697 Screening consumes the actual media adapter evidence and rejects stale sources", async () => {
+  const { projectScreeningMediaEvidence } = await import("../core/media/screening-media-evidence.ts");
+  const evidence = { schemaVersion: 1, requestId: "render-1", engineId: "fframes-local", engineVersion: "test", state: "succeeded", startedAt: "", completedAt: "", sourceAssets: [{ position: 1, assetId: "frame-1", assetUrl: "/assets/frame.webp", sha256: "hash", durationMs: 3000, sourceRefs: ["frame-1"] }], artifacts: { contactSheetPath: "", frameDirectory: "", videoPath: "render.mp4" }, inspection: null, timeline: null, diagnostics: [], reason: "" };
+  const media = { roughCutId: "cut-1", state: "succeeded", engineEvidence: [evidence], sourceRefs: ["frame-1"], reason: "" };
+  const projection = projectScreeningMediaEvidence({ roughCutId: "cut-1", currentSourceRefs: ["frame-1"], media });
+  assert.equal(projection.state, "ready");
+  assert.deepEqual(projection.playbackArtifactPaths, ["render.mp4"]);
+  assert.equal(projection.inspection.durationMs, 3000);
+  assert.equal(projection.inspection.sourceCount, 1);
+  assert.equal(projectScreeningMediaEvidence({ roughCutId: "cut-1", currentSourceRefs: [], media }).state, "stale");
+});

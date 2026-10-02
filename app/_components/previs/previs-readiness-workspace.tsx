@@ -332,6 +332,7 @@ function approvedGraphicNovelPanel(
 export default function PrevisReadinessWorkspace({
   project,
   onProjectChange,
+  onOpenStoryboard,
   address,
   onAddressChange,
   embeddedNavigation = false,

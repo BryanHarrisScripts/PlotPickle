@@ -18,7 +18,10 @@
     "scripts/sidecars/chatgpt-mcp-gateway-service.mjs",
     "tests/issue-2697-live-modular-runtimes.test.mjs",
     "config/development-convergence/2697.json",
-    "tests/issue-2695-live-dsdd-browser-services.test.mjs"
+    "tests/issue-2695-live-dsdd-browser-services.test.mjs",
+    "tsconfig.json",
+    "core/media/screening-media-evidence.ts",
+    "app/_components/previs/previs-readiness-workspace.tsx"
   ],
   "acceptance": [
     {

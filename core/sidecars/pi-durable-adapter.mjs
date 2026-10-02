@@ -177,17 +177,12 @@ export async function createNativePiDurableDriver({
   };
 }
 
-export class PiDurableAdapter extends DurableExecutionAdapter {
-  constructor(driver) {
-    super();
-    this.driver = driver;
+export function createPiDurableAdapter(driver) {
+  const required = ["start", "resume", "cancel", "status", "result", "evidence"];
+  for (const method of required) {
+    if (typeof driver?.[method] !== "function") throw new Error(`Pi Durable driver is missing required operation: ${method}`);
   }
-  start(task) { return this.driver.start(normalizeDurableTask(task)); }
-  resume(taskId) { return this.driver.resume(taskId); }
-  cancel(taskId) { return this.driver.cancel(taskId); }
-  status(taskId) { return this.driver.status(taskId); }
-  result(taskId) { return this.driver.result(taskId); }
-  evidence(taskId) { return this.driver.evidence(taskId); }
+  return driver;
 }
 
 export class DisabledDurableAdapter extends DurableExecutionAdapter {

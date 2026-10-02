@@ -1759,7 +1759,7 @@
       "include": [
         "core/learning/contextual-craft-router.ts"
       ],
-      "ownerLayer": "agent-skill-mesh",
+      "ownerLayer": "agent-runtime",
       "riskTokens": [
         "canon",
         "provider"

@@ -5,7 +5,8 @@ import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";\nimport { versionAtLeast } from "./pi-version.mjs";
+import process from "node:process";
+import { versionAtLeast } from "./pi-version.mjs";
 import { promisify } from "node:util";
 import {
   PI_DEVELOPER_LOGICAL_MODEL,

@@ -107,7 +107,7 @@ export async function createNativePiDurableDriver({
       const { folder, harness } = await open(taskId);
       try {
         const metadata = await loadMetadata(folder);
-        assertReplayAllowed(metadata.task, { interrupted: metadata.state === "interrupted" });
+        assertReplayAllowed(metadata.task, { interrupted: ["queued", "running", "waiting", "interrupted"].includes(metadata.state) });
         harness.resume();
         metadata.state = "running";
         metadata.updatedAt = new Date().toISOString();
@@ -143,6 +143,7 @@ export async function createNativePiDurableDriver({
       const { folder, harness } = await open(taskId);
       try {
         const metadata = await loadMetadata(folder);
+        assertReplayAllowed(metadata.task, { interrupted: ["queued", "running", "waiting", "interrupted"].includes(metadata.state) });
         const submission = await harness.submission(metadata.submissionId, context);
         if (!submission) throw new Error("Pi Durable submission is missing from persisted state.");
         const settled = await submission.wait(context);

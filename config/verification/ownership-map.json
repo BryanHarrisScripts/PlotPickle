@@ -1794,7 +1794,7 @@
       "id": "local-development-sidecars",
       "classification": "production",
       "include": [
-        "core/sidecars/**/*.ts"
+        "core/sidecars/**"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

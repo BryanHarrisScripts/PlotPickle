@@ -1806,7 +1806,9 @@
         "security",
         "windows",
         "native",
-        "test-harness"
+        "test-harness",
+        "agent",
+        "mcp"
       ]
     },
     {

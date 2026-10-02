@@ -2,6 +2,7 @@
 
 import path from "node:path";
 import process from "node:process";
+import { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
 import { fileURLToPath } from "node:url";
 import {
   evaluateDsddConvergence,
@@ -20,15 +21,6 @@ export const DSDD_RUNTIME_SERVICE_ID = "dsdd";
 
 function evidence(kind, summary) {
   return Object.freeze({ kind, summary, observedAt: new Date().toISOString() });
-}
-
-function publishRuntimeStatus(status) {
-  if (typeof process.send !== "function") return;
-  process.send({
-    kind: "status",
-    state: status.state,
-    evidence: Array.isArray(status.evidence) ? status.evidence : [],
-  });
 }
 
 export function dsddRuntimeDescriptor() {
@@ -96,20 +88,11 @@ export async function routeDsddRuntimeRequest(home, rawRequest) {
   });
 }
 
-function parseArgs(argv) {
-  const values = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    if (!argv[index].startsWith("--")) continue;
-    values[argv[index].slice(2)] = argv[index + 1] && !argv[index + 1].startsWith("--") ? argv[++index] : "1";
-  }
-  return values;
-}
-
 export async function runDsddRuntimeService({ home, signal = () => false } = {}) {
   if (!home) throw new Error("Headless DSDD runtime requires PlotPickle home.");
   const descriptor = dsddRuntimeDescriptor();
   await writeServiceStatus(home, DSDD_RUNTIME_SERVICE_ID, descriptor);
-  publishRuntimeStatus(descriptor);
+  publishSidecarStatus(descriptor);
   process.stdout.write("[SIDECAR:DSDD] ready\n");
 
   while (!signal()) {
@@ -133,14 +116,14 @@ export async function runDsddRuntimeService({ home, signal = () => false } = {})
 
 const direct = Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (direct) {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseSidecarArgs(process.argv.slice(2));
   let stopped = false;
   process.on("SIGINT", () => { stopped = true; });
   process.on("SIGTERM", () => { stopped = true; });
   runDsddRuntimeService({ home: args.home, signal: () => stopped }).catch(async (error) => {
     const message = error instanceof Error ? error.message : String(error);
     const status = { state: "degraded", evidence: [evidence("startup-error", message)] };
-    publishRuntimeStatus(status);
+    publishSidecarStatus(status);
     if (args.home) await writeServiceStatus(args.home, DSDD_RUNTIME_SERVICE_ID, status).catch(() => {});
     console.error(`[SIDECAR:DSDD] degraded: ${message}`);
   });

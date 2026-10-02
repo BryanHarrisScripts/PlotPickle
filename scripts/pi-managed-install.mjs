@@ -5,6 +5,7 @@ import { mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { versionAtLeast } from "./pi-version.mjs";
 import {
   PI_CODING_AGENT_PACKAGE,
   PI_MINIMUM_NODE_VERSION,
@@ -14,20 +15,6 @@ import {
 
 export const PLOTPICKLE_MANAGED_PI_VERSION = "0.99.1";
 export const PLOTPICKLE_MANAGED_PI_PACKAGE = `${PI_CODING_AGENT_PACKAGE}@${PLOTPICKLE_MANAGED_PI_VERSION}`;
-
-function versionTuple(value) {
-  return String(value || "").split(".").slice(0, 3).map((item) => Number(item) || 0);
-}
-
-function versionAtLeast(actual, minimum) {
-  const left = versionTuple(actual);
-  const right = versionTuple(minimum);
-  for (let index = 0; index < 3; index += 1) {
-    if (left[index] > right[index]) return true;
-    if (left[index] < right[index]) return false;
-  }
-  return true;
-}
 
 function normalizedPiVersion(value) {
   const match = String(value || "").trim().match(/\b(\d+\.\d+\.\d+)\b/u);

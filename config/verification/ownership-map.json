@@ -339,7 +339,8 @@
         "config/pi-virtual-model-policy.json",
         "lib/agents/pi-developer-routing.mjs",
         "config/development-delivery-policy.json",
-        "lib/agents/governed-development-delivery.mjs"
+        "lib/agents/governed-development-delivery.mjs",
+        "scripts/pi-version.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -1819,7 +1820,9 @@
         "core/sidecars/pi-durable-adapter.mjs",
         "config/pi-durable-adapter.json",
         "docs/architecture/PI-DURABLE-ADAPTER.md",
-        "scripts/evaluate-pi-durable-adapter.mjs"
+        "scripts/evaluate-pi-durable-adapter.mjs",
+        "scripts/pi-durable-managed-install.mjs",
+        "scripts/sidecars/pi-durable-service.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

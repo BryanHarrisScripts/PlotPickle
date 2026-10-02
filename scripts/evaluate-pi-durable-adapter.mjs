@@ -161,6 +161,20 @@ process.stdout.write(JSON.stringify({
       governanceAuthority: "dsdd",
     };
 
+    const serviceSource = await readFile(path.join(repoRoot, "scripts", "sidecars", "pi-durable-service.mjs"), "utf8");
+    if (contract.defaultEnabled !== true || contract.decision !== "active-by-default-supported-host-with-degraded-fallback") {
+      throw new Error("Pi Durable is not configured as the reviewed active-default runtime.");
+    }
+    if (/resolvePiLocalRuntime|PLOTPICKLE_REPAIR_ENDPOINT|\/chat\/completions|\/responses/u.test(serviceSource)) {
+      throw new Error("Pi Durable startup service appears to select or invoke a model/provider during startup.");
+    }
+    report.checks.defaultActivation = {
+      passed: true,
+      defaultEnabled: true,
+      managedPackage: `${contract.package}@${contract.candidateVersion}`,
+      startupProviderCalls: false,
+    };
+
     report.status = "passed";
     report.decision = contract.decision;
     await writeFile(artifactPath, JSON.stringify(report, null, 2) + "\n", "utf8");

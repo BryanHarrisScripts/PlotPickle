@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "issue": 2672,
+  "issue": 2696,
   "package": "@earendil-works/pi-durable",
   "candidateVersion": "1.0.0",
   "minimumNode": "22.19.0",
-  "defaultEnabled": false,
-  "decision": "continue-optional-adapter-disabled-by-default",
+  "defaultEnabled": true,
+  "decision": "active-by-default-supported-host-with-degraded-fallback",
   "authority": {
     "governance": "dsdd",
     "canonApproval": false,
@@ -18,11 +18,11 @@
   },
   "storage": {
     "preferred": "jsonl",
-    "reason": "portable crash-recovery prototype without making SQLite/native bindings a startup dependency"
+    "reason": "Portable persistent state is initialized asynchronously after core readiness and reused across restarts without making SQLite/native bindings a startup dependency."
   },
   "windows": {
-    "status": "prototype-feasible-with-runtime-upgrade",
-    "currentConstraint": "Pi Durable 1.0.0 declares Node >=22.19.0; PlotPickle CI currently includes Node 22.13.0 jobs, so the adapter remains disabled by default until the supported Node baseline and Windows proof are promoted."
+    "status": "active-default-on-node-22.19-or-newer",
+    "currentConstraint": "Pi Durable 1.0.0 requires Node >=22.19.0. Normal PlotPickle may still run on an older core-compatible Node, but the Pi Durable sidecar reports degraded until the supported runtime floor is present. The reviewed Windows Product Gate remains the promotion proof."
   },
   "upstream": "https://github.com/earendil-works/pi/tree/main/packages/durable"
 }

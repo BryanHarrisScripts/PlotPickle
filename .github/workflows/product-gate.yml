@@ -50,6 +50,10 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-durable-adapter.mjs
 
+      - name: Prove active-default Pi Durable runtime on Windows
+        shell: pwsh
+        run: node --test tests/issue-2696-pi-durable-active-default.test.mjs
+
       - name: Prove Pi native MCP registration and stdio on Windows
         shell: pwsh
         run: node --test tests/issue-2591-pi-native-mcp.test.mjs

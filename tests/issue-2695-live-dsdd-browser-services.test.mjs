@@ -87,3 +87,15 @@ test("#2695 normal runtime registry entrypoints now exist for DSDD and Browser V
   assert.equal(config.services.find((item) => item.id === "dsdd").entrypoint, "scripts/sidecars/dsdd-service.mjs");
   assert.equal(config.services.find((item) => item.id === "browser-verification").entrypoint, "scripts/sidecars/browser-verification-service.mjs");
 });
+
+test("#2695 supervisor waits for service-reported readiness instead of treating process spawn as ready", async () => {
+  const [supervisor, dsdd, browser] = await Promise.all([
+    readFile(new URL("../core/sidecars/local-supervisor.ts", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/sidecars/dsdd-service.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/sidecars/browser-verification-service.mjs", import.meta.url), "utf8"),
+  ]);
+  assert.match(supervisor, /if \(!spec\.ipc\) this\.states\.set\(spec\.id, \{ id: spec\.id, state: "ready"/);
+  assert.match(supervisor, /message\.kind !== "status"/);
+  assert.match(dsdd, /publishRuntimeStatus\(descriptor\)/);
+  assert.match(browser, /publishRuntimeStatus\(descriptor\)/);
+});

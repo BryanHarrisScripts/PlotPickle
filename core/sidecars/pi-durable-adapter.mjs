@@ -1,5 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   DurableExecutionAdapter,
   assertReplayAllowed,
@@ -37,8 +39,116 @@ async function saveMetadata(folder, metadata) {
   return target;
 }
 
+async function importPiDurableModule(moduleRoot, specifier) {
+  if (!moduleRoot) return import(specifier);
+  const root = path.resolve(moduleRoot);
+  const requireFromManagedRoot = createRequire(path.join(root, "package.json"));
+  const resolved = requireFromManagedRoot.resolve(specifier);
+  return import(pathToFileURL(resolved).href);
+}
+
+async function loadPiDurableModules(moduleRoot) {
+  try {
+    const [durable, jsonl] = await Promise.all([
+      importPiDurableModule(moduleRoot, "@earendil-works/pi-durable"),
+      importPiDurableModule(moduleRoot, "@earendil-works/pi-durable/storage/jsonl/node"),
+    ]);
+    return { durable, jsonl };
+  } catch (error) {
+    const wrapped = new Error("Pi Durable is not installed or compatible with this host.");
+    wrapped.cause = error;
+    throw wrapped;
+  }
+}
+
+export async function probePiDurableRuntime({ moduleRoot, storageRoot } = {}) {
+  if (!nodeMeetsMinimum()) {
+    throw new Error("@earendil-works/pi-durable@1.0.0 requires Node >=22.19.0; this host is below the supported runtime.");
+  }
+  if (!moduleRoot || !storageRoot) throw new Error("Pi Durable readiness requires managed module and storage roots.");
+
+  const [{ durable, jsonl }, chord, piAi] = await Promise.all([
+    loadPiDurableModules(moduleRoot),
+    importPiDurableModule(moduleRoot, "@earendil-works/chord/context"),
+    importPiDurableModule(moduleRoot, "@earendil-works/pi-ai/models"),
+  ]);
+  const context = chord.BACKGROUND_CONTEXT;
+  const models = piAi.createModels();
+  const registry = durable.createRegistry();
+  const probeRoot = path.join(storageRoot, "runtime-health");
+  await mkdir(probeRoot, { recursive: true });
+
+  const open = async () => {
+    const storage = await jsonl.openNodeJsonlStorage(probeRoot, context);
+    return durable.Harness.open(storage, { models, registry }, context);
+  };
+
+  const first = await open();
+  const firstRoot = await first.root(context);
+  const rootId = firstRoot.id;
+  await first.close(context);
+
+  const second = await open();
+  const secondRoot = await second.root(context);
+  const reopenedRootId = secondRoot.id;
+  await second.close(context);
+
+  if (!rootId || reopenedRootId !== rootId) {
+    throw new Error("Pi Durable JSONL readiness probe did not reopen the same persisted root conversation.");
+  }
+
+  return deterministicAuthorityEnvelope({
+    runtime: RUNTIME_ID,
+    version: PI_DURABLE_RUNTIME_VERSION,
+    state: "ready",
+    storage: "jsonl",
+    rootId,
+    persistedReopen: true,
+    providerRequestIssued: false,
+    modelRequestIssued: false,
+  });
+}
+
+export async function inspectPiDurableRecoveryCandidates(storageRoot) {
+  const safeResume = [];
+  const humanReauthorizationRequired = [];
+  let entries = [];
+  try {
+    entries = await readdir(storageRoot, { withFileTypes: true });
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return Object.freeze({ safeResume: Object.freeze([]), humanReauthorizationRequired: Object.freeze([]) });
+    }
+    throw error;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name === "runtime-health") continue;
+    try {
+      const metadata = await loadMetadata(path.join(storageRoot, entry.name));
+      if (!["queued", "running", "waiting", "interrupted"].includes(metadata.state)) continue;
+      const item = Object.freeze({
+        taskId: String(metadata.task?.id || entry.name),
+        humanApprovalRef: String(metadata.task?.humanApprovalRef || ""),
+        replayPolicy: metadata.task?.replayPolicy === "safe" ? "safe" : "non-replayable",
+        state: String(metadata.state || "unknown"),
+      });
+      if (item.replayPolicy === "safe") safeResume.push(item);
+      else humanReauthorizationRequired.push(item);
+    } catch {
+      // Corrupt/incomplete task folders are ignored here and remain available for explicit diagnostics.
+    }
+  }
+
+  return Object.freeze({
+    safeResume: Object.freeze(safeResume),
+    humanReauthorizationRequired: Object.freeze(humanReauthorizationRequired),
+  });
+}
+
 export async function createNativePiDurableDriver({
   storageRoot,
+  moduleRoot,
   models,
   registry,
   context,
@@ -53,16 +163,7 @@ export async function createNativePiDurableDriver({
     throw new Error("Pi Durable driver requires host-owned storage, models, registry, context and host-selected model.");
   }
 
-  let durable;
-  let jsonl;
-  try {
-    durable = await import("@earendil-works/pi-durable");
-    jsonl = await import("@earendil-works/pi-durable/storage/jsonl/node");
-  } catch (error) {
-    const wrapped = new Error("Pi Durable is optional and is not installed or compatible on this host.");
-    wrapped.cause = error;
-    throw wrapped;
-  }
+  const { durable, jsonl } = await loadPiDurableModules(moduleRoot);
 
   async function open(taskId) {
     const folder = safeTaskFolder(storageRoot, taskId);

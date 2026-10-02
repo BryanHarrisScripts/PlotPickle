@@ -37,9 +37,10 @@ test("#2557 one shared twelve-topic spine drives creation and Learn routing", as
   assert.match(learn, /curriculum\.find\(\(lesson\) => lesson\.topic === requestedTopic\)/u);
 });
 
-test("#2557/#2604/#2632 MindMap uses the shared Learn spine without rendering the retired discovery board", async () => {
-  const [surface, contract, styles] = await Promise.all([
+test("#2557/#2604/#2632/#2667 MindMap uses the shared Learn spine without rendering the retired discovery board", async () => {
+  const [surface, sharedHeader, contract, styles] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
+    read("app/skin-v1/story-development-surface-header.tsx"),
     read("core/contracts/discovery/index.ts"),
     read("app/skin-v1/discovery-surface.module.css"),
   ]);
@@ -53,8 +54,9 @@ test("#2557/#2604/#2632 MindMap uses the shared Learn spine without rendering th
   }
 
   assert.match(surface, /const \[selectedTopic, setSelectedTopic\] = useState<LearnTopicSpineId>\(initialTopic\)/u);
-  assert.match(surface, /aria-label="MindMap Learn topics"/u);
-  assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic\)/u);
+  assert.match(surface, /<StoryDevelopmentSurfaceHeader/u);
+  assert.match(sharedHeader, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
+  assert.match(sharedHeader, /accessibilityLabel.*MindMap/u);
   assert.match(surface, /Open in Learn/u);
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
   assert.match(surface, /selectedField\.actionLabel/u);
@@ -66,25 +68,27 @@ test("#2557/#2604/#2632 MindMap uses the shared Learn spine without rendering th
   assert.doesNotMatch(surface, /DISCOVERY_LANES|selectedActTopicCards|selectedActUnsorted|Save Human Idea|Living MindMap|Unsorted Human Ideas/u);
   assert.doesNotMatch(surface, /project\.discovery\.cards|workingCards|DiscoveryCard/u);
   assert.doesNotMatch(styles, /\.composer\s*\{|\.board\s*\{|\.laneGrid\s*\{|\.inbox\s*\{|\.cardActions\s*\{/u);
-  assert.match(styles, /\.topicRail \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
+  assert.match(styles, /\.workRegion \{/u);
 });
 
-test("#2557/#2605 WorldMap shares Act 1-4 and twelve-topic read/review navigation", async () => {
-  const [surface, styles] = await Promise.all([
+test("#2557/#2605/#2667 WorldMap shares Act 1-4 and twelve-topic read/review navigation", async () => {
+  const [surface, sharedHeader, styles] = await Promise.all([
     read("app/skin-v1/story-bible-surface.tsx"),
+    read("app/skin-v1/story-development-surface-header.tsx"),
     read("app/skin-v1/story-bible-surface.module.css"),
   ]);
 
-  assert.match(surface, /<StoryActRail activeAct=\{selectedAct\} ariaLabel="World Map acts" choiceDataAttribute="data-world-map-act-choice" onOpen=\{setSelectedAct\} \/>/u);
-  assert.match(surface, /aria-label="World Map Learn topics"/u);
-  assert.match(surface, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
+  assert.match(surface, /<StoryDevelopmentSurfaceHeader/u);
+  assert.match(surface, /actChoiceDataAttribute="data-world-map-act-choice"/u);
+  assert.match(sharedHeader, /STORY_ACTS\.map\(\(act\)/u);
+  assert.match(sharedHeader, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
   assert.match(surface, /data-world-map-topic=\{activeTopic\}/u);
   assert.match(surface, /data-world-map-canonical-topic=\{activeTopic\}/u);
   assert.match(surface, /buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
   assert.match(surface, /Edit in Mind Map/u);
   assert.match(surface, /Open Topic in Learn/u);
   assert.doesNotMatch(surface, /Ask World Agent|Generate Character Visual|Generate Poster Visual/u);
-  assert.match(styles, /\.sectionNav \{[\s\S]*grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/u);
+  assert.match(styles, /\.workRegion \{/u);
 });
 
 test("#2557 discovery mapper schema includes every new topic element", async () => {

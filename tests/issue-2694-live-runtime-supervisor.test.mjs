@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
-import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime-service-registry.mjs";
-import { runtimeStatusDocument } from "../core/sidecars/runtime-status-store.mjs";
+import { createRuntimeServiceRegistry, registeredServiceLaunch } from "../core/sidecars/runtime/service-registry.mjs";
+import { runtimeStatusDocument } from "../core/sidecars/runtime/status-store.mjs";
 
 const config = JSON.parse(await readFile(new URL("../config/runtime-sidecars.json", import.meta.url), "utf8"));
 

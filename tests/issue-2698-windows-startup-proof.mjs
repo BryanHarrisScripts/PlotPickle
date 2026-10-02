@@ -165,6 +165,7 @@ try {
       const value = await document(path.join(runtime, "sidecars", "status.json"));
       return value?.supervisor.state === "stopped" && value.services.every((service) => service.state === "stopped");
     }, 20000);
+    await wait("runtime supervisor process exit", async () => !alive(status.supervisor.pid), 20000);
     await wait("owned Edge shutdown", async () => !await document(path.join(runtime, "browser-owner.json")) && !alive(browser.pid), 20000);
     for (const service of status.services) assert.equal(alive(service.pid), false, `${service.id} survived shutdown`);
     await wait("launcher exit", async () => launcher.exitCode !== null, 20000);

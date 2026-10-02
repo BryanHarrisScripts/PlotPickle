@@ -46,8 +46,8 @@ test("#1026 normal Windows startup cannot wait on optional companion or ComfyUI 
   assert.match(launcher, /call :start_deferred_companion_maintenance/);
   assert.doesNotMatch(launcher, /powershell\.exe[^\n]+-File "%COMPANION_MANAGER%" -Mode Maintain/);
   assert.match(deferred, /Test-PlotPickleReady/);
-  assert.match(deferred, /-Mode Maintain -NoPrompt/);
-  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
+  assert.match(deferred, /-Mode Report -NoPrompt/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Report -NoPrompt"));
   const appReady = graph.slice(graph.indexOf('id: "app-ready"'), graph.indexOf('id: "buzz-live"'));
   assert.match(appReady, /tool: "app-ready"/);
   assert.doesNotMatch(appReady, /ComfyUI|start-comfyui|Desktop/i);

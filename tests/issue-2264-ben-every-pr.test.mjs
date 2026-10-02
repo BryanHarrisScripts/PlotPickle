@@ -25,7 +25,7 @@ test("#2264 runs BEN exactly once per PR inside Layer 7", async () => {
   assert.match(workflow, /if: matrix\.id == 'verification'/);
   assert.match(
     workflow,
-    /node scripts\/run-ben-code-quality\.mjs\s+--base-ref "\$\{\{ github\.event\.pull_request\.base\.sha \|\| 'main' \}\}"/u,
+    /node scripts\/run-ben-code-quality\.mjs\s+--base-ref "\$\{\{ github\.event\.pull_request\.base\.sha \|\| github\.event\.before \|\| 'HEAD\^' \}\}"/u,
   );
   assert.match(workflow, /\.artifacts\/ben-code-quality\//);
 

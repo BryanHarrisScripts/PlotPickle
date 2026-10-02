@@ -31,7 +31,10 @@
     "tests/issue-2698-windows-startup-proof.mjs",
     "tests/issue-591-startup-readiness-gate.test.mjs",
     "core/sidecars/pi-durable-adapter.mjs",
-    "tests/issue-1949-merge-authority.test.mjs"
+    "tests/issue-1949-merge-authority.test.mjs",
+    "tests/issue-2264-ben-every-pr.test.mjs",
+    "tests/issue-341-windows-startup-ui-ux.test.mjs",
+    "tests/issue-1026-comfyui-runtime-settings.test.mjs"
   ],
   "acceptance": [
     {

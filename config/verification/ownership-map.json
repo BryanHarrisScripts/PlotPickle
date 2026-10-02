@@ -1730,7 +1730,7 @@
       "id": "timeline-rough-cut-media-assembly",
       "classification": "production",
       "include": [
-        "lib/preproduction/timeline-media-assembly.ts"
+        "core/media/timeline-rough-cut-assembly.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

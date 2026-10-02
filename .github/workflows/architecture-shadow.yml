@@ -8,6 +8,7 @@ on:
     paths:
       - tests/issue-2698-windows-startup-proof.mjs
       - config/development-convergence/2698.json
+      - .github/workflows/architecture-shadow.yml
   workflow_dispatch:
 
 permissions:
@@ -54,6 +55,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Restore main reference for legacy convergence checks
+        run: git update-ref refs/heads/main refs/remotes/origin/main
 
       - name: Use Node.js 22.13
         uses: actions/setup-node@v4
@@ -178,7 +182,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|scripts/windows-companion-maintenance-after-ready\.ps1|config/runtime-sidecars\.json|core/sidecars/|tests/issue-269[78]-)'; then
+          if [ "${{ github.event_name }}" = "push" ] || git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|scripts/windows-companion-maintenance-after-ready\.ps1|config/runtime-sidecars\.json|core/sidecars/|tests/issue-269[78]-)'; then
             echo 'required=true' >> "$GITHUB_OUTPUT"
           else
             echo 'required=false' >> "$GITHUB_OUTPUT"

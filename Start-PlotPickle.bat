@@ -443,16 +443,7 @@ if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" (
     if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" call :start_conversational_uat_observer
     call :open_when_ready
     call :start_runtime_sidecar_supervisor
-    call :start_runtime_sidecar_supervisor
-if not exist "%RUNTIME_SIDECAR_SUPERVISOR%" (
-  echo !READY_WARN! Runtime sidecar supervisor is unavailable. Core PlotPickle will continue normally.
-  exit /b 0
-)
-echo !INFO! Governed runtime sidecars will initialize asynchronously after core readiness.
-start "" /b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"
-exit /b 0
-
-:start_deferred_companion_maintenance
+    call :start_deferred_companion_maintenance
   )
 )
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
@@ -525,6 +516,15 @@ echo !INFO! Local dictation is missing or needs repair. Preparing the reviewed r
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_VOICE_INSTALLER%" -Mode Install -Approved
 if errorlevel 1 exit /b 1
 echo !READY! Reviewed whisper.cpp runtime and base.en model are installed and verified.
+exit /b 0
+
+:start_runtime_sidecar_supervisor
+if not exist "%RUNTIME_SIDECAR_SUPERVISOR%" (
+  echo !READY_WARN! Runtime sidecar supervisor is unavailable. Core PlotPickle will continue normally.
+  exit /b 0
+)
+echo !INFO! Governed runtime sidecars will initialize asynchronously after core readiness.
+start "" /b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"
 exit /b 0
 
 :start_deferred_companion_maintenance

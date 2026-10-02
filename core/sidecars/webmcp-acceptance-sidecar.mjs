@@ -196,7 +196,7 @@ export async function runWebMcpAcceptanceJourney({
     toolRoot,
     runId: normalized.requestId.replace(/[^a-z0-9_.-]+/giu, "-").slice(0, 100),
     allowedOrigins: [origin],
-    failOnBlockers: true,
+    failOnBlockers: false,
   });
   const context = await session.browser.newContext({
     viewport: { width: 1440, height: 1000 },
@@ -208,8 +208,9 @@ export async function runWebMcpAcceptanceJourney({
   try {
     if (normalized.target === "mind-map-world-map-shared-header") {
       const journey = await runMindMapWorldMapJourney({ page, serverUrl, session });
-      const diagnostics = await session.finalize();
-      const diagnosticBlockers = Number(diagnostics?.summary?.blockers ?? diagnostics?.blockers ?? 0);
+      await context.close();
+      const diagnostics = await session.close();
+      const diagnosticBlockers = Number(diagnostics?.totals?.blocker ?? 0);
       const assertions = [...journey.assertions, assertion(
         "browser-runtime-diagnostics",
         diagnosticBlockers === 0,

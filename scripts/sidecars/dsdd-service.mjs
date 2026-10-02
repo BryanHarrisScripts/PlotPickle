@@ -20,6 +20,15 @@ function evidence(kind, summary) {
   return Object.freeze({ kind, summary, observedAt: new Date().toISOString() });
 }
 
+function publishRuntimeStatus(status) {
+  if (typeof process.send !== "function") return;
+  process.send({
+    kind: "status",
+    state: status.state,
+    evidence: Array.isArray(status.evidence) ? status.evidence : [],
+  });
+}
+
 export function dsddRuntimeDescriptor() {
   const probe = normalizeDsddHeadlessContract({
     intentId: "runtime-self-check",
@@ -98,6 +107,7 @@ export async function runDsddRuntimeService({ home, signal = () => false } = {})
   if (!home) throw new Error("Headless DSDD runtime requires PlotPickle home.");
   const descriptor = dsddRuntimeDescriptor();
   await writeServiceStatus(home, DSDD_RUNTIME_SERVICE_ID, descriptor);
+  publishRuntimeStatus(descriptor);
   process.stdout.write("[SIDECAR:DSDD] ready\n");
 
   while (!signal()) {
@@ -127,10 +137,9 @@ if (direct) {
   process.on("SIGTERM", () => { stopped = true; });
   runDsddRuntimeService({ home: args.home, signal: () => stopped }).catch(async (error) => {
     const message = error instanceof Error ? error.message : String(error);
-    if (args.home) await writeServiceStatus(args.home, DSDD_RUNTIME_SERVICE_ID, {
-      state: "degraded",
-      evidence: [evidence("startup-error", message)],
-    }).catch(() => {});
+    const status = { state: "degraded", evidence: [evidence("startup-error", message)] };
+    publishRuntimeStatus(status);
+    if (args.home) await writeServiceStatus(args.home, DSDD_RUNTIME_SERVICE_ID, status).catch(() => {});
     console.error(`[SIDECAR:DSDD] degraded: ${message}`);
   });
 }

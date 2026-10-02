@@ -15,7 +15,8 @@ import { ensureManagedPiDurableInstalled } from "../../pi-durable-managed-instal
 // data, credentials, cloud service, or user-selected provider participates here.
 const outputRoot = path.resolve(".artifacts/story-architect-2711");
 await mkdir(outputRoot, { recursive: true });
-const temporary = await mkdtemp(path.join(outputRoot, "fixture-"));
+// Temporary compiled workers need package resolution, not inclusion in source scans.
+const temporary = await mkdtemp(path.join(path.resolve("node_modules"), ".plotpickle-story-proof-"));
 let server;
 let requests = 0;
 let lastRequest;
@@ -206,11 +207,12 @@ try {
   await writeFile(path.join(outputRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report));
 } finally {
-  controller?.close();
-  if (harness) await harness.close(cleanupContext);
-  privateStorage?.close();
-  auth?.close();
-  server?.closeAllConnections();
-  if (server) await new Promise((resolve) => server.close(resolve));
-  await rm(temporary, { recursive: true, force: true });
+  try {
+    controller?.close();
+    if (harness) await harness.close(cleanupContext);
+    privateStorage?.close();
+    auth?.close();
+    server?.closeAllConnections();
+    if (server) await new Promise((resolve) => server.close(resolve));
+  } finally { await rm(temporary, { recursive: true, force: true }); }
 }

@@ -1148,6 +1148,7 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-1938-verification-core.test.mjs",
+          "tests/issue-1005-ben-code-quality.test.mjs",
           "tests/issue-2348-verification-routing.test.mjs",
           "tests/issue-2697-ben-line-shift.test.mjs",
           "tests/issue-2707-agent-durability-audit.test.mjs"

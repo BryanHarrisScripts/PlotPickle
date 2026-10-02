@@ -221,61 +221,61 @@ export function createOutlineTaskController(options: {
       if (inFlight.has(key)) throw new Error("Outline step is already executing.");
       inFlight.add(key);
       try {
-      const prepared = await locked(scope.runId, async () => {
-        const record = await read(lease.auth, scope.runId);
-        if (!same(record.scope, normalizeAgentTaskScope(scope)) || !record.steps.some((expected) => same(expected, step))) throw new Error("Outline callback scope or step mismatch.");
-        const { project, execution } = await fresh(lease.auth, record);
-        const committed = record.proposals.find((proposal) => proposal.stepId === step.id);
-        if (committed) { budget(record, true); return { committed }; }
-        if (record.steps[record.proposals.length]?.id !== step.id) throw new Error("Outline task step order mismatch.");
-        const used = budget(record);
-        if (!Number.isSafeInteger(execution.tokenUpperBound) || execution.tokenUpperBound < 1
-          || execution.cloudCostUpperBoundUsd === null || !finite(execution.cloudCostUpperBoundUsd)
-          || used.tokens + execution.tokenUpperBound > record.run.limits.maxTokens
-          || used.cost + execution.cloudCostUpperBoundUsd > record.run.limits.maxCloudCostUsd) throw new Error("A bounded host token/cost quote is required before inference.");
-        const payload = buildOutlineAgentAssessmentRequest(project, Number(step.id.slice(6)));
-        if (payload.message.length > record.run.limits.maxContextCharacters) throw new Error("Outline task context exceeds the host limit.");
-        if (record.run.state === "queued") record.run = prepareResponsibilityRun(record.run, payload.message.length, now());
-        record.run = beginResponsibilityAttempt(record.run, now());
-        if (record.run.state !== "working") throw new Error("Outline attempt was denied by the host budget.");
-        const attempt: Attempt = { id: record.run.attemptId, stepId: step.id, tokens: execution.tokenUpperBound, cloudCostUsd: execution.cloudCostUpperBoundUsd, usage: null, status: "reserved" };
-        record.attempts.push(attempt);
-        record.run.usage = { ...record.run.usage, tokens: used.tokens + attempt.tokens, cloudCostUsd: used.cost + attempt.cloudCostUsd, contextCharacters: Math.max(record.run.usage.contextCharacters, payload.message.length) };
-        await write(lease.auth, record); // Crash-safe reservation BEFORE any worker/provider call.
-        return { project, execution, payload, attemptId: attempt.id };
-      });
-      if (prepared.committed) return { artifactRef: prepared.committed.artifactRef };
-      // Do not hold the task mutex across inference: cancellation must remain responsive.
-      signal.throwIfAborted();
-      const output = await prepared.execution!.execute({ ...prepared.payload!, signal, onAssessmentUsage: async (usage) => {
-        await locked(scope.runId, async () => {
+        const prepared = await locked(scope.runId, async () => {
+          const record = await read(lease.auth, scope.runId);
+          if (!same(record.scope, normalizeAgentTaskScope(scope)) || !record.steps.some((expected) => same(expected, step))) throw new Error("Outline callback scope or step mismatch.");
+          const { project, execution } = await fresh(lease.auth, record);
+          const committed = record.proposals.find((proposal) => proposal.stepId === step.id);
+          if (committed) { budget(record, true); return { committed }; }
+          if (record.steps[record.proposals.length]?.id !== step.id) throw new Error("Outline task step order mismatch.");
+          const used = budget(record);
+          if (!Number.isSafeInteger(execution.tokenUpperBound) || execution.tokenUpperBound < 1
+            || execution.cloudCostUpperBoundUsd === null || !finite(execution.cloudCostUpperBoundUsd)
+            || used.tokens + execution.tokenUpperBound > record.run.limits.maxTokens
+            || used.cost + execution.cloudCostUpperBoundUsd > record.run.limits.maxCloudCostUsd) throw new Error("A bounded host token/cost quote is required before inference.");
+          const payload = buildOutlineAgentAssessmentRequest(project, Number(step.id.slice(6)));
+          if (payload.message.length > record.run.limits.maxContextCharacters) throw new Error("Outline task context exceeds the host limit.");
+          if (record.run.state === "queued") record.run = prepareResponsibilityRun(record.run, payload.message.length, now());
+          record.run = beginResponsibilityAttempt(record.run, now());
+          if (record.run.state !== "working") throw new Error("Outline attempt was denied by the host budget.");
+          const attempt: Attempt = { id: record.run.attemptId, stepId: step.id, tokens: execution.tokenUpperBound, cloudCostUsd: execution.cloudCostUpperBoundUsd, usage: null, status: "reserved" };
+          record.attempts.push(attempt);
+          record.run.usage = { ...record.run.usage, tokens: used.tokens + attempt.tokens, cloudCostUsd: used.cost + attempt.cloudCostUsd, contextCharacters: Math.max(record.run.usage.contextCharacters, payload.message.length) };
+          await write(lease.auth, record); // Crash-safe reservation BEFORE any worker/provider call.
+          return { project, execution, payload, attemptId: attempt.id };
+        });
+        if (prepared.committed) return { artifactRef: prepared.committed.artifactRef };
+        // Do not hold the task mutex across inference: cancellation must remain responsive.
+        signal.throwIfAborted();
+        const output = await prepared.execution!.execute({ ...prepared.payload!, signal, onAssessmentUsage: async (usage) => {
+          await locked(scope.runId, async () => {
+            const record = await read(lease.auth, scope.runId);
+            const attempt = record.attempts.find((item) => item.id === prepared.attemptId);
+            if (!attempt || attempt.status !== "reserved") throw new Error("Outline usage was duplicated or lost.");
+            for (const value of Object.values(usage)) if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new Error("Invalid Outline token usage.");
+            if ((usage.inputTokens || 0) + (usage.outputTokens || 0) > attempt.tokens) throw new Error("Outline partial usage exceeds the host quote.");
+            if (usage.totalTokens !== undefined && (usage.totalTokens > attempt.tokens || (usage.inputTokens !== undefined && usage.outputTokens !== undefined && usage.totalTokens !== usage.inputTokens + usage.outputTokens))) throw new Error("Outline usage exceeds or contradicts the host quote.");
+            attempt.usage = usage;
+            attempt.status = "reported";
+            // Retain the reservation: unknown/retry/cloud billing is not silently treated as free.
+            await write(lease.auth, record);
+          });
+        } });
+        return await locked(scope.runId, async () => {
+          signal.throwIfAborted();
           const record = await read(lease.auth, scope.runId);
           const attempt = record.attempts.find((item) => item.id === prepared.attemptId);
-          if (!attempt || attempt.status !== "reserved") throw new Error("Outline usage was duplicated or lost.");
-          for (const value of Object.values(usage)) if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new Error("Invalid Outline token usage.");
-          if ((usage.inputTokens || 0) + (usage.outputTokens || 0) > attempt.tokens) throw new Error("Outline partial usage exceeds the host quote.");
-          if (usage.totalTokens !== undefined && (usage.totalTokens > attempt.tokens || (usage.inputTokens !== undefined && usage.outputTokens !== undefined && usage.totalTokens !== usage.inputTokens + usage.outputTokens))) throw new Error("Outline usage exceeds or contradicts the host quote.");
-          attempt.usage = usage;
-          attempt.status = "reported";
-          // Retain the reservation: unknown/retry/cloud billing is not silently treated as free.
+          if (attempt?.status !== "reported") throw new Error("Outline worker did not persist usage before result admission.");
+          const { project } = await fresh(lease.auth, record);
+          budget(record, true);
+          if (record.proposals.some((proposal) => proposal.stepId === step.id)) throw new Error("Concurrent Outline step result denied.");
+          const assessment = validateOutlineAgentAssessment(output, project, Number(step.id.slice(6)), scope.model, now());
+          const artifactRef = `responsibility-artifact:${scope.runId}:${step.id}`;
+          record.proposals.push({ stepId: step.id, artifactRef, assessment });
+          record.run = addResponsibilityArtifact(record.run, { id: step.id, kind: "proposal", ref: artifactRef, producedAt: now() });
           await write(lease.auth, record);
+          return { artifactRef };
         });
-      } });
-      return await locked(scope.runId, async () => {
-        signal.throwIfAborted();
-        const record = await read(lease.auth, scope.runId);
-        const attempt = record.attempts.find((item) => item.id === prepared.attemptId);
-        if (attempt?.status !== "reported") throw new Error("Outline worker did not persist usage before result admission.");
-        const { project } = await fresh(lease.auth, record);
-        budget(record, true);
-        if (record.proposals.some((proposal) => proposal.stepId === step.id)) throw new Error("Concurrent Outline step result denied.");
-        const assessment = validateOutlineAgentAssessment(output, project, Number(step.id.slice(6)), scope.model, now());
-        const artifactRef = `responsibility-artifact:${scope.runId}:${step.id}`;
-        record.proposals.push({ stepId: step.id, artifactRef, assessment });
-        record.run = addResponsibilityArtifact(record.run, { id: step.id, kind: "proposal", ref: artifactRef, producedAt: now() });
-        await write(lease.auth, record);
-        return { artifactRef };
-      });
       } finally { inFlight.delete(key); }
     },
     /** Invoke only AFTER Pi independently confirms all checkpoint steps complete. */

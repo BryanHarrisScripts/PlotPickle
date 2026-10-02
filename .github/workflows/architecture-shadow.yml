@@ -69,6 +69,10 @@ jobs:
           node scripts/run-ben-code-quality.mjs
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
+      - name: Install executable Story Canon contract dependencies
+        if: matrix.id == 'story-canon'
+        run: npm ci --ignore-scripts --include=dev --no-audit --no-fund
+
       - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"

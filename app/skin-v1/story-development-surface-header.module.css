@@ -1,5 +1,6 @@
 .header {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   display: grid;
   gap: var(--pp-skin-space-2);
@@ -92,10 +93,6 @@
 }
 
 @media (max-width: 760px) {
-  .header {
-    width: calc(100vw - 24px);
-  }
-
   .identityRow {
     align-items: stretch;
     flex-direction: column;

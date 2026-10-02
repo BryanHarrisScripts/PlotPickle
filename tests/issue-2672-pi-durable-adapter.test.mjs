@@ -9,7 +9,7 @@ import {
   DisabledDurableAdapter,
   PI_DURABLE_MINIMUM_NODE,
   PI_DURABLE_RUNTIME_VERSION,
-  PiDurableAdapter,
+  createPiDurableAdapter,
 } from "../core/sidecars/pi-durable-adapter.mjs";
 
 class FakeDriver {
@@ -28,7 +28,7 @@ class FakeDriver {
 const task=(id,replayPolicy="safe")=>({id,prompt:"Run bounded verification.",humanApprovalRef:`human:${id}`,replayPolicy,extensions:["verification"],tools:["read"]});
 
 test("#2672 PlotPickle contract, not Pi types, governs start/status/resume/cancel/evidence", async () => {
-  const driver=new FakeDriver(); const adapter=new PiDurableAdapter(driver);
+  const driver=new FakeDriver(); const adapter=createPiDurableAdapter(driver);
   assert.equal((await adapter.start(task("a"))).state,"running");
   assert.equal((await adapter.status("a")).state,"running");
   assert.equal((await adapter.cancel("a")).state,"cancelled");
@@ -40,7 +40,7 @@ test("#2672 PlotPickle contract, not Pi types, governs start/status/resume/cance
 });
 
 test("#2672 concurrent durable tasks remain isolated", async () => {
-  const driver=new FakeDriver(); const adapter=new PiDurableAdapter(driver);
+  const driver=new FakeDriver(); const adapter=createPiDurableAdapter(driver);
   await Promise.all([adapter.start(task("alpha")),adapter.start(task("beta"))]);
   await adapter.cancel("alpha");
   assert.equal((await adapter.status("alpha")).state,"cancelled");

@@ -4,7 +4,8 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";\nimport { versionAtLeast } from "./pi-version.mjs";
+import process from "node:process";
+import { versionAtLeast } from "./pi-version.mjs";
 import { PI_MINIMUM_NODE_VERSION, resolveActiveNpmCommand, runPortableCommand } from "./pi-worker-runtime.mjs";
 
 export const PLOTPICKLE_PI_DURABLE_VERSION = "1.0.0";

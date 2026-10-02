@@ -32,6 +32,7 @@ test("#2696 managed runtime installs exact reviewed Pi Durable into PlotPickle-o
   let packageSpec = "";
   try {
     const inspection = await ensureManagedPiDurable(home, {
+      nodeVersion: "24.19.0",
       install: async ({ root, packageSpec: spec }) => {
         packageSpec = spec;
         const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
@@ -74,9 +75,9 @@ test("#2696 persisted managed runtime is reused instead of reinstalled", async (
     const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
     await mkdir(folder, { recursive: true });
     await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.0.0" }), "utf8");
-    const before = await inspectManagedPiDurable(home);
+    const before = await inspectManagedPiDurable(home, { nodeVersion: "24.19.0" });
     assert.equal(before.ready, true);
-    await ensureManagedPiDurable(home, { install: async () => { installs += 1; } });
+    await ensureManagedPiDurable(home, { nodeVersion: "24.19.0", install: async () => { installs += 1; } });
     assert.equal(installs, 0);
   } finally {
     await rm(home, { recursive: true, force: true });

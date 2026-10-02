@@ -4,7 +4,8 @@ import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";\nimport { versionAtLeast } from "./pi-version.mjs";
+import process from "node:process";
+import { versionAtLeast } from "./pi-version.mjs";
 import {
   PI_CODING_AGENT_PACKAGE,
   PI_MINIMUM_NODE_VERSION,

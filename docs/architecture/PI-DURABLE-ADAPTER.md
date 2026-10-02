@@ -55,3 +55,16 @@ Requirements before enabling on Windows:
 The architecture is valuable and the adapter seam is now present, but PlotPickle should not promote Pi Durable into the default development path until the Node baseline and Windows resilience proof are deliberately green. The disabled adapter keeps normal PlotPickle startup and deterministic verification independent of Pi Durable.
 
 Even after promotion, the adapter seam remains mandatory so Pi Durable can be upgraded, replaced, or disabled without changing DSDD contracts.
+
+
+## Runtime promotion — #2696
+
+Pi Durable is now **active by default on supported hosts** behind the same PlotPickle-owned adapter and sidecar boundary.
+
+Normal startup remains product-first: PlotPickle core becomes usable first, then the Pi Durable sidecar asynchronously verifies or prepares the exact reviewed `@earendil-works/pi-durable@1.0.0` managed runtime under PlotPickle local app data and opens persistent JSONL state.
+
+Startup initialization performs **zero model/provider requests**. Model/provider work begins only after a governed task is explicitly submitted through PlotPickle policy.
+
+Hosts below Node 22.19 remain core-compatible where otherwise supported, but Pi Durable reports degraded rather than blocking PlotPickle. On Node 22.19 or newer, the reviewed runtime is expected to converge to ready. The Windows Product Gate remains the proof for crash/reopen recovery, isolation and authority boundaries.
+
+This promotion does not change authority: DSDD owns convergence, Human approval remains authoritative, Pi cannot approve canon or merge code, and non-replayable interrupted work still requires fresh Human authorization.

@@ -1709,6 +1709,22 @@
         "security",
         "windows"
       ]
+    },
+    {
+      "id": "previs-fframes-media-handoff",
+      "classification": "production",
+      "include": [
+        "build/previs-media-engine-handoff.ts",
+        "app/api/previs/media-engine/render/route.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "visual",
+        "provider",
+        "api",
+        "native"
+      ]
     }
   ]
 }

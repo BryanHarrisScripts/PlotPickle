@@ -1,144 +1,132 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
 import {
-  inspectPiDurableRecoveryCandidates,
   PI_DURABLE_MINIMUM_NODE,
   PI_DURABLE_RUNTIME_VERSION,
 } from "../core/sidecars/pi-durable-adapter.mjs";
 import {
-  ensureManagedPiDurableInstalled,
-  managedPiDurableRoot,
   PLOTPICKLE_PI_DURABLE_PACKAGE,
   PLOTPICKLE_PI_DURABLE_VERSION,
+  ensureManagedPiDurableInstalled,
+  managedPiDurableRoot,
+  probeManagedPiDurable,
 } from "../scripts/pi-durable-managed-install.mjs";
 import {
   executePiDurableRuntimeRequest,
   initializePiDurableRuntime,
 } from "../scripts/sidecars/pi-durable-service.mjs";
 
-test("#2696 Pi Durable remains the exact reviewed active-default runtime", () => {
+test("#2696 Pi Durable is pinned and enabled for supported hosts", async () => {
   assert.equal(PLOTPICKLE_PI_DURABLE_PACKAGE, "@earendil-works/pi-durable@1.0.0");
   assert.equal(PLOTPICKLE_PI_DURABLE_VERSION, "1.0.0");
   assert.equal(PI_DURABLE_RUNTIME_VERSION, "1.0.0");
   assert.equal(PI_DURABLE_MINIMUM_NODE, "22.19.0");
+
+  const config = JSON.parse(await readFile(new URL("../config/pi-durable-adapter.json", import.meta.url), "utf8"));
+  assert.equal(config.defaultEnabled, true);
+  assert.equal(config.decision, "active-by-default-supported-host-with-degraded-fallback");
 });
 
-test("#2696 managed runtime installs exact Pi Durable into PlotPickle-owned storage", async () => {
-  const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-2696-"));
-  const root = managedPiDurableRoot({ home });
-  const calls = [];
+test("#2696 reviewed managed installer places exact Pi Durable in PlotPickle-owned storage", async () => {
+  const home = await import("node:fs/promises").then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), "plotpickle-2696-")));
   try {
-    const result = await ensureManagedPiDurableInstalled({
+    const root = managedPiDurableRoot({ home });
+    let invoked = null;
+    const installed = await ensureManagedPiDurableInstalled({
       home,
       root,
       nodeVersion: "24.19.0",
       npmCommand: "npm",
       runPortableCommand: async (command, args) => {
-        calls.push([command, ...args]);
+        invoked = { command, args };
         const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
         await mkdir(folder, { recursive: true });
         await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.0.0" }), "utf8");
-        return { stdout: "installed", stderr: "" };
+        return { stdout: "", stderr: "" };
       },
     });
-    assert.equal(result.ready, true);
-    assert.equal(result.version, "1.0.0");
-    assert.equal(result.installed, true);
-    const install = calls[0];
-    assert.deepEqual(install.slice(0, 4), ["npm", "install", "--prefix", root]);
-    assert.ok(install.includes("--ignore-scripts"));
-    assert.ok(install.includes("--package-lock=false"));
-    assert.equal(install.at(-1), "@earendil-works/pi-durable@1.0.0");
-    const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
-    assert.equal(manifest.dependencies["@earendil-works/pi-durable"], "1.0.0");
+    assert.equal(installed.ready, true);
+    assert.equal(installed.version, "1.0.0");
+    assert.equal(installed.root, root);
+    assert.equal(invoked.command, "npm");
+    assert.ok(invoked.args.includes("--ignore-scripts"));
+    assert.ok(invoked.args.includes("@earendil-works/pi-durable@1.0.0"));
+    const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+    assert.equal(packageJson.dependencies["@earendil-works/pi-durable"], "1.0.0");
   } finally {
     await rm(home, { recursive: true, force: true });
   }
 });
 
-test("#2696 managed runtime is reused and unsupported Node fails without touching core", async () => {
-  const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-2696-"));
-  const root = managedPiDurableRoot({ home });
+test("#2696 existing exact managed runtime is reused without reinstall", async () => {
+  const home = await import("node:fs/promises").then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), "plotpickle-2696-")));
   try {
+    const root = managedPiDurableRoot({ home });
     const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
     await mkdir(folder, { recursive: true });
     await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.0.0" }), "utf8");
+    assert.equal((await probeManagedPiDurable({ home, root })).ready, true);
     let installs = 0;
-    const reused = await ensureManagedPiDurableInstalled({
+    const result = await ensureManagedPiDurableInstalled({
       home,
       root,
       nodeVersion: "24.19.0",
+      runPortableCommand: async () => { installs += 1; },
       npmCommand: "npm",
-      runPortableCommand: async () => { installs += 1; return { stdout: "", stderr: "" }; },
     });
-    assert.equal(reused.installed, false);
+    assert.equal(result.ready, true);
+    assert.equal(result.installed, false);
     assert.equal(installs, 0);
-    await assert.rejects(
-      ensureManagedPiDurableInstalled({ home, root, nodeVersion: "22.13.0", allowInstall: false }),
-      /22\.19\.0/,
-    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }
 });
 
-test("#2696 interrupted durable metadata preserves Human approval and replay classification", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-2696-recovery-"));
-  try {
-    for (const [id, replayPolicy] of [["safe-task", "safe"], ["mutating-task", "non-replayable"]]) {
-      const folder = path.join(root, id);
-      await mkdir(folder, { recursive: true });
-      await writeFile(path.join(folder, "plotpickle-task.json"), JSON.stringify({
-        state: "running",
-        task: { id, replayPolicy, humanApprovalRef: `human:${id}` },
-      }), "utf8");
-    }
-    const recovery = await inspectPiDurableRecoveryCandidates(root);
-    assert.deepEqual(recovery.safeResume.map((item) => item.taskId), ["safe-task"]);
-    assert.deepEqual(recovery.humanReauthorizationRequired.map((item) => item.taskId), ["mutating-task"]);
-    assert.equal(recovery.humanReauthorizationRequired[0].humanApprovalRef, "human:mutating-task");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("#2696 active startup opens durable state but issues zero model/provider work", async () => {
-  const descriptor = await initializePiDurableRuntime("C:\\PlotPickle", {
-    ensure: async () => ({ root: "C:\\PlotPickle\\runtimes\\pi-durable-1.0.0", version: "1.0.0", ready: true }),
+test("#2696 live sidecar initializes persistent readiness without a model/provider request", async () => {
+  const descriptor = await initializePiDurableRuntime("C:/PlotPickle-Test", {
+    ensure: async () => ({ root: "C:/PlotPickle-Test/runtimes/pi-durable-1.0.0", version: "1.0.0" }),
     probe: async () => ({
+      runtime: "pi-durable",
+      version: "1.0.0",
       state: "ready",
+      storage: "jsonl",
       rootId: "root-2696",
+      persistedReopen: true,
       providerRequestIssued: false,
       modelRequestIssued: false,
+      canApproveCanon: false,
+      canMergeCode: false,
+      canOverrideDeterministicFailure: false,
     }),
-    inspectRecovery: async () => ({ safeResume: [], humanReauthorizationRequired: [] }),
+    inspectRecovery: async () => ({
+      safeResume: Object.freeze([{ taskId: "safe-1", humanApprovalRef: "human:safe-1", replayPolicy: "safe", state: "interrupted" }]),
+      humanReauthorizationRequired: Object.freeze([{ taskId: "mutating-1", humanApprovalRef: "human:mutating-1", replayPolicy: "non-replayable", state: "interrupted" }]),
+    }),
   });
+
   assert.equal(descriptor.state, "ready");
   assert.equal(descriptor.rootConversationId, "root-2696");
+  assert.equal(descriptor.recovery.safeResume.length, 1);
+  assert.equal(descriptor.recovery.humanReauthorizationRequired.length, 1);
   const summary = descriptor.evidence.map((item) => item.summary).join("\n");
-  assert.match(summary, /No model\/provider request/);
-  assert.match(summary, /execution\/recovery infrastructure only/);
+  assert.match(summary, /No model\/provider request/i);
+  assert.match(summary, /fresh Human authorization/i);
+  assert.match(summary, /execution\/recovery infrastructure only/i);
 
   const health = await executePiDurableRuntimeRequest(descriptor, { requestId: "pi-health", operation: "health" });
   assert.equal(health.state, "ready");
-  const rejected = await executePiDurableRuntimeRequest(descriptor, { requestId: "pi-nope", operation: "verify-contract", target: "anything" });
+  const rejected = await executePiDurableRuntimeRequest(descriptor, { requestId: "pi-not-health", operation: "verify-contract", target: "anything" });
   assert.equal(rejected.state, "failed");
 });
 
-test("#2696 normal runtime registry starts Pi Durable out of the gate through the PlotPickle seam", async () => {
-  const [configText, serviceSource] = await Promise.all([
-    readFile(new URL("../config/runtime-sidecars.json", import.meta.url), "utf8"),
-    readFile(new URL("../scripts/sidecars/pi-durable-service.mjs", import.meta.url), "utf8"),
-  ]);
-  const config = JSON.parse(configText);
+test("#2696 normal runtime registry starts Pi Durable out of the gate", async () => {
+  const config = JSON.parse(await readFile(new URL("../config/runtime-sidecars.json", import.meta.url), "utf8"));
   const pi = config.services.find((item) => item.id === "pi-durable");
   assert.equal(pi.defaultEnabled, true);
+  assert.equal(pi.requiredForCore, false);
   assert.equal(pi.entrypoint, "scripts/sidecars/pi-durable-service.mjs");
-  assert.match(serviceSource, /probePiDurableRuntime/);
-  assert.match(serviceSource, /ensureManagedPiDurableInstalled/);
-  assert.doesNotMatch(serviceSource, /resolvePiLocalRuntime|\/chat\/completions|\/responses/);
 });

@@ -1738,6 +1738,20 @@
         "provider",
         "visual"
       ]
+    },
+    {
+      "id": "screening-media-evidence",
+      "classification": "production",
+      "include": [
+        "core/media/screening-media-evidence.ts",
+        "docs/fframes-adoption-decision.md"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "canon",
+        "provider",
+        "visual"
+      ]
     }
   ]
 }

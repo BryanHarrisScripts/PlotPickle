@@ -61,3 +61,17 @@ test("#2698 failed service does not prevent a healthy service from running or st
     assert.ok(stopped.every((status) => status.state === "stopped"));
   } finally { supervisor.stop("failed"); supervisor.stop("healthy"); }
 });
+
+
+test("#2698 managed Pi runtime uses native import-only package exports", async () => {
+  const { importPiDurableModule } = await import("../core/sidecars/pi-durable-adapter.mjs");
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-pi-esm-"));
+  const folder = path.join(root, "node_modules", "@earendil-works", "chord");
+  try {
+    await mkdir(folder, { recursive: true });
+    await writeFile(path.join(folder, "package.json"), JSON.stringify({ name: "@earendil-works/chord", type: "module", exports: { "./context": { import: "./context.mjs" } } }));
+    await writeFile(path.join(folder, "context.mjs"), "export const BACKGROUND_CONTEXT = 'managed-context';\n");
+    const module = await importPiDurableModule(root, "@earendil-works/chord/context");
+    assert.equal(module.BACKGROUND_CONTEXT, "managed-context");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

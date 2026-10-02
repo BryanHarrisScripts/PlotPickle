@@ -1,4 +1,3 @@
-import { createRequire } from "node:module";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -39,12 +38,14 @@ async function saveMetadata(folder, metadata) {
   return target;
 }
 
-async function importPiDurableModule(moduleRoot, specifier) {
+export async function importPiDurableModule(moduleRoot, specifier) {
   if (!moduleRoot) return import(specifier);
-  const root = path.resolve(moduleRoot);
-  const requireFromManagedRoot = createRequire(path.join(root, "package.json"));
-  const resolved = requireFromManagedRoot.resolve(specifier);
-  return import(pathToFileURL(resolved).href);
+  // Native ESM resolution must originate in the managed runtime. require.resolve
+  // selects CommonJS export conditions and rejects import-only Chord subpaths.
+  const loader = path.join(path.resolve(moduleRoot), "plotpickle-esm-loader.mjs");
+  await writeFile(loader, "export const load = (specifier) => import(specifier);\n", "utf8");
+  const { load } = await import(pathToFileURL(loader).href);
+  return load(specifier);
 }
 
 async function loadPiDurableModules(moduleRoot) {

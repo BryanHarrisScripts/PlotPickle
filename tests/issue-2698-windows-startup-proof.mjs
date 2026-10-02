@@ -38,13 +38,22 @@ async function wait(label, observe, timeout = 240000) {
 }
 async function command(executable, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(executable, args, { cwd: repo, env, windowsHide: true, ...options });
+    const { timeoutMs = 600000, ...spawnOptions } = options;
+    const child = spawn(executable, args, { cwd: repo, env, windowsHide: true, ...spawnOptions });
+    const timer = setTimeout(() => {
+      if (child.pid) spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }).once("error", (error) => console.error(error.message));
+      reject(new Error(`${path.basename(executable)} exceeded its ${timeoutMs} ms proof timeout.`));
+    }, timeoutMs);
     let stdout = "";
     let stderr = "";
     child.stdout?.on("data", (data) => { stdout += data; });
     child.stderr?.on("data", (data) => { stderr += data; });
-    child.once("error", reject);
-    child.once("exit", (code) => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
+    child.once("error", (error) => { clearTimeout(timer); reject(error); });
+    child.once("exit", (code) => {
+      clearTimeout(timer);
+      if (code === 0) resolve(stdout);
+      else reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`));
+    });
   });
 }
 function alive(pid) {
@@ -79,9 +88,12 @@ try {
   env.PLOTPICKLE_2698_AUDIT_ROOT = auditRoot;
   env.NODE_OPTIONS = `--import=${pathToFileURL(path.join(repo, "tests", "issue-2698-fetch-audit.mjs")).href}`;
   let durableRoot;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const baseline = attempt === 1;
+    if (baseline) env.PLOTPICKLE_PERFORMANCE_BENCHMARK = "1";
+    else delete env.PLOTPICKLE_PERFORMANCE_BENCHMARK;
     const started = Date.now();
-    const run = { mode: attempt ? "warm-persistent-restart" : "prepared-runtime", startedAt: new Date(started).toISOString(), failureIsolation: [] };
+    const run = { mode: baseline ? "warm-core-baseline" : attempt ? "warm-persistent-restart" : "prepared-runtime", startedAt: new Date(started).toISOString(), failureIsolation: [] };
     report.runs.push(run);
     tail = "";
     launcher = spawn("cmd.exe", ["/d", "/s", "/c", "Start-PlotPickle.bat"], { cwd: repo, env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
@@ -93,6 +105,13 @@ try {
     });
     run.coreHtmlReadyMs = Date.now() - started;
     console.log(`[2698] ${run.mode}: core HTML ready in ${run.coreHtmlReadyMs} ms.`);
+    if (baseline) {
+      await stopCore();
+      await wait("baseline launcher exit", async () => launcher.exitCode !== null, 20000);
+      assert.equal(launcher.exitCode, 0, tail);
+      launcher = null;
+      continue;
+    }
     const browser = await wait("managed Edge ownership", async () => {
       const value = await document(path.join(runtime, "browser-owner.json"));
       return value?.format === "plotpickle-owned-browser" && alive(value.pid) ? value : null;
@@ -116,7 +135,7 @@ try {
     const mcp = status.services.find((service) => service.id === "chatgpt-mcp-gateway");
     assert.ok(mcp.evidence.some((item) => /External transport disconnected/.test(item.summary)));
     // A separate disposable Edge renderer verifies the real normal profile gate.
-    const rendered = await command(browser.executable, ["--headless", "--disable-gpu", "--no-first-run", "--disable-background-networking", `--user-data-dir=${path.join(root, `render-${attempt}`)}`, "--dump-dom", "--virtual-time-budget=15000", `${base}/skin-v1`]);
+    const rendered = await command(browser.executable, ["--headless", "--disable-gpu", "--no-first-run", "--disable-background-networking", `--user-data-dir=${path.join(root, `render-${attempt}`)}`, "--dump-dom", "--virtual-time-budget=15000", `${base}/skin-v1`], { timeoutMs: 90000 });
     assert.match(rendered, /<button/i, "Normal startup must render usable controls");
     assert.match(rendered, /Shut Down|LOGON|Log On|Create.*Profile/i, "Normal profile gate did not become usable");
     run.firstUsefulProfileGateMs = Date.now() - started;
@@ -154,6 +173,16 @@ try {
     console.log(`[2698] ${run.mode}: launcher, owned Edge and registered services stopped.`);
     launcher = null;
   }
+  const baseline = report.runs.find((run) => run.mode === "warm-core-baseline");
+  const warm = report.runs.find((run) => run.mode === "warm-persistent-restart");
+  report.performance = {
+    baselineCoreHtmlReadyMs: baseline.coreHtmlReadyMs,
+    withSidecarsCoreHtmlReadyMs: warm.coreHtmlReadyMs,
+    differenceMs: warm.coreHtmlReadyMs - baseline.coreHtmlReadyMs,
+    firstUsefulProfileGateMs: warm.firstUsefulProfileGateMs,
+    coreToServiceConvergenceMs: warm.coreToServiceConvergenceMs,
+    scope: "Same prepared persistent runtime; one warm comparison, separate from the ratified multi-sample Afterglow benchmark",
+  };
   const audit = (await Promise.all((await readdir(auditRoot)).map(async (file) => (await readFile(path.join(auditRoot, file), "utf8")).trim().split("\n").filter(Boolean).map(JSON.parse)))).flat();
   assert.ok(audit.length > 0, "Startup fetch auditing captured no observations");
   assert.ok(audit.every((event) => event.loopback && !event.inference), "Unexpected remote or inference startup request");

@@ -3,6 +3,11 @@ name: Architecture Verification
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - tests/issue-2698-windows-startup-proof.mjs
+      - config/development-convergence/2698.json
   workflow_dispatch:
 
 permissions:
@@ -59,15 +64,21 @@ jobs:
         if: matrix.id == 'verification'
         run: >-
           node scripts/run-ben-code-quality.mjs
-          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
       - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
-          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
           --commit-sha "${{ github.event.pull_request.head.sha || github.sha }}"
           --platform linux
           --allow-network "${{ matrix.allow_network }}"
+
+      - name: Verify development convergence
+        if: matrix.id == 'verification'
+        run: >-
+          node scripts/run-development-convergence.mjs --changed
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
       - name: Upload architecture evidence
         if: always()
@@ -79,6 +90,7 @@ jobs:
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
             .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
             .artifacts/ben-code-quality/
+            .artifacts/development-convergence/
             .artifacts/verification-live/webmcp-live.json
             .artifacts/verification-live/webmcp-app-server.log
             .artifacts/webmcp-startup/summary.json

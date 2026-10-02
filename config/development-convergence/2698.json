@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "issue": 2698,
+  "phase": "windows-runtime-convergence",
+  "brief": "docs/developer-briefs/2698-windows-runtime-convergence.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "Start-PlotPickle.bat",
+    "build/ai/local-ai-readiness.ts",
+    "build/local-runtime-gateway.ts",
+    "build/previs-media-engine-handoff.ts",
+    "build/startup/launcher-liveness-gateway.ts",
+    "config/development-convergence/2698.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/media/fframes-local-media-engine.ts",
+    "core/media/screening-media-evidence.ts",
+    "core/sidecars/contract.ts",
+    "core/sidecars/local-supervisor.ts",
+    "core/sidecars/runtime/shutdown-wait.mjs",
+    "core/sidecars/runtime/status-store.mjs",
+    "docs/developer-briefs/2698-windows-runtime-convergence.md",
+    "scripts/runtime-sidecar-supervisor.mjs",
+    "scripts/windows-companion-maintenance-after-ready.ps1",
+    "tests/issue-1793-startup-webmcp-uat.test.mjs",
+    "tests/issue-2698-companion-readiness.ps1",
+    "tests/issue-2698-fetch-audit.mjs",
+    "tests/issue-2698-launcher-probe.test.mjs",
+    "tests/issue-2698-media-retention.test.mjs",
+    "tests/issue-2698-runtime-shutdown.test.mjs",
+    "tests/issue-2698-windows-startup-proof.mjs",
+    "tests/issue-591-startup-readiness-gate.test.mjs",
+    "core/sidecars/pi-durable-adapter.mjs",
+    "tests/issue-1949-merge-authority.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "Owned process exit and browser ownership form the shutdown handshake.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-runtime-shutdown.test.mjs",
+          "contains": "#2698 launcher retains the shutdown handshake"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Startup probes preserve canonical readiness and avoid inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-launcher-probe.test.mjs",
+          "contains": "probeInference: false"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "criterion": "Real Windows proof records launcher convergence, restart and comparison evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2698-windows-startup-proof.mjs",
+          "contains": "warm-core-baseline"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "criterion": "Optional media success requires retained output.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/media/screening-media-evidence.ts",
+          "contains": "videoPath"
+        }
+      ]
+    }
+  ]
+}

@@ -97,8 +97,8 @@ test("#2695 supervisor waits for service-reported readiness instead of treating 
   ]);
   assert.match(supervisor, /if \(!spec\.ipc\) this\.states\.set\(spec\.id, \{ id: spec\.id, state: "ready"/);
   assert.match(supervisor, /message\.kind !== "status"/);
-  assert.match(dsdd, /publishRuntimeStatus\(descriptor\)/);
-  assert.match(browser, /publishRuntimeStatus\(descriptor\)/);
+  assert.match(dsdd, /publishSidecarStatus\(descriptor\)/);
+  assert.match(browser, /publishSidecarStatus\(descriptor\)/);
 });
 
 

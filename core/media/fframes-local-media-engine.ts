@@ -78,7 +78,8 @@ async function runBounded(command: string, args: readonly string[], cwd: string,
 
 export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
   readonly id = ENGINE_ID;
-  constructor(private readonly repositoryRoot = process.cwd()) {}
+  private readonly repositoryRoot: string;
+  constructor(repositoryRoot = process.cwd()) { this.repositoryRoot = repositoryRoot; }
 
   async capabilities(): Promise<PlotPickleMediaEngineCapability> {
     const manifest = resolve(this.repositoryRoot, "tools", "fframes-bridge", "Cargo.toml");

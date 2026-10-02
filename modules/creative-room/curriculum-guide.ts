@@ -1,3 +1,4 @@
+import { craftRouteInstruction, craftContextForQuestion } from "../../core/learning/live-craft-runtime";
 import type { CurriculumGuide, CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
 import { stripKnownPromptScaffolding } from "../../core/security/text-normalization";
 import {
@@ -420,7 +421,9 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
   const retrieval = mode === "craft"
     ? await semanticCurriculumRetrieval(request, studentQuestion)
     : EMPTY_RETRIEVAL;
-  const { message } = buildCurriculumGuideModelRequest(request, retrieval, mode);
+  const built = buildCurriculumGuideModelRequest(request, retrieval, mode);
+  const craftInstruction = mode === "craft" ? craftRouteInstruction("learn", craftContextForQuestion(studentQuestion, request.curriculum.find((lesson) => lesson.id === request.activeLessonId)?.topic)) : "";
+  const message = [craftInstruction, built.message].filter(Boolean).join("\n\n");
 
   let { result, role } = await requestPreferredGuideModel(message, mode, studentQuestion);
   let text = cleanGuideAnswer(result.text);

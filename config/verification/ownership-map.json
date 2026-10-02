@@ -1758,7 +1758,8 @@
       "id": "contextual-craft-learning-router",
       "classification": "production",
       "include": [
-        "core/learning/contextual-craft-router.ts"
+        "core/learning/contextual-craft-router.ts",
+        "core/learning/live-craft-runtime.ts"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

@@ -1,3 +1,4 @@
+import { craftRouteInstruction } from "../core/learning/live-craft-runtime";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Agent } from "@mastra/core/agent";
@@ -405,6 +406,8 @@ export async function askPlotPickleAgent(input: {
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   foundationFieldIds?: readonly string[];
   conversationMode?: boolean;
+  craftContext?: readonly string[];
+  craftMode?: "learn" | "authoring-proposal";
 }) {
   const mastra = createPlotPickleMastra(input.profile);
   const agent = mastra.getAgent(input.agentId);
@@ -419,6 +422,7 @@ export async function askPlotPickleAgent(input: {
     directConversationMode
       ? "DIRECT_CONVERSATION_MODE: Reply as this specialist in natural conversational prose. Do not use a PLAN, Wyrmwood, rubric, or other structured JSON envelope unless the writer explicitly asks for JSON. Preserve all Human approval, canon, provider, tool, and persistence boundaries."
       : "",
+    input.craftMode ? craftRouteInstruction(input.craftMode, input.craftContext ?? []) : "",
     `Conversation tone: ${input.tone}.`,
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,

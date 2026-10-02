@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "issue": 2697,
+  "phase": "modular-runtime-wiring",
+  "brief": "docs/developer-briefs/2697-craft-media-mcp-runtime-wiring.md",
+  "allowedChanges": [
+    "build/mastra-agent-runtime.ts",
+    "build/writing-assistant-gateway.ts",
+    "config/verification/ownership-map.json",
+    "core/media/fframes-local-media-engine.ts",
+    "modules/creative-room/curriculum-guide.ts",
+    "modules/creative-room/sage-unified-guide.ts",
+    "modules/plan/foundations-plan-drafter.ts",
+    "scripts/sidecars/service-process.mjs",
+    "core/learning/live-craft-runtime.ts",
+    "scripts/sidecars/craft-runtime-service.mjs",
+    "scripts/sidecars/media-runtime-service.mjs",
+    "scripts/sidecars/chatgpt-mcp-gateway-service.mjs",
+    "tests/issue-2697-live-modular-runtimes.test.mjs",
+    "config/development-convergence/2697.json",
+    "tests/issue-2695-live-dsdd-browser-services.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2697-E1",
+      "criterion": "Host craft routes select the bounded pilot capabilities without canon authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2697-live-modular-runtimes.test.mjs",
+          "contains": "live craft selection preserves bounded fan-out and proposal authority"
+        }
+      ]
+    },
+    {
+      "id": "P2697-E2",
+      "criterion": "Registered modular startup services initialize independently without remote transport.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2697-live-modular-runtimes.test.mjs",
+          "contains": "registered modular services initialize and stop without model or remote transport"
+        }
+      ]
+    }
+  ]
+}

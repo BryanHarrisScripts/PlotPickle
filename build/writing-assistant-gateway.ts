@@ -424,6 +424,8 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
       message,
       history: safeHistory(body.history),
       foundationFieldIds,
+      craftContext: Array.isArray(body.craftContext) ? body.craftContext.filter((value): value is string => typeof value === "string").slice(0, 12) : [],
+      craftMode: agentId === "curriculum-guide" ? "learn" : body.craftMode === "authoring-proposal" ? "authoring-proposal" : undefined,
       conversationMode,
     });
   } catch (error) {

@@ -1798,9 +1798,9 @@
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [
-        "shell",
+        "cli",
         "provider",
-        "credential"
+        "security"
       ]
     }
   ]

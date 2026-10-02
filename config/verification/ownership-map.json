@@ -1759,7 +1759,10 @@
       "classification": "production",
       "include": [
         "core/learning/contextual-craft-router.ts",
-        "core/learning/live-craft-runtime.ts"
+        "core/learning/live-craft-runtime.ts",
+        "modules/creative-room/curriculum-guide.ts",
+        "modules/creative-room/sage-unified-guide.ts",
+        "modules/plan/foundations-plan-drafter.ts"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -1846,6 +1849,18 @@
         "mcp",
         "security",
         "provider"
+      ]
+    },
+    {
+      "id": "typescript-host-runtime-configuration",
+      "classification": "production",
+      "include": [
+        "tsconfig.json"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "cli",
+        "native"
       ]
     }
   ]

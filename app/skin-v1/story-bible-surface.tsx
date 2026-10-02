@@ -188,7 +188,6 @@ export default function StoryBibleSurface({
               />
             ))}
           </div>
-        </section>
 
         {activeTopic === "character" ? (
           <div className={styles.topicSupplement} aria-label="Character reference review">

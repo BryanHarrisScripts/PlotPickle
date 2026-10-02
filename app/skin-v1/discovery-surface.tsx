@@ -626,6 +626,9 @@ export default function DiscoverySurface({
             <span>NOTES <strong>{notesDirty ? "UNSAVED" : persistedFieldNote.text ? "SAVED" : "EMPTY"}</strong></span>
           </div>
         </header>
+        <p className={styles.workRegionHelp}>
+          Human Notes support thinking. Project Value is story truth. Agent Suggestions remain separate until the Human chooses Use Suggestion.
+        </p>
 
         {selectedFieldPageCount > 1 ? (
           <nav className={styles.fieldPager} aria-label={`${selectedTopicLabel} field pages`} data-mind-map-field-pager={selectedTopic}>

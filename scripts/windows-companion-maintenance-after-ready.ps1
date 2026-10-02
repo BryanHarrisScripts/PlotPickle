@@ -10,8 +10,12 @@ $ProgressPreference = "SilentlyContinue"
 function Test-PlotPickleReady {
   param([string]$Url)
   try {
-    $response = Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 2
-    return $response.StatusCode -ge 200 -and $response.Content -match "PlotPickle"
+    $endpoint = "$($Url.TrimEnd('/'))/skin-v1"
+    $response = Invoke-WebRequest -UseBasicParsing -Uri $endpoint -Headers @{ 'X-PlotPickle-Startup-Probe' = 'companion-maintenance' } -TimeoutSec 2
+    if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) { return $false }
+    $marker = [string]$env:PLOTPICKLE_STARTUP_CONTRACT
+    if ([string]::IsNullOrWhiteSpace($marker)) { return $response.Content -match "PlotPickle" }
+    return $response.Content -match [regex]::Escape($marker)
   } catch {
     return $false
   }
@@ -45,12 +49,13 @@ function Invoke-PlotPickleAiComputeVerification {
 }
 
 $deadline = (Get-Date).AddSeconds([Math]::Max(5, $ReadyTimeoutSeconds))
+$ready = $false
 while ((Get-Date) -lt $deadline) {
-  if (Test-PlotPickleReady -Url $BaseUrl) { break }
+  if (Test-PlotPickleReady -Url $BaseUrl) { $ready = $true; break }
   Start-Sleep -Milliseconds 500
 }
 
-if (-not (Test-PlotPickleReady -Url $BaseUrl)) {
+if (-not $ready) {
   Write-Host "[INFO] Optional companion maintenance was skipped because PlotPickle did not become ready within the deferred maintenance window." -ForegroundColor Yellow
   exit 0
 }

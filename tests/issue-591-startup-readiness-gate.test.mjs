@@ -45,7 +45,7 @@ test("only a server carrying the completed current startup contract may open", a
   assert.match(launcher, /PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!/);
   assert.match(launcher, /\$response\.Content -match '%PLOTPICKLE_STARTUP_MARKER%'/);
   assert.match(launcher, /exit 3/);
-  assert.match(launcher, /stale or unverified/i);
+  assert.match(launcher, /stale, unverified, or running a different startup mode/i);
   assert.match(launcher, /will not open it or replace dependencies underneath a running server/);
 });
 

@@ -18,6 +18,7 @@ const statusFile = path.resolve(home, registry.statusFile);
 const startupMarker = String(process.env.PLOTPICKLE_STARTUP_CONTRACT || "");
 const supervisor = new LocalSidecarSupervisor();
 const reportedStates = new Map();
+const timing = { supervisorStartedAt: new Date().toISOString(), coreReadyAt: null, servicesStartedAt: null, servicesConvergedAt: null, stoppedAt: null };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const exists = async (file) => access(file).then(() => true, () => false);
@@ -48,6 +49,9 @@ async function snapshot(supervisorState, coreState) {
     label: service.label,
     ...supervisor.status(service.id),
   }));
+  if (supervisorState === "ready" && timing.servicesStartedAt && !timing.servicesConvergedAt && services.every((service) => service.state !== "starting")) {
+    timing.servicesConvergedAt = new Date().toISOString();
+  }
   for (const service of services) {
     const previous = reportedStates.get(service.id);
     if (previous !== service.state && service.state !== "starting") {
@@ -59,6 +63,7 @@ async function snapshot(supervisorState, coreState) {
     supervisor: { state: supervisorState, pid: process.pid },
     core: { state: coreState, url: server },
     services,
+    timing: { ...timing },
   }));
 }
 
@@ -73,7 +78,8 @@ async function waitForCore() {
 }
 
 async function stopAll() {
-  for (const service of registry.services) supervisor.stop(service.id);
+  await Promise.all(registry.services.map((service) => supervisor.stopAndWait(service.id)));
+  timing.stoppedAt = new Date().toISOString();
   await snapshot("stopped", "stopped").catch(() => {});
 }
 
@@ -89,6 +95,8 @@ async function main() {
   }
 
   console.log("[SIDECARS] Core ready. Starting registered runtime services asynchronously.");
+  timing.coreReadyAt = new Date().toISOString();
+  timing.servicesStartedAt = new Date().toISOString();
   for (const service of registry.services) {
     const launch = registeredServiceLaunch(registry, service.id, { repoRoot });
     if (!await exists(launch.entrypoint)) {
@@ -137,6 +145,7 @@ process.on("SIGTERM", requestStop);
 
 main().catch(async (error) => {
   console.error(`[SIDECARS] Supervisor degraded: ${error instanceof Error ? error.message : String(error)}`);
+  await stopAll().catch(() => {});
   await snapshot("degraded", "unknown").catch(() => {});
   process.exitCode = 0;
 });

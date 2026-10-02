@@ -79,4 +79,30 @@ export class LocalSidecarSupervisor {
     this.children.delete(id);
     this.states.set(id, { id, state: "stopped", evidence: [] });
   }
+
+  async stopAndWait(id: string, timeoutMs = 5000): Promise<SidecarStatus> {
+    const child = this.children.get(id);
+    if (!child) return this.mark(id, "stopped");
+    const exited = await new Promise<boolean>((resolve) => {
+      let timer: ReturnType<typeof setTimeout>;
+      const finish = (confirmed: boolean) => {
+        clearTimeout(timer);
+        child.removeListener("exit", onExit);
+        child.removeListener("error", onError);
+        resolve(confirmed);
+      };
+      const onExit = () => finish(true);
+      const onError = () => finish(child.pid === undefined);
+      child.once("exit", onExit);
+      child.once("error", onError);
+      timer = setTimeout(() => finish(false), Math.max(1, timeoutMs));
+      if (child.exitCode !== null || child.signalCode !== null) finish(true);
+      else child.kill();
+    });
+    if (exited) {
+      this.children.delete(id);
+      return this.mark(id, "stopped");
+    }
+    return this.mark(id, "failed", [{ kind: "shutdown-timeout", summary: "Owned service did not confirm exit within the shutdown window.", observedAt: new Date().toISOString() }]);
+  }
 }

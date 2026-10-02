@@ -4,25 +4,11 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";
+import process from "node:process";\nimport { versionAtLeast } from "./pi-version.mjs";
 import { PI_MINIMUM_NODE_VERSION, resolveActiveNpmCommand, runPortableCommand } from "./pi-worker-runtime.mjs";
 
 export const PLOTPICKLE_PI_DURABLE_VERSION = "1.0.0";
 export const PLOTPICKLE_PI_DURABLE_PACKAGE = `@earendil-works/pi-durable@${PLOTPICKLE_PI_DURABLE_VERSION}`;
-
-function versionTuple(value) {
-  return String(value || "").split(".").slice(0, 3).map((item) => Number(item) || 0);
-}
-
-function versionAtLeast(actual, minimum) {
-  const left = versionTuple(actual);
-  const right = versionTuple(minimum);
-  for (let index = 0; index < 3; index += 1) {
-    if (left[index] > right[index]) return true;
-    if (left[index] < right[index]) return false;
-  }
-  return true;
-}
 
 export function managedPiDurableRoot({ home, platform = process.platform, env = process.env } = {}) {
   if (home) return path.resolve(home, "runtimes", `pi-durable-${PLOTPICKLE_PI_DURABLE_VERSION}`);

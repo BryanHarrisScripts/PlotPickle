@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import process from "node:process";\nimport { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
+import process from "node:process";
+import { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
 import { fileURLToPath } from "node:url";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";
 import {

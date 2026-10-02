@@ -2,7 +2,7 @@
 
 import { access, mkdir } from "node:fs/promises";
 import path from "node:path";
-import process from "node:process";
+import process from "node:process";\nimport { parseSidecarArgs, publishSidecarStatus } from "./service-process.mjs";
 import { fileURLToPath } from "node:url";
 import { WEBMCP_ACCEPTANCE_JOURNEYS, normalizeWebMcpAcceptanceRequest, runWebMcpAcceptanceJourney } from "../../core/sidecars/webmcp-acceptance-sidecar.mjs";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";
@@ -16,15 +16,6 @@ export const BROWSER_VERIFICATION_RUNTIME_SERVICE_ID = "browser-verification";
 
 function evidence(kind, summary) {
   return Object.freeze({ kind, summary, observedAt: new Date().toISOString() });
-}
-
-function publishRuntimeStatus(status) {
-  if (typeof process.send !== "function") return;
-  process.send({
-    kind: "status",
-    state: status.state,
-    evidence: Array.isArray(status.evidence) ? status.evidence : [],
-  });
 }
 
 export function browserVerificationRuntimeDescriptor() {
@@ -101,20 +92,11 @@ export async function executeBrowserRuntimeRequest({
   });
 }
 
-function parseArgs(argv) {
-  const values = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    if (!argv[index].startsWith("--")) continue;
-    values[argv[index].slice(2)] = argv[index + 1] && !argv[index + 1].startsWith("--") ? argv[++index] : "1";
-  }
-  return values;
-}
-
 export async function runBrowserVerificationRuntimeService({ home, server, toolRoot, signal = () => false } = {}) {
   if (!home || !server) throw new Error("Browser Verification runtime requires PlotPickle home and server URL.");
   const descriptor = browserVerificationRuntimeDescriptor();
   await writeServiceStatus(home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, descriptor);
-  publishRuntimeStatus(descriptor);
+  publishSidecarStatus(descriptor);
   process.stdout.write("[SIDECAR:WEBMCP] ready (browser execution lazy)\n");
 
   while (!signal()) {
@@ -138,7 +120,7 @@ export async function runBrowserVerificationRuntimeService({ home, server, toolR
 
 const direct = Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (direct) {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseSidecarArgs(process.argv.slice(2));
   let stopped = false;
   process.on("SIGINT", () => { stopped = true; });
   process.on("SIGTERM", () => { stopped = true; });
@@ -150,7 +132,7 @@ if (direct) {
   }).catch(async (error) => {
     const message = error instanceof Error ? error.message : String(error);
     const status = { state: "degraded", evidence: [evidence("startup-error", message)] };
-    publishRuntimeStatus(status);
+    publishSidecarStatus(status);
     if (args.home) await writeServiceStatus(args.home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, status).catch(() => {});
     console.error(`[SIDECAR:WEBMCP] degraded: ${message}`);
   });

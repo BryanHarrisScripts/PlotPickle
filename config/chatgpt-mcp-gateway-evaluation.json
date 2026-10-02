@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 2673,
+  "evaluatedAt": "2026-10-02",
+  "decision": "prototype-read-only-gateway",
+  "prototypeId": "plotpickle-read-only-navigator",
+  "architecture": "ChatGPT/plugin UI -> remote MCP gateway -> PlotPickle authorization boundary -> PPF read model",
+  "transport": {
+    "chatgptDirectLocalMcp": false,
+    "supportedPrototype": "remote-mcp-or-secure-mcp-tunnel",
+    "localFirstConstraint": "Private/local PlotPickle data must not be published to a public endpoint merely to make ChatGPT integration work."
+  },
+  "entrypoints": {
+    "sidebar": {
+      "decision": "prototype",
+      "type": "global"
+    },
+    "composerMentions": {
+      "decision": "prototype-where-supported",
+      "resourceTypes": [
+        "project",
+        "character",
+        "story-block",
+        "mini-block",
+        "scene",
+        "developer-brief"
+      ]
+    },
+    "fileViewer": {
+      "decision": "defer",
+      "reason": "No production PlotPickle file-handler contract should be invented before governed resource/file transport is defined."
+    },
+    "richForms": {
+      "decision": "defer-write-actions",
+      "reason": "Human-approved proposal/write actions require a separate PPF mutation contract."
+    }
+  },
+  "minimalTools": [
+    "plotpickle_list_projects",
+    "plotpickle_search_resources",
+    "plotpickle_fetch_resource",
+    "plotpickle_fetch_project_summary"
+  ],
+  "authority": {
+    "ppfCanonAuthority": true,
+    "chatgptIsSecondStoryStore": false,
+    "chatgptCanonWriteAuthority": false,
+    "repositoryMutation": false,
+    "mergeAuthority": false,
+    "dsddPassFailAuthority": false
+  },
+  "security": {
+    "explicitAuthorizationRequired": true,
+    "leastPrivilege": true,
+    "arbitraryFilesystem": false,
+    "arbitraryRepositoryMutation": false,
+    "arbitraryBrowserControl": false,
+    "silentCredentialReuse": false
+  },
+  "separation": {
+    "developerMcp": "scripts/developer-agent-mcp.mjs",
+    "developerMcpPurpose": "DSDD/developer verification tools",
+    "chatgptGatewayPurpose": "Human-facing governed story/resource access",
+    "sharedMergeAuthority": false
+  },
+  "browserAutomation": {
+    "status": "experimental-only",
+    "longTermRequiredPath": false,
+    "appropriateFor": [
+      "temporary UI experiments",
+      "acceptance research where no structured integration exists"
+    ],
+    "notAppropriateFor": [
+      "core story resource access",
+      "canon authority",
+      "repository merge authority"
+    ]
+  },
+  "promotionRule": "Any write action, production deployment, file handler, or credential-bearing integration requires a separately governed implementation issue and deterministic security/authority proof."
+}

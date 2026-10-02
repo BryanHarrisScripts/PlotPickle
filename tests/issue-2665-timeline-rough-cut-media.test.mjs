@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const source = await readFile(new URL("../lib/preproduction/timeline-media-assembly.ts", import.meta.url), "utf8");
+const source = await readFile(new URL("../core/media/timeline-rough-cut-assembly.ts", import.meta.url), "utf8");
 
 test("#2665 keeps Timeline/Rough Cut instructions provider-neutral", () => {
   assert.match(source, /providerNeutral: true/);

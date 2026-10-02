@@ -1,20 +1,25 @@
 #!/usr/bin/env node
 
+import path from "node:path";
 import process from "node:process";
-import {
-  MANAGED_PI_DURABLE_MINIMUM_NODE,
-  MANAGED_PI_DURABLE_PACKAGE,
-  MANAGED_PI_DURABLE_VERSION,
-  ensureManagedPiDurable,
-  openManagedPiDurableHarness,
-} from "../../core/sidecars/runtime/pi-durable-managed.mjs";
+import { fileURLToPath } from "node:url";
 import { validateVerificationRequest } from "../../core/sidecars/contract.ts";
+import {
+  inspectPiDurableRecoveryCandidates,
+  probePiDurableRuntime,
+  PI_DURABLE_MINIMUM_NODE,
+  PI_DURABLE_RUNTIME_VERSION,
+} from "../../core/sidecars/pi-durable-adapter.mjs";
+import {
+  ensureManagedPiDurableInstalled,
+  managedPiDurableRoot,
+  PLOTPICKLE_PI_DURABLE_PACKAGE,
+} from "../pi-durable-managed-install.mjs";
 import {
   claimServiceRequests,
   completeServiceRequest,
   writeServiceStatus,
 } from "../../core/sidecars/runtime/service-bus.mjs";
-import { resolveActiveNpmCommand, runPortableCommand } from "../pi-worker-runtime.mjs";
 
 export const PI_DURABLE_RUNTIME_SERVICE_ID = "pi-durable";
 
@@ -31,58 +36,69 @@ function publishRuntimeStatus(status) {
   });
 }
 
+async function persistAndPublish(home, status) {
+  await writeServiceStatus(home, PI_DURABLE_RUNTIME_SERVICE_ID, status);
+  publishRuntimeStatus(status);
+  return status;
+}
+
 function startingDescriptor() {
   return Object.freeze({
     state: "starting",
     evidence: Object.freeze([
-      evidence("runtime", `Preparing ${MANAGED_PI_DURABLE_PACKAGE}@${MANAGED_PI_DURABLE_VERSION} behind the PlotPickle adapter.`),
+      evidence("managed-runtime", `Preparing ${PLOTPICKLE_PI_DURABLE_PACKAGE} in PlotPickle-owned storage.`),
       evidence("provider-policy", "Startup initializes durable storage only; it performs zero model/provider requests."),
     ]),
   });
 }
 
-export function piDurableReadyDescriptor(active) {
+export async function initializePiDurableRuntime(home, {
+  ensure = ensureManagedPiDurableInstalled,
+  probe = probePiDurableRuntime,
+  inspectRecovery = inspectPiDurableRecoveryCandidates,
+} = {}) {
+  if (!home) throw new Error("Pi Durable runtime requires PlotPickle home.");
+  const moduleRoot = managedPiDurableRoot({ home });
+  const runtimeRoot = path.join(home, "node", "runtime", "sidecars", "pi-durable");
+  const taskRoot = path.join(runtimeRoot, "tasks");
+  const installed = await ensure({ home, root: moduleRoot });
+  const readiness = await probe({
+    moduleRoot: installed.root,
+    storageRoot: path.join(runtimeRoot, "system"),
+  });
+  const recovery = await inspectRecovery(taskRoot);
+
   return Object.freeze({
     state: "ready",
+    version: installed.version || PI_DURABLE_RUNTIME_VERSION,
+    moduleRoot: installed.root,
+    taskRoot,
+    rootConversationId: readiness.rootId,
+    recovery,
     evidence: Object.freeze([
-      evidence("runtime-active", `Pi Durable ${active.version} is loaded with persistent JSONL state.`),
-      evidence("durable-root", `Persistent conversation root is active: ${active.rootConversationId}`),
+      evidence("runtime-active", `Pi Durable ${installed.version || PI_DURABLE_RUNTIME_VERSION} is loaded from PlotPickle's managed runtime.`),
+      evidence("durable-root", `Persistent JSONL root reopened successfully: ${readiness.rootId}.`),
       evidence("provider-policy", "No model/provider request is made until governed work is explicitly submitted."),
+      evidence("safe-recovery", `${recovery.safeResume.length} replay-safe interrupted task(s) are available for governed resume.`),
+      evidence("human-reauthorization", `${recovery.humanReauthorizationRequired.length} non-replayable interrupted task(s) require fresh Human authorization.`),
       evidence("authority", "Pi Durable is execution/recovery infrastructure only; DSDD, Human authority, canon, and exact-head merge gates remain unchanged."),
-      evidence("replay-policy", "Replay-safe work may resume; non-replayable mutations require fresh Human authorization."),
     ]),
   });
 }
 
-export async function initializePiDurableRuntime(home, {
-  install = async ({ root, packageSpec }) => runPortableCommand(resolveActiveNpmCommand(), [
-    "install",
-    "--prefix", root,
-    "--ignore-scripts",
-    "--no-audit",
-    "--no-fund",
-    "--save-exact",
-    packageSpec,
-  ], { timeout: 15 * 60_000 }),
-  allowInstall = process.env.PLOTPICKLE_PI_DURABLE_AUTO_INSTALL !== "0",
-} = {}) {
-  await ensureManagedPiDurable(home, { install, allowInstall });
-  return openManagedPiDurableHarness(home);
-}
-
-export async function executePiDurableRuntimeRequest(active, rawRequest) {
+export async function executePiDurableRuntimeRequest(descriptor, rawRequest) {
   const request = validateVerificationRequest(rawRequest);
   if (request.operation !== "health") {
     return Object.freeze({
       requestId: request.requestId,
       state: "failed",
-      evidence: [evidence("operation-rejected", "Pi Durable service startup surface exposes bounded health only; governed durable task execution remains behind the PlotPickle adapter.")],
+      evidence: [evidence("operation-rejected", "Pi Durable service exposes health only; durable task execution remains behind the PlotPickle-owned adapter contract.")],
     });
   }
   return Object.freeze({
     requestId: request.requestId,
-    state: "ready",
-    evidence: piDurableReadyDescriptor(active).evidence,
+    state: descriptor?.state === "ready" ? "ready" : "degraded",
+    evidence: descriptor?.evidence || [evidence("health", "Pi Durable has not completed initialization.")],
   });
 }
 
@@ -99,68 +115,61 @@ export async function runPiDurableRuntimeService({ home, signal = () => false } 
   if (!home) throw new Error("Pi Durable runtime requires PlotPickle home.");
 
   while (!signal()) {
-    const starting = startingDescriptor();
-    await writeServiceStatus(home, PI_DURABLE_RUNTIME_SERVICE_ID, starting);
-    publishRuntimeStatus(starting);
+    await persistAndPublish(home, startingDescriptor());
 
-    let active;
+    let descriptor;
     try {
-      active = await initializePiDurableRuntime(home);
-      const ready = piDurableReadyDescriptor(active);
-      await writeServiceStatus(home, PI_DURABLE_RUNTIME_SERVICE_ID, ready);
-      publishRuntimeStatus(ready);
-      process.stdout.write(`[SIDECAR:PI] ready (${active.version})\n`);
+      descriptor = await initializePiDurableRuntime(home);
+      await persistAndPublish(home, descriptor);
+      process.stdout.write(`[SIDECAR:PI-DURABLE] ready (${descriptor.version})\n`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const degraded = {
+      descriptor = {
         state: "degraded",
         evidence: [
           evidence("runtime-unavailable", message),
-          evidence("minimum-node", `Pi Durable requires Node >= ${MANAGED_PI_DURABLE_MINIMUM_NODE}.`),
+          evidence("minimum-node", `Pi Durable requires Node >= ${PI_DURABLE_MINIMUM_NODE}.`),
           evidence("core-independent", "Core PlotPickle and deterministic verification remain available."),
         ],
       };
-      await writeServiceStatus(home, PI_DURABLE_RUNTIME_SERVICE_ID, degraded);
-      publishRuntimeStatus(degraded);
-      process.stderr.write(`[SIDECAR:PI] degraded: ${message}\n`);
+      await persistAndPublish(home, descriptor);
+      process.stderr.write(`[SIDECAR:PI-DURABLE] degraded: ${message}\n`);
       for (let index = 0; index < 100 && !signal(); index += 1) {
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
       continue;
     }
 
-    try {
-      while (!signal()) {
-        const claimed = await claimServiceRequests(home, PI_DURABLE_RUNTIME_SERVICE_ID);
-        for (const item of claimed) {
-          let result;
-          try {
-            result = await executePiDurableRuntimeRequest(active, item.request);
-          } catch (error) {
-            result = {
-              requestId: String(item.request?.requestId || "invalid-request"),
-              state: "failed",
-              evidence: [evidence("request-error", error instanceof Error ? error.message : String(error))],
-            };
-          }
-          await completeServiceRequest(home, PI_DURABLE_RUNTIME_SERVICE_ID, item, result);
+    while (!signal()) {
+      const claimed = await claimServiceRequests(home, PI_DURABLE_RUNTIME_SERVICE_ID);
+      for (const item of claimed) {
+        let result;
+        try {
+          result = await executePiDurableRuntimeRequest(descriptor, item.request);
+        } catch (error) {
+          result = {
+            requestId: String(item.request?.requestId || "invalid-request"),
+            state: "failed",
+            evidence: [evidence("request-error", error instanceof Error ? error.message : String(error))],
+          };
         }
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await completeServiceRequest(home, PI_DURABLE_RUNTIME_SERVICE_ID, item, result);
       }
-    } finally {
-      await active.close().catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
   }
 }
 
-const direct = process.argv[1] && new URL(import.meta.url).pathname.replace(/^\/(?=[A-Za-z]:)/u, "") === process.argv[1].replaceAll("\\", "/");
+const direct = Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 if (direct) {
   const args = parseArgs(process.argv.slice(2));
   let stopped = false;
   process.on("SIGINT", () => { stopped = true; });
   process.on("SIGTERM", () => { stopped = true; });
   runPiDurableRuntimeService({ home: args.home, signal: () => stopped }).catch((error) => {
-    console.error(`[SIDECAR:PI] failed: ${error instanceof Error ? error.message : String(error)}`);
+    const message = error instanceof Error ? error.message : String(error);
+    publishRuntimeStatus({ state: "degraded", evidence: [evidence("fatal-runtime-error", message)] });
+    console.error(`[SIDECAR:PI-DURABLE] degraded: ${message}`);
     process.exitCode = 0;
   });
 }

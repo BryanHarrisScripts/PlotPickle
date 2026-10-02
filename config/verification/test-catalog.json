@@ -1968,7 +1968,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2697-live-modular-runtimes.test.mjs",
-          "tests/issue-2698-runtime-shutdown.test.mjs"
+          "tests/issue-2698-runtime-shutdown.test.mjs",
+          "tests/issue-2698-launcher-probe.test.mjs"
         ]
       },
       "cost": "fast",

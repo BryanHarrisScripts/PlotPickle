@@ -125,7 +125,7 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
         return;
       }
       if (pathname === STARTUP_READINESS_PATH && request.method === "POST") {
-        const readiness = await localAiReadinessSnapshot({ attemptManagedStart: true, probeInference: true });
+        const readiness = await localAiReadinessSnapshot({ attemptManagedStart: false, probeInference: false });
         sendJson(response, 200, { ok: true, readiness });
         return;
       }

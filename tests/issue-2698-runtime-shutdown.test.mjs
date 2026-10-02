@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { LocalSidecarSupervisor } from "../core/sidecars/local-supervisor.ts";
+import { waitForOwnedShutdown } from "../scripts/sidecars/wait-owned-shutdown.mjs";
 
 async function waitForState(supervisor, id, state) {
   const deadline = Date.now() + 5000;
@@ -20,6 +24,30 @@ test("#2698 shutdown waits for actual owned process exit", async () => {
     assert.equal(supervisor.status("owned").state, "stopped");
     assert.equal((await supervisor.stopAndWait("owned")).state, "stopped");
   } finally { supervisor.stop("owned"); }
+});
+
+test("#2698 launcher retains the shutdown handshake until services and browser release ownership", async () => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-shutdown-"));
+  const runtime = path.join(home, "node", "runtime");
+  const status = path.join(runtime, "sidecars", "status.json");
+  const browser = path.join(runtime, "browser-owner.json");
+  try {
+    await mkdir(path.dirname(status), { recursive: true });
+    await writeFile(status, JSON.stringify({ supervisor: { state: "ready" } }));
+    await writeFile(browser, "{}");
+    let finished = false;
+    const waiting = waitForOwnedShutdown(home, { timeoutMs: 2000 }).then(() => { finished = true; });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    assert.equal(finished, false);
+    await writeFile(status, JSON.stringify({ supervisor: { state: "stopped" } }));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    assert.equal(finished, false);
+    await rm(browser);
+    await waiting;
+    assert.equal(finished, true);
+    await writeFile(status, JSON.stringify({ supervisor: { state: "failed" } }));
+    await assert.rejects(waitForOwnedShutdown(home), /did not confirm shutdown/);
+  } finally { await rm(home, { recursive: true, force: true }); }
 });
 
 test("#2698 failed service does not prevent a healthy service from running or stopping", async () => {

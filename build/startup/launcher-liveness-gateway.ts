@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
 const STARTUP_PROBE_HEADER = "x-plotpickle-startup-probe";
-type StartupProbePurpose = "warmup" | "liveness" | "existing-session";
+type StartupProbePurpose = "warmup" | "liveness" | "existing-session" | "companion-maintenance";
 
 function isPowerShellRequest(request: IncomingMessage) {
   const userAgent = request.headers["user-agent"];
@@ -14,7 +14,7 @@ function isPowerShellRequest(request: IncomingMessage) {
 export function startupProbePurpose(request: IncomingMessage): StartupProbePurpose | null {
   const header = request.headers[STARTUP_PROBE_HEADER];
   const value = Array.isArray(header) ? header[0] : header;
-  return value === "warmup" || value === "liveness" || value === "existing-session" ? value : null;
+  return value === "warmup" || value === "liveness" || value === "existing-session" || value === "companion-maintenance" ? value : null;
 }
 
 function isManagedAppRoute(url: string | undefined) {
@@ -24,7 +24,7 @@ function isManagedAppRoute(url: string | undefined) {
 export function isLauncherWarmupProbe(request: IncomingMessage) {
   return request.method === "GET"
     && isManagedAppRoute(request.url)
-    && startupProbePurpose(request) === "warmup";
+    && ["warmup", "companion-maintenance"].includes(startupProbePurpose(request) ?? "");
 }
 
 export function isLauncherLivenessProbe(request: IncomingMessage) {

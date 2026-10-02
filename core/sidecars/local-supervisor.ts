@@ -33,7 +33,9 @@ export class LocalSidecarSupervisor {
   private readonly states = new Map<string, SidecarStatus>();
 
   status(id: string): SidecarStatus {
-    return this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
+    const status = this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
+    const pid = this.children.get(id)?.pid;
+    return pid ? { ...status, pid } : status;
   }
 
   mark(id: string, state: SidecarStatus["state"], evidence: SidecarStatus["evidence"] = []): SidecarStatus {
@@ -83,6 +85,10 @@ export class LocalSidecarSupervisor {
   async stopAndWait(id: string, timeoutMs = 5000): Promise<SidecarStatus> {
     const child = this.children.get(id);
     if (!child) return this.mark(id, "stopped");
+    if (child.pid === undefined && this.status(id).state === "failed") {
+      this.children.delete(id);
+      return this.mark(id, "stopped");
+    }
     const exited = await new Promise<boolean>((resolve) => {
       let timer: ReturnType<typeof setTimeout>;
       const finish = (confirmed: boolean) => {

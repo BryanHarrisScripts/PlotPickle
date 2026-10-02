@@ -31,10 +31,11 @@ async function coreReady() {
   try {
     const response = await fetch(`${server}/skin-v1`, {
       signal: AbortSignal.timeout(2500),
-      headers: { "X-PlotPickle-Startup-Probe": "sidecar-supervisor" },
+      headers: { "X-PlotPickle-Startup-Probe": timing.coreReadyAt ? "liveness" : "warmup" },
       cache: "no-store",
     });
     if (!response.ok) return false;
+    if (timing.coreReadyAt) return true;
     if (!startupMarker) return true;
     const body = await response.text();
     return body.includes(startupMarker);
@@ -80,7 +81,8 @@ async function waitForCore() {
 async function stopAll() {
   await Promise.all(registry.services.map((service) => supervisor.stopAndWait(service.id)));
   timing.stoppedAt = new Date().toISOString();
-  await snapshot("stopped", "stopped").catch(() => {});
+  const confirmed = registry.services.every((service) => supervisor.status(service.id).state === "stopped");
+  await snapshot(confirmed ? "stopped" : "failed", "stopped").catch(() => {});
 }
 
 async function main() {
@@ -88,6 +90,7 @@ async function main() {
   await snapshot("starting", "starting");
 
   const ready = await waitForCore();
+  if (stopping) return;
   if (!ready) {
     console.log("[SIDECARS] Supervisor stopped before core readiness; PlotPickle core was not terminated.");
     await stopAll();
@@ -98,8 +101,11 @@ async function main() {
   timing.coreReadyAt = new Date().toISOString();
   timing.servicesStartedAt = new Date().toISOString();
   for (const service of registry.services) {
+    if (stopping) return;
     const launch = registeredServiceLaunch(registry, service.id, { repoRoot });
-    if (!await exists(launch.entrypoint)) {
+    const installed = await exists(launch.entrypoint);
+    if (stopping) return;
+    if (!installed) {
       supervisor.mark(service.id, "unavailable", [evidence("entrypoint-missing", `${service.label} is registered but its runtime entrypoint is not installed yet.`)]);
       console.log(`[SIDECARS] ${service.label}: unavailable (runtime entrypoint not installed yet)`);
       continue;
@@ -118,6 +124,7 @@ async function main() {
 
   let unreachableSince = 0;
   while (true) {
+    if (stopping) return;
     if (await exists(shutdownSignal)) break;
     if (await coreReady()) {
       unreachableSince = 0;

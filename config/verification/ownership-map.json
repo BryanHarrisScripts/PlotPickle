@@ -1752,6 +1752,18 @@
         "provider",
         "visual"
       ]
+    },
+    {
+      "id": "contextual-craft-learning-router",
+      "classification": "production",
+      "include": [
+        "core/learning/contextual-craft-router.ts"
+      ],
+      "ownerLayer": "agent-skill-mesh",
+      "riskTokens": [
+        "canon",
+        "provider"
+      ]
     }
   ]
 }

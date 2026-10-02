@@ -60,8 +60,11 @@ export function projectScreeningMediaEvidence(input: {
 }
 
 export function screeningRecoveryMessage(state: ScreeningMediaEvidence["state"]) {
-  if (state === "stale") return "Retry from the approved Rough Cut after upstream review. Existing project state is unchanged.";
-  if (state === "failed") return "Retry or cancel the optional render. Existing project state is unchanged.";
-  if (state === "unavailable") return "Continue with normal Screening or install/configure the optional local adapter later.";
-  return "Review playback and evidence; only explicit Human actions may change project state.";
+  const guidance: Record<ScreeningMediaEvidence["state"], string> = {
+    stale: "Retry from the approved Rough Cut after upstream review. Existing project state is unchanged.",
+    failed: "Retry or cancel the optional render. Existing project state is unchanged.",
+    unavailable: "Continue with normal Screening or install/configure the optional local adapter later.",
+    ready: "Review playback and evidence; only explicit Human actions may change project state.",
+  };
+  return guidance[state];
 }

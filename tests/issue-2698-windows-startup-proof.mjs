@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { ensureManagedPiDurableInstalled } from "../scripts/pi-durable-managed-install.mjs";
 
 if (process.platform !== "win32") throw new Error("#2698 requires a real Windows launcher host.");
@@ -21,7 +21,7 @@ for (const key of Object.keys(env)) if (/TOKEN|API_KEY|PASSWORD|SECRET/.test(key
 env.PSModulePath = [path.join(env.ProgramFiles, "WindowsPowerShell", "Modules"), path.join(env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "Modules")].join(path.delimiter);
 delete env.PLOTPICKLE_PERFORMANCE_BENCHMARK;
 delete env.PLOTPICKLE_ACCEPTANCE_MODE;
-const report = { schemaVersion: 1, issue: 2698, platform: process.platform, node: process.versions.node, provisioning: {}, runs: [], result: "UNPROVEN" };
+const report = { schemaVersion: 1, issue: 2698, platform: process.platform, node: process.versions.node, sourceSha: (await command("git", ["rev-parse", "HEAD"])).trim(), provisioning: {}, runs: [], result: "UNPROVEN" };
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function document(file) {
   try { return JSON.parse((await readFile(file, "utf8")).replace(/^\uFEFF/, "")); }
@@ -74,9 +74,10 @@ try {
   report.provisioning.pi = await ensureManagedPiDurableInstalled({ home, env });
   await command("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/install-whisper-cpp.ps1", "-Mode", "Install", "-Approved"]);
   report.provisioning.voice = "reviewed installer completed before measured startup";
+  console.log("[2698] Reviewed Pi Durable and voice provisioning completed; beginning measured normal startup.");
   env.PLOTPICKLE_PI_DURABLE_AUTO_INSTALL = "0";
   env.PLOTPICKLE_2698_AUDIT_ROOT = auditRoot;
-  env.NODE_OPTIONS = `--import="${path.join(repo, "tests", "issue-2698-fetch-audit.mjs")}"`;
+  env.NODE_OPTIONS = `--import=${pathToFileURL(path.join(repo, "tests", "issue-2698-fetch-audit.mjs")).href}`;
   let durableRoot;
   for (let attempt = 0; attempt < 2; attempt++) {
     const started = Date.now();
@@ -91,16 +92,19 @@ try {
       return coreAvailable();
     });
     run.coreHtmlReadyMs = Date.now() - started;
+    console.log(`[2698] ${run.mode}: core HTML ready in ${run.coreHtmlReadyMs} ms.`);
     const browser = await wait("managed Edge ownership", async () => {
       const value = await document(path.join(runtime, "browser-owner.json"));
       return value?.format === "plotpickle-owned-browser" && alive(value.pid) ? value : null;
     });
     run.managedBrowserOpenedMs = Date.parse(browser.startedAt) - started;
+    console.log(`[2698] ${run.mode}: managed Edge ownership observed.`);
     const status = await wait("all registered runtime services", async () => {
       const value = await document(path.join(runtime, "sidecars", "status.json"));
       return value?.services.length === 6 && value.services.every((service) => service.state === "ready" || (service.id === "media-runtime" && service.state === "degraded")) ? value : null;
     });
     run.status = status;
+    console.log(`[2698] ${run.mode}: all six services reached their expected states.`);
     assert.ok(Date.parse(status.timing.coreReadyAt) <= Date.parse(status.timing.servicesStartedAt));
     assert.ok(status.services.every((service) => Number.isInteger(service.pid) && alive(service.pid)));
     run.coreToServiceConvergenceMs = Date.parse(status.timing.servicesConvergedAt) - Date.parse(status.timing.coreReadyAt);
@@ -147,6 +151,7 @@ try {
     await wait("launcher exit", async () => launcher.exitCode !== null, 20000);
     assert.equal(launcher.exitCode, 0, tail);
     run.stoppedMs = Date.now() - started;
+    console.log(`[2698] ${run.mode}: launcher, owned Edge and registered services stopped.`);
     launcher = null;
   }
   const audit = (await Promise.all((await readdir(auditRoot)).map(async (file) => (await readFile(path.join(auditRoot, file), "utf8")).trim().split("\n").filter(Boolean).map(JSON.parse)))).flat();
@@ -157,7 +162,9 @@ try {
 } catch (error) {
   report.result = "FAIL";
   report.error = error.message;
+  report.lastRuntimeStatus = await document(path.join(runtime, "sidecars", "status.json"));
   console.error(error.message);
+  if (report.lastRuntimeStatus) console.error(JSON.stringify(report.lastRuntimeStatus));
   console.error(tail);
   process.exitCode = 1;
 } finally {

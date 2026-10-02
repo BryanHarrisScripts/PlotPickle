@@ -37,7 +37,7 @@ export function projectScreeningMediaEvidence(input: {
   if (stale) {
     return { projectionOnly: true, canonical: false, roughCutId: input.roughCutId, playbackArtifactPaths: [], inspection: null, stale: true, state: "stale", message: "Rendered evidence is stale because approved upstream source identity changed. Re-render before relying on it." };
   }
-  if (!evidence || input.media.state !== "succeeded") {
+  if (!evidence || !evidence.artifacts.videoPath || input.media.state !== "succeeded") {
     return { projectionOnly: true, canonical: false, roughCutId: input.roughCutId, playbackArtifactPaths: [], inspection: null, stale: false, state: "failed", message: "Optional render evidence is unavailable or failed. Screening observations and Human approval remain valid." };
   }
   return {

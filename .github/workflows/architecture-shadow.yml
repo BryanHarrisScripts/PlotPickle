@@ -193,7 +193,7 @@ jobs:
         run: npm run build
       - name: Prove modular child-process lifecycle and media contract on Windows
         shell: pwsh
-        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2698-runtime-shutdown.test.mjs tests/issue-2698-launcher-probe.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
+        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2698-runtime-shutdown.test.mjs tests/issue-2698-launcher-probe.test.mjs tests/issue-2698-media-retention.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
       - name: Prove deferred companion readiness on Windows
         shell: pwsh
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/issue-2698-companion-readiness.ps1

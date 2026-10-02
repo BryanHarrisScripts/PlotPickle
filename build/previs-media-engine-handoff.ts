@@ -70,10 +70,14 @@ export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMedi
   if (capability.state !== "ready") {
     return { mode: "fallback", message: "FFrames is unavailable. Flip Book, Graphic Novel, and WebP remain available.", evidence: null };
   }
-  const evidence = await engine.renderMiniBlock(request);
+  const evidence = await engine.renderMiniBlock(request, { evidenceDirectory: assetsDirectory() });
+  const playbackEvidence = evidence.artifacts.videoPath ? {
+    ...evidence,
+    artifacts: { ...evidence.artifacts, videoPath: `${ASSET_PATH}${path.basename(evidence.artifacts.videoPath)}` },
+  } : evidence;
   return {
     mode: evidence.state === "succeeded" ? "fframes" : "fallback",
     message: evidence.state === "succeeded" ? "FFrames rendered the selected locked Storyboard sequence." : "FFrames did not complete. Existing Previs modes remain available.",
-    evidence,
+    evidence: playbackEvidence,
   };
 }

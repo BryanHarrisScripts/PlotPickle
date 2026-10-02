@@ -177,7 +177,7 @@ jobs:
     needs: modular-runtime-windows-scope
     if: needs.modular-runtime-windows-scope.outputs.required == 'true'
     runs-on: windows-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -185,6 +185,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.19.0'
+      - name: Install pinned dependencies for Windows production build
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate production build on the supported Windows host
+        shell: pwsh
+        run: npm run build
       - name: Prove modular child-process lifecycle and media contract on Windows
         shell: pwsh
         run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs

@@ -17,6 +17,15 @@ function evidence(kind, summary) {
   return Object.freeze({ kind, summary, observedAt: new Date().toISOString() });
 }
 
+function publishRuntimeStatus(status) {
+  if (typeof process.send !== "function") return;
+  process.send({
+    kind: "status",
+    state: status.state,
+    evidence: Array.isArray(status.evidence) ? status.evidence : [],
+  });
+}
+
 export function browserVerificationRuntimeDescriptor() {
   return Object.freeze({
     state: "ready",
@@ -102,7 +111,9 @@ function parseArgs(argv) {
 
 export async function runBrowserVerificationRuntimeService({ home, server, toolRoot, signal = () => false } = {}) {
   if (!home || !server) throw new Error("Browser Verification runtime requires PlotPickle home and server URL.");
-  await writeServiceStatus(home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, browserVerificationRuntimeDescriptor());
+  const descriptor = browserVerificationRuntimeDescriptor();
+  await writeServiceStatus(home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, descriptor);
+  publishRuntimeStatus(descriptor);
   process.stdout.write("[SIDECAR:WEBMCP] ready (browser execution lazy)\n");
 
   while (!signal()) {
@@ -137,10 +148,9 @@ if (direct) {
     signal: () => stopped,
   }).catch(async (error) => {
     const message = error instanceof Error ? error.message : String(error);
-    if (args.home) await writeServiceStatus(args.home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, {
-      state: "degraded",
-      evidence: [evidence("startup-error", message)],
-    }).catch(() => {});
+    const status = { state: "degraded", evidence: [evidence("startup-error", message)] };
+    publishRuntimeStatus(status);
+    if (args.home) await writeServiceStatus(args.home, BROWSER_VERIFICATION_RUNTIME_SERVICE_ID, status).catch(() => {});
     console.error(`[SIDECAR:WEBMCP] degraded: ${message}`);
   });
 }

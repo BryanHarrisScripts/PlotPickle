@@ -11,6 +11,12 @@ export class LocalSidecarSupervisor {
     return this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
   }
 
+  mark(id: string, state: SidecarStatus["state"], evidence: SidecarStatus["evidence"] = []): SidecarStatus {
+    const status = Object.freeze({ id, state, evidence: Object.freeze([...evidence]) });
+    this.states.set(id, status);
+    return status;
+  }
+
   start(spec: SidecarSpec): SidecarStatus {
     if (spec.enabled === false) return this.status(spec.id);
     this.states.set(spec.id, { id: spec.id, state: "starting", evidence: [] });

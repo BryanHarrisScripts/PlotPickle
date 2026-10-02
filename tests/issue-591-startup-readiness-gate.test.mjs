@@ -45,7 +45,7 @@ test("only a server carrying the completed current startup contract may open", a
   assert.match(launcher, /PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!/);
   assert.match(launcher, /\$response\.Content -match '%PLOTPICKLE_STARTUP_MARKER%'/);
   assert.match(launcher, /exit 3/);
-  assert.match(launcher, /stale or unverified/i);
+  assert.match(launcher, /stale, unverified, or running a different startup mode/i);
   assert.match(launcher, /will not open it or replace dependencies underneath a running server/);
 });
 
@@ -70,8 +70,9 @@ test("browser launch follows required readiness while optional companion mainten
   assert.match(launcher, /echo !READY! Optional companion inventory is deferred until after local server readiness/);
   assert.doesNotMatch(launcher, /-File "%COMPANION_MANAGER%" -Mode Maintain/);
   assert.match(deferred, /Test-PlotPickleReady/);
-  assert.match(deferred, /-Mode Maintain -NoPrompt/);
-  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
+  assert.match(deferred, /-Mode Report -NoPrompt/);
+  assert.doesNotMatch(deferred, /-Mode Maintain/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Report -NoPrompt"));
 });
 
 test("#2654 launcher classifies warmup and liveness probes without turning post-browser checks into app renders", async () => {

@@ -1,4 +1,3 @@
-import { createRequire } from "node:module";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -12,6 +11,7 @@ import {
 
 const RUNTIME_ID = "pi-durable";
 const REQUIRED_NODE = [22, 19, 0];
+const managedLoaders = new Map();
 
 function nodeMeetsMinimum(version = process.versions.node) {
   const actual = String(version).split(".").map((v) => Number(v));
@@ -39,12 +39,20 @@ async function saveMetadata(folder, metadata) {
   return target;
 }
 
-async function importPiDurableModule(moduleRoot, specifier) {
+export async function importPiDurableModule(moduleRoot, specifier) {
   if (!moduleRoot) return import(specifier);
+  // Native ESM resolution must originate in the managed runtime. require.resolve
+  // selects CommonJS export conditions and rejects import-only Chord subpaths.
   const root = path.resolve(moduleRoot);
-  const requireFromManagedRoot = createRequire(path.join(root, "package.json"));
-  const resolved = requireFromManagedRoot.resolve(specifier);
-  return import(pathToFileURL(resolved).href);
+  if (!managedLoaders.has(root)) {
+    managedLoaders.set(root, (async () => {
+      const loader = path.join(root, "plotpickle-esm-loader.mjs");
+      await writeFile(loader, "export const load = (specifier) => import(specifier);\n", "utf8");
+      return import(pathToFileURL(loader).href);
+    })());
+  }
+  const { load } = await managedLoaders.get(root);
+  return load(specifier);
 }
 
 async function loadPiDurableModules(moduleRoot) {

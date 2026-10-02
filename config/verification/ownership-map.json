@@ -1864,6 +1864,16 @@
       ]
     },
     {
+      "id": "local-ai-readiness-runtime",
+      "classification": "production",
+      "include": [
+        "build/local-runtime-gateway.ts",
+        "build/ai/local-ai-readiness.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": ["provider", "security", "native", "windows"]
+    },
+    {
       "id": "ben-code-quality-delta",
       "classification": "production",
       "include": [

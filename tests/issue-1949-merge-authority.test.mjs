@@ -37,7 +37,8 @@ test("#1949 promoted architecture workflow keeps all seven exact checks visible 
   assert.match(workflow, /Upload architecture evidence/u);
   assert.match(workflow, /^permissions:\s+contents: read$/mu);
   assert.doesNotMatch(workflow, /continue-on-error:/u);
-  assert.doesNotMatch(workflow, /^\s+paths(?:-ignore)?:/mu);
+  const pullRequestTrigger = workflow.split("  pull_request:")[1].split(/^  \w+:/mu)[0];
+  assert.doesNotMatch(pullRequestTrigger, /^\s+paths(?:-ignore)?:/mu);
   for (const name of exactChecks) assert.ok(workflow.includes(`name: ${name}`), `missing promoted check ${name}`);
 });
 

@@ -33,7 +33,9 @@ export class LocalSidecarSupervisor {
   private readonly states = new Map<string, SidecarStatus>();
 
   status(id: string): SidecarStatus {
-    return this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
+    const status = this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
+    const pid = this.children.get(id)?.pid;
+    return pid ? { ...status, pid } : status;
   }
 
   mark(id: string, state: SidecarStatus["state"], evidence: SidecarStatus["evidence"] = []): SidecarStatus {
@@ -78,5 +80,35 @@ export class LocalSidecarSupervisor {
     this.children.get(id)?.kill();
     this.children.delete(id);
     this.states.set(id, { id, state: "stopped", evidence: [] });
+  }
+
+  async stopAndWait(id: string, timeoutMs = 5000): Promise<SidecarStatus> {
+    const child = this.children.get(id);
+    if (!child) return this.mark(id, "stopped");
+    if (child.pid === undefined && this.status(id).state === "failed") {
+      this.children.delete(id);
+      return this.mark(id, "stopped");
+    }
+    const exited = await new Promise<boolean>((resolve) => {
+      let timer: ReturnType<typeof setTimeout>;
+      const finish = (confirmed: boolean) => {
+        clearTimeout(timer);
+        child.removeListener("exit", onExit);
+        child.removeListener("error", onError);
+        resolve(confirmed);
+      };
+      const onExit = () => finish(true);
+      const onError = () => finish(child.pid === undefined);
+      child.once("exit", onExit);
+      child.once("error", onError);
+      timer = setTimeout(() => finish(false), Math.max(1, timeoutMs));
+      if (child.exitCode !== null || child.signalCode !== null) finish(true);
+      else child.kill();
+    });
+    if (exited) {
+      this.children.delete(id);
+      return this.mark(id, "stopped");
+    }
+    return this.mark(id, "failed", [{ kind: "shutdown-timeout", summary: "Owned service did not confirm exit within the shutdown window.", observedAt: new Date().toISOString() }]);
   }
 }

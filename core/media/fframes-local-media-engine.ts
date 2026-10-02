@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { constants as fsConstants } from "node:fs";
-import { access, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, extname, join, resolve } from "node:path";
+import { extname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import type {
   PlotPickleMediaEngine,
@@ -18,6 +18,19 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const MAX_CAPTURE_CHARS = 16_384;
 
 type SpawnResult = { code: number | null; stdout: string; stderr: string; cancelled: boolean; timedOut: boolean };
+
+export async function retainFFramesVideo(workspace: string, directory: string, requestId: string) {
+  const source = join(workspace, "render.mp4");
+  const size = (await stat(source)).size;
+  if (size < 12 || size > 150 * 1024 * 1024) throw new Error("FFrames did not produce a bounded video artifact.");
+  const bytes = await readFile(source);
+  if (bytes.subarray(4, 8).toString("ascii") !== "ftyp") throw new Error("FFrames output is not an MP4 container.");
+  await mkdir(directory, { recursive: true });
+  const key = createHash("sha256").update(requestId).digest("hex").slice(0, 24);
+  const videoPath = join(directory, `fframes-${key}.mp4`);
+  await copyFile(source, videoPath);
+  return videoPath;
+}
 
 function redact(text: string, workspace: string) {
   return text.replaceAll(workspace, "<workspace>").replace(/[\r\n]+/gu, " ").trim().slice(0, MAX_CAPTURE_CHARS);
@@ -68,8 +81,8 @@ async function runBounded(command: string, args: readonly string[], cwd: string,
     const abort = () => { cancelled = true; terminate(); };
     const timer = setTimeout(() => { timedOut = true; terminate(); }, timeoutMs);
     options.signal?.addEventListener("abort", abort, { once: true });
-    child.stdout?.on("data", (chunk) => { stdout += String(chunk); });
-    child.stderr?.on("data", (chunk) => { stderr += String(chunk); });
+    child.stdout?.on("data", (chunk) => { stdout = (stdout + String(chunk)).slice(-MAX_CAPTURE_CHARS); });
+    child.stderr?.on("data", (chunk) => { stderr = (stderr + String(chunk)).slice(-MAX_CAPTURE_CHARS); });
     child.on("error", (error) => { stderr += ` ${error.message}`; finish(null); });
     child.on("close", finish);
     if (options.signal?.aborted) abort();
@@ -84,15 +97,18 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
   async capabilities(): Promise<PlotPickleMediaEngineCapability> {
     const manifest = resolve(this.repositoryRoot, "tools", "fframes-bridge", "Cargo.toml");
     const bridgePresent = await exists(manifest);
-    const cargo = await runBounded(process.platform === "win32" ? "cargo.exe" : "cargo", ["--version"], this.repositoryRoot, { timeoutMs: 5_000 });
-    const ready = bridgePresent && cargo.code === 0;
+    const ready = bridgePresent && await exists(this.bridgeExecutable());
     return {
       engineId: ENGINE_ID, engineVersion: ENGINE_VERSION,
       state: ready ? "ready" : "unavailable",
-      reason: ready ? "Pinned local FFrames bridge and Cargo are available." : "Optional local FFrames bridge is unavailable; PlotPickle remains usable.",
+      reason: ready ? "Prepared local FFrames bridge is available; no build or installation runs at startup." : "Optional local FFrames bridge is not built; PlotPickle remains usable.",
       localOnly: true, automaticInstall: false, cloudFallback: false,
       supports: { miniBlockFrames: true, frameInspection: false, contactSheet: false, videoRender: true, audioInspection: false },
     };
+  }
+
+  private bridgeExecutable() {
+    return resolve(this.repositoryRoot, "tools", "fframes-bridge", "target", "release", process.platform === "win32" ? "plotpickle-fframes-bridge.exe" : "plotpickle-fframes-bridge");
   }
 
   async renderMiniBlock(request: PlotPickleMiniBlockMediaRequest, options: PlotPickleMediaEngineRunOptions = {}): Promise<PlotPickleMediaEngineEvidence> {
@@ -100,6 +116,9 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
     const capability = await this.capabilities();
     if (capability.state !== "ready") {
       return this.evidence(request, startedAt, "unavailable", [], [], "FFrames is optional and unavailable.", options);
+    }
+    if (!options.evidenceDirectory) {
+      return this.evidence(request, startedAt, "failed", [], [], "A persistent artifact directory is required before rendering.", options);
     }
 
     const root = await mkdtemp(join(tmpdir(), "plotpickle-fframes-"));
@@ -117,25 +136,26 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
         sourceAssets.push({ position: frame.position, assetId: frame.assetId, assetUrl: frame.assetUrl, sha256: await sha256(source), durationMs: frame.durationMs, sourceRefs: frame.sourceRefs });
       }
       await writeFile(join(root, "plotpickle-request.json"), JSON.stringify(bridgeManifest(request, names), null, 2), "utf8");
-      const manifest = resolve(this.repositoryRoot, "tools", "fframes-bridge", "Cargo.toml");
-      const result = await runBounded(process.platform === "win32" ? "cargo.exe" : "cargo", ["run", "--quiet", "--release", "--manifest-path", manifest, "--", "render"], root, options);
+      const result = await runBounded(this.bridgeExecutable(), ["render", "--output", "render.mp4"], root, options);
       const diagnostics = [result.stdout, result.stderr].map((text) => redact(text, root)).filter(Boolean);
-      const state = result.cancelled ? "cancelled" : result.code === 0 ? "succeeded" : "failed";
+      const state = result.cancelled ? "cancelled" : result.timedOut ? "failed" : result.code === 0 ? "succeeded" : "failed";
       const reason = result.timedOut ? "FFrames render exceeded its bounded timeout." : result.cancelled ? "FFrames render was cancelled." : result.code === 0 ? "FFrames render completed." : "FFrames render failed.";
-      return this.evidence(request, startedAt, state, sourceAssets, diagnostics, reason, options, root);
+      const videoPath = state === "succeeded" ? await retainFFramesVideo(root, options.evidenceDirectory, request.requestId) : "";
+      return this.evidence(request, startedAt, state, sourceAssets, diagnostics, reason, options, videoPath);
     } catch (error) {
-      return this.evidence(request, startedAt, options.signal?.aborted ? "cancelled" : "failed", sourceAssets, [redact(error instanceof Error ? error.message : String(error), root)], "FFrames render did not complete.", options, root);
+      return this.evidence(request, startedAt, options.signal?.aborted ? "cancelled" : "failed", sourceAssets, [redact(error instanceof Error ? error.message : String(error), root)], "FFrames render did not complete.", options);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
   }
 
-  private async evidence(request: PlotPickleMiniBlockMediaRequest, startedAt: string, state: PlotPickleMediaEngineEvidence["state"], sourceAssets: PlotPickleMediaEngineEvidence["sourceAssets"], diagnostics: readonly string[], reason: string, options: PlotPickleMediaEngineRunOptions, workspace = ""): Promise<PlotPickleMediaEngineEvidence> {
-    const artifacts = { contactSheetPath: "", frameDirectory: "", videoPath: "" };
+  private async evidence(request: PlotPickleMiniBlockMediaRequest, startedAt: string, state: PlotPickleMediaEngineEvidence["state"], sourceAssets: PlotPickleMediaEngineEvidence["sourceAssets"], diagnostics: readonly string[], reason: string, options: PlotPickleMediaEngineRunOptions, videoPath = ""): Promise<PlotPickleMediaEngineEvidence> {
+    const artifacts = { contactSheetPath: "", frameDirectory: "", videoPath };
     const evidence = { schemaVersion: 1 as const, requestId: request.requestId, engineId: ENGINE_ID, engineVersion: ENGINE_VERSION, state, startedAt, completedAt: new Date().toISOString(), sourceAssets, artifacts, inspection: null, timeline: { fps: request.fps, width: request.width, height: request.height, frameCount: request.frames.length }, diagnostics, reason };
     if (options.evidenceDirectory) {
       await mkdir(options.evidenceDirectory, { recursive: true });
-      await writeFile(join(options.evidenceDirectory, `${basename(request.requestId)}.fframes-evidence.json`), JSON.stringify(evidence, null, 2), "utf8");
+      const key = createHash("sha256").update(request.requestId).digest("hex").slice(0, 24);
+      await writeFile(join(options.evidenceDirectory, `${key}.fframes-evidence.json`), JSON.stringify(evidence, null, 2), "utf8");
     }
     return evidence;
   }

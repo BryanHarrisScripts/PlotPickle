@@ -2,7 +2,7 @@ export const SIDECAR_STATES = ["starting", "ready", "degraded", "unavailable", "
 export type SidecarState = typeof SIDECAR_STATES[number];
 
 export type SidecarEvidence = Readonly<{ kind: string; summary: string; observedAt: string }>;
-export type SidecarStatus = Readonly<{ id: string; state: SidecarState; evidence: readonly SidecarEvidence[] }>;
+export type SidecarStatus = Readonly<{ id: string; state: SidecarState; evidence: readonly SidecarEvidence[]; pid?: number }>;
 
 export type VerificationRequest = Readonly<{
   requestId: string;

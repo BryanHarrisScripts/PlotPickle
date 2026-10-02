@@ -75,7 +75,7 @@ echo ============================================================
 echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Required PlotPickle runtime checks finish first; optional companion inventory and reviewed maintenance begin only after the local server is ready.
+echo Required PlotPickle runtime checks finish first; read-only optional companion inventory begins only after the local server is ready.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -110,22 +110,7 @@ if "!PLOTPICKLE_SOURCE_MODE!"=="sync-error" echo !READY_WARN! The application up
 if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4-!PLOTPICKLE_SOURCE_SHA!"
 echo.
 
-if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE="
-if not defined PLOTPICKLE_STARTUP_TESTING_MODE (
-  echo !CYAN![STARTUP MODE]!RESET!
-  echo [1] Open PlotPickle normally
-  echo [2] WebMCP Testing
-  echo [3] Conversational UAT
-  echo.
-  choice /C 123 /N /M "Choose startup mode [1-3]: "
-  if errorlevel 3 (
-    set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
-  ) else if errorlevel 2 (
-    set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
-  ) else (
-    set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
-  )
-)
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
 set "PLOTPICKLE_STARTUP_MARKER=!PLOTPICKLE_STARTUP_MARKER!-!PLOTPICKLE_STARTUP_TESTING_MODE!"
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   if not defined PLOTPICKLE_WEBMCP_QA_PROFILE (
@@ -396,7 +381,7 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
 ) else (
   if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
     echo.
-    echo !INFO! Optional companion inventory and reviewed maintenance are deferred until PlotPickle is reachable.
+    echo !INFO! Read-only optional companion inventory is deferred until PlotPickle is reachable.
     echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
   ) else (
     echo.
@@ -452,8 +437,11 @@ set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 call :cleanup_webmcp_testing
 if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
-  del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
-  del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
+  node core\sidecars\runtime\shutdown-wait.mjs
+  if errorlevel 1 (
+    echo !WARNING! The core server stopped, but launcher-owned cleanup could not be confirmed. Review the runtime status before restarting.
+    exit /b 1
+  )
   echo !SUCCESS! PlotPickle saved the current session, stopped its managed services, and closed its owned app window.
   exit /b 0
 )

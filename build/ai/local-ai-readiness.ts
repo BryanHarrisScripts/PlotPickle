@@ -262,7 +262,7 @@ export async function localAiReadinessSnapshot(options: ReadinessOptions = {}): 
     fallbackReason,
     action,
     message: state === "recommended-ready"
-      ? `AI COMPUTE: Recommended ${recommendedRuntime} · ${recommendationModel}; active and inference-ready.`
+      ? `AI COMPUTE: Recommended ${recommendedRuntime} · ${recommendationModel}; ${options.probeInference ? "active and inference-ready" : "active; inference testing is available in Settings"}.`
       : `AI COMPUTE: Recommended ${recommendedRuntime} · ${recommendationModel}; active ${activeRuntime.label}${actualModel ? ` · ${actualModel}` : ""}; ${fallbackReason}`,
   };
   await persistSafeReadiness(result);

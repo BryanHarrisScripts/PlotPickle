@@ -18,6 +18,7 @@ const statusFile = path.resolve(home, registry.statusFile);
 const startupMarker = String(process.env.PLOTPICKLE_STARTUP_CONTRACT || "");
 const supervisor = new LocalSidecarSupervisor();
 const reportedStates = new Map();
+const timing = { supervisorStartedAt: new Date().toISOString(), coreReadyAt: null, servicesStartedAt: null, servicesConvergedAt: null, stoppedAt: null };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const exists = async (file) => access(file).then(() => true, () => false);
@@ -30,10 +31,11 @@ async function coreReady() {
   try {
     const response = await fetch(`${server}/skin-v1`, {
       signal: AbortSignal.timeout(2500),
-      headers: { "X-PlotPickle-Startup-Probe": "sidecar-supervisor" },
+      headers: { "X-PlotPickle-Startup-Probe": timing.coreReadyAt ? "liveness" : "warmup" },
       cache: "no-store",
     });
     if (!response.ok) return false;
+    if (timing.coreReadyAt) return true;
     if (!startupMarker) return true;
     const body = await response.text();
     return body.includes(startupMarker);
@@ -48,6 +50,9 @@ async function snapshot(supervisorState, coreState) {
     label: service.label,
     ...supervisor.status(service.id),
   }));
+  if (supervisorState === "ready" && timing.servicesStartedAt && !timing.servicesConvergedAt && services.every((service) => service.state !== "starting")) {
+    timing.servicesConvergedAt = new Date().toISOString();
+  }
   for (const service of services) {
     const previous = reportedStates.get(service.id);
     if (previous !== service.state && service.state !== "starting") {
@@ -59,6 +64,7 @@ async function snapshot(supervisorState, coreState) {
     supervisor: { state: supervisorState, pid: process.pid },
     core: { state: coreState, url: server },
     services,
+    timing: { ...timing },
   }));
 }
 
@@ -73,8 +79,10 @@ async function waitForCore() {
 }
 
 async function stopAll() {
-  for (const service of registry.services) supervisor.stop(service.id);
-  await snapshot("stopped", "stopped").catch(() => {});
+  await Promise.all(registry.services.map((service) => supervisor.stopAndWait(service.id)));
+  timing.stoppedAt = new Date().toISOString();
+  const confirmed = registry.services.every((service) => supervisor.status(service.id).state === "stopped");
+  await snapshot(confirmed ? "stopped" : "failed", "stopped").catch(() => {});
 }
 
 async function main() {
@@ -82,6 +90,7 @@ async function main() {
   await snapshot("starting", "starting");
 
   const ready = await waitForCore();
+  if (stopping) return;
   if (!ready) {
     console.log("[SIDECARS] Supervisor stopped before core readiness; PlotPickle core was not terminated.");
     await stopAll();
@@ -89,9 +98,14 @@ async function main() {
   }
 
   console.log("[SIDECARS] Core ready. Starting registered runtime services asynchronously.");
+  timing.coreReadyAt = new Date().toISOString();
+  timing.servicesStartedAt = new Date().toISOString();
   for (const service of registry.services) {
+    if (stopping) return;
     const launch = registeredServiceLaunch(registry, service.id, { repoRoot });
-    if (!await exists(launch.entrypoint)) {
+    const installed = await exists(launch.entrypoint);
+    if (stopping) return;
+    if (!installed) {
       supervisor.mark(service.id, "unavailable", [evidence("entrypoint-missing", `${service.label} is registered but its runtime entrypoint is not installed yet.`)]);
       console.log(`[SIDECARS] ${service.label}: unavailable (runtime entrypoint not installed yet)`);
       continue;
@@ -110,6 +124,7 @@ async function main() {
 
   let unreachableSince = 0;
   while (true) {
+    if (stopping) return;
     if (await exists(shutdownSignal)) break;
     if (await coreReady()) {
       unreachableSince = 0;
@@ -137,6 +152,7 @@ process.on("SIGTERM", requestStop);
 
 main().catch(async (error) => {
   console.error(`[SIDECARS] Supervisor degraded: ${error instanceof Error ? error.message : String(error)}`);
+  await stopAll().catch(() => {});
   await snapshot("degraded", "unknown").catch(() => {});
   process.exitCode = 0;
 });

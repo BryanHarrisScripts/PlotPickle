@@ -1,12 +1,13 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-export function runtimeStatusDocument({ supervisor, core, services, observedAt = new Date().toISOString() }) {
+export function runtimeStatusDocument({ supervisor, core, services, timing, observedAt = new Date().toISOString() }) {
   return Object.freeze({
     schemaVersion: 1,
     supervisor,
     core,
     services,
+    ...(timing ? { timing } : {}),
     observedAt,
   });
 }

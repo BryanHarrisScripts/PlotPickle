@@ -42,8 +42,8 @@ test("routine startup defers optional companion maintenance until the local app 
   assert.match(launcher, /start "" \/b powershell\.exe[^\n]+%COMPANION_AFTER_READY%/i);
   assert.doesNotMatch(executable, /powershell\.exe[^\n]+-File "%COMPANION_MANAGER%" -Mode Maintain/i);
   assert.match(deferred, /Test-PlotPickleReady/);
-  assert.match(deferred, /-Mode Maintain -NoPrompt/);
-  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
+  assert.match(deferred, /-Mode Report -NoPrompt/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Report -NoPrompt"));
   assert.doesNotMatch(executable, /install-local-ai-tool\.ps1|install-buzz-desktop\.ps1/i);
   assert.doesNotMatch(executable, /ensure_local_ai_tool|ensure_buzz_desktop/i);
   assert.doesNotMatch(executable, /Install (?:Ollama|ComfyUI|Buzz Desktop).*\[Y\/N\]/i);

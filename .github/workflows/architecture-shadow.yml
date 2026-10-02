@@ -3,6 +3,11 @@ name: Architecture Verification
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - tests/issue-2698-windows-startup-proof.mjs
+      - config/development-convergence/2698.json
   workflow_dispatch:
 
 permissions:
@@ -59,15 +64,21 @@ jobs:
         if: matrix.id == 'verification'
         run: >-
           node scripts/run-ben-code-quality.mjs
-          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
       - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
-          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
           --commit-sha "${{ github.event.pull_request.head.sha || github.sha }}"
           --platform linux
           --allow-network "${{ matrix.allow_network }}"
+
+      - name: Verify development convergence
+        if: matrix.id == 'verification'
+        run: >-
+          node scripts/run-development-convergence.mjs --changed
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
       - name: Upload architecture evidence
         if: always()
@@ -79,6 +90,7 @@ jobs:
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
             .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
             .artifacts/ben-code-quality/
+            .artifacts/development-convergence/
             .artifacts/verification-live/webmcp-live.json
             .artifacts/verification-live/webmcp-app-server.log
             .artifacts/webmcp-startup/summary.json
@@ -166,7 +178,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|config/runtime-sidecars\.json|core/sidecars/runtime/|tests/issue-2697-)'; then
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/sidecars/|scripts/runtime-sidecar-supervisor\.mjs|scripts/windows-companion-maintenance-after-ready\.ps1|config/runtime-sidecars\.json|core/sidecars/|tests/issue-269[78]-)'; then
             echo 'required=true' >> "$GITHUB_OUTPUT"
           else
             echo 'required=false' >> "$GITHUB_OUTPUT"
@@ -177,7 +189,7 @@ jobs:
     needs: modular-runtime-windows-scope
     if: needs.modular-runtime-windows-scope.outputs.required == 'true'
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -193,4 +205,18 @@ jobs:
         run: npm run build
       - name: Prove modular child-process lifecycle and media contract on Windows
         shell: pwsh
-        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
+        run: node --experimental-strip-types --test tests/issue-2694-live-runtime-supervisor.test.mjs tests/issue-2695-live-dsdd-browser-services.test.mjs tests/issue-2696-pi-durable-active-default.test.mjs tests/issue-2697-live-modular-runtimes.test.mjs tests/issue-2698-runtime-shutdown.test.mjs tests/issue-2698-launcher-probe.test.mjs tests/issue-2698-media-retention.test.mjs tests/issue-2665-timeline-rough-cut-media.test.mjs tests/issue-2666-screening-fframes-hardening.test.mjs
+      - name: Prove deferred companion readiness on Windows
+        shell: pwsh
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/issue-2698-companion-readiness.ps1
+      - name: Prove real normal launcher convergence and persistent restart on Windows
+        shell: pwsh
+        run: node tests/issue-2698-windows-startup-proof.mjs
+      - name: Upload Windows runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-runtime-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .artifacts/runtime-2698/*.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,60 @@
+name: Focused UAT Reconciliation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/run-uat-autopilot.mjs"
+      - "lib/verification/uat-contract-evidence.mjs"
+      - "tests/issue-2714-focused-uat-evidence.test.mjs"
+      - "config/uat-autopilot-registry.json"
+      - ".github/workflows/focused-uat-reconciliation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  focused-uat:
+    name: Capture broad focused UAT baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Run broad focused UAT and preserve exit code
+        shell: bash
+        run: |
+          set +e
+          mkdir -p .artifacts/uat-focused
+          node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused 2>&1 | tee .artifacts/uat-focused/contracts-console.log
+          status=${PIPESTATUS[0]}
+          echo "${status}" > .artifacts/uat-focused/exit-code.txt
+          exit 0
+
+      - name: Upload focused UAT reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-uat-reconciliation-${{ github.run_id }}
+          path: .artifacts/uat-focused
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: Enforce focused UAT result
+        shell: bash
+        run: |
+          test "$(cat .artifacts/uat-focused/exit-code.txt)" = "0"

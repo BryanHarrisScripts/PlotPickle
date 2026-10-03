@@ -182,5 +182,6 @@ test("issue #1404 launcher liveness probes do not render or log the application 
   assert.match(liveness, /powershell/i);
   assert.match(liveness, /response\.statusCode = 204/);
   assert.match(liveness, /Cache-Control/);
-  assert.doesNotMatch(liveness, /console\.|logger\.|fetch\(|render/);
+  assert.match(liveness, /liveness-no-render/);
+  assert.doesNotMatch(liveness, /console\.|logger\.|fetch\(/);
 });

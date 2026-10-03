@@ -25,7 +25,8 @@ test("Sage uses the repository skill as active runtime instructions", async () =
   assert.match(runtime, /id === "curriculum-guide" \? `Sage Brinewick skill:/);
   assert.match(runtime, /curriculum_context supplied by PlotPickle is the only source of truth/i);
   assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.3 : input\.agentId === "wyrmwood-rival-director" \? 0\.55 : 0\.2/);
-  assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : input\.agentId === "wyrmwood-rival-director" \? 1100 : 480/);
+  assert.match(runtime, /export function foundationPlannerMaxOutputTokens/);
+  assert.match(runtime, /foundationPlannerMaxOutputTokens\(input\.foundationFieldIds\?\.length \?\? 1\)/);
 });
 
 test("Sage rejects weak local output and can route conversational or broad questions through Quality", async () => {

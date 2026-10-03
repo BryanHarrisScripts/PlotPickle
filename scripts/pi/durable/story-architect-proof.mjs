@@ -7,12 +7,16 @@ import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 import { createInMemoryAuthStateStore, createPlotPickleAuthService } from "../../../core/auth/plotpickle-auth-core.mjs";
 import { createProfilePrivateStorageService } from "../../../core/storage/profile-private/profile-private-storage-core.mjs";
+import { importPiDurableModule } from "../../../core/sidecars/pi-durable-adapter.mjs";
+import { registerAgentCheckpointTasks } from "../../../core/sidecars/tasks/agent-checkpoint-task.mjs";
+import { ensureManagedPiDurableInstalled } from "../../pi-durable-managed-install.mjs";
 
 // Actual configured Mastra code, with a bounded synthetic provider. No real writer
 // data, credentials, cloud service, or user-selected provider participates here.
 const outputRoot = path.resolve(".artifacts/story-architect-2711");
 await mkdir(outputRoot, { recursive: true });
-const temporary = await mkdtemp(path.join(outputRoot, "fixture-"));
+// Temporary compiled workers need package resolution, not inclusion in source scans.
+const temporary = await mkdtemp(path.join(path.resolve("node_modules"), ".plotpickle-story-proof-"));
 let server;
 let requests = 0;
 let lastRequest;
@@ -20,6 +24,9 @@ let delayed = false;
 let omitUsage = false;
 let auth;
 let privateStorage;
+let controller;
+let harness;
+let cleanupContext;
 const assessment = {
   structural: { state: "unresolved", reason: "Synthetic supplied material cannot establish a causal structural turn.", passageIds: [] },
   characters: [],
@@ -31,6 +38,7 @@ try {
     `export { askPlotPickleAgent } from ${JSON.stringify(path.resolve("build/mastra-agent-runtime.ts"))};`,
     `export { normalizeLibraryProject } from ${JSON.stringify(path.resolve("core/storage/library-project.ts"))};`,
     `export { buildOutlineAgentAssessmentRequest, validateOutlineAgentAssessment } from ${JSON.stringify(path.resolve("modules/plan/outline-agent-assessment.ts"))};`,
+    `export { createOutlineTaskController } from ${JSON.stringify(path.resolve("build/projects/outline-task-controller.ts"))};`,
   ].join("\n"));
   const compiled = path.join(temporary, "worker.mjs");
   await build({ entryPoints: [entry], outfile: compiled, bundle: true, platform: "node", format: "esm", packages: "external", logLevel: "silent" });
@@ -79,12 +87,12 @@ try {
   omitUsage = false;
 
   delayed = true;
-  const controller = new AbortController();
-  const pending = worker.askPlotPickleAgent({ profile, ...payload, signal: controller.signal });
+  const workerCancellation = new AbortController();
+  const pending = worker.askPlotPickleAgent({ profile, ...payload, signal: workerCancellation.signal });
   const deadline = Date.now() + 5000;
   while (requests < 4 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(requests, 4);
-  controller.abort(new Error("Synthetic in-flight cancellation"));
+  workerCancellation.abort(new Error("Synthetic in-flight cancellation"));
   await assert.rejects(pending, /abort|cancel/i);
 
   // Test the existing protected artifact owner with the actual validated result.
@@ -118,13 +126,93 @@ try {
   assert.deepEqual(await privateStorage.readPrivateJson(reopened.authContext, address), artifact);
   assert.equal((await privateStorage.loadProject(reopened.authContext, project.id)).id, project.id);
 
-  const report = { issue: 2711, status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), platform: process.platform, actualMastraExecution: "PASS", providerEvidence: "synthetic-loopback-fixture", structuredAssessmentValidated: true, usageReported: usage, missingUsageRemainsUnknown: true, preCancelledRequests: 0, inFlightCancellationDenied: true, accountingFailureRejected: true, protectedArtifactReopen: "PASS", crossProfileArtifactHidden: true, lockedProfileReadDenied: true, fixtureRequests: requests, realUserProvider: "UNPROVEN", protectedTaskRecovery: "UNPROVEN", productResume: "UNPROVEN" };
+  // Exercise the real protected controller, native Pi JSONL and actual Mastra
+  // together. The provider remains a clearly labelled synthetic loopback fixture.
+  delayed = false;
+  const beforeTaskRequests = requests;
+  const controllerOptions = () => ({ auth, storage: privateStorage, limits: { maxAttempts: 8, maxTokens: 120000, maxCloudCostUsd: 0, timeoutMs: 600000 }, resolveExecution: async () => ({
+    provider: "local", model: profile.textModel, receipt: "synthetic-compute-config-v1", grantedCapabilities: ["project-context-read", "proposal-draft"], tokenUpperBound: 20000, cloudCostUpperBoundUsd: 0,
+    execute: (input) => worker.askPlotPickleAgent({ profile, ...input }),
+  }) });
+  controller = worker.createOutlineTaskController(controllerOptions());
+  const task = await controller.create(reopened.authContext, [1, 2]);
+  const installed = await ensureManagedPiDurableInstalled({ home: process.env.PLOTPICKLE_CHECKPOINT_PROOF_HOME || temporary });
+  const [durable, jsonl, chord, ai] = await Promise.all([
+    importPiDurableModule(installed.root, "@earendil-works/pi-durable"),
+    importPiDurableModule(installed.root, "@earendil-works/pi-durable/storage/jsonl/node"),
+    importPiDurableModule(installed.root, "@earendil-works/chord/context"),
+    importPiDurableModule(installed.root, "@earendil-works/pi-ai/models"),
+  ]);
+  cleanupContext = chord.BACKGROUND_CONTEXT;
+  const context = chord.withAbortSignal(AbortSignal.timeout(30000), cleanupContext);
+  const registry = durable.createRegistry();
+  const registration = registerAgentCheckpointTasks({ durable, checkpointDelayMs: 1000,
+    authorize: (scope, step, context) => controller.authorize(scope, step, context),
+    executeStep: (scope, step, context) => controller.executeStep(scope, step, context),
+  });
+  registry.install(registration.extension);
+  const schedulerRoot = path.join(temporary, "task-jsonl");
+  const open = async () => durable.Harness.open(await jsonl.openNodeJsonlStorage(schedulerRoot, context), { models: ai.createModels(), registry }, context);
+  harness = await open();
+  assert.equal(requests, beforeTaskRequests, "Opening the host and scheduler must not issue inference.");
+  const input = await controller.activate(reopened.authContext, task.scope.runId);
+  const piId = await registration.admit(await harness.root(context), input, context);
+  harness.resume();
+  const checkpointDeadline = Date.now() + 15000;
+  let checkpoint;
+  while (Date.now() < checkpointDeadline) {
+    checkpoint = (await harness.getTask(piId, context))?.state.checkpoint;
+    if (checkpoint?.nextIndex === 1) break;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.equal(checkpoint?.nextIndex, 1);
+  await harness.close(context); harness = null;
+  controller.close(); privateStorage.close(); auth.close();
+  auth = await createPlotPickleAuthService(authOptions);
+  privateStorage = createProfilePrivateStorageService({ root: path.join(temporary, "private"), authService: auth, normalizeProject: worker.normalizeLibraryProject });
+  const taskOwner = await auth.authenticate({ profileId: owner.profile.profileId, password });
+  controller = worker.createOutlineTaskController(controllerOptions());
+  harness = await open();
+  const progress = await controller.status(taskOwner.authContext, task.scope.runId);
+  assert.equal(progress.proposals.length, 1);
+  assert.equal(progress.resumeRequired, true);
+  assert.equal(progress.run.usage.attempts, 1);
+  assert.equal(requests - beforeTaskRequests, 1, "Reopen and progress read must not auto-resume inference.");
+  await assert.rejects(controller.authorize(task.scope, task.steps[1]), /explicit Human/);
+  const resumedInput = await controller.activate(taskOwner.authContext, task.scope.runId);
+  assert.equal(await registration.admit(await harness.root(context), resumedInput, context), piId);
+  const recoveredTask = await harness.waitForTask(piId, context);
+  assert.equal(recoveredTask.state.outcome.status, "completed");
+  const completed = await controller.finish(taskOwner.authContext, task.scope.runId);
+  assert.equal(completed.proposals.length, 2);
+  assert.equal(completed.run.state, "waiting-for-writer");
+  assert.equal(requests - beforeTaskRequests, 2, "Only the remaining Block may invoke Mastra after reopen.");
+  async function assertSchedulerOpaque(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) await assertSchedulerOpaque(file);
+      else {
+        const bytes = await readFile(file, "utf8");
+        assert.ok(!bytes.includes(assessment.structural.reason));
+        assert.ok(!bytes.includes(project.title));
+        assert.ok(!bytes.includes("Assess this ONE Outline Block"));
+        assert.ok(!bytes.includes(password));
+      }
+    }
+  }
+  await assertSchedulerOpaque(schedulerRoot);
+  await harness.close(cleanupContext); harness = null;
+
+  const report = { issue: 2711, status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), platform: process.platform, actualMastraExecution: "PASS", providerEvidence: "synthetic-loopback-fixture", structuredAssessmentValidated: true, usageReported: usage, missingUsageRemainsUnknown: true, preCancelledRequests: 0, inFlightCancellationDenied: true, accountingFailureRejected: true, protectedArtifactReopen: "PASS", crossProfileArtifactHidden: true, lockedProfileReadDenied: true, fixtureRequests: requests, realUserProvider: "UNPROVEN", protectedTaskRecovery: "PASS", nativePiAdmissionReused: true, completedBlocksAfterReopen: 2, resumedProviderRequests: 1, startupProviderRequests: 0, schedulerContentOpaque: true, productResume: "UNPROVEN" };
   await writeFile(path.join(outputRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report));
 } finally {
-  privateStorage?.close();
-  auth?.close();
-  server?.closeAllConnections();
-  if (server) await new Promise((resolve) => server.close(resolve));
-  await rm(temporary, { recursive: true, force: true });
+  try {
+    controller?.close();
+    if (harness) await harness.close(cleanupContext);
+    privateStorage?.close();
+    auth?.close();
+    server?.closeAllConnections();
+    if (server) await new Promise((resolve) => server.close(resolve));
+  } finally { await rm(temporary, { recursive: true, force: true }); }
 }

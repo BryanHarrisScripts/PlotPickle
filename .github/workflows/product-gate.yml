@@ -57,7 +57,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
           $changed = git diff --name-only $env:BASE_SHA HEAD
-          $required = [bool]($changed | Select-String -Pattern '^(build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
+          $required = [bool]($changed | Select-String -Pattern '^(build/projects/outline-task-controller\.ts$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
           "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Prove real Mastra Story Architect against a synthetic provider on Windows
@@ -66,7 +66,7 @@ jobs:
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/issue-2711-outline-durable-input.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
+          node --test tests/issue-2711-outline-durable-input.test.mjs tests/issue-2711-outline-task-controller.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/pi/durable/story-architect-proof.mjs
 

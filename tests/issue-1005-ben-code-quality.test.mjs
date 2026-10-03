@@ -1,11 +1,29 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 const ROOT = new URL("..", import.meta.url);
 const read = (path) => readFile(new URL(path, ROOT), "utf8");
 const HOST_FORBIDDEN = ["ppf-direct-write", "github-write", "developer-shell", "credential-read", "provider-selection"];
+
+test("BEN captures complete large scanner JSON before immediate exit and preserves failing exit status", async () => {
+  const { captureBenScannerEvidence } = await import("../scripts/run-ben-code-quality.mjs");
+  const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-ben-json-"));
+  try {
+    const report = path.join(directory, "scanner.json");
+    const result = captureBenScannerEvidence(process.execPath, ["-e", 'process.stdout.write(JSON.stringify({evidence:"x".repeat(2*1024*1024)}));process.exit(1);'], report);
+    assert.equal(result.status, 1, "Capture must not convert scanner failure into success.");
+    const parsed = JSON.parse(result.stdout);
+    assert.equal(parsed.evidence.length, 2 * 1024 * 1024);
+    assert.equal(await readFile(report, "utf8"), result.stdout);
+    const rejected = captureBenScannerEvidence(process.execPath, ["-e", 'process.stdout.write("not JSON");process.exit(2);'], report);
+    assert.equal(rejected.status, 2);
+    assert.throws(() => JSON.parse(rejected.stdout));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test("BEN is a deterministic code-quality observer with no developer or merge authority", async () => {
   const registry = JSON.parse(await read("config/agent-profiles.json"));

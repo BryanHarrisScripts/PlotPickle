@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { closeSync, openSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -32,6 +32,24 @@ function run(command, args, options = {}) {
   });
   if (result.error) throw result.error;
   return result;
+}
+
+/** Capture scanner JSON to a regular file; immediate CLI exit must not truncate a pipe. */
+export function captureBenScannerEvidence(command, args, evidencePath) {
+  const descriptor = openSync(evidencePath, "w");
+  try {
+    const result = spawnSync(command, args, {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+      stdio: ["ignore", descriptor, "pipe"],
+    });
+    if (result.error) throw result.error;
+    if (statSync(evidencePath).size > 32 * 1024 * 1024) throw new Error("BEN scanner evidence exceeded the bounded report size.");
+    return { ...result, stdout: readFileSync(evidencePath, "utf8") };
+  } finally {
+    closeSync(descriptor);
+  }
 }
 
 function requireSuccess(result, label) {
@@ -262,7 +280,7 @@ async function main() {
   const resultReport = path.join(reportDirectory, "ben-result.json");
 
   if (!baseRef) {
-    const scan = run(npxCommand, slopScanArgs("scan", repoRoot, "--json"));
+    const scan = captureBenScannerEvidence(npxCommand, slopScanArgs("scan", repoRoot, "--json"), scanReport);
     requireSuccess(scan, "current-tree slop-scan");
     await writeScannerEvidence(scanReport, scan.stdout, "current-tree scan");
     await writeFile(resultReport, `${JSON.stringify({
@@ -286,13 +304,13 @@ async function main() {
     worktreeAdded = true;
 
     const failOn = policy.slopScan.failOn.join(",");
-    const delta = run(npxCommand, slopScanArgs(
+    const delta = captureBenScannerEvidence(npxCommand, slopScanArgs(
       "delta",
       "--base", worktreeRoot,
       "--head", repoRoot,
       "--json",
       "--fail-on", failOn,
-    ));
+    ), deltaReport);
 
     const report = parseDeltaReport(delta.stdout);
     await writeScannerEvidence(deltaReport, delta.stdout, "delta");

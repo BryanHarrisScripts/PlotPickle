@@ -1148,6 +1148,7 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-1938-verification-core.test.mjs",
+          "tests/issue-1005-ben-code-quality.test.mjs",
           "tests/issue-2348-verification-routing.test.mjs",
           "tests/issue-2697-ben-line-shift.test.mjs",
           "tests/issue-2707-agent-durability-audit.test.mjs",
@@ -2057,6 +2058,7 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2711-outline-durable-input.test.mjs",
+          "tests/issue-2711-outline-task-controller.test.mjs",
           "tests/issue-outline-agent-assessment.test.mjs",
           "tests/issue-2440-story-architect-structured-execution.test.mjs"
         ]
@@ -2082,7 +2084,7 @@
           ".artifacts/verification-shadow/story-canon.json"
         ]
       },
-      "notes": "Story Architect shared bounded request and material identity. Actual Mastra cancellation/usage fixture runs separately in the Windows Product Gate; application resume remains unproven."
+      "notes": "Story Architect shared bounded request, material identity and protected host controller. Actual Mastra/Pi close-reopen fixture runs separately in the Windows Product Gate; rendered application resume remains unproven."
     }
   ]
 }

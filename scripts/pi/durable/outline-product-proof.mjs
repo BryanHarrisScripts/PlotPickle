@@ -15,7 +15,13 @@ import { createBrowserVerificationSession, sanitizeBrowserDiagnosticText } from 
 // native Pi scheduler and rendered Outline run against an explicitly synthetic
 // loopback provider. This is never reported as a user-selected live-provider run.
 const root = path.resolve(".artifacts/outline-product-2711");
-const temporary = await mkdtemp(path.join(os.tmpdir(), "plotpickle-outline-product-"));
+await mkdir(root, { recursive: true });
+// Keep the synthetic home on the checkout volume. GitHub's Windows runner checks
+// the repository out on D: while os.tmpdir() is on C:; Vinext virtual RSC entries
+// do not support that cross-volume dependency junction during dev startup. The
+// real launcher, persistent-runtime migration, close/reopen, and recovery path
+// are still exercised exactly as a normal PlotPickle launch.
+const temporary = await mkdtemp(path.join(root, "runtime-"));
 const home = path.join(temporary, "home");
 const base = "http://127.0.0.1:4173";
 let launcher, fixture, browserSession;

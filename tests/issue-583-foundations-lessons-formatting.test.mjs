@@ -5,8 +5,9 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Foundations promotes and retains all seven canonical sources without duplicating them", async () => {
-  const [catalog, promoted, coverage] = await Promise.all([
+  const [catalog, integrated, promoted, coverage] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
+    read("adapters/curriculum/current-catalog-integrated.ts"),
     read("adapters/curriculum/foundation-reference-lessons.ts"),
     read("adapters/curriculum/foundation-content-coverage.ts"),
   ]);
@@ -25,12 +26,12 @@ test("Foundations promotes and retains all seven canonical sources without dupli
     assert.match(coverage, new RegExp(sourceId));
   }
 
-  assert.match(catalog, /buildDeepFoundationCurriculum/);
-  assert.match(catalog, /FOUNDATION_PROMOTED_SOURCE_IDS/);
-  assert.match(catalog, /FOUNDATION_SOURCE_COVERAGE/);
-  assert.match(catalog, /standaloneFoundations\.length !== 11/);
-  assert.match(catalog, /standaloneSourceIds\.length !== 95/);
-  assert.match(catalog, /all 95 unique embedded presentation references/);
+  assert.match(catalog, /current-catalog-integrated/);\n  assert.match(integrated, /buildDeepFoundationCurriculum/);
+  assert.match(integrated, /FOUNDATION_PROMOTED_SOURCE_IDS/);
+  assert.match(integrated, /FOUNDATION_SOURCE_COVERAGE/);
+  assert.match(integrated, /standaloneFoundations\.length !== 11/);
+  assert.match(integrated, /standaloneSourceIds\.length !== 95/);
+  assert.match(integrated, /all 95 unique embedded presentation references/);
   assert.match(promoted, /sections: \[\]/);
   assert.match(promoted, /sources: \[source\]/);
   assert.match(promoted, /baseLessons\.map\(\(lesson\) => \(\{ \.\.\.lesson, sources: \[\] \}\)\)/);

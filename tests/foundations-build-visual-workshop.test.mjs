@@ -23,7 +23,7 @@ test("Foundations BUILD reuses the existing image provider boundary one frame at
   assert.match(routingGateway, /generateComfyImage/);
   assert.match(mediaCommon, /saveGeneratedAsset/);
   assert.match(mediaCommon, /from "\.\/media-storage-common"/);
-  assert.match(mediaStorage, /ASSET_PATH = "\/api\/local-ai\/assets\/"\/);
+  assert.match(mediaStorage, /ASSET_PATH = "\/api\/local-ai\/assets\/"\//);
 });
 
 test("Foundations BUILD sends only approved story decisions and cannot rewrite PLAN", async () => {

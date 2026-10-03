@@ -5,11 +5,11 @@ import { lstat, mkdir, mkdtemp, realpath, rename, rm, unlink, writeFile } from "
 import path from "node:path";
 import os from "node:os";
 import { pathToFileURL } from "node:url";
-import { build } from "esbuild";
+import { build, stop as stopEsbuild } from "esbuild";
 import { ensureManagedPiDurableInstalled } from "../../pi-durable-managed-install.mjs";
 import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
 import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../../full-verification-auth.mjs";
-import { createBrowserVerificationSession } from "../../../lib/verification/browser-verification-broker.mjs";
+import { createBrowserVerificationSession, sanitizeBrowserDiagnosticText } from "../../../lib/verification/browser-verification-broker.mjs";
 
 // The product's configured Mastra route, protected HTTP/CSRF, encrypted project,
 // native Pi scheduler and rendered Outline run against an explicitly synthetic
@@ -19,14 +19,17 @@ const temporary = await mkdtemp(path.join(os.tmpdir(), "plotpickle-outline-produ
 const home = path.join(temporary, "home");
 const base = "http://127.0.0.1:4173";
 let launcher, fixture, browserSession;
+let launcherOutput = [];
+let launcherError;
+let proofError;
 let requests = [];
 let holdBlock = 2;
 const assessment = { structural: { state: "unresolved", reason: "Synthetic product fixture cannot establish a structural turn.", passageIds: [] }, characters: [], miniBlocks: [1,2,3,4].map((ordinal) => ({ ordinal, state: "unsupported", reason: "No synthetic screenplay was supplied.", passageIds: [], storyboardCue: "" })) };
 const env = { ...process.env, PLOTPICKLE_HOME: home, PLOTPICKLE_AUTH_STATE_PATH: path.join(home, "auth/state.json"), PLOTPICKLE_STARTUP_TESTING_MODE: "normal", PLOTPICKLE_ACCESS_MODE: "desktop-loopback", PLOTPICKLE_SERVER_NETWORK_ENABLED: "false" };
-async function waitFor(check, label, timeout = 180_000) {
+async function waitFor(check, label, timeout = 180_000, assertLive = () => {}) {
   const deadline = Date.now() + timeout;
   let lastError;
-  while (Date.now() < deadline) { try { if (await check()) return; } catch (error) { lastError = error; } await new Promise((resolve) => setTimeout(resolve, 100)); }
+  while (Date.now() < deadline) { assertLive(); try { if (await check()) return; } catch (error) { lastError = error; } await new Promise((resolve) => setTimeout(resolve, 100)); }
   throw new Error(`Product proof timed out: ${label}${lastError ? ` (${lastError.message})` : ""}`);
 }
 async function start() {
@@ -34,18 +37,27 @@ async function start() {
   const args = process.platform === "win32" ? ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.resolve("PlotPickle.ps1"), "-HumanTesting"]
     : [path.resolve("node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "4173", "--strictPort"];
   launcher = spawn(command, args, { env, stdio: ["ignore", "pipe", "pipe"], ...(process.platform === "win32" ? {} : { detached: true }) });
-  const chunks = [];
-  launcher.stdout.on("data", (chunk) => { if (chunks.length < 1000) chunks.push(chunk); });
-  launcher.stderr.on("data", (chunk) => { if (chunks.length < 1000) chunks.push(chunk); });
-  await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`); return response.ok; }, "normal launcher readiness");
-  await writeFile(path.join(temporary, "launcher.log"), Buffer.concat(chunks));
+  launcherOutput = [];
+  launcherError = undefined;
+  launcher.on("error", (error) => { launcherError = error; });
+  launcher.stdout.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
+  launcher.stderr.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
+  await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return response.ok; }, "normal launcher readiness", 180_000, () => {
+    if (launcherError) throw launcherError;
+    if (launcher.exitCode !== null) throw new Error(`Normal launcher exited before readiness (exit ${launcher.exitCode}).`);
+  });
 }
 async function stop() {
   if (!launcher) return;
-  const pid = launcher.pid;
+  const child = launcher;
+  const pid = child.pid;
   launcher = null;
-  if (process.platform === "win32") execFileSync("taskkill.exe", ["/PID", String(pid), "/T", "/F"], { stdio: "ignore" });
-  else try { process.kill(-pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; }
+  if (process.platform === "win32") {
+    if (pid && child.exitCode === null) {
+      try { execFileSync("taskkill.exe", ["/PID", String(pid), "/T", "/F"], { stdio: "ignore" }); }
+      catch (error) { if (error.status !== 128) throw error; } // Already exited between observation and cleanup.
+    }
+  } else if (pid) try { process.kill(-pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; }
   await waitFor(async () => { try { await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return false; } catch { return true; } }, "server stop", 20_000);
 }
 async function api(session, pathname, body) {
@@ -71,6 +83,9 @@ try {
   await mkdir(home, { recursive: true });
   const compiled = path.join(temporary, "project.mjs");
   await build({ stdin: { contents: 'export { normalizeLibraryProject } from "./core/storage/library-project.ts";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", outfile: compiled, logLevel: "silent" });
+  // Release the compiler executable before the native launcher moves checkout
+  // dependencies into its private runtime. Windows locks a running executable.
+  stopEsbuild();
   const { normalizeLibraryProject } = await import(pathToFileURL(compiled).href);
   fixture = createServer(async (request, response) => {
     response.setHeader("Content-Type", "application/json");
@@ -153,8 +168,20 @@ try {
     interruptedAttemptsRetained: true, committedBlocksSkipped: true, resumedBlocks: [2,3,4,5,6], idempotentAdvisoryImport: true, renderedCancellationPersisted: true, canonUnchanged: true };
   await writeFile(path.join(root, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report));
+} catch (error) {
+  proofError = error;
+  const diagnostics = Buffer.concat(launcherOutput).toString("utf8").slice(-16_000).split(/\r?\n/u).map(sanitizeBrowserDiagnosticText).join("\n");
+  await writeFile(path.join(root, "failure.json"), JSON.stringify({ issue: 2711, status: "FAIL", error: sanitizeBrowserDiagnosticText(error.message), launcherDiagnostics: diagnostics }, null, 2) + "\n");
+  console.error(diagnostics);
+  throw error;
 } finally {
-  try { await browserSession?.close(); await stop(); fixture?.closeAllConnections(); if (fixture) await new Promise((resolve) => fixture.close(resolve)); }
+  const cleanupErrors = [];
+  try {
+    try { await browserSession?.close(); } catch (error) { cleanupErrors.push(error); }
+    try { await stop(); } catch (error) { cleanupErrors.push(error); }
+    fixture?.closeAllConnections();
+    if (fixture) await new Promise((resolve) => fixture.close(resolve));
+  }
   finally {
     // The normal Windows launcher migrates npm dependencies into its private
     // runtime and links the checkout to them. Return that owned migration before
@@ -170,5 +197,9 @@ try {
       }
     }
     await rm(temporary, { recursive: true, force: true });
+    if (cleanupErrors.length) {
+      if (!proofError) throw new AggregateError(cleanupErrors, "Product proof cleanup failed.");
+      console.error("Product proof cleanup:", cleanupErrors.map((error) => sanitizeBrowserDiagnosticText(error.message)).join("; "));
+    }
   }
 }

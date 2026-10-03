@@ -158,7 +158,10 @@ test("#1143 LEARN and Wyrmwood use session-only browser state backed by authenti
   assert.match(privateBrowser, /\/api\/auth\/profile-private[\s\S]*X-PlotPickle-CSRF[\s\S]*save-project/u);
   assert.match(privateBrowser, /normalizeLibraryProject/u);
   assert.match(privateBrowser, /hydrateProfileProjectLibrary\(\{ activeProjectId, projects \}\)/u);
-  assert.match(privateBrowser, /loadActiveLibraryProject\(\)/u);
+  assert.match(privateBrowser, /consumeSessionActiveProjectHandoff/u);
+  assert.match(privateBrowser, /hydrateProfileProjectLibrary\(\{ activeProjectId, projects \}\)/u);
+  assert.match(privateBrowser, /resumeSessionActiveProject\(explicitSessionProjectId\)/u);
+  assert.match(privateBrowser, /const activeProjectId = sessionActiveProjectId\(\)/u);
 });
 
 test("#1143 Profile owns security actions while Settings no longer duplicates Profiles & Security", async () => {

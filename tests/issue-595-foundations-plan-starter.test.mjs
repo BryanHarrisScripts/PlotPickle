@@ -195,7 +195,7 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra dra
   assert.match(plan, /disabled=\{!stage\.selectable\}/);
   assert.match(plan, /stageId === "learn"\) openLearn\(activeLesson\.id\)/);
   assert.match(contract, /buildFoundationPlanLessons/);
-  assert.match(contract, /heading\.trim\(\)\.toLowerCase\(\) === "apply this to your story"/);
+  assert.match(contract, /curriculumApplicationPrompts\(lesson\)/);
   assert.match(contract, /guidingQuestionsForFoundationField/);
   assert.doesNotMatch(contract, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);
   assert.doesNotMatch(plan, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);

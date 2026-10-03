@@ -83,7 +83,8 @@ test("Great Hall uses the same readable BUZZ social surface as other public room
   assert.doesNotMatch(workspace, /CommunityBackdoorTerminal|createGreatHallActiveRoom/);
   assert.match(social, /What this room is for/);
   assert.match(social, /Who helps here/);
-  assert.match(social, /isLegacyOperationalDump/);
+  assert.match(social, /function isNonConversationDiagnostic\(message: BuzzMessage\)/);
+  assert.match(social, /\.filter\(\(message\) => !isNonConversationDiagnostic\(message\)\)/);
 });
 
 test("Community caller comes from the authoritative Human BUZZ identity and Profile is the setup surface", async () => {

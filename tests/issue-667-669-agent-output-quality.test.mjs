@@ -28,7 +28,7 @@ test("#668 PLAN falls through request-level failures to structured repair and pe
   assert.match(drafter, /for \(const field of input\.lesson\.fields\)/);
   assert.match(drafter, /\{ role: "quality", message: compactMessage, timeoutMs: 35_000 \}/);
   assert.match(drafter, /\{ role: "fast", message: fastMessage, timeoutMs: 25_000 \}/);
-  assert.match(drafter, /requestFoundationProposal\(attempt\.message, \[field\.id\], attempt\.timeoutMs, attempt\.role\)/);
+  assert.match(drafter, /requestFoundationProposal\(attempt\.message, \[field\.id\], attempt\.timeoutMs, attempt\.role, craftContextForQuestion\(field\.prompt, input\.curriculumLesson\.topic\)\)/);
   assert.match(drafter, /looksLikeThinPlaceholder/);
   assert.doesNotMatch(drafter, /safeProvisionalFallback|provisional safety fallback/i);
   assert.doesNotMatch(drafter, /provider:\s*"openai"|provider:\s*"minimax"/i);

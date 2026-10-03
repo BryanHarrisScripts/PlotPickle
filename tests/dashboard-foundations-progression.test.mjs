@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Dashboard is a real root workspace and active projects now enter the Story Map", async () => {
+test("Dashboard remains a real root workspace while startup stays detached until explicit navigation", async () => {
   const [page, navigation, storyMapWorkspace] = await Promise.all([
     read("app/page.tsx"),
     read("app/navigation/global-shortcuts.ts"),
@@ -20,7 +20,9 @@ test("Dashboard is a real root workspace and active projects now enter the Story
   assert.match(page, /requested === "build"/);
   assert.match(page, /workspace === "dashboard"/);
   assert.match(page, /workspace === "build"/);
-  assert.match(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);
+  assert.match(page, /if \(typeof window === "undefined"\) return "library"/);
+  assert.match(page, /const \[workspace, setWorkspace\] = useState<Workspace>\("library"\)/);
+  assert.doesNotMatch(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);
   assert.match(page, /<StoryMapShell onNavigate=\{navigateWorkspace\}>[\s\S]*<StoryMapWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
   assert.match(storyMapWorkspace, /<ProgressiveStoryMap project=\{project\} \/>/);
   assert.match(storyMapWorkspace, /<DashboardWorkspace/);

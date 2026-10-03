@@ -94,7 +94,7 @@ test("README-only identity change does not replace the live application logo or 
   ]);
 
   assert.match(shell, /src="\/brand\/plotpickle-ouroboros-v3-transparent\.png"/);
-  assert.match(layout, /plotpickle-ouroboros-v2-32\.png/);
+  assert.match(layout, /plotpickle-green-square\.svg/);
   assert.doesNotMatch(shell, /docs\/brand/);
   assert.doesNotMatch(layout, /docs\/brand/);
 });
@@ -124,7 +124,7 @@ test("Dashboard, BUILD and approved production shortcuts expose real destination
   ]) {
     assert.match(navigation, new RegExp(`id: "${id}"[^\\n]+kind: "route"[^\\n]+href: "${href.replaceAll("/", "\\/")}"`));
   }
-  assert.match(navigation, /id: "write"[^\n]+kind: "route"[^\n]+href: "/write"/);
+  assert.match(navigation, /id: "write"[^\n]+kind: "route"[^\n]+href: "\/write"/);
 });
 
 test("focused Settings and Community UAT own the visual continuity regression", async () => {

@@ -57,7 +57,7 @@ test("workspace=settings opens an Overview-first compute setup inside the shared
     read("app/settings/compute/ai-compute-workspace.tsx"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
-  assert.match(navigation, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
+  assert.match(navigation, /export type RootWorkspace = [^;]*"learn"[^;]*"settings"[^;]*"dashboard"[^;]*"build"[^;]*"story"/);
   assert.match(page, /requested === "settings"/);
   assert.match(page, /workspace === "settings"/);
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);

@@ -176,7 +176,9 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.match(workspace, /label: "EXAMPLES"/);
   assert.match(workspace, /label: "PRESETS"/);
   assert.match(workspace, /label: "LOAD"/);
-  assert.match(workspace, /Load & Explore/);
+  assert.match(workspace, />Open Example<\/button>/);
+  assert.match(workspace, />Open Example with Your Changes<\/button>/);
+  assert.doesNotMatch(workspace, /Load & Explore/);
   assert.match(workspace, /Your work stays local and is saved before every story switch/);
   assert.match(workspace, /role="dialog"/);
   assert.match(workspace, /aria-modal="true"/);

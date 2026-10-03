@@ -56,9 +56,9 @@ test("the application composition root opens only the modular LEARN workspace", 
   assert.doesNotMatch(page, /MarketingSplash|DashboardCommandCentre|createAfterglowProject/);
 });
 
-test("the curriculum migration adapter exposes all 81 modules", async () => {
-  const adapter = await read("adapters/curriculum/current-catalog.ts");
-  assert.match(adapter, /plotPickleCurriculum\.length !== 81/);
+test("the current curriculum projection exposes all 96 presentation lessons", async () => {
+  const adapter = await read("adapters/curriculum/current-catalog-integrated.ts");
+  assert.match(adapter, /standalonePlotPickleCurriculum\.length !== 96/);
   assert.match(adapter, /CurriculumLesson/);
 });
 
@@ -282,7 +282,8 @@ test("all audited source records are embedded losslessly in lessons", async () =
   assert.deepEqual(afterglow.map((source) => source.path).sort(), ["CONTRIBUTING.md", "README.md#instructional-sections"]);
   assert.ok(afterglow.every((source) => !source.path.includes("Storyboard Blocks")));
   assert.match(index.afterglowBoundary, /not an active project or default example/i);
-  assert.match(catalogSource, /lesson\.sources/);
+  assert.match(catalogSource, /current-catalog-integrated/);
+  assert.match(await read("adapters/curriculum/current-catalog-integrated.ts"), /standaloneSourceIds\.length !== 95/);
   assert.doesNotMatch(page, /knowledgeSources/);
   assert.doesNotMatch(workspace, /Source library/);
   assert.match(workspace, /Search every lesson/);
@@ -311,7 +312,8 @@ test("the GUIDE uses a grounded 16K hardware-aware local profile", async () => {
   assert.match(gateway, /agentId === "curriculum-guide"/);
   assert.match(gateway, /role = requestedModelRole/);
   assert.match(runtime, /temperature: 0\.2/);
-  assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : input\.agentId === "wyrmwood-rival-director" \? 1100 : 480/);
+  assert.match(runtime, /export function foundationPlannerMaxOutputTokens/);
+  assert.match(runtime, /foundationPlannerMaxOutputTokens\(input\.foundationFieldIds\?\.length \?\? 1\)/);
   assert.match(guide, /<curriculum_context>/);
   assert.match(guide, /conversation\.slice\(-4\)/);
 });

@@ -11,6 +11,7 @@ import {
   contractTestsFromRegistry,
   validateUatRegistry,
 } from "../lib/verification/uat-autopilot.mjs";
+import { buildNodeTestFailureInventory } from "../lib/verification/uat-autopilot.mjs";
 import {
   consoleHasErrors,
   McpClient,
@@ -32,19 +33,69 @@ const registryPath = path.join(repoRoot, "config", "uat-autopilot-registry.json"
 const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
 const reportPath = path.join(artifactRoot, "autopilot-report.md");
 const jsonPath = path.join(artifactRoot, "autopilot-report.json");
+const contractsOutputPath = path.join(artifactRoot, "contracts.tap");
 const snapshotsPath = path.join(artifactRoot, "snapshots");
 const contractsOnly = argv.includes("--contracts-only");
+const MAX_CONTRACT_STREAM_BYTES = 8 * 1024 * 1024;
+
+function captureBounded(state, chunk) {
+  const buffer = Buffer.from(chunk);
+  const remaining = Math.max(0, MAX_CONTRACT_STREAM_BYTES - state.bytes);
+  if (remaining === 0) {
+    state.truncated = true;
+    return;
+  }
+  const kept = buffer.length > remaining ? buffer.subarray(0, remaining) : buffer;
+  state.parts.push(kept.toString("utf8"));
+  state.bytes += kept.length;
+  if (kept.length < buffer.length) state.truncated = true;
+}
 
 function runContracts(files) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, ["--test", ...files], {
+    const stdout = { parts: [], bytes: 0, truncated: false };
+    const stderr = { parts: [], bytes: 0, truncated: false };
+    let settled = false;
+    const child = spawn(process.execPath, ["--test", "--test-reporter=tap", ...files], {
       cwd: repoRoot,
-      env: process.env,
-      stdio: "inherit",
+      env: { ...process.env, NO_COLOR: "1" },
+      stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
-    child.once("error", (error) => resolve({ code: 1, error: error.message }));
-    child.once("exit", (code) => resolve({ code: Number(code ?? 1), error: "" }));
+
+    child.stdout?.on("data", (chunk) => {
+      process.stdout.write(chunk);
+      captureBounded(stdout, chunk);
+    });
+    child.stderr?.on("data", (chunk) => {
+      process.stderr.write(chunk);
+      captureBounded(stderr, chunk);
+    });
+
+    const finish = async (code, error = "") => {
+      if (settled) return;
+      settled = true;
+      const tap = stdout.parts.join("");
+      const stderrText = stderr.parts.join("");
+      const rawEvidence = [
+        tap,
+        stderrText ? `\n# STDERR\n${stderrText}` : "",
+        stdout.truncated || stderr.truncated ? "\n# OUTPUT TRUNCATED AT BOUNDED CAPTURE LIMIT\n" : "",
+      ].join("");
+      await writeFile(contractsOutputPath, rawEvidence, "utf8");
+      const inventory = buildNodeTestFailureInventory(tap, { repoRoot });
+      resolve({
+        code: Number(code ?? 1),
+        error,
+        outputArtifact: path.basename(contractsOutputPath),
+        outputTruncated: stdout.truncated || stderr.truncated,
+        failures: inventory.failures,
+        failureGroups: inventory.groups,
+      });
+    };
+
+    child.once("error", (error) => void finish(1, error.message));
+    child.once("exit", (code) => void finish(code));
   });
 }
 
@@ -317,7 +368,26 @@ function reportMarkdown({ registry, contractRun, startup, rendered, assessment, 
     "",
   ];
   for (const area of registry.areas) lines.push(`- ${area.label}: ${area.tests.length} contract test${area.tests.length === 1 ? "" : "s"}${area.route ? ` · ${area.route}` : ""}`);
-  lines.push("", `Focused contract test exit: ${contractRun.code}`, "", "## Live rendered areas", "");
+  lines.push(
+    "",
+    `Focused contract test exit: ${contractRun.code}`,
+    "",
+    "## Contract failure inventory",
+    "",
+    `- Raw TAP evidence: ${contractRun.outputArtifact || "not captured"}`,
+    `- Failed test records: ${contractRun.failures?.length || 0}`,
+    `- Unique failure signatures: ${contractRun.failureGroups?.length || 0}`,
+    `- Evidence truncated: ${contractRun.outputTruncated ? "yes" : "no"}`,
+  );
+  if (contractRun.failures?.length) {
+    for (const failure of contractRun.failures) {
+      const summary = String(failure.message || failure.name || "").split(/\r?\n/u)[0];
+      lines.push(`- FAIL: ${failure.source || "source unavailable"} · ${failure.name}${failure.code ? ` [${failure.code}]` : ""}: ${summary}`);
+    }
+  } else {
+    lines.push("- None.");
+  }
+  lines.push("", "## Live rendered areas", "");
   if (!rendered.length) lines.push("Skipped in contracts-only mode.");
   else for (const entry of rendered) lines.push(`- ${entry.id}: ${entry.reached ? "reached" : "not reached"}, ${entry.bodyLength} visible characters, screenshot ${entry.screenshotCaptured ? "captured" : "missing"}, console ${entry.consoleErrors ? "ERROR" : "clean"}`);
   lines.push("", "## Startup and local-agent probes", "");

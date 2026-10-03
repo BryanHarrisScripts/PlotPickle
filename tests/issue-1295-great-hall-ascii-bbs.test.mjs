@@ -60,5 +60,6 @@ test("#1295 leaves signed BUZZ posting, polling, identity separation and native 
   assert.match(social, /humanPresentation\?\.avatarUrl \|\| member\?\.picture/u);
   assert.match(social, /Open in BUZZ Desktop/u);
   assert.match(social, /Enter to post · Shift\+Enter for a new line/u);
-  assert.match(social, /isLegacyOperationalDump/u);
+  assert.match(social, /function isNonConversationDiagnostic\(message: BuzzMessage\)/u);
+  assert.match(social, /\.filter\(\(message\) => !isNonConversationDiagnostic\(message\)\)/u);
 });

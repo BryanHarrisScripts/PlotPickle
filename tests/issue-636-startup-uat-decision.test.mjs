@@ -24,7 +24,10 @@ test("Full Check owns deliberate verification instead of everyday startup", asyn
     read("scripts/full-verification-graph.mjs"),
   ]);
 
-  assert.doesNotMatch(launcher, /Start the PlotPickle UAT Agent now|run-uat-closed-loop\.mjs|--github-report.*--repair/);
+  assert.doesNotMatch(launcher, /Start the PlotPickle UAT Agent now|--github-report.*--repair/);
+  assert.match(launcher, /PLOTPICKLE_STARTUP_TESTING_MODE.*conversational-uat/);
+  assert.match(launcher, /:start_conversational_uat_observer/);
+  assert.match(launcher, /--conversational-observe/);
   assert.match(fullCheck, /8 of 9 - Exhaustive code-aware UI and UX UAT/);
   assert.match(fullCheck, /full-verification-graph\.mjs/);
   assert.doesNotMatch(fullCheck, /run-exhaustive-ui-uat\.mjs/);

@@ -94,7 +94,7 @@ test("README-only identity change does not replace the live application logo or 
   ]);
 
   assert.match(shell, /src="\/brand\/plotpickle-ouroboros-v3-transparent\.png"/);
-  assert.match(layout, /plotpickle-ouroboros-v2-32\.png/);
+  assert.match(layout, /plotpickle-green-square\.svg/);
   assert.doesNotMatch(shell, /docs\/brand/);
   assert.doesNotMatch(layout, /docs\/brand/);
 });

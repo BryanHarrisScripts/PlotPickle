@@ -32,7 +32,7 @@ async function waitFor(check, label, timeout = 180_000, assertLive = () => {}) {
   while (Date.now() < deadline) { assertLive(); try { if (await check()) return; } catch (error) { lastError = error; } await new Promise((resolve) => setTimeout(resolve, 100)); }
   throw new Error(`Product proof timed out: ${label}${lastError ? ` (${lastError.message})` : ""}`);
 }
-async function start() {
+async function start({ cold = false } = {}) {
   const command = process.platform === "win32" ? "powershell.exe" : process.execPath;
   const args = process.platform === "win32" ? ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.resolve("PlotPickle.ps1"), "-HumanTesting"]
     : [path.resolve("node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "4173", "--strictPort"];
@@ -42,7 +42,7 @@ async function start() {
   launcher.on("error", (error) => { launcherError = error; });
   launcher.stdout.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
   launcher.stderr.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
-  await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return response.ok; }, "normal launcher readiness", 180_000, () => {
+  await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return response.ok; }, "normal launcher readiness", cold ? 480_000 : 180_000, () => {
     if (launcherError) throw launcherError;
     if (launcher.exitCode !== null) throw new Error(`Normal launcher exited before readiness (exit ${launcher.exitCode}).`);
   });
@@ -107,7 +107,9 @@ try {
   await new Promise((resolve) => fixture.listen(0, "127.0.0.1", resolve));
   await ensureManagedPiDurableInstalled({ home });
   const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
-  await start();
+  // Cold native setup downloads and verifies required runtime/model bytes.
+  // Reopen retains the shorter bound; every launch still fails immediately on exit.
+  await start({ cold: true });
   const profile = await createVerificationSyntheticProfile({ baseUrl: base, home });
   let session = await authenticateVerificationSyntheticProfile({ baseUrl: base, ...profile });
   const project = normalizeLibraryProject({ id: "synthetic-outline-product", title: "Synthetic Outline Product" });

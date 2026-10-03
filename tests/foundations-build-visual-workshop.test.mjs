@@ -5,11 +5,12 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Foundations BUILD reuses the existing image provider boundary one frame at a time", async () => {
-  const [workspace, localGateway, routingGateway, mediaCommon] = await Promise.all([
+  const [workspace, localGateway, routingGateway, mediaCommon, mediaStorage] = await Promise.all([
     read("modules/build/ui/foundations-build-workspace.tsx"),
     read("build/local-ai-gateway.ts"),
     read("build/ai-routing-gateway.ts"),
     read("build/media-provider-common.ts"),
+    read("build/media-storage-common.ts"),
   ]);
 
   assert.match(workspace, /fetch\("\/api\/local-ai\/generate\/image"/);
@@ -21,7 +22,8 @@ test("Foundations BUILD reuses the existing image provider boundary one frame at
   assert.match(localGateway, /imageRequestActive/);
   assert.match(routingGateway, /generateComfyImage/);
   assert.match(mediaCommon, /saveGeneratedAsset/);
-  assert.match(mediaCommon, /ASSET_PATH = "\/api\/local-ai\/assets\/"/);
+  assert.match(mediaCommon, /from "\.\/media-storage-common"/);
+  assert.match(mediaStorage, /ASSET_PATH = "\/api\/local-ai\/assets\/"\/);
 });
 
 test("Foundations BUILD sends only approved story decisions and cannot rewrite PLAN", async () => {

@@ -177,7 +177,8 @@ test("issue #1404 launcher liveness probes do not render or log the application 
   assert.match(liveness, /PLOTPICKLE_BROWSER_STATE/);
   assert.match(liveness, /existsSync\(browserState\)/);
   assert.match(liveness, /request\.method === "GET"/);
-  assert.match(liveness, /request\.url === "\/"/);
+  assert.match(liveness, /function isManagedAppRoute/);
+  assert.match(liveness, /url === "\/" \|\| url === "\/skin-v1"/);
   assert.match(liveness, /powershell/i);
   assert.match(liveness, /response\.statusCode = 204/);
   assert.match(liveness, /Cache-Control/);

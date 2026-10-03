@@ -1,5 +1,6 @@
+import path from "node:path";
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
@@ -68,7 +69,15 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
 
 const { d1, r2 } = hostingConfig;
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
-const preserveLinkedRuntimeModulePaths = Boolean(process.env.PLOTPICKLE_RUNTIME_MODULES);
+const persistentRuntimeModules = process.env.PLOTPICKLE_RUNTIME_MODULES
+  ? normalizePath(path.resolve(process.env.PLOTPICKLE_RUNTIME_MODULES))
+  : "";
+const appRuntimeModules = normalizePath(path.resolve("node_modules"));
+const preserveLinkedRuntimeModulePaths = Boolean(persistentRuntimeModules);
+const linkedRuntimeModuleAliases = preserveLinkedRuntimeModulePaths
+  && persistentRuntimeModules.toLowerCase() !== appRuntimeModules.toLowerCase()
+  ? [{ find: persistentRuntimeModules, replacement: appRuntimeModules }]
+  : [];
 const ignoredWatchPaths = [
   "**/.artifacts/**",
   "**/reports/visual-audit/**",
@@ -103,7 +112,10 @@ export default defineConfig(async ({ command }) => {
     // The Windows launcher junctions repo/node_modules to a persistent runtime.
     // Keep Vite IDs on the app-side path so cross-volume runtimes (for example
     // D: checkout -> C: local app data) do not leak /@fs/C: worker imports.
+    // Vinext virtual RSC entries intentionally embed absolute runtime imports,
+    // so alias the persistent realpath back to the app-side junction as well.
     resolve: {
+      alias: linkedRuntimeModuleAliases,
       preserveSymlinks: preserveLinkedRuntimeModulePaths,
     },
     optimizeDeps: {

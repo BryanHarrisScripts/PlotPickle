@@ -68,6 +68,7 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
 
 const { d1, r2 } = hostingConfig;
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+const preserveLinkedRuntimeModulePaths = Boolean(process.env.PLOTPICKLE_RUNTIME_MODULES);
 const ignoredWatchPaths = [
   "**/.artifacts/**",
   "**/reports/visual-audit/**",
@@ -98,6 +99,12 @@ export default defineConfig(async ({ command }) => {
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
       __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: JSON.stringify(localBuzzAgentIdentities),
+    },
+    // The Windows launcher junctions repo/node_modules to a persistent runtime.
+    // Keep Vite IDs on the app-side path so cross-volume runtimes (for example
+    // D: checkout -> C: local app data) do not leak /@fs/C: worker imports.
+    resolve: {
+      preserveSymlinks: preserveLinkedRuntimeModulePaths,
     },
     optimizeDeps: {
       exclude: [

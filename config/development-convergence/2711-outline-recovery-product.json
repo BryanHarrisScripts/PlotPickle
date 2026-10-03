@@ -21,13 +21,21 @@
     "build/mastra-agent-runtime.ts",
     "build/writing-assistant-provider.ts",
     "scripts/install-whisper-cpp.ps1",
-    "tests/issue-1910-local-voice-input.test.mjs"
+    "tests/issue-1910-local-voice-input.test.mjs",
+    "vite.config.ts",
+    "tests/windows-native-runtime.test.mjs"
   ],
   "acceptance": [
     {
       "id": "LAUNCHER",
       "criterion": "Required dictation checksums remain fail-closed without PowerShell utility module discovery.",
-      "evidence": [{ "type": "file-contains", "path": "tests/issue-1910-local-voice-input.test.mjs", "contains": "checksums work without PowerShell utility cmdlets and reject tampering" }]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1910-local-voice-input.test.mjs",
+          "contains": "checksums work without PowerShell utility cmdlets and reject tampering"
+        }
+      ]
     },
     {
       "id": "HTTP",

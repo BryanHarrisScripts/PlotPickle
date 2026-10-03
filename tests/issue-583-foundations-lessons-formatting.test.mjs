@@ -26,7 +26,8 @@ test("Foundations promotes and retains all seven canonical sources without dupli
     assert.match(coverage, new RegExp(sourceId));
   }
 
-  assert.match(catalog, /current-catalog-integrated/);\n  assert.match(integrated, /buildDeepFoundationCurriculum/);
+  assert.match(catalog, /current-catalog-integrated/);
+  assert.match(integrated, /buildDeepFoundationCurriculum/);
   assert.match(integrated, /FOUNDATION_PROMOTED_SOURCE_IDS/);
   assert.match(integrated, /FOUNDATION_SOURCE_COVERAGE/);
   assert.match(integrated, /standaloneFoundations\.length !== 11/);

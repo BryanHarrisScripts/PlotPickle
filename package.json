@@ -182,6 +182,12 @@
     "@esbuild-kit/core-utils": {
       "esbuild": "0.25.12"
     },
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "miniflare": {
+      "undici": "7.29.1"
+    },
+    "@cloudflare/vite-plugin": {
+      "undici": "7.29.1"
+    }
   }
 }

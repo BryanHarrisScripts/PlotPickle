@@ -21,6 +21,14 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
   const lock = JSON.parse(lockText);
   const packages = lock.packages || {};
 
+  assert.equal(pkg.overrides?.miniflare?.undici, "7.29.1");
+  assert.equal(pkg.overrides?.["@cloudflare/vite-plugin"]?.undici, "7.29.1");
+  for (const [path, entry] of Object.entries(packages)) {
+    if (path.endsWith("node_modules/undici") && entry.version.startsWith("7.")) {
+      assert.ok(versionAtLeast(entry.version, "7.29.1"), `${path} must include the #2706 Undici patches`);
+    }
+  }
+
   assert.equal(pkg.overrides?.nanoid, "3.3.18");
   assert.equal(pkg.overrides?.["js-yaml"], "4.3.2");
   assert.equal(pkg.overrides?.["@babel/core"], "7.29.6");

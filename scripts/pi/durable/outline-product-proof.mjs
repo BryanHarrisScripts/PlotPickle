@@ -3,7 +3,6 @@ import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
 import { lstat, mkdir, mkdtemp, realpath, rename, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
 import { pathToFileURL } from "node:url";
 import { build, stop as stopEsbuild } from "esbuild";
 import { ensureManagedPiDurableInstalled } from "../../pi-durable-managed-install.mjs";

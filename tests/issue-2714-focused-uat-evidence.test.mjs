@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   buildNodeTestFailureInventory,
   parseNodeTestTapFailures,
-} from "../lib/verification/uat-contract-evidence.mjs";
+} from "../lib/verification/uat-autopilot.mjs";
 
 const TWO_FAILURES = `TAP version 13
 # Subtest: stale skill shape

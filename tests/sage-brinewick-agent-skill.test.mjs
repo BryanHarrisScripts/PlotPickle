@@ -12,19 +12,21 @@ test("Sage Brinewick is a registered product-agent skill", async () => {
     read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   const sage = registry.skills.find((entry) => entry.id === "sage-brinewick");
-  assert.deepEqual(sage, {
-    id: "sage-brinewick",
-    name: "Sage Brinewick",
-    description: "Guide LEARN conversations with Sage's visible mentor personality and procedure while PlotPickle curriculum retrieval remains the teaching source of truth.",
-    entry: ".agents/skills/sage-brinewick/SKILL.md",
-    path: ".agents/skills/sage-brinewick",
-    uri: "skill://plotpickle/sage-brinewick",
-    roles: ["curriculum-guide"],
-    primaryWorker: "mastra",
-    consumers: ["curriculum-guide"],
-    mcpReady: true,
-    localOnly: true,
-  });
+  assert.ok(sage);
+  assert.equal(sage.name, "Sage Brinewick");
+  assert.equal(sage.entry, ".agents/skills/sage-brinewick/SKILL.md");
+  assert.equal(sage.uri, "skill://plotpickle/sage-brinewick");
+  assert.deepEqual(sage.roles, ["curriculum-guide"]);
+  assert.equal(sage.primaryWorker, "mastra");
+  assert.deepEqual(sage.consumers, ["curriculum-guide"]);
+  assert.equal(sage.mcpReady, true);
+  assert.equal(sage.localOnly, true);
+  assert.deepEqual(sage.learning?.domains, ["story-craft", "curriculum-guidance"]);
+  assert.deepEqual(sage.learning?.lessonRefs, ["learn:*"]);
+  assert.ok(sage.learning?.contextClasses.includes("curriculum-read"));
+  assert.equal(sage.learning?.visibility, "learner");
+  assert.equal(sage.learning?.evaluationCoverage, "covered");
+  assert.equal(sage.learning?.provenanceClass, "built-in");
   const windowsSkill = asWindowsText(skill);
   assert.match(skill, /^---\r?\nname: sage-brinewick\r?\n/);
   assert.match(windowsSkill, /^---\r?\nname: sage-brinewick\r?\n/);

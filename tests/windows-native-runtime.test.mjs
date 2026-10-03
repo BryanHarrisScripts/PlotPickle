@@ -51,8 +51,10 @@ test("Windows runtime verifies and repairs the actual Rolldown native file", asy
 
 test("Windows Vite startup preserves the app-side persistent-runtime junction", async () => {
   const viteConfig = await source("vite.config.ts");
-  assert.match(viteConfig, /const preserveLinkedRuntimeModulePaths = Boolean\(process\.env\.PLOTPICKLE_RUNTIME_MODULES\);/);
-  assert.match(viteConfig, /resolve:\s*\{\s*preserveSymlinks: preserveLinkedRuntimeModulePaths,/);
+  assert.match(viteConfig, /const persistentRuntimeModules = process\.env\.PLOTPICKLE_RUNTIME_MODULES/);
+  assert.match(viteConfig, /const linkedRuntimeModuleAliases = preserveLinkedRuntimeModulePaths/);
+  assert.match(viteConfig, /find: persistentRuntimeModules, replacement: appRuntimeModules/);
+  assert.match(viteConfig, /resolve:\s*\{\s*alias: linkedRuntimeModuleAliases,\s*preserveSymlinks: preserveLinkedRuntimeModulePaths,/);
   const runtime = await source("scripts/windows-runtime.mjs");
   assert.match(runtime, /PLOTPICKLE_RUNTIME_MODULES/);
   assert.match(runtime, /symlinkSync\(target, link, "junction"\)/);

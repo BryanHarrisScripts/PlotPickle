@@ -302,7 +302,8 @@
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs",
         "tests/issue-973-comfyui-api-readiness.test.mjs",
-        "tests/issue-962-agent-profiles.test.mjs"
+        "tests/issue-962-agent-profiles.test.mjs",
+        "tests/issue-2714-focused-uat-evidence.test.mjs"
       ]
     },
     {

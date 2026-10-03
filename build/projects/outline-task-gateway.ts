@@ -1,5 +1,5 @@
 import path from "node:path";
-import { createHash } from "node:crypto";
+import { createHash, scrypt } from "node:crypto";
 import type { AuthContext } from "../../core/auth/plotpickle-auth";
 import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
 import { createOutlineTaskController, type OutlineExecution } from "./outline-task-controller";
@@ -22,6 +22,20 @@ type Runtime = {
   home: string;
 };
 
+/** Stable per-profile credential identity for recovery, never a credential copy.
+ * Async scrypt prevents cheap guessing without blocking the request thread.
+ */
+export async function outlineCredentialReceipt(apiKey: string, profileId: string): Promise<string> {
+  if (!apiKey) return "unconfigured";
+  return new Promise((resolve, reject) => {
+    scrypt(apiKey, `plotpickle:outline-credential:v1:${profileId}`, 32,
+      { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }, (error, key) => {
+        if (error) reject(error);
+        else resolve(key.toString("hex"));
+      });
+  });
+}
+
 /** Quotes are host-owned encrypted settings for the exact provider/model/endpoint.
  * Unknown cloud prices fail closed; OpenAI-compatible does not mean free.
  * The token reservation covers two attempts (Mastra maxRetries=1), bounded
@@ -42,7 +56,7 @@ export async function configuredOutlineExecution(runtime: Runtime, auth: AuthCon
   const receipt = createHash("sha256").update(JSON.stringify({ provider: profile.provider, runtime: profile.runtime, model: profile.textModel,
     baseUrl: profile.baseUrl, contextTokens: profile.contextTokens, source, grants, quote: local ? null : quote,
     // Credentials remain only in the configured host store; the digest detects rotation.
-    credentialDigest: createHash("sha256").update(profile.apiKey || "").digest("hex") })).digest("hex");
+    credentialDigest: await outlineCredentialReceipt(profile.apiKey || "", auth.profileId) })).digest("hex");
   return { provider: profile.provider, model: profile.textModel, receipt, grantedCapabilities: grants,
     tokenUpperBound: storyArchitectTokenUpperBound(), cloudCostUpperBoundUsd: cost,
     execute: (input) => askPlotPickleAgent({ profile, ...input }),

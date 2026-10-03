@@ -11,15 +11,24 @@ import { createServerSessionBoundary } from "../core/auth/server-session/server-
 const temp = await mkdtemp(path.resolve("node_modules/.outline-gateway-test-"));
 await build({ stdin: { contents: `
 export { storyArchitectTokenUpperBound } from "./build/mastra-agent-runtime.ts";
-export { createOutlineTaskGateway } from "./build/projects/outline-task-gateway.ts";
+export { createOutlineTaskGateway, outlineCredentialReceipt } from "./build/projects/outline-task-gateway.ts";
 export { createOutlineTaskHttpHandlers } from "./build/projects/outline-task-http.ts";
 export { normalizeLibraryProject } from "./core/storage/library-project.ts";
 export { outlineAssessmentMaterialReceipt } from "./modules/plan/outline-agent-assessment.ts";
 export { importOutlineTaskFindings } from "./modules/plan/assessments/outline-task-browser.ts";
 `, resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(temp, "test.mjs"), logLevel: "silent" });
-const { storyArchitectTokenUpperBound, createOutlineTaskGateway, createOutlineTaskHttpHandlers, normalizeLibraryProject, outlineAssessmentMaterialReceipt, importOutlineTaskFindings } = await import(pathToFileURL(path.join(temp, "test.mjs")).href);
+const { storyArchitectTokenUpperBound, createOutlineTaskGateway, outlineCredentialReceipt, createOutlineTaskHttpHandlers, normalizeLibraryProject, outlineAssessmentMaterialReceipt, importOutlineTaskFindings } = await import(pathToFileURL(path.join(temp, "test.mjs")).href);
 test.after(() => rm(temp, { recursive: true, force: true }));
 const output = JSON.stringify({ structural: { state: "unresolved", reason: "Synthetic supplied material does not establish a turn.", passageIds: [] }, characters: [], miniBlocks: [1,2,3,4].map((ordinal) => ({ ordinal, state: "unsupported", reason: "No synthetic screenplay supplied.", passageIds: [], storyboardCue: "" })) });
+
+test("credential recovery identity survives reopen and changes on rotation or profile change", async () => {
+  const first = await outlineCredentialReceipt("synthetic-key-before", "synthetic-profile-a");
+  assert.equal(await outlineCredentialReceipt("synthetic-key-before", "synthetic-profile-a"), first);
+  assert.notEqual(await outlineCredentialReceipt("synthetic-key-after", "synthetic-profile-a"), first);
+  assert.notEqual(await outlineCredentialReceipt("synthetic-key-before", "synthetic-profile-b"), first);
+  assert.match(first, /^[a-f0-9]{64}$/u);
+  assert.equal(await outlineCredentialReceipt("", "synthetic-profile-a"), "unconfigured");
+});
 
 async function fixture(t) {
   const home = await mkdtemp(path.join(temp, "private-"));

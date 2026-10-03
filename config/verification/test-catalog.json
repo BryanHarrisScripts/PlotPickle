@@ -79,7 +79,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
     },
     {
       "id": "experience.navigation-continuity",
@@ -631,7 +631,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn \u2192 Mind Map \u2192 World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
+      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn → Mind Map → World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
     },
     {
       "id": "story-canon.learn-curriculum-integrity",
@@ -994,7 +994,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2354 protects the DSDD Interpret \u2192 Pi Draft \u2192 Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
+      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
     },
     {
       "id": "agent.dsdd-brief-handoff-2354",
@@ -1089,7 +1089,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2357 protects the numbered 01 Interpret \u2192 02 Pi Draft \u2192 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
+      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "provider.dsdd-production-interpretation-2357",
@@ -1150,7 +1150,8 @@
           "tests/issue-1938-verification-core.test.mjs",
           "tests/issue-2348-verification-routing.test.mjs",
           "tests/issue-2697-ben-line-shift.test.mjs",
-          "tests/issue-2707-agent-durability-audit.test.mjs"
+          "tests/issue-2707-agent-durability-audit.test.mjs",
+          "tests/issue-2714-focused-uat-evidence.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1175,7 +1176,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "Shared verification planning/execution/evidence core baseline. #2348 adds change-class to product-proof planning without a new permanent gate."
+      "notes": "Shared verification planning/execution/evidence core baseline. #2348 adds change-class to product-proof planning without a new permanent gate. #2714 adds bounded structured focused-UAT failure evidence so legacy contract debt is auditable instead of an aggregate exit code."
     },
     {
       "id": "verification.phase7-merge-authority",
@@ -1767,7 +1768,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2614 makes Agent Profile \u2192 Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
+      "notes": "#2614 makes Agent Profile → Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
     },
     {
       "id": "production.profile-library-segmented-persistence-2616",

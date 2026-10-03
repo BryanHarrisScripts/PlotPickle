@@ -49,15 +49,14 @@ test("Windows runtime verifies and repairs the actual Rolldown native file", asy
   assert.doesNotMatch(runtime, /function runtimeReady[\s\S]{0,200}return coreReady\(modulesPath\);/);
 });
 
-test("Windows Vite startup preserves the app-side persistent-runtime junction", async () => {
-  const viteConfig = await source("vite.config.ts");
-  assert.match(viteConfig, /const persistentRuntimeModules = process\.env\.PLOTPICKLE_RUNTIME_MODULES/);
-  assert.match(viteConfig, /const linkedRuntimeModuleAliases = preserveLinkedRuntimeModulePaths/);
-  assert.match(viteConfig, /find: persistentRuntimeModules, replacement: appRuntimeModules/);
-  assert.match(viteConfig, /resolve:\s*\{\s*alias: linkedRuntimeModuleAliases,\s*preserveSymlinks: preserveLinkedRuntimeModulePaths,/);
-  const runtime = await source("scripts/windows-runtime.mjs");
-  assert.match(runtime, /PLOTPICKLE_RUNTIME_MODULES/);
-  assert.match(runtime, /symlinkSync\(target, link, "junction"\)/);
+test("Windows Outline product proof keeps its private runtime on the checkout volume", async () => {
+  const proof = await source("scripts/pi/durable/outline-product-proof.mjs");
+  assert.match(proof, /const root = path\.resolve\("\.artifacts\/outline-product-2711"\)/);
+  assert.match(proof, /const temporary = await mkdtemp\(path\.join\(root, "runtime-"\)\)/);
+  assert.match(proof, /const home = path\.join\(temporary, "home"\)/);
+  assert.doesNotMatch(proof, /from ["']node:os["']/);
+  assert.match(proof, /PLOTPICKLE_HOME: home/);
+  assert.match(proof, /path\.resolve\("PlotPickle\.ps1"\), "-HumanTesting"/);
 });
 
 test("Windows launcher repairs a damaged native runtime before starting", async () => {

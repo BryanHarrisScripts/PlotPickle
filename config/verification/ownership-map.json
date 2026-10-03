@@ -1406,7 +1406,8 @@
         "config/visual-audit-captures.json",
         "config/visual-capture-registry.json",
         "scripts/write-skin-v1-route-migration-ledger.mjs",
-        "scripts/full-verification-auth.mjs"
+        "scripts/full-verification-auth.mjs",
+        "scripts/run-uat-autopilot.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [
@@ -1873,7 +1874,12 @@
         "build/ai/local-ai-readiness.ts"
       ],
       "ownerLayer": "provider-runtime",
-      "riskTokens": ["provider", "security", "native", "windows"]
+      "riskTokens": [
+        "provider",
+        "security",
+        "native",
+        "windows"
+      ]
     },
     {
       "id": "ben-code-quality-delta",

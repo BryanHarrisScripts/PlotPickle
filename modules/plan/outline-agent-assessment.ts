@@ -115,7 +115,8 @@ function storyArchitectExecutionLabel(result: {
   ].filter(Boolean).join(" · ").slice(0, 120) || "configured Story Architect";
 }
 
-export async function requestOutlineAgentAssessment(project: LibraryPPFProject, blockNumber: number): Promise<OutlineAgentAssessment> {
+/** One bounded request contract shared by the browser and the future durable host worker. */
+export function buildOutlineAgentAssessmentRequest(project: LibraryPPFProject, blockNumber: number) {
   const block = project.structure.blocks.find((item) => item.number === blockNumber);
   if (!block) throw new Error("Choose a valid Story Block.");
   const evidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -128,7 +129,32 @@ export async function requestOutlineAgentAssessment(project: LibraryPPFProject, 
     "Use only supplied passage IDs. Explain specific causal stakes, change, dramatic pressure, or why the evidence is inconclusive. Do not infer structural coverage from density, page position, a character name mention or generic curriculum guidance. If the limited sample cannot support a conclusion, select unresolved. A storyboardCue is a visual question grounded in the text, not a generated scene or accepted visual. Profile material is not audience-visible evidence. These are proposals, not changes to canon.",
     JSON.stringify({ title: project.title, blockNumber, responsibility, blockTitle: block.title, blockNote: block.note, sourcePlacement: evidence.screenplay?.analysisStatus, sampleIncomplete: sample.length < passages.length || Boolean(evidence.screenplay?.passagesTruncated), miniBlocks: block.miniBlocks.map((mini) => ({ ordinal: mini.ordinal, title: mini.title, note: mini.note, savedWriting: blockWritingEntry(project.writing, { blockNumber, miniBlockNumber: mini.ordinal })?.text.slice(0, 900) ?? "" })), characters, passages: sample.map((p) => ({ id: p.id, mini: p.miniBlockNumber, type: p.type, scene: p.sceneNumber, text: p.text.slice(0, 320) })) }),
   ].join("\n\n");
-  const response = await fetch("/api/writing-assistant/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": "quality" }, body: JSON.stringify({ agentId: "story-architect", modelRole: "quality", tone: "direct", message }), signal: AbortSignal.timeout(60_000) });
+  return { agentId: "story-architect" as const, modelRole: "quality" as const, tone: "direct" as const, message };
+}
+
+/**
+ * Strong input identity for a normalized, profile-owned project. This is a stale-input
+ * check, never authorization. Keep the legacy per-block citation fingerprint intact.
+ * Assessment writes change revision/time and these two advisory collections only.
+ * All other material remains covered, including passages omitted from the prompt sample.
+ * Callers persist only the digest through Pi; the project stays in protected storage.
+ */
+export async function outlineAssessmentMaterialReceipt(project: LibraryPPFProject) {
+  const { revision: _revision, updatedAt: _updatedAt, sourceEvidence, ...material } = project;
+  const { outlineAssessments: _assessments, outlineAssessmentRuns: _runs, ...evidence } = sourceEvidence;
+  const serialized = JSON.stringify({ version: 1, project: { ...material, sourceEvidence: evidence } }, (_key, value: unknown) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      return Object.fromEntries(Object.entries(value).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0));
+    }
+    return value;
+  });
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(serialized));
+  return `outline-material:v1:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+export async function requestOutlineAgentAssessment(project: LibraryPPFProject, blockNumber: number): Promise<OutlineAgentAssessment> {
+  const payload = buildOutlineAgentAssessmentRequest(project, blockNumber);
+  const response = await fetch("/api/writing-assistant/chat", { method: "POST", headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": "quality" }, body: JSON.stringify(payload), signal: AbortSignal.timeout(60_000) });
   const result = await response.json() as {
     text?: string;
     provider?: string;

@@ -1,11 +1,33 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import * as ts from "typescript";
 
 const root = new URL("../", import.meta.url);
 const text = (path) => readFile(new URL(path, root), "utf8");
 const json = async (path) => JSON.parse(await text(path));
+
+test("#2711 required dictation checksums work without PowerShell utility cmdlets and reject tampering", { skip: process.platform !== "win32" }, async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-voice-hash-"));
+  const file = path.join(directory, "synthetic.bin");
+  const bytes = Buffer.from("Synthetic checksum fixture 2711");
+  const expected = createHash("sha256").update(bytes).digest("hex");
+  await writeFile(file, bytes);
+  const installer = await text("scripts/install-whisper-cpp.ps1");
+  const functions = ["Get-Sha256", "Assert-Hash"].map(name => installer.match(new RegExp(`function ${name}\\([^]*?\\n\\}`, "u"))?.[0]).join("\n");
+  assert.ok(functions.includes("ComputeHash"));
+  const quote = value => `'${value.replaceAll("'", "''")}'`;
+  const source = `${functions}\nGet-Sha256 ${quote(file)}; Assert-Hash ${quote(file)} ${quote(expected)} 'Synthetic'; try { Assert-Hash ${quote(file)} '00' 'Tampered'; 'accepted' } catch { 'rejected' }`;
+  const program = `$ErrorActionPreference='Stop'; $state=[Management.Automation.Runspaces.InitialSessionState]::Create(); $state.LanguageMode='FullLanguage'; $runspace=[Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace($state); $runspace.Open(); $ps=[Management.Automation.PowerShell]::Create(); $ps.Runspace=$runspace; try { [void]$ps.AddScript(${quote(source)}); $result=$ps.Invoke(); if ($ps.HadErrors) { throw $ps.Streams.Error[0] }; [Console]::WriteLine($result[0]); [Console]::WriteLine($result[1]) } finally { $ps.Dispose(); $runspace.Dispose() }`;
+  try {
+    const result = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(program, "utf16le").toString("base64")], { encoding: "utf8", timeout: 15_000 }).trim().split(/\r?\n/u);
+    assert.deepEqual(result, [expected, "rejected"]);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 async function voiceContract() {
   const source = await text("lib/voice-input.ts");

@@ -19,9 +19,16 @@
     ".github/workflows/product-gate.yml",
     "config/development-convergence/2711-outline-recovery-product.json",
     "build/mastra-agent-runtime.ts",
-    "build/writing-assistant-provider.ts"
+    "build/writing-assistant-provider.ts",
+    "scripts/install-whisper-cpp.ps1",
+    "tests/issue-1910-local-voice-input.test.mjs"
   ],
   "acceptance": [
+    {
+      "id": "LAUNCHER",
+      "criterion": "Required dictation checksums remain fail-closed without PowerShell utility module discovery.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-1910-local-voice-input.test.mjs", "contains": "checksums work without PowerShell utility cmdlets and reject tampering" }]
+    },
     {
       "id": "HTTP",
       "criterion": "Production and fixture share authenticated HTTP/CSRF checks.",

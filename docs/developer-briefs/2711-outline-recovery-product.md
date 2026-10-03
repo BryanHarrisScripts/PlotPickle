@@ -28,4 +28,6 @@ A stopped terminal Pi task cannot silently gain a new scheduler identity or budg
 - Product proof stays UNPROVEN until that executable gate passes on the exact PR head. Synthetic provider evidence is explicitly labelled; no live user-selected provider or the user's hardware is claimed by the fixture.
 - Focused regressions, focused UAT, convergence, architecture and Windows production build remain independent required gates.
 
+The real launcher proof exposed a required local-dictation setup failure when nested Windows PowerShell inherited a module search path without `Get-FileHash`. The installer now uses the platform .NET SHA-256 stream API, with both resources disposed, while retaining exact runtime/model hash checks. A Windows regression invokes the helpers in a runspace with no utility cmdlets and verifies correct bytes and tampering rejection.
+
 No other agent rollout, canon acceptance, repository mutation, external publishing, or Pi/FFrames/Hunk upgrade occurs in this phase. Issue #2717 follows after #2711 is green and mergeable.

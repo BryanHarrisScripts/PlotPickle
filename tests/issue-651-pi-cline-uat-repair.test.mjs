@@ -30,15 +30,20 @@ test("repair runner supports Pi and Cline without falling through to a cloud or 
   assert.doesNotMatch(source, /api\.openai\.com|api\.anthropic\.com|openrouter\.ai/);
 });
 
-test("Pi repair uses an isolated local custom-provider directory and offline headless execution", async () => {
-  const source = await read("scripts/run-uat-repair-agent.mjs");
-  assert.match(source, /"plotpickle-local"/);
-  assert.match(source, /PI_CODING_AGENT_DIR/);
-  assert.match(source, /PI_OFFLINE:\s*"1"/);
-  assert.match(source, /PI_TELEMETRY:\s*"0"/);
-  assert.match(source, /"--provider", "plotpickle-local"/);
-  assert.match(source, /"--no-session"/);
-  assert.match(source, /api:\s*"openai-completions"/);
+test("Pi repair uses the shared isolated local provider runtime and offline headless execution", async () => {
+  const [source, runtime] = await Promise.all([
+    read("scripts/run-uat-repair-agent.mjs"),
+    read("scripts/pi-worker-runtime.mjs"),
+  ]);
+  assert.match(source, /piDeveloperEnvironment/);
+  assert.match(source, /piDeveloperRouteProjection/);
+  assert.match(source, /piDeveloperVirtualArgs/);
+  assert.match(runtime, /PI_CODING_AGENT_DIR/);
+  assert.match(runtime, /PI_OFFLINE:\s*"1"/);
+  assert.match(runtime, /PI_TELEMETRY:\s*"0"/);
+  assert.match(runtime, /plotpickle-local/);
+  assert.match(runtime, /openai-completions/);
+  assert.match(runtime, /--no-session/);
 });
 
 test("Cline repair uses isolated local state and an explicit local OpenAI-compatible endpoint", async () => {
@@ -60,9 +65,11 @@ test("repair package install and production build use the Windows-aware CLI path
 
 test("closed-loop UAT preflights once and does not repeat one missing-model error for every finding", async () => {
   const source = await read("scripts/run-uat-closed-loop.mjs");
-  const preflightIndex = source.indexOf('"--preflight", "--require-ready"');
-  const loopIndex = source.indexOf("for (const finding of deduped)");
-  assert.ok(preflightIndex >= 0);
+  const repairBlockIndex = source.indexOf("if (repair && deduped.length)");
+  const preflightIndex = source.indexOf('"--preflight", "--require-ready"', repairBlockIndex);
+  const loopIndex = source.indexOf("for (const finding of deduped)", preflightIndex);
+  assert.ok(repairBlockIndex >= 0);
+  assert.ok(preflightIndex > repairBlockIndex);
   assert.ok(loopIndex > preflightIndex);
   assert.match(source, /no cloud\/story-model fallback was attempted/i);
 });

@@ -49,6 +49,15 @@ test("Windows runtime verifies and repairs the actual Rolldown native file", asy
   assert.doesNotMatch(runtime, /function runtimeReady[\s\S]{0,200}return coreReady\(modulesPath\);/);
 });
 
+test("Windows Vite startup preserves the app-side persistent-runtime junction", async () => {
+  const viteConfig = await source("vite.config.ts");
+  assert.match(viteConfig, /const preserveLinkedRuntimeModulePaths = Boolean\(process\.env\.PLOTPICKLE_RUNTIME_MODULES\);/);
+  assert.match(viteConfig, /resolve:\s*\{\s*preserveSymlinks: preserveLinkedRuntimeModulePaths,/);
+  const runtime = await source("scripts/windows-runtime.mjs");
+  assert.match(runtime, /PLOTPICKLE_RUNTIME_MODULES/);
+  assert.match(runtime, /symlinkSync\(target, link, "junction"\)/);
+});
+
 test("Windows launcher repairs a damaged native runtime before starting", async () => {
   const launcher = await source("Start-PlotPickle.bat");
   for (const contract of [

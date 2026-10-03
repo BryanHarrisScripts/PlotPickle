@@ -11,7 +11,7 @@ import {
   contractTestsFromRegistry,
   validateUatRegistry,
 } from "../lib/verification/uat-autopilot.mjs";
-import { buildNodeTestFailureInventory } from "../lib/verification/uat-contract-evidence.mjs";
+import { buildNodeTestFailureInventory } from "../lib/verification/uat-autopilot.mjs";
 import {
   consoleHasErrors,
   McpClient,

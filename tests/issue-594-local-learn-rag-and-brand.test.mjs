@@ -214,7 +214,7 @@ test("lesson changes reset to the top and expose an accessible top chevron", asy
   assert.match(styles, /position: sticky/);
 });
 
-test("Sage and the PlotPickle v2 identity are local, correctly sized and text-safe", async () => {
+test("Sage and the current PlotPickle identity are local, correctly sized and text-safe", async () => {
   const [workspace, shell, layout, manifest, splash, brandReadme, brandBuilder] = await Promise.all([
     read("modules/learn/ui/learn-workspace.tsx"),
     read("app/application-shell-header.tsx"),
@@ -229,8 +229,8 @@ test("Sage and the PlotPickle v2 identity are local, correctly sized and text-sa
   assert.match(workspace, /className=\{styles\.workspaceBrandMark\}[\s\S]*?plotpickle-ouroboros-v2-128\.png/);
   assert.match(workspace, /alt="PlotPickle"/);
   assert.match(shell, /plotpickle-ouroboros-v2-128\.png/);
-  assert.match(layout, /plotpickle-ouroboros-v2-(?:32|192|512)\.png/);
-  assert.match(manifest, /plotpickle-ouroboros-v2-(?:192|512)\.png/);
+  assert.match(layout, /plotpickle-green-square\.svg/);
+  assert.match(manifest, /plotpickle-green-square\.svg/);
   assert.match(splash, /The eternal cycle of narrative twists/);
   assert.match(brandReadme, /dragon-cycle, compass and fountain-pen emblem/);
   assert.match(brandReadme, /16, 32, 48 and 64 pixel files use a deliberately simplified/);

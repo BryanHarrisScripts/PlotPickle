@@ -59,7 +59,7 @@ const finite = (value: number) => Number.isFinite(value) && value >= 0;
 export function createOutlineTaskController(options: {
   auth: Pick<PlotPickleAuthService, "resolveSession" | "createProfileVaultCapability" | "registerVaultCleanupHook">;
   storage: ProfilePrivateStorageService;
-  resolveExecution(): Promise<OutlineExecution>;
+  resolveExecution(auth: AuthContext): Promise<OutlineExecution>;
   limits: Partial<ResponsibilityRunLimits>;
   now?: () => string;
 }) {
@@ -146,7 +146,7 @@ export function createOutlineTaskController(options: {
     const project = await options.storage.loadActiveProject(context) as LibraryPPFProject | null;
     if (!project || project.id !== record.scope.projectId) throw new Error("Outline task requires its approved active project.");
     if (await outlineAssessmentMaterialReceipt(project) !== record.scope.contextReceipt) throw new Error("Outline task material is stale. Start a new review after story edits.");
-    const execution = await options.resolveExecution();
+    const execution = await options.resolveExecution(context);
     const grants = [...new Set(execution.grantedCapabilities)].sort();
     if (execution.receipt !== record.computeReceipt || execution.provider !== record.scope.provider || execution.model !== record.scope.model || !same(grants, GRANTS)) throw new Error("Outline task compute or grants changed; resume denied.");
     if (!ACTIVE.has(record.run.state)) throw new Error(`Outline task cannot execute while ${record.run.state}.`);
@@ -158,21 +158,40 @@ export function createOutlineTaskController(options: {
     return lease;
   }
   return {
+    async list(candidate: AuthContext) {
+      const auth = authenticated(candidate);
+      const project = await options.storage.loadActiveProject(auth) as LibraryPPFProject | null;
+      if (!project) return [];
+      const index = await options.storage.readPrivateJson(auth, { domain: "indexes", objectId: "outline-tasks-v1" });
+      if (index === null) return [];
+      if (!Array.isArray(index) || index.length > 128 || new Set(index).size !== index.length || index.some((id) => typeof id !== "string" || !taskIdPattern.test(id))) throw new Error("Protected Outline task index is corrupt.");
+      const records = await Promise.all(index.map((id) => this.status(auth, id)));
+      return records.filter((record) => record.scope.projectId === project.id);
+    },
     async create(candidate: AuthContext, blocks: number[]) {
+      return locked(`admission:${candidate.profileId}`, async () => {
       const auth = authenticated(candidate);
       if (!Array.isArray(blocks) || !blocks.length || blocks.length > 6 || new Set(blocks).size !== blocks.length || blocks.some((block) => !Number.isInteger(block) || block < 1 || block > 24)) throw new Error("Outline task requires 1–6 unique Story Blocks.");
       const project = await options.storage.loadActiveProject(auth) as LibraryPPFProject | null;
       if (!project) throw new Error("Load an active project before reviewing Outline.");
-      const execution = await options.resolveExecution();
+      const execution = await options.resolveExecution(auth);
       if (!same([...new Set(execution.grantedCapabilities)].sort(), GRANTS)) throw new Error("Story Architect grants are unavailable.");
+      const existing = await this.list(auth);
+      const receipt = await outlineAssessmentMaterialReceipt(project);
+      const reusable = existing.find((record) => ACTIVE.has(record.run.state) && record.scope.contextReceipt === receipt
+        && record.computeReceipt === execution.receipt && same(record.steps.map((step) => Number(step.id.slice(6))), blocks));
+      if (reusable) return reusable;
+      const index = (await options.storage.readPrivateJson(auth, { domain: "indexes", objectId: "outline-tasks-v1" }) || []) as string[];
+      if (index.length >= 128) throw new Error("Outline recovery history is full; no new task was started.");
       const id = `outline-task-${randomUUID()}`;
       const timestamp = now();
-      const receipt = await outlineAssessmentMaterialReceipt(project);
       const scope = normalizeAgentTaskScope({ humanProfileId: auth.profileId, projectId: project.id, projectRevision: String(project.revision), agentProfileId: "elowen-mapweaver", roleId: "story-architect", runId: id, objectiveRevision: 1, contextReceipt: receipt, provider: execution.provider, model: execution.model, humanApprovalRef: `human-approval:${randomUUID()}`, grantedCapabilities: GRANTS });
       const run = createCreativeResponsibilityRun({ runId: id, profileId: "elowen-mapweaver", goal: "Review approved Outline Blocks; findings remain advisory.", skillUris: [], allowedScopes: ["read-project-slice", "propose-project-change"], allowedConnectorIds: [], context: { taskId: id, sourceIds: [receipt], receiptGeneratedAt: timestamp }, limits: options.limits, createdAt: timestamp });
       const record: OutlineTaskRecord = { version: 1, scope, steps: blocks.map((block) => ({ id: `block-${block}`, kind: "review", replayPolicy: "safe" })), computeReceipt: execution.receipt, run, attempts: [], proposals: [] };
       await write(auth, record);
+      await options.storage.writePrivateJson(authenticated(auth), { domain: "indexes", objectId: "outline-tasks-v1", value: [...index, id] });
       return record;
+      });
     },
     /** Explicit POST authority must be established by the gateway before calling. */
     async activate(candidate: AuthContext, id: string) {
@@ -290,6 +309,11 @@ export function createOutlineTaskController(options: {
         leases.delete(id);
         return record;
       });
+    },
+    /** Revoke a transient execution lease without granting automatic retry authority. */
+    deactivate(id: string) {
+      leases.get(id)?.abort.abort(new Error("Outline execution stopped; explicit resume required."));
+      leases.delete(id);
     },
     close() {
       closed = true;

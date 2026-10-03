@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "issue": 2711,
+  "phase": "outline-recovery-product",
+  "brief": "docs/developer-briefs/2711-outline-recovery-product.md",
+  "allowedChanges": [
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "build/projects/outline-task-http.ts",
+    "build/writing-assistant-gateway.ts",
+    "app/api/outline/tasks/route.ts",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "scripts/pi/durable/outline-product-proof.mjs",
+    "tests/issue-2711-outline-task-gateway.test.mjs",
+    "docs/developer-briefs/2711-outline-recovery-product.md",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/2711-outline-recovery-product.json",
+    "build/mastra-agent-runtime.ts",
+    "build/writing-assistant-provider.ts"
+  ],
+  "acceptance": [
+    {
+      "id": "HTTP",
+      "criterion": "Production and fixture share authenticated HTTP/CSRF checks.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "authenticated HTTP rejects missing CSRF"
+        }
+      ]
+    },
+    {
+      "id": "DUP",
+      "criterion": "Concurrent starts share protected admission; discovery performs zero inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "duplicate starts share one protected admission"
+        }
+      ]
+    },
+    {
+      "id": "IMPORT",
+      "criterion": "Advisory import is idempotent and rejects stale input.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "saved advisory results import once"
+        }
+      ]
+    },
+    {
+      "id": "UI",
+      "criterion": "Existing Outline Assessment History exposes explicit resume/cancel.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-card-foundation-board.tsx",
+          "contains": "Resume Story Architect review"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT",
+      "criterion": "Windows gate executes configured Mastra plus rendered normal-launcher recovery and cancellation proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "node scripts/pi/durable/outline-product-proof.mjs"
+        }
+      ]
+    }
+  ]
+}

@@ -383,15 +383,9 @@ function storyArchitectExecutionRoute(
   ].join(" · ");
 }
 
-async function handleChat(request: IncomingMessage, response: ServerResponse) {
-  const body = await readBody(request, 96 * 1024);
-  const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
-  if (!message) throw new Error("Enter a question for the Writing Assistant.");
+/** Configured resolver shared by ordinary chat and governed durable consumers. */
+export async function resolveConfiguredAgentExecutionProfile(agentId: PlotPickleAgentId, role: LocalTextRole, explicit: TextProvider | null = null) {
   const { store } = await readSynchronizedAssistantStore();
-  const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
-    ? body.agentId as PlotPickleAgentId
-    : "creative-director";
-  const explicit = isTextProvider(body.provider) ? body.provider : null;
   const compute = explicit ? null : await readAgentComputeStore();
   const assigned = explicit
     ? { provider: explicit, source: "request" as const }
@@ -401,9 +395,26 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   if (assigned.source !== "request" && assigned.source !== "active" && requestedProvider !== "local" && !store.profiles[requestedProvider]) {
     throw new Error(`The ${assigned.source === "override" ? "Agent override" : "PlotPickle Agent default"} provider is unavailable. Update Settings / Agents; no fallback provider was used.`);
   }
-  const role = requestedModelRole(body, agentId);
-  let profile = await profileForProvider(store, requestedProvider, role);
+  let profile: ProviderProfile = await profileForProvider(store, requestedProvider, role);
   if (agentId === "curriculum-guide") profile = curriculumGuideLocalProfile(profile);
+  return { profile, assigned, requestedProvider, store };
+}
+
+export async function resolveStoryArchitectExecutionProfile() {
+  const { profile, assigned } = await resolveConfiguredAgentExecutionProfile("story-architect", "quality");
+  return { profile, source: assigned.source };
+}
+
+async function handleChat(request: IncomingMessage, response: ServerResponse) {
+  const body = await readBody(request, 96 * 1024);
+  const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
+  if (!message) throw new Error("Enter a question for the Writing Assistant.");
+  const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
+    ? body.agentId as PlotPickleAgentId
+    : "creative-director";
+  const explicit = isTextProvider(body.provider) ? body.provider : null;
+  const role = requestedModelRole(body, agentId);
+  const { profile, assigned, requestedProvider, store } = await resolveConfiguredAgentExecutionProfile(agentId, role, explicit);
   const allowedTones = new Set<PlotPickleTone>(["collaborative", "direct", "curious", "challenging", "gentle"]);
   const tone = typeof body.tone === "string" && allowedTones.has(body.tone as PlotPickleTone)
     ? body.tone as PlotPickleTone

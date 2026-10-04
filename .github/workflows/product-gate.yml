@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate current Skin V1 startup boundary and DSDD owned Edge
         shell: pwsh
-        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-1910-local-voice-input.test.mjs
 
       - name: Validate current security closeout
         shell: pwsh
@@ -57,7 +57,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
           $changed = git diff --name-only $env:BASE_SHA HEAD
-          $required = [bool]($changed | Select-String -Pattern '^(build/projects/outline-task-controller\.ts$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
+          $required = [bool]($changed | Select-String -Pattern '^(build/projects/outline-task-[^/]+\.ts$|app/api/outline/tasks/route\.ts$|modules/plan/assessments/outline-task-browser\.ts$|app/skin-v1/story-card-foundation-board\.tsx$|scripts/pi/durable/outline-product-proof\.mjs$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
           "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Prove real Mastra Story Architect against a synthetic provider on Windows
@@ -66,16 +66,21 @@ jobs:
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/issue-2711-outline-durable-input.test.mjs tests/issue-2711-outline-task-controller.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
+          node --test tests/issue-2711-outline-local-auth.test.mjs tests/issue-2711-outline-durable-input.test.mjs tests/issue-2711-outline-task-controller.test.mjs tests/issue-2711-outline-task-gateway.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/pi/durable/story-architect-proof.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/pi/durable/outline-product-proof.mjs
 
       - name: Upload Story Architect fixture evidence
         if: always() && steps.outline-scope.outputs.required == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: story-architect-${{ github.run_id }}
-          path: .artifacts/story-architect-2711/proof.json
+          path: |
+            .artifacts/story-architect-2711/proof.json
+            .artifacts/outline-product-2711/
+            .artifacts/browser-verification/
           if-no-files-found: warn
           retention-days: 5
 

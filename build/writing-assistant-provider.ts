@@ -284,7 +284,7 @@ export async function listOllamaModels(baseUrl = DEFAULT_OLLAMA_URL) {
   return (await probeOllama(baseUrl)).models;
 }
 
-export function curriculumGuideLocalProfile(profile: ProviderProfile) {
+export function curriculumGuideLocalProfile(profile: ProviderProfile): ProviderProfile {
   return {
     ...profile,
     contextTokens: profile.contextTokens === CURRICULUM_GUIDE_EXTENDED_CONTEXT

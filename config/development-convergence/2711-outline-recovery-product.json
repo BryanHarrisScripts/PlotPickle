@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "issue": 2711,
+  "phase": "outline-recovery-product",
+  "brief": "docs/developer-briefs/2711-outline-recovery-product.md",
+  "allowedChanges": [
+    "build/startup/vite-compatibility.ts",
+    "tests/issue-614-startup-health-warning-cleanup.test.mjs",
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "build/projects/outline-task-http.ts",
+    "build/writing-assistant-gateway.ts",
+    "app/api/outline/tasks/route.ts",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "scripts/pi/durable/outline-product-proof.mjs",
+    "tests/issue-2711-outline-task-gateway.test.mjs",
+    "docs/developer-briefs/2711-outline-recovery-product.md",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/2711-outline-recovery-product.json",
+    "build/mastra-agent-runtime.ts",
+    "build/writing-assistant-provider.ts",
+    "scripts/install-whisper-cpp.ps1",
+    "tests/issue-1910-local-voice-input.test.mjs",
+    "vite.config.ts",
+    "tests/windows-native-runtime.test.mjs",
+    "build/local-profile-auth-gateway.ts",
+    "tests/issue-2711-outline-local-auth.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "RSC-STARTUP",
+      "criterion": "Mastra's late chat dependency is included in the initial RSC optimizer pass without altering client includes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-614-startup-health-warning-cleanup.test.mjs",
+          "contains": "#2711 prebundles Mastra's late RSC dependency before Outline requests"
+        }
+      ]
+    },
+    {
+      "id": "LAUNCHER",
+      "criterion": "Required dictation checksums remain fail-closed without PowerShell utility module discovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1910-local-voice-input.test.mjs",
+          "contains": "checksums work without PowerShell utility cmdlets and reject tampering"
+        }
+      ]
+    },
+    {
+      "id": "HTTP",
+      "criterion": "Production and fixture share authenticated HTTP/CSRF checks.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "authenticated HTTP rejects missing CSRF"
+        }
+      ]
+    },
+    {
+      "id": "DUP",
+      "criterion": "Concurrent starts share protected admission; discovery performs zero inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "duplicate starts share one protected admission"
+        }
+      ]
+    },
+    {
+      "id": "IMPORT",
+      "criterion": "Advisory import is idempotent and rejects stale input.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "saved advisory results import once"
+        }
+      ]
+    },
+    {
+      "id": "UI",
+      "criterion": "Existing Outline Assessment History exposes explicit resume/cancel.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-card-foundation-board.tsx",
+          "contains": "Resume Story Architect review"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT",
+      "criterion": "Windows gate executes configured Mastra plus rendered normal-launcher recovery and cancellation proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "node scripts/pi/durable/outline-product-proof.mjs"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL-HTTP",
+      "criterion": "Local task discovery shares the authenticated login vault while denying unauthenticated, cross-origin and CSRF-free mutations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-local-auth.test.mjs",
+          "contains": "local Outline discovery shares the login vault"
+        }
+      ]
+    }
+  ]
+}

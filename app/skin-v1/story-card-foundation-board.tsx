@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import type { CharacterArcEvidenceState } from "@/core/contracts/character-truth-evidence";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { OutlineAgentAssessment, OutlineAssessmentRunReceipt } from "@/core/contracts/imported-screenplay-evidence/outline-agent-assessment";
@@ -23,6 +23,8 @@ import {
 } from "@/modules/plan/story-card-board";
 
 import { currentOutlineAssessment, outlineAssessmentFingerprint, requestOutlineAgentAssessment } from "@/modules/plan/outline-agent-assessment";
+import { changeOutlineTask, importOutlineTaskFindings, readOutlineTasks, type OutlineTaskView } from "@/modules/plan/assessments/outline-task-browser";
+import { flushProfilePrivateWrites, persistActiveProfileProject } from "@/core/storage/profile-private-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
@@ -128,6 +130,76 @@ export default function StoryCardFoundationBoard({
   const [assessing, setAssessing] = useState<number | null>(null);
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
+  const [recoveryTasks, setRecoveryTasks] = useState<OutlineTaskView[]>([]);
+  const [taskAction, setTaskAction] = useState(false);
+  const currentProjectId = useRef(project.id);
+  currentProjectId.current = project.id;
+  const onChange = useRef(onProjectChange);
+  onChange.current = onProjectChange;
+  const refreshRecovery = useRef<(() => Promise<void>) | null>(null);
+  useEffect(() => {
+    let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const abort = new AbortController();
+    const persistedFindings = new Map<string, number>();
+    async function refresh() {
+      try {
+        const tasks = await readOutlineTasks(abort.signal);
+        if (!live) return;
+        const owned = tasks.filter((task) => task.scope.projectId === currentProjectId.current);
+        setRecoveryTasks(owned);
+        // Import serially from the latest browser snapshot; polling never starts work.
+        for (const task of owned) {
+          const latest = loadFoundationProject() as LibraryPPFProject;
+          if (!live) return;
+          if (latest.id !== project.id) { setMessage("Story Architect findings await import: load the owning story in Library."); return; }
+          try {
+            const next = await importOutlineTaskFindings(latest, task);
+            if (!live) return;
+            if ((loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) { setMessage("Story Architect findings await import: the story changed during validation; retrying against the latest saved story."); continue; }
+            if (next !== latest) onChange.current(saveFoundationProject(next) as LibraryPPFProject);
+            if (task.proposals.length && persistedFindings.get(task.scope.runId) !== task.proposals.length) {
+              // Cache updates alone are not a durable advisory import. Await the
+              // existing encrypted Library writer, and retry after a failed save.
+              await persistActiveProfileProject();
+              await flushProfilePrivateWrites();
+              persistedFindings.set(task.scope.runId, task.proposals.length);
+            }
+          } catch (error) {
+            // Keep saved findings protected, and make a denied import visible.
+            const detail = error instanceof Error && /^(Saved Story Architect|Story Architect finding)/u.test(error.message)
+              ? error.message : "Check the current story before retrying the saved findings.";
+            setMessage(`Story Architect findings remain saved in the protected task. ${detail}`);
+          }
+        }
+      } catch {
+        if (live) setRecoveryTasks([]);
+      }
+    }
+    async function poll() {
+      await refresh();
+      if (live) timer = setTimeout(() => void poll(), 2000);
+    }
+    refreshRecovery.current = refresh;
+    void poll();
+    return () => { live = false; abort.abort(); clearTimeout(timer); refreshRecovery.current = null; };
+  }, [project.id]);
+
+  async function recoveryAction(action: "start" | "resume" | "cancel", options: { blocks?: readonly number[]; taskId?: string }) {
+    if (taskAction) return;
+    setTaskAction(true);
+    try {
+      await flushProfilePrivateWrites();
+      const current = loadFoundationProject() as LibraryPPFProject;
+      if (current.id !== currentProjectId.current) throw new Error("The active project changed. Reopen Outline before reviewing.");
+      const task = await changeOutlineTask(action, current, options);
+      setRecoveryTasks((tasks) => [...tasks.filter((item) => item.scope.runId !== task.scope.runId), task]);
+      setMessage(action === "cancel" ? "Story Architect review cancelled. Saved findings remain advisory." : "Story Architect review is running. Progress and recovery controls appear in Assessment History.");
+      await refreshRecovery.current?.();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Story Architect recovery could not complete this action.");
+    } finally { setTaskAction(false); }
+  }
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
   const screenplayEvidence = normalizedSourceEvidence.screenplay;
   const storyMatrix = normalizedSourceEvidence.storyMatrix;
@@ -344,7 +416,11 @@ export default function StoryCardFoundationBoard({
   }
 
   async function assessBlocks(blockNumbers: readonly number[]) {
-    if (assessing !== null) return;
+    if (assessing !== null || taskAction) return;
+    if (blockNumbers.length > 1) {
+      await recoveryAction("start", { blocks: blockNumbers });
+      return;
+    }
     const completed: OutlineAgentAssessment[] = [];
     const changedBlockNumbers: number[] = [];
     try {
@@ -384,7 +460,7 @@ export default function StoryCardFoundationBoard({
       </header>
 
       <p className="pp-skin-v1-story-card-board-status" role="status">{message}</p>
-      {act ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
+      {act ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null || taskAction || recoveryTasks.some((task) => task.running)} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
 
       <div className="pp-skin-v1-story-card-act-stack">
         {storyCardActRows(project.structure).filter((row) => !act || row.actNumber === act).map((row) => (
@@ -458,7 +534,7 @@ export default function StoryCardFoundationBoard({
                       {assessment ? <small>No accepted story content changed.</small> : null}
                       {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
                       {matrixBlock?.structuralFinding.reviewedAt ? <small>Existing reviewed finding: {matrixBlock.structuralFinding.state.replaceAll("-", " / ")} · {matrixBlock.structuralFinding.reason}</small> : null}
-                      <button type="button" disabled={assessing !== null} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
+                      <button type="button" disabled={assessing !== null || taskAction || recoveryTasks.some((task) => task.running)} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
                     </div>
                     {matrixBlock ? <details className="pp-skin-v1-story-card-structural-review">
                       <summary>Structural responsibility and source placement</summary>
@@ -596,6 +672,16 @@ export default function StoryCardFoundationBoard({
       <section className="pp-skin-v1-story-card-character-review" aria-labelledby="story-architect-assessment-history" data-outline-assessment-history="true">
         <h3 id="story-architect-assessment-history">Story Architect Assessment History</h3>
         <p>Assessment receipts show what the Story Architect reviewed. They are advisory evidence records and do not change accepted story content.</p>
+        {recoveryTasks.filter((task) => !act || task.steps.some((step) => Math.ceil(Number(step.id.slice(6)) / 6) === act)).map((task) => (
+          <article className="pp-skin-v1-story-card-structural-review" key={task.scope.runId} data-outline-recovery-task={task.scope.runId}>
+            <strong>Story Architect · {task.run.state.replaceAll("-", " ")}</strong>
+            <p>{task.proposals.length} of {task.steps.length} Blocks assessed · {task.steps.length - task.proposals.length} remaining.</p>
+            <small>{task.running ? "Review running" : task.resumeRequired ? "Explicit resume required" : "Review stopped or awaiting the writer"} · {task.run.usage.attempts} attempts used. No accepted story content changed.</small>
+            {task.error ? <p role="status">{task.error}</p> : null}
+            {task.resumeRequired && !task.running ? <button type="button" disabled={taskAction} onClick={() => void recoveryAction("resume", { taskId: task.scope.runId })}>Resume Story Architect review</button> : null}
+            {["queued", "preparing-context", "working", "verifying", "revising"].includes(task.run.state) ? <button type="button" disabled={taskAction} onClick={() => void recoveryAction("cancel", { taskId: task.scope.runId })}>Cancel Story Architect review</button> : null}
+          </article>
+        ))}
         {visibleAssessmentRuns.length ? (
           <div>
             {visibleAssessmentRuns.map((run) => (

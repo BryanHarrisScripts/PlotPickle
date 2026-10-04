@@ -16,9 +16,11 @@ test("#2733 splits Windows product proof into impact-selected sub-12-minute lane
   const scope = architecture.slice(scopeStart, proofStart);
 
   for (const lane of ["command", "pi", "story", "media", "voice", "build"]) {
-    assert.match(scope, new RegExp(`      ${lane}: \\\${{ steps\\.scope\\.outputs\\.${lane} }}`, "u"), `${lane} scope output`);
-    assert.match(architecture, new RegExp(`${lane}: \\\${{ needs\\.windows-product-scope\\.outputs\\.${lane} == 'true' }}`, "u"), `${lane} reusable-workflow input`);
-    assert.match(productGate, new RegExp(`      ${lane}:\\n[\\s\\S]*?type: boolean`, "u"), `${lane} workflow_call input`);
+    const output = "      " + lane + ": ${{ steps.scope.outputs." + lane + " }}";
+    const input = "      " + lane + ": ${{ needs.windows-product-scope.outputs." + lane + " == 'true' }}";
+    assert.ok(scope.includes(output), lane + " scope output");
+    assert.ok(architecture.includes(input), lane + " reusable-workflow input");
+    assert.match(productGate, new RegExp("      " + lane + ":\\n[\\s\\S]*?type: boolean", "u"), lane + " workflow_call input");
   }
 
   assert.doesNotMatch(scope, /dashboard-bbs-panel/u, "Settings taxonomy-only dashboard edits must not trigger native Windows product lanes");
@@ -33,9 +35,15 @@ test("#2733 splits Windows product proof into impact-selected sub-12-minute lane
     ["local-voice-windows", "Local voice Windows proof"],
     ["windows-build-installer", "Windows build / installer proof"],
   ];
-  for (const [id, name] of laneJobs) {
-    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    assert.match(productGate, new RegExp(`  ${id}:\\n[\\s\\S]*?name: ${escapedName}[\\s\\S]*?timeout-minutes: 12`, "u"), `${name} must be independently capped at 12 minutes`);
+  for (let index = 0; index < laneJobs.length; index += 1) {
+    const [id, name] = laneJobs[index];
+    const start = productGate.indexOf("  " + id + ":");
+    assert.ok(start >= 0, name + " job must exist");
+    const nextId = laneJobs[index + 1]?.[0];
+    const end = nextId ? productGate.indexOf("  " + nextId + ":", start + 1) : productGate.length;
+    const body = productGate.slice(start, end);
+    assert.ok(body.includes("name: " + name), name + " label");
+    assert.ok(body.includes("timeout-minutes: 12"), name + " must be capped at 12 minutes");
   }
 
   const command = productGate.slice(productGate.indexOf("  settings-command-windows:"), productGate.indexOf("  pi-runtime-windows:"));
@@ -68,6 +76,6 @@ test("#2733 manual Product Gate keeps every native proof available without seria
   const productGate = await read(".github/workflows/product-gate.yml");
   assert.match(productGate, /^  workflow_dispatch:/mu);
   for (const lane of ["command", "pi", "story", "media", "voice", "build"]) {
-    assert.match(productGate, new RegExp(`if: github\\.event_name == 'workflow_dispatch' \\|\\| inputs\\.${lane}`, "u"));
+    assert.ok(productGate.includes("if: github.event_name == 'workflow_dispatch' || inputs." + lane), lane + " manual dispatch lane");
   }
 });

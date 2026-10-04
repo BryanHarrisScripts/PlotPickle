@@ -226,6 +226,8 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const [draftHasVoice, setDraftHasVoice] = useState(false);
   const [activeInputMode, setActiveInputMode] = useState<DsddInputMode>("typed");
   const [working, setWorking] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
   const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
   const [piDrafting, setPiDrafting] = useState(false);
@@ -236,7 +238,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const previousJourneyRef = useRef<DsddContext | null>(null);
-  const busy = working || piDrafting || publishing || validatingFinding;
+  const busy = clearing || working || piDrafting || publishing || validatingFinding;
   const latestHumanIndex = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
       if (messages[index].role === "human") return index;
@@ -410,6 +412,28 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     () => context ? `${context.surfaceLabel} · ${context.route}` : "Detecting current surface…",
     [context],
   );
+
+  async function clearConsole() {
+    if (busy) return;
+    setClearing(true);
+    setError("");
+    try {
+      const response = await authenticatedProfileFetch(sessionApi, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear-conversation" }),
+      });
+      const result = await response.json() as DsddSessionPayload;
+      if (!response.ok || !result.ok) throw new Error(result.message || "Could not clear the console.");
+      setMessages([]);
+      setLockedIntent(null);
+      setConfirmClear(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not clear the console.");
+    } finally {
+      setClearing(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -662,6 +686,18 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
                 : "Review this meaning. Step 02 Pi Draft locks it and adds repository-aware technical guidance without changing code."}</small>
             </div>
           ) : null}
+
+          <div className={styles.findingActions}>
+            {confirmClear ? (
+              <div role="group" aria-label="Confirm clear console">
+                <p>Clear all conversation messages? They will no longer be used for interpretation. Saved stories and published briefs are kept.</p>
+                <button type="button" disabled={busy} onClick={() => { void clearConsole(); }}>{clearing ? "Clearing…" : "Confirm clear"}</button>
+                <button type="button" className={styles.secondary} disabled={busy} onClick={() => setConfirmClear(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" className={styles.secondary} disabled={busy || !hydrated || messages.length === 0} onClick={() => setConfirmClear(true)}>Clear console</button>
+            )}
+          </div>
 
           <div className={styles.thread} ref={threadRef} role="log" aria-live="polite" aria-relevant="additions text">
             {messages.length === 0 ? (

@@ -18,6 +18,7 @@ function normalizedWords(value) {
   return String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/gu, " ")
+    .replace(/\b(mind|world)\s+map\b/gu, "$1map")
     .trim()
     .split(/\s+/u)
     .filter((word) => word.length >= 3 && !STOP_WORDS.has(word));

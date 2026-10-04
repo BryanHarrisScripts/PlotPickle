@@ -5,6 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build, stop } from "esbuild";
 import { HunkReviewController } from "../build/dsdd/hunk-review-controller.mjs";
+import { clearDsddConversation } from "./dsdd-pi-session.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { runPortableCommand } from "./pi-worker-runtime.mjs";
 import { ensureVerificationTools } from "./run-webmcp-startup-uat.mjs";
@@ -20,6 +21,7 @@ const base = "http://127.0.0.1:4173";
 let server, browser, review, controller;
 const output = [];
 let error, page, report;
+let commandClearVerified = false;
 async function waitFor(check, label, timeout = 180_000) {
   const end = Date.now() + timeout;
   let last;
@@ -33,6 +35,19 @@ async function waitFor(check, label, timeout = 180_000) {
 try {
   const managed = await ensureManagedPiInstalled({ root: path.join(temporary, "managed-pi") });
   assert.equal(managed.version, "1.0.1");
+  const { SessionManager } = await import(pathToFileURL(path.join(managed.root, "node_modules/@earendil-works/pi-coding-agent/dist/index.js")).href);
+  const audit = SessionManager.create(process.cwd(), path.join(temporary, "clear-session"));
+  const humanId = audit.appendMessage({ role: "user", content: "Synthetic old narration", timestamp: Date.now() });
+  audit.appendMessage({ role: "assistant", content: "Synthetic old interpretation", timestamp: Date.now() });
+  audit.appendCustomEntry("plotpickle-dsdd-github-issue-publication", { intentVersion: 1, publication: { number: 123 } });
+  const rawBefore = structuredClone(audit.getEntries());
+  clearDsddConversation(audit);
+  assert.deepEqual(audit.getEntries().slice(0, rawBefore.length), rawBefore, "Clearing preserves immutable Pi provenance");
+  assert.equal(audit.buildSessionProjection().messages.length, 0);
+  const reopened = SessionManager.open(audit.getSessionFile(), path.join(temporary, "clear-session"), process.cwd());
+  assert.equal(reopened.buildSessionProjection().messages.length, 0, "Cleared context survives reopening");
+  assert.ok(reopened.getEntries().some(entry => entry.id === humanId));
+  assert.ok(reopened.getEntries().some(entry => entry.customType === "plotpickle-dsdd-github-issue-publication"));
   const compiled = path.join(temporary, "project.mjs");
   await build({ stdin: { contents: 'export { normalizeLibraryProject } from "./core/storage/library-project.ts";', loader: "ts", resolveDir: process.cwd() }, bundle: true, platform: "node", format: "esm", outfile: compiled, logLevel: "silent" });
   stop();
@@ -51,6 +66,8 @@ try {
   assert.equal(original.project.id, project.id);
   const firstSession = (await api("/api/dsdd/command")).session;
   assert.equal(firstSession.conversation.length, 0);
+  await api("/api/dsdd/command", { action: "append-human", text: "mindmap and worldmap have two identical titles and back selections at the header" });
+  await api("/api/dsdd/command", { action: "append-interpretation", text: "Mind Map and World Map show duplicate headings and return controls. Keep one heading and one return control per surface." });
   assert.equal((await fetch(base + "/api/dsdd/review", { method: "POST", headers: { ...headers, "X-PlotPickle-CSRF": "" }, body: JSON.stringify({ action: "start", target: { kind: "working-tree" } }) })).status, 401);
   const toolRoot = path.join(temporary, "browser-tools");
   await ensureVerificationTools(toolRoot);
@@ -70,7 +87,6 @@ try {
   await command.waitFor();
   await page.locator("[data-skin-v1-active-surface='command'] [data-skin-v1-region-role='global-header']").getByText("Command", { exact: true }).waitFor();
   await command.getByRole("heading", { name: "Requests", exact: true }).waitFor({ timeout: 60_000 });
-  await command.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
   await page.screenshot({ path: path.join(root, "command.png"), fullPage: true });
   await command.getByRole("button", { name: "Local engines", exact: true }).focus();
   await page.keyboard.press("Escape");
@@ -86,6 +102,36 @@ try {
   const after = await api("/api/auth/profile-private");
   assert.equal(after.activeProjectId, original.activeProjectId);
   assert.deepEqual(after.project, original.project, "Settings navigation must retain saved canonical project identity and content.");
+
+  const visibleCommand = page.locator("[data-settings-command='true']");
+  await page.locator("[data-settings-secondary-item='command']").click();
+  await visibleCommand.getByText("Mind Map and World Map show duplicate headings and return controls. Keep one heading and one return control per surface.", { exact: true }).first().waitFor();
+  const narration = visibleCommand.locator("textarea");
+  await narration.fill("Synthetic unsent narration");
+  await visibleCommand.getByRole("button", { name: "Clear console", exact: true }).click();
+  await visibleCommand.getByRole("button", { name: "Cancel", exact: true }).click();
+  assert.equal((await api("/api/dsdd/command")).session.conversation.length, 2, "Cancel preserves history");
+  await visibleCommand.getByRole("button", { name: "Clear console", exact: true }).click();
+  await page.route("**/api/dsdd/command", async route => {
+    if (route.request().method() === "POST" && route.request().postDataJSON()?.action === "clear-conversation") {
+      // Exercise an unsuccessful application result without generating an intentional
+      // HTTP 5xx blocker in the continuous browser-health observer.
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false, message: "Synthetic clear unavailable" }) });
+    } else await route.continue();
+  });
+  await visibleCommand.getByRole("button", { name: "Confirm clear", exact: true }).click();
+  await visibleCommand.locator("[role=alert]").filter({ hasText: "Synthetic clear unavailable" }).waitFor();
+  assert.equal((await api("/api/dsdd/command")).session.conversation.length, 2, "Failed clear preserves history");
+  assert.equal(await narration.inputValue(), "Synthetic unsent narration");
+  await page.unroute("**/api/dsdd/command");
+  await visibleCommand.getByRole("button", { name: "Confirm clear", exact: true }).click();
+  await waitFor(async () => (await api("/api/dsdd/command")).session.conversation.length === 0, "confirmed console clear");
+  assert.equal(await narration.inputValue(), "Synthetic unsent narration");
+  await waitFor(() => visibleCommand.getByRole("button", { name: "Clear console", exact: true }).isDisabled(), "cleared console control");
+  assert.deepEqual((await api("/api/auth/profile-private")).project, original.project);
+  await page.screenshot({ path: path.join(root, "command-cleared.png"), fullPage: true });
+  commandClearVerified = true;
+  await visibleCommand.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
 
   // Native Hunk runs in an isolated changed checkout so this proof never creates
   // a source diff in the application repository or grants mutation authority.
@@ -111,10 +157,12 @@ try {
   assert.equal((await controller.current("synthetic-owner")).state, "running");
   assert.equal((await controller.cancel("synthetic-owner", review.id)).state, "cancelled");
   assert.equal(execFileSync("git", ["-C", checkout, "diff"], { encoding: "utf8" }).includes("+After review"), true);
-  report = { issue: 2717, status: "PASS", head: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local", platform: process.platform, settingsCommand: "PASS", normalStartupInference: 0, csrfDenial: "PASS", projectContinuity: "PASS", managedPiLockedInstall: managed.version, nativeHunk: "PASS", inlineAgentAnnotation: "PASS", ownedCancellation: "PASS", gpuAcceleration: "UNPROVEN" };
+  report = { issue: 2717, status: "PASS", head: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local", platform: process.platform, settingsCommand: "PASS", commandClear: "PASS", piClearProjection: "PASS", normalStartupInference: 0, csrfDenial: "PASS", projectContinuity: "PASS", managedPiLockedInstall: managed.version, nativeHunk: "PASS", inlineAgentAnnotation: "PASS", ownedCancellation: "PASS", gpuAcceleration: "UNPROVEN" };
 
 } catch (caught) {
-  await writeFile(path.join(root, "failure.json"), JSON.stringify({ status: "FAIL", message: caught.message }, null, 2));
+  const hunkDiscovery = await new HunkReviewController().command()
+    .then(() => "ready", error => String(error.message).slice(0, 1500));
+  await writeFile(path.join(root, "failure.json"), JSON.stringify({ status: "FAIL", message: caught.message, commandClear: commandClearVerified ? "PASS" : "UNPROVEN", hunkDiscovery }, null, 2));
   if (page) await page.screenshot({ path: path.join(root, "failure.png"), fullPage: true }).catch(() => {});
   throw caught;
 } finally {

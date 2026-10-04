@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 
 export type DsddPiAction = {
-  action: "append-human" | "append-interpretation" | "lock-intent" | "append-developer-brief" | "record-publication" | "record-evidence";
+  action: "clear-conversation" | "append-human" | "append-interpretation" | "lock-intent" | "append-developer-brief" | "record-publication" | "record-evidence";
   cwd: string;
   sessionDir: string;
   sessionId: string;

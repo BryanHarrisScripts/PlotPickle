@@ -418,6 +418,25 @@ function lockedText(intent: DsddIntent) {
   ].join("\n");
 }
 
+async function clearConversation() {
+  const { context, session } = await load();
+  if (session.conversation.length === 0) return { session };
+  const pi = await runDsddPiAction({
+    action: "clear-conversation",
+    cwd: process.cwd(),
+    sessionDir: piSessionDir(context.profileId),
+    sessionId: session.piSessionId || session.sessionId,
+    sessionFile: session.piSessionFile || undefined,
+  });
+  session.piSessionId = pi.sessionId;
+  session.piSessionFile = pi.sessionFile;
+  // Historical intents and published briefs remain provenance; no active Human
+  // entry remains to authorize Pi Draft or publication for an old intent.
+  session.conversation = [];
+  await save(context, session);
+  return { session };
+}
+
 async function appendHuman(body: Record<string, unknown>) {
   const { context, session } = await load();
   const narration = text(body.text);
@@ -794,6 +813,10 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
   const action = text(body.action, 80);
   if (!dsddRuntimeEnabled() && ["observe-journey", "validate-finding"].includes(action)) {
     replyDsdd(response, { status: 403, body: { ok: false, message: "Conversational UAT actions require Conversational UAT startup mode." } });
+    return;
+  }
+  if (action === "clear-conversation") {
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await clearConversation()) } });
     return;
   }
   if (action === "append-human") {

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "issue": 2723,
+  "phase": "native-launcher-readiness-contract",
+  "brief": "docs/developer-briefs/2723-windows-outline-recovery.md",
+  "allowedChanges": [
+    "scripts/pi/durable/launcher-readiness.mjs",
+    "scripts/pi/durable/outline-product-proof.mjs",
+    "tests/issue-2698-launcher-probe.test.mjs",
+    "docs/developer-briefs/2723-windows-outline-recovery.md",
+    "config/development-convergence/2723.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NATIVE-DEADLINE",
+      "criterion": "The Windows proof follows the normal launcher's existing readiness policy, including stricter future policy, rather than terminating it at a conflicting fixture deadline.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2698-launcher-probe.test.mjs", "contains": "#2723 Outline recovery waits for the native launcher's existing readiness contract" }]
+    },
+    {
+      "id": "FAIL-CLOSED",
+      "criterion": "Missing/invalid native policy is an error; Linux and cold installation bounds remain distinct, and launcher exit still fails immediately.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2698-launcher-probe.test.mjs", "contains": "contract is missing or invalid" },
+        { "type": "file-contains", "path": "scripts/pi/durable/outline-product-proof.mjs", "contains": "Normal launcher exited before readiness" }
+      ]
+    },
+    {
+      "id": "MEASURED-EVIDENCE",
+      "criterion": "Each launch reports only bounded startup stage/deadline/duration/status metadata with source-head provenance, without forced debug tracing or optimizer changes.",
+      "evidence": [{ "type": "file-contains", "path": "scripts/pi/durable/outline-product-proof.mjs", "contains": "launcher-startup.json" }]
+    },
+    {
+      "id": "FULL-RECOVERY",
+      "criterion": "Existing native rendered recovery still retains spent attempts, forbids startup inference, skips committed Blocks and requires explicit Resume and cancellation persistence.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/pi/durable/outline-product-proof.mjs", "contains": "Interrupted attempt remains spent after restart." },
+        { "type": "file-contains", "path": "scripts/pi/durable/outline-product-proof.mjs", "contains": "Reopen, profile unlock and task discovery do not resume inference." },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "node scripts/pi/durable/outline-product-proof.mjs" }
+      ]
+    }
+  ]
+}

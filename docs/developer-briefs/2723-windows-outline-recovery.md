@@ -37,9 +37,32 @@ contracts merely to avoid a startup failure.
 
 ## Plan and limits
 
-First add fixture-only worker/optimizer startup diagnostics and inspect the
+First collect fixture-only worker/optimizer startup diagnostics and inspect the
 native Windows result. Then make the smallest cause-specific repair, strengthen
-the nearest regression, and rerun the failed recovery proof. Publish a draft PR
-with one persistent development ledger while diagnosis is active. Completion
-requires independent full native product evidence. Keep issue #2706 separate.
+the nearest regression, and rerun the failed recovery proof. Keep one persistent
+PR development ledger. Completion requires independent full native product
+evidence. Keep issue #2706 separate.
 No provider, task-budget, authentication or writer-content authority expansion.
+
+## Observed diagnosis and repair
+
+Run 37215178747 confirms that cached RSC/SSR worker initialization is the pending
+phase at the fixture's 180-second restart deadline. Run 37223932464 at head
+`c290ba1b6c60f7278153e1530824fd19015a51dd` subsequently completes the same full
+native recovery, cancellation and production build; its recovery stage takes
+about 161 seconds. This disproves a consistently permanent startup wedge.
+
+The demonstrated contract defect is that the fixture terminates the normal
+launcher after 180 seconds, while `Start-PlotPickle.bat` explicitly gives normal
+startup 240 seconds. The repair derives the fixture's Windows restart deadline
+from that existing launcher policy. It does not change the launcher's timeout,
+force a cache rebuild, replace workerd, or bypass a readiness/recovery assertion.
+Missing or invalid launcher policy fails closed. Linux retains its 180-second
+bound and cold installation retains its existing 480-second allowance.
+
+Remove diagnostic debug logging before verification. Record only stage, cold
+flag, deadline, measured duration and pass/fail in `launcher-startup.json`,
+labelled with the source head. The independent Windows run must prove the full
+rendered recovery without diagnostic logging; until it does, the deadline
+repair remains UNPROVEN. This repair addresses the verification deadline;
+optimizing the application's startup latency would be a separate scope.

@@ -108,11 +108,17 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  pi-windows-scope:
-    name: Detect Pi Windows proof scope
+  windows-product-scope:
+    name: Detect impact-selected Windows product lanes
     runs-on: ubuntu-latest
     outputs:
-      required: ${{ steps.scope.outputs.required }}
+      command: ${{ steps.scope.outputs.command }}
+      pi: ${{ steps.scope.outputs.pi }}
+      story: ${{ steps.scope.outputs.story }}
+      media: ${{ steps.scope.outputs.media }}
+      voice: ${{ steps.scope.outputs.voice }}
+      build: ${{ steps.scope.outputs.build }}
+      any: ${{ steps.scope.outputs.any }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -120,56 +126,58 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - id: scope
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(app/_components/settings/|app/skin-v1/(dashboard-bbs-panel|global-dsdd-conversation)|build/dsdd/|tools/(fframes-bridge|hunk-review)/|scripts/(settings-command-product-proof|fframes-product-proof)\.mjs$|tests/issue-2717-|build/projects/outline-task-controller\.ts|build/mastra-agent-runtime\.ts|modules/plan/outline-agent-assessment\.ts|tests/issue-2711-|scripts/(pi-managed-install|pi-durable-managed-install|pi-worker-runtime|pi-version|evaluate-pi-087-dsdd-session|evaluate-pi-099-compatibility|evaluate-pi-durable-adapter|dsdd-pi-session|dsdd-pi-draft|run-uat-repair-agent|setup-developer-agent-stack)\.mjs|scripts/pi/|config/(pi-087-dsdd-session-evaluation|pi-099-compatibility|pi-101-compatibility|pi-durable-adapter|pi-tool-exposure-policy|pi-codemode-policy|developer-agent-stack)\.json|core/sidecars/(durable-execution-contract|pi-durable-adapter)\.mjs|core/sidecars/tasks/|scripts/sidecars/pi-durable-service\.mjs|tests/issue-(2672-pi-durable-adapter|2696-pi-durable-active-default)\.test\.mjs|lib/agents/(developer-tool-authorization|pi-codemode-governance|pi-nested-call-evidence|agent-runtime-vocabulary)\.mjs|\.pi/(managed/|npm/|settings\.json|extensions/))'; then
-            echo 'required=true' >> "$GITHUB_OUTPUT"
+          changed="$(git diff --name-only "$BASE_SHA" HEAD)"
+          printf 'Changed files:\n%s\n' "$changed"
+
+          command=false
+          pi=false
+          story=false
+          media=false
+          voice=false
+          build=false
+
+          if printf '%s\n' "$changed" | grep -Eq '^(\.github/workflows/(architecture-shadow|product-gate)\.yml$|tests/issue-2733-ci-windows-lanes\.test\.mjs$|docs/developer-briefs/2733-split-windows-product-gate\.md$)'; then
+            command=true
+            pi=true
+            story=true
+            media=true
+            voice=true
+            build=true
           else
-            echo 'required=false' >> "$GITHUB_OUTPUT"
+            if printf '%s\n' "$changed" | grep -Eq '^(app/_components/settings/command-review-panel\.tsx$|app/skin-v1/global-dsdd-conversation(\.module\.css|\.tsx)$|build/dsdd/(dsdd-pi-session|dsdd-session-gateway|hunk-review-controller)\.(mjs|ts)$|build/dsdd/hunk-review-gateway\.ts$|scripts/settings-command-product-proof\.mjs$|scripts/pi/hunk-review-terminal\.ps1$|tools/hunk-review/|tests/issue-2717-(settings-command|command-gateway)\.test\.mjs$)'; then command=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(scripts/(pi-managed-install|pi-durable-managed-install|pi-worker-runtime|pi-version|evaluate-pi-087-dsdd-session|evaluate-pi-099-compatibility|evaluate-pi-durable-adapter|dsdd-pi-session|dsdd-pi-draft|run-uat-repair-agent|setup-developer-agent-stack)\.mjs$|scripts/pi/(?!durable/)|config/(pi-087-dsdd-session-evaluation|pi-099-compatibility|pi-101-compatibility|pi-durable-adapter|pi-tool-exposure-policy|pi-codemode-policy|developer-agent-stack)\.json$|core/sidecars/(durable-execution-contract|pi-durable-adapter)\.mjs$|scripts/sidecars/pi-durable-service\.mjs$|tests/issue-(2338|2590|2591|2592|2593|2594|2672|2696)-|lib/agents/(developer-tool-authorization|pi-codemode-governance|pi-nested-call-evidence|agent-runtime-vocabulary)\.mjs$|\.pi/(managed/|npm/|settings\.json$|extensions/))'; then pi=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(build/projects/outline-task-[^/]+\.ts$|app/api/outline/tasks/route\.ts$|modules/plan/assessments/outline-task-browser\.ts$|app/skin-v1/story-card-foundation-board\.tsx$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/|core/sidecars/tasks/|tests/issue-(2709|2711)-|tests/issue-outline-agent-assessment\.test\.mjs$|tests/issue-2440-story-architect-structured-execution\.test\.mjs$)'; then story=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(tools/fframes-bridge/|core/media/fframes-local-media-engine\.ts$|scripts/fframes-product-proof\.mjs$|tests/issue-2663-fframes-media-engine\.test\.mjs$|tests/ltx-bundled-default\.test\.mjs$)'; then media=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(Start-PlotPickle\.bat$|scripts/install-whisper-cpp\.ps1$|config/local-voice-input\.json$|build/voice/|runtime/whisper/|tests/issue-(1910|2341|2350)-)'; then voice=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(package(-lock)?\.json$|next\.config\.ts$|vite\.config\.ts$|scripts/windows-runtime\.mjs$|Start-PlotPickle\.(bat|command)$|start-plotpickle\.sh$|tests/issue-1456-windows-installer\.test\.mjs$|installer/|scripts/windows-installer/)'; then build=true; fi
           fi
 
-  pi-windows-proof:
-    name: Pi Windows proof
-    needs: pi-windows-scope
-    if: needs.pi-windows-scope.outputs.required == 'true'
+          any=false
+          if [ "$command" = true ] || [ "$pi" = true ] || [ "$story" = true ] || [ "$media" = true ] || [ "$voice" = true ] || [ "$build" = true ]; then any=true; fi
+
+          echo "command=$command" >> "$GITHUB_OUTPUT"
+          echo "pi=$pi" >> "$GITHUB_OUTPUT"
+          echo "story=$story" >> "$GITHUB_OUTPUT"
+          echo "media=$media" >> "$GITHUB_OUTPUT"
+          echo "voice=$voice" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "any=$any" >> "$GITHUB_OUTPUT"
+          echo "Selected Windows lanes: command=$command pi=$pi story=$story media=$media voice=$voice build=$build"
+
+  windows-product-proof:
+    name: Impact-selected Windows Product Gate
+    needs: windows-product-scope
+    if: needs.windows-product-scope.outputs.any == 'true'
     uses: ./.github/workflows/product-gate.yml
-
-  voice-windows-scope:
-    name: Detect local voice Windows proof scope
-    runs-on: ubuntu-latest
-    outputs:
-      required: ${{ steps.scope.outputs.required }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - id: scope
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
-        run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(Start-PlotPickle\.bat|scripts/install-whisper-cpp\.ps1|config/local-voice-input\.json|build/voice/|runtime/whisper/|tests/issue-(1910|2341|2350)-)'; then
-            echo 'required=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'required=false' >> "$GITHUB_OUTPUT"
-          fi
-
-  voice-windows-proof:
-    name: Local voice Windows proof
-    needs: voice-windows-scope
-    if: needs.voice-windows-scope.outputs.required == 'true'
-    runs-on: windows-latest
-    timeout-minutes: 12
-    steps:
-      - name: Checkout exact head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Smoke reviewed whisper.cpp and base.en
-        shell: pwsh
-        env:
-          PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
+    with:
+      command: ${{ needs.windows-product-scope.outputs.command == 'true' }}
+      pi: ${{ needs.windows-product-scope.outputs.pi == 'true' }}
+      story: ${{ needs.windows-product-scope.outputs.story == 'true' }}
+      media: ${{ needs.windows-product-scope.outputs.media == 'true' }}
+      voice: ${{ needs.windows-product-scope.outputs.voice == 'true' }}
+      build: ${{ needs.windows-product-scope.outputs.build == 'true' }}
 
   modular-runtime-windows-scope:
     name: Detect modular runtime Windows proof scope
@@ -196,7 +204,7 @@ jobs:
     needs: modular-runtime-windows-scope
     if: needs.modular-runtime-windows-scope.outputs.required == 'true'
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:

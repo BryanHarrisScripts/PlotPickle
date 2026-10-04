@@ -5,7 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL("../" + path, import.meta.url), "utf8");
 
 test("#2730 Settings groups the approved destinations under System, Compute and Operations", async () => {
-  const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
+  const [dashboard, webmcpAudit] = await Promise.all([
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("lib/verification/webmcp-surface-visual-audit.mjs"),
+  ]);
   const start = dashboard.indexOf("const SETTINGS_MENU = [");
   const end = dashboard.indexOf("] as const;", start);
   assert.ok(start >= 0 && end > start, "SETTINGS_MENU must remain explicit and testable");

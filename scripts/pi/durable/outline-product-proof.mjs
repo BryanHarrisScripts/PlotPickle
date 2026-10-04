@@ -96,6 +96,11 @@ async function outline(session, toolRoot) {
   const context = await browserSession.browser.newContext({ storageState: session.storageStatePath, viewport: { width: 1440, height: 1080 } });
   const page = await context.newPage();
   await page.goto(`${base}/skin-v1`, { waitUntil: "domcontentloaded" });
+  // A fresh browser session deliberately starts without a loaded story. Open
+  // the exact saved fixture through Library, just as the Human does on reopen.
+  await page.locator("[data-dashboard-menu-item='library']").click({ timeout: 60_000 });
+  await page.locator("[data-library-load-story='synthetic-outline-product']").getByRole("button", { name: /^Resume saved story/u }).click();
+  await page.getByRole("button", { name: "Open Saved Story", exact: true }).click();
   await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).waitFor({ timeout: 60_000 });
   return page;

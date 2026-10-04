@@ -28,20 +28,25 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
     const index = menu.indexOf(`id: "${id}"`);
     assert.ok(index > previousIndex, `${id} must appear in the approved Settings order`);
     previousIndex = index;
+
     const rowEnd = menu.indexOf("\n", index);
     const row = menu.slice(index, rowEnd >= 0 ? rowEnd : undefined);
-    assert.match(row, new RegExp(`shortcut: SETTINGS_SHORTCUTS(?:\\["${id}"\\]|\\.${id.replace(/-/g, "\\-")}|\\.general|\\.command|\\.local|\\.cloud|\\.hybrid|\\.agents)`, "u"));
+    const shortcutSource = id.includes("-")
+      ? `SETTINGS_SHORTCUTS["${id}"]`
+      : `SETTINGS_SHORTCUTS.${id}`;
+
+    assert.ok(row.includes(`shortcut: ${shortcutSource}`), `${id} shortcut source`);
+    assert.equal(shortcuts[id], shortcut, `${id} shortcut value`);
     assert.ok(row.includes(`label: "${label}"`), `${id} label`);
     assert.ok(row.includes(`group: "${group}"`), `${id} group`);
     assert.ok(row.includes(`description: "${description}"`), `${id} description`);
-    assert.equal(SETTINGS_SHORTCUTS[id], shortcut);
   }
 
   assert.match(dashboard, /const showGroup = index === 0 \|\| SETTINGS_MENU\[index - 1\]\?\.group !== item\.group/u);
   assert.match(dashboard, />-- \{item\.group\} --<\/div>/u);
 });
 
-const SETTINGS_SHORTCUTS = {
+const shortcuts = {
   general: "G",
   "node-info": "I",
   command: "M",

@@ -22,7 +22,17 @@ test("#2723 Outline recovery waits for the native launcher's existing readiness 
   }
 });
 
-test("#2723 Windows proof keeps owned shutdown strict while bounding shell-wrapper cleanup", async () => {\n  const proof = await readFile(new URL("./issue-2698-windows-startup-proof.mjs", import.meta.url), "utf8");\n  assert.match(proof, /const ownedShutdownTimeoutMs = 20_000;/);\n  assert.match(proof, /const launcherWrapperExitTimeoutMs = 60_000;/);\n  assert.match(proof, /launcher-owned service shutdown[\\s\\S]*ownedShutdownTimeoutMs/);\n  assert.match(proof, /owned Edge shutdown[\\s\\S]*ownedShutdownTimeoutMs/);\n  assert.match(proof, /core process shutdown[\\s\\S]*ownedShutdownTimeoutMs/);\n  assert.match(proof, /launcher wrapper exit[\\s\\S]*launcherWrapperExitTimeoutMs/);\n});\n\ntest("#2698 companion readiness renders the startup contract after the browser is already owned", async () => {
+test("#2723 Windows proof keeps owned shutdown strict while bounding shell-wrapper cleanup", async () => {
+  const proof = await readFile(new URL("./issue-2698-windows-startup-proof.mjs", import.meta.url), "utf8");
+  assert.match(proof, /const ownedShutdownTimeoutMs = 20_000;/);
+  assert.match(proof, /const launcherWrapperExitTimeoutMs = 60_000;/);
+  assert.match(proof, /launcher-owned service shutdown[\\s\\S]*ownedShutdownTimeoutMs/);
+  assert.match(proof, /owned Edge shutdown[\\s\\S]*ownedShutdownTimeoutMs/);
+  assert.match(proof, /core process shutdown[\\s\\S]*ownedShutdownTimeoutMs/);
+  assert.match(proof, /launcher wrapper exit[\\s\\S]*launcherWrapperExitTimeoutMs/);
+});
+
+test("#2698 companion readiness renders the startup contract after the browser is already owned", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-probe-"));
   const previous = process.env.PLOTPICKLE_BROWSER_STATE;
   try {

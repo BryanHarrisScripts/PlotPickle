@@ -155,7 +155,12 @@ export default function StoryCardFoundationBoard({
             const next = await importOutlineTaskFindings(latest, task);
             if (!live || (loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) continue;
             if (next !== latest) onChange.current(saveFoundationProject(next) as LibraryPPFProject);
-          } catch { /* Stale evidence remains in the protected task; do not import it. */ }
+          } catch (error) {
+            // Keep saved findings protected, and make a denied import visible.
+            const detail = error instanceof Error && /^(Saved Story Architect|Story Architect finding)/u.test(error.message)
+              ? error.message : "Check the current story before retrying the saved findings.";
+            setMessage(`Story Architect findings remain saved in the protected task. ${detail}`);
+          }
         }
       } catch {
         if (live) setRecoveryTasks([]);

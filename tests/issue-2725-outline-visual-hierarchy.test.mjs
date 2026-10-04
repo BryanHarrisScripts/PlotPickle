@@ -31,9 +31,10 @@ test("#2725 Outline expands one selected Block and keeps Block/Mini visual layer
 });
 
 test("#2725 Mind Map and World Map do not duplicate shell title or return control", async () => {
-  const [shared, acceptance] = await Promise.all([
+  const [shared, acceptance, shellCss] = await Promise.all([
     read("app/skin-v1/story-development-surface-header.tsx"),
     read("core/sidecars/webmcp-acceptance-sidecar.mjs"),
+    read("app/skin-v1-bbs-surfaces.css"),
   ]);
   assert.match(shared, /data-story-development-act-rail="shared"/u);
   assert.match(shared, /data-story-development-topic-rail="canonical"/u);
@@ -46,4 +47,5 @@ test("#2725 Mind Map and World Map do not duplicate shell title or return contro
   assert.match(acceptance, /world-map-local-identity-removed/u);
   assert.match(acceptance, /\.pp-skin-v1-home-link/u);
   assert.doesNotMatch(acceptance, /mind-map-header-title|world-map-header-title/u);
+  assert.match(shellCss, /\.pp-skin-v1-bar,[\s\S]*position: relative !important;[\s\S]*z-index: 10 !important;/u);
 });

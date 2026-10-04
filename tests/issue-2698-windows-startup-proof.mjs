@@ -14,7 +14,7 @@ const runtime = path.join(home, "node", "runtime");
 const auditRoot = path.join(root, "fetch-audit");
 const output = path.join(repo, ".artifacts", "runtime-2698", "windows-startup.json");
 const base = "http://127.0.0.1:4173";
-const services = ["dsdd", "browser-verification", "pi-durable", "craft-runtime", "media-runtime", "chatgpt-mcp-gateway"];
+const services = ["dsdd", "browser-verification", "pi-durable", "craft-runtime", "media-runtime", "chatgpt-mcp-gateway"];\nconst ownedShutdownTimeoutMs = 20_000;\nconst launcherWrapperExitTimeoutMs = 60_000;
 await mkdir(auditRoot, { recursive: true });
 const env = { ...process.env, PLOTPICKLE_HOME: home, PLOTPICKLE_STARTUP_TESTING_MODE: "normal", WRANGLER_SEND_METRICS: "false", PLOTPICKLE_BUZZ_MODE: "disabled" };
 for (const key of Object.keys(env)) if (/TOKEN|API_KEY|PASSWORD|SECRET/.test(key)) delete env[key];
@@ -116,7 +116,7 @@ try {
     console.log(`[2698] ${run.mode}: core HTML ready in ${run.coreHtmlReadyMs} ms.`);
     if (baseline) {
       await stopCore();
-      await wait("baseline launcher exit", async () => launcher.exitCode !== null, 20000);
+      const launcherExitStarted = Date.now();\n      await wait("baseline launcher exit", async () => launcher.exitCode !== null, launcherWrapperExitTimeoutMs);\n      run.launcherExitWaitMs = Date.now() - launcherExitStarted;
       assert.equal(launcher.exitCode, 0, tail);
       launcher = null;
       continue;

@@ -21,6 +21,7 @@ const base = "http://127.0.0.1:4173";
 let server, browser, review, controller;
 const output = [];
 let error, page, report;
+let commandClearVerified = false;
 async function waitFor(check, label, timeout = 180_000) {
   const end = Date.now() + timeout;
   let last;
@@ -86,7 +87,6 @@ try {
   await command.waitFor();
   await page.locator("[data-skin-v1-active-surface='command'] [data-skin-v1-region-role='global-header']").getByText("Command", { exact: true }).waitFor();
   await command.getByRole("heading", { name: "Requests", exact: true }).waitFor({ timeout: 60_000 });
-  await command.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
   await page.screenshot({ path: path.join(root, "command.png"), fullPage: true });
   await command.getByRole("button", { name: "Local engines", exact: true }).focus();
   await page.keyboard.press("Escape");
@@ -125,9 +125,11 @@ try {
   await visibleCommand.getByRole("button", { name: "Confirm clear", exact: true }).click();
   await waitFor(async () => (await api("/api/dsdd/command")).session.conversation.length === 0, "confirmed console clear");
   assert.equal(await narration.inputValue(), "Synthetic unsent narration");
-  assert.equal(await visibleCommand.getByRole("button", { name: "Clear console", exact: true }).isDisabled(), true);
+  await waitFor(() => visibleCommand.getByRole("button", { name: "Clear console", exact: true }).isDisabled(), "cleared console control");
   assert.deepEqual((await api("/api/auth/profile-private")).project, original.project);
   await page.screenshot({ path: path.join(root, "command-cleared.png"), fullPage: true });
+  commandClearVerified = true;
+  await visibleCommand.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
 
   // Native Hunk runs in an isolated changed checkout so this proof never creates
   // a source diff in the application repository or grants mutation authority.
@@ -156,7 +158,9 @@ try {
   report = { issue: 2717, status: "PASS", head: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local", platform: process.platform, settingsCommand: "PASS", commandClear: "PASS", piClearProjection: "PASS", normalStartupInference: 0, csrfDenial: "PASS", projectContinuity: "PASS", managedPiLockedInstall: managed.version, nativeHunk: "PASS", inlineAgentAnnotation: "PASS", ownedCancellation: "PASS", gpuAcceleration: "UNPROVEN" };
 
 } catch (caught) {
-  await writeFile(path.join(root, "failure.json"), JSON.stringify({ status: "FAIL", message: caught.message }, null, 2));
+  const hunkDiscovery = await new HunkReviewController().command()
+    .then(() => "ready", error => String(error.message).slice(0, 1500));
+  await writeFile(path.join(root, "failure.json"), JSON.stringify({ status: "FAIL", message: caught.message, commandClear: commandClearVerified ? "PASS" : "UNPROVEN", hunkDiscovery }, null, 2));
   if (page) await page.screenshot({ path: path.join(root, "failure.png"), fullPage: true }).catch(() => {});
   throw caught;
 } finally {

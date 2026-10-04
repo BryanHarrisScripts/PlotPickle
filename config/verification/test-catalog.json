@@ -1975,6 +1975,7 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2697-live-modular-runtimes.test.mjs",
+          "tests/issue-2732-startup-status-messaging.test.mjs",
           "tests/issue-2698-runtime-shutdown.test.mjs",
           "tests/issue-2698-launcher-probe.test.mjs",
           "tests/issue-2698-media-retention.test.mjs"
@@ -2002,7 +2003,7 @@
           ".artifacts/verification-shadow/production-harness.comparison.json"
         ]
       },
-      "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape."
+      "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape. #2732 adds truthful waiting/not-started presentation, optional-media messaging and clean-closeout regression coverage."
     },
     {
       "id": "production.agent-checkpoint-contract-2709",

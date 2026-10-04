@@ -55,8 +55,12 @@ async function snapshot(supervisorState, coreState) {
   }
   for (const service of services) {
     const previous = reportedStates.get(service.id);
-    if (previous !== service.state && service.state !== "starting") {
-      console.log(`[SIDECARS] ${service.label}: ${service.state}`);
+    if (previous !== service.state && service.state !== "starting" && service.state !== "waiting") {
+      if (service.id === "media-runtime" && service.state === "degraded") {
+        console.log("[SIDECARS] Media Runtime: optional renderer not ready; core PlotPickle, Flip Book, Graphic Novel and WebP remain available.");
+      } else {
+        console.log(`[SIDECARS] ${service.label}: ${service.state}`);
+      }
     }
     reportedStates.set(service.id, service.state);
   }
@@ -87,6 +91,7 @@ async function stopAll() {
 
 async function main() {
   console.log("[SIDECARS] Runtime supervisor starting; core PlotPickle remains independent.");
+  console.log(`[SIDECARS] ${registry.services.length} registered runtime services are waiting for core readiness.`);
   await snapshot("starting", "starting");
 
   const ready = await waitForCore();

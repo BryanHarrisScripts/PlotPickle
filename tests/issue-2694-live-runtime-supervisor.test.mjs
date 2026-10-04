@@ -45,8 +45,13 @@ test("#2694 normal launcher starts the supervisor asynchronously without making 
   const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
   assert.match(launcher, /call :open_when_ready[\s\S]*call :start_runtime_sidecar_supervisor[\s\S]*call :start_deferred_companion_maintenance/);
   assert.match(launcher, /start "" \/b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"/);
-  assert.match(launcher, /Runtime sidecars will initialize asynchronously after core readiness|Governed runtime sidecars will initialize asynchronously after core readiness/);
+  assert.match(launcher, /Registered runtime services are waiting for core readiness and will initialize asynchronously after PlotPickle is ready/);
   assert.ok(launcher.indexOf('call :start_runtime_sidecar_supervisor') < launcher.lastIndexOf('call "%VITE_CMD%"'));
+});
+
+test("#2694 not-yet-started registered services are waiting rather than unavailable", () => {
+  const supervisor = new LocalSidecarSupervisor();
+  assert.equal(supervisor.status("dsdd").state, "waiting");
 });
 
 test("#2694 status evidence separates product core from sidecar convergence", () => {

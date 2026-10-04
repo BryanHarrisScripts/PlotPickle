@@ -28,7 +28,7 @@ let launcherOutput = [];
 let launcherError;
 let proofError;
 const selectedStage = process.env.PLOTPICKLE_OUTLINE_PROOF_STAGE || "all";
-assert.ok(["startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
+assert.ok(["authentication", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
 let activeStage = "setup";
 const completedStages = [];
 async function enterStage(stage) {
@@ -129,7 +129,6 @@ try {
   });
   await new Promise((resolve) => fixture.listen(0, "127.0.0.1", resolve));
   await ensureManagedPiDurableInstalled({ home });
-  const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
   // Cold native setup downloads and verifies required runtime/model bytes.
   // Reopen retains the shorter bound; every launch still fails immediately on exit.
   await enterStage("startup-auth");
@@ -138,6 +137,10 @@ try {
   let session = await authenticateVerificationSyntheticProfile({ baseUrl: base, ...profile });
   const project = normalizeLibraryProject({ id: "synthetic-outline-product", title: "Synthetic Outline Product" });
   await api(session, "/api/auth/profile-private", { action: "save-project", project, activate: true });
+  assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
+  await completeStage("authentication");
+  if (selectedStage === "authentication") { await reportFocusedPass(); return; }
+  const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
   await api(session, "/api/writing-assistant/ollama", { baseUrl: `http://127.0.0.1:${fixture.address().port}`, model: "synthetic-outline-product" });
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   requests = [];

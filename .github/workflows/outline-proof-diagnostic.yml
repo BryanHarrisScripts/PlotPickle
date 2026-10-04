@@ -1,0 +1,37 @@
+name: Focused Outline proof diagnosis
+on:
+  push:
+    branches: [diagnostics/2718-outline-proof]
+permissions:
+  contents: read
+concurrency:
+  group: outline-proof-diagnostic
+  cancel-in-progress: true
+jobs:
+  outline-proof:
+    name: Outline startup and authentication only
+    runs-on: windows-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Run only the selected second-proof stage
+        shell: pwsh
+        env:
+          PLOTPICKLE_OUTLINE_PROOF_STAGE: startup-auth
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.sha }}
+        run: node scripts/pi/durable/outline-product-proof.mjs
+      - name: Upload bounded diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: outline-focused-${{ github.run_id }}
+          path: |
+            .artifacts/outline-product-2711/*.json
+            .artifacts/outline-product-2711/*.png
+          retention-days: 3

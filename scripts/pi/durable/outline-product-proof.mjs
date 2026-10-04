@@ -27,6 +27,23 @@ let launcher, fixture, browserSession;
 let launcherOutput = [];
 let launcherError;
 let proofError;
+const selectedStage = process.env.PLOTPICKLE_OUTLINE_PROOF_STAGE || "all";
+assert.ok(["startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
+let activeStage = "setup";
+const completedStages = [];
+async function enterStage(stage) {
+  activeStage = stage;
+  console.log(`Outline product proof stage: ${stage}`);
+}
+async function completeStage(stage) {
+  completedStages.push(stage);
+  await writeFile(path.join(root, "stages.json"), JSON.stringify({ status: "IN_PROGRESS", selectedStage, completedStages }, null, 2) + "\n");
+}
+async function reportFocusedPass() {
+  const report = { issue: 2711, status: "PASS", scope: selectedStage, fullProductProof: "UNPROVEN", completedStages, platform: process.platform };
+  await writeFile(path.join(root, "focused-proof.json"), JSON.stringify(report, null, 2) + "\n");
+  console.log(JSON.stringify(report));
+}
 let requests = [];
 let holdBlock = 2;
 const assessment = { structural: { state: "unresolved", reason: "Synthetic product fixture cannot establish a structural turn.", passageIds: [] }, characters: [], miniBlocks: [1,2,3,4].map((ordinal) => ({ ordinal, state: "unsupported", reason: "No synthetic screenplay was supplied.", passageIds: [], storyboardCue: "" })) };
@@ -83,6 +100,7 @@ async function outline(session, toolRoot) {
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).waitFor({ timeout: 60_000 });
   return page;
 }
+async function runProof() {
 try {
   await mkdir(root, { recursive: true });
   await mkdir(home, { recursive: true });
@@ -114,15 +132,20 @@ try {
   const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
   // Cold native setup downloads and verifies required runtime/model bytes.
   // Reopen retains the shorter bound; every launch still fails immediately on exit.
+  await enterStage("startup-auth");
   await start({ cold: true });
   const profile = await createVerificationSyntheticProfile({ baseUrl: base, home });
   let session = await authenticateVerificationSyntheticProfile({ baseUrl: base, ...profile });
   const project = normalizeLibraryProject({ id: "synthetic-outline-product", title: "Synthetic Outline Product" });
   await api(session, "/api/auth/profile-private", { action: "save-project", project, activate: true });
   await api(session, "/api/writing-assistant/ollama", { baseUrl: `http://127.0.0.1:${fixture.address().port}`, model: "synthetic-outline-product" });
+  assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   requests = [];
   let page = await outline(session, toolRoot);
   assert.equal(requests.length, 0, "Normal startup and Outline discovery must issue no assessment inference.");
+  await completeStage("startup-auth");
+  if (selectedStage === "startup-auth") { await reportFocusedPass(); return; }
+  await enterStage("interruption");
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
   await waitFor(() => requests.includes(2), "second Block starts after committed first Block");
   const first = (await api(session, "/api/outline/tasks")).tasks[0];
@@ -134,6 +157,8 @@ try {
   await stop(); fixture.closeAllConnections();
   const beforeReopen = requests.length;
   holdBlock = -1;
+  await completeStage("interruption");
+  await enterStage("recovery");
   await start();
   session = await authenticateVerificationSyntheticProfile({ baseUrl: base, ...profile });
   page = await outline(session, toolRoot);
@@ -154,6 +179,9 @@ try {
   assert.equal(final.sourceEvidence.outlineAssessments.length, 6);
   assert.deepEqual(final.structure, project.structure);
   await page.screenshot({ path: path.join(root, "after-reopen.png"), fullPage: true });
+  await completeStage("recovery");
+  if (selectedStage === "recovery") { await reportFocusedPass(); return; }
+  await enterStage("cancellation");
   // Exercise the actual rendered Cancel control while a new review is in flight.
   holdBlock = 1;
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
@@ -169,6 +197,7 @@ try {
   assert.equal(await cancelledRow.getByRole("button", { name: "Resume Story Architect review" }).count(), 0);
   await browserSession.checkpoint(page, { surface: "outline", phase: "recovery-and-cancel" });
   await browserSession.close(); browserSession = null;
+  await completeStage("cancellation");
   const report = { issue: 2711, status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), platform: process.platform,
     launcher: process.platform === "win32" ? "PlotPickle.ps1 -HumanTesting (normal startup)" : "normal-mode Vite server",
     providerEvidence: "synthetic-loopback-fixture", realUserProvider: "UNPROVEN", productResume: "PASS", authenticatedTaskDiscovery: "PASS", startupAssessmentRequests: 0,
@@ -178,7 +207,8 @@ try {
 } catch (error) {
   proofError = error;
   const diagnostics = Buffer.concat(launcherOutput).toString("utf8").slice(-16_000).split(/\r?\n/u).map(sanitizeBrowserDiagnosticText).join("\n");
-  await writeFile(path.join(root, "failure.json"), JSON.stringify({ issue: 2711, status: "FAIL", error: sanitizeBrowserDiagnosticText(error.message), launcherDiagnostics: diagnostics }, null, 2) + "\n");
+  await writeFile(path.join(root, "failure.json"), JSON.stringify({ issue: 2711, status: "FAIL", selectedStage, activeStage, completedStages, error: sanitizeBrowserDiagnosticText(error.message), launcherDiagnostics: diagnostics }, null, 2) + "\n");
+  console.error(`Outline product proof failed at ${activeStage}: ${sanitizeBrowserDiagnosticText(error.message)}`);
   console.error(diagnostics);
   throw error;
 } finally {
@@ -193,6 +223,7 @@ try {
     // The normal Windows launcher migrates npm dependencies into its private
     // runtime and links the checkout to them. Return that owned migration before
     // deleting the synthetic home, so later Product Gate steps retain npm tools.
+    try {
     const modules = path.resolve("node_modules");
     const metadata = await lstat(modules);
     if (process.platform === "win32" && metadata.isSymbolicLink()) {
@@ -203,10 +234,15 @@ try {
         await rename(target, modules);
       }
     }
-    await rm(temporary, { recursive: true, force: true });
+    } catch (error) { cleanupErrors.push(error); }
+    try { await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 250 }); }
+    catch (error) { cleanupErrors.push(error); }
     if (cleanupErrors.length) {
       if (!proofError) throw new AggregateError(cleanupErrors, "Product proof cleanup failed.");
       console.error("Product proof cleanup:", cleanupErrors.map((error) => sanitizeBrowserDiagnosticText(error.message)).join("; "));
     }
   }
 }
+
+}
+await runProof();

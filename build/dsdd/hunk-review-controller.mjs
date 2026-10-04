@@ -18,7 +18,7 @@ export function hunkAgentContext(notes) {
       || note.filePath.split("/").some(part => !part || part === "." || part === "..") || path.posix.isAbsolute(note.filePath)) throw new Error("Choose a relative reviewed file.");
     if (!Number.isSafeInteger(note.newLine) || note.newLine < 1 || note.newLine > 1_000_000 || typeof note.summary !== "string" || !note.summary.trim() || note.summary.length > 2000) throw new Error("Invalid review note anchor or summary.");
     const file = files.get(note.filePath) || { path: note.filePath, annotations: [] };
-    file.annotations.push({ newRange: [note.newLine, note.newLine], summary: note.summary, author: "PlotPickle agent" });
+    file.annotations.push({ newRange: [note.newLine, note.newLine], summary: note.summary, source: "agent", author: "PlotPickle agent" });
     files.set(note.filePath, file);
   }
   return { version: 1, summary: "Advisory review notes; no permission to apply or merge changes.", files: [...files.values()] };

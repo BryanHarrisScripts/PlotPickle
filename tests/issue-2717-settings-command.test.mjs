@@ -69,6 +69,7 @@ test("advisory agent notes use bounded relative anchors and an owned temporary s
   const sidecar = args[args.indexOf("-AgentContext") + 1];
   const loaded = JSON.parse(await readFile(sidecar, "utf8"));
   assert.equal(loaded.files[0].annotations[0].summary, note.summary);
+  assert.equal(loaded.files[0].annotations[0].source, "agent");
   assert.deepEqual(loaded.files[0].annotations[0].newRange, [17, 17]);
   assert.equal(review.repositoryMutation, false);
   await f.controller.cancel("owner", review.id);

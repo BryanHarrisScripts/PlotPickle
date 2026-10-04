@@ -103,7 +103,9 @@ try {
   const hunk = await controller.command();
   await waitFor(async () => {
     const result = await runPortableCommand(hunk, ["session", "comment", "list", "--repo", checkout, "--type", "agent", "--json"], { timeout: 5000 });
-    return result.stdout.includes("Synthetic advisory annotation 2717");
+    const notes = JSON.parse(result.stdout).comments;
+    return Array.isArray(notes) && notes.some(note => note.source === "agent" && note.filePath === "review.txt"
+      && note.newRange?.[0] === 1 && note.newRange?.[1] === 1 && note.body === "Synthetic advisory annotation 2717");
   }, "native inline agent annotation", 30_000);
   await assert.rejects(controller.cancel("other-profile", review.id));
   assert.equal((await controller.current("synthetic-owner")).state, "running");

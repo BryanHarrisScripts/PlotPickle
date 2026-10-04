@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   outline-proof:
-    name: Outline startup and authentication only
+    name: Outline recovery and cancellation only
     runs-on: windows-latest
     timeout-minutes: 18
     steps:
@@ -23,7 +23,7 @@ jobs:
       - name: Run only the selected second-proof stage
         shell: pwsh
         env:
-          PLOTPICKLE_OUTLINE_PROOF_STAGE: startup-auth
+          PLOTPICKLE_OUTLINE_PROOF_STAGE: all
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.sha }}
         run: node scripts/pi/durable/outline-product-proof.mjs
       - name: Upload bounded diagnostic evidence

@@ -15,8 +15,8 @@ test("#2667 Mind Map and World Map consume one shared surface/header family", as
   assert.match(shared, /data-story-development-family="mind-world"/u);
   assert.match(shared, /STORY_ACTS\.map\(\(act\)/u);
   assert.match(shared, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
-  assert.match(shared, /Back to Dashboard/u);
-  assert.match(shared, /pp-skin-v1-return/u);
+  assert.doesNotMatch(shared, /Back to Dashboard/u);
+  assert.doesNotMatch(shared, /pp-skin-v1-return/u);
   assert.match(mind, /surfaceId="mind-map"/u);
   assert.match(mind, /data-story-development-work-region="mind-map"/u);
   assert.match(world, /surfaceId="world-map"/u);
@@ -27,6 +27,7 @@ test("#2667 Mind Map and World Map consume one shared surface/header family", as
   assert.doesNotMatch(worldHost, /pp-skin-v1-bbs-banner/u);
   assert.match(mindHost, /onBackDashboard=/u);
   assert.match(worldHost, /onBackDashboard=/u);
+  assert.doesNotMatch(shared, /data-story-development-back="dashboard"/u);
 });
 
 test("#2667 canonical twelve-topic spine and safe Act shortcuts stay shared", async () => {

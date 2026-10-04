@@ -144,3 +144,24 @@
     max-width: none;
   }
 }
+
+
+.selectedReadiness :global(.pp-skin-v1-outline-readiness-grid) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card-row) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card[data-selected="true"]) {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card-minis li[data-selected="true"]),
+.focusedSlice :global(.pp-skin-v1-written-act-mini[data-selected="true"]) {
+  width: 100%;
+  max-width: none;
+}

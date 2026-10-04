@@ -16,7 +16,7 @@ export type SidecarSpec = Readonly<{
 }>;
 
 function isSidecarState(value: unknown): value is SidecarState {
-  return ["starting", "ready", "degraded", "unavailable", "failed", "stopped"].includes(String(value));
+  return ["waiting", "starting", "ready", "degraded", "unavailable", "failed", "stopped"].includes(String(value));
 }
 
 function normalizeEvidence(value: unknown): readonly SidecarEvidence[] {
@@ -33,7 +33,7 @@ export class LocalSidecarSupervisor {
   private readonly states = new Map<string, SidecarStatus>();
 
   status(id: string): SidecarStatus {
-    const status = this.states.get(id) ?? { id, state: "unavailable", evidence: [] };
+    const status = this.states.get(id) ?? { id, state: "waiting", evidence: [] };
     const pid = this.children.get(id)?.pid;
     return pid ? { ...status, pid } : status;
   }
@@ -45,7 +45,7 @@ export class LocalSidecarSupervisor {
   }
 
   start(spec: SidecarSpec): SidecarStatus {
-    if (spec.enabled === false) return this.status(spec.id);
+    if (spec.enabled === false) return this.mark(spec.id, "unavailable", [{ kind: "service-disabled", summary: "Registered service is disabled by runtime configuration.", observedAt: new Date().toISOString() }]);
     this.states.set(spec.id, { id: spec.id, state: "starting", evidence: [] });
     const child = spawn(spec.command, [...(spec.args ?? [])], {
       stdio: spec.ipc ? ["ignore", "ignore", "ignore", "ipc"] : "ignore",

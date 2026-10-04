@@ -250,10 +250,10 @@
       "name": "Pi coding agent",
       "category": "developer-tool",
       "usage": "developer-tool",
-      "version": "0.99.1",
+      "version": "1.0.1",
       "source": "https://www.npmjs.com/package/@earendil-works/pi-coding-agent",
       "license": "MIT",
-      "licenseSource": "https://github.com/earendil-works/pi/blob/v0.99.1/packages/coding-agent/package.json",
+      "licenseSource": "https://github.com/earendil-works/pi/blob/v1.0.1/packages/coding-agent/package.json",
       "manifestPath": "config/developer-agent-stack.json",
       "plotpickleUse": "PlotPickle-managed external developer/repair runtime; exact live version is owned by the managed Pi installer and developer-agent stack, not the project extension-development lock snapshot.",
       "readme": true

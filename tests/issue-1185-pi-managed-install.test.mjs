@@ -20,15 +20,15 @@ test("#1185 managed Windows Pi lives under LOCALAPPDATA rather than the locked g
   const root = managedPiRoot({ platform: "win32", env });
   const command = managedPiCommand({ platform: "win32", env, root });
   assert.equal(root, "C:\\Users\\Test Writer\\AppData\\Local\\PlotPickle\\developer-agent\\pi-cli");
-  assert.equal(command, `${root}\\pi.cmd`);
+  assert.equal(command, `${root}\\node_modules\\.bin\\pi.cmd`);
   assert.equal(command.toLowerCase().includes("appdata\\roaming\\npm"), false);
 });
 
-test("#1551 developer-agent metadata stays aligned with the authoritative managed Pi 0.99.1 pin", async () => {
+test("#1551 developer-agent metadata stays aligned with the authoritative managed Pi 1.0.1 pin", async () => {
   const stack = JSON.parse(await read("config/developer-agent-stack.json"));
   const pi = stack.requiredAgents.find((agent) => agent.id === "pi");
   assert.equal(stack.piRuntime.managedVersion, PLOTPICKLE_MANAGED_PI_VERSION);
-  assert.equal(pi?.installCommand, `npm install -g --ignore-scripts ${PLOTPICKLE_MANAGED_PI_PACKAGE}`);
+  assert.equal(pi?.installCommand, "node scripts/ensure-pi-cli.mjs");
 });
 
 test("#1185 managed installer uses the active Windows npm.cmd and a private prefix without --force or PATH mutation", async () => {
@@ -41,7 +41,7 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
   const calls = [];
   const runPortableCommand = async (cmd, args) => {
     calls.push([cmd, ...args]);
-    if (args[0] === "install") {
+    if (args[0] === "ci") {
       existing.add(command.toLowerCase());
       return { stdout: "installed", stderr: "" };
     }
@@ -56,16 +56,18 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
     existsSync: (candidate) => existing.has(String(candidate).toLowerCase()),
     commandOnPath: () => { throw new Error("PATH lookup must not be required when npm.cmd is beside node.exe"); },
     runPortableCommand,
+    mkdir: async () => {},
+    writeFile: async () => {},
   });
   assert.equal(result.ready, true);
   assert.equal(result.command, command);
-  assert.equal(result.version, "0.99.1");
+  assert.equal(result.version, "1.0.1");
   assert.equal(result.installed, true);
-  const install = calls.find((entry) => entry[1] === "install");
+  const install = calls.find((entry) => entry[1] === "ci");
   assert.ok(install);
   assert.equal(install[0], npmCommand);
-  assert.deepEqual(install.slice(1, 6), ["install", "-g", "--prefix", root, "--ignore-scripts"]);
-  assert.equal(install.at(-1), PLOTPICKLE_MANAGED_PI_PACKAGE);
+  assert.deepEqual(install.slice(1), ["ci", "--prefix", root, "--ignore-scripts", "--no-audit", "--no-fund"]);
+  assert.equal(install.includes("-g"), false);
   assert.equal(install.includes("--force"), false);
 });
 
@@ -77,16 +79,16 @@ test("#1185 existing managed Pi validates without reinstalling only when it matc
     platform: "win32",
     env,
     existsSync: (candidate) => candidate === command,
-    runPortableCommand: async () => { calls += 1; return { stdout: "pi 0.99.1", stderr: "" }; },
+    runPortableCommand: async () => { calls += 1; return { stdout: "pi 1.0.1", stderr: "" }; },
   });
   assert.equal(result.ready, true);
   assert.equal(result.command, command);
-  assert.equal(result.version, "0.99.1");
-  assert.equal(result.expectedVersion, "0.99.1");
+  assert.equal(result.version, "1.0.1");
+  assert.equal(result.expectedVersion, "1.0.1");
   assert.equal(calls, 1);
 });
 
-test("#1551 stale managed Pi is upgraded to the pinned 0.99.1 package rather than accepted", async () => {
+test("#1551 stale managed Pi is upgraded to the pinned 1.0.1 package rather than accepted", async () => {
   const env = { LOCALAPPDATA: "C:\\Users\\Test Writer\\AppData\\Local" };
   const root = managedPiRoot({ platform: "win32", env });
   const command = managedPiCommand({ platform: "win32", env, root });
@@ -101,19 +103,21 @@ test("#1551 stale managed Pi is upgraded to the pinned 0.99.1 package rather tha
     nodeVersion: "22.19.0",
     npmCommand,
     existsSync: (candidate) => candidate === command || candidate === npmCommand,
+    mkdir: async () => {},
+    writeFile: async () => {},
     runPortableCommand: async (cmd, args) => {
       calls.push([cmd, ...args]);
-      if (args[0] === "install") {
+      if (args[0] === "ci") {
         installed = true;
         return { stdout: "installed", stderr: "" };
       }
-      return { stdout: installed ? "0.99.1" : "0.83.0", stderr: "" };
+      return { stdout: installed ? "1.0.1" : "0.83.0", stderr: "" };
     },
   });
   assert.equal(result.ready, true);
-  assert.equal(result.version, "0.99.1");
+  assert.equal(result.version, "1.0.1");
   assert.equal(result.installed, true);
-  assert.ok(calls.some((entry) => entry.at(-1) === PLOTPICKLE_MANAGED_PI_PACKAGE));
+  assert.ok(calls.some((entry) => entry[1] === "ci"));
 });
 
 test("#1185 wrong managed Pi version fails closed when installation is disabled", async () => {
@@ -126,7 +130,7 @@ test("#1185 wrong managed Pi version fails closed when installation is disabled"
     allowInstall: false,
     existsSync: (candidate) => candidate === command,
     runPortableCommand: async () => ({ stdout: "0.83.0", stderr: "" }),
-  }), /Expected 0\.99\.1; found 0\.83\.0/u);
+  }), /Expected 1\.0\.1; found 0\.83\.0/u);
 });
 
 test("#1185 startup health provisions managed Pi when worker preflight says unavailable and exports the absolute command", async () => {
@@ -145,9 +149,9 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   const batch = await read("scripts/windows-batch-command.mjs");
   const combined = `${managed}\n${ensure}\n${runtime}`;
   assert.match(ensure, /ensureManagedPiInstalled/);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.99\.1"/u);
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.0\.1"/u);
   assert.match(managed, /resolveActiveNpmCommand/);
-  assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
+  assert.match(managed, /"ci",\s*\n\s*"--prefix", root/);
   assert.match(runtime, /windowsBatchInvocation/);
   assert.match(runtime, /windowsBatchWrapper\(command\)/);
   assert.doesNotMatch(runtime, /process\.env\.ComSpec/);

@@ -5,7 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-fframes = { version = "=1.1.0", features = ["cli"] }
+fframes = { version = "=1.2.0", features = ["cli"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

@@ -9,8 +9,9 @@ import { fileURLToPath } from "node:url";
 import { resolveActiveNpmCommand, runPortableCommand } from "./pi-worker-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const contractPath = path.join(repoRoot, "config", "pi-099-compatibility.json");
-const artifactDir = path.join(repoRoot, ".artifacts", "pi-2590");
+const contractPath = path.resolve(repoRoot, process.env.PLOTPICKLE_PI_COMPATIBILITY_CONTRACT || "config/pi-099-compatibility.json");
+const evaluationContract = JSON.parse(await readFile(contractPath, "utf8"));
+const artifactDir = path.join(repoRoot, ".artifacts", `pi-${evaluationContract.issue}`);
 const artifactPath = path.join(artifactDir, "evaluation.json");
 const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".ps1"]);
 const SKIP_DIRECTORIES = new Set([".git", ".next", ".artifacts", "node_modules", "docs", "tests", "config", ".github"]);
@@ -84,7 +85,7 @@ const loader = new DefaultResourceLoader({
 await loader.reload();
 const result = loader.getExtensions();
 if (result.errors.length) {
-  throw new Error("Pi 0.99.1 extension load errors: " + JSON.stringify(
+  throw new Error("Pi candidate extension load errors: " + JSON.stringify(
     result.errors.map((item) => ({ path: item.path, error: String(item.error) }))
   ));
 }
@@ -105,7 +106,7 @@ const dsdd = result.extensions.find((extension) =>
 );
 if (!dsdd) throw new Error("PlotPickle DSDD context_with_system probe extension did not load.");
 if ((dsdd.handlers?.get?.("context_with_system")?.length || 0) < 1) {
-  throw new Error("Pi 0.99.1 did not register the context_with_system extension event.");
+  throw new Error("Pi candidate did not register the context_with_system extension event.");
 }
 process.stdout.write(JSON.stringify({ loaded: true, packages, contextWithSystem: true }));
 `;
@@ -138,12 +139,12 @@ const targetId = session.appendMessage({
 });
 const before = session.getEntry(targetId);
 if (!before || before.type !== "message" || before.message.content !== original) {
-  throw new Error("Pi 0.99.1 failed to preserve the original Human message before context editing.");
+  throw new Error("Pi candidate failed to preserve the original Human message before context editing.");
 }
 const editId = session.appendContextEdit(targetId, { content: projected });
 const edit = session.getEntry(editId);
 if (!edit || edit.type !== "context_edit" || edit.targetId !== targetId) {
-  throw new Error("Pi 0.99.1 did not append a ContextEditEntry.");
+  throw new Error("Pi candidate did not append a ContextEditEntry.");
 }
 const raw = session.getEntry(targetId);
 if (!raw || raw.type !== "message" || raw.message.content !== original) {
@@ -152,7 +153,7 @@ if (!raw || raw.type !== "message" || raw.message.content !== original) {
 const projection = session.buildSessionProjection();
 const visible = projection.messages.find((message) => message.role === "user");
 if (!visible || visible.content !== projected) {
-  throw new Error("Pi 0.99.1 model-visible projection did not apply the ContextEditEntry.");
+  throw new Error("Pi candidate model-visible projection did not apply the ContextEditEntry.");
 }
 const entries = session.getEntries();
 if (!entries.some((entry) => entry.type === "context_edit" && entry.targetId === targetId)) {
@@ -216,7 +217,7 @@ async function runRpcProbe(candidateRoot) {
       else resolve(value);
     };
     const timer = setTimeout(
-      () => finish(new Error(`Pi 0.99.1 stdio RPC probe timed out. stderr=${stderr.slice(-1000)}`), undefined, "timeout"),
+      () => finish(new Error(`Pi candidate stdio RPC probe timed out. stderr=${stderr.slice(-1000)}`), undefined, "timeout"),
       20_000,
     );
     child.stderr.setEncoding("utf8");
@@ -230,7 +231,7 @@ async function runRpcProbe(candidateRoot) {
         try {
           const message = JSON.parse(trimmed);
           if (message.id === "plotpickle-2590-rpc" && message.type === "response") {
-            if (message.success === false) finish(new Error(`Pi 0.99.1 RPC get_state failed: ${trimmed}`), undefined, "rpc-error");
+            if (message.success === false) finish(new Error(`Pi candidate RPC get_state failed: ${trimmed}`), undefined, "rpc-error");
             else finish(null, { ready: true, command: message.command || "get_state" }, "rpc-success");
             return;
           }
@@ -244,7 +245,7 @@ async function runRpcProbe(candidateRoot) {
     child.on("close", (code) => {
       if (!settled) {
         finish(new Error(
-          `Pi 0.99.1 RPC process exited before get_state response (code ${code}). stderr=${stderr.slice(-1000)}`,
+          `Pi candidate RPC process exited before get_state response (code ${code}). stderr=${stderr.slice(-1000)}`,
         ), undefined, "early-exit");
       }
     });
@@ -256,7 +257,7 @@ async function main() {
   const contract = JSON.parse(await readFile(contractPath, "utf8"));
   const report = {
     schemaVersion: 1,
-    issue: 2590,
+    issue: contract.issue,
     status: "failed",
     candidateVersion: contract.candidateVersion,
     currentManagedVersion: contract.currentManagedVersion,
@@ -284,9 +285,16 @@ async function main() {
       "utf8",
     );
 
+    if (contract.candidateVersion === "1.0.1") {
+      for (const file of ["package.json", "package-lock.json"]) {
+        await writeFile(path.join(candidateRoot, file), await readFile(path.join(repoRoot, ".pi/npm", file)));
+      }
+    }
     await runPortableCommand(
       resolveActiveNpmCommand(),
-      ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact"],
+      contract.candidateVersion === "1.0.1"
+        ? ["ci", "--ignore-scripts", "--no-audit", "--no-fund"]
+        : ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact"],
       { cwd: candidateRoot, timeout: 12 * 60_000 },
     );
     report.checks.install = {
@@ -302,7 +310,7 @@ async function main() {
       timeout: 20_000,
     });
     if (!String(version.stdout || version.stderr).includes(contract.candidateVersion)) {
-      throw new Error(`Pi 0.99.1 candidate version mismatch: ${version.stdout || version.stderr || "<empty>"}`);
+      throw new Error(`Pi candidate candidate version mismatch: ${version.stdout || version.stderr || "<empty>"}`);
     }
     report.checks.version = {
       passed: true,

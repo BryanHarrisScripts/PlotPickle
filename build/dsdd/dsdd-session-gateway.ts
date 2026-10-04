@@ -17,6 +17,7 @@ import {
 } from "../../lib/verification/conversational-uat/referee.mjs";
 
 const API = "/api/dsdd/session";
+const COMMAND_API = "/api/dsdd/command";
 const OBJECT_ID = "dsdd-engineering-session-v1";
 const MAX_BODY = 128 * 1024;
 
@@ -213,7 +214,7 @@ type DsddIntent = {
 type DsddSession = {
   schemaVersion: 1;
   sessionId: string;
-  piVersion: "0.99.1";
+  piVersion: "1.0.1";
   piSessionId: string;
   piSessionFile: string;
   createdAt: string;
@@ -222,7 +223,7 @@ type DsddSession = {
   intents: DsddIntent[];
 };
 
-function acceptsDsddLoopbackRequest(request: IncomingMessage, expectedApi = API) {
+export function acceptsDsddLoopbackRequest(request: IncomingMessage, expectedApi = API) {
   const remote = request.socket.remoteAddress;
   if (remote !== "127.0.0.1" && remote !== "::1" && remote !== "::ffff:127.0.0.1") return false;
   if ((request.url?.split("?", 1)[0] || "") !== expectedApi) return false;
@@ -246,7 +247,7 @@ function replyDsdd(response: ServerResponse, payload: { status: number; body: Re
   response.end(JSON.stringify(payload.body));
 }
 
-async function readDsddRequestBody(request: IncomingMessage, maximum = MAX_BODY) {
+export async function readDsddRequestBody(request: IncomingMessage, maximum = MAX_BODY) {
   const chunks: Buffer[] = [];
   let bytes = 0;
   for await (const rawChunk of request) {
@@ -287,7 +288,7 @@ function emptySession(): DsddSession {
   return {
     schemaVersion: 1,
     sessionId: randomUUID(),
-    piVersion: "0.99.1",
+    piVersion: "1.0.1",
     piSessionId: "",
     piSessionFile: "",
     createdAt: now,
@@ -304,7 +305,7 @@ function normalizeSession(value: unknown): DsddSession {
   return {
     schemaVersion: 1,
     sessionId: source.sessionId,
-    piVersion: "0.99.1",
+    piVersion: "1.0.1",
     piSessionId: typeof source.piSessionId === "string" ? source.piSessionId : "",
     piSessionFile: typeof source.piSessionFile === "string" ? source.piSessionFile : "",
     createdAt: typeof source.createdAt === "string" ? source.createdAt : new Date().toISOString(),
@@ -323,7 +324,9 @@ async function load() {
     domain: "memory",
     objectId: OBJECT_ID,
   });
-  return { context, session: normalizeSession(stored) };
+  const session = normalizeSession(stored);
+  if (!stored) await save(context, session);
+  return { context, session };
 }
 
 async function save(context: DsddProfileContext, session: DsddSession) {
@@ -778,7 +781,8 @@ async function recordEvidence(body: Record<string, unknown>) {
 
 async function handle(request: IncomingMessage, response: ServerResponse) {
   if (request.method === "GET") {
-    const [{ session }, { uat }] = await Promise.all([load(), loadConversationalUat()]);
+    const { session } = await load();
+    const uat = dsddRuntimeEnabled() ? (await loadConversationalUat()).uat : null;
     replyDsdd(response, { status: 200, body: { ok: true, session, uat } });
     return;
   }
@@ -788,6 +792,10 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
   }
   const body = await readDsddRequestBody(request);
   const action = text(body.action, 80);
+  if (!dsddRuntimeEnabled() && ["observe-journey", "validate-finding"].includes(action)) {
+    replyDsdd(response, { status: 403, body: { ok: false, message: "Conversational UAT actions require Conversational UAT startup mode." } });
+    return;
+  }
   if (action === "append-human") {
     replyDsdd(response, { status: 200, body: { ok: true, ...(await appendHuman(body)) } });
     return;
@@ -826,15 +834,15 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
 export function registerDsddSessionGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
-    if (pathname !== API) { next(); return; }
-    if (!dsddRuntimeEnabled()) {
+    if (pathname !== API && pathname !== COMMAND_API) { next(); return; }
+    if (pathname === API && !dsddRuntimeEnabled()) {
       replyDsdd(response, {
         status: 403,
         body: { ok: false, message: "DSDD engineering sessions require PlotPickle Conversational UAT startup mode." },
       });
       return;
     }
-    if (!acceptsDsddLoopbackRequest(request)) {
+    if (!acceptsDsddLoopbackRequest(request, pathname)) {
       replyDsdd(response, {
         status: 403,
         body: { ok: false, message: "DSDD engineering sessions are available only from this local PlotPickle application." },

@@ -880,7 +880,9 @@
           "tests/issue-2591-pi-native-mcp.test.mjs",
           "tests/issue-2592-pi-codemode-evidence.test.mjs",
           "tests/issue-2593-pi-virtual-routing.test.mjs",
-          "tests/issue-2594-governed-development-delivery.test.mjs"
+          "tests/issue-2594-governed-development-delivery.test.mjs",
+          "tests/issue-2717-settings-command.test.mjs",
+          "tests/issue-2717-command-gateway.test.mjs"
         ]
       },
       "cost": "fast",

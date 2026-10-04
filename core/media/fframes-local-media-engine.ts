@@ -13,7 +13,7 @@ import type {
 } from "./media-engine-contract";
 
 const ENGINE_ID = "fframes-local";
-const ENGINE_VERSION = "fframes-1.1.0/plotpickle-bridge-0.1.0";
+const ENGINE_VERSION = "fframes-1.2.0/plotpickle-bridge-0.1.0";
 const DEFAULT_TIMEOUT_MS = 120_000;
 const MAX_CAPTURE_CHARS = 16_384;
 

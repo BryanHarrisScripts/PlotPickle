@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { existsSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -13,7 +13,7 @@ import {
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
-export const PLOTPICKLE_MANAGED_PI_VERSION = "0.99.1";
+export const PLOTPICKLE_MANAGED_PI_VERSION = "1.0.1";
 export const PLOTPICKLE_MANAGED_PI_PACKAGE = `${PI_CODING_AGENT_PACKAGE}@${PLOTPICKLE_MANAGED_PI_VERSION}`;
 
 function normalizedPiVersion(value) {
@@ -33,8 +33,8 @@ export function managedPiCommand({ platform = process.platform, env = process.en
   const pathApi = platform === "win32" ? path.win32 : path.posix;
   const toolRoot = root || managedPiRoot({ platform, env });
   return platform === "win32"
-    ? pathApi.join(toolRoot, "pi.cmd")
-    : pathApi.join(toolRoot, "bin", "pi");
+    ? pathApi.join(toolRoot, "node_modules", ".bin", "pi.cmd")
+    : pathApi.join(toolRoot, "node_modules", ".bin", "pi");
 }
 
 export async function probeManagedPi(options = {}) {
@@ -94,7 +94,7 @@ export async function ensureManagedPiInstalled(options = {}) {
   const run = options.runPortableCommand || runPortableCommand;
   const root = options.root || managedPiRoot({ platform, env });
   const expectedVersion = options.expectedVersion || PLOTPICKLE_MANAGED_PI_VERSION;
-  const packageSpec = options.packageSpec || `${PI_CODING_AGENT_PACKAGE}@${expectedVersion}`;
+  const packageSpec = `${PI_CODING_AGENT_PACKAGE}@${expectedVersion}`;
   const fileExists = options.existsSync || existsSync;
   if (!versionAtLeast(options.nodeVersion || process.versions.node, PI_MINIMUM_NODE_VERSION)) {
     throw new Error(`Pi requires Node.js ${PI_MINIMUM_NODE_VERSION} or newer for PlotPickle. Found ${options.nodeVersion || process.versions.node}.`);
@@ -116,7 +116,7 @@ export async function ensureManagedPiInstalled(options = {}) {
     throw new Error(`PlotPickle-managed Pi ${expectedVersion} is not ready and automatic installation is disabled.${mismatch}`);
   }
 
-  await mkdir(root, { recursive: true, mode: 0o700 });
+  await (options.mkdir || mkdir)(root, { recursive: true, mode: 0o700 });
   options.onStatus?.("INSTALLING", `${packageSpec} in PlotPickle's private developer-tool directory`);
 
   const npmCommand = options.npmCommand || resolveActiveNpmCommand({
@@ -126,14 +126,26 @@ export async function ensureManagedPiInstalled(options = {}) {
     commandOnPath: options.commandOnPath,
   });
 
-  // npm's global mode with an explicit private prefix places the Windows wrapper
-  // directly at <prefix>\pi.cmd without touching %APPDATA%\npm or the user's PATH.
+  // Pi 1.0 removed its published shrinkwrap. Consume the reviewed repository
+  // lock in the private directory; never resolve a new dependency graph at startup.
+  const load = options.readFile || readFile;
+  const save = options.writeFile || writeFile;
+  const manifest = await load(new URL("../.pi/managed/package.json", import.meta.url), "utf8");
+  const lock = await load(new URL("../.pi/managed/package-lock.json", import.meta.url), "utf8");
+  const declared = JSON.parse(manifest);
+  const locked = JSON.parse(lock);
+  if (declared.dependencies?.[PI_CODING_AGENT_PACKAGE] !== expectedVersion
+    || locked.packages?.["node_modules/@earendil-works/pi-coding-agent"]?.version !== expectedVersion) {
+    throw new Error(`Managed Pi lock must match exactly ${expectedVersion}.`);
+  }
+  await save(path.join(root, "package.json"), manifest, "utf8");
+  await save(path.join(root, "package-lock.json"), lock, "utf8");
   await run(npmCommand, [
-    "install",
-    "-g",
+    "ci",
     "--prefix", root,
     "--ignore-scripts",
-    packageSpec,
+    "--no-audit",
+    "--no-fund",
   ], {
     timeout: 15 * 60_000,
     env,

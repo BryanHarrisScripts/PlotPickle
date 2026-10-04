@@ -33,6 +33,7 @@ import { registerVerificationInboxGateway } from "./verification-inbox-gateway";
 import { registerStoryDecisionGateway } from "./story-decisions/gateway";
 import { registerStoryModePolicyGateway } from "./story-mode-policy-gateway";
 import { registerLocalVoiceGateway } from "./voice/local-voice-gateway";
+import { registerHunkReviewGateway } from "./dsdd/hunk-review-gateway";
 import { registerDsddSessionGateway } from "./dsdd/dsdd-session-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
@@ -57,7 +58,7 @@ function registerSingleImageBoundary(server: ViteDevServer) {
 export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
-    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server); registerLocalVoiceGateway(server); registerDsddSessionGateway(server);
+    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server); registerLocalVoiceGateway(server); registerDsddSessionGateway(server); registerHunkReviewGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerStoryDecisionGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAutonomousGuestRoutingStatus(server); registerStoryModePolicyGateway(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);

@@ -18,7 +18,7 @@ test("#1119 self-provisions the reviewed official Pi CLI without depending on a 
   ]);
   assert.match(runtime, /PI_CODING_AGENT_PACKAGE\s*=\s*"@earendil-works\/pi-coding-agent"/);
   assert.match(managed, /resolveActiveNpmCommand/);
-  assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
+  assert.match(managed, /"ci",\s*\n\s*"--prefix", root/);
   assert.match(runtime, /portableCommandSync\(resolveActiveNpmCommand\(\), \["prefix", "-g"\]\)/);
   assert.match(runtime, /pi\.cmd/);
   assert.match(managed, /PLOTPICKLE_PI_AUTO_INSTALL/);

@@ -28,7 +28,8 @@
         "app/resonance/page.tsx",
         "app/screenplay-readiness/page.tsx",
         "app/afterglow-reconciliation/page.tsx",
-        "app/ai-routing/page.tsx"
+        "app/ai-routing/page.tsx",
+        "app/_components/settings/**"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [
@@ -341,7 +342,13 @@
         "lib/agents/pi-developer-routing.mjs",
         "config/development-delivery-policy.json",
         "lib/agents/governed-development-delivery.mjs",
-        "scripts/pi-version.mjs"
+        "scripts/pi-version.mjs",
+        ".pi/managed/**",
+        "config/pi-101-compatibility.json",
+        "scripts/pi/hunk-review-terminal.ps1",
+        "scripts/settings-command-product-proof.mjs",
+        "scripts/fframes-product-proof.mjs",
+        "tools/hunk-review/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -851,9 +858,22 @@
     {
       "id": "outline-task-controller",
       "classification": "production",
-      "include": ["build/local-profile-auth-gateway.ts", "build/projects/outline-task-controller.ts", "build/projects/outline-task-gateway.ts", "build/projects/outline-task-http.ts", "app/api/outline/tasks/route.ts", "modules/plan/assessments/outline-task-browser.ts"],
+      "include": [
+        "build/local-profile-auth-gateway.ts",
+        "build/projects/outline-task-controller.ts",
+        "build/projects/outline-task-gateway.ts",
+        "build/projects/outline-task-http.ts",
+        "app/api/outline/tasks/route.ts",
+        "modules/plan/assessments/outline-task-browser.ts"
+      ],
       "ownerLayer": "story-canon",
-      "riskTokens": ["canon", "agent", "provider", "security", "storage"]
+      "riskTokens": [
+        "canon",
+        "agent",
+        "provider",
+        "security",
+        "storage"
+      ]
     },
     {
       "id": "afterglow-golden-story-fixture",

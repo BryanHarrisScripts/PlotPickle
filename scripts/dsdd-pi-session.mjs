@@ -43,7 +43,7 @@ function assistantMessage(text) {
 async function main() {
   const input = await readStdin();
   const managed = await ensureManagedPiInstalled({ allowInstall: input.allowInstall !== false });
-  if (managed.version !== "0.99.1") throw new Error(`DSDD persistent sessions require Pi 0.99.1; resolved ${managed.version || "unknown"}.`);
+  if (managed.version !== "1.0.1") throw new Error(`DSDD persistent sessions require Pi 1.0.1; resolved ${managed.version || "unknown"}.`);
   const { SessionManager } = await piModule(managed.root);
   await mkdir(path.resolve(input.sessionDir), { recursive: true });
   const session = openSession(SessionManager, input);

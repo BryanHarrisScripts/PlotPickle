@@ -388,3 +388,13 @@
     display: none;
   }
 }
+
+.embedded {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  width: 100%;
+  min-height: 680px;
+  grid-template-rows: auto auto minmax(200px, 1fr) auto auto;
+  box-shadow: none;
+}

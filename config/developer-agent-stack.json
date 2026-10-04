@@ -14,7 +14,7 @@
       "id": "pi",
       "label": "Pi",
       "role": "primary-or-reviewer",
-      "installCommand": "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.99.1",
+      "installCommand": "node scripts/ensure-pi-cli.mjs",
       "projectSettings": ".pi/settings.json"
     },
     {
@@ -37,7 +37,7 @@
   ],
   "piRuntime": {
     "requiredForFullVerification": true,
-    "managedVersion": "0.99.1",
+    "managedVersion": "1.0.1",
     "managedExecutablePolicy": "full-verification-managed-only",
     "autoProvisionMissingCli": true,
     "ensureCommand": "scripts/ensure-pi-repair-stack.mjs",

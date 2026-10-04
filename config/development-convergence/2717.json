@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "issue": 2717,
+  "phase": "settings-command-and-reviewed-runtime-upgrades",
+  "brief": "docs/developer-briefs/2717-settings-command.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    ".pi/managed/",
+    ".pi/npm/package-lock.json",
+    ".pi/npm/package.json",
+    "app/_components/settings/",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/global-dsdd-conversation.module.css",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/dsdd/dsdd-pi-session.ts",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "build/dsdd/hunk-review-controller.mjs",
+    "build/dsdd/hunk-review-gateway.ts",
+    "build/local-ai-gateway.ts",
+    "config/developer-agent-stack.json",
+    "config/development-convergence/2717.json",
+    "config/pi-101-compatibility.json",
+    "config/skin-v1-surface-registry.json",
+    "config/third-party-oss.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/media/fframes-local-media-engine.ts",
+    "docs/developer-briefs/2717-settings-command.md",
+    "docs/fframes-adoption-decision.md",
+    "docs/fframes-local-adapter.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "lib/verification/webmcp-surface-visual-audit.mjs",
+    "scripts/dsdd-pi-session.mjs",
+    "scripts/ensure-pi-cli.mjs",
+    "scripts/evaluate-pi-099-compatibility.mjs",
+    "scripts/fframes-product-proof.mjs",
+    "scripts/pi-managed-install.mjs",
+    "scripts/pi/hunk-review-terminal.ps1",
+    "scripts/settings-command-product-proof.mjs",
+    "scripts/setup-developer-agent-stack.ps1",
+    "tests/issue-1119-pi-required-worker.test.mjs",
+    "tests/issue-1185-pi-managed-install.test.mjs",
+    "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+    "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+    "tests/issue-2590-pi-099-compatibility.test.mjs",
+    "tests/issue-2663-fframes-media-engine.test.mjs",
+    "tests/issue-2717-command-gateway.test.mjs",
+    "tests/issue-2717-settings-command.test.mjs",
+    "tests/issue-641-developer-agent-stack.test.mjs",
+    "tools/fframes-bridge/Cargo.lock",
+    "tools/fframes-bridge/Cargo.toml",
+    "tools/fframes-bridge/src/main.rs",
+    "tools/hunk-review/"
+  ],
+  "acceptance": [
+    {
+      "id": "P1",
+      "criterion": "The live managed Pi pin and reviewed private installation lock agree on 1.0.1; startup consumes npm ci without global installation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi-managed-install.mjs",
+          "contains": "\"ci\","
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "criterion": "Windows compatibility consumes the reviewed extension lock and validates SDK, session/context, extensions and RPC.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-099-compatibility.mjs",
+          "contains": "path.join(repoRoot, \".pi/npm\", file)"
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "criterion": "Command is a Settings child and shares the protected persistent DSDD owner.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+          "contains": "<GlobalDsddConversation embedded />"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Normal Command mode rejects conversational UAT mutation actions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "[\"observe-journey\", \"validate-finding\"].includes(action)"
+        }
+      ]
+    },
+    {
+      "id": "H1",
+      "criterion": "The native review host retains process identity, per-profile ownership, bounded advisory annotations and no source/merge authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2717-settings-command.test.mjs",
+          "contains": "advisory agent notes use bounded relative anchors"
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "criterion": "The host uses existing profile cookie/CSRF protection before any native tool operation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2717-command-gateway.test.mjs",
+          "contains": "auth failures and UAT actions cannot launch tools"
+        }
+      ]
+    },
+    {
+      "id": "W1",
+      "criterion": "Windows independently observes rendered Settings Command, unchanged project, inference-free discovery, actual native Hunk annotations and cancellation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/settings-command-product-proof.mjs",
+          "contains": "\"native inline agent annotation\""
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "criterion": "FFrames is pinned and locked with a deterministic software encoder; optional startup installation remains disabled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tools/fframes-bridge/src/main.rs",
+          "contains": "preferred_encoder: Some(\"mpeg4\")"
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "criterion": "Native Windows proof decodes every ordered frame including the final frame and verifies exact duration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/fframes-product-proof.mjs",
+          "contains": "for (let frame = 0; frame < 36; frame++)"
+        }
+      ]
+    },
+    {
+      "id": "G1",
+      "criterion": "The exact-head Windows gate runs the Command proof and locked FFrames compilation without a new ordinary workflow.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "cargo +1.99.0 build --release --locked"
+        }
+      ]
+    }
+  ]
+}

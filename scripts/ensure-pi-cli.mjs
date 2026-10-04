@@ -4,7 +4,7 @@ import process from "node:process";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 
 async function main() {
-  const pi = await ensureManagedPiInstalled();
+  const pi = await ensureManagedPiInstalled({ allowInstall: !process.argv.includes("--verify-only") });
   process.stdout.write(`${JSON.stringify({
     ready: true,
     command: pi.command,

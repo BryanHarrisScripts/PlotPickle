@@ -2306,6 +2306,38 @@
       "ownsInlineSurfaces": [
         "story-map"
       ]
+    },
+    {
+      "id": "command",
+      "label": "Command",
+      "family": "settings",
+      "parent": "settings",
+      "surfaceClass": "nested",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 9,
+          "slug": "command",
+          "label": "Command"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "section[aria-label='Command'][data-settings-command='true']",
+      "runtimeReadySelector": "section[aria-label='Command'] [data-command-review-state]",
+      "orchestrated": true
     }
   ],
   "navigationIdentity": {

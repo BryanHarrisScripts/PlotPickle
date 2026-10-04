@@ -48,6 +48,7 @@ try {
   const project = normalizeLibraryProject({ id: "synthetic-command-2717", title: "Synthetic Command Continuity" });
   await api("/api/auth/profile-private", { action: "save-project", project, activate: true });
   const original = await api("/api/auth/profile-private");
+  assert.equal(original.project.id, project.id);
   const firstSession = (await api("/api/dsdd/command")).session;
   assert.equal(firstSession.conversation.length, 0);
   assert.equal((await fetch(base + "/api/dsdd/review", { method: "POST", headers: { ...headers, "X-PlotPickle-CSRF": "" }, body: JSON.stringify({ action: "start", target: { kind: "working-tree" } }) })).status, 401);
@@ -100,7 +101,7 @@ try {
   assert.equal(review.agentNotes, 1);
   const hunk = await controller.command();
   await waitFor(async () => {
-    const result = await runPortableCommand(hunk, ["session", "comment", "list", "--repo", checkout, "--json"], { timeout: 5000 });
+    const result = await runPortableCommand(hunk, ["session", "comment", "list", "--repo", checkout, "--type", "agent", "--json"], { timeout: 5000 });
     return result.stdout.includes("Synthetic advisory annotation 2717");
   }, "native inline agent annotation", 30_000);
   await assert.rejects(controller.cancel("other-profile", review.id));

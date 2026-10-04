@@ -27,6 +27,8 @@ export default function StoryDevelopmentSurfaceHeader({
   readonly actChoiceDataAttribute: ChoiceDataAttribute;
 }) {
   const accessibilityLabel = surfaceId === "mind-map" ? "MindMap" : "World Map";
+  void title;
+  void onBackDashboard;
 
   function handleTopicKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -47,19 +49,6 @@ export default function StoryDevelopmentSurfaceHeader({
       data-story-development-surface={surfaceId}
       data-story-development-header-density="compact"
     >
-      <div className={styles.identityRow}>
-        <h1>{title}</h1>
-        <button
-          autoFocus
-          type="button"
-          className={`${styles.backButton} pp-skin-v1-return`}
-          data-story-development-back="dashboard"
-          onClick={onBackDashboard}
-        >
-          Back to Dashboard
-        </button>
-      </div>
-
       <nav className={styles.actRail} aria-label={`${accessibilityLabel} acts`} data-story-development-act-rail="shared">
         {STORY_ACTS.map((act) => {
           const choiceData = { [actChoiceDataAttribute]: act };

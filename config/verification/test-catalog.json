@@ -2059,6 +2059,8 @@
         "targets": [
           "tests/issue-2711-outline-durable-input.test.mjs",
           "tests/issue-2711-outline-task-controller.test.mjs",
+          "tests/issue-2711-outline-task-gateway.test.mjs",
+          "tests/issue-2711-outline-local-auth.test.mjs",
           "tests/issue-outline-agent-assessment.test.mjs",
           "tests/issue-2440-story-architect-structured-execution.test.mjs"
         ]

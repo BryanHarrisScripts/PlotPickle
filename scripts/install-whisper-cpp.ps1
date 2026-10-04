@@ -16,7 +16,16 @@ function Get-PlotPickleHome {
 }
 
 function Get-Sha256([string]$Path) {
-  return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash.ToLowerInvariant()
+  # Nested Windows PowerShell may inherit PowerShell Core's module search path.
+  # Use the platform crypto API so checksum verification needs no utility module.
+  $stream = [IO.File]::OpenRead($Path)
+  $sha256 = [Security.Cryptography.SHA256]::Create()
+  try {
+    return [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace("-", "").ToLowerInvariant()
+  } finally {
+    $sha256.Dispose()
+    $stream.Dispose()
+  }
 }
 
 function Assert-Hash([string]$Path, [string]$Expected, [string]$Label) {

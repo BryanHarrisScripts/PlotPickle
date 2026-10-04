@@ -370,6 +370,18 @@ export function mastraModelConfig(profile: ProviderProfile) {
   } as const;
 }
 
+/** Upper reservation for the bounded Story Architect request and one retry.
+ * Six-byte JSON escapes bound every supplied UTF-16 code unit. The canonical
+ * system/schema are included, plus framing allowance and the 1800-token output.
+ */
+export function storyArchitectTokenUpperBound(maxMessageCharacters = 12_000) {
+  if (!Number.isSafeInteger(maxMessageCharacters) || maxMessageCharacters < 1 || maxMessageCharacters > 12_000) throw new Error("Invalid Story Architect context bound.");
+  const envelope = JSON.stringify({ system: [BASE_INSTRUCTIONS, `Specialist responsibility: ${PLOTPICKLE_AGENT_ROLES["story-architect"]}`].join("\n\n"),
+    prompt: `Conversation tone: direct.\n\nWriter: ${"\u0000".repeat(maxMessageCharacters)}`,
+    schema: storyArchitectAssessmentSchema().jsonSchema });
+  return 2 * (Buffer.byteLength(envelope, "utf8") + 8192 + 1800);
+}
+
 export function createPlotPickleMastra(profile: ProviderProfile) {
   const model = mastraModelConfig(profile);
   const agents = Object.fromEntries(Object.entries(PLOTPICKLE_AGENT_ROLES).map(([id, role]) => [

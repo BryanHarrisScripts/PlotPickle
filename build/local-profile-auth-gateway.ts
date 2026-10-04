@@ -4,6 +4,7 @@ import { GET as profileGet, POST as profilePost } from "../app/api/auth/profile/
 import { GET as profilePresentationGet, POST as profilePresentationPost } from "../app/api/auth/profile-presentation/route";
 import { GET as profilePrivateGet, POST as profilePrivatePost } from "../app/api/auth/profile-private/route";
 import { POST as profileBackupPost } from "../app/api/auth/profile-backup/route";
+import { GET as outlineTasksGet, POST as outlineTasksPost } from "../app/api/outline/tasks/route";
 
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
@@ -25,6 +26,12 @@ type RouteContract = Readonly<{
 }>;
 
 const ROUTES = new Map<string, RouteContract>([
+  // Durable task authorization must share the login runtime and its live vault
+  // capabilities. The RSC module graph has a separate auth runtime in local dev.
+  ["/api/outline/tasks", Object.freeze({
+    maximumBodyBytes: 4096,
+    handlers: Object.freeze({ GET: outlineTasksGet, POST: outlineTasksPost }),
+  })],
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,
     handlers: Object.freeze({ GET: profileGet, POST: profilePost }),

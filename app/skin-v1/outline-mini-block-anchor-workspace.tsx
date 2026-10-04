@@ -170,7 +170,7 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
   }
 
   return <section className={styles.anchorWorkspace} aria-labelledby="outline-mini-anchor-title" data-outline-mini-block-anchor={anchorRef}>
-    <header className={styles.header}><div><p>VISUAL ANCHOR · SHARED WITH STORYBOARD</p><h2 id="outline-mini-anchor-title">Mini-Block {blockNumber}.{miniBlockNumber}</h2><span>One representative visual at this story address. The full 25-position Storyboard sequence remains in Storyboard.</span></div><strong>{anchorRef}</strong></header>
+    <header className={styles.header}><div><p>MINI-BLOCK VISUAL ANCHOR · SHARED WITH STORYBOARD</p><h2 id="outline-mini-anchor-title">Mini-Block {blockNumber}.{miniBlockNumber}</h2><span>One representative Mini-Block image at this story address. It is independent of the Block Visual Anchor above. The full 25-shot Storyboard sequence remains in Storyboard.</span></div><strong>{anchorRef}</strong></header>
     <div className={styles.anchorBody}>
       <div className={styles.preview}>
         <span className={styles.versionCount}>{versions.length ? `${selectedIndex + 1}/${versions.length}` : "0/0"}</span>

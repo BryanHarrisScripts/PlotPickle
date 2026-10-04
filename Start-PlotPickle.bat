@@ -511,7 +511,7 @@ if not exist "%RUNTIME_SIDECAR_SUPERVISOR%" (
   echo !READY_WARN! Runtime sidecar supervisor is unavailable. Core PlotPickle will continue normally.
   exit /b 0
 )
-echo !INFO! Governed runtime sidecars will initialize asynchronously after core readiness.
+echo !INFO! Registered runtime services are waiting for core readiness and will initialize asynchronously after PlotPickle is ready.
 start "" /b node --experimental-strip-types "%RUNTIME_SIDECAR_SUPERVISOR%"
 exit /b 0
 

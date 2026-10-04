@@ -2,8 +2,23 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { stripTypeScriptTypes } from "node:module";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("#2711 prebundles Mastra's late RSC dependency before Outline requests", async () => {
+  const source = await read("build/startup/vite-compatibility.ts");
+  const module = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(source)).toString("base64")}`);
+  const plugin = module.vinextRscOptimizationCompatibilityPlugin();
+  const rsc = { optimizeDeps: { include: ["existing", module.VINEXT_OPTIONAL_RSC_STATIC_ENTRY], exclude: ["owned"] } };
+  plugin.configEnvironment("rsc", rsc);
+  plugin.configEnvironment("rsc", rsc);
+  assert.deepEqual(rsc.optimizeDeps.include, ["existing", "chat"]);
+  assert.ok(rsc.optimizeDeps.exclude.includes("owned"));
+  const client = { optimizeDeps: { include: ["client-owned"] } };
+  plugin.configEnvironment("client", client);
+  assert.deepEqual(client.optimizeDeps.include, ["client-owned"]);
+});
 
 test("startup validates profiles before the v5 health adapter, v4 grounding and resilient v3 probes", async () => {
   const [entrypoint, profileAdapter, contractAdapter, groundingAdapter, diagnostic, guide] = await Promise.all([

@@ -82,6 +82,13 @@ function reconcileEnvironmentOptimizeDeps(name: string, config: EnvironmentOptio
       (entry) => entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY,
     );
   }
+  // Mastra's channel adapter hides this ESM-only dynamic import from Vite's
+  // initial scanner. Discovering it during the first Outline task request
+  // rebuilds the RSC cache underneath in-flight workerd module requests.
+  // Prebundle it in the initial pass so those requests retain valid chunks.
+  if (name === "rsc") {
+    optimizeDeps.include = [...new Set([...(optimizeDeps.include ?? []), "chat"])];
+  }
 }
 
 export function vinextRscOptimizationCompatibilityPlugin(): Plugin {

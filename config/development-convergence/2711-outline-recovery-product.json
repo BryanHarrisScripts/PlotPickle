@@ -4,6 +4,8 @@
   "phase": "outline-recovery-product",
   "brief": "docs/developer-briefs/2711-outline-recovery-product.md",
   "allowedChanges": [
+    "build/startup/vite-compatibility.ts",
+    "tests/issue-614-startup-health-warning-cleanup.test.mjs",
     "build/projects/outline-task-controller.ts",
     "build/projects/outline-task-gateway.ts",
     "build/projects/outline-task-http.ts",
@@ -26,6 +28,17 @@
     "tests/windows-native-runtime.test.mjs"
   ],
   "acceptance": [
+    {
+      "id": "RSC-STARTUP",
+      "criterion": "Mastra's late chat dependency is included in the initial RSC optimizer pass without altering client includes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-614-startup-health-warning-cleanup.test.mjs",
+          "contains": "#2711 prebundles Mastra's late RSC dependency before Outline requests"
+        }
+      ]
+    },
     {
       "id": "LAUNCHER",
       "criterion": "Required dictation checksums remain fail-closed without PowerShell utility module discovery.",

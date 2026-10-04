@@ -1,8 +1,44 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { createServer } from "node:http";
+import { runInNewContext } from "node:vm";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("#2706 synthetic Story Architect errors return fixed JSON without request or exception text", async () => {
+  // Execute the actual proof's HTTP callback without starting its expensive
+  // Mastra/Pi recovery journey. Missing callback boundaries fail this test.
+  const source = await read("scripts/pi/durable/story-architect-proof.mjs");
+  const start = source.indexOf("server = createServer(");
+  const end = source.indexOf("\n  await new Promise", start);
+  assert.ok(start >= 0 && end > start);
+  const server = runInNewContext(`let server; ${source.slice(start, end)} server;`, {
+    assert, createServer, requests: 0, lastRequest: null, delayed: false,
+    omitUsage: false, assessment: { synthetic: true },
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${server.address().port}/v1/chat/completions`;
+  try {
+    for (const body of [
+      '{"model":"<img src=x onerror=alert(1)>"',
+      JSON.stringify({ model: "<script>private-request-text</script>" }),
+      JSON.stringify({ model: "synthetic-story-architect", stream: true }),
+    ]) {
+      const response = await fetch(url, { method: "POST", body, signal: AbortSignal.timeout(5000) });
+      assert.equal(response.status, 500);
+      assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
+      assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+      assert.equal(await response.text(), '{"error":"Synthetic provider request rejected"}');
+    }
+    const valid = await fetch(url, { method: "POST", body: JSON.stringify({ model: "synthetic-story-architect", stream: false }), signal: AbortSignal.timeout(5000) });
+    assert.equal(valid.status, 200);
+    assert.equal((await valid.json()).choices[0].message.content, '{"synthetic":true}');
+  } finally {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
 
 function versionAtLeast(actual, minimum) {
   const left = String(actual || "0.0.0").split(".").map(Number);

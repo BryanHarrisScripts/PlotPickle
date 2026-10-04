@@ -51,7 +51,7 @@ const assessment = { structural: { state: "unresolved", reason: "Synthetic produ
 const env = { ...process.env, PLOTPICKLE_HOME: home, PLOTPICKLE_AUTH_STATE_PATH: path.join(home, "auth/state.json"), PLOTPICKLE_STARTUP_TESTING_MODE: "normal", PLOTPICKLE_ACCESS_MODE: "desktop-loopback", PLOTPICKLE_SERVER_NETWORK_ENABLED: "false",
   // Package/worker startup metadata only: locate a stalled warm launch without
   // enabling request, provider, credential or story-content debug logging.
-  NODE_DEBUG: "@cloudflare:vite-plugin", DEBUG: "vite:deps",
+  NODE_DEBUG: "@cloudflare:vite-plugin", DEBUG: "vite:deps,vite:load,vite:transform",
 };
 async function waitFor(check, label, timeout = 180_000, assertLive = () => {}) {
   const deadline = Date.now() + timeout;

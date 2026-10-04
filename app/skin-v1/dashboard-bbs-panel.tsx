@@ -29,15 +29,15 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
 };
 
 const SETTINGS_MENU = [
-  { id: "general", shortcut: SETTINGS_SHORTCUTS.general, label: "General", description: "Language, startup, interface reference and project data.", group: "SETTINGS" },
-  { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "SETTINGS" },
-  { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "SETTINGS" },
-  { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Hybrid", description: "Route capabilities across Local and Cloud.", group: "SETTINGS" },
-  { id: "node-info", shortcut: SETTINGS_SHORTCUTS["node-info"], label: "Node Info", description: "PlotPickle Node identity, lifecycle, readiness and current project.", group: "SETTINGS" },
-  { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "SETTINGS" },
-  { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "SETTINGS" },
-  { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "SETTINGS" },
-  { id: "command", shortcut: SETTINGS_SHORTCUTS.command, label: "Command", description: "Comments, requests, evidence and proposed-change review.", group: "SETTINGS" },
+  { id: "general", shortcut: SETTINGS_SHORTCUTS.general, label: "General", description: "Language, startup, interface reference and project data.", group: "SYSTEM" },
+  { id: "node-info", shortcut: SETTINGS_SHORTCUTS["node-info"], label: "Node Info", description: "PlotPickle Node identity, lifecycle, readiness and current project.", group: "SYSTEM" },
+  { id: "command", shortcut: SETTINGS_SHORTCUTS.command, label: "Command", description: "Comments, requests, evidence and proposed-change review.", group: "SYSTEM" },
+  { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "COMPUTE" },
+  { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "COMPUTE" },
+  { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Hybrid", description: "Route capabilities across Local and Cloud.", group: "COMPUTE" },
+  { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "OPERATIONS" },
+  { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "OPERATIONS" },
+  { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
 ] as const;
 
 const CONNECTED_SETTINGS_ITEMS = new Set(SETTINGS_MENU.map((item) => item.id));

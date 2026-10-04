@@ -111,19 +111,27 @@ test("#2338 preserves immutable Pi history while DSDD Pi Draft is read-only", as
   assert.doesNotMatch(gateway, /run-uat-repair-agent\.mjs|prepareWorktree|"git-worktree"/u);
 });
 
-test("#2338 Windows Product Gate runs automatically only for Pi/session integration heads", async () => {
+test("#2338 Windows Product Gate impact-selects the Pi runtime lane without voice/media/build coupling", async () => {
   const productGate = await read(".github/workflows/product-gate.yml");
   assert.doesNotMatch(productGate, /^  pull_request:/mu);
   assert.match(productGate, /^  workflow_call:/mu);
+
   const architecture = await read(".github/workflows/architecture-shadow.yml");
-  const piScopeStart = architecture.indexOf("  pi-windows-scope:");
-  const piProofStart = architecture.indexOf("  pi-windows-proof:", piScopeStart);
-  const piScope = architecture.slice(piScopeStart, piProofStart);
+  const scopeStart = architecture.indexOf("  windows-product-scope:");
+  const proofStart = architecture.indexOf("  windows-product-proof:", scopeStart);
+  const scope = architecture.slice(scopeStart, proofStart);
+
   assert.match(architecture, /uses: \.\/\.github\/workflows\/product-gate\.yml/u);
-  assert.match(architecture, /needs\.pi-windows-scope\.outputs\.required == 'true'/u);
-  assert.match(piScope, /pi-087-dsdd-session-evaluation/u);
-  assert.doesNotMatch(piScope, /voice-input-control|local-voice|install-whisper/u);
-  assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
+  assert.match(architecture, /pi: \$\{\{ needs\.windows-product-scope\.outputs\.pi == 'true' \}\}/u);
+  assert.match(scope, /pi-087-dsdd-session-evaluation/u);
+  assert.doesNotMatch(scope, /dashboard-bbs-panel/u);
+  assert.match(productGate, /Pi runtime Windows proof/u);
   assert.match(productGate, /Evaluate managed Pi compatibility/u);
+  assert.match(productGate, /node scripts\/evaluate-pi-099-compatibility\.mjs/u);
+
+  const piStart = productGate.indexOf("  pi-runtime-windows:");
+  const storyStart = productGate.indexOf("  story-architect-windows:", piStart);
+  const piLane = productGate.slice(piStart, storyStart);
+  assert.doesNotMatch(piLane, /install-whisper-cpp|fframes-product-proof|npm run build|story-architect-proof/u);
   assert.doesNotMatch(productGate, /run-uat-autopilot\.mjs --contracts-only/u);
 });

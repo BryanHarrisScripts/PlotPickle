@@ -94,24 +94,30 @@ test("#2350 architecture catalog routes DSDD and voice proof away from permanent
   assert.equal(voiceSkin?.ownerLayer, "experience-skins");
 });
 
-test("#2350 expensive Windows proof is split between Pi integration and local voice scope", async () => {
+test("#2350 expensive Windows proof keeps Pi integration and local voice independently impact-selected", async () => {
   const [architecture, productGate, prGate] = await Promise.all([
     read(".github/workflows/architecture-shadow.yml"),
     read(".github/workflows/product-gate.yml"),
     read(".github/workflows/pr-gate.yml"),
   ]);
 
-  const piScopeStart = architecture.indexOf("  pi-windows-scope:");
-  const piProofStart = architecture.indexOf("  pi-windows-proof:", piScopeStart);
-  const voiceScopeStart = architecture.indexOf("  voice-windows-scope:");
-  const voiceProofStart = architecture.indexOf("  voice-windows-proof:", voiceScopeStart);
-  const piScope = architecture.slice(piScopeStart, piProofStart);
-  const voiceScope = architecture.slice(voiceScopeStart, voiceProofStart);
-  const voiceProof = architecture.slice(voiceProofStart);
-  assert.match(piScope, /pi-087-dsdd-session-evaluation/u);
-  assert.doesNotMatch(piScope, /voice-input-control|local-voice|install-whisper/u);
-  assert.match(voiceScope, /install-whisper-cpp/u);
-  assert.match(voiceProof, /-Mode Smoke -Approved/u);
+  const scopeStart = architecture.indexOf("  windows-product-scope:");
+  const proofStart = architecture.indexOf("  windows-product-proof:", scopeStart);
+  const scope = architecture.slice(scopeStart, proofStart);
+  assert.match(scope, /pi-087-dsdd-session-evaluation/u);
+  assert.match(scope, /install-whisper-cpp/u);
+  assert.match(architecture, /voice: \$\{\{ needs\.windows-product-scope\.outputs\.voice == 'true' \}\}/u);
+  assert.match(architecture, /pi: \$\{\{ needs\.windows-product-scope\.outputs\.pi == 'true' \}\}/u);
+
+  const piStart = productGate.indexOf("  pi-runtime-windows:");
+  const storyStart = productGate.indexOf("  story-architect-windows:", piStart);
+  const piLane = productGate.slice(piStart, storyStart);
+  const voiceStart = productGate.indexOf("  local-voice-windows:");
+  const buildStart = productGate.indexOf("  windows-build-installer:", voiceStart);
+  const voiceLane = productGate.slice(voiceStart, buildStart);
+
+  assert.doesNotMatch(piLane, /install-whisper-cpp/u);
+  assert.match(voiceLane, /-Mode Smoke -Approved/u);
   assert.doesNotMatch(productGate, /tests\/issue-2338-pi-087-dsdd-session\.test\.mjs/u);
   assert.doesNotMatch(prGate, /Validate DSDD intent-to-evidence and Pi 0\.87 session contracts/u);
 });

@@ -23,7 +23,7 @@ jobs:
       - name: Run only the selected second-proof stage
         shell: pwsh
         env:
-          PLOTPICKLE_OUTLINE_PROOF_STAGE: reopen-startup
+          PLOTPICKLE_OUTLINE_PROOF_STAGE: all
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.sha }}
         run: node scripts/pi/durable/outline-product-proof.mjs
       - name: Upload bounded diagnostic evidence

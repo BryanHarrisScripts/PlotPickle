@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "issue": 2733,
+  "phase": "impact-selected-windows-product-lanes",
+  "brief": "docs/developer-briefs/2733-split-windows-product-gate.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/2733.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2733-split-windows-product-gate.md",
+    "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-1941-seven-shadow-checks.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+    "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
+    "tests/issue-2733-ci-windows-lanes.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2733-A1",
+      "criterion": "Architecture Verification computes independent Windows product lane selections and invokes the reusable Product Gate once.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "windows-product-scope:"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "Selected Windows lanes:"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "name: Impact-selected Windows Product Gate"
+        }
+      ]
+    },
+    {
+      "id": "P2733-A2",
+      "criterion": "Product Gate exposes independent Command, Pi, Story Architect, media, voice and build lanes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Settings Command Windows proof"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Pi runtime Windows proof"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Story Architect Windows proof"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Media / FFrames Windows proof"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Local voice Windows proof"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "name: Windows build / installer proof"
+        }
+      ]
+    },
+    {
+      "id": "P2733-A3",
+      "criterion": "Every native Product Gate lane is capped at twelve minutes and the focused regression prevents Settings taxonomy-only work from selecting the heavy chain.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2733-ci-windows-lanes.test.mjs",
+          "contains": "Settings taxonomy-only dashboard edits must not trigger native Windows product lanes"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2733-ci-windows-lanes.test.mjs",
+          "contains": "must be capped at 12 minutes"
+        }
+      ]
+    }
+  ]
+}

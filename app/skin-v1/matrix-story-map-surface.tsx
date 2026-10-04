@@ -11,6 +11,7 @@ import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import { projectCanonicalProjectForOutline } from "@/modules/plan/projections/canonical-project-outline";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import ActWrittenStoryBoard from "./act-written-story-board";
+import OutlineBlockAnchorWorkspace from "./outline-block-anchor-workspace";
 import OutlineMiniBlockAnchorWorkspace from "./outline-mini-block-anchor-workspace";
 import styles from "./outline-mini-block-workspace.module.css";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
@@ -31,6 +32,7 @@ export default function MatrixStoryMapSurface({
   const readiness = useMemo(() => project ? deriveOutlineReadiness(project) : [], [project]);
   const canonicalProjection = useMemo(() => project ? projectCanonicalProjectForOutline(project) : null, [project]);
   const actReadiness = readiness.filter((block) => Math.floor((block.blockNumber - 1) / 6) + 1 === activeAct);
+  const selectedReadiness = actReadiness.find((block) => block.blockNumber === address.blockNumber) ?? actReadiness[0] ?? null;
 
   useEffect(() => {
     const sync = () => setProject(loadFoundationProject());
@@ -69,24 +71,25 @@ export default function MatrixStoryMapSurface({
         onSelectTurningPoint={setTurningPointAct}
         turningPointSelected={turningPointSelected}
       />
-      <section className="pp-skin-v1-outline-readiness" aria-label={`Act ${activeAct} Outline readiness`} data-outline-readiness-summary={activeAct}>
+      <section className={`pp-skin-v1-outline-readiness ${styles.selectedReadiness}`} aria-label={`Act ${activeAct} Outline readiness`} data-outline-readiness-summary={activeAct}>
         <h2>Act {activeAct} · Outline readiness</h2>
-        <p>Observed means screenplay text is mapped. Readiness checks source placement, Story Architect findings, story intent, and Mini-Block support before Storyboard. Run the Act assessment below to replace generic pending findings with cited proposals.</p>
-        <div className="pp-skin-v1-outline-readiness-grid">
-          {actReadiness.map((block) => (
-            <article data-outline-readiness={block.status} data-selected={block.blockNumber === address.blockNumber && !turningPointSelected ? "true" : undefined} key={block.blockNumber}>
-              <strong>Block {String(block.blockNumber).padStart(2, "0")} · {block.status === "needs-support" ? "Needs support" : block.status === "review" ? "Review" : "Evidence ready"}</strong>
-              <div className="pp-skin-v1-outline-mini-picks" aria-label={`Block ${block.blockNumber} Mini-Blocks`}>
-                {[1, 2, 3, 4].map((mini) => <button aria-pressed={!turningPointSelected && address.blockNumber === block.blockNumber && address.miniBlockNumber === mini} data-selected={!turningPointSelected && address.blockNumber === block.blockNumber && address.miniBlockNumber === mini ? "true" : undefined} onClick={() => selectAddress({ blockNumber: block.blockNumber, miniBlockNumber: mini })} type="button" key={mini}>Mini {mini}</button>)}
+        <p>Observed means screenplay text is mapped. Readiness checks source placement, Story Architect findings, story intent, and Mini-Block support before Storyboard. The selected Block expands across the available workspace; use the navigation above to move to another Block.</p>
+        <div className="pp-skin-v1-outline-readiness-grid" data-outline-selected-block={selectedReadiness?.blockNumber ?? address.blockNumber}>
+          {selectedReadiness ? (
+            <article data-outline-readiness={selectedReadiness.status} data-selected={!turningPointSelected ? "true" : undefined}>
+              <strong>Block {String(selectedReadiness.blockNumber).padStart(2, "0")} · {selectedReadiness.status === "needs-support" ? "Needs support" : selectedReadiness.status === "review" ? "Review" : "Evidence ready"}</strong>
+              <div className="pp-skin-v1-outline-mini-picks" aria-label={`Block ${selectedReadiness.blockNumber} Mini-Blocks`}>
+                {[1, 2, 3, 4].map((mini) => <button aria-pressed={!turningPointSelected && address.miniBlockNumber === mini} data-selected={!turningPointSelected && address.miniBlockNumber === mini ? "true" : undefined} onClick={() => selectAddress({ blockNumber: selectedReadiness.blockNumber, miniBlockNumber: mini })} type="button" key={mini}>Mini {mini}</button>)}
               </div>
-              {block.issues.length ? <ul>{block.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <p>No deterministic evidence gaps found. Human creative review still applies.</p>}
+              {selectedReadiness.issues.length ? <ul>{selectedReadiness.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <p>No deterministic evidence gaps found. Human creative review still applies.</p>}
             </article>
-          ))}
+          ) : null}
         </div>
         <button className="pp-skin-v1-outline-turning-point" data-selected={turningPointSelected ? "true" : undefined} aria-pressed={turningPointSelected} onClick={() => setTurningPointAct(activeAct)} type="button">
           <strong>{turningPoint.label}</strong><span>After Block {String(turningPoint.blockNumber).padStart(2, "0")} · Confirm the Act change before Storyboard. No separate script address is assigned.</span>
         </button>
       </section>
+      {!turningPointSelected ? <OutlineBlockAnchorWorkspace project={project} blockNumber={address.blockNumber} onProjectChange={setProject} /> : null}
       {!turningPointSelected ? <OutlineMiniBlockAnchorWorkspace project={project} blockNumber={address.blockNumber} miniBlockNumber={address.miniBlockNumber} onProjectChange={setProject} /> : null}
       <div className={!turningPointSelected ? styles.focusedSlice : undefined} data-outline-selected-slice={!turningPointSelected ? `${address.blockNumber}.${address.miniBlockNumber}` : undefined}>
         <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} outlineReadiness={readiness} selectedAddress={address} onSelectAddress={selectAddress} turningPointSelected={turningPointSelected} onSelectTurningPoint={() => setTurningPointAct(activeAct)} />

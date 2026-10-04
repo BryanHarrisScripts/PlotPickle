@@ -114,7 +114,9 @@ try {
   await visibleCommand.getByRole("button", { name: "Clear console", exact: true }).click();
   await page.route("**/api/dsdd/command", async route => {
     if (route.request().method() === "POST" && route.request().postDataJSON()?.action === "clear-conversation") {
-      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, message: "Synthetic clear unavailable" }) });
+      // Exercise an unsuccessful application result without generating an intentional
+      // HTTP 5xx blocker in the continuous browser-health observer.
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false, message: "Synthetic clear unavailable" }) });
     } else await route.continue();
   });
   await visibleCommand.getByRole("button", { name: "Confirm clear", exact: true }).click();

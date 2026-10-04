@@ -210,7 +210,14 @@ try {
   await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === id)?.run.state === "waiting-for-writer", "remaining Blocks complete");
   assert.deepEqual(requests.slice(beforeReopen), [2,3,4,5,6], "Committed Block 1 is never recomputed.");
   await recovered.getByText("6 of 6 Blocks assessed", { exact: false }).waitFor({ timeout: 30_000 });
-  await waitFor(async () => (await api(session, "/api/auth/profile-private")).project.sourceEvidence.outlineAssessmentRuns?.some((run) => run.id === id && run.status === "completed"), "encrypted advisory import");
+  let importError;
+  await waitFor(async () => {
+    if ((await api(session, "/api/auth/profile-private")).project.sourceEvidence.outlineAssessmentRuns?.some((run) => run.id === id && run.status === "completed")) return true;
+    const status = await page.locator(".pp-skin-v1-story-card-board-status").innerText();
+    if (status.startsWith("Story Architect findings remain saved in the protected task.")) { importError = status; return true; }
+    return false;
+  }, "encrypted advisory import");
+  assert.ok(!importError, importError);
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
   const final = (await api(session, "/api/auth/profile-private")).project;

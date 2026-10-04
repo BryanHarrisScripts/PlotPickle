@@ -15,8 +15,8 @@ test("#2667 Mind Map and World Map consume one shared surface/header family", as
   assert.match(shared, /data-story-development-family="mind-world"/u);
   assert.match(shared, /STORY_ACTS\.map\(\(act\)/u);
   assert.match(shared, /LEARN_TOPIC_SPINE\.map\(\(topic, index\)/u);
-  assert.match(shared, /Back to Dashboard/u);
-  assert.match(shared, /pp-skin-v1-return/u);
+  assert.doesNotMatch(shared, /<h1>|Back to Dashboard|pp-skin-v1-return/u);
+  assert.doesNotMatch(shared, /className={styles.identityRow}/u);
   assert.match(mind, /surfaceId="mind-map"/u);
   assert.match(mind, /data-story-development-work-region="mind-map"/u);
   assert.match(world, /surfaceId="world-map"/u);

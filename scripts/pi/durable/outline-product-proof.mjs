@@ -27,6 +27,7 @@ let launcher, fixture, browserSession;
 let launcherOutput = [];
 let launcherError;
 let proofError;
+let proofPage;
 const selectedStage = process.env.PLOTPICKLE_OUTLINE_PROOF_STAGE || "all";
 assert.ok(["authentication", "execution", "reopen-startup", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
 let activeStage = "setup";
@@ -95,6 +96,7 @@ async function outline(session, toolRoot) {
   browserSession = await createBrowserVerificationSession({ toolRoot, allowedOrigins: [base], runId: `outline-2711-${Date.now()}` });
   const context = await browserSession.browser.newContext({ storageState: session.storageStatePath, viewport: { width: 1440, height: 1080 } });
   const page = await context.newPage();
+  proofPage = page;
   await page.goto(`${base}/skin-v1`, { waitUntil: "domcontentloaded" });
   // A fresh browser session deliberately starts without a loaded story. Open
   // the exact saved fixture through Library, just as the Human does on reopen.
@@ -243,6 +245,23 @@ try {
   console.log(JSON.stringify(report));
 } catch (error) {
   proofError = error;
+  if (proofPage && !proofPage.isClosed()) {
+    try {
+      const snapshot = await proofPage.evaluate(() => ({
+        status: document.querySelector(".pp-skin-v1-story-card-board-status")?.textContent,
+        saveStatus: document.querySelector("[data-profile-private-save-state]")?.textContent,
+        projects: Object.keys(sessionStorage).filter((key) => key.includes(".projects.")).map((key) => {
+          const entry = JSON.parse(sessionStorage.getItem(key));
+          const project = entry.project;
+          return { id: project?.id, revision: project?.revision, assessmentCount: project?.sourceEvidence?.outlineAssessments?.length,
+            runStatuses: project?.sourceEvidence?.outlineAssessmentRuns?.map((run) => ({ id: run.id, status: run.status, completed: run.completedBlockNumbers?.length })) };
+        }),
+      }));
+      await writeFile(path.join(root, "browser-import-state.json"), JSON.stringify(snapshot, null, 2) + "\n");
+      console.error(JSON.stringify(snapshot));
+      await proofPage.screenshot({ path: path.join(root, "failure.png"), fullPage: true });
+    } catch { console.error("Synthetic browser import diagnostics unavailable."); }
+  }
   if (process.platform === "win32" && launcher?.pid) {
     try {
       const owned = execFileSync("powershell.exe", ["-NoProfile", "-Command", `$all = @(Get-CimInstance Win32_Process); $ids = [System.Collections.Generic.HashSet[int]]::new(); [void]$ids.Add(${launcher.pid}); do { $added = $false; foreach ($item in $all) { if ($ids.Contains([int]$item.ParentProcessId) -and $ids.Add([int]$item.ProcessId)) { $added = $true } } } while ($added); $all | Where-Object { $ids.Contains([int]$_.ProcessId) } | Select-Object ProcessId, ParentProcessId, Name, CommandLine | ConvertTo-Json -Depth 3`], { encoding: "utf8", timeout: 10_000 });

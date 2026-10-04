@@ -264,7 +264,7 @@ export default function DashboardBbsPanel({
   }
 
   if (settingsMenuOpen && commandOpen) {
-    return <section aria-label="Command" data-settings-command="true" onKeyDown={(event) => {
+    return <section aria-label="Command" className="pp-skin-v1-panel" data-settings-command="true" onKeyDown={(event) => {
       if (event.key === "Escape") { event.preventDefault(); setCommandOpen(false); }
     }}>
       <div className="pp-skin-v1-bbs-banner">

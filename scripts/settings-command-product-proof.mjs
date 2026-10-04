@@ -19,7 +19,7 @@ const home = path.join(temporary, "home");
 const base = "http://127.0.0.1:4173";
 let server, browser, review, controller;
 const output = [];
-let error, page;
+let error, page, report;
 async function waitFor(check, label, timeout = 180_000) {
   const end = Date.now() + timeout;
   let last;
@@ -70,11 +70,14 @@ try {
   await command.getByRole("heading", { name: "Requests", exact: true }).waitFor({ timeout: 60_000 });
   await command.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
   await page.screenshot({ path: path.join(root, "command.png"), fullPage: true });
-  await command.getByRole("button", { name: "Local engines", exact: true }).click();
-  await page.locator("section[aria-label='Local Story Mode setup']").waitFor({ timeout: 30_000 });
-  await page.getByRole("button", { name: "Back to Settings", exact: true }).click();
+  await command.getByRole("button", { name: "Local engines", exact: true }).focus();
+  await page.keyboard.press("Escape");
   await page.locator("[data-settings-secondary-item='command']").click();
-  await page.locator("[data-settings-command='true']").getByRole("button", { name: "Back to Settings", exact: true }).click();
+  await page.locator("[data-settings-command='true']").getByRole("button", { name: "Local engines", exact: true }).click();
+  await page.locator("section[aria-label='Local Story Mode setup']").waitFor({ timeout: 30_000 });
+  await page.locator("[data-skin-v1-return-contract='single-owner']").click();
+  await page.locator("[data-settings-secondary-item='command']").click();
+  await page.locator("[data-skin-v1-return-contract='single-owner']").click();
   await page.locator("[data-settings-secondary-item='command']").waitFor();
   assert.equal(inference.length, 0, "Opening Command and engine settings must not infer or submit a request.");
   assert.equal((await api("/api/dsdd/command")).session.sessionId, firstSession.sessionId, "Command discovery preserves the protected session identity.");
@@ -104,9 +107,8 @@ try {
   assert.equal((await controller.current("synthetic-owner")).state, "running");
   assert.equal((await controller.cancel("synthetic-owner", review.id)).state, "cancelled");
   assert.equal(execFileSync("git", ["-C", checkout, "diff"], { encoding: "utf8" }).includes("+After review"), true);
-  const report = { issue: 2717, status: "PASS", head: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local", platform: process.platform, settingsCommand: "PASS", normalStartupInference: 0, csrfDenial: "PASS", projectContinuity: "PASS", managedPiLockedInstall: managed.version, nativeHunk: "PASS", inlineAgentAnnotation: "PASS", ownedCancellation: "PASS", gpuAcceleration: "UNPROVEN" };
-  await writeFile(path.join(root, "proof.json"), JSON.stringify(report, null, 2) + "\n");
-  console.log(JSON.stringify(report));
+  report = { issue: 2717, status: "PASS", head: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local", platform: process.platform, settingsCommand: "PASS", normalStartupInference: 0, csrfDenial: "PASS", projectContinuity: "PASS", managedPiLockedInstall: managed.version, nativeHunk: "PASS", inlineAgentAnnotation: "PASS", ownedCancellation: "PASS", gpuAcceleration: "UNPROVEN" };
+
 } catch (caught) {
   await writeFile(path.join(root, "failure.json"), JSON.stringify({ status: "FAIL", message: caught.message }, null, 2));
   if (page) await page.screenshot({ path: path.join(root, "failure.png"), fullPage: true }).catch(() => {});
@@ -114,6 +116,20 @@ try {
 } finally {
   if (controller && review) await controller.cancel("synthetic-owner", review.id).catch(() => {});
   if (browser) await browser.close();
-  if (server?.pid && server.exitCode === null) { try { execFileSync("taskkill.exe", ["/PID", String(server.pid), "/T", "/F"], { stdio: "ignore" }); } catch {} }
+  if (server?.pid) {
+    const owned = server;
+    server = null;
+    if (owned.exitCode === null) {
+      try { execFileSync("taskkill.exe", ["/PID", String(owned.pid), "/T", "/F"], { stdio: "ignore" }); }
+      catch (caught) { output.push(`Owned host cleanup race: ${caught.message}\n`); }
+    }
+    await waitFor(async () => { try { await fetch(base + "/api/auth/profile", { signal: AbortSignal.timeout(1000) }); return false; } catch { return true; } }, "owned host stop", 20_000);
+    await waitFor(() => owned.exitCode !== null || owned.signalCode !== null, "owned process exit", 5000);
+  }
   await writeFile(path.join(root, "host.log"), output.join("").slice(-128_000));
+}
+
+if (report) {
+  await writeFile(path.join(root, "proof.json"), JSON.stringify(report, null, 2) + "\n");
+  console.log(JSON.stringify(report));
 }

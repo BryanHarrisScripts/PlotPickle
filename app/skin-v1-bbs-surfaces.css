@@ -29,6 +29,8 @@
   font-size: var(--pp-skin-font-body) !important;
   letter-spacing: var(--pp-skin-tracking-meta) !important;
   text-transform: uppercase !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 .pp-skin-v1-bar > :first-child,

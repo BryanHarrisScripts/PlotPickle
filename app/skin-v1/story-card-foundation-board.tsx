@@ -150,10 +150,12 @@ export default function StoryCardFoundationBoard({
         // Import serially from the latest browser snapshot; polling never starts work.
         for (const task of owned) {
           const latest = loadFoundationProject() as LibraryPPFProject;
-          if (!live || latest.id !== project.id) return;
+          if (!live) return;
+          if (latest.id !== project.id) { setMessage("Story Architect findings await import: load the owning story in Library."); return; }
           try {
             const next = await importOutlineTaskFindings(latest, task);
-            if (!live || (loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) continue;
+            if (!live) return;
+            if ((loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) { setMessage("Story Architect findings await import: the story changed during validation; retrying against the latest saved story."); continue; }
             if (next !== latest) onChange.current(saveFoundationProject(next) as LibraryPPFProject);
           } catch (error) {
             // Keep saved findings protected, and make a denied import visible.

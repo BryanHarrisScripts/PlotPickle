@@ -28,7 +28,7 @@ let launcherOutput = [];
 let launcherError;
 let proofError;
 const selectedStage = process.env.PLOTPICKLE_OUTLINE_PROOF_STAGE || "all";
-assert.ok(["authentication", "execution", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
+assert.ok(["authentication", "execution", "reopen-startup", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
 let activeStage = "setup";
 const completedStages = [];
 async function enterStage(stage) {
@@ -145,6 +145,14 @@ try {
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   await completeStage("authentication");
   if (selectedStage === "authentication") { await reportFocusedPass(); return; }
+  if (selectedStage === "reopen-startup") {
+    await stop();
+    await enterStage("reopen-startup");
+    await start();
+    session = await authenticateVerificationSyntheticProfile({ baseUrl: base, ...profile });
+    assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks));
+    await completeStage("reopen-startup"); await reportFocusedPass(); return;
+  }
   await api(session, "/api/writing-assistant/ollama", { baseUrl: `http://127.0.0.1:${fixture.address().port}`, model: "synthetic-outline-product" });
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   if (selectedStage === "execution") {
@@ -235,6 +243,14 @@ try {
   console.log(JSON.stringify(report));
 } catch (error) {
   proofError = error;
+  if (process.platform === "win32" && launcher?.pid) {
+    try {
+      const owned = execFileSync("powershell.exe", ["-NoProfile", "-Command", `$all = @(Get-CimInstance Win32_Process); $ids = [System.Collections.Generic.HashSet[int]]::new(); [void]$ids.Add(${launcher.pid}); do { $added = $false; foreach ($item in $all) { if ($ids.Contains([int]$item.ParentProcessId) -and $ids.Add([int]$item.ProcessId)) { $added = $true } } } while ($added); $all | Where-Object { $ids.Contains([int]$_.ProcessId) } | Select-Object ProcessId, ParentProcessId, Name, CommandLine | ConvertTo-Json -Depth 3`], { encoding: "utf8", timeout: 10_000 });
+      const safe = owned.split(/\r?\n/u).map(sanitizeBrowserDiagnosticText).join("\n");
+      await writeFile(path.join(root, "owned-processes.json"), safe + "\n");
+      console.error(safe);
+    } catch { console.error("Owned launcher process diagnostics unavailable."); }
+  }
   const diagnostics = Buffer.concat(launcherOutput).toString("utf8").slice(-16_000).split(/\r?\n/u).map(sanitizeBrowserDiagnosticText).join("\n");
   await writeFile(path.join(root, "failure.json"), JSON.stringify({ issue: 2711, status: "FAIL", selectedStage, activeStage, completedStages, error: sanitizeBrowserDiagnosticText(error.message), launcherDiagnostics: diagnostics }, null, 2) + "\n");
   console.error(`Outline product proof failed at ${activeStage}: ${sanitizeBrowserDiagnosticText(error.message)}`);

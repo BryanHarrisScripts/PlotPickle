@@ -28,7 +28,7 @@ let launcherOutput = [];
 let launcherError;
 let proofError;
 const selectedStage = process.env.PLOTPICKLE_OUTLINE_PROOF_STAGE || "all";
-assert.ok(["authentication", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
+assert.ok(["authentication", "execution", "startup-auth", "recovery", "all"].includes(selectedStage), "Unknown Outline proof stage.");
 let activeStage = "setup";
 const completedStages = [];
 async function enterStage(stage) {
@@ -105,11 +105,11 @@ try {
   await mkdir(root, { recursive: true });
   await mkdir(home, { recursive: true });
   const compiled = path.join(temporary, "project.mjs");
-  await build({ stdin: { contents: 'export { normalizeLibraryProject } from "./core/storage/library-project.ts";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", outfile: compiled, logLevel: "silent" });
+  await build({ stdin: { contents: 'export { normalizeLibraryProject } from "./core/storage/library-project.ts"; export { outlineAssessmentMaterialReceipt } from "./modules/plan/outline-agent-assessment.ts";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", outfile: compiled, logLevel: "silent" });
   // Release the compiler executable before the native launcher moves checkout
   // dependencies into its private runtime. Windows locks a running executable.
   stopEsbuild();
-  const { normalizeLibraryProject } = await import(pathToFileURL(compiled).href);
+  const { normalizeLibraryProject, outlineAssessmentMaterialReceipt } = await import(pathToFileURL(compiled).href);
   fixture = createServer(async (request, response) => {
     response.setHeader("Content-Type", "application/json");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -140,17 +140,38 @@ try {
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   await completeStage("authentication");
   if (selectedStage === "authentication") { await reportFocusedPass(); return; }
-  const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
   await api(session, "/api/writing-assistant/ollama", { baseUrl: `http://127.0.0.1:${fixture.address().port}`, model: "synthetic-outline-product" });
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
+  if (selectedStage === "execution") {
+    await enterStage("execution");
+    holdBlock = -1;
+    const started = await api(session, "/api/outline/tasks", { action: "start", projectId: project.id, blocks: [1], materialReceipt: await outlineAssessmentMaterialReceipt(project) });
+    await waitFor(async () => {
+      const task = (await api(session, "/api/outline/tasks")).tasks.find((item) => item.scope.runId === started.task.scope.runId);
+      if (task?.error) throw new Error(task.error);
+      return task?.proposals.length === 1;
+    }, "one protected Block commits", 30_000);
+    await completeStage("execution"); await reportFocusedPass(); return;
+  }
+  const toolRoot = await ensureVerificationTools(process.env.PLOTPICKLE_BROWSER_TOOL_ROOT || path.join(temporary, "browser-tools"));
   requests = [];
   let page = await outline(session, toolRoot);
   assert.equal(requests.length, 0, "Normal startup and Outline discovery must issue no assessment inference.");
   await completeStage("startup-auth");
   if (selectedStage === "startup-auth") { await reportFocusedPass(); return; }
   await enterStage("interruption");
+  const admission = page.waitForResponse((response) => response.url() === `${base}/api/outline/tasks` && response.request().method() === "POST");
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
-  await waitFor(() => requests.includes(2), "second Block starts after committed first Block");
+  const admitted = await admission;
+  const admissionBody = await admitted.json();
+  assert.equal(admitted.status(), 202, admissionBody.message || "Rendered Act review must be admitted.");
+  let stoppedTask;
+  await waitFor(async () => {
+    const task = (await api(session, "/api/outline/tasks")).tasks.find((item) => item.scope.runId === admissionBody.task.scope.runId);
+    if (task?.error || (task && !task.running && task.proposals.length < 2)) { stoppedTask = task; return true; }
+    return requests.includes(2);
+  }, "second Block starts after committed first Block");
+  assert.ok(!stoppedTask, stoppedTask?.error || "Task stopped before Block 2.");
   const first = (await api(session, "/api/outline/tasks")).tasks[0];
   assert.equal(first.proposals.length, 1);
   const id = first.scope.runId;

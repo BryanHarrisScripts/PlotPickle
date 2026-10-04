@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
-import { lstat, mkdir, mkdtemp, realpath, rename, rm, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build, stop as stopEsbuild } from "esbuild";
@@ -9,6 +9,7 @@ import { ensureManagedPiDurableInstalled } from "../../pi-durable-managed-instal
 import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
 import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../../full-verification-auth.mjs";
 import { createBrowserVerificationSession, sanitizeBrowserDiagnosticText } from "../../../lib/verification/browser-verification-broker.mjs";
+import { outlineLauncherReadinessTimeout } from "./launcher-readiness.mjs";
 
 // The product's configured Mastra route, protected HTTP/CSRF, encrypted project,
 // native Pi scheduler and rendered Outline run against an explicitly synthetic
@@ -49,6 +50,7 @@ let requests = [];
 let holdBlock = 2;
 const assessment = { structural: { state: "unresolved", reason: "Synthetic product fixture cannot establish a structural turn.", passageIds: [] }, characters: [], miniBlocks: [1,2,3,4].map((ordinal) => ({ ordinal, state: "unsupported", reason: "No synthetic screenplay was supplied.", passageIds: [], storyboardCue: "" })) };
 const env = { ...process.env, PLOTPICKLE_HOME: home, PLOTPICKLE_AUTH_STATE_PATH: path.join(home, "auth/state.json"), PLOTPICKLE_STARTUP_TESTING_MODE: "normal", PLOTPICKLE_ACCESS_MODE: "desktop-loopback", PLOTPICKLE_SERVER_NETWORK_ENABLED: "false" };
+const startupObservations = [];
 async function waitFor(check, label, timeout = 180_000, assertLive = () => {}) {
   const deadline = Date.now() + timeout;
   let lastError;
@@ -56,6 +58,12 @@ async function waitFor(check, label, timeout = 180_000, assertLive = () => {}) {
   throw new Error(`Product proof timed out: ${label}${lastError ? ` (${lastError.message})` : ""}`);
 }
 async function start({ cold = false } = {}) {
+  const timeoutMs = outlineLauncherReadinessTimeout({ cold, platform: process.platform,
+    launcherSource: process.platform === "win32" ? await readFile("Start-PlotPickle.bat", "utf8") : "",
+  });
+  const observation = { stage: activeStage, cold, timeoutMs, status: "RUNNING", elapsedMs: 0 };
+  const startedAt = Date.now();
+  startupObservations.push(observation);
   const command = process.platform === "win32" ? "powershell.exe" : process.execPath;
   const args = process.platform === "win32" ? ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.resolve("PlotPickle.ps1"), "-HumanTesting"]
     : [path.resolve("node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "4173", "--strictPort"];
@@ -65,10 +73,20 @@ async function start({ cold = false } = {}) {
   launcher.on("error", (error) => { launcherError = error; });
   launcher.stdout.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
   launcher.stderr.on("data", (chunk) => { launcherOutput.push(chunk); if (launcherOutput.length > 1000) launcherOutput.shift(); });
-  await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return response.ok; }, "normal launcher readiness", cold ? 480_000 : 180_000, () => {
-    if (launcherError) throw launcherError;
-    if (launcher.exitCode !== null) throw new Error(`Normal launcher exited before readiness (exit ${launcher.exitCode}).`);
-  });
+  try {
+    await waitFor(async () => { const response = await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return response.ok; }, "normal launcher readiness", timeoutMs, () => {
+      if (launcherError) throw launcherError;
+      if (launcher.exitCode !== null) throw new Error(`Normal launcher exited before readiness (exit ${launcher.exitCode}).`);
+    });
+    observation.status = "PASS";
+  } catch (error) {
+    observation.status = "FAIL";
+    throw error;
+  } finally {
+    observation.elapsedMs = Date.now() - startedAt;
+    await writeFile(path.join(root, "launcher-startup.json"), JSON.stringify({ issue: 2723, sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-uncommitted", platform: process.platform, observations: startupObservations }, null, 2) + "\n");
+    console.log(`Outline launcher startup: ${JSON.stringify(observation)}`);
+  }
 }
 async function stop() {
   if (!launcher) return;
@@ -145,7 +163,8 @@ try {
   await new Promise((resolve) => fixture.listen(0, "127.0.0.1", resolve));
   await ensureManagedPiDurableInstalled({ home });
   // Cold native setup downloads and verifies required runtime/model bytes.
-  // Reopen retains the shorter bound; every launch still fails immediately on exit.
+  // Reopen uses the normal launcher's existing readiness policy; every launch
+  // still fails immediately on exit. Cold setup alone has an installation bound.
   await enterStage("startup-auth");
   await start({ cold: true });
   const profile = await createVerificationSyntheticProfile({ baseUrl: base, home });

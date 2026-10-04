@@ -188,6 +188,7 @@
     },
     "@cloudflare/vite-plugin": {
       "undici": "7.29.1"
-    }
+    },
+    "braces": "github:FSDevelop/braces#28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
   }
 }

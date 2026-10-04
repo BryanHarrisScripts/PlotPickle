@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 2721,
+  "phase": "command-console-and-map-intent-correspondence",
+  "brief": "docs/developer-briefs/2721-command-console.md",
+  "allowedChanges": [
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/dsdd/dsdd-pi-session.ts",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "scripts/dsdd-integrity.mjs",
+    "scripts/dsdd-pi-session.mjs",
+    "scripts/settings-command-product-proof.mjs",
+    "tests/issue-2371-dsdd-integrity.test.mjs",
+    "tests/issue-2717-command-gateway.test.mjs",
+    "docs/developer-briefs/2721-command-console.md",
+    "config/development-convergence/2721.json"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "Confirmed clearing preserves unsent narration; cancellation and failures retain history.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/settings-command-product-proof.mjs",
+          "contains": "Failed clear preserves history"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "Authenticated clearing preserves historical intent and publication but cannot authorize old drafting.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2717-command-gateway.test.mjs",
+          "contains": "Old intent cannot authorize a new Pi Draft"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "criterion": "Another profile cannot clear owner conversation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2717-command-gateway.test.mjs",
+          "contains": "Another profile cannot clear the owner's messages"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "criterion": "Raw Pi history remains immutable and reopened context stays clear.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/settings-command-product-proof.mjs",
+          "contains": "Cleared context survives reopening"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "criterion": "Surface name normalization is symmetric while unrelated/no-action checks remain.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2371-dsdd-integrity.test.mjs",
+          "contains": "#2721 still rejects unrelated, stale and unjustified no-action replies to the short report"
+        }
+      ]
+    }
+  ]
+}

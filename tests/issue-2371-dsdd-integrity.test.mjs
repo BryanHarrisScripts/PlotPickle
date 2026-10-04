@@ -89,3 +89,17 @@ test("#2371 gateway rechecks integrity at append, lock and publish boundaries", 
   assert.match(draft, /assertPiDraftGrounding\(text, repoRoot\)/u);
   assert.match(draft, /Unknown \/ requires inspection/u);
 });
+
+const MAP_HEADER_REPORT = "mindmap and worldmap have two identical titles and back selections at the header";
+test("#2721 recognizes joined, spaced and hyphenated map surface names in either direction", () => {
+  for (const surfaces of ["Mind Map and World Map", "MindMap and WorldMap", "Mind-Map and World-Map"]) {
+    const interpretation = `${surfaces} show duplicate headings and return controls. Keep one heading and one return control per surface.`;
+    assert.equal(assessDsddInterpretation({ humanStatement: MAP_HEADER_REPORT, interpretation }).ok, true);
+    assert.equal(assessDsddInterpretation({ humanStatement: interpretation, interpretation: MAP_HEADER_REPORT }).ok, true);
+  }
+});
+test("#2721 still rejects unrelated, stale and unjustified no-action replies to the short report", () => {
+  for (const interpretation of ["Change microphone dictation to allow longer recording.", "Rename Discover and move Story under dashboard navigation.", "Mind Map and World Map are not a problem. No action is required."]) {
+    assert.equal(assessDsddInterpretation({ humanStatement: MAP_HEADER_REPORT, interpretation }).ok, false);
+  }
+});

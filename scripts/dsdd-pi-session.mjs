@@ -40,6 +40,16 @@ function assistantMessage(text) {
   return { role: "assistant", content: text, timestamp: Date.now() };
 }
 
+export function clearDsddConversation(session) {
+  const messages = session.getEntries().filter((entry) => entry.type === "message"
+    && ["user", "assistant"].includes(entry.message.role));
+  for (const entry of messages) session.appendContextEdit(entry.id, null);
+  return session.appendCustomEntry("plotpickle-dsdd-conversation-cleared", {
+    removedMessageCount: messages.length,
+    recordedAt: new Date().toISOString(),
+  });
+}
+
 async function main() {
   const input = await readStdin();
   const managed = await ensureManagedPiInstalled({ allowInstall: input.allowInstall !== false });
@@ -49,7 +59,9 @@ async function main() {
   const session = openSession(SessionManager, input);
   let entryId = "";
 
-  if (input.action === "append-human") {
+  if (input.action === "clear-conversation") {
+    entryId = clearDsddConversation(session);
+  } else if (input.action === "append-human") {
     const text = clean(input.text);
     if (!text) throw new Error("Human narration is required.");
     entryId = session.appendMessage(userMessage(text));
@@ -136,7 +148,7 @@ async function main() {
   }));
 }
 
-main().catch((error) => {
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) main().catch((error) => {
   process.stderr.write(`${error instanceof Error ? error.stack || error.message : String(error)}\n`);
   process.exitCode = 1;
 });

@@ -42,7 +42,9 @@ export class HunkReviewController {
   }
   async command() {
     const result = await this.run(this.platform === "win32" ? "where.exe" : "which", ["hunk"], { timeout: 5000 });
-    const command = result.stdout.split(/\r?\n/u).find(line => path[this.platform === "win32" ? "win32" : "posix"].isAbsolute(line.trim()))?.trim();
+    const command = result.stdout.split(/\r?\n/u).map(line => line.trim()).find(candidate =>
+      path[this.platform === "win32" ? "win32" : "posix"].isAbsolute(candidate)
+      && (this.platform !== "win32" || /\.(?:exe|com|cmd|bat)$/iu.test(candidate)));
     if (!command) throw new Error("Hunk is not installed. Install Hunk with npm or mise, then retry.");
     const version = await this.run(command, ["--version"], { timeout: 5000 });
     if (!/\b0\.23\.\d+\b/u.test(version.stdout)) throw new Error("This adapter requires reviewed Hunk 0.23.x.");

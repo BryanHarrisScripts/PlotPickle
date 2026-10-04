@@ -81,7 +81,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: settings-command-${{ github.run_id }}
-          path: .artifacts/settings-command-2717/
+          path: |
+            .artifacts/settings-command-2717/proof.json
+            .artifacts/settings-command-2717/failure.json
+            .artifacts/settings-command-2717/host.log
+            .artifacts/settings-command-2717/command.png
+            .artifacts/settings-command-2717/failure.png
           if-no-files-found: warn
           retention-days: 5
 

@@ -67,7 +67,8 @@ try {
   assert.equal(await page.locator("[data-dashboard-menu-item='command']").count(), 0);
   await page.locator("[data-settings-secondary-item='command']").click();
   const command = page.locator("[data-settings-command='true']");
-  await command.getByRole("heading", { name: "Command", exact: true }).waitFor();
+  await command.waitFor();
+  await page.locator("[data-skin-v1-active-surface='command'] [data-skin-v1-region-role='global-header']").getByText("Command", { exact: true }).waitFor();
   await command.getByRole("heading", { name: "Requests", exact: true }).waitFor({ timeout: 60_000 });
   await command.locator("[data-command-review-state='ready']").waitFor({ timeout: 30_000 });
   await page.screenshot({ path: path.join(root, "command.png"), fullPage: true });

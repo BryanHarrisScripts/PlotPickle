@@ -9,7 +9,7 @@ function fixture(overrides = {}) {
   let live = true;
   const controller = new HunkReviewController({ platform: "win32", repositoryRoot: process.cwd(), run: async (command, args) => {
     calls.push({ command, args });
-    if (command === "where.exe") return { stdout: "C:\\review-tools\\hunk.cmd\n" };
+    if (command === "where.exe") return { stdout: "C:\\review-tools\\hunk\r\nC:\\review-tools\\hunk.cmd\r\n" };
     if (args[0] === "--version") return { stdout: "hunk 0.23.0\n" };
     const action = args[args.indexOf("-Action") + 1];
     return { stdout: JSON.stringify(action === "Start" ? { pid: 2717, startTicks: "123456" } : action === "Status" ? { running: live } : { stopped: true }) };
@@ -21,6 +21,14 @@ test("review accepts only fixed checkout or PlotPickle PR targets", () => {
   assert.deepEqual(hunkReviewArguments({ kind: "working-tree" }), ["--no-extensions", "diff"]);
   assert.deepEqual(hunkReviewArguments({ kind: "pull-request", number: 2718 }), ["--no-extensions", "gh", "pr", "2718", "--repo", "BryanHarrisScripts/PlotPickle"]);
   for (const target of [null, [], { kind: "shell", command: "whoami" }, { kind: "working-tree", path: "../other" }, { kind: "pull-request", number: "2718" }, { kind: "pull-request", number: 0 }, { kind: "pull-request", number: 2**32 }, { kind: "pull-request", number: 2718, repo: "other/repo" }]) assert.throws(() => hunkReviewArguments(target));
+});
+
+test("Windows Hunk discovery skips npm's extensionless Unix shim", async () => {
+  const { controller, calls } = fixture();
+  assert.equal(await controller.command(), "C:\\review-tools\\hunk.cmd");
+  assert.equal(calls.find(call => call.args[0] === "--version").command, "C:\\review-tools\\hunk.cmd");
+  const unsupported = fixture({ run: async () => ({ stdout: "C:\\review-tools\\hunk\n" }) });
+  await assert.rejects(unsupported.controller.command(), /not installed/);
 });
 
 test("native review admission is exclusive, per-profile and cancellation retains owned process identity", async () => {

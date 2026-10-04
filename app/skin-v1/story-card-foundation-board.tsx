@@ -24,7 +24,7 @@ import {
 
 import { currentOutlineAssessment, outlineAssessmentFingerprint, requestOutlineAgentAssessment } from "@/modules/plan/outline-agent-assessment";
 import { changeOutlineTask, importOutlineTaskFindings, readOutlineTasks, type OutlineTaskView } from "@/modules/plan/assessments/outline-task-browser";
-import { flushProfilePrivateWrites } from "@/core/storage/profile-private-browser";
+import { flushProfilePrivateWrites, persistActiveProfileProject } from "@/core/storage/profile-private-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
@@ -141,6 +141,7 @@ export default function StoryCardFoundationBoard({
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const abort = new AbortController();
+    const persistedFindings = new Map<string, number>();
     async function refresh() {
       try {
         const tasks = await readOutlineTasks(abort.signal);
@@ -150,12 +151,26 @@ export default function StoryCardFoundationBoard({
         // Import serially from the latest browser snapshot; polling never starts work.
         for (const task of owned) {
           const latest = loadFoundationProject() as LibraryPPFProject;
-          if (!live || latest.id !== project.id) return;
+          if (!live) return;
+          if (latest.id !== project.id) { setMessage("Story Architect findings await import: load the owning story in Library."); return; }
           try {
             const next = await importOutlineTaskFindings(latest, task);
-            if (!live || (loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) continue;
+            if (!live) return;
+            if ((loadFoundationProject() as LibraryPPFProject).revision !== latest.revision) { setMessage("Story Architect findings await import: the story changed during validation; retrying against the latest saved story."); continue; }
             if (next !== latest) onChange.current(saveFoundationProject(next) as LibraryPPFProject);
-          } catch { /* Stale evidence remains in the protected task; do not import it. */ }
+            if (task.proposals.length && persistedFindings.get(task.scope.runId) !== task.proposals.length) {
+              // Cache updates alone are not a durable advisory import. Await the
+              // existing encrypted Library writer, and retry after a failed save.
+              await persistActiveProfileProject();
+              await flushProfilePrivateWrites();
+              persistedFindings.set(task.scope.runId, task.proposals.length);
+            }
+          } catch (error) {
+            // Keep saved findings protected, and make a denied import visible.
+            const detail = error instanceof Error && /^(Saved Story Architect|Story Architect finding)/u.test(error.message)
+              ? error.message : "Check the current story before retrying the saved findings.";
+            setMessage(`Story Architect findings remain saved in the protected task. ${detail}`);
+          }
         }
       } catch {
         if (live) setRecoveryTasks([]);

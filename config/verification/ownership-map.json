@@ -851,7 +851,7 @@
     {
       "id": "outline-task-controller",
       "classification": "production",
-      "include": ["build/projects/outline-task-controller.ts", "build/projects/outline-task-gateway.ts", "build/projects/outline-task-http.ts", "app/api/outline/tasks/route.ts", "modules/plan/assessments/outline-task-browser.ts"],
+      "include": ["build/local-profile-auth-gateway.ts", "build/projects/outline-task-controller.ts", "build/projects/outline-task-gateway.ts", "build/projects/outline-task-http.ts", "app/api/outline/tasks/route.ts", "modules/plan/assessments/outline-task-browser.ts"],
       "ownerLayer": "story-canon",
       "riskTokens": ["canon", "agent", "provider", "security", "storage"]
     },

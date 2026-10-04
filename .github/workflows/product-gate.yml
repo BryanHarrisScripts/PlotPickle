@@ -66,7 +66,7 @@ jobs:
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          node --test tests/issue-2711-outline-durable-input.test.mjs tests/issue-2711-outline-task-controller.test.mjs tests/issue-2711-outline-task-gateway.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
+          node --test tests/issue-2711-outline-local-auth.test.mjs tests/issue-2711-outline-durable-input.test.mjs tests/issue-2711-outline-task-controller.test.mjs tests/issue-2711-outline-task-gateway.test.mjs tests/issue-outline-agent-assessment.test.mjs tests/issue-2440-story-architect-structured-execution.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/pi/durable/story-architect-proof.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

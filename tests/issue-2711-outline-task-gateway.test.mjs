@@ -113,6 +113,10 @@ test("saved advisory results import once, survive gateway reopen, and stale mate
   assert.equal(imported.sourceEvidence.outlineAssessments.length, 6);
   assert.deepEqual(imported.structure, f.project.structure);
   assert.equal(await importOutlineTaskFindings(imported, task), imported);
+  const normalized = normalizeLibraryProject(imported);
+  assert.equal(normalized.sourceEvidence.outlineAssessmentRuns.length, 1);
+  assert.equal(normalized.sourceEvidence.outlineAssessmentRuns[0].status, "completed");
+  assert.equal(await importOutlineTaskFindings(normalized, task), normalized);
   await f.reopen();
   const discovery = (await (await f.http.GET(f.request("GET"))).json()).tasks;
   assert.equal(discovery.length, 1); assert.equal(f.calls, 6); assert.equal(f.opens, 1);

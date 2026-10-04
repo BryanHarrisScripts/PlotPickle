@@ -73,8 +73,9 @@ if (-not $VerifyOnly) {
   if ($LASTEXITCODE -ne 0) { throw "Cline installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing Pi coding agent"
-  & npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.99.1
-  if ($LASTEXITCODE -ne 0) { throw "Pi installation failed with exit code $LASTEXITCODE." }
+  $managed = (& node scripts/ensure-pi-cli.mjs | ConvertFrom-Json)
+  if ($LASTEXITCODE -ne 0 -or -not $managed.ready) { throw "Managed Pi installation failed." }
+  $piCommand = $managed.command
 
   Write-Step "Installing pinned Pi project extensions"
   $packages = @(
@@ -84,19 +85,21 @@ if (-not $VerifyOnly) {
     "npm:pi-context-view@0.4.2"
   )
   foreach ($package in $packages) {
-    & pi install $package -l
+    & $piCommand install $package -l
     if ($LASTEXITCODE -ne 0) { throw "Pi package install failed for $package with exit code $LASTEXITCODE." }
   }
 }
 
 Write-Step "Verifying developer agents"
-$pi = Get-Command pi -ErrorAction SilentlyContinue
+$managed = (& node scripts/ensure-pi-cli.mjs --verify-only | ConvertFrom-Json)
+if ($LASTEXITCODE -ne 0) { throw "Managed Pi verification failed." }
+$piCommand = $managed.command
 $cline = Get-Command cline -ErrorAction SilentlyContinue
 
-if (-not $pi) { throw "Pi CLI is not available on PATH." }
+if (-not $managed.ready -or -not $piCommand) { throw "Managed Pi CLI is unavailable." }
 if (-not $cline) { throw "Cline CLI is not available on PATH." }
 
-$piVersion = (& pi --version 2>&1 | Out-String).Trim()
+$piVersion = (& $piCommand --version 2>&1 | Out-String).Trim()
 $clineVersion = (& cline version 2>&1 | Out-String).Trim()
 Write-Host "Pi ................................ $piVersion"
 Write-Host "Cline ............................. $clineVersion"

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "issue": 2717,
+  "package": "@earendil-works/pi-coding-agent",
+  "currentManagedVersion": "0.99.1",
+  "candidateVersion": "1.0.1",
+  "releaseTag": "v1.0.1",
+  "releaseUrl": "https://github.com/earendil-works/pi/releases/tag/v1.0.1",
+  "decision": "promote-after-green-candidate-proof",
+  "requiredExtensions": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
+  ],
+  "extensionAudit": [
+    {
+      "package": "@dietrichgebert/ponytail",
+      "classification": "KEEP"
+    },
+    {
+      "package": "pi-subagents",
+      "classification": "KEEP"
+    },
+    {
+      "package": "@ff-labs/pi-fff",
+      "classification": "KEEP"
+    },
+    {
+      "package": "pi-mcp-adapter",
+      "classification": "RETIRED_FROM_LOADED_PACKAGE_SET_IN_PHASE_2"
+    },
+    {
+      "package": "pi-context-view",
+      "classification": "KEEP"
+    }
+  ],
+  "requiredCapabilities": {
+    "supportedPackageRootSdk": true,
+    "canonicalSessionContext": true,
+    "contextEditEntry": true,
+    "customEntry": true,
+    "contextWithSystemExtensionEvent": true,
+    "stdioRpc": true,
+    "windowsPrivateManagedInstall": true,
+    "noExtensionsBuiltInsAudit": true
+  },
+  "noExtensionsAudit": {
+    "behavior": "Pi 1.0.1 --no-extensions disables built-in extensions as well as project/user extensions.",
+    "policy": "A probe or worker that needs a built-in extension must load it explicitly; the bare RPC compatibility probe intentionally needs none."
+  },
+  "forbiddenPlotPickleImports": [
+    "@earendil-works/pi-coding-agent/client",
+    "@earendil-works/pi-coding-agent/experimental/plugin"
+  ],
+  "promotionPolicy": "Promote exactly 1.0.1 after the locked candidate Windows install, SDK/context/RPC/extension, native MCP, DSDD and durable proofs pass. Preserve every existing tool and compute authority policy.",
+  "phase2Migration": {
+    "nativeMcp": true,
+    "legacyAdapterLoaded": false,
+    "canonicalConfig": ".mcp.json",
+    "exposurePolicy": "config/pi-tool-exposure-policy.json"
+  },
+  "phase4Migration": {
+    "virtualModel": true,
+    "logicalModel": "plotpickle/developer",
+    "authority": "plotpickle-agent-compute",
+    "policy": "config/pi-virtual-model-policy.json",
+    "classifierAuthority": "non-authoritative-routing-only",
+    "localClassifierSupported": true,
+    "optionalOpenAiLogin": "/login openai",
+    "automaticCloudFallback": false
+  }
+}

@@ -175,8 +175,8 @@ test("the Windows setup installs only the two chosen agents and the pinned Pi pa
   const setup = await read("scripts/setup-developer-agent-stack.ps1");
 
   assert.match(setup, /npm install -g cline/);
-  assert.match(setup, /npm install -g --ignore-scripts @earendil-works\/pi-coding-agent/);
-  assert.match(setup, /pi install \$package -l/);
+  assert.match(setup, /node scripts\/ensure-pi-cli\.mjs/);
+  assert.match(setup, /\$piCommand install \$package -l/);
   for (const packageName of PINNED_PI_PACKAGES) assert.match(setup, new RegExp(packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(setup, /Node\.js 22\.19\.0 or newer/);
   assert.match(setup, /Git Bash|compatible Bash/i);

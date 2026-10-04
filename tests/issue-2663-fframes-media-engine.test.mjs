@@ -15,7 +15,7 @@ test("#2663 owns a provider-neutral media-engine contract", () => {
 });
 
 test("#2663 pins FFrames and keeps it behind an adapter", () => {
-  assert.match(cargo, /fframes = \{ version = "=1\.1\.0"/);
+  assert.match(cargo, /fframes = \{ version = "=1\.2\.0"/);
   assert.match(adapter, /class FFramesLocalMediaEngine implements PlotPickleMediaEngine/);
   assert.match(adapter, /automaticInstall: false/);
   assert.match(adapter, /cloudFallback: false/);

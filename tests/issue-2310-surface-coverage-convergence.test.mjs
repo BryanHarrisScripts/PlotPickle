@@ -14,8 +14,8 @@ const read = (relative) => readFile(new URL("../" + relative, import.meta.url), 
 
 test("#2310 separates migration inventory from current Matrix governance", () => {
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
-  assert.equal(SKIN_V1_SURFACES.length, 84);
-  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 49);
+  assert.equal(SKIN_V1_SURFACES.length, 85);
+  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 50);
   assert.equal(CURRENT_MATRIX_SURFACE_LIFECYCLE.censusOnlyDefaultLifecycle, "in-transit");
   assert.deepEqual(CURRENT_MATRIX_SURFACE_LIFECYCLE.activeGovernedAdditional, [
     "discovery",
@@ -23,6 +23,7 @@ test("#2310 separates migration inventory from current Matrix governance", () =>
     "plan",
     "production",
     "pitch-package",
+    "command",
   ]);
   for (const id of CURRENT_MATRIX_SURFACE_LIFECYCLE.activeGovernedAdditional) {
     assert.equal(isCurrentMatrixSupplementalGoverned(id), true);

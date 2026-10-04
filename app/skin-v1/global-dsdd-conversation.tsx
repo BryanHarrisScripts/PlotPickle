@@ -214,7 +214,8 @@ function conversationPrompt(messages: DsddMessage[], context: DsddContext, submi
   ].filter(Boolean).join("\n");
 }
 
-export default function GlobalDsddConversation() {
+export default function GlobalDsddConversation({ embedded = false }: { readonly embedded?: boolean } = {}) {
+  const sessionApi = embedded ? "/api/dsdd/command" : "/api/dsdd/session";
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [eligible, setEligible] = useState(false);
@@ -269,7 +270,7 @@ export default function GlobalDsddConversation() {
         '[data-experience-surface="LOGON"][data-skin-v1-logon-state], [data-experience-surface="LOGON"]',
       ));
       setContext(next);
-      setEligible(!logonVisible && next.surfaceId !== "LOGON");
+      setEligible(!logonVisible && next.surfaceId !== "LOGON" && (embedded || !document.querySelector("[data-settings-command]")));
     };
 
     refresh();
@@ -298,7 +299,7 @@ export default function GlobalDsddConversation() {
       window.removeEventListener("popstate", scheduleRefresh);
       window.removeEventListener("plotpickle:return-dashboard", scheduleRefresh);
     };
-  }, [pathname]);
+  }, [pathname, embedded]);
 
   useEffect(() => {
     const thread = threadRef.current;
@@ -308,7 +309,7 @@ export default function GlobalDsddConversation() {
   useEffect(() => {
     if (!eligible || hydrated) return;
     let cancelled = false;
-    void authenticatedProfileFetch("/api/dsdd/session", { cache: "no-store" })
+    void authenticatedProfileFetch(sessionApi, { cache: "no-store" })
       .then(async (response) => {
         const body = await response.json() as DsddSessionPayload;
         if (!response.ok || !body.ok) throw new Error(body.message || "DSDD session could not be restored.");
@@ -340,16 +341,17 @@ export default function GlobalDsddConversation() {
         }
       });
     return () => { cancelled = true; };
-  }, [eligible, hydrated]);
+  }, [eligible, hydrated, sessionApi]);
 
   useEffect(() => {
     if (!eligible || !runtimeEligible) setOpen(false);
-  }, [eligible, runtimeEligible]);
+    else if (embedded) setOpen(true);
+  }, [eligible, runtimeEligible, embedded]);
 
   useEffect(() => {
-    if (!eligible || !runtimeEligible || !hydrated) return;
+    if (embedded || !eligible || !runtimeEligible || !hydrated) return;
     const refresh = () => {
-      void authenticatedProfileFetch("/api/dsdd/session", { cache: "no-store" })
+      void authenticatedProfileFetch(sessionApi, { cache: "no-store" })
         .then(async (response) => {
           const body = await response.json() as DsddSessionPayload;
           if (response.ok && body.ok && body.uat) setUat(body.uat);
@@ -358,16 +360,16 @@ export default function GlobalDsddConversation() {
     };
     const timer = window.setInterval(refresh, 4000);
     return () => window.clearInterval(timer);
-  }, [eligible, runtimeEligible, hydrated]);
+  }, [eligible, runtimeEligible, hydrated, embedded, sessionApi]);
 
   useEffect(() => {
-    if (!eligible || !runtimeEligible || !context) return;
+    if (embedded || !eligible || !runtimeEligible || !context) return;
     const previous = previousJourneyRef.current;
     previousJourneyRef.current = context;
     if (!previous || (previous.surfaceId === context.surfaceId && previous.route === context.route)) return;
     const timer = window.setTimeout(() => {
       if (!safeFindingCheckpoint()) return;
-      void authenticatedProfileFetch("/api/dsdd/session", {
+      void authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -435,7 +437,7 @@ export default function GlobalDsddConversation() {
     setContext(snapshot);
 
     try {
-      const persistHuman = await authenticatedProfileFetch("/api/dsdd/session", {
+      const persistHuman = await authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "append-human", text: submitted, context: snapshot, inputMode }),
@@ -460,7 +462,7 @@ export default function GlobalDsddConversation() {
         throw new Error(body.message || "The DSDD interpreter did not return a response.");
       }
       const interpreted = boundedInterpretation(body.text!);
-      const persistInterpretation = await authenticatedProfileFetch("/api/dsdd/session", {
+      const persistInterpretation = await authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "append-interpretation", text: interpreted, context: snapshot }),
@@ -494,7 +496,7 @@ export default function GlobalDsddConversation() {
     try {
       let intent = lockedIntent;
       if (!intent) {
-        const lockResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+        const lockResponse = await authenticatedProfileFetch(sessionApi, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "lock-intent" }),
@@ -507,7 +509,7 @@ export default function GlobalDsddConversation() {
         setLockedIntent(intent);
       }
       if (intent.developerBrief?.state === "ready") return;
-      const draftResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+      const draftResponse = await authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "draft-brief" }),
@@ -530,7 +532,7 @@ export default function GlobalDsddConversation() {
     setValidatingFinding(true);
     setError("");
     try {
-      const response = await authenticatedProfileFetch("/api/dsdd/session", {
+      const response = await authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "validate-finding", fingerprint: activeFinding.fingerprint, decision }),
@@ -559,7 +561,7 @@ export default function GlobalDsddConversation() {
     setPublishing(true);
     setError("");
     try {
-      const response = await authenticatedProfileFetch("/api/dsdd/session", {
+      const response = await authenticatedProfileFetch(sessionApi, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "publish-brief" }),
@@ -576,11 +578,11 @@ export default function GlobalDsddConversation() {
     }
   }
 
-  if (!eligible || !runtimeEligible) return null;
+  if (!eligible || !runtimeEligible) return embedded ? <p role="status">{hydrated ? "Command requests are unavailable. Unlock the profile and check the local runtime." : "Loading protected requests…"}</p> : null;
 
   return (
     <>
-      <button
+      {!embedded ? <button
         type="button"
         className={styles.launcher}
         aria-expanded={open}
@@ -589,12 +591,12 @@ export default function GlobalDsddConversation() {
       >
         DSDD
         <span>LIVE UAT{pendingFindings.length ? ` · ${pendingFindings.length} PENDING` : ""}</span>
-      </button>
+      </button> : null}
 
       {open ? (
         <aside
           id="plotpickle-dsdd-conversation"
-          className={styles.panel}
+          className={embedded ? `${styles.panel} ${styles.embedded}` : styles.panel}
           aria-labelledby="plotpickle-dsdd-title"
           data-dsdd-conversational-uat="true"
           data-dsdd-current-surface={context?.surfaceId || "UNKNOWN"}
@@ -602,10 +604,10 @@ export default function GlobalDsddConversation() {
           <header className={styles.header}>
             <div>
               <small>DETERMINISTIC SPECIFICATION-DRIVEN DEVELOPMENT</small>
-              <h2 id="plotpickle-dsdd-title">Conversational UAT</h2>
-              <p>Narrate what you expected and what actually happened while you use PlotPickle.</p>
+              <h2 id="plotpickle-dsdd-title">{embedded ? "Requests" : "Conversational UAT"}</h2>
+              <p>{embedded ? "Share a comment, report a problem or request a bounded change. Review the interpretation and technical brief before publishing." : "Narrate what you expected and what actually happened while you use PlotPickle."}</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close DSDD conversation">Close</button>
+            {!embedded ? <button type="button" onClick={() => setOpen(false)} aria-label="Close DSDD conversation">Close</button> : null}
           </header>
 
           <div className={styles.context} aria-live="polite">

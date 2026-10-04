@@ -9,7 +9,8 @@
     "story-bible",
     "plan",
     "production",
-    "pitch-package"
+    "pitch-package",
+    "command"
   ],
   "aliases": {
     "buzz": "community",

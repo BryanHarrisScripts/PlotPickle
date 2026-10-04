@@ -2,12 +2,13 @@
   "name": "pi-extensions",
   "private": true,
   "dependencies": {
-    "@dietrichgebert/ponytail": "^4.8.4",
-    "@ff-labs/pi-fff": "^0.10.1",
-    "pi-mcp-adapter": "^2.26.0",
-    "pi-subagents": "^0.35.1"
+    "@dietrichgebert/ponytail": "4.8.4",
+    "pi-subagents": "0.35.1",
+    "@ff-labs/pi-fff": "0.10.1",
+    "pi-mcp-adapter": "2.26.0",
+    "pi-context-view": "0.4.2"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.87.1"
+    "@earendil-works/pi-coding-agent": "1.0.1"
   }
 }

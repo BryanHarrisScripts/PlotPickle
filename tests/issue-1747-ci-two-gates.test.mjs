@@ -45,7 +45,7 @@ test("issue #1747 keeps retired legacy diagnostics available explicitly", async 
   assert.match(productGate, /current Skin V1 startup boundary/i);
   assert.match(productGate, /Production web build on Windows/);
   assert.match(productGate, /Windows installer source contract/);
-  assert.equal((productGate.match(/npm ci/g) || []).length, 1);
+  assert.equal((productGate.match(/npm ci/g) || []).length, 2, "Application and isolated native-media jobs each install dependencies once.");
 });
 
 test("issue #1747 leaves specialized workflows outside ordinary PR verification", async () => {

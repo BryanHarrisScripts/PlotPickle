@@ -1,4 +1,4 @@
-use fframes::{AudioMap, Color, Duration, FFramesContext, Frame, MediaDirectory, RenderOptions, Svgr, Video, cli};
+use fframes::{AudioMap, Color, Duration, EncoderOptions, FFramesContext, Frame, MediaDirectory, RenderOptions, Svgr, Video, cli};
 use serde::Deserialize;
 use std::{fs, process::ExitCode};
 
@@ -113,6 +113,12 @@ fn run() -> Result<ExitCode, String> {
         &video,
         RenderOptions {
             media: Some(&media),
+            // Use the LGPL software encoder deterministically. GPU availability
+            // is a separate hardware capability, never inferred from FFrames.
+            video_encoder_options: EncoderOptions {
+                preferred_encoder: Some("mpeg4"),
+                ..Default::default()
+            },
             ..Default::default()
         },
     )

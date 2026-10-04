@@ -15,7 +15,7 @@ jobs:
   product-gate:
     name: Product Gate
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - name: Checkout exact head with history
@@ -42,9 +42,53 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
 
-      - name: Evaluate Pi 0.99.1 compatibility
+      - name: Evaluate managed Pi compatibility
         shell: pwsh
+        env:
+          PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-101-compatibility.json
         run: node scripts/evaluate-pi-099-compatibility.mjs
+
+      - name: Detect Settings Command proof scope
+        id: command-scope
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+        run: |
+          $changed = git diff --name-only $env:BASE_SHA HEAD
+          $required = [bool]($changed | Select-String -Pattern '^(app/_components/settings/|app/skin-v1/(dashboard-bbs-panel|global-dsdd-conversation)|build/dsdd/|scripts/(settings-command-product-proof|pi-managed-install)\.mjs$|scripts/pi/hunk-review-terminal\.ps1$|tools/hunk-review/|tests/issue-2717-|\.github/workflows/product-gate\.yml$)')
+          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Prepare reviewed Hunk for isolated Windows proof
+        if: steps.command-scope.outputs.required == 'true'
+        shell: pwsh
+        run: |
+          & npm @('ci', '--prefix', 'tools/hunk-review', '--ignore-scripts', '--no-audit', '--no-fund')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "$env:GITHUB_WORKSPACE\tools\hunk-review\node_modules\.bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Prove Settings Command, locked Pi install and native Hunk on Windows
+        if: steps.command-scope.outputs.required == 'true'
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/issue-2717-settings-command.test.mjs tests/issue-2717-command-gateway.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/settings-command-product-proof.mjs
+
+      - name: Upload Settings Command evidence
+        if: always() && steps.command-scope.outputs.required == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-command-${{ github.run_id }}
+          path: |
+            .artifacts/settings-command-2717/proof.json
+            .artifacts/settings-command-2717/failure.json
+            .artifacts/settings-command-2717/host.log
+            .artifacts/settings-command-2717/command.png
+            .artifacts/settings-command-2717/failure.png
+          if-no-files-found: warn
+          retention-days: 5
 
       - name: Evaluate optional Pi Durable adapter
         shell: pwsh
@@ -154,3 +198,66 @@ jobs:
       - name: Validate Windows installer source contract
         shell: pwsh
         run: node --test tests/issue-1456-windows-installer.test.mjs
+
+  fframes-proof:
+    name: FFrames Windows proof
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Detect native media proof scope
+        id: scope
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+        run: |
+          $required = [bool]((git diff --name-only $env:BASE_SHA HEAD) | Select-String -Pattern '^(tools/fframes-bridge/|core/media/fframes-local-media-engine\.ts$|scripts/fframes-product-proof\.mjs$|\.github/workflows/product-gate\.yml$)')
+          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.required == 'true'
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install media proof dependencies once
+        if: steps.scope.outputs.required == 'true'
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Prepare pinned LGPL FFmpeg for proof only
+        if: steps.scope.outputs.required == 'true'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof.zip'
+          Invoke-WebRequest 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-03-18-14/ffmpeg-n9.0.2-22-g46d8f462ee-win64-lgpl-shared-9.0.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'dcd3a8ec5a45cfbf59dfc9336f5ebcb26db28b572c17c77d048bcebf9354add7') { throw 'FFmpeg proof archive identity changed.' }
+          Expand-Archive $archive -DestinationPath (Join-Path $env:RUNNER_TEMP 'ffmpeg-proof')
+          $ffmpeg = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof\ffmpeg-n9.0.2-22-g46d8f462ee-win64-lgpl-shared-9.0'
+          "FFMPEG_DIR=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "$ffmpeg\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Select reviewed Rust toolchain
+        if: steps.scope.outputs.required == 'true'
+        shell: pwsh
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Build locked optional bridge on Windows
+        if: steps.scope.outputs.required == 'true'
+        shell: pwsh
+        env:
+          CARGO_BUILD_JOBS: '2'
+        run: cargo +1.99.0 build --release --locked --manifest-path tools/fframes-bridge/Cargo.toml
+      - name: Decode and verify every rendered frame
+        if: steps.scope.outputs.required == 'true'
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/fframes-product-proof.mjs
+      - name: Upload native media proof
+        if: always() && steps.scope.outputs.required == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fframes-${{ github.run_id }}
+          path: .artifacts/fframes-2717/
+          if-no-files-found: warn
+          retention-days: 5

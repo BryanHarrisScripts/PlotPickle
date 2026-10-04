@@ -1,0 +1,5 @@
+{
+  "name": "plotpickle-hunk-review-proof",
+  "private": true,
+  "dependencies": { "hunkdiff": "0.23.0" }
+}

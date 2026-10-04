@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
+import CommandReviewPanel from "../_components/settings/command-review-panel";
+import GlobalDsddConversation from "./global-dsdd-conversation";
 import LearnJourneyPreview from "./learn-journey-preview";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
@@ -16,6 +18,7 @@ export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
+  command: "M",
   local: "L",
   cloud: "C",
   hybrid: "H",
@@ -34,6 +37,7 @@ const SETTINGS_MENU = [
   { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "SETTINGS" },
   { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "SETTINGS" },
   { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "SETTINGS" },
+  { id: "command", shortcut: SETTINGS_SHORTCUTS.command, label: "Command", description: "Comments, requests, evidence and proposed-change review.", group: "SETTINGS" },
 ] as const;
 
 const CONNECTED_SETTINGS_ITEMS = new Set(SETTINGS_MENU.map((item) => item.id));
@@ -65,6 +69,7 @@ export default function DashboardBbsPanel({
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
   const [storyModeView, setStoryModeView] = useState<StoryModePolicy | null>(null);
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
@@ -80,6 +85,7 @@ export default function DashboardBbsPanel({
       setLearnTarget(null);
       setSettingsMenuOpen(false);
       setSettingsWorkspace(null);
+      setCommandOpen(false);
       setStoryModeView(null);
       setNodeInfoOpen(false);
       setPlotPickleAgentsOpen(false);
@@ -110,6 +116,7 @@ export default function DashboardBbsPanel({
       const detail = (event as CustomEvent<{ parentSurface?: string }>).detail;
       if (detail?.parentSurface !== "settings") return;
       setSettingsWorkspace(null);
+      setCommandOpen(false);
       setStoryModeView(null);
       setNodeInfoOpen(false);
       setPlotPickleAgentsOpen(false);
@@ -122,6 +129,10 @@ export default function DashboardBbsPanel({
   useEffect(() => {
     if (writerCraftMenuOpen) {
       onSurfaceNameChange("LEARN");
+      return;
+    }
+    if (settingsMenuOpen && commandOpen) {
+      onSurfaceNameChange("COMMAND");
       return;
     }
     if (settingsMenuOpen && settingsWorkspace) {
@@ -142,6 +153,7 @@ export default function DashboardBbsPanel({
     }
     onSurfaceNameChange(settingsMenuOpen ? "SETTINGS" : "DASHBOARD");
   }, [
+    commandOpen,
     nodeInfoOpen,
     onSurfaceNameChange,
     plotPickleAgentsOpen,
@@ -190,6 +202,7 @@ export default function DashboardBbsPanel({
     const item = SETTINGS_MENU[index];
     if (!item) return;
     setSettingsSelectedIndex(index);
+    if (item.id === "command") { setCommandOpen(true); return; }
     if (isWorkspaceSettingsId(item.id)) {
       setSettingsWorkspace(item.id);
       return;
@@ -248,6 +261,23 @@ export default function DashboardBbsPanel({
       event.preventDefault();
       activateSettingsItem(index);
     }
+  }
+
+  if (settingsMenuOpen && commandOpen) {
+    return <section aria-label="Command" className="pp-skin-v1-panel" data-settings-command="true" onKeyDown={(event) => {
+      if (event.key === "Escape") { event.preventDefault(); setCommandOpen(false); }
+    }}>
+      <div className="pp-skin-v1-bbs-banner">
+        <h1>Command</h1>
+        <button type="button" className="pp-skin-v1-return" onClick={() => setCommandOpen(false)}>Back to Settings</button>
+      </div>
+      <div role="group" aria-label="Command engine settings">
+        <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("local"); }}>Local engines</button>
+        <button type="button" onClick={() => { setCommandOpen(false); setPlotPickleAgentsOpen(true); }}>Agent compute</button>
+      </div>
+      <GlobalDsddConversation embedded />
+      <CommandReviewPanel />
+    </section>;
   }
 
   if (settingsMenuOpen && settingsWorkspace) {

@@ -147,7 +147,15 @@ test("issue #1941 keeps PR Gate and Product Gate visible as legacy comparisons a
   assert.match(prGate, /^name: PR Gate$/m);
   assert.match(prGate, /^    name: PR Gate$/m);
   assert.match(productGate, /^name: Product Gate$/m);
-  assert.match(productGate, /^    name: Product Gate$/m);
+  assert.match(productGate, /^  workflow_dispatch:/m);
+  for (const name of [
+    "Settings Command Windows proof",
+    "Pi runtime Windows proof",
+    "Story Architect Windows proof",
+    "Media / FFrames Windows proof",
+    "Local voice Windows proof",
+    "Windows build / installer proof",
+  ]) assert.ok(productGate.includes(`name: ${name}`), `missing split Product Gate lane: ${name}`);
   assert.match(architectureWorkflow, /^name: Architecture Verification$/m);
   assert.deepEqual(authority.legacyAdvisoryWorkflows.map((entry) => entry.role), ["advisory-comparison", "advisory-comparison"]);
 });

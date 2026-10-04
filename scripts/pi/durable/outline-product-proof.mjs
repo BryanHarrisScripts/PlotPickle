@@ -75,13 +75,18 @@ async function stop() {
   const child = launcher;
   const pid = child.pid;
   launcher = null;
+  let stopError;
   if (process.platform === "win32") {
     if (pid && child.exitCode === null) {
       try { execFileSync("taskkill.exe", ["/PID", String(pid), "/T", "/F"], { stdio: "ignore" }); }
-      catch (error) { if (error.status !== 128) throw error; } // Already exited between observation and cleanup.
+      catch (error) { stopError = error; } // A killed descendant can make taskkill report failure.
     }
   } else if (pid) try { process.kill(-pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; }
   await waitFor(async () => { try { await fetch(`${base}/api/auth/profile`, { signal: AbortSignal.timeout(1000) }); return false; } catch { return true; } }, "server stop", 20_000);
+  if (stopError) {
+    // Accept a taskkill race only after both the server and owned launcher exit.
+    await waitFor(() => child.exitCode !== null || child.signalCode !== null, "owned launcher stop", 5_000);
+  }
 }
 async function api(session, pathname, body) {
   const response = await fetch(`${base}${pathname}`, { method: body ? "POST" : "GET", headers: {
@@ -98,6 +103,10 @@ async function outline(session, toolRoot) {
   const page = await context.newPage();
   proofPage = page;
   await page.goto(`${base}/skin-v1`, { waitUntil: "domcontentloaded" });
+  await openSavedOutline(page);
+  return page;
+}
+async function openSavedOutline(page) {
   // A fresh browser session deliberately starts without a loaded story. Open
   // the exact saved fixture through Library, just as the Human does on reopen.
   await page.locator("[data-dashboard-menu-item='library']").click({ timeout: 60_000 });
@@ -105,7 +114,6 @@ async function outline(session, toolRoot) {
   await page.getByRole("button", { name: "Open Saved Story", exact: true }).click();
   await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
   await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).waitFor({ timeout: 60_000 });
-  return page;
 }
 async function runProof() {
 try {
@@ -219,7 +227,7 @@ try {
   }, "encrypted advisory import");
   assert.ok(!importError, importError);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
+  await openSavedOutline(page);
   const final = (await api(session, "/api/auth/profile-private")).project;
   assert.equal(final.sourceEvidence.outlineAssessmentRuns.filter((run) => run.id === id).length, 1);
   assert.equal(final.sourceEvidence.outlineAssessments.length, 6);
@@ -237,7 +245,7 @@ try {
   await row.getByRole("button", { name: "Cancel Story Architect review", exact: true }).click({ timeout: 30_000 });
   await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === cancelling.scope.runId)?.run.state === "cancelled", "cancel persisted");
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
+  await openSavedOutline(page);
   const cancelledRow = page.locator(`[data-outline-recovery-task='${cancelling.scope.runId}']`);
   await cancelledRow.getByText("Story Architect · cancelled", { exact: true }).waitFor({ timeout: 30_000 });
   assert.equal(await cancelledRow.getByRole("button", { name: "Resume Story Architect review" }).count(), 0);

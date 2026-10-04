@@ -56,7 +56,10 @@ try {
       if (delayed) return; // Cancellation must end this request before any assessment exists.
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ id: "synthetic-completion", object: "chat.completion", created: 1, model: lastRequest.model, choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(assessment) }, finish_reason: "stop" }], ...(omitUsage ? {} : { usage: { prompt_tokens: 37, completion_tokens: 53, total_tokens: 90 } }) }));
-    } catch (error) { response.writeHead(500); response.end(error.message); }
+    } catch {
+      response.writeHead(500, { "Content-Type": "application/json; charset=utf-8", "X-Content-Type-Options": "nosniff" });
+      response.end(JSON.stringify({ error: "Synthetic provider request rejected" }));
+    }
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const profile = { provider: "local", runtime: "local", baseUrl: `http://127.0.0.1:${server.address().port}`, textModel: "synthetic-story-architect", apiKey: "", contextTokens: 16384 };

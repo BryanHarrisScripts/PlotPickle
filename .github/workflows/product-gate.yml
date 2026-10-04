@@ -3,6 +3,31 @@ name: Product Gate
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      command:
+        required: false
+        type: boolean
+        default: false
+      pi:
+        required: false
+        type: boolean
+        default: false
+      story:
+        required: false
+        type: boolean
+        default: false
+      media:
+        required: false
+        type: boolean
+        default: false
+      voice:
+        required: false
+        type: boolean
+        default: false
+      build:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,62 +37,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  product-gate:
-    name: Product Gate
+  settings-command-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.command
+    name: Settings Command Windows proof
     runs-on: windows-latest
-    timeout-minutes: 40
-
+    timeout-minutes: 12
     steps:
       - name: Checkout exact head with history
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4
         with:
           node-version: '24.19.0'
           cache: npm
-
-      - name: Install PlotPickle dependencies once
+      - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
-
-      - name: Validate current Skin V1 startup boundary and DSDD owned Edge
-        shell: pwsh
-        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-1910-local-voice-input.test.mjs
-
-      - name: Validate current security closeout
-        shell: pwsh
-        run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
-
-      - name: Evaluate managed Pi compatibility
-        shell: pwsh
-        env:
-          PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-101-compatibility.json
-        run: node scripts/evaluate-pi-099-compatibility.mjs
-
-      - name: Detect Settings Command proof scope
-        id: command-scope
-        shell: pwsh
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
-        run: |
-          $changed = git diff --name-only $env:BASE_SHA HEAD
-          $required = [bool]($changed | Select-String -Pattern '^(app/_components/settings/|app/skin-v1/(dashboard-bbs-panel|global-dsdd-conversation)|build/dsdd/|scripts/(settings-command-product-proof|pi-managed-install)\.mjs$|scripts/pi/hunk-review-terminal\.ps1$|tools/hunk-review/|tests/issue-2717-|\.github/workflows/product-gate\.yml$)')
-          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
       - name: Prepare reviewed Hunk for isolated Windows proof
-        if: steps.command-scope.outputs.required == 'true'
         shell: pwsh
         run: |
           & npm @('ci', '--prefix', 'tools/hunk-review', '--ignore-scripts', '--no-audit', '--no-fund')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "$env:GITHUB_WORKSPACE\tools\hunk-review\node_modules\.bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
       - name: Prove Settings Command, locked Pi install and native Hunk on Windows
-        if: steps.command-scope.outputs.required == 'true'
         shell: pwsh
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -75,9 +70,8 @@ jobs:
           node --test tests/issue-2717-settings-command.test.mjs tests/issue-2717-command-gateway.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/settings-command-product-proof.mjs
-
       - name: Upload Settings Command evidence
-        if: always() && steps.command-scope.outputs.required == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: settings-command-${{ github.run_id }}
@@ -90,22 +84,78 @@ jobs:
           if-no-files-found: warn
           retention-days: 5
 
+  pi-runtime-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.pi
+    name: Pi runtime Windows proof
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install PlotPickle dependencies
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate current Skin V1 startup boundary and DSDD owned Edge
+        shell: pwsh
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-1910-local-voice-input.test.mjs
+      - name: Validate current security closeout
+        shell: pwsh
+        run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
+      - name: Evaluate managed Pi compatibility
+        shell: pwsh
+        env:
+          PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-101-compatibility.json
+        run: node scripts/evaluate-pi-099-compatibility.mjs
       - name: Evaluate optional Pi Durable adapter
         shell: pwsh
         run: node scripts/evaluate-pi-durable-adapter.mjs
-
-      - name: Detect Story Architect proof scope
-        id: outline-scope
+      - name: Prove active-default Pi Durable runtime on Windows
         shell: pwsh
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
-        run: |
-          $changed = git diff --name-only $env:BASE_SHA HEAD
-          $required = [bool]($changed | Select-String -Pattern '^(build/projects/outline-task-[^/]+\.ts$|app/api/outline/tasks/route\.ts$|modules/plan/assessments/outline-task-browser\.ts$|app/skin-v1/story-card-foundation-board\.tsx$|scripts/pi/durable/outline-product-proof\.mjs$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/story-architect-proof\.mjs$|tests/issue-2711-|\.github/workflows/product-gate\.yml$)')
-          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        run: node --test tests/issue-2696-pi-durable-active-default.test.mjs
+      - name: Prove Pi native MCP registration and stdio on Windows
+        shell: pwsh
+        run: node --test tests/issue-2591-pi-native-mcp.test.mjs
+      - name: Prove governed Codemode and nested evidence on Windows
+        shell: pwsh
+        run: node --test tests/issue-2592-pi-codemode-evidence.test.mjs
+      - name: Prove governed Pi virtual routing and classifier boundaries on Windows
+        shell: pwsh
+        run: node --test tests/issue-2593-pi-virtual-routing.test.mjs
+      - name: Prove governed development delivery, exact-head recovery and claims on Windows
+        shell: pwsh
+        run: node --test tests/issue-2594-governed-development-delivery.test.mjs
+      - name: Verify Pi Draft prompt transport through a Windows batch shim
+        shell: pwsh
+        run: node --test tests/issue-2359-pi-draft-stdin.test.mjs
 
+  story-architect-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.story
+    name: Story Architect Windows proof
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install PlotPickle dependencies
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
       - name: Prove real Mastra Story Architect against a synthetic provider on Windows
-        if: steps.outline-scope.outputs.required == 'true'
         shell: pwsh
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -115,9 +165,8 @@ jobs:
           node scripts/pi/durable/story-architect-proof.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/pi/durable/outline-product-proof.mjs
-
       - name: Upload Story Architect fixture evidence
-        if: always() && steps.outline-scope.outputs.required == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: story-architect-${{ github.run_id }}
@@ -127,19 +176,7 @@ jobs:
             .artifacts/browser-verification/
           if-no-files-found: warn
           retention-days: 5
-
-      - name: Detect agent checkpoint proof scope
-        id: checkpoint-scope
-        shell: pwsh
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
-        run: |
-          $changed = git diff --name-only $env:BASE_SHA HEAD
-          $required = [bool]($changed | Select-String -Pattern '^(core/sidecars/tasks/|scripts/pi/durable/|tests/issue-2709-|\.github/workflows/product-gate\.yml$)')
-          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
       - name: Prove scoped agent checkpoints and real JSONL recovery on Windows
-        if: steps.checkpoint-scope.outputs.required == 'true'
         shell: pwsh
         env:
           PLOTPICKLE_CHECKPOINT_PROOF_HOME: ${{ runner.temp }}\plotpickle-checkpoint-proof
@@ -148,9 +185,8 @@ jobs:
           node --test tests/issue-2709-agent-checkpoint-task.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/pi/durable/checkpoint-proof.mjs
-
       - name: Upload agent checkpoint product evidence
-        if: always() && steps.checkpoint-scope.outputs.required == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: agent-checkpoint-${{ github.run_id }}
@@ -158,75 +194,26 @@ jobs:
           if-no-files-found: warn
           retention-days: 5
 
-      - name: Prove active-default Pi Durable runtime on Windows
-        shell: pwsh
-        run: node --test tests/issue-2696-pi-durable-active-default.test.mjs
-
-      - name: Prove Pi native MCP registration and stdio on Windows
-        shell: pwsh
-        run: node --test tests/issue-2591-pi-native-mcp.test.mjs
-
-      - name: Prove governed Codemode and nested evidence on Windows
-        shell: pwsh
-        run: node --test tests/issue-2592-pi-codemode-evidence.test.mjs
-
-      - name: Prove governed Pi virtual routing and classifier boundaries on Windows
-        shell: pwsh
-        run: node --test tests/issue-2593-pi-virtual-routing.test.mjs
-
-      - name: Prove governed development delivery, exact-head recovery and claims on Windows
-        shell: pwsh
-        run: node --test tests/issue-2594-governed-development-delivery.test.mjs
-
-      - name: Verify Pi Draft prompt transport through a Windows batch shim
-        shell: pwsh
-        run: node --test tests/issue-2359-pi-draft-stdin.test.mjs
-
-      - name: Validate bundled local video setup
-        run: node --test tests/ltx-bundled-default.test.mjs
-
-      - name: Validate local whisper.cpp dictation fixture
-        shell: pwsh
-        env:
-          PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
-
-      - name: Production web build on Windows
-        shell: pwsh
-        run: npm run build
-
-      - name: Validate Windows installer source contract
-        shell: pwsh
-        run: node --test tests/issue-1456-windows-installer.test.mjs
-
-  fframes-proof:
-    name: FFrames Windows proof
+  media-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.media
+    name: Media / FFrames Windows proof
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Detect native media proof scope
-        id: scope
-        shell: pwsh
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
-        run: |
-          $required = [bool]((git diff --name-only $env:BASE_SHA HEAD) | Select-String -Pattern '^(tools/fframes-bridge/|core/media/fframes-local-media-engine\.ts$|scripts/fframes-product-proof\.mjs$|\.github/workflows/product-gate\.yml$)')
-          "required=$($required.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - uses: actions/setup-node@v4
-        if: steps.scope.outputs.required == 'true'
         with:
           node-version: '24.19.0'
           cache: npm
-      - name: Install media proof dependencies once
-        if: steps.scope.outputs.required == 'true'
+      - name: Install media proof dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate bundled local video setup
+        run: node --test tests/ltx-bundled-default.test.mjs
       - name: Prepare pinned LGPL FFmpeg for proof only
-        if: steps.scope.outputs.required == 'true'
         shell: pwsh
         run: |
           $archive = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof.zip'
@@ -238,26 +225,71 @@ jobs:
           "$ffmpeg\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Select reviewed Rust toolchain
-        if: steps.scope.outputs.required == 'true'
         shell: pwsh
         run: rustup toolchain install 1.99.0 --profile minimal
       - name: Build locked optional bridge on Windows
-        if: steps.scope.outputs.required == 'true'
         shell: pwsh
         env:
           CARGO_BUILD_JOBS: '2'
         run: cargo +1.99.0 build --release --locked --manifest-path tools/fframes-bridge/Cargo.toml
       - name: Decode and verify every rendered frame
-        if: steps.scope.outputs.required == 'true'
         shell: pwsh
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/fframes-product-proof.mjs
       - name: Upload native media proof
-        if: always() && steps.scope.outputs.required == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fframes-${{ github.run_id }}
           path: .artifacts/fframes-2717/
           if-no-files-found: warn
           retention-days: 5
+
+  local-voice-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.voice
+    name: Local voice Windows proof
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate local whisper.cpp dictation fixture
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
+
+  windows-build-installer:
+    if: github.event_name == 'workflow_dispatch' || inputs.build
+    name: Windows build / installer proof
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install PlotPickle dependencies
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate current Skin V1 startup boundary and DSDD owned Edge
+        shell: pwsh
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-1910-local-voice-input.test.mjs
+      - name: Validate current security closeout
+        shell: pwsh
+        run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
+      - name: Production web build on Windows
+        shell: pwsh
+        run: npm run build
+      - name: Validate Windows installer source contract
+        shell: pwsh
+        run: node --test tests/issue-1456-windows-installer.test.mjs

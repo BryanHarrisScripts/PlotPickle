@@ -347,8 +347,8 @@
         "config/pi-101-compatibility.json",
         "scripts/pi/hunk-review-terminal.ps1",
         "scripts/settings-command-product-proof.mjs",
-        "scripts/fframes-product-proof.mjs",
-        "tools/hunk-review/**"
+        "tools/hunk-review/**",
+        "scripts/ensure-pi-cli.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -1729,7 +1729,8 @@
       "include": [
         "core/media/fframes-local-media-engine.ts",
         "core/media/media-engine-contract.ts",
-        "tools/fframes-bridge/**"
+        "tools/fframes-bridge/**",
+        "scripts/fframes-product-proof.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

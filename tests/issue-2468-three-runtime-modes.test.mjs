@@ -43,22 +43,22 @@ test("#2468 keeps the five-second normal default and preserves selected mode acr
   assert.match(batch, /running a different startup mode/u);
 });
 
-test("#2468 server-side DSDD authority is conversational-uat only", async () => {
+test("#2468 global DSDD session authority remains conversational-uat only beside Settings Command", async () => {
   const gateway = await read("build/dsdd/dsdd-session-gateway.ts");
 
   assert.match(gateway, /process\.env\.PLOTPICKLE_STARTUP_TESTING_MODE === "conversational-uat"/u);
-  assert.match(gateway, /if \(!dsddRuntimeEnabled\(\)\)[\s\S]*status: 403/u);
+  assert.match(gateway, /if \(pathname === API && !dsddRuntimeEnabled\(\)\)[\s\S]*status: 403/u);
   assert.match(gateway, /DSDD engineering sessions require PlotPickle Conversational UAT startup mode/u);
   assert.match(gateway, /acceptsDsddLoopbackRequest/u);
 });
 
-test("#2468 DSDD UI requires server-confirmed runtime authority and cannot flash in normal/WebMCP", async () => {
+test("#2468 global DSDD UI requires server-confirmed runtime authority while embedded Command reports readiness", async () => {
   const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /const \[runtimeEligible, setRuntimeEligible\] = useState\(false\)/u);
   assert.match(panel, /setRuntimeEligible\(true\)/u);
   assert.match(panel, /setRuntimeEligible\(false\)/u);
-  assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) return null/u);
+  assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) return embedded \?[\s\S]*: null/u);
   assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) setOpen\(false\)/u);
 });
 

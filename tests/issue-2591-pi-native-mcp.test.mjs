@@ -194,7 +194,8 @@ test("#2591 retires pi-mcp-adapter from every loaded project package path", asyn
   assert.equal(stack.piRuntime.nativeMcp.legacyAdapterRollbackPackage, "npm:pi-mcp-adapter@2.26.0");
   assert.equal(stack.piRuntime.nativeMcp.legacyAdapterRollbackPolicy, "dormant-audit-only-not-loaded");
   assert.doesNotMatch(setup, /pi-mcp-adapter/u);
-  assert.match(setup, /@earendil-works\/pi-coding-agent@0\.99\.1/u);
+  assert.match(setup, /node scripts\/ensure-pi-cli\.mjs/u);
+  assert.equal(stack.piRuntime.managedVersion, "1.0.1");
   assert.equal(compatibility.phase2Migration.nativeMcp, true);
   assert.equal(compatibility.phase2Migration.legacyAdapterLoaded, false);
 });

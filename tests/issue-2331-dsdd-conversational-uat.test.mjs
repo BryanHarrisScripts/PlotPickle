@@ -26,8 +26,8 @@ test("#2331 keeps DSDD local/private and hidden from LOGON/public surfaces", asy
   assert.match(panel, /function loopbackHost\(\)/u);
   assert.match(panel, /isPublicWebPath\(pathname\)/u);
   assert.match(panel, /data-experience-surface="LOGON"/u);
-  assert.match(panel, /setEligible\(!logonVisible && next\.surfaceId !== "LOGON"\)/u);
-  assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) return null/u);
+  assert.match(panel, /setEligible\(!logonVisible && next\.surfaceId !== "LOGON" && \(embedded \|\| !document\.querySelector\("\[data-settings-command\]"\)\)\)/u);
+  assert.match(panel, /if \(!eligible \|\| !runtimeEligible\) return embedded \?[\s\S]*: null/u);
   assert.match(panel, /setRuntimeEligible\(false\)/u);
 });
 
@@ -88,7 +88,8 @@ test("#2331 persists semantic provenance and locks a versioned handoff packet be
     read("app/skin-v1/global-dsdd-conversation.tsx"),
     read("build/dsdd/dsdd-session-gateway.ts"),
   ]);
-  assert.match(panel, /authenticatedProfileFetch\("\/api\/dsdd\/session"/u);
+  assert.match(panel, /authenticatedProfileFetch\(sessionApi/u);
+  assert.match(panel, /const sessionApi = embedded \? "\/api\/dsdd\/command" : "\/api\/dsdd\/session"/u);
   assert.match(panel, /action: "append-human"/u);
   assert.match(panel, /action: "append-interpretation"/u);
   assert.match(panel, /action: "lock-intent"/u);

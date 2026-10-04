@@ -31,7 +31,7 @@ contracts merely to avoid a startup failure.
   interrupted attempt, and execute only the remaining Blocks after explicit
   resume. Saved story/profile data and cancellation remain intact.
 - Diagnostics must be bounded operational metadata, excluding prompts, story
-  text, responses and credentials. Do not increase timeouts or skip assertions.
+  text, responses and credentials. Do not increase application readiness or\n  owned-resource shutdown bounds, and do not skip assertions.
 - Focused regressions, focused UAT contracts, convergence, architecture/security
   checks and native Windows production build must pass at the exact merged head.
 
@@ -65,4 +65,4 @@ flag, deadline, measured duration and pass/fail in `launcher-startup.json`,
 labelled with the source head. The independent Windows run must prove the full
 rendered recovery without diagnostic logging; until it does, the deadline
 repair remains UNPROVEN. This repair addresses the verification deadline;
-optimizing the application's startup latency would be a separate scope.
+optimizing the application's startup latency would be a separate scope.\n## Exact-head modular proof follow-up\n\nExact-head run 37225400665 proved the repaired Outline recovery path and Windows\nproduction build in the Product Gate. Its separate modular runtime job failed\nafter the evidence already recorded the supervisor, all six registered services\nand the owned browser as stopped. The remaining failure was only that the outer\nWindows batch wrapper had not reported process exit within the proof's 20-second\npost-shutdown observation window.\n\nKeep the 20-second bound for owned services, supervisor, browser and core\nunavailability. After those product resources are independently proved stopped,\nallow the outer command wrapper up to 60 seconds to finish Vite/batch teardown,\nand record the measured wrapper-exit wait. This changes no application timeout,\nshutdown behavior, provider, task, authentication or story state contract.\n\n

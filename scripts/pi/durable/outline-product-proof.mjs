@@ -257,6 +257,9 @@ try {
       const snapshot = await proofPage.evaluate(() => ({
         status: document.querySelector(".pp-skin-v1-story-card-board-status")?.textContent,
         saveStatus: document.querySelector("[data-profile-private-save-state]")?.textContent,
+        canonicalId: document.querySelector("[data-canonical-project-id]")?.getAttribute("data-canonical-project-id"),
+        canonicalRevision: document.querySelector("[data-canonical-project-revision]")?.getAttribute("data-canonical-project-revision"),
+        sessionKeys: Object.keys(sessionStorage).filter((key) => key.includes("project-library") || key.includes("registry")),
         projects: Object.keys(sessionStorage).filter((key) => key.includes(".projects.")).map((key) => {
           const entry = JSON.parse(sessionStorage.getItem(key));
           const project = entry.project;

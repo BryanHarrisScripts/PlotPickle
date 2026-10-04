@@ -144,3 +144,16 @@
     max-width: none;
   }
 }
+
+:global(.pp-skin-v1-outline-readiness-grid[data-outline-selected-block-only="true"]) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card-row) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.focusedSlice :global(.pp-skin-v1-story-card[data-selected="true"]) {
+  width: 100%;
+  max-width: none;
+}

@@ -25,7 +25,7 @@ function blockRef(blockNumber: number) {
 }
 
 function blockAnchorRef(blockNumber: number) {
-  return \`outline-block-anchor:block:block-\${blockRef(blockNumber)}\`;
+  return `outline-block-anchor:block:block-${blockRef(blockNumber)}`;
 }
 
 function savedLocally(artifact: FoundationsVisualArtifact) {
@@ -64,10 +64,10 @@ export default function OutlineBlockAnchorWorkspace({
   const versions = useMemo<readonly Version[]>(() => [
     ...legacyCandidates
       .filter((candidate) => !artifacts.some((artifact) =>
-        (artifact.sourceDecisionKeys ?? []).includes(\`legacy-afterglow-visual:\${candidate.id}\`)))
+        (artifact.sourceDecisionKeys ?? []).includes(`legacy-afterglow-visual:${candidate.id}`)))
       .map((candidate) => ({
         kind: "legacy" as const,
-        id: \`legacy:\${candidate.id}\`,
+        id: `legacy:${candidate.id}`,
         assetUrl: candidate.images.full,
         label: candidate.title,
         candidate,
@@ -76,7 +76,7 @@ export default function OutlineBlockAnchorWorkspace({
       kind: "artifact" as const,
       id: artifact.id,
       assetUrl: artifact.assetUrl,
-      label: artifact.narrativeIntention || \`Block \${blockRef(blockNumber)} visual anchor\`,
+      label: artifact.narrativeIntention || `Block ${blockRef(blockNumber)} visual anchor`,
       artifact,
     })),
   ], [artifacts, blockNumber, legacyCandidates]);
@@ -104,7 +104,7 @@ export default function OutlineBlockAnchorWorkspace({
   async function createVersion() {
     if (!generationApproved || busy) return;
     setBusy(true);
-    setMessage(\`Creating a new Block Visual Anchor for Block \${blockRef(blockNumber)}…\`);
+    setMessage(`Creating a new Block Visual Anchor for Block ${blockRef(blockNumber)}…`);
     try {
       const passages = (project.sourceEvidence.screenplay?.passages ?? [])
         .filter((passage) => passage.blockNumber === blockNumber)
@@ -114,10 +114,10 @@ export default function OutlineBlockAnchorWorkspace({
         .replace(/\s+/gu, " ")
         .trim();
       const prompt = [
-        \`Create one cinematic Block Visual Anchor for \${project.title || "this story"}, Block \${blockRef(blockNumber)}.\`,
-        block?.title ? \`Block title: \${block.title}.\` : "",
-        block?.note ? \`Block intent: \${block.note.slice(0, 1200)}.\` : "",
-        passages ? \`Screenplay evidence: \${passages.slice(0, 2600)}.\` : "No screenplay passage is mapped here; do not invent a plot event.",
+        `Create one cinematic Block Visual Anchor for ${project.title || "this story"}, Block ${blockRef(blockNumber)}.`,
+        block?.title ? `Block title: ${block.title}.` : "",
+        block?.note ? `Block intent: ${block.note.slice(0, 1200)}.` : "",
+        passages ? `Screenplay evidence: ${passages.slice(0, 2600)}.` : "No screenplay passage is mapped here; do not invent a plot event.",
         "Represent the entire Block as one clear landscape composition. This image is the Block-level anchor, not a Mini-Block image and not one of the 25 Storyboard shots.",
         "Preserve established identity, geography, props, wardrobe, time of day and continuity where supported. No collage, captions, logos or watermarks. Output one WebP image.",
       ].filter(Boolean).join(" ");
@@ -126,7 +126,7 @@ export default function OutlineBlockAnchorWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt,
-          assetId: \`outline-block-anchor-\${project.id}-\${blockNumber}-\${Date.now()}\`,
+          assetId: `outline-block-anchor-${project.id}-${blockNumber}-${Date.now()}`,
           aspect: "landscape",
           quality: "low",
           outputFormat: "webp",
@@ -147,19 +147,19 @@ export default function OutlineBlockAnchorWorkspace({
         provider: result.provider || "configured image route",
         model: result.model || "",
         frameNumber: 1,
-        narrativeIntention: \`Block Visual Anchor · Block \${blockRef(blockNumber)}\`,
+        narrativeIntention: `Block Visual Anchor · Block ${blockRef(blockNumber)}`,
         sourceDecisionKeys: [
           anchorRef,
           "outline-block-anchor-generation:v1",
-          \`outline-block-number:\${blockNumber}\`,
-          \`ppf-revision:\${project.revision}\`,
+          `outline-block-number:${blockNumber}`,
+          `ppf-revision:${project.revision}`,
         ],
         workflow: BLOCK_WORKFLOW,
         reviewState: "draft",
         parentArtifactId: selectedArtifact?.id ?? null,
       };
       const next = applyStoryCommand(project, { type: "foundations.visual.store", artifact, occurredAt: now });
-      commit(next, \`Created a new Block Visual Anchor version for Block \${blockRef(blockNumber)}. Save and Lock remain separate decisions.\`);
+      commit(next, `Created a new Block Visual Anchor version for Block ${blockRef(blockNumber)}. Save and Lock remain separate decisions.`);
       setSelectedId(artifact.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Block Visual Anchor generation failed.");
@@ -180,7 +180,7 @@ export default function OutlineBlockAnchorWorkspace({
       sourceDecisionKeys: [...new Set([...(selectedArtifact.sourceDecisionKeys ?? []), LOCAL_SAVE_MARKER])],
     };
     const next = applyStoryCommand(project, { type: "foundations.visual.store", artifact, occurredAt: now });
-    commit(next, \`Saved this Block \${blockRef(blockNumber)} anchor version locally with the project.\`);
+    commit(next, `Saved this Block ${blockRef(blockNumber)} anchor version locally with the project.`);
   }
 
   function lockVersion() {
@@ -204,13 +204,13 @@ export default function OutlineBlockAnchorWorkspace({
         provider: "bundled Afterglow legacy visual",
         model: "",
         frameNumber: 1,
-        narrativeIntention: \`Block Visual Anchor · Block \${blockRef(blockNumber)} · \${candidate.title}\`,
+        narrativeIntention: `Block Visual Anchor · Block ${blockRef(blockNumber)} · ${candidate.title}`,
         sourceDecisionKeys: [
           anchorRef,
-          \`legacy-afterglow-visual:\${candidate.id}\`,
-          \`legacy-afterglow-source-sha:\${candidate.source.originalSha}\`,
-          \`outline-block-number:\${blockNumber}\`,
-          \`ppf-revision:\${project.revision}\`,
+          `legacy-afterglow-visual:${candidate.id}`,
+          `legacy-afterglow-source-sha:${candidate.source.originalSha}`,
+          `outline-block-number:${blockNumber}`,
+          `ppf-revision:${project.revision}`,
         ],
         workflow: REFERENCE_WORKFLOW,
         reviewState: "draft",
@@ -221,7 +221,7 @@ export default function OutlineBlockAnchorWorkspace({
     }
     if (!artifactId) return;
     next = applyStoryCommand(next, { type: "foundations.visual.accept", artifactId, occurredAt: now });
-    commit(next, \`Locked Block \${blockRef(blockNumber)} to this Block Visual Anchor. Mini-Block anchors remain independent.\`);
+    commit(next, `Locked Block ${blockRef(blockNumber)} to this Block Visual Anchor. Mini-Block anchors remain independent.`);
     setSelectedId(artifactId);
   }
 
@@ -229,7 +229,7 @@ export default function OutlineBlockAnchorWorkspace({
     if (!selectedArtifact || busy) return;
     const now = new Date().toISOString();
     const next = applyStoryCommand(project, { type: "foundations.visual.delete", artifactId: selectedArtifact.id, occurredAt: now });
-    commit(next, \`Deleted this Block \${blockRef(blockNumber)} anchor version.\`);
+    commit(next, `Deleted this Block ${blockRef(blockNumber)} anchor version.`);
     setPendingDeleteId(null);
     setSelectedId("");
   }
@@ -246,19 +246,19 @@ export default function OutlineBlockAnchorWorkspace({
       </header>
       <div className={styles.anchorBody}>
         <div className={styles.preview}>
-          <span className={styles.versionCount}>{versions.length ? \`\${selectedIndex + 1}/\${versions.length}\` : "0/0"}</span>
+          <span className={styles.versionCount}>{versions.length ? `${selectedIndex + 1}/${versions.length}` : "0/0"}</span>
           {versions.length > 1 ? (
-            <button aria-label="Previous Block anchor version" className={\`\${styles.chevron} \${styles.previous}\`} disabled={selectedIndex <= 0} type="button" onClick={() => setSelectedId(versions[selectedIndex - 1].id)}>‹</button>
+            <button aria-label="Previous Block anchor version" className={`${styles.chevron} ${styles.previous}`} disabled={selectedIndex <= 0} type="button" onClick={() => setSelectedId(versions[selectedIndex - 1].id)}>‹</button>
           ) : null}
           {selected ? <img alt={selected.label} decoding="async" loading="lazy" src={selected.assetUrl} /> : <span className={styles.empty}>No Block Visual Anchor yet</span>}
-          {isSaved ? <span className={\`\${styles.badge} \${styles.savedBadge}\`}>Saved locally</span> : null}
-          {isLocked ? <span className={\`\${styles.badge} \${styles.lockedBadge}\`}>Locked</span> : null}
+          {isSaved ? <span className={`${styles.badge} ${styles.savedBadge}`}>Saved locally</span> : null}
+          {isLocked ? <span className={`${styles.badge} ${styles.lockedBadge}`}>Locked</span> : null}
           {versions.length > 1 ? (
-            <button aria-label="Next Block anchor version" className={\`\${styles.chevron} \${styles.next}\`} disabled={selectedIndex >= versions.length - 1} type="button" onClick={() => setSelectedId(versions[selectedIndex + 1].id)}>›</button>
+            <button aria-label="Next Block anchor version" className={`${styles.chevron} ${styles.next}`} disabled={selectedIndex >= versions.length - 1} type="button" onClick={() => setSelectedId(versions[selectedIndex + 1].id)}>›</button>
           ) : null}
         </div>
         <div className={styles.controls}>
-          <p>{selected?.label || \`Block \${blockRef(blockNumber)} has no Block Visual Anchor yet.\`}</p>
+          <p>{selected?.label || `Block ${blockRef(blockNumber)} has no Block Visual Anchor yet.`}</p>
           <label>
             <input type="checkbox" checked={generationApproved} disabled={busy} onChange={(event) => setGenerationApproved(event.target.checked)} />
             I approve one image generation request through my configured provider.

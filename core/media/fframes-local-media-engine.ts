@@ -61,6 +61,8 @@ function bridgeManifest(request: PlotPickleMiniBlockMediaRequest, names: Readonl
       position: frame.position,
       fileName: names.get(frame.position),
       durationMs: frame.durationMs,
+      caption: frame.caption ?? "",
+      narration: frame.narration ?? "",
     })),
   };
 }

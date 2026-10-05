@@ -14,7 +14,12 @@ import { saveFoundationProject } from "@/core/storage/foundation-project-browser
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
+  storyboardPositionProgression,
 } from "../storyboard/storyboard-editorial-model";
+import {
+  buildPrevisGraphicNovelPanel,
+  type PrevisGraphicNovelPanel,
+} from "../previs/previs-graphic-novel-presentation";
 import styles from "./timeline-assembly-workspace.module.css";
 
 const SHOTS_PER_MINI_BLOCK = 25;
@@ -60,6 +65,61 @@ function clock(seconds: number) {
 
 function sourceKey(anchorRef: string, shotImages: readonly TimelineShotImageRef[]) {
   return `previs-flip-book:${anchorRef}:${shotImages.map((image) => `${image.shotNumber}:${image.artifactId}`).join("|")}`;
+}
+
+function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel, passages: unknown, storyContext: unknown) {
+  return JSON.stringify({
+    passages,
+    storyContext,
+    assetUrl: panel.assetUrl,
+    caption: panel.caption,
+    narration: panel.narration,
+    shotLabel: panel.shotLabel,
+    shotContext: panel.shotContext,
+    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+  });
+}
+
+function timelinePresentationFor(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
+  const imageRef = placement.shotImages.find((image) => image.shotNumber === shotNumber) ?? null;
+  const artifact = imageRef
+    ? project.build.foundations.visualArtifacts.find((candidate) => candidate.id === imageRef.artifactId) ?? null
+    : null;
+  const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
+  const sceneNumbers = [...new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean))];
+  const progression = storyboardPositionProgression(shotNumber);
+  const storyContext = {
+    title: project.title,
+    act: actForBlock(placement.blockNumber),
+    block: placement.blockNumber,
+    miniBlock: placement.miniBlockNumber,
+    blockTitle: evidence.blockTitle ?? "",
+    dramaticResponsibility: evidence.responsibility ?? "",
+  };
+  const panel = buildPrevisGraphicNovelPanel({
+    position: shotNumber,
+    assetUrl: artifact?.assetUrl ?? "",
+    authoritative: Boolean(artifact),
+    narrativeIntention: artifact?.narrativeIntention ?? "",
+    sceneNumbers: sceneNumbers.map((number) => String(number)),
+    beatLabel: progression.label,
+    beatDirection: progression.direction,
+    shotLabel: `Shot ${String(shotNumber).padStart(2, "0")} of 25`,
+    shotContext: "~3-second planning target",
+    passages: evidence.passages,
+  });
+  const approval = (project.production.graphicNovelTextApprovals ?? [])
+    .find((candidate) => candidate.anchorRef === placement.anchorRef && candidate.position === shotNumber) ?? null;
+  const currentApproval = approval && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext)
+    ? approval
+    : null;
+  return { artifact, panel, approval: currentApproval };
+}
+
+function timelineMp4FileName(projectTitle: string, placement: TimelinePrevisPlacement, withNarration: boolean) {
+  const slug = projectTitle.toLowerCase().trim().replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "") || "plotpickle";
+  const suffix = withNarration ? "-narrated" : "";
+  return `${slug}-timeline-block-${String(placement.blockNumber).padStart(2, "0")}-mini-${placement.miniBlockNumber}${suffix}.mp4`;
 }
 
 function derivePrevisSources(project: PPFProject): readonly TimelinePrevisSource[] {
@@ -148,6 +208,9 @@ export default function TimelineAssemblyWorkspace({
   const [selectedPlacementId, setSelectedPlacementId] = useState("");
   const [playheadSeconds, setPlayheadSeconds] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [showNarration, setShowNarration] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportUrl, setExportUrl] = useState("");
   const [message, setMessage] = useState("");
 
   const totalSeconds = placements.reduce((sum, placement) => sum + placement.durationSeconds, 0);
@@ -165,10 +228,10 @@ export default function TimelineAssemblyWorkspace({
   const activeShotNumber = activePlacement
     ? Math.min(SHOTS_PER_MINI_BLOCK, Math.max(1, Math.floor(activeLocalSecond / Math.max(0.01, activeShotSeconds)) + 1))
     : 1;
-  const activeImageId = activePlacement?.shotImages.find((image) => image.shotNumber === activeShotNumber)?.artifactId ?? "";
-  const activeImage = activeImageId
-    ? project.build.foundations.visualArtifacts.find((artifact) => artifact.id === activeImageId) ?? null
+  const activePresentation = activePlacement
+    ? timelinePresentationFor(project, activePlacement, activeShotNumber)
     : null;
+  const activeImage = activePresentation?.artifact ?? null;
 
   useEffect(() => {
     if (!placements.length) {
@@ -303,6 +366,78 @@ export default function TimelineAssemblyWorkspace({
     seekToPlacement(placements[index + 1]);
   }
 
+  async function exportSelectedMp4() {
+    if (!selectedPlacement || exporting) return;
+    if (selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK) {
+      setMessage("Timeline MP4 export requires all 25 locked Storyboard Images for the selected Mini-Block.");
+      return;
+    }
+
+    const missingNarration: number[] = [];
+    const frames = Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => {
+      const position = index + 1;
+      const presentation = timelinePresentationFor(project, selectedPlacement, position);
+      if (!presentation.artifact?.assetUrl) return null;
+      if (showNarration && !presentation.approval) missingNarration.push(position);
+      const caption = showNarration && presentation.approval
+        ? presentation.approval.bubbles.map((bubble) => `${bubble.speaker}: ${bubble.text}`).join(" · ")
+        : "";
+      const narration = showNarration && presentation.approval ? presentation.approval.narration : "";
+      return {
+        position,
+        assetId: presentation.artifact.id,
+        assetUrl: presentation.artifact.assetUrl,
+        authoritative: true as const,
+        durationMs: PLANNING_SECONDS_PER_SHOT * 1000,
+        sourceRefs: [selectedPlacement.id, selectedPlacement.anchorRef, presentation.artifact.id],
+        ...(caption ? { caption } : {}),
+        ...(narration ? { narration } : {}),
+      };
+    }).filter((frame): frame is NonNullable<typeof frame> => Boolean(frame));
+
+    if (frames.length !== SHOTS_PER_MINI_BLOCK) {
+      setMessage("Timeline MP4 export stopped because one or more saved Storyboard Images are missing.");
+      return;
+    }
+    if (showNarration && missingNarration.length) {
+      setMessage(`Written narration is stale or missing for Shot ${missingNarration.map((position) => String(position).padStart(2, "0")).join(", ")}. Open this Mini-Block in Previs and Play with Narration again before exporting the narrated MP4.`);
+      return;
+    }
+
+    setExporting(true);
+    setExportUrl("");
+    setMessage(`Exporting silent MP4 for Mini-Block ${selectedPlacement.blockNumber}.${selectedPlacement.miniBlockNumber}…`);
+    try {
+      const response = await fetch("/api/previs/media-engine/render", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project.id,
+          blockNumber: selectedPlacement.blockNumber,
+          miniBlockNumber: selectedPlacement.miniBlockNumber,
+          frames,
+        }),
+      });
+      const result = await response.json() as {
+        ok?: boolean;
+        mode?: string;
+        message?: string;
+        evidence?: { state?: string; artifacts?: { videoPath?: string } } | null;
+      };
+      const videoPath = result.evidence?.artifacts?.videoPath ?? "";
+      if (!response.ok || !result.ok || result.mode !== "fframes" || result.evidence?.state !== "succeeded" || !videoPath) {
+        throw new Error(result.message || "Timeline MP4 export did not produce a verified video.");
+      }
+      setExportUrl(videoPath);
+      setMessage(`MP4 ready: 25 locked images × 3 seconds = 75 seconds, silent, 24 fps${showNarration ? " with the saved written narration overlays" : ""}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Timeline MP4 export failed.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <section className={styles.workspace} data-timeline-assembly="previs-media">
       <header className={styles.header}>
@@ -356,12 +491,24 @@ export default function TimelineAssemblyWorkspace({
             {activeImage?.assetUrl
               ? <img alt={activeImage.narrativeIntention || `Storyboard Image for Shot ${activeShotNumber}`} src={activeImage.assetUrl} />
               : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
+            {showNarration && activePresentation?.approval && (activePresentation.approval.narration || activePresentation.approval.bubbles.length) ? (
+              <div className={styles.narrationOverlay} aria-label="Written narration overlay">
+                {activePresentation.approval.bubbles.map((bubble) => (
+                  <p className={styles.speechLine} key={`${bubble.speaker}:${bubble.text}`}><strong>{bubble.speaker}</strong> {bubble.text}</p>
+                ))}
+                {activePresentation.approval.narration ? <p>{activePresentation.approval.narration}</p> : null}
+              </div>
+            ) : null}
+            {showNarration && activePlacement && !activePresentation?.approval ? (
+              <div className={styles.narrationUnavailable}>Written narration is not current for this Shot. Regenerate it in Previs before narrated export.</div>
+            ) : null}
             {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
           </div>
           <div className={styles.transport}>
             <button disabled={!placements.length || (activeLocation?.index ?? 0) <= 0} onClick={previousPlacement} type="button">Previous clip</button>
             <button disabled={!totalSeconds} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
             <button disabled={!placements.length || (activeLocation?.index ?? 0) >= placements.length - 1} onClick={nextPlacement} type="button">Next clip</button>
+            <button disabled={!activePlacement} onClick={() => setShowNarration((value) => !value)} type="button">Written narration: {showNarration ? "On" : "Off"}</button>
             <strong>{clock(playheadSeconds)} / {clock(totalSeconds)}</strong>
             <input
               aria-label="Timeline seek and scrub"
@@ -411,6 +558,11 @@ export default function TimelineAssemblyWorkspace({
               <div className={styles.inspectorActions}>
                 <button onClick={() => onOpenPrevis(placementAddress(selectedPlacement))} type="button">Open owning Previs Mini-Block</button>
                 <button onClick={() => onOpenStoryboard(placementAddress(selectedPlacement))} type="button">Open owning Storyboard Mini-Block</button>
+                <button disabled={exporting || selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK} onClick={exportSelectedMp4} type="button">
+                  {exporting ? "Exporting MP4…" : `Export selected Mini-Block MP4 · narration ${showNarration ? "on" : "off"}`}
+                </button>
+                {exportUrl ? <a className={styles.exportLink} download={timelineMp4FileName(project.title, selectedPlacement, showNarration)} href={exportUrl}>Open exported MP4</a> : null}
+                <small>Silent export · 25 × 3-second Shots · 75 seconds · 24 fps. Export failure never reports success.</small>
                 {placementIsStale(selectedPlacement) ? <button onClick={() => updatePlacementSource(selectedPlacement)} type="button">Update to current Previs source</button> : null}
                 <button disabled={selectedPlacement.order <= 1} onClick={() => movePlacement(selectedPlacement, -1)} type="button">Move earlier</button>
                 <button disabled={selectedPlacement.order >= placements.length} onClick={() => movePlacement(selectedPlacement, 1)} type="button">Move later</button>

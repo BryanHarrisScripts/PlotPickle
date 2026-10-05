@@ -22,6 +22,10 @@ struct FrameInput {
     position: u8,
     file_name: String,
     duration_ms: u32,
+    #[serde(default)]
+    caption: String,
+    #[serde(default)]
+    narration: String,
 }
 
 #[derive(Debug)]
@@ -45,6 +49,49 @@ impl PlotPickleVideo {
     fn duration_seconds(&self) -> f32 {
         self.request.frames.iter().map(|item| item.duration_ms as f32 / 1000.0).sum()
     }
+}
+
+fn compact_overlay_line(value: &str, maximum: usize) -> String {
+    let clean = value.split_whitespace().collect::<Vec<_>>().join(" ");
+    if clean.chars().count() <= maximum {
+        return clean;
+    }
+    let mut clipped = clean.chars().take(maximum.saturating_sub(1)).collect::<String>();
+    clipped.push('…');
+    clipped
+}
+
+fn overlay_lines(value: &str, maximum: usize) -> (String, String) {
+    let clean = value.split_whitespace().collect::<Vec<_>>().join(" ");
+    if clean.is_empty() {
+        return (String::new(), String::new());
+    }
+    let mut first = String::new();
+    let mut second = String::new();
+    let mut on_second = false;
+    for word in clean.split_whitespace() {
+        if !on_second {
+            let next_len = first.chars().count() + usize::from(!first.is_empty()) + word.chars().count();
+            if next_len <= maximum {
+                if !first.is_empty() {
+                    first.push(' ');
+                }
+                first.push_str(word);
+                continue;
+            }
+            on_second = true;
+        }
+        let next_len = second.chars().count() + usize::from(!second.is_empty()) + word.chars().count();
+        if next_len > maximum {
+            second = compact_overlay_line(&format!("{second} {word}"), maximum);
+            break;
+        }
+        if !second.is_empty() {
+            second.push(' ');
+        }
+        second.push_str(word);
+    }
+    (compact_overlay_line(&first, maximum), compact_overlay_line(&second, maximum))
 }
 
 impl Video for PlotPickleVideo {
@@ -75,10 +122,25 @@ impl Video for PlotPickleVideo {
                 </svg>
             );
         };
+        let caption = compact_overlay_line(&item.caption, 92);
+        let (narration_one, narration_two) = overlay_lines(&item.narration, 78);
+        if caption.is_empty() && narration_one.is_empty() && narration_two.is_empty() {
+            return fframes::svgr!(
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+                    <rect width="1280" height="720" fill="#000" />
+                    <image href={image.href()} x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid meet" />
+                </svg>
+            );
+        }
         fframes::svgr!(
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
                 <rect width="1280" height="720" fill="#000" />
                 <image href={image.href()} x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid meet" />
+                <rect x="0" y="514" width="1280" height="206" fill="#050807" fill-opacity="0.86" />
+                <rect x="0" y="514" width="1280" height="3" fill="#70d6a1" />
+                <text x="48" y="559" fill="#70d6a1" font-size="22" font-family="Arial, sans-serif">{caption}</text>
+                <text x="48" y="615" fill="#f2f5f3" font-size="28" font-family="Arial, sans-serif">{narration_one}</text>
+                <text x="48" y="656" fill="#f2f5f3" font-size="28" font-family="Arial, sans-serif">{narration_two}</text>
             </svg>
         )
     }

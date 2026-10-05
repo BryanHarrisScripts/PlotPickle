@@ -2,15 +2,17 @@
 
 /* eslint-disable @next/next/no-img-element -- Timeline previews canonical local Storyboard/Previs assets. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   TimelineAssemblyRevision,
+  TimelineMotionShot,
   TimelinePrevisPlacement,
   TimelineShotImageRef,
 } from "@/core/contracts/previs";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { requestPlotPickleConfirmation } from "../../common-overlay-layer";
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
@@ -29,6 +31,16 @@ const PLANNING_SECONDS_PER_MINI_BLOCK = SHOTS_PER_MINI_BLOCK * PLANNING_SECONDS_
 type ReviewAddress = Readonly<{
   blockNumber: number;
   miniBlockNumber: number;
+}>;
+
+type VideoJob = Readonly<{
+  id: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "expired";
+  outputAssetUrl?: string;
+  error?: string;
+  provider?: string;
+  route?: string;
+  model?: string;
 }>;
 
 type TimelinePrevisSource = Readonly<{
@@ -122,6 +134,28 @@ function timelineMp4FileName(projectTitle: string, placement: TimelinePrevisPlac
   return `${slug}-timeline-block-${String(placement.blockNumber).padStart(2, "0")}-mini-${placement.miniBlockNumber}${suffix}.mp4`;
 }
 
+function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number, artifactId: string) {
+  return `${placement.sourceKey}:motion-shot-${String(shotNumber).padStart(2, "0")}:${artifactId}`;
+}
+
+function timelineMotionPrompt(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
+  const presentation = timelinePresentationFor(project, placement, shotNumber);
+  const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
+  const progression = storyboardPositionProgression(shotNumber);
+  const screenplay = evidence.passages.map((passage) => passage.text).filter(Boolean).join(" ").replace(/\s+/gu, " ").trim().slice(0, 1_800);
+  return [
+    `Create one restrained cinematic motion shot for ${project.title}.`,
+    `Act ${actForBlock(placement.blockNumber)}, Block ${placement.blockNumber}, Mini-Block ${placement.miniBlockNumber}, Shot ${String(shotNumber).padStart(2, "0")} of 25.`,
+    evidence.responsibility ? `Dramatic responsibility: ${evidence.responsibility}.` : "",
+    screenplay ? `Mapped screenplay: ${screenplay}` : "",
+    presentation.artifact?.narrativeIntention ? `Approved image intention: ${presentation.artifact.narrativeIntention}.` : "",
+    presentation.artifact?.prompt ? `Approved visual direction: ${presentation.artifact.prompt.slice(0, 1_200)}` : "",
+    `Shot progression: ${progression.label}. ${progression.direction}`,
+    "Use the approved first frame as the strict visual and character reference. Preserve faces, identity, wardrobe, props, location, composition, geography, lighting and screen direction. Add only story-grounded subject motion, environmental motion and one restrained camera move. Do not add text, logos, new characters, dialogue audio, music or sound effects.",
+    "The Timeline slot is exactly three seconds. If the selected provider must generate a longer clip, keep the useful action inside the first three seconds; Timeline playback will clamp the result to the three-second slot.",
+  ].filter(Boolean).join("\n").slice(0, 7_000);
+}
+
 function derivePrevisSources(project: PPFProject): readonly TimelinePrevisSource[] {
   const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
   return Array.from({ length: 24 }, (_, blockIndex) => blockIndex + 1).flatMap((blockNumber) => (
@@ -208,7 +242,10 @@ export default function TimelineAssemblyWorkspace({
   const [selectedPlacementId, setSelectedPlacementId] = useState("");
   const [playheadSeconds, setPlayheadSeconds] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [playbackMode, setPlaybackMode] = useState<"stills" | "motion">("stills");
   const [showNarration, setShowNarration] = useState(false);
+  const [generatingShotNumber, setGeneratingShotNumber] = useState<number | null>(null);
+  const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -232,6 +269,22 @@ export default function TimelineAssemblyWorkspace({
     ? timelinePresentationFor(project, activePlacement, activeShotNumber)
     : null;
   const activeImage = activePresentation?.artifact ?? null;
+  const motionShots = project.production.timelineMotionShots ?? [];
+  const motionFor = (placement: TimelinePrevisPlacement, shotNumber: number) => {
+    const artifactId = placement.shotImages.find((image) => image.shotNumber === shotNumber)?.artifactId ?? "";
+    const sourceKey = artifactId ? motionSourceKey(placement, shotNumber, artifactId) : "";
+    const latest = motionShots.find((motion) => motion.placementId === placement.id && motion.shotNumber === shotNumber) ?? null;
+    return {
+      latest,
+      current: latest && latest.sourceKey === sourceKey ? latest : null,
+      stale: Boolean(latest && latest.sourceKey !== sourceKey),
+    };
+  };
+  const activeMotion = activePlacement ? motionFor(activePlacement, activeShotNumber) : { latest: null, current: null, stale: false };
+  const selectedMotionStates = selectedPlacement
+    ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => motionFor(selectedPlacement, index + 1))
+    : [];
+  const selectedMotionSucceeded = selectedMotionStates.filter((state) => state.current?.status === "succeeded" && state.current.outputAssetUrl).length;
 
   useEffect(() => {
     if (!placements.length) {
@@ -245,6 +298,15 @@ export default function TimelineAssemblyWorkspace({
     }
     setPlayheadSeconds((current) => Math.min(current, totalSeconds));
   }, [placements, selectedPlacementId, totalSeconds]);
+
+  useEffect(() => {
+    const video = motionVideoRef.current;
+    if (!video || playbackMode !== "motion" || activeMotion.current?.status !== "succeeded") return;
+    const target = Math.min(PLANNING_SECONDS_PER_SHOT - 0.05, Math.max(0, activeLocalSecond));
+    if (Math.abs(video.currentTime - target) > 0.25) video.currentTime = target;
+    if (playing) void video.play().catch(() => undefined);
+    else video.pause();
+  }, [activeLocalSecond, activeMotion.current?.id, activeMotion.current?.status, playbackMode, playing]);
 
   useEffect(() => {
     if (!playing || totalSeconds <= 0) return;
@@ -364,6 +426,143 @@ export default function TimelineAssemblyWorkspace({
     const index = activeLocation?.index ?? placements.findIndex((placement) => placement.id === selectedPlacement?.id);
     if (index < 0 || index >= placements.length - 1) return;
     seekToPlacement(placements[index + 1]);
+  }
+
+  function storeMotion(motion: TimelineMotionShot) {
+    const next = applyStoryCommand(project, {
+      type: "production.timeline.motion.store",
+      motion,
+      occurredAt: motion.updatedAt,
+    });
+    onProjectChange(saveFoundationProject(next));
+  }
+
+  async function pollMotionJob(initial: VideoJob, motion: TimelineMotionShot) {
+    let current = initial;
+    for (let attempt = 0; attempt < 150 && (current.status === "queued" || current.status === "running"); attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 2_000));
+      const response = await fetch(`/api/local-ai/video/${encodeURIComponent(current.id)}`, { credentials: "same-origin", cache: "no-store" });
+      const result = await response.json() as VideoJob & { message?: string };
+      if (!response.ok) throw new Error(result.message || "The active video route could not report motion progress.");
+      current = result;
+    }
+    if (current.status === "succeeded" && current.outputAssetUrl) return current;
+    if (current.status === "queued" || current.status === "running") {
+      throw new Error("The motion job is still running after the Timeline review window. Retry status later without replacing the locked still.");
+    }
+    throw new Error(current.error || `The motion job ended with status ${current.status}.`);
+  }
+
+  async function generateMotionShot(shotNumber: number) {
+    if (!selectedPlacement || generatingShotNumber !== null) return;
+    const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
+    if (!presentation.artifact?.assetUrl) {
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} has no locked Storyboard Image to animate.`);
+      return;
+    }
+    const confirmed = await requestPlotPickleConfirmation({
+      title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
+      description: "PlotPickle will send the approved first frame and story-grounded motion instructions to the active video route. A configured cloud route may charge your account and upload this approved image. No request is made unless you confirm.",
+      confirmLabel: "Generate motion",
+      cancelLabel: "Keep still image",
+    });
+    if (!confirmed) {
+      setMessage("Motion generation was cancelled. The locked still remains unchanged.");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
+    const sourceKey = motionSourceKey(selectedPlacement, shotNumber, presentation.artifact.id);
+    const prompt = timelineMotionPrompt(project, selectedPlacement, shotNumber);
+    setGeneratingShotNumber(shotNumber);
+    setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")}…`);
+    try {
+      const response = await fetch("/api/local-ai/generate/video", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          sourceAssetUrl: presentation.artifact.assetUrl,
+          assetId: `timeline-${selectedPlacement.blockNumber}-${selectedPlacement.miniBlockNumber}-shot-${shotNumber}`,
+          durationSeconds: 4,
+          aspectRatio: "16:9",
+          continuityMetadata: {
+            placementId: selectedPlacement.id,
+            anchorRef: selectedPlacement.anchorRef,
+            sourceArtifactId: presentation.artifact.id,
+            sourceKey,
+            requestedTimelineSeconds: PLANNING_SECONDS_PER_SHOT,
+          },
+          billingAcknowledged: true,
+          dataSharingAcknowledged: true,
+        }),
+      });
+      const job = await response.json() as VideoJob & { message?: string };
+      if (!response.ok || !job.id) throw new Error(job.message || "The active video route did not accept this motion shot.");
+      const running: TimelineMotionShot = {
+        id,
+        placementId: selectedPlacement.id,
+        anchorRef: selectedPlacement.anchorRef,
+        shotNumber,
+        sourceArtifactId: presentation.artifact.id,
+        sourceKey,
+        prompt,
+        requestedDurationSeconds: 3,
+        provider: job.provider ?? "",
+        route: job.route ?? "",
+        model: job.model ?? "",
+        jobId: job.id,
+        status: job.status === "queued" ? "queued" : "running",
+        outputAssetUrl: "",
+        error: "",
+        createdAt: now,
+        updatedAt: now,
+      };
+      storeMotion(running);
+      const result = await pollMotionJob(job, running);
+      const completedAt = new Date().toISOString();
+      storeMotion({
+        ...running,
+        provider: result.provider ?? running.provider,
+        route: result.route ?? running.route,
+        model: result.model ?? running.model,
+        jobId: result.id,
+        status: "succeeded",
+        outputAssetUrl: result.outputAssetUrl ?? "",
+        error: "",
+        updatedAt: completedAt,
+      });
+      setPlaybackMode("motion");
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} motion is ready. Timeline uses only its first three seconds; the locked still remains available separately.`);
+    } catch (error) {
+      const failedAt = new Date().toISOString();
+      const previous = motionFor(selectedPlacement, shotNumber).current;
+      const failed: TimelineMotionShot = previous ?? {
+        id,
+        placementId: selectedPlacement.id,
+        anchorRef: selectedPlacement.anchorRef,
+        shotNumber,
+        sourceArtifactId: presentation.artifact.id,
+        sourceKey,
+        prompt,
+        requestedDurationSeconds: 3,
+        provider: "",
+        route: "",
+        model: "",
+        jobId: "",
+        status: "failed",
+        outputAssetUrl: "",
+        error: "",
+        createdAt: now,
+        updatedAt: failedAt,
+      };
+      storeMotion({ ...failed, status: "failed", outputAssetUrl: "", error: error instanceof Error ? error.message : "Motion generation failed.", updatedAt: failedAt });
+      setMessage(error instanceof Error ? error.message : "Motion generation failed. The locked still remains available.");
+    } finally {
+      setGeneratingShotNumber(null);
+    }
   }
 
   async function exportSelectedMp4() {
@@ -488,9 +687,13 @@ export default function TimelineAssemblyWorkspace({
               : "No placed Previs media"}</strong>
           </header>
           <div className={styles.stage}>
-            {activeImage?.assetUrl
-              ? <img alt={activeImage.narrativeIntention || `Storyboard Image for Shot ${activeShotNumber}`} src={activeImage.assetUrl} />
-              : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
+            {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
+              ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
+              : playbackMode === "motion"
+                ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older locked image. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
+                : activeImage?.assetUrl
+                  ? <img alt={activeImage.narrativeIntention || `Storyboard Image for Shot ${activeShotNumber}`} src={activeImage.assetUrl} />
+                  : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
             {showNarration && activePresentation?.approval && (activePresentation.approval.narration || activePresentation.approval.bubbles.length) ? (
               <div className={styles.narrationOverlay} aria-label="Written narration overlay">
                 {activePresentation.approval.bubbles.map((bubble) => (
@@ -508,6 +711,7 @@ export default function TimelineAssemblyWorkspace({
             <button disabled={!placements.length || (activeLocation?.index ?? 0) <= 0} onClick={previousPlacement} type="button">Previous clip</button>
             <button disabled={!totalSeconds} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
             <button disabled={!placements.length || (activeLocation?.index ?? 0) >= placements.length - 1} onClick={nextPlacement} type="button">Next clip</button>
+            <button disabled={!activePlacement} onClick={() => setPlaybackMode((value) => value === "stills" ? "motion" : "stills")} type="button">Playback: {playbackMode === "stills" ? "Still images" : "Generated motion"}</button>
             <button disabled={!activePlacement} onClick={() => setShowNarration((value) => !value)} type="button">Written narration: {showNarration ? "On" : "Off"}</button>
             <strong>{clock(playheadSeconds)} / {clock(totalSeconds)}</strong>
             <input
@@ -551,6 +755,7 @@ export default function TimelineAssemblyWorkspace({
                 <div><dt>Source</dt><dd>Previs Flip Book</dd></div>
                 <div><dt>Source revision</dt><dd>{selectedPlacement.sourceRevision}</dd></div>
                 <div><dt>Coverage</dt><dd>{selectedPlacement.shotImages.length}/25 locked Storyboard Images</dd></div>
+                <div><dt>Motion</dt><dd>{selectedMotionSucceeded}/25 generated Shots ready</dd></div>
                 <div><dt>Duration</dt><dd>~{selectedPlacement.durationSeconds}s planning target</dd></div>
                 <div><dt>Status</dt><dd>{placementIsStale(selectedPlacement) ? "STALE · newer upstream source available" : "CURRENT"}</dd></div>
               </dl>
@@ -572,6 +777,37 @@ export default function TimelineAssemblyWorkspace({
           ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
         </aside>
       </div>
+
+      <section className={styles.motion} aria-label="Optional generated motion shots">
+        <header>
+          <div>
+            <p className={styles.kicker}>Optional motion</p>
+            <h3>Image-to-video Shot generation</h3>
+          </div>
+          <span>Each generated clip remains separate from its locked still. Timeline uses exactly the first 3 seconds of a successful result and never substitutes a still for failed motion.</span>
+        </header>
+        {selectedPlacement ? (
+          <div className={styles.motionGrid}>
+            {Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
+              const state = motionFor(selectedPlacement, shotNumber);
+              const current = state.current;
+              const working = generatingShotNumber === shotNumber;
+              const label = working ? "GENERATING" : state.stale ? "STALE" : current?.status?.toUpperCase() ?? "NOT GENERATED";
+              return (
+                <article data-motion-status={state.stale ? "stale" : current?.status ?? "empty"} key={shotNumber}>
+                  <strong>Shot {String(shotNumber).padStart(2, "0")}</strong>
+                  <span>{label}</span>
+                  {current?.provider || current?.model ? <small>{[current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Approved first frame is the source reference.</small>}
+                  {current?.error ? <small>{current.error}</small> : null}
+                  <button disabled={generatingShotNumber !== null || !selectedPlacement.shotImages.some((image) => image.shotNumber === shotNumber)} onClick={() => void generateMotionShot(shotNumber)} type="button">
+                    {working ? "Generating…" : current?.status === "failed" || state.stale ? "Retry motion" : current?.status === "succeeded" ? "Regenerate motion" : "Generate motion"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        ) : <p className={styles.motionEmpty}>Place a Previs Mini-Block on Timeline before generating optional motion.</p>}
+      </section>
 
       <section className={styles.timeline} aria-label="Previs media timeline">
         <header>

@@ -4,6 +4,7 @@
   "phase": "minimax-h3-authority-save-runtime-and-diagnostics",
   "brief": "docs/developer-briefs/2764-minimax-h3-runtime-diagnostics.md",
   "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
     "app/api/cloud-story-mode/provider/route.ts",
     "app/skin-v1/cloud-provider-setup-panel.tsx",
     "build/cloud-media-provider.ts",
@@ -56,6 +57,17 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2764-minimax-h3-runtime-diagnostics.md",
           "contains": "No paid MiniMax request is authorized"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-NATIVE-PROOF",
+      "criterion": "Provider authority runtime changes select the existing Windows build lane that installs dependencies and runs the production build on Windows.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2764-minimax-h3-runtime-diagnostics.test.mjs",
+          "contains": "focused Windows build proof"
         }
       ]
     }

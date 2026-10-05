@@ -246,6 +246,8 @@ export default function TimelineAssemblyWorkspace({
   const [showNarration, setShowNarration] = useState(false);
   const [generatingShotNumber, setGeneratingShotNumber] = useState<number | null>(null);
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
+  const latestProject = useRef(project);
+  latestProject.current = project;
   const [exporting, setExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -429,15 +431,48 @@ export default function TimelineAssemblyWorkspace({
   }
 
   function storeMotion(motion: TimelineMotionShot) {
-    const next = applyStoryCommand(project, {
+    const next = applyStoryCommand(latestProject.current, {
       type: "production.timeline.motion.store",
       motion,
       occurredAt: motion.updatedAt,
     });
-    onProjectChange(saveFoundationProject(next));
+    const saved = saveFoundationProject(next);
+    latestProject.current = saved;
+    onProjectChange(saved);
   }
 
-  async function pollMotionJob(initial: VideoJob, motion: TimelineMotionShot) {
+  async function imageToVideoRoute() {
+    const routingResponse = await fetch("/api/ai-routing/status", { credentials: "same-origin", cache: "no-store" });
+    const routing = await routingResponse.json() as { video?: { selected?: string }; message?: string };
+    if (!routingResponse.ok) throw new Error(routing.message || "Video route status is unavailable.");
+    const selected = routing.video?.selected ?? "off";
+    if (selected === "minimax" || selected === "openai") return selected;
+    if (selected === "comfyui-native") {
+      const h3Response = await fetch("/api/media-routing/comfyui/h3/native/status", { credentials: "same-origin", cache: "no-store" });
+      const h3 = await h3Response.json() as { ready?: boolean; workflowFamily?: string; error?: string; message?: string };
+      if (h3Response.ok && h3.ready && h3.workflowFamily === "image-to-video") return "comfyui-native";
+      throw new Error(h3.error || h3.message || `The selected local H3 workflow is ${h3.workflowFamily || "not ready"}; Timeline motion requires a reviewed image-to-video workflow.`);
+    }
+
+    const localResponse = await fetch("/api/local-ai/plugins/video", { credentials: "same-origin", cache: "no-store" });
+    const local = await localResponse.json() as {
+      recommendation?: {
+        ready?: boolean;
+        active?: boolean;
+        selected?: { label?: string; modes?: string[] } | null;
+      };
+      message?: string;
+    };
+    const recommendation = local.recommendation;
+    if (localResponse.ok && recommendation?.ready && recommendation.active && recommendation.selected?.modes?.includes("image-to-video")) {
+      return recommendation.selected.label || "local image-to-video";
+    }
+    const selectedLocal = recommendation?.selected;
+    const mode = selectedLocal?.modes?.join(", ") || "none";
+    throw new Error(`No ready image-to-video route is selected. The current local video plug-in supports ${mode}; choose a reviewed image-to-video route in Settings.`);
+  }
+
+  async function pollMotionJob(initial: VideoJob) {
     let current = initial;
     for (let attempt = 0; attempt < 150 && (current.status === "queued" || current.status === "running"); attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 2_000));
@@ -460,9 +495,16 @@ export default function TimelineAssemblyWorkspace({
       setMessage(`Shot ${String(shotNumber).padStart(2, "0")} has no locked Storyboard Image to animate.`);
       return;
     }
+    let routeLabel = "";
+    try {
+      routeLabel = await imageToVideoRoute();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "No ready image-to-video route is available.");
+      return;
+    }
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: "PlotPickle will send the approved first frame and story-grounded motion instructions to the active video route. A configured cloud route may charge your account and upload this approved image. No request is made unless you confirm.",
+      description: `PlotPickle will send the approved first frame and story-grounded motion instructions to ${routeLabel}. A cloud route may charge your account and upload this approved image. No request is made unless you confirm.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });
@@ -477,6 +519,7 @@ export default function TimelineAssemblyWorkspace({
     const prompt = timelineMotionPrompt(project, selectedPlacement, shotNumber);
     setGeneratingShotNumber(shotNumber);
     setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")}…`);
+    let running: TimelineMotionShot | null = null;
     try {
       const response = await fetch("/api/local-ai/generate/video", {
         method: "POST",
@@ -501,7 +544,7 @@ export default function TimelineAssemblyWorkspace({
       });
       const job = await response.json() as VideoJob & { message?: string };
       if (!response.ok || !job.id) throw new Error(job.message || "The active video route did not accept this motion shot.");
-      const running: TimelineMotionShot = {
+      running = {
         id,
         placementId: selectedPlacement.id,
         anchorRef: selectedPlacement.anchorRef,
@@ -521,7 +564,7 @@ export default function TimelineAssemblyWorkspace({
         updatedAt: now,
       };
       storeMotion(running);
-      const result = await pollMotionJob(job, running);
+      const result = await pollMotionJob(job);
       const completedAt = new Date().toISOString();
       storeMotion({
         ...running,
@@ -538,7 +581,7 @@ export default function TimelineAssemblyWorkspace({
       setMessage(`Shot ${String(shotNumber).padStart(2, "0")} motion is ready. Timeline uses only its first three seconds; the locked still remains available separately.`);
     } catch (error) {
       const failedAt = new Date().toISOString();
-      const previous = motionFor(selectedPlacement, shotNumber).current;
+      const previous = running ?? motionFor(selectedPlacement, shotNumber).current;
       const failed: TimelineMotionShot = previous ?? {
         id,
         placementId: selectedPlacement.id,

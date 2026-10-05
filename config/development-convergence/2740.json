@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 2740,
+  "phase": "owner-preserving-durable-handoffs",
+  "brief": "docs/developer-briefs/2740-owner-preserving-durable-handoffs.md",
+  "allowedChanges": [
+    "config/development-convergence/2740.json",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "lib/agents/responsibility/owner-preserving-handoff.mjs",
+    "docs/developer-briefs/2740-owner-preserving-durable-handoffs.md",
+    "tests/issue-2740-owner-preserving-handoffs.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2740-A1",
+      "criterion": "Every current non-embedded Agent Profile execution kind is explicitly owner-preserved.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2740-owner-preserving-handoffs.test.mjs",
+          "contains": "classifies every current non-embedded Agent Profile execution owner"
+        }
+      ]
+    },
+    {
+      "id": "P2740-A2",
+      "criterion": "BUZZ, UAT, deterministic and repository owners are not migrated into Pi execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
+          "contains": "piExecutionGranted: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
+          "contains": "privateRoomAutoSubscribe"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
+          "contains": "repositoryAuthorityGranted"
+        }
+      ]
+    },
+    {
+      "id": "P2740-A3",
+      "criterion": "Only bounded references and summaries can cross the handoff; private payload fields fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
+          "contains": "FORBIDDEN_INPUT_FIELDS"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2740-owner-preserving-handoffs.test.mjs",
+          "contains": "private payloads and embedded Mastra migration fail closed"
+        }
+      ]
+    }
+  ]
+}

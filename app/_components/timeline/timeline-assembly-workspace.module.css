@@ -12,6 +12,7 @@
 .viewer,
 .screenplay,
 .inspector,
+.motion,
 .timeline {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-fill-panel);
@@ -23,6 +24,7 @@
 .mediaBin > header,
 .viewer > header,
 .screenplay > header,
+.motion > header,
 .timeline > header {
   display: flex;
   justify-content: space-between;
@@ -34,6 +36,7 @@
 
 .header h2,
 .mediaBin h3,
+.motion h3,
 .timeline h3,
 .inspector h3 {
   margin: 0.15rem 0 0;
@@ -55,6 +58,7 @@
 
 .revision span,
 .mediaBin header span,
+.motion header span,
 .timeline header span {
   max-width: 44rem;
   font-size: 0.78rem;
@@ -135,7 +139,8 @@
   border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
 }
 
-.stage img {
+.stage img,
+.stage video {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -184,7 +189,7 @@
 
 .transport {
   display: grid;
-  grid-template-columns: auto auto auto auto auto minmax(180px, 1fr);
+  grid-template-columns: auto auto auto auto auto auto minmax(180px, 1fr);
   gap: 0.5rem;
   align-items: center;
   padding: 0.75rem;
@@ -254,6 +259,47 @@
   min-height: var(--pp-skin-control-height);
   padding: 0.35rem 0.65rem;
   text-decoration: none;
+}
+
+.motionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+  padding: 0.85rem;
+}
+
+.motionGrid article {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-canvas);
+}
+
+.motionGrid article[data-motion-status="succeeded"] {
+  border-color: var(--pp-skin-focus);
+}
+
+.motionGrid article[data-motion-status="failed"],
+.motionGrid article[data-motion-status="stale"] {
+  border-color: var(--pp-skin-warning);
+}
+
+.motionGrid button {
+  min-height: var(--pp-skin-control-height);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-panel);
+  color: inherit;
+  font: inherit;
+}
+
+.motionGrid button:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}
+
+.motionEmpty {
+  padding: 0.85rem;
 }
 
 .timelineRail {

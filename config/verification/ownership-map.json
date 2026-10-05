@@ -1765,7 +1765,8 @@
       "classification": "production",
       "include": [
         "build/previs-media-engine-handoff.ts",
-        "app/api/previs/media-engine/render/route.ts"
+        "app/api/previs/media-engine/render/route.ts",
+        "core/media/media-route-input.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

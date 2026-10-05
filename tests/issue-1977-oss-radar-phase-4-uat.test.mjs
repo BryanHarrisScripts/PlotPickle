@@ -83,7 +83,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
   assert.doesNotMatch(workflow, /^\s*pull_request:/mu);
   assert.match(workflow, /group: plotpickle-oss-radar/u);
   assert.match(workflow, /cancel-in-progress: false/u);
-  assert.match(workflow, /timeout-minutes: 10/u);
+  assert.match(workflow, /timeout-minutes: 15/u);
   assert.match(workflow, /node --test tests\/issue-1977-oss-radar-\*\.test\.mjs tests\/issue-2034-oss-radar-\*\.test\.mjs/u);
   assert.match(workflow, /node lib\/verification\/oss-radar\/run-radar\.mjs/u);
   assert.match(workflow, /github\.token/u);
@@ -91,7 +91,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
 
 test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architecture review queue", async () => {
   const api = fullRadarFixture();
-  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl, stateAdapter: api.stateAdapter,
+  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl, stateAdapter: api.stateAdapter, creativeReview: null,
     ossRulesResearch: async () => ({ schemaVersion: 1, status: "unavailable", repositoriesChecked: 0, findings: [], checks: [] }) };
 
   const first = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });

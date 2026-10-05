@@ -115,6 +115,24 @@
   flex-wrap: wrap;
 }
 
+.actions button,
+.deleteConfirm button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.actions button:disabled,
+.deleteConfirm button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
 .status {
   min-height: 1.5em;
 }

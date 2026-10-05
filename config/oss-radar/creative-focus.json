@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "issue": 2746,
+  "enabled": true,
+  "targetFindings": 3,
+  "minimumScore": 45,
+  "historyRefreshLimit": 12,
+  "freshRefreshLimit": 12,
+  "queryFamilies": [
+    {
+      "laneId": "writer-craft",
+      "id": "focused-craft",
+      "label": "Story education",
+      "queries": [
+        "storytelling skills",
+        "screenwriting skills",
+        "dramaturgy",
+        "creative writing teaching"
+      ]
+    },
+    {
+      "laneId": "visual-story",
+      "id": "focused-visual",
+      "label": "Visual production",
+      "queries": [
+        "storyboard",
+        "animatic",
+        "cinematic sequencing",
+        "video timeline"
+      ]
+    }
+  ],
+  "anchors": {
+    "education": [
+      "storytelling",
+      "screenwriting",
+      "screenplay",
+      "creative writing",
+      "fiction writing",
+      "dramaturgy",
+      "narrative craft",
+      "story craft"
+    ],
+    "visual": [
+      "storyboard",
+      "animatic",
+      "animatics",
+      "previs",
+      "previsualization",
+      "filmmaking",
+      "cinematography",
+      "film production",
+      "film-production",
+      "video editing",
+      "video timeline",
+      "video production",
+      "video generation"
+    ]
+  },
+  "groups": [
+    {
+      "id": "theme",
+      "domain": "education",
+      "label": "Theme and dramatic argument",
+      "phrases": [
+        "theme analysis",
+        "controlling idea",
+        "moral argument",
+        "thematic"
+      ],
+      "topic": "theme",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "character",
+      "domain": "education",
+      "label": "Character and arc",
+      "phrases": [
+        "character arc",
+        "character development",
+        "character motivation"
+      ],
+      "topic": "character",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "scene",
+      "domain": "education",
+      "label": "Scene craft",
+      "phrases": [
+        "scene analysis",
+        "scene craft",
+        "scene diagnosis",
+        "dramaturgy",
+        "dramatic conflict"
+      ],
+      "topic": "drafting",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "dialogue",
+      "domain": "education",
+      "label": "Dialogue and subtext",
+      "phrases": [
+        "dialogue",
+        "subtext",
+        "voiceprint"
+      ],
+      "topic": "dialogue",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "structure",
+      "domain": "education",
+      "label": "Structure and story development",
+      "phrases": [
+        "story structure",
+        "screenplay",
+        "screenwriting",
+        "storytelling",
+        "narrative structure"
+      ],
+      "topic": "structure",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "world",
+      "domain": "education",
+      "label": "World, genre and conventions",
+      "phrases": [
+        "worldbuilding",
+        "genre",
+        "tropes"
+      ],
+      "topic": "world",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "revision",
+      "domain": "education",
+      "label": "Revision and reader response",
+      "phrases": [
+        "writing feedback",
+        "reader response",
+        "reader panel",
+        "writing critique",
+        "story revision"
+      ],
+      "topic": "revision",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "pedagogy",
+      "domain": "education",
+      "label": "Teaching and guided practice",
+      "phrases": [
+        "writing tutor",
+        "writing exercise",
+        "writing lessons",
+        "writing curriculum",
+        "teach storytelling",
+        "creative writing"
+      ],
+      "topic": "foundations",
+      "baselinePaths": [],
+      "baselineSkillIds": [
+        "writer-in-residence",
+        "sage-brinewick",
+        "critics-circle"
+      ]
+    },
+    {
+      "id": "storyboard",
+      "domain": "visual",
+      "label": "Storyboard and shot planning",
+      "phrases": [
+        "storyboard",
+        "storyboarding",
+        "shot list",
+        "shot planning"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "core/contracts/previs/index.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    },
+    {
+      "id": "cinematography",
+      "domain": "visual",
+      "label": "Cinematography and visual design",
+      "phrases": [
+        "cinematography",
+        "camera movement",
+        "camera angle",
+        "shot composition"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "lib/sequence-director-cinematography.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    },
+    {
+      "id": "continuity",
+      "domain": "visual",
+      "label": "Character and visual continuity",
+      "phrases": [
+        "visual continuity",
+        "character reference",
+        "character consistency"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "core/contracts/previs/index.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    },
+    {
+      "id": "sequences",
+      "domain": "visual",
+      "label": "Sequences and animatics",
+      "phrases": [
+        "animatic",
+        "animatics",
+        "previs",
+        "previsualization",
+        "film sequence",
+        "sequence editing"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "lib/sequence-director.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    },
+    {
+      "id": "playback",
+      "domain": "visual",
+      "label": "Playback, timeline and scrubbing",
+      "phrases": [
+        "timeline",
+        "playback",
+        "scrubbing",
+        "scrub",
+        "fast forward",
+        "fast-forward"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "core/contracts/previs/index.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    },
+    {
+      "id": "production",
+      "domain": "visual",
+      "label": "Screen-to-video production",
+      "phrases": [
+        "film production",
+        "film-production",
+        "video production",
+        "video generation",
+        "final cut",
+        "filmmaking"
+      ],
+      "topic": "visual-storytelling",
+      "baselinePaths": [
+        "lib/sequence-evidence.ts"
+      ],
+      "baselineSkillIds": [
+        "sequence-director",
+        "storyboard-frame-director",
+        "lazy-frames-animatic",
+        "visual-contract"
+      ]
+    }
+  ],
+  "access": {
+    "human": [
+      "documentation",
+      "docs",
+      "tutorial",
+      "guide",
+      "examples",
+      "exercise",
+      "exercises",
+      "lesson",
+      "lessons",
+      "editor",
+      "interface"
+    ],
+    "agent": [
+      "agent skills",
+      "skills",
+      "mcp",
+      "api",
+      "cli",
+      "codex",
+      "claude code",
+      "structured output",
+      "json"
+    ]
+  },
+  "depth": {
+    "education": [
+      "exercise",
+      "exercises",
+      "lesson",
+      "lessons",
+      "curriculum",
+      "diagnosis",
+      "diagnose",
+      "feedback",
+      "subtext",
+      "dramaturgy"
+    ],
+    "visual": [
+      "animatic",
+      "animatics",
+      "sequence",
+      "sequences",
+      "timeline",
+      "playback",
+      "scrubbing",
+      "fast forward",
+      "fast-forward",
+      "frame",
+      "frames",
+      "shot",
+      "shots"
+    ]
+  },
+  "weights": {
+    "creativeFit": 45,
+    "reusableAccess": 15,
+    "teachingPlaybackDepth": 15,
+    "extensionOpportunity": 10,
+    "maintenanceMaturity": 5,
+    "license": 5,
+    "localPortability": 5
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "issue": 2746,
+  "phase": "creative-oss-radar-companion",
+  "brief": "docs/developer-briefs/oss-radar-creative-top-three.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    ".github/workflows/architecture-shadow.yml",
+    "config/development-convergence/2746.json",
+    "config/oss-radar/creative-focus.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/oss-radar-creative-top-three.md",
+    "lib/verification/oss-radar/artifact-bundle.mjs",
+    "lib/verification/oss-radar/issue-lifecycle.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "lib/verification/oss-radar/run-radar.mjs",
+    "lib/verification/oss-radar/creative-focus/review.mjs",
+    "lib/verification/oss-radar/creative-focus/score.mjs",
+    "lib/verification/oss-radar/creative-focus/report.mjs",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+    "tests/issue-2210-oss-radar-state-store.test.mjs",
+    "tests/issue-2746-oss-radar-creative-focus.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2746-A1",
+      "criterion": "Broad Radar remains intact and daily delivery keeps the existing morning schedule.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "existing morning schedule and broad profile are preserved"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A2",
+      "criterion": "Current/preceding months seed bounded refreshed historical research with provenance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "historical finding parsing deduplicates and retains latest broad score and provenance"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A3",
+      "criterion": "Fresh GitHub evidence replaces weaker historical candidates.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "fresh evidence replaces a weaker historical candidate"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A4",
+      "criterion": "Direct creative value dominates generic architecture vocabulary.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "a direct creative specialist outranks generic infrastructure"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A5",
+      "criterion": "Current enrichment is required; failed or stale findings are not padded.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "successful README without direct refreshed creative evidence cannot reuse a stale metadata score"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A6",
+      "criterion": "Same-day report includes the companion idempotently and broad publishing survives outages.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2746-oss-radar-creative-focus.test.mjs",
+          "contains": "new section is published in the same dated report and updated on same-day rerun"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A7",
+      "criterion": "Coverage refers to actual curriculum and visual owners without asserting unverified missing capability.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/creative-focus/score.mjs",
+          "contains": "not yet established"
+        }
+      ]
+    },
+    {
+      "id": "P2746-A8",
+      "criterion": "Daily workflow and Layer 7 own the new regression.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2746-oss-radar-creative-focus.test.mjs"
+        }
+      ]
+    }
+  ]
+}

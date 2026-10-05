@@ -1296,6 +1296,7 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "tests/issue-2746-oss-radar-creative-focus.test.mjs",
           "tests/issue-2348-oss-rules-intelligence.test.mjs"
         ]
       },

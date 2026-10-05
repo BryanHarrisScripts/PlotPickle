@@ -451,7 +451,7 @@ export default function StoryCardFoundationBoard({
         <div>
           <p>STORY CARDS · FOUNDATION BOARD</p>
           <h2 id="story-card-board-title">{act ? `Plan Act ${act} with six Story Cards.` : "Plan the whole story like a wall of Post-it notes."}</h2>
-          <span>Four Acts, six Blocks per Act. Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does. Screenplay coverage shows how much observed source material is mapped into each card; it does not claim the source was authored as 24 equal Blocks.</span>
+          <span>Four Acts, six Blocks per Act. Drag with a pointer only when you intentionally want to rearrange planning content. The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does. Screenplay coverage shows how much observed source material is mapped into each card; it does not claim the source was authored as 24 equal Blocks.</span>
         </div>
         <div className="pp-skin-v1-story-card-board-key">
           <strong>{project.title || "Untitled Story"}</strong>
@@ -460,7 +460,6 @@ export default function StoryCardFoundationBoard({
       </header>
 
       <p className="pp-skin-v1-story-card-board-status" role="status">{message}</p>
-      {act ? <button className="pp-skin-v1-outline-assess-act" type="button" disabled={assessing !== null || taskAction || recoveryTasks.some((task) => task.running)} onClick={() => void assessBlocks(Array.from({ length: 6 }, (_, index) => (act - 1) * 6 + index + 1))}>{assessing === null ? `Assess Act ${act} with Story Architect` : `Assessing Block ${String(assessing).padStart(2, "0")}…`}</button> : null}
 
       <div className="pp-skin-v1-story-card-act-stack">
         {storyCardActRows(project.structure).filter((row) => !act || row.actNumber === act).map((row) => (
@@ -532,11 +531,10 @@ export default function StoryCardFoundationBoard({
                       <p>{assessment ? assessment.structural.reason : `Block ${String(block.number).padStart(2, "0")} has ${coverage.passageCount} projected passages across ${coverage.miniBlocksWithEvidence}/4 Mini-Blocks. Passage count and placement cannot establish ${matrixBlock?.responsibility || "structural responsibility"}.`}</p>
                       {assessment ? <small>{assessment.structural.state.replaceAll("-", " / ")} · {assessedCitationCount} unique cited passage{assessedCitationCount === 1 ? "" : "s"} · 4 Mini-Blocks reviewed · {assessment.model}</small> : null}
                       {assessment ? <small>No accepted story content changed.</small> : null}
-                      {assessment?.structural.passageIds.length ? <details><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
+                      {assessment?.structural.passageIds.length ? <details open><summary>Screenplay passages behind this finding</summary><ul>{assessment.structural.passageIds.map((id) => { const passage = sourcePassages.find((item) => item.id === id); return <li key={id}><strong>{id}</strong> · {passage?.text.slice(0, 260) || "Source passage unavailable"}</li>; })}</ul></details> : null}
                       {matrixBlock?.structuralFinding.reviewedAt ? <small>Existing reviewed finding: {matrixBlock.structuralFinding.state.replaceAll("-", " / ")} · {matrixBlock.structuralFinding.reason}</small> : null}
-                      <button type="button" disabled={assessing !== null || taskAction || recoveryTasks.some((task) => task.running)} onClick={() => void assessBlocks([block.number])}>{assessing === block.number ? "Assessing…" : assessment ? "Reassess this Block" : "Assess this Block with Story Architect"}</button>
                     </div>
-                    {matrixBlock ? <details className="pp-skin-v1-story-card-structural-review">
+                    {matrixBlock ? <details open className="pp-skin-v1-story-card-structural-review">
                       <summary>Structural responsibility and source placement</summary>
                       <p>{matrixBlock.responsibility}</p>
                       <div className="pp-skin-v1-story-card-source-map">{matrixBlock.sourceMappings.map((mapping) => <span key={`${block.id}-${mapping.sourceId}`}>{mapping.sourceVersion.toUpperCase()} · {mapping.mappingMethod.replaceAll("-", " ")}{mapping.candidateOnly ? " · comparison only" : ""}</span>)}</div>
@@ -544,9 +542,9 @@ export default function StoryCardFoundationBoard({
                     </details> : null}
 
                     {characterTruth && characterCells.length ? (
-                      <details className="pp-skin-v1-story-card-character-review">
+                      <details open className="pp-skin-v1-story-card-character-review">
                         <summary>Character arc evidence · {observedCharacterCount}/{characterCells.length} observed here</summary>
-                        <details><summary>Character source policy</summary><p className="pp-skin-v1-story-card-character-rule">{characterTruth.governingRule}</p></details>
+                        <details open><summary>Character source policy</summary><p className="pp-skin-v1-story-card-character-rule">{characterTruth.governingRule}</p></details>
                         <div className="pp-skin-v1-story-card-character-grid">
                           {characterCells.map((cell) => {
                             const profileClaims = characterTruth.claims.filter((claim) => (
@@ -574,7 +572,7 @@ export default function StoryCardFoundationBoard({
                                     Flexible checkpoint: {checkpointHints.map((checkpoint) => `${checkpoint.kind} → Arc Matrix.${checkpoint.targetArcField}`).join(" · ")}
                                   </p>
                                 ) : null}
-                                <details>
+                                <details open>
                                   <summary>Profile context · source-only</summary>
                                   {profileClaims.slice(0, 4).map((claim) => (
                                     <p key={claim.id}>{claim.summary}</p>
@@ -653,11 +651,6 @@ export default function StoryCardFoundationBoard({
                       </ol>
                     </details>
 
-                    <div className="pp-skin-v1-story-card-actions">
-                      <button type="button" disabled={locked || block.number === 1} onClick={() => moveCard(block.number, block.number - 1)} aria-label={`Move Block ${block.number} planning content earlier`}>Move earlier</button>
-                      <button type="button" disabled={locked || block.number === 24} onClick={() => moveCard(block.number, block.number + 1)} aria-label={`Move Block ${block.number} planning content later`}>Move later</button>
-                      <button type="button" className="pp-skin-v1-story-card-lock" onClick={() => toggleLock(block.number, !locked)}>{locked ? "Unlock to revise" : "Lock card"}</button>
-                    </div>
                   </article>
                 );
               })}

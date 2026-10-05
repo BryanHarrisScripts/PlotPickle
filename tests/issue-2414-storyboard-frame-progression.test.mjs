@@ -21,6 +21,10 @@ function promptFor(position) {
   });
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 test("#2414 gives every planned Storyboard Shot a distinct visual progression function", () => {
   const prompts = Array.from({ length: 25 }, (_, index) => promptFor(index + 1));
   assert.equal(new Set(prompts).size, 25);
@@ -28,7 +32,7 @@ test("#2414 gives every planned Storyboard Shot a distinct visual progression fu
     const progression = storyboardPositionProgression(position);
     const prompt = prompts[position - 1];
     assert.match(prompt, new RegExp(`planned Shot ${String(position).padStart(2, "0")} of 25`));
-    assert.match(prompt, new RegExp(`Planned Shot progression: ${progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\assert.match(prompt, new RegExp(`Visual progression function: ${progression.label.replace(/[.*+?^${}()|[\\]\\]/g, "\\progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")")}`));")}`));
+    assert.match(prompt, new RegExp(`Planned Shot progression: ${escapeRegex(progression.label)}`));
     assert.match(prompt, /not a Beat assignment/u);
   }
 });
@@ -46,7 +50,7 @@ test("#2414 establishes explicit entry and exit boundaries without inventing Bea
 
 test("#2414 produces one clean standalone Storyboard Image rather than a storyboard grid", () => {
   const prompt = promptFor(12);
-  assert.match(prompt, /one clean black-and-white storyboard illustration/u);
+  assert.match(prompt, /one clean black-and-white Storyboard Image/u);
   assert.match(prompt, /No collage, contact sheet, storyboard grid, split screen, multiple panels/u);
   assert.match(prompt, /camera position, height, distance, viewing direction and shot size/u);
   assert.match(prompt, /preserve established character identity/u);

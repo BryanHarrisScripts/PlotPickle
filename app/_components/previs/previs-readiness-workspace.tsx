@@ -217,7 +217,7 @@ async function buildBrowserGraphicNovelWebp(input: Readonly<{
     .slice(0, MAX_PANELS)
     .sort((left, right) => left.position - right.position);
 
-  if (!panels.length) throw new Error("Keep / Lock at least one Storyboard frame before exporting WebP.");
+  if (!panels.length) throw new Error("Lock at least one Storyboard Image in Storyboard before exporting WebP.");
 
   const rows = Math.ceil(panels.length / COLUMNS);
   const width = MARGIN * 2 + COLUMNS * PANEL_WIDTH + (COLUMNS - 1) * GAP;
@@ -516,7 +516,7 @@ export default function PrevisReadinessWorkspace({
       ...existing.filter((item) => !(item.anchorRef === selectedAddressAnchor.id && item.position === position)),
       approval,
     ];
-    persistGraphicNovelTextApprovals(nextApprovals, `Graphic Novel text approved for position ${String(position).padStart(2, "0")}. Create WebP remains locked until every locked position is current and approved.`);
+    persistGraphicNovelTextApprovals(nextApprovals, `Graphic Novel text approved for Shot ${String(position).padStart(2, "0")} of 25. Create WebP remains locked until every locked Shot is current and approved.`);
   }
 
   function approveAllGraphicNovelText() {
@@ -561,7 +561,7 @@ export default function PrevisReadinessWorkspace({
     setGraphicNovelPlaying(false);
     const sourcePanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
     if (!sourcePanels.length) {
-      const failure = "WebP export failed: Keep / Lock at least one Storyboard frame before exporting.";
+      const failure = "WebP export failed: Lock at least one Storyboard Image in Storyboard before exporting.";
       setGraphicNovelExportState("error");
       setGraphicNovelExportMessage(failure);
       setMessage(failure);
@@ -722,7 +722,7 @@ export default function PrevisReadinessWorkspace({
               >
                 <div className={styles.videoFrame}>
                   {anchor.storyboardAssetUrl
-                    ? <img alt={`Storyboard keyframe for ${selectedBlock.blockNumber}.${anchor.miniBlockNumber}`} decoding="async" loading="lazy" src={anchor.storyboardAssetUrl} />
+                    ? <img alt={`Storyboard visual anchor for ${selectedBlock.blockNumber}.${anchor.miniBlockNumber}`} decoding="async" loading="lazy" src={anchor.storyboardAssetUrl} />
                     : <span className={styles.emptyVideo}>VIDEO / ANIMATIC</span>}
                   <span className={styles.videoBadge}>{anchor.storyboardCoverage === "kept" ? "STORYBOARD READY" : anchor.storyboardCoverage === "candidate" ? "STORYBOARD CANDIDATE" : "STORYBOARD NEEDED"}</span>
                 </div>

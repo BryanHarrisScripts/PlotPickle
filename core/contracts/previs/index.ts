@@ -410,7 +410,7 @@ function normalizeTimelinePrevisPlacement(value: unknown): TimelinePrevisPlaceme
   const item = value as Partial<TimelinePrevisPlacement>;
   const id = cleanText(item.id, 180);
   const anchorRef = cleanText(item.anchorRef, 240);
-  const sourceKey = cleanText(item.sourceKey, 8_000);
+  const sourceKey = cleanText(item.sourceKey, 16_000);
   const blockNumber = typeof item.blockNumber === "number" && Number.isInteger(item.blockNumber)
     ? Math.min(24, Math.max(1, item.blockNumber))
     : 0;

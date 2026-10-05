@@ -17,12 +17,14 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
   assert.match(positionLoop, /selectedImage \? "Reference Storyboard Image" : "No Storyboard Image"/u);
 });
 
-test("#2428 reloads the latest non-rejected generated candidate for its own position", async () => {
+test("#2428/#2772 reload prefers the accepted image, then the latest non-rejected candidate for its position", async () => {
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   assert.match(source, /const positionArtifacts = frameArtifacts\.filter\(\(artifact\) => artifact\.frameNumber === position && artifact\.reviewState !== "rejected"\)/u);
   assert.match(source, /const latestGeneratedArtifact = \[\.\.\.positionArtifacts\]\.sort\(\(left, right\) => right\.createdAt\.localeCompare\(left\.createdAt\)\)\[0\] \?\? null/u);
+  assert.match(source, /const acceptedPositionArtifact = \[\.\.\.positionArtifacts\]/u);
+  assert.match(source, /artifact\.reviewState === "accepted"[\s\S]*acceptedVisualArtifactIds\.includes\(artifact\.id\)/u);
   assert.match(source, /const requestedImageId = selectedImageByPosition\[selectionKey\] \?\? ""/u);
-  assert.match(source, /const fallbackImageId = latestGeneratedArtifact\?\.id \?\? shot\?\.frames\[0\]\?\.id \?\? positionImages\[0\]\?\.id \?\? ""/u);
+  assert.match(source, /const fallbackImageId = acceptedPositionArtifact\?\.id \?\? latestGeneratedArtifact\?\.id \?\? shot\?\.frames\[0\]\?\.id \?\? positionImages\[0\]\?\.id \?\? ""/u);
 });
 
 test("#2428 places Save, Lock, Redo and Delete directly under each frame image", async () => {

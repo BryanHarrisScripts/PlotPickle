@@ -29,7 +29,7 @@ test("#2456 Dashboard Previs uses Act-first navigation and the canonical 24/96 m
   assert.match(map, /"Outline" \| "Storyboard" \| "Previs"/u);
 });
 
-test("#2456 Previs Flip Book exposes 25 positions but only locked Storyboard frames are authoritative", async () => {
+test("#2456 Previs Flip Book exposes the 25 planned Shots and only locked Storyboard Images are authoritative", async () => {
   const [workspace, css] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/_components/previs/previs-readiness-workspace.module.css"),
@@ -39,13 +39,13 @@ test("#2456 Previs Flip Book exposes 25 positions but only locked Storyboard fra
   assert.match(workspace, /Array\.from\(\{ length: 25 \}/u);
   assert.match(workspace, /artifact\.workflow === "storyboard-frame-webp-v2"/u);
   assert.match(workspace, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);
-  assert.match(workspace, /Only Keep \/ Lock frames are authoritative Previs inputs/u);
+  assert.match(workspace, /Locked Storyboard Images are authoritative Previs inputs/u);
   assert.match(workspace, /Play Flip Book/u);
   assert.match(workspace, /Scene/u);
-  assert.match(workspace, /Beat Detail/u);
+  assert.match(workspace, /Beat context/u);
   assert.match(workspace, /Shot/u);
-  assert.match(workspace, /Frame/u);
-  assert.match(workspace, /does not create a canonical Beat/u);
+  assert.match(workspace, /Storyboard Image/u);
+  assert.match(workspace, /Previs does not create or renumber it/u);
   assert.match(css, /\.flipBookStrip/u);
   assert.match(css, /grid-template-columns: repeat\(25/u);
 });

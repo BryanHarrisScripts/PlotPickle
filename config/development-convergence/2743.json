@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "issue": 2743,
+  "phase": "durable-lifecycle-closeout",
+  "brief": "docs/developer-briefs/2743-durable-lifecycle-closeout.md",
+  "allowedChanges": [
+    "app/responsibility-run-activity.module.css",
+    "app/responsibility-run-activity.tsx",
+    "app/skin-v1/plotpickle-agents-host.tsx",
+    "build/responsibility-run-gateway.ts",
+    "config/development-convergence/2743.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+    "docs/developer-briefs/2707-agent-task-durability.md",
+    "docs/developer-briefs/2743-durable-lifecycle-closeout.md",
+    "lib/agents/responsibility/durable-run-lifecycle.mjs",
+    "package.json",
+    "scripts/developer-diagnostics/agents/durability-audit.mjs",
+    "tests/issue-2707-agent-durability-audit.test.mjs",
+    "tests/issue-2743-durable-lifecycle-closeout.test.mjs",
+    "tests/issue-2743-phase3-role-task-recovery.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2743-A1",
+      "criterion": "Settings Agents exposes Responsibility Run activity and deterministic Human-facing durability states.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/plotpickle-agents-host.tsx",
+          "contains": "<ResponsibilityRunActivity />"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/durable-run-lifecycle.mjs",
+          "contains": "\"interrupted\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/durable-run-lifecycle.mjs",
+          "contains": "\"stale\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/durable-run-lifecycle.mjs",
+          "contains": "\"unavailable\""
+        }
+      ]
+    },
+    {
+      "id": "P2743-A2",
+      "criterion": "Persisted active runs loaded by a new process are presented as interrupted without startup inference or generic auto-resume.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/responsibility-run-gateway.ts",
+          "contains": "const sessionOwnedRuns = new Set<string>();"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2743-durable-lifecycle-closeout.test.mjs",
+          "contains": "Responsibility Run GET only projects persisted state and never auto-starts work"
+        }
+      ]
+    },
+    {
+      "id": "P2743-A3",
+      "criterion": "Continuity, critic and creative-director have executable task checkpoint/reopen proof that skips completed work and remains non-canonical.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2743-phase3-role-task-recovery.test.mjs",
+          "contains": "skip completed work and remain non-canonical"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "PHASE3_DURABLE_ROLE_IDS"
+        }
+      ]
+    },
+    {
+      "id": "P2743-A4",
+      "criterion": "The source-backed audit distinguishes proven application, proven checkpoint, owner-preserved and not-adopted roles.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/agents/durability-audit.mjs",
+          "contains": "PROVEN-APPLICATION"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/agents/durability-audit.mjs",
+          "contains": "PROVEN-CHECKPOINT"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/agents/durability-audit.mjs",
+          "contains": "OWNER-PRESERVED"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/agents/durability-audit.mjs",
+          "contains": "NOT-ADOPTED"
+        }
+      ]
+    },
+    {
+      "id": "P2743-A5",
+      "criterion": "Upgrade preserves durable evidence while reset/delete remain explicit Human maintenance outside normal Resume.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/durable-run-lifecycle.mjs",
+          "contains": "upgrade: \"preserve\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/agents/responsibility/durable-run-lifecycle.mjs",
+          "contains": "deleteAvailableInRunActivity: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2743-durable-lifecycle-closeout.md",
+          "contains": "there is deliberately no generic Delete control"
+        }
+      ]
+    }
+  ]
+}

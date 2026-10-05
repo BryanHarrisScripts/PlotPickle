@@ -6,6 +6,13 @@ import type { ResponsibilityRunEvent } from "../lib/agents/responsibility/respon
 import styles from "./responsibility-run-activity.module.css";
 
 type RunState = "queued" | "preparing-context" | "working" | "verifying" | "revising" | "waiting-for-writer" | "paused" | "completed" | "failed" | "cancelled";
+type DurablePresentationState = "active" | "paused" | "interrupted" | "waiting-for-writer" | "stale" | "unavailable" | "completed" | "failed" | "cancelled";
+type DurablePresentation = {
+  state: DurablePresentationState;
+  resumableHere: boolean;
+  nextAction: string;
+  detail: string;
+};
 type RunSummary = {
   runId: string;
   kind: string;
@@ -22,6 +29,7 @@ type RunSummary = {
   artifacts: Array<{ id: string; kind: string }>;
   verificationEvidence: Array<{ authority: string; result: string }>;
   events: ResponsibilityRunEvent[];
+  durability?: DurablePresentation;
 };
 
 type RunsPayload = { ok?: boolean; runs?: RunSummary[]; run?: RunSummary; message?: string };
@@ -37,7 +45,7 @@ async function request(init?: RequestInit) {
   return value;
 }
 
-function stateLabel(state: RunState) {
+function stateLabel(state: RunState | DurablePresentationState) {
   return state.replaceAll("-", " ");
 }
 
@@ -47,13 +55,17 @@ function displayTime(value: string) {
 }
 
 function waitingFor(run: RunSummary) {
-  if (run.state === "waiting-for-writer") return "Writer decision";
-  if (run.state === "paused") return "Resume or stop";
+  const durable = run.durability?.state;
+  if (durable === "interrupted") return "Owning workflow resume";
+  if (durable === "stale") return "Current project/context";
+  if (durable === "unavailable") return "Required runtime/provider";
+  if (durable === "waiting-for-writer") return "Writer decision";
+  if (durable === "paused") return "Resume or stop";
+  if (durable === "completed") return "Nothing — complete";
+  if (durable === "cancelled") return "Nothing — stopped";
+  if (durable === "failed") return run.stopReason || "Run limit or authoritative failure";
   if (run.state === "verifying") return "Independent verification";
   if (run.state === "revising") return "Bounded revision, then fresh verification";
-  if (run.state === "failed") return run.stopReason || "Run limit or authoritative failure";
-  if (run.state === "completed") return "Nothing — complete";
-  if (run.state === "cancelled") return "Nothing — stopped";
   return "Current bounded work";
 }
 
@@ -102,7 +114,7 @@ export default function ResponsibilityRunActivity() {
         <div>
           <span>Responsibility Runs</span>
           <h2>Bounded work with visible limits and human gates.</h2>
-          <p>Runs can work, verify, revise and pause, but they cannot loop forever, grade their own deterministic work, silently spend on cloud models, or turn creative proposals into canon without the writer.</p>
+          <p>Runs can work, verify, revise and pause, but they cannot loop forever, grade their own deterministic work, silently spend on cloud models, or turn creative proposals into canon without the writer. Reopening PlotPickle never runs or resumes an Agent automatically.</p>
         </div>
         <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh Runs"}</button>
       </header>
@@ -112,14 +124,18 @@ export default function ResponsibilityRunActivity() {
       <div className={styles.grid}>
         {visible.length ? visible.map((run) => {
           const terminal = run.state === "completed" || run.state === "failed" || run.state === "cancelled";
+          const durable = run.durability;
+          const durableState = durable?.state || run.state;
+          const interrupted = durableState === "interrupted";
           const telemetryEventCount = run.events.filter((event) => event.type.startsWith("telemetry.")).length;
           const telemetry = summarizeRunTelemetry(run);
           return (
-            <article className={styles.card} key={run.runId} data-state={run.state}>
+            <article className={styles.card} key={run.runId} data-state={run.state} data-durable-state={durableState}>
               <header>
                 <div><strong>{run.goal}</strong><small>{run.profileId} · {run.kind.replaceAll("-", " ")}</small></div>
-                <span>{stateLabel(run.state)}</span>
+                <span>{stateLabel(durableState)}</span>
               </header>
+              {durable ? <p className={styles.recovery} role="status"><strong>{durable.detail}</strong><span>{durable.nextAction}</span></p> : null}
               {telemetryEventCount ? <p><small>{telemetry.plainLanguage}</small></p> : null}
               <dl>
                 <div><dt>Attempt</dt><dd>{run.usage.attempts}/{run.limits.maxAttempts}</dd></div>
@@ -127,6 +143,7 @@ export default function ResponsibilityRunActivity() {
                 <div><dt>Tokens</dt><dd>{run.usage.tokens.toLocaleString()}/{run.limits.maxTokens.toLocaleString()}</dd></div>
                 <div><dt>Cloud budget</dt><dd>${run.usage.cloudCostUsd.toFixed(2)} / ${run.limits.maxCloudCostUsd.toFixed(2)}</dd></div>
                 <div><dt>Waiting for</dt><dd>{waitingFor(run)}</dd></div>
+                <div><dt>Recovery</dt><dd>{stateLabel(durableState)}</dd></div>
                 <div><dt>Context round</dt><dd>{run.contextRound}</dd></div>
               </dl>
               {telemetryEventCount ? <details>
@@ -150,7 +167,9 @@ export default function ResponsibilityRunActivity() {
                 {!terminal ? <div className={styles.actions}>
                   {run.state === "paused"
                     ? <button type="button" disabled={Boolean(busy)} onClick={() => void control(run, "resume")}>Resume</button>
-                    : <button type="button" disabled={Boolean(busy) || run.state === "waiting-for-writer"} onClick={() => void control(run, "pause")}>Pause</button>}
+                    : interrupted || run.state === "waiting-for-writer"
+                      ? null
+                      : <button type="button" disabled={Boolean(busy)} onClick={() => void control(run, "pause")}>Pause</button>}
                   <button type="button" disabled={Boolean(busy)} onClick={() => void control(run, "cancel")}>Stop</button>
                 </div> : null}
               </footer>

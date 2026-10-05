@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import ResponsibilityRunActivity from "../responsibility-run-activity";
 
 type ProviderId = "local" | "ollama" | "openai" | "minimax" | "gemini";
 type ProviderOption = {
@@ -222,6 +223,8 @@ export default function PlotPickleAgentsHost() {
           </table>
         </div>
       </section>
+
+      <ResponsibilityRunActivity />
 
       <section style={panel}>
         <strong>BOUNDARY</strong>

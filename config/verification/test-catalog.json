@@ -2023,7 +2023,9 @@
           "tests/issue-2709-agent-checkpoint-task.test.mjs",
           "tests/issue-2736-phase3-durable-roles.test.mjs",
           "tests/issue-2738-preproduction-durable-assistance.test.mjs",
-          "tests/issue-2740-owner-preserving-handoffs.test.mjs"
+          "tests/issue-2740-owner-preserving-handoffs.test.mjs",
+          "tests/issue-2743-phase3-role-task-recovery.test.mjs",
+          "tests/issue-2743-durable-lifecycle-closeout.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2047,7 +2049,7 @@
           ".artifacts/verification-shadow/production-harness.json"
         ]
       },
-      "notes": "Host-scoped durable agent checkpoint contract; #2736 binds Continuity, Critics' Circle and Creative Director to the shared replay-safe seam, #2738 connects their PRE-PRODUCTION Responsibility Run envelopes, and #2740 preserves BUZZ/UAT/deterministic/repository execution owners through reference-only durable handoffs. Actual JSONL recovery is proven separately in the Windows Pi product gate."
+      "notes": "Host-scoped durable agent checkpoint contract; #2736 binds Continuity, Critics' Circle and Creative Director to the shared replay-safe seam, #2738 connects their PRE-PRODUCTION Responsibility Run envelopes, #2740 preserves BUZZ/UAT/deterministic/repository execution owners through reference-only durable handoffs, and #2743 adds task-level checkpoint/reopen proof plus Human-facing lifecycle/maintenance closeout. Actual JSONL recovery is proven separately in the Windows Pi product gate."
     },
     {
       "id": "story-canon.outline-durable-input-2711",

@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
 import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/agents/responsibility/connector-trust-policy";
+import { projectDurableRunLifecycle } from "../lib/agents/responsibility/durable-run-lifecycle.mjs";
 import {
   addResponsibilityArtifact,
   attachResponsibilityChild,
@@ -29,6 +30,7 @@ const API = "/api/responsibility-runs";
 const MAX_BODY = 64 * 1024;
 const SAFE_RUN_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{5,180}$/;
 const ALLOWED_SCOPES = new Set<string>(CONNECTOR_POLICY_SCOPES);
+const sessionOwnedRuns = new Set<string>();
 
 function root() {
   return path.join(persistentHome(), "responsibility-runs");
@@ -73,6 +75,25 @@ function validRun(value: unknown): value is ResponsibilityRun {
   return run.version === 1 && typeof run.runId === "string" && SAFE_RUN_ID.test(run.runId)
     && typeof run.goal === "string" && typeof run.profileId === "string" && typeof run.state === "string"
     && Array.isArray(run.events) && Boolean(run.limits) && Boolean(run.usage);
+}
+
+function presentRun(run: ResponsibilityRun) {
+  return {
+    ...run,
+    durability: projectDurableRunLifecycle(run, { sessionOwned: sessionOwnedRuns.has(run.runId) }),
+  };
+}
+
+function updateSessionOwnership(action: string, run: ResponsibilityRun) {
+  if (["create", "start", "resume", "fresh-context", "redirect"].includes(action)
+    && !["completed", "failed", "cancelled", "paused", "waiting-for-writer"].includes(run.state)) {
+    sessionOwnedRuns.add(run.runId);
+    return;
+  }
+  if (["pause", "cancel", "proposal-ready"].includes(action)
+    || ["completed", "failed", "cancelled", "paused", "waiting-for-writer"].includes(run.state)) {
+    sessionOwnedRuns.delete(run.runId);
+  }
 }
 
 async function readRun(runId: string) {
@@ -216,16 +237,19 @@ export function responsibilityRunGateway(): Plugin {
               if (requested) {
                 const run = await readRun(requested);
                 if (!run) { send(response, 404, { ok: false, message: "Responsibility Run was not found." }); return; }
-                send(response, 200, { ok: true, run });
+                send(response, 200, { ok: true, run: presentRun(run) });
                 return;
               }
               const runs = await listRuns();
-              send(response, 200, { ok: true, runs, count: runs.length });
+              send(response, 200, { ok: true, runs: runs.map(presentRun), count: runs.length });
               return;
             }
             if (request.method === "POST") {
-              const run = await mutate(await body(request));
-              send(response, 200, { ok: true, run });
+              const input = await body(request);
+              const action = String(input.action || "");
+              const run = await mutate(input);
+              updateSessionOwnership(action, run);
+              send(response, 200, { ok: true, run: presentRun(run) });
               return;
             }
             send(response, 405, { ok: false, message: "Use GET or POST for Responsibility Runs." });

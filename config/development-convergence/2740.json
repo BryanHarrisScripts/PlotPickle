@@ -6,6 +6,7 @@
   "allowedChanges": [
     "config/development-convergence/2740.json",
     "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
     "lib/agents/responsibility/owner-preserving-handoff.mjs",
     "docs/developer-briefs/2740-owner-preserving-durable-handoffs.md",
     "tests/issue-2740-owner-preserving-handoffs.test.mjs"

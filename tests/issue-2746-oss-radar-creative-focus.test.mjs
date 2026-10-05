@@ -158,3 +158,13 @@ test("#2746 existing morning schedule and broad profile are preserved and daily 
   assert.equal(contract.scoring.weights.aiArchitectureValue, 17);
   assert.equal(contract.report.targetFindings, 21);
 });
+
+test("#2746 merged Radar changes publish automatically and select production build proof", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/oss-radar.yml", import.meta.url), "utf8");
+  const architecture = await readFile(new URL("../.github/workflows/architecture-shadow.yml", import.meta.url), "utf8");
+  assert.match(workflow, /push:\n\s+branches: \[main\]\n\s+paths:/u);
+  assert.match(workflow, /"lib\/verification\/oss-radar\/\*\*"/u);
+  assert.doesNotMatch(workflow, /^  pull_request:/mu);
+  const buildSelector = architecture.split("\n").find((line) => line.includes("then build=true; fi"));
+  assert.ok(buildSelector.includes("lib/verification/oss-radar/|config/oss-radar/|"));
+});

@@ -35,3 +35,7 @@ Reuse `lib/verification/oss-radar/`, its discovery client, filtering, bounded en
 ## Non-goals
 
 No new curriculum content or playback feature is implemented by this research change. No score certifies upstream software quality, actual integration fit or licence compatibility for adoption. No third-party instructions acquire authority. No email or other external notification is added.
+
+### Connector-driven execution and production proof
+
+Radar changes select the existing Windows production build lane through Architecture Verification. The existing Radar also runs after relevant source changes merge to main, publishing today’s report without a separate dispatch or changing the 04:24 America/Toronto daily schedule. Pull requests cannot publish Radar reports.

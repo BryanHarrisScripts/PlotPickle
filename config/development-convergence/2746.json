@@ -5,6 +5,7 @@
   "brief": "docs/developer-briefs/oss-radar-creative-top-three.md",
   "allowedChanges": [
     ".github/workflows/oss-radar.yml",
+    ".github/workflows/architecture-shadow.yml",
     "config/development-convergence/2746.json",
     "config/oss-radar/creative-focus.json",
     "config/verification/test-catalog.json",

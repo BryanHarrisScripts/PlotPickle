@@ -151,7 +151,7 @@ jobs:
             if printf '%s\n' "$changed" | grep -Eq '^(build/projects/outline-task-[^/]+\.ts$|app/api/outline/tasks/route\.ts$|modules/plan/assessments/outline-task-browser\.ts$|app/skin-v1/story-card-foundation-board\.tsx$|build/mastra-agent-runtime\.ts$|modules/plan/outline-agent-assessment\.ts$|scripts/pi/durable/|core/sidecars/tasks/|tests/issue-(2709|2711)-|tests/issue-outline-agent-assessment\.test\.mjs$|tests/issue-2440-story-architect-structured-execution\.test\.mjs$)'; then story=true; fi
             if printf '%s\n' "$changed" | grep -Eq '^(tools/fframes-bridge/|core/media/fframes-local-media-engine\.ts$|scripts/fframes-product-proof\.mjs$|tests/issue-2663-fframes-media-engine\.test\.mjs$|tests/ltx-bundled-default\.test\.mjs$)'; then media=true; fi
             if printf '%s\n' "$changed" | grep -Eq '^(Start-PlotPickle\.bat$|scripts/install-whisper-cpp\.ps1$|config/local-voice-input\.json$|build/voice/|runtime/whisper/|tests/issue-(1910|2341|2350)-)'; then voice=true; fi
-            if printf '%s\n' "$changed" | grep -Eq '^(package(-lock)?\.json$|next\.config\.ts$|vite\.config\.ts$|scripts/windows-runtime\.mjs$|Start-PlotPickle\.(bat|command)$|start-plotpickle\.sh$|tests/issue-1456-windows-installer\.test\.mjs$|installer/|scripts/windows-installer/)'; then build=true; fi
+            if printf '%s\n' "$changed" | grep -Eq '^(package(-lock)?\.json$|next\.config\.ts$|vite\.config\.ts$|scripts/windows-runtime\.mjs$|lib/verification/oss-radar/|config/oss-radar/|Start-PlotPickle\.(bat|command)$|start-plotpickle\.sh$|tests/issue-1456-windows-installer\.test\.mjs$|installer/|scripts/windows-installer/)'; then build=true; fi
           fi
 
           any=false

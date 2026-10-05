@@ -79,7 +79,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
   assert.match(workflow, /schedule:\n\s+- cron: '24 4 \* \* \*'\n\s+timezone: 'America\/Toronto'/u);
   assert.match(workflow, /workflow_dispatch:/u);
   assert.match(workflow, /permissions:\n\s+contents: write\n\s+issues: write/u);
-  assert.doesNotMatch(workflow, /^\s*push:/mu);
+  assert.match(workflow, /push:\n\s+branches: \[main\]\n\s+paths:/u);
   assert.doesNotMatch(workflow, /^\s*pull_request:/mu);
   assert.match(workflow, /group: plotpickle-oss-radar/u);
   assert.match(workflow, /cancel-in-progress: false/u);

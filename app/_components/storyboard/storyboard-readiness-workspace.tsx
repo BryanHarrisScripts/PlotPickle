@@ -170,7 +170,7 @@ export default function StoryboardReadinessWorkspace({
     });
     saveFoundationProject(next);
     onProjectChange(next);
-    setFrameNotice(`Position ${String(artifact.frameNumber ?? 0).padStart(2, "0")} saved locally with this story.`);
+    setFrameNotice(`Shot ${String(artifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
   }
 
   function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "delete") {
@@ -196,7 +196,7 @@ export default function StoryboardReadinessWorkspace({
       setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
       setPendingDeleteArtifactId(null);
     }
-    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "kept and locked" : "deleted"}.`);
+    setFrameNotice(`Shot ${String(artifact.frameNumber).padStart(2, "0")} of 25 ${decision === "accept" ? "kept and locked" : "deleted"}.`);
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -345,7 +345,7 @@ export default function StoryboardReadinessWorkspace({
     const failures: string[] = [];
     const selectedArtifacts: Record<string, string> = {};
     setFrameBusy(true);
-    setFrameNotice("Preparing " + positions.length + " progression-aware WebP frame request" + (positions.length === 1 ? "" : "s") + "…");
+    setFrameNotice("Preparing " + positions.length + " progression-aware Storyboard Image request" + (positions.length === 1 ? "" : "s") + "…");
 
     try {
       for (let index = 0; index < positions.length; index += 1) {
@@ -357,7 +357,7 @@ export default function StoryboardReadinessWorkspace({
 
         const plan = generationPlanForPosition(position);
         const prompt = position === promptPosition ? selectedPrompt : plan.prompt;
-        setFrameNotice("Creating WebP frame " + (index + 1) + " of " + positions.length + " · position " + String(position).padStart(2, "0") + "…");
+        setFrameNotice("Creating Storyboard Image " + (index + 1) + " of " + positions.length + " · Shot " + String(position).padStart(2, "0") + " of 25…");
         try {
           const response = await fetch("/api/local-ai/generate/image", {
             method: "POST",
@@ -377,7 +377,7 @@ export default function StoryboardReadinessWorkspace({
           });
           const result = await response.json() as { ok?: boolean; assetUrl?: string; provider?: string; model?: string; message?: string };
           if (!response.ok || !result.ok || !result.assetUrl?.endsWith(".webp")) {
-            throw new Error(result.message || "The image route did not return a WebP frame.");
+            throw new Error(result.message || "The image route did not return a WebP Storyboard Image.");
           }
           if (activeAddressRef.current.block !== blockNumberValue || activeAddressRef.current.mini !== mini) {
             throw new Error("The active story address changed while generating. The late image was not attached.");
@@ -392,7 +392,7 @@ export default function StoryboardReadinessWorkspace({
             provider: result.provider || "configured image route",
             model: result.model || "",
             frameNumber: position,
-            narrativeIntention: "Storyboard frame candidate · position " + String(position).padStart(2, "0"),
+            narrativeIntention: "Storyboard Image candidate · Shot " + String(position).padStart(2, "0") + " of 25",
             sourceDecisionKeys: [
               "storyboard-target:block:block-" + String(blockNumberValue).padStart(2, "0"),
               "storyboard-anchor:block:block-" + String(blockNumberValue).padStart(2, "0") + ":mini-" + mini,
@@ -410,7 +410,7 @@ export default function StoryboardReadinessWorkspace({
           selectedArtifacts[String(blockNumberValue) + "." + mini + "." + position] = artifact.id;
           succeeded += 1;
         } catch (error) {
-          failures.push("Position " + String(position).padStart(2, "0") + ": " + (error instanceof Error ? error.message : "Frame generation failed."));
+          failures.push("Shot " + String(position).padStart(2, "0") + " of 25: " + (error instanceof Error ? error.message : "Storyboard Image generation failed."));
         }
       }
 
@@ -596,7 +596,7 @@ export default function StoryboardReadinessWorkspace({
                   const generatedPositionImages = positionArtifacts.map((artifact) => ({
                     id: artifact.id,
                     assetUrl: artifact.assetUrl,
-                    label: artifact.narrativeIntention || "Generated frame candidate",
+                    label: artifact.narrativeIntention || "Generated Storyboard Image candidate",
                     prompt: exactStoryboardPrompt(artifact.prompt),
                   }));
                   const linkedPositionImages = (shot?.frames ?? []).flatMap((frame) => {
@@ -625,13 +625,13 @@ export default function StoryboardReadinessWorkspace({
                     ? savedLocally ? "Locked · Saved locally" : "Locked · Save confirmation pending"
                     : savedLocally ? "Saved locally"
                       : selectedArtifact ? "Ready to save"
-                        : selectedImage ? "Reference image" : "No frame";
+                        : selectedImage ? "Reference Storyboard Image" : "No Storyboard Image";
                   const frameVersionLabel = positionImages.length > 0 && selectedImageIndex >= 0
                     ? `${selectedImageIndex + 1}/${positionImages.length}`
                     : "0/0";
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
-                    : "Open Shot / Frame position";
+                    : "Planned Shot · camera intent open";
                   return (
                     <div className={styles.positionRow} data-storyboard-position={position} key={position}>
                       <div className={styles.positionIdentity}>
@@ -713,7 +713,7 @@ export default function StoryboardReadinessWorkspace({
                 <section className={styles.framePromptPanel} aria-label={`Storyboard Image prompt for Shot ${promptPosition}`}>
                   <h4>Shot {String(promptPosition).padStart(2, "0")} of 25 · Storyboard Image candidate</h4>
                   <p>Prepared from mapped story evidence. Edit the visual direction before generating; no story content changes until you keep a candidate.</p>
-                  <textarea aria-label="Editable storyboard frame prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
+                  <textarea aria-label="Editable Storyboard Image prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
                   <fieldset className={styles.generationScope}>
                     <legend>Generation scope</legend>
                     <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "single"} onChange={() => setGenerationScope("single")} /> Selected Shot</label>

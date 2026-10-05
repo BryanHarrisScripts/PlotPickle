@@ -21,14 +21,14 @@ function promptFor(position) {
   });
 }
 
-test("#2414 gives every Storyboard position a distinct visual progression function", () => {
+test("#2414 gives every planned Storyboard Shot a distinct visual progression function", () => {
   const prompts = Array.from({ length: 25 }, (_, index) => promptFor(index + 1));
   assert.equal(new Set(prompts).size, 25);
   for (let position = 1; position <= 25; position += 1) {
     const progression = storyboardPositionProgression(position);
     const prompt = prompts[position - 1];
-    assert.match(prompt, new RegExp(`Storyboard Position ${String(position).padStart(2, "0")}`));
-    assert.match(prompt, new RegExp(`Visual progression function: ${progression.label.replace(/[.*+?^${}()|[\\]\\]/g, "\\progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")")}`));
+    assert.match(prompt, new RegExp(`planned Shot ${String(position).padStart(2, "0")} of 25`));
+    assert.match(prompt, new RegExp(`Planned Shot progression: ${progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\assert.match(prompt, new RegExp(`Visual progression function: ${progression.label.replace(/[.*+?^${}()|[\\]\\]/g, "\\progression.label.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")")}`));")}`));
     assert.match(prompt, /not a Beat assignment/u);
   }
 });
@@ -44,7 +44,7 @@ test("#2414 establishes explicit entry and exit boundaries without inventing Bea
   assert.doesNotMatch(last, /Beat 25/u);
 });
 
-test("#2414 produces one clean standalone frame rather than a storyboard grid", () => {
+test("#2414 produces one clean standalone Storyboard Image rather than a storyboard grid", () => {
   const prompt = promptFor(12);
   assert.match(prompt, /one clean black-and-white storyboard illustration/u);
   assert.match(prompt, /No collage, contact sheet, storyboard grid, split screen, multiple panels/u);
@@ -62,7 +62,7 @@ test("#2414 wires Quillan to Sequence Director and Storyboard Frame Director ski
   ]);
 
   const skill = await readFile(new URL("../.agents/skills/storyboard-frame-director/SKILL.md", import.meta.url), "utf8");
-  assert.match(skill, /25 positions are visual Shot \/ Frame capacity/u);
-  assert.match(skill, /Do not send a 25-frame grid\/contact sheet/u);
-  assert.match(skill, /one clean standalone image per position/u);
+  assert.match(skill, /25 planned Shots are the canonical Storyboard planning grid/u);
+  assert.match(skill, /Do not send a 25-image grid\/contact sheet/u);
+  assert.match(skill, /one clean standalone Storyboard Image candidate for the selected planned Shot/u);
 });

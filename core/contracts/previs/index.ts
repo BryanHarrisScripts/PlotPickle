@@ -485,7 +485,9 @@ function normalizeTimelineRangeExport(value: unknown): TimelineRangeExport | nul
   const id = cleanText(item.id, 180);
   const timelineAssemblyId = cleanText(item.timelineAssemblyId, 180);
   const placementIds = cleanStringList(item.placementIds, 4);
-  const sourceKeys = cleanStringList(item.sourceKeys, 4);
+  const sourceKeys = Array.isArray(item.sourceKeys)
+    ? [...new Set(item.sourceKeys.map((value) => cleanText(value, 16_000)).filter(Boolean))].slice(0, 4)
+    : [];
   const videoAssetUrl = cleanText(item.videoAssetUrl, 1_000);
   const durationSeconds = positiveSecond(item.durationSeconds);
   if (

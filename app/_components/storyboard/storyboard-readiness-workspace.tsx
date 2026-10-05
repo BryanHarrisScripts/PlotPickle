@@ -612,8 +612,12 @@ export default function StoryboardReadinessWorkspace({
                   const positionImages = [...generatedPositionImages, ...linkedPositionImages]
                     .filter((image, imageIndex, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === imageIndex);
                   const latestGeneratedArtifact = [...positionArtifacts].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
+                  const acceptedPositionArtifact = [...positionArtifacts]
+                    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+                    .find((artifact) => artifact.reviewState === "accepted"
+                      || project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id)) ?? null;
                   const requestedImageId = selectedImageByPosition[selectionKey] ?? "";
-                  const fallbackImageId = latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? positionImages[0]?.id ?? "";
+                  const fallbackImageId = acceptedPositionArtifact?.id ?? latestGeneratedArtifact?.id ?? shot?.frames[0]?.id ?? positionImages[0]?.id ?? "";
                   const selectedImageId = positionImages.some((image) => image.id === requestedImageId) ? requestedImageId : fallbackImageId;
                   const selectedImage = positionImages.find((image) => image.id === selectedImageId) ?? null;
                   const selectedImageIndex = positionImages.findIndex((image) => image.id === selectedImageId);

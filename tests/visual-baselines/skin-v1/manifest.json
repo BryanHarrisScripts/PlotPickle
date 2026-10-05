@@ -98,7 +98,7 @@
     "scene-timeline": {
       "label": "Timeline",
       "status": "candidate",
-      "selector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "selector": "[data-timeline-assembly='previs-media']",
       "candidate": ".artifacts/visual-readiness/05-storyboard__02-scene-workspace__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/05-storyboard__02-scene-workspace.png"
     },

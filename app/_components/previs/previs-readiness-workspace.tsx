@@ -508,7 +508,7 @@ export default function PrevisReadinessWorkspace({
     const now = new Date().toISOString();
     const approval = approvalFromDraft(panel, draft, now);
     if (!approval) {
-      setMessage(`Position ${String(position).padStart(2, "0")}: add narration or a complete speech bubble, or choose No text before approval.`);
+      setMessage(`Shot ${String(position).padStart(2, "0")} of 25: add narration or a complete speech bubble, or choose No text before approval.`);
       return;
     }
     const existing = project.production.graphicNovelTextApprovals ?? [];
@@ -988,7 +988,7 @@ export default function PrevisReadinessWorkspace({
                   <strong>{selectedFlipBookFrame.locked ? "Locked / approved" : selectedFlipBookFrame.candidate ? "Candidate · lock in Storyboard" : "Missing"}</strong>
                   <p>{selectedFlipBookFrame.locked?.narrativeIntention || selectedFlipBookFrame.candidate?.narrativeIntention || "No Storyboard Image is attached to this planned Shot."}</p>
                 </article>
-              </div>>
+              </div>
             </section>
           ) : null}
 

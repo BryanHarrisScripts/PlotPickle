@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2736,
+  "phase": "phase3-durable-role-adoption",
+  "brief": "docs/developer-briefs/2736-phase3-durable-role-adoption.md",
+  "allowedChanges": [
+    "config/development-convergence/2736.json",
+    "config/verification/test-catalog.json",
+    "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+    "docs/developer-briefs/2736-phase3-durable-role-adoption.md",
+    "tests/issue-2736-phase3-durable-roles.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2736-A1",
+      "criterion": "Continuity, Critics' Circle and Creative Director are bound to their existing Agent Profile and Mastra role identities.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "\"mira-threadmere\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "\"critics-circle\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "\"quillan-reedcloak\""
+        }
+      ]
+    },
+    {
+      "id": "P2736-A2",
+      "criterion": "Phase 3 roles reuse the shared scoped checkpoint input and fail closed on role/grant/replay mismatches.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "normalizeAgentCheckpointInput"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2736-phase3-durable-roles.test.mjs",
+          "contains": "wrong role, widened grants and unsafe operations fail closed"
+        }
+      ]
+    },
+    {
+      "id": "P2736-A3",
+      "criterion": "Role adoption remains non-canonical, provider-free and explicit-resume only.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "canonical: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "providerRequestsIssued: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/phase3-role-checkpoint-plan.mjs",
+          "contains": "automaticResume: false"
+        }
+      ]
+    }
+  ]
+}

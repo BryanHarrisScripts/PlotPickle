@@ -54,7 +54,7 @@ test("#2499 all 25 Storyboard positions show current image number over total", a
   assert.match(loop, /\$\{selectedImageIndex \+ 1\}\/\$\{positionImages\.length\}/u);
   assert.match(loop, /: "0\/0"/u);
   assert.match(loop, /className=\{styles\.frameVersionCount\}/u);
-  assert.match(loop, /images for Storyboard position/u);
+  assert.match(loop, /Storyboard Image versions for Shot/u);
   assert.match(css, /\.frameVersionCount \{/u);
   assert.match(css, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/u);
 });
@@ -63,10 +63,10 @@ test("#2499 chevron browser and prompt provenance remain intact", async () => {
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
 
-  assert.match(loop, /Previous frame for Storyboard position/u);
-  assert.match(loop, /Next frame for Storyboard position/u);
+  assert.match(loop, /Previous Storyboard Image for Shot/u);
+  assert.match(loop, /Next Storyboard Image for Shot/u);
   assert.match(loop, /disabled=\{selectedImageIndex <= 0\}/u);
   assert.match(loop, /selectedImageIndex >= positionImages\.length - 1/u);
-  assert.match(loop, /<strong>Storyboard Prompt<\/strong>/u);
-  assert.match(loop, /selectedImage\.prompt \|\| "Original Storyboard prompt unavailable for this image\."/u);
+  assert.match(loop, /<strong>Storyboard Image Prompt<\/strong>/u);
+  assert.match(loop, /selectedImage\.prompt \|\| "Original Storyboard Image prompt unavailable for this image\."/u);
 });

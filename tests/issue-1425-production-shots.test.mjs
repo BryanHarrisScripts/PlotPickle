@@ -11,7 +11,7 @@ const reducerPath = "core/project/apply-command.ts";
 const modelPath = "app/_components/previs/previs-projection-model.ts";
 const workspacePath = "app/_components/previs/previs-readiness-workspace.tsx";
 
-test("#1425 persists Production Shots in the canonical PPF command path", async () => {
+test("#1425 keeps legacy Production Shot data in the canonical PPF without exposing it as normal Previs authoring", async () => {
   const [contract, project, command, reducer, workspace, route] = await Promise.all([
     read(contractPath),
     read(projectPath),
@@ -35,13 +35,15 @@ test("#1425 persists Production Shots in the canonical PPF command path", async 
   assert.match(command, /"previs\.shot\.remove"/);
   assert.match(reducer, /case "previs\.shot\.store"/);
   assert.match(reducer, /case "previs\.shot\.remove"/);
-  assert.match(workspace, /applyStoryCommand/);
+
+  assert.doesNotMatch(workspace, /applyStoryCommand|previs\.shot\.store|Add creative shot|Save creative shot/u);
   assert.match(workspace, /saveFoundationProject/);
+  assert.match(workspace, /Storyboard owns the 25 planned Shots and their locked Storyboard Images/u);
   assert.match(route, /onProjectChange=\{setProject\}/);
   assert.doesNotMatch(`${contract}\n${workspace}`, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 });
 
-test("#1425 allows zero, one or many creative shots beneath one stable Mini-Block anchor", async () => {
+test("#1425 preserves legacy zero-one-many Production Shot compatibility below the read-only Previs surface", async () => {
   const [contract, model, workspace] = await Promise.all([
     read(contractPath),
     read(modelPath),
@@ -52,15 +54,14 @@ test("#1425 allows zero, one or many creative shots beneath one stable Mini-Bloc
   assert.match(model, /project\.production\.shots\s*\.filter\(\(shot\) => shot\.anchorRef === anchorId\)/);
   assert.match(model, /nextOrder = anchor\.shots\.reduce/);
   assert.match(model, /durationSeconds: null/);
-  assert.match(workspace, /Creative shots<\/dt><dd>\{anchor\.shots\.length\}/);
-  assert.match(workspace, /Add creative shot/);
-  assert.match(workspace, /Optional until Human-authored/);
-  assert.match(workspace, /leave unknown fields empty rather than inferring them from the story grid/);
-  assert.match(workspace, /current two-hour technical preset/);
+
+  assert.match(workspace, /25 planned Shots/u);
+  assert.match(workspace, /Previs reads and presents those approved choices/u);
+  assert.doesNotMatch(workspace, /Creative shots<\/dt>|Previs timing<\/dt>|Add creative shot|Optional until Human-authored|Save creative shot/u);
   assert.doesNotMatch(`${model}\n${workspace}`, /defaultFrameSeconds|targetMinutes|estimatedSeconds/);
 });
 
-test("#1425 marks only shots whose Storyboard dependency changed as needing review", async () => {
+test("#1425 retains dependency-staleness logic without making Previs a second Shot editor", async () => {
   const [model, workspace] = await Promise.all([
     read(modelPath),
     read(workspacePath),
@@ -70,14 +71,13 @@ test("#1425 marks only shots whose Storyboard dependency changed as needing revi
   assert.match(model, /shot\.storyboardDependencyKey !== dependencyKey/);
   assert.match(model, /staleShotIds/);
   assert.match(model, /shotNeedsReview/);
-  assert.match(workspace, /data-stale=\{anchor\.staleShotIds\.includes\(shot\.id\)/);
-  assert.match(workspace, /This shot needs review because its approved Storyboard dependency changed/);
-  assert.match(workspace, /Saving below is an explicit Human confirmation/);
-  assert.match(workspace, /storyboardArtifactId: selectedAnchor\.storyboardArtifactId/);
-  assert.match(workspace, /storyboardDependencyKey: selectedAnchor\.storyboardDependencyKey/);
+
+  assert.doesNotMatch(workspace, /data-stale=\{anchor\.staleShotIds|This shot needs review because its approved Storyboard dependency changed|storyboardArtifactId: selectedAnchor|storyboardDependencyKey: selectedAnchor/u);
+  assert.match(workspace, /Open owning Storyboard Mini-Block/u);
+  assert.match(workspace, /If a Storyboard Image is wrong or missing, correct and lock it in Storyboard/u);
 });
 
-test("#1425 creative Previs shots add execution timing without becoming a second story model", async () => {
+test("#1425 keeps production intent fields for compatibility while normal Previs stays presentation-only", async () => {
   const [contract, workspace] = await Promise.all([
     read(contractPath),
     read(workspacePath),
@@ -86,8 +86,9 @@ test("#1425 creative Previs shots add execution timing without becoming a second
   for (const field of ["shotSize", "angle", "movement", "lens", "visualIntent", "durationSeconds", "transitionIn", "transitionOut"]) {
     assert.match(contract, new RegExp(`${field}:`));
   }
-  assert.match(workspace, /Story changes belong upstream/);
-  assert.match(workspace, /Story canon remains upstream/);
-  assert.match(workspace, /clip grid is production plumbing, not a second storytelling structure/);
+
+  assert.match(workspace, /Previs presents the visual story already approved in Storyboard/u);
+  assert.match(workspace, /Previs does not create a second Shot or image-authoring layer/u);
+  assert.doesNotMatch(workspace, /Shot size<input|Blocking intent|Performance energy|Pacing \/ rhythm intent|Rough motion evidence refs/u);
   assert.doesNotMatch(workspace, /\/api\/.*generate|Render MP4|provider.*generate/i);
 });

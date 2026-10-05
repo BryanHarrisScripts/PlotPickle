@@ -2,20 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  RENDER_CLIP_SECONDS,
-  RENDER_CLIPS_PER_BLOCK,
-  RENDER_CLIPS_PER_FEATURE,
-  RENDER_CLIPS_PER_MINI_BLOCK,
-  RENDER_KEYFRAMES_PER_FEATURE,
-  RENDER_MINI_BLOCK_SECONDS,
   type PrevisGraphicNovelTextApproval,
   type PrevisGraphicNovelTextBubble,
-  type ProductionShotIntent,
-  type ProductionShotReviewState,
 } from "@/core/contracts/previs";
-import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -23,9 +14,7 @@ import {
   storyboardPositionProgression,
 } from "../storyboard/storyboard-editorial-model";
 import {
-  createProductionShotForAnchor,
   derivePrevisProjection,
-  shotNeedsReview,
   type PrevisAnchorProjection,
 } from "./previs-projection-model";
 import {
@@ -361,18 +350,13 @@ export default function PrevisReadinessWorkspace({
     setSelectedBlockNumber(address.blockNumber);
     setSelectedMiniBlockNumber(address.miniBlockNumber);
   }, [address?.blockNumber, address?.miniBlockNumber]);
-  const [selectedShotId, setSelectedShotId] = useState("");
   const [message, setMessage] = useState("");
   const selectedBlock = projection.blocks.find((block) => block.blockNumber === selectedBlockNumber)
     ?? projection.blocks[0]
     ?? null;
-  const allAnchors = projection.blocks.flatMap((block) => block.anchors);
   const selectedAddressAnchor = selectedBlock?.anchors.find((anchor) => anchor.miniBlockNumber === selectedMiniBlockNumber)
     ?? selectedBlock?.anchors[0]
     ?? null;
-  const selectedAnchor = allAnchors.find((anchor) => anchor.shots.some((shot) => shot.id === selectedShotId)) ?? null;
-  const selectedShot = selectedAnchor?.shots.find((shot) => shot.id === selectedShotId) ?? null;
-  const selectedShotStale = Boolean(selectedShot && selectedAnchor && shotNeedsReview(selectedAnchor, selectedShot));
   const selectedAct = Math.ceil(selectedBlockNumber / 6);
   const actBlocks = projection.blocks.filter((block) => Math.ceil(block.blockNumber / 6) === selectedAct);
   const acceptedVisualIds = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -399,17 +383,16 @@ export default function PrevisReadinessWorkspace({
   });
   const selectedFlipBookFrame = flipBookFrames[selectedFramePosition - 1];
   const lockedFrameCount = flipBookFrames.filter((frame) => frame.locked).length;
+  const availableStoryboardImageCount = flipBookFrames.filter((frame) => frame.visual).length;
   const selectedFrameEvidence = selectedAddressAnchor
     ? storyboardAnchorEvidence(project, selectedAddressAnchor.targetId, selectedAddressAnchor.miniBlockNumber)
     : null;
   const selectedFrameSceneNumbers = [...new Set((selectedFrameEvidence?.passages ?? []).map((passage) => passage.sceneNumber).filter(Boolean))];
   const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
-  const selectedFrameShot = selectedAddressAnchor?.shots.find((shot) => shot.order === selectedFramePosition) ?? null;
 
   function graphicNovelPanelFor(position: number): PrevisGraphicNovelPanel {
     const frame = flipBookFrames[position - 1];
     const progression = storyboardPositionProgression(position);
-    const shot = selectedAddressAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
     return buildPrevisGraphicNovelPanel({
       position,
       assetUrl: frame?.locked?.assetUrl ?? "",
@@ -418,8 +401,8 @@ export default function PrevisReadinessWorkspace({
       sceneNumbers: selectedFrameSceneNumbers.map((number) => String(number)),
       beatLabel: progression.label,
       beatDirection: progression.direction,
-      shotLabel: shot ? `Shot ${String(shot.order).padStart(2, "0")} · ${shot.shotSize || "size open"}` : "Shot intent open",
-      shotContext: shot ? [shot.angle, shot.movement, shot.visualIntent].filter(Boolean).join(" · ") : "",
+      shotLabel: `Shot ${String(position).padStart(2, "0")} of 25`,
+      shotContext: "~3-second planning target",
       passages: selectedFrameEvidence?.passages ?? [],
     });
   }
@@ -630,59 +613,6 @@ export default function PrevisReadinessWorkspace({
     } finally {
       setGraphicNovelExporting(false);
     }
-  }
-
-  function commit(command: Parameters<typeof applyStoryCommand>[1]) {
-    const next = applyStoryCommand(project, command);
-    saveFoundationProject(next);
-    onProjectChange(next);
-    return next;
-  }
-
-  function addShot(anchor: PrevisAnchorProjection) {
-    const now = new Date().toISOString();
-    const shot = createProductionShotForAnchor(project, anchor, now);
-    if (!shot) {
-      setMessage("Keep a current Storyboard visual before adding a creative Previs shot to this anchor.");
-      return;
-    }
-    commit({ type: "previs.shot.store", shot, occurredAt: now });
-    setSelectedShotId(shot.id);
-    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Camera, blocking, performance and timing remain Human-authored; leave unknown fields empty rather than inferring them from the story grid.`);
-  }
-
-  function saveShot(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedShot || !selectedAnchor || !selectedAnchor.storyboardArtifactId || !selectedAnchor.storyboardDependencyKey) return;
-    const data = new FormData(event.currentTarget);
-    const rawDuration = String(data.get("durationSeconds") ?? "").trim();
-    const parsedDuration = rawDuration ? Number(rawDuration) : null;
-    const now = new Date().toISOString();
-    const shot: ProductionShotIntent = {
-      ...selectedShot,
-      storyboardArtifactId: selectedAnchor.storyboardArtifactId,
-      storyboardDependencyKey: selectedAnchor.storyboardDependencyKey,
-      shotSize: String(data.get("shotSize") ?? "").trim(),
-      angle: String(data.get("angle") ?? "").trim(),
-      movement: String(data.get("movement") ?? "").trim(),
-      lens: String(data.get("lens") ?? "").trim(),
-      visualIntent: String(data.get("visualIntent") ?? "").trim(),
-      blockingIntent: String(data.get("blockingIntent") ?? "").trim(),
-      performanceEnergy: String(data.get("performanceEnergy") ?? "").trim(),
-      pacingIntent: String(data.get("pacingIntent") ?? "").trim(),
-      roughMotionEvidenceRefs: String(data.get("roughMotionEvidenceRefs") ?? "")
-        .split(/\r?\n/u)
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .slice(0, 32),
-      durationSeconds: parsedDuration && Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : null,
-      transitionIn: String(data.get("transitionIn") ?? "").trim(),
-      transitionOut: String(data.get("transitionOut") ?? "").trim(),
-      reviewState: String(data.get("reviewState") ?? "planned") as ProductionShotReviewState,
-      updatedAt: now,
-    };
-    commit({ type: "previs.shot.store", shot, occurredAt: now });
-    setMessage(`Shot ${shot.order} saved. Previs intent remains Human-authored. For the current 120-minute render preset, a reviewed ${RENDER_MINI_BLOCK_SECONDS}s Mini-Block can map to the fixed ${RENDER_CLIPS_PER_MINI_BLOCK}-clip technical Render Plan.`);
   }
 
   return (

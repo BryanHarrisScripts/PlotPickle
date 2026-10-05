@@ -87,23 +87,20 @@ test("#2753 workflow metadata changes do not fan out into unrelated heavyweight 
   const proofStart = architecture.indexOf("  windows-product-proof:", scopeStart);
   const scope = architecture.slice(scopeStart, proofStart);
 
-  assert.doesNotMatch(
-    scope,
-    /\.github\/workflows\/(?:architecture-shadow|product-gate)\\\.yml[\\s\\S]*command=true[\\s\\S]*pi=true[\\s\\S]*story=true[\\s\\S]*media=true[\\s\\S]*voice=true[\\s\\S]*build=true/u,
-    "workflow-file edits must not force every native Windows lane",
-  );
-  assert.doesNotMatch(scope, /tests\/issue-2733-ci-windows-lanes\\\.test\\\.mjs\$\|docs\/developer-briefs\/2733-split-windows-product-gate/u);
+  assert.equal(scope.includes(".github/workflows/"), false, "workflow files must not be blanket Windows-lane selectors");
+  assert.equal(scope.includes("tests/issue-2733-ci-windows-lanes"), false, "selector regression edits must not force native Windows lanes");
+  assert.equal(scope.includes("docs/developer-briefs/2733-split-windows-product-gate"), false, "CI documentation edits must not force native Windows lanes");
   assert.match(scope, /Heavy Windows lanes are selected only by product\/runtime paths they actually prove\./u);
 
   const laneContracts = [
-    ["command", /settings-command-product-proof\\\.mjs/u],
-    ["pi", /evaluate-pi-099-compatibility/u],
-    ["story", /story-card-foundation-board\\\.tsx/u],
-    ["media", /fframes-product-proof\\\.mjs/u],
-    ["voice", /install-whisper-cpp\\\.ps1/u],
-    ["build", /scripts\/windows-runtime\\\.mjs/u],
+    ["command", "settings-command-product-proof.mjs"],
+    ["pi", "evaluate-pi-099-compatibility"],
+    ["story", "story-card-foundation-board.tsx"],
+    ["media", "fframes-product-proof.mjs"],
+    ["voice", "install-whisper-cpp.ps1"],
+    ["build", "scripts/windows-runtime.mjs"],
   ];
   for (const [lane, productPath] of laneContracts) {
-    assert.match(scope, productPath, lane + " retains a product/runtime selector");
+    assert.ok(scope.includes(productPath), lane + " retains a product/runtime selector");
   }
 });

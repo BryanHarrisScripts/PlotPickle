@@ -66,30 +66,32 @@ fn overlay_lines(value: &str, maximum: usize) -> (String, String) {
     if clean.is_empty() {
         return (String::new(), String::new());
     }
-    let words = clean.split_whitespace();
     let mut first = String::new();
     let mut second = String::new();
-    for word in words {
-        let target = if first.chars().count() < maximum { &mut first } else { &mut second };
-        let next_len = target.chars().count() + usize::from(!target.is_empty()) + word.chars().count();
-        if next_len <= maximum {
-            if !target.is_empty() {
-                target.push(' ');
+    let mut on_second = false;
+    for word in clean.split_whitespace() {
+        if !on_second {
+            let next_len = first.chars().count() + usize::from(!first.is_empty()) + word.chars().count();
+            if next_len <= maximum {
+                if !first.is_empty() {
+                    first.push(' ');
+                }
+                first.push_str(word);
+                continue;
             }
-            target.push_str(word);
-            continue;
+            on_second = true;
         }
-        if std::ptr::eq(target, &mut first) {
-            first = compact_overlay_line(&first, maximum);
-            if word.chars().count() <= maximum {
-                second.push_str(word);
-            }
-        } else {
-            second = compact_overlay_line(&second, maximum);
+        let next_len = second.chars().count() + usize::from(!second.is_empty()) + word.chars().count();
+        if next_len > maximum {
+            second = compact_overlay_line(&format!("{second} {word}"), maximum);
             break;
         }
+        if !second.is_empty() {
+            second.push(' ');
+        }
+        second.push_str(word);
     }
-    (first, compact_overlay_line(&second, maximum))
+    (compact_overlay_line(&first, maximum), compact_overlay_line(&second, maximum))
 }
 
 impl Video for PlotPickleVideo {

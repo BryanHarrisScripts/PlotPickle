@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
+import {WEBMCP_STANDARD_SURFACE_REGISTRY} from '../lib/verification/webmcp-canonical-surface-registry.mjs';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 
 test('#2751 General and Operations have distinct canonical panels and keyboard destinations',async()=>{
@@ -17,6 +18,9 @@ test('#2751 General and Operations have distinct canonical panels and keyboard d
   const registry=JSON.parse(await read('config/skin-v1-surface-registry.json'));
   for(const id of ['semantic-uat','data-recovery']) {
     const surface=registry.surfaces.find(row=>row.id===id);
+    const manifest=JSON.parse(await read('tests/visual-baselines/skin-v1/manifest.json'));
+    assert.equal(manifest.surfaces[id].candidate,WEBMCP_STANDARD_SURFACE_REGISTRY[id].candidate);
+    assert.equal(manifest.surfaces[id].baseline,WEBMCP_STANDARD_SURFACE_REGISTRY[id].baseline);
     assert.equal(surface.parent,'settings');
     assert.ok(surface.runtimeReadySelector.includes(id));
     assert.ok((await read('lib/verification/webmcp-surface-capture-registry.mjs')).includes(`id: "${id}"`));

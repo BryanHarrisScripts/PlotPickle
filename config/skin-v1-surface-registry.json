@@ -758,8 +758,8 @@
         }
       ],
       "legacyEvidence": {
-        "candidate": ".artifacts/visual-readiness/semantic-uat-candidate.png",
-        "baseline": "tests/visual-baselines/skin-v1/semantic-uat.png"
+        "candidate": ".artifacts/visual-readiness/15-manage__07-semantic-uat__candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/15-manage__07-semantic-uat.png"
       },
       "formatProfile": {
         "layout": "one-column",
@@ -795,8 +795,8 @@
         }
       ],
       "legacyEvidence": {
-        "candidate": ".artifacts/visual-readiness/data-recovery-candidate.png",
-        "baseline": "tests/visual-baselines/skin-v1/data-recovery.png"
+        "candidate": ".artifacts/visual-readiness/15-manage__08-data-recovery__candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/15-manage__08-data-recovery.png"
       },
       "formatProfile": {
         "layout": "one-column",

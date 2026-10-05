@@ -236,6 +236,18 @@
       ]
     },
     {
+      "id": "owner-preserving-agent-handoff",
+      "classification": "production",
+      "include": [
+        "lib/agents/responsibility/owner-preserving-handoff.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security"
+      ]
+    },
+    {
       "id": "startup-agent-health-runtime",
       "classification": "production",
       "include": [

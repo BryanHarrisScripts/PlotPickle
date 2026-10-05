@@ -7,6 +7,7 @@ import type {
   TimelineAssemblyRevision,
   TimelineMotionShot,
   TimelinePrevisPlacement,
+  TimelineRangeExport,
   TimelineShotImageRef,
 } from "@/core/contracts/previs";
 import { applyStoryCommand } from "@/core/project/apply-command";
@@ -134,6 +135,39 @@ function timelineMp4FileName(projectTitle: string, placement: TimelinePrevisPlac
   return `${slug}-timeline-block-${String(placement.blockNumber).padStart(2, "0")}-mini-${placement.miniBlockNumber}${suffix}.mp4`;
 }
 
+function storyPosition(placement: TimelinePrevisPlacement) {
+  return ((placement.blockNumber - 1) * 4) + placement.miniBlockNumber;
+}
+
+function openingStoryRun(placements: readonly TimelinePrevisPlacement[]) {
+  const ordered = [...placements]
+    .sort((left, right) => storyPosition(left) - storyPosition(right) || left.order - right.order)
+    .filter((placement, index, all) => all.findIndex((candidate) => storyPosition(candidate) === storyPosition(placement)) === index);
+  const firstComplete = ordered.findIndex((placement) => placement.shotImages.length === SHOTS_PER_MINI_BLOCK);
+  if (firstComplete < 0) return [] as TimelinePrevisPlacement[];
+  const run: TimelinePrevisPlacement[] = [ordered[firstComplete]];
+  let expected = storyPosition(ordered[firstComplete]) + 1;
+  for (let index = firstComplete + 1; index < ordered.length && run.length < 4; index += 1) {
+    const placement = ordered[index];
+    const position = storyPosition(placement);
+    if (position < expected) continue;
+    if (position !== expected || placement.shotImages.length !== SHOTS_PER_MINI_BLOCK) break;
+    run.push(placement);
+    expected += 1;
+  }
+  return run;
+}
+
+function timelineRangeMp4FileName(projectTitle: string, placements: readonly TimelinePrevisPlacement[], withNarration: boolean) {
+  const slug = projectTitle.toLowerCase().trim().replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "") || "plotpickle";
+  const first = placements[0];
+  const last = placements.at(-1);
+  const range = first && last
+    ? `block-${String(first.blockNumber).padStart(2, "0")}-mini-${first.miniBlockNumber}-through-${String(last.blockNumber).padStart(2, "0")}-mini-${last.miniBlockNumber}`
+    : "opening-range";
+  return `${slug}-timeline-${range}${withNarration ? "-narrated" : ""}.mp4`;
+}
+
 function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number, artifactId: string, prompt: string) {
   return JSON.stringify({
     placementSourceKey: placement.sourceKey,
@@ -253,6 +287,9 @@ export default function TimelineAssemblyWorkspace({
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const latestProject = useRef(project);
   latestProject.current = project;
+  const [openingSegmentCount, setOpeningSegmentCount] = useState(1);
+  const [openingExporting, setOpeningExporting] = useState(false);
+  const [openingExportUrl, setOpeningExportUrl] = useState("");
   const [exporting, setExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -296,6 +333,15 @@ export default function TimelineAssemblyWorkspace({
     ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => motionFor(selectedPlacement, index + 1))
     : [];
   const selectedMotionSucceeded = selectedMotionStates.filter((state) => state.current?.status === "succeeded" && state.current.outputAssetUrl).length;
+  const openingRun = useMemo(() => openingStoryRun(placements), [placements]);
+  const selectedOpeningPlacements = openingRun.slice(0, Math.max(1, Math.min(openingSegmentCount, openingRun.length)));
+  const latestRangeExport = [...(project.production.timelineRangeExports ?? [])]
+    .filter((item) => item.timelineAssemblyId === latestAssembly?.id)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
+
+  useEffect(() => {
+    setOpeningSegmentCount((current) => Math.max(1, Math.min(current, Math.max(1, openingRun.length))));
+  }, [openingRun.length]);
 
   useEffect(() => {
     if (!placements.length) {
@@ -617,6 +663,109 @@ export default function TimelineAssemblyWorkspace({
     }
   }
 
+  function storeRangeExport(item: TimelineRangeExport) {
+    const next = applyStoryCommand(latestProject.current, {
+      type: "production.timeline.export.store",
+      export: item,
+      occurredAt: item.createdAt,
+    });
+    const saved = saveFoundationProject(next);
+    latestProject.current = saved;
+    onProjectChange(saved);
+  }
+
+  async function exportOpeningRangeMp4() {
+    if (!latestAssembly || openingExporting || !selectedOpeningPlacements.length) return;
+    if (selectedOpeningPlacements.some((placement) => placementIsStale(placement))) {
+      setMessage("Opening-range export stopped because one or more placed Mini-Blocks are stale. Update them to the current Previs source first.");
+      return;
+    }
+
+    const missingNarration: string[] = [];
+    const frames = selectedOpeningPlacements.flatMap((placement, placementIndex) => (
+      Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, shotIndex) => {
+        const shotNumber = shotIndex + 1;
+        const presentation = timelinePresentationFor(project, placement, shotNumber);
+        if (!presentation.artifact?.assetUrl) return null;
+        if (showNarration && !presentation.approval) {
+          missingNarration.push(`${placement.blockNumber}.${placement.miniBlockNumber} Shot ${String(shotNumber).padStart(2, "0")}`);
+        }
+        const caption = showNarration && presentation.approval
+          ? presentation.approval.bubbles.map((bubble) => `${bubble.speaker}: ${bubble.text}`).join(" · ")
+          : "";
+        const narration = showNarration && presentation.approval ? presentation.approval.narration : "";
+        return {
+          position: (placementIndex * SHOTS_PER_MINI_BLOCK) + shotNumber,
+          assetId: presentation.artifact.id,
+          assetUrl: presentation.artifact.assetUrl,
+          authoritative: true as const,
+          durationMs: PLANNING_SECONDS_PER_SHOT * 1000,
+          sourceRefs: [latestAssembly.id, placement.id, placement.anchorRef, presentation.artifact.id],
+          ...(caption ? { caption } : {}),
+          ...(narration ? { narration } : {}),
+        };
+      }).filter((frame): frame is NonNullable<typeof frame> => Boolean(frame))
+    ));
+
+    const expectedFrames = selectedOpeningPlacements.length * SHOTS_PER_MINI_BLOCK;
+    if (frames.length !== expectedFrames) {
+      setMessage("Opening-range export stopped because one or more saved Storyboard Images are missing.");
+      return;
+    }
+    if (showNarration && missingNarration.length) {
+      setMessage(`Written narration is stale or missing for ${missingNarration.slice(0, 6).join(", ")}${missingNarration.length > 6 ? " and more" : ""}. Refresh narration in Previs before narrated range export.`);
+      return;
+    }
+
+    const first = selectedOpeningPlacements[0];
+    setOpeningExporting(true);
+    setOpeningExportUrl("");
+    setMessage(`Exporting ${selectedOpeningPlacements.length} Mini-Block opening range as one silent MP4…`);
+    try {
+      const response = await fetch("/api/timeline/media-engine/render", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project.id,
+          blockNumber: first.blockNumber,
+          miniBlockNumber: first.miniBlockNumber,
+          frames,
+        }),
+      });
+      const result = await response.json() as {
+        ok?: boolean;
+        mode?: string;
+        message?: string;
+        evidence?: { state?: string; artifacts?: { videoPath?: string } } | null;
+      };
+      const videoPath = result.evidence?.artifacts?.videoPath ?? "";
+      if (!response.ok || !result.ok || result.mode !== "fframes" || result.evidence?.state !== "succeeded" || !videoPath) {
+        throw new Error(result.message || "Timeline opening-range export did not produce a verified video.");
+      }
+      const createdAt = new Date().toISOString();
+      const record: TimelineRangeExport = {
+        id: globalThis.crypto?.randomUUID?.() ?? `timeline-range-export-${Date.now()}`,
+        timelineAssemblyId: latestAssembly.id,
+        placementIds: selectedOpeningPlacements.map((placement) => placement.id),
+        sourceKeys: selectedOpeningPlacements.map((placement) => placement.sourceKey),
+        mediaMode: "stills",
+        narrationIncluded: showNarration,
+        videoAssetUrl: videoPath,
+        durationSeconds: selectedOpeningPlacements.length * PLANNING_SECONDS_PER_MINI_BLOCK,
+        fps: 24,
+        createdAt,
+      };
+      storeRangeExport(record);
+      setOpeningExportUrl(videoPath);
+      setMessage(`Opening MP4 ready: ${selectedOpeningPlacements.length * 25} Shots · ${selectedOpeningPlacements.length * 75} seconds · silent · 24 fps${showNarration ? " with saved written narration overlays" : ""}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Timeline opening-range MP4 export failed.");
+    } finally {
+      setOpeningExporting(false);
+    }
+  }
+
   async function exportSelectedMp4() {
     if (!selectedPlacement || exporting) return;
     if (selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK) {
@@ -829,6 +978,51 @@ export default function TimelineAssemblyWorkspace({
           ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
         </aside>
       </div>
+
+      <section className={styles.opening} aria-label="Opening movie assembly">
+        <header>
+          <div>
+            <p className={styles.kicker}>Opening assembly</p>
+            <h3>Build the beginning of the movie</h3>
+          </div>
+          <span>Timeline takes the first complete placed Mini-Block, then only consecutive complete Mini-Blocks in story order. Four Mini-Blocks = one 5-minute Block.</span>
+        </header>
+        {openingRun.length ? (
+          <div className={styles.openingBody}>
+            <div className={styles.rangeControls} aria-label="Opening range length">
+              {openingRun.map((_, index) => {
+                const count = index + 1;
+                return <button aria-pressed={openingSegmentCount === count} key={count} onClick={() => setOpeningSegmentCount(count)} type="button">{count} Mini-Block{count === 1 ? "" : "s"} · {count * 75}s</button>;
+              })}
+            </div>
+            <div className={styles.openingSequence}>
+              {selectedOpeningPlacements.map((placement, index) => (
+                <article key={placement.id}>
+                  <strong>{index + 1}. Block {placement.blockNumber} · Mini-Block {placement.blockNumber}.{placement.miniBlockNumber}</strong>
+                  <span>{placement.shotImages.length}/25 locked Images · 75 seconds · source revision {placement.sourceRevision}</span>
+                  <small>{placementIsStale(placement) ? "STALE · update before export" : "CURRENT"}</small>
+                </article>
+              ))}
+            </div>
+            <div className={styles.openingActions}>
+              <button disabled={openingExporting || !selectedOpeningPlacements.length} onClick={() => void exportOpeningRangeMp4()} type="button">
+                {openingExporting ? "Exporting opening MP4…" : `Export ${selectedOpeningPlacements.length}-Mini-Block opening MP4 · narration ${showNarration ? "on" : "off"}`}
+              </button>
+              {(openingExportUrl || latestRangeExport?.videoAssetUrl) ? (
+                <a
+                  className={styles.exportLink}
+                  download={timelineRangeMp4FileName(project.title, selectedOpeningPlacements.length ? selectedOpeningPlacements : openingRun.slice(0, 1), showNarration)}
+                  href={openingExportUrl || latestRangeExport?.videoAssetUrl}
+                >
+                  Open saved opening MP4
+                </a>
+              ) : null}
+              <small>Baseline assembled export uses the locked still-image presentation. Generated motion remains an optional Timeline playback layer and is never substituted silently.</small>
+              {latestRangeExport ? <small>Saved export · {latestRangeExport.placementIds.length} Mini-Block{latestRangeExport.placementIds.length === 1 ? "" : "s"} · {latestRangeExport.durationSeconds}s · {latestRangeExport.narrationIncluded ? "narration on" : "narration off"}</small> : null}
+            </div>
+          </div>
+        ) : <p className={styles.openingEmpty}>Place at least one complete 25-Shot Previs Mini-Block on Timeline to start the opening assembly.</p>}
+      </section>
 
       <section className={styles.motion} aria-label="Optional generated motion shots">
         <header>

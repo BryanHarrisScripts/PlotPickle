@@ -12,6 +12,7 @@
 .viewer,
 .screenplay,
 .inspector,
+.opening,
 .motion,
 .timeline {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -24,6 +25,7 @@
 .mediaBin > header,
 .viewer > header,
 .screenplay > header,
+.opening > header,
 .motion > header,
 .timeline > header {
   display: flex;
@@ -36,6 +38,7 @@
 
 .header h2,
 .mediaBin h3,
+.opening h3,
 .motion h3,
 .timeline h3,
 .inspector h3 {
@@ -58,6 +61,7 @@
 
 .revision span,
 .mediaBin header span,
+.opening header span,
 .motion header span,
 .timeline header span {
   max-width: 44rem;
@@ -259,6 +263,64 @@
   min-height: var(--pp-skin-control-height);
   padding: 0.35rem 0.65rem;
   text-decoration: none;
+}
+
+.openingBody {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+}
+
+.rangeControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rangeControls button,
+.openingActions button,
+.openingActions a {
+  min-height: var(--pp-skin-control-height);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-panel);
+  color: inherit;
+  font: inherit;
+}
+
+.rangeControls button[aria-pressed="true"] {
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+}
+
+.rangeControls button:focus-visible,
+.openingActions button:focus-visible,
+.openingActions a:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}
+
+.openingSequence {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.55rem;
+}
+
+.openingSequence article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-canvas);
+}
+
+.openingActions {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 46rem;
+}
+
+.openingEmpty {
+  padding: 0.85rem;
 }
 
 .motionGrid {

@@ -1,12 +1,12 @@
 import path from "node:path";
 import { ASSET_PATH, assetsDirectory, localImageAssetFilePath } from "./media-storage-common";
 import {
-  createPlotPickleMiniBlockMediaRequest,
+  createPlotPickleTimelineRangeMediaRequest,
   type PlotPickleMediaEngineEvidence,
 } from "../core/media/media-engine-contract";
 import { FFramesLocalMediaEngine } from "../core/media/fframes-local-media-engine";
 
-export type PrevisLockedStoryboardFrame = Readonly<{
+export type TimelineLockedStoryboardFrame = Readonly<{
   position: number;
   assetId: string;
   assetUrl: string;
@@ -17,30 +17,26 @@ export type PrevisLockedStoryboardFrame = Readonly<{
   narration?: string;
 }>;
 
-export type PrevisMediaHandoffInput = Readonly<{
+export type TimelineRangeMediaHandoffInput = Readonly<{
   requestId: string;
   projectId: string;
   blockNumber: number;
   miniBlockNumber: number;
-  frames: readonly PrevisLockedStoryboardFrame[];
+  frames: readonly TimelineLockedStoryboardFrame[];
 }>;
 
-export type PrevisMediaHandoffResult = Readonly<{
+export type TimelineRangeMediaHandoffResult = Readonly<{
   mode: "fframes" | "fallback";
   message: string;
   evidence: PlotPickleMediaEngineEvidence | null;
 }>;
 
-export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMediaHandoffInput): Promise<PrevisMediaHandoffResult> {
+export async function renderTimelineRangeWithOptionalFFrames(input: TimelineRangeMediaHandoffInput): Promise<TimelineRangeMediaHandoffResult> {
   const frames = input.frames
     .filter((frame) => frame.authoritative === true)
     .map((frame) => ({ ...frame, localFilePath: localImageAssetFilePath(frame.assetUrl) }));
 
-  if (!frames.length) {
-    return { mode: "fallback", message: "Keep / Lock at least one Storyboard frame before using the optional media engine.", evidence: null };
-  }
-
-  const request = createPlotPickleMiniBlockMediaRequest({
+  const request = createPlotPickleTimelineRangeMediaRequest({
     requestId: input.requestId,
     projectId: input.projectId,
     blockNumber: input.blockNumber,
@@ -50,16 +46,29 @@ export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMedi
   const engine = new FFramesLocalMediaEngine();
   const capability = await engine.capabilities();
   if (capability.state !== "ready") {
-    return { mode: "fallback", message: "FFrames is unavailable. Flip Book, Graphic Novel, and WebP remain available.", evidence: null };
+    return {
+      mode: "fallback",
+      message: "FFrames is unavailable. Timeline keeps the saved assembly and does not report an MP4 export.",
+      evidence: null,
+    };
   }
-  const evidence = await engine.renderMiniBlock(request, { evidenceDirectory: assetsDirectory() });
+
+  const evidence = await engine.renderTimelineRange(request, {
+    evidenceDirectory: assetsDirectory(),
+    timeoutMs: 10 * 60_000,
+  });
   const playbackEvidence = evidence.artifacts.videoPath ? {
     ...evidence,
-    artifacts: { ...evidence.artifacts, videoPath: `${ASSET_PATH}${path.basename(evidence.artifacts.videoPath)}` },
+    artifacts: {
+      ...evidence.artifacts,
+      videoPath: `${ASSET_PATH}${path.basename(evidence.artifacts.videoPath)}`,
+    },
   } : evidence;
   return {
     mode: evidence.state === "succeeded" ? "fframes" : "fallback",
-    message: evidence.state === "succeeded" ? "FFrames rendered the selected locked Storyboard sequence." : "FFrames did not complete. Existing Previs modes remain available.",
+    message: evidence.state === "succeeded"
+      ? "FFrames rendered the selected Timeline opening range."
+      : "Timeline range rendering did not complete; the saved assembly remains unchanged.",
     evidence: playbackEvidence,
   };
 }

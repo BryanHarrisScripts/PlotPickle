@@ -8,6 +8,7 @@ import type {
   ScreeningObservation,
   TimelineAssemblyRevision,
   TimelineMotionShot,
+  TimelineRangeExport,
 } from "./previs";
 
 export type StoryCommand =
@@ -133,6 +134,11 @@ export type StoryCommand =
   | {
       readonly type: "production.timeline.motion.store";
       readonly motion: TimelineMotionShot;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.timeline.export.store";
+      readonly export: TimelineRangeExport;
       readonly occurredAt: string;
     }
   | {

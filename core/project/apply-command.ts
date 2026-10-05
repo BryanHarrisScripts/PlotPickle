@@ -356,6 +356,16 @@ export function applyStoryCommand(
         },
       };
     }
+    case "production.timeline.export.store": {
+      const existing = (project.production.timelineRangeExports ?? []).filter((item) => item.id !== command.export.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          timelineRangeExports: [command.export, ...existing].slice(0, 250),
+        },
+      };
+    }
     case "production.screening.store": {
       const existing = (project.production.screeningObservations ?? []).filter((observation) => observation.id !== command.observation.id);
       return {

@@ -15,3 +15,22 @@ export function safeAssetStem(value: unknown) {
     : "asset";
   return stem.slice(0, 70) || "asset";
 }
+
+
+export function localImageAssetFilePath(assetUrl: string) {
+  if (!assetUrl.startsWith(ASSET_PATH)) throw new Error("Media rendering accepts saved PlotPickle local image assets only.");
+  const relative = assetUrl.slice(ASSET_PATH.length);
+  if (!relative || relative.length > 240 || relative.includes("\\") || relative.includes("%") || relative.includes("?") || relative.includes("#") || relative.includes("\0")) {
+    throw new Error("Media rendering received an unsafe local image asset path.");
+  }
+  const segments = relative.split("/");
+  if (segments.some((segment) => !segment || segment === "." || segment === ".." || !/^[a-z0-9][a-z0-9._-]*$/iu.test(segment))) {
+    throw new Error("Media rendering received an unsafe local image asset path.");
+  }
+  const fileName = segments.at(-1) ?? "";
+  if (!/\.(png|jpe?g|webp)$/iu.test(fileName)) throw new Error("Media rendering accepts PNG, JPEG or WebP image assets only.");
+  const root = path.resolve(assetsDirectory());
+  const filePath = path.resolve(root, ...segments);
+  if (!filePath.startsWith(root + path.sep)) throw new Error("Media rendering received an unsafe local image asset path.");
+  return filePath;
+}

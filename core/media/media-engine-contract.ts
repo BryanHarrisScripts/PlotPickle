@@ -43,6 +43,18 @@ export type PlotPickleMiniBlockMediaRequest = {
   readonly frames: readonly PlotPickleMediaFrameInput[];
 };
 
+export type PlotPickleTimelineRangeMediaRequest = {
+  readonly schemaVersion: typeof PLOTPICKLE_MEDIA_ENGINE_SCHEMA_VERSION;
+  readonly requestId: string;
+  readonly projectId: string;
+  readonly blockNumber: number;
+  readonly miniBlockNumber: number;
+  readonly fps: 24;
+  readonly width: 1280;
+  readonly height: 720;
+  readonly frames: readonly PlotPickleMediaFrameInput[];
+};
+
 export type PlotPickleMediaSourceEvidence = {
   readonly position: number;
   readonly assetId: string;
@@ -95,6 +107,8 @@ type MiniBlockRequestInput = {
   readonly frames: readonly PlotPickleMediaFrameInput[];
 };
 
+type TimelineRangeRequestInput = MiniBlockRequestInput;
+
 function cleanText(value: string, label: string, maximum = 2000) {
   const text = String(value ?? "").replace(/\u0000/gu, "").trim().slice(0, maximum);
   if (!text) throw new Error(`${label} is required.`);
@@ -108,11 +122,11 @@ function boundedInteger(value: number, minimum: number, maximum: number, label: 
   return value;
 }
 
-function normalizeFrame(frame: PlotPickleMediaFrameInput): PlotPickleMediaFrameInput {
+function normalizeFrame(frame: PlotPickleMediaFrameInput, maximumPosition = 25, label = "Storyboard position"): PlotPickleMediaFrameInput {
   if (frame.authoritative !== true) {
     throw new Error("PlotPickle media requests accept authoritative Keep / Locked Storyboard frames only.");
   }
-  const position = boundedInteger(frame.position, 1, 25, "Storyboard position");
+  const position = boundedInteger(frame.position, 1, maximumPosition, label);
   const durationMs = boundedInteger(frame.durationMs, 250, 60_000, "Frame duration");
   return Object.freeze({
     position,
@@ -140,13 +154,57 @@ export function createPlotPickleMiniBlockMediaRequest(input: MiniBlockRequestInp
   if (input.frames.length > 25) {
     throw new Error("A Mini-Block media request cannot exceed 25 Storyboard positions.");
   }
-  const frames = input.frames.map(normalizeFrame).sort((left, right) => left.position - right.position);
+  const frames = input.frames.map((frame) => normalizeFrame(frame)).sort((left, right) => left.position - right.position);
   const positions = new Set<number>();
   for (const frame of frames) {
     if (positions.has(frame.position)) {
       throw new Error(`Storyboard position ${String(frame.position).padStart(2, "0")} appears more than once.`);
     }
     positions.add(frame.position);
+  }
+  return Object.freeze({
+    schemaVersion: PLOTPICKLE_MEDIA_ENGINE_SCHEMA_VERSION,
+    requestId,
+    projectId,
+    blockNumber,
+    miniBlockNumber,
+    fps: 24,
+    width: 1280,
+    height: 720,
+    frames: Object.freeze(frames),
+  });
+}
+
+
+export function createPlotPickleTimelineRangeMediaRequest(input: TimelineRangeRequestInput): PlotPickleTimelineRangeMediaRequest {
+  const projectId = cleanText(input.projectId, "Project id", 500);
+  const requestId = cleanText(input.requestId, "Media request id", 500);
+  const blockNumber = boundedInteger(input.blockNumber, 1, 24, "Opening block number");
+  const miniBlockNumber = boundedInteger(input.miniBlockNumber, 1, 4, "Opening Mini-Block number");
+  if (!Array.isArray(input.frames) || input.frames.length === 0) {
+    throw new Error("At least one authoritative Storyboard frame is required for Timeline range export.");
+  }
+  if (input.frames.length > 100) {
+    throw new Error("An opening Timeline range cannot exceed four Mini-Blocks or 100 Storyboard positions.");
+  }
+  if (input.frames.length % 25 !== 0) {
+    throw new Error("Timeline range export requires complete 25-Shot Mini-Blocks.");
+  }
+  const frames = input.frames
+    .map((frame) => normalizeFrame(frame, 100, "Timeline range position"))
+    .sort((left, right) => left.position - right.position);
+  const positions = new Set<number>();
+  for (const frame of frames) {
+    if (frame.durationMs !== 3_000) {
+      throw new Error("Timeline range export requires exactly 3,000 ms per Shot.");
+    }
+    if (positions.has(frame.position)) {
+      throw new Error(`Timeline range position ${String(frame.position).padStart(3, "0")} appears more than once.`);
+    }
+    positions.add(frame.position);
+  }
+  for (let position = 1; position <= frames.length; position += 1) {
+    if (!positions.has(position)) throw new Error(`Timeline range position ${String(position).padStart(3, "0")} is missing.`);
   }
   return Object.freeze({
     schemaVersion: PLOTPICKLE_MEDIA_ENGINE_SCHEMA_VERSION,

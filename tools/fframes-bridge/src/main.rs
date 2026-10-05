@@ -151,8 +151,8 @@ fn load_request() -> Result<Request, String> {
         .map_err(|error| format!("could not read PlotPickle request: {error}"))?;
     let request: Request = serde_json::from_str(&text)
         .map_err(|error| format!("could not parse PlotPickle request: {error}"))?;
-    if request.frames.is_empty() || request.frames.len() > 25 {
-        return Err("PlotPickle bridge requires between 1 and 25 frames.".to_owned());
+    if request.frames.is_empty() || request.frames.len() > 100 {
+        return Err("PlotPickle bridge requires between 1 and 100 frames. Mini-Block callers remain capped at 25; Timeline opening-range callers may supply up to four complete Mini-Blocks.".to_owned());
     }
     if request.block_number == 0 || request.mini_block_number == 0 {
         return Err("PlotPickle bridge received an invalid story address.".to_owned());

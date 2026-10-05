@@ -1765,7 +1765,24 @@
       "classification": "production",
       "include": [
         "build/previs-media-engine-handoff.ts",
-        "app/api/previs/media-engine/render/route.ts"
+        "app/api/previs/media-engine/render/route.ts",
+        "core/media/media-route-input.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "visual",
+        "provider",
+        "api",
+        "native"
+      ]
+    },
+    {
+      "id": "timeline-opening-media-assembly",
+      "classification": "production",
+      "include": [
+        "build/timeline-media-engine-handoff.ts",
+        "app/api/timeline/media-engine/render/route.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

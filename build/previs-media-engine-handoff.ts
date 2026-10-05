@@ -31,14 +31,10 @@ export type PrevisMediaHandoffResult = Readonly<{
   evidence: PlotPickleMediaEngineEvidence | null;
 }>;
 
-function localAssetFilePath(assetUrl: string) {
-  return localImageAssetFilePath(assetUrl);
-}
-
 export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMediaHandoffInput): Promise<PrevisMediaHandoffResult> {
   const frames = input.frames
     .filter((frame) => frame.authoritative === true)
-    .map((frame) => ({ ...frame, localFilePath: localAssetFilePath(frame.assetUrl) }));
+    .map((frame) => ({ ...frame, localFilePath: localImageAssetFilePath(frame.assetUrl) }));
 
   if (!frames.length) {
     return { mode: "fallback", message: "Keep / Lock at least one Storyboard frame before using the optional media engine.", evidence: null };

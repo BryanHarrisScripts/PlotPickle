@@ -511,7 +511,7 @@
       "surfaceId": "scene-timeline",
       "label": "Timeline",
       "parent": "storyboard",
-      "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "runtimeSelector": "[data-timeline-assembly='previs-media']",
       "formatProfile": {
         "layout": "timeline-workspace",
         "shell": "production-nested",

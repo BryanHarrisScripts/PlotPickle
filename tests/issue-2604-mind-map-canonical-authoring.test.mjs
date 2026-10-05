@@ -134,3 +134,20 @@ test("#2604 persistence path covers direct Human values and accepted agent propo
   assert.match(adapter, /updatedAt: occurredAt/u);
   assert.match(library, /normalizeStoryDevelopmentState/u);
 });
+
+test("#2772 Mind Map agent proposals and accepted values use durable Library project storage", async () => {
+  const [surface, browser] = await Promise.all([
+    read("app/skin-v1/discovery-surface.tsx"),
+    read("core/storage/project-library-browser.ts"),
+  ]);
+
+  for (const topic of ["foundations", "world", "character", "theme", "structure"]) {
+    assert.ok(TOPICS.some(([id]) => id === topic), `missing durable Mind Map topic ${topic}`);
+  }
+
+  assert.match(surface, /saveActiveLibraryProject\(writeStoryDevelopmentFieldProposal\(\{/u);
+  assert.match(surface, /acceptStoryDevelopmentFieldProposal\(\{ project: withProposal, field, act: selectedAct \}\)/u);
+  assert.match(surface, /const saved = persistCanonicalProject\(next\)/u);
+  assert.match(browser, /normalizeStoryDevelopmentState\(incoming\.storyDevelopment\)/u);
+  assert.match(browser, /libraryCore\.saveProfileActiveProject/u);
+});

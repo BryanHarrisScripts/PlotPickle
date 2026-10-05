@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2738,
+  "phase": "preproduction-durable-assistance",
+  "brief": "docs/developer-briefs/2738-preproduction-durable-assistance.md",
+  "allowedChanges": [
+    "config/development-convergence/2738.json",
+    "config/verification/test-catalog.json",
+    "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+    "docs/developer-briefs/2738-preproduction-durable-assistance.md",
+    "tests/issue-2738-preproduction-durable-assistance.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2738-A1",
+      "criterion": "Existing Continuity, Story Review and Creative Coordination Responsibility Run envelopes map to the Phase 3 durable checkpoint seam.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "\"continuity-review\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "\"story-review\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "\"creative-coordination\""
+        }
+      ]
+    },
+    {
+      "id": "P2738-A2",
+      "criterion": "The adapter derives scoped checkpoint identity from existing Responsibility Run context plus host project/provider authority and accepts no caller grant widening.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "contextReceipt(envelope.run.context)"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "grantedCapabilities: contract.grantedCapabilities"
+        }
+      ]
+    },
+    {
+      "id": "P2738-A3",
+      "criterion": "Planning remains proposal-only, non-canonical, provider-free and explicit-resume only.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "providerRequestsIssued: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "automaticResume: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/tasks/preproduction-assistance-checkpoint.mjs",
+          "contains": "canonical: false"
+        }
+      ]
+    }
+  ]
+}

@@ -2020,7 +2020,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2709-agent-checkpoint-task.test.mjs",
-          "tests/issue-2736-phase3-durable-roles.test.mjs"
+          "tests/issue-2736-phase3-durable-roles.test.mjs",
+          "tests/issue-2738-preproduction-durable-assistance.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2044,7 +2045,7 @@
           ".artifacts/verification-shadow/production-harness.json"
         ]
       },
-      "notes": "Host-scoped durable agent checkpoint contract; #2736 binds Continuity, Critics' Circle and Creative Director to the shared replay-safe seam. Actual JSONL recovery is proven separately in the Windows Pi product gate."
+      "notes": "Host-scoped durable agent checkpoint contract; #2736 binds Continuity, Critics' Circle and Creative Director to the shared replay-safe seam, and #2738 connects their existing PRE-PRODUCTION Responsibility Run envelopes to that checkpoint scope. Actual JSONL recovery is proven separately in the Windows Pi product gate."
     },
     {
       "id": "story-canon.outline-durable-input-2711",

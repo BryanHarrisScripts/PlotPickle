@@ -523,7 +523,7 @@
       "id": "scene-timeline",
       "label": "Timeline",
       "family": "storyboard",
-      "parent": "storyboard",
+      "parent": "dashboard",
       "surfaceClass": "nested",
       "capturePolicy": "standard",
       "governance": "candidate",

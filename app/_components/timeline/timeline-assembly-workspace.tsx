@@ -267,6 +267,9 @@ export default function TimelineAssemblyWorkspace({
   const activeShotNumber = activePlacement
     ? Math.min(SHOTS_PER_MINI_BLOCK, Math.max(1, Math.floor(activeLocalSecond / Math.max(0.01, activeShotSeconds)) + 1))
     : 1;
+  const activeShotLocalSecond = activePlacement
+    ? Math.max(0, activeLocalSecond - ((activeShotNumber - 1) * activeShotSeconds))
+    : 0;
   const activePresentation = activePlacement
     ? timelinePresentationFor(project, activePlacement, activeShotNumber)
     : null;
@@ -304,11 +307,11 @@ export default function TimelineAssemblyWorkspace({
   useEffect(() => {
     const video = motionVideoRef.current;
     if (!video || playbackMode !== "motion" || activeMotion.current?.status !== "succeeded") return;
-    const target = Math.min(PLANNING_SECONDS_PER_SHOT - 0.05, Math.max(0, activeLocalSecond));
+    const target = Math.min(PLANNING_SECONDS_PER_SHOT - 0.05, Math.max(0, activeShotLocalSecond));
     if (Math.abs(video.currentTime - target) > 0.25) video.currentTime = target;
     if (playing) void video.play().catch(() => undefined);
     else video.pause();
-  }, [activeLocalSecond, activeMotion.current?.id, activeMotion.current?.status, playbackMode, playing]);
+  }, [activeShotLocalSecond, activeMotion.current?.id, activeMotion.current?.status, playbackMode, playing]);
 
   useEffect(() => {
     if (!playing || totalSeconds <= 0) return;

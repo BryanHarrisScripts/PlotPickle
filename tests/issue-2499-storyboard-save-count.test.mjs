@@ -43,6 +43,17 @@ test("#2499 Lock remains single-select and independent from explicit local Save"
   assert.doesNotMatch(reviewBlock, /STORYBOARD_LOCAL_SAVE_MARKER/u);
 });
 
+test("#2772 reload prefers the durably accepted Storyboard image over a newer unlocked candidate", async () => {
+  const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
+  const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
+
+  assert.match(loop, /const acceptedPositionArtifact = \[\.\.\.positionArtifacts\]/u);
+  assert.match(loop, /artifact\.reviewState === "accepted"/u);
+  assert.match(loop, /acceptedVisualArtifactIds\.includes\(artifact\.id\)/u);
+  assert.match(loop, /const fallbackImageId = acceptedPositionArtifact\?\.id \?\? latestGeneratedArtifact\?\.id/u);
+  assert.match(loop, /const requestedImageId = selectedImageByPosition\[selectionKey\] \?\? ""/u);
+});
+
 test("#2499 all 25 Storyboard positions show current image number over total", async () => {
   const [source, css] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),

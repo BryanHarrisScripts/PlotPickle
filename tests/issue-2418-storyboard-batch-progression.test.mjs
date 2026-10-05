@@ -53,20 +53,20 @@ test("#2418 injects explicit character truth and locked approved references only
 
 test("#2418 final prompt carries frame-specific story progression instead of one Mini-Block prompt repeated", async () => {
   const source = await readFile(editorialUrl, "utf8");
-  assert.match(source, /Frame-brief story function:/u);
+  assert.match(source, /Shot story function:/u);
   assert.match(source, /Required visible progression:/u);
   assert.match(source, /Position-specific screenplay evidence:/u);
   assert.match(source, /Continuity-in:/u);
   assert.match(source, /Continuity-out:/u);
-  assert.match(source, /This is a visual coverage function, not a Beat assignment/u);
+  assert.match(source, /This is a Shot-planning function, not a Beat assignment/u);
 });
 
 test("#2418 Storyboard UI submits separate local WebP requests with 1 5 25 scope and character grounding", async () => {
   const source = await readFile(workspaceUrl, "utf8");
   assert.match(source, /useState<StoryboardGenerationScope>\("group5"\)/u);
-  assert.match(source, /Selected frame/u);
-  assert.match(source, /Current group of 5/u);
-  assert.match(source, /All 25 frames/u);
+  assert.match(source, /Selected Shot/u);
+  assert.match(source, /Current group of 5 Shots/u);
+  assert.match(source, /All 25 Shots/u);
   assert.match(source, /I approve this image generation request through my configured provider/u);
   assert.match(source, /storyboardPositionsForScope\(promptPosition, generationScope\)/u);
   assert.match(source, /for \(let index = 0; index < positions\.length; index \+= 1\)/u);

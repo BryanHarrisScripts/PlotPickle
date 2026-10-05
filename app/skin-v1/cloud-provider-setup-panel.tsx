@@ -166,16 +166,18 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
       message: cleanDiagnosticText(message),
       ...(outputAssetUrl ? { outputAssetUrl } : {}),
     };
-    setDiagnostics((current) => {
-      const next = [entry, ...current].slice(0, 80);
-      try {
-        window.sessionStorage.setItem(`plotpickle:cloud-provider-diagnostics:${provider}`, JSON.stringify(next));
-      } catch (error) {
-        console.warn("Provider diagnostic history could not be persisted.", error instanceof Error ? error.message : "Browser session storage is unavailable.");
-      }
-      return next;
-    });
-  }, [provider]);
+    setDiagnostics((current) => [entry, ...current].slice(0, 80));
+  }, []);
+
+  useEffect(() => {
+    if (diagnostics.length === 0) return;
+    try {
+      window.sessionStorage.setItem(`plotpickle:cloud-provider-diagnostics:${provider}`, JSON.stringify(diagnostics));
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Browser session storage is unavailable.";
+      setNotice(`Provider diagnostic history could not be persisted: ${reason}`);
+    }
+  }, [diagnostics, provider]);
 
   useEffect(() => {
     try {

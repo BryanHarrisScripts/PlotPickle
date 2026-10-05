@@ -81,7 +81,7 @@ test("#2604 Mind Map directly edits canonical fields and removes the generic pro
   assert.match(surface, /data-canonical-field-id=\{field\.canonicalId\}/u);
   assert.match(surface, /value=\{fieldDrafts\[storageId\] \?\? persisted\.value\}/u);
   assert.match(surface, /writeStoryDevelopmentFieldValue/u);
-  assert.match(surface, />Save Changes<\/button>/u);
+  assert.match(surface, /"Save Changes"/u);
   assert.match(surface, /selectedField\.actionLabel/u);
   assert.match(surface, />Use Suggestion<\/button>/u);
   assert.doesNotMatch(surface, /Develop Agent Proposals|Developing Agent Proposals|Generate Selected|Build Topic/u);
@@ -145,9 +145,9 @@ test("#2772 Mind Map agent proposals and accepted values use durable Library pro
     assert.ok(TOPICS.some(([id]) => id === topic), `missing durable Mind Map topic ${topic}`);
   }
 
-  assert.match(surface, /saveActiveLibraryProject\(writeStoryDevelopmentFieldProposal\(\{/u);
+  assert.match(surface, /await persistCanonicalProject\(writeStoryDevelopmentFieldProposal\(\{/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal\(\{ project: withProposal, field, act: selectedAct \}\)/u);
-  assert.match(surface, /const saved = persistCanonicalProject\(next\)/u);
+  assert.match(surface, /const saved = await persistCanonicalProject\(next\)/u);
   assert.match(browser, /normalizeStoryDevelopmentState\(incoming\.storyDevelopment\)/u);
   assert.match(browser, /libraryCore\.saveProfileActiveProject/u);
 });

@@ -79,3 +79,31 @@ test("#2733 manual Product Gate keeps every native proof available without seria
     assert.ok(productGate.includes("if: github.event_name == 'workflow_dispatch' || inputs." + lane), lane + " manual dispatch lane");
   }
 });
+
+
+test("#2753 workflow metadata changes do not fan out into unrelated heavyweight Windows lanes", async () => {
+  const architecture = await read(".github/workflows/architecture-shadow.yml");
+  const scopeStart = architecture.indexOf("  windows-product-scope:");
+  const proofStart = architecture.indexOf("  windows-product-proof:", scopeStart);
+  const scope = architecture.slice(scopeStart, proofStart);
+
+  assert.doesNotMatch(
+    scope,
+    /\.github\/workflows\/(?:architecture-shadow|product-gate)\\\.yml[\\s\\S]*command=true[\\s\\S]*pi=true[\\s\\S]*story=true[\\s\\S]*media=true[\\s\\S]*voice=true[\\s\\S]*build=true/u,
+    "workflow-file edits must not force every native Windows lane",
+  );
+  assert.doesNotMatch(scope, /tests\/issue-2733-ci-windows-lanes\\\.test\\\.mjs\$\|docs\/developer-briefs\/2733-split-windows-product-gate/u);
+  assert.match(scope, /Heavy Windows lanes are selected only by product\/runtime paths they actually prove\./u);
+
+  const laneContracts = [
+    ["command", /settings-command-product-proof\\\.mjs/u],
+    ["pi", /evaluate-pi-099-compatibility/u],
+    ["story", /story-card-foundation-board\\\.tsx/u],
+    ["media", /fframes-product-proof\\\.mjs/u],
+    ["voice", /install-whisper-cpp\\\.ps1/u],
+    ["build", /scripts\/windows-runtime\\\.mjs/u],
+  ];
+  for (const [lane, productPath] of laneContracts) {
+    assert.match(scope, productPath, lane + " retains a product/runtime selector");
+  }
+});

@@ -26,7 +26,7 @@ test("#2758 preserves exact Shot 01-25 identity through Flip Book and Graphic No
   assert.match(workspace, /Locked Storyboard Images are authoritative Previs inputs/u);
   assert.match(workspace, /shotLabel: `Shot \$\{String\(position\)\.padStart\(2, "0"\)\} of 25`/u);
   assert.match(workspace, /Play Flip Book/u);
-  assert.match(workspace, /Play Graphic Novel/u);
+  assert.match(workspace, /Play with Narration/u);
 });
 
 test("#2758 routes visual correction upstream and shows canonical planning math", async () => {

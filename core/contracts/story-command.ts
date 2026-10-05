@@ -6,6 +6,7 @@ import type {
   ProductionTake,
   RoughCutRevision,
   ScreeningObservation,
+  TimelineAssemblyRevision,
 } from "./previs";
 
 export type StoryCommand =
@@ -121,6 +122,11 @@ export type StoryCommand =
   | {
       readonly type: "production.cut.store";
       readonly cut: RoughCutRevision;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "production.timeline.store";
+      readonly assembly: TimelineAssemblyRevision;
       readonly occurredAt: string;
     }
   | {

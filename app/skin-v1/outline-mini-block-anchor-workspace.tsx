@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Outline reuses PlotPickle local/bundled Storyboard assets. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
@@ -41,6 +41,7 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
   readonly onProjectChange: (project: LibraryPPFProject) => void;
 }) {
   const [selectedId, setSelectedId] = useState("");
+  const pendingSelectedId = useRef("");
   const [busy, setBusy] = useState(false);
   const [generationApproved, setGenerationApproved] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -66,6 +67,12 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
   ], [artifacts, blockNumber, candidates, miniBlockNumber]);
 
   useEffect(() => {
+    const pending = pendingSelectedId.current;
+    if (pending && versions.some((version) => version.id === pending)) {
+      pendingSelectedId.current = "";
+      if (selectedId !== pending) setSelectedId(pending);
+      return;
+    }
     if (versions.some((version) => version.id === selectedId)) return;
     const accepted = versions.find((version) => version.kind === "artifact" && acceptedIds.has(version.artifact.id));
     const latest = [...versions].reverse().find((version) => version.kind === "artifact");
@@ -119,8 +126,8 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
         parentArtifactId: selectedArtifact?.id ?? null,
       };
       const next = applyStoryCommand(project, { type: "foundations.visual.store", artifact, occurredAt: now });
+      pendingSelectedId.current = artifact.id;
       commit(next, `Created a new shared visual anchor version for Mini-Block ${blockNumber}.${miniBlockNumber}. Save and Lock remain separate decisions.`);
-      setSelectedId(artifact.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Visual anchor generation failed.");
     } finally {
@@ -156,8 +163,8 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
     }
     if (!artifactId) return;
     next = applyStoryCommand(next, { type: "foundations.visual.accept", artifactId, occurredAt: now });
+    pendingSelectedId.current = artifactId;
     commit(next, `Locked Mini-Block ${blockNumber}.${miniBlockNumber} to this shared visual anchor. Storyboard reads the same foundations visual authority.`);
-    setSelectedId(artifactId);
   }
 
   function deleteVersion() {

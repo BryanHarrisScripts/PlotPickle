@@ -131,7 +131,7 @@ async function openSavedOutline(page) {
   await page.locator("[data-library-load-story='synthetic-outline-product']").getByRole("button", { name: /^Resume saved story/u }).click();
   await page.getByRole("button", { name: "Open Saved Story", exact: true }).click();
   await page.locator("[data-dashboard-menu-item='plan']").click({ timeout: 60_000 });
-  await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).waitFor({ timeout: 60_000 });
+  await page.getByRole("heading", { name: "Plan Act 1 with six Story Cards.", exact: true }).waitFor({ timeout: 60_000 });
 }
 async function runProof() {
 try {
@@ -202,11 +202,13 @@ try {
   await completeStage("startup-auth");
   if (selectedStage === "startup-auth") { await reportFocusedPass(); return; }
   await enterStage("interruption");
-  const admission = page.waitForResponse((response) => response.url() === `${base}/api/outline/tasks` && response.request().method() === "POST");
-  await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
-  const admitted = await admission;
-  const admissionBody = await admitted.json();
-  assert.equal(admitted.status(), 202, admissionBody.message || "Rendered Act review must be admitted.");
+  const admissionBody = await api(session, "/api/outline/tasks", {
+    action: "start",
+    projectId: project.id,
+    blocks: [1, 2, 3, 4, 5, 6],
+    materialReceipt: await outlineAssessmentMaterialReceipt(project),
+  });
+  assert.ok(admissionBody.task?.scope?.runId, "Story Architect task must be admitted through the governed task API.");
   let stoppedTask;
   await waitFor(async () => {
     const task = (await api(session, "/api/outline/tasks")).tasks.find((item) => item.scope.runId === admissionBody.task.scope.runId);
@@ -256,10 +258,19 @@ try {
   if (selectedStage === "recovery") { await reportFocusedPass(); return; }
   await enterStage("cancellation");
   // Exercise the actual rendered Cancel control while a new review is in flight.
+  // The Outline cleanup intentionally removes the direct assessment launch
+  // button, so seed the governed task through the same protected API while
+  // continuing to prove the Human-facing rendered recovery/cancel controls.
   holdBlock = 1;
-  await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
-  await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.some((task) => task.scope.runId !== id && task.running), "new review starts");
-  const cancelling = (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId !== id);
+  const cancellingAdmission = await api(session, "/api/outline/tasks", {
+    action: "start",
+    projectId: project.id,
+    blocks: [1, 2, 3, 4, 5, 6],
+    materialReceipt: await outlineAssessmentMaterialReceipt(project),
+  });
+  assert.ok(cancellingAdmission.task?.scope?.runId, "Cancellation proof task must be admitted through the governed task API.");
+  await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.some((task) => task.scope.runId === cancellingAdmission.task.scope.runId && task.running), "new review starts");
+  const cancelling = (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === cancellingAdmission.task.scope.runId);
   const row = page.locator(`[data-outline-recovery-task='${cancelling.scope.runId}']`);
   await row.getByRole("button", { name: "Cancel Story Architect review", exact: true }).click({ timeout: 30_000 });
   await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === cancelling.scope.runId)?.run.state === "cancelled", "cancel persisted");

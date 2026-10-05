@@ -65,7 +65,7 @@ const STORYBOARD_POSITION_PROGRESSION: readonly StoryboardPositionProgression[] 
 
 export function storyboardPositionProgression(position: number) {
   const item = STORYBOARD_POSITION_PROGRESSION.find((candidate) => candidate.position === position);
-  if (!item) throw new RangeError("Storyboard position must be between 1 and 25.");
+  if (!item) throw new RangeError("Storyboard planned Shot must be between 1 and 25.");
   return item;
 }
 
@@ -89,7 +89,7 @@ export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
         : "",
     input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.continuityIn ? `Continuity-in: ${clean(input.continuityIn)}` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved planned Shots.",
     input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.continuityOut ? `Continuity-out: ${clean(input.continuityOut)}` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next planned Shot can continue.",
-    input.source ? `Position-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
+    input.source ? `Shot-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
     "Direct the camera physically: choose a plausible camera position, height, distance, viewing direction and shot size that best reveals the supported action. Prefer concrete staging, eyelines, foreground/background relationships and readable silhouette over vague cinematic adjectives.",
     "Make this planned Shot visibly distinct from neighboring Shots through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
     "Continuity lock: preserve established character identity, age, face, hair, wardrobe, props, injuries, location geography, screen direction, time of day, lighting logic and visual language unless the supplied story evidence explicitly changes them.",
@@ -694,8 +694,8 @@ export function storyboardFrameBriefs(input: Readonly<{
       position,
       storyFunction: POSITION_STORY_FUNCTIONS[position - 1],
       visibleChange: evidenceSummary
-        ? "Make Position " + String(position).padStart(2, "0") + " visibly advance or reframe only this supported story evidence: " + evidenceSummary
-        : "No direct screenplay passage is mapped to this position; use the progression function only to clarify already-established state without inventing an event.",
+        ? "Make planned Shot " + String(position).padStart(2, "0") + " of 25 visibly advance or reframe only this supported story evidence: " + evidenceSummary
+        : "No direct screenplay passage is mapped to this planned Shot; use the progression function only to clarify already-established state without inventing an event.",
       evidence,
       evidenceSummary,
       characters: matchingCharacters,
@@ -707,12 +707,12 @@ export function storyboardFrameBriefs(input: Readonly<{
         ? "Mini-Block entry boundary."
         : previousSummary
           ? "Carry forward the established state from the preceding supported evidence: " + previousSummary
-          : "Carry forward the established visual state from the preceding Storyboard position.",
+          : "Carry forward the established visual state from the preceding planned Shot.",
       continuityOut: position === 25
         ? "Mini-Block exit boundary; leave a stable state for the next story address."
         : nextSummary
           ? "End in a state that can hand off to the next supported evidence: " + nextSummary
-          : "End in a stable state that the next Storyboard position can continue.",
+          : "End in a stable state that the next planned Shot can continue.",
     };
   });
 }

@@ -1,5 +1,5 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
-import { normalizedUrl } from "../../../../build/media-provider-common";
+import { normalizedUrl } from "../../../../build/provider-url";
 import {
   readMediaRoutingStore,
   writeMediaRoutingStore,

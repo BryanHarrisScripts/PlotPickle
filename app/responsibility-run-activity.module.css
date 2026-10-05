@@ -2,9 +2,9 @@
   display: grid;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.18);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
 }
 
 .heading {
@@ -48,9 +48,9 @@
   gap: 0.8rem;
   min-width: 0;
   padding: 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
 }
 
 .card > header,
@@ -105,6 +105,29 @@
   display: flex;
   gap: 0.4rem;
   flex: 0 0 auto;
+}
+
+.recovery {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border-left: var(--pp-skin-border-thick) solid var(--pp-skin-accent);
+  background: var(--pp-skin-surface-2);
+}
+
+.recovery strong,
+.recovery span {
+  overflow-wrap: anywhere;
+}
+
+.recovery span {
+  color: var(--pp-skin-ink-soft);
+}
+
+.card[data-durable-state="interrupted"] .recovery,
+.card[data-durable-state="stale"] .recovery,
+.card[data-durable-state="unavailable"] .recovery {
+  border-left-color: var(--pp-skin-warning, var(--pp-skin-accent-bright));
 }
 
 .notice,

@@ -717,6 +717,7 @@ export default function DashboardBbsReviewHost({
         />
         <SkinV1TimelineReviewSurface
           address={reviewAddress}
+          onOpenPrevis={openPrevis}
           onOpenStoryboard={openStoryboard}
         />
       </section>

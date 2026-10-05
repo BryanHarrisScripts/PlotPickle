@@ -1154,6 +1154,7 @@
           "tests/issue-2348-verification-routing.test.mjs",
           "tests/issue-2697-ben-line-shift.test.mjs",
           "tests/issue-2707-agent-durability-audit.test.mjs",
+          "tests/issue-2706-security-closeout.test.mjs",
           "tests/issue-2714-focused-uat-evidence.test.mjs"
         ]
       },
@@ -1179,7 +1180,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "Shared verification planning/execution/evidence core baseline. #2348 adds change-class to product-proof planning without a new permanent gate. #2714 adds bounded structured focused-UAT failure evidence so legacy contract debt is auditable instead of an aggregate exit code."
+      "notes": "Shared verification planning/execution/evidence core baseline. #2348 adds change-class to product-proof planning without a new permanent gate. #2706 locks repository-side dependency and CodeQL remediation evidence while upstream braces remains temporarily exact-commit mitigated. #2714 adds bounded structured focused-UAT failure evidence so legacy contract debt is auditable instead of an aggregate exit code."
     },
     {
       "id": "verification.phase7-merge-authority",

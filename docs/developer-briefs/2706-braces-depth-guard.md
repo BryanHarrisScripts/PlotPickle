@@ -9,6 +9,12 @@ Issue: #2706
 - The Story Architect synthetic-provider CodeQL response boundary was repaired in merged PR #2720.
 - The remaining root finding is braces CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm. The GitHub advisory still lists every published version through 3.0.3 as affected and lists no patched npm release.
 
+## October 5, 2026 public upstream recheck
+
+The public GitHub Advisory Database still reports GHSA-vfj7-8cjw-p6xm / CVE-2026-93687 as affecting braces <= 3.0.3 with **Patched versions: None**. npm still lists 3.0.3 as the latest published braces release. The exact reviewed depth-guard commit therefore remains the smallest compatible repository-side mitigation; there is no official registry release to migrate to yet.
+
+This PR does not claim that GitHub's private Code Scanning or Dependabot alert records are closed. Those repository Security UI states still require direct confirmation. The repository proof now covers every root braces install path, both managed Pi locks, the Undici 7 floor, the live hostile-nesting behavior, and the Story Architect fixed JSON error boundary.
+
 ## Bounded mitigation
 
 Until upstream publishes a fixed npm release, replace transitive braces with the reviewed upstream patch candidate from micromatch/braces PR #72 at exact commit:

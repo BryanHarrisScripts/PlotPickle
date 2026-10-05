@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 2706,
+  "phase": "repository-security-closeout-evidence",
+  "brief": "docs/developer-briefs/2706-braces-depth-guard.md",
+  "allowedChanges": [
+    "config/development-convergence/2706.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2706-braces-depth-guard.md",
+    "package.json",
+    "tests/issue-2706-security-closeout.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2706-A1",
+      "criterion": "Every root braces install path remains pinned to the exact reviewed depth-guard commit rather than the vulnerable registry tarball.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "every root braces install path uses the exact reviewed depth-guard patch"
+        },
+        {
+          "type": "file-contains",
+          "path": "package.json",
+          "contains": "github:FSDevelop/braces#28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
+        }
+      ]
+    },
+    {
+      "id": "P2706-A2",
+      "criterion": "Installed braces retains normal expansion and rejects hostile nesting with the reviewed max-depth guard.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "keeps ordinary expansion and rejects hostile nesting"
+        }
+      ]
+    },
+    {
+      "id": "P2706-A3",
+      "criterion": "Root Undici and both managed Pi brace-expansion locks retain their reviewed patched floors.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "root Undici 7 stays at or above the compatible 7.29.1 floor"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "both managed Pi locks remain on brace-expansion 5.0.12"
+        }
+      ]
+    },
+    {
+      "id": "P2706-A4",
+      "criterion": "Story Architect keeps the fixed JSON/nosniff error boundary and never reflects raw exception text.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "Story Architect fixture does not reflect exception text as HTML"
+        }
+      ]
+    },
+    {
+      "id": "P2706-A5",
+      "criterion": "Closeout documentation remains truthful: repository remediation is proven, but Security UI confirmation and an official upstream braces release remain external prerequisites.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2706-braces-depth-guard.md",
+          "contains": "October 5, 2026 public upstream recheck"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2706-security-closeout.test.mjs",
+          "contains": "closeout brief remains truthful"
+        }
+      ]
+    }
+  ]
+}

@@ -28,7 +28,7 @@ Primary references:
 - https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
 - https://rustsec.org/advisories/RUSTSEC-2026-0002.html
 - https://rustsec.org/advisories/RUSTSEC-2026-0253.html
-- https://github.com/dmtrKovalenko/fframes/blob/master/fframes/Cargo.toml
+- https://github.com/dmtrKovalenko/fframes/blob/main/fframes/Cargo.toml
 
 ---
 

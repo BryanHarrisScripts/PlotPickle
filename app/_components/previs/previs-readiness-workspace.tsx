@@ -338,6 +338,8 @@ export default function PrevisReadinessWorkspace({
   const [narrationGenerating, setNarrationGenerating] = useState(false);
   const narrationRequest = useRef<AbortController | null>(null);
   const latestSource = useRef("");
+  const latestProject = useRef(project);
+  latestProject.current = project;
   useEffect(() => {
     if (!address) return;
     setSelectedBlockNumber(address.blockNumber);
@@ -450,6 +452,10 @@ export default function PrevisReadinessWorkspace({
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.message || "Narration generation failed.");
       if (latestSource.current !== source || controller.signal.aborted) return;
+      if (latestProject.current !== project) {
+        setMessage("The project changed while narration was being created. Play with narration again to use the latest project.");
+        return;
+      }
       const now = new Date().toISOString();
       const approvals: PrevisGraphicNovelTextApproval[] = result.panels.map((panel: { position: number; narration: string; bubbles: PrevisGraphicNovelTextBubble[] }) => ({
         anchorRef: selectedAddressAnchor.id, position: panel.position,

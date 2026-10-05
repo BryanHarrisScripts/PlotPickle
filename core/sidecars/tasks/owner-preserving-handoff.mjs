@@ -70,12 +70,8 @@ function boundedRefs(values, label, maximum = 32) {
   return Object.freeze([...new Set(values.map((value) => bounded(value, label, 240)))].sort());
 }
 
-function stable(value) {
-  return JSON.stringify(value);
-}
-
 function handoffIdentity(value) {
-  return `agent-handoff:${createHash("sha256").update(stable(value)).digest("hex")}`;
+  return `agent-handoff:${createHash("sha256").update(JSON.stringify(value)).digest("hex")}`;
 }
 
 export function ownerPreservingExecutionPolicies() {

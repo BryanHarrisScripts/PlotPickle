@@ -6,7 +6,7 @@ import {
   buildOwnerPreservingDurableHandoff,
   ownerPreservingExecutionPolicies,
   validateOwnerPreservingProfile,
-} from "../core/sidecars/tasks/owner-preserving-handoff.mjs";
+} from "../lib/agents/responsibility/owner-preserving-handoff.mjs";
 
 const base = JSON.parse(await readFile(new URL("../config/agent-profiles.json", import.meta.url), "utf8")).profiles;
 const community = JSON.parse(await readFile(new URL("../config/agent-profile-extensions/community.json", import.meta.url), "utf8")).profiles;
@@ -150,7 +150,7 @@ test("#2740 returned records contain references and authority only, never a copi
 });
 
 test("#2740 planning source has no Pi execution, provider call, BUZZ subscription or repository mutation path", async () => {
-  const source = await readFile(new URL("../core/sidecars/tasks/owner-preserving-handoff.mjs", import.meta.url), "utf8");
+  const source = await readFile(new URL("../lib/agents/responsibility/owner-preserving-handoff.mjs", import.meta.url), "utf8");
   for (const forbidden of [
     "pi-durable-adapter",
     "@mastra",

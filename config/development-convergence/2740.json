@@ -6,7 +6,7 @@
   "allowedChanges": [
     "config/development-convergence/2740.json",
     "config/verification/test-catalog.json",
-    "core/sidecars/tasks/owner-preserving-handoff.mjs",
+    "lib/agents/responsibility/owner-preserving-handoff.mjs",
     "docs/developer-briefs/2740-owner-preserving-durable-handoffs.md",
     "tests/issue-2740-owner-preserving-handoffs.test.mjs"
   ],
@@ -28,17 +28,17 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "core/sidecars/tasks/owner-preserving-handoff.mjs",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
           "contains": "piExecutionGranted: false"
         },
         {
           "type": "file-contains",
-          "path": "core/sidecars/tasks/owner-preserving-handoff.mjs",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
           "contains": "privateRoomAutoSubscribe"
         },
         {
           "type": "file-contains",
-          "path": "core/sidecars/tasks/owner-preserving-handoff.mjs",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
           "contains": "repositoryAuthorityGranted"
         }
       ]
@@ -49,7 +49,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "core/sidecars/tasks/owner-preserving-handoff.mjs",
+          "path": "lib/agents/responsibility/owner-preserving-handoff.mjs",
           "contains": "FORBIDDEN_INPUT_FIELDS"
         },
         {

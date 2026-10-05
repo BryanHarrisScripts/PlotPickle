@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import type { CharacterArcEvidenceState } from "@/core/contracts/character-truth-evidence";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
-import type { OutlineAgentAssessment, OutlineAssessmentRunReceipt } from "@/core/contracts/imported-screenplay-evidence/outline-agent-assessment";
+import type { OutlineAgentAssessment } from "@/core/contracts/imported-screenplay-evidence/outline-agent-assessment";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -22,7 +22,7 @@ import {
   updateStoryCardMini,
 } from "@/modules/plan/story-card-board";
 
-import { currentOutlineAssessment, outlineAssessmentFingerprint, requestOutlineAgentAssessment } from "@/modules/plan/outline-agent-assessment";
+import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
 import { changeOutlineTask, importOutlineTaskFindings, readOutlineTasks, type OutlineTaskView } from "@/modules/plan/assessments/outline-task-browser";
 import { flushProfilePrivateWrites, persistActiveProfileProject } from "@/core/storage/profile-private-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
@@ -94,29 +94,6 @@ function assessmentCitationCount(assessment: OutlineAgentAssessment) {
   ]).size;
 }
 
-function assessmentFindingsSignature(assessment: OutlineAgentAssessment) {
-  return JSON.stringify({
-    structural: assessment.structural,
-    characters: assessment.characters,
-    miniBlocks: assessment.miniBlocks,
-  });
-}
-
-function assessmentFindingsChanged(previous: OutlineAgentAssessment | null, next: OutlineAgentAssessment) {
-  return !previous || assessmentFindingsSignature(previous) !== assessmentFindingsSignature(next);
-}
-
-function assessmentRunBlockSummary(assessment: OutlineAgentAssessment) {
-  return {
-    blockNumber: assessment.blockNumber,
-    structuralState: assessment.structural.state,
-    citedPassageCount: assessmentCitationCount(assessment),
-    characterFindingCount: assessment.characters.filter((item) => item.state !== "not-present-no-evidence").length,
-    miniBlockStates: assessment.miniBlocks.map((item) => item.state),
-    model: assessment.model,
-  };
-}
-
 export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
@@ -127,7 +104,6 @@ export default function StoryCardFoundationBoard({
   turningPointSelected,
   onSelectTurningPoint,
 }: StoryCardFoundationBoardProps) {
-  const [assessing, setAssessing] = useState<number | null>(null);
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
   const [recoveryTasks, setRecoveryTasks] = useState<OutlineTaskView[]>([]);
@@ -361,89 +337,6 @@ export default function StoryCardFoundationBoard({
     );
   }
 
-  async function assessOne(blockNumber: number) {
-    const current = loadFoundationProject() as LibraryPPFProject;
-    const assessment = await requestOutlineAgentAssessment(current, blockNumber);
-    const latest = loadFoundationProject() as LibraryPPFProject;
-    if (outlineAssessmentFingerprint(latest, blockNumber) !== assessment.inputFingerprint) throw new Error("The screenplay or plan changed during assessment. Run it again with current evidence.");
-    const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
-    const saved = saveFoundationProject({
-      ...latest,
-      revision: latest.revision + 1,
-      updatedAt: assessment.assessedAt,
-      sourceEvidence: { ...source, outlineAssessments: [...(source.outlineAssessments ?? []).filter((item) => item.blockNumber !== blockNumber), assessment] },
-    }) as LibraryPPFProject;
-    onProjectChange(saved);
-    return assessment;
-  }
-
-  function saveAssessmentRun(
-    blockNumbers: readonly number[],
-    completed: readonly OutlineAgentAssessment[],
-    changedBlockNumbers: readonly number[],
-    status: OutlineAssessmentRunReceipt["status"],
-    errorMessage = "",
-  ) {
-    const latest = loadFoundationProject() as LibraryPPFProject;
-    const source = normalizeProjectSourceEvidence(latest.sourceEvidence);
-    const assessedAt = completed.at(-1)?.assessedAt ?? new Date().toISOString();
-    const scope: OutlineAssessmentRunReceipt["scope"] = blockNumbers.length === 1 ? "block" : "act";
-    const run: OutlineAssessmentRunReceipt = {
-      version: 1,
-      id: `outline-assessment-run-${crypto.randomUUID()}`,
-      scope,
-      actNumber: scope === "act" ? Math.ceil(blockNumbers[0] / 6) : null,
-      requestedBlockNumbers: [...blockNumbers],
-      completedBlockNumbers: completed.map((assessment) => assessment.blockNumber),
-      changedBlockNumbers: [...changedBlockNumbers],
-      status,
-      assessedAt,
-      acceptedStoryContentChanged: false,
-      blockSummaries: completed.map(assessmentRunBlockSummary),
-      ...(errorMessage ? { error: errorMessage.slice(0, 500) } : {}),
-    };
-    const saved = saveFoundationProject({
-      ...latest,
-      revision: latest.revision + 1,
-      updatedAt: assessedAt,
-      sourceEvidence: {
-        ...source,
-        outlineAssessmentRuns: [...(source.outlineAssessmentRuns ?? []), run].slice(-40),
-      },
-    }) as LibraryPPFProject;
-    onProjectChange(saved);
-    return saved;
-  }
-
-  async function assessBlocks(blockNumbers: readonly number[]) {
-    if (assessing !== null || taskAction) return;
-    if (blockNumbers.length > 1) {
-      await recoveryAction("start", { blocks: blockNumbers });
-      return;
-    }
-    const completed: OutlineAgentAssessment[] = [];
-    const changedBlockNumbers: number[] = [];
-    try {
-      for (const blockNumber of blockNumbers) {
-        const before = loadFoundationProject() as LibraryPPFProject;
-        const previous = currentOutlineAssessment(before, blockNumber);
-        setAssessing(blockNumber);
-        setMessage(`Story Architect is assessing Block ${String(blockNumber).padStart(2, "0")} from the screenplay and saved PPF notes…`);
-        const assessment = await assessOne(blockNumber);
-        completed.push(assessment);
-        if (assessmentFindingsChanged(previous, assessment)) changedBlockNumbers.push(blockNumber);
-      }
-      saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, "completed");
-      setMessage(`Story Architect assessed ${completed.length} Block${completed.length === 1 ? "" : "s"}. ${changedBlockNumbers.length} Block${changedBlockNumbers.length === 1 ? "" : "s"} produced new or changed findings. No accepted story content changed. See Story Architect Assessment History below.`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Story Architect could not complete this assessment.";
-      const status: OutlineAssessmentRunReceipt["status"] = completed.length ? "partial" : "failed";
-      saveAssessmentRun(blockNumbers, completed, changedBlockNumbers, status, errorMessage);
-      setMessage(`Story Architect assessment ${status === "partial" ? "stopped after a partial run" : "failed before any Block completed"}. ${completed.length} of ${blockNumbers.length} Blocks completed. No accepted story content changed. ${errorMessage}`);
-    } finally {
-      setAssessing(null);
-    }
-  }
 
   return (
     <section className="pp-skin-v1-story-card-board" aria-labelledby="story-card-board-title" data-story-card-foundation-board="24x96">

@@ -17,6 +17,7 @@
     "test:changed": "node scripts/developer-diagnostics/test-changed.mjs",
     "test:diagnose": "node scripts/developer-diagnostics/run-and-summarize.mjs --",
     "test:developer-diagnostics": "node --test tests/issue-240-developer-diagnostics.test.mjs",
+    "test:durability-closeout": "node --test tests/issue-2707-agent-durability-audit.test.mjs tests/issue-2736-phase3-durable-roles.test.mjs tests/issue-2743-phase3-role-task-recovery.test.mjs tests/issue-2743-durable-lifecycle-closeout.test.mjs",
     "security:2706": "node --test tests/issue-2706-security-closeout.test.mjs",
     "test:local-gates": "node --test tests/issue-1451-local-gates.test.mjs tests/issue-1451-workbench-gate-handoff.test.mjs",
     "test:setup-connections-dashboard": "node --test tests/issue-256-setup-connections-dashboard.test.mjs",

@@ -176,6 +176,28 @@ export interface TimelineAssemblyRevision {
   readonly createdAt: string;
 }
 
+export type TimelineMotionShotStatus = "queued" | "running" | "succeeded" | "failed";
+
+export interface TimelineMotionShot {
+  readonly id: string;
+  readonly placementId: string;
+  readonly anchorRef: string;
+  readonly shotNumber: number;
+  readonly sourceArtifactId: string;
+  readonly sourceKey: string;
+  readonly prompt: string;
+  readonly requestedDurationSeconds: 3;
+  readonly provider: string;
+  readonly route: string;
+  readonly model: string;
+  readonly jobId: string;
+  readonly status: TimelineMotionShotStatus;
+  readonly outputAssetUrl: string;
+  readonly error: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 export type ScreeningObservationCategory = "intent" | "picture" | "timing" | "continuity" | "sound";
 export type ScreeningObservationState = "observed" | "resolved";
 
@@ -218,12 +240,13 @@ export interface PrevisProductionState {
   readonly takes?: readonly ProductionTake[];
   readonly roughCuts?: readonly RoughCutRevision[];
   readonly timelineAssemblies?: readonly TimelineAssemblyRevision[];
+  readonly timelineMotionShots?: readonly TimelineMotionShot[];
   readonly screeningObservations?: readonly ScreeningObservation[];
   readonly graphicNovelTextApprovals?: readonly PrevisGraphicNovelTextApproval[];
 }
 
 export function createEmptyPrevisProductionState(): PrevisProductionState {
-  return { shots: [], soundCues: [], takes: [], roughCuts: [], timelineAssemblies: [], screeningObservations: [], graphicNovelTextApprovals: [] };
+  return { shots: [], soundCues: [], takes: [], roughCuts: [], timelineAssemblies: [], timelineMotionShots: [], screeningObservations: [], graphicNovelTextApprovals: [] };
 }
 
 function cleanText(value: unknown, maximum: number) {
@@ -387,7 +410,7 @@ function normalizeTimelinePrevisPlacement(value: unknown): TimelinePrevisPlaceme
   const item = value as Partial<TimelinePrevisPlacement>;
   const id = cleanText(item.id, 180);
   const anchorRef = cleanText(item.anchorRef, 240);
-  const sourceKey = cleanText(item.sourceKey, 8_000);
+  const sourceKey = cleanText(item.sourceKey, 16_000);
   const blockNumber = typeof item.blockNumber === "number" && Number.isInteger(item.blockNumber)
     ? Math.min(24, Math.max(1, item.blockNumber))
     : 0;
@@ -439,6 +462,45 @@ function normalizeTimelineAssemblyRevision(value: unknown): TimelineAssemblyRevi
       : [],
     supersedesTimelineId: cleanText(item.supersedesTimelineId, 180) || undefined,
     createdAt: cleanText(item.createdAt, 80) || new Date().toISOString(),
+  };
+}
+
+function normalizeTimelineMotionShot(value: unknown): TimelineMotionShot | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<TimelineMotionShot>;
+  const id = cleanText(item.id, 180);
+  const placementId = cleanText(item.placementId, 180);
+  const anchorRef = cleanText(item.anchorRef, 240);
+  const sourceArtifactId = cleanText(item.sourceArtifactId, 200);
+  const sourceKey = cleanText(item.sourceKey, 8_000);
+  const shotNumber = typeof item.shotNumber === "number" && Number.isInteger(item.shotNumber)
+    ? Math.min(25, Math.max(1, item.shotNumber))
+    : 0;
+  const status: TimelineMotionShotStatus = item.status === "queued" || item.status === "running" || item.status === "succeeded" || item.status === "failed"
+    ? item.status
+    : "failed";
+  const outputAssetUrl = cleanText(item.outputAssetUrl, 1_000);
+  if (!id || !placementId || !shotNumber || !sourceArtifactId || !sourceKey || !/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef)) return null;
+  if (status === "succeeded" && !/^\/api\/local-ai\/assets\/[a-z0-9][a-z0-9._-]*\.(?:mp4|webm)$/iu.test(outputAssetUrl)) return null;
+  const createdAt = cleanText(item.createdAt, 80) || new Date().toISOString();
+  return {
+    id,
+    placementId,
+    anchorRef,
+    shotNumber,
+    sourceArtifactId,
+    sourceKey,
+    prompt: cleanText(item.prompt, 7_000),
+    requestedDurationSeconds: 3,
+    provider: cleanText(item.provider, 120),
+    route: cleanText(item.route, 120),
+    model: cleanText(item.model, 160),
+    jobId: cleanText(item.jobId, 240),
+    status,
+    outputAssetUrl,
+    error: cleanText(item.error, 1_000),
+    createdAt,
+    updatedAt: cleanText(item.updatedAt, 80) || createdAt,
   };
 }
 
@@ -507,6 +569,7 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
     readonly takes?: unknown;
     readonly roughCuts?: unknown;
     readonly timelineAssemblies?: unknown;
+    readonly timelineMotionShots?: unknown;
     readonly screeningObservations?: unknown;
     readonly graphicNovelTextApprovals?: unknown;
   };
@@ -529,6 +592,13 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
   const timelineAssemblies = Array.isArray(source.timelineAssemblies)
     ? source.timelineAssemblies.map(normalizeTimelineAssemblyRevision).filter((assembly): assembly is TimelineAssemblyRevision => Boolean(assembly)).slice(0, 250)
     : [];
+  const timelineMotionShots = Array.isArray(source.timelineMotionShots)
+    ? source.timelineMotionShots
+      .map(normalizeTimelineMotionShot)
+      .filter((shot): shot is TimelineMotionShot => Boolean(shot))
+      .filter((shot, index, all) => all.findIndex((candidate) => candidate.id === shot.id) === index)
+      .slice(0, 2_400)
+    : [];
   const screeningObservations = Array.isArray(source.screeningObservations)
     ? source.screeningObservations.map(normalizeScreeningObservation).filter((observation): observation is ScreeningObservation => Boolean(observation)).slice(0, 5_000)
     : [];
@@ -539,5 +609,5 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
       .filter((approval, index, all) => all.findIndex((candidate) => candidate.anchorRef === approval.anchorRef && candidate.position === approval.position) === index)
       .slice(0, 2_400)
     : [];
-  return { shots, soundCues, takes, roughCuts, timelineAssemblies, screeningObservations, graphicNovelTextApprovals };
+  return { shots, soundCues, takes, roughCuts, timelineAssemblies, timelineMotionShots, screeningObservations, graphicNovelTextApprovals };
 }

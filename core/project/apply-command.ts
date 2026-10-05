@@ -346,6 +346,16 @@ export function applyStoryCommand(
         },
       };
     }
+    case "production.timeline.motion.store": {
+      const existing = (project.production.timelineMotionShots ?? []).filter((motion) => motion.id !== command.motion.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          timelineMotionShots: [command.motion, ...existing].slice(0, 2_400),
+        },
+      };
+    }
     case "production.screening.store": {
       const existing = (project.production.screeningObservations ?? []).filter((observation) => observation.id !== command.observation.id);
       return {

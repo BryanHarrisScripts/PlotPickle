@@ -1777,6 +1777,22 @@
       ]
     },
     {
+      "id": "timeline-opening-media-assembly",
+      "classification": "production",
+      "include": [
+        "build/timeline-media-engine-handoff.ts",
+        "app/api/timeline/media-engine/render/route.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "visual",
+        "provider",
+        "api",
+        "native"
+      ]
+    },
+    {
       "id": "timeline-rough-cut-media-assembly",
       "classification": "production",
       "include": [

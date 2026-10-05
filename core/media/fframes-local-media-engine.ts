@@ -116,7 +116,10 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
     return resolve(this.repositoryRoot, "tools", "fframes-bridge", "target", "release", process.platform === "win32" ? "plotpickle-fframes-bridge.exe" : "plotpickle-fframes-bridge");
   }
 
-  async renderMiniBlock(request: PlotPickleMiniBlockMediaRequest, options: PlotPickleMediaEngineRunOptions = {}): Promise<PlotPickleMediaEngineEvidence> {
+  renderMiniBlock(request: PlotPickleMiniBlockMediaRequest, options: PlotPickleMediaEngineRunOptions = {}): Promise<PlotPickleMediaEngineEvidence> {
+    if (request.frames.length > 25) {
+      throw new RangeError("Mini-Block FFrames rendering cannot exceed 25 Storyboard positions.");
+    }
     return this.renderSequence(request, options);
   }
 

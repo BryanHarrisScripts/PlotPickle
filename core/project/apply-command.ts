@@ -336,6 +336,16 @@ export function applyStoryCommand(
         },
       };
     }
+    case "production.timeline.store": {
+      const existing = (project.production.timelineAssemblies ?? []).filter((assembly) => assembly.id !== command.assembly.id);
+      return {
+        ...base,
+        production: {
+          ...project.production,
+          timelineAssemblies: [command.assembly, ...existing].slice(0, 250),
+        },
+      };
+    }
     case "production.screening.store": {
       const existing = (project.production.screeningObservations ?? []).filter((observation) => observation.id !== command.observation.id);
       return {

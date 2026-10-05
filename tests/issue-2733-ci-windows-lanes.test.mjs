@@ -93,12 +93,12 @@ test("#2753 workflow metadata changes do not fan out into unrelated heavyweight 
   assert.match(scope, /Heavy Windows lanes are selected only by product\/runtime paths they actually prove\./u);
 
   const laneContracts = [
-    ["command", "settings-command-product-proof.mjs"],
+    ["command", "settings-command-product-proof"],
     ["pi", "evaluate-pi-099-compatibility"],
-    ["story", "story-card-foundation-board.tsx"],
-    ["media", "fframes-product-proof.mjs"],
-    ["voice", "install-whisper-cpp.ps1"],
-    ["build", "scripts/windows-runtime.mjs"],
+    ["story", "story-card-foundation-board"],
+    ["media", "fframes-product-proof"],
+    ["voice", "install-whisper-cpp"],
+    ["build", "scripts/windows-runtime"],
   ];
   for (const [lane, productPath] of laneContracts) {
     assert.ok(scope.includes(productPath), lane + " retains a product/runtime selector");

@@ -258,10 +258,19 @@ try {
   if (selectedStage === "recovery") { await reportFocusedPass(); return; }
   await enterStage("cancellation");
   // Exercise the actual rendered Cancel control while a new review is in flight.
+  // The Outline cleanup intentionally removes the direct assessment launch
+  // button, so seed the governed task through the same protected API while
+  // continuing to prove the Human-facing rendered recovery/cancel controls.
   holdBlock = 1;
-  await page.getByRole("button", { name: "Assess Act 1 with Story Architect", exact: true }).click();
-  await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.some((task) => task.scope.runId !== id && task.running), "new review starts");
-  const cancelling = (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId !== id);
+  const cancellingAdmission = await api(session, "/api/outline/tasks", {
+    action: "start",
+    projectId: project.id,
+    blocks: [1, 2, 3, 4, 5, 6],
+    materialReceipt: await outlineAssessmentMaterialReceipt(project),
+  });
+  assert.ok(cancellingAdmission.task?.scope?.runId, "Cancellation proof task must be admitted through the governed task API.");
+  await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.some((task) => task.scope.runId === cancellingAdmission.task.scope.runId && task.running), "new review starts");
+  const cancelling = (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === cancellingAdmission.task.scope.runId);
   const row = page.locator(`[data-outline-recovery-task='${cancelling.scope.runId}']`);
   await row.getByRole("button", { name: "Cancel Story Architect review", exact: true }).click({ timeout: 30_000 });
   await waitFor(async () => (await api(session, "/api/outline/tasks")).tasks.find((task) => task.scope.runId === cancelling.scope.runId)?.run.state === "cancelled", "cancel persisted");

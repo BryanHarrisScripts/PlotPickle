@@ -552,8 +552,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
       },
-      "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
-      "runtimeReadySelector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "runtimeSelector": "[data-timeline-assembly='previs-media']",
+      "runtimeReadySelector": "[data-timeline-assembly='previs-media']",
       "orchestrated": true,
       "ownsInlineSurfaces": [
         "story-map"

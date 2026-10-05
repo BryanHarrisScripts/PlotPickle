@@ -13,7 +13,7 @@ import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
-import VisualStoryWorkspace from "../_components/storyboard/visual-story-workspace";
+import TimelineAssemblyWorkspace from "../_components/timeline/timeline-assembly-workspace";
 import { projectPlotPickleProductionPacket, projectRoughCutAnchor, projectScreening } from "@/lib/preproduction/production-convergence";
 
 export type PreproductionReviewAddress = Readonly<{
@@ -221,9 +221,11 @@ export function SkinV1PrevisCompositeSurface({
 export function SkinV1TimelineReviewSurface({
   address,
   onOpenStoryboard,
+  onOpenPrevis,
 }: {
   readonly address: PreproductionReviewAddress;
   readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
+  readonly onOpenPrevis: (address: PreproductionReviewAddress) => void;
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(() => loadFoundationProject());
   const [error, setError] = useState("");
@@ -257,15 +259,13 @@ export function SkinV1TimelineReviewSurface({
     <div data-skin-v1-preproduction-review="timeline">
       <div className="pp-skin-v1-preproduction-context" role="status">
         <strong>TIMELINE · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>Script, Dialogue, Action, Shot and Audio stay synchronized against the same canonical story address. Missing Scene or timing evidence remains visibly missing.</span>
+        <span>Assemble approved Previs Mini-Block media against the screenplay. Timeline preserves upstream source identity, supports continuous playback and scrubbing, and never regenerates a Shot or Storyboard Image.</span>
       </div>
-      <VisualStoryWorkspace
-        blockNumber={normalized.blockNumber}
-        initialView="timeline"
-        legacyProject={null}
-        miniBlockNumber={normalized.miniBlockNumber}
+      <TimelineAssemblyWorkspace
+        address={normalized}
+        onOpenPrevis={onOpenPrevis}
+        onOpenStoryboard={onOpenStoryboard}
         onProjectChange={applyProjectChange}
-        onReturnToStoryboard={() => onOpenStoryboard(normalized)}
         project={project}
       />
     </div>

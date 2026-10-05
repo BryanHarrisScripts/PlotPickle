@@ -54,20 +54,21 @@ test("#2285 keeps five Dashboard destinations while downstream visual surfaces u
   assert.doesNotMatch(storyboard + previs + timeline + production, /<PreproductionStageRail/u);
 });
 
-test("#2285 Timeline reuses the existing synchronized scene authority at one real story address", async () => {
-  const [surfaces, visual, timeline] = await Promise.all([
+test("#2285 Timeline reuses canonical screenplay evidence while #2759 owns Mini-Block Previs assembly", async () => {
+  const [surfaces, timeline, sceneTimeline] = await Promise.all([
     read("app/skin-v1/preproduction-review-surfaces.tsx"),
-    read("app/_components/storyboard/visual-story-workspace.tsx"),
+    read("app/_components/timeline/timeline-assembly-workspace.tsx"),
     read("app/_components/storyboard/scene-timeline-workspace.tsx"),
   ]);
 
   assert.match(surfaces, /SkinV1TimelineReviewSurface/u);
-  assert.match(surfaces, /<VisualStoryWorkspace[\s\S]*initialView="timeline"/u);
-  assert.match(surfaces, /legacyProject=\{null\}/u);
-  assert.match(visual, /data-scene-workspace="dialogue-action-shot-audio"/u);
-  assert.match(visual, />\s*Timeline\s*<\/button>/u);
-  assert.match(timeline, /Timeline · Dialogue \/ Action \/ Shot \/ Audio/u);
-  assert.doesNotMatch(visual + timeline, />Scene Workspace<\/|>Scene Timeline<\//u);
+  assert.match(surfaces, /<TimelineAssemblyWorkspace/u);
+  assert.match(timeline, /storyboardAnchorEvidence/u);
+  assert.match(timeline, /Approved Previs media source list|approved Previs media source list/iu);
+  assert.match(timeline, /Timeline seek and scrub/u);
+  assert.match(timeline, /Open owning Storyboard Mini-Block/u);
+  assert.match(sceneTimeline, /data-scene-workspace="dialogue-action-shot-audio"/u);
+  assert.match(sceneTimeline, /Timeline · Dialogue \/ Action \/ Shot \/ Audio/u);
 });
 
 test("#2285 Production projects real Previs evidence and stays provider-neutral", async () => {

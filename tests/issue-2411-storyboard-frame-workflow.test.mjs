@@ -9,12 +9,12 @@ import { saveWebpFrameCandidate } from "../build/media-provider-common.ts";
 
 test("#2411 prepares a frame from observed context without inventing story structure", () => {
   const prompt = storyboardFramePrompt({ title: "Afterglow", blockNumber: 1, miniBlockNumber: 2, position: 7, scene: "Santa Cruz pier", beat: "", shot: "Wide angle; morning", source: "She sees the water." });
-  assert.match(prompt, /Block 01, Mini-Block 2, position 07/u);
+  assert.match(prompt, /Block 01, Mini-Block 2, planned Shot 07 of 25/u);
   assert.match(prompt, /Observed scene: Santa Cruz pier/u);
   assert.match(prompt, /No beat is authored here; do not invent a beat/u);
   assert.match(prompt, /Authored shot: Wide angle; morning/u);
   assert.match(prompt, /Screenplay evidence: She sees the water/u);
-  assert.match(prompt, /WebP visual candidate/u);
+  assert.match(prompt, /WebP Storyboard Image candidate/u);
 });
 
 test("#2411 converts a real generated PNG into a decodable WebP asset", async () => {

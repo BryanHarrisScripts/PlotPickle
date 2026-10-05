@@ -151,7 +151,10 @@ test("#2736 wrong role, widened grants and unsafe operations fail closed", () =>
 
 test("#2736 registration/validation is provider-free and cannot grant canon authority", async () => {
   const source = await readFile(new URL("../core/sidecars/tasks/phase3-role-checkpoint-plan.mjs", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /@mastra|writing-assistant|fetch\(|generate\(|provider.*request/iu);
+  assert.match(source, /^import \{ normalizeAgentCheckpointInput \} from "\.\/agent-checkpoint-task\.mjs";/u);
+  for (const forbidden of ["@mastra", "writing-assistant", "askPlotPickleAgent", "resolveConfiguredAgentExecutionProfile", "fetch("]) {
+    assert.equal(source.includes(forbidden), false, `role plan must not execute through ${forbidden}`);
+  }
   assert.match(source, /canonical: false/u);
   assert.match(source, /providerRequestsIssued: false/u);
   assert.match(source, /automaticResume: false/u);

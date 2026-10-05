@@ -34,7 +34,7 @@ test("#1421 derives stable render addresses and shared first-frame/last-frame bo
   assert.doesNotMatch(contract, /interface PrevisProductionState \{[\s\S]*renderClips:/);
 });
 
-test("#1421 keeps creative Previs timing separate from the technical clip grid", async () => {
+test("#1421 keeps the technical clip grid below the simplified read-only Previs surface", async () => {
   const [contract, model, workspace] = await Promise.all([
     read(contractPath),
     read(modelPath),
@@ -45,12 +45,11 @@ test("#1421 keeps creative Previs timing separate from the technical clip grid",
   assert.match(contract, /Creative shots may span one or more fixed 3-second render clips/);
   assert.match(model, /allShotsTimed/);
   assert.match(model, /Math\.abs\(authoredDuration - RENDER_MINI_BLOCK_SECONDS\) < 0\.01/);
-  assert.match(workspace, /Storyboard → Visualize → Previs → Render Plan → Generate/);
-  assert.match(workspace, /Creative shots<\/dt>/);
-  assert.match(workspace, /Render clips<\/dt>/);
-  assert.match(workspace, /Previs timing<\/dt>/);
-  assert.match(workspace, /RENDER PLAN READY/);
-  assert.match(workspace, /Clip 01–25/);
+
+  assert.match(workspace, /25 planned Shots/u);
+  assert.match(workspace, /Previs presents the visual story already approved in Storyboard/u);
+  assert.match(workspace, /Canonical planning math: 1 Mini-Block = 25 planned Shots/u);
+  assert.doesNotMatch(workspace, /Creative shots<\/dt>|Render clips<\/dt>|Previs timing<\/dt>|RENDER PLAN READY|Clip 01–25|Previs → Render Plan/u);
 });
 
 test("#1421 documents the retired 16-shot preset and does not hard-code provider pricing", async () => {

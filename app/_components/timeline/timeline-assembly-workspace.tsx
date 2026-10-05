@@ -134,8 +134,13 @@ function timelineMp4FileName(projectTitle: string, placement: TimelinePrevisPlac
   return `${slug}-timeline-block-${String(placement.blockNumber).padStart(2, "0")}-mini-${placement.miniBlockNumber}${suffix}.mp4`;
 }
 
-function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number, artifactId: string) {
-  return `${placement.sourceKey}:motion-shot-${String(shotNumber).padStart(2, "0")}:${artifactId}`;
+function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number, artifactId: string, prompt: string) {
+  return JSON.stringify({
+    placementSourceKey: placement.sourceKey,
+    shotNumber,
+    artifactId,
+    prompt,
+  });
 }
 
 function timelineMotionPrompt(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
@@ -277,7 +282,8 @@ export default function TimelineAssemblyWorkspace({
   const motionShots = project.production.timelineMotionShots ?? [];
   const motionFor = (placement: TimelinePrevisPlacement, shotNumber: number) => {
     const artifactId = placement.shotImages.find((image) => image.shotNumber === shotNumber)?.artifactId ?? "";
-    const sourceKey = artifactId ? motionSourceKey(placement, shotNumber, artifactId) : "";
+    const prompt = artifactId ? timelineMotionPrompt(project, placement, shotNumber) : "";
+    const sourceKey = artifactId ? motionSourceKey(placement, shotNumber, artifactId, prompt) : "";
     const latest = motionShots.find((motion) => motion.placementId === placement.id && motion.shotNumber === shotNumber) ?? null;
     return {
       latest,
@@ -518,8 +524,8 @@ export default function TimelineAssemblyWorkspace({
 
     const now = new Date().toISOString();
     const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
-    const sourceKey = motionSourceKey(selectedPlacement, shotNumber, presentation.artifact.id);
     const prompt = timelineMotionPrompt(project, selectedPlacement, shotNumber);
+    const sourceKey = motionSourceKey(selectedPlacement, shotNumber, presentation.artifact.id, prompt);
     setGeneratingShotNumber(shotNumber);
     setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")}…`);
     let running: TimelineMotionShot | null = null;

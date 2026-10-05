@@ -1,6 +1,6 @@
 ---
 name: storyboard-frame-director
-description: Provider-neutral Storyboard skill for turning one selected Mini-Block's available 25 Shot / Frame positions into distinct, continuity-aware single-frame prompts that visibly progress the approved story without inventing Beats or canon.
+description: Provider-neutral Storyboard skill for turning one selected Mini-Block's 25 planned Shots into distinct, continuity-aware Storyboard Image prompts that visibly progress approved story evidence without inventing Scenes, Beats or canon.
 license: MIT
 metadata:
   author: PlotPickle
@@ -12,30 +12,30 @@ metadata:
 
 # Storyboard Frame Director
 
-Use this skill when the Human selects one of PlotPickle's 25 available Storyboard Shot / Frame positions inside a canonical Mini-Block.
+Use this skill when the Human selects one of PlotPickle's exactly 25 planned Storyboard Shots inside a canonical Mini-Block.
 
-This skill strengthens visual coverage and image-generation prompts. It does not create story canon, assign Beat N to Position N, require all 25 positions to be used, or replace the Sequence Director.
+This skill strengthens the Storyboard Image prompt for a planned Shot. It does not create story canon, assign Beat N to Shot N, change the fixed 25-Shot count, or replace the Sequence Director.
 
 ## Authority and relationship to Sequence Director
 
 - Sequence Director owns PLAN → STORYBOARD → PREVIS semantics, ordered creative Beats, continuity and later render-grid compilation.
-- Storyboard Frame Director operates inside the approved Storyboard context and proposes one clean representative still for a selected available position.
-- The 25 positions are visual Shot / Frame capacity. They are not 25 canonical Beats and not a fixed creative Shot quota.
-- Existing authored Scene, Beat and Shot evidence always outranks the generic progression function for a position.
+- Storyboard Frame Director operates inside the approved Storyboard context and proposes one clean Storyboard Image candidate for the selected planned Shot.
+- The 25 planned Shots are the canonical Storyboard planning grid for one Mini-Block. Scene and Beat remain variable-density evidence and do not change that Shot count.
+- Existing authored Scene and Beat evidence, plus any reviewed camera intent, always outranks the generic progression function for a planned Shot.
 - The Human remains canon authority. Generated prompts and images are candidates only.
 
 ## Core procedure
 
-For the selected position:
+For the selected planned Shot:
 
 1. Read only host-supplied story evidence for the current Mini-Block:
    - Scene evidence;
    - authored Beat evidence;
-   - authored Shot evidence;
+   - reviewed camera intent where it already exists;
    - screenplay/source passages;
    - approved character, location, wardrobe, prop and visual references;
-   - accepted prior Storyboard frame state when available.
-2. Identify the position's visual progression function from the 25-position coverage map below.
+   - accepted prior Storyboard Image state when available.
+2. Identify the planned Shot's visual progression function from the 25-Shot map below.
 3. Use that function only as a directing/coverage objective. Never invent an unsupported event just to satisfy the map.
 4. Describe one decisive visible moment that advances from the established prior state.
 5. Preserve character identity, wardrobe, props, geography, screen direction, lighting logic and story state.
@@ -45,14 +45,14 @@ For the selected position:
    - viewing direction;
    - shot size / lens character when useful;
    - foreground/background spatial relationships.
-7. Make the frame readable as a storyboard image: clear action, silhouette, staging, eyelines and dramatic emphasis.
-8. End with an explicit continuity handoff: what must remain true for the next selected position.
+7. Make the Storyboard Image readable: clear action, silhouette, staging, eyelines and dramatic emphasis.
+8. End with an explicit continuity handoff: what must remain true for the next planned Shot.
 9. Return one standalone landscape image prompt. Never request a collage, contact sheet, split screen, storyboard grid, poster or multi-panel image.
 10. Keep generation provider-neutral. Model/runtime selection belongs to the PlotPickle host.
 
-## 25-position visual progression map
+## 25 planned-Shot visual progression map
 
-These are visual coverage functions, not story events and not Beat assignments.
+These are planned-Shot progression functions, not story events and not Beat assignments.
 
 01. Entry boundary — establish the Mini-Block's approved starting state.
 02. Geography — clarify where subjects and important objects exist in relation to one another.
@@ -80,23 +80,23 @@ These are visual coverage functions, not story events and not Beat assignments.
 24. Resolution movement — show the supported settling, departure, recovery or new state.
 25. Exit boundary — establish the Mini-Block's approved ending state and a clean handoff to what follows.
 
-If the evidence does not support the nominal function, keep the frame exploratory and grounded in what is known. Do not manufacture plot.
+If the evidence does not support the nominal function, keep the Storyboard Image exploratory and grounded in what is known. Do not manufacture plot.
 
 ## Prompt grammar
 
-A strong frame prompt should include, when evidence exists:
+A strong Storyboard Image prompt should include, when evidence exists:
 
-- production address: Block / Mini-Block / Position;
+- production address: Block / Mini-Block / planned Shot 01–25;
 - progression function;
 - Scene evidence;
 - Beat evidence;
-- authored Shot evidence;
+- reviewed camera intent where available;
 - screenplay/source evidence;
 - visible action;
 - camera position and composition;
 - continuity-in;
-- what visibly changes in this frame;
-- continuity-out / next-frame handoff;
+- what visibly changes in this Storyboard Image;
+- continuity-out / next-Shot handoff;
 - identity, wardrobe, prop, environment and screen-direction locks;
 - lighting / atmosphere grounded in the project;
 - output constraints.
@@ -105,13 +105,13 @@ Prefer concrete direction over labels such as "cinematic", "epic" or "realistic"
 
 ## Asset separation
 
-The Storyboard board and its 25 positions are a planning surface, not one image reference.
+The Storyboard board and its 25 planned Shots are a planning surface, not one image reference.
 
-- Generate one clean standalone image per position.
+- Generate one clean standalone Storyboard Image candidate for the selected planned Shot.
 - Keep character, location, wardrobe, prop and style assets separate and role-scoped.
-- Do not send a 25-frame grid/contact sheet as the single visual reference for downstream motion generation.
-- For Storyboard → Previs/video handoff, use the approved single frame for the relevant shot plus clean role-scoped references and explicit motion/camera instructions.
-- A prior approved single frame may be used as continuity evidence when the host supports it; it must not silently become a style authority that overrides identity/location roles.
+- Do not send a 25-image grid/contact sheet as the single visual reference for downstream motion generation.
+- For Storyboard → Previs/video handoff, use the approved Storyboard Image for the relevant planned Shot plus clean role-scoped references and explicit motion/camera instructions.
+- A prior approved Storyboard Image may be used as continuity evidence when the host supports it; it must not silently become a style authority that overrides identity/location roles.
 
 ## Negative / protection rules
 
@@ -127,8 +127,8 @@ Always protect against:
 
 ## Output contract
 
-Return a single editable image-generation prompt for the selected position.
+Return a single editable Storyboard Image generation prompt for the selected planned Shot.
 
-The prompt must make the position distinct from its neighbours through composition, visual emphasis or supported state progression while preserving continuity.
+The prompt must make the planned Shot distinct from its neighbours through composition, visual emphasis or supported state progression while preserving continuity.
 
 Do not approve, persist or generate media yourself. The PlotPickle host owns consent, provider routing, generation, provenance, review and acceptance.

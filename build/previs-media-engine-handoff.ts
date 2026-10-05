@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ASSET_PATH, assetsDirectory } from "./media-storage-common";
+import { ASSET_PATH, assetsDirectory, localImageAssetFilePath } from "./media-storage-common";
 import {
   createPlotPickleMiniBlockMediaRequest,
   type PlotPickleMediaEngineEvidence,
@@ -32,21 +32,7 @@ export type PrevisMediaHandoffResult = Readonly<{
 }>;
 
 function localAssetFilePath(assetUrl: string) {
-  if (!assetUrl.startsWith(ASSET_PATH)) throw new Error("Previs media handoff accepts saved PlotPickle local assets only.");
-  const relative = assetUrl.slice(ASSET_PATH.length);
-  if (!relative || relative.length > 240 || relative.includes("\\") || relative.includes("%") || relative.includes("?") || relative.includes("#") || relative.includes("\0")) {
-    throw new Error("Previs media handoff received an unsafe local asset path.");
-  }
-  const segments = relative.split("/");
-  if (segments.some((segment) => !segment || segment === "." || segment === ".." || !/^[a-z0-9][a-z0-9._-]*$/iu.test(segment))) {
-    throw new Error("Previs media handoff received an unsafe local asset path.");
-  }
-  const fileName = segments.at(-1) ?? "";
-  if (!/\.(png|jpe?g|webp)$/iu.test(fileName)) throw new Error("Previs media handoff accepts PNG, JPEG or WebP assets only.");
-  const root = path.resolve(assetsDirectory());
-  const filePath = path.resolve(root, ...segments);
-  if (!filePath.startsWith(root + path.sep)) throw new Error("Previs media handoff received an unsafe local asset path.");
-  return filePath;
+  return localImageAssetFilePath(assetUrl);
 }
 
 export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMediaHandoffInput): Promise<PrevisMediaHandoffResult> {

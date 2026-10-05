@@ -14,7 +14,7 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
   assert.match(positionLoop, />Redo</u);
   assert.match(positionLoop, />Delete</u);
   assert.match(positionLoop, /data-review-state=\{reviewState\}/u);
-  assert.match(positionLoop, /selectedImage \? "Reference image" : "No frame"/u);
+  assert.match(positionLoop, /selectedImage \? "Reference Storyboard Image" : "No Storyboard Image"/u);
 });
 
 test("#2428 reloads the latest non-rejected generated candidate for its own position", async () => {

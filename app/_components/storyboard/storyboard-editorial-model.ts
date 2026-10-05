@@ -65,7 +65,7 @@ const STORYBOARD_POSITION_PROGRESSION: readonly StoryboardPositionProgression[] 
 
 export function storyboardPositionProgression(position: number) {
   const item = STORYBOARD_POSITION_PROGRESSION.find((candidate) => candidate.position === position);
-  if (!item) throw new RangeError("Storyboard position must be between 1 and 25.");
+  if (!item) throw new RangeError("Storyboard planned Shot must be between 1 and 25.");
   return item;
 }
 
@@ -73,28 +73,28 @@ export function storyboardFramePrompt(input: StoryboardFramePromptInput) {
   const clean = (value: string) => value.trim().replace(/\s+/g, " ").slice(0, 1200);
   const progression = storyboardPositionProgression(input.position);
   return [
-    `Create one standalone cinematic storyboard frame for ${clean(input.title) || "this story"}.`,
-    `Production address: Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, Storyboard Position ${String(input.position).padStart(2, "0")}.`,
-    `Visual progression function: ${progression.label}. ${progression.direction} This is a visual coverage function, not a Beat assignment; never invent unsupported story events to satisfy it.`,
-    input.storyFunction ? `Frame-brief story function: ${clean(input.storyFunction)}` : "",
+    `Create one standalone cinematic Storyboard Image for ${clean(input.title) || "this story"}.`,
+    `Production address: Block ${String(input.blockNumber).padStart(2, "0")}, Mini-Block ${input.miniBlockNumber}, planned Shot ${String(input.position).padStart(2, "0")} of 25.`,
+    `Planned Shot progression: ${progression.label}. ${progression.direction} This is a Shot-planning function, not a Beat assignment; never invent unsupported story events to satisfy it.`,
+    input.storyFunction ? `Shot story function: ${clean(input.storyFunction)}` : "",
     input.visibleChange ? `Required visible progression: ${clean(input.visibleChange)}` : "",
     input.scene ? `Observed scene: ${clean(input.scene)}.` : "No scene is mapped here; do not invent a scene.",
     input.beat ? `Authored beat evidence: ${clean(input.beat)}.` : "No beat is authored here; do not invent a beat.",
-    input.shot ? `Authored shot evidence takes precedence: ${clean(input.shot)}.` : "No shot is authored here; treat this as exploratory Shot / Frame coverage only.",
-    input.characterTruth ? `Canonical character truth for characters actually present in this frame: ${clean(input.characterTruth)}.` : "",
+    input.shot ? `Authored shot evidence takes precedence: ${clean(input.shot)}.` : "No authored camera intent exists here; keep the planned Shot address and do not invent story evidence.",
+    input.characterTruth ? `Canonical character truth for characters actually present in this Storyboard Image: ${clean(input.characterTruth)}.` : "",
     input.identityMode === "approved-reference"
       ? "Character identity mode: locked approved character visual references are attached to this request and are identity authority."
       : input.identityMode === "exploratory"
         ? "Character identity mode: no locked approved character visual reference is available for one or more present characters; keep identity exploratory and do not imply visual canon."
         : "",
-    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.continuityIn ? `Continuity-in: ${clean(input.continuityIn)}` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved Storyboard positions.",
-    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.continuityOut ? `Continuity-out: ${clean(input.continuityOut)}` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next selected Storyboard position can continue.",
-    input.source ? `Position-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
+    input.previousShot ? `Continuity-in from the previous authored shot: ${clean(input.previousShot)}.` : input.continuityIn ? `Continuity-in: ${clean(input.continuityIn)}` : input.position === 1 ? "Continuity-in: establish the Mini-Block entry boundary from approved story evidence." : "Continuity-in: preserve the established state from earlier approved planned Shots.",
+    input.nextShot ? `Next-shot handoff target: ${clean(input.nextShot)}.` : input.continuityOut ? `Continuity-out: ${clean(input.continuityOut)}` : input.position === 25 ? "Continuity-out: establish a stable Mini-Block exit boundary that can hand off to the next story address." : "Continuity-out: end on a clear state that the next planned Shot can continue.",
+    input.source ? `Shot-specific screenplay evidence: ${clean(input.source)}.` : "No screenplay passage is mapped here; use only the available story context.",
     "Direct the camera physically: choose a plausible camera position, height, distance, viewing direction and shot size that best reveals the supported action. Prefer concrete staging, eyelines, foreground/background relationships and readable silhouette over vague cinematic adjectives.",
-    "Make this position visibly distinct from neighboring positions through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
+    "Make this planned Shot visibly distinct from neighboring Shots through a supported change in action, reaction, distance, angle, composition or dramatic emphasis while preserving causal continuity.",
     "Continuity lock: preserve established character identity, age, face, hair, wardrobe, props, injuries, location geography, screen direction, time of day, lighting logic and visual language unless the supplied story evidence explicitly changes them.",
-    "Output one clean black-and-white storyboard illustration in landscape composition. No collage, contact sheet, storyboard grid, split screen, multiple panels, poster layout, dialogue text, captions, logos or watermarks.",
-    "Create one WebP visual candidate only. Generation does not create or approve a canonical Scene, Beat, Shot or Frame.",
+    "Output one clean black-and-white Storyboard Image in landscape composition. No collage, contact sheet, storyboard grid, split screen, multiple panels, poster layout, dialogue text, captions, logos or watermarks.",
+    "Create one WebP Storyboard Image candidate for this planned Shot only. Generation does not create or approve Scene/Beat evidence and does not change the fixed Shot 01–25 count.",
   ].filter(Boolean).join(" ");
 }
 
@@ -694,8 +694,8 @@ export function storyboardFrameBriefs(input: Readonly<{
       position,
       storyFunction: POSITION_STORY_FUNCTIONS[position - 1],
       visibleChange: evidenceSummary
-        ? "Make Position " + String(position).padStart(2, "0") + " visibly advance or reframe only this supported story evidence: " + evidenceSummary
-        : "No direct screenplay passage is mapped to this position; use the progression function only to clarify already-established state without inventing an event.",
+        ? "Make planned Shot " + String(position).padStart(2, "0") + " of 25 visibly advance or reframe only this supported story evidence: " + evidenceSummary
+        : "No direct screenplay passage is mapped to this planned Shot; use the progression function only to clarify already-established state without inventing an event.",
       evidence,
       evidenceSummary,
       characters: matchingCharacters,
@@ -707,12 +707,12 @@ export function storyboardFrameBriefs(input: Readonly<{
         ? "Mini-Block entry boundary."
         : previousSummary
           ? "Carry forward the established state from the preceding supported evidence: " + previousSummary
-          : "Carry forward the established visual state from the preceding Storyboard position.",
+          : "Carry forward the established visual state from the preceding planned Shot.",
       continuityOut: position === 25
         ? "Mini-Block exit boundary; leave a stable state for the next story address."
         : nextSummary
           ? "End in a state that can hand off to the next supported evidence: " + nextSummary
-          : "End in a stable state that the next Storyboard position can continue.",
+          : "End in a stable state that the next planned Shot can continue.",
     };
   });
 }

@@ -20,37 +20,37 @@ test("#2406 hierarchy guidance remains documented but no longer displaces the #2
 test("#2406 makes Storyboard inherit story structure and add Shot and Frame", async () => {
   const storyboard = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
 
-  assert.match(storyboard, /Sequence → Block → Mini-Block → Scene → Beat → Shot → Frame/u);
-  assert.match(storyboard, /Storyboard inherits Scene and Beat/u);
-  assert.match(storyboard, /Shot is the director\/cinematographer view/u);
+  assert.match(storyboard, /Act → Sequence → Block → Mini-Block → 25 planned Shots/u);
+  assert.match(storyboard, /Storyboard keeps Scene and Beat as variable-density story evidence/u);
+  assert.match(storyboard, /one locked Storyboard Image becomes its approved visual representation/u);
   assert.match(storyboard, /selectedStructureBlock\?\.sequenceNumber/u);
-  assert.match(storyboard, /25 positions are available Shot\/Frame capacity, not 25 Beats/u);
+  assert.match(storyboard, /exactly 25 planned Shots/u);
 });
 
 test("#2406 treats the 25 rows as Shot Frame capacity rather than Beat ordinals", async () => {
   const storyboard = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
 
-  assert.match(storyboard, /Storyboard Positions 01–25 · Shot \/ Frame capacity/u);
-  assert.match(storyboard, /25 storyboard Shot and Frame positions/u);
+  assert.match(storyboard, /25 Planned Shots/u);
+  assert.match(storyboard, /25 planned Storyboard Shots/u);
   assert.match(storyboard, /selectedVisualAnchor\?\.shots\.find\(\(candidate\) => candidate\.order === position\)/u);
   assert.match(storyboard, /shot\?\.frames\[0\]\?\.id/u);
-  assert.match(storyboard, /Open Shot \/ Frame position/u);
-  assert.match(storyboard, /Previous frame for Storyboard position/u);
-  assert.match(storyboard, /Next frame for Storyboard position/u);
+  assert.match(storyboard, /Shot \$\{String\(position\)\.padStart\(2, "0"\)\} of 25/u);
+  assert.match(storyboard, /Previous Storyboard Image for Shot/u);
+  assert.match(storyboard, /Next Storyboard Image for Shot/u);
   assert.match(storyboard, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
   assert.doesNotMatch(storyboard, /const beat = blockBeats\[index\]/u);
   assert.doesNotMatch(storyboard, /Scene \/ Beat positions 01–25/u);
   assert.doesNotMatch(storyboard, /<strong>Scene \/ Beat \{String\(position\)/u);
 });
 
-test("#2406 preserves flexible Scene Beat Shot counts and the inline Storyboard boundary", async () => {
+test("#2406 preserves flexible Scene Beat evidence and the inline Storyboard boundary", async () => {
   const [storyboard, brief] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("docs/developer-briefs/2406-outline-storyboard-hierarchy.md"),
   ]);
 
   assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/u);
-  assert.match(storyboard, /Scene, Beat and Shot counts remain flexible/u);
+  assert.match(storyboard, /Scene and Beat remain variable-density story evidence/u);
   assert.match(brief, /The scaffold is deterministic addressing and capacity\. It is not a creative quota\./u);
   assert.match(brief, /Current Shot contracts do not persist a canonical Beat ownership field/u);
 });

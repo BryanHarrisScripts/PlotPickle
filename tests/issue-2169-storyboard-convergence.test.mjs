@@ -87,7 +87,7 @@ test("#2169 makes 96 anchors addresses, not a sequential four-image progression 
   assert.match(map, /available without requiring visual acceptance in an earlier Block/u);
   assert.doesNotMatch(map, /const unlocked = number === 1 \|\| completedBlockIds\.has/u);
   assert.doesNotMatch(map, /unlocks after Block/u);
-  assert.match(readiness, /25 planning positions help organize coverage without prescribing a fixed image count/u);
+  assert.match(readiness, /25 planned Shots/u);
   assert.match(oldRegression, /#1745\/#2169 keeps all canonical story addresses available/u);
 });
 

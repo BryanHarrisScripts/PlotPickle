@@ -12,8 +12,8 @@ test("#2483 replaces the Storyboard Frame pull-down with bounded image chevrons"
   assert.doesNotMatch(loop, /positionSelector/u);
   assert.match(loop, /const positionArtifacts = frameArtifacts\.filter\(\(artifact\) => artifact\.frameNumber === position && artifact\.reviewState !== "rejected"\)/u);
   assert.match(loop, /const positionImages = \[\.\.\.generatedPositionImages, \.\.\.linkedPositionImages\]/u);
-  assert.match(loop, /Previous frame for Storyboard position/u);
-  assert.match(loop, /Next frame for Storyboard position/u);
+  assert.match(loop, /Previous Storyboard Image for Shot/u);
+  assert.match(loop, /Next Storyboard Image for Shot/u);
   assert.match(loop, /disabled=\{selectedImageIndex <= 0\}/u);
   assert.match(loop, /disabled=\{selectedImageIndex < 0 \|\| selectedImageIndex >= positionImages\.length - 1\}/u);
   assert.match(loop, /setSelectedImageByPosition/u);
@@ -43,8 +43,8 @@ test("#2483 displays exact persisted prompts and classifies recovered placeholde
   assert.match(source, /function exactStoryboardPrompt\(prompt: string \| undefined\)/u);
   assert.match(source, /value\.startsWith\("Recovered local Storyboard resource\."\)/u);
   assert.match(source, /prompt: exactStoryboardPrompt\(artifact\.prompt\)/u);
-  assert.match(source, /<strong>Storyboard Prompt<\/strong>/u);
-  assert.match(source, /selectedImage\.prompt \|\| "Original Storyboard prompt unavailable for this image\."/u);
+  assert.match(source, /<strong>Storyboard Image Prompt<\/strong>/u);
+  assert.match(source, /selectedImage\.prompt \|\| "Original Storyboard Image prompt unavailable for this image\."/u);
 });
 
 test("#2483 styles chevrons on the image and removes the old selector styling", async () => {

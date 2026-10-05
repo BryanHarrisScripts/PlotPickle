@@ -17,6 +17,8 @@ test("#2763 phase 4 adds a distinct bounded Timeline range media contract withou
   assert.match(contract, /input\.frames\.length > 100/u);
   assert.match(contract, /input\.frames\.length % 25 !== 0/u);
   assert.match(contract, /Timeline range export requires complete 25-Shot Mini-Blocks/u);
+  assert.match(contract, /frame\.durationMs !== 3_000/u);
+  assert.match(contract, /Timeline range export requires exactly 3,000 ms per Shot/u);
   assert.match(engine, /renderTimelineRange\(/u);
   assert.match(engine, /private async renderSequence/u);
   assert.match(bridge, /request\.frames\.len\(\) > 100/u);

@@ -50,12 +50,12 @@ test("#2170 begins from four Mini-Block visual coverage states and keeps missing
   assert.match(model, /storyboardCoverage = kept \? "kept"/u);
   assert.match(model, /: observed \? "candidate"/u);
   assert.match(model, /: "none"/u);
-  assert.match(workspace, /Visual coverage<\/dt>/u);
+  assert.match(workspace, /Storyboard anchor<\/dt>/u);
   assert.match(workspace, /KEPT STORYBOARD/u);
   assert.match(workspace, /CANDIDATE STORYBOARD/u);
   assert.match(workspace, /NO STORYBOARD VISUAL/u);
-  assert.match(workspace, /timing missing/u);
-  assert.match(workspace, /Missing motion or timing stays missing/u);
+  assert.match(workspace, /Previs coverage/u);
+  assert.match(workspace, /If a Storyboard Image is wrong or missing, correct and lock it in Storyboard/u);
   assert.doesNotMatch(workspace, /infer.*timing.*24\/96/iu);
 });
 
@@ -76,7 +76,7 @@ test("#2170 preserves exact Block/Mini coordinates through Previs, Storyboard an
   assert.match(page, /workspace=build&block=\$\{anchor\.blockNumber\}&mini=\$\{anchor\.miniBlockNumber\}/u);
 });
 
-test("#2170 keeps creative shot density variable and render-grid timing separate", async () => {
+test("#2170 keeps legacy production-shot contracts beneath a read-only Previs surface", async () => {
   const [contract, model, workspace] = await Promise.all([
     read("core/contracts/previs/index.ts"),
     read("app/_components/previs/previs-projection-model.ts"),
@@ -86,10 +86,9 @@ test("#2170 keeps creative shot density variable and render-grid timing separate
   assert.match(contract, /Zero\/one\/many creative shots may share an anchor/u);
   assert.match(model, /project\.production\.shots[\s\S]*\.filter\(\(shot\) => shot\.anchorRef === anchorId\)/u);
   assert.match(model, /durationSeconds: null/u);
-  assert.match(workspace, /creative shot density and timing remain variable/u);
-  assert.match(workspace, /technical preset/u);
-  assert.match(workspace, /clip grid is production plumbing, not a source of creative timing/u);
-  assert.match(workspace, /current two-hour preset only/u);
+  assert.match(workspace, /25 planned Shots/u);
+  assert.match(workspace, /Storyboard owns the 25 planned Shots and their locked Storyboard Images/u);
+  assert.doesNotMatch(workspace, /Add creative shot|Creative shots<\/dt>|Previs timing<\/dt>|Save creative shot/u);
   assert.match(model, /timing remains explicitly Human-authored/u);
 });
 
@@ -105,13 +104,9 @@ test("#2170 records blocking, performance, pacing and rough motion as Human-auth
   assert.match(model, /roughMotionEvidenceRefs: \[\]/u);
   assert.match(model, /reviewState: "planned"/u);
 
-  assert.match(workspace, /Blocking intent/u);
-  assert.match(workspace, /Performance energy/u);
-  assert.match(workspace, /Pacing \/ rhythm intent/u);
-  assert.match(workspace, /Rough motion evidence refs/u);
-  assert.match(workspace, /These do not approve the shot/u);
-  assert.match(workspace, /rough previews and motion references are evidence only/i);
-  assert.match(workspace, /does not change a Production Shot from Planned to Approved/u);
+  assert.doesNotMatch(workspace, /Blocking intent|Performance energy|Pacing \/ rhythm intent|Rough motion evidence refs/u);
+  assert.match(workspace, /Previs reads and presents those approved choices/u);
+  assert.match(workspace, /Previs does not generate or approve the replacement/u);
 });
 
 test("#2170 keeps Storyboard dependency staleness and Human approval boundaries intact", async () => {
@@ -123,10 +118,9 @@ test("#2170 keeps Storyboard dependency staleness and Human approval boundaries 
   assert.match(model, /shot\.storyboardArtifactId !== kept\?\.id/u);
   assert.match(model, /shot\.storyboardDependencyKey !== dependencyKey/u);
   assert.match(model, /if \(!anchor\.timingAllowed \|\| !anchor\.storyboardArtifactId \|\| !anchor\.storyboardDependencyKey\) return null/u);
-  assert.match(workspace, /Keep a current Storyboard visual before adding a creative Previs shot/u);
-  assert.match(workspace, /Saving below is an explicit Human confirmation/u);
-  assert.match(workspace, /option value="planned">Planned/u);
-  assert.match(workspace, /option value="approved">Approved/u);
+  assert.match(workspace, /Open owning Storyboard Mini-Block/u);
+  assert.match(workspace, /return to Storyboard, generate or choose the replacement there, and lock it there/u);
+  assert.doesNotMatch(workspace, /Add creative shot|Save creative shot|option value="planned"|option value="approved"/u);
   assert.doesNotMatch(workspace, /auto.*approved|self-promot/iu);
 });
 

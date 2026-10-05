@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Outline reuses PlotPickle local/bundled project assets. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
@@ -41,6 +41,7 @@ export default function OutlineBlockAnchorWorkspace({ project, blockNumber, onPr
   readonly onProjectChange: (project: LibraryPPFProject) => void;
 }) {
   const [selectedId, setSelectedId] = useState("");
+  const pendingSelectedId = useRef("");
   const [busy, setBusy] = useState(false);
   const [generationApproved, setGenerationApproved] = useState(false);
   const [message, setMessage] = useState("");
@@ -61,6 +62,12 @@ export default function OutlineBlockAnchorWorkspace({ project, blockNumber, onPr
   ], [artifacts, blockNumber, legacy]);
 
   useEffect(() => {
+    const pending = pendingSelectedId.current;
+    if (pending && versions.some((version) => version.id === pending)) {
+      pendingSelectedId.current = "";
+      if (selectedId !== pending) setSelectedId(pending);
+      return;
+    }
     if (versions.some((version) => version.id === selectedId)) return;
     const accepted = versions.find((version) => version.kind === "artifact" && acceptedIds.has(version.artifact.id));
     const latest = [...versions].reverse().find((version) => version.kind === "artifact");
@@ -114,8 +121,8 @@ export default function OutlineBlockAnchorWorkspace({ project, blockNumber, onPr
         parentArtifactId: selectedArtifact?.id ?? null,
       };
       const next = applyStoryCommand(project, { type: "foundations.visual.store", artifact, occurredAt: now });
+      pendingSelectedId.current = artifact.id;
       commit(next, `Created a Block ${blockNumber} visual anchor version. Save and Lock remain separate decisions.`);
-      setSelectedId(artifact.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Block visual anchor generation failed.");
     } finally {
@@ -164,8 +171,8 @@ export default function OutlineBlockAnchorWorkspace({ project, blockNumber, onPr
     }
     if (!artifactId) return;
     next = applyStoryCommand(next, { type: "foundations.visual.accept", artifactId, occurredAt: now });
+    pendingSelectedId.current = artifactId;
     commit(next, `Locked Block ${blockNumber} to this visual anchor. Mini-Block anchors remain independent.`);
-    setSelectedId(artifactId);
   }
 
   return <section className={styles.anchorWorkspace} aria-labelledby="outline-block-anchor-title" data-outline-block-anchor={anchorRef}>

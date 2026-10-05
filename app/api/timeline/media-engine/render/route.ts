@@ -1,6 +1,7 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../../core/auth/profile-experience/profile-experience-runtime";
 import { PlotPickleAuthError, toPublicAuthError } from "../../../../../core/auth/plotpickle-auth";
 import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../../core/auth/server-session/server-session-boundary";
+import { readMediaRouteInteger } from "../../../../../core/media/media-route-input";
 import {
   renderTimelineRangeWithOptionalFFrames,
   type TimelineLockedStoryboardFrame,
@@ -35,11 +36,6 @@ async function authorize(request: Request) {
   return runtimeState.boundaryFor(new URL(request.url).origin).authorizeRequest(requestBoundary(request), { mutation: true });
 }
 
-function integer(value: unknown, minimum: number, maximum: number) {
-  const number = typeof value === "number" ? value : Number(value);
-  return Number.isInteger(number) && number >= minimum && number <= maximum ? number : null;
-}
-
 export async function POST(request: Request) {
   try {
     await authorize(request);
@@ -50,8 +46,8 @@ export async function POST(request: Request) {
 
   try {
     const input = await request.json() as Record<string, unknown>;
-    const blockNumber = integer(input.blockNumber, 1, 24);
-    const miniBlockNumber = integer(input.miniBlockNumber, 1, 4);
+    const blockNumber = readMediaRouteInteger(input.blockNumber, { minimum: 1, maximum: 24 });
+    const miniBlockNumber = readMediaRouteInteger(input.miniBlockNumber, { minimum: 1, maximum: 4 });
     const frameCount = Array.isArray(input.frames) ? input.frames.length : 0;
     if (
       !blockNumber

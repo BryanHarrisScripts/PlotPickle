@@ -29,6 +29,8 @@
         "app/screenplay-readiness/page.tsx",
         "app/afterglow-reconciliation/page.tsx",
         "app/ai-routing/page.tsx",
+        "app/responsibility-run-activity.tsx",
+        "app/responsibility-run-activity.module.css",
         "app/_components/settings/**"
       ],
       "ownerLayer": "experience-skins",
@@ -239,7 +241,8 @@
       "id": "owner-preserving-agent-handoff",
       "classification": "production",
       "include": [
-        "lib/agents/responsibility/owner-preserving-handoff.mjs"
+        "lib/agents/responsibility/owner-preserving-handoff.mjs",
+        "lib/agents/responsibility/durable-run-lifecycle.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

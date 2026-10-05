@@ -16,12 +16,13 @@ import {
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2442 Storyboard returns to Dashboard and Outline disclosures default closed", async () => {
-  const [visual, timeline, foundation, written] = await Promise.all([
+test("#2442/#2770 Storyboard and Timeline return to Dashboard and Outline disclosures default closed", async () => {
+  const [visual, timeline, foundation, written, registry] = await Promise.all([
     read("app/_components/storyboard/visual-story-workspace.tsx"),
     read("app/_components/storyboard/scene-timeline-workspace.tsx"),
     read("app/skin-v1/story-card-foundation-board.tsx"),
     read("app/skin-v1/act-written-story-board.tsx"),
+    read("config/skin-v1-surface-registry.json"),
   ]);
 
   for (const source of [visual, timeline]) {
@@ -30,6 +31,8 @@ test("#2442 Storyboard returns to Dashboard and Outline disclosures default clos
     assert.doesNotMatch(source, />Back to Storyboard<\/button>/u);
     assert.doesNotMatch(source, /data-skin-v1-return="storyboard"/u);
   }
+  const registryModel = JSON.parse(registry);
+  assert.equal(registryModel.surfaces.find((surface) => surface.id === "scene-timeline")?.parent, "dashboard");
   assert.doesNotMatch(foundation, /<details[^>]+open=\{!turningPointSelected/u);
   assert.doesNotMatch(written, /<details[^>]+open=\{!turningPointSelected/u);
 });

@@ -1,4 +1,8 @@
 .surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pp-skin-space-3);
+  align-content: start;
   min-height: 100vh;
   padding: var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7);
   background: var(--pp-skin-fill-panel);
@@ -41,8 +45,7 @@
 .form {
   display: grid;
   gap: 14px;
-  margin-top: 12px;
-  max-width: 760px;
+  min-width: 0;
 }
 
 .form h3 {

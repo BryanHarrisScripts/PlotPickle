@@ -15,12 +15,14 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
   const menu = dashboard.slice(start, end);
 
   const expected = [
-    ["general", "G", "General", "SYSTEM", "Language, startup, interface reference and project data."],
+    ["general", "G", "General", "SYSTEM", "Language, startup, interface reference and system mathematics."],
     ["node-info", "I", "Node Info", "SYSTEM", "PlotPickle Node identity, lifecycle, readiness and current project."],
     ["command", "M", "Command", "SYSTEM", "Comments, requests, evidence and proposed-change review."],
     ["local", "L", "Local", "COMPUTE", "Local writing, images, video and Agent compute."],
     ["cloud", "C", "Cloud", "COMPUTE", "Explicit cloud providers and paid capability routes."],
     ["hybrid", "H", "Hybrid", "COMPUTE", "Route capabilities across Local and Cloud."],
+    ["semantic-uat", "U", "Semantic UAT", "OPERATIONS", "Run and review the local semantic UAT evidence."],
+    ["data-recovery", "D", "Data Recovery", "OPERATIONS", "Review project files and rolling recovery points."],
     ["agents", "A", "Agents", "OPERATIONS", "Assign compute to PlotPickle Agents."],
     ["ai-routing", "R", "AI Routing", "OPERATIONS", "Review capability routes and provider selection."],
     ["buzz-settings", "B", "BUZZ Settings", "OPERATIONS", "Configure BUZZ identity, presence and runtime settings."],
@@ -51,6 +53,8 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
 
 const shortcuts = {
   general: "G",
+  "semantic-uat": "U",
+  "data-recovery": "D",
   "node-info": "I",
   command: "M",
   local: "L",

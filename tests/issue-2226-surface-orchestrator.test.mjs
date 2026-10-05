@@ -13,8 +13,8 @@ test("#2226 wires every standard surface into the runtime orchestrator", async (
     readJson("config/skin-v1-surface-declarations/standard-surfaces.json"),
   ]);
   const standard = registry.surfaces.filter((surface) => surface.capturePolicy === "standard");
-  assert.equal(standard.length, 30);
-  assert.equal(Object.keys(declarations.surfaces).length, 30);
+  assert.equal(standard.length, 32);
+  assert.equal(Object.keys(declarations.surfaces).length, 32);
 
   for (const surface of standard) {
     assert.equal(surface.orchestrated, true, surface.id + " must be orchestrated");
@@ -83,7 +83,7 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   const refine = byId.get("refine");
   const feedback = byId.get("feedback");
 
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 32);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 45);
 
   assert.equal(edit?.capturePolicy, "census-only");

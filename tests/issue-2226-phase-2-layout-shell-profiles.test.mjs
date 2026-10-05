@@ -31,7 +31,7 @@ test("#2226 Phase 2 gives every governed standard surface a valid layout and for
     readJson("config/skin-v1-surface-registry.json"),
   ]);
   const standard = registry.surfaces.filter((surface) => surface.capturePolicy === "standard");
-  assert.equal(standard.length, 30);
+  assert.equal(standard.length, 32);
   assert.deepEqual(standard.map((surface) => surface.webmcpId).sort(), [...canonicalWebMcpSurfaceIds()].sort());
 
   for (const surface of standard) {

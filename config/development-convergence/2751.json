@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "issue": 2751,
+  "phase": "settings-organization-and-system-mathematics",
+  "brief": "docs/developer-briefs/2751-settings-organization.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "app/_components/settings/system-mathematics-card.module.css",
+    "app/_components/settings/system-mathematics-card.tsx",
+    "app/skin-v1-standard-surface-shell.css",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/settings-review-system-panel.module.css",
+    "app/skin-v1/settings-review-system-panel.tsx",
+    "app/skin-v1/settings-workspace-panel.module.css",
+    "app/skin-v1/settings-workspace-panel.tsx",
+    "app/skin-v1/uat-guide-panel.tsx",
+    "config/development-convergence/2751.json",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "config/skin-v1-surface-registry.json",
+    "config/uat-autopilot-registry.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2751-settings-organization.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "lib/verification/webmcp-surface-visual-audit.mjs",
+    "tests/issue-2124-surface-coverage-expansion.test.mjs",
+    "tests/issue-2159-phase-1-one-surface-registry.test.mjs",
+    "tests/issue-2159-surface-grammar-governance.test.mjs",
+    "tests/issue-2226-phase-0-surface-census.test.mjs",
+    "tests/issue-2226-phase-2-layout-shell-profiles.test.mjs",
+    "tests/issue-2226-surface-orchestrator.test.mjs",
+    "tests/issue-2249-navigation-continuity.test.mjs",
+    "tests/issue-2251-story-bible-surface.test.mjs",
+    "tests/issue-2270-rendered-geometry-inspector.test.mjs",
+    "tests/issue-2285-five-stage-preproduction.test.mjs",
+    "tests/issue-2287-discovery-living-board.test.mjs",
+    "tests/issue-2294-webmcp-full-qa.test.mjs",
+    "tests/issue-2308-surface-census.test.mjs",
+    "tests/issue-2310-surface-coverage-convergence.test.mjs",
+    "tests/issue-2730-settings-directory-groups.test.mjs",
+    "tests/issue-2751-settings-organization.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2751-A1",
+      "criterion": "General owns the six-section mathematics reference",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/settings-workspace-panel.tsx",
+          "contains": "<SystemMathematicsCard"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A2",
+      "criterion": "Both moved tools belong to Operations",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+          "contains": "label: \"Data Recovery\""
+        }
+      ]
+    },
+    {
+      "id": "P2751-A3",
+      "criterion": "Mathematics distinguishes planning from rendering",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/system-mathematics-card.tsx",
+          "contains": "actual video frame counts depend"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A4",
+      "criterion": "Registered browser navigation covers both moved destinations",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "SEMANTIC UAT"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A5",
+      "criterion": "Dedicated regression independently checks frame totals",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2751-settings-organization.test.mjs",
+          "contains": "seconds*fps"
+        }
+      ]
+    }
+  ]
+}

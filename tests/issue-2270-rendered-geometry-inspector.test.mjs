@@ -18,7 +18,7 @@ test("#2270 resolves one Surface Contract per standard WebMCP surface without ad
   ]);
   const standard = sources.registry.surfaces.filter((surface) => surface.capturePolicy === "standard");
 
-  assert.equal(contracts.length, 30);
+  assert.equal(contracts.length, 32);
   assert.equal(contracts.length, standard.length);
   assert.deepEqual(anatomy.fourLayerModel.map((layer) => layer.id), [
     "tokens",

@@ -108,7 +108,7 @@ test("#2285 renames the governed standard scene workspace to Timeline without ex
   );
   assert.equal(production?.capturePolicy, "census-only");
   assert.equal(production?.runtimeSelector, "[data-skin-v1-preproduction-review='production']");
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes("production"), false);
   assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.timeline, ["scene-timeline"]);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly.includes("production"));

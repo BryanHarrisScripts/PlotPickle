@@ -44,7 +44,7 @@ test("#2308 makes Surface Census profile 6 and Full QA profile 7", async () => {
 });
 
 test("#2308 reconciles live Dashboard destinations instead of assuming the governed catalogue is complete", () => {
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.equal(SKIN_V1_SURFACES.length, 80);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "standard").length, 30);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 45);

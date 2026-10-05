@@ -130,6 +130,20 @@
       "candidate": ".artifacts/visual-readiness/15-manage__01-general__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/15-manage__01-general.png"
     },
+    "semantic-uat": {
+      "label": "Semantic UAT",
+      "status": "candidate",
+      "selector": "section[aria-label='Semantic UAT settings']",
+      "candidate": ".artifacts/visual-readiness/semantic-uat-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/semantic-uat.png"
+    },
+    "data-recovery": {
+      "label": "Data Recovery",
+      "status": "candidate",
+      "selector": "section[aria-label='Data Recovery settings']",
+      "candidate": ".artifacts/visual-readiness/data-recovery-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/data-recovery.png"
+    },
     "story-mode": {
       "label": "Story Mode compatibility",
       "status": "candidate",

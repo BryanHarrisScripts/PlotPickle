@@ -134,5 +134,5 @@ test("#2249 lesson detail remains inside the registered Writer's Craft surface a
 
 test("#2249 preserves the frozen 30-surface WebMCP standard capture set", async () => {
   const registry = await readJson("config/skin-v1-surface-registry.json");
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 32);
 });

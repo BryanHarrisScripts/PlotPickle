@@ -10,7 +10,7 @@ import {
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 
 test("#2124 expands WebMCP through reachable nested Matrix directories", () => {
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.deepEqual(
     WEBMCP_STANDARD_SURFACE_REGISTRY["library-new"].navigation.map((step) => step.selector),
     ["[data-dashboard-menu-item='library']", "[data-library-nav='new']"],

@@ -23,12 +23,24 @@
     "lib/verification/skin-v1-menu-contract-audit.mjs",
     "lib/verification/webmcp-surface-capture-registry.mjs",
     "lib/verification/webmcp-surface-visual-audit.mjs",
-    "public/source.json",
+    "tests/issue-2124-surface-coverage-expansion.test.mjs",
     "tests/issue-2159-phase-1-one-surface-registry.test.mjs",
+    "tests/issue-2159-surface-grammar-governance.test.mjs",
+    "tests/issue-2226-phase-0-surface-census.test.mjs",
+    "tests/issue-2226-phase-2-layout-shell-profiles.test.mjs",
+    "tests/issue-2226-surface-orchestrator.test.mjs",
+    "tests/issue-2249-navigation-continuity.test.mjs",
+    "tests/issue-2251-story-bible-surface.test.mjs",
+    "tests/issue-2270-rendered-geometry-inspector.test.mjs",
+    "tests/issue-2285-five-stage-preproduction.test.mjs",
+    "tests/issue-2287-discovery-living-board.test.mjs",
+    "tests/issue-2294-webmcp-full-qa.test.mjs",
+    "tests/issue-2308-surface-census.test.mjs",
     "tests/issue-2310-surface-coverage-convergence.test.mjs",
     "tests/issue-2730-settings-directory-groups.test.mjs",
     "tests/issue-2751-settings-organization.test.mjs",
-    "tests/layer1-navigation-continuity.test.mjs"
+    "tests/layer1-navigation-continuity.test.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
   ],
   "acceptance": [
     {

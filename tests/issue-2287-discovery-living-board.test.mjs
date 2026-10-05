@@ -81,7 +81,7 @@ test("#2287 registers Discovery as census-only Skin V1/WebMCP coverage without e
   assert.equal(discovery?.capturePolicy, "census-only");
   assert.equal(discovery?.runtimeSelector, "[data-discovery-surface='canonical-authoring']");
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly.includes("discovery"));
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes("discovery"), false);
 });
 

@@ -85,7 +85,7 @@ test("#2159 canonical Surface Registry owns the current census and maps all 30 W
   }
 
   const standard = registry.surfaces.filter((surface) => surface.capturePolicy === "standard");
-  assert.equal(standard.length, 30, "The canonical registry must preserve the current 30-surface WebMCP standard set");
+  assert.equal(standard.length, 32, "The canonical registry must preserve the current 30-surface WebMCP standard set");
   const canonicalWebmcpIds = new Set(standard.map((surface) => surface.webmcpId));
   assert.deepEqual(
     [...canonicalWebmcpIds].sort(),

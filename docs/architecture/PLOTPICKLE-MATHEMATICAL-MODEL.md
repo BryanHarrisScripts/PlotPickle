@@ -31,11 +31,13 @@ Total Runtime T
       ↓
 96 Mini-Blocks
       ↓
-Creative shots / scenes / beats (variable)
+25 planned Storyboard Shots per Mini-Block
       ↓
-Technical production slots (when applicable)
+2,400 planned Shots for the two-hour target feature
       ↓
-Frame / timecode coordinates
+Storyboard Images + variable-density Scene / Beat evidence
+      ↓
+Final rendered video frames / timecode
 ```
 
 The mathematical structure is deterministic; the creative content placed into it is not.
@@ -170,7 +172,7 @@ This gives every Mini-Block an exact structural address.
 
 ## 4. Coordinates, not creative handcuffs
 
-The equal intervals define PlotPickle's **normalized address space**. They do not require every scene, beat, or creative shot to have equal duration.
+The equal intervals define PlotPickle's **normalized address space**. Scene and Beat density remain variable. The Storyboard planning model additionally assigns exactly 25 planned Shots to each Mini-Block as a production-planning target; approximately three seconds per planned Shot is not a hard runtime guarantee.
 
 A scene may span several Mini-Blocks. Several short scenes may occupy one Mini-Block. A writer may intentionally delay, compress, overlap, or omit a conventional event.
 
@@ -250,35 +252,41 @@ This produces:
 
 PlotPickle Score V1 currently uses deterministic distribution proxies for Alignment because not every loaded story contains trustworthy target-time evidence. Drift-based alignment is the natural extension once canonical timing evidence is sufficiently available.
 
-## 8. Creative shots versus technical render slots
+## 8. Planned Storyboard Shots and final video frames
 
-PlotPickle must distinguish two different concepts.
+The canonical Storyboard planning target is fixed:
 
-### Creative/editorial shot count
+`N_shots_per_mini = 25`
 
-If a completed or measured film has Average Shot Length `ASL`, an estimated editorial shot count is:
+For 96 Mini-Blocks:
 
-`N_shot ≈ T / ASL`
+`N_shots_feature = 96 × 25 = 2,400 planned Shots`
 
-This is descriptive film analysis. `ASL` varies by film, genre, sequence, director, and editing style. PlotPickle does not require a finished movie to use a three-second ASL.
+The nominal planning duration is approximately:
 
-### PlotPickle technical render grid
+`Δt_shot_target ≈ 3 seconds`
 
-The default PlotPickle production plan uses a separate three-second technical generation slot:
+Therefore one Mini-Block targets:
 
-`Δt_render = 3 seconds`
+`25 × 3 = 75 seconds`
 
-The number of technical slots is:
+and the complete two-hour target feature is:
 
-`N_render = ceil(T / Δt_render)`
+`2,400 × 3 = 7,200 seconds = 120 minutes`
 
-For exactly 7,200 seconds:
+At 24 fps, one approximately three-second planned Shot corresponds to approximately:
 
-`N_render = 7,200 / 3 = 2,400`
+`F_shot_target ≈ 3 × 24 = 72 final rendered video frames`
 
-With fixed shared boundaries, that produces 2,401 boundary coordinates.
+and the two-hour target movie corresponds to:
 
-These are production addresses, not a declaration that the film contains 2,400 creative editorial shots. One creative shot may span multiple technical render slots.
+`7,200 × 24 = 172,800 final rendered video frames`
+
+These are planning targets. Final rendered duration and frame count follow the actual rendered Shot durations and export frame rate.
+
+A `Shot` is the Storyboard-owned planned visual unit. A `Storyboard Image` is the selected or locked still image representing one planned Shot. A Storyboard Image is not an additional Shot and is not one literal final video frame. Scene and Beat remain variable-density authored evidence mapped into the fixed structure; they do not alter the 25-Shot count.
+
+The older model that treated creative Shot count as variable while separately assigning 25 three-second render slots to a Mini-Block is superseded for the Outline → Storyboard → Previs → Timeline workflow. Downstream media engines may still use internal clip/chunk mechanics, but those mechanics must not create a second Human-facing Shot count or renumber Storyboard Shots.
 
 ## 9. Occupancy and coverage
 

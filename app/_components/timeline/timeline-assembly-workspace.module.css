@@ -94,6 +94,7 @@
 .mediaGrid button,
 .transport button,
 .inspectorActions button,
+.inspectorActions a,
 .timelineRail button {
   min-height: var(--pp-skin-control-height);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -105,6 +106,7 @@
 .mediaGrid button:focus-visible,
 .transport button:focus-visible,
 .inspectorActions button:focus-visible,
+.inspectorActions a:focus-visible,
 .timelineRail button:focus-visible,
 .transport input:focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
@@ -150,15 +152,39 @@
 .shotCounter {
   position: absolute;
   right: 0.75rem;
-  bottom: 0.75rem;
+  top: 0.75rem;
   padding: 0.3rem 0.5rem;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-fill-panel);
 }
 
+.narrationOverlay,
+.narrationUnavailable {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 0.8rem 1rem;
+  background: color-mix(in srgb, var(--pp-skin-canvas) 88%, transparent);
+  border-top: 2px solid var(--pp-skin-focus);
+}
+
+.narrationOverlay p,
+.narrationUnavailable {
+  margin: 0;
+}
+
+.narrationOverlay p + p {
+  margin-top: 0.45rem;
+}
+
+.speechLine strong {
+  margin-right: 0.45rem;
+}
+
 .transport {
   display: grid;
-  grid-template-columns: auto auto auto auto minmax(180px, 1fr);
+  grid-template-columns: auto auto auto auto auto minmax(180px, 1fr);
   gap: 0.5rem;
   align-items: center;
   padding: 0.75rem;
@@ -220,6 +246,14 @@
   display: grid;
   gap: 0.45rem;
   margin-top: 0.75rem;
+}
+
+.exportLink {
+  display: grid;
+  place-items: center;
+  min-height: var(--pp-skin-control-height);
+  padding: 0.35rem 0.65rem;
+  text-decoration: none;
 }
 
 .timelineRail {

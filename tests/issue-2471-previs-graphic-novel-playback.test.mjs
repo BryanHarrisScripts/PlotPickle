@@ -51,7 +51,7 @@ test("#2471 retains local presentation-only Graphic Novel export under the super
   assert.doesNotMatch(workspace, /buildPrevisGraphicNovelExportHtml|text\/html|>Export Graphic Novel</u);
 });
 
-test("#2471 keeps the Graphic Novel inside the canonical 25-position Previs authority", async () => {
+test("#2471 keeps the Graphic Novel inside the canonical 25 planned-Shot Previs authority", async () => {
   const [workspace, css] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/_components/previs/previs-readiness-workspace.module.css"),
@@ -59,7 +59,7 @@ test("#2471 keeps the Graphic Novel inside the canonical 25-position Previs auth
 
   assert.match(workspace, /data-previs-flipbook="25-positions"/u);
   assert.match(workspace, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);
-  assert.match(workspace, /Only Keep \/ Lock frames are authoritative Previs inputs/u);
+  assert.match(workspace, /Locked Storyboard Images are authoritative Previs inputs/u);
   assert.match(css, /\.graphicNovelCaption/u);
   assert.match(css, /\.flipBookControls/u);
 });

@@ -46,13 +46,14 @@ test("#2462 labels Previs correctly and removes the legacy back-links", async ()
   assert.doesNotMatch(previs, />Inspect evidence</u);
 });
 
-test("#2462 preserves Previs Flip Book, navigation, shot authoring, and evidence provenance", async () => {
+test("#2462 preserves Previs Flip Book, navigation, read-only Shot presentation, and evidence provenance", async () => {
   const previs = await read("app/_components/previs/previs-readiness-workspace.tsx");
 
   assert.match(previs, /data-previs-flipbook="25-positions"/u);
   assert.match(previs, /Array\.from\(\{ length: 25 \}/u);
   assert.match(previs, /aria-label="Previs Acts"/u);
-  assert.match(previs, /Add creative shot/u);
+  assert.doesNotMatch(previs, /Add creative shot|Save creative shot/u);
+  assert.match(previs, /Open owning Storyboard Mini-Block/u);
   assert.match(previs, /id="previs-selected-evidence"/u);
   assert.match(previs, /artifact\.workflow === "storyboard-frame-webp-v2"/u);
   assert.match(previs, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);

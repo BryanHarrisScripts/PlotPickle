@@ -2,20 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  RENDER_CLIP_SECONDS,
-  RENDER_CLIPS_PER_BLOCK,
-  RENDER_CLIPS_PER_FEATURE,
-  RENDER_CLIPS_PER_MINI_BLOCK,
-  RENDER_KEYFRAMES_PER_FEATURE,
-  RENDER_MINI_BLOCK_SECONDS,
   type PrevisGraphicNovelTextApproval,
   type PrevisGraphicNovelTextBubble,
-  type ProductionShotIntent,
-  type ProductionShotReviewState,
 } from "@/core/contracts/previs";
-import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -23,9 +14,7 @@ import {
   storyboardPositionProgression,
 } from "../storyboard/storyboard-editorial-model";
 import {
-  createProductionShotForAnchor,
   derivePrevisProjection,
-  shotNeedsReview,
   type PrevisAnchorProjection,
 } from "./previs-projection-model";
 import {
@@ -228,7 +217,7 @@ async function buildBrowserGraphicNovelWebp(input: Readonly<{
     .slice(0, MAX_PANELS)
     .sort((left, right) => left.position - right.position);
 
-  if (!panels.length) throw new Error("Keep / Lock at least one Storyboard frame before exporting WebP.");
+  if (!panels.length) throw new Error("Lock at least one Storyboard Image in Storyboard before exporting WebP.");
 
   const rows = Math.ceil(panels.length / COLUMNS);
   const width = MARGIN * 2 + COLUMNS * PANEL_WIDTH + (COLUMNS - 1) * GAP;
@@ -361,18 +350,13 @@ export default function PrevisReadinessWorkspace({
     setSelectedBlockNumber(address.blockNumber);
     setSelectedMiniBlockNumber(address.miniBlockNumber);
   }, [address?.blockNumber, address?.miniBlockNumber]);
-  const [selectedShotId, setSelectedShotId] = useState("");
   const [message, setMessage] = useState("");
   const selectedBlock = projection.blocks.find((block) => block.blockNumber === selectedBlockNumber)
     ?? projection.blocks[0]
     ?? null;
-  const allAnchors = projection.blocks.flatMap((block) => block.anchors);
   const selectedAddressAnchor = selectedBlock?.anchors.find((anchor) => anchor.miniBlockNumber === selectedMiniBlockNumber)
     ?? selectedBlock?.anchors[0]
     ?? null;
-  const selectedAnchor = allAnchors.find((anchor) => anchor.shots.some((shot) => shot.id === selectedShotId)) ?? null;
-  const selectedShot = selectedAnchor?.shots.find((shot) => shot.id === selectedShotId) ?? null;
-  const selectedShotStale = Boolean(selectedShot && selectedAnchor && shotNeedsReview(selectedAnchor, selectedShot));
   const selectedAct = Math.ceil(selectedBlockNumber / 6);
   const actBlocks = projection.blocks.filter((block) => Math.ceil(block.blockNumber / 6) === selectedAct);
   const acceptedVisualIds = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -399,17 +383,16 @@ export default function PrevisReadinessWorkspace({
   });
   const selectedFlipBookFrame = flipBookFrames[selectedFramePosition - 1];
   const lockedFrameCount = flipBookFrames.filter((frame) => frame.locked).length;
+  const availableStoryboardImageCount = flipBookFrames.filter((frame) => frame.visual).length;
   const selectedFrameEvidence = selectedAddressAnchor
     ? storyboardAnchorEvidence(project, selectedAddressAnchor.targetId, selectedAddressAnchor.miniBlockNumber)
     : null;
   const selectedFrameSceneNumbers = [...new Set((selectedFrameEvidence?.passages ?? []).map((passage) => passage.sceneNumber).filter(Boolean))];
   const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
-  const selectedFrameShot = selectedAddressAnchor?.shots.find((shot) => shot.order === selectedFramePosition) ?? null;
 
   function graphicNovelPanelFor(position: number): PrevisGraphicNovelPanel {
     const frame = flipBookFrames[position - 1];
     const progression = storyboardPositionProgression(position);
-    const shot = selectedAddressAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
     return buildPrevisGraphicNovelPanel({
       position,
       assetUrl: frame?.locked?.assetUrl ?? "",
@@ -418,8 +401,8 @@ export default function PrevisReadinessWorkspace({
       sceneNumbers: selectedFrameSceneNumbers.map((number) => String(number)),
       beatLabel: progression.label,
       beatDirection: progression.direction,
-      shotLabel: shot ? `Shot ${String(shot.order).padStart(2, "0")} · ${shot.shotSize || "size open"}` : "Shot intent open",
-      shotContext: shot ? [shot.angle, shot.movement, shot.visualIntent].filter(Boolean).join(" · ") : "",
+      shotLabel: `Shot ${String(position).padStart(2, "0")} of 25`,
+      shotContext: "~3-second planning target",
       passages: selectedFrameEvidence?.passages ?? [],
     });
   }
@@ -525,7 +508,7 @@ export default function PrevisReadinessWorkspace({
     const now = new Date().toISOString();
     const approval = approvalFromDraft(panel, draft, now);
     if (!approval) {
-      setMessage(`Position ${String(position).padStart(2, "0")}: add narration or a complete speech bubble, or choose No text before approval.`);
+      setMessage(`Shot ${String(position).padStart(2, "0")} of 25: add narration or a complete speech bubble, or choose No text before approval.`);
       return;
     }
     const existing = project.production.graphicNovelTextApprovals ?? [];
@@ -533,7 +516,7 @@ export default function PrevisReadinessWorkspace({
       ...existing.filter((item) => !(item.anchorRef === selectedAddressAnchor.id && item.position === position)),
       approval,
     ];
-    persistGraphicNovelTextApprovals(nextApprovals, `Graphic Novel text approved for position ${String(position).padStart(2, "0")}. Create WebP remains locked until every locked position is current and approved.`);
+    persistGraphicNovelTextApprovals(nextApprovals, `Graphic Novel text approved for Shot ${String(position).padStart(2, "0")} of 25. Create WebP remains locked until every locked Shot is current and approved.`);
   }
 
   function approveAllGraphicNovelText() {
@@ -578,7 +561,7 @@ export default function PrevisReadinessWorkspace({
     setGraphicNovelPlaying(false);
     const sourcePanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
     if (!sourcePanels.length) {
-      const failure = "WebP export failed: Keep / Lock at least one Storyboard frame before exporting.";
+      const failure = "WebP export failed: Lock at least one Storyboard Image in Storyboard before exporting.";
       setGraphicNovelExportState("error");
       setGraphicNovelExportMessage(failure);
       setMessage(failure);
@@ -632,82 +615,29 @@ export default function PrevisReadinessWorkspace({
     }
   }
 
-  function commit(command: Parameters<typeof applyStoryCommand>[1]) {
-    const next = applyStoryCommand(project, command);
-    saveFoundationProject(next);
-    onProjectChange(next);
-    return next;
-  }
-
-  function addShot(anchor: PrevisAnchorProjection) {
-    const now = new Date().toISOString();
-    const shot = createProductionShotForAnchor(project, anchor, now);
-    if (!shot) {
-      setMessage("Keep a current Storyboard visual before adding a creative Previs shot to this anchor.");
-      return;
-    }
-    commit({ type: "previs.shot.store", shot, occurredAt: now });
-    setSelectedShotId(shot.id);
-    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Camera, blocking, performance and timing remain Human-authored; leave unknown fields empty rather than inferring them from the story grid.`);
-  }
-
-  function saveShot(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedShot || !selectedAnchor || !selectedAnchor.storyboardArtifactId || !selectedAnchor.storyboardDependencyKey) return;
-    const data = new FormData(event.currentTarget);
-    const rawDuration = String(data.get("durationSeconds") ?? "").trim();
-    const parsedDuration = rawDuration ? Number(rawDuration) : null;
-    const now = new Date().toISOString();
-    const shot: ProductionShotIntent = {
-      ...selectedShot,
-      storyboardArtifactId: selectedAnchor.storyboardArtifactId,
-      storyboardDependencyKey: selectedAnchor.storyboardDependencyKey,
-      shotSize: String(data.get("shotSize") ?? "").trim(),
-      angle: String(data.get("angle") ?? "").trim(),
-      movement: String(data.get("movement") ?? "").trim(),
-      lens: String(data.get("lens") ?? "").trim(),
-      visualIntent: String(data.get("visualIntent") ?? "").trim(),
-      blockingIntent: String(data.get("blockingIntent") ?? "").trim(),
-      performanceEnergy: String(data.get("performanceEnergy") ?? "").trim(),
-      pacingIntent: String(data.get("pacingIntent") ?? "").trim(),
-      roughMotionEvidenceRefs: String(data.get("roughMotionEvidenceRefs") ?? "")
-        .split(/\r?\n/u)
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .slice(0, 32),
-      durationSeconds: parsedDuration && Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : null,
-      transitionIn: String(data.get("transitionIn") ?? "").trim(),
-      transitionOut: String(data.get("transitionOut") ?? "").trim(),
-      reviewState: String(data.get("reviewState") ?? "planned") as ProductionShotReviewState,
-      updatedAt: now,
-    };
-    commit({ type: "previs.shot.store", shot, occurredAt: now });
-    setMessage(`Shot ${shot.order} saved. Previs intent remains Human-authored. For the current 120-minute render preset, a reviewed ${RENDER_MINI_BLOCK_SECONDS}s Mini-Block can map to the fixed ${RENDER_CLIPS_PER_MINI_BLOCK}-clip technical Render Plan.`);
-  }
-
   return (
     <main className={styles.workspace} aria-labelledby="previs-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Previs · Flip Book → Scene → Beat Detail → Shot → Frame</span>
+          <span className={styles.eyebrow}>Previs · 25 planned Shots → Flip Book / Graphic Novel</span>
           <h1 id="previs-title">Previs · {project.title || "Untitled Story"}</h1>
           <p>
-            Previs inherits the Human-kept Storyboard sequence and tests how the visual story plays. Locked frames form the Flip Book; Scene, Beat Detail, Shot and Frame stay attached to the same story address while camera, blocking, performance, motion and timing remain Human-authored downstream intent.
+            Previs presents the visual story already approved in Storyboard. It plays the same 25 planned Shots for the selected Mini-Block, keeps Scene and Beat evidence visible for context, and does not create a second Shot or image-authoring layer.
           </p>
         </div>
         <dl className={styles.summary}>
           <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{projection.projectRevision}</dd></div>
-          <div><dt>Mini-Blocks</dt><dd>{projection.totalAnchors}</dd></div>
-          <div><dt>Render clips</dt><dd>{projection.totalRenderClips || RENDER_CLIPS_PER_FEATURE}</dd></div>
-          <div><dt>Boundary keyframes</dt><dd>{projection.totalRenderKeyframes || RENDER_KEYFRAMES_PER_FEATURE}</dd></div>
+          <div><dt>Structure</dt><dd>4 Acts · 24 Blocks · 96 Mini-Blocks</dd></div>
+          <div><dt>Planned Shots</dt><dd>2,400</dd></div>
+          <div><dt>Selected Mini-Block</dt><dd>25 Shots · ~75 sec</dd></div>
         </dl>
       </header>
 
-      <section className={styles.notice} aria-label="Previs and Render Plan authority boundary">
+      <section className={styles.notice} aria-label="Previs authority boundary">
         <div>
-          <strong>Locked Storyboard frames → Previs Flip Book → motion and timing intent.</strong>
-          <span>Storyboard owns the still image and Keep / Lock decision. Previs can inspect draft positions, but only locked Storyboard frames become authoritative Flip Book material. Beat Detail is derived working context and never creates a new canonical Beat.</span>
+          <strong>Storyboard owns the 25 planned Shots and their locked Storyboard Images.</strong>
+          <span>Previs reads and presents those approved choices. To replace an image, return to Storyboard, generate or choose the replacement there, and lock it there; Previs then reflects the approved result.</span>
         </div>
       </section>
 
@@ -774,7 +704,7 @@ export default function PrevisReadinessWorkspace({
             <div>
               <p className={styles.blockKicker}>Block {String(selectedBlock.blockNumber).padStart(2, "0")}</p>
               <h2>{selectedBlock.label.replace(/^Block \d+: /, "")}</h2>
-              <p>Four canonical Mini-Block addresses preserve story provenance. Their creative shot density and timing remain variable. Under the current two-hour technical preset, a fully timed Mini-Block can project to {RENDER_CLIPS_PER_MINI_BLOCK} × {RENDER_CLIP_SECONDS}s render slots, for {RENDER_CLIPS_PER_BLOCK} technical clips per Block.</p>
+              <p>Four canonical Mini-Blocks preserve story provenance. Each Mini-Block carries exactly 25 planned Storyboard Shots, approximately 3 seconds per Shot, for an approximately 75-second planning target.</p>
             </div>
             <span aria-label={`Status: ${STATE_LABELS[selectedBlock.state]}`} className={styles.blockState} data-state={selectedBlock.state}>
               <i aria-hidden="true" className={styles.stateLight} />
@@ -792,9 +722,9 @@ export default function PrevisReadinessWorkspace({
               >
                 <div className={styles.videoFrame}>
                   {anchor.storyboardAssetUrl
-                    ? <img alt={`Storyboard keyframe for ${selectedBlock.blockNumber}.${anchor.miniBlockNumber}`} decoding="async" loading="lazy" src={anchor.storyboardAssetUrl} />
+                    ? <img alt={`Storyboard visual anchor for ${selectedBlock.blockNumber}.${anchor.miniBlockNumber}`} decoding="async" loading="lazy" src={anchor.storyboardAssetUrl} />
                     : <span className={styles.emptyVideo}>VIDEO / ANIMATIC</span>}
-                  <span className={styles.videoBadge}>{anchor.renderPlanReady ? "RENDER PLAN READY" : anchor.timingAllowed ? "PREVIS OPEN" : anchor.observedReference ? "REFERENCE ONLY" : "NO TIMING YET"}</span>
+                  <span className={styles.videoBadge}>{anchor.storyboardCoverage === "kept" ? "STORYBOARD READY" : anchor.storyboardCoverage === "candidate" ? "STORYBOARD CANDIDATE" : "STORYBOARD NEEDED"}</span>
                 </div>
                 <header className={styles.anchorHeader}>
                   <div>
@@ -815,27 +745,12 @@ export default function PrevisReadinessWorkspace({
                     <b>{STATE_LABELS[anchor.state]}</b>
                   </span>
                 </header>
-                <p>{anchor.reason}</p>
+                <p>Select this Mini-Block to review the approved visual sequence and its story evidence.</p>
                 <dl className={styles.anchorMeta}>
-                  <div><dt>Visual coverage</dt><dd>{anchor.storyboardCoverage === "kept" ? "Kept" : anchor.storyboardCoverage === "candidate" ? "Candidate" : "None"}</dd></div>
-                  <div><dt>Creative shots</dt><dd>{anchor.shots.length}</dd></div>
-                  <div><dt>Previs timing</dt><dd>{anchor.authoredDurationSeconds ? `${anchor.authoredDurationSeconds}s authored` : "Missing"}</dd></div>
+                  <div><dt>Storyboard anchor</dt><dd>{anchor.storyboardCoverage === "kept" ? "Kept" : anchor.storyboardCoverage === "candidate" ? "Candidate" : "Missing"}</dd></div>
+                  <div><dt>Planned Shots</dt><dd>25</dd></div>
+                  <div><dt>Planning target</dt><dd>~75 sec · ~3 sec per Shot</dd></div>
                 </dl>
-                <div className={styles.shotList} aria-label={`Creative Previs shots for ${anchor.blockNumber}.${anchor.miniBlockNumber}`}>
-                  {anchor.shots.map((shot) => (
-                    <button
-                      data-stale={anchor.staleShotIds.includes(shot.id) ? "true" : "false"}
-                      key={shot.id}
-                      onClick={() => setSelectedShotId(shot.id)}
-                      type="button"
-                    >
-                      Shot {shot.order} · {shot.durationSeconds ? `${shot.durationSeconds}s` : "timing open"}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.anchorActions}>
-                  <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add creative shot</button>
-                </div>
               </article>
             ))}
           </div>
@@ -846,23 +761,23 @@ export default function PrevisReadinessWorkspace({
                 <div>
                   <span className={styles.eyebrow}>Locked Storyboard sequence</span>
                   <h3 id="previs-flipbook-title">Flip Book · Mini-Block {selectedAddressAnchor.blockNumber}.{selectedAddressAnchor.miniBlockNumber}</h3>
-                  <p>Fan through the 25 Storyboard positions as one visual sequence. Only Keep / Lock frames are authoritative Previs inputs; unlocked candidates stay visible in the strip for review context only.</p>
+                  <p>Play the same 25 planned Shots from Storyboard in order. Locked Storyboard Images are authoritative Previs inputs; unlocked candidates remain visible only as review context.</p>
                 </div>
-                <strong>{lockedFrameCount}/25 locked</strong>
+                <strong>{lockedFrameCount}/25 locked Storyboard Images</strong>
               </header>
 
               <div className={styles.flipBookViewer}>
                 <div className={styles.flipBookStage} data-frame-state={selectedFlipBookFrame.locked ? "locked" : selectedFlipBookFrame.candidate ? "review" : "empty"}>
                   {selectedFlipBookFrame.locked ? (
                     <img
-                      alt={selectedFlipBookFrame.locked.narrativeIntention || `Locked Storyboard frame ${selectedFramePosition}`}
+                      alt={selectedFlipBookFrame.locked.narrativeIntention || `Locked Storyboard Image for Shot ${selectedFramePosition}`}
                       decoding="async"
                       src={selectedFlipBookFrame.locked.assetUrl}
                     />
                   ) : (
                     <div className={styles.flipBookBlocked}>
-                      <strong>Position {String(selectedFramePosition).padStart(2, "0")} is not locked for Previs.</strong>
-                      <span>{selectedFlipBookFrame.candidate ? "A Storyboard candidate exists, but Keep / Lock is required before it enters the Flip Book." : "No Storyboard frame is available at this position yet."}</span>
+                      <strong>Shot {String(selectedFramePosition).padStart(2, "0")} of 25 is not locked for Previs.</strong>
+                      <span>{selectedFlipBookFrame.candidate ? "A Storyboard Image candidate exists, but Lock is required in Storyboard before it enters the Flip Book." : "No Storyboard Image is available for this planned Shot yet."}</span>
                     </div>
                   )}
                   {graphicNovelMode && selectedGraphicNovelHasText ? (
@@ -889,7 +804,7 @@ export default function PrevisReadinessWorkspace({
                       </aside>
                     </>
                   ) : null}
-                  <span className={styles.flipBookCounter}>Frame {String(selectedFramePosition).padStart(2, "0")} / 25</span>
+                  <span className={styles.flipBookCounter}>Shot {String(selectedFramePosition).padStart(2, "0")} of 25</span>
                 </div>
 
                 <div className={styles.flipBookControls} aria-label="Previs presentation playback">
@@ -910,6 +825,7 @@ export default function PrevisReadinessWorkspace({
                   }}>{graphicNovelPlaying ? "Pause Graphic Novel" : graphicNovelMode ? "Resume Graphic Novel" : "Play Graphic Novel"}</button>
                   <button aria-expanded={graphicNovelTextReviewOpen} disabled={!lockedFrameCount} type="button" onClick={openGraphicNovelTextReview}>Review Text</button>
                   <button disabled={!graphicNovelTextReady || graphicNovelExporting} type="button" onClick={() => void exportGraphicNovel()}>Create WebP</button>
+                  <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open owning Storyboard Mini-Block</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);
                     setGraphicNovelPlaying(false);
@@ -944,7 +860,7 @@ export default function PrevisReadinessWorkspace({
                         return (
                           <article data-approval-state={currentApproval ? "approved" : savedApproval ? "stale" : "needed"} key={panel.position}>
                             <header>
-                              <strong>Position {String(panel.position).padStart(2, "0")}</strong>
+                              <strong>Shot {String(panel.position).padStart(2, "0")} of 25</strong>
                               <span>{frame?.locked ? approvalState : "Not locked"}</span>
                             </header>
                             {!frame?.locked ? (
@@ -967,7 +883,7 @@ export default function PrevisReadinessWorkspace({
                                   {draft.bubbles.map((bubble, index) => (
                                     <div key={index}>
                                       <input
-                                        aria-label={`Position ${panel.position} bubble ${index + 1} speaker`}
+                                        aria-label={`Shot ${panel.position} bubble ${index + 1} speaker`}
                                         disabled={draft.noText}
                                         placeholder="Speaker"
                                         value={bubble.speaker}
@@ -977,7 +893,7 @@ export default function PrevisReadinessWorkspace({
                                         }))}
                                       />
                                       <textarea
-                                        aria-label={`Position ${panel.position} bubble ${index + 1} text`}
+                                        aria-label={`Shot ${panel.position} bubble ${index + 1} text`}
                                         disabled={draft.noText}
                                         placeholder="Speech bubble text"
                                         rows={2}
@@ -1032,11 +948,11 @@ export default function PrevisReadinessWorkspace({
                 ) : null}
               </div>
 
-              <div className={styles.flipBookStrip} aria-label="25 Previs Flip Book positions">
+              <div className={styles.flipBookStrip} aria-label="25 planned Previs Shots">
                 {flipBookFrames.map((frame) => (
                   <button
                     aria-current={frame.position === selectedFramePosition ? "true" : undefined}
-                    aria-label={`Position ${frame.position}, ${frame.locked ? "locked" : frame.candidate ? "unlocked Storyboard candidate" : "empty"}`}
+                    aria-label={`Shot ${frame.position} of 25, ${frame.locked ? "locked Storyboard Image" : frame.candidate ? "unlocked Storyboard Image candidate" : "missing Storyboard Image"}`}
                     data-frame-state={frame.state}
                     key={frame.position}
                     onClick={() => {
@@ -1055,27 +971,22 @@ export default function PrevisReadinessWorkspace({
                 ))}
               </div>
 
-              <div className={styles.flipBookDetail} aria-label={`Previs detail for position ${selectedFramePosition}`}>
+              <div className={styles.flipBookDetail} aria-label={`Previs detail for Shot ${selectedFramePosition} of 25`}>
                 <article>
-                  <span>Scene</span>
+                  <span>Story evidence</span>
                   <strong>{selectedFrameSceneNumbers.length ? selectedFrameSceneNumbers.map((number) => `Scene ${number}`).join(" · ") : "No mapped Scene"}</strong>
                   <p>{selectedFrameEvidence?.passages.length ? `${selectedFrameEvidence.passages.length} screenplay passage${selectedFrameEvidence.passages.length === 1 ? "" : "s"} support this Mini-Block.` : "Previs will not invent a Scene where screenplay evidence is missing."}</p>
+                  <small>Beat context · {selectedFrameProgression.label} · {selectedFrameProgression.direction}</small>
                 </article>
                 <article>
-                  <span>Beat Detail</span>
-                  <strong>{selectedFrameProgression.label}</strong>
-                  <p>{selectedFrameProgression.direction}</p>
-                  <small>Derived Previs detail only · does not create a canonical Beat.</small>
+                  <span>Planned Shot</span>
+                  <strong>Shot {String(selectedFramePosition).padStart(2, "0")} of 25 · ~3-second planning target</strong>
+                  <p>This is the same Storyboard-owned planned Shot; Previs does not create or renumber it.</p>
                 </article>
                 <article>
-                  <span>Shot</span>
-                  <strong>{selectedFrameShot ? `Shot ${String(selectedFrameShot.order).padStart(2, "0")} · ${selectedFrameShot.shotSize || "size open"}` : "Shot intent open"}</strong>
-                  <p>{selectedFrameShot ? [selectedFrameShot.angle, selectedFrameShot.movement, selectedFrameShot.visualIntent].filter(Boolean).join(" · ") || "Camera intent remains open." : "Storyboard owns the locked still; Previs adds camera, blocking, performance and timing intent without rewriting the story."}</p>
-                </article>
-                <article>
-                  <span>Frame</span>
-                  <strong>Position {String(selectedFramePosition).padStart(2, "0")} · {selectedFlipBookFrame.locked ? "Locked" : selectedFlipBookFrame.candidate ? "Awaiting Keep / Lock" : "Missing"}</strong>
-                  <p>{selectedFlipBookFrame.locked?.narrativeIntention || selectedFlipBookFrame.candidate?.narrativeIntention || "No Storyboard frame is attached to this position."}</p>
+                  <span>Storyboard Image</span>
+                  <strong>{selectedFlipBookFrame.locked ? "Locked / approved" : selectedFlipBookFrame.candidate ? "Candidate · lock in Storyboard" : "Missing"}</strong>
+                  <p>{selectedFlipBookFrame.locked?.narrativeIntention || selectedFlipBookFrame.candidate?.narrativeIntention || "No Storyboard Image is attached to this planned Shot."}</p>
                 </article>
               </div>
             </section>
@@ -1109,9 +1020,9 @@ export default function PrevisReadinessWorkspace({
                   <small>{selectedAddressAnchor.storyboardProvenanceRefs.length} candidate provenance refs · {selectedAddressAnchor.acceptedVisualRefs.length} accepted target-scoped visual refs</small>
                 </div>
                 <div>
-                  <b>Previs motion / timing evidence</b>
-                  <p>{selectedAddressAnchor.shots.length} creative Production Shot{selectedAddressAnchor.shots.length === 1 ? "" : "s"} · {selectedAddressAnchor.authoredDurationSeconds ? `${selectedAddressAnchor.authoredDurationSeconds}s authored timing` : "timing missing"}</p>
-                  <small>{selectedAddressAnchor.shots.reduce((sum, shot) => sum + (shot.roughMotionEvidenceRefs?.length ?? 0), 0)} rough/local motion evidence ref{selectedAddressAnchor.shots.reduce((sum, shot) => sum + (shot.roughMotionEvidenceRefs?.length ?? 0), 0) === 1 ? "" : "s"}</small>
+                  <b>Previs coverage</b>
+                  <p>{availableStoryboardImageCount}/25 Storyboard Images available · {lockedFrameCount}/25 locked / approved</p>
+                  <small>Previs preserves Shot 01–25 exactly as Storyboard defines them.</small>
                 </div>
               </div>
               <div className={styles.mappingRefs}>
@@ -1122,72 +1033,15 @@ export default function PrevisReadinessWorkspace({
                   </small>
                 ))}
               </div>
-              <p className={styles.evidenceBoundary}>Missing motion or timing stays missing. Rough previews and motion references are evidence only; adding them does not change a Production Shot from Planned to Approved or promote a visual into canon.</p>
+              <p className={styles.evidenceBoundary}>Scene and Beat remain source context. If a Storyboard Image is wrong or missing, correct and lock it in Storyboard; Previs does not generate or approve the replacement.</p>
             </section>
           ) : null}
         </section>
       ) : null}
 
-      {selectedShot && selectedAnchor ? (
-        <section className={styles.shotEditor} aria-labelledby="production-shot-title">
-          <header>
-            <div>
-              <span>Creative Previs Shot · {selectedAnchor.blockNumber}.{selectedAnchor.miniBlockNumber}</span>
-              <h2 id="production-shot-title">Shot {selectedShot.order}</h2>
-            </div>
-            <div className={styles.noticeActions}>
-              <button type="button" onClick={() => onOpenStoryboard(selectedAnchor)}>Open owning Storyboard Mini-Block</button>
-            </div>
-          </header>
-          {selectedShotStale ? (
-            <p className={styles.staleNotice} role="status">This shot needs review because its approved Storyboard dependency changed. Saving below is an explicit Human confirmation against the current kept Storyboard visual.</p>
-          ) : null}
-          <form key={`${selectedShot.id}:${selectedShot.updatedAt}`} onSubmit={saveShot} className={styles.shotForm}>
-            <label>Shot size<input name="shotSize" defaultValue={selectedShot.shotSize} /></label>
-            <label>Angle<input name="angle" defaultValue={selectedShot.angle} /></label>
-            <label>Movement<input name="movement" defaultValue={selectedShot.movement} /></label>
-            <label>Lens<input name="lens" defaultValue={selectedShot.lens} /></label>
-            <label>Duration seconds<input name="durationSeconds" type="number" min="0.01" step="0.01" defaultValue={selectedShot.durationSeconds ?? ""} placeholder="Optional until Human-authored" /></label>
-            <label>Status<select name="reviewState" defaultValue={selectedShot.reviewState === "omitted" ? "planned" : selectedShot.reviewState}><option value="planned">Planned</option><option value="approved">Approved</option></select></label>
-            <label>Transition in<input name="transitionIn" defaultValue={selectedShot.transitionIn} placeholder="Optional" /></label>
-            <label>Transition out<input name="transitionOut" defaultValue={selectedShot.transitionOut} placeholder="Optional" /></label>
-            <label className={styles.fullField}>Blocking intent<textarea name="blockingIntent" defaultValue={selectedShot.blockingIntent ?? ""} placeholder="Human-authored movement, position, eyeline or staging intent. Leave blank when unknown." /></label>
-            <label className={styles.fullField}>Performance energy<textarea name="performanceEnergy" defaultValue={selectedShot.performanceEnergy ?? ""} placeholder="Human-authored performance intensity or behavioural energy. Leave blank when unknown." /></label>
-            <label className={styles.fullField}>Pacing / rhythm intent<textarea name="pacingIntent" defaultValue={selectedShot.pacingIntent ?? ""} placeholder="Human-authored rhythm, hold, acceleration or pause intent. Exact timing remains separate." /></label>
-            <label className={styles.fullField}>Visual / production intent<textarea name="visualIntent" defaultValue={selectedShot.visualIntent} placeholder="Camera, movement or execution intent. Story changes belong upstream." /></label>
-            <label className={styles.fullField}>Rough motion evidence refs<textarea name="roughMotionEvidenceRefs" defaultValue={(selectedShot.roughMotionEvidenceRefs ?? []).join("\n")} placeholder="Optional local/rough animatic or motion-evidence refs, one per line. These do not approve the shot." /></label>
-            <div className={styles.fullField}><button type="submit">Save creative shot</button></div>
-          </form>
-        </section>
-      ) : null}
-
-      <section className={styles.timelinePreview} aria-label="Previs to Render Plan projection">
-        <header>
-          <div>
-            <span>Previs → Render Plan</span>
-            <h2>Creative timing flows onto a fixed generation grid.</h2>
-          </div>
-          <strong>{RENDER_CLIPS_PER_BLOCK} fixed render clips in this Block</strong>
-        </header>
-        <div className={styles.timelineRail}>
-          {(selectedBlock?.anchors ?? []).map((anchor) => (
-            <div className={styles.timelineAnchor} data-state={anchor.state} key={anchor.id}>
-              <i aria-hidden="true" className={styles.stateLight} />
-              <span>{anchor.blockNumber}.{anchor.miniBlockNumber}</span>
-              <small>{anchor.renderPlanReady
-                ? `${RENDER_CLIPS_PER_MINI_BLOCK} render clips ready`
-                : anchor.authoredDurationSeconds
-                  ? `${anchor.authoredDurationSeconds}/${RENDER_MINI_BLOCK_SECONDS}s authored · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved technical clips`
-                  : `timing missing · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved technical clips`}</small>
-            </div>
-          ))}
-        </div>
-        <p>Creative shots are not the render quota. PlotPickle preserves Human-authored camera, blocking, performance and timing intent. For the current two-hour preset only, a complete 75-second Mini-Block maps onto Clip 01–25. Each clip has a stable address and shares its boundary keyframe with the next clip, enabling surgical regeneration without rebuilding the whole sequence.</p>
-      </section>
-
       <p className={styles.message} role="status">{message}</p>
       <footer className={styles.footer}>
-        The default two-hour technical production grid is deterministic: 24 Blocks → 96 Mini-Blocks → {RENDER_CLIPS_PER_FEATURE.toLocaleString()} × {RENDER_CLIP_SECONDS}s render clips → {RENDER_KEYFRAMES_PER_FEATURE.toLocaleString()} shared boundary keyframes. Story canon remains upstream; Previs remains Human-authored; Render Plan remains technical.
+        Canonical planning math: 1 Mini-Block = 25 planned Shots = approximately 75 seconds = approximately 1,800 final video frames at 24 fps. These are planning targets; actual rendered duration and frame count remain downstream.
       </footer>
     </main>
   );

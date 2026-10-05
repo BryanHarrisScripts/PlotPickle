@@ -12,9 +12,12 @@ test("#2495 makes Sharp a direct production dependency", async () => {
   const packageJson = JSON.parse(packageText);
   const lock = JSON.parse(lockText);
 
-  assert.equal(packageJson.dependencies.sharp, "0.35.4");
-  assert.equal(lock.packages[""].dependencies.sharp, "0.35.4");
-  assert.equal(lock.packages["node_modules/sharp"].version, "0.35.4");
+  const version = packageJson.dependencies.sharp;
+  assert.match(version, /^0\.35\.\d+$/u);
+  assert.ok(Number(version.split(".")[2]) >= 4, "preserve the supported Sharp patch floor");
+  assert.equal(packageJson.overrides.sharp, version);
+  assert.equal(lock.packages[""].dependencies.sharp, version);
+  assert.equal(lock.packages["node_modules/sharp"].version, version);
 });
 
 test("#2495 startup refuses a runtime that cannot load Sharp and can repair Windows Sharp", async () => {

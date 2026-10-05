@@ -149,22 +149,22 @@
     "test:public-site": "node --test tests/issue-2262-public-site-authority.test.mjs tests/issue-2327-public-host-blog.test.mjs"
   },
   "dependencies": {
-    "@cloudflare/vite-plugin": "1.60.1",
-    "@mastra/core": "1.71.0",
+    "@cloudflare/vite-plugin": "1.62.5",
+    "@mastra/core": "1.74.0",
     "@tailwindcss/postcss": "4.3.3",
     "@vitejs/plugin-react": "6.1.1",
     "@vitejs/plugin-rsc": "0.5.35",
-    "ai": "7.0.114",
+    "ai": "7.0.127",
     "drizzle-orm": "0.45.3",
     "libsodium-wrappers-sumo": "0.8.4",
-    "next": "16.3.6",
+    "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "tailwindcss": "4.3.3",
-    "vinext": "1.0.0-beta.12",
-    "vite": "8.3.1",
-    "wrangler": "4.140.0"
+    "vinext": "1.0.1",
+    "vite": "8.3.2",
+    "wrangler": "4.147.0"
   },
   "devDependencies": {
     "@types/node": "26.6.4",
@@ -184,7 +184,7 @@
     "@esbuild-kit/core-utils": {
       "esbuild": "0.25.12"
     },
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "miniflare": {
       "undici": "7.29.1"
     },

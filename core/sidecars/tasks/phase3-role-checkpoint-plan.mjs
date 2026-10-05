@@ -24,6 +24,8 @@ const CONTRACTS = Object.freeze({
   }),
 });
 
+export const PHASE3_DURABLE_ROLE_IDS = Object.freeze(["continuity", "critic", "creative-director"]);
+
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const sorted = (values) => Object.freeze([...new Set(values || [])].sort());
 

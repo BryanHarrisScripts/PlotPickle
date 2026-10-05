@@ -60,6 +60,7 @@ test("#2763 replaces manual review with automatic saved presentation snapshots",
  assert.doesNotMatch(workspace, />Review Text<|>Create WebP<|Approve All/u);
  assert.match(workspace, /saveFoundationProject\(next\)/u);
  assert.match(workspace, /latestSource.current !== source/u);
+ assert.match(workspace, /latestProject.current !== project/u);
  assert.match(workspace, /graphicNovelTextApprovals/u);
  assert.match(workspace, /passages,/u);
 });

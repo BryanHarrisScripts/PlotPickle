@@ -286,9 +286,10 @@ const STATE_LABELS = {
   locked: "BLOCKED",
 } as const;
 
-function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel, passages: unknown) {
+function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel, passages: unknown, storyContext: unknown) {
   return JSON.stringify({
     passages,
+    storyContext,
     assetUrl: panel.assetUrl,
     caption: panel.caption,
     narration: panel.narration,
@@ -311,6 +312,52 @@ function approvedGraphicNovelPanel(
     narration: approval.narration,
     bubbles: approval.bubbles.map((bubble) => ({ ...bubble, style: "speech" as const })),
   };
+}
+
+async function lockedImageContactSheet(panels: readonly PrevisGraphicNovelPanel[], signal: AbortSignal) {
+  const width = 1440;
+  const cellWidth = 288;
+  const cellHeight = 192;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = Math.ceil(panels.length / 5) * cellHeight;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("The browser cannot prepare the approved images for narration.");
+  context.fillStyle = "#101513";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.font = "bold 18px sans-serif";
+  context.textBaseline = "middle";
+
+  for (const [index, panel] of panels.entries()) {
+    signal.throwIfAborted();
+    const url = new URL(panel.assetUrl, window.location.origin);
+    if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/local-ai/assets/")) {
+      throw new Error(`Shot ${panel.position} needs a saved local Storyboard image for narration.`);
+    }
+    const response = await fetch(url, { credentials: "same-origin", cache: "no-store", signal });
+    if (!response.ok) throw new Error(`The locked image for Shot ${panel.position} could not be read (${response.status}).`);
+    const blob = await response.blob();
+    if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type) || blob.size > 12_000_000) {
+      throw new Error(`The locked image for Shot ${panel.position} is not a supported image.`);
+    }
+    const image = await createImageBitmap(blob);
+    try {
+      const x = (index % 5) * cellWidth;
+      const y = Math.floor(index / 5) * cellHeight;
+      drawCover(context, image, x, y, cellWidth, cellHeight - 30);
+      context.fillStyle = "#101513";
+      context.fillRect(x, y + cellHeight - 30, cellWidth, 30);
+      context.fillStyle = "#ffffff";
+      context.fillText(`Shot ${String(panel.position).padStart(2, "0")}`, x + 10, y + cellHeight - 15);
+    } finally {
+      image.close();
+    }
+  }
+  const sheet = canvas.toDataURL("image/jpeg", 0.75);
+  if (!sheet.startsWith("data:image/jpeg;base64,") || sheet.length > 3_000_000) {
+    throw new Error("The approved image sequence is too large for narration. Try again with smaller Storyboard images.");
+  }
+  return sheet;
 }
 
 export default function PrevisReadinessWorkspace({
@@ -382,6 +429,14 @@ export default function PrevisReadinessWorkspace({
   const selectedFrameEvidence = selectedAddressAnchor
     ? storyboardAnchorEvidence(project, selectedAddressAnchor.targetId, selectedAddressAnchor.miniBlockNumber)
     : null;
+  const storyContext = {
+    title: project.title,
+    act: selectedAct,
+    block: selectedAddressAnchor?.blockNumber,
+    miniBlock: selectedAddressAnchor?.miniBlockNumber,
+    blockTitle: selectedFrameEvidence?.blockTitle ?? "",
+    dramaticResponsibility: selectedFrameEvidence?.responsibility ?? "",
+  };
   const selectedFrameSceneNumbers = [...new Set((selectedFrameEvidence?.passages ?? []).map((passage) => passage.sceneNumber).filter(Boolean))];
   const selectedFrameProgression = storyboardPositionProgression(selectedFramePosition);
 
@@ -407,7 +462,7 @@ export default function PrevisReadinessWorkspace({
     .filter((approval) => approval.anchorRef === selectedAddressAnchor?.id);
   const currentTextApprovalFor = (panel: PrevisGraphicNovelPanel) => {
     const approval = graphicNovelTextApprovals.find((candidate) => candidate.position === panel.position) ?? null;
-    return approval && approval.sourceKey === graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages) ? approval : null;
+    return approval && approval.sourceKey === graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext) ? approval : null;
   };
   const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];
   const selectedGraphicNovelApproval = currentTextApprovalFor(selectedGraphicNovelPanel);
@@ -423,7 +478,7 @@ export default function PrevisReadinessWorkspace({
   );
   const lockedGraphicNovelPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
   const narrationSource = JSON.stringify({ projectId: project.id, anchor: selectedAddressAnchor?.id,
-    passages: selectedFrameEvidence?.passages, panels: lockedGraphicNovelPanels.map((panel) => graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages)) });
+    passages: selectedFrameEvidence?.passages, panels: lockedGraphicNovelPanels.map((panel) => graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext)) });
   latestSource.current = narrationSource;
 
   async function playNarration() {
@@ -442,12 +497,13 @@ export default function PrevisReadinessWorkspace({
     setNarrationGenerating(true);
     setMessage("Creating story narration for the locked image sequence…");
     try {
+      const contactSheet = await lockedImageContactSheet(lockedGraphicNovelPanels, controller.signal);
       const response = await fetch("/api/previs/narration", {
         method: "POST", credentials: "same-origin", signal: controller.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passages: selectedFrameEvidence?.passages ?? [],
+        body: JSON.stringify({ contactSheet, storyContext, passages: selectedFrameEvidence?.passages ?? [],
           panels: lockedGraphicNovelPanels.map((panel) => ({ position: panel.position,
-            intention: flipBookFrames[panel.position - 1].locked?.narrativeIntention ?? "", sourceKey: graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages) })) }),
+            intention: flipBookFrames[panel.position - 1].locked?.narrativeIntention ?? "" })) }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.message || "Narration generation failed.");
@@ -459,7 +515,7 @@ export default function PrevisReadinessWorkspace({
       const now = new Date().toISOString();
       const approvals: PrevisGraphicNovelTextApproval[] = result.panels.map((panel: { position: number; narration: string; bubbles: PrevisGraphicNovelTextBubble[] }) => ({
         anchorRef: selectedAddressAnchor.id, position: panel.position,
-        sourceKey: graphicNovelTextSourceKey(graphicNovelPanels[panel.position - 1], selectedFrameEvidence?.passages),
+        sourceKey: graphicNovelTextSourceKey(graphicNovelPanels[panel.position - 1], selectedFrameEvidence?.passages, storyContext),
         narration: panel.narration, bubbles: panel.bubbles,
         noText: !panel.narration && !panel.bubbles.length, approvedAt: now,
       }));

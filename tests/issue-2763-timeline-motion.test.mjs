@@ -28,7 +28,8 @@ test("#2763 phase 3 grounds motion in screenplay, approved first frame, and thre
   assert.match(workspace, /Approved image intention:/u);
   assert.match(workspace, /Use the approved first frame as the strict visual and character reference/u);
   assert.match(workspace, /Timeline slot is exactly three seconds/u);
-  assert.match(workspace, /motionSourceKey\(placement, shotNumber, artifactId\)/u);
+  assert.match(workspace, /motionSourceKey\(placement, shotNumber, artifactId, prompt\)/u);
+  assert.match(workspace, /placementSourceKey: placement\.sourceKey/u);
   assert.match(workspace, /sourceAssetUrl: presentation\.artifact\.assetUrl/u);
   assert.match(workspace, /requestedDurationSeconds: 3/u);
 });

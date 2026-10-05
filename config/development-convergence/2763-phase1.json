@@ -12,9 +12,11 @@
     "core/media/previs-narration.mjs",
     "docs/developer-briefs/2763-previs-playback-narration.md",
     "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+    "tests/issue-2440-story-architect-structured-execution.test.mjs",
     "tests/issue-2475-previs-surface-convergence.test.mjs",
     "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
     "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs",
+    "tests/issue-2507-previs-webp-auth-feedback.test.mjs",
     "tests/issue-2531-previs-graphic-novel-text-approval.test.mjs",
     "tests/issue-2758-previs-simplification.test.mjs",
     "tests/issue-2763-previs-narration.test.mjs"

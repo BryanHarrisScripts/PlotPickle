@@ -15,7 +15,7 @@ test("#2507 desktop Human profile mutations accept equivalent loopback browser o
   assert.match(runtime, /parsed\.protocol.*loopback/u);
 });
 
-test("#2507 keeps the legacy server endpoint authenticated while the live presentation-only export stays in the local browser", async () => {
+test("#2763 keeps the legacy server endpoint authenticated while removing Previs export controls", async () => {
   const [route, workspace] = await Promise.all([
     read("app/api/previs/graphic-novel/export/route.ts"),
     read("app/_components/previs/previs-readiness-workspace.tsx"),
@@ -23,6 +23,7 @@ test("#2507 keeps the legacy server endpoint authenticated while the live presen
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
   assert.match(route, /publicAuthorizationError/u);
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
+  assert.doesNotMatch(workspace, />Create WebP<|async function exportGraphicNovel/u);
   assert.doesNotMatch(workspace, /authenticatedProfileFetch\("\/api\/previs\/graphic-novel\/export"/u);
   assert.match(workspace, /assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
   assert.match(workspace, /fetch\(assetUrl, \{ credentials: "same-origin"/u);
@@ -30,21 +31,12 @@ test("#2507 keeps the legacy server endpoint authenticated while the live presen
   assert.match(workspace, /"image\/webp"/u);
 });
 
-test("#2507 presents WebP export progress, visible success filename and visible failure next to playback controls", async () => {
-  const [workspace, css] = await Promise.all([
-    read("app/_components/previs/previs-readiness-workspace.tsx"),
-    read("app/_components/previs/previs-readiness-workspace.module.css"),
-  ]);
-  assert.match(workspace, /graphicNovelExportState/u);
-  assert.match(workspace, /graphicNovelExportMessage/u);
-  assert.match(workspace, /Exporting WebP…/u);
-  assert.match(workspace, /WebP exported successfully as one static Graphic Novel sheet/u);
-  assert.match(workspace, /anchor\.download/u);
-  assert.match(workspace, /WebP export failed:/u);
-  assert.match(workspace, /className=\{styles\.exportStatus\}/u);
-  assert.match(workspace, /role=\{graphicNovelExportState === "error" \? "alert" : "status"\}/u);
-  assert.match(css, /\.exportStatus\[data-export-state="success"\]/u);
-  assert.match(css, /\.exportStatus\[data-export-state="error"\]/u);
+test("#2763 reports narration generation status beside the playback controls", async () => {
+  const workspace = await read("app/_components/previs/previs-readiness-workspace.tsx");
+  assert.match(workspace, /Creating story narration for the locked image sequence/u);
+  assert.match(workspace, /Story narration saved\. Playing locked images with text/u);
+  assert.match(workspace, /className=\{styles\.message\} role="status"/u);
+  assert.doesNotMatch(workspace, /graphicNovelExportState|graphicNovelExportMessage/u);
 });
 
 test("#2507 export remains locked-frame-only static WebP with Graphic Novel bubbles", async () => {

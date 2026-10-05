@@ -10,6 +10,7 @@ import type {
   PlotPickleMediaEngineEvidence,
   PlotPickleMediaEngineRunOptions,
   PlotPickleMiniBlockMediaRequest,
+  PlotPickleTimelineRangeMediaRequest,
 } from "./media-engine-contract";
 
 const ENGINE_ID = "fframes-local";
@@ -51,7 +52,9 @@ function safeAssetName(position: number, sourcePath: string) {
   return `storyboard-${String(position).padStart(2, "0")}${extension}`;
 }
 
-function bridgeManifest(request: PlotPickleMiniBlockMediaRequest, names: ReadonlyMap<number, string>) {
+type FFramesSequenceRequest = PlotPickleMiniBlockMediaRequest | PlotPickleTimelineRangeMediaRequest;
+
+function bridgeManifest(request: FFramesSequenceRequest, names: ReadonlyMap<number, string>) {
   return {
     requestId: request.requestId,
     projectId: request.projectId,
@@ -114,6 +117,14 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
   }
 
   async renderMiniBlock(request: PlotPickleMiniBlockMediaRequest, options: PlotPickleMediaEngineRunOptions = {}): Promise<PlotPickleMediaEngineEvidence> {
+    return this.renderSequence(request, options);
+  }
+
+  async renderTimelineRange(request: PlotPickleTimelineRangeMediaRequest, options: PlotPickleMediaEngineRunOptions = {}): Promise<PlotPickleMediaEngineEvidence> {
+    return this.renderSequence(request, { ...options, timeoutMs: options.timeoutMs ?? 10 * 60_000 });
+  }
+
+  private async renderSequence(request: FFramesSequenceRequest, options: PlotPickleMediaEngineRunOptions): Promise<PlotPickleMediaEngineEvidence> {
     const startedAt = new Date().toISOString();
     const capability = await this.capabilities();
     if (capability.state !== "ready") {
@@ -151,7 +162,7 @@ export class FFramesLocalMediaEngine implements PlotPickleMediaEngine {
     }
   }
 
-  private async evidence(request: PlotPickleMiniBlockMediaRequest, startedAt: string, state: PlotPickleMediaEngineEvidence["state"], sourceAssets: PlotPickleMediaEngineEvidence["sourceAssets"], diagnostics: readonly string[], reason: string, options: PlotPickleMediaEngineRunOptions, videoPath = ""): Promise<PlotPickleMediaEngineEvidence> {
+  private async evidence(request: FFramesSequenceRequest, startedAt: string, state: PlotPickleMediaEngineEvidence["state"], sourceAssets: PlotPickleMediaEngineEvidence["sourceAssets"], diagnostics: readonly string[], reason: string, options: PlotPickleMediaEngineRunOptions, videoPath = ""): Promise<PlotPickleMediaEngineEvidence> {
     const artifacts = { contactSheetPath: "", frameDirectory: "", videoPath };
     const evidence = { schemaVersion: 1 as const, requestId: request.requestId, engineId: ENGINE_ID, engineVersion: ENGINE_VERSION, state, startedAt, completedAt: new Date().toISOString(), sourceAssets, artifacts, inspection: null, timeline: { fps: request.fps, width: request.width, height: request.height, frameCount: request.frames.length }, diagnostics, reason };
     if (options.evidenceDirectory) {

@@ -418,7 +418,7 @@ export default function StoryboardReadinessWorkspace({
         onProjectChange(current);
         setSelectedImageByPosition((values) => ({ ...values, ...selectedArtifacts }));
       }
-      const successText = succeeded + " of " + positions.length + " WebP frame candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save to mark the versions you want saved locally for review.";
+      const successText = succeeded + " of " + positions.length + " Storyboard Image candidate" + (positions.length === 1 ? "" : "s") + " generated as local drafts for recovery. Use Save to mark the versions you want saved locally for review.";
       const failureText = failures.length ? " " + failures.join(" ") : " None were kept or made canon.";
       setFrameNotice(successText + failureText);
     } finally {
@@ -442,26 +442,26 @@ export default function StoryboardReadinessWorkspace({
 
   const generationCount = promptPosition === null ? 1 : storyboardPositionsForScope(promptPosition, generationScope).length;
   const generationButtonLabel = frameBusy
-    ? "Creating " + generationCount + " WebP frame" + (generationCount === 1 ? "…" : "s…")
+    ? "Creating " + generationCount + " Storyboard Image" + (generationCount === 1 ? "…" : "s…")
     : generationCount === 1
-      ? "Generate selected WebP frame"
+      ? "Generate selected Storyboard Image"
       : generationCount === 5
-        ? "Generate 5 WebP frames"
-        : "Generate all 25 WebP frames";
+        ? "Generate Storyboard Images for 5 Shots"
+        : "Generate Storyboard Images for all 25 Shots";
 
   return (
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Sequence → Block → Mini-Block → Scene → Beat → Shot → Frame</span>
+          <span className={styles.eyebrow}>Act → Sequence → Block → Mini-Block → 25 planned Shots</span>
           <h1 id="storyboard-readiness-title">Storyboard · {project.title || "Untitled Story"}</h1>
           <p>
-            Storyboard inherits Scene and Beat from the story structure, then adds Shot and Frame. Shot is the director/cinematographer view of the moment; Frame is the still image representing that Shot. The 25 positions are available Shot/Frame capacity, not 25 Beats.
+            Storyboard keeps Scene and Beat as variable-density story evidence, then expands the selected Mini-Block into exactly 25 planned Shots. Each planned Shot can have image candidates, and one locked Storyboard Image becomes its approved visual representation.
           </p>
         </div>
         <dl className={styles.summary}>
           <div><dt>Sequence</dt><dd>{String(selectedSequenceNumber).padStart(2, "0")} · Blocks {selectedSequenceBlocks.map((number) => String(number).padStart(2, "0")).join("–")}</dd></div>
-          <div><dt>Mini-Block</dt><dd>{selectedNumber}.{selectedMiniBlockNumber} · ≈75 sec</dd></div>
+          <div><dt>Mini-Block</dt><dd>{selectedNumber}.{selectedMiniBlockNumber} · 25 planned Shots · ≈75 sec</dd></div>
           <div><dt>Visual anchors</dt><dd>96</dd></div>
           <div><dt>Act {selectedAct} mapped Blocks</dt><dd>{actBlocks.filter((target) => target.storyboardAllowed).length} / 6</dd></div>
         </dl>
@@ -500,7 +500,7 @@ export default function StoryboardReadinessWorkspace({
               <p className={styles.blockKicker}>Block {String(selectedNumber).padStart(2, "0")}</p>
               <h2>{selectedTarget.label.replace(/^Block \d+: /, "")}</h2>
               <p>{selectedTarget.storyboardAllowed
-                ? "Screenplay placement allows visual exploration. Select a Mini-Block in the Storyboard map above; its Scenes, Beats and image positions stay on this page."
+                ? "Screenplay placement allows visual exploration. Select a Mini-Block in the Storyboard map above; its Scene/Beat evidence and 25 planned Shots stay on this page."
                 : qaOnlyAccess
                   ? `QA access is open for this Block. Canonical prerequisites remain unresolved: ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is incomplete."}`
                   : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
@@ -573,20 +573,21 @@ export default function StoryboardReadinessWorkspace({
           <section className={styles.visualBreakdown} data-storyboard-scene-beat-detail="inline" aria-label={`Block ${selectedNumber} Mini-Block ${selectedMiniBlockNumber} Scene and Beat visuals`}>
             <header>
               <div>
-                <span className={styles.eyebrow}>Scene → Beat → Shot → Frame</span>
+                <span className={styles.eyebrow}>Scene / Beat evidence → 25 planned Shots → Storyboard Images</span>
                 <h3>Mini-Block {selectedNumber}.{selectedMiniBlockNumber} · Scenes &amp; Beats</h3>
                 <p>{selectedScenes.length} mapped Scene{selectedScenes.length === 1 ? "" : "s"} at this anchor. The Storyboard navigation remains visible above while you work.</p>
+                <p data-storyboard-mathematics="25-shots">Mini-Block {selectedNumber}.{selectedMiniBlockNumber} · 75-second planning target · 25 planned Shots · ~3 seconds per Shot · ~1,800 final video frames at 24 fps</p>
               </div>
-              <small>25 available Shot / Frame positions · no fixed Shot quota</small>
+              <small>25 planned Shots · approximately 3 seconds per Shot</small>
             </header>
             <div className={styles.sceneList}>
               {blockScenes.length ? blockScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Block yet. Visual positions remain available without inventing a Scene.</p>}
             </div>
             <div className={styles.beatList}><strong>Authored Beats</strong>{blockBeats.length ? blockBeats.map((beat) => <p key={`${beat.anchorRef}-${beat.id}`}>{beat.anchorRef} · {String(beat.order).padStart(2, "0")} · {beat.label || beat.visualAction || beat.purpose}</p>) : <p>No authored Beat is mapped to this Block yet. Scene passages are evidence, not automatically named Beats.</p>}</div>
             <div className={styles.visualSequence}>
-              <strong>Storyboard Positions 01–25 · Shot / Frame capacity</strong>
-              <p>These are available visual positions, not 25 Beats. A Beat may use several Shots, and unused positions stay empty. Existing authored Shots and linked Frames appear at their Shot order without manufacturing missing story structure.</p>
-              <div className={styles.positionList} aria-label="25 storyboard Shot and Frame positions">
+              <strong>25 Planned Shots</strong>
+              <p>Scene and Beat remain variable-density story evidence. They may map across one or several planned Shots, but they never change the fixed Shot 01–25 count. Each planned Shot may hold multiple image candidates, while one locked Storyboard Image is the approved visual representation for that Shot.</p>
+              <div className={styles.positionList} aria-label="25 planned Storyboard Shots">
                 {Array.from({ length: 25 }, (_, index) => {
                   const position = index + 1;
                   const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
@@ -634,16 +635,16 @@ export default function StoryboardReadinessWorkspace({
                   return (
                     <div className={styles.positionRow} data-storyboard-position={position} key={position}>
                       <div className={styles.positionIdentity}>
-                        <strong>Position {String(position).padStart(2, "0")}</strong>
+                        <strong>Shot {String(position).padStart(2, "0")} of 25</strong>
                         <span>{shotLabel}</span>
                       </div>
                       <div className={styles.positionImage}>
                         <span
-                          aria-label={`${frameVersionLabel} images for Storyboard position ${String(position).padStart(2, "0")}`}
+                          aria-label={`${frameVersionLabel} Storyboard Image versions for Shot ${String(position).padStart(2, "0")}`}
                           className={styles.frameVersionCount}
                         >{frameVersionLabel}</span>
                         {positionImages.length > 1 ? <button
-                          aria-label={`Previous frame for Storyboard position ${String(position).padStart(2, "0")}`}
+                          aria-label={`Previous Storyboard Image for Shot ${String(position).padStart(2, "0")}`}
                           className={`${styles.frameChevron} ${styles.frameChevronPrevious}`}
                           disabled={selectedImageIndex <= 0}
                           type="button"
@@ -654,11 +655,11 @@ export default function StoryboardReadinessWorkspace({
                         >‹</button> : null}
                         {selectedImage
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
-                          : <span>No Frame selected</span>}
+                          : <span>No Storyboard Image selected</span>}
                         {savedLocally ? <span className={`${styles.frameStateBadge} ${styles.frameSavedBadge}`}>Saved locally</span> : null}
                         {accepted ? <span className={`${styles.frameStateBadge} ${styles.frameLockedBadge}`}>Locked</span> : null}
                         {positionImages.length > 1 ? <button
-                          aria-label={`Next frame for Storyboard position ${String(position).padStart(2, "0")}`}
+                          aria-label={`Next Storyboard Image for Shot ${String(position).padStart(2, "0")}`}
                           className={`${styles.frameChevron} ${styles.frameChevronNext}`}
                           disabled={selectedImageIndex < 0 || selectedImageIndex >= positionImages.length - 1}
                           type="button"
@@ -668,7 +669,7 @@ export default function StoryboardReadinessWorkspace({
                           }}
                         >›</button> : null}
                       </div>
-                      <div className={styles.frameReview} aria-label={`Review frame at position ${position}`} data-review-state={reviewState}>
+                      <div className={styles.frameReview} aria-label={`Review Storyboard Image for Shot ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
                         <button
                           disabled={!selectedArtifact || savedLocally || qaOnlyAccess || frameBusy}
@@ -700,24 +701,24 @@ export default function StoryboardReadinessWorkspace({
                         ) : null}
                       </div>
                       {selectedImage ? <div className={styles.framePromptProvenance}>
-                        <strong>Storyboard Prompt</strong>
-                        <p>{selectedImage.prompt || "Original Storyboard prompt unavailable for this image."}</p>
+                        <strong>Storyboard Image Prompt</strong>
+                        <p>{selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image."}</p>
                       </div> : null}
-                      {!selectedImage ? <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button> : null}
+                      {!selectedImage ? <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create Storyboard Image prompt</button> : null}
                     </div>
                   );
                 })}
               </div>
               {promptPosition !== null ? (
-                <section className={styles.framePromptPanel} aria-label={`Frame prompt for position ${promptPosition}`}>
-                  <h4>Position {String(promptPosition).padStart(2, "0")} · WebP frame candidate</h4>
+                <section className={styles.framePromptPanel} aria-label={`Storyboard Image prompt for Shot ${promptPosition}`}>
+                  <h4>Shot {String(promptPosition).padStart(2, "0")} of 25 · Storyboard Image candidate</h4>
                   <p>Prepared from mapped story evidence. Edit the visual direction before generating; no story content changes until you keep a candidate.</p>
                   <textarea aria-label="Editable storyboard frame prompt" rows={6} value={framePrompt} onChange={(event) => setFramePrompt(event.target.value)} />
                   <fieldset className={styles.generationScope}>
                     <legend>Generation scope</legend>
-                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "single"} onChange={() => setGenerationScope("single")} /> Selected frame</label>
-                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "group5"} onChange={() => setGenerationScope("group5")} /> Current group of 5</label>
-                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "all25"} onChange={() => setGenerationScope("all25")} /> All 25 frames</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "single"} onChange={() => setGenerationScope("single")} /> Selected Shot</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "group5"} onChange={() => setGenerationScope("group5")} /> Current group of 5 Shots</label>
+                    <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "all25"} onChange={() => setGenerationScope("all25")} /> All 25 Shots</label>
                   </fieldset>
                   <p className={styles.generationHint}>Each position receives its own story-progressing frame brief. The selected prompt above is editable; batch neighbors are rebuilt from their own evidence slices.</p>
                   <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this image generation request through my configured provider; cloud routes may charge my account.</label>
@@ -731,7 +732,7 @@ export default function StoryboardReadinessWorkspace({
               <header>
                 <div>
                   <span className={styles.eyebrow}>Storyboard detail</span>
-                  <h3 id="storyboard-beat-shot-frame-title">Beat · Shot · Frame</h3>
+                  <h3 id="storyboard-beat-shot-frame-title">Story evidence · Planned Shot · Storyboard Image</h3>
                 </div>
                 <small>Inline for Mini-Block {selectedNumber}.{selectedMiniBlockNumber}</small>
               </header>
@@ -755,7 +756,7 @@ export default function StoryboardReadinessWorkspace({
       ) : null}
 
       <footer className={styles.footer}>
-        Four Acts contain twelve Sequences, twenty-four Blocks and ninety-six Mini-Blocks. Outline owns story structure through Scene and Beat. Storyboard adds Shot and Frame. Scene, Beat and Shot counts remain flexible; the 25 positions are visual capacity, not a creative quota.
+        Four Acts contain twelve Sequences, twenty-four Blocks and ninety-six Mini-Blocks. Scene and Beat remain variable-density story evidence. Storyboard owns exactly 25 planned Shots per Mini-Block and the Storyboard Image candidates for each Shot; approximately 3 seconds per Shot is a planning target, not a hard runtime guarantee.
       </footer>
     </main>
   );

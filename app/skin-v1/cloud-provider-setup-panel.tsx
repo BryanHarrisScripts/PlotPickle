@@ -40,6 +40,14 @@ type TestResponse = {
   verifiedAt?: string;
   message?: string;
   error?: string;
+  outputAssetUrl?: string;
+};
+
+type DiagnosticEntry = {
+  id: string;
+  at: string;
+  message: string;
+  outputAssetUrl?: string;
 };
 
 type ProviderForm = {
@@ -98,10 +106,36 @@ function formatDate(value?: string) {
   return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
 }
 
+function cleanDiagnosticText(value: string) {
+  return value
+    .replace(/<[^>]+>/gu, " ")
+    .replace(/sk-[a-zA-Z0-9_-]+/gu, "[redacted]")
+    .replace(/Bearer\s+[^\s<]+/giu, "Bearer [redacted]")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .slice(0, 500);
+}
+
 async function json<T>(path: string, init?: RequestInit) {
   const response = await fetch(path, init);
-  const body = await response.json() as T & { message?: string };
-  if (!response.ok) throw new Error(body.message || "The cloud provider request failed.");
+  const text = await response.text();
+  let body: (T & { message?: string }) | null = null;
+  if (text) {
+    try {
+      body = JSON.parse(text) as T & { message?: string };
+    } catch {
+      body = null;
+    }
+  }
+  if (!response.ok) {
+    const detail = body?.message || cleanDiagnosticText(text);
+    throw new Error(detail
+      ? `HTTP ${response.status}: ${detail}`
+      : `HTTP ${response.status}: The cloud provider request failed.`);
+  }
+  if (!body) {
+    throw new Error(`HTTP ${response.status}: PlotPickle expected JSON but the local endpoint returned ${response.headers.get("content-type") || "an unknown content type"}.`);
+  }
   return body;
 }
 
@@ -123,6 +157,37 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
   const [dataSharingAcknowledged, setDataSharingAcknowledged] = useState(false);
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("Checking cloud provider authority…");
+  const [diagnostics, setDiagnostics] = useState<DiagnosticEntry[]>([]);
+
+  const recordDiagnostic = useCallback((message: string, outputAssetUrl = "") => {
+    const entry: DiagnosticEntry = {
+      id: `${Date.now()}-${Math.floor(performance.now())}`,
+      at: new Date().toISOString(),
+      message: cleanDiagnosticText(message),
+      ...(outputAssetUrl ? { outputAssetUrl } : {}),
+    };
+    setDiagnostics((current) => [entry, ...current].slice(0, 80));
+  }, []);
+
+  useEffect(() => {
+    if (diagnostics.length === 0) return;
+    try {
+      window.sessionStorage.setItem(`plotpickle:cloud-provider-diagnostics:${provider}`, JSON.stringify(diagnostics));
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Browser session storage is unavailable.";
+      setNotice(`Provider diagnostic history could not be persisted: ${reason}`);
+    }
+  }, [diagnostics, provider]);
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(`plotpickle:cloud-provider-diagnostics:${provider}`);
+      const parsed = stored ? JSON.parse(stored) as DiagnosticEntry[] : [];
+      setDiagnostics(Array.isArray(parsed) ? parsed.slice(0, 80) : []);
+    } catch {
+      setDiagnostics([]);
+    }
+  }, [provider]);
 
   const refresh = useCallback(async () => {
     try {
@@ -148,9 +213,11 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         ? `${label} authority is saved for ${profileStatus.profile?.displayName || "the current human profile"}. Secret values are not displayed.`
         : `Enter the ${label} API key owned by this human profile. Saving authority does not run a paid generation or activate a cloud route.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Cloud provider authority could not be checked.");
+      const message = error instanceof Error ? error.message : "Cloud provider authority could not be checked.";
+      setNotice(message);
+      recordDiagnostic(`Status refresh failed: ${message}`);
     }
-  }, [label, provider]);
+  }, [label, provider, recordDiagnostic]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -174,6 +241,7 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
     }
     setWorking("save");
     setNotice(`Saving ${label} authority without running a paid request…`);
+    recordDiagnostic(`Saving ${label} authority. No paid provider request is being sent.`);
     try {
       await json<AuthorityResponse>("/api/cloud-story-mode/provider", {
         method: "POST",
@@ -182,11 +250,15 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         body: JSON.stringify({ provider, ...form, apiKey }),
       });
       setApiKey("");
-      setNotice(`${label} authority is saved in protected storage for ${profileName || "the current human profile"}. No provider generation was run and no paid route was activated.`);
+      const message = `${label} authority is saved in protected storage for ${profileName || "the current human profile"}. No provider generation was run and no paid route was activated.`;
+      setNotice(message);
+      recordDiagnostic(message);
       await refresh();
       announceRefresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : `${label} authority could not be saved.`);
+      const message = error instanceof Error ? error.message : `${label} authority could not be saved.`;
+      setNotice(message);
+      recordDiagnostic(`Authority save failed: ${message}`);
     } finally {
       setWorking("");
     }
@@ -202,17 +274,22 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
     if (working || !writing.configured || !requirePaidTest()) return;
     setWorking("writing");
     setNotice(`Testing ${label} writing with the saved authority…`);
+    recordDiagnostic(`Starting ${label} writing test.`);
     try {
       await json<TestResponse>("/api/writing-assistant/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider }),
       });
-      setNotice(`${label} writing returned a successful response.`);
+      const message = `${label} writing returned a successful response.`;
+      setNotice(message);
+      recordDiagnostic(message);
       await refresh();
       announceRefresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : `${label} writing test failed.`);
+      const message = error instanceof Error ? error.message : `${label} writing test failed.`;
+      setNotice(message);
+      recordDiagnostic(`Writing test failed: ${message}`);
     } finally {
       setWorking("");
     }
@@ -222,30 +299,41 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
     if (working || !media.configured || !requirePaidTest()) return;
     setWorking("image");
     setNotice(`Testing ${label} image generation with the saved authority…`);
+    recordDiagnostic(`Starting ${label} image test.`);
     try {
       await json<TestResponse>("/api/media-routing/test/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ route: provider, billingAcknowledged: true }),
       });
-      setNotice(`${label} image generation returned a verified asset to PlotPickle.`);
+      const message = `${label} image generation returned a verified asset to PlotPickle.`;
+      setNotice(message);
+      recordDiagnostic(message);
       await refresh();
       announceRefresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : `${label} image test failed.`);
+      const message = error instanceof Error ? error.message : `${label} image test failed.`;
+      setNotice(message);
+      recordDiagnostic(`Image test failed: ${message}`);
     } finally {
       setWorking("");
     }
   }
 
   async function pollMiniMaxVideo(id: string) {
+    let lastStatus = "";
     for (let attempt = 0; attempt < 60; attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 2_000));
       const job = await json<TestResponse>(`/api/local-ai/video/${encodeURIComponent(id)}`, { cache: "no-store" });
+      const status = job.status || "unknown";
+      if (status !== lastStatus) {
+        recordDiagnostic(`MiniMax H3 job ${id}: ${status}.`, job.outputAssetUrl || "");
+        lastStatus = status;
+      }
       if (job.status === "succeeded") return job;
-      if (job.status === "failed" || job.status === "cancelled" || job.status === "expired") throw new Error(job.error || "The MiniMax video test did not complete successfully.");
+      if (job.status === "failed" || job.status === "cancelled" || job.status === "expired") throw new Error(job.error || `MiniMax H3 job ${id} ended with status ${job.status}.`);
     }
-    throw new Error("The MiniMax video test is still running. Leave PlotPickle open and check again shortly.");
+    throw new Error(`MiniMax H3 job ${id} is still running after the bounded polling window. Use Refresh Status or retry polling without starting another paid job.`);
   }
 
   async function testVideo() {
@@ -256,6 +344,7 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
     }
     setWorking("video");
     setNotice("Starting a paid MiniMax H3 verification job…");
+    recordDiagnostic("Starting explicitly authorized MiniMax H3 verification job.");
     try {
       const started = await json<TestResponse>("/api/media-routing/test/video", {
         method: "POST",
@@ -263,12 +352,17 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         body: JSON.stringify({ route: "minimax-direct", billingAcknowledged: true, dataSharingAcknowledged: true }),
       });
       if (!started.id) throw new Error("MiniMax returned no video job ID.");
-      await pollMiniMaxVideo(started.id);
-      setNotice("MiniMax H3 video generation completed and returned a verified local asset.");
+      recordDiagnostic(`MiniMax accepted H3 job ${started.id} with initial status ${started.status || "queued"}.`);
+      const completed = await pollMiniMaxVideo(started.id);
+      const message = `MiniMax H3 job ${started.id} completed and returned a verified local asset.`;
+      setNotice(message);
+      recordDiagnostic(message, completed.outputAssetUrl || "");
       await refresh();
       announceRefresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "MiniMax H3 video test failed.");
+      const message = error instanceof Error ? error.message : "MiniMax H3 video test failed.";
+      setNotice(message);
+      recordDiagnostic(`MiniMax H3 test failed: ${message}`);
     } finally {
       setWorking("");
     }
@@ -317,6 +411,22 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         <button type="button" style={button} onClick={() => void testImage()} disabled={Boolean(working) || !media.configured}>{working === "image" ? "TESTING..." : "TEST IMAGE"}</button>
         {provider === "minimax" ? <button type="button" style={button} onClick={() => void testVideo()} disabled={Boolean(working) || !media.configured}>{working === "video" ? "TESTING..." : "TEST H3 VIDEO"}</button> : null}
       </div>
+
+      {diagnostics.length ? (
+        <section aria-label="Provider test history" style={{ marginTop: "var(--pp-skin-space-4)", padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}>
+          <strong>TEST HISTORY</strong>
+          <p style={{ margin: "6px 0", color: "var(--pp-skin-ink-soft)" }}>Timestamped local diagnostics remain visible when status is refreshed. Secret values and private provider responses are not stored here.</p>
+          <div style={{ display: "grid", gap: "var(--pp-skin-space-2)", maxHeight: 260, overflowY: "auto" }}>
+            {diagnostics.map((entry) => (
+              <article key={entry.id} style={{ paddingTop: "var(--pp-skin-space-2)", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
+                <time dateTime={entry.at} style={{ color: "var(--pp-skin-ink-muted)", fontSize: 12 }}>{formatDate(entry.at)}</time>
+                <p style={{ margin: "4px 0", color: "var(--pp-skin-ink-soft)" }}>{entry.message}</p>
+                {entry.outputAssetUrl?.startsWith("/api/local-ai/assets/") ? <a href={entry.outputAssetUrl} target="_blank" rel="noreferrer">Open completed video</a> : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <p role="status" aria-live="polite" style={{ margin: "var(--pp-skin-space-4) 0 0", padding: "var(--pp-skin-space-3)", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", color: "var(--pp-skin-accent-bright)" }}>{notice}</p>
     </section>

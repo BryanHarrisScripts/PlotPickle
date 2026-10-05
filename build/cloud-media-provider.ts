@@ -158,7 +158,7 @@ export async function createCloudVideo(profile: MediaProfile, input: VideoGenera
   const value = await providerJson(`${normalizedUrl(profile.baseUrl)}/v2/video_generation`, profile, {
     model,
     content,
-    resolution: "2K",
+    resolution: "768P",
     duration: durationSeconds,
     ...(!source ? { ratio: aspectRatio } : {}),
   });

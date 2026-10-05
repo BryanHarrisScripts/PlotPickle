@@ -16,6 +16,7 @@ export {
   safeAssetStem,
 } from "./media-storage-common";
 import type { MediaProfile } from "./media-routing-store";
+export { normalizedUrl } from "./provider-url";
 
 export type ImageStoryJobClass = "image-fast-draft" | "image-precision-edit";
 
@@ -82,13 +83,6 @@ export function resolveImageStoryJobClass(input: ImageGenerationInput): ImageSto
     input.continuityMetadata,
   ].some(hasImageIntent);
   return precisionIntent ? "image-precision-edit" : "image-fast-draft";
-}
-
-export function normalizedUrl(value: string) {
-  const url = new URL(value.trim());
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Use an HTTP or HTTPS server address.");
-  if (url.username || url.password) throw new Error("Do not put credentials in the server address.");
-  return url.toString().replace(/\/$/, "");
 }
 
 function cleanProviderError(value: unknown) {

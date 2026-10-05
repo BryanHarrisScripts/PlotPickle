@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 2764,
+  "phase": "minimax-h3-authority-save-runtime-and-diagnostics",
+  "brief": "docs/developer-briefs/2764-minimax-h3-runtime-diagnostics.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "app/api/cloud-story-mode/provider/route.ts",
+    "app/skin-v1/cloud-provider-setup-panel.tsx",
+    "build/cloud-media-provider.ts",
+    "build/media-provider-common.ts",
+    "build/provider-url.ts",
+    "config/development-convergence/2764.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2764-minimax-h3-runtime-diagnostics.md",
+    "tests/issue-2764-minimax-h3-runtime-diagnostics.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTHORITY-SAVE-NATIVE-BOUNDARY",
+      "criterion": "Saving cloud provider authority does not import the Sharp-bearing media execution module.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2764-minimax-h3-runtime-diagnostics.test.mjs",
+          "contains": "outside the Sharp/native media import graph"
+        }
+      ]
+    },
+    {
+      "id": "H3-DIAGNOSTIC-HISTORY",
+      "criterion": "Provider tests retain timestamped job/status/failure/output evidence and non-JSON local failures are actionable.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2764-minimax-h3-runtime-diagnostics.test.mjs",
+          "contains": "bounded timestamped diagnostics"
+        }
+      ]
+    },
+    {
+      "id": "COST-SAFE-STANDARD-H3",
+      "criterion": "Standard H3 keeps the four-second minimum and requests 768P instead of 2K without switching models.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/cloud-media-provider.ts",
+          "contains": "resolution: \"768P\""
+        }
+      ]
+    },
+    {
+      "id": "NO-AUTOMATED-PAID-REQUEST",
+      "criterion": "Implementation and automated evidence do not authorize or send a paid MiniMax request.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2764-minimax-h3-runtime-diagnostics.md",
+          "contains": "No paid MiniMax request is authorized"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-NATIVE-PROOF",
+      "criterion": "Provider authority runtime changes select the existing Windows build lane that installs dependencies and runs the production build on Windows.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2764-minimax-h3-runtime-diagnostics.test.mjs",
+          "contains": "focused Windows build proof"
+        }
+      ]
+    }
+  ]
+}

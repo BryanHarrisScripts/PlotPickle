@@ -21,6 +21,7 @@ test('#2751 General and Operations have distinct canonical panels and keyboard d
     assert.ok(surface.runtimeReadySelector.includes(id));
     assert.ok((await read('lib/verification/webmcp-surface-capture-registry.mjs')).includes(`id: "${id}"`));
   }
+  assert.match(await read('lib/verification/webmcp-surface-visual-audit.mjs'),/settingsRows.length === 11 && settingsRows.every/u);
   assert.match(menu,/onSurfaceNameChange\(WORKSPACE_SETTINGS_LABELS\[settingsWorkspace\]\.toUpperCase\(\)\)/u);
   assert.match(menu,/setSettingsWorkspace\(null\)/u);
   assert.match(await read('app/skin-v1/uat-guide-panel.tsx'),/<h2 id="uat-review-title">Semantic UAT<\/h2>/u);

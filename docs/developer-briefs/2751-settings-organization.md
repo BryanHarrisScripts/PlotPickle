@@ -93,3 +93,7 @@ Local broad-test limitations: unchanged baseline has stale issue-2061/2215 asser
 
 Browser observation scope: actual Settings composition and panels in an isolated browser harness; unrelated host panels stubbed and storage/UAT GET services synthetic. This proves rendering and navigation, not real UAT authentication/execution or recovery mutations.
 
+
+Rendered browser observation PASS: General single-column alignment at 1440px and 390px, six mathematics sections with no horizontal overflow, no recovery fetch from General, U/D Operations navigation, Back/Escape return with an active surface control, and Data Recovery refresh. No browser page errors were observed.
+
+Canonical integration: 32 standard surfaces and 87 total surfaces, two complete resolved declarations, candidate-only visual metadata, eleven connected Settings destinations, and supported Windows build selection for Settings composition changes. Existing locked visual baselines remain unchanged.

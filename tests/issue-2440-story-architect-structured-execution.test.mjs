@@ -13,9 +13,10 @@ test("#2440 Story Architect uses native Mastra structured output with an assessm
   assert.match(runtime, /const storyArchitectModelSettings = \{[\s\S]*temperature: 0\.1,[\s\S]*maxOutputTokens: 1800/u);
 
   const structuredStart = runtime.indexOf('if (!directConversationMode && input.agentId === "story-architect")');
-  const genericStart = runtime.indexOf("const result = await agent.generate(prompt, executionOptions);");
+  const genericStart = runtime.indexOf("const result = await agent.generate(messages, {");
   assert.ok(structuredStart >= 0, "Story Architect structured branch must exist.");
   assert.ok(genericStart > structuredStart, "Story Architect structured branch must run before generic free-form generation.");
+  assert.match(runtime.slice(structuredStart, genericStart), /const messages = input\.image/u);
 
   const structuredBranch = runtime.slice(structuredStart, runtime.indexOf('if (!directConversationMode && input.agentId === "discovery-mapper")', structuredStart));
   assert.match(structuredBranch, /structuredOutput: \{[\s\S]*schema: storyArchitectAssessmentSchema\(\)[\s\S]*jsonPromptInjection: false/u);

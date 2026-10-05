@@ -4,16 +4,17 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL("../" + path, import.meta.url), "utf8");
 
-test("#2497 exports one static WebP Graphic Novel sheet", async () => {
+test("#2763 removes the Previs WebP action but retains the legacy static renderer", async () => {
   const [workspace, route, encoder] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/api/previs/graphic-novel/export/route.ts"),
     read("build/previs-graphic-novel-webp.ts"),
   ]);
 
-  assert.match(workspace, />Create WebP</u);
+  assert.doesNotMatch(workspace, />Create WebP|Export HTML|Export Animated WebP</u);
+  assert.match(workspace, /Play with Narration/u);
   assert.doesNotMatch(workspace, /Export Animated WebP|Export HTML/u);
-  assert.match(workspace, /one static Graphic Novel sheet/u);
+  assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.match(route, /"Content-Type": "image\/webp"/u);
   assert.doesNotMatch(route, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS|delayMs|Animated WebP/u);
   assert.match(encoder, /PREVIS_GRAPHIC_NOVEL_COLUMNS = 2/u);
@@ -84,7 +85,8 @@ test("#2497 preserves Graphic Novel presentation-only authority", async () => {
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
   ]);
 
-  assert.match(workspace, /story canon and Storyboard approval were unchanged/u);
+  assert.match(workspace, /production: \{ \.\.\.project\.production, graphicNovelTextApprovals:/u);
+  assert.doesNotMatch(workspace, /applyStoryCommand|acceptedVisualArtifactIds\s*=/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.match(presentation, /input\.authoritative \? graphicNovelSpeechBubbles/u);
   assert.doesNotMatch(presentation, /applyStoryCommand|saveFoundationProject|acceptedVisualArtifactIds.*=/u);

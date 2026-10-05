@@ -16,7 +16,7 @@ async function sharpRuntime(context) {
   }
 }
 
-test("#2491/#2497 removes HTML and exposes one static WebP action", async () => {
+test("#2763 removes Previs export controls while retaining the static WebP compatibility renderer", async () => {
   const [workspace, presentation, route, encoder] = await Promise.all([
     read("app/_components/previs/previs-readiness-workspace.tsx"),
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
@@ -24,7 +24,8 @@ test("#2491/#2497 removes HTML and exposes one static WebP action", async () => 
     read("build/previs-graphic-novel-webp.ts"),
   ]);
 
-  assert.match(workspace, />Create WebP</u);
+  assert.doesNotMatch(workspace, />Create WebP|Export HTML|Export Animated WebP</u);
+  assert.match(workspace, /Play with Narration/u);
   assert.doesNotMatch(workspace, /Export Animated WebP/u);
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.match(workspace, /canvas\.toBlob/u);

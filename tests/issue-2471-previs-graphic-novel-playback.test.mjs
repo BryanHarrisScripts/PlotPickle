@@ -16,7 +16,7 @@ test("#2471 slows Flip Book playback and adds mutually exclusive Graphic Novel p
   assert.match(workspace, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS/u);
   assert.ok(!workspace.includes("}, 220)"));
   assert.match(workspace, /Play Flip Book/u);
-  assert.match(workspace, /Play Graphic Novel/u);
+  assert.match(workspace, /Play with Narration/u);
   assert.match(workspace, /setGraphicNovelPlaying\(false\)/u);
   assert.match(workspace, /setFlipBookPlaying\(false\)/u);
 });
@@ -30,25 +30,15 @@ test("#2471 derives Graphic Novel narration without provider or canon mutation",
   assert.match(model, /narrativeIntention \|\| beatDirection \|\| shotContext/u);
   assert.match(model, /excluded from the authoritative Graphic Novel/u);
   assert.match(workspace, /storyboardPositionProgression/u);
-  assert.match(workspace, /Review Text/u);
+  assert.doesNotMatch(workspace, />Review Text</u);
   assert.doesNotMatch(model, /fetch\(|OpenAI|Ollama|provider|applyStoryCommand|saveFoundationProject/u);
   assert.doesNotMatch(model, /acceptedVisualArtifactIds.*=/u);
 });
 
-test("#2471 retains local presentation-only Graphic Novel export under the superseding WebP requirement", async () => {
-  const [workspace, model, route] = await Promise.all([
-    read("app/_components/previs/previs-readiness-workspace.tsx"),
-    read("app/_components/previs/previs-graphic-novel-presentation.ts"),
-    read("app/api/previs/graphic-novel/export/route.ts"),
-  ]);
-
-  assert.match(workspace, /Create WebP/u);
-  assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
-  assert.match(workspace, /story canon and Storyboard approval were unchanged/u);
-  assert.match(model, /graphicNovelWebpExportFileName/u);
-  assert.match(model, /\.webp`/u);
-  assert.match(route, /image\/webp/u);
-  assert.doesNotMatch(workspace, /buildPrevisGraphicNovelExportHtml|text\/html|>Export Graphic Novel</u);
+test("#2763 removes Previs export controls while retaining local compatibility renderer", async () => {
+ const workspace = await read("app/_components/previs/previs-readiness-workspace.tsx");
+ assert.doesNotMatch(workspace, />Create WebP<|async function exportGraphicNovel/u);
+ assert.match(workspace, /lockedGraphicNovelPanels/u);
 });
 
 test("#2471 keeps the Graphic Novel inside the canonical 25 planned-Shot Previs authority", async () => {

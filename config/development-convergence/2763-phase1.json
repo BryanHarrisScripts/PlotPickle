@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": 2763,
+  "phase": "previs-locked-playback-and-written-narration",
+  "brief": "docs/developer-briefs/2763-previs-playback-narration.md",
+  "allowedChanges": [
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/api/previs/narration/route.ts",
+    "build/mastra-agent-runtime.ts",
+    "config/development-convergence/2763-phase1.json",
+    "config/verification/ownership-map.json",
+    "core/media/previs-narration.mjs",
+    "docs/developer-briefs/2763-previs-playback-narration.md",
+    "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+    "tests/issue-2440-story-architect-structured-execution.test.mjs",
+    "tests/issue-2475-previs-surface-convergence.test.mjs",
+    "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+    "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs",
+    "tests/issue-2507-previs-webp-auth-feedback.test.mjs",
+    "tests/issue-2531-previs-graphic-novel-text-approval.test.mjs",
+    "tests/issue-2758-previs-simplification.test.mjs",
+    "tests/issue-2763-previs-narration.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCKED-PLAYBACK",
+      "criterion": "Both playback modes traverse the locked Storyboard images in Shot order and skip unlocked positions.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2471-previs-graphic-novel-playback.test.mjs", "contains": "#2763" }]
+    },
+    {
+      "id": "NO-MANUAL-TEXT-OR-EXPORT",
+      "criterion": "Previs generates written narration without manual review and removes its WebP export action.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2531-previs-graphic-novel-text-approval.test.mjs", "contains": "replaces manual review" },
+        { "type": "file-contains", "path": "tests/issue-2471-previs-graphic-novel-playback.test.mjs", "contains": "Play with Narration" }
+      ]
+    },
+    {
+      "id": "SCRIPT-AND-IMAGE-EVIDENCE",
+      "criterion": "The narrator receives mapped story context and an actual labelled contact sheet, with validated ordered output and attributed speakers.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2763-previs-narration.test.mjs", "contains": "inspect the actual images" },
+        { "type": "file-contains", "path": "app/api/previs/narration/route.ts", "contains": "image:input.image" }
+      ]
+    },
+    {
+      "id": "STALE-SAVE-GUARD",
+      "criterion": "Generation does not overwrite a newer project and saved text is invalidated when its source changes.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2531-previs-graphic-novel-text-approval.test.mjs", "contains": "latestProject.current !== project" }]
+    }
+  ]
+}

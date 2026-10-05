@@ -415,6 +415,8 @@ export async function askPlotPickleAgent(input: {
   agentId: PlotPickleAgentId;
   tone: PlotPickleTone;
   message: string;
+  /** A bounded approved-image contact sheet for the Graphic Novel narrator. */
+  image?: Uint8Array;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   foundationFieldIds?: readonly string[];
   conversationMode?: boolean;
@@ -545,7 +547,13 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("The Wyrmwood curriculum evaluator did not return structured feedback.");
       return JSON.stringify(result.object);
     }
-    const result = await agent.generate(prompt, executionOptions);
+    const messages = input.image
+      ? [{ role: "user" as const, content: [{ type: "text" as const, text: prompt }, { type: "image" as const, image: input.image, mediaType: "image/jpeg" as const }] }]
+      : prompt;
+    const result = await agent.generate(messages, {
+      ...executionOptions,
+      ...(input.agentId === "graphic-novel" && input.image ? { modelSettings: { temperature: 0.2, maxOutputTokens: 3_200 } } : {}),
+    });
     return result.text.trim();
   } catch (error) {
     if (input.signal?.aborted) throw new Error("The Mastra agent request was cancelled. No finding was saved.", { cause: error });

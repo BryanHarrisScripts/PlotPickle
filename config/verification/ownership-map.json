@@ -575,6 +575,7 @@
       "id": "story-mode-image-job-routing",
       "classification": "production",
       "include": [
+        "app/api/cloud-story-mode/provider/route.ts",
         "build/ai-routing-gateway.ts",
         "build/ai/comfyui-media-provider.ts",
         "build/ai/comfyui-sdxl-local-gateway.ts",
@@ -582,8 +583,9 @@
         "build/media-provider-common.ts",
         "build/media-routing-gateway.ts",
         "build/media-routing-store.ts",
-        "lib/runtime/ai/local-runtime.ts",
-        "build/media-storage-common.ts"
+        "build/media-storage-common.ts",
+        "build/provider-url.ts",
+        "lib/runtime/ai/local-runtime.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

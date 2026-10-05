@@ -10,15 +10,18 @@ import { announceSettingsChanged, SETTINGS_STORAGE_KEY } from "../use-connection
 import { DASHBOARD_STARTUP_CHOICES, isDashboardStartupId } from "./dashboard-menu-registry";
 import SettingsReviewSystemPanel from "./settings-review-system-panel";
 import UatGuidePanel from "./uat-guide-panel";
+import SystemMathematicsCard from "../_components/settings/system-mathematics-card";
 import styles from "./settings-workspace-panel.module.css";
 
-export type WorkspaceSettingsId = "general";
+export type WorkspaceSettingsId = "general" | "semantic-uat" | "data-recovery";
+
+export const WORKSPACE_SETTINGS_LABELS: Record<WorkspaceSettingsId, string> = { general: "General", "semantic-uat": "Semantic UAT", "data-recovery": "Data Recovery" };
 type SkinTheme = "skin-v1" | "skin-v2";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 
 export function isWorkspaceSettingsId(value: string): value is WorkspaceSettingsId {
-  return value === "general";
+  return value === "general" || value === "semantic-uat" || value === "data-recovery";
 }
 
 function readSettings() {
@@ -56,6 +59,12 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
     window.dispatchEvent(new CustomEvent("plotpickle:skin-change"));
   }
 
+  if (section !== "general") {
+    return <div className={styles.surface} data-settings-workspace-surface={section}>
+      {section === "semantic-uat" ? <UatGuidePanel /> : <SettingsReviewSystemPanel systemId="advanced" embedded content="recovery" />}
+    </div>;
+  }
+
   const startupPage = isDashboardStartupId(settings.general.startupPage) ? settings.general.startupPage : "dashboard";
 
   return (
@@ -63,7 +72,7 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
       <section className={styles.hero}>
         <p>SETTINGS / GENERAL</p>
         <h2>General</h2>
-        <span>Human-facing preferences, interface reference, source information and local project recovery live together here.</span>
+        <span>Preferences, source information and the mathematics behind the PlotPickle planning system.</span>
       </section>
 
       <section className={styles.form} aria-label="General preferences">
@@ -107,8 +116,8 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
         </label>
       </section>
 
-      <UatGuidePanel />
-      <SettingsReviewSystemPanel systemId="advanced" embedded />
+      <SettingsReviewSystemPanel systemId="advanced" embedded content="source" />
+      <SystemMathematicsCard />
     </div>
   );
 }

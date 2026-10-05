@@ -336,7 +336,8 @@
         "tests/issue-1442-buzz-recommended-configuration.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/automatic-local-model-capabilities.test.mjs",
-        "tests/issue-879-visual-continuity.test.mjs"
+        "tests/issue-879-visual-continuity.test.mjs",
+        "tests/issue-2751-settings-organization.test.mjs"
       ]
     },
     {

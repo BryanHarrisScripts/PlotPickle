@@ -49,9 +49,11 @@ function formatBytes(bytes: number) {
 export default function SettingsReviewSystemPanel({
   systemId,
   embedded = false,
+  content: contentMode = "all",
 }: {
   readonly systemId: ReviewSettingsSystemId;
   readonly embedded?: boolean;
+  readonly content?: "all" | "source" | "recovery";
 }) {
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [projects, setProjects] = useState<ProjectFile[]>([]);
@@ -88,27 +90,28 @@ export default function SettingsReviewSystemPanel({
   }, []);
 
   useEffect(() => {
+    if (contentMode === "source") return;
     const timer = window.setTimeout(() => { void refreshStorage(); }, 0);
     return () => window.clearTimeout(timer);
-  }, [refreshStorage]);
+  }, [refreshStorage, contentMode]);
 
   if (systemId !== "advanced") return null;
 
   const content = (
     <>
-      <section className={styles.cardGrid} aria-label={embedded ? "General settings references" : "Advanced settings"}>
-        <article className={styles.card} data-settings-review-item="advanced-source">
+      <section className={styles.cardGrid} aria-label={contentMode === "source" ? "Source reference" : "Data recovery references"}>
+        {contentMode !== "recovery" ? <article className={styles.card} data-settings-review-item="advanced-source">
           <div className={styles.cardHeader}>
             <h3>PlotPickle Source</h3>
             <span className={styles.status}>Reference</span>
           </div>
           <p>The PlotPickle code repository remains available as the source, support and release reference.</p>
           <a className={styles.action} href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Open PlotPickle source repository</a>
-        </article>
+        </article> : null}
 
-        <article className={styles.card} data-settings-review-item="advanced-data">
+        {contentMode !== "source" ? <article className={styles.card} data-settings-review-item="advanced-data">
           <div className={styles.cardHeader}>
-            <h3>Project Data and Recovery</h3>
+            <h3>Data Recovery</h3>
             <span className={styles.status}>{loading ? "Checking" : storage?.available ? "Available" : "Unavailable"}</span>
           </div>
           <p>Review the same local project files and rolling restore points already owned by PlotPickle's local-project gateway. Nothing is restored or changed from this screen.</p>
@@ -135,18 +138,18 @@ export default function SettingsReviewSystemPanel({
               </div>
             </div>
           ) : null}
-        </article>
+        </article> : null}
       </section>
 
-      <section className={styles.boundary} aria-label="Project data recovery boundaries">
+      {contentMode !== "source" ? <section className={styles.boundary} aria-label="Project data recovery boundaries">
         <strong>Read-only recovery review</strong>
         <p>Original project files, Human-created story material and user-owned assets remain canonical data. This surface reads existing local storage only; restore operations still require the active project context and explicit Human confirmation.</p>
-      </section>
+      </section> : null}
     </>
   );
 
   if (embedded) {
-    return <div className={styles.embedded} data-settings-general-references="true">{content}</div>;
+    return <div className={styles.embedded} data-settings-reference-content={contentMode}>{content}</div>;
   }
 
   return (

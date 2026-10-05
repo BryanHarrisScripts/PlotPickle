@@ -736,6 +736,80 @@
       "orchestrated": true
     },
     {
+      "id": "semantic-uat",
+      "label": "Semantic UAT",
+      "family": "settings",
+      "parent": "settings",
+      "surfaceClass": "nested",
+      "capturePolicy": "standard",
+      "governance": "candidate",
+      "webmcpId": "semantic-uat",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 7,
+          "slug": "semantic-uat",
+          "label": "Semantic UAT"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/semantic-uat-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/semantic-uat.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "section[aria-label='Semantic UAT settings']",
+      "runtimeReadySelector": "section[aria-label='Semantic UAT settings'] [data-settings-workspace-surface='semantic-uat']",
+      "orchestrated": true
+    },
+    {
+      "id": "data-recovery",
+      "label": "Data Recovery",
+      "family": "settings",
+      "parent": "settings",
+      "surfaceClass": "nested",
+      "capturePolicy": "standard",
+      "governance": "candidate",
+      "webmcpId": "data-recovery",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 8,
+          "slug": "data-recovery",
+          "label": "Data Recovery"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/data-recovery-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/data-recovery.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "section[aria-label='Data Recovery settings']",
+      "runtimeReadySelector": "section[aria-label='Data Recovery settings'] [data-settings-workspace-surface='data-recovery']",
+      "orchestrated": true
+    },
+    {
       "id": "story-mode",
       "label": "Story Mode compatibility",
       "family": "settings",

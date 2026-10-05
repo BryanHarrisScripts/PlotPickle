@@ -10,7 +10,7 @@ import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
-import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
+import SettingsWorkspacePanel, { WORKSPACE_SETTINGS_LABELS, isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 import StoryModeHost, { type StoryModePolicy } from "./story-mode-host";
 
@@ -18,6 +18,8 @@ export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
+  "semantic-uat": "U",
+  "data-recovery": "D",
   command: "M",
   local: "L",
   cloud: "C",
@@ -29,12 +31,14 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
 };
 
 const SETTINGS_MENU = [
-  { id: "general", shortcut: SETTINGS_SHORTCUTS.general, label: "General", description: "Language, startup, interface reference and project data.", group: "SYSTEM" },
+  { id: "general", shortcut: SETTINGS_SHORTCUTS.general, label: "General", description: "Language, startup, interface reference and system mathematics.", group: "SYSTEM" },
   { id: "node-info", shortcut: SETTINGS_SHORTCUTS["node-info"], label: "Node Info", description: "PlotPickle Node identity, lifecycle, readiness and current project.", group: "SYSTEM" },
   { id: "command", shortcut: SETTINGS_SHORTCUTS.command, label: "Command", description: "Comments, requests, evidence and proposed-change review.", group: "SYSTEM" },
   { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "COMPUTE" },
   { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "COMPUTE" },
   { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Hybrid", description: "Route capabilities across Local and Cloud.", group: "COMPUTE" },
+  { id: "semantic-uat", shortcut: SETTINGS_SHORTCUTS["semantic-uat"], label: "Semantic UAT", description: "Run and review the local semantic UAT evidence.", group: "OPERATIONS" },
+  { id: "data-recovery", shortcut: SETTINGS_SHORTCUTS["data-recovery"], label: "Data Recovery", description: "Review project files and rolling recovery points.", group: "OPERATIONS" },
   { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "OPERATIONS" },
   { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "OPERATIONS" },
   { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
@@ -136,7 +140,7 @@ export default function DashboardBbsPanel({
       return;
     }
     if (settingsMenuOpen && settingsWorkspace) {
-      onSurfaceNameChange("GENERAL");
+      onSurfaceNameChange(WORKSPACE_SETTINGS_LABELS[settingsWorkspace].toUpperCase());
       return;
     }
     if (settingsMenuOpen && storyModeView) {
@@ -282,11 +286,11 @@ export default function DashboardBbsPanel({
 
   if (settingsMenuOpen && settingsWorkspace) {
     return (
-      <section aria-label="General settings" onKeyDown={(event) => {
+      <section aria-label={`${WORKSPACE_SETTINGS_LABELS[settingsWorkspace]} settings`} onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); setSettingsWorkspace(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>GENERAL</h1>
+          <h1>{WORKSPACE_SETTINGS_LABELS[settingsWorkspace].toUpperCase()}</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsWorkspace(null)}>Back to Settings</button>
         </div>
         <SettingsWorkspacePanel section={settingsWorkspace} />

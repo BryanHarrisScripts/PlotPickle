@@ -246,7 +246,7 @@ export default function UatGuidePanel() {
       <header className={styles.heading}>
         <div>
           <p>QUALITY / UAT SEMANTIC TESTING</p>
-          <h2 id="uat-review-title">UAT Semantic Review</h2>
+          <h2 id="uat-review-title">Semantic UAT</h2>
           <span>Run the local Afterglow Writer-to-Screen acceptance path, watch the checks on this page, review evidence as it appears, then open the same persistent working copy in the real PlotPickle surfaces.</span>
         </div>
         <strong data-state={status?.status || "ready"}>{resultLabel}</strong>

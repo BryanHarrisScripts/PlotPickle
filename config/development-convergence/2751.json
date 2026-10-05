@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "issue": 2751,
+  "phase": "settings-organization-and-system-mathematics",
+  "brief": "docs/developer-briefs/2751-settings-organization.md",
+  "allowedChanges": [
+    "app/_components/settings/system-mathematics-card.module.css",
+    "app/_components/settings/system-mathematics-card.tsx",
+    "app/skin-v1-standard-surface-shell.css",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/settings-review-system-panel.module.css",
+    "app/skin-v1/settings-review-system-panel.tsx",
+    "app/skin-v1/settings-workspace-panel.module.css",
+    "app/skin-v1/settings-workspace-panel.tsx",
+    "app/skin-v1/uat-guide-panel.tsx",
+    "config/development-convergence/2751.json",
+    "config/skin-v1-surface-registry.json",
+    "config/uat-autopilot-registry.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2751-settings-organization.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "lib/verification/webmcp-surface-visual-audit.mjs",
+    "public/source.json",
+    "tests/issue-2159-phase-1-one-surface-registry.test.mjs",
+    "tests/issue-2730-settings-directory-groups.test.mjs",
+    "tests/issue-2751-settings-organization.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2751-A1",
+      "criterion": "General owns the six-section mathematics reference",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/settings-workspace-panel.tsx",
+          "contains": "<SystemMathematicsCard"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A2",
+      "criterion": "Both moved tools belong to Operations",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+          "contains": "label: \"Data Recovery\""
+        }
+      ]
+    },
+    {
+      "id": "P2751-A3",
+      "criterion": "Mathematics distinguishes planning from rendering",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/system-mathematics-card.tsx",
+          "contains": "actual video frame counts depend"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A4",
+      "criterion": "Registered browser navigation covers both moved destinations",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "SEMANTIC UAT"
+        }
+      ]
+    },
+    {
+      "id": "P2751-A5",
+      "criterion": "Dedicated regression independently checks frame totals",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2751-settings-organization.test.mjs",
+          "contains": "seconds*fps"
+        }
+      ]
+    }
+  ]
+}

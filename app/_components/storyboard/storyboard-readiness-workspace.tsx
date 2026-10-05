@@ -581,7 +581,7 @@ export default function StoryboardReadinessWorkspace({
               <small>25 planned Shots · approximately 3 seconds per Shot</small>
             </header>
             <div className={styles.sceneList}>
-              {blockScenes.length ? blockScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Block yet. Visual positions remain available without inventing a Scene.</p>}
+              {blockScenes.length ? blockScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Block yet. The 25 planned Shots remain available without inventing a Scene.</p>}
             </div>
             <div className={styles.beatList}><strong>Authored Beats</strong>{blockBeats.length ? blockBeats.map((beat) => <p key={`${beat.anchorRef}-${beat.id}`}>{beat.anchorRef} · {String(beat.order).padStart(2, "0")} · {beat.label || beat.visualAction || beat.purpose}</p>) : <p>No authored Beat is mapped to this Block yet. Scene passages are evidence, not automatically named Beats.</p>}</div>
             <div className={styles.visualSequence}>
@@ -720,7 +720,7 @@ export default function StoryboardReadinessWorkspace({
                     <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "group5"} onChange={() => setGenerationScope("group5")} /> Current group of 5 Shots</label>
                     <label><input type="radio" name="storyboard-generation-scope" checked={generationScope === "all25"} onChange={() => setGenerationScope("all25")} /> All 25 Shots</label>
                   </fieldset>
-                  <p className={styles.generationHint}>Each position receives its own story-progressing frame brief. The selected prompt above is editable; batch neighbors are rebuilt from their own evidence slices.</p>
+                  <p className={styles.generationHint}>Each planned Shot receives its own story-progressing Storyboard Image brief. The selected prompt above is editable; batch neighbors are rebuilt from their own evidence slices.</p>
                   <label><input type="checkbox" checked={frameConsent} onChange={(event) => setFrameConsent(event.target.checked)} /> I approve this image generation request through my configured provider; cloud routes may charge my account.</label>
                   <button type="button" disabled={!frameConsent || !framePrompt.trim() || frameBusy} onClick={() => void generateFrame()}>{generationButtonLabel}</button>
                   <p role="status">{frameNotice}</p>

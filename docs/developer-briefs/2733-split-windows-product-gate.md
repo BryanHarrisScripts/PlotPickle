@@ -35,7 +35,7 @@ Voice is selected by whisper/local-voice paths.
 
 Windows build/installer is selected by build system, package/runtime launcher or installer-contract paths rather than arbitrary application UI edits.
 
-Changes to the lane workflows or #2733 regression itself select every lane so changes to CI are proven end-to-end.
+Workflow, regression and documentation edits are verified by focused CI contracts and do not automatically select every heavyweight Windows lane. A lane runs when the diff includes product/runtime paths that the lane actually proves.
 
 ## Performance contract
 

@@ -12,8 +12,8 @@ test("#2411 prepares a frame from observed context without inventing story struc
   assert.match(prompt, /Block 01, Mini-Block 2, planned Shot 07 of 25/u);
   assert.match(prompt, /Observed scene: Santa Cruz pier/u);
   assert.match(prompt, /No beat is authored here; do not invent a beat/u);
-  assert.match(prompt, /Authored shot: Wide angle; morning/u);
-  assert.match(prompt, /Screenplay evidence: She sees the water/u);
+  assert.match(prompt, /Authored shot evidence takes precedence: Wide angle; morning/u);
+  assert.match(prompt, /Shot-specific screenplay evidence: She sees the water/u);
   assert.match(prompt, /WebP Storyboard Image candidate/u);
 });
 

@@ -45,3 +45,15 @@ test("#2764 uses the cheapest practical standard H3 request without changing mod
   assert.match(brief, /does not switch to H3 Max/u);
   assert.match(brief, /No paid MiniMax request is authorized/u);
 });
+
+test("#2764 routes provider authority runtime changes to the focused Windows build proof", async () => {
+  const workflow = await read(".github/workflows/architecture-shadow.yml");
+  const scopeStart = workflow.indexOf("  windows-product-scope:");
+  const proofStart = workflow.indexOf("  windows-product-proof:", scopeStart);
+  const scope = workflow.slice(scopeStart, proofStart);
+
+  assert.match(scope, /app\/api\/cloud-story-mode\/provider\/route\\\.ts/u);
+  assert.match(scope, /build\/provider-url\\\.ts/u);
+  assert.match(scope, /build\/media-provider-common\\\.ts/u);
+  assert.doesNotMatch(scope, /\.github\/workflows\//u);
+});

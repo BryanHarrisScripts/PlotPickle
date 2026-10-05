@@ -195,6 +195,9 @@ export function createPlotPickleTimelineRangeMediaRequest(input: TimelineRangeRe
     .sort((left, right) => left.position - right.position);
   const positions = new Set<number>();
   for (const frame of frames) {
+    if (frame.durationMs !== 3_000) {
+      throw new Error("Timeline range export requires exactly 3,000 ms per Shot.");
+    }
     if (positions.has(frame.position)) {
       throw new Error(`Timeline range position ${String(frame.position).padStart(3, "0")} appears more than once.`);
     }

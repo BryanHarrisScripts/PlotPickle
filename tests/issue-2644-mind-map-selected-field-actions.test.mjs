@@ -71,7 +71,7 @@ test("#2644 selected-field actions preserve Human authority and Agent provenance
   assert.match(surface, /MIND_MAP_CANONICAL_FIELD_PROPOSAL/u);
   assert.match(surface, /Do not claim the proposal is accepted canon/u);
   assert.match(surface, /acceptStoryDevelopmentFieldProposal/u);
-  assert.match(surface, />Use Suggestion<\/button>/u);
+  assert.match(surface, /"Use Suggestion"/u);
   assert.match(surface, /sourceRef: `agent:creative-director:mind-map:\$\{field\.canonicalId\}:act-\$\{selectedAct\}`/u);
 });
 

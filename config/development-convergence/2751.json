@@ -4,6 +4,7 @@
   "phase": "settings-organization-and-system-mathematics",
   "brief": "docs/developer-briefs/2751-settings-organization.md",
   "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
     "app/_components/settings/system-mathematics-card.module.css",
     "app/_components/settings/system-mathematics-card.tsx",
     "app/skin-v1-standard-surface-shell.css",
@@ -14,6 +15,7 @@
     "app/skin-v1/settings-workspace-panel.tsx",
     "app/skin-v1/uat-guide-panel.tsx",
     "config/development-convergence/2751.json",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
     "config/skin-v1-surface-registry.json",
     "config/uat-autopilot-registry.json",
     "config/verification/test-catalog.json",
@@ -23,8 +25,10 @@
     "lib/verification/webmcp-surface-visual-audit.mjs",
     "public/source.json",
     "tests/issue-2159-phase-1-one-surface-registry.test.mjs",
+    "tests/issue-2310-surface-coverage-convergence.test.mjs",
     "tests/issue-2730-settings-directory-groups.test.mjs",
-    "tests/issue-2751-settings-organization.test.mjs"
+    "tests/issue-2751-settings-organization.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs"
   ],
   "acceptance": [
     {

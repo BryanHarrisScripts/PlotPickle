@@ -13,8 +13,8 @@ import { buildSurfaceCensusSummary } from "../lib/verification/browser-probes/su
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 
 test("#2310 separates migration inventory from current Matrix governance", () => {
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
-  assert.equal(SKIN_V1_SURFACES.length, 85);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
+  assert.equal(SKIN_V1_SURFACES.length, 87);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 50);
   assert.equal(CURRENT_MATRIX_SURFACE_LIFECYCLE.censusOnlyDefaultLifecycle, "in-transit");
   assert.deepEqual(CURRENT_MATRIX_SURFACE_LIFECYCLE.activeGovernedAdditional, [
@@ -134,7 +134,7 @@ test("#2314 governs active Outline / Plan without expanding the frozen Standard 
 
   assert.ok(plan);
   assert.ok(planWorld);
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.equal(plan.capturePolicy, "census-only");
   assert.equal(plan.governance, "census");
   assert.deepEqual(plan.navigationPath, [

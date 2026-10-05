@@ -717,6 +717,88 @@
       "exampleContentPolicy": "preserve-live-content",
       "declarationSource": "registry-projection"
     },
+    "semantic-uat": {
+      "surfaceId": "semantic-uat",
+      "label": "Semantic UAT",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='Semantic UAT settings']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Semantic UAT",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "data-recovery": {
+      "surfaceId": "data-recovery",
+      "label": "Data Recovery",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='Data Recovery settings']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Data Recovery",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
     "story-mode": {
       "surfaceId": "story-mode",
       "label": "Story Mode compatibility",

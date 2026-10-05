@@ -89,7 +89,7 @@ test("#2647 complete Character visual versions require an explicit Human lock ac
   ]);
 
   assert.match(surface, /Lock Complete Version/u);
-  assert.match(surface, /disabled=\{!version\.complete\}/u);
+  assert.match(surface, /disabled=\{!version\.complete \|\| savingMindMap\}/u);
   assert.match(surface, /lockWorldMapCharacterVisualVersion\(project\.worldMap, selectedCharacter\.id, versionId, now\)/u);
   assert.match(worldMap, /if \(!target\?\.complete\) return state/u);
   assert.match(worldMap, /reviewState: reference\.versionId === versionId \? "approved" as const : "draft" as const/u);

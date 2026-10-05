@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const editorialUrl = new URL("../app/_components/storyboard/storyboard-editorial-model.ts", import.meta.url);
 const workspaceUrl = new URL("../app/_components/storyboard/storyboard-readiness-workspace.tsx", import.meta.url);
 
-test("#2418 maps selected, five-frame and full Mini-Block scopes deterministically", async () => {
+test("#2418 maps selected, five-Shot and full Mini-Block scopes deterministically", async () => {
   const source = await readFile(editorialUrl, "utf8");
   assert.match(source, /export type StoryboardGenerationScope = "single" \| "group5" \| "all25"/u);
   assert.match(source, /if \(scope === "single"\) return \[selected\]/u);
@@ -19,11 +19,11 @@ test("#2418 maps selected, five-frame and full Mini-Block scopes deterministical
   assert.match(source, /return Array\.from\(\{ length: 5 \}, \(_, index\) => start \+ index\)/u);
 });
 
-test("#2418 defines 25 distinct progression roles and position-specific screenplay windows", async () => {
+test("#2418 defines 25 distinct planned-Shot progression roles and screenplay windows", async () => {
   const source = await readFile(editorialUrl, "utf8");
   const start = source.indexOf("const POSITION_STORY_FUNCTIONS = [");
   const end = source.indexOf("] as const;", start);
-  assert.ok(start >= 0 && end > start, "Missing Storyboard position progression table.");
+  assert.ok(start >= 0 && end > start, "Missing Storyboard planned-Shot progression table.");
   const table = source.slice(start, end);
   const rows = table.match(/^\s{2}"[^\n]+",$/gmu) ?? [];
   assert.equal(rows.length, 25);
@@ -40,7 +40,7 @@ test("#2418 injects explicit character truth and locked approved references only
     readFile(editorialUrl, "utf8"),
     readFile(workspaceUrl, "utf8"),
   ]);
-  assert.match(editorial, /Canonical character truth for characters actually present in this frame/u);
+  assert.match(editorial, /Canonical character truth for characters actually present in this Storyboard Image/u);
   assert.match(editorial, /locked approved character visual references are attached/u);
   assert.match(editorial, /keep identity exploratory and do not imply visual canon/u);
   assert.match(workspace, /approvedCharacterReferenceImages\(visualCharacter\)/u);
@@ -51,11 +51,11 @@ test("#2418 injects explicit character truth and locked approved references only
   assert.match(workspace, /claim\.kind !== "sensitive-source"/u);
 });
 
-test("#2418 final prompt carries frame-specific story progression instead of one Mini-Block prompt repeated", async () => {
+test("#2418 final prompt carries Shot-specific story progression instead of one Mini-Block prompt repeated", async () => {
   const source = await readFile(editorialUrl, "utf8");
   assert.match(source, /Shot story function:/u);
   assert.match(source, /Required visible progression:/u);
-  assert.match(source, /Position-specific screenplay evidence:/u);
+  assert.match(source, /Shot-specific screenplay evidence:/u);
   assert.match(source, /Continuity-in:/u);
   assert.match(source, /Continuity-out:/u);
   assert.match(source, /This is a Shot-planning function, not a Beat assignment/u);

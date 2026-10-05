@@ -361,7 +361,7 @@
     {
       "id": "storyboard-frame-director",
       "name": "Storyboard Frame Director",
-      "description": "Provider-neutral Storyboard skill for turning one selected Mini-Block's available 25 Shot / Frame positions into distinct, continuity-aware single-frame prompts that visibly progress the approved story without inventing Beats or canon.",
+      "description": "Provider-neutral Storyboard skill for turning one selected Mini-Block's 25 planned Shots into distinct, continuity-aware Storyboard Image prompts that visibly progress approved story evidence without inventing Scenes, Beats or canon.",
       "entry": ".agents/skills/storyboard-frame-director/SKILL.md",
       "path": ".agents/skills/storyboard-frame-director",
       "uri": "skill://plotpickle/storyboard-frame-director",

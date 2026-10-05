@@ -170,8 +170,8 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
       const next = [entry, ...current].slice(0, 80);
       try {
         window.sessionStorage.setItem(`plotpickle:cloud-provider-diagnostics:${provider}`, JSON.stringify(next));
-      } catch {
-        // Diagnostic persistence is best effort; visible in-memory history still remains.
+      } catch (error) {
+        console.warn("Provider diagnostic history could not be persisted.", error instanceof Error ? error.message : "Browser session storage is unavailable.");
       }
       return next;
     });

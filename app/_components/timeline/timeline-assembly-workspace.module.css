@@ -162,6 +162,23 @@
   display: grid;
 }
 
+.referenceGroup {
+  display: grid;
+  gap: 0.25rem;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.referenceGroup:first-of-type {
+  border-top: 0;
+}
+
+.referenceGroup > strong {
+  padding: 0.42rem 0.5rem 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .referenceFrames {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -339,6 +356,10 @@
 .shotFrameButton span {
   padding: 0.6rem;
   font-size: 0.74rem;
+}
+
+.cinematicCell[data-production-evidence="authored"] {
+  box-shadow: inset 2px 0 0 var(--pp-skin-focus);
 }
 
 .durationCell,

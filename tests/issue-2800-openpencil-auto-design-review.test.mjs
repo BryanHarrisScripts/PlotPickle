@@ -177,3 +177,39 @@ test("#2800 GitHub failure preserves the Human design and leaves a retryable loc
   assert.equal(state.state, "failed");
   assert.equal(state.beforeHash, hash("before-design"));
 });
+
+
+test("#2800 Command auto-finalizes on browser focus only after OpenPencil document closure", async () => {
+  const [conversation, gateway, runtime, parser] = await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../build/openpencil/openpencil-gui-gateway.ts", import.meta.url), "utf8"),
+    readFile(new URL("../build/openpencil/openpencil-gui-runtime.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../app/_components/settings/openpencil-command.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(conversation, /openPencilDesignSessionRef/u);
+  assert.match(conversation, /window\.addEventListener\("focus", finalize\)/u);
+  assert.match(conversation, /action: "finalize"/u);
+  assert.match(gateway, /action === "finalize"/u);
+  assert.match(runtime, /documents", "list"/u);
+  assert.match(runtime, /state: "editing"/u);
+  assert.match(runtime, /publish only after the design document closes/u);
+  assert.match(parser, /action: "publish"; surfaceName: string/u);
+  assert.match(parser, /retry\\s\+publish/u);
+});
+
+test("#2800 architecture keeps protected main and implementation PR outside automatic design authority", async () => {
+  const [adapter, architecture, readme] = await Promise.all([
+    readFile(new URL("../config/openpencil-adapter.json", import.meta.url), "utf8"),
+    readFile(new URL("../docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md", import.meta.url), "utf8"),
+    readFile(new URL("../designs/openpencil/README.md", import.meta.url), "utf8"),
+  ]);
+  const config = JSON.parse(adapter);
+
+  assert.equal(config.command.autoDesignReview.issue, 2800);
+  assert.equal(config.command.autoDesignReview.protectedMainPush, false);
+  assert.equal(config.command.autoDesignReview.implementationPullRequest, false);
+  assert.match(architecture, /primary checkout is never checked out, staged, committed or pushed/u);
+  assert.match(architecture, /content-addressed branch is reused/u);
+  assert.match(readme, /protected `main` is not touched/u);
+});

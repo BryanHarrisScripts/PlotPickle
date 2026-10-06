@@ -5,15 +5,17 @@
   "role": "optional-programmable-ux-design-workspace",
   "source": "https://github.com/open-pencil/open-pencil",
   "license": "MIT",
-  "userManaged": true,
-  "autoInstall": false,
+  "userManaged": false,
+  "autoInstall": true,
   "launchOnPlotPickleStartup": false,
   "requiredForPlotPickleStartup": false,
   "localOnlyDefault": true,
   "workspaceScope": {
     "required": true,
     "environment": "OPENPENCIL_MCP_ROOT",
-    "policy": "Automation may inspect or write design files only inside the explicitly scoped design workspace."
+    "default": "<repo>\\designs\\openpencil",
+    "repositoryTracked": true,
+    "policy": "Automation may inspect or write design files only inside the explicitly scoped design workspace. The default PlotPickle workspace is versioned design source; Git commit and merge remain explicit Human/DSDD actions."
   },
   "cli": {
     "executable": "openpencil",
@@ -79,11 +81,21 @@
     "sourceMutationAuthority": false
   },
   "connectionProof": {
-    "issue": 2780,
+    "issue": 2782,
     "normalStartupLaunch": false,
-    "packageInstall": "user-managed",
+    "packageInstall": "plotpickle-managed-after-core-ready",
+    "pinnedVersion": "0.15.1",
     "windowsShell": false,
     "endpointHost": "127.0.0.1",
-    "endpointPort": 7600
+    "endpointPort": 7600,
+    "defaultWorkspace": "<repo>\\designs\\openpencil"
+  },
+  "managedPackage": {
+    "name": "@open-pencil/mcp",
+    "version": "0.15.1",
+    "installTiming": "after-core-ready",
+    "installRoot": "%LOCALAPPDATA%\\PlotPickle\\tools\\openpencil",
+    "failurePolicy": "warn-and-continue",
+    "launchesServer": false
   }
 }

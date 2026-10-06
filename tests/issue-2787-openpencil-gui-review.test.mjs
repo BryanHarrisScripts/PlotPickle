@@ -24,7 +24,8 @@ test("#2787 Command requires an explicit named OpenPencil surface and preserves 
   assert.match(parser, /OpenPencil open <surface name>/u);
   assert.match(parser, /OpenPencil review <surface name>/u);
   assert.match(parser, /surfaceName = cleanRoot/u);
-  assert.match(conversation, /body: JSON\.stringify\(\{ action: command\.action, surfaceName: command\.surfaceName \}\)/u);
+  assert.match(conversation, /captureOpenPencilTimelineSnapshot/u);
+  assert.match(conversation, /designSnapshot: timelineSnapshot/u);
   assert.match(conversation, /setDraft\(body\.result\.handoffDraft\)/u);
   assert.equal(adapter.command.contextAwareSurfaceInference, false);
   assert.equal(adapter.command.reviewHandoff.delivery, "github-issue");
@@ -78,7 +79,7 @@ test("#2787 surface resolution is explicit, case-insensitive, multi-word, and wo
   const timeline = await resolveOpenPencilSurface("timeline", dependencies);
   assert.equal(timeline.name, "Timeline");
   assert.equal(timeline.page, "Timeline");
-  assert.equal(timeline.designFile, "C:\\Repo\\designs\\openpencil\\timeline.fig");
+  assert.equal(timeline.designFile, "C:\\Repo\\designs\\openpencil\\timeline-live.fig");
 
   const mindMap = await resolveOpenPencilSurface("Mind   Map", dependencies);
   assert.equal(mindMap.name, "Mind Map");
@@ -119,7 +120,7 @@ test("#2787 managed CLI and reviewed Desktop executable resolve without a shell"
 
 test("#2787 explicit GUI launch verifies the page then activates exactly that page in the running editor", async () => {
   const registry = await read("designs/openpencil/surfaces.json");
-  const designFile = "C:\\Repo\\designs\\openpencil\\timeline.fig";
+  const designFile = "C:\\Repo\\designs\\openpencil\\timeline-live.fig";
   const bootstrapFile = "C:\\Repo\\designs\\openpencil\\bootstrap\\timeline.pen";
   const cli = "C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\cli\\bin\\openpencil.js";
   const desktop = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\OpenPencil\\OpenPencil.exe";
@@ -141,11 +142,13 @@ test("#2787 explicit GUI launch verifies the page then activates exactly that pa
     },
     runProcess: async (command, args, options) => {
       runs.push({ command, args: [...args], options });
-      if (args.includes("convert")) {
-        assert.ok(args.includes(bootstrapFile));
+      if (args.includes("import")) {
         assert.ok(args.includes(designFile));
+        assert.ok(args.includes("--pageName"));
+        assert.ok(args.includes("Timeline"));
+        assert.ok(args.includes("--css"));
         found.add(designFile);
-        return { stdout: "Converted", stderr: "", code: 0 };
+        return { stdout: JSON.stringify({ format: "fig", pages: 1 }), stderr: "", code: 0 };
       }
       if (args.includes("pages")) return { stdout: JSON.stringify([{ id: "0:4", name: "Timeline", nodes: 12 }]), stderr: "", code: 0 };
       if (args.includes("list")) return { stdout: JSON.stringify([{ id: "tab-1", path: designFile, active: true, pages: [] }]), stderr: "", code: 0 };
@@ -154,11 +157,19 @@ test("#2787 explicit GUI launch verifies the page then activates exactly that pa
     },
   });
 
-  const result = await controller.openSurface("Timeline");
+  const result = await controller.openSurface("Timeline", {
+    designSnapshot: {
+      version: 1,
+      surface: "Timeline",
+      nodeCount: 12,
+      html: '<!doctype html><html><body><section data-openpencil-design-snapshot="timeline">Timeline</section></body></html>',
+      css: "body{margin:0}",
+    },
+  });
   assert.equal(result.state, "ready");
   assert.equal(result.surface, "Timeline");
   assert.equal(result.page, "Timeline");
-  assert.equal(result.bootstrapState, "materialized");
+  assert.equal(result.bootstrapState, "rendered-snapshot");
   assert.equal(spawns.length, 1);
   assert.equal(spawns[0].command, desktop);
   assert.deepEqual(spawns[0].args, [designFile]);
@@ -191,7 +202,7 @@ test("#2787 GUI launch fails truthfully for missing registered artifacts rather 
   });
   await assert.rejects(missingBootstrap.openSurface("Timeline"), /OPENPENCIL_DESIGN_BOOTSTRAP_MISSING/u);
 
-  const designFile = "C:\\Repo\\designs\\openpencil\\timeline.fig";
+  const designFile = "C:\\Repo\\designs\\openpencil\\timeline-live.fig";
   const cli = "C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\cli\\bin\\openpencil.js";
   const desktop = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\OpenPencil\\OpenPencil.exe";
   const found = new Set([designFile, cli, desktop]);
@@ -205,7 +216,7 @@ test("#2787 GUI launch fails truthfully for missing registered artifacts rather 
 
 test("#2787 design review uses repository-relative read-only Git evidence and stops at a GitHub issue handoff", async () => {
   const registry = await read("designs/openpencil/surfaces.json");
-  const designFile = "C:\\Repo\\designs\\openpencil\\timeline.fig";
+  const designFile = "C:\\Repo\\designs\\openpencil\\timeline-live.fig";
   const calls = [];
   const controller = createOpenPencilGuiController({
     platform: "win32",
@@ -215,8 +226,8 @@ test("#2787 design review uses repository-relative read-only Git evidence and st
     readText: async () => registry,
     runProcess: async (command, args, options) => {
       calls.push({ command, args: [...args], options });
-      if (args[0] === "status") return { stdout: " M designs/openpencil/timeline.fig\n", stderr: "", code: 0 };
-      if (args[0] === "diff") return { stdout: "1\t1\tdesigns/openpencil/timeline.fig\n", stderr: "", code: 0 };
+      if (args[0] === "status") return { stdout: " M designs/openpencil/timeline-live.fig\n", stderr: "", code: 0 };
+      if (args[0] === "diff") return { stdout: "1\t1\tdesigns/openpencil/timeline-live.fig\n", stderr: "", code: 0 };
       throw new Error("unexpected git call");
     },
   });
@@ -225,7 +236,7 @@ test("#2787 design review uses repository-relative read-only Git evidence and st
   assert.match(result.handoffDraft, /GitHub issue/u);
   assert.match(result.handoffDraft, /Do not implement source code or create an implementation PR/u);
   assert.ok(calls.every((call) => call.command === "git"));
-  assert.ok(calls.every((call) => call.args.at(-1) === "designs\\openpencil\\timeline.fig"));
+  assert.ok(calls.every((call) => call.args.at(-1) === "designs\\openpencil\\timeline-live.fig"));
   assert.ok(calls.every((call) => call.options.cwd === "C:\\Repo"));
 });
 

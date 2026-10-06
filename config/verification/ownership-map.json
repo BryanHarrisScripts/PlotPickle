@@ -1984,6 +1984,21 @@
         "test-harness",
         "cli"
       ]
+    },
+    {
+      "id": "openpencil-command-mcp-2780",
+      "classification": "production",
+      "include": [
+        "build/openpencil/**"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "mcp",
+        "security",
+        "native",
+        "windows",
+        "agent"
+      ]
     }
   ]
 }

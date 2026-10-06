@@ -274,9 +274,6 @@ export function createOpenPencilGuiController(overrides = {}) {
   const designReviewPublisher = dependencies.designReviewPublisher || createOpenPencilDesignReviewPublisher({
     env: dependencies.env,
     repositoryRoot: dependencies.repositoryRoot,
-    runProcess: dependencies.runProcess,
-    makeDirectory: dependencies.makeDirectory,
-    writeText: dependencies.writeText,
   });
 
   async function openSurface(surfaceName, options = {}) {

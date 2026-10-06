@@ -9,7 +9,8 @@ async function json(path) {
 test("OpenPencil is optional, user-managed and outside normal startup", async () => {
   const registry = await json("config/third-party-oss.json");
   const adapter = await json("config/openpencil-adapter.json");
-  const pkg = await json("package.json");\n  const developerStack = await json("config/developer-agent-stack.json");
+  const pkg = await json("package.json");
+  const developerStack = await json("config/developer-agent-stack.json");
 
   const entry = registry.systems.find((item) => item.id === "openpencil");
   assert.ok(entry, "OpenPencil must be present in the OSS registry");
@@ -29,7 +30,14 @@ test("OpenPencil is optional, user-managed and outside normal startup", async ()
   assert.equal(adapter.authority.mergeAuthority, false);
   assert.equal(adapter.authority.webmcpReplacement, false);
   assert.equal(adapter.firstProof.issue, 2778);
-  assert.equal(adapter.firstProof.surface, "Timeline");\n\n  const stackEntry = developerStack.optionalDesignTools?.find((item) => item.id === "openpencil");\n  assert.ok(stackEntry, "OpenPencil must be discoverable as an optional developer design tool");\n  assert.equal(stackEntry.required, false);\n  assert.equal(stackEntry.autoInstall, false);\n  assert.equal(stackEntry.launchOnStartup, false);\n  assert.equal(stackEntry.adapter, "config/openpencil-adapter.json");
+  assert.equal(adapter.firstProof.surface, "Timeline");
+
+  const stackEntry = developerStack.optionalDesignTools?.find((item) => item.id === "openpencil");
+  assert.ok(stackEntry, "OpenPencil must be discoverable as an optional developer design tool");
+  assert.equal(stackEntry.required, false);
+  assert.equal(stackEntry.autoInstall, false);
+  assert.equal(stackEntry.launchOnStartup, false);
+  assert.equal(stackEntry.adapter, "config/openpencil-adapter.json");
 
   const dependencies = {
     ...(pkg.dependencies || {}),

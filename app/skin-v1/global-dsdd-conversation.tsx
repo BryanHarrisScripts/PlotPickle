@@ -12,6 +12,7 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
+import { captureOpenPencilTimelineSnapshot } from "../_components/settings/openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
 
 type DsddContext = {
@@ -461,10 +462,18 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       if (command.action === "help") {
         responseText = `OpenPencil commands:\n${OPENPENCIL_COMMAND_HELP}`;
       } else if (command.action === "open" || command.action === "review") {
+        const timelineSnapshot = command.action === "open"
+          && command.surfaceName.trim().toLocaleLowerCase("en-US") === "timeline"
+          ? await captureOpenPencilTimelineSnapshot()
+          : null;
         const response = await authenticatedProfileFetch("/api/openpencil/gui", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: command.action, surfaceName: command.surfaceName }),
+          body: JSON.stringify({
+            action: command.action,
+            surfaceName: command.surfaceName,
+            ...(timelineSnapshot ? { designSnapshot: timelineSnapshot } : {}),
+          }),
         });
         const body = await response.json() as {
           ok?: boolean;

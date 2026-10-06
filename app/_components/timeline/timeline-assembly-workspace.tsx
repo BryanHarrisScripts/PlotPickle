@@ -22,7 +22,7 @@ import {
   serializeTimelineShotGenerationPacket,
   type TimelineGenerationStrategy,
   type TimelineShotGenerationPacket,
-} from "@/lib/preproduction/timeline-shot-generation";
+} from "@/lib/preproduction/provider-capability-contract";
 import { requestPlotPickleConfirmation } from "../../common-overlay-layer";
 import {
   storyboardAnchorEvidence,

@@ -7,7 +7,7 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
 async function generationModule() {
-  const source = await read("lib/preproduction/timeline-shot-generation.ts");
+  const source = await read("lib/preproduction/provider-capability-contract.ts");
   const compiled = stripTypeScriptTypes(source, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}#timeline-shot-generation-${Date.now()}-${Math.random()}`);
 }

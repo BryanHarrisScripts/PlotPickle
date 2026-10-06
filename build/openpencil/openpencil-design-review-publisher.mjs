@@ -208,7 +208,7 @@ async function remoteBranchSha(deps, branch) {
   return first ? first.split(/\s+/u)[0] : "";
 }
 
-async function publishBranch(deps, session, afterBytes, afterHash) {
+async function publishBranch(deps, session, afterHash) {
   const branch = `design/openpencil/${slug(session.surface)}-${afterHash.slice(0, 12)}`;
   const existing = await remoteBranchSha(deps, branch);
   if (existing) return { branch, commitSha: existing, reused: true };
@@ -285,7 +285,7 @@ export function createOpenPencilDesignReviewPublisher(overrides = {}) {
       page: target.page,
       designFile: target.designFile,
       relativeFile: target.relativeFile,
-      repositoryDesignPath: path.join("designs", "openpencil", target.relativeFile),
+      repositoryDesignPath: ["designs", "openpencil", target.relativeFile.replaceAll("\\", "/")].join("/"),
       baseSha,
       beforeHash: sha256(bytes),
       beforeBytes: bytes.length,
@@ -317,14 +317,32 @@ export function createOpenPencilDesignReviewPublisher(overrides = {}) {
 
     const inFlight = { ...session, state: "publishing", updatedAt: deps.now().toISOString(), error: "" };
     await writeSession(deps, inFlight);
+    let publication = session.publication?.afterHash === afterHash && session.publication?.branch && session.publication?.commitSha
+      ? {
+          branch: session.publication.branch,
+          commitSha: session.publication.commitSha,
+          reused: true,
+          afterHash,
+          afterBytes: afterBytesBuffer.length,
+        }
+      : null;
     try {
       await ghText(deps, ["auth", "status", "--hostname", "github.com"]);
-      const branch = await publishBranch(deps, session, afterBytesBuffer, afterHash);
-      const publication = {
-        ...branch,
-        afterHash,
-        afterBytes: afterBytesBuffer.length,
-      };
+      if (!publication) {
+        const branch = await publishBranch(deps, session, afterHash);
+        publication = {
+          ...branch,
+          afterHash,
+          afterBytes: afterBytesBuffer.length,
+        };
+        await writeSession(deps, {
+          ...session,
+          state: "branch-published",
+          updatedAt: deps.now().toISOString(),
+          error: "",
+          publication,
+        });
+      }
       const issue = await createIssue(deps, session, publication);
       const published = {
         ...session,
@@ -350,13 +368,18 @@ export function createOpenPencilDesignReviewPublisher(overrides = {}) {
         state: "failed",
         updatedAt: deps.now().toISOString(),
         error: error instanceof Error ? error.message : String(error),
+        publication: publication || session.publication || null,
       };
       await writeSession(deps, failed);
       return Object.freeze({
         state: "failed",
         surface: session.surface,
         sessionId: session.id,
-        message: failureMessage(error),
+        branch: publication?.branch || "",
+        commitSha: publication?.commitSha || "",
+        message: publication
+          ? `${failureMessage(error)} Published design branch: ${publication.branch} at ${publication.commitSha}.`
+          : failureMessage(error),
       });
     }
   }

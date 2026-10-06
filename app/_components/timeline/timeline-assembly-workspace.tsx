@@ -959,33 +959,36 @@ export default function TimelineAssemblyWorkspace({
   }
 
   return (
-    <section className={styles.workspace} data-timeline-assembly="previs-media">
-      <header className={styles.header}>
-        <div>
-          <p className={styles.kicker}>Timeline · approved Previs media against screenplay</p>
-          <h2>Story alignment and assembly</h2>
-          <p>Place Mini-Block Previs sources in sequence, play and scrub them continuously, and compare the visual story with its mapped screenplay evidence. Timeline does not generate Shots or Storyboard Images.</p>
+    <section className={styles.workspace} data-timeline-assembly="previs-media" data-timeline-shot-board="25-shot">
+      <header className={styles.productionHeader}>
+        <div className={styles.projectIdentity}>
+          <p className={styles.kicker}>Production context</p>
+          <h2>{project.title}</h2>
+          <span>Timeline · cinematic Shot Board</span>
         </div>
-        <div className={styles.revision}>
-          <strong>{placements.length} placed Mini-Block{placements.length === 1 ? "" : "s"}</strong>
-          <span>{latestAssembly ? `Timeline revision ${latestAssembly.id}` : "No Timeline revision yet"}</span>
-        </div>
+        <dl className={styles.productionStats}>
+          <div><dt>Act</dt><dd>{selectedPlacement ? actForBlock(selectedPlacement.blockNumber) : selectedAct}</dd></div>
+          <div><dt>Sequence</dt><dd>{selectedPlacement ? sequenceForBlock(selectedPlacement.blockNumber) : sequenceForBlock(address.blockNumber)}</dd></div>
+          <div><dt>Block</dt><dd>{selectedPlacement ? String(selectedPlacement.blockNumber).padStart(2, "0") : String(address.blockNumber).padStart(2, "0")}</dd></div>
+          <div><dt>Mini-Block</dt><dd>{selectedPlacement ? selectedPlacement.blockNumber + "." + selectedPlacement.miniBlockNumber : address.blockNumber + "." + address.miniBlockNumber}</dd></div>
+          <div><dt>Duration</dt><dd>~75 sec</dd></div>
+          <div><dt>Shots</dt><dd>25</dd></div>
+          <div><dt>Media</dt><dd>{playbackMode === "stills" ? "Still images" : "Generated motion"}</dd></div>
+          <div><dt>Visual source</dt><dd>Approved Storyboard / Previs</dd></div>
+          <div><dt>Pacing</dt><dd>~3 sec / Shot</dd></div>
+          <div data-stale={selectedPlacement && placementIsStale(selectedPlacement) ? "true" : "false"}><dt>Source</dt><dd>{selectedPlacement ? (placementIsStale(selectedPlacement) ? "STALE" : "CURRENT") : "NOT PLACED"}</dd></div>
+        </dl>
       </header>
 
       <div className={styles.mathStrip} role="status">
         <strong>Act {selectedAct} · 6 Blocks · 24 Mini-Blocks</strong>
         <span>1 Mini-Block = 25 planned Shots · ~3 sec per Shot · ~75 sec planning target · ~1,800 final video frames at 24 fps</span>
+        <span>{selectedMotionSucceeded}/25 generated Shots ready</span>
       </div>
 
-      <div className={styles.mediaBin} aria-label="Approved Previs media source list">
-        <header>
-          <div>
-            <p className={styles.kicker}>Previs media</p>
-            <h3>Available in Act {selectedAct}</h3>
-          </div>
-          <span>Locked Storyboard Images feed the approved Previs Flip Book source directly; no manual re-import.</span>
-        </header>
-        <div className={styles.mediaGrid}>
+      <details className={styles.sourceDrawer}>
+        <summary>Approved Previs sources · no manual re-import</summary>
+        <div className={styles.sourceGrid}>
           {actSources.map((source) => (
             <article key={source.anchorRef} data-available={source.coverage ? "true" : "false"}>
               <strong>Act {source.act} · Sequence {source.sequence} · Block {String(source.blockNumber).padStart(2, "0")} · Mini-Block {source.blockNumber}.{source.miniBlockNumber}</strong>
@@ -997,38 +1000,46 @@ export default function TimelineAssemblyWorkspace({
             </article>
           ))}
         </div>
-      </div>
+      </details>
 
-      <div className={styles.topGrid}>
-        <section className={styles.viewer} aria-label="Timeline playback viewer">
+      <div className={styles.boardShell}>
+        <aside className={styles.referenceRail} aria-label="Authoritative Timeline visual references">
           <header>
-            <p className={styles.kicker}>Playback</p>
-            <strong>{activePlacement
-              ? `Act ${actForBlock(activePlacement.blockNumber)} · Sequence ${sequenceForBlock(activePlacement.blockNumber)} · Block ${String(activePlacement.blockNumber).padStart(2, "0")} · Mini-Block ${activePlacement.blockNumber}.${activePlacement.miniBlockNumber}`
-              : "No placed Previs media"}</strong>
+            <p className={styles.kicker}>Reference images</p>
+            <strong>Locked visual continuity</strong>
           </header>
-          <div className={styles.stage}>
-            {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
-              ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
-              : playbackMode === "motion"
-                ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older locked image. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
-                : activeImage?.assetUrl
-                  ? <img alt={activeImage.narrativeIntention || `Storyboard Image for Shot ${activeShotNumber}`} src={activeImage.assetUrl} />
-                  : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
-            {showNarration && activePresentation?.approval && (activePresentation.approval.narration || activePresentation.approval.bubbles.length) ? (
-              <div className={styles.narrationOverlay} aria-label="Written narration overlay">
-                {activePresentation.approval.bubbles.map((bubble) => (
-                  <p className={styles.speechLine} key={`${bubble.speaker}:${bubble.text}`}><strong>{bubble.speaker}</strong> {bubble.text}</p>
-                ))}
-                {activePresentation.approval.narration ? <p>{activePresentation.approval.narration}</p> : null}
-              </div>
-            ) : null}
-            {showNarration && activePlacement && !activePresentation?.approval ? (
-              <div className={styles.narrationUnavailable}>Written narration is not current for this Shot. Regenerate it in Previs before narrated export.</div>
-            ) : null}
-            {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
+          <div className={styles.referenceFrames}>
+            {selectedPlacement?.shotImages.slice(0, 6).map((imageRef) => {
+              const presentation = timelinePresentationFor(project, selectedPlacement, imageRef.shotNumber);
+              return presentation.artifact?.assetUrl ? (
+                <figure key={imageRef.artifactId}>
+                  <img alt={presentation.artifact.narrativeIntention || "Locked Storyboard reference"} src={presentation.artifact.assetUrl} />
+                  <figcaption>Shot {String(imageRef.shotNumber).padStart(2, "0")}</figcaption>
+                </figure>
+              ) : null;
+            })}
+            {!selectedPlacement?.shotImages.length ? <p>No locked visual references are available for this Mini-Block.</p> : null}
           </div>
-          <div className={styles.transport}>
+          <dl className={styles.referenceFacts}>
+            <div><dt>Character</dt><dd>Not established in authoritative Timeline data</dd></div>
+            <div><dt>Props</dt><dd>Not established in authoritative Timeline data</dd></div>
+            <div><dt>Location</dt><dd>Not established in authoritative Timeline data</dd></div>
+            <div><dt>Lighting</dt><dd>Not established in authoritative Timeline data</dd></div>
+            <div><dt>Mood</dt><dd>{activeEvidence.responsibility || "Not established"}</dd></div>
+            <div><dt>Palette</dt><dd>Not established in authoritative Timeline data</dd></div>
+          </dl>
+        </aside>
+
+        <main className={styles.shotBoard} aria-label="25 Shot cinematic production board">
+          <header className={styles.shotBoardHeader}>
+            <div>
+              <p className={styles.kicker}>Shot storyboard & shotlist</p>
+              <h3>{selectedPlacement ? "Mini-Block " + selectedPlacement.blockNumber + "." + selectedPlacement.miniBlockNumber : "Place a Mini-Block to begin"}</h3>
+            </div>
+            <span>25 Shots · approximately 3 seconds each · 75 seconds total</span>
+          </header>
+
+          <div className={styles.transport} aria-label="Timeline playback transport">
             <button
               disabled={!activePlacement || (placements.findIndex((placement) => placement.id === activePlacement.id) === 0 && activeShotNumber === 1)}
               onClick={previousShot}
@@ -1056,67 +1067,201 @@ export default function TimelineAssemblyWorkspace({
               type="range"
               value={Math.min(playheadSeconds, Math.max(0.1, totalSeconds))}
             />
+            <small className={styles.transportNote}>Previous clip and Next clip continuity now resolves at exact Shot boundaries.</small>
           </div>
-        </section>
 
-        <section className={styles.screenplay} aria-label="Synchronized screenplay source">
-          <header>
-            <p className={styles.kicker}>Screenplay source</p>
-            <strong>Current Mini-Block evidence</strong>
-          </header>
-          <div className={styles.screenplayScroll}>
+          <div className={styles.shotColumns} aria-hidden="true">
+            <span>Shot</span>
+            <span>Storyboard frame</span>
+            <span>Duration</span>
+            <span>Cinematic / story details</span>
+            <span>Action / dialogue / narration</span>
+            <span>Flow / motion</span>
+          </div>
+
+          <div className={styles.shotRows}>
+            {selectedPlacement ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
+              const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
+              const progression = storyboardPositionProgression(shotNumber);
+              const state = motionFor(selectedPlacement, shotNumber);
+              const current = state.current;
+              const working = generatingShotNumber === shotNumber;
+              const label = working && generatingMotionStage
+                ? generatingMotionStage
+                : state.stale
+                  ? "STALE"
+                  : current?.status === "succeeded"
+                    ? "READY"
+                    : current?.status?.toUpperCase() ?? "NOT GENERATED";
+              const placementIndex = placements.findIndex((placement) => placement.id === selectedPlacement.id);
+              const selected = activePlacement?.id === selectedPlacement.id && activeShotNumber === shotNumber;
+              const dialogue = presentation.approval?.bubbles.map((bubble) => bubble.speaker + ": " + bubble.text).join(" · ") || "";
+              const narration = presentation.approval?.narration || "";
+              return (
+                <article className={styles.shotRow} data-selected={selected ? "true" : "false"} key={shotNumber}>
+                  <div className={styles.shotNumber}><strong>{String(shotNumber).padStart(2, "0")}</strong></div>
+                  <button
+                    aria-label={"Select Shot " + String(shotNumber).padStart(2, "0")}
+                    aria-pressed={selected}
+                    className={styles.shotFrameButton}
+                    disabled={placementIndex < 0}
+                    onClick={() => seekToShot(placementIndex, shotNumber)}
+                    type="button"
+                  >
+                    {presentation.artifact?.assetUrl
+                      ? <img alt={presentation.artifact.narrativeIntention || "Storyboard Image for Shot " + shotNumber} src={presentation.artifact.assetUrl} />
+                      : <span>No locked Storyboard Image</span>}
+                  </button>
+                  <div className={styles.durationCell}>
+                    <strong>3.0s</strong>
+                    <small>{clock((shotNumber - 1) * PLANNING_SECONDS_PER_SHOT)} – {clock(shotNumber * PLANNING_SECONDS_PER_SHOT)}</small>
+                  </div>
+                  <div className={styles.cinematicCell}>
+                    <strong>{progression.label}</strong>
+                    <span>{progression.direction}</span>
+                    <small>{presentation.artifact?.narrativeIntention || activeEvidence.responsibility || "No approved cinematic intention is established."}</small>
+                  </div>
+                  <div className={styles.storyCell}>
+                    <span>{dialogue || narration || "No approved dialogue or narration is mapped to this Shot."}</span>
+                    <small>{activeEvidence.passages.length ? "Synchronized screenplay source · Current Mini-Block evidence" : "Timeline does not manufacture source text or timestamps."}</small>
+                  </div>
+                  <div className={styles.motionCell} data-motion-status={state.stale ? "stale" : current?.status ?? "empty"}>
+                    <strong>{label}</strong>
+                    {current?.provider || current?.model ? <small>{[current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Locked still remains authoritative.</small>}
+                    {current?.error ? <small>{current.error}</small> : null}
+                    <button
+                      disabled={generatingShotNumber !== null || !selectedPlacement.shotImages.some((image) => image.shotNumber === shotNumber)}
+                      onClick={() => void generateMotionShot(shotNumber)}
+                      type="button"
+                    >
+                      {working ? "Generating…" : current?.status === "failed" || state.stale ? "Retry motion" : current?.status === "succeeded" ? "Regenerate motion" : "Generate motion"}
+                    </button>
+                  </div>
+                </article>
+              );
+            }) : <p className={styles.emptyBoard}>Place approved Previs media from the source drawer to populate the 25-Shot Timeline board.</p>}
+          </div>
+        </main>
+
+        <aside className={styles.sidePanel}>
+          <section className={styles.monitor} aria-label="Timeline playback viewer">
+            <header>
+              <p className={styles.kicker}>Playback monitor</p>
+              <strong>{activePlacement ? "Shot " + String(activeShotNumber).padStart(2, "0") + " of 25" : "No placed Previs media"}</strong>
+            </header>
+            <div className={styles.stage}>
+              {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
+                ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
+                : playbackMode === "motion"
+                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older locked image. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
+                  : activeImage?.assetUrl
+                    ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
+                    : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
+              {showNarration && activePresentation?.approval && (activePresentation.approval.narration || activePresentation.approval.bubbles.length) ? (
+                <div className={styles.narrationOverlay} aria-label="Written narration overlay">
+                  {activePresentation.approval.bubbles.map((bubble) => (
+                    <p className={styles.speechLine} key={bubble.speaker + ":" + bubble.text}><strong>{bubble.speaker}</strong> {bubble.text}</p>
+                  ))}
+                  {activePresentation.approval.narration ? <p>{activePresentation.approval.narration}</p> : null}
+                </div>
+              ) : null}
+              {showNarration && activePlacement && !activePresentation?.approval ? (
+                <div className={styles.narrationUnavailable}>Written narration is not current for this Shot. Regenerate it in Previs before narrated export.</div>
+              ) : null}
+              {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
+            </div>
+          </section>
+
+          <section className={styles.inspector} aria-label="Selected Timeline media inspector">
+            <p className={styles.kicker}>Selected Mini-Block</p>
+            {selectedPlacement ? (
+              <>
+                <h3>Mini-Block {selectedPlacement.blockNumber}.{selectedPlacement.miniBlockNumber}</h3>
+                <dl>
+                  <div><dt>Address</dt><dd>Act {actForBlock(selectedPlacement.blockNumber)} · Sequence {sequenceForBlock(selectedPlacement.blockNumber)} · Block {String(selectedPlacement.blockNumber).padStart(2, "0")}</dd></div>
+                  <div><dt>Source</dt><dd>Previs Flip Book</dd></div>
+                  <div><dt>Source revision</dt><dd>{selectedPlacement.sourceRevision}</dd></div>
+                  <div><dt>Coverage</dt><dd>{selectedPlacement.shotImages.length}/25 locked Storyboard Images</dd></div>
+                  <div><dt>Motion</dt><dd>{selectedMotionSucceeded}/25 generated Shots ready</dd></div>
+                  <div><dt>Status</dt><dd>{placementIsStale(selectedPlacement) ? "STALE · newer upstream source available" : "CURRENT"}</dd></div>
+                </dl>
+                <small className={styles.sourceKey}>Source identity · {selectedPlacement.sourceKey}</small>
+                <div className={styles.inspectorActions}>
+                  <button onClick={() => onOpenPrevis(placementAddress(selectedPlacement))} type="button">Open owning Previs Mini-Block</button>
+                  <button onClick={() => onOpenStoryboard(placementAddress(selectedPlacement))} type="button">Open owning Storyboard Mini-Block</button>
+                  <button disabled={exporting || selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK} onClick={exportSelectedMp4} type="button">
+                    {exporting ? "Exporting MP4…" : "Export selected Mini-Block MP4 · narration " + (showNarration ? "on" : "off")}
+                  </button>
+                  {exportUrl ? <a className={styles.exportLink} download={timelineMp4FileName(project.title, selectedPlacement, showNarration)} href={exportUrl}>Open exported MP4</a> : null}
+                  <small>Silent export · 25 × 3-second Shots · 75 seconds · 24 fps. Export failure never reports success.</small>
+                  {placementIsStale(selectedPlacement) ? <button onClick={() => updatePlacementSource(selectedPlacement)} type="button">Update to current Previs source</button> : null}
+                  <div className={styles.orderActions}>
+                    <button disabled={selectedPlacement.order <= 1} onClick={() => movePlacement(selectedPlacement, -1)} type="button">Move earlier</button>
+                    <button disabled={selectedPlacement.order >= placements.length} onClick={() => movePlacement(selectedPlacement, 1)} type="button">Move later</button>
+                  </div>
+                  <button onClick={() => removePlacement(selectedPlacement)} type="button">Remove placement</button>
+                </div>
+              </>
+            ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
+          </section>
+
+          <section className={styles.providerStatus}>
+            <p className={styles.kicker}>Motion provider</p>
+            <span>{motionRouteMessage}</span>
+          </section>
+        </aside>
+      </div>
+
+      <section className={styles.continuityPanel} aria-label="Timeline continuity and story evidence">
+        <header>
+          <div>
+            <p className={styles.kicker}>Continuity bible</p>
+            <h3>Authoritative story and production continuity</h3>
+          </div>
+          <span>Unknown values remain explicit; Timeline does not invent continuity facts.</span>
+        </header>
+        <div className={styles.continuityGrid}>
+          <dl>
+            <div><dt>Scenes</dt><dd>{activeEvidence.passages.map((passage) => passage.sceneNumber).filter(Boolean).join(", ") || "Not established"}</dd></div>
+            <div><dt>Dramatic responsibility</dt><dd>{activeEvidence.responsibility || "Not established"}</dd></div>
+            <div><dt>Action continuity</dt><dd>{activePresentation?.artifact?.narrativeIntention || "No approved source"}</dd></div>
+            <div><dt>Dialogue continuity</dt><dd>{activePresentation?.approval?.bubbles.length ? activePresentation.approval.bubbles.map((bubble) => bubble.speaker + ": " + bubble.text).join(" · ") : "No approved source"}</dd></div>
+          </dl>
+          <dl>
+            <div><dt>Character</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Wardrobe</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Props</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Location</dt><dd>No approved Timeline source</dd></div>
+          </dl>
+          <dl>
+            <div><dt>Time</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Weather</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Lighting</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Palette</dt><dd>No approved Timeline source</dd></div>
+          </dl>
+          <div className={styles.storyEvidence}>
+            <strong>Synchronized screenplay source</strong>
+            <span>Current Mini-Block evidence</span>
             {activeEvidence.passages.length ? activeEvidence.passages.map((passage) => (
               <article key={passage.id}>
                 <small>{passage.type} · Scene {passage.sceneNumber || "—"}</small>
                 <p>{passage.text}</p>
               </article>
-            )) : <p>No screenplay passage is mapped to this Mini-Block. Timeline does not manufacture source text or timestamps.</p>}
+            )) : <p>Timeline does not manufacture source text or timestamps.</p>}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <aside className={styles.inspector} aria-label="Selected Timeline media inspector">
-          <p className={styles.kicker}>Inspector</p>
-          {selectedPlacement ? (
-            <>
-              <h3>Mini-Block {selectedPlacement.blockNumber}.{selectedPlacement.miniBlockNumber}</h3>
-              <dl>
-                <div><dt>Address</dt><dd>Act {actForBlock(selectedPlacement.blockNumber)} · Sequence {sequenceForBlock(selectedPlacement.blockNumber)} · Block {String(selectedPlacement.blockNumber).padStart(2, "0")}</dd></div>
-                <div><dt>Source</dt><dd>Previs Flip Book</dd></div>
-                <div><dt>Source revision</dt><dd>{selectedPlacement.sourceRevision}</dd></div>
-                <div><dt>Coverage</dt><dd>{selectedPlacement.shotImages.length}/25 locked Storyboard Images</dd></div>
-                <div><dt>Motion</dt><dd>{selectedMotionSucceeded}/25 generated Shots ready</dd></div>
-                <div><dt>Duration</dt><dd>~{selectedPlacement.durationSeconds}s planning target</dd></div>
-                <div><dt>Status</dt><dd>{placementIsStale(selectedPlacement) ? "STALE · newer upstream source available" : "CURRENT"}</dd></div>
-              </dl>
-              <small className={styles.sourceKey}>Source identity · {selectedPlacement.sourceKey}</small>
-              <div className={styles.inspectorActions}>
-                <button onClick={() => onOpenPrevis(placementAddress(selectedPlacement))} type="button">Open owning Previs Mini-Block</button>
-                <button onClick={() => onOpenStoryboard(placementAddress(selectedPlacement))} type="button">Open owning Storyboard Mini-Block</button>
-                <button disabled={exporting || selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK} onClick={exportSelectedMp4} type="button">
-                  {exporting ? "Exporting MP4…" : `Export selected Mini-Block MP4 · narration ${showNarration ? "on" : "off"}`}
-                </button>
-                {exportUrl ? <a className={styles.exportLink} download={timelineMp4FileName(project.title, selectedPlacement, showNarration)} href={exportUrl}>Open exported MP4</a> : null}
-                <small>Silent export · 25 × 3-second Shots · 75 seconds · 24 fps. Export failure never reports success.</small>
-                {placementIsStale(selectedPlacement) ? <button onClick={() => updatePlacementSource(selectedPlacement)} type="button">Update to current Previs source</button> : null}
-                <button disabled={selectedPlacement.order <= 1} onClick={() => movePlacement(selectedPlacement, -1)} type="button">Move earlier</button>
-                <button disabled={selectedPlacement.order >= placements.length} onClick={() => movePlacement(selectedPlacement, 1)} type="button">Move later</button>
-                <button onClick={() => removePlacement(selectedPlacement)} type="button">Remove placement</button>
-              </div>
-            </>
-          ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
-        </aside>
-      </div>
-
-      <section className={styles.opening} aria-label="Opening movie assembly">
+      <section className={styles.exportPanel} aria-label="Opening movie assembly and export">
         <header>
           <div>
-            <p className={styles.kicker}>Opening assembly</p>
-            <h3>Build the beginning of the movie</h3>
+            <p className={styles.kicker}>Assembly & export</p>
+            <h3>Opening movie range</h3>
           </div>
-          <span>Timeline takes the first complete placed Mini-Block, then only consecutive complete Mini-Blocks in story order. Four Mini-Blocks = one 5-minute Block.</span>
+          <span>Four Mini-Blocks = one 5-minute Block.</span>
         </header>
         {openingRun.length ? (
-          <div className={styles.openingBody}>
+          <div className={styles.exportBody}>
             <div className={styles.rangeControls} aria-label="Opening range length">
               {openingRun.map((_, index) => {
                 const count = index + 1;
@@ -1134,7 +1279,7 @@ export default function TimelineAssemblyWorkspace({
             </div>
             <div className={styles.openingActions}>
               <button disabled={openingExporting || !selectedOpeningPlacements.length} onClick={() => void exportOpeningRangeMp4()} type="button">
-                {openingExporting ? "Exporting opening MP4…" : `Export ${selectedOpeningPlacements.length}-Mini-Block opening MP4 · narration ${showNarration ? "on" : "off"}`}
+                {openingExporting ? "Exporting opening MP4…" : "Export " + selectedOpeningPlacements.length + "-Mini-Block opening MP4 · narration " + (showNarration ? "on" : "off")}
               </button>
               {(openingExportUrl || latestRangeExport?.videoAssetUrl) ? (
                 <a
@@ -1152,50 +1297,13 @@ export default function TimelineAssemblyWorkspace({
         ) : <p className={styles.openingEmpty}>Place at least one complete 25-Shot Previs Mini-Block on Timeline to start the opening assembly.</p>}
       </section>
 
-      <section className={styles.motion} aria-label="Optional generated motion shots">
-        <header>
-          <div>
-            <p className={styles.kicker}>Optional motion</p>
-            <h3>Image-to-video Shot generation</h3>
-          </div>
-          <span>{motionRouteMessage} · Each generated clip remains separate from its locked still. Timeline uses exactly the first 3 seconds of a successful result and never substitutes a still for failed motion.</span>
-        </header>
-        {selectedPlacement ? (
-          <div className={styles.motionGrid}>
-            {Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
-              const state = motionFor(selectedPlacement, shotNumber);
-              const current = state.current;
-              const working = generatingShotNumber === shotNumber;
-              const label = working && generatingMotionStage
-                ? generatingMotionStage
-                : state.stale
-                  ? "STALE"
-                  : current?.status === "succeeded"
-                    ? "READY"
-                    : current?.status?.toUpperCase() ?? "NOT GENERATED";
-              return (
-                <article data-motion-status={state.stale ? "stale" : current?.status ?? "empty"} key={shotNumber}>
-                  <strong>Shot {String(shotNumber).padStart(2, "0")}</strong>
-                  <span>{label}</span>
-                  {current?.provider || current?.model ? <small>{[current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Approved first frame is the source reference.</small>}
-                  {current?.error ? <small>{current.error}</small> : null}
-                  <button disabled={generatingShotNumber !== null || !selectedPlacement.shotImages.some((image) => image.shotNumber === shotNumber)} onClick={() => void generateMotionShot(shotNumber)} type="button">
-                    {working ? "Generating…" : current?.status === "failed" || state.stale ? "Retry motion" : current?.status === "succeeded" ? "Regenerate motion" : "Generate motion"}
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        ) : <p className={styles.motionEmpty}>Place a Previs Mini-Block on Timeline before generating optional motion.</p>}
-      </section>
-
       <section className={styles.timeline} aria-label="Previs media timeline">
         <header>
           <div>
             <p className={styles.kicker}>Media timeline</p>
             <h3>Chronological Mini-Block assembly</h3>
           </div>
-          <span>Each placement retains its saved Previs source identity. Upstream replacement is never applied silently.</span>
+          <span>Each placement retains its saved Previs source identity. Upstream replacement will not change silently.</span>
         </header>
         <div className={styles.timelineRail}>
           {placements.length ? placements.map((placement) => (

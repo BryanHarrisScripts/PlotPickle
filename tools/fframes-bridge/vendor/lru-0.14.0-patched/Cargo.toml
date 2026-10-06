@@ -1,0 +1,33 @@
+[package]
+name = "lru"
+version = "0.14.0"
+authors = ["Jerome Froelich <jeromefroelic@hotmail.com>"]
+categories = ["caching", "no-std"]
+description = "A LRU cache implementation"
+homepage = "https://github.com/jeromefroe/lru-rs"
+repository = "https://github.com/jeromefroe/lru-rs.git"
+documentation = "https://docs.rs/lru/"
+readme = "README.md"
+license = "MIT"
+keywords = ["LRU", "cache"]
+
+[features]
+default = ["hashbrown"]
+nightly = ["hashbrown", "hashbrown/nightly"]
+
+[dependencies]
+hashbrown = { version = "0.15.2", optional = true }
+
+[dev-dependencies]
+scoped_threadpool = "0.1.*"
+stats_alloc = "0.1.*"
+
+
+[package.metadata.plotpickle-security-backport]
+upstream-release = "0.14.0"
+upstream-release-commit = "5ec44f564f561abf4b93f7c41764ced496d4bbb6"
+iter-mut-fix-pr = "https://github.com/jeromefroe/lru-rs/pull/224"
+iter-mut-fix-commit = "25669e76110133c73d72f1db0069934ba590162a"
+panic-safety-fix-pr = "https://github.com/jeromefroe/lru-rs/pull/238"
+panic-safety-fix-commit = "2776ded569ee89a99c515bca8194f65639182c96"
+plotpickle-issue = "2706"

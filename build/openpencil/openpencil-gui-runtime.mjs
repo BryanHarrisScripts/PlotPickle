@@ -147,17 +147,29 @@ export async function resolveOpenPencilSurface(surfaceName, overrides = {}) {
 
   const workspaceRoot = pathApi.resolve(dependencies.repositoryRoot, "designs", "openpencil");
   const file = String(match.file || "").trim();
+  const bootstrap = String(match.bootstrap || "").trim();
   const page = String(match.page || match.name || "").trim();
-  if (!file || !page || pathApi.isAbsolute(file)) throw new Error("OPENPENCIL_SURFACE_REGISTRY_INVALID");
+  if (!file || !page || pathApi.isAbsolute(file) || (bootstrap && pathApi.isAbsolute(bootstrap))) {
+    throw new Error("OPENPENCIL_SURFACE_REGISTRY_INVALID");
+  }
+
   const designFile = pathApi.resolve(workspaceRoot, file);
   const relative = pathApi.relative(workspaceRoot, designFile);
   if (!relative || relative.startsWith("..") || pathApi.isAbsolute(relative)) throw new Error("OPENPENCIL_SURFACE_OUTSIDE_WORKSPACE");
+
+  const bootstrapFile = bootstrap ? pathApi.resolve(workspaceRoot, bootstrap) : "";
+  const relativeBootstrapFile = bootstrapFile ? pathApi.relative(workspaceRoot, bootstrapFile) : "";
+  if (bootstrapFile && (!relativeBootstrapFile || relativeBootstrapFile.startsWith("..") || pathApi.isAbsolute(relativeBootstrapFile))) {
+    throw new Error("OPENPENCIL_SURFACE_OUTSIDE_WORKSPACE");
+  }
 
   return Object.freeze({
     name: String(match.name),
     page,
     designFile,
     relativeFile: relative,
+    bootstrapFile,
+    relativeBootstrapFile,
     workspaceRoot,
   });
 }
@@ -183,7 +195,9 @@ export function publicOpenPencilGuiError(error) {
   }
   if (code === "OPENPENCIL_SURFACE_REGISTRY_INVALID") return "The repository OpenPencil surface registry is invalid.";
   if (code === "OPENPENCIL_SURFACE_OUTSIDE_WORKSPACE") return "The OpenPencil surface target must stay inside designs\\openpencil.";
-  if (code === "OPENPENCIL_DESIGN_FILE_MISSING") return "The registered OpenPencil design file is missing. Save the design under designs\\openpencil and retry.";
+  if (code === "OPENPENCIL_DESIGN_FILE_MISSING") return "The registered OpenPencil design file is missing.";
+  if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_MISSING") return "The registered OpenPencil design is missing and its repository bootstrap seed is unavailable.";
+  if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_FAILED") return "PlotPickle could not materialize the registered OpenPencil design from its repository bootstrap seed.";
   if (code === "OPENPENCIL_DESIGN_PAGE_MISSING") return "The registered OpenPencil page is missing from the design file.";
   if (code === "OPENPENCIL_DESKTOP_MISSING") return "OpenPencil Desktop is not installed yet. PlotPickle prepares the reviewed desktop app after core startup; retry Check status or restart PlotPickle.";
   if (code === "OPENPENCIL_CLI_MISSING") return "The reviewed OpenPencil CLI helper is not ready yet. PlotPickle prepares it after core startup.";
@@ -197,11 +211,29 @@ export function createOpenPencilGuiController(overrides = {}) {
 
   async function openSurface(surfaceName) {
     const target = await resolveOpenPencilSurface(surfaceName, dependencies);
-    if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_FILE_MISSING");
     const desktop = resolveOpenPencilDesktopLaunch(dependencies);
     if (!desktop) throw new Error("OPENPENCIL_DESKTOP_MISSING");
     const cli = resolveOpenPencilCliLaunch(dependencies);
     if (!cli) throw new Error("OPENPENCIL_CLI_MISSING");
+
+    let bootstrapState = "existing";
+    if (!dependencies.exists(target.designFile)) {
+      if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
+        throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
+      }
+      try {
+        await runCli(
+          cli,
+          ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
+          dependencies,
+          target.workspaceRoot,
+        );
+      } catch {
+        throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
+      }
+      if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
+      bootstrapState = "materialized";
+    }
 
     const pagesResult = await runCli(cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot);
     const pages = parseJson(pagesResult.stdout, "OPENPENCIL_PAGES_INVALID");
@@ -238,6 +270,7 @@ export function createOpenPencilGuiController(overrides = {}) {
             relativeFile: target.relativeFile,
             desktopSource: desktop.source,
             cliSource: cli.source,
+            bootstrapState,
             message: `OpenPencil GUI opened ${target.name} · ${target.relativeFile} · page ${target.page}.`,
           });
         }

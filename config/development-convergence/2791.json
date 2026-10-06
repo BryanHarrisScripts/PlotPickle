@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 2791,
+  "phase": "openpencil-clean-checkout-design-bootstrap",
+  "brief": "docs/developer-briefs/2791-openpencil-bootstrap-design.md",
+  "allowedChanges": [
+    "build/openpencil/openpencil-gui-runtime.mjs",
+    "config/development-convergence/2791.json",
+    "designs/openpencil/",
+    "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+    "docs/developer-briefs/2791-openpencil-bootstrap-design.md",
+    "tests/issue-2787-openpencil-gui-review.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2791-A1",
+      "criterion": "Every explicit OpenPencil surface has a repository bootstrap seed and unique editable target.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "designs/openpencil/surfaces.json",
+          "contains": "bootstrap/"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2787-openpencil-gui-review.test.mjs",
+          "contains": "#2791 every registered OpenPencil surface has a valid repository bootstrap seed"
+        }
+      ]
+    },
+    {
+      "id": "P2791-A2",
+      "criterion": "A missing editable design is materialized through the pinned OpenPencil CLI rather than failing or overwriting an existing design.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-gui-runtime.mjs",
+          "contains": "OPENPENCIL_DESIGN_BOOTSTRAP_MISSING"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-gui-runtime.mjs",
+          "contains": "convert"
+        }
+      ]
+    },
+    {
+      "id": "P2791-A3",
+      "criterion": "The Timeline first-run path is covered by the existing OpenPencil regression and review remains bound to the editable fig artifact.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2787-openpencil-gui-review.test.mjs",
+          "contains": "bootstrapState"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2787-openpencil-gui-review.test.mjs",
+          "contains": "timeline.fig"
+        }
+      ]
+    }
+  ]
+}

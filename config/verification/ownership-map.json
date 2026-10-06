@@ -374,6 +374,20 @@
       ]
     },
     {
+      "id": "openpencil-design-adapter",
+      "classification": "production",
+      "include": [
+        "config/openpencil-adapter.json"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "visual",
+        "mcp",
+        "security"
+      ]
+    },
+    {
       "id": "visual-qa-skill",
       "classification": "production",
       "include": [

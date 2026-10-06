@@ -105,7 +105,7 @@
     "visual-story": {
       "label": "Visual Story",
       "status": "candidate",
-      "selector": "[data-visual-story='scene-beat-shot-frame']",
+      "selector": "[data-storyboard-locked-shot-handoff='previs']",
       "candidate": ".artifacts/visual-readiness/05-storyboard__01-visual-story__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/05-storyboard__01-visual-story.png"
     },

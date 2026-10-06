@@ -460,6 +460,31 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       let responseText = "";
       if (command.action === "help") {
         responseText = `OpenPencil commands:\n${OPENPENCIL_COMMAND_HELP}`;
+      } else if (command.action === "open" || command.action === "review") {
+        const response = await authenticatedProfileFetch("/api/openpencil/gui", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: command.action, surfaceName: command.surfaceName }),
+        });
+        const body = await response.json() as {
+          ok?: boolean;
+          result?: {
+            state?: string;
+            surface?: string;
+            page?: string;
+            relativeFile?: string;
+            message?: string;
+            handoffDraft?: string;
+          };
+          message?: string;
+        };
+        if (!response.ok || !body.ok || !body.result) throw new Error(body.message || "OpenPencil GUI command failed.");
+        responseText = body.result.message || "OpenPencil GUI command completed.";
+        if (command.action === "review" && body.result.handoffDraft) {
+          setDraft(body.result.handoffDraft);
+          setDraftHasVoice(false);
+          responseText += "\nDesign evidence has been loaded into the request box. Choose 01 Interpret, then Pi Draft, then Publish Brief to create the GitHub issue.";
+        }
       } else {
         const request = command.action === "status"
           ? authenticatedProfileFetch("/api/openpencil/mcp", { cache: "no-store" })
@@ -819,7 +844,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
                 setDraft(next);
                 if (!next.trim()) setDraftHasVoice(false);
               }}
-              placeholder={embedded ? "Example: OpenPencil status" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
+              placeholder={embedded ? "Example: OpenPencil open Timeline" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
               rows={4}
               value={draft}
             />

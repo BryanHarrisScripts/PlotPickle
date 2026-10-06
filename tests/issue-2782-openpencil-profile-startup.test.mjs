@@ -43,7 +43,7 @@ test("#2782 PlotPickle-managed OpenPencil entrypoint wins before global npm fall
   });
 });
 
-test("#2782 deferred startup preparation is pinned, user-writable, and never launches MCP", async () => {
+test("#2782 deferred startup preparation is pinned, user-writable, and never launches the MCP server", async () => {
   const [setup, deferred, launcher] = await Promise.all([
     read("scripts/ensure-openpencil-mcp.ps1"),
     read("scripts/windows-companion-maintenance-after-ready.ps1"),
@@ -55,14 +55,15 @@ test("#2782 deferred startup preparation is pinned, user-writable, and never lau
   assert.match(setup, /PlotPickle\\tools\\openpencil/u);
   assert.match(setup, /@open-pencil\/mcp@\$Version/u);
   assert.match(setup, /designs\\openpencil/u);
-  assert.match(setup, /This does not launch OpenPencil or connect port 7600/u);
-  assert.doesNotMatch(setup, /Start-Process|openpencil-mcp-http/u);
+  assert.match(setup, /OpenPencil is not launched or connected during startup/u);
+  assert.doesNotMatch(setup, /openpencil-mcp-http/u);
+  assert.doesNotMatch(setup, /Start-Process -FilePath \$desktop/u);
 
   const readyGate = deferred.indexOf("if (-not $ready)");
   const setupInvocation = deferred.indexOf("& $OpenPencilSetup");
   assert.ok(readyGate >= 0 && setupInvocation > readyGate, "OpenPencil preparation must run only after core readiness");
   assert.match(deferred, /Core PlotPickle remains available/u);
-  assert.match(launcher, /OpenPencil MCP is prepared after readiness but never launched until you explicitly connect it in Settings/u);
+  assert.match(launcher, /OpenPencil MCP, CLI and desktop GUI are prepared after readiness but never launched until you explicitly connect or open a named surface in Settings/u);
 });
 
 test("#2782 repository design workspace is tracked and prefilled in Settings", async () => {

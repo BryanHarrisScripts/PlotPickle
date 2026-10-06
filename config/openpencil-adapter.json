@@ -33,6 +33,13 @@
       "convert",
       "import",
       "export"
+    ],
+    "managedPackage": "@open-pencil/cli",
+    "managedVersion": "0.15.1",
+    "appControl": [
+      "documents list",
+      "documents open",
+      "documents activate"
     ]
   },
   "mcp": {
@@ -73,12 +80,25 @@
     "surface": "Settings > Command",
     "operationalVerbs": [
       "OpenPencil help",
+      "OpenPencil open <surface name>",
+      "OpenPencil review <surface name>",
       "OpenPencil status",
       "OpenPencil connect <absolute local design workspace>",
       "OpenPencil disconnect"
     ],
     "entersDsddBriefFlow": false,
-    "sourceMutationAuthority": false
+    "sourceMutationAuthority": false,
+    "contextAwareSurfaceInference": false,
+    "reviewHandoff": {
+      "flow": [
+        "Review Design Changes",
+        "Interpret",
+        "Pi Draft",
+        "Publish Brief"
+      ],
+      "delivery": "github-issue",
+      "implementationPullRequest": false
+    }
   },
   "connectionProof": {
     "issue": 2782,
@@ -96,6 +116,28 @@
     "installTiming": "after-core-ready",
     "installRoot": "%LOCALAPPDATA%\\PlotPickle\\tools\\openpencil",
     "failurePolicy": "warn-and-continue",
-    "launchesServer": false
+    "launchesServer": false,
+    "companionCli": "@open-pencil/cli",
+    "companionCliVersion": "0.15.1"
+  },
+  "gui": {
+    "version": "0.15.1",
+    "platform": "windows",
+    "explicitSurfaceRequired": true,
+    "surfaceRegistry": "designs/openpencil/surfaces.json",
+    "launchOnPlotPickleStartup": false,
+    "command": "OpenPencil open <surface name>",
+    "desktopExecutable": "OpenPencil.exe",
+    "approvedOverride": "PLOTPICKLE_OPENPENCIL_DESKTOP_EXE",
+    "installer": {
+      "url": "https://github.com/open-pencil/open-pencil/releases/download/v0.15.1/OpenPencil_0.15.1_x64-setup.exe",
+      "sha256": "5e06bc1b58afc80e16c7a5828fced68c3b3aa656b32c20f4fe9c651feab6f5f9",
+      "timing": "after-core-ready",
+      "failurePolicy": "warn-and-continue",
+      "silentArgument": "/S"
+    },
+    "designSessionOwner": "openpencil-desktop-gui",
+    "normalReviewMode": "visual-gui",
+    "headlessCommandsRole": "optional-diagnostics"
   }
 }

@@ -117,3 +117,71 @@ OpenPencil preparation is deliberately split from OpenPencil connection:
 6. The Human explicitly selects **Connect OpenPencil** to launch the local MCP child.
 
 This keeps the developer/design helper available by default without moving a third-party MCP server into the blocking startup path.
+
+
+## Phase 4 — explicit surface GUI design review
+
+Issue #2787 moves the normal design session out of headless command inspection and into the OpenPencil desktop GUI while preserving Command as the deterministic launcher.
+
+The Human explicitly names the design surface. PlotPickle does not infer it from the current route or current UI context.
+
+Example:
+
+```text
+OpenPencil open Timeline
+```
+
+The command resolves `Timeline` through the repository-owned `designs/openpencil/surfaces.json` registry. That registry binds stable PlotPickle surface names to a design file and page name. Multi-word surfaces such as `Mind Map`, `World Map` and `Rough Cut` remain explicit names.
+
+The normal workflow is:
+
+```text
+PlotPickle Command
+→ OpenPencil open <surface>
+→ OpenPencil Desktop GUI
+→ visually inspect / edit / save
+→ return to PlotPickle
+→ OpenPencil review <surface>
+→ 01 Interpret
+→ 02 Pi Draft
+→ 03 Publish Brief
+→ GitHub issue
+```
+
+The OpenPencil phase stops at the published GitHub issue. It does not create an implementation pull request. Any implementation requested by that issue begins later as a separate governed PlotPickle development cycle.
+
+### GUI/runtime split
+
+Three reviewed OpenPencil 0.15.1 capabilities have separate responsibilities:
+
+- `@open-pencil/mcp` remains the scoped automation/agent bridge.
+- `@open-pencil/cli` supplies deterministic app-control commands such as document listing and page activation.
+- OpenPencil Desktop supplies the visual editor.
+
+All preparation remains deferred until PlotPickle core readiness. Preparation failure is non-blocking. No MCP server or desktop GUI launches during normal startup.
+
+On Windows, when the desktop application is absent, PlotPickle may prepare the pinned upstream OpenPencil 0.15.1 x64 installer after core readiness. The installer identity is verified by SHA-256 before execution. The GUI still launches only after an explicit `OpenPencil open <surface>` command.
+
+### Opening a surface
+
+The GUI gateway:
+
+1. requires the existing authenticated Human profile and loopback/CSRF boundary;
+2. resolves only an explicit registry surface name;
+3. confines the design target to `designs/openpencil`;
+4. verifies the registered design file and page exist;
+5. launches the desktop editor shell-free with the explicit file;
+6. uses the reviewed CLI app-control channel to find the opened document and activate the registered page;
+7. reports the exact surface, file and page back to Command.
+
+A missing desktop app, file, page, or unknown surface is a visible failure. PlotPickle does not silently invent a design or choose another page.
+
+Normal design review after launch is GUI-first. `tree`, `query`, `eval`, XPath and similar headless operations remain available for diagnostics and automation, not as the expected Human design interface.
+
+### Review Design Changes
+
+`OpenPencil review <surface>` gathers read-only Git evidence for the explicitly named repository design artifact and places a bounded design-review request into the existing DSDD request box.
+
+The Human then deliberately chooses **Interpret → Pi Draft → Publish Brief**. Publish Brief creates the normal GitHub issue. OpenPencil does not modify PlotPickle implementation source, create an implementation PR, commit a design, or merge anything.
+
+This explicit-name requirement is deliberate. Context-aware/current-surface inference is outside the Phase 4 contract.

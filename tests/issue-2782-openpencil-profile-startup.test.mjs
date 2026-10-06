@@ -79,7 +79,7 @@ test("#2782 repository design workspace is tracked and prefilled in Settings", a
   assert.equal(adapter.workspaceScope.default, "<repo>\\designs\\openpencil");
   assert.equal(adapter.workspaceScope.repositoryTracked, true);
   assert.match(designReadme, /canonical repository-owned OpenPencil design workspace/u);
-  assert.match(designReadme, /does not automatically commit or merge/u);
+  assert.match(designReadme, /never automatically merges files/u);
 });
 
 test("#2782 managed preparation stays outside normal PlotPickle dependency graph and explicit connection remains required", async () => {

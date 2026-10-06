@@ -286,9 +286,20 @@ jobs:
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Prove empty persistent runtime install is Git-free
+        shell: pwsh
+        run: node tests/issue-2789-windows-cold-runtime.mjs
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build
       - name: Validate Windows installer source contract
         shell: pwsh
         run: node --test tests/issue-1456-windows-installer.test.mjs
+      - name: Upload cold runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cold-runtime-${{ github.run_id }}
+          path: .artifacts/runtime-2789/windows-cold-runtime.json
+          if-no-files-found: warn
+          retention-days: 5

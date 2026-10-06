@@ -227,6 +227,9 @@ jobs:
       - name: Select reviewed Rust toolchain
         shell: pwsh
         run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Prove lru security backports on reviewed Rust toolchain
+        shell: pwsh
+        run: cargo +1.99.0 test --locked --manifest-path tools/fframes-bridge/vendor/lru-0.14.0-patched/Cargo.toml --test security_backports
       - name: Build locked optional bridge on Windows
         shell: pwsh
         env:

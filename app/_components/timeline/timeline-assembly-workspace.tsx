@@ -1326,6 +1326,7 @@ export default function TimelineAssemblyWorkspace({
             {selectedPlacement ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
               const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
               const progression = storyboardPositionProgression(shotNumber);
+              const generationPacket = timelineGenerationPacket(project, selectedPlacement, shotNumber);
               const state = motionFor(selectedPlacement, shotNumber);
               const current = state.current;
               const working = generatingShotNumber === shotNumber;
@@ -1385,10 +1386,16 @@ export default function TimelineAssemblyWorkspace({
                   </div>
                   <div className={styles.motionCell} data-motion-status={state.stale ? "stale" : current?.status ?? "empty"}>
                     <strong>{label}</strong>
-                    {current?.provider || current?.model ? <small>{[current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Locked still remains authoritative.</small>}
+                    {current?.provider || current?.model ? <small>{[current.generationMode, current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Shot packet can route through text or approved visual references.</small>}
                     {current?.error ? <small>{current.error}</small> : null}
+                    <details>
+                      <summary>Generation packet</summary>
+                      <small>{generationPacket.dramaticResponsibility || "No separate Mini-Block responsibility text."}</small>
+                      <small>{generationPacket.progression.label} · {generationPacket.progression.direction}</small>
+                      <small>{generationPacket.references.length} approved reference binding{generationPacket.references.length === 1 ? "" : "s"} · {generationPacket.sourceRefs.length} provenance refs</small>
+                    </details>
                     <button
-                      disabled={generatingShotNumber !== null || !selectedPlacement.shotImages.some((image) => image.shotNumber === shotNumber)}
+                      disabled={generatingShotNumber !== null}
                       onClick={() => void generateMotionShot(shotNumber)}
                       type="button"
                     >
@@ -1411,7 +1418,7 @@ export default function TimelineAssemblyWorkspace({
               {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
                 ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
                 : playbackMode === "motion"
-                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older locked image. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
+                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older Shot Generation Packet. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
                   : activeImage?.assetUrl
                     ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
                     : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}

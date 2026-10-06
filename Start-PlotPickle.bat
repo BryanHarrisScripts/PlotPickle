@@ -75,7 +75,8 @@ echo ============================================================
 echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Required PlotPickle runtime checks finish first; read-only optional companion inventory begins only after the local server is ready.
+echo Required PlotPickle runtime checks finish first; managed developer/design tooling and read-only optional companion inventory begin only after the local server is ready.
+echo OpenPencil MCP is prepared after readiness but never launched until you explicitly connect it in Settings.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -381,8 +382,8 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
 ) else (
   if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
     echo.
-    echo !INFO! Read-only optional companion inventory is deferred until PlotPickle is reachable.
-    echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
+    echo !INFO! Managed OpenPencil preparation and read-only optional companion inventory are deferred until PlotPickle is reachable.
+    echo !INFO! OpenPencil, ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
   ) else (
     echo.
     echo !READY_WARN! Optional companion maintenance helpers are incomplete. Core PlotPickle will still start normally.
@@ -398,7 +399,7 @@ echo !READY! PlotPickle Agent Skills are registered and verified.
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   echo !READY! WebMCP UAT will begin only after the local server reports ready.
 ) else (
-  echo !READY! Optional companion inventory is deferred until after local server readiness.
+  echo !READY! OpenPencil preparation and optional companion inventory are deferred until after local server readiness.
 )
 echo !SUCCESS! Startup checks complete. PlotPickle can now start.
 set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"

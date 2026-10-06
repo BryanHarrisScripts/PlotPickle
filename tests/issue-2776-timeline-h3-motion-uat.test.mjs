@@ -39,10 +39,10 @@ test("#2776 one-shot MiniMax activation is behind the Human confirmation boundar
   assert.match(workspace, /dataSharingAcknowledged: route\.locality === "cloud"/u);
 });
 
-test("#2776 Timeline exposes provider readiness and per-Shot generation progress", async () => {
+test("#2776/#2803 Timeline exposes provider readiness and per-Shot generation progress", async () => {
   const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
 
-  assert.match(workspace, /Checking image-to-video provider/u);
+  assert.match(workspace, /Checking video generation provider/u);
   assert.match(workspace, /ready to activate only after Generate motion is confirmed/u);
   assert.match(workspace, /"PREFLIGHT" \| "SUBMITTING" \| "QUEUED" \| "RUNNING"/u);
   assert.match(workspace, /setGeneratingMotionStage\("PREFLIGHT"\)/u);

@@ -20,21 +20,20 @@ test("#2763 phase 3 persists one governed motion state per Timeline Shot", async
   assert.match(reducer, /timelineMotionShots: \[command\.motion, \.\.\.existing\]/u);
 });
 
-test("#2763 phase 3 grounds motion in screenplay, approved first frame, and three-second Shot authority", async () => {
+test("#2763/#2803 phase 3 grounds motion in the provider-neutral Shot Generation Packet and three-second authority", async () => {
   const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
 
-  assert.match(workspace, /function timelineMotionPrompt/u);
-  assert.match(workspace, /Mapped screenplay:/u);
-  assert.match(workspace, /Approved image intention:/u);
-  assert.match(workspace, /Use the approved first frame as the strict visual and character reference/u);
-  assert.match(workspace, /Timeline slot is exactly three seconds/u);
-  assert.match(workspace, /motionSourceKey\(placement, shotNumber, artifactId, prompt\)/u);
+  assert.match(workspace, /function timelineGenerationPacket/u);
+  assert.match(workspace, /dramaticResponsibility: evidence\.responsibility/u);
+  assert.match(workspace, /screenplay,/u);
+  assert.match(workspace, /buildTimelineShotGenerationPacket/u);
+  assert.match(workspace, /serializeTimelineShotGenerationPacket\(packet, strategy\)/u);
+  assert.match(workspace, /motionSourceKey\(selectedPlacement, packet\)/u);
   assert.match(workspace, /placementSourceKey: placement\.sourceKey/u);
-  assert.match(workspace, /sourceAssetUrl: presentation\.artifact\.assetUrl/u);
   assert.match(workspace, /requestedDurationSeconds: 3/u);
 });
 
-test("#2763/#2776 phase 3 resolves current image-to-video authority without unverified fallback", async () => {
+test("#2763/#2776/#2803 phase 3 resolves current capability-aware video authority without unverified fallback", async () => {
   const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
 
   assert.match(workspace, /async function resolveTimelineMotionRoute/u);
@@ -43,7 +42,7 @@ test("#2763/#2776 phase 3 resolves current image-to-video authority without unve
   assert.match(workspace, /selected === "comfyui-native" && selectedState\?\.ready/u);
   assert.match(workspace, /selected === "minimax" && selectedState\?\.ready/u);
   assert.match(workspace, /minimax\?\.configured && minimax\.videoVerifiedAt/u);
-  assert.match(workspace, /No verified image-to-video route is ready/u);
+  assert.match(workspace, /No verified video generation route is ready for this Shot/u);
   assert.doesNotMatch(workspace, /\/api\/local-ai\/plugins\/video/u);
 });
 
@@ -60,7 +59,7 @@ test("#2763/#2776 phase 3 requires explicit Human confirmation before route acti
   assert.ok(activationIndex > confirmIndex);
   assert.ok(requestIndex > activationIndex);
   assert.match(generation, /No route activation or generation request is made unless you confirm/u);
-  assert.match(generation, /Motion generation was cancelled\. The locked still remains unchanged/u);
+  assert.match(generation, /Motion generation was cancelled\. Existing Timeline sources remain unchanged/u);
 });
 
 test("#2763/#2776 phase 3 tracks visible job states, retries failures, and never silently substitutes stills in motion mode", async () => {

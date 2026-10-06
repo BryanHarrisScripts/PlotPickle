@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
+  ProductionTake,
   TimelineAssemblyRevision,
   TimelineMotionShot,
   TimelinePrevisPlacement,
@@ -15,6 +16,13 @@ import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/library-project";
+import {
+  buildTimelineShotGenerationPacket,
+  resolveTimelineGenerationStrategy,
+  serializeTimelineShotGenerationPacket,
+  type TimelineGenerationStrategy,
+  type TimelineShotGenerationPacket,
+} from "@/lib/preproduction/provider-capability-contract";
 import { requestPlotPickleConfirmation } from "../../common-overlay-layer";
 import {
   storyboardAnchorEvidence,
@@ -44,6 +52,7 @@ type VideoJob = Readonly<{
   provider?: string;
   route?: string;
   model?: string;
+  durationSeconds?: number;
 }>;
 
 type TimelineMotionRoute = Readonly<{
@@ -51,6 +60,7 @@ type TimelineMotionRoute = Readonly<{
   label: string;
   locality: "cloud" | "local";
   needsActivation: boolean;
+  strategy: TimelineGenerationStrategy | null;
 }>;
 
 type MotionGenerationStage = "PREFLIGHT" | "SUBMITTING" | "QUEUED" | "RUNNING";
@@ -179,16 +189,14 @@ function timelineRangeMp4FileName(projectTitle: string, placements: readonly Tim
   return `${slug}-timeline-${range}${withNarration ? "-narrated" : ""}.mp4`;
 }
 
-function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number, artifactId: string, prompt: string) {
+function motionSourceKey(placement: TimelinePrevisPlacement, packet: TimelineShotGenerationPacket) {
   return JSON.stringify({
     placementSourceKey: placement.sourceKey,
-    shotNumber,
-    artifactId,
-    prompt,
+    packetFingerprint: packet.sourceFingerprint,
   });
 }
 
-async function resolveTimelineMotionRoute(): Promise<TimelineMotionRoute> {
+async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket): Promise<TimelineMotionRoute> {
   const [routingResponse, mediaResponse] = await Promise.all([
     fetch("/api/ai-routing/status", { credentials: "same-origin", cache: "no-store" }),
     fetch("/api/media-routing/status", { credentials: "same-origin", cache: "no-store" }),
@@ -196,7 +204,16 @@ async function resolveTimelineMotionRoute(): Promise<TimelineMotionRoute> {
   const routing = await routingResponse.json() as {
     video?: {
       selected?: string;
-      options?: Record<string, { ready?: boolean; configured?: boolean; model?: string; error?: string; locality?: string }>;
+      options?: Record<string, {
+        ready?: boolean;
+        configured?: boolean;
+        model?: string;
+        error?: string;
+        locality?: string;
+        workflowFamily?: string;
+        vramProfile?: string;
+        performanceAcknowledged?: boolean;
+      }>;
     };
     message?: string;
   };
@@ -211,13 +228,25 @@ async function resolveTimelineMotionRoute(): Promise<TimelineMotionRoute> {
   const selected = routing.video?.selected ?? "off";
   const selectedState = routing.video?.options?.[selected];
   if (selected === "comfyui-native" && selectedState?.ready) {
-    return { route: "comfyui-native", label: "Local ComfyUI MiniMax H3 · ready", locality: "local", needsActivation: false };
+    const strategy = packet ? resolveTimelineGenerationStrategy({
+      route: "comfyui-native",
+      locality: "local",
+      ready: true,
+      workflowFamily: (selectedState.workflowFamily ?? "") as "text-to-video" | "image-to-video" | "first-last-frame" | "reference-to-video" | "in-place-edit" | "",
+      vramProfile: selectedState.vramProfile,
+      performanceAcknowledged: selectedState.performanceAcknowledged === true,
+    }, packet) : null;
+    if (strategy && !strategy.eligible) throw new Error(strategy.reason);
+    const family = selectedState.workflowFamily || "video";
+    return { route: "comfyui-native", label: `Local ComfyUI MiniMax H3 · ${family} · ready`, locality: "local", needsActivation: false, strategy };
   }
   if (selected === "minimax" && selectedState?.ready) {
-    return { route: "minimax", label: "MiniMax H3 Direct · selected and verified", locality: "cloud", needsActivation: false };
+    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "minimax", locality: "cloud", ready: true }, packet) : null;
+    return { route: "minimax", label: "MiniMax H3 Direct · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
   if (selected === "openai" && selectedState?.ready) {
-    return { route: "openai", label: "OpenAI video · selected and verified", locality: "cloud", needsActivation: false };
+    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "openai", locality: "cloud", ready: true }, packet) : null;
+    return { route: "openai", label: "OpenAI video · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
 
   const minimax = media.profiles?.minimax;
@@ -227,11 +256,12 @@ async function resolveTimelineMotionRoute(): Promise<TimelineMotionRoute> {
       label: `MiniMax H3 Direct · verified ${minimax.videoModel ? `· ${minimax.videoModel}` : ""}`.trim(),
       locality: "cloud",
       needsActivation: selected !== "minimax",
+      strategy: packet ? resolveTimelineGenerationStrategy({ route: "minimax", locality: "cloud", ready: true }, packet) : null,
     };
   }
 
   if (selected !== "off" && selectedState?.error) throw new Error(selectedState.error);
-  throw new Error("No verified image-to-video route is ready. Test MiniMax H3 or select another reviewed video route in Settings.");
+  throw new Error("No verified video generation route is ready for this Shot. Test the selected video workflow or choose another reviewed route in Settings.");
 }
 
 async function activateTimelineMotionRoute(route: TimelineMotionRoute) {
@@ -253,23 +283,78 @@ async function activateTimelineMotionRoute(route: TimelineMotionRoute) {
   }
 }
 
-function timelineMotionPrompt(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
+function timelineGenerationPacket(project: LibraryPPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
   const presentation = timelinePresentationFor(project, placement, shotNumber);
   const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
   const progression = storyboardPositionProgression(shotNumber);
+  const previous = shotNumber > 1 ? storyboardPositionProgression(shotNumber - 1) : null;
+  const next = shotNumber < SHOTS_PER_MINI_BLOCK ? storyboardPositionProgression(shotNumber + 1) : null;
   const screenplay = evidence.passages.map((passage) => passage.text).filter(Boolean).join(" ").replace(/\s+/gu, " ").trim().slice(0, 1_800);
-  return [
-    `Create one restrained cinematic motion shot for ${project.title}.`,
-    `Act ${actForBlock(placement.blockNumber)}, Block ${placement.blockNumber}, Mini-Block ${placement.miniBlockNumber}, Shot ${String(shotNumber).padStart(2, "0")} of 25.`,
-    evidence.responsibility ? `Dramatic responsibility: ${evidence.responsibility}.` : "",
-    screenplay ? `Mapped screenplay: ${screenplay}` : "",
-    presentation.artifact?.narrativeIntention ? `Approved image intention: ${presentation.artifact.narrativeIntention}.` : "",
-    presentation.artifact?.prompt ? `Approved visual direction: ${presentation.artifact.prompt.slice(0, 1_200)}` : "",
-    `Shot progression: ${progression.label}. ${progression.direction}`,
-    "Use the approved first frame as the strict visual and character reference. Preserve faces, identity, wardrobe, props, location, composition, geography, lighting and screen direction. Add only story-grounded subject motion, environmental motion and one restrained camera move. Do not add text, logos, new characters, dialogue audio, music or sound effects.",
-    "The Timeline slot is exactly three seconds. If the selected provider must generate a longer clip, keep the useful action inside the first three seconds; Timeline playback will clamp the result to the three-second slot.",
-  ].filter(Boolean).join("\n").slice(0, 7_000);
+  const characters = timelineCharacterReferences(project, placement);
+  const productionShots = timelineProductionShotsFor(project, placement, shotNumber);
+  const nextPresentation = shotNumber < SHOTS_PER_MINI_BLOCK
+    ? timelinePresentationFor(project, placement, shotNumber + 1)
+    : null;
+  const references = [
+    ...(presentation.artifact?.assetUrl ? [{
+      role: "source-image" as const,
+      id: presentation.artifact.id,
+      assetUrl: presentation.artifact.assetUrl,
+    }] : []),
+    ...(nextPresentation?.artifact?.assetUrl ? [{
+      role: "last-frame" as const,
+      id: nextPresentation.artifact.id,
+      assetUrl: nextPresentation.artifact.assetUrl,
+    }] : []),
+    ...characters.flatMap((character) => character.imageUrls.map((assetUrl, index) => ({
+      role: "character" as const,
+      id: `${character.id}:reference-${index + 1}`,
+      assetUrl,
+    }))),
+  ];
+  return buildTimelineShotGenerationPacket({
+    projectId: project.id,
+    canonicalRevision: project.revision,
+    placementId: placement.id,
+    anchorRef: placement.anchorRef,
+    blockNumber: placement.blockNumber,
+    miniBlockNumber: placement.miniBlockNumber,
+    shotNumber,
+    dramaticResponsibility: evidence.responsibility ?? "",
+    screenplay,
+    progressionLabel: progression.label,
+    progressionDirection: progression.direction,
+    previousShotContext: previous ? `${previous.label}. ${previous.direction}` : "Mini-Block opening boundary.",
+    nextShotContext: next ? `${next.label}. ${next.direction}` : "Mini-Block closing handoff.",
+    narrativeIntention: presentation.artifact?.narrativeIntention ?? "",
+    visualDirection: presentation.artifact?.prompt?.slice(0, 1_200) ?? "",
+    characterFacts: characters.flatMap((character) => [character.name, ...character.facts]),
+    productionDirection: productionShots.flatMap((shot) => [
+      shot.shotSize ? `Framing: ${shot.shotSize}` : "",
+      shot.angle ? `Angle: ${shot.angle}` : "",
+      shot.lens ? `Lens: ${shot.lens}` : "",
+      shot.movement ? `Movement: ${shot.movement}` : "",
+      shot.blockingIntent ? `Blocking: ${shot.blockingIntent}` : "",
+      shot.performanceEnergy ? `Performance: ${shot.performanceEnergy}` : "",
+      shot.pacingIntent ? `Pacing: ${shot.pacingIntent}` : "",
+      shot.transitionIn ? `Transition in: ${shot.transitionIn}` : "",
+      shot.transitionOut ? `Transition out: ${shot.transitionOut}` : "",
+    ].filter(Boolean)),
+    continuityLocks: characters.flatMap((character) => [
+      `Preserve character identity: ${character.name}`,
+      ...character.facts,
+    ]),
+    references,
+    sourceRefs: [
+      placement.id,
+      placement.anchorRef,
+      ...(presentation.artifact ? [presentation.artifact.id] : []),
+      ...characters.map((character) => character.id),
+      ...productionShots.map((shot) => shot.id),
+    ],
+  });
 }
+
 
 function derivePrevisSources(project: PPFProject): readonly TimelinePrevisSource[] {
   const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -436,7 +521,7 @@ export default function TimelineAssemblyWorkspace({
   const [showNarration, setShowNarration] = useState(false);
   const [generatingShotNumber, setGeneratingShotNumber] = useState<number | null>(null);
   const [generatingMotionStage, setGeneratingMotionStage] = useState<MotionGenerationStage | null>(null);
-  const [motionRouteMessage, setMotionRouteMessage] = useState("Checking image-to-video provider…");
+  const [motionRouteMessage, setMotionRouteMessage] = useState("Checking video generation provider…");
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const latestProject = useRef<PPFProject>(project);
   latestProject.current = project;
@@ -471,9 +556,8 @@ export default function TimelineAssemblyWorkspace({
   const activeImage = activePresentation?.artifact ?? null;
   const motionShots = project.production.timelineMotionShots ?? [];
   const motionFor = (placement: TimelinePrevisPlacement, shotNumber: number) => {
-    const artifactId = placement.shotImages.find((image) => image.shotNumber === shotNumber)?.artifactId ?? "";
-    const prompt = artifactId ? timelineMotionPrompt(project, placement, shotNumber) : "";
-    const sourceKey = artifactId ? motionSourceKey(placement, shotNumber, artifactId, prompt) : "";
+    const packet = timelineGenerationPacket(project, placement, shotNumber);
+    const sourceKey = motionSourceKey(placement, packet);
     const latest = motionShots.find((motion) => motion.placementId === placement.id && motion.shotNumber === shotNumber) ?? null;
     return {
       latest,
@@ -504,7 +588,7 @@ export default function TimelineAssemblyWorkspace({
 
   useEffect(() => {
     let cancelled = false;
-    setMotionRouteMessage("Checking image-to-video provider…");
+    setMotionRouteMessage("Checking video generation provider…");
     void resolveTimelineMotionRoute()
       .then((route) => {
         if (cancelled) return;
@@ -513,7 +597,7 @@ export default function TimelineAssemblyWorkspace({
           : route.label);
       })
       .catch((error) => {
-        if (!cancelled) setMotionRouteMessage(error instanceof Error ? error.message : "No verified image-to-video provider is ready.");
+        if (!cancelled) setMotionRouteMessage(error instanceof Error ? error.message : "No verified video generation provider is ready.");
       });
     return () => { cancelled = true; };
   }, [project.id]);
@@ -691,6 +775,17 @@ export default function TimelineAssemblyWorkspace({
     onProjectChange(saved);
   }
 
+  function storeProductionTake(take: ProductionTake) {
+    const next = applyStoryCommand(latestProject.current, {
+      type: "production.take.store",
+      take,
+      occurredAt: take.createdAt,
+    });
+    const saved = saveFoundationProject(next);
+    latestProject.current = saved;
+    onProjectChange(saved);
+  }
+
   async function pollMotionJob(initial: VideoJob, onProgress: (job: VideoJob) => void) {
     let current = initial;
     let lastStatus = current.status;
@@ -714,23 +809,23 @@ export default function TimelineAssemblyWorkspace({
 
   async function generateMotionShot(shotNumber: number) {
     if (!selectedPlacement || generatingShotNumber !== null) return;
-    const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
-    if (!presentation.artifact?.assetUrl) {
-      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} has no locked Storyboard Image to animate.`);
-      return;
-    }
+    const packet = timelineGenerationPacket(project, selectedPlacement, shotNumber);
+    const sourceImage = packet.references.find((reference) => reference.role === "source-image") ?? null;
 
     setGeneratingShotNumber(shotNumber);
     setGeneratingMotionStage("PREFLIGHT");
-    setMessage(`Checking image-to-video readiness for Shot ${String(shotNumber).padStart(2, "0")}…`);
+    setMessage(`Checking generation readiness for Shot ${String(shotNumber).padStart(2, "0")}…`);
     let route: TimelineMotionRoute;
     try {
-      route = await resolveTimelineMotionRoute();
+      route = await resolveTimelineMotionRoute(packet);
+      if (!route.strategy?.eligible || !route.strategy.modality) {
+        throw new Error(route.strategy?.reason || "The selected video route cannot render this Shot Generation Packet.");
+      }
       setMotionRouteMessage(route.needsActivation
-        ? `${route.label} · ready to activate only after Generate motion is confirmed`
-        : route.label);
+        ? `${route.label} · ${route.strategy.modality} · ready to activate only after Generate motion is confirmed`
+        : `${route.label} · ${route.strategy.modality}`);
     } catch (error) {
-      const detail = error instanceof Error ? error.message : "No ready image-to-video route is available.";
+      const detail = error instanceof Error ? error.message : "No compatible video generation route is available.";
       setMessage(detail);
       setMotionRouteMessage(detail);
       setGeneratingShotNumber(null);
@@ -738,14 +833,16 @@ export default function TimelineAssemblyWorkspace({
       return;
     }
 
+    const strategy = route.strategy!;
+    const usesVisualReference = Boolean(strategy.sourceAssetUrl || strategy.referenceAssetUrl || strategy.lastFrameAssetUrl);
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: `PlotPickle will send the approved first frame and story-grounded motion instructions to ${route.label}. A cloud route may charge your account and upload this approved image. No route activation or generation request is made unless you confirm.`,
+      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No route activation or generation request is made unless you confirm.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });
     if (!confirmed) {
-      setMessage("Motion generation was cancelled. The locked still remains unchanged.");
+      setMessage("Motion generation was cancelled. Existing Timeline sources remain unchanged.");
       setGeneratingShotNumber(null);
       setGeneratingMotionStage(null);
       return;
@@ -753,10 +850,11 @@ export default function TimelineAssemblyWorkspace({
 
     const now = new Date().toISOString();
     const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
-    const prompt = timelineMotionPrompt(project, selectedPlacement, shotNumber);
-    const sourceKey = motionSourceKey(selectedPlacement, shotNumber, presentation.artifact.id, prompt);
+    const prompt = serializeTimelineShotGenerationPacket(packet, strategy);
+    const sourceKey = motionSourceKey(selectedPlacement, packet);
+    const priorTakeId = motionFor(selectedPlacement, shotNumber).current?.takeId;
     setGeneratingMotionStage("SUBMITTING");
-    setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")} to ${route.label}…`);
+    setMessage(`Submitting Shot ${String(shotNumber).padStart(2, "0")} via ${strategy.modality} to ${route.label}…`);
     let running: TimelineMotionShot | null = null;
     try {
       await activateTimelineMotionRoute(route);
@@ -767,15 +865,26 @@ export default function TimelineAssemblyWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt,
-          sourceAssetUrl: presentation.artifact.assetUrl,
+          ...(strategy.sourceAssetUrl ? { sourceAssetUrl: strategy.sourceAssetUrl } : {}),
+          ...(strategy.modality === "first-last-frame" ? {
+            firstFrameAssetUrl: strategy.sourceAssetUrl,
+            lastFrameAssetUrl: strategy.lastFrameAssetUrl,
+          } : {}),
+          ...(strategy.modality === "reference-to-video" && strategy.referenceAssetUrl
+            ? { referenceAssetUrl: strategy.referenceAssetUrl }
+            : {}),
           assetId: `timeline-${selectedPlacement.blockNumber}-${selectedPlacement.miniBlockNumber}-shot-${shotNumber}`,
           durationSeconds: 4,
           aspectRatio: "16:9",
+          performanceAcknowledged: strategy.performanceAcknowledged,
           continuityMetadata: {
+            packetId: packet.id,
+            packetFingerprint: packet.sourceFingerprint,
+            generationMode: strategy.modality,
             placementId: selectedPlacement.id,
             anchorRef: selectedPlacement.anchorRef,
-            sourceArtifactId: presentation.artifact.id,
-            sourceKey,
+            sourceArtifactId: sourceImage?.id ?? "",
+            sourceRefs: packet.sourceRefs,
             requestedTimelineSeconds: PLANNING_SECONDS_PER_SHOT,
           },
           billingAcknowledged: true,
@@ -783,16 +892,20 @@ export default function TimelineAssemblyWorkspace({
         }),
       });
       const job = await response.json() as VideoJob & { message?: string };
-      if (!response.ok || !job.id) throw new Error(job.message || "The active video route did not accept this motion shot.");
+      if (!response.ok || !job.id) throw new Error(job.message || "The active video route did not accept this Shot Generation Packet.");
       running = {
         id,
         placementId: selectedPlacement.id,
         anchorRef: selectedPlacement.anchorRef,
         shotNumber,
-        sourceArtifactId: presentation.artifact.id,
+        sourceArtifactId: sourceImage?.id ?? "",
         sourceKey,
         prompt,
+        generationMode: strategy.modality,
+        packetFingerprint: packet.sourceFingerprint,
+        inputReferenceAssetIds: packet.references.map((reference) => reference.id),
         requestedDurationSeconds: 3,
+        providerDurationSeconds: job.durationSeconds ?? null,
         provider: job.provider ?? "",
         route: job.route ?? "",
         model: job.model ?? "",
@@ -815,6 +928,7 @@ export default function TimelineAssemblyWorkspace({
           route: progress.route ?? running.route,
           model: progress.model ?? running.model,
           jobId: progress.id,
+          providerDurationSeconds: progress.durationSeconds ?? running.providerDurationSeconds,
           status: progress.status,
           updatedAt: progressAt,
         };
@@ -823,19 +937,42 @@ export default function TimelineAssemblyWorkspace({
         setMessage(`Shot ${String(shotNumber).padStart(2, "0")} ${progress.status === "queued" ? "is queued" : "is running"} on ${route.label}.`);
       });
       const completedAt = new Date().toISOString();
+      const productionShot = timelineProductionShotsFor(latestProject.current, selectedPlacement, shotNumber)[0] ?? null;
+      const takeId = productionShot && result.outputAssetUrl
+        ? `timeline-take:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}:${result.id}`
+        : "";
+      if (productionShot && result.outputAssetUrl) {
+        storeProductionTake({
+          id: takeId,
+          productionShotId: productionShot.id,
+          sourceRevision: packet.canonicalRevision,
+          storyboardDependencyKey: productionShot.storyboardDependencyKey,
+          mediaRef: result.outputAssetUrl,
+          provider: result.provider ?? running.provider,
+          model: result.model ?? running.model,
+          intendedDurationSeconds: PLANNING_SECONDS_PER_SHOT,
+          observedDurationSeconds: result.durationSeconds ?? null,
+          provenanceRefs: [packet.id, ...packet.sourceRefs],
+          reviewState: "candidate",
+          ...(priorTakeId ? { replacesTakeId: priorTakeId } : {}),
+          createdAt: completedAt,
+        });
+      }
       storeMotion({
         ...running,
         provider: result.provider ?? running.provider,
         route: result.route ?? running.route,
         model: result.model ?? running.model,
         jobId: result.id,
+        providerDurationSeconds: result.durationSeconds ?? running.providerDurationSeconds,
+        takeId,
         status: "succeeded",
         outputAssetUrl: result.outputAssetUrl ?? "",
         error: "",
         updatedAt: completedAt,
       });
       setPlaybackMode("motion");
-      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} motion is ready. Timeline uses only its first three seconds; the locked still remains available separately.`);
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} motion is ready via ${strategy.modality}. Timeline retains its three-second placement authority and keeps the original source separately.`);
     } catch (error) {
       const failedAt = new Date().toISOString();
       const previous = running ?? motionFor(selectedPlacement, shotNumber).current;
@@ -844,10 +981,14 @@ export default function TimelineAssemblyWorkspace({
         placementId: selectedPlacement.id,
         anchorRef: selectedPlacement.anchorRef,
         shotNumber,
-        sourceArtifactId: presentation.artifact.id,
+        sourceArtifactId: sourceImage?.id ?? "",
         sourceKey,
         prompt,
+        generationMode: strategy.modality,
+        packetFingerprint: packet.sourceFingerprint,
+        inputReferenceAssetIds: packet.references.map((reference) => reference.id),
         requestedDurationSeconds: 3,
+        providerDurationSeconds: null,
         provider: "",
         route: "",
         model: "",
@@ -859,7 +1000,7 @@ export default function TimelineAssemblyWorkspace({
         updatedAt: failedAt,
       };
       storeMotion({ ...failed, status: "failed", outputAssetUrl: "", error: error instanceof Error ? error.message : "Motion generation failed.", updatedAt: failedAt });
-      setMessage(error instanceof Error ? error.message : "Motion generation failed. The locked still remains available.");
+      setMessage(error instanceof Error ? error.message : "Motion generation failed. Existing Timeline sources remain available.");
     } finally {
       setGeneratingShotNumber(null);
       setGeneratingMotionStage(null);
@@ -1185,6 +1326,7 @@ export default function TimelineAssemblyWorkspace({
             {selectedPlacement ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
               const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
               const progression = storyboardPositionProgression(shotNumber);
+              const generationPacket = timelineGenerationPacket(project, selectedPlacement, shotNumber);
               const state = motionFor(selectedPlacement, shotNumber);
               const current = state.current;
               const working = generatingShotNumber === shotNumber;
@@ -1244,10 +1386,16 @@ export default function TimelineAssemblyWorkspace({
                   </div>
                   <div className={styles.motionCell} data-motion-status={state.stale ? "stale" : current?.status ?? "empty"}>
                     <strong>{label}</strong>
-                    {current?.provider || current?.model ? <small>{[current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Locked still remains authoritative.</small>}
+                    {current?.provider || current?.model ? <small>{[current.generationMode, current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Shot packet can route through text or approved visual references.</small>}
                     {current?.error ? <small>{current.error}</small> : null}
+                    <details>
+                      <summary>Generation packet</summary>
+                      <small>{generationPacket.dramaticResponsibility || "No separate Mini-Block responsibility text."}</small>
+                      <small>{generationPacket.progression.label} · {generationPacket.progression.direction}</small>
+                      <small>{generationPacket.references.length} approved reference binding{generationPacket.references.length === 1 ? "" : "s"} · {generationPacket.sourceRefs.length} provenance refs</small>
+                    </details>
                     <button
-                      disabled={generatingShotNumber !== null || !selectedPlacement.shotImages.some((image) => image.shotNumber === shotNumber)}
+                      disabled={generatingShotNumber !== null}
                       onClick={() => void generateMotionShot(shotNumber)}
                       type="button"
                     >
@@ -1270,7 +1418,7 @@ export default function TimelineAssemblyWorkspace({
               {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
                 ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
                 : playbackMode === "motion"
-                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older locked image. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
+                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older Shot Generation Packet. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
                   : activeImage?.assetUrl
                     ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
                     : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}

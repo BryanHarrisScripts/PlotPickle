@@ -173,7 +173,7 @@ export default function StoryboardReadinessWorkspace({
     setFrameNotice(`Shot ${String(artifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
   }
 
-  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "delete") {
+  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "unaccept" | "delete") {
     if (qaOnlyAccess || !storyboardAccessible) return;
     const now = new Date().toISOString();
     let next: PPFProject = project;
@@ -185,7 +185,11 @@ export default function StoryboardReadinessWorkspace({
       }
     }
     next = applyStoryCommand(next, {
-      type: decision === "accept" ? "foundations.visual.accept" : "foundations.visual.delete",
+      type: decision === "accept"
+        ? "foundations.visual.accept"
+        : decision === "unaccept"
+          ? "foundations.visual.unaccept"
+          : "foundations.visual.delete",
       artifactId: artifact.id,
       occurredAt: now,
     });
@@ -196,7 +200,7 @@ export default function StoryboardReadinessWorkspace({
       setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
       setPendingDeleteArtifactId(null);
     }
-    setFrameNotice(`Shot ${String(artifact.frameNumber).padStart(2, "0")} of 25 ${decision === "accept" ? "kept and locked" : "deleted"}.`);
+    setFrameNotice(`Shot ${String(artifact.frameNumber).padStart(2, "0")} of 25 ${decision === "accept" ? "kept and locked" : decision === "unaccept" ? "unlocked" : "deleted"}.`);
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -682,10 +686,10 @@ export default function StoryboardReadinessWorkspace({
                         >Save</button>
                         <button
                           aria-pressed={accepted}
-                          disabled={!selectedArtifact || accepted || qaOnlyAccess || frameBusy}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
                           type="button"
-                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, "accept")}
-                        >Lock</button>
+                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, accepted ? "unaccept" : "accept")}
+                        >{accepted ? "Unlock" : "Lock"}</button>
                         <button
                           disabled={!selectedImage || frameBusy}
                           type="button"

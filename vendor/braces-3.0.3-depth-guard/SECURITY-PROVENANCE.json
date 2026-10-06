@@ -7,7 +7,7 @@
   "upstreamCommit": "28d440b5dd449dbf1fe6f3506cf94ecca4d02660",
   "upstreamTree": "0ffbc33a63a6f2365865e69b4217683268067847",
   "manifestDigestAlgorithm": "sha256(path\\0gitBlobSha\\n sorted by path)",
-  "manifestDigest": "85658b9b64e4d1c4ca545014ee855ae43e1cf69a3f1cef88e0bb54019abca465",
+  "manifestDigest": "ac95a324f10b8423b6f9ac317c7dacc61a73d9291c9c536170b487608418bba5",
   "files": {
     "LICENSE": "9af4a67d206f24ecdbb5fdff2839041ca0bbd346",
     "index.js": "d222c13b579d2d476dc26d692219dbaee1665b88",
@@ -17,12 +17,14 @@
     "lib/parse.js": "99cfb63528ff0124989d4c280e87888236a02be8",
     "lib/stringify.js": "651849c23c7f318fb311c107c90c469c1ea9edd8",
     "lib/utils.js": "d19311fe044ad5157624077670dc297e8b53da49",
-    "package.json": "9ab09d45ba427369f01c14ff7cae7e11a5f5b048"
+    "UPSTREAM-PACKAGE.json": "9ab09d45ba427369f01c14ff7cae7e11a5f5b048"
   },
   "policy": {
     "transport": "repository-owned-file-package",
     "gitDependencyFetchRequired": false,
     "movingRefAllowed": false,
     "replaceWhenOfficialPatchedReleaseExists": true
-  }
+  },
+  "runtimePackageSha256": "1816c57094de9ee834e5953417dae5c8875cbd1810bdf7539ed870184f3ff665",
+  "runtimePackagePolicy": "Production-only metadata derived from the exact upstream package.json; upstream metadata is preserved byte-for-byte as UPSTREAM-PACKAGE.json."
 }

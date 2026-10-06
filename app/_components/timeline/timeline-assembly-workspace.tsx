@@ -1322,6 +1322,51 @@ export default function TimelineAssemblyWorkspace({
             ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
           </section>
 
+          <section className={styles.assemblyControls} aria-label="Opening movie assembly and export">
+            <header className={styles.assemblyHeader}>
+              <div>
+                <p className={styles.kicker}>Assembly & export</p>
+                <strong>Opening movie range</strong>
+              </div>
+              <span>Up to 4 Mini-Blocks · 5-minute Block</span>
+            </header>
+            {openingRun.length ? (
+              <>
+                <div className={styles.rangeControls} aria-label="Opening range length">
+                  {openingRun.map((_, index) => {
+                    const count = index + 1;
+                    return <button aria-pressed={openingSegmentCount === count} key={count} onClick={() => setOpeningSegmentCount(count)} type="button">{count} × 75s</button>;
+                  })}
+                </div>
+                <ol className={styles.rangeSummary} aria-label="Selected opening range">
+                  {selectedOpeningPlacements.map((placement, index) => (
+                    <li data-stale={placementIsStale(placement) ? "true" : "false"} key={placement.id}>
+                      <strong>{index + 1}. B{String(placement.blockNumber).padStart(2, "0")} · M{placement.blockNumber}.{placement.miniBlockNumber}</strong>
+                      <span>{placement.shotImages.length}/25 Images · revision {placement.sourceRevision}</span>
+                      <small>{placementIsStale(placement) ? "STALE · update before export" : "CURRENT"}</small>
+                    </li>
+                  ))}
+                </ol>
+                <div className={styles.openingActions}>
+                  <button disabled={openingExporting || !selectedOpeningPlacements.length} onClick={() => void exportOpeningRangeMp4()} type="button">
+                    {openingExporting ? "Exporting opening MP4…" : "Export " + selectedOpeningPlacements.length + "-Mini-Block MP4 · narration " + (showNarration ? "on" : "off")}
+                  </button>
+                  {(openingExportUrl || latestRangeExport?.videoAssetUrl) ? (
+                    <a
+                      className={styles.exportLink}
+                      download={timelineRangeMp4FileName(project.title, selectedOpeningPlacements.length ? selectedOpeningPlacements : openingRun.slice(0, 1), showNarration)}
+                      href={openingExportUrl || latestRangeExport?.videoAssetUrl}
+                    >
+                      Open saved opening MP4
+                    </a>
+                  ) : null}
+                  <small>Locked still-image assembly only. Generated motion is never substituted silently.</small>
+                  {latestRangeExport ? <small>Saved · {latestRangeExport.placementIds.length} Mini-Block{latestRangeExport.placementIds.length === 1 ? "" : "s"} · {latestRangeExport.durationSeconds}s · {latestRangeExport.narrationIncluded ? "narration on" : "narration off"}</small> : null}
+                </div>
+              </>
+            ) : <p className={styles.openingEmpty}>Place one complete 25-Shot Previs Mini-Block to start opening assembly.</p>}
+          </section>
+
           <section className={styles.providerStatus}>
             <p className={styles.kicker}>Motion provider</p>
             <span>{motionRouteMessage}</span>
@@ -1386,51 +1431,6 @@ export default function TimelineAssemblyWorkspace({
             )) : <p>Timeline does not manufacture source text or timestamps.</p>}
           </div>
         </div>
-      </section>
-
-      <section className={styles.exportPanel} aria-label="Opening movie assembly and export">
-        <header>
-          <div>
-            <p className={styles.kicker}>Assembly & export</p>
-            <h3>Opening movie range</h3>
-          </div>
-          <span>Four Mini-Blocks = one 5-minute Block.</span>
-        </header>
-        {openingRun.length ? (
-          <div className={styles.exportBody}>
-            <div className={styles.rangeControls} aria-label="Opening range length">
-              {openingRun.map((_, index) => {
-                const count = index + 1;
-                return <button aria-pressed={openingSegmentCount === count} key={count} onClick={() => setOpeningSegmentCount(count)} type="button">{count} Mini-Block{count === 1 ? "" : "s"} · {count * 75}s</button>;
-              })}
-            </div>
-            <div className={styles.openingSequence}>
-              {selectedOpeningPlacements.map((placement, index) => (
-                <article key={placement.id}>
-                  <strong>{index + 1}. Block {placement.blockNumber} · Mini-Block {placement.blockNumber}.{placement.miniBlockNumber}</strong>
-                  <span>{placement.shotImages.length}/25 locked Images · 75 seconds · source revision {placement.sourceRevision}</span>
-                  <small>{placementIsStale(placement) ? "STALE · update before export" : "CURRENT"}</small>
-                </article>
-              ))}
-            </div>
-            <div className={styles.openingActions}>
-              <button disabled={openingExporting || !selectedOpeningPlacements.length} onClick={() => void exportOpeningRangeMp4()} type="button">
-                {openingExporting ? "Exporting opening MP4…" : "Export " + selectedOpeningPlacements.length + "-Mini-Block opening MP4 · narration " + (showNarration ? "on" : "off")}
-              </button>
-              {(openingExportUrl || latestRangeExport?.videoAssetUrl) ? (
-                <a
-                  className={styles.exportLink}
-                  download={timelineRangeMp4FileName(project.title, selectedOpeningPlacements.length ? selectedOpeningPlacements : openingRun.slice(0, 1), showNarration)}
-                  href={openingExportUrl || latestRangeExport?.videoAssetUrl}
-                >
-                  Open saved opening MP4
-                </a>
-              ) : null}
-              <small>Baseline assembled export uses the locked still-image presentation. Generated motion remains an optional Timeline playback layer and is never substituted silently.</small>
-              {latestRangeExport ? <small>Saved export · {latestRangeExport.placementIds.length} Mini-Block{latestRangeExport.placementIds.length === 1 ? "" : "s"} · {latestRangeExport.durationSeconds}s · {latestRangeExport.narrationIncluded ? "narration on" : "narration off"}</small> : null}
-            </div>
-          </div>
-        ) : <p className={styles.openingEmpty}>Place at least one complete 25-Shot Previs Mini-Block on Timeline to start the opening assembly.</p>}
       </section>
 
       <section className={styles.timeline} aria-label="Previs media timeline">

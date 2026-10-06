@@ -414,10 +414,11 @@
       "manifestPath": "config/openpencil-adapter.json",
       "evidencePaths": [
         "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
-        "docs/developer-briefs/2778-openpencil-design-tool.md"
+        "docs/developer-briefs/2778-openpencil-design-tool.md",
+        "docs/developer-briefs/2787-openpencil-gui-review.md"
       ],
-      "plotpickleUse": "Optional programmable UI/UX design workspace for governed PlotPickle mockups and design inspection. PlotPickle prepares the reviewed @open-pencil/mcp package in user-owned local app data after core readiness, but the local MCP server starts only after explicit Human connect. OpenPencil does not become a product authority or bypass DSDD/GitHub review.",
-      "distribution": "PlotPickle prepares the pinned @open-pencil/mcp@0.15.1 helper after core readiness in %LOCALAPPDATA%\\PlotPickle\\tools\\openpencil. OpenPencil server launch remains explicit; the optional desktop app is not bundled.",
+      "plotpickleUse": "Optional programmable UI/UX design workspace for governed PlotPickle mockups and visual design review. After core readiness PlotPickle prepares reviewed OpenPencil 0.15.1 MCP/CLI helpers and, on supported Windows hosts, the pinned desktop editor; none of them launch during normal startup. The Human explicitly names a surface with `OpenPencil open <surface>`, edits visually in the GUI, saves the repository design artifact, then returns to PlotPickle for an issue-only DSDD developer-brief handoff.",
+      "distribution": "PlotPickle prepares pinned @open-pencil/mcp@0.15.1 and @open-pencil/cli@0.15.1 under %LOCALAPPDATA%\\PlotPickle\\tools\\openpencil after core readiness. The Windows desktop GUI is an optional pinned upstream 0.15.1 installer verified by SHA-256 and prepared non-blockingly. GUI/MCP launch remains explicit; no OpenPencil component gains source or merge authority.",
       "readme": false
     },
     {

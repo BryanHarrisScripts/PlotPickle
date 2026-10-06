@@ -314,7 +314,11 @@ export function createOpenPencilGuiController(overrides = {}) {
     let designReviewSession = null;
     try {
       designReviewSession = await designReviewPublisher.begin(target);
-    } catch {}
+    } catch (error) {
+      if (dependencies.env.PLOTPICKLE_OPENPENCIL_DEBUG === "1") {
+        process.stderr.write(`[PLOTPICKLE] OpenPencil design-review tracking unavailable: ${error instanceof Error ? error.message : "unknown"}\n`);
+      }
+    }
 
     const launched = dependencies.spawnProcess(desktop.executable, [target.designFile], {
       cwd: target.workspaceRoot,
@@ -377,7 +381,14 @@ export function createOpenPencilGuiController(overrides = {}) {
             message: `${target.name} is still open in OpenPencil. PlotPickle will publish only after the design document closes.`,
           });
         }
-      } catch {}
+      } catch {
+        return Object.freeze({
+          state: "editing",
+          surface: target.name,
+          sessionId: String(options.sessionId || ""),
+          message: `${target.name} close state could not be confirmed. Close OpenPencil and retry publish; PlotPickle will not publish while document state is uncertain.`,
+        });
+      }
     }
     return designReviewPublisher.finalize(target.name, String(options.sessionId || ""));
   }

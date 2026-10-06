@@ -54,3 +54,17 @@ Phase 2 replaces the first-pass continuity placeholders where PlotPickle already
 - Wardrobe, props, location, time/weather, lighting and palette remain explicitly unresolved where no structured canonical source exists.
 
 This phase deliberately does not parse image prompts into fake structured continuity facts and does not infer camera settings from the cinematic reference screenshot.
+
+
+## Phase 3 — compact production actions
+
+The opening-range assembly is no longer a separate dominant full-width panel.
+
+- Opening assembly now lives in the right production rail beside playback, inspection and provider state.
+- Range selection still supports one through four consecutive complete Mini-Blocks.
+- The compact range summary preserves coverage, source revision and stale/current state.
+- Opening-range MP4 export, narration mode, saved export link and provenance summary remain intact.
+- Selected Mini-Block export remains in the selected Mini-Block inspector.
+- The obsolete full-width export panel and its duplicate layout CSS are removed.
+
+This phase changes information hierarchy only; it does not change FFrames rendering, source freshness checks, narration validation, Timeline assembly storage or export persistence.

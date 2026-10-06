@@ -11,6 +11,7 @@ import {
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
+import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
 import styles from "./global-dsdd-conversation.module.css";
 
 type DsddContext = {
@@ -24,7 +25,7 @@ type DsddInputMode = "typed" | "voice";
 
 type DsddMessage = {
   id: string;
-  role: "human" | "dsdd";
+  role: "human" | "dsdd" | "command" | "tool";
   text: string;
   context?: DsddContext;
   provider?: string;
@@ -226,6 +227,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const [draftHasVoice, setDraftHasVoice] = useState(false);
   const [activeInputMode, setActiveInputMode] = useState<DsddInputMode>("typed");
   const [working, setWorking] = useState(false);
+  const [commandWorking, setCommandWorking] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
@@ -238,7 +240,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const previousJourneyRef = useRef<DsddContext | null>(null);
-  const busy = clearing || working || piDrafting || publishing || validatingFinding;
+  const busy = clearing || working || commandWorking || piDrafting || publishing || validatingFinding;
   const latestHumanIndex = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
       if (messages[index].role === "human") return index;
@@ -435,10 +437,77 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     }
   }
 
+  async function runOpenPencilCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parseOpenPencilCommand(submitted);
+    if (!command) return false;
+
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages((current) => [...current, {
+      id: messageId("command-human"),
+      role: "command",
+      text: submitted,
+      context: snapshot,
+      inputMode: draftHasVoice ? "voice" : "typed",
+    }].slice(-MAX_MESSAGES));
+    setDraft("");
+    setDraftHasVoice(false);
+    setError("");
+    setCommandWorking(true);
+    setContext(snapshot);
+
+    try {
+      let responseText = "";
+      if (command.action === "help") {
+        responseText = `OpenPencil commands:\n${OPENPENCIL_COMMAND_HELP}`;
+      } else {
+        const request = command.action === "status"
+          ? authenticatedProfileFetch("/api/openpencil/mcp", { cache: "no-store" })
+          : command.action === "disconnect"
+            ? authenticatedProfileFetch("/api/openpencil/mcp", { method: "DELETE" })
+            : authenticatedProfileFetch("/api/openpencil/mcp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ workspaceRoot: command.workspaceRoot }),
+              });
+        const response = await request;
+        const body = await response.json() as {
+          ok?: boolean;
+          status?: { state?: string; endpoint?: string; message?: string };
+          message?: string;
+        };
+        if (!response.ok || !body.ok || !body.status) throw new Error(body.message || "OpenPencil command failed.");
+        responseText = [
+          body.status.message || "OpenPencil command completed.",
+          body.status.state ? `State: ${body.status.state}` : "",
+          body.status.endpoint ? `Endpoint: ${body.status.endpoint}` : "",
+        ].filter(Boolean).join("\n");
+      }
+
+      setMessages((current) => [...current, {
+        id: messageId("openpencil-tool"),
+        role: "tool",
+        text: responseText,
+        context: snapshot,
+      }].slice(-MAX_MESSAGES));
+    } catch (cause) {
+      setMessages((current) => [...current, {
+        id: messageId("openpencil-tool-error"),
+        role: "tool",
+        text: cause instanceof Error ? cause.message : "OpenPencil command failed.",
+        context: snapshot,
+      }].slice(-MAX_MESSAGES));
+    } finally {
+      setCommandWorking(false);
+    }
+    return true;
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runOpenPencilCommand(submitted)) return;
 
     const snapshot = currentSurfaceContext(pathname);
     const inputMode: DsddInputMode = draftHasVoice ? "voice" : "typed";
@@ -707,8 +776,8 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               </div>
             ) : null}
             {messages.map((message) => (
-              <div className={message.role === "human" ? styles.humanMessage : styles.dsddMessage} key={message.id}>
-                <strong>{message.role === "human" ? "You" : "DSDD"}</strong>
+              <div className={message.role === "human" || message.role === "command" ? styles.humanMessage : styles.dsddMessage} key={message.id}>
+                <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "OpenPencil" : "DSDD"}</strong>
                 <p>{message.text}</p>
                 {message.context ? <small>{message.context.surfaceLabel} · {message.context.route}</small> : null}
                 {message.role === "dsdd" && message.model ? (
@@ -724,6 +793,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               </div>
             ) : null}
             {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
+            {commandWorking ? <p className={styles.working} role="status">Running the bounded local OpenPencil command…</p> : null}
             {piDrafting ? <p className={styles.working} role="status">Pi is inspecting the repository read-only and drafting developer guidance…</p> : null}
             {publishing ? <p className={styles.working} role="status">Publishing the approved developer brief as a GitHub Issue…</p> : null}
             {validatingFinding ? <p className={styles.working} role="status">Preserving Human validation and preparing the specification handoff…</p> : null}
@@ -736,7 +806,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
           ) : null}
 
           <form className={styles.composer} onSubmit={submit}>
-            <label htmlFor="plotpickle-dsdd-narration">Narrate the workflow or problem</label>
+            <label htmlFor="plotpickle-dsdd-narration">{embedded ? "Enter a request or local tool command" : "Narrate the workflow or problem"}</label>
             <textarea
               ref={narrationRef}
               data-voice-input="false"
@@ -749,7 +819,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
                 setDraft(next);
                 if (!next.trim()) setDraftHasVoice(false);
               }}
-              placeholder="Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."
+              placeholder={embedded ? "Example: OpenPencil status" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
               rows={4}
               value={draft}
             />

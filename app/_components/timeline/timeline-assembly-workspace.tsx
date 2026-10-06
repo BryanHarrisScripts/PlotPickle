@@ -44,6 +44,15 @@ type VideoJob = Readonly<{
   model?: string;
 }>;
 
+type TimelineMotionRoute = Readonly<{
+  route: "minimax" | "openai" | "comfyui-native";
+  label: string;
+  locality: "cloud" | "local";
+  needsActivation: boolean;
+}>;
+
+type MotionGenerationStage = "PREFLIGHT" | "SUBMITTING" | "QUEUED" | "RUNNING";
+
 type TimelinePrevisSource = Readonly<{
   anchorRef: string;
   targetId: string;
@@ -177,6 +186,71 @@ function motionSourceKey(placement: TimelinePrevisPlacement, shotNumber: number,
   });
 }
 
+async function resolveTimelineMotionRoute(): Promise<TimelineMotionRoute> {
+  const [routingResponse, mediaResponse] = await Promise.all([
+    fetch("/api/ai-routing/status", { credentials: "same-origin", cache: "no-store" }),
+    fetch("/api/media-routing/status", { credentials: "same-origin", cache: "no-store" }),
+  ]);
+  const routing = await routingResponse.json() as {
+    video?: {
+      selected?: string;
+      options?: Record<string, { ready?: boolean; configured?: boolean; model?: string; error?: string; locality?: string }>;
+    };
+    message?: string;
+  };
+  if (!routingResponse.ok) throw new Error(routing.message || "Video route status is unavailable.");
+  const media = await mediaResponse.json() as {
+    profiles?: { minimax?: { configured?: boolean; videoModel?: string; videoVerifiedAt?: string; lastError?: string } };
+    videoRoute?: string;
+    message?: string;
+  };
+  if (!mediaResponse.ok) throw new Error(media.message || "Media route status is unavailable.");
+
+  const selected = routing.video?.selected ?? "off";
+  const selectedState = routing.video?.options?.[selected];
+  if (selected === "comfyui-native" && selectedState?.ready) {
+    return { route: "comfyui-native", label: "Local ComfyUI MiniMax H3 · ready", locality: "local", needsActivation: false };
+  }
+  if (selected === "minimax" && selectedState?.ready) {
+    return { route: "minimax", label: "MiniMax H3 Direct · selected and verified", locality: "cloud", needsActivation: false };
+  }
+  if (selected === "openai" && selectedState?.ready) {
+    return { route: "openai", label: "OpenAI video · selected and verified", locality: "cloud", needsActivation: false };
+  }
+
+  const minimax = media.profiles?.minimax;
+  if (minimax?.configured && minimax.videoVerifiedAt) {
+    return {
+      route: "minimax",
+      label: `MiniMax H3 Direct · verified ${minimax.videoModel ? `· ${minimax.videoModel}` : ""}`.trim(),
+      locality: "cloud",
+      needsActivation: selected !== "minimax",
+    };
+  }
+
+  if (selected !== "off" && selectedState?.error) throw new Error(selectedState.error);
+  throw new Error("No verified image-to-video route is ready. Test MiniMax H3 or select another reviewed video route in Settings.");
+}
+
+async function activateTimelineMotionRoute(route: TimelineMotionRoute) {
+  if (!route.needsActivation) return;
+  const response = await fetch("/api/ai-routing/select", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      capability: "video",
+      route: route.route,
+      paidAcknowledged: route.locality === "cloud",
+      dataSharingAcknowledged: route.locality === "cloud",
+    }),
+  });
+  const result = await response.json() as { ok?: boolean; message?: string };
+  if (!response.ok || result.ok === false) {
+    throw new Error(result.message || `PlotPickle could not activate ${route.label} for this confirmed motion request.`);
+  }
+}
+
 function timelineMotionPrompt(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
   const presentation = timelinePresentationFor(project, placement, shotNumber);
   const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
@@ -284,6 +358,8 @@ export default function TimelineAssemblyWorkspace({
   const [playbackMode, setPlaybackMode] = useState<"stills" | "motion">("stills");
   const [showNarration, setShowNarration] = useState(false);
   const [generatingShotNumber, setGeneratingShotNumber] = useState<number | null>(null);
+  const [generatingMotionStage, setGeneratingMotionStage] = useState<MotionGenerationStage | null>(null);
+  const [motionRouteMessage, setMotionRouteMessage] = useState("Checking image-to-video provider…");
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const latestProject = useRef(project);
   latestProject.current = project;
@@ -342,6 +418,22 @@ export default function TimelineAssemblyWorkspace({
   useEffect(() => {
     setOpeningSegmentCount((current) => Math.max(1, Math.min(current, Math.max(1, openingRun.length))));
   }, [openingRun.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMotionRouteMessage("Checking image-to-video provider…");
+    void resolveTimelineMotionRoute()
+      .then((route) => {
+        if (cancelled) return;
+        setMotionRouteMessage(route.needsActivation
+          ? `${route.label} · ready to activate only after Generate motion is confirmed`
+          : route.label);
+      })
+      .catch((error) => {
+        if (!cancelled) setMotionRouteMessage(error instanceof Error ? error.message : "No verified image-to-video provider is ready.");
+      });
+    return () => { cancelled = true; };
+  }, [project.id]);
 
   useEffect(() => {
     if (!placements.length) {
@@ -473,16 +565,36 @@ export default function TimelineAssemblyWorkspace({
     setPlaying(false);
   }
 
-  function previousPlacement() {
-    const index = activeLocation?.index ?? placements.findIndex((placement) => placement.id === selectedPlacement?.id);
-    if (index <= 0) return;
-    seekToPlacement(placements[index - 1]);
+  function seekToShot(placementIndex: number, shotNumber: number) {
+    const placement = placements[placementIndex];
+    if (!placement || shotNumber < 1 || shotNumber > SHOTS_PER_MINI_BLOCK) return;
+    const placementStart = placements.slice(0, placementIndex).reduce((sum, candidate) => sum + candidate.durationSeconds, 0);
+    const shotSeconds = placement.durationSeconds / SHOTS_PER_MINI_BLOCK;
+    setSelectedPlacementId(placement.id);
+    setPlayheadSeconds(placementStart + ((shotNumber - 1) * shotSeconds));
+    setPlaying(false);
   }
 
-  function nextPlacement() {
-    const index = activeLocation?.index ?? placements.findIndex((placement) => placement.id === selectedPlacement?.id);
-    if (index < 0 || index >= placements.length - 1) return;
-    seekToPlacement(placements[index + 1]);
+  function previousShot() {
+    if (!activePlacement) return;
+    const placementIndex = placements.findIndex((placement) => placement.id === activePlacement.id);
+    if (placementIndex < 0) return;
+    if (activeShotNumber > 1) {
+      seekToShot(placementIndex, activeShotNumber - 1);
+      return;
+    }
+    if (placementIndex > 0) seekToShot(placementIndex - 1, SHOTS_PER_MINI_BLOCK);
+  }
+
+  function nextShot() {
+    if (!activePlacement) return;
+    const placementIndex = placements.findIndex((placement) => placement.id === activePlacement.id);
+    if (placementIndex < 0) return;
+    if (activeShotNumber < SHOTS_PER_MINI_BLOCK) {
+      seekToShot(placementIndex, activeShotNumber + 1);
+      return;
+    }
+    if (placementIndex < placements.length - 1) seekToShot(placementIndex + 1, 1);
   }
 
   function storeMotion(motion: TimelineMotionShot) {
@@ -496,45 +608,19 @@ export default function TimelineAssemblyWorkspace({
     onProjectChange(saved);
   }
 
-  async function imageToVideoRoute() {
-    const routingResponse = await fetch("/api/ai-routing/status", { credentials: "same-origin", cache: "no-store" });
-    const routing = await routingResponse.json() as { video?: { selected?: string }; message?: string };
-    if (!routingResponse.ok) throw new Error(routing.message || "Video route status is unavailable.");
-    const selected = routing.video?.selected ?? "off";
-    if (selected === "minimax" || selected === "openai") return selected;
-    if (selected === "comfyui-native") {
-      const h3Response = await fetch("/api/media-routing/comfyui/h3/native/status", { credentials: "same-origin", cache: "no-store" });
-      const h3 = await h3Response.json() as { ready?: boolean; workflowFamily?: string; error?: string; message?: string };
-      if (h3Response.ok && h3.ready && h3.workflowFamily === "image-to-video") return "comfyui-native";
-      throw new Error(h3.error || h3.message || `The selected local H3 workflow is ${h3.workflowFamily || "not ready"}; Timeline motion requires a reviewed image-to-video workflow.`);
-    }
-
-    const localResponse = await fetch("/api/local-ai/plugins/video", { credentials: "same-origin", cache: "no-store" });
-    const local = await localResponse.json() as {
-      recommendation?: {
-        ready?: boolean;
-        active?: boolean;
-        selected?: { label?: string; modes?: string[] } | null;
-      };
-      message?: string;
-    };
-    const recommendation = local.recommendation;
-    if (localResponse.ok && recommendation?.ready && recommendation.active && recommendation.selected?.modes?.includes("image-to-video")) {
-      return recommendation.selected.label || "local image-to-video";
-    }
-    const selectedLocal = recommendation?.selected;
-    const mode = selectedLocal?.modes?.join(", ") || "none";
-    throw new Error(`No ready image-to-video route is selected. The current local video plug-in supports ${mode}; choose a reviewed image-to-video route in Settings.`);
-  }
-
-  async function pollMotionJob(initial: VideoJob) {
+  async function pollMotionJob(initial: VideoJob, onProgress: (job: VideoJob) => void) {
     let current = initial;
+    let lastStatus = current.status;
     for (let attempt = 0; attempt < 150 && (current.status === "queued" || current.status === "running"); attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 2_000));
       const response = await fetch(`/api/local-ai/video/${encodeURIComponent(current.id)}`, { credentials: "same-origin", cache: "no-store" });
       const result = await response.json() as VideoJob & { message?: string };
       if (!response.ok) throw new Error(result.message || "The active video route could not report motion progress.");
       current = result;
+      if (current.status !== lastStatus) {
+        lastStatus = current.status;
+        onProgress(current);
+      }
     }
     if (current.status === "succeeded" && current.outputAssetUrl) return current;
     if (current.status === "queued" || current.status === "running") {
@@ -550,21 +636,35 @@ export default function TimelineAssemblyWorkspace({
       setMessage(`Shot ${String(shotNumber).padStart(2, "0")} has no locked Storyboard Image to animate.`);
       return;
     }
-    let routeLabel = "";
+
+    setGeneratingShotNumber(shotNumber);
+    setGeneratingMotionStage("PREFLIGHT");
+    setMessage(`Checking image-to-video readiness for Shot ${String(shotNumber).padStart(2, "0")}…`);
+    let route: TimelineMotionRoute;
     try {
-      routeLabel = await imageToVideoRoute();
+      route = await resolveTimelineMotionRoute();
+      setMotionRouteMessage(route.needsActivation
+        ? `${route.label} · ready to activate only after Generate motion is confirmed`
+        : route.label);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "No ready image-to-video route is available.");
+      const detail = error instanceof Error ? error.message : "No ready image-to-video route is available.";
+      setMessage(detail);
+      setMotionRouteMessage(detail);
+      setGeneratingShotNumber(null);
+      setGeneratingMotionStage(null);
       return;
     }
+
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: `PlotPickle will send the approved first frame and story-grounded motion instructions to ${routeLabel}. A cloud route may charge your account and upload this approved image. No request is made unless you confirm.`,
+      description: `PlotPickle will send the approved first frame and story-grounded motion instructions to ${route.label}. A cloud route may charge your account and upload this approved image. No route activation or generation request is made unless you confirm.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });
     if (!confirmed) {
       setMessage("Motion generation was cancelled. The locked still remains unchanged.");
+      setGeneratingShotNumber(null);
+      setGeneratingMotionStage(null);
       return;
     }
 
@@ -572,10 +672,12 @@ export default function TimelineAssemblyWorkspace({
     const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
     const prompt = timelineMotionPrompt(project, selectedPlacement, shotNumber);
     const sourceKey = motionSourceKey(selectedPlacement, shotNumber, presentation.artifact.id, prompt);
-    setGeneratingShotNumber(shotNumber);
-    setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")}…`);
+    setGeneratingMotionStage("SUBMITTING");
+    setMessage(`Submitting motion for Shot ${String(shotNumber).padStart(2, "0")} to ${route.label}…`);
     let running: TimelineMotionShot | null = null;
     try {
+      await activateTimelineMotionRoute(route);
+      if (route.needsActivation) setMotionRouteMessage(`${route.label} · activated by this confirmed request`);
       const response = await fetch("/api/local-ai/generate/video", {
         method: "POST",
         credentials: "same-origin",
@@ -619,7 +721,24 @@ export default function TimelineAssemblyWorkspace({
         updatedAt: now,
       };
       storeMotion(running);
-      const result = await pollMotionJob(job);
+      setGeneratingMotionStage(job.status === "queued" ? "QUEUED" : "RUNNING");
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} ${job.status === "queued" ? "is queued" : "is running"} on ${route.label}.`);
+      const result = await pollMotionJob(job, (progress) => {
+        if (!running || (progress.status !== "queued" && progress.status !== "running")) return;
+        const progressAt = new Date().toISOString();
+        running = {
+          ...running,
+          provider: progress.provider ?? running.provider,
+          route: progress.route ?? running.route,
+          model: progress.model ?? running.model,
+          jobId: progress.id,
+          status: progress.status,
+          updatedAt: progressAt,
+        };
+        storeMotion(running);
+        setGeneratingMotionStage(progress.status === "queued" ? "QUEUED" : "RUNNING");
+        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} ${progress.status === "queued" ? "is queued" : "is running"} on ${route.label}.`);
+      });
       const completedAt = new Date().toISOString();
       storeMotion({
         ...running,
@@ -660,6 +779,7 @@ export default function TimelineAssemblyWorkspace({
       setMessage(error instanceof Error ? error.message : "Motion generation failed. The locked still remains available.");
     } finally {
       setGeneratingShotNumber(null);
+      setGeneratingMotionStage(null);
     }
   }
 
@@ -909,9 +1029,17 @@ export default function TimelineAssemblyWorkspace({
             {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
           </div>
           <div className={styles.transport}>
-            <button disabled={!placements.length || (activeLocation?.index ?? 0) <= 0} onClick={previousPlacement} type="button">Previous clip</button>
+            <button
+              disabled={!activePlacement || (placements.findIndex((placement) => placement.id === activePlacement.id) === 0 && activeShotNumber === 1)}
+              onClick={previousShot}
+              type="button"
+            >Previous Shot</button>
             <button disabled={!totalSeconds} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
-            <button disabled={!placements.length || (activeLocation?.index ?? 0) >= placements.length - 1} onClick={nextPlacement} type="button">Next clip</button>
+            <button
+              disabled={!activePlacement || (placements.findIndex((placement) => placement.id === activePlacement.id) === placements.length - 1 && activeShotNumber === SHOTS_PER_MINI_BLOCK)}
+              onClick={nextShot}
+              type="button"
+            >Next Shot</button>
             <button disabled={!activePlacement} onClick={() => setPlaybackMode((value) => value === "stills" ? "motion" : "stills")} type="button">Playback: {playbackMode === "stills" ? "Still images" : "Generated motion"}</button>
             <button disabled={!activePlacement} onClick={() => setShowNarration((value) => !value)} type="button">Written narration: {showNarration ? "On" : "Off"}</button>
             <strong>{clock(playheadSeconds)} / {clock(totalSeconds)}</strong>
@@ -1030,7 +1158,7 @@ export default function TimelineAssemblyWorkspace({
             <p className={styles.kicker}>Optional motion</p>
             <h3>Image-to-video Shot generation</h3>
           </div>
-          <span>Each generated clip remains separate from its locked still. Timeline uses exactly the first 3 seconds of a successful result and never substitutes a still for failed motion.</span>
+          <span>{motionRouteMessage} · Each generated clip remains separate from its locked still. Timeline uses exactly the first 3 seconds of a successful result and never substitutes a still for failed motion.</span>
         </header>
         {selectedPlacement ? (
           <div className={styles.motionGrid}>
@@ -1038,7 +1166,13 @@ export default function TimelineAssemblyWorkspace({
               const state = motionFor(selectedPlacement, shotNumber);
               const current = state.current;
               const working = generatingShotNumber === shotNumber;
-              const label = working ? "GENERATING" : state.stale ? "STALE" : current?.status?.toUpperCase() ?? "NOT GENERATED";
+              const label = working && generatingMotionStage
+                ? generatingMotionStage
+                : state.stale
+                  ? "STALE"
+                  : current?.status === "succeeded"
+                    ? "READY"
+                    : current?.status?.toUpperCase() ?? "NOT GENERATED";
               return (
                 <article data-motion-status={state.stale ? "stale" : current?.status ?? "empty"} key={shotNumber}>
                   <strong>Shot {String(shotNumber).padStart(2, "0")}</strong>

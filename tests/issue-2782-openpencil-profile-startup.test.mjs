@@ -63,7 +63,7 @@ test("#2782 deferred startup preparation is pinned, user-writable, and never lau
   const setupInvocation = deferred.indexOf("& $OpenPencilSetup");
   assert.ok(readyGate >= 0 && setupInvocation > readyGate, "OpenPencil preparation must run only after core readiness");
   assert.match(deferred, /Core PlotPickle remains available/u);
-  assert.match(launcher, /OpenPencil MCP is prepared after readiness but never launched until you explicitly connect it in Settings/u);
+  assert.match(launcher, /OpenPencil MCP, CLI and desktop GUI are prepared after readiness but never launched until you explicitly connect or open a named surface in Settings/u);
 });
 
 test("#2782 repository design workspace is tracked and prefilled in Settings", async () => {

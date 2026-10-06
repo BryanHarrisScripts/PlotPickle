@@ -185,3 +185,12 @@ Normal design review after launch is GUI-first. `tree`, `query`, `eval`, XPath a
 The Human then deliberately chooses **Interpret → Pi Draft → Publish Brief**. Publish Brief creates the normal GitHub issue. OpenPencil does not modify PlotPickle implementation source, create an implementation PR, commit a design, or merge anything.
 
 This explicit-name requirement is deliberate. Context-aware/current-surface inference is outside the Phase 4 contract.
+
+
+## Phase 5 — clean-checkout design bootstrap
+
+Issue #2791 closes the first-run gap in Phase 4. The explicit surface registry previously targeted a shared `design.fig` that was not present in a clean repository checkout, so a correct `OpenPencil open Timeline` command failed before the GUI could launch.
+
+The exact pinned OpenPencil 0.15.1 release reads `.pen` and provides the headless `convert` command, while normal GUI save authority remains the editable `.fig` format. PlotPickle therefore keeps a small repository-owned `.pen` seed for each named surface and an explicit editable `.fig` target in `surfaces.json`.
+
+On first open only, when the target `.fig` does not exist, PlotPickle resolves and confines the target and seed to `designs/openpencil`, converts the seed to the editable target with the reviewed CLI, verifies the registered page, then launches OpenPencil Desktop and activates that exact page. Once an editable `.fig` exists, the seed is never allowed to overwrite it. `OpenPencil review <surface>` continues to gather Git evidence from the editable `.fig`.

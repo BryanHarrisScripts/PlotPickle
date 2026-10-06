@@ -6,8 +6,8 @@ PlotPickle scopes the local OpenPencil MCP server to this directory by default t
 
 ## What belongs here
 
-- OpenPencil `.pen` source files.
-- Imported or converted design-source artifacts that are intended for PlotPickle review.
+- OpenPencil `.pen` bootstrap source files.
+- Editable/generated OpenPencil `.fig` design artifacts that are intended for PlotPickle review.
 - Supporting design notes or assets that are safe and appropriate for Git.
 
 ## Authority
@@ -35,7 +35,9 @@ OpenPencil open Mind Map
 
 PlotPickle does not infer a design surface from the current route.
 
-The registered design opens in the OpenPencil desktop GUI for normal visual inspection, editing and Save. Headless `tree`, `query` and `eval` commands remain optional diagnostics rather than the expected design interface.
+Each registry entry names an editable `.fig` target and a repository-owned `.pen` bootstrap seed. On a clean checkout, `OpenPencil open <surface>` uses the pinned OpenPencil CLI to materialize the missing `.fig` from its seed, then launches the GUI. Existing `.fig` files are never overwritten by the seed.
+
+The registered `.fig` opens in the OpenPencil desktop GUI for normal visual inspection, editing and Save. Headless `tree`, `query` and `eval` commands remain optional diagnostics rather than the expected design interface.
 
 After saving, return to PlotPickle and run:
 

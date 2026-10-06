@@ -324,11 +324,6 @@ type TimelineCharacterReference = Readonly<{
   facts: readonly string[];
 }>;
 
-function displayCharacterName(characterId: string) {
-  const raw = characterId.replace(/^character:/u, "").replace(/[-_]+/gu, " ").trim();
-  return raw ? raw.replace(/\b\w/gu, (letter) => letter.toUpperCase()) : "Unknown Character";
-}
-
 function timelineCharacterReferences(project: LibraryPPFProject, placement: TimelinePrevisPlacement): readonly TimelineCharacterReference[] {
   const exactIds = placement.shotImages.flatMap((imageRef) => {
     const artifact = project.build.foundations.visualArtifacts.find((candidate) => candidate.id === imageRef.artifactId);
@@ -356,9 +351,11 @@ function timelineCharacterReferences(project: LibraryPPFProject, placement: Time
       && claim.kind !== "sensitive-source"
     ));
     const identity = characterClaims.find((claim) => claim.kind === "identity");
+    const rawName = characterId.replace(/^character:/u, "").replace(/[-_]+/gu, " ").trim();
+    const fallbackName = rawName ? rawName.replace(/\b\w/gu, (letter) => letter.toUpperCase()) : "Unknown Character";
     return {
       id: characterId,
-      name: identity?.summary || displayCharacterName(characterId),
+      name: identity?.summary || fallbackName,
       imageUrls: approvedWorldMapCharacterReferences(project.worldMap, characterId),
       facts: characterClaims
         .filter((claim) => claim.kind !== "identity" && claim.kind !== "visual-reference")

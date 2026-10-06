@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "openpencil",
+  "label": "OpenPencil",
+  "role": "optional-programmable-ux-design-workspace",
+  "source": "https://github.com/open-pencil/open-pencil",
+  "license": "MIT",
+  "userManaged": true,
+  "autoInstall": false,
+  "launchOnPlotPickleStartup": false,
+  "requiredForPlotPickleStartup": false,
+  "localOnlyDefault": true,
+  "workspaceScope": {
+    "required": true,
+    "environment": "OPENPENCIL_MCP_ROOT",
+    "policy": "Automation may inspect or write design files only inside the explicitly scoped design workspace."
+  },
+  "cli": {
+    "executable": "openpencil",
+    "jsonOutputSupported": true,
+    "readCommands": [
+      "info",
+      "tree",
+      "find",
+      "query",
+      "analyze",
+      "variables"
+    ],
+    "writeCommandsRequireHumanAction": [
+      "eval -w",
+      "convert",
+      "import",
+      "export"
+    ]
+  },
+  "mcp": {
+    "stdioExecutable": "openpencil-mcp",
+    "httpExecutable": "openpencil-mcp-http",
+    "defaultTransport": "stdio",
+    "writeToolsRequireHumanAction": true,
+    "cloudProviderUse": "never-implicit"
+  },
+  "authority": {
+    "designAuthority": "plotpickle-skin-and-ui-contracts",
+    "developmentAuthority": "human-dsdd-github",
+    "sourceMutationAllowed": false,
+    "mergeAuthority": false,
+    "webmcpReplacement": false
+  },
+  "firstProof": {
+    "issue": 2778,
+    "surface": "Timeline",
+    "scenario": "I have 25 approved Storyboard images and want to turn them into 25 three-second moving shots, review them, and watch the Mini-Block as a coherent sequence.",
+    "workflow": [
+      "script",
+      "shot-intent",
+      "approved-first-frame",
+      "motion-direction",
+      "generate-motion",
+      "review",
+      "keep-or-redo",
+      "next-shot"
+    ]
+  }
+}

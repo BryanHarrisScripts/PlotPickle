@@ -401,6 +401,24 @@
       "manifestPath": "config/pi-durable-adapter.json",
       "plotpickleUse": "Active-by-default durable execution/recovery substrate on supported hosts, installed into a PlotPickle-owned private runtime after core readiness. DSDD remains authoritative; startup performs no model/provider calls and Pi failure degrades without blocking the product.",
       "readme": true
+    },
+    {
+      "id": "openpencil",
+      "name": "OpenPencil",
+      "category": "developer-design-tool",
+      "usage": "connect-only",
+      "version": "user-managed",
+      "source": "https://github.com/open-pencil/open-pencil",
+      "license": "MIT",
+      "licenseSource": "https://github.com/open-pencil/open-pencil/blob/master/LICENSE",
+      "manifestPath": "config/openpencil-adapter.json",
+      "evidencePaths": [
+        "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+        "docs/developer-briefs/2778-openpencil-design-tool.md"
+      ],
+      "plotpickleUse": "Optional user-managed programmable UI/UX design workspace for governed PlotPickle mockups and design inspection. OpenPencil may be reached through its local CLI/MCP surfaces only after explicit Human setup; it does not become a product authority, auto-install, auto-start, or bypass DSDD/GitHub review.",
+      "distribution": "PlotPickle does not bundle or silently install OpenPencil. The user manages the OpenPencil desktop/CLI/MCP installation separately.",
+      "readme": false
     }
   ],
   "thirdPartyAssets": [

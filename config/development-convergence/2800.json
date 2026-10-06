@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "issue": 2800,
+  "phase": "openpencil-auto-design-review",
+  "brief": "docs/developer-briefs/2800-openpencil-auto-design-review.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "app/_components/settings/openpencil-command.ts",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/openpencil/openpencil-design-review-publisher.mjs",
+    "build/openpencil/openpencil-gui-gateway.ts",
+    "build/openpencil/openpencil-gui-runtime.mjs",
+    "config/development-convergence/2800.json",
+    "config/openpencil-adapter.json",
+    "config/verification/test-catalog.json",
+    "designs/openpencil/README.md",
+    "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+    "docs/developer-briefs/2800-openpencil-auto-design-review.md",
+    "tests/issue-2787-openpencil-gui-review.test.mjs",
+    "tests/issue-2800-openpencil-auto-design-review.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2800-A1",
+      "criterion": "An explicit OpenPencil GUI session records a content hash and finalizes only after the native design document closes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-gui-runtime.mjs",
+          "contains": "designReviewSessionId"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "window.addEventListener(\"focus\", finalize)"
+        }
+      ]
+    },
+    {
+      "id": "P2800-A2",
+      "criterion": "A changed registered design publishes through an isolated content-addressed non-main branch without mutating the primary checkout.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-design-review-publisher.mjs",
+          "contains": "design/openpencil/"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2800-openpencil-auto-design-review.test.mjs",
+          "contains": "primaryCheckoutMutation"
+        }
+      ]
+    },
+    {
+      "id": "P2800-A3",
+      "criterion": "A useful GitHub developer-brief issue is created automatically and identical design content is idempotent.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-design-review-publisher.mjs",
+          "contains": "Developer Brief — OpenPencil design review"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2800-openpencil-auto-design-review.test.mjs",
+          "contains": "reuses the remote branch and existing issue"
+        }
+      ]
+    },
+    {
+      "id": "P2800-A4",
+      "criterion": "GitHub failure preserves the local design and supports deterministic retry without implementation PR authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/openpencil-command.ts",
+          "contains": "OpenPencil publish <surface name>"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/openpencil-adapter.json",
+          "contains": "\"implementationPullRequest\": false"
+        }
+      ]
+    },
+    {
+      "id": "P2800-A5",
+      "criterion": "The focused Windows Settings Command proof executes the #2800 regression.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "issue-2800-openpencil-auto-design-review.test.mjs"
+        }
+      ]
+    }
+  ]
+}

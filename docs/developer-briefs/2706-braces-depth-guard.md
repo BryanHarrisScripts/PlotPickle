@@ -1,5 +1,29 @@
 # Developer brief — Issue #2706 three dependency alerts and security closeout
 
+## October 6, 2026 bounded Rust lru repair
+
+A fresh upstream review still finds FFrames 1.2.0 declaring `lru = "0.14.0"`; no compatible FFrames release has removed that constraint. Public RustSec records require lru >=0.16.3 for RUSTSEC-2026-0002 and >=0.18.2 for RUSTSEC-2026-0253, so a normal Cargo update cannot satisfy the existing 0.14.x consumers.
+
+PlotPickle therefore vendors the exact upstream lru 0.14.0 release source from commit `5ec44f564f561abf4b93f7c41764ced496d4bbb6` and applies only the two already-merged upstream fixes:
+- PR #224 / patch head `25669e76110133c73d72f1db0069934ba590162a` for the `IterMut` Stacked Borrows violation.
+- PR #238 / patch head `2776ded569ee89a99c515bca8194f65639182c96` for `LruCache::pop` panic safety.
+
+`tools/fframes-bridge/Cargo.toml` uses `[patch.crates-io]` so both FFrames 1.2.0 and usvgr 0.46.1 resolve the same repository-reviewed source. The lock no longer points lru at the vulnerable registry tarball. The vendored crate retains the upstream MIT license and records provenance in `SECURITY-BACKPORT.md`.
+
+Acceptance for this repair:
+- the repository security regression proves both consumers depend on the patched lru package and the lock contains no lru registry source/checksum;
+- the vendored regression exercises mutable iteration and the panicking-key `pop` recovery path;
+- Windows Product Gate runs the vendored Rust tests, then builds the FFrames bridge with `--locked`, then completes the real media render proof;
+- exact-head Architecture Verification is green before merge.
+
+This remains a compatibility bridge. Replace the vendored backport when both FFrames and usvgr accept an upstream lru release containing both fixes.
+
+## October 6, 2026 braces recheck
+
+The public GitHub advisory still lists braces <=3.0.3 as affected with **Patched versions: None**, and npm still publishes 3.0.3 as the upstream package release. Keep the existing exact reviewed depth-guard override. Do not replace it merely to make Dependabot disappear.
+
+
+
 ## Current requested outcome — October 5, 2026
 
 The latest Human screenshot shows three open Dependabot alerts: braces #52 (high), fflate #26 (moderate), and Rust lru #53 (low). Close #2706 only when these are resolved or superseded with verified evidence; retain the already merged CodeQL #65 repair and confirm its alert state separately.

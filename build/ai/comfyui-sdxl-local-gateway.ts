@@ -9,7 +9,6 @@ import {
 } from "../media-routing-store";
 import type { ImageGenerationInput } from "../media-provider-common";
 
-const IMAGE_PATH = "/api/local-ai/generate/image";
 const TEST_IMAGE_PATH = "/api/media-routing/test/image";
 
 function isLoopback(value: string | undefined) {
@@ -57,7 +56,7 @@ function exactSdxlCheckpoint(checkpoints: readonly string[]) {
 export function registerSdxlLocalImageGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
-    if ((pathname !== IMAGE_PATH && pathname !== TEST_IMAGE_PATH) || request.method !== "POST") {
+    if (pathname !== TEST_IMAGE_PATH || request.method !== "POST") {
       next();
       return;
     }
@@ -84,13 +83,13 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
         await writeMediaRoutingStore(store);
       }
       const body = await readBody(request);
-      const input: ImageGenerationInput = pathname === TEST_IMAGE_PATH ? {
+      const input: ImageGenerationInput = {
         prompt: typeof body.prompt === "string" ? body.prompt : "A cinematic PlotPickle storyboard frame, clear composition, expressive natural light, no text.",
         aspect: "landscape",
         quality: "low",
         assetId: "sdxl-local-image-test",
         requestCount: 1,
-      } : body;
+      };
       try {
         const result = await generateSdxlImage(store.comfyui.baseUrl, checkpoint, input);
         store.comfyui.imageVerifiedAt = new Date().toISOString();

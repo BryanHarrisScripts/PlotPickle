@@ -26,7 +26,7 @@ test("#2499 Storyboard exposes explicit durable Save separate from Lock", async 
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
   assert.match(loop, />Save<\/button>/u);
   assert.match(loop, /Saved locally/u);
-  assert.match(loop, />Lock<\/button>/u);
+  assert.match(loop, /\{accepted \? "Unlock" : "Lock"\}<\/button>/u);
   assert.match(loop, /savedLocally/u);
   assert.match(loop, /onClick=\{\(\) => selectedArtifact && saveFrameVersion\(selectedArtifact\)\}/u);
 });

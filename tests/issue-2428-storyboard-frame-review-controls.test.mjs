@@ -10,7 +10,7 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
   assert.match(positionLoop, /className=\{styles\.frameReview\}/u);
   assert.doesNotMatch(positionLoop, /selectedArtifact \? <div className=\{styles\.frameReview\}/u);
   assert.match(positionLoop, />Save<\/button>/u);
-  assert.match(positionLoop, />Lock<\/button>/u);
+  assert.match(positionLoop, /\{accepted \? "Unlock" : "Lock"\}<\/button>/u);
   assert.match(positionLoop, />Redo</u);
   assert.match(positionLoop, />Delete</u);
   assert.match(positionLoop, /data-review-state=\{reviewState\}/u);

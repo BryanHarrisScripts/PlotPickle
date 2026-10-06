@@ -60,21 +60,27 @@ function pathEntries(value: string, platform: NodeJS.Platform) {
   return value.split(platform === "win32" ? ";" : ":").map((entry) => entry.trim()).filter(Boolean);
 }
 
+function platformPath(platform: NodeJS.Platform) {
+  return platform === "win32" ? path.win32 : path.posix;
+}
+
 function executableCandidates(command: string, dependencies: OpenPencilDependencies) {
+  const pathApi = platformPath(dependencies.platform);
   const directories = pathEntries(String(dependencies.env.PATH || dependencies.env.Path || ""), dependencies.platform);
-  if (dependencies.platform !== "win32") return directories.map((directory) => path.join(directory, command));
+  if (dependencies.platform !== "win32") return directories.map((directory) => pathApi.join(directory, command));
   return directories.flatMap((directory) => [
-    path.join(directory, `${command}.cmd`),
-    path.join(directory, `${command}.exe`),
-    path.join(directory, command),
+    pathApi.join(directory, `${command}.cmd`),
+    pathApi.join(directory, `${command}.exe`),
+    pathApi.join(directory, command),
   ]);
 }
 
 export function resolveOpenPencilHttpLaunch(overrides: Partial<OpenPencilDependencies> = {}): OpenPencilLaunch | null {
   const dependencies = defaultDependencies(overrides);
+  const pathApi = platformPath(dependencies.platform);
   const override = String(dependencies.env.PLOTPICKLE_OPENPENCIL_MCP_ENTRYPOINT || "").trim();
   if (override) {
-    if (!path.isAbsolute(override) || !dependencies.exists(override) || !/\.(?:mjs|js)$/iu.test(override)) return null;
+    if (!pathApi.isAbsolute(override) || !dependencies.exists(override) || !/\.(?:mjs|js)$/iu.test(override)) return null;
     return Object.freeze({ executable: dependencies.nodeExecutable, args: Object.freeze([override]), source: "override" });
   }
 
@@ -82,7 +88,7 @@ export function resolveOpenPencilHttpLaunch(overrides: Partial<OpenPencilDepende
   if (!located) return null;
 
   if (dependencies.platform === "win32" && located.toLowerCase().endsWith(".cmd")) {
-    const entrypoint = path.join(path.dirname(located), "node_modules", "@open-pencil", "mcp", "dist", "index.mjs");
+    const entrypoint = pathApi.join(pathApi.dirname(located), "node_modules", "@open-pencil", "mcp", "dist", "index.mjs");
     if (!dependencies.exists(entrypoint)) return null;
     return Object.freeze({ executable: dependencies.nodeExecutable, args: Object.freeze([entrypoint]), source: "npm-global" });
   }
@@ -107,7 +113,8 @@ export async function probeOpenPencilMcpPort(timeoutMs = 250): Promise<boolean> 
 
 async function normalizeWorkspaceRoot(workspaceRoot: unknown, dependencies: OpenPencilDependencies) {
   const value = typeof workspaceRoot === "string" ? workspaceRoot.trim() : "";
-  if (!value || !path.isAbsolute(value)) throw new Error("OPENPENCIL_WORKSPACE_REQUIRED");
+  const pathApi = platformPath(dependencies.platform);
+  if (!value || !pathApi.isAbsolute(value)) throw new Error("OPENPENCIL_WORKSPACE_REQUIRED");
   let info: PathInfo;
   try {
     info = await dependencies.statPath(value);
@@ -115,7 +122,7 @@ async function normalizeWorkspaceRoot(workspaceRoot: unknown, dependencies: Open
     throw new Error("OPENPENCIL_WORKSPACE_UNAVAILABLE");
   }
   if (!info.isDirectory()) throw new Error("OPENPENCIL_WORKSPACE_UNAVAILABLE");
-  return path.resolve(value);
+  return pathApi.resolve(value);
 }
 
 function publicErrorMessage(error: unknown) {

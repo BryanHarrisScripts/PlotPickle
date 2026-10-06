@@ -297,9 +297,7 @@
 }
 
 .shotRows {
-  max-height: 43rem;
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow: visible;
 }
 
 .shotRow {
@@ -518,8 +516,6 @@
 .storyEvidence {
   display: grid;
   gap: 0.4rem;
-  max-height: 15rem;
-  overflow: auto;
   padding: 0.55rem;
 }
 
@@ -754,4 +750,23 @@ button:focus-visible,
   .transport input {
     grid-column: 1 / -1;
   }
+}
+
+
+.topMonitor {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-panel);
+  border-radius: var(--pp-skin-radius);
+  box-shadow: var(--pp-skin-shadow-panel);
+}
+
+.topMonitor .stage {
+  min-height: min(48vh, 34rem);
+}
+
+.topMonitor .stage > img,
+.topMonitor .stage > video {
+  width: 100%;
+  max-height: min(48vh, 34rem);
+  object-fit: contain;
 }

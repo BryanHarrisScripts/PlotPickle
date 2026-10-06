@@ -2118,7 +2118,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2780-openpencil-command-mcp.test.mjs",
-          "tests/issue-2782-openpencil-profile-startup.test.mjs"
+          "tests/issue-2782-openpencil-profile-startup.test.mjs",
+          "tests/issue-2787-openpencil-gui-review.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2142,7 +2143,7 @@
           ".artifacts/verification-shadow/production-harness.json"
         ]
       },
-      "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation, repository-owned designs/openpencil default workspace, managed-entrypoint preference, global fallback, and preserves explicit connect/no automatic server launch."
+      "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret → Pi Draft → Publish Brief → GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded."
     }
   ]
 }

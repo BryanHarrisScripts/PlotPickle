@@ -62,3 +62,37 @@ test("#2797 removes the separate dominant motion grid while retaining governed m
   assert.match(styles, /max-height: 43rem/u);
   assert.match(styles, /\.motionCell\[data-motion-status="stale"\]/u);
 });
+
+
+test("#2797 phase 2 resolves locked World Map character references without duplicating visual canon", async () => {
+  const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
+
+  assert.match(workspace, /type \{ LibraryPPFProject \}/u);
+  assert.match(workspace, /approvedWorldMapCharacterReferences\(project\.worldMap, characterId\)/u);
+  assert.match(workspace, /storyboard-character:/u);
+  assert.match(workspace, /characterTruth\?\.arcCells/u);
+  assert.match(workspace, /Locked character refs/u);
+  assert.match(workspace, /no locked World Map visual reference is approved/u);
+});
+
+test("#2797 phase 2 maps camera and sound only through exact authoritative production provenance", async () => {
+  const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
+
+  assert.match(workspace, /shot\.storyboardArtifactId === artifactId/u);
+  assert.match(workspace, /cue\.anchorRef === placement\.anchorRef/u);
+  assert.match(workspace, /exactIds\.has\(cue\.productionShotId\)/u);
+  assert.match(workspace, /Authored Previs camera/u);
+  assert.match(workspace, /No exact production-shot camera record is tied to this Storyboard Image/u);
+  assert.doesNotMatch(workspace, /shotSize: "Wide"|angle: "Eye level"|lens: "Natural perspective"/u);
+});
+
+test("#2797 phase 2 exposes spatial, camera, blocking and sound continuity while keeping unknown fields explicit", async () => {
+  const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
+
+  assert.match(workspace, /Structural finding/u);
+  assert.match(workspace, /Sound continuity/u);
+  assert.match(workspace, /Character truth/u);
+  assert.match(workspace, /Spatial \/ scene-flow evidence/u);
+  assert.match(workspace, /Exact Storyboard Image ↔ authored Previs Shot linkage/u);
+  assert.match(workspace, /No approved structured Timeline source/u);
+});

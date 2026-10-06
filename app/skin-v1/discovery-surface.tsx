@@ -45,6 +45,10 @@ import {
   saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
+import {
+  flushProfilePrivateWrites,
+  persistActiveProfileProject,
+} from "../../core/storage/profile-private-browser";
 import { handleStoryActShortcut, STORY_ACTS } from "./story-act-rail";
 import StoryDevelopmentSurfaceHeader from "./story-development-surface-header";
 import styles from "./discovery-surface.module.css";
@@ -143,6 +147,7 @@ export default function DiscoverySurface({
   const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [developingFieldId, setDevelopingFieldId] = useState<string | null>(null);
+  const [savingMindMap, setSavingMindMap] = useState(false);
   const [fieldDrafts, setFieldDrafts] = useState<Readonly<Record<string, string>>>({});
   const [proposalDrafts, setProposalDrafts] = useState<Readonly<Record<string, string>>>({});
   const [humanDisplayName, setHumanDisplayName] = useState("");
@@ -297,21 +302,34 @@ export default function DiscoverySurface({
     onOpenLearn(selectedField.topicId, selectedField.lessonId, selectedAct);
   }
 
-  function persistCanonicalProject(next: LibraryPPFProject) {
-    if (!project) return null;
-    if (!hasActiveLibraryProject()) {
-      const suggested = project.title === "Untitled Story" ? "" : project.title;
-      const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
-      if (!title) {
-        setNotice("Save cancelled. The blank workspace was not added to Library.");
-        return null;
+  async function persistCanonicalProject(next: LibraryPPFProject) {
+    if (!project || savingMindMap) return null;
+    setSavingMindMap(true);
+    try {
+      let saved: LibraryPPFProject;
+      if (!hasActiveLibraryProject()) {
+        const suggested = project.title === "Untitled Story" ? "" : project.title;
+        const title = window.prompt("Save as New Project", suggested)?.trim() ?? "";
+        if (!title) {
+          setNotice("Save cancelled. The blank workspace was not added to Library.");
+          return null;
+        }
+        saved = saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
+      } else {
+        saved = saveActiveLibraryProject(next);
       }
-      return saveDetachedLibraryProjectAs(next, { title, format: "Feature" });
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      return saved;
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Mind Map changes were kept in the current session but could not be confirmed in profile storage.");
+      return null;
+    } finally {
+      setSavingMindMap(false);
     }
-    return saveActiveLibraryProject(next);
   }
 
-  function createCharacter() {
+  async function createCharacter() {
     if (!project) return;
     const characterName = newCharacterName.trim();
     if (!characterName) {
@@ -337,7 +355,7 @@ export default function DiscoverySurface({
         characterTruth: created.evidence,
       },
     };
-    const saved = persistCanonicalProject(next);
+    const saved = await persistCanonicalProject(next);
     if (!saved) return;
     setNewCharacterName("");
     setSelectedCharacterId(created.characterId);
@@ -420,9 +438,9 @@ export default function DiscoverySurface({
         updatedAt: generatedAt,
         worldMap,
       };
-      const saved = persistCanonicalProject(next);
+      const saved = await persistCanonicalProject(next);
       if (!saved) return;
-      setNotice(`${selectedCharacter.name} ${selectedCharacterView} generated as a saved draft visual. Existing locked/approved references were not replaced.`);
+      setNotice(`${selectedCharacter.name} ${selectedCharacterView} generated as a profile-durable draft visual. Existing locked/approved references were not replaced.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Character visual generation failed.");
     } finally {
@@ -430,7 +448,7 @@ export default function DiscoverySurface({
     }
   }
 
-  function lockCharacterVisualVersion(versionId: string) {
+  async function lockCharacterVisualVersion(versionId: string) {
     if (!project || !selectedCharacter) return;
     const now = new Date().toISOString();
     const worldMap = lockWorldMapCharacterVisualVersion(project.worldMap, selectedCharacter.id, versionId, now);
@@ -444,12 +462,12 @@ export default function DiscoverySurface({
       updatedAt: now,
       worldMap,
     };
-    const saved = persistCanonicalProject(next);
+    const saved = await persistCanonicalProject(next);
     if (!saved) return;
-    setNotice(`${selectedCharacter.name} visual version ${versionId} locked and approved for downstream use.`);
+    setNotice(`${selectedCharacter.name} visual version ${versionId} durably locked and approved for downstream use.`);
   }
 
-  function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
+  async function saveCanonicalField(field: StoryDevelopmentFieldDefinition) {
     if (!project) return;
     const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
     const value = fieldDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).value;
@@ -460,7 +478,7 @@ export default function DiscoverySurface({
       source: "human",
       act: selectedAct,
     });
-    const saved = persistCanonicalProject(next);
+    const saved = await persistCanonicalProject(next);
     if (!saved) return;
     setFieldDrafts((current) => ({
       ...current,
@@ -469,7 +487,7 @@ export default function DiscoverySurface({
     setNotice(`${field.lessonTitle} saved for ${field.scope === "project-wide" ? "the project" : `Act ${selectedAct}`}.`);
   }
 
-  function saveSelectedFieldNotes() {
+  async function saveSelectedFieldNotes() {
     if (!project || !selectedField || !selectedFieldNoteKey) return;
     const now = new Date().toISOString();
     const text = selectedFieldNoteDraft.slice(0, 24_000);
@@ -485,7 +503,7 @@ export default function DiscoverySurface({
         },
       },
     };
-    const saved = persistCanonicalProject(next);
+    const saved = await persistCanonicalProject(next);
     if (!saved) return;
     const savedNote = mindMapFieldNote(saved.mindMapNotes, selectedFieldNoteKey);
     setNoteDrafts((current) => ({ ...current, [selectedFieldNoteKey]: savedNote.text }));
@@ -533,15 +551,18 @@ export default function DiscoverySurface({
       const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
       setProposalDrafts((current) => ({ ...current, [storageId]: proposal }));
       if (hasActiveLibraryProject()) {
-        saveActiveLibraryProject(writeStoryDevelopmentFieldProposal({
+        const saved = await persistCanonicalProject(writeStoryDevelopmentFieldProposal({
           project,
           field,
           proposal,
           sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
           act: selectedAct,
         }));
+        if (!saved) return;
+        setNotice(`${field.lessonTitle} Agent Suggestion is saved durably and ready for Human review.`);
+      } else {
+        setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review in this session. Save a project before restart to keep it.`);
       }
-      setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Agent suggestion failed.");
     } finally {
@@ -549,7 +570,7 @@ export default function DiscoverySurface({
     }
   }
 
-  function useCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
+  async function useCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
     if (!project) return;
     const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
     const proposal = (proposalDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).proposal).trim();
@@ -562,7 +583,7 @@ export default function DiscoverySurface({
       act: selectedAct,
     });
     const next = acceptStoryDevelopmentFieldProposal({ project: withProposal, field, act: selectedAct });
-    const saved = persistCanonicalProject(next);
+    const saved = await persistCanonicalProject(next);
     if (!saved) return;
     const value = storyDevelopmentFieldView(saved, field, selectedAct).value;
     setFieldDrafts((current) => ({ ...current, [storageId]: value }));
@@ -665,7 +686,7 @@ export default function DiscoverySurface({
             data-mind-map-create-character="true"
             onSubmit={(event) => {
               event.preventDefault();
-              createCharacter();
+              void createCharacter();
             }}
           >
             <label>
@@ -718,8 +739,8 @@ export default function DiscoverySurface({
                           <strong>{version.locked ? "LOCKED" : "SAVED"} · {version.id}</strong>
                           <span>{version.references.length} / 8 views · {version.complete ? "COMPLETE" : "INCOMPLETE"}</span>
                           {!version.locked ? (
-                            <button type="button" disabled={!version.complete} onClick={() => lockCharacterVisualVersion(version.id)}>
-                              Lock Complete Version
+                            <button type="button" disabled={!version.complete || savingMindMap} onClick={() => void lockCharacterVisualVersion(version.id)}>
+                              {savingMindMap ? "Saving…" : "Lock Complete Version"}
                             </button>
                           ) : null}
                         </header>
@@ -753,7 +774,7 @@ export default function DiscoverySurface({
               </label>
               <button
                 type="button"
-                disabled={generatingCharacterId !== null}
+                disabled={generatingCharacterId !== null || savingMindMap}
                 onClick={() => void generateCharacterVisual()}
               >
                 {generatingCharacterId === selectedCharacter.id ? "Generating Character Visual…" : "Generate Character Visual"}
@@ -773,8 +794,8 @@ export default function DiscoverySurface({
             <code>{selectedField.canonicalId}</code>
           </div>
           <div className={styles.contextualActionButtons}>
-            <button type="button" onClick={() => saveCanonicalField(selectedField)}>Save Changes</button>
-            <button type="button" disabled={developingFieldId !== null} onClick={() => void createCanonicalFieldProposal(selectedField)}>
+            <button type="button" disabled={savingMindMap} onClick={() => void saveCanonicalField(selectedField)}>{savingMindMap ? "Saving…" : "Save Changes"}</button>
+            <button type="button" disabled={developingFieldId !== null || savingMindMap} onClick={() => void createCanonicalFieldProposal(selectedField)}>
               {developingFieldId === selectedField.canonicalId ? "Asking Agent…" : selectedField.actionLabel}
             </button>
             <button
@@ -809,7 +830,7 @@ export default function DiscoverySurface({
             placeholder={`Write notes for ${selectedField.lessonTitle}…`}
           />
           <div className={styles.fieldActions}>
-            <button type="button" disabled={!notesDirty} onClick={saveSelectedFieldNotes}>Save Notes</button>
+            <button type="button" disabled={!notesDirty || savingMindMap} onClick={() => void saveSelectedFieldNotes()}>{savingMindMap ? "Saving…" : "Save Notes"}</button>
           </div>
         </section>
       ) : null}
@@ -887,7 +908,7 @@ export default function DiscoverySurface({
                       onChange={(event) => setProposalDrafts((current) => ({ ...current, [storageId]: event.target.value }))}
                     />
                   </label>
-                  <button type="button" onClick={() => useCanonicalFieldProposal(field)}>Use Suggestion</button>
+                  <button type="button" disabled={savingMindMap} onClick={() => void useCanonicalFieldProposal(field)}>{savingMindMap ? "Saving…" : "Use Suggestion"}</button>
                 </div> : null}
                 {relevantContext.length ? (
                   <details className={styles.fieldContext} data-relevant-project-context={field.canonicalId}>

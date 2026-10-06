@@ -74,7 +74,7 @@ test("#2630 notes stay non-canon and outside automatic Agent context", async () 
   assert.doesNotMatch(context, /mindMapNotes|selectedFieldNoteDraft|noteDrafts/u);
   assert.match(surface, /HUMAN WORKING NOTES · NON-CANON/u);
   assert.match(surface, /Saving notes does not change Project Value or accept an Agent Suggestion/u);
-  assert.match(surface, />Save Notes<\/button>/u);
+  assert.match(surface, /"Save Notes"/u);
   assert.match(surface, /UNSAVED CHANGES/u);
 });
 

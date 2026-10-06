@@ -57,7 +57,7 @@ test("#2559/#2566 Open Example bypasses scanning while local changes wait for on
   const loader = source.slice(start, end);
 
   const defaultsBranch = loader.indexOf('if (mode === "defaults")');
-  const scanner = loader.indexOf('inventory = await scanLocalResources(openedProject)');
+  const scanner = loader.indexOf('inventory = await scanLocalResources(restoredProject)');
   assert.ok(defaultsBranch >= 0 && scanner > defaultsBranch);
   const defaultsSlice = loader.slice(defaultsBranch, scanner);
   assert.match(defaultsSlice, /setRecovery\(null\)/u);
@@ -66,9 +66,11 @@ test("#2559/#2566 Open Example bypasses scanning while local changes wait for on
 
   assert.match(loader, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
-  assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
-  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*switchActiveLibraryProject\(openedProject\.id\)[\s\S]*await openActiveProject\(\)/u);
-  assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
+  assert.match(loader, /const restoredProject = switchActiveLibraryProject\(openedProject\.id\)/u);
+  assert.match(loader, /markCurrentSessionLibraryProject\(restoredProject\.id\)/u);
+  assert.match(loader, /inventory = await scanLocalResources\(restoredProject\)/u);
+  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*await openActiveProject\(\)/u);
+  assert.match(loader, /setRecovery\(\{ project: restoredProject, baseline, inventory, scanError \}\)/u);
   assert.match(source, />Select All<\/button>/u);
   assert.match(source, />\{restoringResources \? "Restoring…" : "Restore"\}<\/button>/u);
   assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);

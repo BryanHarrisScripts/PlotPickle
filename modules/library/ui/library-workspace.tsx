@@ -688,29 +688,34 @@ export default function LibraryWorkspace() {
         setNotice("PlotPickle could not read your saved Afterglow changes.");
         return;
       }
-      const baseline = createLibraryLoadSessionBaseline(openedProject, {
+
+      // The saved profile-local Afterglow project is the complete restore authority.
+      // Make it current before optional media recovery so storyDevelopment, Mind Map
+      // notes, Foundations/World truth, structure, writing and locks are never rebuilt
+      // from the local-resource inventory or replaced by packaged defaults.
+      const restoredProject = switchActiveLibraryProject(openedProject.id);
+      markCurrentSessionLibraryProject(restoredProject.id);
+      const baseline = createLibraryLoadSessionBaseline(restoredProject, {
         sessionId: globalThis.crypto?.randomUUID?.() ?? `afterglow-restore-${Date.now()}`,
         startedAt: new Date().toISOString(),
       });
+      persistLoadSessionBaseline(baseline);
 
-      let inventory = inventoryLocalResources(openedProject, []);
+      let inventory = inventoryLocalResources(restoredProject, []);
       let scanError = "";
       try {
-        inventory = await scanLocalResources(openedProject);
+        inventory = await scanLocalResources(restoredProject);
       } catch (error) {
         scanError = error instanceof Error ? error.message : "PlotPickle could not scan your local example resources.";
       }
 
       if (!inventory.groups.length && !scanError) {
-        switchActiveLibraryProject(openedProject.id);
-        markCurrentSessionLibraryProject(openedProject.id);
-        persistLoadSessionBaseline(baseline);
         await openActiveProject();
         return;
       }
 
       setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
-      setRecovery({ project: openedProject, baseline, inventory, scanError });
+      setRecovery({ project: restoredProject, baseline, inventory, scanError });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not open the Afterglow example.");
     } finally {
@@ -777,8 +782,12 @@ export default function LibraryWorkspace() {
   }
 
   function cancelRecovery() {
+    const loadedProject = recovery?.project ?? null;
     setRecovery(null);
     setSelectedRecoveryOrigins([]);
+    if (loadedProject) {
+      void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
+    }
   }
 
   function selectAllLocalResources() {

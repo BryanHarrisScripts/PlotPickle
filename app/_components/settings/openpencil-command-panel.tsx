@@ -79,7 +79,7 @@ export default function OpenPencilCommandPanel() {
 
   return <section className={styles.form} aria-label="OpenPencil local design connection" data-command-openpencil={status?.state || "loading"}>
     <h2>OpenPencil</h2>
-    <p>PlotPickle prepares the reviewed OpenPencil MCP package after core startup. The local MCP server still starts only when you explicitly connect it.</p>
+    <p>PlotPickle prepares the reviewed OpenPencil MCP, CLI and desktop GUI after core startup. Nothing launches until you explicitly connect or name a design surface to open.</p>
     <p role="status">{message}</p>
     <small>State: {status?.state || "loading"} · Endpoint: {status?.endpoint || "127.0.0.1:7600/mcp"}</small>
     <label>
@@ -103,6 +103,8 @@ export default function OpenPencilCommandPanel() {
       </button>
     </div>
     <small>Default workspace: the repository-owned designs\openpencil folder. Design source files there are Git artifacts; PlotPickle does not commit or merge them automatically.</small>
-    <small>Command verbs: OpenPencil status · OpenPencil connect &lt;absolute workspace&gt; · OpenPencil disconnect</small>
+    <small>GUI workflow: OpenPencil open Timeline · visually inspect/edit/save · return here · OpenPencil review Timeline · 01 Interpret · 02 Pi Draft · 03 Publish Brief (GitHub issue).</small>
+    <small>You must name the surface explicitly. PlotPickle does not infer the current page.</small>
+    <small>Command verbs: OpenPencil open &lt;surface&gt; · OpenPencil review &lt;surface&gt; · OpenPencil status · OpenPencil connect &lt;absolute workspace&gt; · OpenPencil disconnect</small>
   </section>;
 }

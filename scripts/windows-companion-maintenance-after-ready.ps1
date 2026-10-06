@@ -1,6 +1,7 @@
 param(
   [string]$BaseUrl = "http://127.0.0.1:4173",
   [string]$CompanionManager = (Join-Path $PSScriptRoot "windows-companion-software.ps1"),
+  [string]$OpenPencilSetup = (Join-Path $PSScriptRoot "ensure-openpencil-mcp.ps1"),
   [int]$ReadyTimeoutSeconds = 90
 )
 
@@ -62,6 +63,20 @@ if (-not $ready) {
 
 Write-Host "[INFO] PlotPickle is ready. Verifying recommended local AI compute without blocking the core app." -ForegroundColor Cyan
 Invoke-PlotPickleAiComputeVerification -Url $BaseUrl
+
+if (Test-Path -LiteralPath $OpenPencilSetup -PathType Leaf) {
+  Write-Host "[INFO] Preparing the reviewed OpenPencil MCP package and repository design workspace after core readiness." -ForegroundColor Cyan
+  try {
+    & $OpenPencilSetup
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "[WARNING] OpenPencil MCP preparation reported a warning. Core PlotPickle remains available." -ForegroundColor Yellow
+    }
+  } catch {
+    Write-Host "[WARNING] OpenPencil MCP preparation could not finish: $($_.Exception.Message). Core PlotPickle remains available." -ForegroundColor Yellow
+  }
+} else {
+  Write-Host "[WARNING] OpenPencil MCP setup helper is unavailable. Core PlotPickle remains available." -ForegroundColor Yellow
+}
 
 if (-not (Test-Path -LiteralPath $CompanionManager)) {
   Write-Host "[INFO] Optional companion inventory is unavailable. Core PlotPickle is already running and is unaffected." -ForegroundColor Yellow

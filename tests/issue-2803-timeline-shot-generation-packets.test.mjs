@@ -49,6 +49,9 @@ test("#2803 builds deterministic provider-neutral three-second Shot Generation P
   assert.equal(first.sourceFingerprint, second.sourceFingerprint);
   const changed = buildTimelineShotGenerationPacket(packetInput({ screenplay: "REN runs to the window." }));
   assert.notEqual(changed.sourceFingerprint, first.sourceFingerprint);
+  const revisionOnly = buildTimelineShotGenerationPacket(packetInput({ canonicalRevision: 11 }));
+  assert.equal(revisionOnly.canonicalRevision, 11);
+  assert.equal(revisionOnly.sourceFingerprint, first.sourceFingerprint, "unrelated project revision churn must not stale an unchanged Shot packet");
 });
 
 test("#2803 allows text-to-video without inventing a required image", async () => {

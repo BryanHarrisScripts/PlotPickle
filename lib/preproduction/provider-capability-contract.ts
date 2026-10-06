@@ -330,9 +330,10 @@ export function buildTimelineShotGenerationPacket(
     sourceRefs: [...new Set((input.sourceRefs ?? []).map(clean).filter(Boolean))].sort(),
   };
 
+  const { canonicalRevision: _canonicalRevision, ...fingerprintSource } = base;
   return {
     ...base,
-    sourceFingerprint: JSON.stringify(base),
+    sourceFingerprint: JSON.stringify(fingerprintSource),
   };
 }
 

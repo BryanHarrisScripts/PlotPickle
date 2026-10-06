@@ -1250,6 +1250,21 @@ export default function TimelineAssemblyWorkspace({
         </div>
       </details>
 
+      <section className={`${styles.monitor} ${styles.topMonitor}`} aria-label="Timeline playback viewer">
+        <header>
+          <p className={styles.kicker}>Playback monitor</p>
+          <strong>{activePlacement ? "Shot " + String(activeShotNumber).padStart(2, "0") + " of 25" : "No placed Previs media"}</strong>
+        </header>
+        <div className={styles.stage}>
+          {activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
+            ? <video controls key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
+            : activeImage?.assetUrl
+              ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
+              : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>{activeMotion.stale ? "The saved motion belongs to an older Shot Generation Packet. Regenerate this Shot." : activeMotion.current?.status === "failed" ? activeMotion.current.error || "Motion generation failed." : "No locked Storyboard Image exists in this saved Timeline source snapshot."}</span></div>}
+          {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
+        </div>
+      </section>
+
       <div className={styles.boardShell}>
         <aside className={styles.referenceRail} aria-label="Authoritative Timeline visual references">
           <header>
@@ -1305,37 +1320,6 @@ export default function TimelineAssemblyWorkspace({
             </div>
             <span>25 Shots · approximately 3 seconds each · 75 seconds total</span>
           </header>
-
-          <div className={styles.transport} aria-label="Timeline playback transport">
-            <button
-              disabled={!activePlacement || (placements.findIndex((placement) => placement.id === activePlacement.id) === 0 && activeShotNumber === 1)}
-              onClick={previousShot}
-              type="button"
-            >Previous Shot</button>
-            <button disabled={!totalSeconds} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
-            <button
-              disabled={!activePlacement || (placements.findIndex((placement) => placement.id === activePlacement.id) === placements.length - 1 && activeShotNumber === SHOTS_PER_MINI_BLOCK)}
-              onClick={nextShot}
-              type="button"
-            >Next Shot</button>
-            <button disabled={!activePlacement} onClick={() => setPlaybackMode((value) => value === "stills" ? "motion" : "stills")} type="button">Playback: {playbackMode === "stills" ? "Still images" : "Generated motion"}</button>
-            <button disabled={!activePlacement} onClick={() => setShowNarration((value) => !value)} type="button">Written narration: {showNarration ? "On" : "Off"}</button>
-            <strong>{clock(playheadSeconds)} / {clock(totalSeconds)}</strong>
-            <input
-              aria-label="Timeline seek and scrub"
-              disabled={!totalSeconds}
-              max={Math.max(0.1, totalSeconds)}
-              min="0"
-              onChange={(event) => {
-                setPlaying(false);
-                setPlayheadSeconds(Number(event.currentTarget.value));
-              }}
-              step="0.1"
-              type="range"
-              value={Math.min(playheadSeconds, Math.max(0.1, totalSeconds))}
-            />
-            <small className={styles.transportNote}>Previous clip and Next clip continuity now resolves at exact Shot boundaries.</small>
-          </div>
 
           <div className={styles.shotColumns} aria-hidden="true">
             <span>Shot</span>
@@ -1435,34 +1419,6 @@ export default function TimelineAssemblyWorkspace({
         </main>
 
         <aside className={styles.sidePanel}>
-          <section className={styles.monitor} aria-label="Timeline playback viewer">
-            <header>
-              <p className={styles.kicker}>Playback monitor</p>
-              <strong>{activePlacement ? "Shot " + String(activeShotNumber).padStart(2, "0") + " of 25" : "No placed Previs media"}</strong>
-            </header>
-            <div className={styles.stage}>
-              {playbackMode === "motion" && activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
-                ? <video key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
-                : playbackMode === "motion"
-                  ? <div className={styles.missing}><strong>Motion Shot {String(activeShotNumber).padStart(2, "0")} not ready</strong><span>{activeMotion.stale ? "The saved motion belongs to an older Shot Generation Packet. Regenerate this Shot." : "Generate this Shot before Motion playback. Timeline does not silently substitute the still image."}</span></div>
-                  : activeImage?.assetUrl
-                    ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
-                    : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>No locked Storyboard Image exists in this saved Timeline source snapshot.</span></div>}
-              {showNarration && activePresentation?.approval && (activePresentation.approval.narration || activePresentation.approval.bubbles.length) ? (
-                <div className={styles.narrationOverlay} aria-label="Written narration overlay">
-                  {activePresentation.approval.bubbles.map((bubble) => (
-                    <p className={styles.speechLine} key={bubble.speaker + ":" + bubble.text}><strong>{bubble.speaker}</strong> {bubble.text}</p>
-                  ))}
-                  {activePresentation.approval.narration ? <p>{activePresentation.approval.narration}</p> : null}
-                </div>
-              ) : null}
-              {showNarration && activePlacement && !activePresentation?.approval ? (
-                <div className={styles.narrationUnavailable}>Written narration is not current for this Shot. Regenerate it in Previs before narrated export.</div>
-              ) : null}
-              {activePlacement ? <span className={styles.shotCounter}>Shot {String(activeShotNumber).padStart(2, "0")} of 25</span> : null}
-            </div>
-          </section>
-
           <section className={styles.inspector} aria-label="Selected Timeline media inspector">
             <p className={styles.kicker}>Selected Mini-Block</p>
             {selectedPlacement ? (
@@ -1478,19 +1434,12 @@ export default function TimelineAssemblyWorkspace({
                 </dl>
                 <small className={styles.sourceKey}>Source identity · {selectedPlacement.sourceKey}</small>
                 <div className={styles.inspectorActions}>
-                  <button onClick={() => onOpenPrevis(placementAddress(selectedPlacement))} type="button">Open owning Previs Mini-Block</button>
-                  <button onClick={() => onOpenStoryboard(placementAddress(selectedPlacement))} type="button">Open owning Storyboard Mini-Block</button>
                   <button disabled={exporting || selectedPlacement.shotImages.length !== SHOTS_PER_MINI_BLOCK} onClick={exportSelectedMp4} type="button">
                     {exporting ? "Exporting MP4…" : "Export selected Mini-Block MP4 · narration " + (showNarration ? "on" : "off")}
                   </button>
                   {exportUrl ? <a className={styles.exportLink} download={timelineMp4FileName(project.title, selectedPlacement, showNarration)} href={exportUrl}>Open exported MP4</a> : null}
                   <small>Silent export · 25 × 3-second Shots · 75 seconds · 24 fps. Export failure never reports success.</small>
                   {placementIsStale(selectedPlacement) ? <button onClick={() => updatePlacementSource(selectedPlacement)} type="button">Update to current Previs source</button> : null}
-                  <div className={styles.orderActions}>
-                    <button disabled={selectedPlacement.order <= 1} onClick={() => movePlacement(selectedPlacement, -1)} type="button">Move earlier</button>
-                    <button disabled={selectedPlacement.order >= placements.length} onClick={() => movePlacement(selectedPlacement, 1)} type="button">Move later</button>
-                  </div>
-                  <button onClick={() => removePlacement(selectedPlacement)} type="button">Remove placement</button>
                 </div>
               </>
             ) : <p>Select or place approved Previs media to inspect its provenance.</p>}
@@ -1604,31 +1553,6 @@ export default function TimelineAssemblyWorkspace({
               </article>
             )) : <p>Timeline does not manufacture source text or timestamps.</p>}
           </div>
-        </div>
-      </section>
-
-      <section className={styles.timeline} aria-label="Previs media timeline">
-        <header>
-          <div>
-            <p className={styles.kicker}>Media timeline</p>
-            <h3>Chronological Mini-Block assembly</h3>
-          </div>
-          <span>Each placement retains its saved Previs source identity. Upstream replacement will not change silently.</span>
-        </header>
-        <div className={styles.timelineRail}>
-          {placements.length ? placements.map((placement) => (
-            <button
-              aria-pressed={placement.id === selectedPlacement?.id}
-              data-stale={placementIsStale(placement) ? "true" : "false"}
-              key={placement.id}
-              onClick={() => seekToPlacement(placement)}
-              type="button"
-            >
-              <strong>{placement.order}. A{actForBlock(placement.blockNumber)} · S{sequenceForBlock(placement.blockNumber)} · B{String(placement.blockNumber).padStart(2, "0")} · M{placement.blockNumber}.{placement.miniBlockNumber}</strong>
-              <span>~{placement.durationSeconds}s · {placement.shotImages.length}/25 Images</span>
-              <small>{placementIsStale(placement) ? "STALE" : "CURRENT"}</small>
-            </button>
-          )) : <p>Place approved Previs media from the source list to begin the Timeline assembly.</p>}
         </div>
       </section>
 

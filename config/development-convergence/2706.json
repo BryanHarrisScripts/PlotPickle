@@ -18,6 +18,7 @@
     "scripts/windows-runtime.mjs",
     "scripts/windows-setup-report.mjs",
     "tests/issue-2706-security-closeout.test.mjs",
+    "tests/issue-2782-openpencil-profile-startup.test.mjs",
     "tests/issue-2789-windows-cold-runtime.mjs",
     "tests/issue-2789-windows-runtime-transport.test.mjs",
     "vendor/braces-3.0.3-depth-guard/",

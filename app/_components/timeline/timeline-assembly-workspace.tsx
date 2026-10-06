@@ -10,9 +10,11 @@ import type {
   TimelineRangeExport,
   TimelineShotImageRef,
 } from "@/core/contracts/previs";
+import { approvedWorldMapCharacterReferences } from "@/core/contracts/world-map";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import type { LibraryPPFProject } from "@/core/storage/library-project";
 import { requestPlotPickleConfirmation } from "../../common-overlay-layer";
 import {
   storyboardAnchorEvidence,
@@ -315,6 +317,84 @@ function placementAddress(placement: TimelinePrevisPlacement): ReviewAddress {
   return { blockNumber: placement.blockNumber, miniBlockNumber: placement.miniBlockNumber };
 }
 
+type TimelineCharacterReference = Readonly<{
+  id: string;
+  name: string;
+  imageUrls: readonly string[];
+  facts: readonly string[];
+}>;
+
+function displayCharacterName(characterId: string) {
+  const raw = characterId.replace(/^character:/u, "").replace(/[-_]+/gu, " ").trim();
+  return raw ? raw.replace(/\b\w/gu, (letter) => letter.toUpperCase()) : "Unknown Character";
+}
+
+function timelineCharacterReferences(project: LibraryPPFProject, placement: TimelinePrevisPlacement): readonly TimelineCharacterReference[] {
+  const exactIds = placement.shotImages.flatMap((imageRef) => {
+    const artifact = project.build.foundations.visualArtifacts.find((candidate) => candidate.id === imageRef.artifactId);
+    return (artifact?.sourceDecisionKeys ?? [])
+      .filter((key) => key.startsWith("storyboard-character:"))
+      .map((key) => key.slice("storyboard-character:".length))
+      .filter(Boolean);
+  });
+  const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
+  const sceneNumbers = new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean));
+  const fallbackIds = (project.sourceEvidence.characterTruth?.arcCells ?? [])
+    .filter((cell) => (
+      cell.blockNumber === placement.blockNumber
+      && cell.state !== "not-present-no-evidence"
+      && (!sceneNumbers.size || cell.sceneNumbers.some((sceneNumber) => sceneNumbers.has(sceneNumber)))
+    ))
+    .map((cell) => cell.characterId);
+  const ids = [...new Set(exactIds.length ? exactIds : fallbackIds)];
+  const claims = project.sourceEvidence.characterTruth?.claims ?? [];
+  return ids.map((characterId) => {
+    const characterClaims = claims.filter((claim) => (
+      claim.characterIds.includes(characterId)
+      && claim.reviewState !== "rejected"
+      && claim.handling === "writer-reference"
+      && claim.kind !== "sensitive-source"
+    ));
+    const identity = characterClaims.find((claim) => claim.kind === "identity");
+    return {
+      id: characterId,
+      name: identity?.summary || displayCharacterName(characterId),
+      imageUrls: approvedWorldMapCharacterReferences(project.worldMap, characterId),
+      facts: characterClaims
+        .filter((claim) => claim.kind !== "identity" && claim.kind !== "visual-reference")
+        .map((claim) => claim.summary)
+        .slice(0, 2),
+    };
+  });
+}
+
+function timelineProductionShotsFor(
+  project: PPFProject,
+  placement: TimelinePrevisPlacement,
+  shotNumber: number,
+) {
+  const artifactId = placement.shotImages.find((image) => image.shotNumber === shotNumber)?.artifactId ?? "";
+  if (!artifactId) return [];
+  return project.production.shots
+    .filter((shot) => shot.anchorRef === placement.anchorRef && shot.storyboardArtifactId === artifactId)
+    .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+}
+
+function timelineSoundCuesFor(
+  project: PPFProject,
+  placement: TimelinePrevisPlacement,
+  productionShotIds: readonly string[],
+) {
+  const exactIds = new Set(productionShotIds);
+  return (project.production.soundCues ?? [])
+    .filter((cue) => (
+      cue.anchorRef === placement.anchorRef
+      && (!cue.productionShotId || exactIds.has(cue.productionShotId))
+      && cue.reviewState !== "rejected"
+    ))
+    .sort((left, right) => (left.startSecond ?? 0) - (right.startSecond ?? 0) || left.id.localeCompare(right.id));
+}
+
 function locationForTime(placements: readonly TimelinePrevisPlacement[], playheadSeconds: number) {
   if (!placements.length) return null;
   let cursor = 0;
@@ -341,7 +421,7 @@ export default function TimelineAssemblyWorkspace({
   onOpenStoryboard,
   onOpenPrevis,
 }: {
-  readonly project: PPFProject;
+  readonly project: LibraryPPFProject;
   readonly address: ReviewAddress;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenStoryboard: (address: ReviewAddress) => void;
@@ -409,6 +489,12 @@ export default function TimelineAssemblyWorkspace({
     ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => motionFor(selectedPlacement, index + 1))
     : [];
   const selectedMotionSucceeded = selectedMotionStates.filter((state) => state.current?.status === "succeeded" && state.current.outputAssetUrl).length;
+  const selectedCharacters = selectedPlacement ? timelineCharacterReferences(project, selectedPlacement) : [];
+  const activeCharacters = activePlacement ? timelineCharacterReferences(project, activePlacement) : [];
+  const activeProductionShots = activePlacement ? timelineProductionShotsFor(project, activePlacement, activeShotNumber) : [];
+  const activeSoundCues = activePlacement
+    ? timelineSoundCuesFor(project, activePlacement, activeProductionShots.map((shot) => shot.id))
+    : [];
   const openingRun = useMemo(() => openingStoryRun(placements), [placements]);
   const selectedOpeningPlacements = openingRun.slice(0, Math.max(1, Math.min(openingSegmentCount, openingRun.length)));
   const latestRangeExport = [...(project.production.timelineRangeExports ?? [])]
@@ -1008,20 +1094,39 @@ export default function TimelineAssemblyWorkspace({
             <p className={styles.kicker}>Reference images</p>
             <strong>Locked visual continuity</strong>
           </header>
-          <div className={styles.referenceFrames}>
-            {selectedPlacement?.shotImages.slice(0, 6).map((imageRef) => {
-              const presentation = timelinePresentationFor(project, selectedPlacement, imageRef.shotNumber);
-              return presentation.artifact?.assetUrl ? (
-                <figure key={imageRef.artifactId}>
-                  <img alt={presentation.artifact.narrativeIntention || "Locked Storyboard reference"} src={presentation.artifact.assetUrl} />
-                  <figcaption>Shot {String(imageRef.shotNumber).padStart(2, "0")}</figcaption>
+          <div className={styles.referenceGroup}>
+            <strong>Characters</strong>
+            <div className={styles.referenceFrames}>
+              {selectedCharacters.flatMap((character) => character.imageUrls.slice(0, 1).map((assetUrl) => (
+                <figure key={character.id + ":" + assetUrl}>
+                  <img alt={"Approved World Map reference for " + character.name} src={assetUrl} />
+                  <figcaption>{character.name}</figcaption>
                 </figure>
-              ) : null;
-            })}
-            {!selectedPlacement?.shotImages.length ? <p>No locked visual references are available for this Mini-Block.</p> : null}
+              )))}
+              {selectedCharacters.length && !selectedCharacters.some((character) => character.imageUrls.length)
+                ? <p>Character evidence is present, but no locked World Map visual reference is approved.</p>
+                : null}
+              {!selectedCharacters.length ? <p>No character identity is mapped to the selected Mini-Block.</p> : null}
+            </div>
+          </div>
+          <div className={styles.referenceGroup}>
+            <strong>Storyboard continuity</strong>
+            <div className={styles.referenceFrames}>
+              {selectedPlacement?.shotImages.slice(0, 4).map((imageRef) => {
+                const presentation = timelinePresentationFor(project, selectedPlacement, imageRef.shotNumber);
+                return presentation.artifact?.assetUrl ? (
+                  <figure key={imageRef.artifactId}>
+                    <img alt={presentation.artifact.narrativeIntention || "Locked Storyboard reference"} src={presentation.artifact.assetUrl} />
+                    <figcaption>Shot {String(imageRef.shotNumber).padStart(2, "0")}</figcaption>
+                  </figure>
+                ) : null;
+              })}
+              {!selectedPlacement?.shotImages.length ? <p>No locked visual references are available for this Mini-Block.</p> : null}
+            </div>
           </div>
           <dl className={styles.referenceFacts}>
-            <div><dt>Character</dt><dd>Not established in authoritative Timeline data</dd></div>
+            <div><dt>Character</dt><dd>{selectedCharacters.map((character) => character.name).join(" · ") || "Not established in authoritative Timeline data"}</dd></div>
+            <div><dt>Locked character refs</dt><dd>{selectedCharacters.reduce((total, character) => total + character.imageUrls.length, 0) || "None approved"}</dd></div>
             <div><dt>Props</dt><dd>Not established in authoritative Timeline data</dd></div>
             <div><dt>Location</dt><dd>Not established in authoritative Timeline data</dd></div>
             <div><dt>Lighting</dt><dd>Not established in authoritative Timeline data</dd></div>
@@ -1097,6 +1202,19 @@ export default function TimelineAssemblyWorkspace({
               const selected = activePlacement?.id === selectedPlacement.id && activeShotNumber === shotNumber;
               const dialogue = presentation.approval?.bubbles.map((bubble) => bubble.speaker + ": " + bubble.text).join(" · ") || "";
               const narration = presentation.approval?.narration || "";
+              const productionShots = timelineProductionShotsFor(project, selectedPlacement, shotNumber);
+              const productionShotIds = productionShots.map((shot) => shot.id);
+              const soundCues = timelineSoundCuesFor(project, selectedPlacement, productionShotIds);
+              const cameraDetail = productionShots
+                .flatMap((shot) => [shot.shotSize, shot.angle, shot.movement, shot.lens])
+                .map((value) => value.trim())
+                .filter(Boolean)
+                .join(" · ");
+              const productionIntent = productionShots
+                .map((shot) => shot.visualIntent.trim())
+                .filter(Boolean)
+                .join(" · ");
+              const soundIntent = soundCues.map((cue) => cue.kind + ": " + cue.intent).join(" · ");
               return (
                 <article className={styles.shotRow} data-selected={selected ? "true" : "false"} key={shotNumber}>
                   <div className={styles.shotNumber}><strong>{String(shotNumber).padStart(2, "0")}</strong></div>
@@ -1116,13 +1234,15 @@ export default function TimelineAssemblyWorkspace({
                     <strong>3.0s</strong>
                     <small>{clock((shotNumber - 1) * PLANNING_SECONDS_PER_SHOT)} – {clock(shotNumber * PLANNING_SECONDS_PER_SHOT)}</small>
                   </div>
-                  <div className={styles.cinematicCell}>
-                    <strong>{progression.label}</strong>
-                    <span>{progression.direction}</span>
-                    <small>{presentation.artifact?.narrativeIntention || activeEvidence.responsibility || "No approved cinematic intention is established."}</small>
+                  <div className={styles.cinematicCell} data-production-evidence={productionShots.length ? "authored" : "not-established"}>
+                    <strong>{productionShots.length ? "Authored Previs camera" : progression.label}</strong>
+                    <span>{cameraDetail || progression.direction}</span>
+                    <small>{productionIntent || presentation.artifact?.narrativeIntention || activeEvidence.responsibility || "No approved cinematic intention is established."}</small>
+                    {productionShots.length ? <small>{productionShots.length} authored production Shot{productionShots.length === 1 ? "" : "s"} tied to this exact Storyboard Image.</small> : <small>No exact production-shot camera record is tied to this Storyboard Image.</small>}
                   </div>
                   <div className={styles.storyCell}>
                     <span>{dialogue || narration || "No approved dialogue or narration is mapped to this Shot."}</span>
+                    {soundIntent ? <small>Sound · {soundIntent}</small> : null}
                     <small>{activeEvidence.passages.length ? "Synchronized screenplay source · Current Mini-Block evidence" : "Timeline does not manufacture source text or timestamps."}</small>
                   </div>
                   <div className={styles.motionCell} data-motion-status={state.stale ? "stale" : current?.status ?? "empty"}>
@@ -1224,22 +1344,41 @@ export default function TimelineAssemblyWorkspace({
           <dl>
             <div><dt>Scenes</dt><dd>{activeEvidence.passages.map((passage) => passage.sceneNumber).filter(Boolean).join(", ") || "Not established"}</dd></div>
             <div><dt>Dramatic responsibility</dt><dd>{activeEvidence.responsibility || "Not established"}</dd></div>
+            <div><dt>Structural finding</dt><dd>{activeEvidence.structuralFinding || "Not established"}</dd></div>
             <div><dt>Action continuity</dt><dd>{activePresentation?.artifact?.narrativeIntention || "No approved source"}</dd></div>
             <div><dt>Dialogue continuity</dt><dd>{activePresentation?.approval?.bubbles.length ? activePresentation.approval.bubbles.map((bubble) => bubble.speaker + ": " + bubble.text).join(" · ") : "No approved source"}</dd></div>
+            <div><dt>Sound continuity</dt><dd>{activeSoundCues.length ? activeSoundCues.map((cue) => cue.kind + ": " + cue.intent).join(" · ") : "No approved source"}</dd></div>
           </dl>
           <dl>
-            <div><dt>Character</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Wardrobe</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Props</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Location</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Character</dt><dd>{activeCharacters.map((character) => character.name).join(" · ") || "No approved Timeline source"}</dd></div>
+            <div><dt>Character truth</dt><dd>{activeCharacters.flatMap((character) => character.facts).join(" · ") || "No approved Timeline source"}</dd></div>
+            <div><dt>Wardrobe</dt><dd>No approved structured Timeline source</dd></div>
+            <div><dt>Props</dt><dd>No approved structured Timeline source</dd></div>
+            <div><dt>Location</dt><dd>No approved structured Timeline source</dd></div>
           </dl>
           <dl>
-            <div><dt>Time</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Weather</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Lighting</dt><dd>No approved Timeline source</dd></div>
-            <div><dt>Palette</dt><dd>No approved Timeline source</dd></div>
+            <div><dt>Camera</dt><dd>{activeProductionShots.flatMap((shot) => [shot.shotSize, shot.angle, shot.movement, shot.lens]).map((value) => value.trim()).filter(Boolean).join(" · ") || "No authored production camera record"}</dd></div>
+            <div><dt>Blocking</dt><dd>{activeProductionShots.map((shot) => shot.blockingIntent?.trim()).filter(Boolean).join(" · ") || "No authored blocking record"}</dd></div>
+            <div><dt>Transitions</dt><dd>{activeProductionShots.flatMap((shot) => [shot.transitionIn, shot.transitionOut]).map((value) => value.trim()).filter(Boolean).join(" · ") || "No authored transition record"}</dd></div>
+            <div><dt>Time / weather</dt><dd>No approved structured Timeline source</dd></div>
+            <div><dt>Lighting / palette</dt><dd>No approved structured Timeline source</dd></div>
           </dl>
           <div className={styles.storyEvidence}>
+            <strong>Spatial / scene-flow evidence</strong>
+            <span>{activeProductionShots.length ? "Exact Storyboard Image ↔ authored Previs Shot linkage" : "No exact authored Previs Shot is linked to the active Storyboard Image."}</span>
+            {activeProductionShots.length ? activeProductionShots.map((shot) => (
+              <article key={shot.id}>
+                <small>Production Shot {shot.order} · {shot.reviewState}</small>
+                <p>{[
+                  shot.visualIntent,
+                  shot.blockingIntent,
+                  shot.performanceEnergy,
+                  shot.pacingIntent,
+                  shot.transitionIn && "Transition in: " + shot.transitionIn,
+                  shot.transitionOut && "Transition out: " + shot.transitionOut,
+                ].filter(Boolean).join(" · ") || "The Shot is linked, but no additional production intent is authored."}</p>
+              </article>
+            )) : null}
             <strong>Synchronized screenplay source</strong>
             <span>Current Mini-Block evidence</span>
             {activeEvidence.passages.length ? activeEvidence.passages.map((passage) => (

@@ -96,3 +96,20 @@ test("#2797 phase 2 exposes spatial, camera, blocking and sound continuity while
   assert.match(workspace, /Exact Storyboard Image ↔ authored Previs Shot linkage/u);
   assert.match(workspace, /No approved structured Timeline source/u);
 });
+
+
+test("#2797 phase 3 compacts opening assembly into the production rail without losing export controls", async () => {
+  const [workspace, styles] = await Promise.all([
+    read("app/_components/timeline/timeline-assembly-workspace.tsx"),
+    read("app/_components/timeline/timeline-assembly-workspace.module.css"),
+  ]);
+
+  assert.match(workspace, /className=\{styles\.assemblyControls\}/u);
+  assert.match(workspace, /aria-label="Opening movie assembly and export"/u);
+  assert.match(workspace, /Up to 4 Mini-Blocks · 5-minute Block/u);
+  assert.match(workspace, /exportOpeningRangeMp4\(\)/u);
+  assert.match(workspace, /Open saved opening MP4/u);
+  assert.doesNotMatch(workspace, /className=\{styles\.exportPanel\}/u);
+  assert.doesNotMatch(styles, /\.exportPanel/u);
+  assert.match(styles, /\.rangeSummary/u);
+});

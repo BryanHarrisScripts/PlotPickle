@@ -48,7 +48,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "build/openpencil/openpencil-mcp-gateway.ts",
+          "path": "build/openpencil/openpencil-mcp-runtime.mjs",
           "contains": "OPENPENCIL_MCP_ROOT: requestedRoot"
         }
       ]

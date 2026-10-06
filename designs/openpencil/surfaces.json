@@ -1,163 +1,189 @@
 {
   "schemaVersion": 1,
   "designFilePolicy": "repository-relative",
-  "defaultFile": "design.fig",
   "surfaces": [
     {
       "name": "Learn",
-      "file": "design.fig",
+      "file": "learn.fig",
       "page": "Learn",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/learn.pen"
     },
     {
       "name": "Library",
-      "file": "design.fig",
+      "file": "library.fig",
       "page": "Library",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/library.pen"
     },
     {
       "name": "Community",
-      "file": "design.fig",
+      "file": "community.fig",
       "page": "Community",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/community.pen"
     },
     {
       "name": "Screening",
-      "file": "design.fig",
+      "file": "screening.fig",
       "page": "Screening",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/screening.pen"
     },
     {
       "name": "Reports",
-      "file": "design.fig",
+      "file": "reports.fig",
       "page": "Reports",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/reports.pen"
     },
     {
       "name": "Mind Map",
-      "file": "design.fig",
+      "file": "mind-map.fig",
       "page": "Mind Map",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/mind-map.pen"
     },
     {
       "name": "World Map",
-      "file": "design.fig",
+      "file": "world-map.fig",
       "page": "World Map",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/world-map.pen"
     },
     {
       "name": "Write",
-      "file": "design.fig",
+      "file": "write.fig",
       "page": "Write",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/write.pen"
     },
     {
       "name": "Edit",
-      "file": "design.fig",
+      "file": "edit.fig",
       "page": "Edit",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/edit.pen"
     },
     {
       "name": "Refine",
-      "file": "design.fig",
+      "file": "refine.fig",
       "page": "Refine",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/refine.pen"
     },
     {
       "name": "Outline",
-      "file": "design.fig",
+      "file": "outline.fig",
       "page": "Outline",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/outline.pen"
     },
     {
       "name": "Storyboard",
-      "file": "design.fig",
+      "file": "storyboard.fig",
       "page": "Storyboard",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/storyboard.pen"
     },
     {
       "name": "Previs",
-      "file": "design.fig",
+      "file": "previs.fig",
       "page": "Previs",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/previs.pen"
     },
     {
       "name": "Timeline",
-      "file": "design.fig",
+      "file": "timeline.fig",
       "page": "Timeline",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/timeline.pen"
     },
     {
       "name": "Rough Cut",
-      "file": "design.fig",
+      "file": "rough-cut.fig",
       "page": "Rough Cut",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/rough-cut.pen"
     },
     {
       "name": "Deck",
-      "file": "design.fig",
+      "file": "deck.fig",
       "page": "Deck",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/deck.pen"
     },
     {
       "name": "Package",
-      "file": "design.fig",
+      "file": "package.fig",
       "page": "Package",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/package.pen"
     },
     {
       "name": "Feedback",
-      "file": "design.fig",
+      "file": "feedback.fig",
       "page": "Feedback",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/feedback.pen"
     },
     {
       "name": "Identity",
-      "file": "design.fig",
+      "file": "identity.fig",
       "page": "Identity",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/identity.pen"
     },
     {
       "name": "Wyrmwood",
-      "file": "design.fig",
+      "file": "wyrmwood.fig",
       "page": "Wyrmwood",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/wyrmwood.pen"
     },
     {
       "name": "Unwritten",
-      "file": "design.fig",
+      "file": "unwritten.fig",
       "page": "Unwritten",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/unwritten.pen"
     },
     {
       "name": "Foley",
-      "file": "design.fig",
+      "file": "foley.fig",
       "page": "Foley",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/foley.pen"
     },
     {
       "name": "Narration",
-      "file": "design.fig",
+      "file": "narration.fig",
       "page": "Narration",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/narration.pen"
     },
     {
       "name": "Music",
-      "file": "design.fig",
+      "file": "music.fig",
       "page": "Music",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/music.pen"
     },
     {
       "name": "Settings",
-      "file": "design.fig",
+      "file": "settings.fig",
       "page": "Settings",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/settings.pen"
     },
     {
       "name": "Command",
-      "file": "design.fig",
+      "file": "command.fig",
       "page": "Command",
-      "aliases": []
+      "aliases": [],
+      "bootstrap": "bootstrap/command.pen"
     }
-  ]
+  ],
+  "bootstrapPolicy": "pen-seed-to-editable-fig"
 }

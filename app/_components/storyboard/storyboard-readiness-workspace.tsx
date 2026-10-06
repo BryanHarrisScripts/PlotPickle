@@ -28,7 +28,7 @@ import {
   type StoryboardFrameBrief,
   type StoryboardGenerationScope,
 } from "./storyboard-editorial-model";
-import VisualStoryWorkspace from "./visual-story-workspace";
+import StoryboardLockedShotHandoff from "./storyboard-locked-shot-handoff";
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
@@ -74,14 +74,10 @@ function boundedMiniBlockNumber(value: number | undefined) {
 export default function StoryboardReadinessWorkspace({
   project,
   legacyProject,
-  providerInstructions = null,
   onProjectChange,
   onAddressChange,
   initialBlockNumber,
   initialMiniBlockNumber,
-  initialSceneId,
-  initialShotId,
-  initialVisualView,
   embeddedNavigation = false,
 }: {
   readonly project: LibraryPPFProject;
@@ -732,29 +728,14 @@ export default function StoryboardReadinessWorkspace({
               ) : null}
             </div>
 
-            <section className={styles.inlineVisualStory} aria-labelledby="storyboard-beat-shot-frame-title">
-              <header>
-                <div>
-                  <span className={styles.eyebrow}>Storyboard detail</span>
-                  <h3 id="storyboard-beat-shot-frame-title">Story evidence · Planned Shot · Storyboard Image</h3>
-                </div>
-                <small>Inline for Mini-Block {selectedNumber}.{selectedMiniBlockNumber}</small>
-              </header>
-              <VisualStoryWorkspace
-                blockNumber={selectedNumber}
-                initialSceneId={initialSceneId}
-                initialShotId={initialShotId}
-                initialView={initialVisualView}
-                allowTimeline={false}
-                embedded
-                legacyProject={legacyProject}
-                miniBlockNumber={selectedMiniBlockNumber}
-                onProjectChange={onProjectChange}
-                onReturnToStoryboard={() => undefined}
-                project={project}
-                providerInstructions={providerInstructions}
-              />
-            </section>
+            <StoryboardLockedShotHandoff
+              blockNumber={selectedNumber}
+              legacyProject={legacyProject}
+              miniBlockNumber={selectedMiniBlockNumber}
+              onProjectChange={onProjectChange}
+              project={project}
+              targetId={selectedTarget.id}
+            />
           </section>
         </section>
       ) : null}

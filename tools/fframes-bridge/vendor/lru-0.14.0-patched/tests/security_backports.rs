@@ -1,3 +1,5 @@
+extern crate lru;
+
 use lru::LruCache;
 use std::num::NonZeroUsize;
 use std::panic::{catch_unwind, AssertUnwindSafe};

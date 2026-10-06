@@ -592,8 +592,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
       },
-      "runtimeSelector": "[data-visual-story='scene-beat-shot-frame']",
-      "runtimeReadySelector": "[data-visual-story='scene-beat-shot-frame']",
+      "runtimeSelector": "[data-storyboard-locked-shot-handoff='previs']",
+      "runtimeReadySelector": "[data-storyboard-locked-shot-handoff='previs']",
       "orchestrated": true
     },
     {

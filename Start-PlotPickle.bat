@@ -76,7 +76,7 @@ echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
 echo Required PlotPickle runtime checks finish first; managed developer/design tooling and read-only optional companion inventory begin only after the local server is ready.
-echo OpenPencil MCP is prepared after readiness but never launched until you explicitly connect it in Settings.
+echo OpenPencil MCP, CLI and desktop GUI are prepared after readiness but never launched until you explicitly connect or open a named surface in Settings.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -399,7 +399,7 @@ echo !READY! PlotPickle Agent Skills are registered and verified.
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   echo !READY! WebMCP UAT will begin only after the local server reports ready.
 ) else (
-  echo !READY! OpenPencil preparation and optional companion inventory are deferred until after local server readiness.
+  echo !READY! OpenPencil MCP/CLI/GUI preparation and optional companion inventory are deferred until after local server readiness.
 )
 echo !SUCCESS! Startup checks complete. PlotPickle can now start.
 set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"

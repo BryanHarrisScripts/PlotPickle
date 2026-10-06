@@ -26,7 +26,7 @@ test("#2404 keeps Scenes Beats and Beat Shot Frame on one continuous Storyboard 
   assert.doesNotMatch(workspace, /sceneBeatOpen|visualStoryOpen/u);
   assert.doesNotMatch(workspace, /View Scenes & Beats|Open Beat, Shot & Frame/u);
   assert.match(workspace, /data-storyboard-scene-beat-detail="inline"/u);
-  assert.match(workspace, /<VisualStoryWorkspace[\s\S]*?embedded/u);
+  assert.match(workspace, /<StoryboardLockedShotHandoff/u);\n  assert.doesNotMatch(workspace, /<VisualStoryWorkspace/u);
   assert.match(visual, /readonly embedded\?: boolean/u);
   assert.match(visual, /data-embedded=\{embedded \? "true" : undefined\}/u);
   assert.match(css, /Storyboard remains one continuous surface/u);

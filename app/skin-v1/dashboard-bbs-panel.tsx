@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import CommandReviewPanel from "../_components/settings/command-review-panel";
+import OpenPencilCommandPanel from "../_components/settings/openpencil-command-panel";
 import GlobalDsddConversation from "./global-dsdd-conversation";
 import LearnJourneyPreview from "./learn-journey-preview";
 import MenuFeedbackFooter from "./menu-feedback-footer";
@@ -279,6 +280,7 @@ export default function DashboardBbsPanel({
         <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("local"); }}>Local engines</button>
         <button type="button" onClick={() => { setCommandOpen(false); setPlotPickleAgentsOpen(true); }}>Agent compute</button>
       </div>
+      <OpenPencilCommandPanel />
       <GlobalDsddConversation embedded />
       <CommandReviewPanel />
     </section>;

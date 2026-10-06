@@ -378,7 +378,8 @@
       "classification": "production",
       "include": [
         "config/openpencil-adapter.json",
-        "config/third-party-oss.json"
+        "config/third-party-oss.json",
+        "config/openpencil-design-snapshot.json"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

@@ -12,3 +12,10 @@ serde_json = "1.0"
 [[bin]]
 name = "plotpickle-fframes-bridge"
 path = "src/main.rs"
+
+
+[patch.crates-io]
+# FFrames 1.2.0 and usvgr 0.46.1 both constrain lru to 0.14.x.
+# This local package is upstream lru 0.14.0 plus only the reviewed fixes from
+# lru-rs PR #224 (IterMut Stacked Borrows) and PR #238 (pop panic safety).
+lru = { path = "vendor/lru-0.14.0-patched" }

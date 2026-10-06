@@ -419,6 +419,23 @@
       "plotpickleUse": "Optional programmable UI/UX design workspace for governed PlotPickle mockups and design inspection. PlotPickle prepares the reviewed @open-pencil/mcp package in user-owned local app data after core readiness, but the local MCP server starts only after explicit Human connect. OpenPencil does not become a product authority or bypass DSDD/GitHub review.",
       "distribution": "PlotPickle prepares the pinned @open-pencil/mcp@0.15.1 helper after core readiness in %LOCALAPPDATA%\\PlotPickle\\tools\\openpencil. OpenPencil server launch remains explicit; the optional desktop app is not bundled.",
       "readme": false
+    },
+    {
+      "id": "lru-014-security-backport",
+      "name": "lru 0.14.0 security backport",
+      "category": "rust-runtime-dependency",
+      "usage": "vendored-security-backport",
+      "version": "0.14.0",
+      "source": "https://github.com/jeromefroe/lru-rs",
+      "license": "MIT",
+      "licenseSource": "tools/fframes-bridge/vendor/lru-0.14.0-patched/LICENSE",
+      "evidencePaths": [
+        "tools/fframes-bridge/vendor/lru-0.14.0-patched/SECURITY-BACKPORT.md",
+        "docs/developer-briefs/2706-braces-depth-guard.md"
+      ],
+      "plotpickleUse": "Temporary repository-reviewed lru 0.14.0 compatibility source for FFrames 1.2.0 and usvgr 0.46.1, containing only the upstream merged fixes for RUSTSEC-2026-0002 and RUSTSEC-2026-0253. Replace when both consumers accept a fixed upstream lru release.",
+      "distribution": "Vendored source under tools/fframes-bridge/vendor with upstream MIT license and exact source/fix commit provenance.",
+      "readme": false
     }
   ],
   "thirdPartyAssets": [

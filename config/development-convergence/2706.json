@@ -4,11 +4,23 @@
   "phase": "repository-security-closeout-evidence",
   "brief": "docs/developer-briefs/2706-braces-depth-guard.md",
   "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "Start-PlotPickle.bat",
     "config/development-convergence/2706.json",
+    "config/development-convergence/2789.json",
+    "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2706-braces-depth-guard.md",
+    "docs/developer-briefs/2789-windows-gitless-braces-runtime.md",
+    "package-lock.json",
     "package.json",
+    "scripts/npm-runtime-policy.mjs",
+    "scripts/windows-runtime.mjs",
+    "scripts/windows-setup-report.mjs",
     "tests/issue-2706-security-closeout.test.mjs",
+    "tests/issue-2789-windows-cold-runtime.mjs",
+    "tests/issue-2789-windows-runtime-transport.test.mjs",
+    "vendor/braces-3.0.3-depth-guard/",
     "vendor/braces-3.0.3-depth-guard/SECURITY-PROVENANCE.json"
   ],
   "acceptance": [

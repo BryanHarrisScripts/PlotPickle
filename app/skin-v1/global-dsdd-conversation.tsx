@@ -66,6 +66,7 @@ type OpenPencilPendingDesignSession = {
   sessionId: string;
   surface: string;
   finalizing: boolean;
+  closeCheckAttempts: number;
 };
 
 type DsddLockedIntent = {
@@ -447,6 +448,14 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
         if (!response.ok || !body.ok || !body.result) throw new Error(body.message || "OpenPencil design review could not be finalized.");
         if (body.result.state === "editing") {
           pending.finalizing = false;
+          if (pending.closeCheckAttempts < 6) {
+            pending.closeCheckAttempts += 1;
+            window.setTimeout(() => {
+              if (openPencilDesignSessionRef.current === pending) finalize();
+            }, 750);
+          } else {
+            pending.closeCheckAttempts = 0;
+          }
           return;
         }
         openPencilDesignSessionRef.current = null;
@@ -557,6 +566,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             sessionId: body.result.designReviewSessionId,
             surface: command.surfaceName,
             finalizing: false,
+            closeCheckAttempts: 0,
           };
         }
         if (command.action === "review" && body.result.handoffDraft) {

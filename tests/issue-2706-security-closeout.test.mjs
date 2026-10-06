@@ -7,6 +7,7 @@ import test from "node:test";
 const require = createRequire(import.meta.url);
 const read = (path) => readFile(new URL("../" + path, import.meta.url), "utf8");
 const PATCH_SHA = "28d440b5dd449dbf1fe6f3506cf94ecca4d02660";
+const VENDOR_PATH = "vendor/braces-3.0.3-depth-guard";
 
 test("#2706 every root fflate install path uses the compatible ZIP64 fix", async () => {
   const manifest = JSON.parse(await read("package.json"));
@@ -55,17 +56,29 @@ function packageEntries(lock, name) {
 }
 
 test("#2706 every root braces install path uses the exact reviewed depth-guard patch", async () => {
-  const [manifestSource, lockSource] = await Promise.all([read("package.json"), read("package-lock.json")]);
+  const [manifestSource, lockSource, provenanceSource] = await Promise.all([
+    read("package.json"),
+    read("package-lock.json"),
+    read(`${VENDOR_PATH}/SECURITY-PROVENANCE.json`),
+  ]);
   const manifest = JSON.parse(manifestSource);
   const lock = JSON.parse(lockSource);
-  assert.equal(manifest.overrides?.braces, `github:FSDevelop/braces#${PATCH_SHA}`);
+  const provenance = JSON.parse(provenanceSource);
 
-  const entries = packageEntries(lock, "braces");
-  assert.ok(entries.length >= 1, "root lock must contain braces");
-  for (const entry of entries) {
-    assert.equal(entry.version, "3.0.3");
-    assert.match(entry.resolved || "", new RegExp(`FSDevelop/braces\\.git#${PATCH_SHA}$`, "u"));
-    assert.doesNotMatch(entry.resolved || "", /registry\.npmjs\.org\/braces/u);
+  assert.equal(manifest.dependencies?.braces, `file:./${VENDOR_PATH}`);
+  assert.equal(manifest.overrides?.braces, "$braces");
+  assert.equal(manifest.plotpickleVendoredPackages?.braces?.upstreamCommit, PATCH_SHA);
+  assert.equal(provenance.upstreamCommit, PATCH_SHA);
+
+  const link = lock.packages?.["node_modules/braces"];
+  assert.deepEqual(link, { resolved: VENDOR_PATH, link: true });
+  const vendored = lock.packages?.[VENDOR_PATH];
+  assert.equal(vendored?.version, "3.0.3");
+  assert.equal(vendored?.license, "MIT");
+  assert.equal(vendored?.dependencies?.["fill-range"], "^7.1.1");
+
+  for (const entry of Object.values(lock.packages || {})) {
+    assert.doesNotMatch(entry?.resolved || "", /^(?:git(?:\\+[^:]+)?:|github:|git@)/iu);
   }
 });
 

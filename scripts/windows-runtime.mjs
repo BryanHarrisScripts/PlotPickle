@@ -369,6 +369,11 @@ function verifiedVendoredPackages() {
     if (provenance.manifestDigest !== digest || contract.manifestDigest !== `sha256-${digest}`) {
       throw new Error(`Vendored package ${packageName} manifest digest changed.`);
     }
+    const runtimePackagePath = path.join(sourcePath, "package.json");
+    const runtimePackageDigest = createHash("sha256").update(readFileSync(runtimePackagePath)).digest("hex");
+    if (provenance.runtimePackageSha256 !== runtimePackageDigest || contract.runtimePackageSha256 !== runtimePackageDigest) {
+      throw new Error(`Vendored package ${packageName} runtime package metadata digest changed.`);
+    }
     verified.push({ packageName, relativePath, sourcePath });
   }
   return verified;

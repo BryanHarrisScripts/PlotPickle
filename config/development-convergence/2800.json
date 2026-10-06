@@ -16,6 +16,7 @@
     "designs/openpencil/README.md",
     "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
     "docs/developer-briefs/2800-openpencil-auto-design-review.md",
+    "tests/issue-2782-openpencil-profile-startup.test.mjs",
     "tests/issue-2787-openpencil-gui-review.test.mjs",
     "tests/issue-2800-openpencil-auto-design-review.test.mjs"
   ],

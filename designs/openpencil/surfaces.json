@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "designFilePolicy": "repository-relative",
+  "defaultFile": "design.fig",
+  "surfaces": [
+    {
+      "name": "Learn",
+      "file": "design.fig",
+      "page": "Learn",
+      "aliases": []
+    },
+    {
+      "name": "Library",
+      "file": "design.fig",
+      "page": "Library",
+      "aliases": []
+    },
+    {
+      "name": "Community",
+      "file": "design.fig",
+      "page": "Community",
+      "aliases": []
+    },
+    {
+      "name": "Screening",
+      "file": "design.fig",
+      "page": "Screening",
+      "aliases": []
+    },
+    {
+      "name": "Reports",
+      "file": "design.fig",
+      "page": "Reports",
+      "aliases": []
+    },
+    {
+      "name": "Mind Map",
+      "file": "design.fig",
+      "page": "Mind Map",
+      "aliases": []
+    },
+    {
+      "name": "World Map",
+      "file": "design.fig",
+      "page": "World Map",
+      "aliases": []
+    },
+    {
+      "name": "Write",
+      "file": "design.fig",
+      "page": "Write",
+      "aliases": []
+    },
+    {
+      "name": "Edit",
+      "file": "design.fig",
+      "page": "Edit",
+      "aliases": []
+    },
+    {
+      "name": "Refine",
+      "file": "design.fig",
+      "page": "Refine",
+      "aliases": []
+    },
+    {
+      "name": "Outline",
+      "file": "design.fig",
+      "page": "Outline",
+      "aliases": []
+    },
+    {
+      "name": "Storyboard",
+      "file": "design.fig",
+      "page": "Storyboard",
+      "aliases": []
+    },
+    {
+      "name": "Previs",
+      "file": "design.fig",
+      "page": "Previs",
+      "aliases": []
+    },
+    {
+      "name": "Timeline",
+      "file": "design.fig",
+      "page": "Timeline",
+      "aliases": []
+    },
+    {
+      "name": "Rough Cut",
+      "file": "design.fig",
+      "page": "Rough Cut",
+      "aliases": []
+    },
+    {
+      "name": "Deck",
+      "file": "design.fig",
+      "page": "Deck",
+      "aliases": []
+    },
+    {
+      "name": "Package",
+      "file": "design.fig",
+      "page": "Package",
+      "aliases": []
+    },
+    {
+      "name": "Feedback",
+      "file": "design.fig",
+      "page": "Feedback",
+      "aliases": []
+    },
+    {
+      "name": "Identity",
+      "file": "design.fig",
+      "page": "Identity",
+      "aliases": []
+    },
+    {
+      "name": "Wyrmwood",
+      "file": "design.fig",
+      "page": "Wyrmwood",
+      "aliases": []
+    },
+    {
+      "name": "Unwritten",
+      "file": "design.fig",
+      "page": "Unwritten",
+      "aliases": []
+    },
+    {
+      "name": "Foley",
+      "file": "design.fig",
+      "page": "Foley",
+      "aliases": []
+    },
+    {
+      "name": "Narration",
+      "file": "design.fig",
+      "page": "Narration",
+      "aliases": []
+    },
+    {
+      "name": "Music",
+      "file": "design.fig",
+      "page": "Music",
+      "aliases": []
+    },
+    {
+      "name": "Settings",
+      "file": "design.fig",
+      "page": "Settings",
+      "aliases": []
+    },
+    {
+      "name": "Command",
+      "file": "design.fig",
+      "page": "Command",
+      "aliases": []
+    }
+  ]
+}

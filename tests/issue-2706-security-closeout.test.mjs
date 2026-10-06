@@ -110,6 +110,33 @@ test("#2706 Story Architect fixture does not reflect exception text as HTML", as
   assert.doesNotMatch(source, /response\.end\(error\.message\)/u);
 });
 
+
+test("#2706 both Rust lru consumers resolve the reviewed local security backport", async () => {
+  const [cargo, lock, patched, provenance] = await Promise.all([
+    read("tools/fframes-bridge/Cargo.toml"),
+    read("tools/fframes-bridge/Cargo.lock"),
+    read("tools/fframes-bridge/vendor/lru-0.14.0-patched/src/lib.rs"),
+    read("tools/fframes-bridge/vendor/lru-0.14.0-patched/SECURITY-BACKPORT.md"),
+  ]);
+
+  assert.match(cargo, /\[patch\.crates-io\][\s\S]*lru = \{ path = "vendor\/lru-0\.14\.0-patched" \}/u);
+  const lruBlock = lock.slice(lock.indexOf('name = "lru"'), lock.indexOf('[[package]]', lock.indexOf('name = "lru"') + 1));
+  assert.match(lruBlock, /version = "0\.14\.0"/u);
+  assert.doesNotMatch(lruBlock, /registry\+https:\/\/github\.com\/rust-lang\/crates\.io-index|checksum/u);
+  for (const consumer of ["fframes", "usvgr"]) {
+    const start = lock.indexOf(`name = "${consumer}"`);
+    const block = lock.slice(start, lock.indexOf("[[package]]", start + 1));
+    assert.match(block, /"lru"/u, `${consumer} must resolve lru through the patched package`);
+  }
+
+  assert.match(patched, /let key = unsafe \{ &\(\*\(\*self\.ptr\)\.key\.as_ptr\(\)\) as &K \};/u);
+  assert.match(patched, /let key = unsafe \{ &\(\*\(\*self\.end\)\.key\.as_ptr\(\)\) as &K \};/u);
+  assert.match(patched, /self\.detach\(node_ptr\);[\s\S]*ptr::drop_in_place\(old_node\.key\.as_mut_ptr\(\)\)/u);
+  assert.match(provenance, /5ec44f564f561abf4b93f7c41764ced496d4bbb6/u);
+  assert.match(provenance, /25669e76110133c73d72f1db0069934ba590162a/u);
+  assert.match(provenance, /2776ded569ee89a99c515bca8194f65639182c96/u);
+});
+
 test("#2706 closeout brief remains truthful while upstream has no official patched braces release", async () => {
   const brief = await read("docs/developer-briefs/2706-braces-depth-guard.md");
   assert.match(brief, /temporary security bridge/u);

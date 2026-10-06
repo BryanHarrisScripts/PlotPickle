@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "issue": 2793,
+  "phase": "openpencil-live-timeline-snapshot",
+  "brief": "docs/developer-briefs/2793-openpencil-live-timeline-snapshot.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "app/skin-v1/openpencil-design-snapshot.ts",
+    "build/openpencil/openpencil-gui-gateway.ts",
+    "build/openpencil/openpencil-gui-runtime.mjs",
+    "config/development-convergence/2793.json",
+    "config/openpencil-design-snapshot.json",
+    "config/verification/ownership-map.json",
+    "designs/openpencil/surfaces.json",
+    "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+    "docs/developer-briefs/2793-openpencil-live-timeline-snapshot.md",
+    "tests/issue-2787-openpencil-gui-review.test.mjs",
+    "tests/issue-2793-openpencil-timeline-snapshot.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2793-A1",
+      "criterion": "Timeline is captured from the authenticated rendered product with a bounded surface contract.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/openpencil-design-snapshot.ts",
+          "contains": "serializeOpenPencilTimelineSnapshot"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/openpencil-design-snapshot.json",
+          "contains": "data-dashboard-review-surface"
+        }
+      ]
+    },
+    {
+      "id": "P2793-A2",
+      "criterion": "The live Timeline snapshot is imported into a new editable FIG without overwriting an existing design.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-gui-runtime.mjs",
+          "contains": "rendered-snapshot"
+        },
+        {
+          "type": "file-contains",
+          "path": "designs/openpencil/surfaces.json",
+          "contains": "timeline-live.fig"
+        }
+      ]
+    },
+    {
+      "id": "P2793-A3",
+      "criterion": "WebMCP remains isolated synthetic verification and does not inherit private Human story state.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2793-openpencil-timeline-snapshot.test.mjs",
+          "contains": "Private Human cookies, credentials and story data are not inherited"
+        }
+      ]
+    },
+    {
+      "id": "P2793-A4",
+      "criterion": "The focused Windows Settings Command/OpenPencil proof executes the Timeline live-snapshot regression.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "issue-2793-openpencil-timeline-snapshot.test.mjs"
+        }
+      ]
+    }
+  ]
+}

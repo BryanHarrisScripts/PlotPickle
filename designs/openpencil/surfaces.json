@@ -95,10 +95,11 @@
     },
     {
       "name": "Timeline",
-      "file": "timeline.fig",
+      "file": "timeline-live.fig",
       "page": "Timeline",
       "aliases": [],
-      "bootstrap": "bootstrap/timeline.pen"
+      "bootstrap": "bootstrap/timeline.pen",
+      "capture": "rendered-live-v1"
     },
     {
       "name": "Rough Cut",

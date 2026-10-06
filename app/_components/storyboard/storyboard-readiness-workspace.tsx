@@ -28,7 +28,7 @@ import {
   type StoryboardFrameBrief,
   type StoryboardGenerationScope,
 } from "./storyboard-editorial-model";
-import StoryboardLockedShotHandoff from "./storyboard-locked-shot-handoff";
+import StoryboardLockedShotHandoff from "./handoff/locked-shot-handoff";
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,

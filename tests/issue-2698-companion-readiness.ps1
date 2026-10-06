@@ -17,7 +17,7 @@ function Invoke-RestMethod {
   return @{ ok = $true; readiness = @{ state = 'recommended-ready'; message = 'Synthetic local readiness' } }
 }
 $missingManager = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString() + '.ps1')
-& (Join-Path $PSScriptRoot '../scripts/windows-companion-maintenance-after-ready.ps1') -BaseUrl 'http://127.0.0.1:4173/' -CompanionManager $missingManager -ReadyTimeoutSeconds 5
+& (Join-Path $PSScriptRoot '../scripts/windows-companion-maintenance-after-ready.ps1') -BaseUrl 'http://127.0.0.1:4173/' -CompanionManager $missingManager -OpenPencilSetup $missingManager -ReadyTimeoutSeconds 5
 if ($global:PlotPickle2698Probes -ne 2) { throw "Readiness was probed $global:PlotPickle2698Probes times instead of rejecting the stale marker then retaining success" }
 if ($global:PlotPickle2698ComputeChecks -ne 1) { throw 'Deferred work did not start after the completed contract' }
 Write-Host 'PASS: canonical readiness observation survives a subsequent transient failure.'

@@ -24,4 +24,5 @@ Bootstrap conversion is local design materialization only. It does not modify Pl
 - Existing edited `.fig` files are never overwritten.
 - Every registry surface has a unique target and matching bootstrap seed.
 - The existing #2787 Windows Settings/OpenPencil regression exercises first-run materialization.
+- OpenPencil runtime/design/test changes explicitly select the Windows Command proof in Architecture Verification.
 - Exact-head CI is green before merge.

@@ -286,6 +286,9 @@ jobs:
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate braces security provenance and runtime transport
+        shell: pwsh
+        run: node --test tests/issue-2706-security-closeout.test.mjs tests/issue-2789-windows-runtime-transport.test.mjs
       - name: Prove empty persistent runtime install is Git-free
         shell: pwsh
         run: node tests/issue-2789-windows-cold-runtime.mjs

@@ -13,7 +13,6 @@
 .shotBoard,
 .sidePanel > section,
 .continuityPanel,
-.exportPanel,
 .timeline {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-fill-panel);
@@ -41,7 +40,6 @@
 .projectIdentity h2,
 .shotBoardHeader h3,
 .continuityPanel h3,
-.exportPanel h3,
 .timeline h3,
 .inspector h3 {
   margin: 0;
@@ -148,7 +146,6 @@
 .shotBoardHeader,
 .monitor > header,
 .continuityPanel > header,
-.exportPanel > header,
 .timeline > header {
   display: flex;
   justify-content: space-between;
@@ -253,7 +250,6 @@
 
 .shotBoardHeader span,
 .continuityPanel > header span,
-.exportPanel > header span,
 .timeline > header span {
   max-width: 34rem;
   font-size: 0.74rem;
@@ -539,17 +535,39 @@
   font-size: 0.73rem;
 }
 
-.exportBody {
+.assemblyControls {
   display: grid;
-  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 2fr) minmax(260px, 1fr);
-  gap: 0.55rem;
-  padding: 0.55rem;
+  gap: 0.5rem;
+  padding: 0.65rem;
+}
+
+.assemblyHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.assemblyHeader > div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.assemblyHeader span {
+  max-width: 11rem;
+  font-size: 0.66rem;
+  text-align: right;
 }
 
 .rangeControls {
-  display: grid;
-  gap: 0.35rem;
-  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.rangeControls button {
+  flex: 1 1 72px;
+  min-width: 0;
 }
 
 .rangeControls button[aria-pressed="true"] {
@@ -557,28 +575,42 @@
   color: var(--pp-skin-selected-ink);
 }
 
-.openingSequence {
+.rangeSummary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 0.4rem;
+  gap: 0.3rem;
+  max-height: 8.5rem;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
 }
 
-.openingSequence article {
+.rangeSummary li {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.45rem;
+  gap: 0.16rem;
+  padding: 0.4rem;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-canvas);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+}
+
+.rangeSummary li[data-stale="true"] {
+  border-color: var(--pp-skin-warning);
 }
 
 .openingActions {
+  display: grid;
+  gap: 0.35rem;
   margin-top: 0;
+}
+
+.openingActions small {
+  font-size: 0.65rem;
 }
 
 .openingEmpty {
   margin: 0;
-  padding: 0.65rem;
+  font-size: 0.7rem;
 }
 
 .timelineRail {
@@ -713,10 +745,6 @@ button:focus-visible,
 
   .storyEvidence {
     grid-column: 1 / -1;
-  }
-
-  .exportBody {
-    grid-template-columns: 1fr;
   }
 
   .transport {

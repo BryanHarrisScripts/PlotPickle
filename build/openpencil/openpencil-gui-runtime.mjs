@@ -221,16 +221,12 @@ export function createOpenPencilGuiController(overrides = {}) {
       if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
         throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
       }
-      try {
-        await runCli(
-          cli,
-          ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
-          dependencies,
-          target.workspaceRoot,
-        );
-      } catch {
-        throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
-      }
+      await runCli(
+        cli,
+        ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
+        dependencies,
+        target.workspaceRoot,
+      );
       if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
       bootstrapState = "materialized";
     }

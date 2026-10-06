@@ -6,7 +6,7 @@ async function json(path) {
   return JSON.parse(await readFile(new URL(`../${path}`, import.meta.url), "utf8"));
 }
 
-test("OpenPencil is optional, user-managed and outside normal startup", async () => {
+test("OpenPencil remains optional while its reviewed MCP helper is managed after core startup", async () => {
   const registry = await json("config/third-party-oss.json");
   const adapter = await json("config/openpencil-adapter.json");
   const pkg = await json("package.json");
@@ -14,16 +14,23 @@ test("OpenPencil is optional, user-managed and outside normal startup", async ()
   const entry = registry.systems.find((item) => item.id === "openpencil");
   assert.ok(entry, "OpenPencil must be present in the OSS registry");
   assert.equal(entry.license, "MIT");
-  assert.equal(entry.usage, "connect-only");
+  assert.equal(entry.usage, "managed-optional-adapter");
   assert.equal(entry.category, "developer-design-tool");
 
-  assert.equal(adapter.userManaged, true);
-  assert.equal(adapter.autoInstall, false);
+  assert.equal(adapter.userManaged, false);
+  assert.equal(adapter.autoInstall, true);
   assert.equal(adapter.launchOnPlotPickleStartup, false);
   assert.equal(adapter.requiredForPlotPickleStartup, false);
+  assert.equal(adapter.managedPackage.name, "@open-pencil/mcp");
+  assert.equal(adapter.managedPackage.version, "0.15.1");
+  assert.equal(adapter.managedPackage.installTiming, "after-core-ready");
+  assert.equal(adapter.managedPackage.failurePolicy, "warn-and-continue");
+  assert.equal(adapter.managedPackage.launchesServer, false);
   assert.equal(adapter.localOnlyDefault, true);
   assert.equal(adapter.workspaceScope.required, true);
   assert.equal(adapter.workspaceScope.environment, "OPENPENCIL_MCP_ROOT");
+  assert.equal(adapter.workspaceScope.default, "<repo>\\designs\\openpencil");
+  assert.equal(adapter.workspaceScope.repositoryTracked, true);
   assert.equal(adapter.authority.developmentAuthority, "human-dsdd-github");
   assert.equal(adapter.authority.sourceMutationAllowed, false);
   assert.equal(adapter.authority.mergeAuthority, false);

@@ -406,8 +406,8 @@
       "id": "openpencil",
       "name": "OpenPencil",
       "category": "developer-design-tool",
-      "usage": "connect-only",
-      "version": "user-managed",
+      "usage": "managed-optional-adapter",
+      "version": "0.15.1",
       "source": "https://github.com/open-pencil/open-pencil",
       "license": "MIT",
       "licenseSource": "https://github.com/open-pencil/open-pencil/blob/master/LICENSE",
@@ -416,8 +416,8 @@
         "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
         "docs/developer-briefs/2778-openpencil-design-tool.md"
       ],
-      "plotpickleUse": "Optional user-managed programmable UI/UX design workspace for governed PlotPickle mockups and design inspection. OpenPencil may be reached through its local CLI/MCP surfaces only after explicit Human setup; it does not become a product authority, auto-install, auto-start, or bypass DSDD/GitHub review.",
-      "distribution": "PlotPickle does not bundle or silently install OpenPencil. The user manages the OpenPencil desktop/CLI/MCP installation separately.",
+      "plotpickleUse": "Optional programmable UI/UX design workspace for governed PlotPickle mockups and design inspection. PlotPickle prepares the reviewed @open-pencil/mcp package in user-owned local app data after core readiness, but the local MCP server starts only after explicit Human connect. OpenPencil does not become a product authority or bypass DSDD/GitHub review.",
+      "distribution": "PlotPickle prepares the pinned @open-pencil/mcp@0.15.1 helper after core readiness in %LOCALAPPDATA%\\PlotPickle\\tools\\openpencil. OpenPencil server launch remains explicit; the optional desktop app is not bundled.",
       "readme": false
     }
   ],

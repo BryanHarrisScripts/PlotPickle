@@ -737,11 +737,6 @@ export default function DashboardBbsReviewHost({
           surfaceLabel="Timeline"
           onAddressChange={(address) => updateReviewAddress("timeline", address)}
         />
-        <BlockVisualJourneyWorkspace
-          address={reviewAddress}
-          stage="timeline"
-          onAddressChange={(address) => updateReviewAddress("timeline", address)}
-        />
         <SkinV1TimelineReviewSurface
           address={reviewAddress}
           onOpenPrevis={openPrevis}

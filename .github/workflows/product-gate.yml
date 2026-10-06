@@ -62,12 +62,14 @@ jobs:
           & npm @('ci', '--prefix', 'tools/hunk-review', '--ignore-scripts', '--no-audit', '--no-fund')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "$env:GITHUB_WORKSPACE\tools\hunk-review\node_modules\.bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Prove Settings Command, locked Pi install and native Hunk on Windows
+      - name: Prove Settings Command, OpenPencil GUI contract, locked Pi install and native Hunk on Windows
         shell: pwsh
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           node --test tests/issue-2717-settings-command.test.mjs tests/issue-2717-command-gateway.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --test tests/issue-2780-openpencil-command-mcp.test.mjs tests/issue-2782-openpencil-profile-startup.test.mjs tests/issue-2787-openpencil-gui-review.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/settings-command-product-proof.mjs
       - name: Upload Settings Command evidence

@@ -4,7 +4,8 @@ export type OpenPencilCommand =
   | Readonly<{ action: "disconnect" }>
   | Readonly<{ action: "connect"; workspaceRoot: string }>
   | Readonly<{ action: "open"; surfaceName: string }>
-  | Readonly<{ action: "review"; surfaceName: string }>;
+  | Readonly<{ action: "review"; surfaceName: string }>
+  | Readonly<{ action: "publish"; surfaceName: string }>;
 
 function cleanRoot(value: string) {
   const trimmed = value.trim();
@@ -29,9 +30,77 @@ export function parseOpenPencilCommand(value: string): OpenPencilCommand | null 
   const surfaceName = cleanRoot(open?.[1] || "");
   if (surfaceName) return Object.freeze({ action: "open", surfaceName });
 
-  const review = input.match(new RegExp(`^(?:/?${noun}\\s+review|review\\s+(?:open\\s*[- ]?\\s*pencil\\s+)?design\\s+changes)\\s+(.+)$`, "iu"));
+  const review = input.match(new RegExp(`^(?:/?${noun}\\s+review|review\\s+(?:open\\s*[- ]?\\s*pencil\\s+)?design\\s+changes)\\s+(.+)export type OpenPencilCommand =
+  | Readonly<{ action: "help" }>
+  | Readonly<{ action: "status" }>
+  | Readonly<{ action: "disconnect" }>
+  | Readonly<{ action: "connect"; workspaceRoot: string }>
+  | Readonly<{ action: "open"; surfaceName: string }>
+  | Readonly<{ action: "review"; surfaceName: string }>
+  | Readonly<{ action: "publish"; surfaceName: string }>;
+
+function cleanRoot(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+export function parseOpenPencilCommand(value: string): OpenPencilCommand | null {
+  const input = value.trim();
+  if (!input) return null;
+  const noun = String.raw`open\s*[- ]?\s*pencil`;
+
+  if (new RegExp(`^/?${noun}(?:\\s+help)?$`, "iu").test(input)) return Object.freeze({ action: "help" });
+  if (new RegExp(`^/?${noun}\\s+status$`, "iu").test(input)) return Object.freeze({ action: "status" });
+  if (new RegExp(`^/?${noun}\\s+disconnect$`, "iu").test(input) || new RegExp(`^disconnect\\s+${noun}$`, "iu").test(input)) {
+    return Object.freeze({ action: "disconnect" });
+  }
+
+  const open = input.match(new RegExp(`^/?${noun}\\s+open\\s+(.+)$`, "iu"));
+  const surfaceName = cleanRoot(open?.[1] || "");
+  if (surfaceName) return Object.freeze({ action: "open", surfaceName });
+
+, "iu"));
   const reviewSurface = cleanRoot(review?.[1] || "");
   if (reviewSurface) return Object.freeze({ action: "review", surfaceName: reviewSurface });
+
+  const publish = input.match(new RegExp(`^/?${noun}\\s+(?:publish|retry\\s+publish)\\s+(.+)export type OpenPencilCommand =
+  | Readonly<{ action: "help" }>
+  | Readonly<{ action: "status" }>
+  | Readonly<{ action: "disconnect" }>
+  | Readonly<{ action: "connect"; workspaceRoot: string }>
+  | Readonly<{ action: "open"; surfaceName: string }>
+  | Readonly<{ action: "review"; surfaceName: string }>
+  | Readonly<{ action: "publish"; surfaceName: string }>;
+
+function cleanRoot(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+export function parseOpenPencilCommand(value: string): OpenPencilCommand | null {
+  const input = value.trim();
+  if (!input) return null;
+  const noun = String.raw`open\s*[- ]?\s*pencil`;
+
+  if (new RegExp(`^/?${noun}(?:\\s+help)?$`, "iu").test(input)) return Object.freeze({ action: "help" });
+  if (new RegExp(`^/?${noun}\\s+status$`, "iu").test(input)) return Object.freeze({ action: "status" });
+  if (new RegExp(`^/?${noun}\\s+disconnect$`, "iu").test(input) || new RegExp(`^disconnect\\s+${noun}$`, "iu").test(input)) {
+    return Object.freeze({ action: "disconnect" });
+  }
+
+  const open = input.match(new RegExp(`^/?${noun}\\s+open\\s+(.+)$`, "iu"));
+  const surfaceName = cleanRoot(open?.[1] || "");
+  if (surfaceName) return Object.freeze({ action: "open", surfaceName });
+
+, "iu"));
+  const publishSurface = cleanRoot(publish?.[1] || "");
+  if (publishSurface) return Object.freeze({ action: "publish", surfaceName: publishSurface });
 
   const direct = input.match(new RegExp(`^/?${noun}\\s+connect\\s+(.+)$`, "iu"));
   const natural = input.match(new RegExp(`^connect\\s+${noun}\\s+(.+)$`, "iu"));
@@ -43,6 +112,7 @@ export function parseOpenPencilCommand(value: string): OpenPencilCommand | null 
 export const OPENPENCIL_COMMAND_HELP = [
   "OpenPencil open <surface name>",
   "OpenPencil review <surface name>",
+  "OpenPencil publish <surface name>  (retry a failed automatic publish)",
   "OpenPencil status",
   "OpenPencil connect <absolute local design workspace>",
   "OpenPencil disconnect",

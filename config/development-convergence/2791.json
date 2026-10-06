@@ -4,6 +4,7 @@
   "phase": "openpencil-clean-checkout-design-bootstrap",
   "brief": "docs/developer-briefs/2791-openpencil-bootstrap-design.md",
   "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
     "build/openpencil/openpencil-gui-runtime.mjs",
     "config/development-convergence/2791.json",
     "designs/openpencil/",
@@ -57,6 +58,17 @@
           "type": "file-contains",
           "path": "tests/issue-2787-openpencil-gui-review.test.mjs",
           "contains": "timeline.fig"
+        }
+      ]
+    },
+    {
+      "id": "P2791-A4",
+      "criterion": "OpenPencil runtime, design and regression changes select the Windows Settings/Command product proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "build/openpencil/"
         }
       ]
     }

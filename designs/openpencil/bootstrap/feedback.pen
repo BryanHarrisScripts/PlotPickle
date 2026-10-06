@@ -1,0 +1,38 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "feedback-surface",
+      "name": "Feedback",
+      "width": 1440,
+      "height": 900,
+      "fill": "#080b09",
+      "children": [
+        {
+          "type": "text",
+          "id": "feedback-title",
+          "name": "Surface title",
+          "x": 64,
+          "y": 64,
+          "content": "PLOTPICKLE · FEEDBACK",
+          "fontSize": 40,
+          "fontWeight": 700,
+          "fill": "#7DFF8A"
+        },
+        {
+          "type": "text",
+          "id": "feedback-note",
+          "name": "Bootstrap note",
+          "x": 64,
+          "y": 128,
+          "width": 1120,
+          "content": "PlotPickle Feedback design workspace. Edit and Save this generated FIG in OpenPencil, then return to PlotPickle and run OpenPencil review Feedback.",
+          "fontSize": 18,
+          "fontWeight": 400,
+          "fill": "#E8EEE9"
+        }
+      ]
+    }
+  ]
+}

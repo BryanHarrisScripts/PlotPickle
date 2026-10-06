@@ -1,0 +1,38 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "narration-surface",
+      "name": "Narration",
+      "width": 1440,
+      "height": 900,
+      "fill": "#080b09",
+      "children": [
+        {
+          "type": "text",
+          "id": "narration-title",
+          "name": "Surface title",
+          "x": 64,
+          "y": 64,
+          "content": "PLOTPICKLE · NARRATION",
+          "fontSize": 40,
+          "fontWeight": 700,
+          "fill": "#7DFF8A"
+        },
+        {
+          "type": "text",
+          "id": "narration-note",
+          "name": "Bootstrap note",
+          "x": 64,
+          "y": 128,
+          "width": 1120,
+          "content": "PlotPickle Narration design workspace. Edit and Save this generated FIG in OpenPencil, then return to PlotPickle and run OpenPencil review Narration.",
+          "fontSize": 18,
+          "fontWeight": 400,
+          "fill": "#E8EEE9"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "identity-surface",
+      "name": "Identity",
+      "width": 1440,
+      "height": 900,
+      "fill": "#080b09",
+      "children": [
+        {
+          "type": "text",
+          "id": "identity-title",
+          "name": "Surface title",
+          "x": 64,
+          "y": 64,
+          "content": "PLOTPICKLE · IDENTITY",
+          "fontSize": 40,
+          "fontWeight": 700,
+          "fill": "#7DFF8A"
+        },
+        {
+          "type": "text",
+          "id": "identity-note",
+          "name": "Bootstrap note",
+          "x": 64,
+          "y": 128,
+          "width": 1120,
+          "content": "PlotPickle Identity design workspace. Edit and Save this generated FIG in OpenPencil, then return to PlotPickle and run OpenPencil review Identity.",
+          "fontSize": 18,
+          "fontWeight": 400,
+          "fill": "#E8EEE9"
+        }
+      ]
+    }
+  ]
+}

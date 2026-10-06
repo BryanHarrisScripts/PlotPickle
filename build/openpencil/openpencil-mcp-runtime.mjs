@@ -8,6 +8,7 @@ import process from "node:process";
 export const OPENPENCIL_MCP_HOST = "127.0.0.1";
 export const OPENPENCIL_MCP_PORT = 7600;
 export const OPENPENCIL_MCP_ENDPOINT = `http://${OPENPENCIL_MCP_HOST}:${OPENPENCIL_MCP_PORT}/mcp`;
+export const OPENPENCIL_MCP_VERSION = "0.15.1";
 
 function defaultDependencies(overrides = {}) {
   return {
@@ -19,6 +20,7 @@ function defaultDependencies(overrides = {}) {
     portReady: overrides.portReady || probeOpenPencilMcpPort,
     wait: overrides.wait || ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))),
     nodeExecutable: overrides.nodeExecutable || process.execPath,
+    repositoryRoot: overrides.repositoryRoot || process.cwd(),
   };
 }
 
@@ -41,6 +43,29 @@ function executableCandidates(command, dependencies) {
   ]);
 }
 
+function managedOpenPencilEntrypoint(dependencies) {
+  if (dependencies.platform !== "win32") return "";
+  const localAppData = String(dependencies.env.LOCALAPPDATA || "").trim();
+  if (!localAppData) return "";
+  const pathApi = platformPath(dependencies.platform);
+  return pathApi.join(
+    localAppData,
+    "PlotPickle",
+    "tools",
+    "openpencil",
+    "node_modules",
+    "@open-pencil",
+    "mcp",
+    "dist",
+    "index.mjs",
+  );
+}
+
+function recommendedOpenPencilWorkspace(dependencies) {
+  const pathApi = platformPath(dependencies.platform);
+  return pathApi.resolve(dependencies.repositoryRoot, "designs", "openpencil");
+}
+
 export function resolveOpenPencilHttpLaunch(overrides = {}) {
   const dependencies = defaultDependencies(overrides);
   const pathApi = platformPath(dependencies.platform);
@@ -48,6 +73,11 @@ export function resolveOpenPencilHttpLaunch(overrides = {}) {
   if (override) {
     if (!pathApi.isAbsolute(override) || !dependencies.exists(override) || !/\.(?:mjs|js)$/iu.test(override)) return null;
     return Object.freeze({ executable: dependencies.nodeExecutable, args: Object.freeze([override]), source: "override" });
+  }
+
+  const managed = managedOpenPencilEntrypoint(dependencies);
+  if (managed && dependencies.exists(managed)) {
+    return Object.freeze({ executable: dependencies.nodeExecutable, args: Object.freeze([managed]), source: "plotpickle-managed" });
   }
 
   const located = executableCandidates("openpencil-mcp-http", dependencies).find((candidate) => dependencies.exists(candidate));
@@ -99,14 +129,15 @@ export function publicOpenPencilMcpError(error) {
   return "OpenPencil MCP could not be connected.";
 }
 
-function unavailableStatus() {
+function unavailableStatus(dependencies) {
   return Object.freeze({
     state: "unavailable",
     endpoint: OPENPENCIL_MCP_ENDPOINT,
     installed: false,
     workspaceConfigured: false,
     owned: false,
-    message: "OpenPencil MCP is not installed. Install @open-pencil/mcp yourself with npm install -g @open-pencil/mcp, then retry from Command.",
+    recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
+    message: `OpenPencil MCP ${OPENPENCIL_MCP_VERSION} is not ready yet. PlotPickle prepares the reviewed package after core startup; wait briefly and choose Check status.`,
   });
 }
 
@@ -126,6 +157,7 @@ export function createOpenPencilMcpController(overrides = {}) {
         installed: true,
         workspaceConfigured: Boolean(workspaceRoot),
         owned: true,
+        recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
         message: ready ? "OpenPencil MCP is connected locally and scoped to the selected design workspace." : "OpenPencil MCP is starting locally.",
       });
     }
@@ -136,17 +168,19 @@ export function createOpenPencilMcpController(overrides = {}) {
         installed: Boolean(launch),
         workspaceConfigured: false,
         owned: false,
+        recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
         message: "Port 7600 is active, but PlotPickle does not own that process. Disconnect it before connecting OpenPencil through Command.",
       });
     }
-    if (!launch) return unavailableStatus();
+    if (!launch) return unavailableStatus(dependencies);
     return Object.freeze({
       state: lastFailure ? "failed" : "disconnected",
       endpoint: OPENPENCIL_MCP_ENDPOINT,
       installed: true,
       workspaceConfigured: false,
       owned: false,
-      message: lastFailure || "OpenPencil MCP is installed but disconnected. Use Command to connect an explicit local design workspace.",
+      recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
+      message: lastFailure || "OpenPencil MCP is installed but disconnected. Connect the repository design workspace when you are ready.",
     });
   }
 
@@ -159,7 +193,7 @@ export function createOpenPencilMcpController(overrides = {}) {
     if (await dependencies.portReady()) throw new Error("OPENPENCIL_PORT_IN_USE");
 
     const launch = resolveOpenPencilHttpLaunch(dependencies);
-    if (!launch) return unavailableStatus();
+    if (!launch) return unavailableStatus(dependencies);
 
     lastFailure = "";
     const launched = dependencies.spawnProcess(launch.executable, launch.args, {
@@ -195,6 +229,7 @@ export function createOpenPencilMcpController(overrides = {}) {
           installed: true,
           workspaceConfigured: true,
           owned: true,
+          recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
           message: "OpenPencil MCP is connected locally and scoped to the selected design workspace.",
         });
       }
@@ -220,6 +255,7 @@ export function createOpenPencilMcpController(overrides = {}) {
         installed: Boolean(resolveOpenPencilHttpLaunch(dependencies)),
         workspaceConfigured: false,
         owned: false,
+        recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
         message: "OpenPencil MCP is already disconnected from PlotPickle.",
       });
     }
@@ -240,7 +276,8 @@ export function createOpenPencilMcpController(overrides = {}) {
       installed: true,
       workspaceConfigured: false,
       owned: false,
-      message: "PlotPickle disconnected its OpenPencil MCP process. OpenPencil itself was not uninstalled.",
+      recommendedWorkspace: recommendedOpenPencilWorkspace(dependencies),
+      message: "PlotPickle disconnected its OpenPencil MCP process. The startup-managed MCP package remains installed.",
     });
   }
 

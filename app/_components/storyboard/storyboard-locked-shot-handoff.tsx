@@ -137,7 +137,7 @@ export default function StoryboardLockedShotHandoff({
       beatLabel: progression.label,
       beatDirection: progression.direction,
       shotLabel: `Shot ${String(position).padStart(2, "0")} of 25`,
-      shotContext: compact([shot?.shotSize, shot?.angle, shot?.movement, shot?.lens]) || "~3-second planning target",
+      shotContext: "~3-second planning target",
       passages: evidence.passages,
     });
   }

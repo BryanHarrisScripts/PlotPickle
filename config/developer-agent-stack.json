@@ -242,5 +242,18 @@
     "exactHeadRequiredForMerge": true,
     "globalAutonomousMergePermission": false,
     "storyCanonAffected": false
-  }
+  },
+  "optionalDesignTools": [
+    {
+      "id": "openpencil",
+      "label": "OpenPencil",
+      "role": "programmable-ui-ux-design-workspace",
+      "adapter": "config/openpencil-adapter.json",
+      "required": false,
+      "autoInstall": false,
+      "launchOnStartup": false,
+      "localOnlyDefault": true,
+      "firstProof": "Timeline"
+    }
+  ]
 }

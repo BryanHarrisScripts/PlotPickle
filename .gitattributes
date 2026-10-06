@@ -3,3 +3,6 @@ runtime/buzz/compose.yml text eol=lf
 runtime/buzz/README.md text eol=lf
 runtime/buzz/LICENSE.buzz.txt text eol=lf
 runtime/buzz/manifest.json text eol=lf
+
+# Keep the reviewed vendored braces security bridge byte-stable for provenance checks.
+vendor/braces-3.0.3-depth-guard/** text eol=lf

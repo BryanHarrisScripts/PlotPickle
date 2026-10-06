@@ -1,5 +1,15 @@
 # Developer brief — Issue #2706 three dependency alerts and security closeout
 
+## October 6, 2026 Windows startup transport repair (#2789)
+
+A real Normal PlotPickle cold start exposed a transport conflict in the temporary braces mitigation. The reviewed source was correct, but the root lock resolved it through `git+ssh://git@github.com/FSDevelop/braces.git`. npm 12.2.0 correctly rejects Git package fetching in the production local-runtime policy with `EALLOWGIT`, so the same dependency could never converge through the Windows persistent-runtime installer.
+
+The security source does not change. PlotPickle retains the exact reviewed braces 3.0.3 depth-guard source from commit `28d440b5dd449dbf1fe6f3506cf94ecca4d02660`, tree `0ffbc33a63a6f2365865e69b4217683268067847`. The package is now repository-owned under `vendor/braces-3.0.3-depth-guard`. `SECURITY-PROVENANCE.json` records the exact upstream commit, tree, Git blob SHA for every shipped package file, and a canonical SHA-256 manifest digest. The Windows runtime manager verifies those hashes before staging the package beside the copied manifests in the persistent runtime.
+
+The root manifest uses a local file dependency and `$braces` override so every root braces consumer resolves the reviewed package without a Git transport. The lock contains no Git URL for braces. PlotPickle keeps the Git-package restriction enabled; #2789 does not weaken that boundary.
+
+This remains the same temporary security bridge. When an official compatible patched braces release exists, replace the vendored bridge with that registry release and rerun the hostile-nesting and Windows cold-runtime proofs.
+
 ## October 6, 2026 bounded Rust lru repair
 
 A fresh upstream review still finds FFrames 1.2.0 declaring `lru = "0.14.0"`; no compatible FFrames release has removed that constraint. Public RustSec records require lru >=0.16.3 for RUSTSEC-2026-0002 and >=0.18.2 for RUSTSEC-2026-0253, so a normal Cargo update cannot satisfy the existing 0.14.x consumers.
@@ -20,7 +30,7 @@ This remains a compatibility bridge. Replace the vendored backport when both FFr
 
 ## October 6, 2026 braces recheck
 
-The public GitHub advisory still lists braces <=3.0.3 as affected with **Patched versions: None**, and npm still publishes 3.0.3 as the upstream package release. Keep the existing exact reviewed depth-guard override. Do not replace it merely to make Dependabot disappear.
+The public GitHub advisory still lists braces <=3.0.3 as affected with **Patched versions: None**, and npm still publishes 3.0.3 as the upstream package release. Keep the exact reviewed depth-guard source bridge. The transport may be repository-owned and Git-free, but the reviewed patch itself must not be removed merely to make Dependabot disappear.
 
 
 
@@ -41,7 +51,7 @@ Acceptance:
 
 ### Remaining blockers to full closeout
 
-Braces #52: the exact reviewed nesting-depth guard is installed and tested. The public advisory still lists no official patched release. Keep the existing override until an official release or a reviewed replacement resolves the finding; do not dismiss it solely to clear the count.
+Braces #52: the exact reviewed nesting-depth guard is installed and tested. The public advisory still lists no official patched release. Keep the repository-owned reviewed source bridge until an official release or a reviewed replacement resolves the finding; do not dismiss it solely to clear the count.
 
 Rust lru #53: tools/fframes-bridge/Cargo.lock resolves lru 0.14.0 through both fframes 1.2.0 and usvgr 0.46.1. FFrames upstream still declares lru 0.14.0. The iterator fix starts at 0.16.3; the additional public panic-safety advisory RUSTSEC-2026-0253 requires >=0.18.2. Adding a direct newer lru does not remove the old transitive version. A full repair requires compatible updates of both consumers, or a provenance-reviewed backport/replacement, generated Cargo lock, --locked compilation, and the existing Windows media render proof. No Rust repair is claimed by this fflate PR.
 
@@ -79,13 +89,13 @@ Until upstream publishes a fixed npm release, replace transitive braces with the
 
 28d440b5dd449dbf1fe6f3506cf94ecca4d02660
 
-The override is exact-commit pinned rather than a moving branch. The package lock records the exact git commit and integrity. This preserves the existing package/API surface while adding bounded nesting depth to parsing and recursive AST walkers.
+The repository-owned package is sourced from that exact commit rather than a moving branch. Its provenance record pins the upstream commit and tree, every reviewed upstream runtime-file Git blob SHA, the byte-identical upstream package metadata, a canonical source-manifest digest, and the SHA-256 of PlotPickle's production-only local package metadata. The root lock resolves the reviewed package through a local file dependency, so production installation does not require Git or SSH. This preserves the existing package/API surface while adding bounded nesting depth to parsing and recursive AST walkers.
 
-This is a temporary security bridge, not a permanent fork. When upstream publishes an official patched release, remove the git override and return to the registry release after the same regression proof passes.
+This is a temporary security bridge, not a permanent fork. When upstream publishes an official patched release, remove the vendored bridge and return to the registry release after the same regression proof passes.
 
 ## Proof
 
-- npm lock regeneration must preserve the exact patched commit.
+- repository provenance must preserve the exact patched commit, tree, shipped file hashes, and manifest digest; the production lock must remain free of Git package transport.
 - ordinary brace expansion must continue to work.
 - a deeply nested brace string must be rejected with the new max-depth guard instead of exhausting the JavaScript stack.
 - the Pi managed lock remains on brace-expansion 5.0.12.
@@ -94,4 +104,4 @@ This is a temporary security bridge, not a permanent fork. When upstream publish
 
 ## Closeout
 
-Keep #2706 open until GitHub's security UI confirms the relevant alerts are resolved or superseded. Do not dismiss alerts solely because the local mitigation is present.
+#2706 was closed after the repository-side security work completed. GitHub Security UI alert state remains a separate external record; do not treat repository closure alone as proof that a private alert was automatically resolved or superseded.

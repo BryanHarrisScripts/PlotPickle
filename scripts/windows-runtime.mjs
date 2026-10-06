@@ -317,13 +317,77 @@ function repairSharpRuntime(modulesPath) {
   return verifyModules(modulesPath);
 }
 
+function removeDirectoryTree(item) {
+  rmSync(item, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+}
+
 function removeLinkOrDirectory(item) {
   if (!entryExists(item)) return;
   const stat = lstatSync(item);
   if (stat.isSymbolicLink()) {
     unlinkSync(item);
   } else {
-    rmSync(item, { recursive: true, force: true });
+    removeDirectoryTree(item);
+  }
+}
+
+function verifiedVendoredPackages() {
+  const manifest = JSON.parse(readFileSync(packageFile, "utf8"));
+  const contracts = manifest.plotpickleVendoredPackages ?? {};
+  const verified = [];
+
+  for (const [packageName, contract] of Object.entries(contracts)) {
+    const relativePath = String(contract?.path ?? "");
+    const sourcePath = path.resolve(projectRoot, relativePath);
+    if (!relativePath || (!samePath(sourcePath, projectRoot) && !sourcePath.toLowerCase().startsWith((projectRoot + path.sep).toLowerCase()))) {
+      throw new Error(`Vendored package ${packageName} has an invalid repository path.`);
+    }
+    const provenancePath = path.join(sourcePath, "SECURITY-PROVENANCE.json");
+    if (!existsSync(provenancePath)) throw new Error(`Vendored package ${packageName} is missing SECURITY-PROVENANCE.json.`);
+    const provenance = JSON.parse(readFileSync(provenancePath, "utf8"));
+    if (provenance.upstreamCommit !== contract.upstreamCommit || provenance.upstreamTree !== contract.upstreamTree) {
+      throw new Error(`Vendored package ${packageName} provenance does not match package.json.`);
+    }
+
+    const files = provenance.files ?? {};
+    const canonical = Object.keys(files).sort().map((relativeFile) => {
+      const filePath = path.resolve(sourcePath, relativeFile);
+      if (!filePath.toLowerCase().startsWith((sourcePath + path.sep).toLowerCase())) {
+        throw new Error(`Vendored package ${packageName} contains an invalid provenance path.`);
+      }
+      const bytes = readFileSync(filePath);
+      const blobHash = createHash("sha1")
+        .update(Buffer.from(`blob ${bytes.length}\0`))
+        .update(bytes)
+        .digest("hex");
+      if (blobHash !== files[relativeFile]) {
+        throw new Error(`Vendored package ${packageName} file hash changed: ${relativeFile}.`);
+      }
+      return `${relativeFile}\0${blobHash}\n`;
+    }).join("");
+    const digest = createHash("sha256").update(canonical).digest("hex");
+    if (provenance.manifestDigest !== digest || contract.manifestDigest !== `sha256-${digest}`) {
+      throw new Error(`Vendored package ${packageName} manifest digest changed.`);
+    }
+    const runtimePackagePath = path.join(sourcePath, "package.json");
+    const runtimePackageDigest = createHash("sha256").update(readFileSync(runtimePackagePath)).digest("hex");
+    if (provenance.runtimePackageSha256 !== runtimePackageDigest || contract.runtimePackageSha256 !== runtimePackageDigest) {
+      throw new Error(`Vendored package ${packageName} runtime package metadata digest changed.`);
+    }
+    verified.push({ packageName, relativePath, sourcePath });
+  }
+  return verified;
+}
+
+function stageVendoredPackages(info) {
+  for (const item of verifiedVendoredPackages()) {
+    const target = path.resolve(info.runtimeDir, item.relativePath);
+    if (!target.toLowerCase().startsWith((info.runtimeDir + path.sep).toLowerCase())) {
+      throw new Error(`Vendored package ${item.packageName} resolved outside the persistent runtime.`);
+    }
+    if (entryExists(target)) removeDirectoryTree(target);
+    mkdirSync(path.dirname(target), { recursive: true });
+    cpSync(item.sourcePath, target, { recursive: true, force: true });
   }
 }
 
@@ -343,7 +407,7 @@ function moveDirectory(source, target) {
   } catch (error) {
     if (error?.code !== "EXDEV") throw error;
     cpSync(source, target, { recursive: true, errorOnExist: true, force: false });
-    rmSync(source, { recursive: true, force: true });
+    removeDirectoryTree(source);
   }
 }
 
@@ -351,6 +415,7 @@ function copyRuntimeManifests(info) {
   mkdirSync(info.runtimeDir, { recursive: true });
   copyFileSync(packageFile, path.join(info.runtimeDir, "package.json"));
   if (existsSync(lockFile)) copyFileSync(lockFile, path.join(info.runtimeDir, "package-lock.json"));
+  stageVendoredPackages(info);
 }
 
 function prepare() {
@@ -374,15 +439,15 @@ function prepare() {
         migrated = true;
         reused = runtimeReady(info.runtimeModules);
       } else if (runtimeReady(info.runtimeModules)) {
-        rmSync(info.appModules, { recursive: true, force: true });
+        removeDirectoryTree(info.appModules);
         reused = true;
       } else if (runtimeReady(info.appModules)) {
-        rmSync(info.runtimeModules, { recursive: true, force: true });
+        removeDirectoryTree(info.runtimeModules);
         moveDirectory(info.appModules, info.runtimeModules);
         migrated = true;
         reused = true;
       } else {
-        rmSync(info.appModules, { recursive: true, force: true });
+        removeDirectoryTree(info.appModules);
       }
     } else if (stat.isSymbolicLink() && !alreadyLinked) {
       unlinkSync(info.appModules);
@@ -453,7 +518,7 @@ function markReady() {
 
 function resetCurrent() {
   const info = runtimeInfo();
-  if (entryExists(info.runtimeModules)) rmSync(info.runtimeModules, { recursive: true, force: true });
+  if (entryExists(info.runtimeModules)) removeDirectoryTree(info.runtimeModules);
   if (existsSync(info.marker)) rmSync(info.marker, { force: true });
   mkdirSync(info.runtimeModules, { recursive: true });
   copyRuntimeManifests(info);

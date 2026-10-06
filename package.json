@@ -155,6 +155,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "@vitejs/plugin-rsc": "0.5.35",
     "ai": "7.0.127",
+    "braces": "file:./vendor/braces-3.0.3-depth-guard",
     "drizzle-orm": "0.45.3",
     "libsodium-wrappers-sumo": "0.8.4",
     "next": "16.3.8",
@@ -191,7 +192,17 @@
     "@cloudflare/vite-plugin": {
       "undici": "7.29.1"
     },
-    "braces": "github:FSDevelop/braces#28d440b5dd449dbf1fe6f3506cf94ecca4d02660",
+    "braces": "$braces",
     "fflate": "0.7.5"
+  },
+  "plotpickleVendoredPackages": {
+    "braces": {
+      "version": "3.0.3",
+      "path": "vendor/braces-3.0.3-depth-guard",
+      "upstreamCommit": "28d440b5dd449dbf1fe6f3506cf94ecca4d02660",
+      "upstreamTree": "0ffbc33a63a6f2365865e69b4217683268067847",
+      "manifestDigest": "sha256-ac95a324f10b8423b6f9ac317c7dacc61a73d9291c9c536170b487608418bba5",
+      "runtimePackageSha256": "1816c57094de9ee834e5953417dae5c8875cbd1810bdf7539ed870184f3ff665"
+    }
   }
 }

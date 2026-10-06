@@ -1,0 +1,12 @@
+{
+  "name": "braces",
+  "version": "3.0.3",
+  "license": "MIT",
+  "main": "index.js",
+  "engines": {
+    "node": ">=8.3"
+  },
+  "dependencies": {
+    "fill-range": "^7.1.1"
+  }
+}

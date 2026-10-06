@@ -481,7 +481,11 @@
         "scripts/windows-runtime.mjs",
         "scripts/windows-companion-software.ps1",
         "scripts/windows-companion-maintenance-after-ready.ps1",
-        "scripts/ensure-openpencil-mcp.ps1"
+        "scripts/ensure-openpencil-mcp.ps1",
+        "scripts/npm-runtime-policy.mjs",
+        "scripts/windows-setup-report.mjs",
+        ".gitattributes",
+        "vendor/braces-3.0.3-depth-guard/**"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

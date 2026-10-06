@@ -25,6 +25,7 @@ const MAX_REASONABLE_FREE_BYTES = 1024 ** 5;
 const components = [
   ["Agent runtime", "@mastra/core"],
   ["Agent schema runtime", "ai"],
+  ["Reviewed brace expansion security bridge", "braces"],
   ["Project data runtime", "drizzle-orm"],
   ["Profile encryption", "libsodium-wrappers-sumo"],
   ["Application framework", "next"],
@@ -159,6 +160,7 @@ function printSecurityExplanation() {
   console.log("  - The launcher does not request Administrator rights.");
   console.log("  - It does not install a Windows service or add itself to Windows startup.");
   console.log("  - npm uses package.json and package-lock.json to select packages and verify integrity data.");
+  console.log("  - Reviewed vendored security bridges are hash-verified from repository-owned source before they are staged into the runtime.");
   console.log("  - Dependencies live in a user-owned persistent runtime under the PlotPickle local-app-data folder.");
   console.log("  - A fresh PlotPickle download reuses a matching runtime instead of reinstalling packages.");
   console.log("  - The launcher does not upload your story project.");

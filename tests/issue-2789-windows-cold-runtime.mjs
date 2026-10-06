@@ -55,7 +55,10 @@ try {
   await copyFile(path.join(repo, "package-lock.json"), path.join(runtime, "package-lock.json"));
   await cp(path.join(repo, vendorRelative), path.join(runtime, vendorRelative), { recursive: true });
 
-  const install = await run("npm.cmd", [
+  const npmCli = process.env.npm_execpath || path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+  report.npmCli = npmCli;
+  const install = await run(process.execPath, [
+    npmCli,
     "ci",
     "--prefix", runtime,
     "--omit=dev",

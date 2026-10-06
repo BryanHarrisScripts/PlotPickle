@@ -76,3 +76,25 @@ The integration is considered healthy only if:
 - no normal runtime dependency is introduced;
 - DSDD and WebMCP remain authoritative for implementation and UI verification;
 - OpenPencil output can be discarded without affecting project data or product startup.
+
+
+## Phase 2 — Command connection
+
+Issue #2780 makes the optional bridge executable without changing the normal startup contract.
+
+The Human entrypoint is **Settings → Command**. Command exposes a visible OpenPencil connection card and recognizes these bounded operational verbs:
+
+- `OpenPencil help`
+- `OpenPencil status`
+- `OpenPencil connect <absolute local design workspace>`
+- `OpenPencil disconnect`
+
+Operational OpenPencil commands do not enter the DSDD interpretation/Pi Draft/Publish Brief path. They use separate command/tool message roles so checking or changing local connection state cannot silently rewrite a locked development intent.
+
+Connection remains explicit. PlotPickle detects the user-managed `@open-pencil/mcp` installation, resolves `openpencil-mcp-http`, and launches it only after the Human supplies an existing absolute workspace. The child receives `OPENPENCIL_MCP_ROOT` equal to that workspace and serves the documented local MCP endpoint at `http://127.0.0.1:7600/mcp`.
+
+On Windows, PlotPickle does not execute an arbitrary `.cmd` wrapper. It resolves the reviewed npm global JavaScript entrypoint and launches it directly with Node using `shell: false`.
+
+PlotPickle owns only the child it launched. If port 7600 is already occupied by an unowned process, the connection fails closed. Disconnect terminates only the PlotPickle-owned OpenPencil MCP child and never uninstalls OpenPencil.
+
+This phase proves connection lifecycle only. Design-tool calls still remain proposals under the Human/DSDD authority chain above; no OpenPencil connection grants source mutation or merge authority.

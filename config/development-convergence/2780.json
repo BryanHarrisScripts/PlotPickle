@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 2780,
+  "phase": "openpencil-command-mcp-connection",
+  "brief": "docs/developer-briefs/2780-openpencil-command-mcp-connection.md",
+  "allowedChanges": [
+    "app/_components/settings/openpencil-command-panel.tsx",
+    "app/_components/settings/openpencil-command.ts",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/local-ai-gateway.ts",
+    "build/openpencil/openpencil-mcp-gateway.ts",
+    "build/openpencil/openpencil-mcp-runtime.mjs",
+    "config/development-convergence/2780.json",
+    "config/openpencil-adapter.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+    "docs/developer-briefs/2780-openpencil-command-mcp-connection.md",
+    "tests/issue-2780-openpencil-command-mcp.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "C1",
+      "criterion": "Command exposes explicit OpenPencil connection controls and bounded operational verbs without entering DSDD brief flow.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "runOpenPencilCommand"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "criterion": "OpenPencil remains opt-in and user-managed with no normal-startup launch.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/openpencil-adapter.json",
+          "contains": "\"normalStartupLaunch\": false"
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "criterion": "Windows launch is shell-free and workspace-scoped.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/openpencil/openpencil-mcp-runtime.mjs",
+          "contains": "OPENPENCIL_MCP_ROOT: requestedRoot"
+        }
+      ]
+    },
+    {
+      "id": "T1",
+      "criterion": "Focused regression covers Command parsing, Windows resolution, explicit scope and optional absence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2780-openpencil-command-mcp.test.mjs",
+          "contains": "missing OpenPencil package remains optional and never launches"
+        }
+      ]
+    }
+  ]
+}

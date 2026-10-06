@@ -38,7 +38,12 @@
     "httpExecutable": "openpencil-mcp-http",
     "defaultTransport": "stdio",
     "writeToolsRequireHumanAction": true,
-    "cloudProviderUse": "never-implicit"
+    "cloudProviderUse": "never-implicit",
+    "plotPickleTransport": "http",
+    "plotPickleEndpoint": "http://127.0.0.1:7600/mcp",
+    "connectSurface": "Settings > Command",
+    "explicitConnectRequired": true,
+    "ownedChildOnly": true
   },
   "authority": {
     "designAuthority": "plotpickle-skin-and-ui-contracts",
@@ -61,5 +66,24 @@
       "keep-or-redo",
       "next-shot"
     ]
+  },
+  "command": {
+    "surface": "Settings > Command",
+    "operationalVerbs": [
+      "OpenPencil help",
+      "OpenPencil status",
+      "OpenPencil connect <absolute local design workspace>",
+      "OpenPencil disconnect"
+    ],
+    "entersDsddBriefFlow": false,
+    "sourceMutationAuthority": false
+  },
+  "connectionProof": {
+    "issue": 2780,
+    "normalStartupLaunch": false,
+    "packageInstall": "user-managed",
+    "windowsShell": false,
+    "endpointHost": "127.0.0.1",
+    "endpointPort": 7600
   }
 }

@@ -2099,6 +2099,49 @@
         ]
       },
       "notes": "Story Architect shared bounded request, material identity and protected host controller. Actual Mastra/Pi close-reopen fixture runs separately in the Windows Product Gate; rendered application resume remains unproven."
+    },
+    {
+      "id": "production.openpencil-command-mcp-2780",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "security",
+        "native",
+        "windows",
+        "agent"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2780-openpencil-command-mcp.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection, shell-free Windows launch, OPENPENCIL_MCP_ROOT scoping, optional absence, owned disconnect and bounded operational command parsing."
     }
   ]
 }

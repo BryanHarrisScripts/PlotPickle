@@ -13,10 +13,11 @@ const MANIFEST_DIGEST = "ac95a324f10b8423b6f9ac317c7dacc61a73d9291c9c536170b4876
 const RUNTIME_PACKAGE_SHA256 = "1816c57094de9ee834e5953417dae5c8875cbd1810bdf7539ed870184f3ff665";
 
 test("#2789 braces security bridge is repository-owned, hash-provenanced, and Git-transport-free", async () => {
-  const [manifest, lock, provenance] = await Promise.all([
+  const [manifest, lock, provenance, gitAttributes] = await Promise.all([
     read("package.json").then(JSON.parse),
     read("package-lock.json").then(JSON.parse),
     read(`${VENDOR_PATH}/SECURITY-PROVENANCE.json`).then(JSON.parse),
+    read(".gitattributes"),
   ]);
 
   assert.equal(manifest.dependencies.braces, `file:./${VENDOR_PATH}`);
@@ -33,6 +34,7 @@ test("#2789 braces security bridge is repository-owned, hash-provenanced, and Gi
   assert.equal(createHash("sha256").update(await read(`${VENDOR_PATH}/package.json`, null)).digest("hex"), RUNTIME_PACKAGE_SHA256);
   assert.equal(provenance.policy.gitDependencyFetchRequired, false);
   assert.equal(provenance.policy.movingRefAllowed, false);
+  assert.match(gitAttributes, /vendor\/braces-3\.0\.3-depth-guard\/\*\* text eol=lf/u);
 
   let canonical = "";
   for (const relativeFile of Object.keys(provenance.files).sort()) {

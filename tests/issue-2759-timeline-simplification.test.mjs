@@ -82,7 +82,7 @@ test("#2759 never silently replaces a Human Timeline placement when upstream Pre
   assert.match(workspace, /will not change silently/u);
 });
 
-test("#2759 keeps generation upstream and Rough Cut downstream", async () => {
+test("#2759/#2808 keeps still-image generation upstream while Timeline opens directly into assembly and motion", async () => {
   const [surface, host, workspace] = await Promise.all([
     read("app/skin-v1/preproduction-review-surfaces.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -92,8 +92,14 @@ test("#2759 keeps generation upstream and Rough Cut downstream", async () => {
   assert.match(surface, /<TimelineAssemblyWorkspace/u);
   assert.match(surface, /onOpenPrevis=\{onOpenPrevis\}/u);
   assert.match(surface, /onOpenStoryboard=\{onOpenStoryboard\}/u);
-  assert.match(host, /<SkinV1TimelineReviewSurface[\s\S]*onOpenPrevis=\{openPrevis\}/u);
-  assert.match(workspace, /Open owning Previs Mini-Block/u);
-  assert.match(workspace, /Open owning Storyboard Mini-Block/u);
-  assert.doesNotMatch(workspace, /generate|regenerate|provider|OpenAI|Ollama|FFramesLocalMediaEngine/iu);
+  const timelineStart = host.indexOf("if (timelineOpen)");
+  const timelineEnd = host.indexOf("if (productionOpen)", timelineStart);
+  const timelineHost = host.slice(timelineStart, timelineEnd);
+  assert.ok(timelineStart >= 0 && timelineEnd > timelineStart);
+  assert.match(timelineHost, /<SkinV1TimelineReviewSurface/u);
+  assert.doesNotMatch(timelineHost, /<BlockVisualJourneyWorkspace/u);
+  assert.doesNotMatch(timelineHost, /stage="timeline"/u);
+  assert.match(workspace, /Generate motion/u);
+  assert.match(workspace, /\/api\/local-ai\/generate\/video/u);
+  assert.doesNotMatch(workspace, /\/api\/local-ai\/generate\/image/u);
 });

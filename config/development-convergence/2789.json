@@ -4,6 +4,7 @@
   "phase": "windows-startup-gitless-security-bridge",
   "brief": "docs/developer-briefs/2789-windows-gitless-braces-runtime.md",
   "allowedChanges": [
+    ".gitattributes",
     ".github/workflows/product-gate.yml",
     "Start-PlotPickle.bat",
     "config/development-convergence/2706.json",

@@ -8,7 +8,8 @@
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2706-braces-depth-guard.md",
     "package.json",
-    "tests/issue-2706-security-closeout.test.mjs"
+    "tests/issue-2706-security-closeout.test.mjs",
+    "vendor/braces-3.0.3-depth-guard/SECURITY-PROVENANCE.json"
   ],
   "acceptance": [
     {
@@ -23,7 +24,12 @@
         {
           "type": "file-contains",
           "path": "package.json",
-          "contains": "github:FSDevelop/braces#28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
+          "contains": "file:./vendor/braces-3.0.3-depth-guard"
+        },
+        {
+          "type": "file-contains",
+          "path": "vendor/braces-3.0.3-depth-guard/SECURITY-PROVENANCE.json",
+          "contains": "28d440b5dd449dbf1fe6f3506cf94ecca4d02660"
         }
       ]
     },

@@ -365,6 +365,14 @@ export function createOpenPencilGuiController(overrides = {}) {
     const target = await resolveOpenPencilSurface(surfaceName, dependencies);
     if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_FILE_MISSING");
     const cli = resolveOpenPencilCliLaunch(dependencies);
+    if (!cli) {
+      return Object.freeze({
+        state: "editing",
+        surface: target.name,
+        sessionId: String(options.sessionId || ""),
+        message: `${target.name} close state cannot be confirmed because the reviewed OpenPencil CLI is unavailable. Retry publish after the CLI is ready.`,
+      });
+    }
     if (cli) {
       try {
         const listResult = await runCli(cli, ["documents", "list", "--json"], dependencies, target.workspaceRoot);

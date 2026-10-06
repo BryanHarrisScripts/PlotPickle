@@ -46,5 +46,5 @@ test("#2398 keeps Storyboard navigation visible while visual detail stays inline
   assert.match(css, /Storyboard remains one continuous surface/);
   assert.doesNotMatch(css, /storyboard"\]:has[\s\S]*display:\s*none/);
   assert.match(detail, /data-storyboard-scene-beat-detail="inline"/);
-  assert.match(detail, /<VisualStoryWorkspace[\s\S]*?embedded/);
+  assert.match(detail, /<StoryboardLockedShotHandoff/);\n  assert.doesNotMatch(detail, /<VisualStoryWorkspace/);
 });

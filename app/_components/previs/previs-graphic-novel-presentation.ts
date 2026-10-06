@@ -1,3 +1,4 @@
+import type { PrevisGraphicNovelTextApproval } from "@/core/contracts/previs";
 import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } from "../storyboard/storyboard-editorial-model";
 
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
@@ -108,4 +109,39 @@ export function buildPrevisGraphicNovelPanel(input: PrevisGraphicNovelPanelInput
 export function graphicNovelWebpExportFileName(projectTitle: string, blockNumber: number, miniBlockNumber: number) {
   const slug = projectTitle.toLowerCase().trim().replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "") || "plotpickle";
   return `${slug}-previs-graphic-novel-${String(blockNumber).padStart(2, "0")}-${miniBlockNumber}.webp`;
+}
+
+
+export function graphicNovelTextSourceKey(
+  panel: PrevisGraphicNovelPanel,
+  passages: unknown,
+  storyContext: unknown,
+) {
+  return JSON.stringify({
+    passages,
+    storyContext,
+    assetUrl: panel.assetUrl,
+    caption: panel.caption,
+    narration: panel.narration,
+    shotLabel: panel.shotLabel,
+    shotContext: panel.shotContext,
+    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+  });
+}
+
+export function approvedGraphicNovelPanel(
+  panel: PrevisGraphicNovelPanel,
+  approval: PrevisGraphicNovelTextApproval,
+): PrevisGraphicNovelPanel {
+  if (approval.noText) {
+    return { ...panel, caption: "", narration: "", shotLabel: "", shotContext: "", bubbles: [] };
+  }
+  return {
+    ...panel,
+    caption: "",
+    shotLabel: "",
+    shotContext: "",
+    narration: approval.narration,
+    bubbles: approval.bubbles.map((bubble) => ({ ...bubble, style: "speech" as const })),
+  };
 }

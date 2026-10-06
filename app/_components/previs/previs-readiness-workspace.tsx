@@ -20,7 +20,9 @@ import {
 import {
   PREVIS_FLIP_BOOK_INTERVAL_MS,
   PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
+  approvedGraphicNovelPanel,
   buildPrevisGraphicNovelPanel,
+  graphicNovelTextSourceKey,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
 import styles from "./previs-readiness-workspace.module.css";
@@ -286,34 +288,6 @@ const STATE_LABELS = {
   locked: "BLOCKED",
 } as const;
 
-function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel, passages: unknown, storyContext: unknown) {
-  return JSON.stringify({
-    passages,
-    storyContext,
-    assetUrl: panel.assetUrl,
-    caption: panel.caption,
-    narration: panel.narration,
-    shotLabel: panel.shotLabel,
-    shotContext: panel.shotContext,
-    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
-  });
-}
-
-function approvedGraphicNovelPanel(
-  panel: PrevisGraphicNovelPanel,
-  approval: PrevisGraphicNovelTextApproval,
-): PrevisGraphicNovelPanel {
-  if (approval.noText) {
-    return { ...panel, caption: "", narration: "", shotLabel: "", shotContext: "", bubbles: [] };
-  }
-  return {
-    ...panel,
-    caption: "", shotLabel: "", shotContext: "",
-    narration: approval.narration,
-    bubbles: approval.bubbles.map((bubble) => ({ ...bubble, style: "speech" as const })),
-  };
-}
-
 async function lockedImageContactSheet(panels: readonly PrevisGraphicNovelPanel[], signal: AbortSignal) {
   const width = 1440;
   const cellWidth = 288;
@@ -486,7 +460,8 @@ export default function PrevisReadinessWorkspace({
     if (!selectedAddressAnchor || !lockedGraphicNovelPanels.length || narrationGenerating) return;
     setFlipBookPlaying(false);
     setGraphicNovelMode(true);
-    if (lockedGraphicNovelPanels.every((panel) => currentTextApprovalFor(panel))) {
+    const missingPanels = lockedGraphicNovelPanels.filter((panel) => !currentTextApprovalFor(panel));
+    if (!missingPanels.length) {
       setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
       setGraphicNovelPlaying(true);
       return;
@@ -495,14 +470,14 @@ export default function PrevisReadinessWorkspace({
     const controller = new AbortController();
     narrationRequest.current = controller;
     setNarrationGenerating(true);
-    setMessage("Creating story narration for the locked image sequence…");
+    setMessage("Creating story narration for locked Shots that do not already have current approved text…");
     try {
-      const contactSheet = await lockedImageContactSheet(lockedGraphicNovelPanels, controller.signal);
+      const contactSheet = await lockedImageContactSheet(missingPanels, controller.signal);
       const response = await fetch("/api/previs/narration", {
         method: "POST", credentials: "same-origin", signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contactSheet, storyContext, passages: selectedFrameEvidence?.passages ?? [],
-          panels: lockedGraphicNovelPanels.map((panel) => ({ position: panel.position,
+          panels: missingPanels.map((panel) => ({ position: panel.position,
             intention: flipBookFrames[panel.position - 1].locked?.narrativeIntention ?? "" })) }),
       });
       const result = await response.json();
@@ -519,15 +494,19 @@ export default function PrevisReadinessWorkspace({
         narration: panel.narration, bubbles: panel.bubbles,
         noText: !panel.narration && !panel.bubbles.length, approvedAt: now,
       }));
+      const generatedPositions = new Set(approvals.map((approval) => approval.position));
       const next: PPFProject = { ...project, revision: project.revision + 1, updatedAt: now,
         production: { ...project.production, graphicNovelTextApprovals: [
-          ...(project.production.graphicNovelTextApprovals ?? []).filter((item) => item.anchorRef !== selectedAddressAnchor.id), ...approvals,
+          ...(project.production.graphicNovelTextApprovals ?? []).filter((item) => (
+            item.anchorRef !== selectedAddressAnchor.id || !generatedPositions.has(item.position)
+          )),
+          ...approvals,
         ] } };
       saveFoundationProject(next);
       onProjectChange(next);
       setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
       setGraphicNovelPlaying(true);
-      setMessage("Story narration saved. Playing locked images with text.");
+      setMessage("Missing story narration saved. Existing approved Shot text was preserved.");
     } catch (error) {
       if (!controller.signal.aborted) setMessage(error instanceof Error ? error.message : "Narration generation failed.");
     } finally {

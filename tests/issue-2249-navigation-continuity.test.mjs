@@ -43,7 +43,7 @@ test("#2249/#2442 Visual Story stays Storyboard-owned while its explicit return 
 
   assert.doesNotMatch(storyboard, /visualStoryOpen|data-storyboard-open-visual-story/u);
   assert.match(storyboard, /data-storyboard-scene-beat-detail="inline"/u);
-  assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/u);
+  assert.match(storyboard, /<StoryboardLockedShotHandoff/u);\n  assert.doesNotMatch(storyboard, /<VisualStoryWorkspace/u);
   assert.match(visual, /readonly embedded\?: boolean/u);
   assert.match(visual, /data-embedded=\{embedded \? "true" : undefined\}/u);
   assert.match(visual, /\{!embedded \? <button[\s\S]*?Back to Dashboard/u);

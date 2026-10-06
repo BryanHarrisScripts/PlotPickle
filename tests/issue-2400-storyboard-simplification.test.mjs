@@ -24,7 +24,7 @@ test("#2400 moves Keep Change Compare into Previs at the selected canonical addr
   ]);
   assert.doesNotMatch(storyboard, /<StoryboardEditorialWorkspace/);
   assert.doesNotMatch(storyboard, /onOpenPrevis\(selectedNumber, miniNumber\)/);
-  assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/);
+  assert.match(storyboard, /<StoryboardLockedShotHandoff/);\n  assert.doesNotMatch(storyboard, /<VisualStoryWorkspace/);
   assert.match(wrapper, /onOpenPrevis=\{\(blockNumber, miniBlockNumber\) => onOpenPrevis\(\{ blockNumber, miniBlockNumber \}\)\}/);
   assert.match(standalone, /\/previs\?block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
   assert.match(previs, /deriveVisualReadiness\(\{ project \}\)/);

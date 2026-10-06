@@ -49,7 +49,7 @@ test("#2406 preserves flexible Scene Beat evidence and the inline Storyboard bou
     read("docs/developer-briefs/2406-outline-storyboard-hierarchy.md"),
   ]);
 
-  assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/u);
+  assert.match(storyboard, /<StoryboardLockedShotHandoff/u);\n  assert.doesNotMatch(storyboard, /<VisualStoryWorkspace/u);
   assert.match(storyboard, /Scene and Beat remain variable-density story evidence/u);
   assert.match(brief, /The scaffold is deterministic addressing and capacity\. It is not a creative quota\./u);
   assert.match(brief, /Current Shot contracts do not persist a canonical Beat ownership field/u);

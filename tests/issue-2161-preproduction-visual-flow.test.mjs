@@ -63,7 +63,7 @@ test("#2161 keeps Visual Story inline without inventing missing story objects", 
   ]);
   assert.match(surfaces, /<StoryboardReadinessWorkspace[\s\S]*embeddedNavigation/u);
   assert.doesNotMatch(surfaces, /Open Visual Story/u);
-  assert.match(readiness, /<VisualStoryWorkspace[\s\S]*embedded/u);
+  assert.match(readiness, /<StoryboardLockedShotHandoff/u);\n  assert.doesNotMatch(readiness, /<VisualStoryWorkspace/u);
   assert.match(visualStory, /data-embedded=\{embedded \? "true" : undefined\}/u);
   assert.match(visualStory, /Visual Story does not manufacture a Scene to fill the surface/u);
   assert.match(visualStory, /Scene Workspace does not manufacture timing material to fill the surface/u);

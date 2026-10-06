@@ -377,7 +377,8 @@
       "id": "openpencil-design-adapter",
       "classification": "production",
       "include": [
-        "config/openpencil-adapter.json"
+        "config/openpencil-adapter.json",
+        "config/third-party-oss.json"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -479,7 +480,8 @@
         "Start-PlotPickle.bat",
         "scripts/windows-runtime.mjs",
         "scripts/windows-companion-software.ps1",
-        "scripts/windows-companion-maintenance-after-ready.ps1"
+        "scripts/windows-companion-maintenance-after-ready.ps1",
+        "scripts/ensure-openpencil-mcp.ps1"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [
@@ -1998,6 +2000,19 @@
         "native",
         "windows",
         "agent"
+      ]
+    },
+    {
+      "id": "openpencil-repository-designs-2782",
+      "classification": "docs",
+      "include": [
+        "designs/openpencil/**"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs",
+        "visual",
+        "mcp"
       ]
     }
   ]

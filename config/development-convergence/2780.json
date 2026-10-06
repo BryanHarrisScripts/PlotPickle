@@ -10,6 +10,7 @@
     "app/skin-v1/global-dsdd-conversation.tsx",
     "build/local-ai-gateway.ts",
     "build/openpencil/openpencil-mcp-gateway.ts",
+    "build/openpencil/openpencil-mcp-runtime.mjs",
     "config/development-convergence/2780.json",
     "config/openpencil-adapter.json",
     "config/verification/ownership-map.json",

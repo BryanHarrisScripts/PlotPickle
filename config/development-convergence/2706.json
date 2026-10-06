@@ -4,6 +4,7 @@
   "phase": "repository-security-closeout-evidence",
   "brief": "docs/developer-briefs/2706-braces-depth-guard.md",
   "allowedChanges": [
+    ".gitattributes",
     ".github/workflows/product-gate.yml",
     "Start-PlotPickle.bat",
     "config/development-convergence/2706.json",

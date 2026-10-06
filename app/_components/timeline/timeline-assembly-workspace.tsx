@@ -441,7 +441,7 @@ export default function TimelineAssemblyWorkspace({
   const [generatingMotionStage, setGeneratingMotionStage] = useState<MotionGenerationStage | null>(null);
   const [motionRouteMessage, setMotionRouteMessage] = useState("Checking image-to-video provider…");
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
-  const latestProject = useRef(project);
+  const latestProject = useRef<PPFProject>(project);
   latestProject.current = project;
   const [openingSegmentCount, setOpeningSegmentCount] = useState(1);
   const [openingExporting, setOpeningExporting] = useState(false);

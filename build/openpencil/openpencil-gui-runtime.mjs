@@ -163,12 +163,13 @@ export async function resolveOpenPencilSurface(surfaceName, overrides = {}) {
 }
 
 function parseJson(value, code) {
-  try { return JSON.parse(String(value || "").trim()); }
-  catch { throw new Error(code); }
+  const source = String(value || "").trim();
+  if (!source) throw new Error(code);
+  return JSON.parse(source);
 }
 
-async function runCli(cli, args, dependencies, cwd) {
-  return await dependencies.runProcess(cli.executable, [...cli.args, ...args], {
+function runCli(cli, args, dependencies, cwd) {
+  return dependencies.runProcess(cli.executable, [...cli.args, ...args], {
     cwd,
     env: dependencies.env,
   });

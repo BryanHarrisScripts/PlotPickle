@@ -248,11 +248,14 @@ export function createOpenPencilGuiController(overrides = {}) {
 
   async function reviewSurface(surfaceName) {
     const target = await resolveOpenPencilSurface(surfaceName, dependencies);
-    const status = await dependencies.runProcess("git", ["status", "--porcelain=v1", "--", target.designFile], {
+    if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_FILE_MISSING");
+    const pathApi = platformPath(dependencies.platform);
+    const repositoryDesignPath = pathApi.join("designs", "openpencil", target.relativeFile);
+    const status = await dependencies.runProcess("git", ["status", "--porcelain=v1", "--", repositoryDesignPath], {
       cwd: dependencies.repositoryRoot,
       env: dependencies.env,
     });
-    const diff = await dependencies.runProcess("git", ["diff", "--no-ext-diff", "--numstat", "HEAD", "--", target.designFile], {
+    const diff = await dependencies.runProcess("git", ["diff", "--no-ext-diff", "--numstat", "HEAD", "--", repositoryDesignPath], {
       cwd: dependencies.repositoryRoot,
       env: dependencies.env,
     }).catch(() => ({ stdout: "", stderr: "", code: 0 }));
@@ -260,7 +263,7 @@ export function createOpenPencilGuiController(overrides = {}) {
     const diffText = diff.stdout.trim() || "no committed-base diff";
     const handoffDraft = [
       `Review the saved OpenPencil design changes for ${target.name}.`,
-      `Design artifact: designs/openpencil/${target.relativeFile.replaceAll("\\", "/")}.`,
+      `Design artifact: ${repositoryDesignPath.replaceAll("\\", "/")}.`,
       `OpenPencil page: ${target.page}.`,
       `Git status: ${statusText}.`,
       `Git diff summary: ${diffText}.`,

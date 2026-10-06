@@ -249,3 +249,126 @@ At the bottom of Storyboard, the Human no longer sees a second gallery of every 
 ### Delivery rule
 
 Build → focused test → fix → PR → required exact-head verification → fix until green → merge when green.
+
+### Human clarification — Storyboard narration / comic-bubble authoring
+
+The last field in the locked-shot handoff is not merely read-only narration status.
+
+For each locked Storyboard Shot, the Human wants an explicit narration/presentation authoring action that can use PlotPickle's existing Graphic Novel agent to propose the wording for that particular Shot.
+
+The intended flow is:
+
+```text
+locked Storyboard Shot
+→ Generate Narration / Bubble
+→ Graphic Novel agent receives bounded Shot + screenplay + locked-image evidence
+→ returns short narration and/or comic-style speech bubble
+→ Human reviews/accepts
+→ save through existing PrevisGraphicNovelTextApproval authority
+→ Previs reads the exact approved text
+→ Timeline reuses the same approved text when its source key is still current
+```
+
+#### Reuse the existing narration authority
+
+Do not create a Storyboard-only narration store.
+
+Reuse:
+
+- `app/api/previs/narration/route.ts`;
+- the existing `graphic-novel` agent execution profile;
+- `core/media/previs-narration.mjs` validation and source-bounded narration rules;
+- `PrevisGraphicNovelTextApproval`;
+- `PrevisProductionState.graphicNovelTextApprovals`;
+- existing source-key staleness semantics;
+- Timeline's existing reuse of approved Previs narration.
+
+The current contract already separates presentation text from screenplay/story canon. Preserve that boundary.
+
+#### Shot-level UX
+
+In the locked-shot handoff, the final presentation field should expose:
+
+- current approved narration, if one exists;
+- current approved speech bubble, if one exists;
+- an explicit `Create Narration` / `Regenerate` action for that locked Shot;
+- Human review before approval;
+- an explicit no-text/silent choice using the existing `noText` authority.
+
+The visual presentation should read like a Graphic Novel / comic-book treatment.
+
+Where dialogue is returned, render it as a comic-style speech bubble associated with the named screenplay character.
+
+Where narration is returned without dialogue, render it as a compact caption/narration treatment.
+
+A Shot may remain deliberately silent.
+
+#### Agent boundaries
+
+The agent must be grounded only in bounded evidence for the selected locked Shot and its immediate story context:
+
+- locked Storyboard image;
+- mapped screenplay passages;
+- Shot narrative intention / story responsibility;
+- Scene / Beat context;
+- approved character identity/reference evidence where required.
+
+The screenplay governs events and speakers.
+
+Do not:
+
+- invent a speaker not present in screenplay evidence;
+- invent plot events;
+- rewrite story canon;
+- alter the locked image;
+- auto-approve generated text;
+- generate text for unlocked candidates.
+
+The current parser limits should remain the default safety envelope unless later Human review explicitly changes them:
+
+- short narration;
+- at most one concise speech bubble per Shot;
+- named screenplay speakers only.
+
+#### Source-key and staleness behavior
+
+The approved text must remain tied to the exact locked-image/story source key.
+
+If the Human:
+
+- unlocks the image;
+- locks a different candidate;
+- changes relevant screenplay/story evidence;
+
+then the previous narration approval becomes stale and must not silently flow forward as current.
+
+It may remain preserved as historical presentation evidence, but Previs and Timeline should require current approved text or explicit silence.
+
+#### Downstream behavior
+
+Previs:
+
+- shows/plays the exact Storyboard-approved narration/bubble;
+- does not regenerate it simply because the Human entered Previs;
+- may still offer its existing narration workflow for Shots with no current approved text.
+
+Timeline:
+
+- uses the same approved narration/bubbles through its existing Previs narration handoff;
+- does not independently invent replacement narration;
+- preserves silent Shots.
+
+This makes Storyboard the earliest place to author the presentation wording while keeping Previs/Timeline as downstream consumers of the same approved presentation record.
+
+#### Additional acceptance criteria
+
+- [ ] Each locked Shot has a narration/presentation cell.
+- [ ] The Human can ask the existing Graphic Novel agent to propose text for that locked Shot.
+- [ ] Generated text is reviewable before approval.
+- [ ] Approved narration/bubbles are stored through `PrevisGraphicNovelTextApproval`, not a new Storyboard store.
+- [ ] A Shot can explicitly be marked silent/no-text.
+- [ ] Unlocked candidates cannot own current approved narration.
+- [ ] Changing the locked image or relevant source evidence makes prior narration stale.
+- [ ] Previs reads the same approved text without regenerating it.
+- [ ] Timeline reuses the same current approved text/bubbles.
+- [ ] No narration action changes screenplay/story canon or image Lock authority.

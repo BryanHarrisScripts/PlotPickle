@@ -12,7 +12,7 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
-import { captureOpenPencilTimelineSnapshot } from "../_components/settings/openpencil-design-snapshot";
+import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
 
 type DsddContext = {

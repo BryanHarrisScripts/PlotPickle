@@ -10,6 +10,7 @@ type Status = {
   installed: boolean;
   workspaceConfigured: boolean;
   owned: boolean;
+  recommendedWorkspace?: string;
   message: string;
 };
 
@@ -26,6 +27,7 @@ export default function OpenPencilCommandPanel() {
     const body = await response.json() as Payload;
     if (!response.ok || !body.ok || !body.status) throw new Error(body.message || "OpenPencil status is unavailable.");
     setStatus(body.status);
+    setWorkspaceRoot((current) => current.trim() ? current : body.status?.recommendedWorkspace || "");
     setMessage(body.status.message);
   }
 
@@ -49,6 +51,7 @@ export default function OpenPencilCommandPanel() {
       const body = await response.json() as Payload;
       if (!response.ok || !body.ok || !body.status) throw new Error(body.message || "OpenPencil could not connect.");
       setStatus(body.status);
+      setWorkspaceRoot((current) => current.trim() ? current : body.status?.recommendedWorkspace || "");
       setMessage(body.status.message);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "OpenPencil could not connect.");
@@ -65,6 +68,7 @@ export default function OpenPencilCommandPanel() {
       const body = await response.json() as Payload;
       if (!response.ok || !body.ok || !body.status) throw new Error(body.message || "OpenPencil could not disconnect.");
       setStatus(body.status);
+      setWorkspaceRoot((current) => current.trim() ? current : body.status?.recommendedWorkspace || "");
       setMessage(body.status.message);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "OpenPencil could not disconnect.");
@@ -75,7 +79,7 @@ export default function OpenPencilCommandPanel() {
 
   return <section className={styles.form} aria-label="OpenPencil local design connection" data-command-openpencil={status?.state || "loading"}>
     <h2>OpenPencil</h2>
-    <p>Optional local design workspace for Command. PlotPickle never installs or starts it unless you explicitly connect it.</p>
+    <p>PlotPickle prepares the reviewed OpenPencil MCP package after core startup. The local MCP server still starts only when you explicitly connect it.</p>
     <p role="status">{message}</p>
     <small>State: {status?.state || "loading"} · Endpoint: {status?.endpoint || "127.0.0.1:7600/mcp"}</small>
     <label>
@@ -83,7 +87,7 @@ export default function OpenPencilCommandPanel() {
       <input
         value={workspaceRoot}
         onChange={(event) => setWorkspaceRoot(event.currentTarget.value)}
-        placeholder="C:\\path\\to\\PlotPickle-designs"
+        placeholder="PlotPickle\\designs\\openpencil"
         disabled={busy || status?.state === "ready"}
       />
     </label>
@@ -98,6 +102,7 @@ export default function OpenPencilCommandPanel() {
         Check status
       </button>
     </div>
+    <small>Default workspace: the repository-owned designs\openpencil folder. Design source files there are Git artifacts; PlotPickle does not commit or merge them automatically.</small>
     <small>Command verbs: OpenPencil status · OpenPencil connect &lt;absolute workspace&gt; · OpenPencil disconnect</small>
   </section>;
 }

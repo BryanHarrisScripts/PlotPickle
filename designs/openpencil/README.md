@@ -21,3 +21,26 @@ PlotPickle does not automatically commit or merge files in this directory.
 ## Privacy
 
 Do not place credentials, secrets, private profile data, provider keys or unreviewed private story material here. Files committed under this directory become part of the Git repository history.
+
+
+## Explicit surface workflow
+
+`surfaces.json` is the deterministic registry for PlotPickle design pages. The Human names the target explicitly from Settings → Command:
+
+```text
+OpenPencil open Timeline
+OpenPencil open Storyboard
+OpenPencil open Mind Map
+```
+
+PlotPickle does not infer a design surface from the current route.
+
+The registered design opens in the OpenPencil desktop GUI for normal visual inspection, editing and Save. Headless `tree`, `query` and `eval` commands remain optional diagnostics rather than the expected design interface.
+
+After saving, return to PlotPickle and run:
+
+```text
+OpenPencil review Timeline
+```
+
+PlotPickle gathers read-only Git evidence for that explicit design artifact and loads a design-review request into DSDD. The Human then chooses **01 Interpret → 02 Pi Draft → 03 Publish Brief**. The handoff publishes a GitHub issue only; it does not create an implementation PR or change application source.

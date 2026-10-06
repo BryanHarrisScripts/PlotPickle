@@ -276,6 +276,33 @@ export default function DashboardBbsReviewHost({
   }, [timelineOpen, onSurfaceNameChange]);
 
   useEffect(() => {
+    const openForDesignCapture = (event: Event) => {
+      const detail = (event as CustomEvent<{ surfaceName?: string }>).detail;
+      if (detail?.surfaceName?.trim().toLocaleLowerCase("en-US") !== "timeline") return;
+      setLibraryOpen(false);
+      setLearnRequest(null);
+      setScreeningOpen(false);
+      setSoundOpen(null);
+      setDiscoveryOpen(false);
+      setDiscoveryProject(null);
+      setStoryBibleOpen(false);
+      setStoryBibleProject(null);
+      setOutlineOpen(false);
+      setBuildOpen(false);
+      setStoryboardOpen(false);
+      setPrevisOpen(false);
+      setProductionOpen(false);
+      setOpenSourceOpen(false);
+      setHelpIssueLogOpen(false);
+      setShutdownOpen(false);
+      setTimelineOpen(true);
+      onSurfaceNameChange("TIMELINE");
+    };
+    window.addEventListener("plotpickle:openpencil-design-capture", openForDesignCapture);
+    return () => window.removeEventListener("plotpickle:openpencil-design-capture", openForDesignCapture);
+  }, [onSurfaceNameChange]);
+
+  useEffect(() => {
     if (productionOpen) onSurfaceNameChange("ROUGH CUT");
   }, [productionOpen, onSurfaceNameChange]);
 

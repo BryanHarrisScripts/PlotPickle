@@ -357,13 +357,13 @@ function verifiedVendoredPackages() {
       }
       const bytes = readFileSync(filePath);
       const blobHash = createHash("sha1")
-        .update(Buffer.from(`blob ${bytes.length}\\0`))
+        .update(Buffer.from(`blob ${bytes.length}\0`))
         .update(bytes)
         .digest("hex");
       if (blobHash !== files[relativeFile]) {
         throw new Error(`Vendored package ${packageName} file hash changed: ${relativeFile}.`);
       }
-      return `${relativeFile}\\0${blobHash}\\n`;
+      return `${relativeFile}\0${blobHash}\n`;
     }).join("");
     const digest = createHash("sha256").update(canonical).digest("hex");
     if (provenance.manifestDigest !== digest || contract.manifestDigest !== `sha256-${digest}`) {

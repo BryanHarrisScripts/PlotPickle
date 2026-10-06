@@ -81,13 +81,11 @@ async function normalizeWorkspaceRoot(workspaceRoot, dependencies) {
   const value = typeof workspaceRoot === "string" ? workspaceRoot.trim() : "";
   const pathApi = platformPath(dependencies.platform);
   if (!value || !pathApi.isAbsolute(value)) throw new Error("OPENPENCIL_WORKSPACE_REQUIRED");
-  let info;
-  try {
-    info = await dependencies.statPath(value);
-  } catch {
-    throw new Error("OPENPENCIL_WORKSPACE_UNAVAILABLE");
-  }
-  if (!info.isDirectory()) throw new Error("OPENPENCIL_WORKSPACE_UNAVAILABLE");
+  const info = await dependencies.statPath(value).then(
+    (result) => result,
+    () => null,
+  );
+  if (!info?.isDirectory()) throw new Error("OPENPENCIL_WORKSPACE_UNAVAILABLE");
   return pathApi.resolve(value);
 }
 

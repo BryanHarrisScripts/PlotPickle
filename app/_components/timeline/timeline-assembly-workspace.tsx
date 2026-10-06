@@ -811,6 +811,9 @@ export default function TimelineAssemblyWorkspace({
     if (!selectedPlacement || generatingShotNumber !== null) return;
     const packet = timelineGenerationPacket(project, selectedPlacement, shotNumber);
     const sourceImage = packet.references.find((reference) => reference.role === "source-image") ?? null;
+    const now = new Date().toISOString();
+    const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
+    const sourceKey = motionSourceKey(selectedPlacement, packet);
 
     setGeneratingShotNumber(shotNumber);
     setGeneratingMotionStage("PREFLIGHT");
@@ -826,8 +829,32 @@ export default function TimelineAssemblyWorkspace({
         : `${route.label} · ${route.strategy.modality}`);
     } catch (error) {
       const detail = error instanceof Error ? error.message : "No compatible video generation route is available.";
-      setMessage(detail);
-      setMotionRouteMessage(detail);
+      const failedAt = new Date().toISOString();
+      const failed: TimelineMotionShot = {
+        id,
+        placementId: selectedPlacement.id,
+        anchorRef: selectedPlacement.anchorRef,
+        shotNumber,
+        sourceArtifactId: sourceImage?.id ?? "",
+        sourceKey,
+        prompt: "",
+        packetFingerprint: packet.sourceFingerprint,
+        inputReferenceAssetIds: packet.references.map((reference) => reference.id),
+        requestedDurationSeconds: 3,
+        providerDurationSeconds: null,
+        provider: "",
+        route: "",
+        model: "",
+        jobId: "",
+        status: "failed",
+        outputAssetUrl: "",
+        error: `PREFLIGHT FAILED · ${detail}`,
+        createdAt: now,
+        updatedAt: failedAt,
+      };
+      storeMotion(failed);
+      setMessage(failed.error);
+      setMotionRouteMessage(failed.error);
       setGeneratingShotNumber(null);
       setGeneratingMotionStage(null);
       return;
@@ -848,10 +875,7 @@ export default function TimelineAssemblyWorkspace({
       return;
     }
 
-    const now = new Date().toISOString();
-    const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
     const prompt = serializeTimelineShotGenerationPacket(packet, strategy);
-    const sourceKey = motionSourceKey(selectedPlacement, packet);
     const priorTakeId = motionFor(selectedPlacement, shotNumber).current?.takeId;
     setGeneratingMotionStage("SUBMITTING");
     setMessage(`Submitting Shot ${String(shotNumber).padStart(2, "0")} via ${strategy.modality} to ${route.label}…`);
@@ -1336,7 +1360,9 @@ export default function TimelineAssemblyWorkspace({
                   ? "STALE"
                   : current?.status === "succeeded"
                     ? "READY"
-                    : current?.status?.toUpperCase() ?? "NOT GENERATED";
+                    : current?.status === "failed" && current.error.startsWith("PREFLIGHT FAILED")
+                      ? "PREFLIGHT FAILED"
+                      : current?.status?.toUpperCase() ?? "NOT GENERATED";
               const placementIndex = placements.findIndex((placement) => placement.id === selectedPlacement.id);
               const selected = activePlacement?.id === selectedPlacement.id && activeShotNumber === shotNumber;
               const dialogue = presentation.approval?.bubbles.map((bubble) => bubble.speaker + ": " + bubble.text).join(" · ") || "";

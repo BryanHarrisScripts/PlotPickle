@@ -49,8 +49,27 @@ test("#2776/#2803 Timeline exposes provider readiness and per-Shot generation pr
   assert.match(workspace, /setGeneratingMotionStage\("SUBMITTING"\)/u);
   assert.match(workspace, /setGeneratingMotionStage\(job\.status === "queued" \? "QUEUED" : "RUNNING"\)/u);
   assert.match(workspace, /current\?\.status === "succeeded"[\s\S]*"READY"/u);
+  assert.match(workspace, /current\?\.status === "failed" && current\.error\.startsWith\("PREFLIGHT FAILED"\)[\s\S]*"PREFLIGHT FAILED"/u);
   assert.match(workspace, /current\?\.status\?\.toUpperCase\(\) \?\? "NOT GENERATED"/u);
   assert.match(workspace, /current\?\.error \? <small>\{current\.error\}<\/small>/u);
+});
+
+test("#2809 preflight failure stays attached to the Shot and remains retryable", async () => {
+  const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
+
+  const start = workspace.indexOf("async function generateMotionShot");
+  const confirm = workspace.indexOf("await requestPlotPickleConfirmation", start);
+  const preflight = workspace.slice(start, confirm);
+
+  assert.match(preflight, /const sourceKey = motionSourceKey\(selectedPlacement, packet\)/u);
+  assert.match(preflight, /status: "failed"/u);
+  assert.match(preflight, /PREFLIGHT FAILED ·/u);
+  assert.match(preflight, /storeMotion\(failed\)/u);
+  assert.match(preflight, /setMessage\(failed\.error\)/u);
+  assert.match(preflight, /setMotionRouteMessage\(failed\.error\)/u);
+  assert.match(workspace, /current\?\.status === "failed" && current\.error\.startsWith\("PREFLIGHT FAILED"\)[\s\S]*"PREFLIGHT FAILED"/u);
+  assert.match(workspace, /current\?\.error \? <small>\{current\.error\}<\/small>/u);
+  assert.match(workspace, /current\?\.status === "failed" \|\| state\.stale \? "Retry motion"/u);
 });
 
 test("#2776 meaningful queue/running transitions remain persisted with motion provenance", async () => {

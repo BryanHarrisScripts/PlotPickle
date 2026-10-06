@@ -484,6 +484,7 @@
         "scripts/ensure-openpencil-mcp.ps1",
         "scripts/npm-runtime-policy.mjs",
         "scripts/windows-setup-report.mjs",
+        ".gitattributes",
         "vendor/braces-3.0.3-depth-guard/**"
       ],
       "ownerLayer": "production-harness",

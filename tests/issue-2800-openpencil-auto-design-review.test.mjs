@@ -195,7 +195,7 @@ test("#2800 Command auto-finalizes on browser focus only after OpenPencil docume
   assert.match(runtime, /state: "editing"/u);
   assert.match(runtime, /publish only after the design document closes/u);
   assert.match(parser, /action: "publish"; surfaceName: string/u);
-  assert.match(parser, /retry\\s\+publish/u);
+  assert.ok(parser.includes("retry\\\\s+publish"));
 });
 
 test("#2800 architecture keeps protected main and implementation PR outside automatic design authority", async () => {

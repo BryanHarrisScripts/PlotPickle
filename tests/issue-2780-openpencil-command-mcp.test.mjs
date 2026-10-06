@@ -1,71 +1,42 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { mkdtemp, rm } from "node:fs/promises";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { build } from "esbuild";
+import {
+  createOpenPencilMcpController,
+  resolveOpenPencilHttpLaunch,
+  OPENPENCIL_MCP_ENDPOINT,
+} from "../build/openpencil/openpencil-mcp-runtime.mjs";
 
-const temp = await mkdtemp(path.resolve("node_modules/.openpencil-2780-"));
-await build({
-  stdin: {
-    contents: `
-      export {
-        createOpenPencilMcpController,
-        resolveOpenPencilHttpLaunch,
-        OPENPENCIL_MCP_ENDPOINT,
-      } from "./build/openpencil/openpencil-mcp-gateway.ts";
-      export {
-        parseOpenPencilCommand,
-        OPENPENCIL_COMMAND_HELP,
-      } from "./app/_components/settings/openpencil-command.ts";
-    `,
-    resolveDir: process.cwd(),
-    loader: "ts",
-  },
-  bundle: true,
-  platform: "node",
-  format: "esm",
-  packages: "external",
-  outfile: path.join(temp, "host.mjs"),
-  logLevel: "silent",
-  plugins: [{
-    name: "openpencil-2780-isolation",
-    setup(builder) {
-      builder.onLoad({ filter: /profile-request-context\.ts$/ }, () => ({
-        contents: "export function currentProfileRequestContext(){ return { profileId: 'fixture' }; }",
-        loader: "ts",
-      }));
-      builder.onLoad({ filter: /dsdd-session-gateway\.ts$/ }, () => ({
-        contents: "export function acceptsDsddLoopbackRequest(){ return true; } export async function readDsddRequestBody(){ return {}; }",
-        loader: "ts",
-      }));
-    },
-  }],
-});
-const host = await import(pathToFileURL(path.join(temp, "host.mjs")).href);
-test.after(() => rm(temp, { recursive: true, force: true }));
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Command recognizes bounded OpenPencil operational verbs", () => {
-  assert.deepEqual(host.parseOpenPencilCommand("OpenPencil status"), { action: "status" });
-  assert.deepEqual(host.parseOpenPencilCommand("open pencil disconnect"), { action: "disconnect" });
-  assert.deepEqual(host.parseOpenPencilCommand("Connect OpenPencil C:\\PlotPickle Designs"), {
-    action: "connect",
-    workspaceRoot: "C:\\PlotPickle Designs",
-  });
-  assert.deepEqual(host.parseOpenPencilCommand('OpenPencil connect "C:\\Design Files"'), {
-    action: "connect",
-    workspaceRoot: "C:\\Design Files",
-  });
-  assert.equal(host.parseOpenPencilCommand("redesign Timeline"), null);
-  assert.match(host.OPENPENCIL_COMMAND_HELP, /OpenPencil status/);
+test("Command exposes bounded OpenPencil operational verbs outside DSDD persistence", async () => {
+  const [parser, conversation, panel, dashboard] = await Promise.all([
+    read("app/_components/settings/openpencil-command.ts"),
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
+    read("app/_components/settings/openpencil-command-panel.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+  ]);
+  for (const phrase of [
+    "OpenPencil status",
+    "OpenPencil connect <absolute local design workspace>",
+    "OpenPencil disconnect",
+  ]) assert.ok(parser.includes(phrase), `missing Command phrase: ${phrase}`);
+  assert.match(conversation, /runOpenPencilCommand/);
+  assert.match(conversation, /role: "command"/);
+  assert.match(conversation, /role: "tool"/);
+  const operational = conversation.slice(conversation.indexOf("async function runOpenPencilCommand"), conversation.indexOf("async function submit"));
+  assert.doesNotMatch(operational, /append-human|append-interpretation|draft-brief|publish-brief/);
+  assert.match(panel, /Connect OpenPencil/);
+  assert.match(panel, /Check status/);
+  assert.match(dashboard, /<OpenPencilCommandPanel \/>/);
 });
 
 test("Windows OpenPencil launch resolves the reviewed npm JS entrypoint without cmd.exe", () => {
   const shim = "C:\\Users\\Bryan\\AppData\\Roaming\\npm\\openpencil-mcp-http.cmd";
   const entry = "C:\\Users\\Bryan\\AppData\\Roaming\\npm\\node_modules\\@open-pencil\\mcp\\dist\\index.mjs";
   const found = new Set([shim, entry]);
-  const launch = host.resolveOpenPencilHttpLaunch({
+  const launch = resolveOpenPencilHttpLaunch({
     platform: "win32",
     env: { PATH: "C:\\Users\\Bryan\\AppData\\Roaming\\npm" },
     nodeExecutable: "C:\\Program Files\\nodejs\\node.exe",
@@ -76,6 +47,7 @@ test("Windows OpenPencil launch resolves the reviewed npm JS entrypoint without 
     args: [entry],
     source: "npm-global",
   });
+  assert.notEqual(launch.executable.toLowerCase(), "cmd.exe");
 });
 
 test("explicit connection scopes OpenPencil to the selected workspace and owns only its child", async () => {
@@ -83,12 +55,18 @@ test("explicit connection scopes OpenPencil to the selected workspace and owns o
     exitCode = null;
     signalCode = null;
     killed = false;
-    kill() { this.killed = true; this.signalCode = "SIGTERM"; this.emit("exit", null, "SIGTERM"); return true; }
+    kill() {
+      this.killed = true;
+      this.signalCode = "SIGTERM";
+      this.emit("exit", null, "SIGTERM");
+      return true;
+    }
   }
+
   const child = new FakeChild();
   const spawnCalls = [];
   let phase = "before";
-  const controller = host.createOpenPencilMcpController({
+  const controller = createOpenPencilMcpController({
     platform: "win32",
     env: { PATH: "C:\\npm" },
     nodeExecutable: "C:\\node.exe",
@@ -110,7 +88,7 @@ test("explicit connection scopes OpenPencil to the selected workspace and owns o
   const connected = await controller.connect({ workspaceRoot: "C:\\Designs" });
   assert.equal(connected.state, "ready");
   assert.equal(connected.owned, true);
-  assert.equal(connected.endpoint, host.OPENPENCIL_MCP_ENDPOINT);
+  assert.equal(connected.endpoint, OPENPENCIL_MCP_ENDPOINT);
   assert.equal(spawnCalls.length, 1);
   assert.equal(spawnCalls[0].command, "C:\\node.exe");
   assert.deepEqual(spawnCalls[0].args, ["C:\\npm\\node_modules\\@open-pencil\\mcp\\dist\\index.mjs"]);
@@ -127,7 +105,7 @@ test("explicit connection scopes OpenPencil to the selected workspace and owns o
 
 test("missing OpenPencil package remains optional and never launches", async () => {
   let spawned = 0;
-  const controller = host.createOpenPencilMcpController({
+  const controller = createOpenPencilMcpController({
     platform: "linux",
     env: { PATH: "/usr/bin" },
     exists: () => false,
@@ -141,5 +119,20 @@ test("missing OpenPencil package remains optional and never launches", async () 
   assert.equal(status.installed, false);
   const connect = await controller.connect({ workspaceRoot: "/tmp/designs" });
   assert.equal(connect.state, "unavailable");
+  assert.equal(spawned, 0);
+});
+
+test("an unowned process on the OpenPencil port blocks connection", async () => {
+  let spawned = 0;
+  const controller = createOpenPencilMcpController({
+    platform: "linux",
+    env: { PATH: "/usr/local/bin" },
+    exists: value => value === "/usr/local/bin/openpencil-mcp-http",
+    statPath: async () => ({ isDirectory: () => true }),
+    portReady: async () => true,
+    wait: async () => {},
+    spawnProcess: () => { spawned++; throw new Error("must not spawn"); },
+  });
+  await assert.rejects(controller.connect({ workspaceRoot: "/tmp/designs" }), /OPENPENCIL_PORT_IN_USE/);
   assert.equal(spawned, 0);
 });

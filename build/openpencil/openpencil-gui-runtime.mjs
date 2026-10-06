@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { createOpenPencilDesignReviewPublisher } from "./openpencil-design-review-publisher.mjs";
 
 export const OPENPENCIL_DESKTOP_VERSION = "0.15.1";
 export const OPENPENCIL_SURFACE_REGISTRY = "designs/openpencil/surfaces.json";
@@ -62,6 +63,7 @@ function defaultDependencies(overrides = {}) {
     runProcess: overrides.runProcess || defaultRunProcess,
     wait: overrides.wait || ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))),
     nodeExecutable: overrides.nodeExecutable || process.execPath,
+    designReviewPublisher: overrides.designReviewPublisher || null,
   };
 }
 
@@ -269,6 +271,10 @@ export function publicOpenPencilGuiError(error) {
 
 export function createOpenPencilGuiController(overrides = {}) {
   const dependencies = defaultDependencies(overrides);
+  const designReviewPublisher = dependencies.designReviewPublisher || createOpenPencilDesignReviewPublisher({
+    env: dependencies.env,
+    repositoryRoot: dependencies.repositoryRoot,
+  });
 
   async function openSurface(surfaceName, options = {}) {
     const target = await resolveOpenPencilSurface(surfaceName, dependencies);
@@ -305,6 +311,15 @@ export function createOpenPencilGuiController(overrides = {}) {
       : null;
     if (!page?.id) throw new Error("OPENPENCIL_DESIGN_PAGE_MISSING");
 
+    let designReviewSession = null;
+    try {
+      designReviewSession = await designReviewPublisher.begin(target);
+    } catch (error) {
+      if (dependencies.env.PLOTPICKLE_OPENPENCIL_DEBUG === "1") {
+        process.stderr.write(`[PLOTPICKLE] OpenPencil design-review tracking unavailable: ${error instanceof Error ? error.message : "unknown"}\n`);
+      }
+    }
+
     const launched = dependencies.spawnProcess(desktop.executable, [target.designFile], {
       cwd: target.workspaceRoot,
       env: dependencies.env,
@@ -334,13 +349,56 @@ export function createOpenPencilGuiController(overrides = {}) {
             desktopSource: desktop.source,
             cliSource: cli.source,
             bootstrapState,
-            message: `OpenPencil GUI opened ${target.name} · ${target.relativeFile} · page ${target.page}.`,
+            designReviewSessionId: designReviewSession?.id || "",
+            message: designReviewSession
+              ? `OpenPencil GUI opened ${target.name} · ${target.relativeFile} · page ${target.page}. Saved changes will publish to a GitHub design-review issue when PlotPickle regains focus after the document closes.`
+              : `OpenPencil GUI opened ${target.name} · ${target.relativeFile} · page ${target.page}. Automatic GitHub design-review tracking could not start; the design can still be reviewed manually.`,
           });
         }
       } catch {}
       await dependencies.wait(250);
     }
     throw new Error("OPENPENCIL_GUI_ACTIVATION_TIMEOUT");
+  }
+
+  async function finalizeSurface(surfaceName, options = {}) {
+    const target = await resolveOpenPencilSurface(surfaceName, dependencies);
+    if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_FILE_MISSING");
+    const cli = resolveOpenPencilCliLaunch(dependencies);
+    if (!cli) {
+      return Object.freeze({
+        state: "editing",
+        surface: target.name,
+        sessionId: String(options.sessionId || ""),
+        message: `${target.name} close state cannot be confirmed because the reviewed OpenPencil CLI is unavailable. Retry publish after the CLI is ready.`,
+      });
+    }
+    if (cli) {
+      try {
+        const listResult = await runCli(cli, ["documents", "list", "--json"], dependencies, target.workspaceRoot);
+        const documents = parseJson(listResult.stdout, "OPENPENCIL_GUI_ACTIVATION_TIMEOUT");
+        const pathApi = platformPath(dependencies.platform);
+        const stillOpen = Array.isArray(documents) && documents.some((candidate) => (
+          candidate?.path && pathApi.resolve(candidate.path) === pathApi.resolve(target.designFile)
+        ));
+        if (stillOpen) {
+          return Object.freeze({
+            state: "editing",
+            surface: target.name,
+            sessionId: String(options.sessionId || ""),
+            message: `${target.name} is still open in OpenPencil. PlotPickle will publish only after the design document closes.`,
+          });
+        }
+      } catch {
+        return Object.freeze({
+          state: "editing",
+          surface: target.name,
+          sessionId: String(options.sessionId || ""),
+          message: `${target.name} close state could not be confirmed. Close OpenPencil and retry publish; PlotPickle will not publish while document state is uncertain.`,
+        });
+      }
+    }
+    return designReviewPublisher.finalize(target.name, String(options.sessionId || ""));
   }
 
   async function reviewSurface(surfaceName) {
@@ -378,5 +436,5 @@ export function createOpenPencilGuiController(overrides = {}) {
     });
   }
 
-  return Object.freeze({ openSurface, reviewSurface });
+  return Object.freeze({ openSurface, finalizeSurface, reviewSurface });
 }

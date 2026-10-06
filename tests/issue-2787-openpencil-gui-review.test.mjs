@@ -136,6 +136,10 @@ test("#2787 explicit GUI launch verifies the page then activates exactly that pa
     exists: (value) => found.has(value),
     readText: async () => registry,
     wait: async () => {},
+    designReviewPublisher: {
+      begin: async () => ({ id: "session-2787", beforeHash: "before", baseSha: "base" }),
+      finalize: async () => ({ state: "unchanged", message: "unchanged" }),
+    },
     spawnProcess: (command, args, options) => {
       spawns.push({ command, args: [...args], options });
       return { unref() {} };
@@ -170,6 +174,7 @@ test("#2787 explicit GUI launch verifies the page then activates exactly that pa
   assert.equal(result.surface, "Timeline");
   assert.equal(result.page, "Timeline");
   assert.equal(result.bootstrapState, "rendered-snapshot");
+  assert.equal(result.designReviewSessionId, "session-2787");
   assert.equal(spawns.length, 1);
   assert.equal(spawns[0].command, desktop);
   assert.deepEqual(spawns[0].args, [designFile]);

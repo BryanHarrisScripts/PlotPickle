@@ -4,7 +4,8 @@ export type OpenPencilCommand =
   | Readonly<{ action: "disconnect" }>
   | Readonly<{ action: "connect"; workspaceRoot: string }>
   | Readonly<{ action: "open"; surfaceName: string }>
-  | Readonly<{ action: "review"; surfaceName: string }>;
+  | Readonly<{ action: "review"; surfaceName: string }>
+  | Readonly<{ action: "publish"; surfaceName: string }>;
 
 function cleanRoot(value: string) {
   const trimmed = value.trim();
@@ -33,6 +34,10 @@ export function parseOpenPencilCommand(value: string): OpenPencilCommand | null 
   const reviewSurface = cleanRoot(review?.[1] || "");
   if (reviewSurface) return Object.freeze({ action: "review", surfaceName: reviewSurface });
 
+  const publish = input.match(new RegExp(`^/?${noun}\\s+(?:publish|retry\\s+publish)\\s+(.+)$`, "iu"));
+  const publishSurface = cleanRoot(publish?.[1] || "");
+  if (publishSurface) return Object.freeze({ action: "publish", surfaceName: publishSurface });
+
   const direct = input.match(new RegExp(`^/?${noun}\\s+connect\\s+(.+)$`, "iu"));
   const natural = input.match(new RegExp(`^connect\\s+${noun}\\s+(.+)$`, "iu"));
   const workspaceRoot = cleanRoot((direct?.[1] || natural?.[1] || "").trim());
@@ -43,6 +48,7 @@ export function parseOpenPencilCommand(value: string): OpenPencilCommand | null 
 export const OPENPENCIL_COMMAND_HELP = [
   "OpenPencil open <surface name>",
   "OpenPencil review <surface name>",
+  "OpenPencil publish <surface name>  (retry a failed automatic publish)",
   "OpenPencil status",
   "OpenPencil connect <absolute local design workspace>",
   "OpenPencil disconnect",

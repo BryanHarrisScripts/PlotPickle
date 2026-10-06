@@ -51,7 +51,11 @@ export function registerOpenPencilGuiGateway(
         reply(200, { ok: true, result: await controller.reviewSurface(surfaceName) });
         return;
       }
-      reply(400, { ok: false, message: "OpenPencil GUI action must be open or review." });
+      if (action === "finalize") {
+        reply(200, { ok: true, result: await controller.finalizeSurface(surfaceName, { sessionId: String(body.sessionId || "").trim() }) });
+        return;
+      }
+      reply(400, { ok: false, message: "OpenPencil GUI action must be open, review or finalize." });
     })().catch((error) => reply(400, { ok: false, message: publicOpenPencilGuiError(error) }));
   });
 }

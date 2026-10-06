@@ -40,7 +40,7 @@ PlotPickle:
 - never silently connects a cloud model through OpenPencil;
 - exposes story/project files only inside an explicitly scoped design workspace.
 
-The optional MCP boundary uses `OPENPENCIL_MCP_ROOT` to scope accessible files. The canonical default is the repository-owned `designs/openpencil` directory. Design source files created there are Git artifacts and may be reviewed, committed and merged through the normal Human/DSDD/GitHub workflow; OpenPencil itself has no commit or merge authority.
+The optional MCP boundary uses `OPENPENCIL_MCP_ROOT` to scope accessible files. The canonical default is the repository-owned `designs/openpencil` directory. Design source files created there are Git artifacts. After #2800, an explicit Human OpenPencil session may publish a saved registered design delta automatically to an isolated non-main design-review branch and GitHub issue; OpenPencil itself still has no implementation or merge authority.
 
 ## Human control
 
@@ -205,3 +205,24 @@ The Human's authenticated browser remains the only source allowed to capture pri
 The existing authenticated OpenPencil gateway accepts that bounded Timeline snapshot and the pinned OpenPencil 0.15.1 CLI imports the HTML/CSS into `timeline-live.fig`. The previous `timeline.fig` scaffold is not overwritten. Once the live FIG exists, later opens preserve Human edits and do not regenerate it.
 
 WebMCP does not inherit the Human browser session. Its synthetic profile remains the independent verification observer for navigation, readiness, computed-style/geometry inspection and screenshot evidence. This keeps the privacy boundary deterministic while reusing the same rendered-surface concepts for QA.
+
+
+## Phase 7 — automatic saved-design GitHub handoff
+
+Issue #2800 removes the manual Git step after an intentional OpenPencil edit.
+
+Before the desktop GUI launches, PlotPickle records a local design session containing the explicit surface/page, registered FIG path, current design SHA-256, byte count and the current `origin/main` SHA. When PlotPickle regains browser focus, it checks the running OpenPencil documents first. A document that is still open is never published mid-edit.
+
+Once the design document is closed, PlotPickle hashes the registered artifact again:
+
+- identical hash: no Git branch, commit, push or issue;
+- changed hash: publish the exact artifact through an isolated temporary worktree;
+- failure: preserve the Human design and a local retryable session.
+
+The publication branch is content-addressed as `design/openpencil/<surface>-<hash-prefix>`. The primary checkout is never checked out, staged, committed or pushed by this path. Only the registered design artifact is staged in the detached worktree.
+
+After push, PlotPickle creates a deterministic developer-brief issue containing the exact branch, commit, base SHA and before/after artifact identity. The issue is the conversation handoff. It does not create an implementation PR and does not infer semantic UI intent from opaque FIG bytes.
+
+Retries are idempotent: an existing content-addressed branch is reused, and an existing issue containing the exact full design marker is reused. `OpenPencil publish <surface>` is the explicit retry command when automatic GitHub publication failed.
+
+The older `OpenPencil review <surface>` → Interpret → Pi Draft → Publish Brief path remains available as a manual review workflow.

@@ -15,7 +15,7 @@
     "environment": "OPENPENCIL_MCP_ROOT",
     "default": "<repo>\\designs\\openpencil",
     "repositoryTracked": true,
-    "policy": "Automation may inspect or write design files only inside the explicitly scoped design workspace. The default PlotPickle workspace is versioned design source; Git commit and merge remain explicit Human/DSDD actions."
+    "policy": "Automation may inspect or write design files only inside the explicitly scoped design workspace. After an explicit Human OpenPencil session, a saved registered design delta may be committed automatically to an isolated design-review branch; protected main and implementation merge remain Human/GitHub governed."
   },
   "cli": {
     "executable": "openpencil",
@@ -82,6 +82,7 @@
       "OpenPencil help",
       "OpenPencil open <surface name>",
       "OpenPencil review <surface name>",
+      "OpenPencil publish <surface name>",
       "OpenPencil status",
       "OpenPencil connect <absolute local design workspace>",
       "OpenPencil disconnect"
@@ -98,6 +99,15 @@
       ],
       "delivery": "github-issue",
       "implementationPullRequest": false
+    },
+    "autoDesignReview": {
+      "issue": 2800,
+      "trigger": "saved-delta-after-explicit-open-and-return",
+      "branchPattern": "design/openpencil/<surface>-<sha256-prefix>",
+      "protectedMainPush": false,
+      "implementationPullRequest": false,
+      "duplicatePolicy": "content-hash-idempotent",
+      "retryCommand": "OpenPencil publish <surface name>"
     }
   },
   "connectionProof": {

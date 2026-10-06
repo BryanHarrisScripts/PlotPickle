@@ -25,6 +25,7 @@ set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "VITE_NATIVE_REPORT=scripts\vite-native-config-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
+set "NPM_RUNTIME_POLICY=scripts\npm-runtime-policy.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
 set "COMPANION_AFTER_READY=scripts\windows-companion-maintenance-after-ready.ps1"
 set "AGENT_SKILLS_CLI=scripts\agent-skills.mjs"
@@ -40,6 +41,7 @@ set "RUNTIME_SIDECAR_SUPERVISOR=scripts\runtime-sidecar-supervisor.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
+set "SETUP_FAILURE_REASON="
 set "READY_TIMEOUT_SECONDS=240"
 set "READY_REQUEST_TIMEOUT_SECONDS=30"
 set "BROWSER_FAILURE_GRACE_SECONDS=12"
@@ -76,7 +78,7 @@ echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
 echo Required PlotPickle runtime checks finish first; managed developer/design tooling and read-only optional companion inventory begin only after the local server is ready.
-echo OpenPencil MCP, CLI and desktop GUI are prepared after readiness but never launched until you explicitly connect or open a named surface in Settings.
+echo OpenPencil MCP, CLI and desktop GUI are prepared after readiness but never launched until you explicitly connect or open a named surface from PlotPickle.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -590,6 +592,22 @@ echo This required step may install a new runtime or repair the matching runtime
 choice /C YN /N /M "Continue with this local runtime installation? [Y/N]: "
 if errorlevel 2 exit /b 2
 
+if not exist "%NPM_RUNTIME_POLICY%" (
+  echo !ERROR_TAG! The npm runtime policy checker is missing from this PlotPickle build.
+  set "SETUP_FAILURE_REASON=dependency-policy"
+  exit /b 1
+)
+node "%NPM_RUNTIME_POLICY%"
+set "NPM_POLICY_RESULT=!ERRORLEVEL!"
+if "!NPM_POLICY_RESULT!"=="42" (
+  set "SETUP_FAILURE_REASON=dependency-policy"
+  exit /b 1
+)
+if not "!NPM_POLICY_RESULT!"=="0" (
+  set "SETUP_FAILURE_REASON=dependency-policy"
+  exit /b 1
+)
+
 echo.
 echo ------------------------------------------------------------
 echo   INSTALL ATTEMPT 1 OF 2 - Exact package-lock installation
@@ -601,6 +619,13 @@ echo Yellow deprecation warnings do not normally mean setup failed.
 echo A red npm error means the installer will attempt a repair.
 echo.
 call npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
+set "NPM_INSTALL_RESULT=!ERRORLEVEL!"
+if not "!NPM_INSTALL_RESULT!"=="0" (
+  echo.
+  echo !REPAIR! Exact package-lock installation exited with code !NPM_INSTALL_RESULT!.
+  echo The interrupted-download repair will reset only this incomplete runtime and retry once.
+  goto :dependency_retry
+)
 call :dependencies_ready
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready
@@ -612,7 +637,7 @@ if not errorlevel 1 (
 )
 
 echo.
-echo !REPAIR! npm did not provide a usable Windows native binding.
+echo !REPAIR! npm completed, but the Windows native binding is missing or unusable.
 echo Installing the exact binding version required by the installed Rolldown package...
 node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"
 if not errorlevel 1 (
@@ -642,6 +667,7 @@ if not errorlevel 1 (
   )
 )
 
+:dependency_retry
 echo.
 echo ------------------------------------------------------------
 echo   INSTALL ATTEMPT 2 OF 2 - Interrupted-download repair
@@ -652,6 +678,11 @@ node "%RUNTIME_MANAGER%" reset-current
 if errorlevel 1 exit /b 1
 call npm cache verify
 call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
+set "NPM_REPAIR_RESULT=!ERRORLEVEL!"
+if not "!NPM_REPAIR_RESULT!"=="0" (
+  set "SETUP_FAILURE_REASON=package-install"
+  exit /b 1
+)
 call :dependencies_ready
 if errorlevel 1 (
   echo.
@@ -696,15 +727,23 @@ echo !RED!============================================================!RESET!
 echo !RED!  PLOTPICKLE SETUP COULD NOT FINISH!RESET!
 echo !RED!============================================================!RESET!
 echo.
-echo !ERROR_TAG! The required local components, Windows native binding, or Sharp image runtime are still missing or incomplete.
+if /I "!SETUP_FAILURE_REASON!"=="dependency-policy" (
+  echo !ERROR_TAG! PlotPickle's pinned dependency graph violates the local runtime transport policy.
+  echo A Git package dependency is not permitted in the production runtime, so repeating the same install would fail again.
+  echo Update PlotPickle after the dependency graph is corrected; do not disable the Git-package restriction globally.
+) else if /I "!SETUP_FAILURE_REASON!"=="package-install" (
+  echo !ERROR_TAG! npm could not complete the exact dependency install after the single bounded repair attempt.
+  echo Check the npm error above before retrying; native-binding or Sharp repair cannot fix an incomplete package install.
+) else (
+  echo !ERROR_TAG! The required local components, Windows native binding, or Sharp image runtime are still missing or incomplete.
+  echo 1. Confirm that your internet connection is stable.
+  echo 2. Confirm that at least 2 GB of disk space is free.
+  echo 3. Close other PlotPickle, Node, npm, editor, or terminal windows.
+  echo 4. Run Start-PlotPickle.bat again. It will retry the same platform-specific runtime.
+  echo 5. Run Utilities\Repair-PlotPickle.cmd only if the same runtime remains damaged.
+)
 echo Nothing was installed as a Windows service, and no server was started.
 echo Optional Ollama, ComfyUI, Buzz, GitHub, Google, and cloud-provider settings were not changed.
-echo.
-echo 1. Confirm that your internet connection is stable.
-echo 2. Confirm that at least 2 GB of disk space is free.
-echo 3. Close other PlotPickle, Node, npm, editor, or terminal windows.
-echo 4. Run Start-PlotPickle.bat again. It will retry the same platform-specific runtime.
-echo 5. Run Utilities\Repair-PlotPickle.cmd only if the same runtime remains damaged.
 echo.
 echo Runtime folder: !PLOTPICKLE_RUNTIME_DIR!
 echo Your story projects are not stored in that folder.

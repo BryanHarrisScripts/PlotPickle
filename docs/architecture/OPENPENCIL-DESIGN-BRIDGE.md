@@ -194,3 +194,14 @@ Issue #2791 closes the first-run gap in Phase 4. The explicit surface registry p
 The exact pinned OpenPencil 0.15.1 release reads `.pen` and provides the headless `convert` command, while normal GUI save authority remains the editable `.fig` format. PlotPickle therefore keeps a small repository-owned `.pen` seed for each named surface and an explicit editable `.fig` target in `surfaces.json`.
 
 On first open only, when the target `.fig` does not exist, PlotPickle resolves and confines the target and seed to `designs/openpencil`, converts the seed to the editable target with the reviewed CLI, verifies the registered page, then launches OpenPencil Desktop and activates that exact page. Once an editable `.fig` exists, the seed is never allowed to overwrite it. `OpenPencil review <surface>` continues to gather Git evidence from the editable `.fig`.
+
+
+## Phase 6 — live Timeline design snapshot
+
+Issue #2793 makes Timeline the first proof that OpenPencil can begin from the actual rendered PlotPickle product rather than from a minimal bootstrap canvas.
+
+The Human's authenticated browser remains the only source allowed to capture private current-story UI. Command raises a bounded local design-capture event; the dashboard host reveals Timeline; the browser waits for the governed Timeline ready selector and serializes only the Timeline review subtree with rendered geometry and selected computed styles. Script/style/runtime tags are excluded and the payload is size/node bounded by `config/openpencil-design-snapshot.json`.
+
+The existing authenticated OpenPencil gateway accepts that bounded Timeline snapshot and the pinned OpenPencil 0.15.1 CLI imports the HTML/CSS into `timeline-live.fig`. The previous `timeline.fig` scaffold is not overwritten. Once the live FIG exists, later opens preserve Human edits and do not regenerate it.
+
+WebMCP does not inherit the Human browser session. Its synthetic profile remains the independent verification observer for navigation, readiness, computed-style/geometry inspection and screenshot evidence. This keeps the privacy boundary deterministic while reusing the same rendered-surface concepts for QA.

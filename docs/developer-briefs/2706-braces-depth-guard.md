@@ -89,7 +89,7 @@ Until upstream publishes a fixed npm release, replace transitive braces with the
 
 28d440b5dd449dbf1fe6f3506cf94ecca4d02660
 
-The repository-owned package is sourced from that exact commit rather than a moving branch. Its provenance record pins the upstream commit and tree, every shipped package-file Git blob SHA, and a canonical SHA-256 manifest digest. The root lock resolves the reviewed package through a local file dependency, so production installation does not require Git or SSH. This preserves the existing package/API surface while adding bounded nesting depth to parsing and recursive AST walkers.
+The repository-owned package is sourced from that exact commit rather than a moving branch. Its provenance record pins the upstream commit and tree, every reviewed upstream runtime-file Git blob SHA, the byte-identical upstream package metadata, a canonical source-manifest digest, and the SHA-256 of PlotPickle's production-only local package metadata. The root lock resolves the reviewed package through a local file dependency, so production installation does not require Git or SSH. This preserves the existing package/API surface while adding bounded nesting depth to parsing and recursive AST walkers.
 
 This is a temporary security bridge, not a permanent fork. When upstream publishes an official patched release, remove the vendored bridge and return to the registry release after the same regression proof passes.
 

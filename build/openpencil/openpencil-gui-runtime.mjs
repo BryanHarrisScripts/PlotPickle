@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
@@ -56,6 +56,8 @@ function defaultDependencies(overrides = {}) {
     repositoryRoot: overrides.repositoryRoot || process.cwd(),
     exists: overrides.exists || existsSync,
     readText: overrides.readText || ((value) => readFile(value, "utf8")),
+    makeDirectory: overrides.makeDirectory || ((value) => mkdir(value, { recursive: true })),
+    writeText: overrides.writeText || ((value, content) => writeFile(value, content, "utf8")),
     spawnProcess: overrides.spawnProcess || ((command, args, options) => spawn(command, [...args], options)),
     runProcess: overrides.runProcess || defaultRunProcess,
     wait: overrides.wait || ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))),
@@ -170,6 +172,7 @@ export async function resolveOpenPencilSurface(surfaceName, overrides = {}) {
     relativeFile: relative,
     bootstrapFile,
     relativeBootstrapFile,
+    capture: String(match.capture || "").trim(),
     workspaceRoot,
   });
 }
@@ -187,6 +190,61 @@ function runCli(cli, args, dependencies, cwd) {
   });
 }
 
+const OPENPENCIL_SNAPSHOT_MAX_HTML_CHARS = 1_500_000;
+const OPENPENCIL_SNAPSHOT_MAX_CSS_CHARS = 50_000;
+const OPENPENCIL_SNAPSHOT_MAX_NODES = 900;
+
+function validateRenderedSnapshot(snapshot, target) {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  if (target.capture !== "rendered-live-v1" || canonicalKey(target.name) !== "timeline") {
+    throw new Error("OPENPENCIL_DESIGN_SNAPSHOT_UNEXPECTED");
+  }
+  if (
+    snapshot.version !== 1
+    || canonicalKey(snapshot.surface) !== "timeline"
+    || typeof snapshot.html !== "string"
+    || typeof snapshot.css !== "string"
+    || !Number.isInteger(snapshot.nodeCount)
+    || snapshot.nodeCount < 1
+    || snapshot.nodeCount > OPENPENCIL_SNAPSHOT_MAX_NODES
+    || snapshot.html.length < 100
+    || snapshot.html.length > OPENPENCIL_SNAPSHOT_MAX_HTML_CHARS
+    || snapshot.css.length > OPENPENCIL_SNAPSHOT_MAX_CSS_CHARS
+    || !snapshot.html.includes('data-openpencil-design-snapshot="timeline"')
+  ) {
+    throw new Error("OPENPENCIL_DESIGN_SNAPSHOT_INVALID");
+  }
+  return snapshot;
+}
+
+async function importRenderedSnapshot(snapshot, target, cli, dependencies) {
+  const pathApi = platformPath(dependencies.platform);
+  const localAppData = String(dependencies.env.LOCALAPPDATA || "").trim();
+  const snapshotRoot = localAppData
+    ? pathApi.join(localAppData, "PlotPickle", "openpencil", "snapshots")
+    : pathApi.join(target.workspaceRoot, ".runtime");
+  await dependencies.makeDirectory(snapshotRoot);
+  const htmlPath = pathApi.join(snapshotRoot, "timeline.html");
+  const cssPath = pathApi.join(snapshotRoot, "timeline.css");
+  await dependencies.writeText(htmlPath, snapshot.html);
+  await dependencies.writeText(cssPath, snapshot.css);
+  await runCli(
+    cli,
+    [
+      "import",
+      htmlPath,
+      "--output", target.designFile,
+      "--format", "fig",
+      "--pageName", target.page,
+      "--css", cssPath,
+      "--json",
+    ],
+    dependencies,
+    target.workspaceRoot,
+  );
+  if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_SNAPSHOT_IMPORT_FAILED");
+}
+
 export function publicOpenPencilGuiError(error) {
   const code = error instanceof Error ? error.message : String(error);
   if (code === "OPENPENCIL_SURFACE_UNKNOWN") {
@@ -198,6 +256,9 @@ export function publicOpenPencilGuiError(error) {
   if (code === "OPENPENCIL_DESIGN_FILE_MISSING") return "The registered OpenPencil design file is missing.";
   if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_MISSING") return "The registered OpenPencil design is missing and its repository bootstrap seed is unavailable.";
   if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_FAILED") return "PlotPickle could not materialize the registered OpenPencil design from its repository bootstrap seed.";
+  if (code === "OPENPENCIL_DESIGN_SNAPSHOT_UNEXPECTED") return "A rendered design snapshot is only accepted for the registered live Timeline design.";
+  if (code === "OPENPENCIL_DESIGN_SNAPSHOT_INVALID") return "The rendered Timeline design snapshot was invalid or exceeded its bounded capture contract.";
+  if (code === "OPENPENCIL_DESIGN_SNAPSHOT_IMPORT_FAILED") return "OpenPencil did not produce an editable Timeline design from the rendered PlotPickle snapshot.";
   if (code === "OPENPENCIL_DESIGN_PAGE_MISSING") return "The registered OpenPencil page is missing from the design file.";
   if (code === "OPENPENCIL_DESKTOP_MISSING") return "OpenPencil Desktop is not installed yet. PlotPickle prepares the reviewed desktop app after core startup; retry Check status or restart PlotPickle.";
   if (code === "OPENPENCIL_CLI_MISSING") return "The reviewed OpenPencil CLI helper is not ready yet. PlotPickle prepares it after core startup.";
@@ -209,7 +270,7 @@ export function publicOpenPencilGuiError(error) {
 export function createOpenPencilGuiController(overrides = {}) {
   const dependencies = defaultDependencies(overrides);
 
-  async function openSurface(surfaceName) {
+  async function openSurface(surfaceName, options = {}) {
     const target = await resolveOpenPencilSurface(surfaceName, dependencies);
     const desktop = resolveOpenPencilDesktopLaunch(dependencies);
     if (!desktop) throw new Error("OPENPENCIL_DESKTOP_MISSING");
@@ -218,17 +279,23 @@ export function createOpenPencilGuiController(overrides = {}) {
 
     let bootstrapState = "existing";
     if (!dependencies.exists(target.designFile)) {
-      if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
-        throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
+      const renderedSnapshot = validateRenderedSnapshot(options.designSnapshot, target);
+      if (renderedSnapshot) {
+        await importRenderedSnapshot(renderedSnapshot, target, cli, dependencies);
+        bootstrapState = "rendered-snapshot";
+      } else {
+        if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
+          throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
+        }
+        await runCli(
+          cli,
+          ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
+          dependencies,
+          target.workspaceRoot,
+        );
+        if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
+        bootstrapState = "materialized";
       }
-      await runCli(
-        cli,
-        ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
-        dependencies,
-        target.workspaceRoot,
-      );
-      if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
-      bootstrapState = "materialized";
     }
 
     const pagesResult = await runCli(cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot);

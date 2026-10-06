@@ -62,6 +62,12 @@ type DsddPublishedIssue = {
   publishedAt: string;
 };
 
+type OpenPencilPendingDesignSession = {
+  sessionId: string;
+  surface: string;
+  finalizing: boolean;
+};
+
 type DsddLockedIntent = {
   version: number;
   locked: true;
@@ -241,6 +247,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const previousJourneyRef = useRef<DsddContext | null>(null);
+  const openPencilDesignSessionRef = useRef<OpenPencilPendingDesignSession | null>(null);
   const busy = clearing || working || commandWorking || piDrafting || publishing || validatingFinding;
   const latestHumanIndex = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
@@ -411,6 +418,58 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, activeFinding, busy]);
 
+  useEffect(() => {
+    if (!embedded || !eligible || !runtimeEligible) return;
+    const finalize = () => {
+      const pending = openPencilDesignSessionRef.current;
+      if (!pending || pending.finalizing) return;
+      pending.finalizing = true;
+      const snapshot = currentSurfaceContext(pathname);
+      void authenticatedProfileFetch("/api/openpencil/gui", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "finalize",
+          surfaceName: pending.surface,
+          sessionId: pending.sessionId,
+        }),
+      }).then(async (response) => {
+        const body = await response.json() as {
+          ok?: boolean;
+          result?: {
+            state?: "editing" | "unchanged" | "published" | "failed" | "missing";
+            message?: string;
+            issueNumber?: number;
+            issueUrl?: string;
+          };
+          message?: string;
+        };
+        if (!response.ok || !body.ok || !body.result) throw new Error(body.message || "OpenPencil design review could not be finalized.");
+        if (body.result.state === "editing") {
+          pending.finalizing = false;
+          return;
+        }
+        openPencilDesignSessionRef.current = null;
+        setMessages((current) => [...current, {
+          id: messageId(body.result.state === "published" ? "openpencil-design-published" : "openpencil-design-finalized"),
+          role: "tool",
+          text: body.result.message || "OpenPencil design session finalized.",
+          context: snapshot,
+        }].slice(-MAX_MESSAGES));
+      }).catch((cause) => {
+        openPencilDesignSessionRef.current = null;
+        setMessages((current) => [...current, {
+          id: messageId("openpencil-design-publish-error"),
+          role: "tool",
+          text: cause instanceof Error ? cause.message : "OpenPencil design review could not be published.",
+          context: snapshot,
+        }].slice(-MAX_MESSAGES));
+      });
+    };
+    window.addEventListener("focus", finalize);
+    return () => window.removeEventListener("focus", finalize);
+  }, [embedded, eligible, runtimeEligible, pathname]);
+
   const currentLabel = useMemo(
     () => context ? `${context.surfaceLabel} · ${context.route}` : "Detecting current surface…",
     [context],
@@ -461,16 +520,17 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       let responseText = "";
       if (command.action === "help") {
         responseText = `OpenPencil commands:\n${OPENPENCIL_COMMAND_HELP}`;
-      } else if (command.action === "open" || command.action === "review") {
+      } else if (command.action === "open" || command.action === "review" || command.action === "publish") {
         const timelineSnapshot = command.action === "open"
           && command.surfaceName.trim().toLocaleLowerCase("en-US") === "timeline"
           ? await captureOpenPencilTimelineSnapshot()
           : null;
+        const guiAction = command.action === "publish" ? "finalize" : command.action;
         const response = await authenticatedProfileFetch("/api/openpencil/gui", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            action: command.action,
+            action: guiAction,
             surfaceName: command.surfaceName,
             ...(timelineSnapshot ? { designSnapshot: timelineSnapshot } : {}),
           }),
@@ -484,11 +544,21 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             relativeFile?: string;
             message?: string;
             handoffDraft?: string;
+            designReviewSessionId?: string;
+            issueNumber?: number;
+            issueUrl?: string;
           };
           message?: string;
         };
         if (!response.ok || !body.ok || !body.result) throw new Error(body.message || "OpenPencil GUI command failed.");
         responseText = body.result.message || "OpenPencil GUI command completed.";
+        if (command.action === "open" && body.result.designReviewSessionId) {
+          openPencilDesignSessionRef.current = {
+            sessionId: body.result.designReviewSessionId,
+            surface: command.surfaceName,
+            finalizing: false,
+          };
+        }
         if (command.action === "review" && body.result.handoffDraft) {
           setDraft(body.result.handoffDraft);
           setDraftHasVoice(false);

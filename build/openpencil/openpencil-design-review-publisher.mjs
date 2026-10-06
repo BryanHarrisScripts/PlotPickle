@@ -275,7 +275,7 @@ export function createOpenPencilDesignReviewPublisher(overrides = {}) {
 
   async function begin(target) {
     const bytes = await deps.readBytes(target.designFile);
-    const baseSha = await gitText(deps, ["rev-parse", "origin/main"]);
+    const baseSha = await gitText(deps, ["rev-parse", "origin/main"]).catch(() => gitText(deps, ["rev-parse", "HEAD"]));
     const id = deps.randomId();
     const session = {
       schemaVersion: SESSION_SCHEMA_VERSION,

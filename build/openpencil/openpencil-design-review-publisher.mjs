@@ -99,7 +99,9 @@ async function latestSessionForSurface(deps, surface) {
       if (session && slug(session.surface) === slug(surface) && session.state !== "unchanged" && session.state !== "published") {
         matches.push(session);
       }
-    } catch {}
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+    }
   }
   return matches.sort((left, right) => String(right.openedAt).localeCompare(String(left.openedAt)))[0] || null;
 }
@@ -109,7 +111,9 @@ async function loadSession(deps, sessionId, surface) {
     try {
       const session = await readSessionFile(deps, path.join(deps.stateRoot, stateFileName(sessionId)));
       if (session && slug(session.surface) === slug(surface)) return session;
-    } catch {}
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
   }
   return latestSessionForSurface(deps, surface);
 }

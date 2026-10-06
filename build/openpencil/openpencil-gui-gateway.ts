@@ -36,7 +36,7 @@ export function registerOpenPencilGuiGateway(
         reply(405, { ok: false, message: "Method not allowed." });
         return;
       }
-      const body = await readDsddRequestBody(request, 16_384);
+      const body = await readDsddRequestBody(request, 2_000_000);
       const action = String(body.action || "").trim();
       const surfaceName = String(body.surfaceName || "").trim();
       if (!surfaceName) {
@@ -44,7 +44,7 @@ export function registerOpenPencilGuiGateway(
         return;
       }
       if (action === "open") {
-        reply(200, { ok: true, result: await controller.openSurface(surfaceName) });
+        reply(200, { ok: true, result: await controller.openSurface(surfaceName, { designSnapshot: body.designSnapshot }) });
         return;
       }
       if (action === "review") {

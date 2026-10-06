@@ -190,16 +190,23 @@ export interface TimelineRangeExport {
 }
 
 export type TimelineMotionShotStatus = "queued" | "running" | "succeeded" | "failed";
+export type TimelineMotionGenerationMode = "text-to-video" | "image-to-video" | "first-last-frame" | "reference-to-video";
 
 export interface TimelineMotionShot {
   readonly id: string;
   readonly placementId: string;
   readonly anchorRef: string;
   readonly shotNumber: number;
+  /** Empty for a valid text-to-video Shot with no locked source image. */
   readonly sourceArtifactId: string;
   readonly sourceKey: string;
   readonly prompt: string;
+  readonly generationMode?: TimelineMotionGenerationMode;
+  readonly packetFingerprint?: string;
+  readonly inputReferenceAssetIds?: readonly string[];
   readonly requestedDurationSeconds: 3;
+  readonly providerDurationSeconds?: number | null;
+  readonly takeId?: string;
   readonly provider: string;
   readonly route: string;
   readonly model: string;
@@ -528,7 +535,7 @@ function normalizeTimelineMotionShot(value: unknown): TimelineMotionShot | null 
     ? item.status
     : "failed";
   const outputAssetUrl = cleanText(item.outputAssetUrl, 1_000);
-  if (!id || !placementId || !shotNumber || !sourceArtifactId || !sourceKey || !/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef)) return null;
+  if (!id || !placementId || !shotNumber || !sourceKey || !/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef)) return null;
   if (status === "succeeded" && !/^\/api\/local-ai\/assets\/[a-z0-9][a-z0-9._-]*\.(?:mp4|webm)$/iu.test(outputAssetUrl)) return null;
   const createdAt = cleanText(item.createdAt, 80) || new Date().toISOString();
   return {
@@ -539,7 +546,17 @@ function normalizeTimelineMotionShot(value: unknown): TimelineMotionShot | null 
     sourceArtifactId,
     sourceKey,
     prompt: cleanText(item.prompt, 7_000),
+    generationMode: item.generationMode === "text-to-video"
+      || item.generationMode === "image-to-video"
+      || item.generationMode === "first-last-frame"
+      || item.generationMode === "reference-to-video"
+      ? item.generationMode
+      : undefined,
+    packetFingerprint: cleanText(item.packetFingerprint, 16_000) || undefined,
+    inputReferenceAssetIds: cleanStringList(item.inputReferenceAssetIds, 64),
     requestedDurationSeconds: 3,
+    providerDurationSeconds: positiveSecond(item.providerDurationSeconds),
+    takeId: cleanText(item.takeId, 240) || undefined,
     provider: cleanText(item.provider, 120),
     route: cleanText(item.route, 120),
     model: cleanText(item.model, 160),

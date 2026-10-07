@@ -2,7 +2,7 @@
 
 import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
 
-import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LocalAiSkinHost from "./local-ai-skin-host";
 import HybridStoryModePanel from "./hybrid-story-mode-panel";
@@ -136,7 +136,7 @@ export default function StoryModeHost({
   const cloudReady = localityReady(routingStatus, "cloud");
   const hybridReady = hybridSelectionReady(routingStatus);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const [policyResponse, routingResponse] = await Promise.all([
         fetch("/api/story-mode/policy", { cache: "no-store" }),
@@ -156,9 +156,18 @@ export default function StoryModeHost({
     } finally {
       setLoaded(true);
     }
-  }
+  }, []);
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    const handleRefresh = () => { void refresh(); };
+    handleRefresh();
+    window.addEventListener("plotpickle:setup-status-refresh", handleRefresh);
+    window.addEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("plotpickle:setup-status-refresh", handleRefresh);
+      window.removeEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    };
+  }, [refresh]);
 
   useEffect(() => {
     if (initialView === "landing") return;

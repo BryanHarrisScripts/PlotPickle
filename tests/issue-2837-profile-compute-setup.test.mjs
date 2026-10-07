@@ -162,7 +162,8 @@ test("#2837 readiness distinguishes configured, tested, unavailable and invalida
 });
 
 test("#2837 Hybrid refreshes saved capability status after Cloud tests and removes listeners on exit", async () => {
-  const source = await readFile(new URL("../app/skin-v1/hybrid-story-mode-panel.tsx", import.meta.url), "utf8");
+  for (const surface of ["hybrid-story-mode-panel", "story-mode-host"]) {
+  const source = await readFile(new URL(`../app/skin-v1/${surface}.tsx`, import.meta.url), "utf8");
   const effect = source.match(/useEffect\(\(\) => \{([\s\S]*?)\}, \[refresh\]\);/u)?.[1];
   assert.ok(effect, "Hybrid must own its setup-change subscription.");
   const listeners = new Map();
@@ -180,6 +181,7 @@ test("#2837 Hybrid refreshes saved capability status after Cloud tests and remov
   assert.equal(reads, 3, "Cloud verification and connection changes must refresh Hybrid without remounting.");
   cleanup();
   assert.equal(listeners.size, 0);
+  }
 });
 
 test("#2837 unavailable managed startup reports a setup state without a server crash", async () => {

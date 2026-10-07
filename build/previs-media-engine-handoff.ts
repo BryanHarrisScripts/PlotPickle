@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ASSET_PATH, assetsDirectory, localImageAssetFilePath } from "./media-storage-common";
+import { ASSET_PATH, assetsDirectory, projectImageAssetFilePath } from "./media-storage-common";
 import {
   createPlotPickleMiniBlockMediaRequest,
   type PlotPickleMediaEngineEvidence,
@@ -34,7 +34,7 @@ export type PrevisMediaHandoffResult = Readonly<{
 export async function renderPrevisMiniBlockWithOptionalFFrames(input: PrevisMediaHandoffInput): Promise<PrevisMediaHandoffResult> {
   const frames = input.frames
     .filter((frame) => frame.authoritative === true)
-    .map((frame) => ({ ...frame, localFilePath: localImageAssetFilePath(frame.assetUrl) }));
+    .map((frame) => ({ ...frame, localFilePath: projectImageAssetFilePath(frame.assetUrl) }));
 
   if (!frames.length) {
     return { mode: "fallback", message: "Keep / Lock at least one Storyboard frame before using the optional media engine.", evidence: null };

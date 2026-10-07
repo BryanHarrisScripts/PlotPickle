@@ -5,9 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL("../" + path, import.meta.url), "utf8");
 
 test("#2730 Settings groups the approved destinations under System, Compute and Operations", async () => {
-  const [dashboard, webmcpAudit] = await Promise.all([
+  const [dashboard, webmcpAudit, menuContractAudit] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("lib/verification/webmcp-surface-visual-audit.mjs"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
   ]);
   const start = dashboard.indexOf("const SETTINGS_MENU = [");
   const end = dashboard.indexOf("] as const;", start);
@@ -49,6 +50,9 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
   assert.doesNotMatch(menu, /id: "ai-routing"/u, "Legacy Operations AI Routing must stay retired from the current Settings directory.");
   assert.match(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,buzz-settings/u, "WebMCP must verify the ten current Settings destinations.");
   assert.doesNotMatch(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u, "WebMCP may not require retired AI Routing.");
+  assert.match(menuContractAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,buzz-settings/u, "Governed keyboard audit must use ten active Settings destinations.");
+  assert.match(menuContractAudit, /G,I,M,L,C,H,U,D,A,B/u, "Governed keyboard audit must not require the retired R shortcut.");
+  assert.doesNotMatch(menuContractAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u);
   assert.match(dashboard, /const showGroup = index === 0 \|\| SETTINGS_MENU\[index - 1\]\?\.group !== item\.group/u);
   assert.match(dashboard, />-- \{item\.group\} --<\/div>/u);
 });

@@ -2090,7 +2090,8 @@
         "build/agent-compute-gateway.ts",
         "build/local-credentials.ts",
         "build/writing-assistant-store.ts",
-        "config/ai-source-registry.json"
+        "config/ai-source-registry.json",
+        "build/ai/comfyui-onboarding-gateway.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

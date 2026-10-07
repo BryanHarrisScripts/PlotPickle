@@ -12,6 +12,7 @@ export type StoryModePolicy = "local" | "cloud" | "hybrid";
 type StoryModeView = "landing" | StoryModePolicy;
 
 type RouteStatus = {
+  readonly configured?: boolean;
   readonly ready?: boolean;
   readonly locality?: string;
 };
@@ -56,11 +57,18 @@ const STORY_MODE_ROWS = [
   },
 ] as const;
 
-function localityReady(status: AiRoutingStatus | null, locality: "local" | "cloud") {
-  if (!status) return false;
-  return [status.text, status.image, status.video].every((capability) =>
-    Object.values(capability?.options ?? {}).some((route) => route.locality === locality && route.ready === true),
-  );
+type LocalityCoverage = { readonly configured: number; readonly ready: number; readonly total: number };
+
+function localityCoverage(status: AiRoutingStatus | null, locality: "local" | "cloud"): LocalityCoverage {
+  const capabilities = status ? [status.text, status.image, status.video] : [];
+  let configured = 0;
+  let ready = 0;
+  for (const capability of capabilities) {
+    const routes = Object.values(capability?.options ?? {}).filter((route) => route.locality === locality);
+    if (routes.some((route) => route.ready === true || Boolean((route as RouteStatus & { configured?: boolean }).configured))) configured += 1;
+    if (routes.some((route) => route.ready === true)) ready += 1;
+  }
+  return { configured, ready, total: 3 };
 }
 
 function hybridSelectionReady(status: AiRoutingStatus | null) {
@@ -85,23 +93,31 @@ function readinessState(ready: boolean, loaded: boolean) {
   return ready ? "ready" : "not-ready";
 }
 
+function coverageLabel(coverage: LocalityCoverage, loaded: boolean) {
+  if (!loaded) return "CHECKING";
+  if (coverage.ready === coverage.total) return `${coverage.ready}/${coverage.total} READY`;
+  if (coverage.ready > 0) return `${coverage.ready}/${coverage.total} READY`;
+  if (coverage.configured > 0) return `${coverage.configured}/${coverage.total} CONFIGURED`;
+  return "NOT SET UP";
+}
+
 function StoryModeReadiness({
-  localReady,
-  cloudReady,
+  localCoverage,
+  cloudCoverage,
   hybridReady,
   loaded,
   mode,
 }: {
-  readonly localReady: boolean;
-  readonly cloudReady: boolean;
+  readonly localCoverage: LocalityCoverage;
+  readonly cloudCoverage: LocalityCoverage;
   readonly hybridReady: boolean;
   readonly loaded: boolean;
   readonly mode: StoryModePolicy;
 }) {
   const statuses = [
-    { label: "LOCAL", ready: localReady },
-    { label: "CLOUD", ready: cloudReady },
-    { label: "HYBRID", ready: hybridReady },
+    { label: "LOCAL", ready: localCoverage.ready === localCoverage.total, value: coverageLabel(localCoverage, loaded) },
+    { label: "CLOUD", ready: cloudCoverage.ready === cloudCoverage.total, value: coverageLabel(cloudCoverage, loaded) },
+    { label: "HYBRID", ready: hybridReady, value: readinessLabel(hybridReady, loaded) },
   ] as const;
 
   return (
@@ -109,7 +125,7 @@ function StoryModeReadiness({
       {statuses.map((status) => (
         <span key={status.label} data-story-mode-readiness={readinessState(status.ready, loaded)}>
           <i aria-hidden="true" />
-          <strong>{status.label}</strong>: {readinessLabel(status.ready, loaded)}
+          <strong>{status.label}</strong>: {status.value}
         </span>
       ))}
       <span data-story-mode-active-policy={mode}><strong>MODE</strong>: {mode.toUpperCase()}</span>
@@ -132,8 +148,10 @@ export default function StoryModeHost({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const localReady = localityReady(routingStatus, "local");
-  const cloudReady = localityReady(routingStatus, "cloud");
+  const localCoverage = localityCoverage(routingStatus, "local");
+  const cloudCoverage = localityCoverage(routingStatus, "cloud");
+  const localReady = localCoverage.ready === localCoverage.total;
+  const cloudReady = cloudCoverage.ready === cloudCoverage.total;
   const hybridReady = hybridSelectionReady(routingStatus);
 
   const refresh = useCallback(async () => {
@@ -149,7 +167,7 @@ export default function StoryModeHost({
       if (!routingResponse.ok || !routing.ok) throw new Error(routing.message || "Story Mode readiness is unavailable.");
       setMode(policy.mode);
       setRoutingStatus(routing);
-      setMessage("LOCAL and CLOUD are READY only when Writing, Images and Video each have a tested route. HYBRID is READY only when the selected capability mix uses both Local and Cloud.");
+      setMessage("LOCAL and CLOUD report the capability setup actually detected in each system area. HYBRID is READY only when the selected Writing, Images and Video mix is tested and uses both Local and Cloud.");
     } catch (error) {
       setRoutingStatus(null);
       setMessage(error instanceof Error ? error.message : "Story Mode readiness is unavailable.");
@@ -293,7 +311,7 @@ export default function StoryModeHost({
           <h1>HYBRID</h1>
           <button type="button" className="pp-skin-v1-return" onClick={returnFromMode}>{onReturnToSettings ? "Back to Settings" : "Back to Story Mode"}</button>
         </div>
-        <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
+        <StoryModeReadiness localCoverage={localCoverage} cloudCoverage={cloudCoverage} hybridReady={hybridReady} loaded={loaded} mode={mode} />
         <HybridStoryModePanel onChanged={() => void refresh()} />
       </section>
     );
@@ -308,7 +326,7 @@ export default function StoryModeHost({
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
         <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** STORY MODE ***</div>
-        <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
+        <StoryModeReadiness localCoverage={localCoverage} cloudCoverage={cloudCoverage} hybridReady={hybridReady} loaded={loaded} mode={mode} />
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Story Mode policies" aria-describedby="story-mode-status-message">
           {STORY_MODE_ROWS.map((item, index) => {

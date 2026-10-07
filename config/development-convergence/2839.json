@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "issue": 2839,
+  "brief": "docs/developer-briefs/2839-storyboard-text-narration.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+    "app/api/previs/narration/route.ts",
+    "config/development-convergence/2839.json",
+    "config/verification/test-catalog.json",
+    "core/media/previs-narration.mjs",
+    "docs/developer-briefs/2839-storyboard-text-narration.md",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "tests/issue-2763-previs-narration.test.mjs",
+    "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
+    "tests/issue-2839-narration-durable-approval.test.mjs",
+    "tests/issue-2839-storyboard-text-narration.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "TEXT",
+      "criterion": "Storyboard handler submits shot text without pixels",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "actual Storyboard generation handler never reads image pixels"
+        }
+      ]
+    },
+    {
+      "id": "GROUND",
+      "criterion": "Short captions and exact dialogue attribution are enforced",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "short output, silence, exact dialogue and actual speaker"
+        }
+      ]
+    },
+    {
+      "id": "ROUTE",
+      "criterion": "Endpoint uses text compute while preserving Previs image adaptation",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "actual narration endpoint sends text to the agent"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE",
+      "criterion": "Approval and silence survive encrypted reopen; failed writes do not claim success",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-narration-durable-approval.test.mjs",
+          "contains": "actual approval handler persists text through encrypted unload and reopen"
+        }
+      ]
+    },
+    {
+      "id": "RENDER",
+      "criterion": "Rendered controls submit text and retain approved captions on reload",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+          "contains": "Storyboard Create Narration submits text-only shot facts"
+        }
+      ]
+    }
+  ]
+}

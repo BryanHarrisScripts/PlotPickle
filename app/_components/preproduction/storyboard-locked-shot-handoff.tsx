@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element -- locked Storyboard images are local PlotPickle assets. */
 
 import { useRef, useState } from "react";
-import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import type {
   PrevisGraphicNovelTextApproval,
   PrevisGraphicNovelTextBubble,
@@ -31,47 +30,6 @@ type NarrationDraft = Readonly<{
   narration: string;
   bubbles: readonly PrevisGraphicNovelTextBubble[];
 }>;
-
-async function oneShotNarrationContactSheet(assetUrl: string, position: number, signal: AbortSignal) {
-  const url = new URL(assetUrl, window.location.origin);
-  if (url.origin !== window.location.origin || !isSupportedVisualAssetUrl(url.pathname)) {
-    throw new Error(`Shot ${position} needs a supported PlotPickle Storyboard image before narration can be created.`);
-  }
-  const response = await fetch(url, { credentials: "same-origin", cache: "no-store", signal });
-  if (!response.ok) throw new Error(`The locked image for Shot ${position} could not be read (${response.status}).`);
-  const blob = await response.blob();
-  if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type) || blob.size > 12_000_000) {
-    throw new Error(`The locked image for Shot ${position} is not a supported image.`);
-  }
-  const image = await createImageBitmap(blob);
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 720;
-    canvas.height = 480;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("The browser cannot prepare the locked Storyboard image for narration.");
-    context.fillStyle = "#101513";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    const mediaHeight = 430;
-    const scale = Math.min(canvas.width / image.width, mediaHeight / image.height);
-    const width = image.width * scale;
-    const height = image.height * scale;
-    context.drawImage(image, (canvas.width - width) / 2, (mediaHeight - height) / 2, width, height);
-    context.fillStyle = "#101513";
-    context.fillRect(0, mediaHeight, canvas.width, canvas.height - mediaHeight);
-    context.fillStyle = "#ffffff";
-    context.font = "bold 24px sans-serif";
-    context.textBaseline = "middle";
-    context.fillText(`Shot ${String(position).padStart(2, "0")}`, 18, mediaHeight + 25);
-    const sheet = canvas.toDataURL("image/jpeg", 0.8);
-    if (!sheet.startsWith("data:image/jpeg;base64,") || sheet.length > 3_000_000) {
-      throw new Error("The locked Storyboard image is too large for narration.");
-    }
-    return sheet;
-  } finally {
-    image.close();
-  }
-}
 
 function compact(values: readonly (string | null | undefined)[]) {
   return values.map((value) => value?.trim()).filter(Boolean).join(" · ");
@@ -205,7 +163,7 @@ export default function StoryboardLockedShotHandoff({
     }
   }
 
-  async function generateNarration(panel: PrevisGraphicNovelPanel, artifactUrl: string) {
+  async function generateNarration(panel: PrevisGraphicNovelPanel, shotFacts: Readonly<Record<string, string>>) {
     if (busyPosition !== null) return;
     if (!evidence.passages.length) {
       setNotices((current) => ({ ...current, [panel.position]: "No mapped screenplay passage is available for grounded narration." }));
@@ -222,17 +180,17 @@ export default function StoryboardLockedShotHandoff({
       if (!profileResponse.ok) throw new Error(profileStatus.message || "PlotPickle could not verify the current session.");
       if (!profileStatus.authenticated) throw new Error("Sign in to authorize narration generation.");
       if (!profileStatus.csrfToken) throw new Error("The active Human session proof is missing or expired. Refresh the page or sign in again.");
-      const contactSheet = await oneShotNarrationContactSheet(artifactUrl, panel.position, controller.signal);
       const response = await fetch("/api/previs/narration", {
         method: "POST",
         credentials: "same-origin",
         signal: controller.signal,
         headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": profileStatus.csrfToken },
         body: JSON.stringify({
-          contactSheet,
+          mode: "storyboard-shot",
           storyContext,
           passages: evidence.passages,
           panels: [{ position: panel.position, intention: panel.narration }],
+          shot: shotFacts,
         }),
       });
       const result = await response.json() as {
@@ -304,6 +262,18 @@ export default function StoryboardLockedShotHandoff({
             ]));
             const transitions = compact(productionShots.flatMap((candidate) => [candidate.transitionIn, candidate.transitionOut]));
             const duration = production?.durationSeconds ?? shot?.durationSeconds ?? null;
+            // This same authored evidence is displayed to the Human AND supplied to
+            // text-only narration. Never infer story details from the image pixels.
+            const shotFacts = {
+              story: compact([shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
+              sceneBeat: compact([sceneNumbers.length ? sceneNumbers.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label, progression.direction]),
+              camera,
+              performance,
+              lighting: shot?.lightingIntent ?? "",
+              timing: duration !== null ? `${duration}s authored` : "~3s Storyboard planning target",
+              informationBoundary: directives,
+              continuity: transitions || compact([shot?.transitionIn, shot?.transitionOut]),
+            };
             return (
               <article className={styles.handoffRow} data-storyboard-handoff-shot={position} key={artifact.id}>
                 <div className={styles.handoffIdentity}>
@@ -317,14 +287,14 @@ export default function StoryboardLockedShotHandoff({
                 </div>
 
                 <dl className={styles.handoffFacts}>
-                  <div><dt>Story</dt><dd>{compact([shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]) || "No additional story responsibility authored."}</dd></div>
-                  <div><dt>Scene / Beat</dt><dd>{compact([sceneNumbers.length ? sceneNumbers.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label, progression.direction])}</dd></div>
-                  <div><dt>Camera</dt><dd>{camera || "Not authored"}</dd></div>
-                  <div><dt>Performance / Blocking</dt><dd>{performance || "Not authored"}</dd></div>
-                  <div><dt>Lighting / Look</dt><dd>{shot?.lightingIntent || "Not authored"}</dd></div>
-                  <div><dt>Timing</dt><dd>{duration !== null ? `${duration}s authored` : "~3s Storyboard planning target"}</dd></div>
-                  <div><dt>Information boundary</dt><dd>{directives || "No special reveal/withhold directive"}</dd></div>
-                  <div><dt>Continuity / Handoff</dt><dd>{transitions || compact([shot?.transitionIn, shot?.transitionOut]) || "No authored transition / continuity handoff"}</dd></div>
+                  <div><dt>Story</dt><dd>{shotFacts.story || "No additional story responsibility authored."}</dd></div>
+                  <div><dt>Scene / Beat</dt><dd>{shotFacts.sceneBeat}</dd></div>
+                  <div><dt>Camera</dt><dd>{shotFacts.camera || "Not authored"}</dd></div>
+                  <div><dt>Performance / Blocking</dt><dd>{shotFacts.performance || "Not authored"}</dd></div>
+                  <div><dt>Lighting / Look</dt><dd>{shotFacts.lighting || "Not authored"}</dd></div>
+                  <div><dt>Timing</dt><dd>{shotFacts.timing}</dd></div>
+                  <div><dt>Information boundary</dt><dd>{shotFacts.informationBoundary || "No special reveal/withhold directive"}</dd></div>
+                  <div><dt>Continuity / Handoff</dt><dd>{shotFacts.continuity || "No authored transition / continuity handoff"}</dd></div>
                 </dl>
 
                 <div className={styles.handoffNarration}>
@@ -352,7 +322,7 @@ export default function StoryboardLockedShotHandoff({
                     <button
                       disabled={busyPosition !== null || !evidence.passages.length}
                       type="button"
-                      onClick={() => void generateNarration(panel, artifact.assetUrl)}
+                      onClick={() => void generateNarration(panel, shotFacts)}
                     >
                       {busyPosition === position ? "Creating…" : approvalState.current ? "Regenerate" : "Create Narration"}
                     </button>

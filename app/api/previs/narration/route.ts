@@ -2,7 +2,7 @@ import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { resolveConfiguredAgentExecutionProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
-import { narrationRequest, narrationPrompt, parseNarration } from "../../../../core/media/previs-narration.mjs";
+import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration } from "../../../../core/media/previs-narration.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,23 +26,38 @@ async function handlePost(request: Request) {
     return Response.json({ok:false,code:code || "AUTHORIZATION_REJECTED",message},{status:403});
   }
   let input;
+  let storyboardShot = false;
   try {
     const raw = await request.text();
     if (raw.length > 3_800_000) throw new Error("Narration request is too large.");
-    input = narrationRequest(JSON.parse(raw));
-  } catch {
-    return Response.json({ok:false,message:"Narration needs a mapped script and readable, locked Storyboard images."},{status:400});
+    const value = JSON.parse(raw);
+    storyboardShot = value?.mode === "storyboard-shot";
+    input = storyboardShot ? storyboardNarrationRequest(value) : narrationRequest(value);
+  } catch (error) {
+    return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",message:error instanceof Error ? error.message : "Narration needs the approved screenplay and locked Shot evidence."},{status:400});
   }
   let text;
   try {
     const { profile } = await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality");
-    text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:narrationPrompt(input),image:input.image,signal:request.signal});
+    if (storyboardShot) {
+      // Storyboard is a text-writing task. Do not send the locked image to the model.
+      text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardNarrationPrompt(input),signal:request.signal});
+    } else {
+      // Previs retains the existing, explicitly visual contact-sheet adaptation.
+      text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:narrationPrompt(input),image:input.image,signal:request.signal});
+    }
   } catch {
-    return Response.json({ok:false,message:"The Graphic Novel agent could not read the approved images. Check its image-capable model in Settings, then retry."},{status:502});
+    return Response.json({ok:false,code:storyboardShot?"TEXT_COMPUTE_UNAVAILABLE":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
+      ? "The Graphic Novel writing agent could not use a ready text model. Verify a writing/Agent model under Local or Cloud Settings and retry."
+      : "The Graphic Novel agent could not read the approved images. Check its image-capable model in Settings, then retry."},{status:502});
   }
   try {
-    return Response.json({ok:true,panels:parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
-  } catch { return Response.json({ok:false,message:"The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502}); }
+    return Response.json({ok:true,panels:storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
+  } catch {
+    return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",message:storyboardShot
+      ? "The text model returned narration or dialogue not grounded in this Shot. Retry, or mark the Shot silent."
+      : "The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502});
+  }
 }
 
 export async function POST(request: Request) {

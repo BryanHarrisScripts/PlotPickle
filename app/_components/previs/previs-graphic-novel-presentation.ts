@@ -145,4 +145,3 @@ export function approvedGraphicNovelPanel(
     bubbles: approval.bubbles.map((bubble) => ({ ...bubble, style: "speech" as const })),
   };
 }
-

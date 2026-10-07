@@ -65,7 +65,7 @@ test("#2763/#2776 phase 3 requires explicit Human confirmation before route acti
   assert.match(generation, /Motion generation was cancelled\. Existing Timeline sources remain unchanged/u);
 });
 
-test("#2763/#2776 phase 3 tracks visible job states, retries failures, and never silently substitutes stills in motion mode", async () => {
+test("#2763/#2776 phase 3 tracks visible job states, retries failures, and previews current motion before locked stills", async () => {
   const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
 
   assert.match(workspace, /\/api\/local-ai\/video\/\$\{encodeURIComponent\(current\.id\)\}/u);
@@ -75,7 +75,7 @@ test("#2763/#2776 phase 3 tracks visible job states, retries failures, and never
   assert.match(workspace, /storeMotion\(running\)/u);
   assert.match(workspace, /Retry motion/u);
   assert.match(workspace, /Regenerate motion/u);
-  assert.match(workspace, /Timeline does not silently substitute the still image/u);
-  assert.match(workspace, /Playback: \{playbackMode === "stills" \? "Still images" : "Generated motion"\}/u);
+  assert.match(workspace, /activeMotion\.current\?\.status === "succeeded" && activeMotion\.current\.outputAssetUrl[\s\S]*?<video[\s\S]*?src=\{activeMotion\.current\.outputAssetUrl\}[\s\S]*?: activeImage\?\.assetUrl[\s\S]*?<img/u);
+  assert.match(workspace, /<dt>Media<\/dt><dd>\{playbackMode === "stills" \? "Still images" : "Generated motion"\}/u);
   assert.match(workspace, /selectedMotionSucceeded\}\/25 generated Shots ready/u);
 });

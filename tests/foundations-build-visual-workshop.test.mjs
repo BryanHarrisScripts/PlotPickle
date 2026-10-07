@@ -5,12 +5,13 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Foundations BUILD reuses the existing image provider boundary one frame at a time", async () => {
-  const [workspace, localGateway, routingGateway, mediaCommon, mediaStorage] = await Promise.all([
+  const [workspace, localGateway, routingGateway, mediaCommon, mediaStorage, visualAsset] = await Promise.all([
     read("modules/build/ui/foundations-build-workspace.tsx"),
     read("build/local-ai-gateway.ts"),
     read("build/ai-routing-gateway.ts"),
     read("build/media-provider-common.ts"),
     read("build/media-storage-common.ts"),
+    read("core/media/visual-asset-url.ts"),
   ]);
 
   assert.match(workspace, /fetch\("\/api\/local-ai\/generate\/image"/);
@@ -23,7 +24,8 @@ test("Foundations BUILD reuses the existing image provider boundary one frame at
   assert.match(routingGateway, /generateComfyImage/);
   assert.match(mediaCommon, /saveGeneratedAsset/);
   assert.match(mediaCommon, /from "\.\/media-storage-common"/);
-  assert.match(mediaStorage, /ASSET_PATH = "\/api\/local-ai\/assets\/"/);
+  assert.match(mediaStorage, /ASSET_PATH = LOCAL_GENERATED_VISUAL_ASSET_PREFIX/);
+  assert.match(visualAsset, /LOCAL_GENERATED_VISUAL_ASSET_PREFIX = "\/api\/local-ai\/assets\/"/);
 });
 
 test("Foundations BUILD sends only approved story decisions and cannot rewrite PLAN", async () => {
@@ -43,12 +45,13 @@ test("Foundations BUILD sends only approved story decisions and cannot rewrite P
 });
 
 test("generated artifacts persist as project metadata while image bytes stay in the local asset store", async () => {
-  const [contract, project, reducer, storage, library] = await Promise.all([
+  const [contract, project, reducer, storage, library, visualAsset] = await Promise.all([
     read("core/contracts/build-progress.ts"),
     read("core/project/project.ts"),
     read("core/project/apply-command.ts"),
     read("core/storage/foundation-project-browser.ts"),
     read("core/storage/project-library-core.mjs"),
+    read("core/media/visual-asset-url.ts"),
   ]);
 
   assert.match(contract, /interface FoundationsVisualArtifact/);
@@ -58,8 +61,9 @@ test("generated artifacts persist as project metadata while image bytes stay in 
   assert.match(contract, /readonly sourceDecisionKeys\?: readonly string\[\]/);
   assert.match(project, /normalizeVisualArtifact/);
   assert.match(project, /isSupportedVisualAssetUrl/);
-  assert.match(project, /value\.startsWith\("\/api\/local-ai\/assets\/"\)/);
-  assert.match(project, /value\.startsWith\("\/assets\/library\/examples\/"\)/);
+  assert.match(project, /if \(!isSupportedVisualAssetUrl\(item\.assetUrl\)\) return null/);
+  assert.match(visualAsset, /LOCAL_GENERATED_VISUAL_ASSET_PREFIX = "\/api\/local-ai\/assets\/"/);
+  assert.match(visualAsset, /PACKAGED_EXAMPLE_VISUAL_ASSET_PREFIX = "\/assets\/library\/examples\/"/);
   assert.match(project, /\.slice\(0, 75\)/);
   assert.match(reducer, /case "foundations\.visual\.store"/);
   assert.match(reducer, /visualArtifacts: \[\{ \.\.\.command\.artifact, reviewState:/);

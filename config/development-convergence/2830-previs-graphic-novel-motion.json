@@ -63,7 +63,7 @@
         {
           "type": "file-contains",
           "path": "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
-          "contains": "PREVIS_GRAPHIC_NOVEL_INTERVAL_MS, 3000"
+          "contains": "PREVIS_GRAPHIC_NOVEL_INTERVAL_MS = 3000"
         }
       ]
     },

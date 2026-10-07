@@ -22,12 +22,23 @@ type HydratedPrivateProjectEntry = Readonly<{
   summary?: Readonly<Record<string, unknown>>;
 }>;
 
+export type ProfileRecoveryPoint = Readonly<{
+  id: string;
+  projectId: string;
+  title: string;
+  revision: number;
+  createdAt: string;
+  reason: "unload" | "manual" | "pre-restore";
+  project: LibraryPPFProject;
+}>;
+
 type HydratedPrivateState = {
   readonly project: unknown | null;
   readonly activeProjectId?: string | null;
   readonly projects?: readonly HydratedPrivateProjectEntry[];
   readonly wyrmwood: unknown | null;
   readonly storyMapContexts: unknown | null;
+  readonly recoveryPoints?: unknown;
 };
 
 type ProfilePrivateSaveState = Readonly<{
@@ -37,11 +48,46 @@ type ProfilePrivateSaveState = Readonly<{
 
 const LEGACY_ACTIVE_PROJECT_KEY = "plotpickle.foundation.project.v1";
 const LEGACY_LIBRARY_PREFIX = "plotpickle.library.profile.v1.";
+const PROFILE_RECOVERY_LIMIT = 20;
 export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save-state";
+
+function normalizeRecoveryPoints(value: unknown): readonly ProfileRecoveryPoint[] {
+  if (!Array.isArray(value)) return [];
+  const points: ProfileRecoveryPoint[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const raw = item as Record<string, unknown>;
+    const id = typeof raw.id === "string" ? raw.id.trim().slice(0, 360) : "";
+    const projectId = typeof raw.projectId === "string" ? raw.projectId.trim().slice(0, 240) : "";
+    const title = typeof raw.title === "string" ? raw.title.trim().slice(0, 500) : "";
+    const createdAt = typeof raw.createdAt === "string" ? raw.createdAt.trim().slice(0, 80) : "";
+    const reason = raw.reason === "unload" || raw.reason === "manual" || raw.reason === "pre-restore" ? raw.reason : null;
+    if (!id || !projectId || !title || !createdAt || !reason || !raw.project) continue;
+    try {
+      const project = normalizeLibraryProject(raw.project);
+      if (project.id !== projectId) continue;
+      points.push({
+        id,
+        projectId,
+        title,
+        revision: Number.isInteger(raw.revision) ? Number(raw.revision) : project.revision,
+        createdAt,
+        reason,
+        project,
+      });
+    } catch {
+      // Invalid recovery points remain ignored rather than becoming project authority.
+    }
+  }
+  return points
+    .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, PROFILE_RECOVERY_LIMIT);
+}
 
 let csrfToken = "";
 let hydratedProfileId = "";
-let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapContexts: null };
+let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapContexts: null, recoveryPoints: [] };
 let pendingWrite: Promise<void> = Promise.resolve();
 let pendingCacheWrite: Promise<void> = Promise.resolve();
 let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
@@ -208,6 +254,7 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
     activeProjectId: restored.registry.activeProjectId,
     projects,
     storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
+    recoveryPoints: normalizeRecoveryPoints(next.recoveryPoints),
   };
   hydratedProfileId = profileId;
   updateSaveState("saved", "Saved");
@@ -216,6 +263,38 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
 export function profilePrivateBrowserAuthorityMatches(profileId: string, token: string) {
   const normalizedProfileId = profileId.trim();
   return Boolean(normalizedProfileId && token && hydratedProfileId === normalizedProfileId && csrfToken === token);
+}
+
+export function listProfileRecoveryPoints(projectId = "") {
+  const points = normalizeRecoveryPoints(hydrated.recoveryPoints);
+  const normalizedProjectId = projectId.trim();
+  return normalizedProjectId ? points.filter((point) => point.projectId === normalizedProjectId) : points;
+}
+
+export function profileRecoveryPoint(pointId: string) {
+  const id = pointId.trim();
+  return listProfileRecoveryPoints().find((point) => point.id === id) ?? null;
+}
+
+export function createProfileRecoveryPoint(
+  projectValue: LibraryPPFProject,
+  reason: ProfileRecoveryPoint["reason"] = "manual",
+) {
+  const project = normalizeLibraryProject(structuredClone(projectValue));
+  const createdAt = new Date().toISOString();
+  const idSuffix = globalThis.crypto?.randomUUID?.() ?? String(Date.now());
+  const point: ProfileRecoveryPoint = Object.freeze({
+    id: `${project.id}:${createdAt}:${idSuffix}`,
+    projectId: project.id,
+    title: project.title,
+    revision: project.revision,
+    createdAt,
+    reason,
+    project,
+  });
+  const next = normalizeRecoveryPoints([point, ...listProfileRecoveryPoints()]);
+  hydrated = { ...hydrated, recoveryPoints: next };
+  return queueCacheWrite("save-recovery-points", { value: next }).then(() => point);
 }
 
 export function hydratedProfilePrivateValue(key: "wyrmwood") {
@@ -295,7 +374,7 @@ export async function flushProfilePrivateWrites() {
 export function releaseProfilePrivateBrowserAuthority() {
   csrfToken = "";
   hydratedProfileId = "";
-  hydrated = { project: null, wyrmwood: null, storyMapContexts: null };
+  hydrated = { project: null, wyrmwood: null, storyMapContexts: null, recoveryPoints: [] };
   pendingWrite = Promise.resolve();
   pendingCacheWrite = Promise.resolve();
   saveState = Object.freeze({ state: "saved", message: "Saved" });

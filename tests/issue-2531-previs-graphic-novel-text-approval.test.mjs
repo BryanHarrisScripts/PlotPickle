@@ -58,7 +58,7 @@ test("#2531 explicit No text approval normalizes to a deliberately empty overlay
 test("#2763 replaces manual review with automatic saved presentation snapshots", async () => {
  const workspace = await read("app/_components/previs/previs-readiness-workspace.tsx");
  assert.doesNotMatch(workspace, />Review Text<|>Create WebP<|Approve All/u);
- assert.match(workspace, /saveFoundationProject\(next\)/u);
+ assert.match(workspace, /saveFoundationProjectDurably\(next, base\.revision\)/u);
  assert.match(workspace, /latestSource.current !== source/u);
  assert.match(workspace, /latestProject.current !== project/u);
  assert.match(workspace, /graphicNovelTextApprovals/u);

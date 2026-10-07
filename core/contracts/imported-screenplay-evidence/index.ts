@@ -96,7 +96,7 @@ export type ProjectSourceEvidence = {
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
-  return { screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null };
+  return { screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null, resumeProvenance: null };
 }
 
 function cleanText(value: unknown, limit: number) {

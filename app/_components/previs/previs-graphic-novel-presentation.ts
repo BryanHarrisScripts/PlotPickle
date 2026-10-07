@@ -1,4 +1,4 @@
-import type { PrevisGraphicNovelTextApproval, TimelineMotionShot } from "@/core/contracts/previs";
+import type { PrevisGraphicNovelTextApproval } from "@/core/contracts/previs";
 import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } from "../storyboard/storyboard-editorial-model";
 
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
@@ -146,24 +146,3 @@ export function approvedGraphicNovelPanel(
   };
 }
 
-
-export function currentGraphicNovelMotion(
-  motions: readonly TimelineMotionShot[],
-  anchorRef: string,
-  position: number,
-  sourceArtifactId: string,
-): TimelineMotionShot | null {
-  if (!anchorRef || !sourceArtifactId) return null;
-  return motions
-    .filter((motion) => (
-      motion.anchorRef === anchorRef
-      && motion.shotNumber === position
-      && motion.sourceArtifactId === sourceArtifactId
-      && motion.status === "succeeded"
-      && Boolean(motion.outputAssetUrl)
-    ))
-    .sort((left, right) => (
-      right.updatedAt.localeCompare(left.updatedAt)
-      || right.createdAt.localeCompare(left.createdAt)
-    ))[0] ?? null;
-}

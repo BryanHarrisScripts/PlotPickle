@@ -16,7 +16,7 @@ test("#2471 slows Flip Book playback and adds mutually exclusive Graphic Novel p
   assert.match(workspace, /PREVIS_GRAPHIC_NOVEL_INTERVAL_MS/u);
   assert.ok(!workspace.includes("}, 220)"));
   assert.match(workspace, /Play Flip Book/u);
-  assert.match(workspace, /Play with Narration/u);
+  assert.match(workspace, /Play Graphic Novel/u);
   assert.match(workspace, /setGraphicNovelPlaying\(false\)/u);
   assert.match(workspace, /setFlipBookPlaying\(false\)/u);
 });

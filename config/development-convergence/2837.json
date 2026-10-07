@@ -26,6 +26,7 @@
     "app/script-workspace.tsx",
     "app/settings-panel-legacy.tsx",
     "app/settings-readiness-overview.tsx",
+    "app/settings-sitemap.tsx",
     "app/settings/ai-provider/ai-provider-setup-panel.tsx",
     "app/settings/ai-provider/gemini-provider-setup-panel.tsx",
     "app/settings/compute/cloud-model-catalog-panel.tsx",
@@ -34,6 +35,7 @@
     "app/skin-v1/block-visual-journey-workspace.tsx",
     "app/skin-v1/cloud-provider-setup-panel.tsx",
     "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
     "app/skin-v1/dashboard-readiness-rail.tsx",
     "app/skin-v1/discovery-surface.tsx",
     "app/skin-v1/global-dsdd-conversation.tsx",
@@ -56,6 +58,7 @@
     "app/writing-assistant-console.tsx",
     "build/agent-compute-gateway.ts",
     "build/ai-routing-gateway.ts",
+    "build/ai/comfyui-onboarding-gateway.ts",
     "build/auth/profile-request-context.ts",
     "build/local-credentials.ts",
     "build/local-runtime-gateway.ts",
@@ -74,9 +77,10 @@
     "core/storage/profile-private/profile-private-storage-core.mjs",
     "docs/developer-briefs/2837-profile-compute-settings.md",
     "tests/issue-1255-comfyui-real-machine.test.mjs",
-    "tests/issue-2837-profile-compute-setup.test.mjs",
+    "tests/issue-2320-navigation-ia-convergence.test.mjs",
     "tests/issue-2717-command-gateway.test.mjs",
-    "build/ai/comfyui-onboarding-gateway.ts"
+    "tests/issue-2730-settings-directory-groups.test.mjs",
+    "tests/issue-2837-profile-compute-setup.test.mjs"
   ],
   "acceptance": [
     {
@@ -153,6 +157,27 @@
           "type": "file-contains",
           "path": "tests/issue-2837-profile-compute-setup.test.mjs",
           "contains": "Cloud verification and connection changes must refresh Hybrid without remounting."
+        }
+      ]
+    },
+    {
+      "id": "LEGACY_ROUTING_RETIREMENT",
+      "criterion": "Operations AI Routing no longer competes with Local Cloud Hybrid Settings, and Hybrid displays each locality actual configured versus ready capability coverage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "retires legacy Operations AI Routing and keeps Hybrid sourced from Local and Cloud setup"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/hybrid-story-mode-panel.tsx",
+          "contains": "LOCAL SETUP"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/hybrid-story-mode-panel.tsx",
+          "contains": "CLOUD SETUP"
         }
       ]
     }

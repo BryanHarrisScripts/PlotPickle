@@ -593,6 +593,21 @@
       ]
     },
     {
+      "id": "canonical-project-visual-asset-contract",
+      "classification": "production",
+      "include": [
+        "core/media/visual-asset-url.ts",
+        "core/project/project.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "visual",
+        "security"
+      ]
+    },
+    {
       "id": "story-mode-image-job-routing",
       "classification": "production",
       "include": [
@@ -606,7 +621,8 @@
         "build/media-routing-store.ts",
         "build/media-storage-common.ts",
         "build/provider-url.ts",
-        "lib/runtime/ai/local-runtime.ts"
+        "lib/runtime/ai/local-runtime.ts",
+        "build/ai/h3/comfyui-h3-native-provider.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

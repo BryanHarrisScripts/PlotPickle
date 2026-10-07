@@ -88,7 +88,7 @@ function screenplayDialoguePairs(passages) {
     if (type === 'character') {
       speaker = passage.text.replace(/\s*\([^)]*\)\s*$/u, '').trim();
     } else if ((type === 'dialogue' || type === 'dual-dialogue') && speaker) {
-      pairs.push({ speaker: quotationWords(speaker), text: quotationWords(passage.text) });
+      pairs.push({ speaker: quotationWords(speaker), text: passage.text.replace(/\s+/gu, ' ').trim() });
     } else if (type !== 'parenthetical' && type !== 'dialogue' && type !== 'dual-dialogue') {
       speaker = '';
     }
@@ -106,7 +106,7 @@ export function parseStoryboardNarration(text, input) {
   }
   const dialogue = screenplayDialoguePairs(input.passages);
   for (const bubble of panel.bubbles) {
-    const excerpt = quotationWords(bubble.text);
+    const excerpt = bubble.text.replace(/\s+/gu, ' ').trim();
     if (!excerpt || !dialogue.some(pair => pair.speaker === quotationWords(bubble.speaker) && (' ' + pair.text + ' ').includes(' ' + excerpt + ' '))) {
       throw new Error('A speech bubble must quote actual dialogue by its screenplay speaker.');
     }

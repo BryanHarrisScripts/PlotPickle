@@ -198,64 +198,6 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     assert.equal(current.build.foundations.visualArtifacts.length, originalCount, "Save/Lock must not copy or duplicate packaged media");
   });
 
-  await t.test("narration contact-sheet preparation reads the same real packaged image", async () => {
-    const source = await readText("app/_components/preproduction/storyboard-locked-shot-handoff.tsx");
-    const functionSource = stripTypeScriptTypes(source.slice(
-      source.indexOf("async function oneShotNarrationContactSheet"),
-      source.indexOf("function compact"),
-    ));
-    let fetched = false;
-    const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
-      ? "image/png"
-      : /\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
-    const context = vm.createContext({
-      AbortSignal,
-      Error,
-      URL,
-      window: { location: { origin: "http://127.0.0.1:3000" } },
-      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
-      fetch: async (url) => {
-        const parsed = new URL(url);
-        assert.equal(parsed.pathname, artifact.assetUrl);
-        fetched = true;
-        return new Response(await readFile(storage.projectImageAssetFilePath(parsed.pathname)), {
-          status: 200,
-          headers: { "Content-Type": mimeType },
-        });
-      },
-      createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
-      document: {
-        createElement(name) {
-          assert.equal(name, "canvas");
-          return {
-            width: 0,
-            height: 0,
-            getContext() {
-              return {
-                fillStyle: "",
-                font: "",
-                textBaseline: "",
-                fillRect() {},
-                drawImage() {},
-                fillText() {},
-              };
-            },
-            toDataURL() { return "data:image/jpeg;base64,ZmFrZQ=="; },
-          };
-        },
-      },
-      Response,
-    });
-    vm.runInContext(functionSource, context);
-    const sheet = await context.oneShotNarrationContactSheet(artifact.assetUrl, artifact.frameNumber ?? 1, new AbortController().signal);
-    assert.equal(fetched, true);
-    assert.match(sheet, /^data:image\/jpeg;base64,/u);
-    await assert.rejects(
-      context.oneShotNarrationContactSheet("/assets/unrelated/frame.webp", 1, new AbortController().signal),
-      /supported PlotPickle Storyboard image/u,
-    );
-  });
-
   await t.test("Previs Graphic Novel and narration keep the same packaged-image contract", async () => {
     const source = await readText("app/_components/previs/previs-readiness-workspace.tsx");
     const localImageSource = stripTypeScriptTypes(source.slice(

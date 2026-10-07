@@ -17,7 +17,6 @@ import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/library-project";
 import {
-  buildTimelineShotGenerationPacket,
   resolveTimelineGenerationStrategy,
   serializeTimelineShotGenerationPacket,
   type TimelineGenerationStrategy,
@@ -33,6 +32,10 @@ import {
   buildPrevisGraphicNovelPanel,
   type PrevisGraphicNovelPanel,
 } from "../previs/previs-graphic-novel-presentation";
+import {
+  buildTimelineGenerationPacketForShot,
+  timelineMotionSourceKey,
+} from "./timeline-motion-source";
 import styles from "./timeline-assembly-workspace.module.css";
 
 const SHOTS_PER_MINI_BLOCK = 25;
@@ -189,13 +192,6 @@ function timelineRangeMp4FileName(projectTitle: string, placements: readonly Tim
   return `${slug}-timeline-${range}${withNarration ? "-narrated" : ""}.mp4`;
 }
 
-function motionSourceKey(placement: TimelinePrevisPlacement, packet: TimelineShotGenerationPacket) {
-  return JSON.stringify({
-    placementSourceKey: placement.sourceKey,
-    packetFingerprint: packet.sourceFingerprint,
-  });
-}
-
 async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket): Promise<TimelineMotionRoute> {
   const [routingResponse, mediaResponse] = await Promise.all([
     fetch("/api/ai-routing/status", { credentials: "same-origin", cache: "no-store" }),
@@ -282,79 +278,6 @@ async function activateTimelineMotionRoute(route: TimelineMotionRoute) {
     throw new Error(result.message || `PlotPickle could not activate ${route.label} for this confirmed motion request.`);
   }
 }
-
-function timelineGenerationPacket(project: LibraryPPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
-  const presentation = timelinePresentationFor(project, placement, shotNumber);
-  const evidence = storyboardAnchorEvidence(project, targetIdForBlock(placement.blockNumber), placement.miniBlockNumber);
-  const progression = storyboardPositionProgression(shotNumber);
-  const previous = shotNumber > 1 ? storyboardPositionProgression(shotNumber - 1) : null;
-  const next = shotNumber < SHOTS_PER_MINI_BLOCK ? storyboardPositionProgression(shotNumber + 1) : null;
-  const screenplay = evidence.passages.map((passage) => passage.text).filter(Boolean).join(" ").replace(/\s+/gu, " ").trim().slice(0, 1_800);
-  const characters = timelineCharacterReferences(project, placement);
-  const productionShots = timelineProductionShotsFor(project, placement, shotNumber);
-  const nextPresentation = shotNumber < SHOTS_PER_MINI_BLOCK
-    ? timelinePresentationFor(project, placement, shotNumber + 1)
-    : null;
-  const references = [
-    ...(presentation.artifact?.assetUrl ? [{
-      role: "source-image" as const,
-      id: presentation.artifact.id,
-      assetUrl: presentation.artifact.assetUrl,
-    }] : []),
-    ...(nextPresentation?.artifact?.assetUrl ? [{
-      role: "last-frame" as const,
-      id: nextPresentation.artifact.id,
-      assetUrl: nextPresentation.artifact.assetUrl,
-    }] : []),
-    ...characters.flatMap((character) => character.imageUrls.map((assetUrl, index) => ({
-      role: "character" as const,
-      id: `${character.id}:reference-${index + 1}`,
-      assetUrl,
-    }))),
-  ];
-  return buildTimelineShotGenerationPacket({
-    projectId: project.id,
-    canonicalRevision: project.revision,
-    placementId: placement.id,
-    anchorRef: placement.anchorRef,
-    blockNumber: placement.blockNumber,
-    miniBlockNumber: placement.miniBlockNumber,
-    shotNumber,
-    dramaticResponsibility: evidence.responsibility ?? "",
-    screenplay,
-    progressionLabel: progression.label,
-    progressionDirection: progression.direction,
-    previousShotContext: previous ? `${previous.label}. ${previous.direction}` : "Mini-Block opening boundary.",
-    nextShotContext: next ? `${next.label}. ${next.direction}` : "Mini-Block closing handoff.",
-    narrativeIntention: presentation.artifact?.narrativeIntention ?? "",
-    visualDirection: presentation.artifact?.prompt?.slice(0, 1_200) ?? "",
-    characterFacts: characters.flatMap((character) => [character.name, ...character.facts]),
-    productionDirection: productionShots.flatMap((shot) => [
-      shot.shotSize ? `Framing: ${shot.shotSize}` : "",
-      shot.angle ? `Angle: ${shot.angle}` : "",
-      shot.lens ? `Lens: ${shot.lens}` : "",
-      shot.movement ? `Movement: ${shot.movement}` : "",
-      shot.blockingIntent ? `Blocking: ${shot.blockingIntent}` : "",
-      shot.performanceEnergy ? `Performance: ${shot.performanceEnergy}` : "",
-      shot.pacingIntent ? `Pacing: ${shot.pacingIntent}` : "",
-      shot.transitionIn ? `Transition in: ${shot.transitionIn}` : "",
-      shot.transitionOut ? `Transition out: ${shot.transitionOut}` : "",
-    ].filter(Boolean)),
-    continuityLocks: characters.flatMap((character) => [
-      `Preserve character identity: ${character.name}`,
-      ...character.facts,
-    ]),
-    references,
-    sourceRefs: [
-      placement.id,
-      placement.anchorRef,
-      ...(presentation.artifact ? [presentation.artifact.id] : []),
-      ...characters.map((character) => character.id),
-      ...productionShots.map((shot) => shot.id),
-    ],
-  });
-}
-
 
 function derivePrevisSources(project: PPFProject): readonly TimelinePrevisSource[] {
   const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -556,8 +479,8 @@ export default function TimelineAssemblyWorkspace({
   const activeImage = activePresentation?.artifact ?? null;
   const motionShots = project.production.timelineMotionShots ?? [];
   const motionFor = (placement: TimelinePrevisPlacement, shotNumber: number) => {
-    const packet = timelineGenerationPacket(project, placement, shotNumber);
-    const sourceKey = motionSourceKey(placement, packet);
+    const packet = buildTimelineGenerationPacketForShot(project, placement, shotNumber);
+    const sourceKey = timelineMotionSourceKey(placement, packet);
     const latest = motionShots.find((motion) => motion.placementId === placement.id && motion.shotNumber === shotNumber) ?? null;
     return {
       latest,
@@ -809,11 +732,11 @@ export default function TimelineAssemblyWorkspace({
 
   async function generateMotionShot(shotNumber: number) {
     if (!selectedPlacement || generatingShotNumber !== null) return;
-    const packet = timelineGenerationPacket(project, selectedPlacement, shotNumber);
+    const packet = buildTimelineGenerationPacketForShot(project, selectedPlacement, shotNumber);
     const sourceImage = packet.references.find((reference) => reference.role === "source-image") ?? null;
     const now = new Date().toISOString();
     const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
-    const sourceKey = motionSourceKey(selectedPlacement, packet);
+    const sourceKey = timelineMotionSourceKey(selectedPlacement, packet);
 
     setGeneratingShotNumber(shotNumber);
     setGeneratingMotionStage("PREFLIGHT");
@@ -1334,7 +1257,7 @@ export default function TimelineAssemblyWorkspace({
             {selectedPlacement ? Array.from({ length: SHOTS_PER_MINI_BLOCK }, (_, index) => index + 1).map((shotNumber) => {
               const presentation = timelinePresentationFor(project, selectedPlacement, shotNumber);
               const progression = storyboardPositionProgression(shotNumber);
-              const generationPacket = timelineGenerationPacket(project, selectedPlacement, shotNumber);
+              const generationPacket = buildTimelineGenerationPacketForShot(project, selectedPlacement, shotNumber);
               const state = motionFor(selectedPlacement, shotNumber);
               const current = state.current;
               const working = generatingShotNumber === shotNumber;

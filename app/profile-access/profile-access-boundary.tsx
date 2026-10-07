@@ -255,7 +255,8 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
         persistAutonomousGuestLibrary();
         return;
       }
-      if (screen === "ready") void persistActiveProfileProject().catch(() => undefined);
+      // Human persistence is owned by the hydrated profile store, including
+      // Matrix surfaces which do not mount this legacy access boundary.
     };
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
@@ -264,7 +265,11 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (screen !== "ready" && screen !== "autonomous-guest") return;
     const heartbeat = window.setInterval(() => {
       void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" })
-        .then((result) => result.json() as Promise<Status>)
+        .then(async (result) => {
+          const body = await result.json() as Status & { message?: string };
+          if (!result.ok) throw new Error(body.message || "PlotPickle could not verify the current session.");
+          return body;
+        })
         .then((next) => {
           if (screen === "autonomous-guest") {
             if (next.autonomousGuest?.active && next.autonomousGuest.workspaceId === autonomousGuest?.workspaceId) {

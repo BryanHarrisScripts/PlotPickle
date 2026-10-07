@@ -50,7 +50,9 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(build, /\["--check", workerPath\]/);
   assert.match(build, /hasDefaultExport/);
   assert.match(build, /hasFetchShape/);
-  assert.match(build, /await import\(workerUrl\.href\)/);
+  assert.match(build, /await import\("esbuild"\)/);
+  assert.match(build, /external: \["cloudflare:\*", "node:\*"\]/);
+  assert.doesNotMatch(build, /await import\(workerUrl\.href\)/);
 });
 
 test("issue #106 executes npm.cmd and spaced native commands while rejecting arbitrary batch wrappers", { skip: process.platform !== "win32" }, async () => {

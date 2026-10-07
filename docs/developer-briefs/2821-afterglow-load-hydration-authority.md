@@ -461,3 +461,10 @@ This audit is a prerequisite to declaring the persistence problem resolved. Reta
 ## Phase 1 initial code observations
 
 Repository inspection confirms foundation-project-browser.ts aliases its save/load operations to project-library-browser.ts, establishing at least one shared Save route. profile-private-browser.ts uses a queued encrypted write path and clears all sessionStorage during hydration; its callers and effects require investigation. GET /api/auth/profile catches all inner authorization/readiness failures and can report authenticated=false without exposing the actual cause. These are investigation targets, not confirmed causes of Bryan's live failures. Local git transport in this execution environment currently lacks authentication; API repository inspection remains available. No local build or runtime reproduction has been performed yet.
+
+
+## Phase 2 causal repair handoff
+
+See [Phase 2 causal repair and evidence](2821-phase2-save-session-repair.md) for confirmed session/CSRF, Matrix encrypted persistence, acknowledged Save/Lock and failure-preservation mechanisms, plus explicit limits on the Phase 1 guard characterization. The repository now has a complete local checkout and executable behavioral/rendered evidence; the earlier transport limitation is historical.
+
+Final Human output: a playable three-second Shot 1 movie with graphic novel narration bubbles, without spoken narration audio, retained after reopening. Bryan reconfirmed bubbles only during Phase 2. Engineering fixes do not replace his Phase 5 acceptance.

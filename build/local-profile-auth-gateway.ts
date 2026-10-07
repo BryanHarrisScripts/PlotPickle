@@ -5,6 +5,7 @@ import { GET as profilePresentationGet, POST as profilePresentationPost } from "
 import { GET as profilePrivateGet, POST as profilePrivatePost } from "../app/api/auth/profile-private/route";
 import { POST as profileBackupPost } from "../app/api/auth/profile-backup/route";
 import { GET as outlineTasksGet, POST as outlineTasksPost } from "../app/api/outline/tasks/route";
+import { POST as narrationPost } from "../app/api/previs/narration/route";
 
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
@@ -26,6 +27,12 @@ type RouteContract = Readonly<{
 }>;
 
 const ROUTES = new Map<string, RouteContract>([
+  // Narration must use the same live session/vault as local login, not the
+  // separate RSC module graph. Keep the route's mutation/CSRF checks intact.
+  ["/api/previs/narration", Object.freeze({
+    maximumBodyBytes: 3_800_000,
+    handlers: Object.freeze({ POST: narrationPost }),
+  })],
   // Durable task authorization must share the login runtime and its live vault
   // capabilities. The RSC module graph has a separate auth runtime in local dev.
   ["/api/outline/tasks", Object.freeze({

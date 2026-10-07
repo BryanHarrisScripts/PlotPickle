@@ -4,6 +4,23 @@ import {
   loadFoundationProject,
   saveFoundationProject,
 } from "../foundation-project-browser";
+import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../project-library-browser";
+import { flushProfilePrivateWrites, persistActiveProfileProject } from "../profile-private-browser";
+
+/** Preserve a current Human decision and acknowledge its encrypted backing write. */
+export async function saveFoundationProjectDurably(project: PPFProject, expectedRevision: number) {
+  const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
+  const current = loadFoundationProject();
+  if (current.id !== project.id) throw new Error("The active PlotPickle story changed before this decision could be saved.");
+  if (current.revision !== expectedRevision) throw new RevisionConflictError(project.id, expectedRevision, current.revision);
+  const saved = saveFoundationProject(project);
+  await persistActiveProfileProject();
+  await flushProfilePrivateWrites();
+  const latest = loadFoundationProject();
+  if (window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId) throw new Error("The Human profile changed while this decision was being persisted.");
+  if (latest.id !== saved.id) throw new Error("The active PlotPickle story changed while this decision was being persisted.");
+  return latest;
+}
 
 /**
  * Save one already-reviewed canonical PPF mutation only if the active profile

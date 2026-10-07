@@ -67,7 +67,7 @@ test("browser launch follows required readiness while optional companion mainten
   assert.ok(required >= 0 && report > required && mastra > report && skills > mastra);
   assert.ok(complete > skills && compatibilityReport > complete && watcher > compatibilityReport && deferredStart > watcher && server > deferredStart);
   assert.match(launcher, /echo !READY! Required PlotPickle dependencies are loaded and verified/);
-  assert.match(launcher, /echo !READY! Optional companion inventory is deferred until after local server readiness/);
+  assert.match(launcher, /echo !READY! OpenPencil MCP\/CLI\/GUI preparation and optional companion inventory are deferred until after local server readiness/);
   assert.doesNotMatch(launcher, /-File "%COMPANION_MANAGER%" -Mode Maintain/);
   assert.match(deferred, /Test-PlotPickleReady/);
   assert.match(deferred, /-Mode Report -NoPrompt/);

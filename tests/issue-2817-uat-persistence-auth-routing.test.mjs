@@ -10,7 +10,7 @@ test("#2817 Storyboard Save writes against the latest persisted project", async 
   assert.match(source, /current\.build\.foundations\.visualArtifacts\.find/u);
   assert.match(source, /STORYBOARD_LOCAL_SAVE_MARKER/u);
   assert.match(source, /applyStoryCommand\(current/u);
-  assert.match(source, /saveFoundationProject\(next\)/u);
+  assert.match(source, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
 });
 
 test("#2817 Previs narration sends the authenticated Human CSRF proof", async () => {

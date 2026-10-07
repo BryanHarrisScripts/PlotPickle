@@ -121,8 +121,8 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
     const before = await readRawProfileStatus();
     if (!before.authenticated || !before.csrfToken) return safeSnapshot(before);
 
-    await persistActiveProfileProject().catch(() => undefined);
-    await flushProfilePrivateWrites().catch(() => undefined);
+    await persistActiveProfileProject();
+    await flushProfilePrivateWrites();
     await json<Readonly<{ ok: boolean }>>(await fetch("/api/auth/profile", {
       method: "POST",
       credentials: "same-origin",

@@ -2145,6 +2145,54 @@
         ]
       },
       "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret → Pi Draft → Publish Brief → GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
+    },
+    {
+      "id": "story-canon.save-session-continuity-2821",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "api",
+        "security",
+        "storage",
+        "surface",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2821-save-session-continuity.test.mjs",
+          "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
+          "tests/issue-2819-storyboard-idempotent-save.test.mjs",
+          "tests/issue-2821-build-artifact.test.mjs",
+          "tests/issue-2817-uat-persistence-auth-routing.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "Real local HTTP authentication, CSRF rejection, encrypted Save/Lock/Unlock persistence, failed-write retry and hydration authority regression for #2821. No provider inference or private Human data."
     }
   ]
 }

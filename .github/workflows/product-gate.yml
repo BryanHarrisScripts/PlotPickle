@@ -292,6 +292,14 @@ jobs:
       - name: Prove empty persistent runtime install is Git-free
         shell: pwsh
         run: node tests/issue-2789-windows-cold-runtime.mjs
+      - name: Prove Save, Lock and session continuity on Windows
+        shell: pwsh
+        run: node --test tests/issue-2821-save-session-continuity.test.mjs tests/issue-2821-afterglow-load-hydration-authority.test.mjs tests/issue-2819-storyboard-idempotent-save.test.mjs
+      - name: Render Storyboard Save, Lock, retry and reopen
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/developer-diagnostics/2821-save-session-product-proof.mjs
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build
@@ -303,6 +311,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-cold-runtime-${{ github.run_id }}
-          path: .artifacts/runtime-2789/windows-cold-runtime.json
+          path: |
+            .artifacts/runtime-2789/windows-cold-runtime.json
+            .artifacts/2821-save-session/proof.json
+            .artifacts/2821-save-session/*.png
           if-no-files-found: warn
           retention-days: 5

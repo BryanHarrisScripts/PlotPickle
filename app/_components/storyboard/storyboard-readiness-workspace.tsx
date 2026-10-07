@@ -9,6 +9,8 @@ import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screen
 import { approvedWorldMapCharacterReferences } from "@/core/contracts/world-map";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { getProfilePrivateSaveState, PROFILE_PRIVATE_SAVE_STATE_EVENT } from "@/core/storage/profile-private-browser";
+import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { sequenceDirectorAnchorRef } from "@/core/contracts/sequence-director";
@@ -110,6 +112,15 @@ export default function StoryboardReadinessWorkspace({
   const [generationScope, setGenerationScope] = useState<StoryboardGenerationScope>("group5");
   const [frameConsent, setFrameConsent] = useState(false);
   const [frameBusy, setFrameBusy] = useState(false);
+  const frameMutation = useRef(false);
+  const [frameSaving, setFrameSaving] = useState(false);
+  const [privateSaveState, setPrivateSaveState] = useState(getProfilePrivateSaveState);
+  useEffect(() => {
+    const refresh = () => setPrivateSaveState(getProfilePrivateSaveState());
+    refresh();
+    window.addEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, refresh);
+    return () => window.removeEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, refresh);
+  }, []);
   const [frameNotice, setFrameNotice] = useState("");
   const [pendingDeleteArtifactId, setPendingDeleteArtifactId] = useState<string | null>(null);
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
@@ -148,87 +159,80 @@ export default function StoryboardReadinessWorkspace({
     && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
   );
 
-  function saveFrameVersion(artifact: FoundationsVisualArtifact) {
-    if (qaOnlyAccess || !storyboardAccessible || frameBusy) return;
-    if (!artifact.assetUrl.startsWith("/api/local-ai/assets/")) {
-      setFrameNotice("Only PlotPickle local Storyboard images can be explicitly saved.");
-      return;
-    }
-
-    // Save against the latest persisted project, not the render-time snapshot.
-    // This prevents a rapid Unlock → Save sequence from restoring stale lock
-    // state or losing the durable local-save marker.
-    const current = loadFoundationProject();
-    if (current.id !== project.id) {
-      setFrameNotice("The active story changed before this Storyboard Image could be saved.");
-      return;
-    }
-    const currentArtifact = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
-    if (!currentArtifact || currentArtifact.reviewState === "rejected") {
-      setFrameNotice("This Storyboard Image is no longer available to save.");
-      return;
-    }
-
-    if (storyboardArtifactSavedLocally(currentArtifact)) {
-      setSelectedImageByPosition((values) => ({
-        ...values,
-        [`${selectedNumber}.${selectedMiniBlockNumber}.${currentArtifact.frameNumber ?? artifact.frameNumber ?? 0}`]: currentArtifact.id,
+  async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
+    if (frameMutation.current || frameBusy) return;
+    if (qaOnlyAccess) { setFrameNotice("This QA preview cannot save story decisions."); return; }
+    frameMutation.current = true;
+    setFrameSaving(true);
+    setFrameNotice("Saving Storyboard Image…");
+    try {
+      const current = loadFoundationProject();
+      if (current.id !== project.id) throw new Error("The active story changed before this Storyboard Image could be saved.");
+      const currentArtifact = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+      if (!currentArtifact || currentArtifact.reviewState === "rejected") throw new Error("This Storyboard Image is no longer available to save.");
+      if (!currentArtifact.assetUrl.startsWith("/api/local-ai/assets/")) throw new Error("Only PlotPickle local Storyboard images can be explicitly saved.");
+      const savedArtifact: FoundationsVisualArtifact = {
+        ...currentArtifact,
+        sourceDecisionKeys: [...new Set([...(currentArtifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
+      };
+      // Saving an existing local image does not require generation readiness.
+      // Even an existing marker must receive a durable acknowledgement on retry.
+      const next = storyboardArtifactSavedLocally(currentArtifact) ? current : applyStoryCommand(current, {
+        type: "foundations.visual.store", artifact: savedArtifact, occurredAt: new Date().toISOString(),
+      });
+      const saved = await saveFoundationProjectDurably(next, current.revision);
+      onProjectChange(saved);
+      setSelectedImageByPosition((values) => ({ ...values,
+        [`${selectedNumber}.${selectedMiniBlockNumber}.${savedArtifact.frameNumber ?? 0}`]: savedArtifact.id,
       }));
-      onProjectChange(current);
-      setFrameNotice(`Shot ${String(currentArtifact.frameNumber ?? 0).padStart(2, "0")} of 25 already saved locally with this story.`);
-      return;
+      setFrameNotice(`Shot ${String(savedArtifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
+    } catch (error) {
+      setFrameNotice(`Save failed: ${error instanceof Error ? error.message : "The story could not be persisted."} Retry Save to retain this image.`);
+    } finally {
+      frameMutation.current = false;
+      setFrameSaving(false);
     }
-
-    const now = new Date().toISOString();
-    const savedArtifact: FoundationsVisualArtifact = {
-      // Keep the established explicit-save contract while letting the latest
-      // persisted artifact win over any stale render-time fields.
-      ...artifact,
-      ...currentArtifact,
-      sourceDecisionKeys: [...new Set([...(currentArtifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
-    };
-    const next = applyStoryCommand(current, {
-      type: "foundations.visual.store",
-      artifact: savedArtifact,
-      occurredAt: now,
-    });
-    saveFoundationProject(next);
-    onProjectChange(next);
-    setSelectedImageByPosition((values) => ({
-      ...values,
-      [`${selectedNumber}.${selectedMiniBlockNumber}.${savedArtifact.frameNumber ?? artifact.frameNumber ?? 0}`]: savedArtifact.id,
-    }));
-    setFrameNotice(`Shot ${String(savedArtifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
   }
 
-  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "unaccept" | "delete") {
-    if (qaOnlyAccess || !storyboardAccessible) return;
-    const now = new Date().toISOString();
-    let next: PPFProject = project;
-    if (decision === "accept") {
-      for (const previous of frameArtifacts.filter((candidate) =>
-        candidate.id !== artifact.id && candidate.frameNumber === artifact.frameNumber
-        && project.build.foundations.acceptedVisualArtifactIds.includes(candidate.id))) {
-        next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: previous.id, occurredAt: now });
+  async function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "unaccept" | "delete") {
+    if (frameMutation.current || frameBusy) return;
+    if (qaOnlyAccess) { setFrameNotice("This QA preview cannot change story approval."); return; }
+    frameMutation.current = true;
+    setFrameSaving(true);
+    setFrameNotice("Saving Storyboard decision…");
+    try {
+      const current = loadFoundationProject();
+      if (current.id !== project.id) throw new Error("The active story changed before this decision could be saved.");
+      const currentArtifact = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+      if (!currentArtifact) throw new Error("This Storyboard Image is no longer available.");
+      const now = new Date().toISOString();
+      let next: PPFProject = current;
+      if (decision === "accept") {
+        const scope = `storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`;
+        for (const previous of current.build.foundations.visualArtifacts.filter((candidate) =>
+          candidate.id !== artifact.id && candidate.frameNumber === currentArtifact.frameNumber
+          && (candidate.sourceDecisionKeys ?? []).includes(scope)
+          && current.build.foundations.acceptedVisualArtifactIds.includes(candidate.id))) {
+          next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: previous.id, occurredAt: now });
+        }
       }
+      next = applyStoryCommand(next, {
+        type: decision === "accept" ? "foundations.visual.accept" : decision === "unaccept" ? "foundations.visual.unaccept" : "foundations.visual.delete",
+        artifactId: artifact.id, occurredAt: now,
+      });
+      const saved = await saveFoundationProjectDurably(next, current.revision);
+      onProjectChange(saved);
+      if (decision === "delete") {
+        setSelectedImageByPosition((values) => ({ ...values, [`${selectedNumber}.${selectedMiniBlockNumber}.${artifact.frameNumber}`]: "" }));
+        setPendingDeleteArtifactId(null);
+      }
+      setFrameNotice(`Shot ${String(artifact.frameNumber).padStart(2, "0")} of 25 ${decision === "accept" ? "kept and locked" : decision === "unaccept" ? "unlocked" : "deleted"}.`);
+    } catch (error) {
+      setFrameNotice(`Decision not confirmed: ${error instanceof Error ? error.message : "The story could not be persisted."} Retry to save this decision.`);
+    } finally {
+      frameMutation.current = false;
+      setFrameSaving(false);
     }
-    next = applyStoryCommand(next, {
-      type: decision === "accept"
-        ? "foundations.visual.accept"
-        : decision === "unaccept"
-          ? "foundations.visual.unaccept"
-          : "foundations.visual.delete",
-      artifactId: artifact.id,
-      occurredAt: now,
-    });
-    saveFoundationProject(next);
-    onProjectChange(next);
-    if (decision === "delete") {
-      const key = `${selectedNumber}.${selectedMiniBlockNumber}.${artifact.frameNumber}`;
-      setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
-      setPendingDeleteArtifactId(null);
-    }
-    setFrameNotice(`Shot ${String(artifact.frameNumber).padStart(2, "0")} of 25 ${decision === "accept" ? "kept and locked" : decision === "unaccept" ? "unlocked" : "deleted"}.`);
   }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
@@ -655,7 +659,7 @@ export default function StoryboardReadinessWorkspace({
                   const selectedImageIndex = positionImages.findIndex((image) => image.id === selectedImageId);
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
-                  const savedLocally = Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact));
+                  const savedLocally = Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact) && privateSaveState.state === "saved");
                   const reviewState = accepted ? "locked" : savedLocally ? "saved" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
                   const reviewLabel = accepted
                     ? savedLocally ? "Locked · Saved locally" : "Locked · Save confirmation pending"
@@ -708,15 +712,15 @@ export default function StoryboardReadinessWorkspace({
                       <div className={styles.frameReview} aria-label={`Review Storyboard Image for Shot ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
                         <button
-                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving}
                           type="button"
-                          onClick={() => selectedArtifact && saveFrameVersion(selectedArtifact)}
-                        >Save</button>
+                          onClick={() => selectedArtifact && void saveFrameVersion(selectedArtifact)}
+                        >{frameSaving ? "Saving…" : "Save"}</button>
                         <button
                           aria-pressed={accepted}
-                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving}
                           type="button"
-                          onClick={() => selectedArtifact && reviewFrame(selectedArtifact, accepted ? "unaccept" : "accept")}
+                          onClick={() => selectedArtifact && void reviewFrame(selectedArtifact, accepted ? "unaccept" : "accept")}
                         >{accepted ? "Unlock" : "Lock"}</button>
                         <button
                           disabled={!selectedImage || frameBusy}
@@ -724,14 +728,14 @@ export default function StoryboardReadinessWorkspace({
                           onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}
                         >Redo</button>
                         <button
-                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving}
                           type="button"
                           onClick={() => selectedArtifact && setPendingDeleteArtifactId(selectedArtifact.id)}
                         >Delete</button>
                         {selectedArtifact && pendingDeleteArtifactId === selectedArtifact.id ? (
                           <>
                             <span role="alert">Delete this version forever? This cannot be undone.</span>
-                            <button type="button" onClick={() => reviewFrame(selectedArtifact, "delete")}>Yes</button>
+                            <button type="button" disabled={frameSaving} onClick={() => void reviewFrame(selectedArtifact, "delete")}>Yes</button>
                             <button type="button" onClick={() => setPendingDeleteArtifactId(null)}>No</button>
                           </>
                         ) : null}

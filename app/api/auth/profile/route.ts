@@ -44,19 +44,25 @@ export async function GET(request: Request) {
     const boundary = runtimeState.boundaryFor(origin);
     const publicStatus = runtimeState.auth.getAuthStatus();
     const readiness = boundary.readiness();
+    if (!readiness.ready) return response({ code: "SERVER_NOT_READY", message: "PlotPickle cannot verify the session while the server boundary is unavailable.", serverReady: false, readinessReasons: readiness.reasons }, 503);
     const autonomousGuest = getAutonomousGuestAuthority(origin, runtimeState.accessMode);
     let profile: ProfileSummary | null = null;
     let csrfToken = null;
     let authContext = null;
     let sessions: ReadonlyArray<BrowserSessionSummary> = [];
     try {
-      if (!readiness.ready) throw new Error("The server exposure boundary is not ready.");
       authContext = (await boundary.authorizeRequest(requestBoundary(request))).authContext;
       profile = runtimeState.auth.getAuthStatus(authContext).profile as ProfileSummary;
       csrfToken = runtimeState.auth.createBrowserSession(authContext).csrfToken;
       sessions = await boundary.listSessions(requestBoundary(request));
-    } catch {
-      // An absent, expired or revoked cookie is the normal locked Human state.
+    } catch (error) {
+      const detail = publicProfileApiError(error);
+      // Only confirmed session rejection means signed out. Transient boundary
+      // failures must not instruct clients to discard private workspace state.
+      if (detail.code !== "SESSION_REJECTED") return response(detail, 503);
+      authContext = null;
+      profile = null;
+      csrfToken = null;
     }
     const result: ProfileExperienceStatus & { readonly autonomousGuest: ReturnType<typeof getAutonomousGuestAuthority> } = {
       configured: publicStatus.configured === true,
@@ -72,7 +78,7 @@ export async function GET(request: Request) {
     };
     return response(result);
   } catch (error) {
-    return errorResponse(error);
+    return response(publicProfileApiError(error), 503);
   }
 }
 

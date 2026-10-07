@@ -90,18 +90,25 @@ function emptyStore(): MediaRoutingStore {
   };
 }
 
-function isProfile(value: unknown): value is MediaProfile {
-  if (!value || typeof value !== "object") return false;
+function normalizeProfile(value: unknown, provider: CloudMediaProvider): MediaProfile | null {
+  if (!value || typeof value !== "object") return null;
   const item = value as Partial<MediaProfile>;
-  return (item.provider === "openai" || item.provider === "minimax")
-    && typeof item.baseUrl === "string"
-    && typeof item.imageModel === "string"
-    && typeof item.videoModel === "string"
-    && typeof item.apiKey === "string"
-    && typeof item.configuredAt === "string"
-    && typeof item.imageVerifiedAt === "string"
-    && typeof item.videoVerifiedAt === "string"
-    && typeof item.lastError === "string";
+  if (item.provider !== provider
+    || typeof item.baseUrl !== "string"
+    || typeof item.imageModel !== "string"
+    || typeof item.videoModel !== "string"
+    || typeof item.apiKey !== "string") return null;
+  return {
+    provider,
+    baseUrl: item.baseUrl,
+    imageModel: item.imageModel,
+    videoModel: item.videoModel,
+    apiKey: item.apiKey,
+    configuredAt: typeof item.configuredAt === "string" ? item.configuredAt : "",
+    imageVerifiedAt: typeof item.imageVerifiedAt === "string" ? item.imageVerifiedAt : "",
+    videoVerifiedAt: typeof item.videoVerifiedAt === "string" ? item.videoVerifiedAt : "",
+    lastError: typeof item.lastError === "string" ? item.lastError : "",
+  };
 }
 
 function normalizeStore(value: unknown): MediaRoutingStore {
@@ -110,8 +117,10 @@ function normalizeStore(value: unknown): MediaRoutingStore {
   const item = value as Partial<MediaRoutingStore>;
   const comfy = item.comfyui && typeof item.comfyui === "object" ? item.comfyui : fallback.comfyui;
   const profiles: MediaRoutingStore["profiles"] = {};
-  if (isProfile(item.profiles?.openai)) profiles.openai = item.profiles.openai;
-  if (isProfile(item.profiles?.minimax)) profiles.minimax = item.profiles.minimax;
+  const openai = normalizeProfile(item.profiles?.openai, "openai");
+  const minimax = normalizeProfile(item.profiles?.minimax, "minimax");
+  if (openai) profiles.openai = openai;
+  if (minimax) profiles.minimax = minimax;
   return {
     version: 1,
     imageRoute: imageRoutes.includes(item.imageRoute as ImageRoute) ? item.imageRoute as ImageRoute : fallback.imageRoute,

@@ -153,7 +153,7 @@ test("#2603 does not manufacture missing Afterglow domains merely to make Blank 
   ]) assert.ok(candidatePaths.has(path), `missing Phase 1 migration candidate ${path}`);
 });
 
-test("#2603 local-resource restore remains additive and separate from the packaged Example", async () => {
+test("#2603/#2823 local-media resume remains bounded and separate from the packaged Example", async () => {
   const [workspace, recovery] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/local-resource-recovery.ts"),
@@ -164,6 +164,8 @@ test("#2603 local-resource restore remains additive and separate from the packag
   assert.match(workspace, /restoreLocalStoryboardResources/u);
   assert.match(workspace, /restoreLocalWorldMapPosterResources/u);
   assert.match(workspace, /restoreLocalWorldMapCharacterResources/u);
-  assert.match(workspace, /Local media restore is additive/u);
+  assert.match(workspace, /Local media matching is automatic and deterministic/u);
+  assert.match(workspace, /expected\.has\(resource\.assetUrl\)/u);
+  assert.doesNotMatch(workspace, />Select All<\/button>|requires your explicit selection/u);
   assert.doesNotMatch(recovery, /data:image\//iu);
 });

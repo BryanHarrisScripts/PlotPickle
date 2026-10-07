@@ -171,6 +171,9 @@ export default function StoryboardReadinessWorkspace({
 
     const now = new Date().toISOString();
     const savedArtifact: FoundationsVisualArtifact = {
+      // Keep the established explicit-save contract while letting the latest
+      // persisted artifact win over any stale render-time fields.
+      ...artifact,
       ...currentArtifact,
       sourceDecisionKeys: [...new Set([...(currentArtifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
     };

@@ -218,8 +218,10 @@ test("#2821 narration says Sign in only for a rejected Human session, not every 
 test("#2821 Storyboard action feedback is visible even when the generation prompt is closed", async () => {
   const storyboard = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
 
-  const noticeAt = storyboard.indexOf('{frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}');
-  const promptAt = storyboard.indexOf("{promptPosition !== null", noticeAt);
-  assert.ok(noticeAt >= 0, "Storyboard must render Save/recovery feedback outside the prompt panel");
-  assert.ok(promptAt > noticeAt, "persistent Storyboard feedback must be rendered before the optional prompt panel");
+  const shotNoticeAt = storyboard.indexOf("frameNoticePosition === position && frameNotice");
+  const fallbackNoticeAt = storyboard.indexOf("frameNoticePosition === null && frameNotice");
+  const promptAt = storyboard.indexOf("{promptPosition !== null");
+  assert.ok(shotNoticeAt >= 0, "Storyboard must render Save/Lock feedback beside the affected Shot");
+  assert.ok(fallbackNoticeAt > shotNoticeAt, "Storyboard must retain non-Shot recovery feedback outside the prompt panel");
+  assert.ok(promptAt > fallbackNoticeAt, "Storyboard feedback must remain visible before the optional generation prompt");
 });

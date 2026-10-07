@@ -292,6 +292,10 @@ export default function SettingsReviewSystemPanel({
                 <div><dt>Legacy backup retention</dt><dd>{storage.backupLimit} restore points</dd></div>
               </dl>
               <div>
+                <h4>Legacy disk project files</h4>
+                {projects.length ? <ul className={styles.dataList}>{projects.slice(0, 12).map((project) => <li key={project.fileName}><strong>{project.title || project.fileName}</strong><span>{displayDate(project.updatedAt)} · {formatBytes(project.bytes)} · {project.integrityValid ? "Integrity verified" : "Needs review"}</span></li>)}</ul> : <p className={styles.empty}>No legacy local-project files were reported.</p>}
+              </div>
+              <div>
                 <h4>Legacy disk recovery inventory</h4>
                 <p>These older local-project files remain visible for migration/review but are not automatically merged into the profile Library.</p>
                 {backups.length ? <ul className={styles.dataList}>{backups.slice(0, 12).map((backup) => <li key={backup.fileName}><strong>{backup.title || backup.fileName}</strong><span>{displayDate(backup.createdAt)} · {formatBytes(backup.bytes)}</span></li>)}</ul> : <p className={styles.empty}>No legacy rolling restore points were reported.</p>}

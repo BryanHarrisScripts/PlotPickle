@@ -193,6 +193,43 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
         /supported PlotPickle Storyboard image/u,
       );
     });
+
+    await t.test("Previs Graphic Novel and narration keep the same packaged-image contract", async () => {
+      const source = await readText("app/_components/previs/previs-readiness-workspace.tsx");
+      const localImageSource = stripTypeScriptTypes(source.slice(
+        source.indexOf("async function localImage"),
+        source.indexOf("function drawCover"),
+      ));
+      let fetched = false;
+      const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
+        ? "image/png"
+        : /\\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
+      const context = vm.createContext({
+        URL,
+        window: { location: { origin: "http://127.0.0.1:3000" } },
+        isSupportedVisualAssetUrl: runtime.isSupportedVisualAssetUrl,
+        fetch: async (url) => {
+          const parsed = new URL(url);
+          assert.equal(parsed.pathname, artifact.assetUrl);
+          fetched = true;
+          return new Response(await readFile(runtime.projectImageAssetFilePath(parsed.pathname)), {
+            status: 200,
+            headers: { "Content-Type": mimeType },
+          });
+        },
+        createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
+        Response,
+      });
+      vm.runInContext(localImageSource, context);
+      const image = await context.localImage(artifact.assetUrl);
+      assert.equal(fetched, true);
+      assert.equal(image.width, 1280);
+      const contactSheetStart = source.indexOf("async function lockedImageContactSheet");
+      const contactSheetEnd = source.indexOf("export default function PrevisReadinessWorkspace", contactSheetStart);
+      const contactSheetSource = source.slice(contactSheetStart, contactSheetEnd);
+      assert.match(contactSheetSource, /isSupportedVisualAssetUrl\\(url\\.pathname\\)/u);
+      assert.doesNotMatch(contactSheetSource, /pathname\\.startsWith\\("\\/api\\/local-ai\\/assets\\/"\\)/u);
+    });
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }

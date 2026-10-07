@@ -12,7 +12,7 @@ test("#2763 removes the Previs WebP action but retains the legacy static rendere
   ]);
 
   assert.doesNotMatch(workspace, />Create WebP|Export HTML|Export Animated WebP</u);
-  assert.match(workspace, /Play with Narration/u);
+  assert.match(workspace, /Play Graphic Novel/u);
   assert.doesNotMatch(workspace, /Export Animated WebP|Export HTML/u);
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.match(route, /"Content-Type": "image\/webp"/u);
@@ -85,7 +85,7 @@ test("#2497 preserves Graphic Novel presentation-only authority", async () => {
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
   ]);
 
-  assert.match(workspace, /production: \{ \.\.\.project\.production, graphicNovelTextApprovals:/u);
+  assert.match(workspace, /production: \{ \.\.\.base\.production, graphicNovelTextApprovals:/u);\n  assert.match(workspace, /saveFoundationProjectDurably\(next, base\.revision\)/u);
   assert.doesNotMatch(workspace, /applyStoryCommand|acceptedVisualArtifactIds\s*=/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.match(presentation, /input\.authoritative \? graphicNovelSpeechBubbles/u);

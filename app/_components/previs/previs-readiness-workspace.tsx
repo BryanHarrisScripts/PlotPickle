@@ -24,10 +24,10 @@ import {
   PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
   approvedGraphicNovelPanel,
   buildPrevisGraphicNovelPanel,
-  currentGraphicNovelMotion,
   graphicNovelTextSourceKey,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
+import { currentTimelineMotionForStoryboardShot } from "../timeline/timeline-motion-source";
 import styles from "./previs-readiness-workspace.module.css";
 
 const PANEL_WIDTH = 720;
@@ -454,8 +454,8 @@ export default function PrevisReadinessWorkspace({
     || selectedGraphicNovelDisplayPanel.shotContext
     || selectedGraphicNovelDisplayPanel.bubbles.length,
   );
-  const selectedGraphicNovelMotion = currentGraphicNovelMotion(
-    project.production.timelineMotionShots ?? [],
+  const selectedGraphicNovelMotion = currentTimelineMotionForStoryboardShot(
+    project,
     selectedAddressAnchor?.id ?? "",
     selectedFramePosition,
     selectedFlipBookFrame.locked?.id ?? "",

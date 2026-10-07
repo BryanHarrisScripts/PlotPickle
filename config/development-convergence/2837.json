@@ -76,6 +76,7 @@
     "core/storage/profile-private/profile-compute-settings.mjs",
     "core/storage/profile-private/profile-private-storage-core.mjs",
     "docs/developer-briefs/2837-profile-compute-settings.md",
+    "lib/verification/webmcp-surface-visual-audit.mjs",
     "tests/issue-1255-comfyui-real-machine.test.mjs",
     "tests/issue-2320-navigation-ia-convergence.test.mjs",
     "tests/issue-2717-command-gateway.test.mjs",
@@ -178,6 +179,11 @@
           "type": "file-contains",
           "path": "app/skin-v1/hybrid-story-mode-panel.tsx",
           "contains": "CLOUD SETUP"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+          "contains": "settingsRows.length === 10 && settingsRows.every((item) => item.connected)"
         }
       ]
     }

@@ -58,7 +58,7 @@ test("#1255 local image readiness requires real ComfyUI nodes checkpoint a retur
   assert.match(provider, /return \{ assetUrl, assetLocation,/);
   assert.match(panel, /const comfyConfigured = status\.comfyui\.reachable && status\.comfyui\.imageNodesReady && Boolean\(status\.comfyui\.checkpoint\)/);
   assert.match(panel, /const comfyReady = comfyConfigured && Boolean\(status\.comfyui\.imageVerifiedAt\)/);
-  assert.match(routing, /const comfyImageReady = Boolean\(comfyImageConfigured && comfy\.imageNodesReady && media\.comfyui\.imageVerifiedAt\)/);
+  assert.match(routing, /const comfyImageReady = computeReadiness\(\{ configured: comfyImageConfigured && comfy\.imageNodesReady, available: comfy\.reachable, verifiedAt: media\.comfyui\.imageVerifiedAt, error: media\.comfyui\.lastError \}\)\.ready/);
   assert.match(routing, /const ollamaImageReady = Boolean\(ollama\?\.assistantVerifiedAt && comfyImageReady\)/);
 });
 

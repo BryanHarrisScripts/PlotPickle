@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import type { PlotPickleProject } from "@/lib/projects/project";

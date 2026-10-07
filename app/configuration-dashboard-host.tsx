@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ConfigurationDashboardOverview from "./configuration-dashboard-overview";

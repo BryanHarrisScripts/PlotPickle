@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OPENAI_VIDEO_SUNSET, providerPresets } from "../../lib/runtime/ai/providers";
 
@@ -18,6 +20,8 @@ type MediaProfile = {
   baseUrl?: string;
   imageModel?: string;
   videoModel?: string;
+  imageReady?: boolean;
+  videoReady?: boolean;
   imageVerifiedAt?: string;
   videoVerifiedAt?: string;
   lastError?: string;
@@ -399,8 +403,8 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
 
       <div style={{ ...grid, marginTop: "var(--pp-skin-space-4)" }}>
         <article style={{ padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}><strong>WRITING</strong><p style={{ color: "var(--pp-skin-ink-soft)" }}>{writing.ready ? `Ready · ${formatDate(writing.verifiedAt)}` : writing.configured ? "Authority saved · test required" : "Authority required"}</p></article>
-        <article style={{ padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}><strong>IMAGES</strong><p style={{ color: "var(--pp-skin-ink-soft)" }}>{media.imageVerifiedAt ? `Ready · ${formatDate(media.imageVerifiedAt)}` : media.configured ? "Authority saved · test required" : "Authority required"}</p></article>
-        <article style={{ padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}><strong>VIDEO</strong><p style={{ color: "var(--pp-skin-ink-soft)" }}>{media.videoVerifiedAt ? `Ready · ${formatDate(media.videoVerifiedAt)}` : media.configured ? provider === "openai" ? `Not tested here · OpenAI video API sunset ${OPENAI_VIDEO_SUNSET}` : "Authority saved · test required" : "Authority required"}</p></article>
+        <article style={{ padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}><strong>IMAGES</strong><p style={{ color: "var(--pp-skin-ink-soft)" }}>{media.imageReady ? `Ready · ${formatDate(media.imageVerifiedAt)}` : media.configured ? "Authority saved · test required" : "Authority required"}</p></article>
+        <article style={{ padding: "var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)" }}><strong>VIDEO</strong><p style={{ color: "var(--pp-skin-ink-soft)" }}>{media.videoReady ? `Ready · ${formatDate(media.videoVerifiedAt)}` : media.configured ? provider === "openai" ? `Not tested here · OpenAI video API sunset ${OPENAI_VIDEO_SUNSET}` : "Authority saved · test required" : "Authority required"}</p></article>
       </div>
 
       <label style={{ ...field, marginTop: "var(--pp-skin-space-4)", gridTemplateColumns: "auto 1fr", alignItems: "center" }}><input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.target.checked)} /><span>I understand provider tests use my account and may incur provider charges.</span></label>

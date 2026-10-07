@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import { providerPresets } from "@/lib/runtime/ai/providers";

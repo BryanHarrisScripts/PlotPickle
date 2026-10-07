@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- Timeline previews canonical local Storyboard/Previs assets. */
 
 import { useEffect, useMemo, useRef, useState } from "react";

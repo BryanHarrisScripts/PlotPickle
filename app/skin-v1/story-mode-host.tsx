@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LocalAiSkinHost from "./local-ai-skin-host";

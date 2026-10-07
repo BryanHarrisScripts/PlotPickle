@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./hybrid-story-mode-panel.module.css";
 

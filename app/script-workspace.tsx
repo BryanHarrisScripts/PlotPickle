@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { KeyboardEvent, useMemo, useState } from "react";
 import type {
   PlotPickleProject,

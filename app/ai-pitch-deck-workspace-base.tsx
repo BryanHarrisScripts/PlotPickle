@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- Comic panels are local generated assets stored outside the application bundle. */
 
 import { useEffect, useMemo, useRef, useState } from "react";

@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "issue": 2837,
+  "brief": "docs/developer-briefs/2837-profile-compute-settings.md",
+  "allowedChanges": [
+    "app/_components/agent-shortcut-picker.tsx",
+    "app/_components/community/community-agent-roster.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/agent-observability-panel.tsx",
+    "app/ai-pitch-deck-workspace-base.tsx",
+    "app/ai-routing-panel.tsx",
+    "app/api/cloud-story-mode/provider/route.ts",
+    "app/api/previs/narration/route.ts",
+    "app/character-image-generator.tsx",
+    "app/compute-hub-dashboard.tsx",
+    "app/configuration-dashboard-host.tsx",
+    "app/h3-native-panel.tsx",
+    "app/learn-three-column-shell.tsx",
+    "app/local-ai-readiness-summary.tsx",
+    "app/local-runtime-panel.tsx",
+    "app/media-routing-panel.tsx",
+    "app/profile-access/profile-identity-panel.tsx",
+    "app/review-workflows-panel.tsx",
+    "app/sage-fast-model-setup.tsx",
+    "app/script-workspace.tsx",
+    "app/settings-panel-legacy.tsx",
+    "app/settings-readiness-overview.tsx",
+    "app/settings/ai-provider/ai-provider-setup-panel.tsx",
+    "app/settings/ai-provider/gemini-provider-setup-panel.tsx",
+    "app/settings/compute/cloud-model-catalog-panel.tsx",
+    "app/settings/compute/local-model-catalog-panel.tsx",
+    "app/skin-v1-runtime.tsx",
+    "app/skin-v1/block-visual-journey-workspace.tsx",
+    "app/skin-v1/cloud-provider-setup-panel.tsx",
+    "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/dashboard-readiness-rail.tsx",
+    "app/skin-v1/discovery-surface.tsx",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "app/skin-v1/hybrid-story-mode-panel.tsx",
+    "app/skin-v1/local-ai-skin-host.tsx",
+    "app/skin-v1/local-comfyui-panel.tsx",
+    "app/skin-v1/local-h3-setup-panel.tsx",
+    "app/skin-v1/local-ltx-setup-panel.tsx",
+    "app/skin-v1/local-video-panel.tsx",
+    "app/skin-v1/outline-block-anchor-workspace.tsx",
+    "app/skin-v1/outline-mini-block-anchor-workspace.tsx",
+    "app/skin-v1/plotpickle-agents-host.tsx",
+    "app/skin-v1/story-mode-host.tsx",
+    "app/skin-v1/uat-guide-panel.tsx",
+    "app/specialist-labs.tsx",
+    "app/treatment-editor.tsx",
+    "app/use-cast-identity-queue.ts",
+    "app/use-graphic-novel-queue.ts",
+    "app/visual-storyboard.tsx",
+    "app/writing-assistant-console.tsx",
+    "build/agent-compute-gateway.ts",
+    "build/ai-routing-gateway.ts",
+    "build/auth/profile-request-context.ts",
+    "build/local-credentials.ts",
+    "build/local-runtime-gateway.ts",
+    "build/media-routing-gateway.ts",
+    "build/media-routing-store.ts",
+    "build/projects/outline-task-gateway.ts",
+    "build/writing-assistant-gateway.ts",
+    "build/writing-assistant-store.ts",
+    "config/ai-source-registry.json",
+    "config/development-convergence/2837.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/auth/profile-request-browser.ts",
+    "core/contracts/compute-readiness.mjs",
+    "core/storage/profile-private/profile-compute-settings.mjs",
+    "core/storage/profile-private/profile-private-storage-core.mjs",
+    "docs/developer-briefs/2837-profile-compute-settings.md",
+    "tests/issue-1255-comfyui-real-machine.test.mjs",
+    "tests/issue-2837-profile-compute-setup.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "ACCOUNT",
+      "criterion": "Compute keys and defaults are isolated by authenticated profile.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "Another account must not inherit cloud authority."
+        }
+      ]
+    },
+    {
+      "id": "RESTART",
+      "criterion": "Encrypted saved setup survives restart without paid tests.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "Restart and profile hydration repeat no paid request."
+        }
+      ]
+    },
+    {
+      "id": "CONCURRENT",
+      "criterion": "Independent simultaneous section saves retain all sections.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "parallel save lost"
+        }
+      ]
+    },
+    {
+      "id": "FAILURE",
+      "criterion": "Failed image retest invalidates image proof while retaining video proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "assert.equal(worker.publicMediaProfile(media.profiles.openai).videoReady, true)"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY",
+      "criterion": "Missing profile and session CSRF proof fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "Compute mutations require the active session CSRF proof."
+        }
+      ]
+    },
+    {
+      "id": "STATUS",
+      "criterion": "Settings consumes the execution readiness contract.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "routing\\?\\.image"
+        }
+      ]
+    }
+  ]
+}

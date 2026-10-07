@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useState } from "react";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./media-routing-panel.module.css";

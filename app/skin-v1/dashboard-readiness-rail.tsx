@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useState } from "react";
 import styles from "./dashboard-readiness-rail.module.css";
 

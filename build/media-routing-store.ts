@@ -1,3 +1,5 @@
+import { cloudMediaReadiness } from "../core/contracts/compute-readiness.mjs";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 import { createHash } from "node:crypto";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 
@@ -195,7 +197,7 @@ export async function readMediaRoutingStore() {
       changed = true;
     }
   }
-  if (changed) await writeMediaRoutingStore(next);
+  if (changed && currentProfileRequestContext()) await writeMediaRoutingStore(next);
   return next;
 }
 
@@ -207,7 +209,9 @@ export async function writeMediaRoutingStore(value: MediaRoutingStore) {
 
 export function publicMediaProfile(value: MediaProfile | undefined) {
   return value ? {
-    configured: true,
+    configured: cloudMediaReadiness(value, "image").configured || cloudMediaReadiness(value, "video").configured,
+    imageReady: cloudMediaReadiness(value, "image").ready,
+    videoReady: cloudMediaReadiness(value, "video").ready,
     provider: value.provider,
     baseUrl: value.baseUrl,
     imageModel: value.imageModel,

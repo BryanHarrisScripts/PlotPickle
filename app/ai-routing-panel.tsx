@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useState } from "react";
 import { AI_SOURCE_GROUPS, AI_SOURCE_OPTION_LABELS, type AiSourceCapability } from "../lib/runtime/ai/source-registry";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
@@ -21,7 +23,7 @@ type OptionState = {
 
 type RoutingStatus = {
   choice: {
-    text: "ollama" | "openai" | "gemini" | "minimax" | "off";
+    text: "local" | "ollama" | "openai" | "gemini" | "minimax" | "off";
     image: "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
     video: "comfyui-native" | "minimax" | "openai" | "off";
   };

@@ -3,11 +3,21 @@ import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "node:
 import type { Plugin } from "vite";
 import { getAutonomousGuestAuthority, type AutonomousGuestAuthority } from "../../core/auth/autonomous-guest/guest-authority";
 import type { AuthContext } from "../../core/auth/plotpickle-auth";
-import { getProfileExperienceRuntime } from "../../core/auth/profile-experience/profile-experience-runtime";
+import { getProfileExperienceRuntime, requestBoundary } from "../../core/auth/profile-experience/profile-experience-runtime";
 import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
 
 const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-buzz",
+  "/api/writing-assistant",
+  "/api/local-ai/plugins",
+  "/api/media-routing",
+  "/api/ai-routing",
+  "/api/ai-model-catalog",
+  "/api/provider-diagnostics",
+  "/api/local-ai/connection",
+  "/api/local-ai/generate",
+  "/api/story-mode",
+  "/api/local-ai/video",
   "/api/story-workflow/buzz-bridge",
   "/api/story-decisions",
   "/api/dsdd",
@@ -112,7 +122,9 @@ export function profileScopedBuzzRequestContext(): Plugin {
         if (!rawUrl) { next(); return; }
         let url: URL;
         try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
-        if (!requiresProfileScope(url.pathname)) { next(); return; }
+        const optionalRuntimeRead = (url.pathname.startsWith("/api/local-ai/runtime") || url.pathname.startsWith("/api/local-ai/plugins")) && request.method === "GET"
+          || url.pathname === "/api/local-ai/runtime/readiness/startup" && request.method === "POST";
+        if (!requiresProfileScope(url.pathname) && !url.pathname.startsWith("/api/local-ai/runtime")) { next(); return; }
 
         void (async () => {
           const origin = requestOrigin(request);
@@ -134,8 +146,16 @@ export function profileScopedBuzzRequestContext(): Plugin {
             profileId,
             privateStorage: runtime.privateStorage,
           }), next);
-        })().catch((error) => sendRejected(response, error));
+        })().catch((error) => { if (optionalRuntimeRead) next(); else sendRejected(response, error); });
       });
     },
   };
+}
+
+export async function withAuthenticatedProfileRequest<T>(request: Request, callback: () => Promise<T>): Promise<T> {
+  const state = await getProfileExperienceRuntime();
+  const { authContext } = await state.boundaryFor(new URL(request.url).origin).authorizeRequest(requestBoundary(request), { mutation: !["GET", "HEAD", "OPTIONS"].includes(request.method) });
+  const profileId = state.auth.getAuthStatus(authContext).profile?.profileId;
+  if (!profileId) throw new Error("Unlock a PlotPickle profile before using compute setup.");
+  return profileRequestScope.run(Object.freeze({ authContext, profileId, privateStorage: state.privateStorage }), callback);
 }

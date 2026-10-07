@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PlotPickleSettings } from "@/lib/runtime/ai/settings";
 import type { ConnectionState, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/integrations/connection-status";

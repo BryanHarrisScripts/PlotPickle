@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AgentPortrait from "../../../components/agent-portrait";
 import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";

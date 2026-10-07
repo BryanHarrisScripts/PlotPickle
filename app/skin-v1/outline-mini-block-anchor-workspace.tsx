@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- Outline reuses PlotPickle local/bundled Storyboard assets. */
 
 import { useEffect, useMemo, useRef, useState } from "react";

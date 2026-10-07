@@ -2242,6 +2242,49 @@
         ]
       },
       "notes": "Uses the committed Afterglow packaged snapshot, manifest and Storyboard bytes to prove safe packaged-image resolution through Save, narration and provider/video reference preparation. No inference, provider network call, paid generation or private Human data."
+    },
+    {
+      "id": "story-canon.profile-compute-setup-2837",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "api",
+        "security",
+        "storage",
+        "provider"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2837-profile-compute-setup.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "#2837 real profile vault, cloud-authority route and HTTP image failure proof; synthetic provider only, no paid cloud usage. Restart, simultaneous section saves, encrypted keys, per-profile defaults and readiness invalidation."
     }
   ]
 }

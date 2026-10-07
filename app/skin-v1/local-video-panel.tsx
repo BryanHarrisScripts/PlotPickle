@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { useEffect, useState } from "react";
 
 const VIDEO_PLUGIN_API = "/api/local-ai/plugins/video";

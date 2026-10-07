@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import GeminiProviderSetupPanel from "../settings/ai-provider/gemini-provider-setup-panel";
 import CloudProviderSetupPanel from "./cloud-provider-setup-panel";

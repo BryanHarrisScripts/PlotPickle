@@ -479,7 +479,10 @@ export default function PrevisReadinessWorkspace({
         signal: controller.signal,
       });
       const profileStatus = await profileResponse.json() as { authenticated?: boolean; csrfToken?: string; message?: string };
-      if (!profileResponse.ok || !profileStatus.authenticated) {
+      if (!profileResponse.ok) {
+        throw new Error(profileStatus.message || "PlotPickle could not verify the current Human session for narration. Retry after the active story finishes loading.");
+      }
+      if (!profileStatus.authenticated) {
         throw new Error(profileStatus.message || "Sign in to authorize narration generation.");
       }
       if (!profileStatus.csrfToken) {

@@ -1,236 +1,294 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import vm from "node:vm";
 import test from "node:test";
-import { build } from "esbuild";
 
 const readText = (file) => readFile(path.resolve(file), "utf8");
 
-async function runtimeFixture() {
-  const temporary = await mkdtemp(path.resolve("node_modules/.2828-packaged-media-"));
-  const output = path.join(temporary, "fixture.mjs");
-  await build({
-    stdin: {
-      contents: [
-        'export { normalizeFoundationProject } from "./core/project/project.ts";',
-        'export { applyStoryCommand } from "./core/project/apply-command.ts";',
-        'export { isSupportedVisualAssetUrl, supportedVisualAssetKind } from "./core/media/visual-asset-url.ts";',
-        'export { projectImageAssetFilePath } from "./build/media-storage-common.ts";',
-        'export { videoSourceReference } from "./build/media-provider-common.ts";',
-      ].join("\n"),
-      resolveDir: process.cwd(),
-      loader: "ts",
+function executableVisualContract(source) {
+  const stripped = stripTypeScriptTypes(source).replace(/\bexport\s+/gu, "");
+  return vm.runInNewContext(
+    stripped + "\n({ isSupportedVisualAssetUrl, supportedVisualAssetKind, LOCAL_GENERATED_VISUAL_ASSET_PREFIX, PACKAGED_EXAMPLE_VISUAL_ASSET_PREFIX })",
+  );
+}
+
+function executableMediaStorage(source, visual) {
+  const start = source.indexOf("export function assetsDirectory");
+  assert.ok(start >= 0);
+  const executable = stripTypeScriptTypes(source.slice(start)).replace(/\bexport\s+/gu, "");
+  return vm.runInNewContext(
+    executable + "\n({ projectImageAssetFilePath, localImageAssetFilePath })",
+    {
+      path,
+      process,
+      persistentHome: () => path.resolve(".artifacts/2828-local-assets"),
+      ASSET_PATH: visual.LOCAL_GENERATED_VISUAL_ASSET_PREFIX,
+      PACKAGED_EXAMPLE_ASSET_PATH: visual.PACKAGED_EXAMPLE_VISUAL_ASSET_PREFIX,
+      supportedVisualAssetKind: visual.supportedVisualAssetKind,
+      Error,
     },
-    bundle: true,
-    platform: "node",
-    format: "esm",
-    packages: "external",
-    outfile: output,
-    logLevel: "silent",
-  });
-  return { temporary, runtime: await import(pathToFileURL(output).href) };
+  );
+}
+
+function executableVideoSourceReference(source, visual, storage) {
+  const start = source.indexOf("export async function videoSourceReference");
+  assert.ok(start >= 0);
+  const executable = stripTypeScriptTypes(source.slice(start)).replace(/\bexport\s+/gu, "");
+  return vm.runInNewContext(
+    executable + "\nvideoSourceReference",
+    {
+      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
+      projectImageAssetFilePath: storage.projectImageAssetFilePath,
+      readFile,
+      path,
+      URL,
+      Error,
+    },
+  );
+}
+
+function storyboardCommand(project, command) {
+  const artifacts = [...project.build.foundations.visualArtifacts];
+  let accepted = [...project.build.foundations.acceptedVisualArtifactIds];
+  if (command.type === "foundations.visual.store") {
+    const index = artifacts.findIndex((item) => item.id === command.artifact.id);
+    if (index >= 0) artifacts[index] = command.artifact;
+    else artifacts.push(command.artifact);
+  } else if (command.type === "foundations.visual.accept") {
+    const index = artifacts.findIndex((item) => item.id === command.artifactId);
+    assert.ok(index >= 0);
+    artifacts[index] = { ...artifacts[index], reviewState: "accepted" };
+    accepted = [...new Set([...accepted, command.artifactId])];
+  } else if (command.type === "foundations.visual.unaccept") {
+    const index = artifacts.findIndex((item) => item.id === command.artifactId);
+    assert.ok(index >= 0);
+    artifacts[index] = { ...artifacts[index], reviewState: "draft" };
+    accepted = accepted.filter((id) => id !== command.artifactId);
+  } else if (command.type === "foundations.visual.delete") {
+    const index = artifacts.findIndex((item) => item.id === command.artifactId);
+    if (index >= 0) artifacts.splice(index, 1);
+    accepted = accepted.filter((id) => id !== command.artifactId);
+  } else {
+    throw new Error("Unexpected Storyboard command in #2828 fixture.");
+  }
+  return {
+    ...project,
+    revision: project.revision + 1,
+    updatedAt: command.occurredAt,
+    build: {
+      ...project.build,
+      foundations: {
+        ...project.build.foundations,
+        visualArtifacts: artifacts,
+        acceptedVisualArtifactIds: accepted,
+      },
+    },
+  };
 }
 
 test("#2828 real packaged Afterglow Storyboard media satisfies Save narration and media input contracts", async (t) => {
-  const { temporary, runtime } = await runtimeFixture();
-  try {
-    const manifest = JSON.parse(await readText("data/afterglow-packaged-current/manifest.json"));
-    const snapshot = JSON.parse(await readText("data/afterglow-packaged-current/snapshot.json"));
-    const manifestStoryboardUrls = new Set(
-      (manifest.assets ?? [])
-        .map((item) => item?.publicUrl)
-        .filter((value) => typeof value === "string" && value.includes("/storyboard-")),
+  const [manifest, snapshot, visualSource, projectSource, storageSource, mediaCommonSource] = await Promise.all([
+    readText("data/afterglow-packaged-current/manifest.json").then(JSON.parse),
+    readText("data/afterglow-packaged-current/snapshot.json").then(JSON.parse),
+    readText("core/media/visual-asset-url.ts"),
+    readText("core/project/project.ts"),
+    readText("build/media-storage-common.ts"),
+    readText("build/media-provider-common.ts"),
+  ]);
+  const visual = executableVisualContract(visualSource);
+  const storage = executableMediaStorage(storageSource, visual);
+  const videoSourceReference = executableVideoSourceReference(mediaCommonSource, visual, storage);
+  const manifestStoryboardUrls = new Set(
+    (manifest.assets ?? [])
+      .map((item) => item?.publicUrl)
+      .filter((value) => typeof value === "string" && value.includes("/storyboard-")),
+  );
+  assert.ok(manifestStoryboardUrls.size > 0, "the committed Afterglow package must include Storyboard media");
+
+  const artifact = (snapshot.build?.foundations?.visualArtifacts ?? []).find((candidate) => (
+    candidate.workflow === "storyboard-frame-webp-v2"
+    && candidate.reviewState !== "rejected"
+    && manifestStoryboardUrls.has(candidate.assetUrl)
+  ));
+  assert.ok(artifact, "the committed Afterglow snapshot must reference a committed Storyboard image from its manifest");
+  assert.equal(visual.supportedVisualAssetKind(artifact.assetUrl), "packaged-example");
+  assert.equal(visual.isSupportedVisualAssetUrl(artifact.assetUrl), true);
+  assert.equal(visual.isSupportedVisualAssetUrl("/api/local-ai/assets/current-human-frame.webp"), true);
+  assert.equal(visual.isSupportedVisualAssetUrl("/assets/unrelated/frame.webp"), false);
+  assert.match(projectSource, /if \(!isSupportedVisualAssetUrl\(item\.assetUrl\)\) return null;/u);
+
+  await t.test("the real committed image resolves inside the packaged root and is a valid video/reference source", async () => {
+    const filePath = storage.projectImageAssetFilePath(artifact.assetUrl);
+    const root = path.resolve("public/assets/library/examples");
+    assert.ok(filePath.startsWith(root + path.sep));
+    const bytes = await readFile(filePath);
+    assert.ok(bytes.length > 0);
+    const reference = await videoSourceReference(artifact.assetUrl);
+    assert.match(reference, /^data:image\/(?:png|jpeg|webp);base64,/u);
+    assert.throws(
+      () => storage.projectImageAssetFilePath("/assets/library/examples/../package.json"),
+      /unsafe PlotPickle image asset path/u,
     );
-    assert.ok(manifestStoryboardUrls.size > 0, "the committed Afterglow package must include Storyboard media");
+    assert.throws(
+      () => storage.projectImageAssetFilePath("/assets/library/examples/%2e%2e/package.json"),
+      /unsafe PlotPickle image asset path/u,
+    );
+  });
 
-    const project = runtime.normalizeFoundationProject(snapshot);
-    const artifact = project.build.foundations.visualArtifacts.find((candidate) => (
-      candidate.workflow === "storyboard-frame-webp-v2"
-      && candidate.reviewState !== "rejected"
-      && manifestStoryboardUrls.has(candidate.assetUrl)
+  await t.test("the actual Storyboard Save and Lock handlers retain packaged media without duplicating it", async () => {
+    const anchorKey = (artifact.sourceDecisionKeys ?? []).find((key) => /^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(key));
+    assert.ok(anchorKey);
+    const anchorMatch = /^storyboard-anchor:block:block-(\d{2}):mini-([1-4])$/u.exec(anchorKey);
+    assert.ok(anchorMatch);
+    const selectedNumber = Number(anchorMatch[1]);
+    const selectedMiniBlockNumber = Number(anchorMatch[2]);
+    let current = snapshot;
+    const notices = [];
+    const component = await readText("app/_components/storyboard/storyboard-readiness-workspace.tsx");
+    const handlers = stripTypeScriptTypes(component.slice(
+      component.search(/  (?:async )?function saveFrameVersion\(/u),
+      component.indexOf("  const normalizedSourceEvidence"),
     ));
-    assert.ok(artifact, "the committed Afterglow snapshot must reference a committed Storyboard image from its manifest");
-    assert.equal(runtime.supportedVisualAssetKind(artifact.assetUrl), "packaged-example");
-    assert.equal(runtime.isSupportedVisualAssetUrl(artifact.assetUrl), true);
-    assert.equal(runtime.isSupportedVisualAssetUrl("/api/local-ai/assets/current-human-frame.webp"), true);
-    assert.equal(runtime.isSupportedVisualAssetUrl("/assets/unrelated/frame.webp"), false);
-
-    await t.test("the real committed image resolves inside the packaged root and is a valid video/reference source", async () => {
-      const filePath = runtime.projectImageAssetFilePath(artifact.assetUrl);
-      const root = path.resolve("public/assets/library/examples");
-      assert.ok(filePath.startsWith(root + path.sep));
-      const bytes = await readFile(filePath);
-      assert.ok(bytes.length > 0);
-      const reference = await runtime.videoSourceReference(artifact.assetUrl);
-      assert.match(reference, /^data:image\/(?:png|jpeg|webp);base64,/u);
-      assert.throws(
-        () => runtime.projectImageAssetFilePath("/assets/library/examples/../package.json"),
-        /unsafe PlotPickle image asset path/u,
-      );
-      assert.throws(
-        () => runtime.projectImageAssetFilePath("/assets/library/examples/%2e%2e/package.json"),
-        /unsafe PlotPickle image asset path/u,
-      );
+    const context = vm.createContext({
+      Error,
+      project: snapshot,
+      qaOnlyAccess: false,
+      frameBusy: false,
+      frameMutation: { current: false },
+      selectedNumber,
+      selectedMiniBlockNumber,
+      STORYBOARD_LOCAL_SAVE_MARKER: "storyboard-local-save:v1",
+      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
+      storyboardArtifactSavedLocally: (item) => visual.isSupportedVisualAssetUrl(item.assetUrl)
+        && (item.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"),
+      loadFoundationProject: () => current,
+      applyStoryCommand: storyboardCommand,
+      saveFoundationProjectDurably: async (next, expectedRevision) => {
+        assert.equal(current.revision, expectedRevision);
+        current = next;
+        return next;
+      },
+      setFrameSaving() {},
+      setFrameNotice(value) { notices.push(value); },
+      setFrameNoticePosition() {},
+      setSelectedImageByPosition() {},
+      setPendingDeleteArtifactId() {},
+      onProjectChange() {},
     });
+    vm.runInContext(handlers, context);
 
-    await t.test("the actual Storyboard Save and Lock handlers retain packaged media without duplicating it", async () => {
-      const anchorKey = (artifact.sourceDecisionKeys ?? []).find((key) => /^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(key));
-      assert.ok(anchorKey);
-      const anchorMatch = /^storyboard-anchor:block:block-(\d{2}):mini-([1-4])$/u.exec(anchorKey);
-      assert.ok(anchorMatch);
-      const selectedNumber = Number(anchorMatch[1]);
-      const selectedMiniBlockNumber = Number(anchorMatch[2]);
-      let current = project;
-      const notices = [];
-      const component = await readText("app/_components/storyboard/storyboard-readiness-workspace.tsx");
-      const handlers = stripTypeScriptTypes(component.slice(
-        component.search(/  (?:async )?function saveFrameVersion\(/u),
-        component.indexOf("  const normalizedSourceEvidence"),
-      ));
-      const context = vm.createContext({
-        Error,
-        project,
-        qaOnlyAccess: false,
-        frameBusy: false,
-        frameMutation: { current: false },
-        selectedNumber,
-        selectedMiniBlockNumber,
-        STORYBOARD_LOCAL_SAVE_MARKER: "storyboard-local-save:v1",
-        isSupportedVisualAssetUrl: runtime.isSupportedVisualAssetUrl,
-        storyboardArtifactSavedLocally: (item) => runtime.isSupportedVisualAssetUrl(item.assetUrl)
-          && (item.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"),
-        loadFoundationProject: () => current,
-        applyStoryCommand: runtime.applyStoryCommand,
-        saveFoundationProjectDurably: async (next, expectedRevision) => {
-          assert.equal(current.revision, expectedRevision);
-          current = next;
-          return next;
+    const originalCount = current.build.foundations.visualArtifacts.length;
+    await context.saveFrameVersion(artifact);
+    let saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+    assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
+    assert.match(notices.at(-1), /saved locally with this story/u);
+
+    await context.reviewFrame(artifact, "unaccept");
+    saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+    assert.equal(saved?.reviewState, "draft");
+    assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
+
+    await context.reviewFrame(artifact, "accept");
+    saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+    assert.equal(saved?.reviewState, "accepted");
+    assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
+    assert.equal(current.build.foundations.visualArtifacts.length, originalCount, "Save/Lock must not copy or duplicate packaged media");
+  });
+
+  await t.test("narration contact-sheet preparation reads the same real packaged image", async () => {
+    const source = await readText("app/_components/preproduction/storyboard-locked-shot-handoff.tsx");
+    const functionSource = stripTypeScriptTypes(source.slice(
+      source.indexOf("async function oneShotNarrationContactSheet"),
+      source.indexOf("function compact"),
+    ));
+    let fetched = false;
+    const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : /\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
+    const context = vm.createContext({
+      AbortSignal,
+      Error,
+      URL,
+      window: { location: { origin: "http://127.0.0.1:3000" } },
+      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
+      fetch: async (url) => {
+        const parsed = new URL(url);
+        assert.equal(parsed.pathname, artifact.assetUrl);
+        fetched = true;
+        return new Response(await readFile(storage.projectImageAssetFilePath(parsed.pathname)), {
+          status: 200,
+          headers: { "Content-Type": mimeType },
+        });
+      },
+      createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
+      document: {
+        createElement(name) {
+          assert.equal(name, "canvas");
+          return {
+            width: 0,
+            height: 0,
+            getContext() {
+              return {
+                fillStyle: "",
+                font: "",
+                textBaseline: "",
+                fillRect() {},
+                drawImage() {},
+                fillText() {},
+              };
+            },
+            toDataURL() { return "data:image/jpeg;base64,ZmFrZQ=="; },
+          };
         },
-        setFrameSaving() {},
-        setFrameNotice(value) { notices.push(value); },
-        setFrameNoticePosition() {},
-        setSelectedImageByPosition() {},
-        setPendingDeleteArtifactId() {},
-        onProjectChange() {},
-      });
-      vm.runInContext(handlers, context);
-
-      const originalCount = current.build.foundations.visualArtifacts.length;
-      await context.saveFrameVersion(artifact);
-      let saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
-      assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
-      assert.match(notices.at(-1), /saved locally with this story/u);
-
-      await context.reviewFrame(artifact, "unaccept");
-      saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
-      assert.equal(saved?.reviewState, "draft");
-      assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
-
-      await context.reviewFrame(artifact, "accept");
-      saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
-      assert.equal(saved?.reviewState, "accepted");
-      assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
-      assert.equal(current.build.foundations.visualArtifacts.length, originalCount, "Save/Lock must not copy or duplicate packaged media");
+      },
+      Response,
     });
+    vm.runInContext(functionSource, context);
+    const sheet = await context.oneShotNarrationContactSheet(artifact.assetUrl, artifact.frameNumber ?? 1, new AbortController().signal);
+    assert.equal(fetched, true);
+    assert.match(sheet, /^data:image\/jpeg;base64,/u);
+    await assert.rejects(
+      context.oneShotNarrationContactSheet("/assets/unrelated/frame.webp", 1, new AbortController().signal),
+      /supported PlotPickle Storyboard image/u,
+    );
+  });
 
-    await t.test("narration contact-sheet preparation reads the same real packaged image", async () => {
-      const source = await readText("app/_components/preproduction/storyboard-locked-shot-handoff.tsx");
-      const functionSource = stripTypeScriptTypes(source.slice(
-        source.indexOf("async function oneShotNarrationContactSheet"),
-        source.indexOf("function compact"),
-      ));
-      let fetched = false;
-      const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
-        ? "image/png"
-        : /\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
-      const context = vm.createContext({
-        AbortSignal,
-        Error,
-        URL,
-        window: { location: { origin: "http://127.0.0.1:3000" } },
-        isSupportedVisualAssetUrl: runtime.isSupportedVisualAssetUrl,
-        fetch: async (url) => {
-          const parsed = new URL(url);
-          assert.equal(parsed.pathname, artifact.assetUrl);
-          fetched = true;
-          return new Response(await readFile(runtime.projectImageAssetFilePath(parsed.pathname)), {
-            status: 200,
-            headers: { "Content-Type": mimeType },
-          });
-        },
-        createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
-        document: {
-          createElement(name) {
-            assert.equal(name, "canvas");
-            return {
-              width: 0,
-              height: 0,
-              getContext() {
-                return {
-                  fillStyle: "",
-                  font: "",
-                  textBaseline: "",
-                  fillRect() {},
-                  drawImage() {},
-                  fillText() {},
-                };
-              },
-              toDataURL() { return "data:image/jpeg;base64,ZmFrZQ=="; },
-            };
-          },
-        },
-        Response,
-      });
-      vm.runInContext(functionSource, context);
-      const sheet = await context.oneShotNarrationContactSheet(artifact.assetUrl, artifact.frameNumber ?? 1, new AbortController().signal);
-      assert.equal(fetched, true);
-      assert.match(sheet, /^data:image\/jpeg;base64,/u);
-      await assert.rejects(
-        context.oneShotNarrationContactSheet("/assets/unrelated/frame.webp", 1, new AbortController().signal),
-        /supported PlotPickle Storyboard image/u,
-      );
+  await t.test("Previs Graphic Novel and narration keep the same packaged-image contract", async () => {
+    const source = await readText("app/_components/previs/previs-readiness-workspace.tsx");
+    const localImageSource = stripTypeScriptTypes(source.slice(
+      source.indexOf("async function localImage"),
+      source.indexOf("function drawCover"),
+    ));
+    let fetched = false;
+    const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : /\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
+    const context = vm.createContext({
+      URL,
+      window: { location: { origin: "http://127.0.0.1:3000" } },
+      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
+      fetch: async (url) => {
+        const parsed = new URL(url);
+        assert.equal(parsed.pathname, artifact.assetUrl);
+        fetched = true;
+        return new Response(await readFile(storage.projectImageAssetFilePath(parsed.pathname)), {
+          status: 200,
+          headers: { "Content-Type": mimeType },
+        });
+      },
+      createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
+      Response,
     });
-
-    await t.test("Previs Graphic Novel and narration keep the same packaged-image contract", async () => {
-      const source = await readText("app/_components/previs/previs-readiness-workspace.tsx");
-      const localImageSource = stripTypeScriptTypes(source.slice(
-        source.indexOf("async function localImage"),
-        source.indexOf("function drawCover"),
-      ));
-      let fetched = false;
-      const mimeType = artifact.assetUrl.toLowerCase().endsWith(".png")
-        ? "image/png"
-        : /\\.jpe?g$/iu.test(artifact.assetUrl) ? "image/jpeg" : "image/webp";
-      const context = vm.createContext({
-        URL,
-        window: { location: { origin: "http://127.0.0.1:3000" } },
-        isSupportedVisualAssetUrl: runtime.isSupportedVisualAssetUrl,
-        fetch: async (url) => {
-          const parsed = new URL(url);
-          assert.equal(parsed.pathname, artifact.assetUrl);
-          fetched = true;
-          return new Response(await readFile(runtime.projectImageAssetFilePath(parsed.pathname)), {
-            status: 200,
-            headers: { "Content-Type": mimeType },
-          });
-        },
-        createImageBitmap: async () => ({ width: 1280, height: 720, close() {} }),
-        Response,
-      });
-      vm.runInContext(localImageSource, context);
-      const image = await context.localImage(artifact.assetUrl);
-      assert.equal(fetched, true);
-      assert.equal(image.width, 1280);
-      const contactSheetStart = source.indexOf("async function lockedImageContactSheet");
-      const contactSheetEnd = source.indexOf("export default function PrevisReadinessWorkspace", contactSheetStart);
-      const contactSheetSource = source.slice(contactSheetStart, contactSheetEnd);
-      assert.match(contactSheetSource, /isSupportedVisualAssetUrl\\(url\\.pathname\\)/u);
-      assert.doesNotMatch(contactSheetSource, /pathname\\.startsWith\\("\\/api\\/local-ai\\/assets\\/"\\)/u);
-    });
-  } finally {
-    await rm(temporary, { recursive: true, force: true });
-  }
+    vm.runInContext(localImageSource, context);
+    const image = await context.localImage(artifact.assetUrl);
+    assert.equal(fetched, true);
+    assert.equal(image.width, 1280);
+    const contactSheetStart = source.indexOf("async function lockedImageContactSheet");
+    const contactSheetEnd = source.indexOf("export default function PrevisReadinessWorkspace", contactSheetStart);
+    const contactSheetSource = source.slice(contactSheetStart, contactSheetEnd);
+    assert.match(contactSheetSource, /isSupportedVisualAssetUrl\(url\.pathname\)/u);
+    assert.doesNotMatch(contactSheetSource, /pathname\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
+  });
 });

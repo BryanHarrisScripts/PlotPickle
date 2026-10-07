@@ -76,11 +76,13 @@
     "core/storage/profile-private/profile-compute-settings.mjs",
     "core/storage/profile-private/profile-private-storage-core.mjs",
     "docs/developer-briefs/2837-profile-compute-settings.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
     "lib/verification/webmcp-surface-visual-audit.mjs",
     "tests/issue-1255-comfyui-real-machine.test.mjs",
     "tests/issue-2320-navigation-ia-convergence.test.mjs",
     "tests/issue-2717-command-gateway.test.mjs",
     "tests/issue-2730-settings-directory-groups.test.mjs",
+    "tests/issue-2751-settings-organization.test.mjs",
     "tests/issue-2837-profile-compute-setup.test.mjs"
   ],
   "acceptance": [
@@ -184,6 +186,16 @@
           "type": "file-contains",
           "path": "lib/verification/webmcp-surface-visual-audit.mjs",
           "contains": "settingsRows.length === 10 && settingsRows.every((item) => item.connected)"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "G,I,M,L,C,H,U,D,A,B"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2751-settings-organization.test.mjs",
+          "contains": "settingsRows.length === 10 && settingsRows.every"
         }
       ]
     }

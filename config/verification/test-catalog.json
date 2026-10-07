@@ -2194,6 +2194,49 @@
         ]
       },
       "notes": "Real local HTTP authentication, CSRF rejection, encrypted Save/Lock/Unlock persistence, failed-write retry and hydration authority regression for #2821. #2828 additionally exercises the real committed Afterglow packaged Storyboard media path through Save, narration and media input resolution. No provider inference, paid generation or private Human data."
+    },
+    {
+      "id": "provider.packaged-project-media-2828",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "provider",
+        "security",
+        "storage",
+        "visual",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2828-packaged-storyboard-media-contract.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json"
+        ]
+      },
+      "notes": "Uses the committed Afterglow packaged snapshot, manifest and Storyboard bytes to prove safe packaged-image resolution through Save, narration and provider/video reference preparation. No inference, provider network call, paid generation or private Human data."
     }
   ]
 }

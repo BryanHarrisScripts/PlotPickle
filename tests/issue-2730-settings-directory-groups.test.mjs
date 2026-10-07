@@ -47,6 +47,8 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
   }
 
   assert.doesNotMatch(menu, /id: "ai-routing"/u, "Legacy Operations AI Routing must stay retired from the current Settings directory.");
+  assert.match(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,buzz-settings/u, "WebMCP must verify the ten current Settings destinations.");
+  assert.doesNotMatch(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u, "WebMCP may not require retired AI Routing.");
   assert.match(dashboard, /const showGroup = index === 0 \|\| SETTINGS_MENU\[index - 1\]\?\.group !== item\.group/u);
   assert.match(dashboard, />-- \{item\.group\} --<\/div>/u);
 });

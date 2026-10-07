@@ -34,7 +34,7 @@ const STORYBOARD_SHOT_FACTS = Object.freeze([
 ]);
 
 export function storyboardNarrationRequest(value) {
-  if (!value || value.mode !== 'storyboard-shot' || 'contactSheet' in value || 'image' in value) {
+  if (!value || typeof value !== 'object' || value.mode !== 'storyboard-shot' || 'contactSheet' in value || 'image' in value) {
     throw new Error('Storyboard narration accepts text-only evidence, not image data.');
   }
   if (!Array.isArray(value.passages) || !value.passages.length || !Array.isArray(value.panels) || value.panels.length !== 1) {
@@ -77,7 +77,7 @@ export function storyboardNarrationPrompt(input) {
 }
 
 function quotationWords(value) {
-  return value.normalize('NFKC').toLocaleLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
+  return value.normalize('NFKC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
 function screenplayDialoguePairs(passages) {
@@ -86,7 +86,7 @@ function screenplayDialoguePairs(passages) {
   for (const passage of passages) {
     const type = passage.type.toLocaleLowerCase();
     if (type === 'character') {
-      speaker = passage.text.replace(/\\s*\\([^)]*\\)\\s*$/u, '').trim();
+      speaker = passage.text.replace(/\s*\([^)]*\)\s*$/u, '').trim();
     } else if ((type === 'dialogue' || type === 'dual-dialogue') && speaker) {
       pairs.push({ speaker: quotationWords(speaker), text: quotationWords(passage.text) });
     } else if (type !== 'parenthetical' && type !== 'dialogue' && type !== 'dual-dialogue') {
@@ -101,7 +101,7 @@ export function parseStoryboardNarration(text, input) {
     throw new Error('Storyboard narration must target one text-only Shot.');
   }
   const [panel] = parseNarration(text, input);
-  if (panel.narration.length > 100 || panel.narration.split(/\\s+/u).filter(Boolean).length > 12) {
+  if (panel.narration.length > 100 || panel.narration.split(/\s+/u).filter(Boolean).length > 12) {
     throw new Error('Storyboard narration exceeds the 12-word / 100-character bubble limit.');
   }
   const dialogue = screenplayDialoguePairs(input.passages);

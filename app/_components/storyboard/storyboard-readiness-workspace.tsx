@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- bundled Storyboard references are local PlotPickle assets. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import type { PPFProject } from "@/core/project/project";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
@@ -50,7 +51,7 @@ const RECOVERED_STORYBOARD_PROMPT_UNAVAILABLE = "Recovered local Storyboard reso
 const STORYBOARD_LOCAL_SAVE_MARKER = "storyboard-local-save:v1";
 
 function storyboardArtifactSavedLocally(artifact: FoundationsVisualArtifact) {
-  return artifact.assetUrl.startsWith("/api/local-ai/assets/")
+  return isSupportedVisualAssetUrl(artifact.assetUrl)
     && (artifact.sourceDecisionKeys ?? []).includes(STORYBOARD_LOCAL_SAVE_MARKER);
 }
 
@@ -122,6 +123,7 @@ export default function StoryboardReadinessWorkspace({
     return () => window.removeEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, refresh);
   }, []);
   const [frameNotice, setFrameNotice] = useState("");
+  const [frameNoticePosition, setFrameNoticePosition] = useState<number | null>(null);
   const [pendingDeleteArtifactId, setPendingDeleteArtifactId] = useState<string | null>(null);
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
@@ -161,6 +163,7 @@ export default function StoryboardReadinessWorkspace({
 
   async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
     if (frameMutation.current || frameBusy) return;
+    setFrameNoticePosition(artifact.frameNumber ?? null);
     if (qaOnlyAccess) { setFrameNotice("This QA preview cannot save story decisions."); return; }
     frameMutation.current = true;
     setFrameSaving(true);
@@ -170,7 +173,7 @@ export default function StoryboardReadinessWorkspace({
       if (current.id !== project.id) throw new Error("The active story changed before this Storyboard Image could be saved.");
       const currentArtifact = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
       if (!currentArtifact || currentArtifact.reviewState === "rejected") throw new Error("This Storyboard Image is no longer available to save.");
-      if (!currentArtifact.assetUrl.startsWith("/api/local-ai/assets/")) throw new Error("Only PlotPickle local Storyboard images can be explicitly saved.");
+      if (!isSupportedVisualAssetUrl(currentArtifact.assetUrl)) throw new Error("Only supported PlotPickle Storyboard images can be explicitly saved.");
       const savedArtifact: FoundationsVisualArtifact = {
         ...currentArtifact,
         sourceDecisionKeys: [...new Set([...(currentArtifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
@@ -196,6 +199,7 @@ export default function StoryboardReadinessWorkspace({
 
   async function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "unaccept" | "delete") {
     if (frameMutation.current || frameBusy) return;
+    setFrameNoticePosition(artifact.frameNumber ?? null);
     if (qaOnlyAccess) { setFrameNotice("This QA preview cannot change story approval."); return; }
     frameMutation.current = true;
     setFrameSaving(true);
@@ -740,6 +744,7 @@ export default function StoryboardReadinessWorkspace({
                           </>
                         ) : null}
                       </div>
+                      {frameNoticePosition === position && frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
                       {selectedImage ? <div className={styles.framePromptProvenance}>
                         <strong>Storyboard Image Prompt</strong>
                         <p>{selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image."}</p>
@@ -749,7 +754,7 @@ export default function StoryboardReadinessWorkspace({
                   );
                 })}
               </div>
-              {frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
+              {frameNoticePosition === null && frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
               {promptPosition !== null ? (
                 <section className={styles.framePromptPanel} aria-label={`Storyboard Image prompt for Shot ${promptPosition}`}>
                   <h4>Shot {String(promptPosition).padStart(2, "0")} of 25 · Storyboard Image candidate</h4>

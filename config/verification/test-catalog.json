@@ -2167,7 +2167,8 @@
           "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
           "tests/issue-2819-storyboard-idempotent-save.test.mjs",
           "tests/issue-2821-build-artifact.test.mjs",
-          "tests/issue-2817-uat-persistence-auth-routing.test.mjs"
+          "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
+          "tests/issue-2828-packaged-storyboard-media-contract.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2192,7 +2193,7 @@
           ".artifacts/verification-shadow/production-harness.comparison.json"
         ]
       },
-      "notes": "Real local HTTP authentication, CSRF rejection, encrypted Save/Lock/Unlock persistence, failed-write retry and hydration authority regression for #2821. No provider inference or private Human data."
+      "notes": "Real local HTTP authentication, CSRF rejection, encrypted Save/Lock/Unlock persistence, failed-write retry and hydration authority regression for #2821. #2828 additionally exercises the real committed Afterglow packaged Storyboard media path through Save, narration and media input resolution. No provider inference, paid generation or private Human data."
     }
   ]
 }

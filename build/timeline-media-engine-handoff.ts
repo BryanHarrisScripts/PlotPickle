@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ASSET_PATH, assetsDirectory, localImageAssetFilePath } from "./media-storage-common";
+import { ASSET_PATH, assetsDirectory, projectImageAssetFilePath } from "./media-storage-common";
 import {
   createPlotPickleTimelineRangeMediaRequest,
   type PlotPickleMediaEngineEvidence,
@@ -34,7 +34,7 @@ export type TimelineRangeMediaHandoffResult = Readonly<{
 export async function renderTimelineRangeWithOptionalFFrames(input: TimelineRangeMediaHandoffInput): Promise<TimelineRangeMediaHandoffResult> {
   const frames = input.frames
     .filter((frame) => frame.authoritative === true)
-    .map((frame) => ({ ...frame, localFilePath: localImageAssetFilePath(frame.assetUrl) }));
+    .map((frame) => ({ ...frame, localFilePath: projectImageAssetFilePath(frame.assetUrl) }));
 
   const request = createPlotPickleTimelineRangeMediaRequest({
     requestId: input.requestId,

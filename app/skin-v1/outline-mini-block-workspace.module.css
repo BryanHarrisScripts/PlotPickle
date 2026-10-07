@@ -56,6 +56,25 @@
   object-fit: contain;
 }
 
+.preview[data-locked="true"] {
+  box-shadow: inset 0 0 0 3px #70d6a1;
+}
+
+.lockedOverlay {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  padding: 7px 12px;
+  border: 2px solid #70d6a1;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, .86);
+  color: #9af0bf;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
 .empty {
   opacity: .7;
 }

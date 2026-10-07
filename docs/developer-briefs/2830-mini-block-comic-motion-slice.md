@@ -39,3 +39,29 @@ This intentionally avoids a generated-local-only fixture because that test shape
 Phase B verifies Storyboard and approved Graphic Novel text continuity. Phase C proves real three-second Shot motion against verified configured routes. Phase D makes Previs Graphic Novel playback prefer persisted motion while retaining a truthful still fallback. Phase E is unload/reopen durability.
 
 CI performs no paid provider inference. Actual provider delivery and final reopen remain Human acceptance under #2821.
+
+
+## Phases B-D — approved text and persisted motion converge in Previs
+
+The next delivery closes the product gap visible after Phase A: Timeline can persist successful Shot motion, and Previs can already overlay approved Graphic Novel bubbles, but Previs previously rendered the locked still unconditionally. Motion and comics therefore existed as separate features.
+
+The repair keeps one authority chain:
+
+- the accepted Storyboard artifact remains the Shot visual identity;
+- current Graphic Novel text still requires an approval whose source key matches the locked image and current story evidence;
+- Timeline and Previs now share the same Shot Generation Packet and motion source-key contract rather than maintaining separate definitions of current motion;
+- successful Timeline motion is eligible in Graphic Novel playback only when its current Timeline placement, `anchorRef`, Shot position, locked `sourceArtifactId`, placement source key, and packet fingerprint all still match;
+- replacing the locked Storyboard image or changing packet evidence such as screenplay, camera/production direction, character/reference inputs, continuity, or progression automatically makes earlier motion ineligible for Previs Graphic Novel playback;
+- when current motion exists, Graphic Novel mode renders that video while the existing approved speech bubbles and narration/caption layer remain on top;
+- when current motion does not exist, Previs truthfully falls back to the locked still;
+- the existing 3000ms Graphic Novel cadence remains the presentation authority, so a provider clip may retain its observed source duration while the comic presentation advances after three seconds;
+- plain Flip Book remains still-image playback;
+- the Human-facing control is named `Play Graphic Novel` / `Pause Graphic Novel`, matching the product intent.
+
+Narration generation now writes through `saveFoundationProjectDurably()` with revision checking instead of reporting success after only the synchronous browser-cache write. This makes generated/approved Graphic Novel presentation data follow the same encrypted persistence acknowledgement used by repaired Storyboard decisions.
+
+### Regression boundary
+
+`tests/issue-2830-previs-graphic-novel-motion.test.mjs` uses a real packaged Afterglow Storyboard artifact identity, normalizes persisted Timeline placement/motion records, and proves that Previs accepts successful motion only when the locked artifact and shared Timeline packet lineage are still current. A clip tied to a replaced image or stale packet is rejected. The test also protects the three-second cadence, video rendering, bubble/narration overlays, still fallback, and durable narration save.
+
+No provider job is submitted by this engineering proof. Phase E remains the real Afterglow unload/reopen and configured-provider acceptance under #2821/#2830.

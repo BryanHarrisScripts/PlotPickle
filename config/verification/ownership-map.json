@@ -1134,6 +1134,7 @@
         "app/_components/preproduction/*.tsx",
         "app/_components/storyboard/*.tsx",
         "app/_components/timeline/*.tsx",
+        "app/_components/timeline/timeline-motion-source.ts",
         "app/structure/layout.tsx",
         "app/storyboard/layout.tsx",
         "app/storyboard/page.tsx",

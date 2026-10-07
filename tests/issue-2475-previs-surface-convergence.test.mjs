@@ -45,6 +45,6 @@ test("#2475 keeps one shared evidence-state grammar and the real Previs workspac
   assert.match(map, /missing: "AVAILABLE"/u);
   assert.match(map, /locked: "BLOCKED"/u);
   assert.match(workspace, /Play Flip Book/u);
-  assert.match(workspace, /Play with Narration/u);
+  assert.match(workspace, /Play Graphic Novel/u);
   assert.match(workspace, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);
 });

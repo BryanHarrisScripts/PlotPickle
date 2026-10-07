@@ -27,6 +27,7 @@
           "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
           "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
           "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+          "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
           "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
           "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs",
           "tests/issue-2475-previs-surface-convergence.test.mjs",
@@ -2170,6 +2171,7 @@
           "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
           "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
           "tests/issue-2830-outline-lock-visual-state.test.mjs",
+          "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
           "tests/issue-2832-profile-save-work.test.mjs"
         ]
       },

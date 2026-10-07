@@ -122,12 +122,14 @@ test("#2803 blocks incompatible H3 workflow families before dispatch", async () 
 });
 
 test("#2803 Timeline dispatch carries packet lineage, H3 acknowledgement and Production Take projection", async () => {
-  const [workspace, gateway, contract] = await Promise.all([
+  const [workspace, motionSource, gateway, contract] = await Promise.all([
     read("app/_components/timeline/timeline-assembly-workspace.tsx"),
+    read("app/_components/timeline/timeline-motion-source.ts"),
     read("build/ai-routing-gateway.ts"),
     read("core/contracts/previs/index.ts"),
   ]);
-  assert.match(workspace, /buildTimelineShotGenerationPacket/u);
+  assert.match(motionSource, /buildTimelineShotGenerationPacket/u);
+  assert.match(workspace, /buildTimelineGenerationPacketForShot/u);
   assert.match(workspace, /serializeTimelineShotGenerationPacket\(packet, strategy\)/u);
   assert.match(workspace, /performanceAcknowledged: strategy\.performanceAcknowledged/u);
   assert.match(workspace, /generationMode: strategy\.modality/u);

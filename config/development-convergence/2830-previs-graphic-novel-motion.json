@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "issue": 2830,
+  "phase": "previs-graphic-novel-motion",
+  "brief": "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+  "allowedChanges": [
+    "app/_components/previs/previs-graphic-novel-presentation.ts",
+    "app/_components/previs/previs-readiness-workspace.module.css",
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/_components/timeline/timeline-motion-source.ts",
+    "config/development-convergence/2830-previs-graphic-novel-motion.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+    "tests/issue-2471-previs-graphic-novel-playback.test.mjs",
+    "tests/issue-2475-previs-surface-convergence.test.mjs",
+    "tests/issue-2491-previs-graphic-novel-animated-webp.test.mjs",
+    "tests/issue-2497-previs-static-webp-bubbles-single-load.test.mjs",
+    "tests/issue-2531-previs-graphic-novel-text-approval.test.mjs",
+    "tests/issue-2763-timeline-motion.test.mjs",
+    "tests/issue-2803-timeline-shot-generation-packets.test.mjs",
+    "tests/issue-2830-previs-graphic-novel-motion.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "TEXT_DURABLE",
+      "criterion": "Generated Graphic Novel approvals are acknowledged through durable revision-safe project persistence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/previs/previs-readiness-workspace.tsx",
+          "contains": "saveFoundationProjectDurably(next, base.revision)"
+        }
+      ]
+    },
+    {
+      "id": "MOTION_IDENTITY",
+      "criterion": "Previs uses persisted successful motion only for the exact locked Storyboard artifact identity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
+          "contains": "replacing the locked Storyboard image must invalidate earlier motion"
+        }
+      ]
+    },
+    {
+      "id": "GRAPHIC_NOVEL",
+      "criterion": "Graphic Novel playback overlays approved text over current motion and retains a truthful still fallback.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
+          "contains": "Previs plays three-second Graphic Novel motion with approved bubbles over the media"
+        }
+      ]
+    },
+    {
+      "id": "THREE_SECONDS",
+      "criterion": "Graphic Novel presentation retains the 3000ms per-Shot cadence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
+          "contains": "PREVIS_GRAPHIC_NOVEL_INTERVAL_MS = 3000"
+        }
+      ]
+    },
+    {
+      "id": "LIMIT",
+      "criterion": "No CI provider job or paid generation is introduced; configured-provider and reopen proof remains Human acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+          "contains": "No provider job is submitted by this engineering proof."
+        }
+      ]
+    }
+  ]
+}

@@ -25,7 +25,7 @@ test("#2763 removes Previs export controls while retaining the static WebP compa
   ]);
 
   assert.doesNotMatch(workspace, />Create WebP|Export HTML|Export Animated WebP</u);
-  assert.match(workspace, /Play with Narration/u);
+  assert.match(workspace, /Play Graphic Novel/u);
   assert.doesNotMatch(workspace, /Export Animated WebP/u);
   assert.match(workspace, /buildBrowserGraphicNovelWebp/u);
   assert.match(workspace, /canvas\.toBlob/u);

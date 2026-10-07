@@ -70,33 +70,38 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   assert.match(notices[19], /Human review/);
 });
 
-test('#2839 actual narration endpoint sends text to the agent and distinguishes compute from invalid output', async () => {
-  const source = await readFile('app/api/previs/narration/route.ts', 'utf8');
-  const executable = stripTypeScriptTypes(source.replace(/^import .*;\n/gmu, '')).replace(/\bexport /gu, '');
-  const contract = await import('../core/media/previs-narration.mjs');
-  let sent, failCompute = false, reply = output();
-  const context = vm.createContext({
-    ...contract, Error, Response, URL,
-    withAuthenticatedProfileRequest: async (_request, fn) => fn(),
-    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
-    requestBoundary: request => request,
-    resolveConfiguredAgentExecutionProfile: async () => ({ profile: { model: 'text-only-fixture' } }),
-    askPlotPickleAgent: async args => { sent = args; if (failCompute) throw new Error('offline'); return reply; },
-  });
-  vm.runInContext(executable, context);
-  const request = value => new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(value) });
-  const response = await context.POST(request(evidence));
-  assert.equal(response.status, 200);
-  assert.equal('image' in sent, false, 'text route must not require vision support');
-  assert.match(sent.message, /TEXT ONLY/);
-  failCompute = true;
-  assert.equal((await (await context.POST(request(evidence))).json()).code, 'TEXT_COMPUTE_UNAVAILABLE');
-  failCompute = false; reply = output('', [{ speaker: 'REN', text: 'An invented line.' }]);
-  assert.equal((await (await context.POST(request(evidence))).json()).code, 'INVALID_NARRATION_OUTPUT');
-  const legacy = { ...evidence, mode: undefined, contactSheet: 'data:image/jpeg;base64,/9j/2Q==' };
-  reply = output();
-  assert.equal((await context.POST(request(legacy))).status, 200);
-  assert.ok(sent.image instanceof Uint8Array, 'existing Previs image route remains visual');
+test('#2839 actual narration endpoint sends text to the agent and distinguishes compute from invalid output', async (t) => {
+  const original = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  for (const [name, ending] of [['LF', '\n'], ['CRLF', '\r\n']]) {
+    await t.test(name, async () => {
+      const source = original.replace(/\r?\n/gu, ending);
+      const executable = stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+      const contract = await import('../core/media/previs-narration.mjs');
+      let sent, failCompute = false, reply = output();
+      const context = vm.createContext({
+        ...contract, Error, Response, URL,
+        withAuthenticatedProfileRequest: async (_request, fn) => fn(),
+        getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+        requestBoundary: request => request,
+        resolveConfiguredAgentExecutionProfile: async () => ({ profile: { model: 'text-only-fixture' } }),
+        askPlotPickleAgent: async args => { sent = args; if (failCompute) throw new Error('offline'); return reply; },
+      });
+      vm.runInContext(executable, context);
+      const request = value => new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(value) });
+      const response = await context.POST(request(evidence));
+      assert.equal(response.status, 200);
+      assert.equal('image' in sent, false, 'text route must not require vision support');
+      assert.match(sent.message, /TEXT ONLY/);
+      failCompute = true;
+      assert.equal((await (await context.POST(request(evidence))).json()).code, 'TEXT_COMPUTE_UNAVAILABLE');
+      failCompute = false; reply = output('', [{ speaker: 'REN', text: 'An invented line.' }]);
+      assert.equal((await (await context.POST(request(evidence))).json()).code, 'INVALID_NARRATION_OUTPUT');
+      const legacy = { ...evidence, mode: undefined, contactSheet: 'data:image/jpeg;base64,/9j/2Q==' };
+      reply = output();
+      assert.equal((await context.POST(request(legacy))).status, 200);
+      assert.ok(sent.image instanceof Uint8Array, 'existing Previs image route remains visual');
+    });
+  }
 });
 
 test('#2839 changed narration product owners select the Windows rendered approval proof', async () => {

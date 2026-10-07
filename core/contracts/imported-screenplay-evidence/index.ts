@@ -79,6 +79,12 @@ export type ReferenceFixtureEvidence = {
   readonly fields: readonly ReferenceFixtureFieldEvidence[];
 };
 
+export type ProjectResumeProvenance = {
+  readonly kind: "recovery" | "archive";
+  readonly sourceAt: string;
+  readonly restoredAt: string;
+};
+
 export type ProjectSourceEvidence = {
   readonly screenplay: ImportedScreenplayEvidence | null;
   readonly referenceFixture: ReferenceFixtureEvidence | null;
@@ -86,10 +92,11 @@ export type ProjectSourceEvidence = {
   readonly characterTruth?: CharacterTruthEvidence | null;
   readonly outlineAssessments?: readonly OutlineAgentAssessment[];
   readonly outlineAssessmentRuns?: readonly OutlineAssessmentRunReceipt[];
+  readonly resumeProvenance?: ProjectResumeProvenance | null;
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
-  return { screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null };
+  return { screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null, resumeProvenance: null };
 }
 
 function cleanText(value: unknown, limit: number) {
@@ -227,14 +234,26 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     readonly characterTruth?: unknown;
     readonly outlineAssessments?: unknown;
     readonly outlineAssessmentRuns?: unknown;
+    readonly resumeProvenance?: unknown;
   };
   const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
   const storyMatrix = normalizeStoryEvidenceMatrix(source.storyMatrix);
   const characterTruth = normalizeCharacterTruthEvidence(source.characterTruth);
   const outlineAssessments = normalizeOutlineAgentAssessments(source.outlineAssessments);
   const outlineAssessmentRuns = normalizeOutlineAssessmentRuns(source.outlineAssessmentRuns);
+  const rawResumeProvenance = source.resumeProvenance && typeof source.resumeProvenance === "object" && !Array.isArray(source.resumeProvenance)
+    ? source.resumeProvenance as Partial<ProjectResumeProvenance>
+    : null;
+  const resumeKind = rawResumeProvenance?.kind === "recovery" || rawResumeProvenance?.kind === "archive"
+    ? rawResumeProvenance.kind
+    : null;
+  const resumeSourceAt = cleanText(rawResumeProvenance?.sourceAt, 80);
+  const resumeRestoredAt = cleanText(rawResumeProvenance?.restoredAt, 80);
+  const resumeProvenance = resumeKind && resumeSourceAt && resumeRestoredAt
+    ? { kind: resumeKind, sourceAt: resumeSourceAt, restoredAt: resumeRestoredAt } as ProjectResumeProvenance
+    : null;
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return { screenplay: null, referenceFixture, storyMatrix, characterTruth, outlineAssessments, outlineAssessmentRuns };
+    return { screenplay: null, referenceFixture, storyMatrix, characterTruth, outlineAssessments, outlineAssessmentRuns, resumeProvenance };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -284,6 +303,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     characterTruth,
     outlineAssessments,
     outlineAssessmentRuns,
+    resumeProvenance,
   };
 }
 

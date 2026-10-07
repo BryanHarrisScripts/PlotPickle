@@ -29,7 +29,7 @@ test("#2646 Blank owns no sample Character roster or character visuals", async (
     read("app/skin-v1/discovery-surface.tsx"),
   ]);
 
-  assert.match(sourceEvidence, /return \{ screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null \}/u);
+  assert.match(sourceEvidence, /return \{ screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null, resumeProvenance: null \}/u);
   assert.match(worldMap, /return \{ version: WORLD_MAP_VERSION, characterVisuals: \[\] \}/u);
   assert.match(surface, /const characterRoster = useMemo\(\(\) => project \? mindMapCharacterRoster\(project\) : \[\], \[project\]\)/u);
   assert.doesNotMatch(surface, /\["ren", "amy", "isobel"|Afterglow.*characterRoster/iu);

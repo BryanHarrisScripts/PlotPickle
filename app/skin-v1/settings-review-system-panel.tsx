@@ -1,6 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  PROJECT_LIBRARY_CHANGED_EVENT,
+  initializeProjectLibrary,
+  listHumanArchivedLibraryProjects,
+  restoreArchivedLibraryProject,
+  saveActiveLibraryProject,
+  switchActiveLibraryProject,
+  type LibraryPPFProject,
+  type ProjectLibrarySummary,
+} from "../../core/storage/project-library-browser";
+import {
+  createProfileRecoveryPoint,
+  flushProfilePrivateWrites,
+  listProfileRecoveryPoints,
+  persistActiveProfileProject,
+  type ProfileRecoveryPoint,
+} from "../../core/storage/profile-private-browser";
 import styles from "./settings-review-system-panel.module.css";
 
 export type ReviewSettingsSystemId = "advanced";
@@ -30,6 +47,9 @@ type ProjectFile = {
 type BackupFile = {
   fileName: string;
   bytes: number;
+  createdAt?: string;
+  projectId?: string;
+  title?: string;
 };
 
 async function requestJson(path: string) {
@@ -46,6 +66,25 @@ function formatBytes(bytes: number) {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+
+function displayDate(value: string | undefined | null) {
+  if (!value) return "Date unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Date unavailable";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+function recoveryStats(project: LibraryPPFProject) {
+  const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
+  const storyboard = project.build.foundations.visualArtifacts.filter((artifact) => artifact.workflow === "storyboard-frame-webp-v2");
+  return {
+    storyboard: storyboard.length,
+    locked: storyboard.filter((artifact) => artifact.reviewState === "accepted" || accepted.has(artifact.id)).length,
+    characters: project.worldMap.characterVisuals.reduce((count, item) => count + item.references.length, 0),
+    writing: project.writing.entries.length,
+  };
+}
+
 export default function SettingsReviewSystemPanel({
   systemId,
   embedded = false,
@@ -58,12 +97,19 @@ export default function SettingsReviewSystemPanel({
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [projects, setProjects] = useState<ProjectFile[]>([]);
   const [backups, setBackups] = useState<BackupFile[]>([]);
+  const [recoveryPoints, setRecoveryPoints] = useState<readonly ProfileRecoveryPoint[]>([]);
+  const [archivedStories, setArchivedStories] = useState<readonly ProjectLibrarySummary[]>([]);
+  const [selectedRecoveryPointId, setSelectedRecoveryPointId] = useState("");
+  const [recoveryNotice, setRecoveryNotice] = useState("");
+  const [recoveryWorking, setRecoveryWorking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const refreshStorage = useCallback(async () => {
     setLoading(true);
     setError("");
+    setRecoveryPoints(listProfileRecoveryPoints());
+    setArchivedStories(listHumanArchivedLibraryProjects());
     try {
       const [status, library, backupResponse] = await Promise.all([
         requestJson("/api/local-projects/status"),
@@ -91,11 +137,95 @@ export default function SettingsReviewSystemPanel({
 
   useEffect(() => {
     if (contentMode === "source") return;
-    const timer = window.setTimeout(() => { void refreshStorage(); }, 0);
-    return () => window.clearTimeout(timer);
+    const refresh = () => { void refreshStorage(); };
+    const timer = window.setTimeout(refresh, 0);
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    };
   }, [refreshStorage, contentMode]);
 
+  async function createManualRecoveryPoint() {
+    if (recoveryWorking) return;
+    const project = initializeProjectLibrary().activeProject;
+    if (!project) {
+      setRecoveryNotice("Open a Library story before creating a recovery point.");
+      return;
+    }
+    setRecoveryWorking(true);
+    try {
+      const point = await createProfileRecoveryPoint(project, "manual");
+      await flushProfilePrivateWrites();
+      setRecoveryPoints(listProfileRecoveryPoints());
+      setSelectedRecoveryPointId(point.id);
+      setRecoveryNotice(`Recovery point created for ${project.title} at ${displayDate(point.createdAt)}.`);
+    } catch (cause) {
+      setRecoveryNotice(cause instanceof Error ? cause.message : "PlotPickle could not create the recovery point.");
+    } finally {
+      setRecoveryWorking(false);
+    }
+  }
+
+  async function restoreRecoveryPoint(point: ProfileRecoveryPoint) {
+    if (recoveryWorking) return;
+    const current = initializeProjectLibrary().activeProject;
+    const confirmed = window.confirm(
+      `Restore ${point.title} from ${displayDate(point.createdAt)}? PlotPickle will create a new recovery point for the current state before replacing the selected story.`,
+    );
+    if (!confirmed) return;
+    setRecoveryWorking(true);
+    try {
+      if (current) await createProfileRecoveryPoint(current, "pre-restore");
+      const archived = listHumanArchivedLibraryProjects().some((item) => item.id === point.projectId);
+      if (archived) restoreArchivedLibraryProject(point.projectId);
+      switchActiveLibraryProject(point.projectId);
+      const restoredAt = new Date().toISOString();
+      const restored = {
+        ...point.project,
+        sourceEvidence: {
+          ...point.project.sourceEvidence,
+          resumeProvenance: {
+            kind: "recovery" as const,
+            sourceAt: point.createdAt,
+            restoredAt,
+          },
+        },
+      };
+      saveActiveLibraryProject(restored);
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      setRecoveryPoints(listProfileRecoveryPoints());
+      setArchivedStories(listHumanArchivedLibraryProjects());
+      setRecoveryNotice(`${point.title} was restored from the recovery point dated ${displayDate(point.createdAt)}. The previous current state was preserved as a new recovery point.`);
+    } catch (cause) {
+      setRecoveryNotice(cause instanceof Error ? cause.message : "PlotPickle could not restore the selected recovery point.");
+    } finally {
+      setRecoveryWorking(false);
+    }
+  }
+
+  async function restoreArchiveStory(item: ProjectLibrarySummary) {
+    if (recoveryWorking) return;
+    if (!window.confirm(`Restore ${item.title} from Archive to Library?`)) return;
+    setRecoveryWorking(true);
+    try {
+      restoreArchivedLibraryProject(item.id);
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      setArchivedStories(listHumanArchivedLibraryProjects());
+      setRecoveryNotice(`${item.title} was restored to Library from Archive.`);
+    } catch (cause) {
+      setRecoveryNotice(cause instanceof Error ? cause.message : "PlotPickle could not restore the archived story.");
+    } finally {
+      setRecoveryWorking(false);
+    }
+  }
+
   if (systemId !== "advanced") return null;
+
+  const selectedRecoveryPoint = recoveryPoints.find((point) => point.id === selectedRecoveryPointId) ?? null;
+  const selectedStats = selectedRecoveryPoint ? recoveryStats(selectedRecoveryPoint.project) : null;
 
   const content = (
     <>
@@ -112,38 +242,72 @@ export default function SettingsReviewSystemPanel({
         {contentMode !== "source" ? <article className={styles.card} data-settings-review-item="advanced-data">
           <div className={styles.cardHeader}>
             <h3>Data Recovery</h3>
-            <span className={styles.status}>{loading ? "Checking" : storage?.available ? "Available" : "Unavailable"}</span>
+            <span className={styles.status}>{loading ? "Checking" : "Ready"}</span>
           </div>
-          <p>Review the same local project files and rolling restore points already owned by PlotPickle's local-project gateway. Nothing is restored or changed from this screen.</p>
-          <p>The old autosave interval preference is parked because it is not connected to a project save scheduler. The recovery points below come from actual local-project saves and backups, not from that dormant interval value.</p>
-          <div className={styles.refreshRow}><button type="button" className={styles.action} onClick={() => void refreshStorage()} disabled={loading}>{loading ? "Checking local storage…" : "Refresh local storage"}</button></div>
-          {error ? <p className={styles.error} role="status">{error}</p> : null}
-          {storage ? (
-            <div className={styles.storageGrid}>
-              <dl className={styles.pathList}>
-                <div><dt>Local data home</dt><dd>{storage.home || "Not reported"}</dd></div>
-                <div><dt>Project files</dt><dd>{storage.projectsPath || "Not reported"}</dd></div>
-                <div><dt>Rolling backups</dt><dd>{storage.backupsPath || "Not reported"}</dd></div>
-                <div><dt>Backup retention</dt><dd>{storage.backupLimit} restore points</dd></div>
-              </dl>
+          <p>Choose an intentional profile-local recovery point by date. Previewing does not change the active story. Restoring always preserves the current state as a new recovery point first.</p>
+          <div className={styles.refreshRow}>
+            <button type="button" className={styles.action} onClick={() => void refreshStorage()} disabled={loading || recoveryWorking}>{loading ? "Checking recovery data…" : "Refresh recovery data"}</button>
+            <button type="button" className={styles.action} onClick={() => void createManualRecoveryPoint()} disabled={recoveryWorking}>Create recovery point now</button>
+          </div>
+          {recoveryNotice ? <p role="status">{recoveryNotice}</p> : null}
+          {error ? <p className={styles.error} role="status">{error} Profile-local recovery points remain available even when the legacy disk-project service is unavailable.</p> : null}
 
-              <div>
-                <h4>Project files</h4>
-                {projects.length ? <ul className={styles.dataList}>{projects.slice(0, 12).map((project) => <li key={project.fileName}><strong>{project.title || project.fileName}</strong><span>{project.fileName} · {formatBytes(project.bytes)} · {project.integrityValid ? "Integrity verified" : "Needs review"}</span></li>)}</ul> : <p className={styles.empty}>No local project files were reported.</p>}
-              </div>
-
-              <div>
-                <h4>Recovery points</h4>
-                {backups.length ? <ul className={styles.dataList}>{backups.slice(0, 12).map((backup) => <li key={backup.fileName}><strong>{backup.fileName}</strong><span>{formatBytes(backup.bytes)}</span></li>)}</ul> : <p className={styles.empty}>No rolling restore points were reported.</p>}
-              </div>
+          <div className={styles.storageGrid}>
+            <div>
+              <h4>Profile Library recovery points</h4>
+              {recoveryPoints.length ? <ul className={styles.dataList}>{recoveryPoints.map((point) => (
+                <li key={point.id}>
+                  <strong>{point.title} · {displayDate(point.createdAt)}</strong>
+                  <span>Revision {point.revision} · {point.reason === "pre-restore" ? "pre-restore safety point" : point.reason === "unload" ? "safe unload point" : "manual recovery point"}</span>
+                  <button type="button" disabled={recoveryWorking} onClick={() => setSelectedRecoveryPointId(point.id)}>Preview</button>
+                </li>
+              ))}</ul> : <p className={styles.empty}>No profile-local recovery points yet. PlotPickle creates one on safe unload, before a recovery restore, or when you create one here.</p>}
             </div>
-          ) : null}
+
+            {selectedRecoveryPoint && selectedStats ? <div>
+              <h4>Recovery preview</h4>
+              <p><strong>{selectedRecoveryPoint.title}</strong> from {displayDate(selectedRecoveryPoint.createdAt)}</p>
+              <p>Revision {selectedRecoveryPoint.revision} · {selectedStats.storyboard} Storyboard images · {selectedStats.locked} locked · {selectedStats.characters} character images · {selectedStats.writing} writing sections.</p>
+              <p>Previewing has not changed the active Library story.</p>
+              <button type="button" className={styles.action} disabled={recoveryWorking} onClick={() => void restoreRecoveryPoint(selectedRecoveryPoint)}>Restore entire story</button>
+            </div> : null}
+
+            <div>
+              <h4>Archive</h4>
+              <p>Archive is reversible shelving, not a recovery point.</p>
+              {archivedStories.length ? <ul className={styles.dataList}>{archivedStories.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.title}</strong>
+                  <span>Archived {displayDate(item.archivedAt)}</span>
+                  <button type="button" disabled={recoveryWorking} onClick={() => void restoreArchiveStory(item)}>Restore to Library</button>
+                </li>
+              ))}</ul> : <p className={styles.empty}>No archived stories.</p>}
+            </div>
+
+            {storage ? <>
+              <dl className={styles.pathList}>
+                <div><dt>Legacy local data home</dt><dd>{storage.home || "Not reported"}</dd></div>
+                <div><dt>Legacy project files</dt><dd>{storage.projectsPath || "Not reported"}</dd></div>
+                <div><dt>Legacy rolling backups</dt><dd>{storage.backupsPath || "Not reported"}</dd></div>
+                <div><dt>Legacy backup retention</dt><dd>{storage.backupLimit} restore points</dd></div>
+              </dl>
+              <div>
+                <h4>Legacy disk project files</h4>
+                {projects.length ? <ul className={styles.dataList}>{projects.slice(0, 12).map((project) => <li key={project.fileName}><strong>{project.title || project.fileName}</strong><span>{displayDate(project.updatedAt)} · {formatBytes(project.bytes)} · {project.integrityValid ? "Integrity verified" : "Needs review"}</span></li>)}</ul> : <p className={styles.empty}>No legacy local-project files were reported.</p>}
+              </div>
+              <div>
+                <h4>Legacy disk recovery inventory</h4>
+                <p>These older local-project files remain visible for migration/review but are not automatically merged into the profile Library.</p>
+                {backups.length ? <ul className={styles.dataList}>{backups.slice(0, 12).map((backup) => <li key={backup.fileName}><strong>{backup.title || backup.fileName}</strong><span>{displayDate(backup.createdAt)} · {formatBytes(backup.bytes)}</span></li>)}</ul> : <p className={styles.empty}>No legacy rolling restore points were reported.</p>}
+              </div>
+            </> : null}
+          </div>
         </article> : null}
       </section>
 
       {contentMode !== "source" ? <section className={styles.boundary} aria-label="Project data recovery boundaries">
-        <strong>Read-only recovery review</strong>
-        <p>Original project files, Human-created story material and user-owned assets remain canonical data. This surface reads existing local storage only; restore operations still require the active project context and explicit Human confirmation.</p>
+        <strong>Intentional recovery only</strong>
+        <p>Library resume never selects an older state. Data Recovery is the explicit place to preview and restore a dated project state. Archive remains reversible shelving. Every destructive recovery preserves the current state first and requires Human confirmation.</p>
       </section> : null}
     </>
   );

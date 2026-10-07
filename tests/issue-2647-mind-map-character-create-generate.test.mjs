@@ -44,7 +44,7 @@ test("#2647 Blank retains creation capability without hard-coded sample characte
     read("core/contracts/imported-screenplay-evidence/index.ts"),
   ]);
 
-  assert.match(sourceEvidence, /return \{ screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null \}/u);
+  assert.match(sourceEvidence, /return \{ screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null, resumeProvenance: null \}/u);
   assert.match(surface, /No canonical characters are established for this project yet/u);
   assert.match(surface, /data-mind-map-create-character="true"/u);
   assert.doesNotMatch(surface, /\["ren", "amy", "isobel"|defaultCharacters|sampleCharacters/iu);

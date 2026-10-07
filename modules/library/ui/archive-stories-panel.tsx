@@ -8,7 +8,11 @@ import {
   restoreArchivedLibraryProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
-import { deleteArchivedProfileProjectFromVault } from "../../../core/storage/profile-private-browser";
+import {
+  deleteArchivedProfileProjectFromVault,
+  flushProfilePrivateWrites,
+  persistActiveProfileProject,
+} from "../../../core/storage/profile-private-browser";
 import styles from "./archive-stories-panel.module.css";
 
 function displayDate(value: string | null) {
@@ -54,10 +58,12 @@ export default function ArchiveStoriesPanel() {
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, []);
 
-  function restore(item: ProjectLibrarySummary) {
+  async function restore(item: ProjectLibrarySummary) {
     try {
       restoreArchivedLibraryProject(item.id);
-      setNotice(`${item.title} was restored to Library.`);
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
+      setNotice(`${item.title} was restored to Library from Archive.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not restore this story.");
     }
@@ -98,7 +104,7 @@ export default function ArchiveStoriesPanel() {
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
       {stories.length ? (
         <div className={styles.grid}>
-          {stories.map((item) => <ArchivedStoryCard item={item} key={item.id} onRestore={() => restore(item)} onDelete={() => requestDelete([item])} />)}
+          {stories.map((item) => <ArchivedStoryCard item={item} key={item.id} onRestore={() => void restore(item)} onDelete={() => requestDelete([item])} />)}
         </div>
       ) : (
         <div className={styles.empty}>

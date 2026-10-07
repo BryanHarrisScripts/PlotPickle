@@ -18,6 +18,35 @@ function response(value: unknown, status = 200) {
   });
 }
 
+function normalizeRecoveryPoints(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 20).flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const source = item as Record<string, unknown>;
+    const id = typeof source.id === "string" ? source.id.trim().slice(0, 360) : "";
+    const projectId = typeof source.projectId === "string" ? source.projectId.trim().slice(0, 240) : "";
+    const title = typeof source.title === "string" ? source.title.trim().slice(0, 500) : "";
+    const createdAt = typeof source.createdAt === "string" ? source.createdAt.trim().slice(0, 80) : "";
+    const reason = source.reason === "unload" || source.reason === "manual" || source.reason === "pre-restore" ? source.reason : null;
+    if (!id || !projectId || !title || !createdAt || !reason || !source.project) return [];
+    try {
+      const project = normalizeLibraryProject(source.project);
+      if (project.id !== projectId) return [];
+      return [{
+        id,
+        projectId,
+        title,
+        revision: Number.isInteger(source.revision) ? Number(source.revision) : project.revision,
+        createdAt,
+        reason,
+        project,
+      }];
+    } catch {
+      return [];
+    }
+  }).sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
+
 function errorResponse(error: unknown) {
   const server = toPublicServerSessionError(error);
   const auth = toPublicAuthError(error);
@@ -46,13 +75,14 @@ export async function GET(request: Request) {
         break;
       }
     }
-    const [projects, wyrmwood, storyMapContexts] = await Promise.all([
+    const [projects, wyrmwood, storyMapContexts, recoveryPoints] = await Promise.all([
       Promise.all(summaries.map(async (summary) => {
         const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
         return savedProject ? { project: savedProject, summary } : null;
       })),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" }),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts" }),
+      runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "library-recovery-points" }),
     ]);
     return response({
       project,
@@ -60,6 +90,7 @@ export async function GET(request: Request) {
       projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),
       wyrmwood,
       storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts),
+      recoveryPoints: normalizeRecoveryPoints(recoveryPoints),
     });
   } catch (error) {
     return errorResponse(error);
@@ -120,6 +151,11 @@ export async function POST(request: Request) {
       const value = normalizeStoryMapContextRegistry(input.value);
       await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts", value });
       return response({ ok: true });
+    }
+    if (input.action === "save-recovery-points") {
+      const value = normalizeRecoveryPoints(input.value);
+      await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: "library-recovery-points", value });
+      return response({ ok: true, count: value.length });
     }
     return response({ code: "UNSUPPORTED_PRIVATE_ACTION", message: "That private profile action is unavailable." }, 400);
   } catch (error) {

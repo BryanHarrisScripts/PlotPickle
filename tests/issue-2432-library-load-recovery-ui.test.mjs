@@ -22,23 +22,21 @@ test("#2432/#2570 keeps example recovery behind Examples while LOAD also exposes
   assert.match(source, /inventoryLocalResources\(openedProject/u);
 });
 
-test("#2432/#2566 keeps clean example and local-change restore as separate Human choices", async () => {
+test("#2432/#2823 keeps clean example and saved-state resume as separate Human choices", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   assert.match(source, />Open Example<\/button>/u);
   assert.match(source, />Open Example with Your Changes<\/button>/u);
-  assert.match(source, />Select All<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore"\}<\/button>/u);
-  assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);
-  assert.match(source, /group\.selectedByDefault/u);
-  assert.match(source, /requires your explicit selection/u);
-  assert.match(source, /selectedRecoveryOrigins\.includes\(group\.originProjectId\)/u);
+  assert.match(source, /Resume Saved Afterglow/u);
+  assert.doesNotMatch(source, />Select All<\/button>|requires your explicit selection|selectedRecoveryOrigins/u);
+  assert.match(source, /function expectedLocalAssetUrls/u);
+  assert.match(source, /function resumeInventoryResources/u);
+  assert.match(source, /expected\.has\(resource\.assetUrl\)/u);
+  assert.match(source, /async function continueSavedStoryResume/u);
   assert.match(source, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
-  assert.match(source, /does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon/u);
   assert.match(source, /restoreLocalWorldMapPosterResources\(storyboardResult\.project, posterResources\)/u);
   assert.match(source, /restoreLocalWorldMapCharacterResources\(posterResult\.project, characterResources\)/u);
   assert.match(source, /saveActiveLibraryProject\(characterResult\.project\)/u);
-  assert.match(source, /Local media restore is additive/u);
-  assert.match(source, /require reconciliation rather than last-write-wins/u);
+  assert.match(source, /Settings → Data Recovery/u);
 });
 
 test("#2432/#2570 restores saved-story selection to LOAD without bypassing example recovery authority", async () => {
@@ -51,5 +49,5 @@ test("#2432/#2570 restores saved-story selection to LOAD without bypassing examp
   assert.match(source, />Open Example with Your Changes<\/button>/u);
   assert.match(source, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
-  assert.match(source, /function restoreLocalResources[\s\S]*switchActiveLibraryProject\(recovery\.project\.id\)/u);
+  assert.match(source, /async function continueSavedStoryResume[\s\S]*switchActiveLibraryProject\(recovery\.project\.id\)/u);
 });

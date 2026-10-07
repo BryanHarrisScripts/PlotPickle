@@ -572,7 +572,25 @@ export function restoreProfileProject(input) {
   const loaded = readProject(input.storage, input.profileId, projectId, input.normalizeProject, now);
   if (!loaded) throw new Error("The archived story snapshot is unavailable. Its recoverable data was quarantined.");
 
-  const restored = { ...target, archivedAt: null };
+  const restoredProject = input.normalizeProject({
+    ...loaded.project,
+    sourceEvidence: {
+      ...(loaded.project.sourceEvidence || {}),
+      resumeProvenance: {
+        kind: "archive",
+        sourceAt: target.archivedAt,
+        restoredAt: now,
+      },
+    },
+  });
+  const restored = writeProject(input.storage, input.profileId, restoredProject, input.describeProject, {
+    now,
+    sourceKind: target.sourceKind,
+    sourceId: target.sourceId,
+    genre: target.genre,
+    format: target.format,
+    archivedAt: null,
+  });
   const activeProjectId = initialized.registry.activeProjectId || restored.id;
   const registry = writeRegistry(input.storage, {
     ...initialized.registry,
@@ -582,7 +600,7 @@ export function restoreProfileProject(input) {
   });
   return {
     registry,
-    activeProject: activeProjectId === restored.id ? loaded.project : initialized.activeProject,
+    activeProject: activeProjectId === restored.id ? restoredProject : initialized.activeProject,
   };
 }
 

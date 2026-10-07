@@ -37,7 +37,10 @@ test('#2751 source-only General does not fetch or render recovery storage',async
   assert.match(source,/contentMode !== "source" \? <article[^\n]*advanced-data/u);
   assert.match(source,/<h3>Data Recovery<\/h3>/u);
   for(const endpoint of ['/api/local-projects/status','/api/local-projects/library','/api/local-projects/backups'])assert.ok(source.includes(endpoint));
-  assert.match(source,/restore operations still require the active project context and explicit Human confirmation/u);
+  assert.match(source,/Intentional recovery only/u);
+  assert.match(source,/Create recovery point now/u);
+  assert.match(source,/Restore entire story/u);
+  assert.match(source,/Archive is reversible shelving/u);
 });
 
 test('#2751 supplied mathematics preserves every unit, section order and independent totals',async()=>{

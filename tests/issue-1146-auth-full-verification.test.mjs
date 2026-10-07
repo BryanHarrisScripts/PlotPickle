@@ -105,16 +105,15 @@ test("#1146 an empty desktop boundary creates the first Human without bootstrap 
   assert.match(runtime, /hasNetworkIntent[\s\S]*server-network[\s\S]*desktop-loopback/u);
 });
 
-test("#1146 the first desktop Human can claim legacy browser Library work only after verified encrypted writes", async () => {
+test("#1146/#2835 sign-in preserves legacy browser work without claiming it as account authority", async () => {
   const browser = await text("core/storage/profile-private-browser.ts");
   const ui = await text("app/profile-access/profile-access-boundary.tsx");
-  assert.match(browser, /plotpickle\.foundation\.project\.v1/u);
-  assert.match(browser, /plotpickle\.library\.profile\.v1\./u);
-  assert.match(browser, /migrateLegacyBrowserProjects[\s\S]*privateMutation\("save-project"[\s\S]*result\.projectId !== project\.id[\s\S]*retireMigratedLegacyBrowserState/u);
-  assert.match(browser, /Leave unreadable legacy browser records in place for explicit recovery/u);
-  assert.match(ui, /firstDesktopProfile[\s\S]*migrateLegacyBrowser: firstDesktopProfile/u);
-  assert.match(ui, /recovery\.migrateLegacyBrowser[\s\S]*migrateLegacyBrowserProjects\(token\)/u);
-  assert.match(ui, /status\?\.accessMode === "desktop-loopback"[\s\S]*status\.profiles\.length === 1[\s\S]*migrateLegacyBrowserProjects\(token\)/u);
+  const gateway = await text("adapters/experience/browser-profile-auth-gateway.ts");
+  assert.match(browser, /preserveLegacySessionRecords/u);
+  assert.match(browser, /quarantine.sign-in/u);
+  assert.doesNotMatch(browser, /migrateLegacyBrowserProjects|legacySessionLibrary/u);
+  assert.doesNotMatch(ui, /migrateLegacyBrowserProjects/u);
+  assert.doesNotMatch(gateway, /migrateLegacyBrowserProjects/u);
 });
 
 test("#1146 browser persistence and locked metadata audits keep authentication secrets out of durable browser storage", async () => {

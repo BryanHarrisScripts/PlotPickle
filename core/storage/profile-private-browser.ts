@@ -48,7 +48,6 @@ type ProfilePrivateSaveState = Readonly<{
   message: string;
 }>;
 
-const LEGACY_ACTIVE_PROJECT_KEY = "plotpickle.foundation.project.v1";
 const LEGACY_LIBRARY_PREFIX = "plotpickle.library.profile.v1.";
 const PROFILE_RECOVERY_LIMIT = 20;
 export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save-state";
@@ -201,64 +200,12 @@ function queueCacheWrite(action: string, payload: Record<string, unknown>) {
   return current;
 }
 
-function legacyBrowserProjects() {
-  const projects = new Map<string, LibraryPPFProject>();
-  const add = (raw: string | null, wrapped = false) => {
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as unknown;
-      const value = wrapped && parsed && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed as { readonly project?: unknown }).project
-        : parsed;
-      if (!value || typeof value !== "object" || Array.isArray(value) || typeof (value as { readonly id?: unknown }).id !== "string") return;
-      const project = normalizeLibraryProject(value);
-      projects.set(project.id, project);
-    } catch {
-      // Leave unreadable legacy browser records in place for explicit recovery rather than deleting them.
-    }
-  };
-
-  add(window.localStorage.getItem(LEGACY_ACTIVE_PROJECT_KEY));
-  for (let index = 0; index < window.localStorage.length; index += 1) {
-    const key = window.localStorage.key(index);
-    if (!key || !key.startsWith(LEGACY_LIBRARY_PREFIX) || !key.includes(".projects.") || key.includes(".quarantine.")) continue;
-    add(window.localStorage.getItem(key), true);
-  }
-  return [...projects.values()];
-}
-
-function legacySessionLibrary(profileId: string) {
-  const prefix = `${LEGACY_LIBRARY_PREFIX}${profileId}.`;
-  const registryRaw = window.sessionStorage.getItem(`${prefix}registry`);
-  const keys = Array.from({ length: window.sessionStorage.length }, (_, index) => window.sessionStorage.key(index))
-    .filter((key): key is string => Boolean(key?.startsWith(`${prefix}projects.`) && !key.includes(".quarantine.")));
-  if (!keys.length) return null;
-  const registry: { activeProjectId?: string | null; projects?: Array<Record<string, unknown>> } = registryRaw ? JSON.parse(registryRaw) : {};
-  const summaries = new Map((registry.projects || []).map((item) => [item.id, item]));
-  const projects = keys.map((key) => {
-    const entry = JSON.parse(window.sessionStorage.getItem(key) || "");
-    if (entry.profileId !== profileId || !entry.project || entry.projectId !== entry.project.id) throw new Error("The browser Library snapshot's project identity does not match its profile. The record remains untouched.");
-    return { project: normalizeLibraryProject(entry.project), summary: summaries.get(entry.projectId) || {} };
-  });
-  return { projects, activeProjectId: registry.activeProjectId || null };
-}
-
-function retireMigratedLegacyBrowserState() {
-  const keys = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))
-    .filter((key): key is string => Boolean(key && (key === LEGACY_ACTIVE_PROJECT_KEY || key === PROJECT_LIBRARY_ACTIVE_PROFILE_KEY || key.startsWith(LEGACY_LIBRARY_PREFIX))));
-  for (const key of keys) window.localStorage.removeItem(key);
-}
-
-export async function migrateLegacyBrowserProjects(token: string) {
-  const projects = legacyBrowserProjects();
-  if (!projects.length) return 0;
-  csrfToken = token;
-  for (const project of projects) {
-    const result = await privateMutation("save-project", { project }, token);
-    if (result.projectId !== project.id) throw new Error("PlotPickle could not verify the migrated legacy browser project.");
-  }
-  retireMigratedLegacyBrowserState();
-  return projects.length;
+// Browser snapshots are recovery evidence, never sign-in authority. Preserve
+// legacy session records under quarantine before replacing the live session.
+function preserveLegacySessionRecords() {
+  return Array.from({ length: window.sessionStorage.length }, (_, index) => window.sessionStorage.key(index))
+    .filter((key): key is string => Boolean(key?.startsWith(LEGACY_LIBRARY_PREFIX)))
+    .map((key) => [key.includes(".quarantine.") ? key : `${LEGACY_LIBRARY_PREFIX}quarantine.sign-in.${key}`, window.sessionStorage.getItem(key)] as const);
 }
 
 export async function hydrateProfilePrivateBrowser(profileId: string, token: string) {
@@ -271,38 +218,16 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   removeProjectPersistenceListener?.();
   removeProjectPersistenceListener = null;
   try {
-    const legacy = legacySessionLibrary(profileId);
-    let result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
+    const legacyRecords = preserveLegacySessionRecords();
+    const result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
     if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
-    let next = await result.json() as HydratedPrivateState;
-    if (legacy) {
-      const remote = Array.isArray(next.projects) && next.projects.length ? next.projects : next.project ? [{ project: next.project }] : [];
-      const merged = new Map(remote.map((item) => [(item.project as { id: string }).id, item]));
-      for (const item of legacy.projects) {
-        const previous = merged.get(item.project.id);
-        const localTime = Date.parse(String((item.summary as { updatedAt?: unknown }).updatedAt || item.project.updatedAt || ""));
-        const remoteTime = Date.parse(String((previous?.summary as { updatedAt?: unknown } | undefined)?.updatedAt || ""));
-        if (!previous || (Number.isFinite(localTime) && (!Number.isFinite(remoteTime) || localTime > remoteTime))) merged.set(item.project.id, item);
-      }
-      const projects = [...merged.values()];
-      const activeProjectId = legacy.activeProjectId && projects.some((item) => (item.project as { id: string }).id === legacy.activeProjectId && !(item.summary as { archivedAt?: unknown })?.archivedAt)
-        ? legacy.activeProjectId : next.activeProjectId || (next.project as { id?: string } | null)?.id || null;
-      await privateMutation("sync-library", { projects, activeProjectId }, token);
-      result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
-      if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
-      next = await result.json() as HydratedPrivateState;
-      const verified = new Map((next.projects || []).map((item) => [(item.project as { id: string }).id, item]));
-      if (projects.some((item) => {
-        const restored = verified.get((item.project as { id: string }).id);
-        return !restored || JSON.stringify(restored.project) !== JSON.stringify(item.project)
-          || Boolean((restored.summary as { archivedAt?: unknown } | undefined)?.archivedAt) !== Boolean((item.summary as { archivedAt?: unknown } | undefined)?.archivedAt);
-      })) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
-    }
+    const next = await result.json() as HydratedPrivateState;
     if (epoch !== authorityEpoch) throw new Error("The Human profile changed while encrypted state was loading.");
     csrfToken = token;
     const explicitSessionProjectId = consumeSessionActiveProjectHandoff(profileId);
     clearLibraryProjectSessionCache();
     window.sessionStorage.clear();
+    for (const [key, value] of legacyRecords) if (value !== null) window.sessionStorage.setItem(key, value);
     window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
     const projects = Array.isArray(next.projects) && next.projects.length
       ? next.projects

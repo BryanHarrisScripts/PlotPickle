@@ -47,10 +47,10 @@ test("#2547/#2548 Example and LOAD semantics stay separate", async () => {
   ]);
   assert.doesNotMatch(catalog, /clockmakers-map/i);
   assert.match(workspace, /AFTERGLOW_EXAMPLE_FALLBACK_POSTER/u);
-  assert.match(css, /\.exampleCard \{ display: grid; grid-template-columns: minmax\(260px, 42%\) minmax\(0, 1fr\)/u);
+  assert.match(css, /\.exampleCard \{[\s\S]*display: grid;[\s\S]*grid-template-columns:/u);
   assert.doesNotMatch(workspace, /Start Fresh Afterglow Copy/);
-  assert.match(workspace, /Close local resource recovery/);
-  assert.match(workspace, /if \(!inventory\.groups\.length && !scanError\)/);
+  assert.match(workspace, /Cancel saved story resume/);
+  assert.match(workspace, /if \(!choice\)/);
   assert.match(workspace, /const savedStories = listHumanLibraryProjects\(\)/u);
   assert.match(workspace, /const archivedStories = listHumanArchivedLibraryProjects\(\)/u);
 });
@@ -66,11 +66,11 @@ test("#2555/#2559/#2560 Afterglow stays packaged while local learning state rema
   ]);
   assert.match(identity, /AFTERGLOW_V9_REFERENCE_LOGLINE/u);
   assert.match(catalog, /logline: AFTERGLOW_V9_REFERENCE_LOGLINE/u);
-  assert.match(workspace, /The packaged source never changes/u);
+  assert.match(workspace, /Your work never replaces the provided example/u);
   assert.match(workspace, />Open Example<\/button>/u);
-  assert.match(workspace, />Open Example with Your Changes<\/button>/u);
+  assert.match(workspace, />Open Afterglow<\/h2>/u);
   assert.match(workspace, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
-  assert.match(workspace, /loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /const openedProject = choice\.project/u);
   assert.match(workspace, /if \(generatedPosters\.length\) return generatedPosters/u);
   assert.match(workspace, /packagedAfterglowManifest\.featuredPosterUrls/u);
   assert.match(workspace, /return packagedPosters\.length \? packagedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
@@ -102,17 +102,14 @@ test("#2546 Avery opens a synthetic-provenance story and confirms selected delet
   assert.match(gateway, /safeSessionDirectory\(sessionId\)/u);
 });
 
-test("#2549 browser migration verifies encrypted storage before retiring old session copies", async () => {
+test("#2549/#2835 sign-in preserves browser recovery records without migrating them into the vault", async () => {
   const source = await readFile(new URL("../core/storage/profile-private-browser.ts", import.meta.url), "utf8");
-  const migration = source.indexOf('await privateMutation("sync-library", { projects, activeProjectId }, token)');
-  const verification = source.indexOf('if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots.');
-  const clear = source.indexOf('window.sessionStorage.clear();', migration);
-  assert.ok(migration > 0 && verification > migration && clear > verification);
-  assert.match(source, /The browser Library snapshot's project identity does not match its profile\. The record remains untouched/u);
-  const browser = await readFile(new URL("../core/storage/project-library-browser.ts", import.meta.url), "utf8");
-  assert.match(browser, /key\.startsWith\("plotpickle\.library\.profile\.v1\.profile_"\)/u);
+  assert.match(source, /preserveLegacySessionRecords/u);
+  assert.match(source, /quarantine.sign-in/u);
+  assert.doesNotMatch(source, /migrateLegacyBrowserProjects|legacySessionLibrary/u);
+  const hydration = source.slice(source.indexOf("export async function hydrateProfilePrivateBrowser"), source.indexOf("export function profilePrivateBrowserAuthorityMatches"));
+  assert.doesNotMatch(hydration, /privateMutation/u);
 });
-
 
 test("#2550 Skin V1 restores private browser authority for an existing authenticated session", async () => {
   const [gateway, privateBrowser] = await Promise.all([
@@ -121,7 +118,7 @@ test("#2550 Skin V1 restores private browser authority for an existing authentic
   ]);
   assert.match(privateBrowser, /let hydratedProfileId = "";/u);
   assert.match(privateBrowser, /export function profilePrivateBrowserAuthorityMatches\(profileId: string, token: string\)/u);
-  assert.match(privateBrowser, /hydratedProfileId = profileId;\s*updateSaveState\("saved", "Saved"\)/u);
+  assert.match(privateBrowser, /hydratedProfileId = profileId;[\s\S]*updateSaveState\("saved", "Saved"\)/u);
   assert.match(privateBrowser, /releaseProfilePrivateBrowserAuthority\(\)[\s\S]*hydratedProfileId = "";/u);
   assert.match(gateway, /async read\(\) \{\s*const status = await readRawProfileStatus\(\);[\s\S]*status\.authenticated && status\.profile[\s\S]*!status\.csrfToken[\s\S]*profilePrivateBrowserAuthorityMatches\(status\.profile\.profileId, status\.csrfToken\)[\s\S]*hydrateProfilePrivateBrowser\(status\.profile\.profileId, status\.csrfToken\)/u);
 });

@@ -11,9 +11,9 @@ test("#2468 propagates normal, webmcp and conversational-uat across both launche
     read("GIT-PlotPickle.ps1"),
   ]);
 
-  assert.match(powershell, /Mode = "normal"/u);
-  assert.match(powershell, /Mode = "webmcp"/u);
-  assert.match(powershell, /Mode = "conversational-uat"/u);
+  assert.match(powershell, /else \{[\s\S]*"normal"/u);
+  assert.match(powershell, /if \(\$WebMCPTesting\) \{[\s\S]*"webmcp"/u);
+  assert.match(powershell, /elseif \(\$ConversationalUAT\) \{[\s\S]*"conversational-uat"/u);
   assert.match(powershell, /& \$launcher --normal/u);
   assert.match(powershell, /& \$launcher --webmcp-testing/u);
   assert.match(powershell, /& \$launcher --conversational-uat/u);
@@ -29,15 +29,14 @@ test("#2468 propagates normal, webmcp and conversational-uat across both launche
   assert.match(bootstrap, /\$launchArgs\.ConversationalUAT = \$true/u);
 });
 
-test("#2468 keeps the five-second normal default and preserves selected mode across source restart", async () => {
+test("#2468 starts normally without a menu or countdown and preserves selected mode across source restart", async () => {
   const [powershell, batch] = await Promise.all([
     read("PlotPickle.ps1"),
     read("Start-PlotPickle.bat"),
   ]);
 
-  assert.match(powershell, /AddSeconds\(5\)/u);
-  assert.match(powershell, /\$selection = "1"/u);
-  assert.match(powershell, /Starting \[1\] Open PlotPickle normally/u);
+  assert.doesNotMatch(powershell, /AddSeconds|startupOptions|Read-Host|\$selection/u);
+  assert.match(powershell, /& \$launcher --normal/u);
   assert.match(batch, /call "%~f0" --source-current/u);
   assert.match(batch, /PLOTPICKLE_STARTUP_MARKER=!PLOTPICKLE_STARTUP_MARKER!-!PLOTPICKLE_STARTUP_TESTING_MODE!/u);
   assert.match(batch, /running a different startup mode/u);

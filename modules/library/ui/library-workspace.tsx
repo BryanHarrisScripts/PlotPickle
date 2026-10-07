@@ -16,7 +16,6 @@ import {
   createLibraryWorkingCopy,
   importLibraryProject,
   initializeProjectLibrary,
-  latestAfterglowExampleProject,
   listAfterglowExampleProjects,
   listArchivedLibraryProjects,
   listHumanArchivedLibraryProjects,
@@ -52,7 +51,9 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
-import { createProfileRecoveryPoint, flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
+import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
+
+import { afterglowRestoreChoices, type AfterglowRestoreChoice } from "../afterglow-open-contract";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
@@ -64,6 +65,7 @@ type PendingResume = {
   readonly baseline: LibraryLoadSessionBaseline;
   readonly inventory: LocalResourceInventory;
   readonly scanError: string;
+  readonly recoveryPointId?: string | null;
 };
 
 type LocalAssetIndexResponse = {
@@ -402,12 +404,11 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
   );
 }
 
-function CatalogCard({ item, sourceKind, onLoad, disabled = false, canRestoreChanges = false, posterUrls = [] }: {
+function CatalogCard({ item, sourceKind, onLoad, disabled = false, posterUrls = [] }: {
   readonly item: LibraryCatalogItem;
   readonly sourceKind: "example" | "preset";
-  readonly onLoad: (mode?: "defaults" | "restore") => void;
+  readonly onLoad: () => void;
   readonly disabled?: boolean;
-  readonly canRestoreChanges?: boolean;
   readonly posterUrls?: readonly string[];
 }) {
   const [posterIndex, setPosterIndex] = useState(0);
@@ -478,11 +479,10 @@ function CatalogCard({ item, sourceKind, onLoad, disabled = false, canRestoreCha
 
           <div className={styles.exampleActionArea}>
             <div className={styles.exampleActions}>
-              <button className={styles.primaryButton} disabled={disabled} onClick={() => onLoad("defaults")} type="button">Open Example</button>
-              <button className={styles.secondaryButton} disabled={disabled || !canRestoreChanges} onClick={() => onLoad("restore")} type="button">Open Example with Your Changes</button>
+              <button className={styles.primaryButton} disabled={disabled} onClick={onLoad} type="button">Open Example</button>
             </div>
             <p className={styles.exampleActionHelp}>
-              Open Example starts from the canonical packaged reference. Open Example with Your Changes resumes your latest saved Afterglow state and reconnects only media that saved state already expects.
+              Choose the provided example or restore saved changes or a recovery point from your profile. Your work never replaces the provided example.
             </p>
           </div>
         </div>
@@ -531,7 +531,8 @@ export default function LibraryWorkspace() {
   const [canExportCurrentStory, setCanExportCurrentStory] = useState(false);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
-  const [afterglowLocalState, setAfterglowLocalState] = useState<ProjectLibrarySummary | null>(null);
+  const [afterglowOpening, setAfterglowOpening] = useState<{ item: LibraryCatalogItem; choices: readonly AfterglowRestoreChoice[] } | null>(null);
+  const [afterglowSource, setAfterglowSource] = useState("defaults");
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [loadPage, setLoadPage] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
@@ -557,7 +558,6 @@ export default function LibraryWorkspace() {
       const exampleStories = listAfterglowExampleProjects();
       setStories(savedStories);
       setArchivedCount(archivedStories.length);
-      setAfterglowLocalState(latestAfterglowExampleProject());
       setAfterglowPosters(afterglowExamplePosterUrls(exampleStories));
       if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
       else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
@@ -702,7 +702,7 @@ export default function LibraryWorkspace() {
     }
   }
 
-  async function loadPackagedExample(item: LibraryCatalogItem, mode: "defaults" | "restore") {
+  async function loadPackagedExample(item: LibraryCatalogItem, mode: "defaults" | "restore", choice?: AfterglowRestoreChoice) {
     if (loadingReference) return;
     setLoadingReference(true);
     setNotice("");
@@ -735,15 +735,11 @@ export default function LibraryWorkspace() {
         return;
       }
 
-      if (!afterglowLocalState) {
-        setNotice("No local Afterglow changes are available yet. Open the example first and make a change.");
+      if (!choice) {
+        setNotice("No saved Afterglow changes are available for this profile.");
         return;
       }
-      const openedProject = loadLibraryProjectSnapshot(afterglowLocalState.id);
-      if (!openedProject) {
-        setNotice("PlotPickle could not read your saved Afterglow changes.");
-        return;
-      }
+      const openedProject = choice.project;
 
       // The saved profile-local Afterglow project is the complete resume authority.
       // Do not switch the active story until the Human confirms the read-only
@@ -762,7 +758,7 @@ export default function LibraryWorkspace() {
         scanError = error instanceof Error ? error.message : "PlotPickle could not scan your local Afterglow media.";
       }
 
-      setRecovery({ project: openedProject, baseline, inventory, scanError });
+      setRecovery({ project: openedProject, baseline, inventory, scanError, recoveryPointId: choice.recoveryPointId });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not open the Afterglow example.");
     } finally {
@@ -837,7 +833,13 @@ export default function LibraryWorkspace() {
     if (!recovery || restoringResources || rescanningResources) return;
     setRestoringResources(true);
     try {
-      const current = switchActiveLibraryProject(recovery.project.id);
+      if (recovery.recoveryPointId) {
+        const prior = loadLibraryProjectSnapshot(recovery.project.id);
+        if (prior) await createProfileRecoveryPoint(prior, "pre-restore");
+      }
+      const current = recovery.recoveryPointId
+        ? createLibraryWorkingCopy({ sourceProject: recovery.project, sourceKind: "example", sourceId: AFTERGLOW_EXAMPLE_SOURCE_ID, title: recovery.project.title, genre: "", format: "Feature" })
+        : switchActiveLibraryProject(recovery.project.id);
       markCurrentSessionLibraryProject(current.id);
       persistLoadSessionBaseline(recovery.baseline);
 
@@ -1063,19 +1065,19 @@ export default function LibraryWorkspace() {
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference story" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
             <p>{isExamples
-              ? "Explore Afterglow as PlotPickle’s complete packaged reference story. The project profile below shows the story, what is included, and the two ways to open it."
+              ? "Explore Afterglow as PlotPickle’s complete packaged reference story. The project profile below shows the story, what is included, and the option to open the provided example or restore your saved work."
               : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
           </div>
           <div className={isExamples ? styles.exampleGrid : styles.grid}>{visibleCatalog.map((item) => (
             <CatalogCard
-              canRestoreChanges={!isExamples || Boolean(afterglowLocalState)}
               disabled={loadingReference}
               item={item}
               key={item.id}
               posterUrls={isExamples ? afterglowPosters : undefined}
-              onLoad={(mode) => {
+              onLoad={() => {
                 if (isExamples) {
-                  void loadPackagedExample(item, mode ?? "defaults");
+                  setAfterglowSource("defaults");
+                  setAfterglowOpening({ item, choices: afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints()) });
                   return;
                 }
                 setPending({ kind: "catalog", sourceKind: "preset", item });
@@ -1197,6 +1199,35 @@ export default function LibraryWorkspace() {
               : "PlotPickle creates a new working copy from the selected packaged reference under the current PlotPickle controls."}</p><strong>{pending.item.title}</strong>
             {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Saved World Agent decisions from another working copy are not imported. Existing local media is offered separately and is never treated as canon automatically.</small> : null}
             <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : pending.kind === "story" ? "Open Saved Story" : "Start Fresh Copy"}</button></div>
+          </section>
+        </div>
+      ) : null}
+
+      {afterglowOpening ? (
+        <div className={styles.dialogBackdrop} role="presentation">
+          <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="afterglow-open-title" onKeyDown={(event) => {
+            if (event.key === "Escape" && !loadingReference) setAfterglowOpening(null);
+          }}>
+            <h2 id="afterglow-open-title">Open Afterglow</h2>
+            <p>The provided example is protected. Choose your starting point.</p>
+            <label>
+              <span>Starting point</span>
+              <select value={afterglowSource} onChange={(event) => setAfterglowSource(event.target.value)}>
+                <option value="defaults">Load the provided example</option>
+                {afterglowOpening.choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+              </select>
+            </label>
+            {!afterglowOpening.choices.length ? <p>No saved changes or recovery points are available for this profile yet.</p> : null}
+            <div className={styles.recoveryActions}>
+              <button className={styles.secondaryButton} onClick={() => setAfterglowOpening(null)} type="button">Cancel</button>
+              <button className={styles.primaryButton} onClick={() => {
+                const opening = afterglowOpening;
+                const choice = opening.choices.find((item) => item.id === afterglowSource);
+                if (afterglowSource !== "defaults" && !choice) return;
+                setAfterglowOpening(null);
+                void loadPackagedExample(opening.item, afterglowSource === "defaults" ? "defaults" : "restore", choice);
+              }} type="button">Continue</button>
+            </div>
           </section>
         </div>
       ) : null}

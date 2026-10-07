@@ -64,7 +64,7 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
   assert.match(gateway, /fetch\("\/api\/auth\/profile"/u);
   assert.match(gateway, /action: "create-first-profile"/u);
   assert.match(gateway, /hydrateProfilePrivateBrowser/u);
-  assert.match(gateway, /migrateLegacyBrowserProjects/u);
+  assert.doesNotMatch(gateway, /migrateLegacyBrowserProjects/u);
   assert.match(gateway, /password: input\.credential/u);
   assert.match(gateway, /password: credential/u);
 

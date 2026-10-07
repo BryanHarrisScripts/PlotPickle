@@ -201,7 +201,8 @@
       "include": [
         "modules/library/ui/avery-session-history/index.tsx",
         "modules/library/ui/archive-stories-panel.tsx",
-        "modules/library/ui/library-workspace.tsx"
+        "modules/library/ui/library-workspace.tsx",
+        "modules/library/afterglow-open-contract.ts"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

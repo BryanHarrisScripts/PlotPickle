@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "issue": 2835,
+  "brief": "docs/developer-briefs/2835-startup-account-afterglow.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "PlotPickle.ps1",
+    "adapters/experience/browser-profile-auth-gateway.ts",
+    "app/api/auth/profile-private/route.ts",
+    "app/profile-access/profile-access-boundary.tsx",
+    "config/development-convergence/2835.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/storage/profile-private-browser.ts",
+    "core/storage/profile-private/profile-private-storage-core.mjs",
+    "core/storage/project-library-core.mjs",
+    "docs/developer-briefs/2835-startup-account-afterglow.md",
+    "modules/library/afterglow-open-contract.ts",
+    "modules/library/ui/library-workspace.tsx",
+    "tests/issue-1122-library-persistence.test.mjs",
+    "tests/issue-1146-auth-full-verification.test.mjs",
+    "tests/issue-1754-skin-v1-logon.test.mjs",
+    "tests/issue-1969-explicit-story-startup.test.mjs",
+    "tests/issue-2464-numbered-launcher-menu.test.mjs",
+    "tests/issue-2468-three-runtime-modes.test.mjs",
+    "tests/issue-2550-library-lifecycle.test.mjs",
+    "tests/issue-2559-library-example-gateway.test.mjs",
+    "tests/issue-2581-startup-isolation.test.mjs",
+    "tests/issue-2835-startup-account-afterglow.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "LOGIN",
+      "criterion": "Sign-in never imports stale or foreign browser remnants.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2835-startup-account-afterglow.test.mjs",
+          "contains": "login must make no private-state mutations"
+        }
+      ]
+    },
+    {
+      "id": "ONE",
+      "criterion": "One default open persists one story and retains prior metadata.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2835-startup-account-afterglow.test.mjs",
+          "contains": "one example must persist only one story"
+        }
+      ]
+    },
+    {
+      "id": "RESTORE",
+      "criterion": "Profile-scoped restore creates a separate working copy without overwriting newer work.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2835-startup-account-afterglow.test.mjs",
+          "contains": "restoring a point preserves newer work"
+        }
+      ]
+    },
+    {
+      "id": "STARTUP",
+      "criterion": "Ordinary startup removes the numbered menu and delay.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2464-numbered-launcher-menu.test.mjs",
+          "contains": "starts normally without a mode menu or delay"
+        }
+      ]
+    },
+    {
+      "id": "UI",
+      "criterion": "One example opening chooser offers the supplied example and profile restore choices.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": "Load the provided example"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL",
+      "criterion": "Saving remains local and actual-account acceptance stays pending.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2835-startup-account-afterglow.md",
+          "contains": "Actual-account sign-in and rendered Windows"
+        }
+      ]
+    }
+  ]
+}

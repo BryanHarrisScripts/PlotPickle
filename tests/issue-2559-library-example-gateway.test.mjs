@@ -39,14 +39,16 @@ test("#2559 Examples exposes exactly the clean-default and restore choices for A
   const source = await read("modules/library/ui/library-workspace.tsx");
 
   assert.match(source, />Open Example<\/button>/u);
-  assert.match(source, />Open Example with Your Changes<\/button>/u);
+  assert.doesNotMatch(source, />Open Example with Your Changes<\/button>/u);
+  assert.match(source, /Open Afterglow/u);
+  assert.match(source, /Load the provided example/u);
   assert.doesNotMatch(source, />Project Defaults<\/button>|>Restore Your Changes<\/button>/u);
   assert.doesNotMatch(source, /Load & Explore/u);
 
   const examplesStart = source.indexOf('if (destination === "examples" || destination === "presets")');
   const examplesEnd = source.indexOf('if (destination === "avery")', examplesStart);
   const examples = source.slice(examplesStart, examplesEnd);
-  assert.match(examples, /void loadPackagedExample\(item, mode \?\? "defaults"\)/u);
+  assert.match(examples, /setAfterglowOpening/u);
   assert.doesNotMatch(examples, /sourceKind: isExamples \? "example"/u);
 });
 
@@ -64,11 +66,11 @@ test("#2559/#2823 Open Example bypasses scanning while Your Changes prepares one
   assert.match(defaultsSlice, /await openActiveProject\(\)/u);
   assert.doesNotMatch(defaultsSlice, /scanLocalResources/u);
 
-  assert.match(loader, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
+  assert.match(loader, /const openedProject = choice\.project/u);
   assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
   assert.match(loader, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
-  assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
+  assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError, recoveryPointId: choice\.recoveryPointId \}\)/u);
   assert.match(source, /Resume Saved Afterglow/u);
   assert.match(source, /async function continueSavedStoryResume/u);
   assert.doesNotMatch(source, />Select All<\/button>|requires your explicit selection|selectedRecoveryOrigins/u);

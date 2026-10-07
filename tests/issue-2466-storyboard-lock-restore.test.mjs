@@ -135,7 +135,7 @@ test("#2466 current restored artifact state is authoritative before historical l
   assert.match(duplicateBranch, /artifactId: existingArtifact\.id/u);
 });
 
-test("#2466 Library recovery supplies saved origin-project snapshots and explains proven lock restoration", async () => {
+test("#2466/#2823 Library resume supplies saved snapshots without exposing recovery selection", async () => {
   const [workspace, browser] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("core/storage/project-library-browser.ts"),
@@ -146,7 +146,8 @@ test("#2466 Library recovery supplies saved origin-project snapshots and explain
   assert.match(workspace, /storyboardSourceProjects/u);
   assert.match(workspace, /loadLibraryProjectSnapshot\(projectId\)/u);
   assert.match(workspace, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
-  assert.match(workspace, /restoredLockedCount/u);
-  assert.match(workspace, /does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon/u);
-  assert.match(workspace, /Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock/u);
+  assert.match(workspace, /restoreLocalStoryboardResources\(current, storyboardResources, storyboardSourceProjects\)/u);
+  assert.match(workspace, /function resumeInventoryResources/u);
+  assert.match(workspace, /expected\.has\(resource\.assetUrl\)/u);
+  assert.match(workspace, /Local media matching is automatic and deterministic/u);
 });

@@ -16,6 +16,7 @@ type RoutingOption = {
   cost?: string;
   settingsTarget?: string;
   error?: string;
+  verifiedAt?: string;
 };
 
 type RoutingGroup = {
@@ -115,13 +116,23 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    const handleRefresh = () => { void refresh(); };
+    handleRefresh();
+    window.addEventListener("plotpickle:setup-status-refresh", handleRefresh);
+    window.addEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("plotpickle:setup-status-refresh", handleRefresh);
+      window.removeEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    };
+  }, [refresh]);
 
   const mix = useMemo(() => CAPABILITIES.map(({ id }) => {
     const selected = selectedOption(routing?.[id]);
     return selected ? { capability: id, route: selected.route, locality: selected.option.locality, ready: selected.option.ready === true } : null;
   }), [routing]);
 
+  const incompleteCapabilities = mix.flatMap((item, index) => item?.ready === true ? [] : [CAPABILITIES[index].label.toLowerCase()]);
   const hybridReady = mix.every((item) => item?.ready === true)
     && mix.some((item) => item?.locality === "local")
     && mix.some((item) => item?.locality === "cloud");
@@ -203,6 +214,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
           <span>Assign each story capability to one ready Local or Cloud resource. Writing can stay Local while Images or Video use Cloud, or any other mix you choose.</span>
         </div>
         <strong data-ready={hybridReady ? "true" : "false"}>{hybridReady ? "READY" : "NOT READY"}</strong>
+        {!hybridReady ? <p role="status">{incompleteCapabilities.length ? `The selected ${incompleteCapabilities.join(", ")} route needs setup or a successful test.` : "Select at least one ready local route and one ready cloud route for Hybrid."}</p> : null}
       </section>
 
       <div className={styles.consent}>
@@ -281,6 +293,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                     >
                       <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Local route"}</small></span>
                       <em>{stateLabel(option, selected)}</em>
+                      {!option.ready ? <small>{option.error || (option.configured ? option.verifiedAt ? "Saved test passed; service availability needs checking." : "Authority saved; a successful capability test is required." : "Configure this capability in Settings.")}</small> : null}
                     </button>
                   );
                 }) : <p>No Local route is registered for this capability.</p>}
@@ -303,6 +316,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                     >
                       <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Cloud route"}</small></span>
                       <em>{stateLabel(option, selected)}</em>
+                      {!option.ready ? <small>{option.error || (option.configured ? option.verifiedAt ? "Saved test passed; service availability needs checking." : "Authority saved; a successful capability test is required." : "Configure this capability in Settings.")}</small> : null}
                     </button>
                   );
                 }) : <p>No Cloud route is registered for this capability.</p>}

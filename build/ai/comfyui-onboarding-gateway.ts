@@ -237,7 +237,13 @@ async function runWindowsStarter(allowDesktopLaunch: boolean): Promise<StarterRe
 
 async function startWithManagedLocalRuntime() {
   if (process.platform !== "win32") {
-    throw new Error("Automatic managed ComfyUI startup is currently available on Windows only. Start ComfyUI locally, then retry.");
+    return {
+      ready: false,
+      state: "unsupported-platform",
+      manager: "managed-local-probe",
+      detail: "Automatic managed ComfyUI startup is currently available on Windows only. Start ComfyUI locally, then retry.",
+      message: "Start ComfyUI locally, then retry its availability check.",
+    };
   }
 
   // First pass is headless-only. It may discover an already-running/classic engine,

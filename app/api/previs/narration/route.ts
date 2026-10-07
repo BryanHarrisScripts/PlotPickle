@@ -47,5 +47,5 @@ async function handlePost(request: Request) {
 
 export async function POST(request: Request) {
   try { return await withAuthenticatedProfileRequest(request, () => handlePost(request)); }
-  catch { return Response.json({ ok: false, message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
+  catch (error) { return Response.json({ ok: false, code: authorizationCode(error) || "AUTHORIZATION_REJECTED", message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
 }

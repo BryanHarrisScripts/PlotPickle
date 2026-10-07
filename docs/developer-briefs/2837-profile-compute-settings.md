@@ -23,3 +23,5 @@ The shared readiness contract requires saved authority plus a successful capabil
 
 ## Limits
 Bryan's actual local vault, Windows encryption round-trip and real paid providers remain untested here. No real credentials or account data are collected or uploaded. This PR does not recover data damaged before #2836 or automatically claim a legacy OS key belongs to a particular Human.
+
+Hybrid refreshes on setup/connection changes and explains capability readiness separately from a saved key. Its overall status still requires ready selected capabilities and a mix of local/cloud routes.

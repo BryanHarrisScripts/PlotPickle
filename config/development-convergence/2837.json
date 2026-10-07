@@ -69,12 +69,14 @@
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "core/auth/profile-request-browser.ts",
-    "core/contracts/compute-readiness.mjs",
+    "core/contracts/compute/compute-readiness.mjs",
     "core/storage/profile-private/profile-compute-settings.mjs",
     "core/storage/profile-private/profile-private-storage-core.mjs",
     "docs/developer-briefs/2837-profile-compute-settings.md",
     "tests/issue-1255-comfyui-real-machine.test.mjs",
-    "tests/issue-2837-profile-compute-setup.test.mjs"
+    "tests/issue-2837-profile-compute-setup.test.mjs",
+    "tests/issue-2717-command-gateway.test.mjs",
+    "build/ai/comfyui-onboarding-gateway.ts"
   ],
   "acceptance": [
     {
@@ -140,6 +142,17 @@
           "type": "file-contains",
           "path": "tests/issue-2837-profile-compute-setup.test.mjs",
           "contains": "routing\\?\\.image"
+        }
+      ]
+    },
+    {
+      "id": "HYBRID",
+      "criterion": "Hybrid refreshes after Cloud verification and explains unavailable capabilities.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2837-profile-compute-setup.test.mjs",
+          "contains": "Cloud verification and connection changes must refresh Hybrid without remounting."
         }
       ]
     }

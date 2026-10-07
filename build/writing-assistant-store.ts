@@ -1,4 +1,4 @@
-import { writingReadiness } from "../core/contracts/compute-readiness.mjs";
+import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import type { LocalRuntimeKind } from "../lib/runtime/ai/local-runtime";
 

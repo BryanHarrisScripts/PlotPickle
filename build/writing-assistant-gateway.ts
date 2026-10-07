@@ -1,4 +1,4 @@
-import { writingReadiness } from "../core/contracts/compute-readiness.mjs";
+import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {

@@ -624,7 +624,7 @@
         "build/provider-url.ts",
         "lib/runtime/ai/local-runtime.ts",
         "build/ai/h3/comfyui-h3-native-provider.ts",
-        "core/contracts/compute-readiness.mjs"
+        "core/contracts/compute/compute-readiness.mjs"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

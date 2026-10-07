@@ -4,8 +4,9 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createServer } from "node:http";
 import test from "node:test";
+import vm from "node:vm";
 import { build } from "esbuild";
-import { computeReadiness, cloudMediaReadiness, writingReadiness, invalidateImageVerification } from "../core/contracts/compute-readiness.mjs";
+import { computeReadiness, cloudMediaReadiness, writingReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
 
 test("#2837 account-owned compute setup survives restart, isolates keys and serializes parallel saves", async () => {
   const root = await mkdtemp(path.join(path.resolve("node_modules"), ".compute-setup-2837-"));
@@ -158,4 +159,35 @@ test("#2837 readiness distinguishes configured, tested, unavailable and invalida
   assert.match(overview, /routing\?\.image\?\.options\?\.\[imageRoute\]\?\.ready/u);
   assert.match(overview, /routing\?\.video\?\.options\?\.\[videoRoute\]\?\.ready/u);
   assert.doesNotMatch(overview, /imageReady[^;]*profiles[^;]*configured/u);
+});
+
+test("#2837 Hybrid refreshes saved capability status after Cloud tests and removes listeners on exit", async () => {
+  const source = await readFile(new URL("../app/skin-v1/hybrid-story-mode-panel.tsx", import.meta.url), "utf8");
+  const effect = source.match(/useEffect\(\(\) => \{([\s\S]*?)\}, \[refresh\]\);/u)?.[1];
+  assert.ok(effect, "Hybrid must own its setup-change subscription.");
+  const listeners = new Map();
+  let reads = 0;
+  const cleanup = vm.runInNewContext(`(() => {${effect}})()`, {
+    refresh: () => { reads++; },
+    window: {
+      addEventListener: (name, handler) => listeners.set(name, handler),
+      removeEventListener: (name, handler) => { assert.equal(listeners.get(name), handler); listeners.delete(name); },
+    },
+  });
+  assert.equal(reads, 1);
+  listeners.get("plotpickle:setup-status-refresh")();
+  listeners.get("plotpickle:connection-status-refresh")();
+  assert.equal(reads, 3, "Cloud verification and connection changes must refresh Hybrid without remounting.");
+  cleanup();
+  assert.equal(listeners.size, 0);
+});
+
+test("#2837 unavailable managed startup reports a setup state without a server crash", async () => {
+  const source = await readFile(new URL("../build/ai/comfyui-onboarding-gateway.ts", import.meta.url), "utf8");
+  const body = source.match(/async function startWithManagedLocalRuntime\(\) \{([\s\S]*?)\n\}\n\nasync function startComfyUi/u)?.[1];
+  assert.ok(body);
+  const result = await vm.runInNewContext(`(async () => {${body}})()`, { process: { platform: "linux" } });
+  assert.equal(result.ready, false);
+  assert.equal(result.state, "unsupported-platform");
+  assert.match(result.message, /Start ComfyUI locally/);
 });

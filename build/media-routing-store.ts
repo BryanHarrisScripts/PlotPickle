@@ -1,4 +1,4 @@
-import { cloudMediaReadiness } from "../core/contracts/compute-readiness.mjs";
+import { cloudMediaReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 import { createHash } from "node:crypto";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";

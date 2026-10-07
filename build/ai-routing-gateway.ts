@@ -1,4 +1,4 @@
-import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute-readiness.mjs";
+import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 import type { IncomingMessage, ServerResponse } from "node:http";

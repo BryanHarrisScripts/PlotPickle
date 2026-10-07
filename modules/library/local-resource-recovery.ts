@@ -304,7 +304,8 @@ function orderedStoryboardSources(resource: RecoveredStoryboardResource, sourceP
   return [...sourceProjects]
     .filter((source, index, all) => all.findIndex((candidate) => candidate.id === source.id) === index)
     .sort((left, right) =>
-      Number(right.id === resource.originProjectId) - Number(left.id === resource.originProjectId)
+      right.updatedAt.localeCompare(left.updatedAt)
+      || Number(right.id === resource.originProjectId) - Number(left.id === resource.originProjectId)
       || left.id.localeCompare(right.id)
     );
 }
@@ -353,11 +354,13 @@ function priorDeletedStoryboardArtifact(
         && candidate.assetUrl === resource.assetUrl
         && candidate.workflow === "storyboard-frame-webp-v2"
         && candidate.frameNumber === resource.position
-        && candidate.reviewState === "rejected"
-        && decisionKeys.includes(anchorKey)
-        && decisionKeys.includes("storyboard-deleted:v1");
+        && decisionKeys.includes(anchorKey);
     });
-    if (artifact) return { artifact, projectId: source.id };
+    if (!artifact) continue;
+    const decisionKeys = artifact.sourceDecisionKeys ?? [];
+    return artifact.reviewState === "rejected" && decisionKeys.includes("storyboard-deleted:v1")
+      ? { artifact, projectId: source.id }
+      : null;
   }
   return null;
 }
@@ -383,10 +386,12 @@ function priorAcceptedStoryboardArtifact(
         && candidate.workflow === "storyboard-frame-webp-v2"
         && candidate.frameNumber === resource.position
         && candidate.reviewState !== "rejected"
-        && decisionKeys.includes(anchorKey)
-        && (candidate.reviewState === "accepted" || acceptedIds.has(candidate.id));
+        && decisionKeys.includes(anchorKey);
     });
-    if (artifact) return { artifact, projectId: source.id };
+    if (!artifact) continue;
+    return artifact.reviewState === "accepted" || acceptedIds.has(artifact.id)
+      ? { artifact, projectId: source.id }
+      : null;
   }
   return null;
 }
@@ -426,42 +431,41 @@ export function restoreLocalStoryboardResources(
   let restoredSavedCount = 0;
   for (const resource of resources) {
     const id = recoveryArtifactId(resource);
-    const priorDeletedArtifact = priorDeletedStoryboardArtifact(resource, sourceProjects);
-    if (priorDeletedArtifact) {
-      skippedCount += 1;
-      continue;
-    }
-    const priorArtifact = priorStoryboardArtifact(resource, sourceProjects);
-    const priorApproval = priorAcceptedStoryboardArtifact(resource, sourceProjects);
     const existingArtifact = current.build.foundations.visualArtifacts.find((artifact) =>
       artifact.assetUrl === resource.assetUrl || artifact.id === id
     );
 
     if (existingArtifact) {
-      const decisionKeys = preservedStoryboardDecisionKeys(resource, priorArtifact, priorApproval);
-      const priorSaved = Boolean(priorArtifact?.artifact.sourceDecisionKeys?.includes(STORYBOARD_LOCAL_SAVE_MARKER));
-      const shouldRefreshMetadata = priorArtifact
-        && (priorSaved || decisionKeys.some((key) => !(existingArtifact.sourceDecisionKeys ?? []).includes(key)));
+      // The active Library snapshot is the Human's latest story-state authority.
+      // Recovery may add provenance for the same local file, but historical
+      // snapshots must never downgrade current Save, Lock/Unlock, prompt, or
+      // other artifact metadata.
+      if (existingArtifact.reviewState === "rejected") {
+        skippedCount += 1;
+        continue;
+      }
+      const currentArtifact = { artifact: existingArtifact, projectId: current.id } satisfies PriorStoryboardApproval;
+      const currentlyAccepted = existingArtifact.reviewState === "accepted"
+        || current.build.foundations.acceptedVisualArtifactIds.includes(existingArtifact.id);
+      const currentApproval = currentlyAccepted ? currentArtifact : null;
+      const decisionKeys = preservedStoryboardDecisionKeys(resource, currentArtifact, currentApproval);
+      const shouldRefreshMetadata = decisionKeys.some(
+        (key) => !(existingArtifact.sourceDecisionKeys ?? []).includes(key),
+      );
       if (shouldRefreshMetadata) {
         current = applyStoryCommand(current, {
           type: "foundations.visual.store",
           artifact: {
             ...existingArtifact,
-            prompt: priorArtifact.artifact.prompt || existingArtifact.prompt,
-            narrativeIntention: priorArtifact.artifact.narrativeIntention || existingArtifact.narrativeIntention,
             sourceDecisionKeys: decisionKeys,
           },
           occurredAt: resource.modifiedAt,
         }) as LibraryPPFProject;
-        if (priorSaved && !(existingArtifact.sourceDecisionKeys ?? []).includes(STORYBOARD_LOCAL_SAVE_MARKER)) {
-          restoredSavedCount += 1;
-        }
       }
       if (
-        priorApproval
+        currentApproval
         && existingArtifact.workflow === "storyboard-frame-webp-v2"
         && existingArtifact.frameNumber === resource.position
-        && existingArtifact.reviewState !== "rejected"
         && (
           existingArtifact.reviewState !== "accepted"
           || !current.build.foundations.acceptedVisualArtifactIds.includes(existingArtifact.id)
@@ -478,6 +482,15 @@ export function restoreLocalStoryboardResources(
       continue;
     }
 
+    // No current artifact exists for this local media. Historical Library
+    // snapshots are fallback evidence only, ordered newest-first.
+    const priorDeletedArtifact = priorDeletedStoryboardArtifact(resource, sourceProjects);
+    if (priorDeletedArtifact) {
+      skippedCount += 1;
+      continue;
+    }
+    const priorArtifact = priorStoryboardArtifact(resource, sourceProjects);
+    const priorApproval = priorAcceptedStoryboardArtifact(resource, sourceProjects);
     const priorSaved = Boolean(priorArtifact?.artifact.sourceDecisionKeys?.includes(STORYBOARD_LOCAL_SAVE_MARKER));
     const artifact: FoundationsVisualArtifact = {
       id,

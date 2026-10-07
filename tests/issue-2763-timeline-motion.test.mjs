@@ -21,15 +21,18 @@ test("#2763 phase 3 persists one governed motion state per Timeline Shot", async
 });
 
 test("#2763/#2803 phase 3 grounds motion in the provider-neutral Shot Generation Packet and three-second authority", async () => {
-  const workspace = await read("app/_components/timeline/timeline-assembly-workspace.tsx");
+  const [workspace, motionSource] = await Promise.all([
+    read("app/_components/timeline/timeline-assembly-workspace.tsx"),
+    read("app/_components/timeline/timeline-motion-source.ts"),
+  ]);
 
-  assert.match(workspace, /function timelineGenerationPacket/u);
-  assert.match(workspace, /dramaticResponsibility: evidence\.responsibility/u);
-  assert.match(workspace, /screenplay,/u);
-  assert.match(workspace, /buildTimelineShotGenerationPacket/u);
+  assert.match(motionSource, /buildTimelineGenerationPacketForShot/u);
+  assert.match(motionSource, /dramaticResponsibility: evidence\.responsibility/u);
+  assert.match(motionSource, /screenplay,/u);
+  assert.match(motionSource, /buildTimelineShotGenerationPacket/u);
   assert.match(workspace, /serializeTimelineShotGenerationPacket\(packet, strategy\)/u);
-  assert.match(workspace, /motionSourceKey\(selectedPlacement, packet\)/u);
-  assert.match(workspace, /placementSourceKey: placement\.sourceKey/u);
+  assert.match(workspace, /timelineMotionSourceKey\(selectedPlacement, packet\)/u);
+  assert.match(motionSource, /placementSourceKey: placement\.sourceKey/u);
   assert.match(workspace, /requestedDurationSeconds: 3/u);
 });
 

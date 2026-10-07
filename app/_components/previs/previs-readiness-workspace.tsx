@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import {
   type PrevisGraphicNovelTextApproval,
   type PrevisGraphicNovelTextBubble,
@@ -86,10 +87,11 @@ function roundedRect(
 }
 
 async function localImage(assetUrl: string) {
-  if (!assetUrl.startsWith("/api/local-ai/assets/")) {
-    throw new Error("Graphic Novel export accepts saved PlotPickle local images only.");
+  const url = new URL(assetUrl, window.location.origin);
+  if (url.origin !== window.location.origin || !isSupportedVisualAssetUrl(url.pathname)) {
+    throw new Error("Graphic Novel export accepts supported PlotPickle images only.");
   }
-  const response = await fetch(assetUrl, { credentials: "same-origin", cache: "no-store" });
+  const response = await fetch(url, { credentials: "same-origin", cache: "no-store" });
   if (!response.ok) throw new Error(`Graphic Novel source image could not be read (${response.status}).`);
   const blob = await response.blob();
   if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type)) {
@@ -305,8 +307,8 @@ async function lockedImageContactSheet(panels: readonly PrevisGraphicNovelPanel[
   for (const [index, panel] of panels.entries()) {
     signal.throwIfAborted();
     const url = new URL(panel.assetUrl, window.location.origin);
-    if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/local-ai/assets/")) {
-      throw new Error(`Shot ${panel.position} needs a saved local Storyboard image for narration.`);
+    if (url.origin !== window.location.origin || !isSupportedVisualAssetUrl(url.pathname)) {
+      throw new Error(`Shot ${panel.position} needs a supported PlotPickle Storyboard image for narration.`);
     }
     const response = await fetch(url, { credentials: "same-origin", cache: "no-store", signal });
     if (!response.ok) throw new Error(`The locked image for Shot ${panel.position} could not be read (${response.status}).`);

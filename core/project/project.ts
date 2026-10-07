@@ -1,3 +1,4 @@
+import { isSupportedVisualAssetUrl } from "../media/visual-asset-url";
 import {
   createEmptyBuildProgressState,
   type BuildProgressState,
@@ -215,13 +216,6 @@ function normalizeWorld(value: unknown): WorldPlanState {
 
 function normalizeReviewState(value: unknown): VisualArtifactReviewState {
   return value === "accepted" || value === "rejected" ? value : "draft";
-}
-
-function isSupportedVisualAssetUrl(value: unknown): value is string {
-  return typeof value === "string" && (
-    value.startsWith("/api/local-ai/assets/")
-    || value.startsWith("/assets/library/examples/")
-  );
 }
 
 function cleanStringArray(value: unknown, limit = 48) {

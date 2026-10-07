@@ -1,11 +1,13 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { isSupportedVisualAssetUrl } from "../core/media/visual-asset-url";
 import {
   ASSET_PATH,
   MAX_ASSET_BYTES,
   MAX_VIDEO_BYTES,
   assetsDirectory,
+  projectImageAssetFilePath,
   safeAssetStem,
 } from "./media-storage-common";
 export {
@@ -13,6 +15,7 @@ export {
   MAX_ASSET_BYTES,
   MAX_VIDEO_BYTES,
   assetsDirectory,
+  projectImageAssetFilePath,
   safeAssetStem,
 } from "./media-storage-common";
 import type { MediaProfile } from "./media-routing-store";
@@ -268,10 +271,10 @@ async function localReferenceImage(value: unknown, index: number): Promise<Local
   const reference = value.trim();
   let bytes: Buffer;
   let extension: ".png" | ".jpg" | ".webp";
-  if (reference.startsWith(ASSET_PATH)) {
-    const fileName = reference.slice(ASSET_PATH.length);
-    if (!/^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|webp)$/i.test(fileName)) return null;
-    bytes = await readFile(path.join(assetsDirectory(), fileName));
+  if (isSupportedVisualAssetUrl(reference)) {
+    const filePath = projectImageAssetFilePath(reference);
+    const fileName = path.basename(filePath);
+    bytes = await readFile(filePath);
     extension = fileName.toLowerCase().endsWith(".png") ? ".png" : /\.jpe?g$/i.test(fileName) ? ".jpg" : ".webp";
   } else {
     const match = /^data:image\/(png|jpeg|jpg|webp);base64,([a-z0-9+/=\s]+)$/i.exec(reference);
@@ -318,11 +321,11 @@ export async function saveWebpFrameCandidate(assetUrl: string, stem: unknown) {
 export async function videoSourceReference(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return "";
   const source = value.trim();
-  if (source.startsWith(ASSET_PATH)) {
-    const fileName = source.slice(ASSET_PATH.length);
-    if (!/^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(fileName)) throw new Error("Choose a saved PlotPickle image as the first video frame.");
-    const bytes = await readFile(path.join(assetsDirectory(), fileName));
-    const mime = fileName.endsWith(".png") ? "image/png" : /\.jpe?g$/i.test(fileName) ? "image/jpeg" : "image/webp";
+  if (isSupportedVisualAssetUrl(source)) {
+    const filePath = projectImageAssetFilePath(source);
+    const fileName = path.basename(filePath);
+    const bytes = await readFile(filePath);
+    const mime = fileName.toLowerCase().endsWith(".png") ? "image/png" : /\.jpe?g$/i.test(fileName) ? "image/jpeg" : "image/webp";
     return `data:${mime};base64,${bytes.toString("base64")}`;
   }
   const url = new URL(source);

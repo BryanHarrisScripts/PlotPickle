@@ -88,8 +88,9 @@ test("#2821 local narration and Save/Lock share current session and durable proj
       frameBusy: false, frameMutation: { current: false },
       selectedNumber: 1, selectedMiniBlockNumber: 1,
       STORYBOARD_LOCAL_SAVE_MARKER: "storyboard-local-save:v1",
+      isSupportedVisualAssetUrl: (value) => typeof value === "string" && (value.startsWith("/api/local-ai/assets/") || value.startsWith("/assets/library/examples/")),
       storyboardArtifactSavedLocally: (item) => (item.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"),
-      setFrameSaving() {}, setFrameNotice(value) { notices.push(value); },
+      setFrameSaving() {}, setFrameNotice(value) { notices.push(value); }, setFrameNoticePosition() {},
       setSelectedImageByPosition() {}, setPendingDeleteArtifactId() {}, onProjectChange() {},
     });
     vm.runInContext(handlers, context);

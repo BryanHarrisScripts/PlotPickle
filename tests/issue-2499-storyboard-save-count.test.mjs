@@ -9,7 +9,7 @@ test("#2499 Storyboard exposes explicit durable Save separate from Lock", async 
 
   assert.match(source, /STORYBOARD_LOCAL_SAVE_MARKER = "storyboard-local-save:v1"/u);
   assert.match(source, /function storyboardArtifactSavedLocally/u);
-  assert.match(source, /artifact\.assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
+  assert.match(source, /isSupportedVisualAssetUrl\(artifact\.assetUrl\)/u);
   assert.match(source, /sourceDecisionKeys[\s\S]*STORYBOARD_LOCAL_SAVE_MARKER/u);
 
   const saveStart = source.indexOf("function saveFrameVersion");

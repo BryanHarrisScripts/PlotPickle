@@ -50,14 +50,14 @@ test("#2559 Examples exposes exactly the clean-default and restore choices for A
   assert.doesNotMatch(examples, /sourceKind: isExamples \? "example"/u);
 });
 
-test("#2559/#2566 Open Example bypasses scanning while local changes wait for one final Restore", async () => {
+test("#2559/#2823 Open Example bypasses scanning while Your Changes prepares one resume manifest", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf('async function loadPackagedExample(');
   const end = source.indexOf('async function confirmLoad()', start);
   const loader = source.slice(start, end);
 
   const defaultsBranch = loader.indexOf('if (mode === "defaults")');
-  const scanner = loader.indexOf('inventory = await scanLocalResources(restoredProject)');
+  const scanner = loader.indexOf('inventory = await scanLocalResources(openedProject)');
   assert.ok(defaultsBranch >= 0 && scanner > defaultsBranch);
   const defaultsSlice = loader.slice(defaultsBranch, scanner);
   assert.match(defaultsSlice, /setRecovery\(null\)/u);
@@ -66,16 +66,13 @@ test("#2559/#2566 Open Example bypasses scanning while local changes wait for on
 
   assert.match(loader, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
   assert.match(loader, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
-  assert.match(loader, /const restoredProject = switchActiveLibraryProject\(openedProject\.id\)/u);
-  assert.match(loader, /markCurrentSessionLibraryProject\(restoredProject\.id\)/u);
-  assert.match(loader, /inventory = await scanLocalResources\(restoredProject\)/u);
-  assert.match(loader, /if \(!inventory\.groups\.length && !scanError\)[\s\S]*await openActiveProject\(\)/u);
-  assert.match(loader, /setRecovery\(\{ project: restoredProject, baseline, inventory, scanError \}\)/u);
-  assert.match(source, />Select All<\/button>/u);
-  assert.match(source, />\{restoringResources \? "Restoring…" : "Restore"\}<\/button>/u);
-  assert.doesNotMatch(source, /Load All|Restore Selected Changes|Continue Without Local Media/u);
+  assert.match(loader, /createLibraryLoadSessionBaseline\(openedProject/u);
+  assert.match(loader, /inventory = await scanLocalResources\(openedProject\)/u);
+  assert.match(loader, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
+  assert.match(source, /Resume Saved Afterglow/u);
+  assert.match(source, /async function continueSavedStoryResume/u);
+  assert.doesNotMatch(source, />Select All<\/button>|requires your explicit selection|selectedRecoveryOrigins/u);
 });
-
 test("#2559/#2560/#2570 packaged Afterglow artwork stays whole while Load and Examples browse one poster at a time", async () => {
   const [source, css] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),

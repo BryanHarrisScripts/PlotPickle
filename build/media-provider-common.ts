@@ -15,6 +15,7 @@ export {
   MAX_ASSET_BYTES,
   MAX_VIDEO_BYTES,
   assetsDirectory,
+  projectImageAssetFilePath,
   safeAssetStem,
 } from "./media-storage-common";
 import type { MediaProfile } from "./media-routing-store";

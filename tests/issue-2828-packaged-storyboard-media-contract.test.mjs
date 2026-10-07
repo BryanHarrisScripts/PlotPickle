@@ -107,7 +107,8 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
   );
   assert.ok(manifestStoryboardUrls.size > 0, "the committed Afterglow package must include Storyboard media");
 
-  const artifact = (snapshot.build?.foundations?.visualArtifacts ?? []).find((candidate) => (
+  const promotedProject = snapshot.project ?? snapshot;
+  const artifact = (promotedProject.build?.foundations?.visualArtifacts ?? []).find((candidate) => (
     candidate.workflow === "storyboard-frame-webp-v2"
     && candidate.reviewState !== "rejected"
     && manifestStoryboardUrls.has(candidate.assetUrl)
@@ -144,7 +145,7 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     assert.ok(anchorMatch);
     const selectedNumber = Number(anchorMatch[1]);
     const selectedMiniBlockNumber = Number(anchorMatch[2]);
-    let current = snapshot;
+    let current = promotedProject;
     const notices = [];
     const component = await readText("app/_components/storyboard/storyboard-readiness-workspace.tsx");
     const handlers = stripTypeScriptTypes(component.slice(
@@ -153,7 +154,7 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     ));
     const context = vm.createContext({
       Error,
-      project: snapshot,
+      project: promotedProject,
       qaOnlyAccess: false,
       frameBusy: false,
       frameMutation: { current: false },

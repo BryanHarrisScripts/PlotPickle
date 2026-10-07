@@ -29,17 +29,21 @@ function normalizeRecoveryPoints(value: unknown) {
     const createdAt = typeof source.createdAt === "string" ? source.createdAt.trim().slice(0, 80) : "";
     const reason = source.reason === "unload" || source.reason === "manual" || source.reason === "pre-restore" ? source.reason : null;
     if (!id || !projectId || !title || !createdAt || !reason || !source.project) return [];
-    const project = normalizeLibraryProject(source.project);
-    if (project.id !== projectId) return [];
-    return [{
-      id,
-      projectId,
-      title,
-      revision: Number.isInteger(source.revision) ? Number(source.revision) : project.revision,
-      createdAt,
-      reason,
-      project,
-    }];
+    try {
+      const project = normalizeLibraryProject(source.project);
+      if (project.id !== projectId) return [];
+      return [{
+        id,
+        projectId,
+        title,
+        revision: Number.isInteger(source.revision) ? Number(source.revision) : project.revision,
+        createdAt,
+        reason,
+        project,
+      }];
+    } catch {
+      return [];
+    }
   }).sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 

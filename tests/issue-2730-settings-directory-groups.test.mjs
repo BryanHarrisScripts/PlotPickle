@@ -24,7 +24,6 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
     ["semantic-uat", "U", "Semantic UAT", "OPERATIONS", "Run and review the local semantic UAT evidence."],
     ["data-recovery", "D", "Data Recovery", "OPERATIONS", "Review project files and rolling recovery points."],
     ["agents", "A", "Agents", "OPERATIONS", "Assign compute to PlotPickle Agents."],
-    ["ai-routing", "R", "AI Routing", "OPERATIONS", "Review capability routes and provider selection."],
     ["buzz-settings", "B", "BUZZ Settings", "OPERATIONS", "Configure BUZZ identity, presence and runtime settings."],
   ];
 
@@ -47,6 +46,7 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
     assert.ok(row.includes(`description: "${description}"`), `${id} description`);
   }
 
+  assert.doesNotMatch(menu, /id: "ai-routing"/u, "Legacy Operations AI Routing must stay retired from the current Settings directory.");
   assert.match(dashboard, /const showGroup = index === 0 \|\| SETTINGS_MENU\[index - 1\]\?\.group !== item\.group/u);
   assert.match(dashboard, />-- \{item\.group\} --<\/div>/u);
 });
@@ -61,6 +61,5 @@ const shortcuts = {
   cloud: "C",
   hybrid: "H",
   agents: "A",
-  "ai-routing": "R",
   "buzz-settings": "B",
 };

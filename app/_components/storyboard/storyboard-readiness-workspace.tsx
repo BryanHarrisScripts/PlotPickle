@@ -745,6 +745,7 @@ export default function StoryboardReadinessWorkspace({
                   );
                 })}
               </div>
+              {frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
               {promptPosition !== null ? (
                 <section className={styles.framePromptPanel} aria-label={`Storyboard Image prompt for Shot ${promptPosition}`}>
                   <h4>Shot {String(promptPosition).padStart(2, "0")} of 25 · Storyboard Image candidate</h4>

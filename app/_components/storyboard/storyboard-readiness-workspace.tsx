@@ -169,6 +169,16 @@ export default function StoryboardReadinessWorkspace({
       return;
     }
 
+    if (storyboardArtifactSavedLocally(currentArtifact)) {
+      setSelectedImageByPosition((values) => ({
+        ...values,
+        [`${selectedNumber}.${selectedMiniBlockNumber}.${currentArtifact.frameNumber ?? artifact.frameNumber ?? 0}`]: currentArtifact.id,
+      }));
+      onProjectChange(current);
+      setFrameNotice(`Shot ${String(currentArtifact.frameNumber ?? 0).padStart(2, "0")} of 25 already saved locally with this story.`);
+      return;
+    }
+
     const now = new Date().toISOString();
     const savedArtifact: FoundationsVisualArtifact = {
       // Keep the established explicit-save contract while letting the latest
@@ -698,7 +708,7 @@ export default function StoryboardReadinessWorkspace({
                       <div className={styles.frameReview} aria-label={`Review Storyboard Image for Shot ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
                         <button
-                          disabled={!selectedArtifact || savedLocally || qaOnlyAccess || frameBusy}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy}
                           type="button"
                           onClick={() => selectedArtifact && saveFrameVersion(selectedArtifact)}
                         >Save</button>

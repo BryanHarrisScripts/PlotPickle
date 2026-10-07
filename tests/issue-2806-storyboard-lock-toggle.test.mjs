@@ -54,7 +54,8 @@ test("#2806 Save remains independent so Unlock → Save → Lock is possible", a
   assert.match(save, /STORYBOARD_LOCAL_SAVE_MARKER/u);
   assert.match(save, /type: "foundations\.visual\.store"/u);
   assert.doesNotMatch(save, /foundations\.visual\.accept|foundations\.visual\.unaccept/u);
-  assert.match(loop, /disabled=\{!selectedArtifact \|\| savedLocally \|\| qaOnlyAccess \|\| frameBusy\}/u);
+  assert.doesNotMatch(loop, /disabled=\{!selectedArtifact \|\| savedLocally/u);
+  assert.match(loop, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
   assert.match(loop, /accepted[\s\S]*"Locked · Save confirmation pending"/u);
   assert.match(loop, /savedLocally \? "Saved locally"/u);
 });

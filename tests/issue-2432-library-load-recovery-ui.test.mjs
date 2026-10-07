@@ -13,7 +13,7 @@ test("#2432/#2570 keeps example recovery behind Examples while LOAD also exposes
   assert.doesNotMatch(loadSurface, /kind: "catalog"|Resume Saved Story/u);
   assert.match(loadSurface, /<SavedStoryLoadCard/u);
   assert.match(loadSurface, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
-  assert.match(source, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
+  assert.match(source, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore", choice\?: AfterglowRestoreChoice\)/u);
   assert.match(source, /createLibraryLoadSessionBaseline\(openedProject/u);
   assert.match(source, /persistLoadSessionBaseline\(baseline\)/u);
   assert.match(source, /if \(mode === "defaults"\)[\s\S]*await openActiveProject\(\)[\s\S]*return;/u);
@@ -25,7 +25,10 @@ test("#2432/#2570 keeps example recovery behind Examples while LOAD also exposes
 test("#2432/#2823 keeps clean example and saved-state resume as separate Human choices", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   assert.match(source, />Open Example<\/button>/u);
-  assert.match(source, />Open Example with Your Changes<\/button>/u);
+  assert.match(source, /<h2 id="afterglow-open-title">Open Afterglow<\/h2>/u);
+  assert.match(source, /<option value="defaults">Load the provided example<\/option>/u);
+  assert.match(source, /afterglowOpening\.choices\.map/u);
+  assert.doesNotMatch(source, />Open Example with Your Changes<\/button>/u);
   assert.match(source, /Resume Saved Afterglow/u);
   assert.doesNotMatch(source, />Select All<\/button>|requires your explicit selection|selectedRecoveryOrigins/u);
   assert.match(source, /function expectedLocalAssetUrls/u);
@@ -46,8 +49,11 @@ test("#2432/#2570 restores saved-story selection to LOAD without bypassing examp
   assert.doesNotMatch(loadSurface, /Resume Saved Story/u);
   assert.match(loadSurface, /<SavedStoryLoadCard/u);
   assert.match(loadSurface, /setPending\(\{ kind: "story", item: entry\.item \}\)/u);
-  assert.match(source, />Open Example with Your Changes<\/button>/u);
-  assert.match(source, /const openedProject = loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
-  assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError \}\)/u);
+  assert.match(source, /<h2 id="afterglow-open-title">Open Afterglow<\/h2>/u);
+  assert.match(source, /<option value="defaults">Load the provided example<\/option>/u);
+  assert.match(source, /afterglowOpening\.choices\.map/u);
+  assert.doesNotMatch(source, />Open Example with Your Changes<\/button>/u);
+  assert.match(source, /const openedProject = choice\.project/u);
+  assert.match(source, /setRecovery\(\{ project: openedProject, baseline, inventory, scanError, recoveryPointId: choice\.recoveryPointId \}\)/u);
   assert.match(source, /async function continueSavedStoryResume[\s\S]*switchActiveLibraryProject\(recovery\.project\.id\)/u);
 });

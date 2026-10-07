@@ -37,6 +37,9 @@ async function fixture(t, overrides = {}) {
       auth = await createPlotPickleAuthService(authOptions);
       context = (await auth.authenticate({ profileId: owner.profile.profileId, password })).authContext;
       storage = createProfilePrivateStorageService({ root, authService: auth, normalizeProject: normalizeLibraryProject });
+      assert.equal(await storage.loadActiveProject(context), null, "A new login does not select the previous story.");
+      // Model the Human explicitly reopening the approved story before resuming its task.
+      await storage.activateProject(context, project.id);
       controller = createOutlineTaskController(options());
     },
     async create(blocks = [1, 2]) { return controller.create(context, blocks); },

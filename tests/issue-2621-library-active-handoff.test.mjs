@@ -120,8 +120,10 @@ test("#2621 canonical packaged Afterglow already contains the data World Map and
   assert.ok(locked.every((artifact) => artifact.assetUrl.startsWith("/assets/library/examples/afterglow/current/")));
 });
 
-test("#2621 Your Changes remains an honest local-overlay action", async () => {
+test("#2621/#2835 restore choices remain bounded to this profile and reject missing saved state", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
-  assert.match(workspace, /disabled=\{disabled \|\| !canRestoreChanges\}/u);
-  assert.match(workspace, /if \(!afterglowLocalState\)[\s\S]*No local Afterglow changes are available yet/u);
+  assert.match(workspace, /afterglowRestoreChoices\(listAfterglowExampleProjects\(\), loadLibraryProjectSnapshot, listProfileRecoveryPoints\(\)\)/u);
+  assert.match(workspace, /if \(!choice\)[\s\S]*No saved Afterglow changes are available for this profile/u);
+  assert.match(workspace, /if \(afterglowSource !== "defaults" && !choice\) return/u);
+  assert.match(workspace, /No saved changes or recovery points are available for this profile yet/u);
 });

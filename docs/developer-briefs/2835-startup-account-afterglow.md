@@ -38,3 +38,5 @@ No automatic rollback of previously imported stale data is attempted. Inspect ge
 ## Non-goals
 
 No provider, narration, motion or full-account backup format rewrite. No account reset, credential bypass, production profile mutation, package promotion, or change from local saving. No claim that an HTTP/storage test is a rendered UI test.
+
+CI follow-up: Layers 1, 3 and 5 exposed historical assertions for the superseded two-button opening flow and loader signature. Those tests now assert the single chooser, profile-owned restore selections and missing-choice rejection while retaining resource reconciliation and explicit handoff coverage. The Outline task restart fixture explicitly reopens its approved story after asserting that a new login has no selected project; task authority and budget checks remain unchanged.

@@ -77,7 +77,7 @@ test("#2603 Library New creates Blank while Afterglow remains an explicit Exampl
   assert.match(workspace, /createLibraryUserProject\(\{ title: "Untitled Story", format: "Feature" \}\)/u);
   assert.match(workspace, /window\.location\.assign\("\/\?workspace=dashboard"\)/u);
 
-  assert.match(workspace, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
+  assert.match(workspace, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore", choice\?: AfterglowRestoreChoice\)/u);
   assert.match(workspace, /if \(mode === "defaults"\)[\s\S]*createAfterglowPackagedCurrentReference/u);
   assert.match(workspace, /sourceKind: "example"/u);
   assert.match(workspace, /sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
@@ -159,7 +159,8 @@ test("#2603/#2823 local-media resume remains bounded and separate from the packa
     read("modules/library/local-resource-recovery.ts"),
   ]);
 
-  assert.match(workspace, /Open Example with Your Changes/u);
+  assert.match(workspace, /afterglowOpening\.choices\.map/u);
+  assert.match(workspace, /const openedProject = choice\.project/u);
   assert.match(workspace, /inventoryLocalResources/u);
   assert.match(workspace, /restoreLocalStoryboardResources/u);
   assert.match(workspace, /restoreLocalWorldMapPosterResources/u);

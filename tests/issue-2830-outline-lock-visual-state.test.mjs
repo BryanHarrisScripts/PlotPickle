@@ -79,7 +79,10 @@ test("#2830 real packaged Afterglow Outline visual can Save, Lock, visibly repor
   ));
   const savedLocally = vm.runInNewContext(
     savedFunctionSource + "\nsavedLocally",
-    { isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl },
+    {
+      isSupportedVisualAssetUrl: visual.isSupportedVisualAssetUrl,
+      LOCAL_SAVE_MARKER: "storyboard-local-save:v1",
+    },
   );
   assert.equal(savedLocally(packagedArtifact), (packagedArtifact.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"));
 

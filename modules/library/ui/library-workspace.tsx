@@ -52,7 +52,7 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
-import { flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
+import { createProfileRecoveryPoint, flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
@@ -482,7 +482,7 @@ function CatalogCard({ item, sourceKind, onLoad, disabled = false, canRestoreCha
               <button className={styles.secondaryButton} disabled={disabled || !canRestoreChanges} onClick={() => onLoad("restore")} type="button">Open Example with Your Changes</button>
             </div>
             <p className={styles.exampleActionHelp}>
-              Open Example starts from the canonical packaged reference. Your Changes adds your profile-local Afterglow overlay only when you choose it.
+              Open Example starts from the canonical packaged reference. Open Example with Your Changes resumes your latest saved Afterglow state and reconnects only media that saved state already expects.
             </p>
           </div>
         </div>
@@ -634,6 +634,8 @@ export default function LibraryWorkspace() {
     setUnloadingStory(true);
     setNotice("");
     try {
+      const durableSnapshot = loadLibraryProjectSnapshot(projectId);
+      if (durableSnapshot) await createProfileRecoveryPoint(durableSnapshot, "unload");
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
 
@@ -1201,6 +1203,7 @@ export default function LibraryWorkspace() {
 
       {recovery ? (() => {
         const manifest = resumeManifest(recovery.project, recovery.inventory);
+        const provenance = recovery.project.sourceEvidence.resumeProvenance;
         return (
           <div className={styles.dialogBackdrop} role="presentation">
             <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog" onKeyDown={(event) => {
@@ -1214,6 +1217,7 @@ export default function LibraryWorkspace() {
               <p className={styles.eyebrow}>Afterglow · saved working state</p>
               <h2 id="library-recovery-title">Resume Saved Afterglow</h2>
               <p><strong>{recovery.project.title}</strong> will open from the state you last saved on <strong>{displayDate(recovery.project.updatedAt)}</strong>. Current PlotPickle controls and methods will be used.</p>
+              {provenance?.kind === "recovery" ? <p>This working state was restored from a recovery point dated <strong>{displayDate(provenance.sourceAt)}</strong>.</p> : provenance?.kind === "archive" ? <p>This working state was restored to Library from Archive on <strong>{displayDate(provenance.restoredAt)}</strong>.</p> : null}
               <div className={styles.recoverySummary}>
                 <span><b>{manifest.storyboardImages}</b> saved Storyboard image{manifest.storyboardImages === 1 ? "" : "s"}</span>
                 <span><b>{manifest.lockedStoryboardImages}</b> locked Storyboard image{manifest.lockedStoryboardImages === 1 ? "" : "s"}</span>

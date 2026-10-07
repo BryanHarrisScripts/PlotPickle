@@ -54,7 +54,7 @@ test("#2495 Previs WebP export does not statically load Sharp before the route c
   assert.match(encoder, /from "\.\/media-storage-common"/u);
   assert.doesNotMatch(encoder, /from "\.\/media-provider-common"/u);
 
-  assert.match(storage, /ASSET_PATH = (?:LOCAL_GENERATED_VISUAL_ASSET_PREFIX|"\\/api\\/local-ai\\/assets\\/"|'[/]api[/]local-ai[/]assets[/]')/u);
+  assert.match(storage, /ASSET_PATH = LOCAL_GENERATED_VISUAL_ASSET_PREFIX/u);
   assert.match(storage, /assetsDirectory/u);
   assert.match(common, /from "\.\/media-storage-common"/u);
   assert.match(common, /export \{[\s\S]*assetsDirectory[\s\S]*safeAssetStem/u);

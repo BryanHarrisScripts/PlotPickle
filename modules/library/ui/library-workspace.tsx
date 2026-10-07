@@ -59,7 +59,7 @@ type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
-type PendingRecovery = {
+type PendingResume = {
   readonly project: LibraryPPFProject;
   readonly baseline: LibraryLoadSessionBaseline;
   readonly inventory: LocalResourceInventory;
@@ -170,6 +170,62 @@ function displayDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "Saved locally";
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+
+function expectedLocalAssetUrls(project: LibraryPPFProject) {
+  const urls = new Set<string>();
+  for (const artifact of project.build.foundations.visualArtifacts) {
+    if (artifact.assetUrl?.startsWith("/api/local-ai/assets/")) urls.add(artifact.assetUrl);
+  }
+  for (const artifact of project.build.world.visualArtifacts) {
+    if (artifact.assetUrl?.startsWith("/api/local-ai/assets/")) urls.add(artifact.assetUrl);
+  }
+  for (const character of project.worldMap.characterVisuals) {
+    for (const reference of character.references) {
+      if (reference.assetUrl?.startsWith("/api/local-ai/assets/")) urls.add(reference.assetUrl);
+    }
+  }
+  return urls;
+}
+
+function resumeInventoryResources(project: LibraryPPFProject, inventory: LocalResourceInventory) {
+  const expected = expectedLocalAssetUrls(project);
+  return [
+    ...inventory.storyboardResources,
+    ...inventory.posterResources,
+    ...inventory.characterResources,
+  ].filter((resource) => expected.has(resource.assetUrl));
+}
+
+function resumeManifest(project: LibraryPPFProject, inventory: LocalResourceInventory) {
+  const expected = expectedLocalAssetUrls(project);
+  const available = new Set([
+    ...inventory.storyboardResources.map((resource) => resource.assetUrl),
+    ...inventory.posterResources.map((resource) => resource.assetUrl),
+    ...inventory.characterResources.map((resource) => resource.assetUrl),
+  ]);
+  const storyboardArtifacts = project.build.foundations.visualArtifacts.filter(
+    (artifact) => artifact.workflow === "storyboard-frame-webp-v2" && Boolean(artifact.assetUrl),
+  );
+  const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
+  const characterImages = project.worldMap.characterVisuals.reduce((count, character) => count + character.references.length, 0);
+  const posters = project.build.foundations.visualArtifacts.filter(
+    (artifact) => artifact.workflow === FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW && Boolean(artifact.assetUrl),
+  ).length;
+  const missing = [...expected].filter((assetUrl) => !available.has(assetUrl)).length;
+  const ignored = inventory.storyboardResources.filter((resource) => !expected.has(resource.assetUrl)).length
+    + inventory.posterResources.filter((resource) => !expected.has(resource.assetUrl)).length
+    + inventory.characterResources.filter((resource) => !expected.has(resource.assetUrl)).length
+    + inventory.unclassifiedAssets.length;
+  return {
+    storyboardImages: storyboardArtifacts.length,
+    lockedStoryboardImages: storyboardArtifacts.filter((artifact) => artifact.reviewState === "accepted" || accepted.has(artifact.id)).length,
+    characterImages,
+    posters,
+    missingLocalMedia: missing,
+    ignoredLocalAssets: ignored,
+  };
 }
 
 function returnToMatrixDashboardFromLibrary() {
@@ -479,8 +535,7 @@ export default function LibraryWorkspace() {
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [loadPage, setLoadPage] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
-  const [recovery, setRecovery] = useState<PendingRecovery | null>(null);
-  const [selectedRecoveryOrigins, setSelectedRecoveryOrigins] = useState<readonly string[]>([]);
+  const [recovery, setRecovery] = useState<PendingResume | null>(null);
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
@@ -674,7 +729,6 @@ export default function LibraryWorkspace() {
         });
         persistLoadSessionBaseline(baseline);
         setRecovery(null);
-        setSelectedRecoveryOrigins([]);
         await openActiveProject();
         return;
       }
@@ -689,33 +743,24 @@ export default function LibraryWorkspace() {
         return;
       }
 
-      // The saved profile-local Afterglow project is the complete restore authority.
-      // Make it current before optional media recovery so storyDevelopment, Mind Map
-      // notes, Foundations/World truth, structure, writing and locks are never rebuilt
-      // from the local-resource inventory or replaced by packaged defaults.
-      const restoredProject = switchActiveLibraryProject(openedProject.id);
-      markCurrentSessionLibraryProject(restoredProject.id);
-      const baseline = createLibraryLoadSessionBaseline(restoredProject, {
-        sessionId: globalThis.crypto?.randomUUID?.() ?? `afterglow-restore-${Date.now()}`,
+      // The saved profile-local Afterglow project is the complete resume authority.
+      // Do not switch the active story until the Human confirms the read-only
+      // resume manifest. Local media is reconciled automatically only when the
+      // saved project already expects that exact asset.
+      const baseline = createLibraryLoadSessionBaseline(openedProject, {
+        sessionId: globalThis.crypto?.randomUUID?.() ?? `afterglow-resume-${Date.now()}`,
         startedAt: new Date().toISOString(),
       });
-      persistLoadSessionBaseline(baseline);
 
-      let inventory = inventoryLocalResources(restoredProject, []);
+      let inventory = inventoryLocalResources(openedProject, []);
       let scanError = "";
       try {
-        inventory = await scanLocalResources(restoredProject);
+        inventory = await scanLocalResources(openedProject);
       } catch (error) {
-        scanError = error instanceof Error ? error.message : "PlotPickle could not scan your local example resources.";
+        scanError = error instanceof Error ? error.message : "PlotPickle could not scan your local Afterglow media.";
       }
 
-      if (!inventory.groups.length && !scanError) {
-        await openActiveProject();
-        return;
-      }
-
-      setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
-      setRecovery({ project: restoredProject, baseline, inventory, scanError });
+      setRecovery({ project: openedProject, baseline, inventory, scanError });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not open the Afterglow example.");
     } finally {
@@ -755,24 +800,8 @@ export default function LibraryWorkspace() {
         startedAt: new Date().toISOString(),
       });
       persistLoadSessionBaseline(baseline);
-
-      let inventory = inventoryLocalResources(openedProject, []);
-      let scanError = "";
-      try {
-        inventory = await scanLocalResources(openedProject);
-      } catch (error) {
-        scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
-      }
-
-      if (!inventory.groups.length && !scanError) {
-        setPending(null);
-        void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
-        return;
-      }
-
-      setSelectedRecoveryOrigins(inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId));
-      setRecovery({ project: openedProject, baseline, inventory, scanError });
       setPending(null);
+      await openActiveProject();
     } catch (error) {
       setPending(null);
       setNotice(error instanceof Error ? error.message : "PlotPickle could not switch stories.");
@@ -782,23 +811,8 @@ export default function LibraryWorkspace() {
   }
 
   function cancelRecovery() {
-    const loadedProject = recovery?.project ?? null;
+    if (restoringResources || rescanningResources) return;
     setRecovery(null);
-    setSelectedRecoveryOrigins([]);
-    if (loadedProject) {
-      void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
-    }
-  }
-
-  function selectAllLocalResources() {
-    if (!recovery || restoringResources || rescanningResources) return;
-    setSelectedRecoveryOrigins(recovery.inventory.groups.map((group) => group.originProjectId));
-  }
-
-  function toggleRecoveryOrigin(originProjectId: string) {
-    setSelectedRecoveryOrigins((current) => current.includes(originProjectId)
-      ? current.filter((value) => value !== originProjectId)
-      : [...current, originProjectId]);
   }
 
   async function retryLocalResourceScan() {
@@ -806,10 +820,8 @@ export default function LibraryWorkspace() {
     setRescanningResources(true);
     try {
       const inventory = await scanLocalResources(recovery.project);
-      const selectedOrigins = inventory.groups.filter((group) => group.selectedByDefault).map((group) => group.originProjectId);
-      setSelectedRecoveryOrigins(selectedOrigins);
       setRecovery((current) => current ? { ...current, inventory, scanError: "" } : current);
-      setNotice("Local changes scanned again. Choose the changes you want, then select Restore.");
+      setNotice("Saved Afterglow media checked again. The resume summary now reflects what is available on this computer.");
     } catch (error) {
       const scanError = error instanceof Error ? error.message : "PlotPickle could not scan local resources.";
       setRecovery((current) => current ? { ...current, scanError } : current);
@@ -819,27 +831,20 @@ export default function LibraryWorkspace() {
     }
   }
 
-  function restoreLocalResources(originProjectIds: readonly string[]) {
-    if (!recovery || restoringResources) return;
-    const selected = recovery.inventory.groups
-      .filter((group) => originProjectIds.includes(group.originProjectId))
-      .flatMap((group) => group.resources);
-
+  async function continueSavedStoryResume() {
+    if (!recovery || restoringResources || rescanningResources) return;
     setRestoringResources(true);
     try {
       const current = switchActiveLibraryProject(recovery.project.id);
       markCurrentSessionLibraryProject(current.id);
       persistLoadSessionBaseline(recovery.baseline);
-      if (!selected.length) {
-        setRecovery(null);
-        setSelectedRecoveryOrigins([]);
-        void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
-        return;
-      }
-      const storyboardResources = selected.filter((resource): resource is RecoveredStoryboardResource => resource.kind === "storyboard-frame");
-      const posterResources = selected.filter((resource): resource is RecoveredWorldMapPosterResource => resource.kind === "worldmap-poster");
-      const characterResources = selected.filter((resource): resource is RecoveredWorldMapCharacterResource => resource.kind === "worldmap-character");
+
+      const expectedResources = resumeInventoryResources(current, recovery.inventory);
+      const storyboardResources = expectedResources.filter((resource): resource is RecoveredStoryboardResource => resource.kind === "storyboard-frame");
+      const posterResources = expectedResources.filter((resource): resource is RecoveredWorldMapPosterResource => resource.kind === "worldmap-poster");
+      const characterResources = expectedResources.filter((resource): resource is RecoveredWorldMapCharacterResource => resource.kind === "worldmap-character");
       const storyboardApprovalProjectIds = [...new Set([
+        current.id,
         ...storyboardResources.map((resource) => resource.originProjectId),
         ...listLibraryProjects().map((item) => item.id),
         ...listArchivedLibraryProjects().map((item) => item.id),
@@ -851,23 +856,16 @@ export default function LibraryWorkspace() {
       const posterResult = restoreLocalWorldMapPosterResources(storyboardResult.project, posterResources);
       const characterResult = restoreLocalWorldMapCharacterResources(posterResult.project, characterResources);
       saveActiveLibraryProject(characterResult.project);
-      const attachedCount = storyboardResult.attachedCount + posterResult.attachedCount + characterResult.attachedVersionCount;
-      const skippedCount = storyboardResult.skippedCount + posterResult.skippedCount + characterResult.skippedVersionCount;
-      setNotice(`${attachedCount} local resource group${attachedCount === 1 ? "" : "s"} restored: ${storyboardResult.attachedCount} Storyboard frame${storyboardResult.attachedCount === 1 ? "" : "s"}, ${posterResult.attachedCount} World Map poster${posterResult.attachedCount === 1 ? "" : "s"}, and ${characterResult.attachedVersionCount} World Map character version${characterResult.attachedVersionCount === 1 ? "" : "s"}. ${storyboardResult.restoredLockedCount} proven Storyboard lock${storyboardResult.restoredLockedCount === 1 ? "" : "s"} and ${characterResult.restoredLockedCount} proven character lock${characterResult.restoredLockedCount === 1 ? "" : "s"} restored. ${skippedCount} duplicate${skippedCount === 1 ? "" : "s"} skipped.`);
+
       setRecovery(null);
-      setSelectedRecoveryOrigins([]);
-      void openActiveProject().catch((error) => setNotice(error instanceof Error ? error.message : "PlotPickle could not save the loaded story."));
+      await openActiveProject();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not restore local resources.");
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not resume the saved story.");
     } finally {
       setRestoringResources(false);
     }
   }
 
-
-  function restoreSelectedLocalResources() {
-    restoreLocalResources(selectedRecoveryOrigins);
-  }
 
   async function importPpf(file: File) {
     if (importingPpf) return;
@@ -1193,76 +1191,52 @@ export default function LibraryWorkspace() {
           <section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog">
             <p className={styles.eyebrow}>Safe project load</p><h2 id="library-load-title">Load this project?</h2>
             <p>{pending.kind === "story"
-              ? "PlotPickle opens this exact saved working story, including its saved World Agent decisions and World Map state. Local media recovery remains a separate optional step."
-              : "PlotPickle creates a new working copy from the selected packaged reference. Local resources are a separate optional choice on the next step."}</p><strong>{pending.item.title}</strong>
+              ? "PlotPickle opens this exact saved working story under the current PlotPickle controls."
+              : "PlotPickle creates a new working copy from the selected packaged reference under the current PlotPickle controls."}</p><strong>{pending.item.title}</strong>
             {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The packaged Afterglow reference becomes a fresh working copy. Saved World Agent decisions from another working copy are not imported. Existing local media is offered separately and is never treated as canon automatically.</small> : null}
             <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Project…" : pending.kind === "story" ? "Open Saved Story" : "Start Fresh Copy"}</button></div>
           </section>
         </div>
       ) : null}
 
-      {recovery ? (
-        <div className={styles.dialogBackdrop} role="presentation">
-          <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog" onKeyDown={(event) => {
-            if (event.key === "Escape" && !restoringResources && !rescanningResources) {
-              event.preventDefault();
-              event.stopPropagation();
-              cancelRecovery();
-            }
-          }}>
-            <button aria-label="Close local resource recovery" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={cancelRecovery} type="button">×</button>
-            <p className={styles.eyebrow}>Afterglow · profile-local learning state</p>
-            <h2 id="library-recovery-title">Restore Local Changes</h2>
-            <p><strong>{recovery.project.title}</strong> is loaded from your profile-local Afterglow learning state. Choose the local Storyboard frames, World Map posters, and saved World Map character visuals you want to add back, or select them all. The packaged Afterglow source remains unchanged.</p>
-            <div className={styles.recoverySummary}>
-              <span><b>{recovery.inventory.storyboardResources.length}</b> recoverable Storyboard frame{recovery.inventory.storyboardResources.length === 1 ? "" : "s"}</span>
-              <span><b>{recovery.inventory.posterResources.length}</b> recoverable World Map poster{recovery.inventory.posterResources.length === 1 ? "" : "s"}</span>
-              <span><b>{recovery.inventory.characterResources.length}</b> recoverable World Map character image{recovery.inventory.characterResources.length === 1 ? "" : "s"}</span>
-              <span><b>{recovery.inventory.unclassifiedAssets.length}</b> other local asset{recovery.inventory.unclassifiedAssets.length === 1 ? "" : "s"} inventoried only</span>
-            </div>
-            {recovery.scanError ? (
-              <div>
-                <p role="alert">{recovery.scanError} Retry the scan before restoring local media.</p>
-                <button
-                  className={styles.secondaryButton}
-                  disabled={rescanningResources || restoringResources}
-                  onClick={() => void retryLocalResourceScan()}
-                  type="button"
-                >{rescanningResources ? "Scanning Again…" : "Retry Resource Scan"}</button>
+      {recovery ? (() => {
+        const manifest = resumeManifest(recovery.project, recovery.inventory);
+        return (
+          <div className={styles.dialogBackdrop} role="presentation">
+            <section aria-labelledby="library-recovery-title" aria-modal="true" className={`${styles.dialog} ${styles.recoveryDialog}`} role="dialog" onKeyDown={(event) => {
+              if (event.key === "Escape" && !restoringResources && !rescanningResources) {
+                event.preventDefault();
+                event.stopPropagation();
+                cancelRecovery();
+              }
+            }}>
+              <button aria-label="Cancel saved story resume" className={styles.recoveryClose} disabled={restoringResources || rescanningResources} onClick={cancelRecovery} type="button">×</button>
+              <p className={styles.eyebrow}>Afterglow · saved working state</p>
+              <h2 id="library-recovery-title">Resume Saved Afterglow</h2>
+              <p><strong>{recovery.project.title}</strong> will open from the state you last saved on <strong>{displayDate(recovery.project.updatedAt)}</strong>. Current PlotPickle controls and methods will be used.</p>
+              <div className={styles.recoverySummary}>
+                <span><b>{manifest.storyboardImages}</b> saved Storyboard image{manifest.storyboardImages === 1 ? "" : "s"}</span>
+                <span><b>{manifest.lockedStoryboardImages}</b> locked Storyboard image{manifest.lockedStoryboardImages === 1 ? "" : "s"}</span>
+                <span><b>{manifest.characterImages}</b> World Map character image{manifest.characterImages === 1 ? "" : "s"}</span>
+                <span><b>{manifest.posters}</b> saved poster{manifest.posters === 1 ? "" : "s"}</span>
               </div>
-            ) : null}
-            {recovery.inventory.groups.length ? (
-              <fieldset className={styles.recoveryGroups}>
-                <legend>Changes found locally</legend>
-                <button
-                  className={styles.secondaryButton}
-                  disabled={restoringResources || rescanningResources || !recovery.inventory.groups.length}
-                  onClick={selectAllLocalResources}
-                  type="button"
-                >Select All</button>
-                {recovery.inventory.groups.map((group) => (
-                  <label key={group.originProjectId}>
-                    <input
-                      checked={selectedRecoveryOrigins.includes(group.originProjectId)}
-                      disabled={restoringResources || rescanningResources}
-                      onChange={() => toggleRecoveryOrigin(group.originProjectId)}
-                      type="checkbox"
-                    />
-                    <span>
-                      <strong>{group.exactProject ? "Current project resources" : "Legacy"}</strong>
-                      <small>{group.resources.filter((resource) => resource.kind === "storyboard-frame").length} frame(s) · {group.resources.filter((resource) => resource.kind === "worldmap-poster").length} poster(s) · {group.resources.filter((resource) => resource.kind === "worldmap-character").length} character image(s) · origin <code>{group.originProjectId}</code>{group.exactProject ? " · selected automatically" : " · requires your explicit selection"}</small>
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
-            ) : <p>No recoverable Storyboard frames, World Map posters, or saved World Map character visuals were found. The local asset folder remains unchanged.</p>}
-            <p className={styles.recoveryPolicy}>Local media restore is additive. It does not copy World Agent answers, overwrite project defaults, invent approvals, promote story canon, or resolve story-data conflicts. Storyboard and World Map character media restore as Locked only when exact saved Library metadata proves the prior Human lock; otherwise they remain saved/draft. If the current story differs from the saved local state, canonical story changes require reconciliation rather than last-write-wins.</p>
-            <div className={styles.recoveryActions}>
-              <button className={styles.primaryButton} disabled={restoringResources || rescanningResources || Boolean(recovery.scanError)} onClick={restoreSelectedLocalResources} type="button">{restoringResources ? "Restoring…" : "Restore"}</button>
-            </div>
-          </section>
-        </div>
-      ) : null}
+              {recovery.scanError ? (
+                <div>
+                  <p role="alert">{recovery.scanError} Your saved story state is still intact; local media availability could not be fully verified.</p>
+                  <button className={styles.secondaryButton} disabled={rescanningResources || restoringResources} onClick={() => void retryLocalResourceScan()} type="button">{rescanningResources ? "Checking Again…" : "Check Local Media Again"}</button>
+                </div>
+              ) : null}
+              {manifest.missingLocalMedia ? <p role="alert">{manifest.missingLocalMedia} expected local media file{manifest.missingLocalMedia === 1 ? " is" : "s are"} unavailable on this computer. PlotPickle will not substitute unrelated older media.</p> : null}
+              {manifest.ignoredLocalAssets ? <p className={styles.recoveryPolicy}>{manifest.ignoredLocalAssets} other local asset{manifest.ignoredLocalAssets === 1 ? " was" : "s were"} found but are not part of this saved story and will be ignored.</p> : null}
+              <p className={styles.recoveryPolicy}>Local media matching is automatic and deterministic. Only exact/proven files already expected by this saved project are reconnected. To intentionally restore an older state, use Settings → Data Recovery.</p>
+              <div className={styles.recoveryActions}>
+                <button className={styles.secondaryButton} disabled={restoringResources || rescanningResources} onClick={cancelRecovery} type="button">Cancel</button>
+                <button className={styles.primaryButton} disabled={restoringResources || rescanningResources} onClick={() => void continueSavedStoryResume()} type="button">{restoringResources ? "Opening Story…" : "Open Story"}</button>
+              </div>
+            </section>
+          </div>
+        );
+      })() : null}
     </main>
   );
 }

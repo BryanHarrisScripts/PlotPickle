@@ -2065,6 +2065,7 @@
         "app/script-workspace.tsx",
         "app/settings-panel-legacy.tsx",
         "app/settings-readiness-overview.tsx",
+        "app/settings-sitemap.tsx",
         "app/settings/ai-provider/ai-provider-setup-panel.tsx",
         "app/settings/ai-provider/gemini-provider-setup-panel.tsx",
         "app/settings/compute/cloud-model-catalog-panel.tsx",

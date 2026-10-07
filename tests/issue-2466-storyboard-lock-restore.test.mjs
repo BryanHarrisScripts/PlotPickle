@@ -106,7 +106,7 @@ test("#2466 requires exact saved Storyboard approval evidence before restoring a
   assert.match(source, /candidate\.frameNumber === resource\.position/u);
   assert.match(source, /candidate\.reviewState !== "rejected"/u);
   assert.match(source, /decisionKeys\.includes\(anchorKey\)/u);
-  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/u);
+  assert.match(source, /return artifact\.reviewState === "accepted" \|\| acceptedIds\.has\(artifact\.id\)/u);
 });
 
 test("#2466 keeps recovery draft-first and uses canonical acceptance only when prior approval is proven", async () => {
@@ -120,18 +120,18 @@ test("#2466 keeps recovery draft-first and uses canonical acceptance only when p
   assert.match(source, /restoredLockedCount \+= 1/u);
 });
 
-test("#2466 can canonically promote an already-restored non-rejected draft when exact proof later exists", async () => {
+test("#2466 current restored artifact state is authoritative before historical lock proof", async () => {
   const source = await read("modules/library/local-resource-recovery.ts");
   const duplicateBranch = source.slice(
     source.indexOf("if (existingArtifact)"),
-    source.indexOf("const blockRef =", source.indexOf("if (existingArtifact)")),
+    source.indexOf("// No current artifact exists", source.indexOf("if (existingArtifact)")),
   );
 
-  assert.match(duplicateBranch, /priorApproval/u);
-  assert.match(duplicateBranch, /existingArtifact\.workflow === "storyboard-frame-webp-v2"/u);
-  assert.match(duplicateBranch, /existingArtifact\.frameNumber === resource\.position/u);
-  assert.match(duplicateBranch, /existingArtifact\.reviewState !== "rejected"/u);
-  assert.match(duplicateBranch, /type: "foundations\.visual\.accept"/u);
+  assert.match(duplicateBranch, /currentArtifact/u);
+  assert.match(duplicateBranch, /currentlyAccepted/u);
+  assert.match(duplicateBranch, /currentApproval/u);
+  assert.match(duplicateBranch, /preservedStoryboardDecisionKeys\(resource, currentArtifact, currentApproval\)/u);
+  assert.doesNotMatch(duplicateBranch, /priorAcceptedStoryboardArtifact/u);
   assert.match(duplicateBranch, /artifactId: existingArtifact\.id/u);
 });
 

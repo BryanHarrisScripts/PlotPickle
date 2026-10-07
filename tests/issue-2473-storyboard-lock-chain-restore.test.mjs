@@ -78,7 +78,7 @@ test("#2473 accepts proof from direct origin or an exact recovered-working-copy 
   assert.match(source, /candidate\.frameNumber === resource\.position/u);
   assert.match(source, /decisionKeys\.includes\(anchorKey\)/u);
   assert.match(source, /candidate\.reviewState !== "rejected"/u);
-  assert.match(source, /candidate\.reviewState === "accepted" \|\| acceptedIds\.has\(candidate\.id\)/u);
+  assert.match(source, /return artifact\.reviewState === "accepted" \|\| acceptedIds\.has\(artifact\.id\)/u);
 });
 
 test("#2473 records the saved approval project and artifact on a newly recovered locked frame", async () => {

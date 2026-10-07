@@ -19,7 +19,9 @@ export async function POST(request: Request) {
     const code = authorizationCode(error);
     const message = code === "CSRF_REJECTED"
       ? "The active Human session proof is missing or expired. Refresh the page or sign in again."
-      : "Sign in to authorize narration generation.";
+      : code === "SESSION_REJECTED"
+        ? "Sign in to authorize narration generation."
+        : "The current Human session could not authorize narration. Retry after PlotPickle finishes loading the active story; if it persists, review the reported authorization code.";
     return Response.json({ok:false,code:code || "AUTHORIZATION_REJECTED",message},{status:403});
   }
   let input;

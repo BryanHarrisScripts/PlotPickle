@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -25,7 +26,7 @@ function storyboardTargetId(blockNumber: number) {
 }
 
 function savedLocally(artifact: FoundationsVisualArtifact) {
-  return artifact.assetUrl.startsWith("/api/local-ai/assets/")
+  return isSupportedVisualAssetUrl(artifact.assetUrl)
     && (artifact.sourceDecisionKeys ?? []).includes(LOCAL_SAVE_MARKER);
 }
 
@@ -137,20 +138,28 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
 
   function saveVersion() {
     if (!selectedArtifact || isSaved || busy) return;
-    if (!selectedArtifact.assetUrl.startsWith("/api/local-ai/assets/")) {
-      setMessage("Bundled Storyboard references are already local project assets. Generate a local version to use explicit Save state.");
+    if (!isSupportedVisualAssetUrl(selectedArtifact.assetUrl)) {
+      setMessage("This visual is not a supported PlotPickle project image and cannot be saved.");
       return;
     }
     const now = new Date().toISOString();
     const artifact: FoundationsVisualArtifact = { ...selectedArtifact, sourceDecisionKeys: [...new Set([...(selectedArtifact.sourceDecisionKeys ?? []), LOCAL_SAVE_MARKER])] };
     const next = applyStoryCommand(project, { type: "foundations.visual.store", artifact, occurredAt: now });
-    commit(next, `Saved this Mini-Block ${blockNumber}.${miniBlockNumber} anchor version locally with the project.`);
+    commit(next, `Saved this Mini-Block ${blockNumber}.${miniBlockNumber} anchor with the project. Packaged source media remains immutable.`);
   }
 
-  function lockVersion() {
-    if (!selected || isLocked || busy) return;
+  function toggleLockVersion() {
+    if (!selected || busy) return;
     const now = new Date().toISOString();
     let next: PPFProject = project;
+
+    if (isLocked && selectedArtifact) {
+      next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: selectedArtifact.id, occurredAt: now });
+      pendingSelectedId.current = selectedArtifact.id;
+      commit(next, `Unlocked Mini-Block ${blockNumber}.${miniBlockNumber}. The visual remains available as a version but is no longer the shared visual authority.`);
+      return;
+    }
+
     const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
     for (const artifact of project.build.foundations.visualArtifacts.filter((candidate) => accepted.has(candidate.id) && (candidate.sourceDecisionKeys ?? []).includes(anchorRef))) {
       next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: artifact.id, occurredAt: now });
@@ -179,18 +188,19 @@ export default function OutlineMiniBlockAnchorWorkspace({ project, blockNumber, 
   return <section className={styles.anchorWorkspace} aria-labelledby="outline-mini-anchor-title" data-outline-mini-block-anchor={anchorRef}>
     <header className={styles.header}><div><p>VISUAL ANCHOR · SHARED WITH STORYBOARD</p><h2 id="outline-mini-anchor-title">Mini-Block {blockNumber}.{miniBlockNumber}</h2><span>One representative visual at this story address. The full 25-position Storyboard sequence remains in Storyboard.</span></div><strong>{anchorRef}</strong></header>
     <div className={styles.anchorBody}>
-      <div className={styles.preview}>
+      <div className={styles.preview} data-locked={isLocked ? "true" : "false"}>
         <span className={styles.versionCount}>{versions.length ? `${selectedIndex + 1}/${versions.length}` : "0/0"}</span>
         {versions.length > 1 ? <button aria-label="Previous anchor version" className={`${styles.chevron} ${styles.previous}`} disabled={selectedIndex <= 0} type="button" onClick={() => setSelectedId(versions[selectedIndex - 1].id)}>‹</button> : null}
         {selected ? <img alt={selected.label} decoding="async" loading="lazy" src={selected.assetUrl} /> : <span className={styles.empty}>No visual anchor yet</span>}
         {isSaved ? <span className={`${styles.badge} ${styles.savedBadge}`}>Saved locally</span> : null}
+        {isLocked ? <span className={styles.lockedOverlay}>LOCKED</span> : null}
         {isLocked ? <span className={`${styles.badge} ${styles.lockedBadge}`}>Locked</span> : null}
         {versions.length > 1 ? <button aria-label="Next anchor version" className={`${styles.chevron} ${styles.next}`} disabled={selectedIndex >= versions.length - 1} type="button" onClick={() => setSelectedId(versions[selectedIndex + 1].id)}>›</button> : null}
       </div>
       <div className={styles.controls}>
         <p>{selected?.label || `Mini-Block ${blockNumber}.${miniBlockNumber} has no anchor candidate yet.`}</p>
         <label><input type="checkbox" checked={generationApproved} disabled={busy} onChange={(event) => setGenerationApproved(event.target.checked)} /> I approve one image generation request through my configured provider.</label>
-        <div className={styles.actions}><button disabled={!generationApproved || busy} type="button" onClick={() => void createVersion()}>{busy ? "Creating…" : selected ? "Create new version" : "Generate anchor"}</button><button disabled={!selectedArtifact || isSaved || busy} type="button" onClick={saveVersion}>Save</button><button disabled={!selected || isLocked || busy} type="button" onClick={lockVersion}>Lock</button><button disabled={!selectedArtifact || busy} type="button" onClick={() => setPendingDeleteId(selectedArtifact?.id ?? null)}>Delete</button></div>
+        <div className={styles.actions}><button disabled={!generationApproved || busy} type="button" onClick={() => void createVersion()}>{busy ? "Creating…" : selected ? "Create new version" : "Generate anchor"}</button><button disabled={!selectedArtifact || isSaved || busy} type="button" onClick={saveVersion}>Save</button><button aria-pressed={isLocked} disabled={!selected || busy} type="button" onClick={toggleLockVersion}>{isLocked ? "Unlock" : "Lock"}</button><button disabled={!selectedArtifact || busy} type="button" onClick={() => setPendingDeleteId(selectedArtifact?.id ?? null)}>Delete</button></div>
         {pendingDeleteId && selectedArtifact?.id === pendingDeleteId ? <div className={styles.deleteConfirm} role="alert"><span>Delete this version forever? This cannot be undone.</span><button type="button" onClick={deleteVersion}>Yes</button><button type="button" onClick={() => setPendingDeleteId(null)}>No</button></div> : null}
         <p className={styles.status} role="status">{message}</p>
       </div>

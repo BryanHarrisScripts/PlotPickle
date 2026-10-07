@@ -9,7 +9,8 @@ import {
   type PrevisGraphicNovelTextBubble,
 } from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
-import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import {
   storyboardAnchorEvidence,
   storyboardPositionProgression,
@@ -23,6 +24,7 @@ import {
   PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
   approvedGraphicNovelPanel,
   buildPrevisGraphicNovelPanel,
+  currentGraphicNovelMotion,
   graphicNovelTextSourceKey,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
@@ -452,6 +454,12 @@ export default function PrevisReadinessWorkspace({
     || selectedGraphicNovelDisplayPanel.shotContext
     || selectedGraphicNovelDisplayPanel.bubbles.length,
   );
+  const selectedGraphicNovelMotion = currentGraphicNovelMotion(
+    project.production.timelineMotionShots ?? [],
+    selectedAddressAnchor?.id ?? "",
+    selectedFramePosition,
+    selectedFlipBookFrame.locked?.id ?? "",
+  );
   const lockedGraphicNovelPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
   const narrationSource = JSON.stringify({ projectId: project.id, anchor: selectedAddressAnchor?.id,
     passages: selectedFrameEvidence?.passages, panels: lockedGraphicNovelPanels.map((panel) => graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext)) });
@@ -512,15 +520,20 @@ export default function PrevisReadinessWorkspace({
         noText: !panel.narration && !panel.bubbles.length, approvedAt: now,
       }));
       const generatedPositions = new Set(approvals.map((approval) => approval.position));
-      const next: PPFProject = { ...project, revision: project.revision + 1, updatedAt: now,
-        production: { ...project.production, graphicNovelTextApprovals: [
-          ...(project.production.graphicNovelTextApprovals ?? []).filter((item) => (
+      const base = loadFoundationProject();
+      if (base.id !== project.id || base.revision !== latestProject.current.revision) {
+        throw new Error("The story changed while narration was being saved. Retry Graphic Novel playback with the current story.");
+      }
+      const next: PPFProject = { ...base, revision: base.revision + 1, updatedAt: now,
+        production: { ...base.production, graphicNovelTextApprovals: [
+          ...(base.production.graphicNovelTextApprovals ?? []).filter((item) => (
             item.anchorRef !== selectedAddressAnchor.id || !generatedPositions.has(item.position)
           )),
           ...approvals,
         ] } };
-      saveFoundationProject(next);
-      onProjectChange(next);
+      const saved = await saveFoundationProjectDurably(next, base.revision);
+      latestProject.current = saved;
+      onProjectChange(saved);
       setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
       setGraphicNovelPlaying(true);
       setMessage("Missing story narration saved. Existing approved Shot text was preserved.");
@@ -707,11 +720,21 @@ export default function PrevisReadinessWorkspace({
               <div className={styles.flipBookViewer}>
                 <div className={styles.flipBookStage} data-frame-state={selectedFlipBookFrame.locked ? "locked" : selectedFlipBookFrame.candidate ? "review" : "empty"}>
                   {selectedFlipBookFrame.locked ? (
-                    <img
-                      alt={selectedFlipBookFrame.locked.narrativeIntention || `Locked Storyboard Image for Shot ${selectedFramePosition}`}
-                      decoding="async"
-                      src={selectedFlipBookFrame.locked.assetUrl}
-                    />
+                    graphicNovelMode && selectedGraphicNovelMotion ? (
+                      <video
+                        autoPlay
+                        key={selectedGraphicNovelMotion.id}
+                        muted
+                        playsInline
+                        src={selectedGraphicNovelMotion.outputAssetUrl}
+                      />
+                    ) : (
+                      <img
+                        alt={selectedFlipBookFrame.locked.narrativeIntention || `Locked Storyboard Image for Shot ${selectedFramePosition}`}
+                        decoding="async"
+                        src={selectedFlipBookFrame.locked.assetUrl}
+                      />
+                    )
                   ) : (
                     <div className={styles.flipBookBlocked}>
                       <strong>Shot {String(selectedFramePosition).padStart(2, "0")} of 25 is not locked for Previs.</strong>
@@ -742,6 +765,7 @@ export default function PrevisReadinessWorkspace({
                       </aside>
                     </>
                   ) : null}
+                  {graphicNovelMode && selectedGraphicNovelMotion ? <span className={styles.motionBadge}>MOTION · 3s PRESENTATION</span> : null}
                   <span className={styles.flipBookCounter}>Shot {String(selectedFramePosition).padStart(2, "0")} of 25</span>
                 </div>
 
@@ -757,7 +781,7 @@ export default function PrevisReadinessWorkspace({
                     if (!flipBookPlaying) setSelectedFramePosition(flipBookFrames.find((frame) => frame.locked)?.position ?? 1);
                     setFlipBookPlaying((playing) => !playing);
                   }}>{flipBookPlaying ? "Pause Flip Book" : "Play Flip Book"}</button>
-                  <button aria-pressed={graphicNovelMode} disabled={!lockedFrameCount || narrationGenerating} type="button" onClick={() => void playNarration()}>{narrationGenerating ? "Creating narration…" : graphicNovelPlaying ? "Pause Narration" : "Play with Narration"}</button>
+                  <button aria-pressed={graphicNovelMode} disabled={!lockedFrameCount || narrationGenerating} type="button" onClick={() => void playNarration()}>{narrationGenerating ? "Creating Graphic Novel…" : graphicNovelPlaying ? "Pause Graphic Novel" : "Play Graphic Novel"}</button>
                   <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open owning Storyboard Mini-Block</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);

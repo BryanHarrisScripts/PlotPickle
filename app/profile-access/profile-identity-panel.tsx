@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   BUZZ_IDENTITY_ONBOARDING_URL,

@@ -623,7 +623,8 @@
         "build/media-storage-common.ts",
         "build/provider-url.ts",
         "lib/runtime/ai/local-runtime.ts",
-        "build/ai/h3/comfyui-h3-native-provider.ts"
+        "build/ai/h3/comfyui-h3-native-provider.ts",
+        "core/contracts/compute/compute-readiness.mjs"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [
@@ -1599,7 +1600,8 @@
         "build/auth/profile-request-context.ts",
         "core/storage/profile-private/profile-private-storage-core.mjs",
         "core/storage/profile-private/profile-private-storage.ts",
-        "build/local-profile-auth-gateway.ts"
+        "build/local-profile-auth-gateway.ts",
+        "core/storage/profile-private/profile-compute-settings.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [
@@ -2040,6 +2042,76 @@
         "docs",
         "visual",
         "mcp"
+      ]
+    },
+    {
+      "id": "profile-compute-client-surfaces",
+      "classification": "production",
+      "include": [
+        "app/_components/agent-shortcut-picker.tsx",
+        "app/_components/community/community-agent-roster.tsx",
+        "app/agent-observability-panel.tsx",
+        "app/ai-pitch-deck-workspace-base.tsx",
+        "app/ai-routing-panel.tsx",
+        "app/compute-hub-dashboard.tsx",
+        "app/configuration-dashboard-host.tsx",
+        "app/h3-native-panel.tsx",
+        "app/learn-three-column-shell.tsx",
+        "app/local-ai-readiness-summary.tsx",
+        "app/local-runtime-panel.tsx",
+        "app/media-routing-panel.tsx",
+        "app/review-workflows-panel.tsx",
+        "app/sage-fast-model-setup.tsx",
+        "app/script-workspace.tsx",
+        "app/settings-panel-legacy.tsx",
+        "app/settings-readiness-overview.tsx",
+        "app/settings-sitemap.tsx",
+        "app/settings/ai-provider/ai-provider-setup-panel.tsx",
+        "app/settings/ai-provider/gemini-provider-setup-panel.tsx",
+        "app/settings/compute/cloud-model-catalog-panel.tsx",
+        "app/settings/compute/local-model-catalog-panel.tsx",
+        "app/specialist-labs.tsx",
+        "app/treatment-editor.tsx",
+        "app/use-cast-identity-queue.ts",
+        "app/use-graphic-novel-queue.ts",
+        "app/visual-storyboard.tsx",
+        "app/writing-assistant-console.tsx"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "surface",
+        "provider",
+        "security"
+      ]
+    },
+    {
+      "id": "profile-compute-host-authority",
+      "classification": "production",
+      "include": [
+        "build/agent-compute-gateway.ts",
+        "build/local-credentials.ts",
+        "build/writing-assistant-store.ts",
+        "config/ai-source-registry.json",
+        "build/ai/comfyui-onboarding-gateway.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "api",
+        "provider",
+        "security",
+        "storage"
+      ]
+    },
+    {
+      "id": "profile-compute-browser-boundary",
+      "classification": "production",
+      "include": [
+        "core/auth/profile-request-browser.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "api",
+        "security"
       ]
     }
   ]

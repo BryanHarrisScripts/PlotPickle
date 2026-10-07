@@ -1,3 +1,4 @@
+import { profileRequestScope } from "../auth/profile-request-context";
 import path from "node:path";
 import { createHash, scrypt } from "node:crypto";
 import type { AuthContext } from "../../core/auth/plotpickle-auth";
@@ -42,7 +43,9 @@ export async function outlineCredentialReceipt(apiKey: string, profileId: string
  * input including instructions/schema, and 1800 output tokens per attempt.
  */
 export async function configuredOutlineExecution(runtime: Runtime, auth: AuthContext): Promise<OutlineExecution> {
-  const { profile, source } = await resolveStoryArchitectExecutionProfile();
+  const profileId = runtime.auth.getAuthStatus(auth).profile?.profileId;
+  if (!profileId) throw new Error("Unlock a PlotPickle profile before resolving Outline compute.");
+  const { profile, source } = await profileRequestScope.run({ authContext: auth, profileId, privateStorage: runtime.privateStorage }, resolveStoryArchitectExecutionProfile);
   const grants = resolveAgentProfileCapabilities({ profileId: "elowen-mapweaver", hostGrantedCapabilities: ["project-context-read", "proposal-draft"] });
   const quote = await runtime.privateStorage.readPrivateJson(auth, { domain: "settings", objectId: "outline-provider-quote-v1" }) as {
     provider?: string; model?: string; baseUrl?: string; expiresAt?: string; maxCostPerAttemptUsd?: number;

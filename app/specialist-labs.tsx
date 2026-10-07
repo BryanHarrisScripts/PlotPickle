@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- Canonical projects can contain user-supplied local and remote reference images. */
 
 import { useEffect, useMemo, useState } from "react";

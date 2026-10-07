@@ -15,7 +15,7 @@ async function activeHumanCsrfToken() {
   const body = await response.json().catch(() => ({})) as ProfileSessionStatus;
   const token = typeof body.csrfToken === "string" ? body.csrfToken.trim() : "";
   if (!response.ok || body.authenticated !== true || !token) {
-    throw new Error(body.message || "Unlock a PlotPickle Human profile before using BUZZ.");
+    throw new Error(body.message || "Unlock a PlotPickle Human profile before using account-owned resources.");
   }
   return token;
 }
@@ -44,4 +44,13 @@ export async function authenticatedProfileFetch(input: RequestInfo | URL, init: 
     credentials: init.credentials ?? "same-origin",
     headers,
   });
+}
+
+// Compatibility callers can retain fetch syntax while sharing the same mutation proof.
+export function authenticatedComputeFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const raw = typeof Request !== "undefined" && input instanceof Request ? input.url : String(input);
+  const url = new URL(raw, window.location.href);
+  const prefixes = ["/api/writing-assistant", "/api/media-routing", "/api/ai-routing", "/api/ai-model-catalog", "/api/provider-diagnostics", "/api/local-ai/runtime", "/api/local-ai/plugins", "/api/local-ai/connection", "/api/local-ai/generate", "/api/local-ai/video", "/api/story-mode"];
+  if (url.origin === window.location.origin && prefixes.some((prefix) => url.pathname.startsWith(prefix))) return authenticatedProfileFetch(input, init);
+  return globalThis.fetch(input, init);
 }

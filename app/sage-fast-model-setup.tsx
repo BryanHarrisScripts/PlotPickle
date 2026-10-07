@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./sage-fast-model-setup.module.css";
 

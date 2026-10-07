@@ -1,3 +1,4 @@
+import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import type { LocalRuntimeKind } from "../lib/runtime/ai/local-runtime";
 
@@ -150,8 +151,7 @@ export async function writeAssistantStore(store: ProfileStore) {
 export function publicProfile(profile: ProviderProfile | undefined, activeProvider: ActiveTextProvider) {
   if (!profile) return { configured: false, ready: false, active: false };
   return {
-    configured: Boolean(profile.textModel),
-    ready: Boolean(profile.assistantVerifiedAt),
+    ...writingReadiness(profile),
     active: activeProvider === profile.provider,
     provider: profile.provider,
     runtime: profile.runtime,

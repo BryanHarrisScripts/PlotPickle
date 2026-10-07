@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useState } from "react";
 import { providerPresets } from "../../../lib/runtime/ai/providers";
 import { requestConnectionStatusRefresh } from "../../use-connection-status";

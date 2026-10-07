@@ -34,12 +34,12 @@ test("#2320 flattens Human navigation without changing feature authority", async
     ["hybrid", "H", "Hybrid"],
     ["node-info", "I", "Node Info"],
     ["agents", "A", "Agents"],
-    ["ai-routing", "R", "AI Routing"],
     ["buzz-settings", "B", "BUZZ Settings"],
   ]) {
     assert.match(dashboard, new RegExp(`id: "${id}"[\\s\\S]*shortcut: SETTINGS_SHORTCUTS[\\s\\S]*label: "${label}"`, "u"), id);
     assert.ok(dashboard.includes(`${JSON.stringify(id).slice(1,-1)}`) || shortcut);
   }
+  assert.doesNotMatch(dashboard, /id: "ai-routing"/u, "Legacy AI Routing is no longer a current Settings destination.");
   assert.doesNotMatch(dashboard, /id: "story-mode"/u);
   assert.match(storyMode, /onReturnToSettings/u);
   assert.match(storyMode, /Back to Settings/u);

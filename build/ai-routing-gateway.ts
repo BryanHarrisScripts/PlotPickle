@@ -1,3 +1,6 @@
+import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
+import { localRuntimeSnapshot } from "./local-runtime-manager";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
@@ -31,7 +34,7 @@ import {
   type VideoGenerationInput,
 } from "./media-provider-common";
 
-export type TextRoute = "ollama" | "openai" | "minimax" | "gemini" | "off";
+export type TextRoute = "local" | "ollama" | "openai" | "minimax" | "gemini" | "off";
 export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
 export type VideoRoute = "comfyui-native" | "minimax" | "openai" | "off";
 
@@ -111,7 +114,7 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
 }
 
 function textRoute(value: ActiveTextProvider): TextRoute | null {
-  if (value === "ollama" || value === "openai" || value === "minimax" || value === "gemini") return value;
+  if (value === "local" || value === "ollama" || value === "openai" || value === "minimax" || value === "gemini") return value;
   if (value === "disabled") return "off";
   return null;
 }
@@ -119,7 +122,7 @@ function textRoute(value: ActiveTextProvider): TextRoute | null {
 function normalizeChoice(value: unknown): RoutingChoice | null {
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<RoutingChoice>;
-  if (!["ollama", "openai", "minimax", "gemini", "off"].includes(String(item.text))) return null;
+  if (!["local", "ollama", "openai", "minimax", "gemini", "off"].includes(String(item.text))) return null;
   if (!["comfyui", "ollama-comfyui", "openai", "minimax", "manual"].includes(String(item.image))) return null;
   if (!["comfyui-native", "minimax", "openai", "off"].includes(String(item.video))) return null;
   return {
@@ -165,7 +168,7 @@ export async function readRoutingChoice() {
     inferred.video = "minimax";
     changed = true;
   }
-  if (changed) {
+  if (changed && currentProfileRequestContext()) {
     inferred.updatedAt = new Date().toISOString();
     await writeCredentialJson(ROUTING_FILE, inferred);
   }
@@ -178,25 +181,10 @@ async function writeRoutingChoice(value: RoutingChoice) {
 }
 
 function profileState(profile: MediaProfile | undefined, kind: "image" | "video") {
-  const model = kind === "image" ? profile?.imageModel : profile?.videoModel;
-  const verifiedAt = kind === "image" ? profile?.imageVerifiedAt : profile?.videoVerifiedAt;
-  return {
-    configured: Boolean(profile?.apiKey && model),
-    ready: Boolean(profile?.apiKey && model && verifiedAt),
-    model: model || "",
-    verifiedAt: verifiedAt || "",
-    error: profile?.lastError || "",
-  };
+  return { ...cloudMediaReadiness(profile, kind), model: profile?.[`${kind}Model`] || "", error: profile?.lastError || "" };
 }
-
-function textProfileState(profile: ProviderProfile | undefined) {
-  return {
-    configured: Boolean(profile?.textModel && (profile.provider === "ollama" || profile.apiKey)),
-    ready: Boolean(profile?.assistantVerifiedAt),
-    model: profile?.textModel || "",
-    verifiedAt: profile?.assistantVerifiedAt || "",
-    error: profile?.lastError || "",
-  };
+function textProfileState(profile: ProviderProfile | undefined, available = true) {
+  return { ...writingReadiness(profile, available), model: profile?.textModel || "" };
 }
 
 async function statusBody() {
@@ -206,9 +194,10 @@ async function statusBody() {
     readMediaRoutingStore(),
     readNativeH3Store(),
   ]);
-  const [comfy, nativeProbe] = await Promise.all([
+  const [comfy, nativeProbe, localRuntime] = await Promise.all([
     diagnoseComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow),
     probeNativeH3(native),
+    localRuntimeSnapshot(),
   ]);
   const assistant = assistantResult.store;
   const ollama = assistant.profiles.ollama;
@@ -217,7 +206,7 @@ async function statusBody() {
   const geminiText = assistant.profiles.gemini;
   const checkpoint = media.comfyui.checkpoint || comfy.checkpoints[0] || "";
   const comfyImageConfigured = Boolean(comfy.reachable && checkpoint);
-  const comfyImageReady = Boolean(comfyImageConfigured && comfy.imageNodesReady && media.comfyui.imageVerifiedAt);
+  const comfyImageReady = computeReadiness({ configured: comfyImageConfigured && comfy.imageNodesReady, available: comfy.reachable, verifiedAt: media.comfyui.imageVerifiedAt, error: media.comfyui.lastError }).ready;
   const ollamaImageConfigured = Boolean(ollama?.textModel && comfyImageConfigured);
   const ollamaImageReady = Boolean(ollama?.assistantVerifiedAt && comfyImageReady);
   return {
@@ -231,6 +220,10 @@ async function statusBody() {
     text: {
       selected: choice.text,
       options: {
+        local: {
+          ...textProfileState(assistant.profiles.local, localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available),
+          locality: "local", cost: "No per-request provider charge", settingsTarget: "",
+        },
         ollama: {
           ...textProfileState(ollama),
           locality: "local",
@@ -354,7 +347,7 @@ async function selectRoute(body: Record<string, unknown>) {
   ]);
 
   if (capability === "text") {
-    if (route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "gemini" && route !== "off") throw new Error("Choose Ollama, OpenAI, Google Gemini, MiniMax or Off for text.");
+    if (route !== "local" && route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "gemini" && route !== "off") throw new Error("Choose Ollama, OpenAI, Google Gemini, MiniMax or Off for text.");
     if (route === "openai" || route === "minimax" || route === "gemini") requirePaidConsent(body);
     assistantResult.store.activeProvider = route === "off" ? "disabled" : route;
     assistantResult.store.explicitlyDisabled = route === "off";

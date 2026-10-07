@@ -1,3 +1,4 @@
+import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import developerAgentStack from "../config/developer-agent-stack.json";
@@ -143,7 +144,7 @@ async function snapshot() {
       id,
       label: LABELS[id],
       configured: id === "local" ? localRuntime.activeRuntime.reachable : Boolean(stored?.textModel),
-      ready: id === "local" ? localReady : Boolean(stored?.assistantVerifiedAt),
+      ready: writingReadiness(stored, id === "local" ? localReady : true).ready,
       model,
       locality: id === "local" || id === "ollama" ? "local" as const : "cloud" as const,
     };

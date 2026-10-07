@@ -13,7 +13,7 @@ await build({ stdin: { contents: `export { registerDsddSessionGateway } from "./
 export { registerHunkReviewGateway } from "./build/dsdd/hunk-review-gateway.ts";
 export { profileScopedBuzzRequestContext } from "./build/auth/profile-request-context.ts";`, resolveDir: process.cwd(), loader: "ts" },
   bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(temp, "host.mjs"), logLevel: "silent",
-  plugins: [{ name: "isolated-auth-runtime", setup(builder) { builder.onLoad({ filter: /dsdd-pi-session\.ts$/ }, () => ({ contents: "export async function runDsddPiAction(input) { return globalThis.__command2721Pi(input); }", loader: "ts" })); builder.onLoad({ filter: /profile-experience-runtime\.ts$/ }, () => ({ contents: "export async function getProfileExperienceRuntime() { return globalThis.__command2717Runtime; }", loader: "ts" })); } }],
+  plugins: [{ name: "isolated-auth-runtime", setup(builder) { builder.onLoad({ filter: /dsdd-pi-session\.ts$/ }, () => ({ contents: "export async function runDsddPiAction(input) { return globalThis.__command2721Pi(input); }", loader: "ts" })); builder.onLoad({ filter: /profile-experience-runtime\.ts$/ }, () => ({ contents: "export async function getProfileExperienceRuntime() { return globalThis.__command2717Runtime; } export function requestBoundary(request) { return request; }", loader: "ts" })); } }],
 });
 const host = await import(pathToFileURL(path.join(temp, "host.mjs")).href);
 test.after(() => rm(temp, { recursive: true, force: true }));

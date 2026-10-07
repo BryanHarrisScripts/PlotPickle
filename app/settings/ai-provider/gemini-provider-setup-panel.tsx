@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../../core/auth/profile-request-browser";
+
 import { useEffect, useState } from "react";
 import { requestConnectionStatusRefresh } from "../../use-connection-status";
 import styles from "./ai-provider-setup-panel.module.css";

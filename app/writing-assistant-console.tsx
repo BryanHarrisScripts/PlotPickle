@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AgentShortcutPicker, { type AgentShortcutTarget } from "./_components/agent-shortcut-picker";
 import { requestConnectionStatusRefresh } from "./use-connection-status";

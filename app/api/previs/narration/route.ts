@@ -1,3 +1,4 @@
+import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-request-context";
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { resolveConfiguredAgentExecutionProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
@@ -11,7 +12,7 @@ function authorizationCode(error: unknown) {
   return typeof code === "string" ? code : "";
 }
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   try {
     const state = await getProfileExperienceRuntime();
     await state.boundaryFor(new URL(request.url).origin).authorizeRequest(requestBoundary(request), { mutation: true });
@@ -42,4 +43,9 @@ export async function POST(request: Request) {
   try {
     return Response.json({ok:true,panels:parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
   } catch { return Response.json({ok:false,message:"The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502}); }
+}
+
+export async function POST(request: Request) {
+  try { return await withAuthenticatedProfileRequest(request, () => handlePost(request)); }
+  catch (error) { return Response.json({ ok: false, code: authorizationCode(error) || "AUTHORIZATION_REJECTED", message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
 }

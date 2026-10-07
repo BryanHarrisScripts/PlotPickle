@@ -29,6 +29,7 @@
     "off"
   ],
   "providers": [
+    { "id": "local-runtime", "kind": "local" },
     {
       "id": "none",
       "label": "No AI",
@@ -152,6 +153,7 @@
     }
   ],
   "routes": [
+    { "id": "text.local", "capability": "text", "label": "Local Runtime", "description": "Use the configured local runtime and writing model after a successful response test.", "providerIds": ["local-runtime"], "selectableWhen": "ready" },
     {
       "id": "text.off",
       "capability": "text",

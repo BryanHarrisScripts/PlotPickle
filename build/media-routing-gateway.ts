@@ -1,3 +1,4 @@
+import { cloudMediaReadiness, computeReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
@@ -198,12 +199,12 @@ async function storyImageRouteCandidates(store: MediaRoutingStore): Promise<Stor
     && comfy.workflowNodesReady
     && store.comfyui.imageVerifiedAt,
   );
-  const sdxlReady = Boolean(comfy.reachable && comfy.imageNodesReady && checkpoint && store.comfyui.imageVerifiedAt);
+  const sdxlReady = computeReadiness({ configured: Boolean(comfy.imageNodesReady && checkpoint), verifiedAt: store.comfyui.imageVerifiedAt, available: comfy.reachable, error: store.comfyui.lastError }).ready;
   const comfyReady = store.comfyui.imageProfile === "qwen-image-2.1-experimental" ? qwenReady : sdxlReady;
   const ollamaReady = Boolean(comfyReady && assistantResult.store.profiles.ollama?.assistantVerifiedAt);
   const cloudReady = (route: "openai" | "minimax") => {
     const profile = store.profiles[route];
-    return Boolean(profile?.apiKey && profile.imageModel && profile.imageVerifiedAt);
+    return cloudMediaReadiness(profile, "image").ready;
   };
   return [
     { routeId: "comfyui", locality: "local", ready: comfyReady, selected: choice.image === "comfyui" },
@@ -249,13 +250,7 @@ async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecu
 }
 
 async function saveImageError(store: MediaRoutingStore, route: StoryImageExecutionRoute, message: string) {
-  if (route === "comfyui" || route === "ollama-comfyui") {
-    store.comfyui.lastError = message;
-    if (store.comfyui.imageProfile === "qwen-image-2.1-experimental") store.comfyui.qwenImage21.lastError = message;
-  } else {
-    const provider = providerForImageRoute(route);
-    if (provider && store.profiles[provider]) store.profiles[provider]!.lastError = message;
-  }
+  invalidateImageVerification(store, providerForImageRoute(route) || route, message);
   await writeMediaRoutingStore(store);
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./settings-readiness-overview.module.css";
 
@@ -188,43 +190,38 @@ export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section
 
   const cards = useMemo<Readiness[]>(() => {
     const runtimeReady = Boolean(localAi?.activeRuntime?.reachable);
-    const sageReady = Boolean(runtimeReady && localAi?.roles?.fast?.available);
-    const planReady = Boolean(runtimeReady && localAi?.roles?.quality?.available);
-    const imageRoute = media?.imageRoute || "Not selected";
-    const comfyReady = Boolean(media?.comfyui?.reachable && media?.comfyui?.imageNodesReady && (media?.comfyui?.checkpoint || media?.comfyui?.selectedCheckpoint));
-    const imageReady = imageRoute === "manual"
-      || (imageRoute === "comfyui" && comfyReady)
-      || (imageRoute === "openai" && media?.profiles?.openai?.configured)
-      || (imageRoute === "minimax" && media?.profiles?.minimax?.configured);
-    const videoRoute = media?.videoRoute || "none";
-    const videoReady = videoRoute === "none"
-      ? false
-      : videoRoute === "minimax-direct"
-        ? Boolean(media?.profiles?.minimax?.configured)
-        : Boolean(comfyReady && media?.profiles?.minimax?.configured);
+    const textRoute = routing?.text?.selected || "off";
+    const writingReady = textRoute !== "off" && Boolean(routing?.text?.options?.[textRoute]?.ready);
+    const sageReady = writingReady;
+    const planReady = writingReady && (textRoute !== "local" || Boolean(localAi?.roles?.quality?.available));
+    const imageRoute = routing?.image?.selected || "Not selected";
+    const comfyReady = Boolean(media?.comfyui?.reachable && media?.comfyui?.imageNodesReady);
+    const imageReady = Boolean(routing?.image?.options?.[imageRoute]?.ready);
+    const videoRoute = routing?.video?.selected || "off";
+    const videoReady = videoRoute !== "off" && Boolean(routing?.video?.options?.[videoRoute]?.ready);
     const buzzReady = Boolean(buzz?.connection?.configured && buzz?.connection?.identityVerified && buzz?.relay?.reachable && buzz?.cli?.available);
 
     return [
       {
         id: "sage",
         label: "Sage",
-        state: !localAi ? (checking ? "checking" : "unavailable") : sageReady ? "ready" : "attention",
-        summary: sageReady ? "Conversation and curriculum help have a usable local model." : "Sage still needs a reachable runtime and usable Fast model.",
+        state: !routing ? (checking ? "checking" : "unavailable") : sageReady ? "ready" : "attention",
+        summary: sageReady ? "The selected writing route has passed its response test." : "Select and test a writing route for Sage.",
         section: "models",
         facts: [["Runtime", localAi?.activeRuntime?.label || "Not detected"], ["Model", localAi?.roles?.fast?.selected || "Not selected"]],
       },
       {
         id: "plan",
         label: "PLAN",
-        state: !localAi ? (checking ? "checking" : "unavailable") : planReady ? "ready" : "attention",
-        summary: planReady ? "PLAN has a usable Quality model for local drafting." : "PLAN still needs a reachable runtime and usable Quality model.",
+        state: !routing ? (checking ? "checking" : "unavailable") : planReady ? "ready" : "attention",
+        summary: planReady ? "The selected writing route is verified for drafting." : "PLAN needs a verified writing route and an available drafting model.",
         section: "models",
         facts: [["Runtime", localAi?.activeRuntime?.label || "Not detected"], ["Model", localAi?.roles?.quality?.selected || "Not selected"]],
       },
       {
         id: "images",
         label: "Images",
-        state: !media ? (checking ? "checking" : "unavailable") : imageReady ? "ready" : "attention",
+        state: !routing ? (checking ? "checking" : "unavailable") : imageReady ? "ready" : "attention",
         summary: imageReady ? "The selected image route has the configuration it needs." : "The selected image route still needs configuration or verification.",
         section: "media",
         facts: [["Route", imageRoute], ["ComfyUI", media?.comfyui?.reachable ? (comfyReady ? "Capability ready" : "Process reachable; capability not ready") : "Not reachable"]],
@@ -232,8 +229,8 @@ export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section
       {
         id: "video",
         label: "Video",
-        state: !media ? (checking ? "checking" : "unavailable") : videoRoute === "none" ? "attention" : videoReady ? "ready" : "attention",
-        summary: videoRoute === "none" ? "No video route is active, which is valid until video is needed." : videoReady ? "The selected video route is configured." : "The selected video route still needs configuration or verification.",
+        state: !routing ? (checking ? "checking" : "unavailable") : videoRoute === "off" ? "attention" : videoReady ? "ready" : "attention",
+        summary: videoRoute === "off" ? "No video route is active, which is valid until video is needed." : videoReady ? "The selected video route is configured." : "The selected video route still needs configuration or verification.",
         section: "media",
         facts: [["Route", videoRoute], ["Cloud consent", "Required only when a paid test or generation is explicitly chosen"]],
       },

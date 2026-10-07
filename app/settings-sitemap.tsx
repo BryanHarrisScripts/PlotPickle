@@ -233,13 +233,6 @@ export default function SettingsSitemap({
             status={{ label: "Configure", tone: "ready", detail: "Task Scheduler controls are intentionally available only under Settings." }}
             action={<Link href="/settings/autonomous-guest">Open Task Scheduler</Link>}
           />
-          <SiteCard
-            label="AI Routing"
-            description="Choose one provider independently for text, images and video, including low-cost local routes, paid cloud routes and Off states."
-            meta="AI & Media"
-            status={{ label: "Configure", tone: "ready", detail: "Routing choices are stored locally and never silently fall back to a paid provider." }}
-            action={<Link href="/ai-routing">Open AI Routing</Link>}
-          />
           {settingsItems.map(({ item, group }) => (
             <SiteCard
               key={`${group}-${item.id}`}

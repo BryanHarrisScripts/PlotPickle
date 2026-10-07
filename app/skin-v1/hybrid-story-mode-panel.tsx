@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./hybrid-story-mode-panel.module.css";
 
@@ -14,6 +16,7 @@ type RoutingOption = {
   cost?: string;
   settingsTarget?: string;
   error?: string;
+  verifiedAt?: string;
 };
 
 type RoutingGroup = {
@@ -76,7 +79,7 @@ function selectedOption(group: RoutingGroup | undefined) {
 function stateLabel(option: RoutingOption, selected: boolean) {
   if (selected && option.ready) return "ACTIVE";
   if (option.ready) return "READY";
-  if (option.configured) return "NOT READY";
+  if (option.configured) return "CONFIGURED · TEST NEEDED";
   return "SETUP";
 }
 
@@ -99,7 +102,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
       ]);
       const routingBody = await routingResponse.json() as RoutingStatus;
       const jobBody = await jobResponse.json() as JobRoutingStatus;
-      if (!routingResponse.ok || routingBody.ok === false) throw new Error(routingBody.message || "AI routing status is unavailable.");
+      if (!routingResponse.ok || routingBody.ok === false) throw new Error(routingBody.message || "Compute capability status is unavailable.");
       if (!jobResponse.ok || jobBody.ok === false || !jobBody.jobs) throw new Error(jobBody.message || "Story Mode Job Routing is unavailable.");
       setRouting(routingBody);
       setJobRouting({
@@ -109,20 +112,44 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
       setNotice("Choose ready Local and Cloud resources, then set per-job routing preferences. AUTO preserves the currently selected ready route.");
     } catch (error) {
       setRouting(null);
-      setNotice(error instanceof Error ? error.message : "Story Mode routing status is unavailable.");
+      setNotice(error instanceof Error ? error.message : "Hybrid compute status is unavailable.");
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    const handleRefresh = () => { void refresh(); };
+    handleRefresh();
+    window.addEventListener("plotpickle:setup-status-refresh", handleRefresh);
+    window.addEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("plotpickle:setup-status-refresh", handleRefresh);
+      window.removeEventListener("plotpickle:connection-status-refresh", handleRefresh);
+    };
+  }, [refresh]);
 
   const mix = useMemo(() => CAPABILITIES.map(({ id }) => {
     const selected = selectedOption(routing?.[id]);
     return selected ? { capability: id, route: selected.route, locality: selected.option.locality, ready: selected.option.ready === true } : null;
   }), [routing]);
 
+  const incompleteCapabilities = mix.flatMap((item, index) => item?.ready === true ? [] : [CAPABILITIES[index].label.toLowerCase()]);
   const hybridReady = mix.every((item) => item?.ready === true)
     && mix.some((item) => item?.locality === "local")
     && mix.some((item) => item?.locality === "cloud");
+
+  const setupCoverage = useMemo(() => {
+    function summarize(locality: Locality) {
+      let configured = 0;
+      let ready = 0;
+      for (const capability of CAPABILITIES) {
+        const options = optionsFor(routing?.[capability.id], locality).map(([, option]) => option);
+        if (options.some((option) => option.configured || option.ready)) configured += 1;
+        if (options.some((option) => option.ready)) ready += 1;
+      }
+      return { configured, ready, total: CAPABILITIES.length };
+    }
+    return { local: summarize("local"), cloud: summarize("cloud") };
+  }, [routing]);
 
   async function updateJobPreference(jobClass: ImageJobClass, preference: JobPreference) {
     if (working) return;
@@ -201,7 +228,13 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
           <span>Assign each story capability to one ready Local or Cloud resource. Writing can stay Local while Images or Video use Cloud, or any other mix you choose.</span>
         </div>
         <strong data-ready={hybridReady ? "true" : "false"}>{hybridReady ? "READY" : "NOT READY"}</strong>
+        {!hybridReady ? <p role="status">{incompleteCapabilities.length ? `The selected ${incompleteCapabilities.join(", ")} route needs setup or a successful test.` : "Select at least one ready local route and one ready cloud route for Hybrid."}</p> : null}
       </section>
+
+      <div className={styles.active} aria-label="Detected Local and Cloud compute setup">
+        <span><b>LOCAL SETUP</b>{setupCoverage.local.ready}/{setupCoverage.local.total} capabilities ready · {setupCoverage.local.configured}/{setupCoverage.local.total} configured</span>
+        <span><b>CLOUD SETUP</b>{setupCoverage.cloud.ready}/{setupCoverage.cloud.total} capabilities ready · {setupCoverage.cloud.configured}/{setupCoverage.cloud.total} configured</span>
+      </div>
 
       <div className={styles.consent}>
         <label>
@@ -279,6 +312,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                     >
                       <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Local route"}</small></span>
                       <em>{stateLabel(option, selected)}</em>
+                      <small>{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Local Settings; a successful capability test is still required." : "Configure this capability in Local Settings.")}</small>
                     </button>
                   );
                 }) : <p>No Local route is registered for this capability.</p>}
@@ -301,6 +335,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                     >
                       <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Cloud route"}</small></span>
                       <em>{stateLabel(option, selected)}</em>
+                      <small>{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Cloud Settings; a successful capability test is still required." : "Configure this capability in Cloud Settings.")}</small>
                     </button>
                   );
                 }) : <p>No Cloud route is registered for this capability.</p>}

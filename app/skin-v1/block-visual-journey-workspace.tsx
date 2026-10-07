@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- generated local/cloud visual assets are served through PlotPickle's existing media boundary. */
 
 import { useEffect, useMemo, useRef, useState } from "react";

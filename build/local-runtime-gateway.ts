@@ -1,3 +1,4 @@
+import { readSynchronizedAssistantStore, writeAssistantStore } from "./writing-assistant-store";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
@@ -93,7 +94,16 @@ async function saveSettings(body: Record<string, unknown>) {
       ? { ...current.managedLlama, ...(body.managedLlama as Partial<LocalRuntimeSettings["managedLlama"]>) }
       : current.managedLlama,
   };
-  return writeLocalRuntimeSettings(next);
+  const saved = await writeLocalRuntimeSettings(next);
+  if (JSON.stringify(current) !== JSON.stringify(saved)) {
+    const { store } = await readSynchronizedAssistantStore();
+    if (store.profiles.local) {
+      store.profiles.local.assistantVerifiedAt = "";
+      store.profiles.local.lastError = "Local runtime settings changed; run the response test again.";
+      await writeAssistantStore(store);
+    }
+  }
+  return saved;
 }
 
 export function registerLocalRuntimeGateway(server: ViteDevServer) {

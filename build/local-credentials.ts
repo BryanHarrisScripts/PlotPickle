@@ -5,6 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 
+import { COMPUTE_SETTING_NAMES, COMPUTE_PRIVATE_NAMES, readProfileComputeSetting, writeProfileComputeSetting } from "../core/storage/profile-private/profile-compute-settings.mjs";
+
 const PROTECTED_FORMAT = "plotpickle-protected-credential";
 const DPAPI_ENTROPY = "PlotPickle local credential v1";
 const KEYCHAIN_SERVICE = "org.plotpickle.credentials";
@@ -97,8 +99,10 @@ function safeCredentialName(name: string) {
 }
 
 function profileCredentialContext(name: string) {
-  if (name !== PROFILE_SCOPED_BUZZ_CREDENTIAL) return null;
-  return currentProfileRequestContext();
+  if (name !== PROFILE_SCOPED_BUZZ_CREDENTIAL && !COMPUTE_PRIVATE_NAMES.includes(name)) return null;
+  const context = currentProfileRequestContext();
+  if (!context && COMPUTE_PRIVATE_NAMES.includes(name)) throw new Error("Unlock a PlotPickle profile before using compute setup.");
+  return context;
 }
 
 export function credentialFilePath(name: string) {
@@ -435,9 +439,12 @@ function acceptBestEffortPermissionFailure(error: unknown) {
 
 export async function readCredentialJson<T>(name: string): Promise<T | null> {
   const safeName = safeCredentialName(name);
+  if (COMPUTE_PRIVATE_NAMES.includes(safeName) && !currentProfileRequestContext()) return null;
   const profileContext = profileCredentialContext(safeName);
   if (profileContext) {
-    return await profileContext.privateStorage.readCredential(profileContext.authContext, safeName) as T | null;
+    return await (COMPUTE_SETTING_NAMES.includes(safeName)
+      ? readProfileComputeSetting(profileContext, safeName)
+      : profileContext.privateStorage.readCredential(profileContext.authContext, safeName)) as T | null;
   }
   const filePath = credentialFilePath(safeName);
   try {
@@ -466,7 +473,8 @@ export async function writeCredentialJson(name: string, value: unknown) {
   const safeName = safeCredentialName(name);
   const profileContext = profileCredentialContext(safeName);
   if (profileContext) {
-    await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, value);
+    if (COMPUTE_SETTING_NAMES.includes(safeName)) await writeProfileComputeSetting(profileContext, safeName, value);
+    else await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, value);
     return;
   }
   await assertLegacyCredentialSourceWritable();
@@ -504,7 +512,8 @@ export async function removeCredentialFile(name: string) {
   const safeName = safeCredentialName(name);
   const profileContext = profileCredentialContext(safeName);
   if (profileContext) {
-    await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, null);
+    if (COMPUTE_SETTING_NAMES.includes(safeName)) await writeProfileComputeSetting(profileContext, safeName, null);
+    else await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, null);
     return;
   }
   await assertLegacyCredentialSourceWritable();

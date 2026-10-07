@@ -1,3 +1,4 @@
+import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-request-context";
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { normalizedUrl } from "../../../../build/provider-url";
 import {
@@ -75,7 +76,7 @@ async function authorize(request: Request) {
   return boundary.authorizeRequest(requestBoundary(request), { mutation: true });
 }
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   try {
     await authorize(request);
     const input = await request.json() as ProviderInput;
@@ -147,4 +148,9 @@ export async function POST(request: Request) {
   } catch {
     return response({ ok: false, message: "Cloud authority could not be saved for this authenticated human profile." }, 403);
   }
+}
+
+export async function POST(request: Request) {
+  try { return await withAuthenticatedProfileRequest(request, () => handlePost(request)); }
+  catch { return Response.json({ ok: false, message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
 }

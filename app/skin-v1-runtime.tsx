@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../core/auth/profile-request-browser";
+
 import { useEffect } from "react";
 import { isCanonicalSkinV1Path } from "./skin-v1-route-contract";
 import "./skin-v1/preproduction-matrix-contract.css";

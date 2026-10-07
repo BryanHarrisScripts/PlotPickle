@@ -72,7 +72,8 @@ async function ensureDirectoryChain(root, segments) {
       if (information.isSymbolicLink() || !information.isDirectory()) fail("Profile storage directory cannot be a symbolic link.", "SYMLINK_ESCAPE_REJECTED");
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
-      await mkdir(current, { mode: 0o700 });
+      try { await mkdir(current, { mode: 0o700 }); }
+      catch (creationError) { if (creationError?.code !== "EEXIST") throw creationError; }
       const information = await lstat(current);
       if (information.isSymbolicLink() || !information.isDirectory()) fail("Profile storage directory creation was redirected.", "SYMLINK_ESCAPE_REJECTED");
     }

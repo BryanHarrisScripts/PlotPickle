@@ -1,5 +1,7 @@
 "use client";
 
+import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
+
 /* eslint-disable @next/next/no-img-element -- Character roster renders project-owned local/example media references. */
 
 import { useEffect, useMemo, useState } from "react";

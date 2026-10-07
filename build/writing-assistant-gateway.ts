@@ -1,3 +1,4 @@
+import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
@@ -92,7 +93,7 @@ function localProfileFromExecution(
     apiKey: "",
     contextTokens: execution.contextTokens,
     configuredAt: existing?.configuredAt || new Date().toISOString(),
-    assistantVerifiedAt: existing?.assistantVerifiedAt || "",
+    assistantVerifiedAt: existing?.baseUrl === execution.baseUrl && existing?.runtime === execution.runtime ? existing.assistantVerifiedAt : "",
     lastAttemptAt: existing?.lastAttemptAt || "",
     lastLatencyMs: existing?.lastLatencyMs || 0,
     lastPreview: existing?.lastPreview || "",
@@ -129,7 +130,7 @@ async function handleStatus(response: ServerResponse) {
     activeProvider: store.activeProvider,
     explicitlyDisabled: store.explicitlyDisabled,
     providers: {
-      local: publicProfile(store.profiles.local, store.activeProvider),
+      local: { ...publicProfile(store.profiles.local, store.activeProvider), ...writingReadiness(store.profiles.local, localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available) },
       ollama: publicProfile(store.profiles.ollama, store.activeProvider),
       openai: publicProfile(store.profiles.openai, store.activeProvider),
       minimax: publicProfile(store.profiles.minimax, store.activeProvider),
@@ -363,9 +364,9 @@ async function profileForProvider(
   provider: TextProvider,
   role: LocalTextRole,
 ) {
-  if (provider === "local") return refreshLocalProfile(store, role);
-  const profile = store.profiles[provider];
+  const profile = provider === "local" ? await refreshLocalProfile(store, role) : store.profiles[provider];
   if (!profile) throw new Error("The selected Writing Assistant provider is not configured.");
+  if (!writingReadiness(profile).ready) throw new Error("The selected writing or Agent provider needs a successful response test in Settings.");
   return profile;
 }
 

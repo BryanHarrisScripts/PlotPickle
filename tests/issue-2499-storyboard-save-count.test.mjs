@@ -16,19 +16,19 @@ test("#2499 Storyboard exposes explicit durable Save separate from Lock", async 
   const reviewStart = source.indexOf("function reviewFrame", saveStart);
   const saveBlock = source.slice(saveStart, reviewStart);
   assert.ok(saveStart >= 0 && reviewStart > saveStart);
-  assert.match(saveBlock, /const savedArtifact: FoundationsVisualArtifact = \{[\s\S]*\.\.\.artifact/u);
+  assert.match(saveBlock, /const savedArtifact: FoundationsVisualArtifact = \{[\s\S]*\.\.\.currentArtifact/u);
   assert.match(saveBlock, /type: "foundations\.visual\.store"/u);
   assert.match(saveBlock, /artifact: savedArtifact/u);
-  assert.match(saveBlock, /saveFoundationProject\(next\)/u);
-  assert.match(saveBlock, /onProjectChange\(next\)/u);
+  assert.match(saveBlock, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
+  assert.match(saveBlock, /onProjectChange\(saved\)/u);
   assert.doesNotMatch(saveBlock, /foundations\.visual\.accept|foundations\.visual\.unaccept/u);
 
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
-  assert.match(loop, />Save<\/button>/u);
+  assert.match(loop, />\{frameSaving \? "Saving…" : "Save"\}<\/button>/u);
   assert.match(loop, /Saved locally/u);
   assert.match(loop, /\{accepted \? "Unlock" : "Lock"\}<\/button>/u);
   assert.match(loop, /savedLocally/u);
-  assert.match(loop, /onClick=\{\(\) => selectedArtifact && saveFrameVersion\(selectedArtifact\)\}/u);
+  assert.match(loop, /onClick=\{\(\) => selectedArtifact && void saveFrameVersion\(selectedArtifact\)\}/u);
 });
 
 test("#2499 Lock remains single-select and independent from explicit local Save", async () => {
@@ -37,7 +37,7 @@ test("#2499 Lock remains single-select and independent from explicit local Save"
   const reviewEnd = source.indexOf('const normalizedSourceEvidence', reviewStart);
   const reviewBlock = source.slice(reviewStart, reviewEnd);
 
-  assert.match(reviewBlock, /candidate\.id !== artifact\.id && candidate\.frameNumber === artifact\.frameNumber/u);
+  assert.match(reviewBlock, /candidate\.id !== artifact\.id && candidate\.frameNumber === currentArtifact\.frameNumber/u);
   assert.match(reviewBlock, /foundations\.visual\.unaccept/u);
   assert.match(reviewBlock, /foundations\.visual\.accept/u);
   assert.doesNotMatch(reviewBlock, /STORYBOARD_LOCAL_SAVE_MARKER/u);

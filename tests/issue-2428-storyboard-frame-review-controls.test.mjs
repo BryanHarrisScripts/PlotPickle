@@ -9,7 +9,7 @@ test("#2428 gives every one of the 25 Storyboard positions a visible review stri
   const positionLoop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
   assert.match(positionLoop, /className=\{styles\.frameReview\}/u);
   assert.doesNotMatch(positionLoop, /selectedArtifact \? <div className=\{styles\.frameReview\}/u);
-  assert.match(positionLoop, />Save<\/button>/u);
+  assert.match(positionLoop, />\{frameSaving \? "Saving…" : "Save"\}<\/button>/u);
   assert.match(positionLoop, /\{accepted \? "Unlock" : "Lock"\}<\/button>/u);
   assert.match(positionLoop, />Redo</u);
   assert.match(positionLoop, />Delete</u);

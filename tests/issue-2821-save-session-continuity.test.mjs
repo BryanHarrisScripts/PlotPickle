@@ -165,7 +165,7 @@ test("#2821 local narration and Save/Lock share current session and durable proj
 
 test("#2821 status reports transient failures without claiming logout", async () => {
   const source = await read("app/api/auth/profile/route.ts");
-  const route = stripTypeScriptTypes(source.replace(/^import[\s\S]*?;\n/gm, "")).replace(/^export /gm, "");
+  const route = stripTypeScriptTypes(source.replace(/^import[\s\S]*?;\r?\n/gm, "")).replace(/^export /gm, "");
   let readiness = true, failure = null;
   class AuthError extends Error { constructor(code) { super(code); this.code = code; } }
   const context = vm.createContext({ Response, URL,

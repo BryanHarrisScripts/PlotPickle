@@ -5,8 +5,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
-import { ensureVerificationTools } from "../run-webmcp-startup-uat.mjs";
-import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../full-verification-auth.mjs";
+import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
+import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../../full-verification-auth.mjs";
 
 // An isolated fixture renders the real surface against the real login gateway
 // and encrypted vault. It never uses a Human profile or calls AI providers.

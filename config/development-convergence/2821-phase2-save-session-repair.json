@@ -21,14 +21,19 @@
     "docs/developer-briefs/2821-afterglow-load-hydration-authority.md",
     "docs/developer-briefs/2821-phase2-save-session-repair.md",
     "scripts/build-verified.mjs",
-    "scripts/developer-diagnostics/2821-save-session-product-proof.mjs",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
     "tests/issue-104-windows-paths.test.mjs",
     "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
     "tests/issue-2819-storyboard-idempotent-save.test.mjs",
     "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
     "tests/issue-2821-build-artifact.test.mjs",
     "tests/issue-2821-save-session-continuity.test.mjs",
-    "tests/issue-591-startup-readiness-gate.test.mjs"
+    "tests/issue-591-startup-readiness-gate.test.mjs",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+    "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
+    "tests/issue-2499-storyboard-save-count.test.mjs",
+    "scripts/developer-diagnostics/2821-save-session-product-proof.mjs"
   ],
   "acceptance": [
     {
@@ -93,7 +98,7 @@
         {
           "type": "file-contains",
           "path": ".github/workflows/product-gate.yml",
-          "contains": "node scripts/developer-diagnostics/2821-save-session-product-proof.mjs"
+          "contains": "node scripts/developer-diagnostics/product-proof/2821-save-session.mjs"
         }
       ]
     },

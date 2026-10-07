@@ -1410,6 +1410,7 @@
         "lib/verification/skin-v1-menu-contract-audit.mjs",
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/developer-diagnostics/2821-save-session-product-proof.mjs",
+        "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",
         "scripts/performance/measure-browser-responsiveness.mjs",

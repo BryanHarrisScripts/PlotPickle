@@ -299,7 +299,7 @@ jobs:
         shell: pwsh
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: node scripts/developer-diagnostics/2821-save-session-product-proof.mjs
+        run: node scripts/developer-diagnostics/product-proof/2821-save-session.mjs
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build

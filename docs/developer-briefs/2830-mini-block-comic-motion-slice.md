@@ -49,8 +49,9 @@ The repair keeps one authority chain:
 
 - the accepted Storyboard artifact remains the Shot visual identity;
 - current Graphic Novel text still requires an approval whose source key matches the locked image and current story evidence;
-- successful Timeline motion is eligible in Graphic Novel playback only when its `anchorRef`, Shot position, and `sourceArtifactId` match that exact locked Storyboard artifact;
-- replacing the locked Storyboard image automatically makes earlier motion ineligible for Previs Graphic Novel playback;
+- Timeline and Previs now share the same Shot Generation Packet and motion source-key contract rather than maintaining separate definitions of current motion;
+- successful Timeline motion is eligible in Graphic Novel playback only when its current Timeline placement, `anchorRef`, Shot position, locked `sourceArtifactId`, placement source key, and packet fingerprint all still match;
+- replacing the locked Storyboard image or changing packet evidence such as screenplay, camera/production direction, character/reference inputs, continuity, or progression automatically makes earlier motion ineligible for Previs Graphic Novel playback;
 - when current motion exists, Graphic Novel mode renders that video while the existing approved speech bubbles and narration/caption layer remain on top;
 - when current motion does not exist, Previs truthfully falls back to the locked still;
 - the existing 3000ms Graphic Novel cadence remains the presentation authority, so a provider clip may retain its observed source duration while the comic presentation advances after three seconds;
@@ -61,6 +62,6 @@ Narration generation now writes through `saveFoundationProjectDurably()` with re
 
 ### Regression boundary
 
-`tests/issue-2830-previs-graphic-novel-motion.test.mjs` uses a real packaged Afterglow Storyboard artifact identity, normalizes persisted motion records, and proves that Previs selects the newest successful motion only for the exact locked artifact. A motion clip tied to a replaced image is rejected. The test also protects the three-second cadence, video rendering, bubble/narration overlays, still fallback, and durable narration save.
+`tests/issue-2830-previs-graphic-novel-motion.test.mjs` uses a real packaged Afterglow Storyboard artifact identity, normalizes persisted Timeline placement/motion records, and proves that Previs accepts successful motion only when the locked artifact and shared Timeline packet lineage are still current. A clip tied to a replaced image or stale packet is rejected. The test also protects the three-second cadence, video rendering, bubble/narration overlays, still fallback, and durable narration save.
 
 No provider job is submitted by this engineering proof. Phase E remains the real Afterglow unload/reopen and configured-provider acceptance under #2821/#2830.

@@ -3,6 +3,7 @@
   "issue": 2839,
   "brief": "docs/developer-briefs/2839-storyboard-text-narration.md",
   "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
     ".github/workflows/product-gate.yml",
     "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
     "app/api/previs/narration/route.ts",

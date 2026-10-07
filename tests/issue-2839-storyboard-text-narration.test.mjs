@@ -98,3 +98,12 @@ test('#2839 actual narration endpoint sends text to the agent and distinguishes 
   assert.equal((await context.POST(request(legacy))).status, 200);
   assert.ok(sent.image instanceof Uint8Array, 'existing Previs image route remains visual');
 });
+
+test('#2839 changed narration product owners select the Windows rendered approval proof', async () => {
+  const source = await readFile('.github/workflows/architecture-shadow.yml', 'utf8');
+  const scope = source.slice(source.indexOf('  windows-product-scope:'), source.indexOf('  windows-product-proof:'));
+  const selectors = [...scope.matchAll(/grep -Eq '([^']+)'; then (\w+)=true;/gu)].map(match => ({ lane: match[2], pattern: new RegExp(match[1]) }));
+  for (const path of ['app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'app/api/previs/narration/route.ts', 'core/media/previs-narration.mjs']) {
+    assert.deepEqual(selectors.filter(({ pattern }) => pattern.test(path)).map(({ lane }) => lane), ['build']);
+  }
+});

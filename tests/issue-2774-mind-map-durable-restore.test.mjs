@@ -53,34 +53,35 @@ test("#2774 Theme, Structure and visual-planning fields share project-owned stor
   assert.match(browser, /normalizeMindMapNotesState\(incoming\.mindMapNotes\)/);
 });
 
-test("#2774 Open Example with Your Changes makes the complete saved Afterglow project active before media recovery", async () => {
+test("#2774 Open Example with Your Changes reviews the complete saved story before confirmed resume", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
   const restoreStart = workspace.indexOf("const openedProject = loadLibraryProjectSnapshot(afterglowLocalState.id)");
-  const recoveryStart = workspace.indexOf("setRecovery({ project: restoredProject", restoreStart);
+  const recoveryStart = workspace.indexOf("setRecovery({ project: openedProject", restoreStart);
   assert.ok(restoreStart >= 0 && recoveryStart > restoreStart, "restore path must use the saved local Afterglow snapshot");
 
   const restore = workspace.slice(restoreStart, recoveryStart + 200);
-  const selectProject = restore.indexOf("switchActiveLibraryProject(openedProject.id)");
-  const markSession = restore.indexOf("markCurrentSessionLibraryProject(restoredProject.id)");
-  const inventory = restore.indexOf("inventoryLocalResources(restoredProject, [])");
-
-  assert.ok(selectProject >= 0, "the full saved project must become the Library authority");
-  assert.ok(markSession > selectProject, "the saved project must become the current-session story");
-  assert.ok(inventory > markSession, "media inventory must be scanned only after the full project is selected");
-  assert.match(restore, /storyDevelopment, Mind Map/);
-  assert.match(restore, /never rebuilt[\s\S]*local-resource inventory/);
+  assert.match(restore, /inventoryLocalResources\(openedProject, \[\]\)/);
+  assert.doesNotMatch(restore, /switchActiveLibraryProject|saveActiveLibraryProject/);
+  const resumeStart = workspace.indexOf("async function continueSavedStoryResume()");
+  const resume = workspace.slice(resumeStart, workspace.indexOf("async function importPpf", resumeStart));
+  const selectProject = resume.indexOf("switchActiveLibraryProject(recovery.project.id)");
+  const markSession = resume.indexOf("markCurrentSessionLibraryProject(current.id)");
+  const inventory = resume.indexOf("resumeInventoryResources(current, recovery.inventory)");
+  assert.ok(selectProject >= 0 && markSession > selectProject && inventory > markSession,
+    "confirmed resume selects the full saved project before reconciling only expected media");
+  assert.match(resume, /saveActiveLibraryProject\(characterResult\.project\)/);
+  assert.match(resume, /await openActiveProject\(\)/);
 });
 
-test("#2774 dismissing optional media recovery continues with the already-loaded full project", async () => {
+test("#2774 dismissing the read-only resume summary cannot activate or rebuild a story", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
   const start = workspace.indexOf("function cancelRecovery()");
-  const end = workspace.indexOf("function selectAllLocalResources", start);
+  const end = workspace.indexOf("async function retryLocalResourceScan", start);
   const cancel = workspace.slice(start, end);
 
-  assert.match(cancel, /const loadedProject = recovery\?\.project \?\? null/);
-  assert.match(cancel, /void openActiveProject\(\)/);
-  assert.doesNotMatch(cancel, /restoreLocalStoryboardResources|restoreLocalWorldMapPosterResources|restoreLocalWorldMapCharacterResources/);
+  assert.match(cancel, /setRecovery\(null\)/);
+  assert.doesNotMatch(cancel, /openActiveProject|switchActiveLibraryProject|saveActiveLibraryProject|restoreLocalStoryboardResources|restoreLocalWorldMapPosterResources|restoreLocalWorldMapCharacterResources/);
 });
 
 test("#2774 restart hydration preserves complete Library snapshots while fresh startup still requires explicit selection", async () => {

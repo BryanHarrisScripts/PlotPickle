@@ -436,6 +436,11 @@ export function loadLibraryProjectSnapshot(projectId: string): LibraryPPFProject
   }) as LibraryPPFProject | null;
 }
 
+/** Exact cached snapshot identity, without parsing another story on every Save. */
+export function libraryProjectSnapshotText(projectId: string): string | null {
+  return storage().getItem(libraryCore.projectLibraryProjectKey(profileId(), projectId) as string);
+}
+
 export function listLibraryProjects() {
   return libraryCore.listProfileProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
 }

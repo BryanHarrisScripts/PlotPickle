@@ -77,7 +77,8 @@ export function storyboardNarrationPrompt(input) {
 }
 
 function quotationWords(value) {
-  return value.normalize('NFKC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const normalized = value.normalize('NFKC').toLocaleLowerCase();
+  return normalized.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
 function screenplayDialoguePairs(passages) {

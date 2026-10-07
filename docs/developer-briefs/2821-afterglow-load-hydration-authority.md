@@ -27,6 +27,32 @@ It must never mean:
 
 > Restore an older interpretation of PlotPickle behavior from the story snapshot.
 
+## The architectural distinction that explains how we got here
+
+The Human strongly identified the likely historical cause of this defect: PlotPickle was changed so that a user's Afterglow changes could be saved locally and later reopened without losing the images, locks, saves, writing, or other work.
+
+That goal is correct.
+
+The mistake is allowing that persisted story snapshot to become too authoritative when it is reopened.
+
+The saved Afterglow copy must be understood as:
+
+> A snapshot of where the user left the story.
+
+It must not be understood as:
+
+> A snapshot of PlotPickle itself at the time the story was saved.
+
+Therefore, reopening a saved Afterglow state may restore the user's story state — including images, selected versions, saved markers, locks, writing, Mind Map, World Map, Storyboard, Previs/production data, and other legitimate project data — but it must never restore historical implementations of Save, Lock/Unlock, narration authorization, UI controls, storage methods, provider routing, or other product behavior.
+
+Once the persisted story state is loaded, every control and method operates according to the current PlotPickle build.
+
+A concise invariant for implementation and regression coverage is:
+
+> Saved Afterglow = where the Human left the story. Current PlotPickle = how that story works now.
+
+Older snapshots may require deterministic data migration/normalization into the current schema. Migration may preserve or translate durable Human decisions, but it must never emulate old application behavior.
+
 ## Human intent captured in UAT
 
 The Human clarified that **Open Example** and **Open Example with Your Changes** are story-loading choices only.

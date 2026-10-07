@@ -5,6 +5,7 @@ import { readCredentialJson, writeCredentialJson } from "../../local-credentials
 import {
   ASSET_PATH,
   assetsDirectory,
+  projectImageAssetFilePath,
   safeAssetStem,
   saveGeneratedAsset,
   type VideoGenerationInput,
@@ -400,18 +401,24 @@ export async function probeNativeH3(state: H3NativeStore) {
   }
 }
 
-function localAssetFile(value: unknown, allowed: RegExp) {
+function localAssetFile(value: unknown, allowed: RegExp, kind: "image" | "video") {
   const source = cleanString(value, 2_000);
-  if (!source.startsWith(ASSET_PATH)) throw new Error("Native H3 reference media must be a saved PlotPickle asset.");
+  if (kind === "image") {
+    const filePath = projectImageAssetFilePath(source);
+    const fileName = path.basename(filePath);
+    if (!allowed.test(fileName)) throw new Error("The selected PlotPickle asset type is not supported by this H3 workflow family.");
+    return { fileName, filePath };
+  }
+  if (!source.startsWith(ASSET_PATH)) throw new Error("Native H3 video reference media must be a saved PlotPickle asset.");
   const fileName = source.slice(ASSET_PATH.length);
   if (!allowed.test(fileName)) throw new Error("The selected PlotPickle asset type is not supported by this H3 workflow family.");
-  return fileName;
+  return { fileName, filePath: path.join(assetsDirectory(), fileName) };
 }
 
 async function uploadAsset(baseUrl: string, value: unknown, kind: "image" | "video") {
   const allowed = kind === "image" ? /^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|webp)$/i : /^[a-z0-9][a-z0-9._-]*\.(mp4|webm)$/i;
-  const fileName = localAssetFile(value, allowed);
-  const bytes = await readFile(path.join(assetsDirectory(), fileName));
+  const { fileName, filePath } = localAssetFile(value, allowed, kind);
+  const bytes = await readFile(filePath);
   const endpoint = kind === "image" ? "/upload/image" : "/upload/file";
   const form = new FormData();
   form.append(kind === "image" ? "image" : "file", new Blob([bytes]), fileName);

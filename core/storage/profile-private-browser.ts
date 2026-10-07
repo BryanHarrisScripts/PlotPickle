@@ -13,6 +13,7 @@ import {
   listArchivedLibraryProjects,
   listPersistableLibraryProjects,
   loadLibraryProjectSnapshot,
+  libraryProjectSnapshotText,
   initializeProjectLibrary,
   resumeSessionActiveProject,
   sessionActiveProjectId,
@@ -94,6 +95,40 @@ let pendingCacheWrite: Promise<void> = Promise.resolve();
 let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
 let authorityEpoch = 0;
 let removeProjectPersistenceListener: (() => void) | null = null;
+
+type ProjectWriteTarget = Readonly<{
+  id: string;
+  snapshot: string;
+  summary: Readonly<Record<string, unknown>>;
+  summaryText: string;
+}>;
+
+// Session-local acknowledgements, never an alternative durable authority.
+const acknowledgedProjects = new Map<string, Readonly<{ snapshot: string; summaryText: string }>>();
+let pendingLibraryWrite: Readonly<{
+  epoch: number;
+  token: string;
+  activeProjectId: string | null;
+  projects: readonly ProjectWriteTarget[];
+  confirmations: Set<string>;
+  skipped: Set<string>;
+  promise: Promise<void>;
+}> | null = null;
+
+function profileProjectWriteTargets() {
+  return [...listPersistableLibraryProjects(), ...listArchivedLibraryProjects()].map((item): ProjectWriteTarget => {
+    const snapshot = libraryProjectSnapshotText(item.id);
+    if (!snapshot) throw new Error(`Library snapshot for ${item.title} is unavailable; the last saved profile state was preserved.`);
+    const summary = {
+      projectId: item.id,
+      title: item.title, updatedAt: item.updatedAt, createdAt: item.createdAt,
+      progress: item.progress, frontier: item.frontier, thumbnailRef: item.thumbnail,
+      sourceKind: item.sourceKind, sourceId: item.sourceId, genre: item.genre,
+      format: item.format, archivedAt: item.archivedAt,
+    };
+    return { id: item.id, snapshot, summary, summaryText: JSON.stringify(summary) };
+  });
+}
 
 function observeProjectWrites() {
   removeProjectPersistenceListener?.();
@@ -231,6 +266,8 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   if (profilePrivateBrowserAuthorityMatches(profileId, token)) return;
   if (hydratedProfileId) await flushProfilePrivateWrites();
   const epoch = ++authorityEpoch;
+  acknowledgedProjects.clear();
+  pendingLibraryWrite = null;
   removeProjectPersistenceListener?.();
   removeProjectPersistenceListener = null;
   try {
@@ -290,6 +327,10 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
       recoveryPoints: normalizeRecoveryPoints(next.recoveryPoints),
     };
     hydratedProfileId = profileId;
+    // Only the successfully loaded encrypted inventory may seed acknowledgements.
+    for (const entry of profileProjectWriteTargets()) {
+      acknowledgedProjects.set(entry.id, { snapshot: entry.snapshot, summaryText: entry.summaryText });
+    }
     updateSaveState("saved", "Saved");
   } finally {
     if (epoch === authorityEpoch && hydratedProfileId) observeProjectWrites();
@@ -341,36 +382,70 @@ export function hydratedStoryMapContext(projectId: string) {
   return normalizeStoryMapContextRegistry(hydrated.storyMapContexts)[projectId] ?? null;
 }
 
-export function persistActiveProfileProject(explicitToken = "") {
+export function persistActiveProfileProject(explicitToken = "", confirmProjectId = "") {
+  const token = explicitToken || csrfToken;
+  if (!token) {
+    updateSaveState("blocked", "The Human profile is locked.");
+    return Promise.reject(new Error("The Human profile is locked."));
+  }
+  const epoch = authorityEpoch;
   const activeProjectId = sessionActiveProjectId();
-  const active = listPersistableLibraryProjects();
-  const projects = [...active, ...listArchivedLibraryProjects()].map((item) => {
-    const project = loadLibraryProjectSnapshot(item.id);
-    if (!project) throw new Error(`Library snapshot for ${item.title} is unavailable; the last saved profile state was preserved.`);
-    return { project, summary: {
-      projectId: item.id,
-      title: item.title, updatedAt: item.updatedAt, createdAt: item.createdAt,
-      progress: item.progress, frontier: item.frontier, thumbnailRef: item.thumbnail,
-      sourceKind: item.sourceKind, sourceId: item.sourceId, genre: item.genre,
-      format: item.format, archivedAt: item.archivedAt,
-    } };
-  });
-  const persistedActiveProjectId = activeProjectId && active.some((item) => item.id === activeProjectId)
+  const projects = profileProjectWriteTargets();
+  const persistedActiveProjectId = activeProjectId && projects.some((item) => item.id === activeProjectId && !item.summary.archivedAt)
     ? activeProjectId
     : null;
-  return queueWriteOperation(async (token) => {
+  if (confirmProjectId && !projects.some((entry) => entry.id === confirmProjectId)) {
+    return Promise.reject(new Error("The story to confirm is no longer in this Human Library."));
+  }
+  const previous = pendingLibraryWrite;
+  if (previous && previous.epoch === epoch && previous.token === token
+    && previous.activeProjectId === persistedActiveProjectId
+    && previous.projects.length === projects.length
+    && (!confirmProjectId || !previous.skipped.has(confirmProjectId))
+    && projects.every((entry, index) => entry.id === previous.projects[index].id
+      && entry.snapshot === previous.projects[index].snapshot
+      && entry.summaryText === previous.projects[index].summaryText)) {
+    if (confirmProjectId) previous.confirmations.add(confirmProjectId);
+    return previous.promise;
+  }
+  const confirmations = new Set(confirmProjectId ? [confirmProjectId] : []);
+  const skipped = new Set<string>();
+  const requireCurrentAuthority = () => {
+    if (epoch !== authorityEpoch) throw new Error("The Human profile changed while this write was being persisted.");
+  };
+  const promise = queueWriteOperation(async (writeToken) => {
     for (const entry of projects) {
+      requireCurrentAuthority();
+      const acknowledged = acknowledgedProjects.get(entry.id);
+      if (!confirmations.has(entry.id) && acknowledged?.snapshot === entry.snapshot
+        && acknowledged.summaryText === entry.summaryText) {
+        skipped.add(entry.id);
+        continue;
+      }
+      // Read the captured bytes, not a possibly newer live snapshot: queue order
+      // must preserve each requested decision and its own acknowledgement.
+      const project = normalizeLibraryProject((JSON.parse(entry.snapshot) as { project: unknown }).project);
+      if (project.id !== entry.id) throw new Error("The Library snapshot identity does not match the story being saved.");
       await privateMutation("save-project", {
-        project: entry.project,
+        project,
         summary: entry.summary,
         activate: false,
-      }, token);
+      }, writeToken);
+      requireCurrentAuthority();
+      acknowledgedProjects.set(entry.id, { snapshot: entry.snapshot, summaryText: entry.summaryText });
     }
+    requireCurrentAuthority();
     await privateMutation("sync-library-index", {
       summaries: projects.map((entry) => entry.summary),
       activeProjectId: persistedActiveProjectId,
-    }, token);
-  }, explicitToken);
+    }, writeToken);
+    requireCurrentAuthority();
+  }, token);
+  const target = { epoch, token, activeProjectId: persistedActiveProjectId, projects, confirmations, skipped, promise };
+  pendingLibraryWrite = target;
+  const clear = () => { if (pendingLibraryWrite === target) pendingLibraryWrite = null; };
+  void promise.then(clear, clear);
+  return promise;
 }
 
 export function deleteArchivedProfileProjectFromVault(projectId: string) {
@@ -418,6 +493,8 @@ export function releaseProfilePrivateBrowserAuthority() {
   removeProjectPersistenceListener = null;
   csrfToken = "";
   hydratedProfileId = "";
+  acknowledgedProjects.clear();
+  pendingLibraryWrite = null;
   hydrated = { project: null, wyrmwood: null, storyMapContexts: null, recoveryPoints: [] };
   pendingWrite = Promise.resolve();
   pendingCacheWrite = Promise.resolve();

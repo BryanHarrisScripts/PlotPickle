@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "issue": 2832,
+  "phase": "shared-profile-save-work",
+  "brief": "docs/developer-briefs/2832-shared-profile-save-work.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "config/verification/test-catalog.json",
+    "core/storage/profile-private-browser.ts",
+    "core/storage/project-library-browser.ts",
+    "core/storage/project-library/revision-safe-browser.ts",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "tests/issue-2832-profile-save-work.test.mjs",
+    "tests/foundations-build-visual-workshop.test.mjs",
+    "tests/issue-2774-mind-map-durable-restore.test.mjs",
+    "docs/developer-briefs/2832-shared-profile-save-work.md",
+    "config/development-convergence/2832-shared-profile-save-work.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ONCE",
+      "criterion": "Individual Save writes only the changed Afterglow snapshot and shares pending acknowledgement.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "one Save writes Afterglow once"
+        }
+      ]
+    },
+    {
+      "id": "DELAY",
+      "criterion": "Delayed writes wait for acknowledgement and preserve successive same-revision decisions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "same-revision content changes remain durable"
+        }
+      ]
+    },
+    {
+      "id": "RETRY",
+      "criterion": "Failed project/index writes stay blocked and can be explicitly retried.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "failed project or index writes remain blocked"
+        }
+      ]
+    },
+    {
+      "id": "LATE",
+      "criterion": "Late explicit confirmation cannot skip the requested durable project write.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "late explicit confirmation cannot join"
+        }
+      ]
+    },
+    {
+      "id": "REOPEN",
+      "criterion": "Exact media identity, saved marker and accepted state survive unload/rehydration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "unload and rehydrate retain exact Afterglow Save/Lock"
+        }
+      ]
+    },
+    {
+      "id": "PROFILE",
+      "criterion": "Obsolete writes cannot update another profile's acknowledgement/index.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2832-profile-save-work.test.mjs",
+          "contains": "authority release during a write prevents obsolete"
+        }
+      ]
+    },
+    {
+      "id": "RENDER",
+      "criterion": "Rendered Storyboard controls count single-story writes using actual packaged Afterglow media.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+          "contains": "one rendered Save writes only Afterglow once"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS",
+      "criterion": "Windows Product Gate independently reruns the shared persistence regression and rendered proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "tests/issue-2832-profile-save-work.test.mjs"
+        }
+      ]
+    }
+  ]
+}

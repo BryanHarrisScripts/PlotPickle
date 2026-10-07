@@ -14,7 +14,7 @@ export async function saveFoundationProjectDurably(project: PPFProject, expected
   if (current.id !== project.id) throw new Error("The active PlotPickle story changed before this decision could be saved.");
   if (current.revision !== expectedRevision) throw new RevisionConflictError(project.id, expectedRevision, current.revision);
   const saved = saveFoundationProject(project);
-  await persistActiveProfileProject();
+  await persistActiveProfileProject("", saved.id);
   await flushProfilePrivateWrites();
   const latest = loadFoundationProject();
   if (window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId) throw new Error("The Human profile changed while this decision was being persisted.");

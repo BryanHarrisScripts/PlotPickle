@@ -2169,7 +2169,8 @@
           "tests/issue-2821-build-artifact.test.mjs",
           "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
           "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
-          "tests/issue-2830-outline-lock-visual-state.test.mjs"
+          "tests/issue-2830-outline-lock-visual-state.test.mjs",
+          "tests/issue-2832-profile-save-work.test.mjs"
         ]
       },
       "cost": "fast",

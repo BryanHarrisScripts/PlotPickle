@@ -8,8 +8,8 @@ import { build } from "esbuild";
 import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
 import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../../full-verification-auth.mjs";
 
-// An isolated fixture renders the real surface against the real login gateway
-// and encrypted vault. It never uses a Human profile or calls AI providers.
+// Committed Afterglow media renders through the real surface/login/vault in an
+// isolated verification profile. No Human profile or provider inference is used.
 const artifactRoot = path.resolve(".artifacts/2821-save-session");
 await mkdir(artifactRoot, { recursive: true });
 const temporary = await mkdtemp(path.resolve("node_modules/.2821-rendered-"));
@@ -28,14 +28,23 @@ import {createRoot} from "react-dom/client";
 import Storyboard from "./app/_components/storyboard/storyboard-readiness-workspace.tsx";
 import {createEmptyProject} from "./core/project/project.ts";
 import {applyStoryCommand} from "./core/project/apply-command.ts";
+import packagedAfterglow from "./data/afterglow-packaged-current/snapshot.json";
 import {loadFoundationProject,saveFoundationProject,FOUNDATION_PROJECT_SAVED_EVENT} from "./core/storage/foundation-project-browser.ts";
 import {hydrateProfilePrivateBrowser,flushProfilePrivateWrites} from "./core/storage/profile-private-browser.ts";
-import {switchActiveLibraryProject,loadLibraryProjectSnapshot} from "./core/storage/project-library-browser.ts";
+import {switchActiveLibraryProject,loadLibraryProjectSnapshot,archiveLibraryProject} from "./core/storage/project-library-browser.ts";
 const status=await (await fetch("/api/auth/profile")).json();
 await hydrateProfilePrivateBrowser(status.profile.profileId,status.csrfToken);
 if(!loadLibraryProjectSnapshot("rendered-2821")) {
- const base={...createEmptyProject({id:"rendered-2821",title:"Synthetic Save/Lock proof",now:"2026-10-07T12:00:00.000Z"}),sourceEvidence:{screenplay:{sourceId:"rendered-fixture",analysisStatus:"reviewed",passagesTruncated:false,passages:[{id:"fixture-passage",blockNumber:1,miniBlockNumber:1,type:"action",sceneNumber:1,text:"Synthetic figure enters a room."}]}}};
- const artifact={id:"rendered-frame",assetUrl:"/api/local-ai/assets/2821-fixture.webp",prompt:"Synthetic proof",createdAt:base.updatedAt,provider:"fixture",model:"fixture",frameNumber:1,narrativeIntention:"Synthetic image",sourceDecisionKeys:["storyboard-anchor:block:block-01:mini-1"],workflow:"storyboard-frame-webp-v2",reviewState:"draft",parentArtifactId:null};
+ for(let i=0;i<4;i++){
+  saveFoundationProject(createEmptyProject({id:"other-"+i,title:"Other story "+i,now:"2026-10-07T12:00:00.000Z"}));
+  await flushProfilePrivateWrites();
+  if(i<2){archiveLibraryProject("other-"+i);await flushProfilePrivateWrites();}
+ }
+ const original=packagedAfterglow.project;
+ const chosen=original.build.foundations.visualArtifacts.find(item=>item.frameNumber===1&&item.workflow==="storyboard-frame-webp-v2"&&item.assetUrl.startsWith("/assets/library/examples/")&&item.sourceDecisionKeys.includes("storyboard-anchor:block:block-01:mini-1"));
+ if(!chosen)throw new Error("Committed Afterglow Shot 1 is missing.");
+ const base={...original,id:"rendered-2821",build:{...original.build,foundations:{...original.build.foundations,visualArtifacts:[],acceptedVisualArtifactIds:[]}}};
+ const artifact={...chosen,sourceDecisionKeys:chosen.sourceDecisionKeys.filter(key=>key!=="storyboard-local-save:v1"),reviewState:"draft"};
  saveFoundationProject(applyStoryCommand(base,{type:"foundations.visual.store",artifact,occurredAt:base.updatedAt}));
  await flushProfilePrivateWrites();
 } else {switchActiveLibraryProject("rendered-2821");await flushProfilePrivateWrites();}
@@ -45,10 +54,15 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   const javascript = client.outputFiles.find((file) => file.path.endsWith(".js")).text;
   const css = (await readFile("app/skin-v1-definition.css", "utf8")) + (client.outputFiles.find((file) => file.path.endsWith(".css"))?.text ?? "");
   const fonts = new Map(await Promise.all(["Regular", "SemiBold", "Bold"].map(async (weight) => { const url = `/fonts/jetbrains-mono/JetBrainsMono-${weight}.woff2`; return [url, await readFile(`public${url}`)]; })));
+  const snapshot = JSON.parse(await readFile("data/afterglow-packaged-current/snapshot.json", "utf8"));
+  const packagedImages = new Map(await Promise.all(snapshot.project.build.foundations.visualArtifacts
+    .filter((item) => item.assetUrl.startsWith("/assets/library/examples/"))
+    .map(async (item) => [item.assetUrl, await readFile(path.join("public", item.assetUrl))])));
   let middleware;
   runtime.localProfileAuthGateway().configureServer({ middlewares: { use(handler) { middleware = handler; } } });
   server = createServer((request, response) => middleware(request, response, () => {
     if (fonts.has(request.url)) { response.setHeader("Content-Type", "font/woff2"); response.end(fonts.get(request.url)); return; }
+    if (packagedImages.has(request.url)) { response.setHeader("Content-Type", "image/webp"); response.end(packagedImages.get(request.url)); return; }
     if (request.url === "/fixture.js") { response.setHeader("Content-Type", "text/javascript"); response.end(javascript); return; }
     if (request.url === "/fixture.css") { response.setHeader("Content-Type", "text/css"); response.end(css); return; }
     if (request.url?.startsWith("/api/local-ai/assets/")) { response.setHeader("Content-Type", "image/svg+xml"); response.end('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#20364a"/><text x="160" y="180" fill="white" font-size="28">Synthetic Shot 1 fixture</text></svg>'); return; }
@@ -81,11 +95,20 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(baseUrl);
   const controls = page.locator('[aria-label="Review Storyboard Image for Shot 1"]');
+  await controls.waitFor();
+  const writes = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/api/auth/profile-private") && request.method() === "POST") writes.push(request.postDataJSON());
+  });
   await controls.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText("Shot 01 of 25 saved locally with this story.", { exact: true }).waitFor();
+  assert.deepEqual(writes.filter((item) => item.action === "save-project").map((item) => item.project.id), ["rendered-2821"], "one rendered Save writes only Afterglow once");
+  assert.equal(writes.filter((item) => item.action === "sync-library-index").length, 1);
+  writes.length = 0;
   await controls.getByRole("button", { name: "Lock", exact: true }).click();
   await page.getByText("Shot 01 of 25 kept and locked.", { exact: true }).waitFor();
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
+  assert.deepEqual(writes.filter((item) => item.action === "save-project").map((item) => item.project.id), ["rendered-2821"], "one rendered Lock writes only Afterglow once");
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "saved-locked.png") });
   await controls.getByRole("button", { name: "Unlock", exact: true }).click();
   await page.getByText("Shot 01 of 25 unlocked.", { exact: true }).waitFor();
@@ -105,7 +128,7 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });
   assert.deepEqual(errors, []);
-  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, local HTTP auth and encrypted vault; synthetic browser/provider fixture", observations: ["enabled Save feedback", "Lock and Unlock retain saved image", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, committed packaged Afterglow image/story, local HTTP auth and encrypted vault in isolated verification profile", observations: ["enabled Save feedback", "one Save/Lock writes only Afterglow once in a five-story Library", "Lock and Unlock retain saved image", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
   await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log("#2821 rendered Save/Lock/retry/reopen proof PASS");
 } finally {

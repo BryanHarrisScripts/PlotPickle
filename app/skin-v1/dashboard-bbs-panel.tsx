@@ -27,7 +27,6 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   hybrid: "H",
   "node-info": "I",
   agents: "A",
-  "ai-routing": "R",
   "buzz-settings": "B",
 };
 
@@ -41,7 +40,6 @@ const SETTINGS_MENU = [
   { id: "semantic-uat", shortcut: SETTINGS_SHORTCUTS["semantic-uat"], label: "Semantic UAT", description: "Run and review the local semantic UAT evidence.", group: "OPERATIONS" },
   { id: "data-recovery", shortcut: SETTINGS_SHORTCUTS["data-recovery"], label: "Data Recovery", description: "Review project files and rolling recovery points.", group: "OPERATIONS" },
   { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "OPERATIONS" },
-  { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "OPERATIONS" },
   { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
 ] as const;
 
@@ -222,10 +220,6 @@ export default function DashboardBbsPanel({
     }
     if (item.id === "agents") {
       setPlotPickleAgentsOpen(true);
-      return;
-    }
-    if (item.id === "ai-routing") {
-      window.location.assign("/ai-routing");
       return;
     }
     if (item.id === "buzz-settings") window.location.assign("/settings/buzz");

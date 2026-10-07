@@ -183,6 +183,34 @@ Therefore:
 
 That is consistent with the observed Shots 1–3.
 
+## Root cause confirmed during implementation
+
+The recovery code contained a concrete precedence defect.
+
+When a local Storyboard resource already had a corresponding artifact in the currently loaded Afterglow working copy, recovery still searched historical Library snapshots and used that historical `priorArtifact` / `priorApproval` to refresh the existing current artifact.
+
+Historical source ordering also preferred the local file's original project ID ahead of newer recovered working copies.
+
+That meant an older origin snapshot could become authoritative over the current working copy. In practice it could:
+
+- rebuild current decision keys from stale historical keys;
+- remove `storyboard-local-save:v1` from the current artifact;
+- overwrite stronger current prompt/narrative metadata with older recovery metadata;
+- restore an old Lock even after the current working copy had been explicitly unlocked;
+- allow an old deletion/approval record to win merely because it belonged to the original project.
+
+This precisely violates the intended distinction:
+
+> Saved Afterglow is where the Human left the story; current PlotPickle determines how that state behaves now.
+
+The implementation therefore changes recovery precedence so that:
+
+1. an artifact already present in the active working copy is authoritative;
+2. recovery may add missing provenance to that current artifact but cannot downgrade its Save, Lock/Unlock, prompt, rejection, or other current metadata;
+3. historical snapshots are consulted only when the active working copy has no corresponding artifact;
+4. historical matching snapshots are ordered newest-first, with original-project identity only as a tie-breaker;
+5. the newest matching snapshot determines both positive and negative lock/deletion evidence instead of searching farther back for an older affirmative state.
+
 ## Findings already ruled out
 
 ### Not a disabled-Save problem

@@ -5,11 +5,23 @@ import { narrationRequest, narrationPrompt, parseNarration } from "../../../../c
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+function authorizationCode(error: unknown) {
+  if (!error || typeof error !== "object" || !("code" in error)) return "";
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : "";
+}
+
 export async function POST(request: Request) {
   try {
     const state = await getProfileExperienceRuntime();
     await state.boundaryFor(new URL(request.url).origin).authorizeRequest(requestBoundary(request), { mutation: true });
-  } catch { return Response.json({ok:false,message:"Sign in to authorize narration generation."},{status:403}); }
+  } catch (error) {
+    const code = authorizationCode(error);
+    const message = code === "CSRF_REJECTED"
+      ? "The active Human session proof is missing or expired. Refresh the page or sign in again."
+      : "Sign in to authorize narration generation.";
+    return Response.json({ok:false,code:code || "AUTHORIZATION_REJECTED",message},{status:403});
+  }
   let input;
   try {
     const raw = await request.text();

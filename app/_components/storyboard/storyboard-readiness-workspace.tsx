@@ -154,19 +154,41 @@ export default function StoryboardReadinessWorkspace({
       setFrameNotice("Only PlotPickle local Storyboard images can be explicitly saved.");
       return;
     }
+
+    // Save against the latest persisted project, not the render-time snapshot.
+    // This prevents a rapid Unlock → Save sequence from restoring stale lock
+    // state or losing the durable local-save marker.
+    const current = loadFoundationProject();
+    if (current.id !== project.id) {
+      setFrameNotice("The active story changed before this Storyboard Image could be saved.");
+      return;
+    }
+    const currentArtifact = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
+    if (!currentArtifact || currentArtifact.reviewState === "rejected") {
+      setFrameNotice("This Storyboard Image is no longer available to save.");
+      return;
+    }
+
     const now = new Date().toISOString();
     const savedArtifact: FoundationsVisualArtifact = {
+      // Keep the established explicit-save contract while letting the latest
+      // persisted artifact win over any stale render-time fields.
       ...artifact,
-      sourceDecisionKeys: [...new Set([...(artifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
+      ...currentArtifact,
+      sourceDecisionKeys: [...new Set([...(currentArtifact.sourceDecisionKeys ?? []), STORYBOARD_LOCAL_SAVE_MARKER])],
     };
-    const next = applyStoryCommand(project, {
+    const next = applyStoryCommand(current, {
       type: "foundations.visual.store",
       artifact: savedArtifact,
       occurredAt: now,
     });
     saveFoundationProject(next);
     onProjectChange(next);
-    setFrameNotice(`Shot ${String(artifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
+    setSelectedImageByPosition((values) => ({
+      ...values,
+      [`${selectedNumber}.${selectedMiniBlockNumber}.${savedArtifact.frameNumber ?? artifact.frameNumber ?? 0}`]: savedArtifact.id,
+    }));
+    setFrameNotice(`Shot ${String(savedArtifact.frameNumber ?? 0).padStart(2, "0")} of 25 saved locally with this story.`);
   }
 
   function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "unaccept" | "delete") {

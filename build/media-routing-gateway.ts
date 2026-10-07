@@ -318,8 +318,13 @@ async function queryVideo(store: MediaRoutingStore, id: string) {
   }
   const job = await queryCloudVideo(profile, id);
   if (job.status === "succeeded") {
-    profile.videoVerifiedAt = new Date().toISOString();
+    const now = new Date().toISOString();
+    profile.videoVerifiedAt = now;
     profile.lastError = "";
+    // A successful direct H3 verification is durable provider proof. Persist
+    // both the verification stamp and the matching media route so startup and
+    // Timeline can restore readiness without another paid test.
+    store.videoRoute = "minimax-direct";
     await writeMediaRoutingStore(store);
   }
   return publicCloudVideoJob(job);

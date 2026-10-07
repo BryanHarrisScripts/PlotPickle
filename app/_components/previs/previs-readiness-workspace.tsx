@@ -473,9 +473,21 @@ export default function PrevisReadinessWorkspace({
     setMessage("Creating story narration for locked Shots that do not already have current approved text…");
     try {
       const contactSheet = await lockedImageContactSheet(missingPanels, controller.signal);
+      const profileResponse = await fetch("/api/auth/profile", {
+        cache: "no-store",
+        credentials: "same-origin",
+        signal: controller.signal,
+      });
+      const profileStatus = await profileResponse.json() as { authenticated?: boolean; csrfToken?: string; message?: string };
+      if (!profileResponse.ok || !profileStatus.authenticated) {
+        throw new Error(profileStatus.message || "Sign in to authorize narration generation.");
+      }
+      if (!profileStatus.csrfToken) {
+        throw new Error("The active Human session proof is missing or expired. Refresh the page or sign in again.");
+      }
       const response = await fetch("/api/previs/narration", {
         method: "POST", credentials: "same-origin", signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": profileStatus.csrfToken },
         body: JSON.stringify({ contactSheet, storyContext, passages: selectedFrameEvidence?.passages ?? [],
           panels: missingPanels.map((panel) => ({ position: panel.position,
             intention: flipBookFrames[panel.position - 1].locked?.narrativeIntention ?? "" })) }),

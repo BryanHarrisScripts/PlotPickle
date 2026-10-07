@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- locked Storyboard images are local PlotPickle assets. */
 
 import { useRef, useState } from "react";
+import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import type {
   PrevisGraphicNovelTextApproval,
   PrevisGraphicNovelTextBubble,
@@ -33,8 +34,8 @@ type NarrationDraft = Readonly<{
 
 async function oneShotNarrationContactSheet(assetUrl: string, position: number, signal: AbortSignal) {
   const url = new URL(assetUrl, window.location.origin);
-  if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/local-ai/assets/")) {
-    throw new Error(`Shot ${position} needs a saved local Storyboard image before narration can be created.`);
+  if (url.origin !== window.location.origin || !isSupportedVisualAssetUrl(url.pathname)) {
+    throw new Error(`Shot ${position} needs a supported PlotPickle Storyboard image before narration can be created.`);
   }
   const response = await fetch(url, { credentials: "same-origin", cache: "no-store", signal });
   if (!response.ok) throw new Error(`The locked image for Shot ${position} could not be read (${response.status}).`);

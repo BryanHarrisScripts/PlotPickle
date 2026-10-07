@@ -65,16 +65,7 @@ export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
     const summaries = await runtimeState.privateStorage.listProjects(authContext);
-    let project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
-    if (!project) {
-      for (const summary of summaries.filter((item) => !item.archivedAt)) {
-        const candidate = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);
-        if (!candidate) continue;
-        await runtimeState.privateStorage.activateProject(authContext, summary.projectId);
-        project = candidate;
-        break;
-      }
-    }
+    const project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
     const [projects, wyrmwood, storyMapContexts, recoveryPoints] = await Promise.all([
       Promise.all(summaries.map(async (summary) => {
         const savedProject = await runtimeState.privateStorage.loadProject(authContext, summary.projectId).catch(() => null);

@@ -118,6 +118,11 @@ async function ensureKnownActiveProject(page) {
   const example = page.locator("[data-library-catalog-id]").first();
   await example.waitFor({ state: "visible", timeout: 30_000 });
   await example.getByRole("button", { name: "Open Example", exact: true }).click();
+  const opening = page.getByRole("dialog", { name: "Open Afterglow", exact: true });
+  await opening.waitFor({ state: "visible", timeout: 30_000 });
+  await opening.getByRole("combobox").selectOption("defaults");
+  await opening.getByRole("button", { name: "Continue", exact: true }).click();
+  await opening.waitFor({ state: "hidden", timeout: 30_000 });
   await page.locator("[data-dashboard-menu-item='discovery']").first().waitFor({ state: "visible", timeout: 30_000 });
   projectId = await sessionActiveProjectId(page);
   if (!projectId) throw new Error("Rendered acceptance could not establish a known active PlotPickle project through Library.");

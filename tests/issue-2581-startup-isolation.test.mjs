@@ -41,7 +41,7 @@ test("#2581 explicit Library choices establish the current-session project", asy
   assert.match(browser, /export function importLibraryProject[\s\S]*markSessionActiveProject\(result\.activeProject\.id\)/u);
 
   assert.match(workspace, /Open Example/u);
-  assert.match(workspace, /Open Example with Your Changes/u);
+  assert.match(workspace, /Open Afterglow/u);
   assert.match(workspace, /mode === "defaults"/u);
   assert.match(workspace, /AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
   assert.match(workspace, /async function continueSavedStoryResume[\s\S]*switchActiveLibraryProject\(recovery\.project\.id\)/u);
@@ -50,10 +50,10 @@ test("#2581 explicit Library choices establish the current-session project", asy
 test("#2581/#2823 packaged Afterglow and saved Afterglow remain separate explicit open modes", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(workspace, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore"\)/u);
+  assert.match(workspace, /async function loadPackagedExample\(item: LibraryCatalogItem, mode: "defaults" \| "restore", choice\?/u);
   assert.match(workspace, /if \(mode === "defaults"\)[\s\S]*createLibraryWorkingCopy\(\{[\s\S]*sourceKind: "example"[\s\S]*sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
-  assert.match(workspace, /if \(!afterglowLocalState\)[\s\S]*No local Afterglow changes are available yet/u);
-  assert.match(workspace, /loadLibraryProjectSnapshot\(afterglowLocalState\.id\)/u);
+  assert.match(workspace, /if \(!choice\)[\s\S]*No saved Afterglow changes are available for this profile/u);
+  assert.match(workspace, /const openedProject = choice\.project/u);
   assert.match(workspace, /Resume Saved Afterglow/u);
   assert.match(workspace, /Current PlotPickle controls and methods will be used/u);
 });

@@ -50,3 +50,13 @@ test("#2671 Mind Map and World Map continue sourcing the canonical Learn topic s
   assert.match(mind, /data-discovery-project=/);
   assert.match(world, /data-story-bible-project-id=/);
 });
+
+test("#2835 rendered acceptance confirms the provided Afterglow before waiting for Dashboard", async () => {
+  const source = await readFile(new URL("../core/sidecars/webmcp-acceptance-sidecar.mjs", import.meta.url), "utf8");
+  const journey = source.slice(source.indexOf("async function ensureKnownActiveProject"), source.indexOf("async function storyDevelopmentLayout"));
+  assert.match(journey, /getByRole\("dialog", \{ name: "Open Afterglow", exact: true \}\)/u);
+  assert.match(journey, /getByRole\("combobox"\)\.selectOption\("defaults"\)/u);
+  const confirm = journey.indexOf('name: "Continue"');
+  const dashboard = journey.indexOf("data-dashboard-menu-item='discovery'");
+  assert.ok(confirm > 0 && dashboard > confirm);
+});

@@ -489,12 +489,7 @@ export function createProfilePrivateStorageService(options) {
     async loadActiveProject(authContext) {
       const access = await authority(authContext);
       const active = activeProjects.get(authContext.sessionId);
-      let projectId = active?.profileId === access.profileId ? active.projectId : null;
-      if (!projectId) {
-        const library = await readLibrary(access);
-        projectId = library.activeProjectId;
-        if (projectId) activeProjects.set(authContext.sessionId, { profileId: access.profileId, projectId });
-      }
+      const projectId = active?.profileId === access.profileId ? active.projectId : null;
       if (!projectId) return null;
       const project = await readObject(access, "projects", projectId);
       return project === null || typeof options.normalizeProject !== "function" ? project : options.normalizeProject(project);

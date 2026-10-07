@@ -16,7 +16,6 @@ import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,
   hydrateProfilePrivateBrowser,
-  migrateLegacyBrowserProjects,
   persistActiveProfileProject,
   releaseProfilePrivateBrowserAuthority,
 } from "@/core/storage/profile-private-browser";
@@ -46,7 +45,7 @@ type Status = {
   readonly autonomousGuest: AutonomousGuest | null;
 };
 type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "autonomous-guest" | "ready" | "server-unavailable";
-type Recovery = { readonly profile: Profile; readonly secret: string; readonly password: string; readonly guestDraft: string; readonly migrateLegacyBrowser: boolean };
+type Recovery = { readonly profile: Profile; readonly secret: string; readonly password: string; readonly guestDraft: string };
 
 type LockedNodeStatus = {
   readonly lifecycle: { readonly state: string; readonly inProgress: boolean; readonly lastError: string };
@@ -310,8 +309,6 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       const locator = selected?.profileId || name;
       const result = await profileRequest("login", { locator, password });
       const profile = result.profile as Profile;
-      const token = String(result.csrfToken || "");
-      if (status?.accessMode === "desktop-loopback" && status.profiles.length === 1) await migrateLegacyBrowserProjects(token);
       window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery?.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
       setPassword(""); setConfirmation(""); setBootstrapProof(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
@@ -326,7 +323,6 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (password.length < 12 || /^\d+$/u.test(password)) { setError("Use at least 12 characters; a numeric PIN cannot protect the vault by itself."); return; }
     const creatingFirstProfile = status?.configured === false;
     const firstServerProfile = status?.accessMode === "server-network" && creatingFirstProfile;
-    const firstDesktopProfile = status?.accessMode === "desktop-loopback" && creatingFirstProfile;
     if (firstServerProfile && !bootstrapProof.trim()) { setError("The one-time server bootstrap proof is required for the first Human profile."); return; }
     setBusy(true);
     try {
@@ -337,7 +333,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
         ...(firstServerProfile ? { bootstrapProof: bootstrapProof.trim() } : {}),
       }, status?.csrfToken);
       setBootstrapProof("");
-      setRecovery({ profile: result.profile as Profile, secret: String(result.recoverySecret), password, guestDraft, migrateLegacyBrowser: firstDesktopProfile });
+      setRecovery({ profile: result.profile as Profile, secret: String(result.recoverySecret), password, guestDraft });
       setRecoverySaved(false); setScreen("recovery");
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
@@ -349,8 +345,6 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     try {
       const result = await profileRequest("login", { locator: recovery.profile.profileId, password: recovery.password });
       const profile = result.profile as Profile;
-      const token = String(result.csrfToken || "");
-      if (recovery.migrateLegacyBrowser) await migrateLegacyBrowserProjects(token);
       window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
       setPassword(""); setConfirmation(""); setBootstrapProof(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);

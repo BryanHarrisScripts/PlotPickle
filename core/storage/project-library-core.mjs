@@ -514,7 +514,12 @@ export function createProfileUserProject(input) {
 
 export function createProfileWorkingCopy(input) {
   const initialized = initializeProfileProjectLibrary(input);
-  if (initialized.activeProject) saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  // Incoming example metadata belongs only to the new copy. Preserve the
+  // existing story's identity, including an implicit startup placeholder.
+  if (initialized.activeProject) {
+    const { sourceKind, sourceId, genre, format, ...priorInput } = input;
+    saveProfileActiveProject({ ...priorInput, project: initialized.activeProject });
+  }
   const now = input.now();
   const source = input.normalizeProject(structuredClone(input.sourceProject));
   const project = input.normalizeProject({

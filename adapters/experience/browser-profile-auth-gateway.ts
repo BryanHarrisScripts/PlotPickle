@@ -3,7 +3,6 @@ import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,
   hydrateProfilePrivateBrowser,
-  migrateLegacyBrowserProjects,
   persistActiveProfileProject,
   profilePrivateBrowserAuthorityMatches,
 } from "../../core/storage/profile-private-browser";
@@ -94,7 +93,6 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
   },
 
   async authenticate(locator, credential) {
-    const before = await readRawProfileStatus();
     const login = await json<Readonly<{
       profile: ExperienceHumanProfile;
       csrfToken: string;
@@ -107,10 +105,6 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
 
     const token = String(login.csrfToken || "");
     if (!token || !login.profile?.profileId) throw new Error("AUTHENTICATION_SESSION_NOT_ESTABLISHED");
-
-    if (before.accessMode === "desktop-loopback" && before.profiles.length === 1) {
-      await migrateLegacyBrowserProjects(token);
-    }
 
     window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, login.profile.profileId);
     await hydrateProfilePrivateBrowser(login.profile.profileId, token);

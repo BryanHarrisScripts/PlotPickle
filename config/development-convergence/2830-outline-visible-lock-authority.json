@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "issue": 2830,
+  "phase": "outline-visible-lock-authority",
+  "brief": "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+  "allowedChanges": [
+    "app/skin-v1/outline-mini-block-anchor-workspace.tsx",
+    "app/skin-v1/outline-mini-block-workspace.module.css",
+    "config/development-convergence/2830-outline-visible-lock-authority.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+    "tests/issue-2830-outline-lock-visual-state.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "PACKAGED_SAVE",
+      "criterion": "Real packaged Afterglow media can receive explicit project Save metadata without copying packaged bytes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-outline-lock-visual-state.test.mjs",
+          "contains": "Save must not duplicate packaged image bytes"
+        }
+      ]
+    },
+    {
+      "id": "LOCK_TOGGLE",
+      "criterion": "Outline Lock and Unlock use the same foundations artifact identity and preserve Save metadata.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-outline-lock-visual-state.test.mjs",
+          "contains": "Unlock must not remove Save metadata"
+        }
+      ]
+    },
+    {
+      "id": "VISIBLE_LOCK",
+      "criterion": "The locked decision is visible on the image and the control reports reversible pressed state.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/outline-mini-block-anchor-workspace.tsx",
+          "contains": "styles.lockedOverlay"
+        }
+      ]
+    },
+    {
+      "id": "LIMIT",
+      "criterion": "This phase performs no provider inference; later motion delivery remains under #2830/#2821.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2830-mini-block-comic-motion-slice.md",
+          "contains": "CI performs no paid provider inference."
+        }
+      ]
+    }
+  ]
+}

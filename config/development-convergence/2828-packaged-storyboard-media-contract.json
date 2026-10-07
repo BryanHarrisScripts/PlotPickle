@@ -20,6 +20,7 @@
     "docs/developer-briefs/2828-packaged-storyboard-media-contract.md",
     "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
     "tests/issue-2499-storyboard-save-count.test.mjs",
+    "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
     "tests/issue-2821-save-session-continuity.test.mjs",
     "tests/issue-2828-packaged-storyboard-media-contract.test.mjs"
   ],

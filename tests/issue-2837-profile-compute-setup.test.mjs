@@ -184,6 +184,28 @@ test("#2837 Hybrid refreshes saved capability status after Cloud tests and remov
   }
 });
 
+test("#2837 retires legacy Operations AI Routing and keeps Hybrid sourced from Local and Cloud setup", async () => {
+  const [dashboard, sitemap, hybrid, storyMode] = await Promise.all([
+    readFile(new URL("../app/skin-v1/dashboard-bbs-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/settings-sitemap.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skin-v1/hybrid-story-mode-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skin-v1/story-mode-host.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.doesNotMatch(dashboard, /id: "ai-routing"/u);
+  assert.doesNotMatch(dashboard, /Review capability routes and provider selection/u);
+  assert.doesNotMatch(sitemap, /Open AI Routing|href="\/ai-routing"/u);
+
+  assert.match(hybrid, /LOCAL SETUP/u);
+  assert.match(hybrid, /CLOUD SETUP/u);
+  assert.match(hybrid, /CONFIGURED · TEST NEEDED/u);
+  assert.match(hybrid, /option\.configured \|\| option\.ready/u);
+  assert.match(hybrid, /optionsFor\(routing\?\.\[capability\.id\], locality\)/u);
+  assert.match(storyMode, /function localityCoverage/u);
+  assert.match(storyMode, /coverageLabel/u);
+  assert.match(storyMode, /LOCAL and CLOUD report the capability setup actually detected/u);
+});
+
 test("#2837 unavailable managed startup reports a setup state without a server crash", async () => {
   const source = await readFile(new URL("../build/ai/comfyui-onboarding-gateway.ts", import.meta.url), "utf8");
   const body = source.match(/async function startWithManagedLocalRuntime\(\) \{([\s\S]*?)\n\}\n\nasync function startComfyUi/u)?.[1];

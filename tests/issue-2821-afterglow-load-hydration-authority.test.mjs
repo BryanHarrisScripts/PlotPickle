@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { createEmptyProject } from "../core/project/project.ts";
@@ -10,6 +11,7 @@ const CONTENT_HASH = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 const ANCHOR = "storyboard-anchor:block:block-01:mini-1";
 const POSITION = "storyboard-position:1";
 const SAVE = "storyboard-local-save:v1";
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function artifact({
   id,
@@ -191,4 +193,27 @@ test("#2821 when current artifact is missing, newest matching durable snapshot b
   assert.equal(result.project.build.foundations.acceptedVisualArtifactIds.includes(restored.id), false);
   assert.equal(result.restoredSavedCount, 1);
   assert.equal(result.restoredLockedCount, 0);
+});
+
+
+test("#2821 narration says Sign in only for a rejected Human session, not every authorization failure", async () => {
+  const [route, previs] = await Promise.all([
+    read("app/api/previs/narration/route.ts"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(route, /code === "SESSION_REJECTED"[\s\S]*"Sign in to authorize narration generation\."/u);
+  assert.match(route, /code === "CSRF_REJECTED"[\s\S]*session proof is missing or expired/u);
+  assert.match(route, /current Human session could not authorize narration/u);
+  assert.match(previs, /if \(!profileResponse\.ok\)[\s\S]*could not verify the current Human session for narration/u);
+  assert.match(previs, /if \(!profileStatus\.authenticated\)[\s\S]*Sign in to authorize narration generation/u);
+});
+
+test("#2821 Storyboard action feedback is visible even when the generation prompt is closed", async () => {
+  const storyboard = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
+
+  const noticeAt = storyboard.indexOf('{frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}');
+  const promptAt = storyboard.indexOf("{promptPosition !== null", noticeAt);
+  assert.ok(noticeAt >= 0, "Storyboard must render Save/recovery feedback outside the prompt panel");
+  assert.ok(promptAt > noticeAt, "persistent Storyboard feedback must be rendered before the optional prompt panel");
 });

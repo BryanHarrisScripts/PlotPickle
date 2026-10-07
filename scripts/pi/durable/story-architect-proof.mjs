@@ -128,6 +128,8 @@ try {
   const reopened = await auth.authenticate({ profileId: owner.profile.profileId, password });
   assert.deepEqual(await privateStorage.readPrivateJson(reopened.authContext, address), artifact);
   assert.equal((await privateStorage.loadProject(reopened.authContext, project.id)).id, project.id);
+  assert.equal(await privateStorage.loadActiveProject(reopened.authContext), null, "Login does not reopen the previous story.");
+  await privateStorage.activateProject(reopened.authContext, project.id);
 
   // Exercise the real protected controller, native Pi JSONL and actual Mastra
   // together. The provider remains a clearly labelled synthetic loopback fixture.
@@ -182,6 +184,8 @@ try {
   assert.equal(progress.run.usage.attempts, 1);
   assert.equal(requests - beforeTaskRequests, 1, "Reopen and progress read must not auto-resume inference.");
   await assert.rejects(controller.authorize(task.scope, task.steps[1]), /explicit Human/);
+  assert.equal(await privateStorage.loadActiveProject(taskOwner.authContext), null, "Task recovery does not select a story.");
+  await privateStorage.activateProject(taskOwner.authContext, project.id);
   const resumedInput = await controller.activate(taskOwner.authContext, task.scope.runId);
   assert.equal(await registration.admit(await harness.root(context), resumedInput, context), piId);
   const recoveredTask = await harness.waitForTask(piId, context);

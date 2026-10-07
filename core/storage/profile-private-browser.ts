@@ -8,6 +8,7 @@ import {
   clearLibraryProjectSessionCache,
   consumeSessionActiveProjectHandoff,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
+  PROJECT_LIBRARY_CHANGED_EVENT,
   hydrateProfileProjectLibrary,
   listArchivedLibraryProjects,
   listPersistableLibraryProjects,
@@ -91,6 +92,23 @@ let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapCo
 let pendingWrite: Promise<void> = Promise.resolve();
 let pendingCacheWrite: Promise<void> = Promise.resolve();
 let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
+let authorityEpoch = 0;
+let removeProjectPersistenceListener: (() => void) | null = null;
+
+function observeProjectWrites() {
+  removeProjectPersistenceListener?.();
+  const persist = async () => {
+    const epoch = authorityEpoch;
+    try {
+      await persistActiveProfileProject();
+    } catch (error) {
+      if (epoch !== authorityEpoch) return;
+      updateSaveState("blocked", error instanceof Error ? error.message : "Project changes could not be persisted.");
+    }
+  };
+  window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
+  removeProjectPersistenceListener = () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
+}
 
 function updateSaveState(state: ProfilePrivateSaveState["state"], message: string) {
   saveState = Object.freeze({ state, message });
@@ -112,14 +130,21 @@ async function privateMutation(action: string, payload: Record<string, unknown>,
 
 function queueWriteOperation(operation: (token: string) => Promise<void>, explicitToken = "") {
   const token = explicitToken || csrfToken;
-  if (!token) return Promise.reject(new Error("The Human profile is locked."));
+  if (!token) {
+    updateSaveState("blocked", "The Human profile is locked.");
+    return Promise.reject(new Error("The Human profile is locked."));
+  }
+  const epoch = authorityEpoch;
   updateSaveState("saving", "Unsaved changes");
-  const current = pendingWrite.catch(() => undefined).then(() => operation(token));
+  const current = pendingWrite.catch(() => undefined).then(() => {
+    if (epoch !== authorityEpoch) throw new Error("The Human profile changed before this write could start.");
+    return operation(token);
+  });
   pendingWrite = current;
   void current.then(
-    () => { if (pendingWrite === current) updateSaveState("saved", "Saved"); },
+    () => { if (epoch === authorityEpoch && pendingWrite === current) updateSaveState("saved", "Saved"); },
     (error) => {
-      if (pendingWrite === current) updateSaveState("blocked", error instanceof Error ? error.message : "Unsaved changes could not be persisted.");
+      if (epoch === authorityEpoch && pendingWrite === current) updateSaveState("blocked", error instanceof Error ? error.message : "Unsaved changes could not be persisted.");
     },
   );
   return current;
@@ -202,62 +227,73 @@ export async function migrateLegacyBrowserProjects(token: string) {
 }
 
 export async function hydrateProfilePrivateBrowser(profileId: string, token: string) {
-  csrfToken = token;
-  const legacy = legacySessionLibrary(profileId);
-  let result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
-  if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
-  let next = await result.json() as HydratedPrivateState;
-  if (legacy) {
-    const remote = Array.isArray(next.projects) && next.projects.length ? next.projects : next.project ? [{ project: next.project }] : [];
-    const merged = new Map(remote.map((item) => [(item.project as { id: string }).id, item]));
-    for (const item of legacy.projects) {
-      const previous = merged.get(item.project.id);
-      const localTime = Date.parse(String((item.summary as { updatedAt?: unknown }).updatedAt || item.project.updatedAt || ""));
-      const remoteTime = Date.parse(String((previous?.summary as { updatedAt?: unknown } | undefined)?.updatedAt || ""));
-      if (!previous || (Number.isFinite(localTime) && (!Number.isFinite(remoteTime) || localTime > remoteTime))) merged.set(item.project.id, item);
+  // Re-reading the same live authority must not replace a newer working story.
+  if (profilePrivateBrowserAuthorityMatches(profileId, token)) return;
+  if (hydratedProfileId) await flushProfilePrivateWrites();
+  const epoch = ++authorityEpoch;
+  removeProjectPersistenceListener?.();
+  removeProjectPersistenceListener = null;
+  try {
+    const legacy = legacySessionLibrary(profileId);
+    let result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
+    if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
+    let next = await result.json() as HydratedPrivateState;
+    if (legacy) {
+      const remote = Array.isArray(next.projects) && next.projects.length ? next.projects : next.project ? [{ project: next.project }] : [];
+      const merged = new Map(remote.map((item) => [(item.project as { id: string }).id, item]));
+      for (const item of legacy.projects) {
+        const previous = merged.get(item.project.id);
+        const localTime = Date.parse(String((item.summary as { updatedAt?: unknown }).updatedAt || item.project.updatedAt || ""));
+        const remoteTime = Date.parse(String((previous?.summary as { updatedAt?: unknown } | undefined)?.updatedAt || ""));
+        if (!previous || (Number.isFinite(localTime) && (!Number.isFinite(remoteTime) || localTime > remoteTime))) merged.set(item.project.id, item);
+      }
+      const projects = [...merged.values()];
+      const activeProjectId = legacy.activeProjectId && projects.some((item) => (item.project as { id: string }).id === legacy.activeProjectId && !(item.summary as { archivedAt?: unknown })?.archivedAt)
+        ? legacy.activeProjectId : next.activeProjectId || (next.project as { id?: string } | null)?.id || null;
+      await privateMutation("sync-library", { projects, activeProjectId }, token);
+      result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
+      if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
+      next = await result.json() as HydratedPrivateState;
+      const verified = new Map((next.projects || []).map((item) => [(item.project as { id: string }).id, item]));
+      if (projects.some((item) => {
+        const restored = verified.get((item.project as { id: string }).id);
+        return !restored || JSON.stringify(restored.project) !== JSON.stringify(item.project)
+          || Boolean((restored.summary as { archivedAt?: unknown } | undefined)?.archivedAt) !== Boolean((item.summary as { archivedAt?: unknown } | undefined)?.archivedAt);
+      })) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
     }
-    const projects = [...merged.values()];
-    const activeProjectId = legacy.activeProjectId && projects.some((item) => (item.project as { id: string }).id === legacy.activeProjectId && !(item.summary as { archivedAt?: unknown })?.archivedAt)
-      ? legacy.activeProjectId : next.activeProjectId || (next.project as { id?: string } | null)?.id || null;
-    await privateMutation("sync-library", { projects, activeProjectId }, token);
-    result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
-    if (!result.ok) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
-    next = await result.json() as HydratedPrivateState;
-    const verified = new Map((next.projects || []).map((item) => [(item.project as { id: string }).id, item]));
-    if (projects.some((item) => {
-      const restored = verified.get((item.project as { id: string }).id);
-      return !restored || JSON.stringify(restored.project) !== JSON.stringify(item.project)
-        || Boolean((restored.summary as { archivedAt?: unknown } | undefined)?.archivedAt) !== Boolean((item.summary as { archivedAt?: unknown } | undefined)?.archivedAt);
-    })) throw new Error("PlotPickle could not verify the migrated Library snapshots. Browser copies remain available for recovery.");
+    if (epoch !== authorityEpoch) throw new Error("The Human profile changed while encrypted state was loading.");
+    csrfToken = token;
+    const explicitSessionProjectId = consumeSessionActiveProjectHandoff(profileId);
+    clearLibraryProjectSessionCache();
+    window.sessionStorage.clear();
+    window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
+    const projects = Array.isArray(next.projects) && next.projects.length
+      ? next.projects
+      : next.project
+        ? [{ project: next.project }]
+        : [];
+    const activeProjectId = typeof next.activeProjectId === "string" && next.activeProjectId.trim()
+      ? next.activeProjectId
+      : next.project && typeof next.project === "object" && !Array.isArray(next.project) && typeof (next.project as { readonly id?: unknown }).id === "string"
+        ? String((next.project as { readonly id: string }).id)
+        : null;
+    const restored = hydrateProfileProjectLibrary({ activeProjectId, projects });
+    if (explicitSessionProjectId && restored.registry.activeProjectId === explicitSessionProjectId) {
+      resumeSessionActiveProject(explicitSessionProjectId);
+    }
+    hydrated = {
+      ...next,
+      project: restored.activeProject,
+      activeProjectId: restored.registry.activeProjectId,
+      projects,
+      storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
+      recoveryPoints: normalizeRecoveryPoints(next.recoveryPoints),
+    };
+    hydratedProfileId = profileId;
+    updateSaveState("saved", "Saved");
+  } finally {
+    if (epoch === authorityEpoch && hydratedProfileId) observeProjectWrites();
   }
-  const explicitSessionProjectId = consumeSessionActiveProjectHandoff(profileId);
-  clearLibraryProjectSessionCache();
-  window.sessionStorage.clear();
-  window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
-  const projects = Array.isArray(next.projects) && next.projects.length
-    ? next.projects
-    : next.project
-      ? [{ project: next.project }]
-      : [];
-  const activeProjectId = typeof next.activeProjectId === "string" && next.activeProjectId.trim()
-    ? next.activeProjectId
-    : next.project && typeof next.project === "object" && !Array.isArray(next.project) && typeof (next.project as { readonly id?: unknown }).id === "string"
-      ? String((next.project as { readonly id: string }).id)
-      : null;
-  const restored = hydrateProfileProjectLibrary({ activeProjectId, projects });
-  if (explicitSessionProjectId && restored.registry.activeProjectId === explicitSessionProjectId) {
-    resumeSessionActiveProject(explicitSessionProjectId);
-  }
-  hydrated = {
-    ...next,
-    project: restored.activeProject,
-    activeProjectId: restored.registry.activeProjectId,
-    projects,
-    storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
-    recoveryPoints: normalizeRecoveryPoints(next.recoveryPoints),
-  };
-  hydratedProfileId = profileId;
-  updateSaveState("saved", "Saved");
 }
 
 export function profilePrivateBrowserAuthorityMatches(profileId: string, token: string) {
@@ -367,11 +403,19 @@ export function getProfilePrivateSaveState() {
 }
 
 export async function flushProfilePrivateWrites() {
-  await pendingWrite;
+  // A write queued while awaiting an earlier one is part of the same flush.
+  for (;;) {
+    const current = pendingWrite;
+    await current;
+    if (pendingWrite === current) break;
+  }
   await pendingCacheWrite.catch(() => undefined);
 }
 
 export function releaseProfilePrivateBrowserAuthority() {
+  authorityEpoch += 1;
+  removeProjectPersistenceListener?.();
+  removeProjectPersistenceListener = null;
   csrfToken = "";
   hydratedProfileId = "";
   hydrated = { project: null, wyrmwood: null, storyMapContexts: null, recoveryPoints: [] };

@@ -8,7 +8,8 @@ import type {
   PrevisGraphicNovelTextBubble,
 } from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
-import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
@@ -152,7 +153,7 @@ export default function StoryboardLockedShotHandoff({
     };
   }
 
-  function saveApproval(
+  async function saveApproval(
     panel: PrevisGraphicNovelPanel,
     sourceKey: string,
     narration: string,
@@ -169,7 +170,9 @@ export default function StoryboardLockedShotHandoff({
       noText,
       approvedAt: now,
     };
-    const base = latestProject.current;
+    try {
+    const base = loadFoundationProject();
+    if (base.id !== project.id || base.revision !== latestProject.current.revision) throw new Error("The story changed while this narration was being reviewed. Refresh the shot before approving.");
     const next: PPFProject = {
       ...base,
       revision: base.revision + 1,
@@ -184,8 +187,9 @@ export default function StoryboardLockedShotHandoff({
         ],
       },
     };
-    saveFoundationProject(next);
-    onProjectChange(next);
+    const saved = await saveFoundationProjectDurably(next, base.revision);
+    latestProject.current = saved;
+    onProjectChange(saved);
     setDrafts((current) => {
       const nextDrafts = { ...current };
       delete nextDrafts[panel.position];
@@ -195,6 +199,9 @@ export default function StoryboardLockedShotHandoff({
       ...current,
       [panel.position]: noText ? "Silent presentation approved." : "Narration / bubble approved for Previs and Timeline.",
     }));
+    } catch (error) {
+      setNotices((current) => ({ ...current, [panel.position]: `Narration approval not saved: ${error instanceof Error ? error.message : "Persistence failed."}` }));
+    }
   }
 
   async function generateNarration(panel: PrevisGraphicNovelPanel, artifactUrl: string) {
@@ -209,12 +216,17 @@ export default function StoryboardLockedShotHandoff({
     setBusyPosition(panel.position);
     setNotices((current) => ({ ...current, [panel.position]: "Creating a Graphic Novel narration draft…" }));
     try {
+      const profileResponse = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+      const profileStatus = await profileResponse.json() as { authenticated?: boolean; csrfToken?: string; message?: string };
+      if (!profileResponse.ok) throw new Error(profileStatus.message || "PlotPickle could not verify the current session.");
+      if (!profileStatus.authenticated) throw new Error("Sign in to authorize narration generation.");
+      if (!profileStatus.csrfToken) throw new Error("The active Human session proof is missing or expired. Refresh the page or sign in again.");
       const contactSheet = await oneShotNarrationContactSheet(artifactUrl, panel.position, controller.signal);
       const response = await fetch("/api/previs/narration", {
         method: "POST",
         credentials: "same-origin",
         signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": profileStatus.csrfToken },
         body: JSON.stringify({
           contactSheet,
           storyContext,

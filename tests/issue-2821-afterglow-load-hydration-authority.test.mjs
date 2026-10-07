@@ -2,9 +2,15 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { createEmptyProject } from "../core/project/project.ts";
-import { normalizeLibraryProject } from "../core/storage/library-project.ts";
-import { restoreLocalStoryboardResources } from "../modules/library/local-resource-recovery.ts";
+import { build } from "esbuild";
+
+// Bundle the real contracts so Node's test runner can resolve their existing
+// extensionless TypeScript imports without a custom global loader.
+const fixture = await build({ stdin: {
+  contents: 'export { createEmptyProject } from "./core/project/project.ts"; export { normalizeLibraryProject } from "./core/storage/library-project.ts"; export { restoreLocalStoryboardResources } from "./modules/library/local-resource-recovery.ts";',
+  resolveDir: process.cwd(), loader: "ts",
+}, bundle: true, platform: "node", format: "esm", packages: "external", write: false, logLevel: "silent" });
+const { createEmptyProject, normalizeLibraryProject, restoreLocalStoryboardResources } = await import(`data:text/javascript;base64,${Buffer.from(fixture.outputFiles[0].text).toString("base64")}`);
 
 const ASSET_URL = "/api/local-ai/assets/storyboard-afterglow-origin-1-1-1-1760000000000-1760000001000.webp";
 const CONTENT_HASH = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

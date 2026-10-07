@@ -75,8 +75,8 @@ export default function ProfileSkinPanel({
     setBusy(true);
     setNotice(`${action.toUpperCase()}...`);
     try {
-      await persistActiveProfileProject().catch(() => undefined);
-      await flushProfilePrivateWrites().catch(() => undefined);
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
       await profileAction(action, status.csrfToken);
       clearProfilePrivateBrowser();
       window.sessionStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);

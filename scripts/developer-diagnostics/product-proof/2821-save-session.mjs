@@ -1,0 +1,118 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import { createRequire } from "node:module";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { build } from "esbuild";
+import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
+import { createVerificationSyntheticProfile, authenticateVerificationSyntheticProfile } from "../../full-verification-auth.mjs";
+
+// An isolated fixture renders the real surface against the real login gateway
+// and encrypted vault. It never uses a Human profile or calls AI providers.
+const artifactRoot = path.resolve(".artifacts/2821-save-session");
+await mkdir(artifactRoot, { recursive: true });
+const temporary = await mkdtemp(path.resolve("node_modules/.2821-rendered-"));
+const previousHome = process.env.PLOTPICKLE_HOME;
+const previousState = process.env.PLOTPICKLE_AUTH_STATE_PATH;
+process.env.PLOTPICKLE_HOME = temporary;
+process.env.PLOTPICKLE_AUTH_STATE_PATH = path.join(temporary, "auth/state.json");
+let server, browser, runtime;
+try {
+  const serverFile = path.join(temporary, "gateway.mjs");
+  await build({ stdin: { contents: 'export {localProfileAuthGateway} from "./build/local-profile-auth-gateway.ts";export {resetProfileExperienceRuntime} from "./core/auth/profile-experience/profile-experience-runtime.ts";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", packages: "external", outfile: serverFile, logLevel: "silent" });
+  runtime = await import(pathToFileURL(serverFile).href);
+  const client = await build({ stdin: { contents: `
+import React,{useEffect,useState} from "react";
+import {createRoot} from "react-dom/client";
+import Storyboard from "./app/_components/storyboard/storyboard-readiness-workspace.tsx";
+import {createEmptyProject} from "./core/project/project.ts";
+import {applyStoryCommand} from "./core/project/apply-command.ts";
+import {loadFoundationProject,saveFoundationProject,FOUNDATION_PROJECT_SAVED_EVENT} from "./core/storage/foundation-project-browser.ts";
+import {hydrateProfilePrivateBrowser,flushProfilePrivateWrites} from "./core/storage/profile-private-browser.ts";
+import {switchActiveLibraryProject,loadLibraryProjectSnapshot} from "./core/storage/project-library-browser.ts";
+const status=await (await fetch("/api/auth/profile")).json();
+await hydrateProfilePrivateBrowser(status.profile.profileId,status.csrfToken);
+if(!loadLibraryProjectSnapshot("rendered-2821")) {
+ const base={...createEmptyProject({id:"rendered-2821",title:"Synthetic Save/Lock proof",now:"2026-10-07T12:00:00.000Z"}),sourceEvidence:{screenplay:{sourceId:"rendered-fixture",analysisStatus:"reviewed",passagesTruncated:false,passages:[{id:"fixture-passage",blockNumber:1,miniBlockNumber:1,type:"action",sceneNumber:1,text:"Synthetic figure enters a room."}]}}};
+ const artifact={id:"rendered-frame",assetUrl:"/api/local-ai/assets/2821-fixture.webp",prompt:"Synthetic proof",createdAt:base.updatedAt,provider:"fixture",model:"fixture",frameNumber:1,narrativeIntention:"Synthetic image",sourceDecisionKeys:["storyboard-anchor:block:block-01:mini-1"],workflow:"storyboard-frame-webp-v2",reviewState:"draft",parentArtifactId:null};
+ saveFoundationProject(applyStoryCommand(base,{type:"foundations.visual.store",artifact,occurredAt:base.updatedAt}));
+ await flushProfilePrivateWrites();
+} else {switchActiveLibraryProject("rendered-2821");await flushProfilePrivateWrites();}
+function Harness(){const[project,setProject]=useState(loadFoundationProject);useEffect(()=>{const refresh=()=>setProject(loadFoundationProject());window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT,refresh);return()=>window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT,refresh)},[]);return <Storyboard project={project} legacyProject={null} onProjectChange={setProject} onOpenBuild={()=>{}} onOpenPrevis={()=>{}} initialBlockNumber={1} initialMiniBlockNumber={1}/>;}
+createRoot(document.getElementById("root")).render(<Harness/>);
+`, resolveDir: process.cwd(), loader: "tsx" }, bundle: true, platform: "browser", format: "esm", jsx: "automatic", outfile: "fixture.js", write: false, logLevel: "silent" });
+  const javascript = client.outputFiles.find((file) => file.path.endsWith(".js")).text;
+  const css = (await readFile("app/skin-v1-definition.css", "utf8")) + (client.outputFiles.find((file) => file.path.endsWith(".css"))?.text ?? "");
+  const fonts = new Map(await Promise.all(["Regular", "SemiBold", "Bold"].map(async (weight) => { const url = `/fonts/jetbrains-mono/JetBrainsMono-${weight}.woff2`; return [url, await readFile(`public${url}`)]; })));
+  let middleware;
+  runtime.localProfileAuthGateway().configureServer({ middlewares: { use(handler) { middleware = handler; } } });
+  server = createServer((request, response) => middleware(request, response, () => {
+    if (fonts.has(request.url)) { response.setHeader("Content-Type", "font/woff2"); response.end(fonts.get(request.url)); return; }
+    if (request.url === "/fixture.js") { response.setHeader("Content-Type", "text/javascript"); response.end(javascript); return; }
+    if (request.url === "/fixture.css") { response.setHeader("Content-Type", "text/css"); response.end(css); return; }
+    if (request.url?.startsWith("/api/local-ai/assets/")) { response.setHeader("Content-Type", "image/svg+xml"); response.end('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#20364a"/><text x="160" y="180" fill="white" font-size="28">Synthetic Shot 1 fixture</text></svg>'); return; }
+    response.setHeader("Content-Type", "text/html");
+    response.end('<!doctype html><html data-plotpickle-skin="skin-v1"><head><title>Save/Lock product proof</title><link rel="stylesheet" href="/fixture.css"/><style>body{margin:24px;background:#0b1219;color:#e9edf3;font-family:Arial,sans-serif;--pp-surface:#162330;--pp-text:#e9edf3;--pp-border:#476075;--pp-accent:#77aedd}button{cursor:pointer}button:disabled{cursor:default}</style></head><body><div id="root"></div><script type="module" src="/fixture.js"></script></body></html>');
+  }));
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  const profile = await createVerificationSyntheticProfile({ baseUrl, home: temporary });
+  const session = await authenticateVerificationSyntheticProfile({ baseUrl, ...profile });
+  let chromium;
+  if (process.env.PLOTPICKLE_PRODUCT_PLAYWRIGHT_MODULE) {
+    ({ chromium } = await import(pathToFileURL(path.resolve(process.env.PLOTPICKLE_PRODUCT_PLAYWRIGHT_MODULE)).href));
+  } else {
+    const tools = path.join(artifactRoot, "tools");
+    await ensureVerificationTools(tools);
+    ({ chromium } = createRequire(path.join(tools, "package.json"))("@playwright/test"));
+  }
+  browser = await chromium.launch({ headless: true,
+    ...(process.env.PLOTPICKLE_PRODUCT_BROWSER_EXECUTABLE ? { executablePath: process.env.PLOTPICKLE_PRODUCT_BROWSER_EXECUTABLE } : {}),
+    args: ["--disable-background-networking", "--disable-gpu", "--disable-software-rasterizer"],
+  });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const cookie = session.environment.PLOTPICKLE_VERIFICATION_AUTH_COOKIE.split("=");
+  await context.addCookies([{ name: cookie[0], value: cookie.slice(1).join("="), url: baseUrl, httpOnly: true, sameSite: "Strict" }]);
+  // This fixture is offline apart from its own loopback server.
+  await context.route("**/*", (route) => new URL(route.request().url()).origin === baseUrl ? route.continue() : route.abort());
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(baseUrl);
+  const controls = page.locator('[aria-label="Review Storyboard Image for Shot 1"]');
+  await controls.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByText("Shot 01 of 25 saved locally with this story.", { exact: true }).waitFor();
+  await controls.getByRole("button", { name: "Lock", exact: true }).click();
+  await page.getByText("Shot 01 of 25 kept and locked.", { exact: true }).waitFor();
+  await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
+  await controls.locator("..").screenshot({ path: path.join(artifactRoot, "saved-locked.png") });
+  await controls.getByRole("button", { name: "Unlock", exact: true }).click();
+  await page.getByText("Shot 01 of 25 unlocked.", { exact: true }).waitFor();
+  await controls.getByText("Saved locally", { exact: true }).waitFor();
+  await page.route("**/api/auth/profile-private", (route) => route.request().method() === "POST"
+    ? route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ message: "Injected encrypted write failure" }) }) : route.continue());
+  await controls.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByText(/Save failed: Injected encrypted write failure/u).waitFor();
+  assert.equal(await controls.getByText("Saved locally", { exact: true }).count(), 0, "failed acknowledgement cannot display Saved locally");
+  await controls.locator("..").screenshot({ path: path.join(artifactRoot, "save-failed.png") });
+  await page.unroute("**/api/auth/profile-private");
+  await controls.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByText("Shot 01 of 25 saved locally with this story.", { exact: true }).waitFor();
+  await controls.getByRole("button", { name: "Lock", exact: true }).click();
+  await page.getByText("Shot 01 of 25 kept and locked.", { exact: true }).waitFor();
+  await page.reload();
+  await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
+  await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });
+  assert.deepEqual(errors, []);
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, local HTTP auth and encrypted vault; synthetic browser/provider fixture", observations: ["enabled Save feedback", "Lock and Unlock retain saved image", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
+  await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
+  console.log("#2821 rendered Save/Lock/retry/reopen proof PASS");
+} finally {
+  await browser?.close();
+  if (server) { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
+  await runtime?.resetProfileExperienceRuntime();
+  if (previousHome === undefined) delete process.env.PLOTPICKLE_HOME; else process.env.PLOTPICKLE_HOME = previousHome;
+  if (previousState === undefined) delete process.env.PLOTPICKLE_AUTH_STATE_PATH; else process.env.PLOTPICKLE_AUTH_STATE_PATH = previousState;
+  await rm(temporary, { recursive: true, force: true });
+}

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "issue": 2821,
+  "phase": "phase2-save-session-repair",
+  "brief": "docs/developer-briefs/2821-phase2-save-session-repair.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "adapters/experience/browser-profile-auth-gateway.ts",
+    "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/api/auth/profile/route.ts",
+    "app/profile-access/profile-access-boundary.tsx",
+    "app/skin-v1/profile-skin-panel.tsx",
+    "build/local-profile-auth-gateway.ts",
+    "config/development-convergence/2821-phase2-save-session-repair.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/storage/profile-private-browser.ts",
+    "core/storage/project-library/revision-safe-browser.ts",
+    "docs/developer-briefs/2821-afterglow-load-hydration-authority.md",
+    "docs/developer-briefs/2821-phase2-save-session-repair.md",
+    "scripts/build-verified.mjs",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "tests/issue-104-windows-paths.test.mjs",
+    "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
+    "tests/issue-2819-storyboard-idempotent-save.test.mjs",
+    "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
+    "tests/issue-2821-build-artifact.test.mjs",
+    "tests/issue-2821-save-session-continuity.test.mjs",
+    "tests/issue-591-startup-readiness-gate.test.mjs",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
+    "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
+    "tests/issue-2499-storyboard-save-count.test.mjs",
+    "scripts/developer-diagnostics/2821-save-session-product-proof.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTH",
+      "criterion": "Narration uses the login runtime and rejects missing CSRF or absent sessions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "narration reaches request validation with login proof"
+        }
+      ]
+    },
+    {
+      "id": "SAVELOCK",
+      "criterion": "Save/Lock/Unlock preserve current artifact truth and wait for encrypted acknowledgement.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "stale Lock/Unlock preserves saved image"
+        }
+      ]
+    },
+    {
+      "id": "RETRY",
+      "criterion": "Failed encrypted writes preserve work, block logout and succeed on retry/reopen.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "failed persistence must prevent logout and cache clearing"
+        }
+      ]
+    },
+    {
+      "id": "HYDRATE",
+      "criterion": "Same-authority and obsolete hydration cannot replace valid working state.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "stale hydration cannot resurrect released authority"
+        }
+      ]
+    },
+    {
+      "id": "STATUS",
+      "criterion": "Transient verification failures do not claim logout.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "status reports transient failures without claiming logout"
+        }
+      ]
+    },
+    {
+      "id": "RENDER",
+      "criterion": "Rendered control clicks verify badges, failure feedback and reopen; Windows CI independently reruns it.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "node scripts/developer-diagnostics/product-proof/2821-save-session.mjs"
+        }
+      ]
+    },
+    {
+      "id": "BUILD",
+      "criterion": "Worker artifact validation remains offline and rejects invalid artifacts.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-build-artifact.test.mjs",
+          "contains": "offline artifact validation admits Worker intrinsics"
+        }
+      ]
+    },
+    {
+      "id": "LIMITS",
+      "criterion": "Final provider/movie Human acceptance stays pending with bubbles-only narration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2821-phase2-save-session-repair.md",
+          "contains": "without spoken narration audio"
+        }
+      ]
+    }
+  ]
+}

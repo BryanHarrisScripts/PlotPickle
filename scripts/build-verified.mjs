@@ -3,7 +3,7 @@
 import { access, mkdir, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import process from "node:process";
-import { pathToFileURL, fileURLToPath } from "node:url";
+import { fileURLToPath } from "node:url";
 import { spawnCommand } from "./spawn-command.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -94,24 +94,24 @@ async function validateArtifact(env) {
   }
   void hosting;
 
-  if (process.platform === "win32") {
-    await run(process.execPath, ["--check", workerPath], env);
-    const workerSource = await readFile(workerPath, "utf8");
-    const hasDefaultExport = /export\s+default\b/u.test(workerSource)
-      || /export\s*\{[\s\S]*?\bas\s+default\b/u.test(workerSource);
-    const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(workerSource);
-    if (!hasDefaultExport || !hasFetchShape) {
-      console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
-      throw new Error("dist/server/index.js must contain a valid default Worker export with fetch.");
-    }
-  } else {
-    const workerUrl = pathToFileURL(workerPath);
-    workerUrl.searchParams.set("sites-validation", `${process.pid}-${Date.now()}`);
-    const worker = await import(workerUrl.href);
-    if (!worker.default || typeof worker.default.fetch !== "function") {
-      console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
-      throw new Error("dist/server/index.js must have an ESM default export with fetch(request, env, ctx)");
-    }
+  await run(process.execPath, ["--check", workerPath], env);
+  const workerSource = await readFile(workerPath, "utf8");
+  const hasDefaultExport = /export\s+default\b/u.test(workerSource)
+    || /export\s*\{[\s\S]*?\bas\s+default\b/u.test(workerSource);
+  const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(workerSource);
+  if (!hasDefaultExport || !hasFetchShape) {
+    console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
+    throw new Error("dist/server/index.js must contain a valid default Worker export with fetch.");
+  }
+
+  if (process.platform !== "win32") {
+    // A Worker may import cloudflare: intrinsics, which Node cannot execute.
+    // Validate its entire JavaScript graph offline without running module
+    // initializers or making requests. Windows retains its supported check.
+    const { build } = await import("esbuild");
+    await build({ entryPoints: [workerPath], bundle: true, platform: "neutral",
+      format: "esm", packages: "external", external: ["cloudflare:*", "node:*"],
+      loader: { ".wasm": "binary" }, write: false, logLevel: "silent" });
   }
 
   console.log("Validated Sites artifact: Worker default/fetch shape and hosting manifest are present.");

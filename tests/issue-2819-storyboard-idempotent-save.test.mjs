@@ -8,28 +8,16 @@ test("#2819 Save remains available after an artifact is already saved", async ()
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
 
-  assert.match(loop, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
+  assert.match(loop, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy \|\| frameSaving\}/u);
   assert.doesNotMatch(loop, /disabled=\{!selectedArtifact \|\| savedLocally/u);
 });
 
-test("#2819 repeated Save is an idempotent success before any store write", async () => {
+test("#2819 repeated Save keeps canonical artifact idempotent while acknowledging durability", async () => {
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
-  const start = source.indexOf("function saveFrameVersion");
-  const end = source.indexOf("function reviewFrame", start);
-  const save = source.slice(start, end);
-
-  const alreadySaved = save.indexOf("if (storyboardArtifactSavedLocally(currentArtifact))");
-  const write = save.indexOf("applyStoryCommand(current");
-  assert.ok(alreadySaved >= 0, "idempotent already-saved branch must exist");
-  assert.ok(write > alreadySaved, "already-saved branch must run before any store command");
-
-  const branchEnd = save.indexOf("const now = new Date().toISOString()", alreadySaved);
-  const idempotentBranch = save.slice(alreadySaved, branchEnd);
-  assert.match(idempotentBranch, /currentArtifact\.id/u);
-  assert.match(idempotentBranch, /onProjectChange\(current\)/u);
-  assert.match(idempotentBranch, /already saved locally with this story/u);
-  assert.match(idempotentBranch, /return;/u);
-  assert.doesNotMatch(idempotentBranch, /applyStoryCommand|saveFoundationProject/u);
+  const save = source.slice(source.indexOf("function saveFrameVersion"), source.indexOf("function reviewFrame"));
+  assert.match(save, /storyboardArtifactSavedLocally\(currentArtifact\) \? current : applyStoryCommand/u);
+  assert.match(save, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
+  assert.match(save, /Save failed:/u);
 });
 
 test("#2819 a new Save still writes the marker against the latest persisted artifact", async () => {
@@ -42,7 +30,7 @@ test("#2819 a new Save still writes the marker against the latest persisted arti
   assert.match(save, /candidate\) => candidate\.id === artifact\.id/u);
   assert.match(save, /sourceDecisionKeys: \[\.\.\.new Set\(\[\.\.\.\(currentArtifact\.sourceDecisionKeys \?\? \[\]\), STORYBOARD_LOCAL_SAVE_MARKER\]\)\]/u);
   assert.match(save, /applyStoryCommand\(current/u);
-  assert.match(save, /saveFoundationProject\(next\)/u);
+  assert.match(save, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
   assert.doesNotMatch(save, /foundations\.visual\.accept|foundations\.visual\.unaccept/u);
 });
 

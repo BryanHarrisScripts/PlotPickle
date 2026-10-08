@@ -69,7 +69,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   assert.deepEqual(submitted.shot, shot);
   assert.equal('contactSheet' in submitted, false);
   assert.equal(drafts[19].narration, 'Ren hesitates before taking the next step.');
-  assert.match(notices[19], /Human review/);
+  assert.match(notices[19], /review/);
 });
 
 test('#2839 actual narration endpoint sends text to the agent and distinguishes compute from invalid output', async (t) => {

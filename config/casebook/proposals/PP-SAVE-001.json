@@ -31,12 +31,16 @@
       "action": "Compare recovered media digest, artifact identity, version, visible Save/Lock badges and project scope against the known pre-restart values."
     },
     {
+      "id": "pending-leave",
+      "action": "While Save/Lock is pending or uncertain, attempt an in-app Unload/Logout/profile switch; verify that unsafe departure is blocked, work remains available and reconciliation/retry can reach a truthful state."
+    },
+    {
       "id": "handoff",
       "action": "Confirm downstream Previs reads the same durably saved-and-locked artifact, not a stale candidate."
     }
   ],
   "preconditions": [
-    "Proposed and awaiting Human approval: supported normal same-device restart, same authenticated Human and project, required media and encrypted storage accessible.",
+    "Approved scope: supported normal same-device restart, same authenticated Human and project, required media and encrypted storage accessible.",
     "Known reversible non-sensitive test media and test-scoped profile; do not alter real Human content.",
     "Observed environment, contract version and git revision recorded."
   ],
@@ -81,6 +85,11 @@
       "id": "failure-recovery",
       "kind": "fault",
       "description": "Injected write denial and uncertain acknowledgement never create false success or discard unsaved work."
+    },
+    {
+      "id": "pending-leave-safety",
+      "kind": "fault",
+      "description": "Observe pending/unknown operation blocking unsafe in-app leave/profile switch without losing working media or falsely reporting committed status."
     }
   ],
   "independentVerification": {
@@ -109,7 +118,8 @@
     "Attempt read/write under different authenticated profile",
     "Restart after Save and Lock; verify media identity and approval",
     "Unavailable local media despite Saved metadata",
-    "Unload while write pending, assessed after Human chooses policy"
+    "Unload while write pending, assessed after Human chooses policy",
+    "Save or Lock remains pending on Unload/Logout/profile switch; prove unsafe transition blocked while data retained and retriable."
   ],
   "allowedSkills": [
     "storyboard-ui-observation",
@@ -122,7 +132,7 @@
     "fault-injection-isolated"
   ],
   "authorityBoundaries": [
-    "Human-approved business truth is authoritative; proposed interpretation is not yet approved.",
+    "PP-SAVE-001 v1.0.0 is the approved Human-authoritative business truth; implementation and test expectations may not redefine it.",
     "Use current existing storage/project/profile/DSDD/Casebook owners; no new authoritative state manager.",
     "Do not change real personal projects, keys, credentials, media or perform paid generation.",
     "A simulated or mocked test cannot be reported as proven real Windows application restart.",
@@ -130,13 +140,14 @@
     "No merge changing approved semantics without recorded Human approval."
   ],
   "successCriteria": [
-    "Human has confirmed Save-before-Lock ordering; Human approves the remaining recovery scope and pending/unload policy before the full contract is binding.",
+    "Human has approved version 1.0.0, including Save-before-Lock, same-device/profile recovery and safe pending/unknown Unload/Logout policy.",
     "Actual UI and domain logic prevent Lock before confirmed durable Save of the exact selected artifact/version.",
     "Actual rendered interface and encrypted backing store prove Saved and Locked outcomes under defined conditions.",
     "Actual process restart recovers identical media identity/digest and approved lock.",
     "No unrelated artifact/profile changes, duplicates or false Saved/Locked claims in observed fault sequences.",
     "Previs consumes the identical saved-and-locked selected artifact version.",
-    "Evidence records PASS/FAIL/BLOCKED/UNPROVEN scope; green build is not a substitute."
+    "Evidence records PASS/FAIL/BLOCKED/UNPROVEN scope; green build is not a substitute.",
+    "Pending/unknown Save or Lock preserves unsaved work and prevents unsafe in-app Unload, Logout or profile switch; no false completion status."
   ],
   "quantitativeMeasurements": [
     "Number of false Saved or Locked claims",
@@ -167,11 +178,11 @@
     "profile-storage",
     "previs-readiness-workspace"
   ],
-  "truthStatus": "proposed-human-approval-required",
-  "contractVersion": "0.2.0-proposed",
+  "truthStatus": "approved-implementation-unproven",
+  "contractVersion": "1.0.0",
   "specification": "docs/behavioral-contracts/PP-SAVE-001.md",
   "issue": 2845,
-  "verificationImplementationStatus": "not implemented; this is a proposed Casebook-compatible definition, not a passing case",
+  "verificationImplementationStatus": "approved contract, standalone Casebook-compatible execution definition; not yet wired to gates or executed; no PASS claimed",
   "formalConstraints": [
     {
       "id": "T1",
@@ -214,5 +225,14 @@
       "originalIntent": "You can't lock unless it has been saved. And then, then you can lock.",
       "effect": "Lock unavailable until exact selected image/version has confirmed durable Save. A Saved version may be Locked only after Save completion; rejected, unknown, pending and unsaved versions cannot be Locked. Previs requires both."
     }
-  ]
+  ],
+  "approvalRecord": {
+    "approvedAt": "2026-10-08",
+    "authority": "Human",
+    "evidence": "Human corrected third rule to prohibit Lock before Save, then explicitly approved PP-SAVE-001",
+    "version": "1.0.0",
+    "approvedRecoveryScope": "Same authenticated Human/profile and device, normal restart with supported persistent storage available.",
+    "approvedPendingExitPolicy": "Preserve work and block unsafe in-app Unload/Logout/profile switch while Save/Lock is pending or unknown; reconcile before a safe transition.",
+    "approvedSaveBeforeLock": "Only confirmed durable Save of the exact selected version permits Lock."
+  }
 }

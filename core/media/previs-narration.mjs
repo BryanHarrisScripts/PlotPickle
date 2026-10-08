@@ -124,6 +124,11 @@ export function parseStoryboardNarration(text, input) {
   if (panel.narration && screenplayFormattingDirective(panel.narration)) {
     throw new Error('Screenplay formatting cannot be printed as a Graphic Novel caption.');
   }
+  // A terminal comma/colon/semicolon is a fragment, not a finished caption.
+  // Previously Human-approved decisions are never migrated or rewritten.
+  if (panel.narration && /[,;:]\s*$/u.test(panel.narration)) {
+    throw new Error('An unfinished caption fragment cannot be printed as a Graphic Novel caption.');
+  }
   if (panel.narration.length > 100 || panel.narration.split(/\s+/u).filter(Boolean).length > 12) {
     throw new Error('Storyboard narration exceeds the 12-word / 100-character bubble limit.');
   }
@@ -141,4 +146,50 @@ export function parseStoryboardNarration(text, input) {
     }
   }
   return [panel];
+}
+
+/**
+ * PP-NARR-001: classify only the parser's OBSERVABLE failure.
+ * Never echo local model responses, screenplay, prompts, speaker names or stack traces.
+ * This cannot establish creative/semantic grounding: that remains Human authority.
+ */
+export function storyboardNarrationOutputFailure(error) {
+  const reason = typeof error?.message === 'string' ? error.message : '';
+  const name = typeof error?.name === 'string' ? error.name : '';
+  if (name === 'SyntaxError') return {
+    reason: 'OUTPUT_NOT_JSON',
+    message: 'The Local writer did not return valid narration JSON. Try Regenerate; the current Shot and approvals are unchanged.',
+  };
+  if (/screenplay formatting/i.test(reason)) return {
+    reason: 'SCREENPLAY_FORMATTING',
+    message: 'The Local writer returned a screenplay direction, not a printable story caption. Regenerate; your Shot is unchanged.',
+  };
+  if (/unfinished caption fragment/i.test(reason)) return {
+    reason: 'UNFINISHED_CAPTION',
+    message: 'The Local writer returned an unfinished caption. Regenerate for a complete thought; your Shot is unchanged.',
+  };
+  if (/quote actual dialogue|screenplay speaker/i.test(reason)) return {
+    reason: 'DIALOGUE_NOT_IN_SCREENPLAY',
+    message: 'The proposed dialogue does not match the supplied screenplay text and speaker. No Bubble was saved; regenerate or review the source.',
+  };
+  if (/unsupported speaker or oversized speech bubble/i.test(reason)) return {
+    reason: 'INVALID_DIALOGUE_SHAPE',
+    message: 'The proposed dialogue is missing, too long, or attributed to an unsupported screenplay speaker. Regenerate; no text was approved.',
+  };
+  if (/12-word|twelve words|100-character|exceeds/i.test(reason)) return {
+    reason: 'TEXT_TOO_LONG',
+    message: 'The Local writer returned more text than the approved Bubble limit allows. Regenerate for a shorter expression.',
+  };
+  if (/either a scene caption or a dialogue bubble/i.test(reason)) return {
+    reason: 'CAPTION_AND_DIALOGUE',
+    message: 'The Local writer returned both a caption and dialogue for one Shot. Regenerate for one expression.',
+  };
+  if (/complete narration sequence|invalid narration pacing|one text-only Shot|positions/i.test(reason)) return {
+    reason: 'INVALID_SHOT_RESPONSE',
+    message: 'The Local writer returned the wrong Shot address or an incomplete response. Regenerate the selected Shot.',
+  };
+  return {
+    reason: 'INVALID_MODEL_RESPONSE',
+    message: 'The Local writer returned a narration response that failed validation. Your Shot and approved text are unchanged; try Regenerate.',
+  };
 }

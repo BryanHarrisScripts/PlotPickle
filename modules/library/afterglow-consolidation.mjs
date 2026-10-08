@@ -138,9 +138,19 @@ export function planAfterglowConsolidation({baseline,sources}) {
     apply(candidate,items[0].keys,items[0].value);
     applied.push({path,sources:items.map(x=>x.sourceProjectId)});
   }
-  // Identity, timestamps, profile session and revision must be assigned by the
-  // later authenticated commit, not by a speculative preview.
+  // Local asset bytes must be checked by the authenticated runtime before the
+  // Human can commit a merged copy, then copied into the repo only on promotion.
+  const assetRefs=new Set();
+  const visit=value=>{
+    if(typeof value==="string" && value.startsWith("/api/local-ai/assets/"))assetRefs.add(value);
+    else if(Array.isArray(value))value.forEach(visit);
+    else if(isRecord(value))Object.values(value).forEach(visit);
+  };
+  visit(candidate);
+  // Project ID, timestamps, profile session and revision are deliberately
+  // assigned only by the later authenticated commit.
   return {candidate,sources:projects.map(p=>({id:p.id,revision:p.revision,updatedAt:p.updatedAt})),
-    applied,conflicts,needsReview,
-    readyForHumanCommit:conflicts.length===0&&needsReview.length===0,packageModified:false};
+    applied,conflicts,needsReview,localAssetsToVerify:[...assetRefs].sort(),
+    mergeShapeConsistent:conflicts.length===0&&needsReview.length===0,
+    readyForHumanCommit:false,packageModified:false};
 }

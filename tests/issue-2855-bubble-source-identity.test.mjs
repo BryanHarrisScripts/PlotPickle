@@ -102,7 +102,7 @@ test("PP-NARR-001 B6 Storyboard and Previs derive the identical snapshot, never 
   assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact\)/u);
   assert.match(storyboard, /if \(!liveArtifact \|\| liveKey !== sourceKey\) throw new Error/u,
     "durable approval must revalidate the real current source");
-  assert.match(storyboard, /if \(sourceKey !== requestedSourceKey\) return/u,
-    "out-of-date generated responses must not become current");
+  assert.match(storyboard, /latestProject\.current !== project \|\| currentApproval\(panel\)\.sourceKey !== requestedSourceKey/u,
+    "out-of-date generated responses must be discarded after explicit status feedback");
   assert.match(previs, /return panel\.authoritative && approval && approval\.sourceKey === sourceKey/u);
 });

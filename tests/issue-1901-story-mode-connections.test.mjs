@@ -30,7 +30,7 @@ test("#1901 Local and Cloud Story Mode use the same Capabilities / Connections i
   inOrder(cloud, ['id: "openai"', 'id: "comfy-cloud"', 'id: "gemini"', 'id: "minimax"'], "cloud connection order");
 
   assert.match(local, /comfyui: "ComfyUI"/u);
-  assert.match(cloud, /"comfy-cloud": "ComfyUI"/u);
+  assert.match(cloud, /"comfy-cloud": "ComfyUI Cloud"/u);
   assert.match(local, /h3: "MiniMax H3"/u);
   assert.match(cloud, /minimax: "MiniMax"/u);
 });
@@ -47,12 +47,12 @@ test("#1901 one shared compact capability surface is used by both Story Modes", 
   assert.match(local, /<StoryModeCapabilityConnections[\s\S]*mode="local"/u);
   assert.match(cloud, /<StoryModeCapabilityConnections[\s\S]*mode="cloud"/u);
 
-  for (const state of ["Ready", "Needs test", "Set up", "Error"]) assert.ok(shared.includes(`"${state}"`));
+  for (const state of ["Ready", "Needs test", "Setup needed", "Error"]) assert.ok(shared.includes(`"${state}"`));
   assert.match(shared, /data-story-mode-connection=/u);
   assert.match(shared, /Current:/u);
   assert.match(shared, /connection\.active \? <p/u);
   assert.match(shared, /connection\.setupLabel/u);
-  assert.match(shared, /connection\.useLabel/u);
+  assert.doesNotMatch(shared, /connection\.useLabel/u);
 });
 
 test("#1901 Cloud capability UX puts cost/data consent before connection rows and removes the duplicate legacy stack", async () => {
@@ -61,19 +61,14 @@ test("#1901 Cloud capability UX puts cost/data consent before connection rows an
     read("app/skin-v1/story-mode-capability-connections.tsx"),
   ]);
 
-  const billing = shared.indexOf("I understand remote provider API requests may incur charges.");
-  const list = shared.indexOf("data-story-mode-connection-list");
-  assert.ok(billing >= 0 && billing < list, "billing acknowledgement must appear before cloud connection rows");
-  assert.match(shared, /capability === "video"/u);
-  assert.match(shared, /cloud video prompt and selected reference media may leave this computer/u);
-
+  assert.doesNotMatch(shared, /data-cloud-capability-consent/u);
+  assert.match(cloud, /ProviderConsentSetup provider=\{view\}/u);
   assert.doesNotMatch(cloud, /CloudModelCatalogPanel/u);
   assert.doesNotMatch(cloud, /AiRoutingPanel/u);
   assert.doesNotMatch(cloud, /Choose a model after you connect the provider/u);
   assert.doesNotMatch(cloud, /Active source:/u);
   assert.doesNotMatch(cloud, /Refresh current configuration/u);
-  assert.match(cloud, /paidAcknowledged: true/u);
-  assert.match(cloud, /dataSharingAcknowledged: capabilityId === "video"/u);
+  assert.doesNotMatch(cloud, /selectCloudRoute|paidAcknowledged: true/u);
 });
 
 test("#1901 Local capability UX stays local, adds Agents, and keeps hardware-aware video setup", async () => {
@@ -82,15 +77,15 @@ test("#1901 Local capability UX stays local, adds Agents, and keeps hardware-awa
     read("app/skin-v1/story-mode-capability-connections.tsx"),
   ]);
 
-  assert.match(shared, /Runs on this computer · no cloud provider charges\./u);
+  assert.match(shared, /Local workflows can use local hardware or a provider API account/u);
   assert.match(local, /agents: "Agents"/u);
   assert.doesNotMatch(local, /AiRoutingPanel|LocalVideoPanel/u);
   assert.match(local, /fetch\("\/api\/local-ai\/plugins\/video"/u);
   assert.match(local, /LTX_PLUGIN_ID = "video\.ltx-video-2b-0\.9\.8-distilled"/u);
   assert.match(local, /H3_PLUGIN_ID = "video\.minimax-h3"/u);
-  assert.match(local, /videoRuntimeConnection\(\), videoPluginConnection\("ltx"\), videoPluginConnection\("h3"\)/u);
-  assert.match(local, /paidAcknowledged: false/u);
-  assert.match(local, /dataSharingAcknowledged: false/u);
+  assert.match(local, /videoRuntimeConnection\(\), \{ id: "comfyui-native"/u);
+  assert.doesNotMatch(local, /selectLocalRoute/u);
+  assert.match(local, /LocalComfyUiApiVideoSetup/u);
 });
 
 test("#1901 connection explanations are explicit and distinguish local H3 from MiniMax cloud", async () => {
@@ -123,7 +118,7 @@ test("#1901 detailed Connection pages remain the configuration owners", async ()
 
   for (const contract of [
     'view === "ollama" ? <LocalRuntimePanel />',
-    'view === "comfyui" ? <LocalComfyUiPanel />',
+    'view === "comfyui" ? <><LocalComfyUiPanel /><LocalComfyUiApiVideoSetup />',
     'view === "ltx" ? <LocalLtxSetupPanel />',
     'view === "h3" ? <LocalH3SetupPanel />',
   ]) assert.ok(local.includes(contract), `missing local setup owner: ${contract}`);

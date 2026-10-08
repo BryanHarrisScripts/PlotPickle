@@ -1,3 +1,5 @@
+import { scryptSync } from "node:crypto";
+import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { persistentHome } from "./local-credentials";
@@ -22,6 +24,7 @@ export type CloudVideoJob = {
   provider: "minimax";
   model: string;
   status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "expired";
+  authorityHash: string;
   prompt: string;
   sourceAssetUrl: string;
   assetId: string;
@@ -33,23 +36,16 @@ export type CloudVideoJob = {
   updatedAt: string;
 };
 
-function jobsPath() {
-  return path.join(persistentHome(), "media-cloud-video-jobs.json");
+export function videoAuthorityHash(profile: MediaProfile) {
+  const salt = JSON.stringify(["plotpickle-video-authority-v1", profile.baseUrl, profile.videoModel]);
+  return scryptSync(profile.apiKey, salt, 32, { N: 16384, r: 8, p: 1 }).toString("hex");
 }
-
 async function readJobs(): Promise<CloudVideoJob[]> {
-  try {
-    const value = JSON.parse(await readFile(jobsPath(), "utf8")) as unknown;
-    return Array.isArray(value) ? value.filter((item): item is CloudVideoJob => Boolean(item && typeof item === "object" && typeof (item as CloudVideoJob).id === "string")) : [];
-  } catch {
-    return [];
-  }
+  return await readCredentialJson<CloudVideoJob[]>("media-cloud-video-jobs.json") || [];
 }
-
 async function saveJob(job: CloudVideoJob) {
   const jobs = await readJobs();
-  await mkdir(persistentHome(), { recursive: true, mode: 0o700 });
-  await writeFile(jobsPath(), `${JSON.stringify([job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200), null, 2)}\n`, { mode: 0o600 });
+  await writeCredentialJson("media-cloud-video-jobs.json", [job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200));
   return job;
 }
 
@@ -168,6 +164,7 @@ export async function createCloudVideo(profile: MediaProfile, input: VideoGenera
   return saveJob({
     id,
     route: "minimax-direct",
+    authorityHash: videoAuthorityHash(profile),
     provider: "minimax",
     model: profile.videoModel || "MiniMax-H3",
     status: "queued",
@@ -204,7 +201,8 @@ export function publicCloudVideoJob(job: CloudVideoJob) {
 export async function queryCloudVideo(profile: MediaProfile, id: string) {
   const jobs = await readJobs();
   const existing = jobs.find((item) => item.id === id);
-  if (!existing) throw new Error("This MiniMax video job was not created by the current media router.");
+  if (!existing) throw new Error("This MiniMax video job was not created by the current profile.");
+  if (existing.authorityHash !== videoAuthorityHash(profile)) throw new Error("The MiniMax account/model changed after this job started. Restore its configuration before polling.");
   const value = await providerRequest(`${normalizedUrl(profile.baseUrl)}/v2/query/video_generation/${encodeURIComponent(id)}`, profile, "GET");
   const task = value.task && typeof value.task === "object" ? value.task as { status?: unknown; content?: { url?: unknown }; error?: unknown } : {};
   const status = statusValue(task.status);
@@ -220,13 +218,15 @@ export async function queryCloudVideo(profile: MediaProfile, id: string) {
     if (!response.ok) throw new Error("The completed MiniMax video could not be downloaded into local PlotPickle storage.");
     updated = { ...updated, outputAssetUrl: await saveGeneratedAsset(Buffer.from(await response.arrayBuffer()), updated.assetId, ".mp4") };
   }
+  if (status === "succeeded" && !updated.outputAssetUrl) throw new Error("MiniMax reported success without a downloadable saved video asset.");
   return saveJob(updated);
 }
 
 export async function cancelCloudVideo(profile: MediaProfile, id: string) {
   const jobs = await readJobs();
   const existing = jobs.find((item) => item.id === id);
-  if (!existing) throw new Error("This MiniMax video job was not created by the current media router.");
+  if (!existing) throw new Error("This MiniMax video job was not created by the current profile.");
+  if (existing.authorityHash !== videoAuthorityHash(profile)) throw new Error("The MiniMax account/model changed after this job started. Restore its configuration before polling.");
   if (existing.status !== "queued") throw new Error("MiniMax can cancel only a queued job. A running job may finish and may still be charged.");
   const value = await providerRequest(`${normalizedUrl(profile.baseUrl)}/v2/video_generation/${encodeURIComponent(id)}`, profile, "DELETE");
   return saveJob({ ...existing, status: statusValue(value.status || "cancelled"), updatedAt: new Date().toISOString() });

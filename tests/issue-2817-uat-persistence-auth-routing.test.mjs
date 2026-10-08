@@ -35,10 +35,10 @@ test("#2817 media profile normalization preserves legacy authority instead of dr
   assert.match(source, /const minimax = normalizeProfile\(item\.profiles\?\.minimax, "minimax"\)/u);
 });
 
-test("#2817 successful MiniMax H3 verification persists the verification stamp and route together", async () => {
+test("#2817 successful MiniMax H3 verification persists verification without changing the selected route", async () => {
   const source = await read("build/media-routing-gateway.ts");
   const query = source.slice(source.indexOf("async function queryVideo"), source.indexOf("async function handleApi"));
   assert.match(query, /profile\.videoVerifiedAt = now/u);
-  assert.match(query, /store\.videoRoute = "minimax-direct"/u);
+  assert.doesNotMatch(query, /store\.videoRoute\s*=/u);
   assert.match(query, /await writeMediaRoutingStore\(store\)/u);
 });

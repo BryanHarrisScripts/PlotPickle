@@ -1,3 +1,5 @@
+import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
+import { readCapabilityChoice, requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
@@ -31,7 +33,6 @@ import {
   type PlotPickleAgentId,
   type PlotPickleTone,
 } from "./mastra-agent-runtime";
-import { readAgentComputeStore, resolveAgentComputeProvider } from "./agent-compute-store";
 
 const API_ROOT = "/api/writing-assistant";
 const STATUS_PATH = `${API_ROOT}/status`;
@@ -93,7 +94,7 @@ function localProfileFromExecution(
     apiKey: "",
     contextTokens: execution.contextTokens,
     configuredAt: existing?.configuredAt || new Date().toISOString(),
-    assistantVerifiedAt: existing?.baseUrl === execution.baseUrl && existing?.runtime === execution.runtime ? existing.assistantVerifiedAt : "",
+    assistantVerifiedAt: existing?.baseUrl === execution.baseUrl && existing?.runtime === execution.runtime && existing?.textModel === execution.textModel ? existing.assistantVerifiedAt : "",
     lastAttemptAt: existing?.lastAttemptAt || "",
     lastLatencyMs: existing?.lastLatencyMs || 0,
     lastPreview: existing?.lastPreview || "",
@@ -114,7 +115,6 @@ async function synchronizeLocalFastProfile(store: Awaited<ReturnType<typeof read
   if (!snapshot.activeRuntime.reachable || !snapshot.roles.fast.available) return snapshot;
   const execution = await localTextExecutionProfile("fast");
   store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
-  if (store.activeProvider === "disabled" && !store.explicitlyDisabled) store.activeProvider = "local";
   await writeAssistantStore(store);
   return snapshot;
 }
@@ -161,20 +161,7 @@ async function handleStatus(response: ServerResponse) {
 }
 
 async function handleActive(request: IncomingMessage, response: ServerResponse) {
-  const body = await readBody(request);
-  const requested = body.provider;
-  if (requested !== "disabled" && !isTextProvider(requested)) throw new Error("Choose Local Runtime, Ollama, OpenAI, Google Gemini, MiniMax or Off.");
-  const { store } = await readSynchronizedAssistantStore();
-  if (requested === "local") {
-    const execution = await localTextExecutionProfile("fast");
-    store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
-  } else if (requested !== "disabled" && !store.profiles[requested]) {
-    throw new Error("Configure this provider before selecting it.");
-  }
-  store.activeProvider = requested;
-  store.explicitlyDisabled = requested === "disabled";
-  await writeAssistantStore(store);
-  sendJson(response, 200, { ok: true, activeProvider: store.activeProvider });
+  throw new Error("Select the Writing route in Settings → Hybrid. Connection setup does not activate a route.");
 }
 
 async function handleProvider(request: IncomingMessage, response: ServerResponse) {
@@ -296,8 +283,6 @@ async function handleOllama(request: IncomingMessage, response: ServerResponse) 
   };
   store.ollamaBaseUrl = probe.baseUrl;
   store.profiles.ollama = profile;
-  store.activeProvider = "ollama";
-  store.explicitlyDisabled = false;
   await writeAssistantStore(store);
   const result = await testAssistantProfile(store, "ollama");
   sendJson(response, 200, {
@@ -387,15 +372,14 @@ function storyArchitectExecutionRoute(
 /** Configured resolver shared by ordinary chat and governed durable consumers. */
 export async function resolveConfiguredAgentExecutionProfile(agentId: PlotPickleAgentId, role: LocalTextRole, explicit: TextProvider | null = null) {
   const { store } = await readSynchronizedAssistantStore();
-  const compute = explicit ? null : await readAgentComputeStore();
-  const assigned = explicit
-    ? { provider: explicit, source: "request" as const }
-    : resolveAgentComputeProvider(compute!, agentId, store.activeProvider);
+  const choice = await readCapabilityChoice();
+  const selected = choice.text === "off" ? null : choice.text as TextProvider;
+  if (explicit && explicit !== selected) throw new Error("The requested Writing provider differs from the route selected in Hybrid.");
+  const assigned = { provider: selected, source: "active" as const };
+  await relayCapabilityDiagnostic("text", choice.text, "preflight", "resolving-selected-writing-route");
+  await requireRouteConsent("text", choice.text);
   const requestedProvider = assigned.provider;
   if (!requestedProvider) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI, Google Gemini or MiniMax first.");
-  if (assigned.source !== "request" && assigned.source !== "active" && requestedProvider !== "local" && !store.profiles[requestedProvider]) {
-    throw new Error(`The ${assigned.source === "override" ? "Agent override" : "PlotPickle Agent default"} provider is unavailable. Update Settings / Agents; no fallback provider was used.`);
-  }
   let profile: ProviderProfile = await profileForProvider(store, requestedProvider, role);
   if (agentId === "curriculum-guide") profile = curriculumGuideLocalProfile(profile);
   return { profile, assigned, requestedProvider, store };
@@ -429,6 +413,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const started = Date.now();
   let text = "";
   try {
+    await relayCapabilityDiagnostic("text", requestedProvider, "submitted", "writing-request-submitted");
     text = await askPlotPickleAgent({
       profile,
       agentId,
@@ -441,6 +426,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
       conversationMode,
     });
   } catch (error) {
+    await relayCapabilityDiagnostic("text", requestedProvider, "failed", "writing-provider-failed");
     if (agentId === "story-architect") {
       const detail = error instanceof Error ? error.message : "Story Architect structured execution failed.";
       throw new Error(`Story Architect execution failed (${storyArchitectExecutionRoute(profile, role, assigned.source)}): ${detail}`);
@@ -448,6 +434,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     throw error;
   }
   if (!text) {
+    await relayCapabilityDiagnostic("text", requestedProvider, "failed", "writing-response-empty");
     if (agentId === "story-architect") {
       throw new Error(`Story Architect execution failed (${storyArchitectExecutionRoute(profile, role, assigned.source)}): no structured assessment was returned.`);
     }
@@ -484,7 +471,10 @@ async function handleTextOverride(request: IncomingMessage, response: ServerResp
   const body = await readBody(request, 96 * 1024);
   const { store, available } = await readSynchronizedAssistantStore();
   const explicitLocal = body.provider === "local";
-  const requestedProvider = explicitLocal ? "local" : store.activeProvider;
+  const dsddIntentScope = request.headers["x-plotpickle-dsdd-scope"] === "intent";
+  const choice = await readCapabilityChoice();
+  const requestedProvider = explicitLocal && dsddIntentScope ? "local" : choice.text === "off" ? "disabled" : choice.text as TextProvider;
+  if (!(explicitLocal && dsddIntentScope)) await requireRouteConsent("text", choice.text);
   if (!available && requestedProvider !== "local") return false;
   if (!isTextProvider(requestedProvider)) {
     sendJson(response, 409, { ok: false, message: "The Writing Assistant is off. Select a text engine on the Configuration Dashboard." });
@@ -495,6 +485,7 @@ async function handleTextOverride(request: IncomingMessage, response: ServerResp
   const instructions = typeof body.instructions === "string" ? body.instructions : ASSISTANT_INSTRUCTIONS;
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
   const dsddIntent = request.headers["x-plotpickle-dsdd-scope"] === "intent";
+  await relayCapabilityDiagnostic("text", requestedProvider, "submitted", "writing-request-submitted");
   const generated = await generateAssistantText(
     profile,
     instructions,
@@ -503,6 +494,7 @@ async function handleTextOverride(request: IncomingMessage, response: ServerResp
   );
   const text = dsddIntent ? compactDsddIntentText(generated) : generated;
   if (!text) throw new Error("The selected text provider returned no text.");
+  await relayCapabilityDiagnostic("text", requestedProvider, "saved", "writing-response-returned");
   sendJson(response, 200, {
     ok: true,
     text,
@@ -529,6 +521,7 @@ async function routeAssistant(request: IncomingMessage, response: ServerResponse
     if (pathname === OLLAMA_PATH && request.method === "POST") return await handleOllama(request, response);
     sendJson(response, 404, { ok: false, message: "Writing Assistant operation not found." });
   } catch (error) {
+    if (pathname === CHAT_PATH) await relayCapabilityDiagnostic("text", (await readCapabilityChoice()).text, "failed", "writing-request-failed");
     const message = error instanceof Error
       ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]")
       : "The Writing Assistant operation failed.";
@@ -546,7 +539,8 @@ export function registerWritingAssistantGateway(server: ViteDevServer) {
       }
       void handleTextOverride(request, response)
         .then((handled) => { if (!handled) next(); })
-        .catch((error) => {
+        .catch(async (error) => {
+          await relayCapabilityDiagnostic("text", (await readCapabilityChoice()).text, "failed", "writing-request-failed");
           const message = error instanceof Error
             ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]")
             : "The selected text provider failed.";

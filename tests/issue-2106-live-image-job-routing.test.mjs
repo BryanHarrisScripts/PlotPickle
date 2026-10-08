@@ -13,8 +13,8 @@ test("#2106 live image generation resolves the real job class through Story Mode
 
   assert.match(media, /resolveImageStoryJobClass/);
   assert.match(media, /readStoryModePolicy/);
-  assert.match(media, /readStoryModeJobRouting/);
-  assert.match(media, /resolveStoryModeJobRoute/);
+  assert.doesNotMatch(media, /readStoryModeJobRouting/);
+  assert.match(media, /selectedImageExecution/);
   assert.match(media, /storyImageRouteCandidates/);
   assert.match(media, /const execution = await resolveImageExecutionRoute\(store, input\)/);
   assert.match(media, /jobClass: execution\.jobClass/);
@@ -35,7 +35,7 @@ test("#2106 per-job routing uses only tested executable image routes and does no
   }
   assert.match(resolver, /store\.comfyui\.imageVerifiedAt/);
   assert.match(resolver, /assistantVerifiedAt/);
-  assert.match(resolver, /profile\?\.imageVerifiedAt/);
+  assert.match(resolver, /cloudMediaReadiness\(profile, "image"\)/);
   assert.match(resolver, /selected: choice\.image ===/);
   assert.doesNotMatch(resolver, /writeRoutingChoice|writeMediaRoutingStore|selectRoute/);
 });
@@ -47,23 +47,17 @@ test("#2106 Ollama plus ComfyUI now participates in the same live Job Routing bo
   ]);
 
   assert.match(ai, /export async function createOllamaComfyImage\(input: ImageGenerationInput\)/);
-  assert.match(ai, /export async function readRoutingChoice\(\)/);
+  assert.match(ai, /export async function readRoutingChoice\(\): Promise<RoutingChoice>/);
   assert.doesNotMatch(ai, /pathname === IMAGE_PATH/);
   assert.match(media, /createOllamaComfyImage\(input\)/);
   assert.match(media, /route === "ollama-comfyui"/);
 });
 
-test("#2106 Hybrid Story Mode exposes the two real image workloads and persists routing preferences", async () => {
+test("#2106 Hybrid retires per-job provider preferences in favor of the selected capability route", async () => {
   const panel = await read("app/skin-v1/hybrid-story-mode-panel.tsx");
 
-  assert.match(panel, /IMAGES — FAST \/ DRAFT/);
-  assert.match(panel, /IMAGES — PRECISION \/ EDIT/);
-  assert.match(panel, /AUTO/);
-  assert.match(panel, /LOCAL FIRST/);
-  assert.match(panel, /CLOUD FIRST/);
-  assert.match(panel, /fetch\("\/api\/story-mode\/job-routing"/);
-  assert.match(panel, /body: JSON\.stringify\(\{ jobClass, preference \}\)/);
-  assert.match(panel, /data-story-mode-job-routing="image"/);
+  assert.doesNotMatch(panel, /data-story-mode-job-routing|LOCAL FIRST|CLOUD FIRST|fetch\("\/api\/story-mode\/job-routing"/);
+  assert.match(panel, /Hybrid controls where work runs/);
   assert.doesNotMatch(panel, /PINNED PROVIDER|Ollama Hybrid|ollama-hybrid/);
 });
 

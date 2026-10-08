@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "issue": 2841,
+  "brief": "docs/developer-briefs/2841-consistent-capability-routing.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/api/cloud-story-mode/comfy-cloud/route.ts",
+    "app/api/cloud-story-mode/provider/route.ts",
+    "app/h3-native-panel.tsx",
+    "app/skin-v1/capability-diagnostics-log.tsx",
+    "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/compute-ready-marker.tsx",
+    "app/skin-v1/hybrid-story-mode-panel.tsx",
+    "app/skin-v1/local-ai-skin-host.tsx",
+    "app/skin-v1/local-comfyui-api-video-setup.tsx",
+    "app/skin-v1/local-comfyui-panel.tsx",
+    "app/skin-v1/provider-consent-setup.tsx",
+    "app/skin-v1/story-mode-capability-connections.tsx",
+    "app/skin-v1/story-mode-host.tsx",
+    "build/ai-routing-gateway.ts",
+    "build/ai/capabilities/capability-diagnostics.ts",
+    "build/ai/capabilities/capability-routing-state.ts",
+    "build/ai/comfyui-media-provider.ts",
+    "build/ai/h3/comfyui-h3-native-gateway.ts",
+    "build/cloud-media-provider.ts",
+    "build/local-credentials.ts",
+    "build/media-routing-gateway.ts",
+    "build/media-routing-store.ts",
+    "build/story-mode-policy-gateway.ts",
+    "build/writing-assistant-gateway.ts",
+    "config/development-verification-routing.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/contracts/compute/capability-routes.mjs",
+    "core/storage/profile-private/profile-compute-settings.mjs",
+    "docs/developer-briefs/2841-consistent-capability-routing.md",
+    "lib/preproduction/provider-capability-contract.ts",
+    "lib/video-production.mjs",
+    "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
+    "tests/issue-1255-comfyui-real-machine.test.mjs",
+    "tests/issue-1901-story-mode-connections.test.mjs",
+    "tests/issue-2106-live-image-job-routing.test.mjs",
+    "tests/issue-2106-story-mode-surface.test.mjs",
+    "tests/issue-2841-capability-harness.test.mjs",
+    "config/development-convergence/2841.json",
+    "app/skin-v1/plotpickle-agents-host.tsx",
+    "build/agent-compute-gateway.ts",
+    "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
+    "tests/issue-2341-dsdd-zero-config.test.mjs",
+    "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
+    "app/skin-v1/dashboard-bbs-panel.tsx"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTHORITY",
+      "criterion": "Only Hybrid selects; unavailable selections fail without paid fallback",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "Unavailable selected route sends no paid request"
+        }
+      ]
+    },
+    {
+      "id": "SETUP",
+      "criterion": "Workflow imports and completed tests preserve the selected route",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "Test completion must not change selection."
+        }
+      ]
+    },
+    {
+      "id": "ISOLATION",
+      "criterion": "Encrypted profile job history, consent and selections survive restart",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "media-comfy-video-jobs.json"
+        }
+      ]
+    },
+    {
+      "id": "SURFACE",
+      "criterion": "Rendered setup controls are singular and Hybrid alone selects",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
+          "contains": "one setup action per provider"
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS",
+      "criterion": "Read-only operational history excludes credentials and story text",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "Synthetic private shot prompt"
+        }
+      ]
+    },
+    {
+      "id": "TRUTH",
+      "criterion": "Provider inference and Human Windows acceptance are not claimed from synthetic proof",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2841-consistent-capability-routing.md",
+          "contains": "Those remain UNPROVEN"
+        }
+      ]
+    }
+  ]
+}

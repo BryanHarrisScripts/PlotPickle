@@ -1,3 +1,5 @@
+import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-request-context";
+import { readCredentialJson, writeCredentialJson } from "../../../../build/local-credentials";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
@@ -122,7 +124,7 @@ function workflowLane(value: unknown): VisualComputeLaneId {
 }
 
 async function readSettings(runtimeState: Awaited<ReturnType<typeof getProfileExperienceRuntime>>, authContext: Parameters<typeof runtimeState.privateStorage.readCredential>[0]) {
-  return normalized(await runtimeState.privateStorage.readCredential(authContext, CREDENTIAL_NAME));
+  return normalized(await readCredentialJson(CREDENTIAL_NAME));
 }
 
 async function testConnection(settings: ComfyCloudSettings) {
@@ -145,7 +147,7 @@ async function testConnection(settings: ComfyCloudSettings) {
   }
 }
 
-export async function GET(request: Request) {
+async function handleGet(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
     return response(publicSettings(await readSettings(runtimeState, authContext)));
@@ -154,7 +156,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request, true);
     const input = await request.json() as Record<string, unknown>;
@@ -177,7 +179,7 @@ export async function POST(request: Request) {
         next.testedAt = "";
         next.testedNodeCount = 0;
       }
-      await runtimeState.privateStorage.writeCredential(authContext, CREDENTIAL_NAME, next);
+      await writeCredentialJson(CREDENTIAL_NAME, next);
       return response({
         ...publicSettings(next),
         message: "Comfy Cloud preferences saved for this Human profile. No workflow was submitted and no generation credits were used.",
@@ -191,7 +193,7 @@ export async function POST(request: Request) {
         testedAt: new Date().toISOString(),
         testedNodeCount: nodeCount,
       };
-      await runtimeState.privateStorage.writeCredential(authContext, CREDENTIAL_NAME, next);
+      await writeCredentialJson(CREDENTIAL_NAME, next);
       return response({
         ...publicSettings(next),
         message: `Comfy Cloud connection verified with a non-generative object-info request (${nodeCount} node definitions reported).`,
@@ -203,4 +205,13 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Comfy Cloud setup failed.";
     return response({ ok: false, message }, 400);
   }
+}
+
+export async function GET(request: Request) {
+  try { return await withAuthenticatedProfileRequest(request, () => handleGet(request)); }
+  catch { return response({ ok: false, message: "Unlock your profile before reading Comfy Cloud setup." }, 403); }
+}
+export async function POST(request: Request) {
+  try { return await withAuthenticatedProfileRequest(request, () => handlePost(request)); }
+  catch { return response({ ok: false, message: "Unlock your profile before saving Comfy Cloud setup." }, 403); }
 }

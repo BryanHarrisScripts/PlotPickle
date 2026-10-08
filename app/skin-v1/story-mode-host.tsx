@@ -79,7 +79,7 @@ function hybridSelectionReady(status: AiRoutingStatus | null) {
       ? route.locality
       : null;
   });
-  return selected.every(Boolean) && selected.includes("local") && selected.includes("cloud");
+  return selected.every(Boolean);
 }
 
 
@@ -217,24 +217,9 @@ export default function StoryModeHost({
   }
 
   async function activate(nextMode: StoryModePolicy) {
-    // Configuration remains reachable even while the execution-policy write is pending or unavailable.
-    // The active policy indicator changes only after the policy authority confirms the write.
     setView(nextMode);
-    setMessage(`Switching Story Mode to ${nextMode.toUpperCase()}...`);
-    try {
-      const response = await fetch("/api/story-mode/policy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: nextMode }),
-      });
-      const payload = await response.json() as StoryModePolicyResponse;
-      if (!response.ok || !payload.ok || payload.mode !== nextMode) throw new Error(payload.message || "Story Mode policy update failed.");
-      setMode(nextMode);
-      setMessage(`Story Mode is ${nextMode.toUpperCase()}.`);
-      void refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Story Mode policy update failed.");
-    }
+    setMessage(nextMode === "hybrid" ? "Hybrid controls capability routing." : `${nextMode.toUpperCase()} configures and verifies resources. Route selection stays in Hybrid.`);
+    void refresh();
   }
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {

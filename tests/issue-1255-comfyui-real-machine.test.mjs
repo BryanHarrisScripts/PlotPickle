@@ -58,8 +58,9 @@ test("#1255 local image readiness requires real ComfyUI nodes checkpoint a retur
   assert.match(provider, /return \{ assetUrl, assetLocation,/);
   assert.match(panel, /const comfyConfigured = status\.comfyui\.reachable && status\.comfyui\.imageNodesReady && Boolean\(status\.comfyui\.checkpoint\)/);
   assert.match(panel, /const comfyReady = comfyConfigured && Boolean\(status\.comfyui\.imageVerifiedAt\)/);
-  assert.match(routing, /const comfyImageReady = computeReadiness\(\{ configured: comfyImageConfigured && comfy\.imageNodesReady, available: comfy\.reachable, verifiedAt: media\.comfyui\.imageVerifiedAt, error: media\.comfyui\.lastError \}\)\.ready/);
-  assert.match(routing, /const ollamaImageReady = Boolean\(ollama\?\.assistantVerifiedAt && comfyImageReady\)/);
+  assert.match(routing, /const sdxlImageReady = computeReadiness\(\{ configured: comfyImageConfigured && comfy\.imageNodesReady, available: comfy\.reachable, verifiedAt: media\.comfyui\.imageVerifiedAt, error: media\.comfyui\.lastError \}\)\.ready/);
+  assert.match(routing, /const ollamaImageReady = Boolean\(writingReadiness\(ollama, Boolean\(ollamaProbe\?\.reachable && ollamaProbe.models.includes\(ollama\?\.textModel/);
+  assert.match(routing, /\.ready && comfyImageReady\)/);
 });
 
 test("#1255 start remains explicit and never silently installs optional H3 or cloud model packs", async () => {

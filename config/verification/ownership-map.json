@@ -613,6 +613,7 @@
       "classification": "production",
       "include": [
         "app/api/cloud-story-mode/provider/route.ts",
+        "app/api/cloud-story-mode/comfy-cloud/route.ts",
         "build/ai-routing-gateway.ts",
         "build/ai/comfyui-media-provider.ts",
         "build/ai/comfyui-sdxl-local-gateway.ts",
@@ -624,7 +625,11 @@
         "build/provider-url.ts",
         "lib/runtime/ai/local-runtime.ts",
         "build/ai/h3/comfyui-h3-native-provider.ts",
-        "core/contracts/compute/compute-readiness.mjs"
+        "build/ai/h3/comfyui-h3-native-gateway.ts",
+        "core/contracts/compute/compute-readiness.mjs",
+        "build/ai/capabilities/capability-routing-state.ts",
+        "core/contracts/compute/capability-routes.mjs",
+        "build/ai/capabilities/capability-diagnostics.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [
@@ -1080,7 +1085,8 @@
       "classification": "production",
       "include": [
         "core/contracts/storyboard/**",
-        "lib/preproduction/**"
+        "lib/preproduction/**",
+        "lib/video-production.mjs"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [
@@ -1430,6 +1436,7 @@
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/developer-diagnostics/2821-save-session-product-proof.mjs",
         "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+        "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",
         "scripts/performance/measure-browser-responsiveness.mjs",

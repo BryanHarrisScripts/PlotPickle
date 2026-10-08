@@ -13,7 +13,7 @@ test("#2341 DSDD bypasses global provider selection and requests local Quality d
 
   assert.match(dsdd, /provider: "local"[\s\S]*modelRole: "quality"/u);
   assert.match(gateway, /const explicitLocal = body\.provider === "local"/u);
-  assert.match(gateway, /const requestedProvider = explicitLocal \? "local" : store\.activeProvider/u);
+  assert.match(gateway, /const requestedProvider = explicitLocal && dsddIntentScope \? "local" : choice\.text/u);
   assert.match(gateway, /profileForProvider\(store, requestedProvider, role\)/u);
   assert.doesNotMatch(dsdd, /Select a text engine|Configuration Dashboard|OpenAI|Gemini|MiniMax/u);
 });

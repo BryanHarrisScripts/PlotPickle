@@ -1,7 +1,11 @@
+import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
+import { selectedImageExecution } from "../core/contracts/compute/capability-routes.mjs";
+import { requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { cloudMediaReadiness, computeReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
+  videoAuthorityHash,
   createCloudVideo,
   generateCloudImage,
   publicCloudVideoJob,
@@ -36,9 +40,7 @@ import {
 } from "./media-provider-common";
 import { createOllamaComfyImage, readRoutingChoice } from "./ai-routing-gateway";
 import {
-  readStoryModeJobRouting,
   readStoryModePolicy,
-  resolveStoryModeJobRoute,
   type StoryModeJobRouteCandidate,
 } from "./story-mode-policy-gateway";
 import { readSynchronizedAssistantStore } from "./writing-assistant-store";
@@ -216,18 +218,13 @@ async function storyImageRouteCandidates(store: MediaRoutingStore): Promise<Stor
 
 async function resolveImageExecutionRoute(store: MediaRoutingStore, input: ImageGenerationInput) {
   const jobClass = resolveImageStoryJobClass(input);
-  const [policy, jobRouting, candidates] = await Promise.all([
-    readStoryModePolicy(),
-    readStoryModeJobRouting(),
-    storyImageRouteCandidates(store),
-  ]);
-  const resolution = resolveStoryModeJobRoute(policy.mode, jobRouting.jobs[jobClass], candidates);
-  return {
-    route: resolution.routeId as StoryImageExecutionRoute,
-    locality: resolution.locality,
-    preference: resolution.preference,
-    jobClass,
-  };
+  const [policy, candidates] = await Promise.all([readStoryModePolicy(), storyImageRouteCandidates(store)]);
+  const selected = candidates.find((candidate) => candidate.selected);
+  await relayCapabilityDiagnostic("image", selected?.routeId || "manual", "preflight", selected?.ready ? "ready" : "selected-route-unavailable");
+  const resolution = selectedImageExecution(policy.mode, candidates);
+  await requireRouteConsent("image", resolution.routeId);
+  return { route: resolution.routeId as StoryImageExecutionRoute, locality: resolution.locality, preference: "selected", jobClass };
+
 }
 
 async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecutionRoute) {
@@ -247,10 +244,11 @@ async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecu
     }
   }
   await writeMediaRoutingStore(store);
+  await relayCapabilityDiagnostic("image", route, "saved", "generated-image-saved");
 }
 
 async function saveImageError(store: MediaRoutingStore, route: StoryImageExecutionRoute, message: string) {
-  invalidateImageVerification(store, providerForImageRoute(route) || route, message);
+  invalidateImageVerification(store, providerForImageRoute(route === "ollama-comfyui" ? "comfyui" : route) || route, message);
   await writeMediaRoutingStore(store);
 }
 
@@ -285,14 +283,20 @@ async function createVideo(store: MediaRoutingStore, route: VideoRoute, input: V
   if (route === "none") throw new Error("Video routing is Off. Select MiniMax H3 Direct or MiniMax H3 through ComfyUI.");
   const profile = store.profiles.minimax;
   if (!profile) throw new Error("Configure MiniMax in Settings before creating an H3 video.");
-  if (route === "minimax-direct") return publicCloudVideoJob(await createCloudVideo(profile, input));
+  if (route === "minimax-direct") {
+    const job = await createCloudVideo(profile, input);
+    await relayCapabilityDiagnostic("video", "minimax", "submitted", "provider-submitted", job.id);
+    return publicCloudVideoJob(job);
+  }
   const workflow = store.comfyui.h3Workflow;
   if (!workflow) throw new Error("Import a reviewed ComfyUI API workflow for MiniMax-H3 first.");
   const probe = await probeComfyUI(store.comfyui.baseUrl, workflow);
   if (!probe.reachable || !probe.workflowNodesReady) {
     throw new Error(probe.error || `ComfyUI is missing workflow nodes: ${probe.missingWorkflowNodes.join(", ")}`);
   }
-  return publicComfyVideoJob(await createComfyVideo(store.comfyui.baseUrl, workflow, profile, input));
+  const job = await createComfyVideo(store.comfyui.baseUrl, workflow, profile, input);
+  await relayCapabilityDiagnostic("video", "minimax-comfyui", "submitted", "workflow-submitted", job.id);
+  return publicComfyVideoJob(job);
 }
 
 async function queryVideo(store: MediaRoutingStore, id: string) {
@@ -300,28 +304,26 @@ async function queryVideo(store: MediaRoutingStore, id: string) {
   if (!profile) throw new Error("The MiniMax profile used by this video job is no longer configured.");
   if (id.startsWith("comfyui-")) {
     const job = await queryComfyVideo(store.comfyui.baseUrl, id);
-    if (job.status === "succeeded" && store.comfyui.h3Workflow) {
+    if (job.status === "succeeded" && job.outputAssetUrl && store.comfyui.h3Workflow?.hash === job.workflowHash && job.authorityHash === videoAuthorityHash(profile)) {
       const now = new Date().toISOString();
       store.comfyui.h3Workflow.verifiedAt = now;
       store.comfyui.h3Workflow.verifiedHash = store.comfyui.h3Workflow.hash;
       store.comfyui.h3Workflow.lastError = "";
-      store.videoRoute = "minimax-comfyui";
       profile.videoVerifiedAt = now;
       await writeMediaRoutingStore(store);
     }
+    await relayCapabilityDiagnostic("video", "minimax-comfyui", job.status === "succeeded" ? "saved" : job.status === "failed" ? "failed" : "polling", job.status === "succeeded" ? "video-downloaded-and-saved" : `job-${job.status}`, job.id);
     return publicComfyVideoJob(job);
   }
   const job = await queryCloudVideo(profile, id);
-  if (job.status === "succeeded") {
+  if (job.status === "succeeded" && job.outputAssetUrl) {
     const now = new Date().toISOString();
     profile.videoVerifiedAt = now;
     profile.lastError = "";
-    // A successful direct H3 verification is durable provider proof. Persist
-    // both the verification stamp and the matching media route so startup and
-    // Timeline can restore readiness without another paid test.
-    store.videoRoute = "minimax-direct";
+    // Tests record proof without selecting a route.
     await writeMediaRoutingStore(store);
   }
+  await relayCapabilityDiagnostic("video", "minimax", job.status === "succeeded" ? "saved" : job.status === "failed" ? "failed" : "polling", job.status === "succeeded" ? "video-downloaded-and-saved" : `job-${job.status}`, job.id);
   return publicCloudVideoJob(job);
 }
 
@@ -337,26 +339,7 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
       return;
     }
     if (pathname === ROUTES_PATH && request.method === "POST") {
-      const body = await readBody(request);
-      if (typeof body.imageRoute === "string") {
-        const route = body.imageRoute as ImageRoute;
-        if (!["comfyui", "openai", "minimax", "manual"].includes(route)) throw new Error("Choose a supported image route.");
-        if ((route === "openai" || route === "minimax") && !store.profiles[route]) throw new Error(`Configure ${route} in Settings before selecting it.`);
-        store.imageRoute = route;
-      }
-      if (typeof body.videoRoute === "string") {
-        const route = body.videoRoute as VideoRoute;
-        if (!["minimax-direct", "minimax-comfyui", "none"].includes(route)) throw new Error("Choose a supported video route.");
-        if (route !== "none" && !store.profiles.minimax) throw new Error("Configure MiniMax before selecting an H3 route.");
-        if (route === "minimax-comfyui") {
-          const status = await mediaStatus(store);
-          if (!status.hybridGate.ready) throw new Error("Complete every ComfyUI H3 prerequisite and successful paid test before enabling the hybrid route.");
-        }
-        store.videoRoute = route;
-      }
-      await writeMediaRoutingStore(store);
-      sendJson(response, 200, await mediaStatus(store));
-      return;
+      throw new Error("Select capability routes in Settings → Hybrid. Connection setup does not activate a route.");
     }
     if (pathname === COMFYUI_CONNECTION_PATH && request.method === "POST") {
       const body = await readBody(request);
@@ -451,7 +434,6 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
         verifiedHash: "",
         lastError: "",
       };
-      store.videoRoute = "none";
       await writeMediaRoutingStore(store);
       sendJson(response, 200, { ok: true, nodeClasses, ...(await mediaStatus(store)) });
       return;
@@ -481,10 +463,12 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
     if (pathname === TEST_VIDEO_PATH && request.method === "POST") {
       const body = await readBody(request);
       const route = typeof body.route === "string" ? body.route as VideoRoute : store.videoRoute;
+      await requireRouteConsent("video", route === "minimax-comfyui" ? "minimax-comfyui" : "minimax");
       const job = await createVideo(store, route, {
         prompt: typeof body.prompt === "string" ? body.prompt : "A paper storyboard panel gently comes to life with a slow camera push and natural movement.",
         assetId: `h3-route-test-${route}`,
-        durationSeconds: 4,
+        sourceAssetUrl: typeof body.sourceAssetUrl === "string" ? body.sourceAssetUrl : "",
+        durationSeconds: 5,
         aspectRatio: "16:9",
         billingAcknowledged: body.billingAcknowledged,
         dataSharingAcknowledged: body.dataSharingAcknowledged,
@@ -513,13 +497,19 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
           ...result,
         });
       } catch (error) {
+        await relayCapabilityDiagnostic("image", execution.route, "failed", "image-generation-failed");
         await saveImageError(store, execution.route, error instanceof Error ? error.message : "Image generation failed.");
         throw error;
       }
       return;
     }
     if (pathname === VIDEO_PATH && request.method === "POST") {
-      const job = await createVideo(store, store.videoRoute, await readBody(request, 128 * 1024) as VideoGenerationInput);
+      const choice = await readRoutingChoice();
+      const route = choice.video === "minimax" ? "minimax-direct" : choice.video === "minimax-comfyui" ? "minimax-comfyui" : "none";
+      await requireRouteConsent("video", choice.video);
+      const status = await mediaStatus(store);
+      if (route === "minimax-comfyui" ? !status.hybridGate.ready : route === "none" || !cloudMediaReadiness(store.profiles.minimax, "video").ready) throw new Error("The selected Video route is not verified and available. Open Settings → Hybrid.");
+      const job = await createVideo(store, route, await readBody(request, 128 * 1024) as VideoGenerationInput);
       sendJson(response, 200, { ok: true, ...job });
       return;
     }
@@ -536,6 +526,10 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
     }
     sendJson(response, 404, { ok: false, message: "Media-routing operation not found." });
   } catch (error) {
+    if (pathname === IMAGE_PATH || pathname === VIDEO_PATH) {
+      const choice = await readRoutingChoice();
+      await relayCapabilityDiagnostic(pathname === IMAGE_PATH ? "image" : "video", pathname === IMAGE_PATH ? choice.image : choice.video, "failed", "selected-capability-request-failed");
+    }
     const message = error instanceof Error ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]") : "The media-routing operation failed.";
     sendJson(response, 400, { ok: false, message });
   }

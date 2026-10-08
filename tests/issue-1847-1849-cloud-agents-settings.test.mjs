@@ -14,7 +14,7 @@ test("#1847 Cloud Story Mode exposes only real resources and capability-driven t
   for (const label of ["Writing", "Images", "Video", "Agents"]) {
     assert.match(cloud, new RegExp(`${label.toLowerCase()}: "${label}"`, "u"));
   }
-  for (const label of ["OpenAI", "ComfyUI", "Gemini", "MiniMax"]) {
+  for (const label of ["OpenAI", "ComfyUI Cloud", "Gemini", "MiniMax"]) {
     assert.ok(cloud.includes(`"${label}"`), `Cloud Story Mode should expose ${label}`);
   }
   assert.match(cloud, /group: "CAPABILITIES"/u);
@@ -24,80 +24,38 @@ test("#1847 Cloud Story Mode exposes only real resources and capability-driven t
   assert.doesNotMatch(cloud, /<AiRoutingPanel/u);
   assert.doesNotMatch(cloud, /Remote Compute|PlannedRemoteCompute|id: "remote"/u);
   assert.doesNotMatch(cloud, /Sora|sora/u);
-  assert.match(shared, /I understand remote provider API requests may incur charges/u);
-  assert.match(shared, /data-cloud-capability-consent="billing"/u);
+  assert.doesNotMatch(shared, /data-cloud-capability-consent/u);
+  assert.match(cloud, /ProviderConsentSetup/u);
 });
 
-test("#1848 PlotPickle Agent compute has default, per-Agent override and no silent fallback", async () => {
-  const [host, store, gateway, writing, localGateway] = await Promise.all([
-    read("app/skin-v1/plotpickle-agents-host.tsx"),
-    read("build/agent-compute-store.ts"),
-    read("build/agent-compute-gateway.ts"),
-    read("build/writing-assistant-gateway.ts"),
-    read("build/local-ai-gateway.ts"),
+test("#1848 PlotPickle text Agents follow Hybrid without duplicate provider selectors or silent fallback", async () => {
+  const [host, gateway, writing, localGateway] = await Promise.all([
+    read("app/skin-v1/plotpickle-agents-host.tsx"), read("build/agent-compute-gateway.ts"),
+    read("build/writing-assistant-gateway.ts"), read("build/local-ai-gateway.ts"),
   ]);
-
-  assert.match(host, /DEFAULT COMPUTE/u);
-  assert.match(host, /PER-AGENT OVERRIDES/u);
-  assert.match(host, /Use PlotPickle default/u);
-  assert.match(host, /Local Story Mode and Cloud Story Mode supply/u);
+  assert.match(host, /WRITING COMPUTE/u);
+  assert.match(host, /Hybrid Writing selection/u);
+  assert.doesNotMatch(host, /<select|PER-AGENT OVERRIDES|method: "POST"/u);
   assert.match(host, /BUZZ identity, rooms, presence, keys, provider and model settings remain in BUZZ/u);
-  assert.match(host, /<optgroup label="LOCAL STORY MODE">/u);
-  assert.match(host, /<optgroup label="CLOUD STORY MODE">/u);
-  assert.match(host, /provider\.locality === "local"/u);
-  assert.match(host, /provider\.locality === "cloud"/u);
-  assert.match(host, /disabled=\{!provider\.ready\}/u);
-  assert.match(host, /<ProviderOptionGroups providers=\{status\.providers\} \/>/u);
-  assert.doesNotMatch(host, /providers\.filter\(\(provider\) => provider\.ready\)/u);
-
-  assert.match(store, /defaultProvider: "active"/u);
-  assert.match(store, /overrides: Record<string, TextProvider>/u);
-  assert.match(store, /resolveAgentComputeProvider/u);
   assert.match(gateway, /profile\.execution\.kind === "embedded-mastra"/u);
-  assert.match(gateway, /BUZZ-managed Agents are configured in BUZZ/u);
-  assert.match(gateway, /requireReadyProvider/u);
+  assert.match(gateway, /activeProvider: choice\.text === "off"/u);
+  assert.match(gateway, /Select the Writing resource in Settings → Hybrid/u);
   assert.match(localGateway, /registerAgentComputeGateway\(server\)/u);
-
-  assert.match(writing, /readAgentComputeStore/u);
-  assert.match(writing, /resolveAgentComputeProvider/u);
-  assert.match(writing, /Update Settings \/ Agents; no fallback provider was used/u);
+  assert.match(writing, /explicit !== selected/u);
   assert.match(writing, /computeSource: assigned\.source/u);
 });
 
-test("#1849 Skin V1 Settings is a condensed Dashboard-styled keyboard directory", async () => {
+test("#1849 Settings keyboard directory opens Local, Cloud, Hybrid and the Agent roster", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
-
-  for (const [id, shortcut] of Object.entries({
-    general: "G",
-    appearance: "A",
-    "project-defaults": "P",
-    "local-story-mode": "L",
-    "node-info": "I",
-    cloud: "C",
-    agents: "N",
-    advanced: "V",
-  })) {
-    const sourceKey = id.includes("-") ? JSON.stringify(id) : id;
-    assert.match(dashboard, new RegExp(`${sourceKey}: "${shortcut}"`, "u"));
-  }
-
-  assert.match(dashboard, /id: "advanced"[\s\S]*label: "Advanced"/u);
-  for (const retired of ["id: \"data\"", "id: \"deploy\"", "id: \"repos\"", "id: \"auth\"", "id: \"open-source\""]) {
-    assert.doesNotMatch(dashboard, new RegExp(retired, "u"));
-  }
-  assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
-  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
-  assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
+  for (const id of ["local", "cloud", "hybrid", "agents"]) assert.match(dashboard, new RegExp(`id: "${id}"`, "u"));
+  assert.match(dashboard, /PlotPickleAgentsHost/u);
+  assert.match(dashboard, /initialView=\{storyModeView\}/u);
   assert.match(dashboard, /event\.key === "ArrowDown"/u);
   assert.match(dashboard, /event\.key === "ArrowUp"/u);
-  assert.match(dashboard, /event\.key === "Enter" \|\| event\.key === " "/u);
   assert.match(dashboard, /event\.key === "Escape"/u);
-  assert.match(dashboard, /data-settings-shortcut=\{item\.shortcut\}/u);
-  assert.match(dashboard, /pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs/u);
-  assert.match(dashboard, /PlotPickleAgentsHost/u);
 });
 
-test("#1852 Agent Setup shows the complete system-sorted roster and edits only PlotPickle-owned LLM routes", async () => {
+test("#1852 Agent Setup shows the complete system-sorted roster and reports Hybrid Writing for PlotPickle-owned LLM routes", async () => {
   const [host, gateway, baseProfiles, communityProfiles, developerStack] = await Promise.all([
     read("app/skin-v1/plotpickle-agents-host.tsx"),
     read("build/agent-compute-gateway.ts"),

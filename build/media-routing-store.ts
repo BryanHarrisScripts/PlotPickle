@@ -190,13 +190,6 @@ export async function readMediaRoutingStore() {
     if (next.imageRoute === "manual") next.imageRoute = imported.provider;
     changed = true;
   }
-  if (next.videoRoute === "minimax-comfyui") {
-    const workflow = next.comfyui.h3Workflow;
-    if (!workflow?.verifiedAt || workflow.verifiedHash !== workflow.hash) {
-      next.videoRoute = "none";
-      changed = true;
-    }
-  }
   if (changed && currentProfileRequestContext()) await writeMediaRoutingStore(next);
   return next;
 }

@@ -2,10 +2,10 @@
 export const COMPUTE_SETTING_NAMES = Object.freeze([
   "ai-connection.json", "writing-assistant-profiles.json", "media-routing.json",
   "ai-routing.json", "plotpickle-agent-compute.json", "h3-native-routing.json",
-  "local-runtime.json", "story-mode-policy.json", "story-mode-job-routing.json",
+  "local-runtime.json", "story-mode-policy.json", "story-mode-job-routing.json", "provider-consent.json", "comfy-cloud.json",
 ]);
 export const COMPUTE_PRIVATE_NAMES = Object.freeze([
-  ...COMPUTE_SETTING_NAMES, "openai-video-jobs.json", "h3-native-jobs.json",
+  ...COMPUTE_SETTING_NAMES, "openai-video-jobs.json", "h3-native-jobs.json", "media-comfy-video-jobs.json", "media-cloud-video-jobs.json", "capability-diagnostics.json",
 ]);
 const RECORD = "compute-setup.json";
 const queues = new WeakMap();
@@ -24,14 +24,21 @@ export async function readProfileComputeSetting(context, name) {
   return context.privateStorage.readCredential(context.authContext, name);
 }
 export function writeProfileComputeSetting(context, name, value) {
+  return writeProfileComputeSettings(context, { [name]: value });
+}
+export function writeProfileComputeSettings(context, updates, expected = {}) {
   if (!context) throw new Error("Unlock a PlotPickle profile before saving compute setup.");
-  if (!COMPUTE_SETTING_NAMES.includes(name)) throw new Error("Unknown compute setting.");
+  if (Object.keys(updates).some((name) => !COMPUTE_SETTING_NAMES.includes(name))) throw new Error("Unknown compute setting.");
   const queue = queueFor(context.privateStorage);
   const prior = queue.get(context.profileId) ?? Promise.resolve();
   const write = prior.catch(() => {}).then(async () => {
     const stored = await context.privateStorage.readCredential(context.authContext, RECORD);
     const settings = stored?.version === 1 ? { ...stored.settings } : {};
-    settings[name] = value;
+    for (const [name, value] of Object.entries(expected)) {
+      const current = Object.hasOwn(settings, name) ? settings[name] : await context.privateStorage.readCredential(context.authContext, name);
+      if (JSON.stringify(current ?? null) !== JSON.stringify(value ?? null)) throw new Error("Compute setup changed during selection. Refresh Hybrid and retry; no route was changed.");
+    }
+    Object.assign(settings, updates);
     await context.privateStorage.writeCredential(context.authContext, RECORD, { version: 1, settings });
   });
   queue.set(context.profileId, write);

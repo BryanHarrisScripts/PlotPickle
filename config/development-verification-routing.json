@@ -21,7 +21,7 @@
     { "id": "ui-visual", "paths": ["app/**/*.css", "app/**/*.tsx", "public/**", "config/skin-v1-*.json"], "proofs": ["visual-observation"] },
     { "id": "navigation-keyboard", "paths": ["app/**/*navigation*", "app/**/*dashboard*", "app/**/*menu*", "config/skin-v1-surface-registry.json"], "proofs": ["navigation-action"] },
     { "id": "device-input", "paths": ["**/*microphone*", "**/*dictation*", "**/*voice-input*", "**/*camera*", "**/*whisper*"], "proofs": ["device-input"] },
-    { "id": "provider-runtime", "paths": ["build/ai/**", "lib/runtime/**", "**/*provider*"], "proofs": ["provider-execution"] },
+    { "id": "provider-runtime", "paths": ["build/ai/**", "build/ai-routing-gateway.ts", "build/media-routing-gateway.ts", "build/writing-assistant-gateway.ts", "core/contracts/compute/capability-routes.mjs", "lib/runtime/**", "**/*provider*"], "proofs": ["provider-execution"] },
     { "id": "image-generation", "paths": ["**/*image-generation*", "**/*generate-image*", "**/*image-provider*"], "proofs": ["generated-image"] },
     { "id": "video-generation", "paths": ["**/*video-generation*", "**/*video-export*", "**/*mp4*", "**/*animatic*"], "proofs": ["playable-video"] },
     { "id": "persistence-state", "paths": ["**/*persistence*", "**/*state-store*", "**/*storage*"], "proofs": ["state-recovery"] },

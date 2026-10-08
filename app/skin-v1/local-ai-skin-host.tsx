@@ -3,6 +3,8 @@
 import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
 
 import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import ComputeReadyMarker from "./compute-ready-marker";
+import LocalComfyUiApiVideoSetup from "./local-comfyui-api-video-setup";
 import LocalRuntimePanel from "../local-runtime-panel";
 import LocalComfyUiPanel from "./local-comfyui-panel";
 import LocalH3SetupPanel from "./local-h3-setup-panel";
@@ -192,22 +194,7 @@ function automaticLocalVideoReady(status: VideoPluginStatus | null) {
 }
 
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {
-  return (
-    <span
-      role="img"
-      aria-label={`${label} ${ready ? "local default ready" : "local default needs attention"}`}
-      title={ready ? "Local default ready" : "Local default needs attention"}
-      style={{
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        border: `var(--pp-skin-border-thin) solid ${ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-line)"}`,
-        background: ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-surface-3)",
-        boxShadow: ready ? "2px 2px 0 var(--pp-skin-accent-deep)" : "none",
-        justifySelf: "end",
-      }}
-    />
-  );
+  return <ComputeReadyMarker ready={ready} label={label} />;
 }
 
 export default function LocalAiSkinHost() {
@@ -216,7 +203,6 @@ export default function LocalAiSkinHost() {
   const [mediaImages, setMediaImages] = useState<MediaImageStatus | null>(null);
   const [videoPlugin, setVideoPlugin] = useState<VideoPluginStatus | null>(null);
   const [notice, setNotice] = useState("");
-  const [working, setWorking] = useState("");
   const [menuSelectedIndex, setMenuSelectedIndex] = useState(0);
   const menuRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -226,7 +212,7 @@ export default function LocalAiSkinHost() {
       fetch("/api/media-routing/status", { cache: "no-store" }).catch(() => null),
       fetch("/api/local-ai/plugins/video", { cache: "no-store" }).catch(() => null),
     ]);
-    if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
+    setRouting(routingResponse?.ok ? await routingResponse.json() as RoutingStatus : null);
     if (mediaResponse?.ok) setMediaImages(await mediaResponse.json() as MediaImageStatus);
     if (videoResponse?.ok) setVideoPlugin(await videoResponse.json() as VideoPluginStatus);
   }, []);
@@ -250,10 +236,10 @@ export default function LocalAiSkinHost() {
   }, [refreshStatus]);
 
   const lights: Record<CapabilityKey, boolean> = {
-    writing: localReady(routing?.text),
-    images: fixedLocalImagesReady(mediaImages),
-    video: automaticLocalVideoReady(videoPlugin),
-    agents: localReady(routing?.text),
+    writing: Object.values(routing?.text.options || {}).some((option) => option.locality === "local" && option.ready),
+    images: Object.values(routing?.image.options || {}).some((option) => option.locality === "local" && option.ready),
+    video: Object.values(routing?.video.options || {}).some((option) => option.locality === "local" && option.ready),
+    agents: Object.values(routing?.text.options || {}).some((option) => option.locality === "local" && option.ready),
   };
 
   const selectMenuItem = (index: number) => {
@@ -307,41 +293,6 @@ export default function LocalAiSkinHost() {
     }
   };
 
-  async function selectLocalRoute(capability: CapabilityKey, route: "ollama" | "comfyui") {
-    if (working) return;
-    const capabilityId = routingCapability(capability);
-    const option = routing?.[capabilityId].options[route];
-    if (!option?.ready) {
-      setNotice(`${route === "ollama" ? "Ollama" : "ComfyUI"} is not ready yet. Open its Connection page and complete setup/testing first.`);
-      return;
-    }
-
-    setWorking(`${capability}:${route}`);
-    setNotice("");
-    try {
-      const response = await fetch("/api/ai-routing/select", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          capability: capabilityId,
-          route,
-          paidAcknowledged: false,
-          dataSharingAcknowledged: false,
-        }),
-      });
-      const body = await response.json() as RoutingStatus & { message?: string };
-      if (!response.ok) throw new Error(body.message || "The local route could not be selected.");
-      setRouting(body);
-      setNotice(`${route === "ollama" ? "Ollama" : "ComfyUI"} is now the active ${LOCAL_DISPLAY_LABELS[capability].toLowerCase()} connection.`);
-      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The local route could not be selected.");
-      await refreshStatus();
-    } finally {
-      setWorking("");
-    }
-  }
-
   function ollamaConnection(capability: CapabilityKey): StoryModeConnectionRow {
     const group = routing?.text;
     const option = group?.options.ollama;
@@ -356,9 +307,6 @@ export default function LocalAiSkinHost() {
       active: Boolean(option?.ready && group?.selected === "ollama" && option.locality === "local"),
       setupLabel: setupActionLabel(state),
       onSetup: () => setView("ollama"),
-      useLabel: `Use for ${LOCAL_DISPLAY_LABELS[capability]}`,
-      onUse: () => void selectLocalRoute(capability, "ollama"),
-      useDisabled: state !== "ready" || Boolean(working),
     };
   }
 
@@ -366,7 +314,7 @@ export default function LocalAiSkinHost() {
     const option = routing?.image.options.comfyui;
     let state = connectionState(option);
     const fixedReady = fixedLocalImagesReady(mediaImages);
-    if (fixedReady) state = "ready";
+    if (option?.ready) state = "ready";
     else if (option?.error) state = "error";
     else if (mediaImages?.comfyui.reachable || option?.configured) state = "needs-test";
     else state = "setup";
@@ -380,24 +328,12 @@ export default function LocalAiSkinHost() {
       active: Boolean(fixedReady && routing?.image.selected === "comfyui"),
       setupLabel: state === "ready" ? "Open setup" : state === "needs-test" || state === "error" ? "Test / setup" : "Set up",
       onSetup: () => setView("comfyui"),
-      useLabel: "Use for Images",
-      onUse: () => void selectLocalRoute("images", "comfyui"),
-      useDisabled: state !== "ready" || Boolean(working),
     };
   }
 
   function videoRuntimeConnection(): StoryModeConnectionRow {
-    const runtimeReady = Boolean(videoPlugin?.recommendation.runtimeReady);
-    return {
-      id: "comfyui",
-      label: "ComfyUI",
-      role: "Local video workflow engine",
-      detail: LOCAL_DETAILS.comfyui,
-      state: runtimeReady ? "ready" : videoPlugin ? "needs-test" : "setup",
-      model: runtimeReady ? "Local runtime ready" : undefined,
-      setupLabel: runtimeReady ? "Open setup" : "Set up",
-      onSetup: () => setView("comfyui"),
-    };
+    const option = routing?.video.options["minimax-comfyui"];
+    return { id: "minimax-comfyui", label: "ComfyUI", role: "MiniMax API video workflow", detail: "Local ComfyUI runs the workflow; MiniMax generates video using your API account.", state: connectionState(option), model: option?.model, active: routing?.video.selected === "minimax-comfyui", setupLabel: "Setup", onSetup: () => setView("comfyui") };
   }
 
   function videoPluginConnection(kind: "ltx" | "h3"): StoryModeConnectionRow {
@@ -432,7 +368,7 @@ export default function LocalAiSkinHost() {
   function capabilityConnections(capability: CapabilityKey): StoryModeConnectionRow[] {
     if (capability === "writing" || capability === "agents") return [ollamaConnection(capability)];
     if (capability === "images") return [imageComfyConnection()];
-    return [videoRuntimeConnection(), videoPluginConnection("ltx"), videoPluginConnection("h3")];
+    return [videoRuntimeConnection(), { id: "comfyui-native", label: "ComfyUI — Native local inference", role: "Local H3 weights", detail: LOCAL_DETAILS.h3, state: connectionState(routing?.video.options["comfyui-native"]), setupLabel: "Setup", onSetup: () => setView("h3") }];
   }
 
   if (view !== "menu") {
@@ -456,7 +392,7 @@ export default function LocalAiSkinHost() {
           />
         ) : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
-        {view === "comfyui" ? <LocalComfyUiPanel /> : null}
+        {view === "comfyui" ? <><LocalComfyUiPanel /><LocalComfyUiApiVideoSetup /></> : null}
         {view === "ltx" ? <LocalLtxSetupPanel /> : null}
         {view === "h3" ? <LocalH3SetupPanel /> : null}
       </div>

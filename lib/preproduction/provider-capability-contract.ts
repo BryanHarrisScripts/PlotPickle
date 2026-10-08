@@ -253,7 +253,7 @@ export type TimelineShotGenerationPacket = Readonly<{
 }>;
 
 export type TimelineVideoCapability = Readonly<{
-  route: "comfyui-native" | "minimax" | "openai";
+  route: "comfyui-native" | "minimax" | "minimax-comfyui" | "openai";
   locality: "local" | "cloud";
   ready: boolean;
   workflowFamily?: TimelineVideoWorkflowFamily;

@@ -119,6 +119,11 @@ async function handlePost(request: Request) {
       lastError: "",
     };
 
+    if (!videoUnchanged && provider === "minimax" && mediaStore.comfyui.h3Workflow) {
+      mediaStore.comfyui.h3Workflow.verifiedAt = "";
+      mediaStore.comfyui.h3Workflow.verifiedHash = "";
+    }
+
     mediaStore.profiles[provider as CloudMediaProvider] = {
       provider,
       baseUrl,

@@ -1,3 +1,5 @@
+import { relayCapabilityDiagnostic } from "../capabilities/capability-diagnostics";
+import { readCapabilityChoice } from "../capabilities/capability-routing-state";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
@@ -138,7 +140,6 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
       const baseUrl = normalizeBaseUrl(body.baseUrl);
       if (store.baseUrl !== baseUrl) {
         store.baseUrl = baseUrl;
-        store.active = false;
         store.verifiedAt = "";
         store.lastError = "";
         await writeNativeH3Store(store);
@@ -150,11 +151,6 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
       const body = await readBody(request);
       const store = await readNativeH3Store();
       store.allowConstrainedVram = body.allowConstrainedVram === true;
-      if (body.active === true) {
-        const probe = await probeNativeH3(store);
-        if (!probe.ready) throw new Error(probe.error || "Complete every native H3 prerequisite before activation.");
-        store.active = true;
-      } else store.active = false;
       store.lastError = "";
       await writeNativeH3Store(store);
       sendJson(response, 200, await statusBody());
@@ -163,7 +159,7 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
     if (pathname === TEST_PATH && request.method === "POST") {
       const body = await readBody(request);
       const store = await readNativeH3Store();
-      const job = await createNativeH3Video(store, {
+      const job = await createNativeH3Video({ ...store, active: true }, {
         prompt: typeof body.prompt === "string"
           ? body.prompt
           : "A restrained cinematic camera move across a storyboard desk, natural motion, no text, no logo.",
@@ -177,6 +173,7 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
         aspectRatio: "16:9",
         performanceAcknowledged: body.performanceAcknowledged,
       });
+      await relayCapabilityDiagnostic("video", "comfyui-native", "submitted", "native-workflow-submitted", job.id);
       sendJson(response, 202, { ok: true, ...publicNativeH3Job(job) });
       return true;
     }
@@ -186,7 +183,6 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
     const store = await readNativeH3Store().catch(() => null);
     if (store) {
       store.lastError = message;
-      store.active = false;
       await writeNativeH3Store(store).catch(() => undefined);
     }
     sendJson(response, 400, { ok: false, message });
@@ -205,7 +201,7 @@ export function registerNativeH3Gateway(server: ViteDevServer) {
     if (pathname === VIDEO_PATH && request.method === "POST") {
       try {
         const store = await readNativeH3Store();
-        if (!store.active) {
+        if ((await readCapabilityChoice()).video !== "comfyui-native") {
           next();
           return;
         }
@@ -214,8 +210,9 @@ export function registerNativeH3Gateway(server: ViteDevServer) {
           return;
         }
         const body = await readBody(request);
-        const job = await createNativeH3Video(store, nativeInput(body));
-        sendJson(response, 202, { ok: true, ...publicNativeH3Job(job) });
+        const job = await createNativeH3Video({ ...store, active: true }, nativeInput(body));
+        await relayCapabilityDiagnostic("video", "comfyui-native", "submitted", "native-workflow-submitted", job.id);
+      sendJson(response, 202, { ok: true, ...publicNativeH3Job(job) });
       } catch (error) {
         sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : "Native H3 generation failed." });
       }
@@ -234,6 +231,7 @@ export function registerNativeH3Gateway(server: ViteDevServer) {
         }
         const store = await readNativeH3Store();
         const job = await queryNativeH3Video(store, id);
+        await relayCapabilityDiagnostic("video", "comfyui-native", job.status === "succeeded" ? "saved" : job.status === "failed" ? "failed" : "polling", `native-job-${job.status}`, job.id);
         sendJson(response, 200, { ok: true, ...publicNativeH3Job(job) });
       } catch (error) {
         sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : "The native H3 job could not be checked." });

@@ -88,7 +88,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
 
 test('#2855 sequence evidence excludes FADE IN and preserves sparse-story order across 25 images', async () => {
   const sparse = [
-    { type: 'action', text: 'FADE IN:\\nAmy watches the visitors approach.' },
+    { type: 'action', text: 'FADE IN:\nAmy watches the visitors approach.' },
     { type: 'scene-heading', text: 'INT. BBT TECHNOLOGIES - DAY' },
     { type: 'character', text: 'AMY' },
     { type: 'dialogue', text: 'I have a question.' },
@@ -123,7 +123,7 @@ test('#2855 sequence evidence excludes FADE IN and preserves sparse-story order 
   const start = file.indexOf('export function storyboardNarrationSourcePassagesInStoryOrder');
   const end = file.indexOf('export function storyboardSourceEvidenceForAnchor', start);
   assert.ok(start > -1 && end > start);
-  assert.doesNotMatch(file.slice(start, end), /\\.sort\\(/,
+  assert.doesNotMatch(file.slice(start, end), /\.sort\(/,
     'screenplay may not be reordered by opaque passage identifier for narration');
 });
 

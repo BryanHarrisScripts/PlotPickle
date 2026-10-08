@@ -235,11 +235,9 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     const image = await context.localImage(artifact.assetUrl);
     assert.equal(fetched, true);
     assert.equal(image.width, 1280);
-    const contactSheetStart = source.indexOf("async function lockedImageContactSheet");
-    const contactSheetEnd = source.indexOf("export default function PrevisReadinessWorkspace", contactSheetStart);
-    const contactSheetSource = source.slice(contactSheetStart, contactSheetEnd);
-    assert.match(contactSheetSource, /isSupportedVisualAssetUrl\(url\.pathname\)/u);
-    assert.doesNotMatch(contactSheetSource, /pathname\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
+    assert.doesNotMatch(source, /lockedImageContactSheet|fetch\\("\\/api\\/previs\\/narration"/u,
+      "Previs playback must use durable approved Storyboard text without new visual inference");
+    assert.match(source, /Playing approved text only/u);
   });
 });
 

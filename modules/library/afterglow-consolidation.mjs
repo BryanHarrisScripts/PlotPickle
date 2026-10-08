@@ -4,9 +4,13 @@
  * Unresolved collisions are evidence for the Human, never implicit newest wins.
  */
 export const AFTERGLOW_DURABLE_FIELDS = Object.freeze([
-  "foundations", "world", "build", "production", "structure", "sourceEvidence",
-  "writing", "discovery", "worldMap", "storyDevelopment", "mindMapNotes",
+  "title", "learning", "foundations", "world", "build", "production",
+  "structure", "sourceEvidence", "writing", "discovery", "worldMap",
+  "storyDevelopment", "mindMapNotes",
 ]);
+// Only profile/session and storage metadata are excluded. New durable project
+// roots must be reviewed explicitly, not silently omitted from consolidation.
+const EXCLUDED_PROFILE_METADATA = ["format", "id", "revision", "createdAt", "updatedAt", "creativeRoom"];
 const EXPECTED_REFERENCE = "afterglow-v9-complete-baseline";
 const ABSENT = Symbol("absent");
 const isRecord = v => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -99,6 +103,10 @@ export function planAfterglowConsolidation({baseline,sources}) {
      ||baseline.format!=="2.0-foundation"||!Array.isArray(sources)||!sources.length){
     throw new Error("Consolidation needs the trusted Afterglow baseline and saved projects.");
   }
+  const roots=new Set([...AFTERGLOW_DURABLE_FIELDS,...EXCLUDED_PROFILE_METADATA]);
+  for(const key of Object.keys(baseline)){
+    if(!roots.has(key))throw new Error("Unrecognized Afterglow project field requires review: "+key);
+  }
   const ids=new Set();
   const projects=sources.map(x=>{
     const p=x?.project;
@@ -107,6 +115,9 @@ export function planAfterglowConsolidation({baseline,sources}) {
        ||typeof p.updatedAt!=="string"||!Number.isFinite(Date.parse(p.updatedAt))
        ||!equal(p.sourceEvidence.referenceFixture,baseline.sourceEvidence.referenceFixture)){
       throw new Error("Consolidation rejected invalid, foreign, altered-source or duplicate Afterglow state.");
+    }
+    for(const key of Object.keys(p)){
+      if(!roots.has(key))throw new Error("Unrecognized saved Afterglow field requires review: "+key);
     }
     ids.add(p.id);return p;
   }).sort((a,b)=>a.updatedAt.localeCompare(b.updatedAt)||a.id.localeCompare(b.id));

@@ -639,6 +639,37 @@ function passageWindow(
 
 export const storyboardPassageWindowForPosition = passageWindow;
 
+// Comic text must be grounded in the same narrow screenplay window that
+// authored the selected Storyboard image, never all 25 Shots' passages.
+// Keep the preceding speaker when a window begins inside an utterance;
+// otherwise the dialogue validator would falsely reject an authentic line.
+export function storyboardNarrationPassagesForPosition(
+  passages: readonly StoryboardPlanningPassage[],
+  position: number,
+): readonly StoryboardPlanningPassage[] {
+  const selected = passageWindow(passages, position);
+  if (!selected.length) return [];
+  const firstIndex = passages.indexOf(selected[0]);
+  let start = firstIndex;
+  let end = firstIndex + selected.length;
+  const isSpeech = (type: string) => ["dialogue", "dual-dialogue", "parenthetical"].includes(type.toLowerCase());
+  if (isSpeech(selected[0].type)) {
+    for (let cursor = firstIndex - 1; cursor >= 0; cursor -= 1) {
+      const type = passages[cursor].type.toLowerCase();
+      if (type === "character") { start = cursor; break; }
+      if (!isSpeech(type)) break;
+    }
+  }
+  // Do not drop a line when the window ends on its speaker/parenthetical.
+  if (end < passages.length && ["character", "parenthetical"].includes(passages[end - 1].type.toLowerCase())
+      && ["dialogue", "dual-dialogue", "parenthetical"].includes(passages[end].type.toLowerCase())) {
+    end += 1;
+    if (end < passages.length && passages[end - 1].type.toLowerCase() === "parenthetical"
+        && ["dialogue", "dual-dialogue"].includes(passages[end].type.toLowerCase())) end += 1;
+  }
+  return passages.slice(start, end);
+}
+
 function clean(value: string, limit = 700) {
   return value.replace(/\s+/gu, " ").trim().slice(0, limit);
 }

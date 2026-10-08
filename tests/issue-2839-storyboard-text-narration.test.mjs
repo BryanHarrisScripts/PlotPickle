@@ -54,6 +54,10 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   let drafts = {}, notices = {}, submitted;
   const context = vm.createContext({
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
+    storyboardNarrationPassagesForPosition: (source, position) => {
+      assert.equal(position, 19);
+      return source.slice(3, 5);
+    },
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({sourceKey: 'source-current'}),
@@ -71,9 +75,64 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   await context.generateNarration({ position: 19, narration: evidence.panels[0].intention }, shot);
   assert.equal(submitted.mode, 'storyboard-shot');
   assert.deepEqual(submitted.shot, shot);
+  assert.equal(submitted.passages.length, 2, 'narrator only sees the selected screenplay window');
+  assert.equal(submitted.passages[0].text, 'AVA');
+  assert.equal(submitted.passages[1].text, 'Wait for me.');
   assert.equal('contactSheet' in submitted, false);
   assert.equal(drafts[19].narration, 'Ren hesitates before taking the next step.');
   assert.match(notices[19], /review/);
+});
+
+test('#2855 narrated shot uses image-planning screenplay window and keeps speaker provenance', async () => {
+  const editorial = await readFile('app/_components/storyboard/storyboard-editorial-model.ts', 'utf8');
+  const start = editorial.indexOf('function passageWindow(');
+  const end = editorial.indexOf('\nfunction clean(', start);
+  assert.ok(start >= 0 && end > start);
+  const functions = stripTypeScriptTypes(editorial.slice(start, end)).replace(/^export /gmu, '');
+  const context = vm.createContext({});
+  vm.runInContext(functions, context);
+  const make = (n) => ({ id: String(n), type: 'action', text: 'Selected Shot ' + n + ': unique action ' + n });
+  const all = Array.from({ length: 25 }, (_, index) => make(index + 1));
+  for (let position = 1; position <= 25; position += 1) {
+    const window = context.storyboardNarrationPassagesForPosition(all, position);
+    assert.equal(window.length, 1);
+    assert.equal(window[0].text, make(position).text,
+      'Shot ' + position + ' must not receive another shot screenplay text');
+  }
+  const withDialogue = [...all];
+  withDialogue[17] = { id: 'ren-speaker', type: 'character', text: 'REN' };
+  withDialogue[18] = { id: 'ren-line', type: 'dialogue', text: 'We should go. Before they return.' };
+  const quoted = context.storyboardNarrationPassagesForPosition(withDialogue, 19);
+  assert.deepEqual(Array.from(quoted, item => item.type), ['character', 'dialogue']);
+  assert.equal(quoted[0].text, 'REN');
+  const scoped = storyboardNarrationRequest({ ...evidence, passages: quoted });
+  assert.equal(parseStoryboardNarration(output('', [{ speaker: 'REN', text: 'Before they return.' }]), scoped)[0].bubbles.length, 1);
+  assert.throws(() => parseStoryboardNarration(output('', [{ speaker: 'AVA', text: 'Wait for me.' }]), scoped),
+    'dialogue from another Shot must not pass grounded quotation proof');
+});
+
+test('#2855 empty model text is reported as no proposal rather than silently suggesting approval', async () => {
+  const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
+  const start = source.indexOf('  async function generateNarration(');
+  const end = source.indexOf('\n  return (', start);
+  let notices = {}, drafts = {};
+  const project = { id: 'afterglow' };
+  const context = vm.createContext({
+    busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
+    storyContext, activeRequest: { current: null }, AbortController,
+    storyboardNarrationPassagesForPosition: (source) => source,
+    setBusyPosition() {}, setNotices(fn) { notices = fn(notices); },
+    setDrafts(fn) { drafts = fn(drafts); },
+    currentApproval: () => ({ sourceKey: 'fixed-source' }),
+    fetch: async (url) => url === '/api/auth/profile'
+      ? Response.json({ authenticated: true, csrfToken: 'test' })
+      : Response.json({ ok: true, panels: [{ position: 19, narration: '', bubbles: [] }] }),
+  });
+  vm.runInContext(stripTypeScriptTypes(source.slice(start, end)), context);
+  await context.generateNarration({ position: 19, narration: 'Ren at the door' }, shot);
+  assert.equal(Object.keys(drafts).length, 0, 'empty AI response is not a reviewable approved draft');
+  assert.match(notices[19], /no printed text/i);
+  assert.match(notices[19], /Regenerate/);
 });
 
 test('#2839 actual narration endpoint sends text to the agent and distinguishes compute from invalid output', async (t) => {

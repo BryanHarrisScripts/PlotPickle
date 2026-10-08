@@ -32,6 +32,8 @@ test('#2839 short output, silence, exact dialogue and actual speaker are enforce
   for (const invalid of [
     output('one two three four five six seven eight nine ten eleven twelve thirteen'),
     output('x'.repeat(101)),
+    output('Ren hesitates at the doorway.', [{ speaker: 'REN', text: 'We should go.' }]),
+    output('', [{ speaker: 'REN', text: 'We should go. Before they return. We should go. Before they return. We should go.' }]),
     output('', [{ speaker: 'REN', text: 'We must go.' }]),
     output('', [{ speaker: 'AVA', text: 'We should go.' }]),
     output('', [{ speaker: 'REN', text: 'we should go!' }]),

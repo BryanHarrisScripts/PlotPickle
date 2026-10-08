@@ -49,7 +49,7 @@ test("#2471 keeps the Graphic Novel inside the canonical 25 planned-Shot Previs 
 
   assert.match(workspace, /data-previs-flipbook="25-positions"/u);
   assert.match(workspace, /acceptedVisualIds\.has\(artifact\.id\) && artifact\.reviewState === "accepted"/u);
-  assert.match(workspace, /Locked Storyboard Images are authoritative Previs inputs/u);
+  assert.match(workspace, /Saved and locked Storyboard Images are authoritative Previs inputs/u);
   assert.match(css, /\.graphicNovelCaption/u);
   assert.match(css, /\.flipBookControls/u);
 });

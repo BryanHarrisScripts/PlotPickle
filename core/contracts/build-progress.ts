@@ -111,3 +111,22 @@ export function createEmptyBuildProgressState(): BuildProgressState {
     },
   };
 }
+
+/**
+ * PP-SAVE-001 v1.0.0, T7: a Storyboard image can be offered to downstream
+ * Previs only when the SAME candidate has both the explicit persisted Save
+ * marker and the canonical Human acceptance. This is a derived predicate,
+ * not a second authority or a replacement for vault durability verification.
+ *
+ * The caller must source the project from the authenticated/recovered story
+ * and independently verify its backing vault for a full T7/T6 PASS.
+ */
+export function isSavedLockedStoryboardImage(
+  artifact: FoundationsVisualArtifact,
+  acceptedIds: ReadonlySet<string>,
+): boolean {
+  return artifact.workflow === "storyboard-frame-webp-v2"
+    && artifact.reviewState === "accepted"
+    && acceptedIds.has(artifact.id)
+    && (artifact.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1");
+}

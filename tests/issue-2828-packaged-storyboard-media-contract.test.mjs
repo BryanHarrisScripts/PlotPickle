@@ -242,3 +242,39 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     assert.doesNotMatch(contactSheetSource, /pathname\.startsWith\("\/api\/local-ai\/assets\/"\)/u);
   });
 });
+
+test("PP-SAVE-001 T7 same-version recovered media must be BOTH explicitly Saved and Locked before Previs handoff", async () => {
+  const [contractSource, previsSource, handoffSource, snapshotSource] = await Promise.all([
+    readText("core/contracts/build-progress.ts"),
+    readText("app/_components/previs/previs-readiness-workspace.tsx"),
+    readText("app/_components/preproduction/storyboard-locked-shot-handoff.tsx"),
+    readText("data/afterglow-packaged-current/snapshot.json"),
+  ]);
+  const marker = "export function isSavedLockedStoryboardImage";
+  const start = contractSource.indexOf(marker);
+  assert.ok(start >= 0, "approved PP-SAVE-001 truth must be encoded in a shared canonical predicate");
+  const evaluator = stripTypeScriptTypes(contractSource.slice(start)).replace(/^export /mu, "");
+  const eligible = vm.runInNewContext(evaluator + "\n isSavedLockedStoryboardImage");
+  const project = JSON.parse(snapshotSource).project;
+  const artifact = project.build.foundations.visualArtifacts.find((item) =>
+    item.workflow === "storyboard-frame-webp-v2"
+    && item.frameNumber === 1
+    && item.assetUrl.startsWith("/assets/library/examples/")
+    && (item.sourceDecisionKeys ?? []).includes("storyboard-anchor:block:block-01:mini-1"));
+  assert.ok(artifact, "exercise a real packaged Afterglow Storyboard image");
+  const saved = { ...artifact, reviewState: "accepted",
+    sourceDecisionKeys: [...new Set([...(artifact.sourceDecisionKeys ?? []), "storyboard-local-save:v1"])] };
+  const accepted = new Set([saved.id]);
+  assert.equal(eligible(saved, accepted), true, "identical explicitly saved and locked version is eligible");
+  assert.equal(eligible({ ...saved, sourceDecisionKeys: saved.sourceDecisionKeys.filter((k) => k !== "storyboard-local-save:v1") }, accepted), false,
+    "historic or uncommitted accepted candidate is not authoritative in Previs");
+  assert.equal(eligible({ ...saved, reviewState: "draft" }, accepted), false, "Save without Lock is not eligible");
+  assert.equal(eligible(saved, new Set()), false, "accepted reviewState without canonical accepted ID is insufficient");
+  assert.equal(eligible({ ...saved, id: saved.id + "-alternate" }, accepted), false, "another candidate cannot inherit a Shot's approval");
+  assert.equal(eligible({ ...saved, workflow: "storyboard-reference-adoption-v1" }, accepted), false, "other workflows cannot be silently promoted as saved Storyboard frames");
+  assert.equal(eligible(JSON.parse(JSON.stringify(saved)), accepted), true, "saved exact artifact stays eligible after serialization");
+  assert.match(previsSource, /isSavedLockedStoryboardImage\(artifact, acceptedVisualIds\)/u,
+    "live Previs Flip Book/Graphic Novel must consult the exact-version Save+Lock gate");
+  assert.match(handoffSource, /isSavedLockedStoryboardImage\(candidate, acceptedIds\)/u,
+    "live Storyboard narration/handoff must consult the same Save+Lock gate");
+});

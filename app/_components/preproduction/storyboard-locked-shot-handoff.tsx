@@ -8,6 +8,7 @@ import type {
   PrevisGraphicNovelTextBubble,
 } from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
+import { isSavedLockedStoryboardImage } from "@/core/contracts/build-progress";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
@@ -71,6 +72,7 @@ export default function StoryboardLockedShotHandoff({
         && candidate.frameNumber === position
         && candidate.reviewState === "accepted"
         && acceptedIds.has(candidate.id)
+        && isSavedLockedStoryboardImage(candidate, acceptedIds)
         && (candidate.sourceDecisionKeys ?? []).includes(anchorRef)
       ))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;

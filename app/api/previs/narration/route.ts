@@ -2,7 +2,7 @@ import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { resolveConfiguredAgentExecutionProfile, resolveConfiguredLocalNarrationProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
-import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration } from "../../../../core/media/previs-narration.mjs";
+import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,10 +60,18 @@ async function handlePost(request: Request) {
   }
   try {
     return Response.json({ok:true,panels:storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
-  } catch {
-    return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",message:storyboardShot
-      ? "The text model returned narration or dialogue not grounded in this Shot. Retry, or mark the Shot silent."
-      : "The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502});
+  } catch (error) {
+    if (storyboardShot) {
+      const failure = storyboardNarrationOutputFailure(error);
+      return Response.json({
+        ok: false,
+        code: "INVALID_NARRATION_OUTPUT",
+        reason: failure.reason,
+        message: failure.message,
+      }, { status: 502, headers: { "Cache-Control": "no-store" } });
+    }
+    return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",message:
+      "The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502});
   }
 }
 

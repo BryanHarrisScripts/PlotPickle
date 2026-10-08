@@ -13,8 +13,8 @@ test("#2817 Storyboard Save writes against the latest persisted project", async 
   assert.match(source, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
 });
 
-test("#2817 Previs narration sends the authenticated Human CSRF proof", async () => {
-  const source = await read("app/_components/previs/previs-readiness-workspace.tsx");
+test("#2817 Storyboard Bubble narration sends the authenticated Human CSRF proof", async () => {
+  const source = await read("app/_components/preproduction/storyboard-locked-shot-handoff.tsx");
   assert.match(source, /fetch\("\/api\/auth\/profile"/u);
   assert.match(source, /profileStatus\.csrfToken/u);
   assert.match(source, /"X-PlotPickle-CSRF": profileStatus\.csrfToken/u);

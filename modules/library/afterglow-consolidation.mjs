@@ -139,6 +139,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
     const alternatives=[...new Map(items.map(x=>[stable(x.value),x])).values()];
     if(alternatives.length>1){
       conflicts.push({path,reason:"competing-values",sources:items.map(x=>x.sourceProjectId),
+        optionSources:alternatives.map(x=>x.sourceProjectId),
         options:alternatives.map(x=>copy(x.value))});
       continue;
     }

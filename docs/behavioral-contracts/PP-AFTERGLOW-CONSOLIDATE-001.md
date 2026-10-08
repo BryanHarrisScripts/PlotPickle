@@ -32,6 +32,36 @@ Let `u` be **any** authenticated PlotPickle user, `B` the trusted common package
 
 **Phase 1 implementation boundary:** pure `planAfterglowConsolidation` supports a caller-supplied array of N sources without imposing a three-version limit. It exposes a proposed candidate, applied paths, conflicts, Human-review items and local asset URLs needing verification; `readyForHumanCommit: false` because it cannot authenticate, verify media or save a project on its own. **Phase 2** provides every signed-in account holder with a complete N-version preview and conflict choices, durable save/readback of one consolidated **current** Afterglow, and an uncluttered normal opener with preserved recoverable history. **Phase 3** is a *separate* appropriately authorized publication of that complete consolidated project as the **shared provided example** if and when explicitly approved.
 
+## Settings ownership: installation baseline, account master and official publication
+
+**Human decision:** The consolidation and baseline controls live under **Settings → Afterglow Management**, organized into two routes. Ordinary **Library → Open Afterglow** should remain simple: continue the account's single current master or intentionally start a provided-example copy. All N dated histories belong under explicit management/recovery, not the everyday chooser.
+
+### Route A — My Afterglow (every authenticated PlotPickle user)
+
+- **Installed starting point:** A clean PlotPickle installation includes a verified, version-identified *provided Afterglow example*. Keep the original v9 screenplay fixture as separately immutable source evidence. Record which packaged example version established the user's installed/first-use baseline; future packaged releases cannot silently rewrite it.
+- **Consolidate saved versions:** The user's account may have any number `N >= 1` of valid saved Afterglow copies. Discover every eligible account-owned copy, preview all changes, expose conflicts and missing media, and after confirmation save/read back **one authoritative current master**. Preserve historical/recovery versions without filling the everyday opening menu with them.
+- **Return to Provided Baseline:** At any point the user may explicitly confirm **Return to Provided Baseline**, which creates a **fresh working copy from the verified pinned installed example** and designates it as their current starting point. The previous master and all saved history remain recoverable; reset is **not** automatic deletion, global publication, or permission to overwrite stored approvals. Label the pinned version/date clearly. If the original installed package version is unavailable, fail closed and offer available, accurately identified baselines rather than pretending to restore the exact original.
+- **Resume after reset:** Future work and saved edits build on the new current account-owned working copy. Resetting one account cannot affect another account or the shared distribution.
+
+### Route B — Publish Official Example (designated publisher only)
+
+- A complete, approved account master may be submitted for the example **distributed in future PlotPickle installations**, but only through a distinct, explicitly authorized publication.
+- **Authorization requires BOTH:** (1) a designated PlotPickle publisher identity/role from a trusted server-side source, restricted to the nominated publisher, and (2) active GitHub authorization with the exact canonical PlotPickle repository and the necessary write/PR/merge access. Generic PlotPickle accounts, generic GitHub connections, stale tokens and client-side hidden-button logic must not confer publication rights. Actual merge remains constrained by repository branch protections and required checks.
+- Before release, prepare a reviewable export from the Human-approved consolidated master, check all media are copied to allowed Git-backed paths, strip profile/session/credentials and local private URLs, preserve immutable source provenance, produce a versioned manifest, and require explicit publisher confirmation. No publication on ordinary Save, Consolidate or Reset.
+- A merged update to `data/afterglow-packaged-current` and packaged assets updates the canonical example shipped in **future builds/installers**. Existing installations' prior saved work or pinned reset baseline must not silently change when a new example is published.
+
+### Observable safety invariants
+
+- `AccountCanManage(u) => SignedIn(u) AND EverySourceOwnedBy(u)`.
+- `Consolidated(u) => CurrentMaster(u) = ApprovedMergedCandidate(u)` with all eligible source IDs accounted for.
+- `ResetToInstalledBaseline(u) => ExplicitUserConfirmation(u) AND PinnedBaselineVerified(u) AND NewAccountWorkingCopy(u) AND OldMasterRecoverable(u)`.
+- `PrivateConsolidationOrReset(u) => NoCrossAccountEffect AND NoSharedPackageMutation`.
+- `MaySubmitOfficialPublication(u) => Authenticated(u) AND DesignatedPublisher(u) AND AuthorizedGitHubCanonicalRepo(u) AND ExplicitApproval(u)`.
+- `PackagedRelease => ReviewableSnapshotAndMedia AND NoPrivateSecrets AND RequiredChecksGreen AND AuthorizedMerge`.
+- `PublicReleaseAtVersion(v+1) != SilentMutationOfInstalledBaselineAtVersion(v)`.
+
+**Delivery boundary:** Phase 1 pure planner and N-version tests are merged, not an account merge UI. Phase 2 still must implement the authenticated Settings management surface, conflict/Save/Lock readback, pinned-baseline reset and clean normal opening. Phase 3 still must implement the publisher-only GitHub-backed, audited release flow. The present contract describes expected behavior, **not** existing buttons or completed functionality.
+
 ## Independent verification
 
 Test field-complete packaging, N-version consolidation for N = 1, 2, 4, 7 and an additional arbitrary larger count (no `slice(0,3)` assumptions), non-overlapping Mind Map/World Map/Storyboard edits, identical decisions, conflicting values, attempted deletion, source identity, ordering, duplicate project IDs, and ambiguous approvals. After Phase 2, verify **each test account** can consolidate all eligible saved versions, get one current Afterglow in the everyday Library UI, reopen/restart without lost approved edits or media, and still recover older snapshots. Use live Windows account data for Human acceptance; remote CI cannot see encrypted profile data.

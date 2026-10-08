@@ -155,12 +155,10 @@ export function graphicNovelTextSourceSnapshot(
     image: artifact ? {
       id: artifact.id,
       assetUrl: artifact.assetUrl,
-      createdAt: artifact.createdAt,
       workflow: artifact.workflow ?? "",
       reviewState: artifact.reviewState ?? "",
       frameNumber: artifact.frameNumber ?? null,
       narrativeIntention: artifact.narrativeIntention ?? "",
-      sourceDecisionKeys: artifact.sourceDecisionKeys ?? [],
       savedAndLocked: project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id),
     } : null,
     authoredShots: project.production.shots

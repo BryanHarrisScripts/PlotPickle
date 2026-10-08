@@ -151,10 +151,10 @@ test('#2855 recovery provenance is never a Shot-story source and approved decisi
   assert.equal(stage.sequence.shots[19].intention, '', 'recovered description is not original per-shot story truth');
   assert.equal(stage.passages[0].text, 'REN', 'authored screenplay is still available when recovered images have no shot intent');
   const handoff = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
-  assert.match(handoff, /storyboardNarrationAuthoredIntention\\(artifact\\.narrativeIntention\\)/u);
+  assert.match(handoff, /storyboardNarrationAuthoredIntention\(artifact\.narrativeIntention\)/u);
   assert.match(handoff, /No specific Scene or Beat authored for this Shot/u);
-  assert.doesNotMatch(handoff, /sceneBeat: compact\\(\\[shot\\?\\.narrativePurpose, evidence\\.responsibility\\]/u);
-  assert.match(handoff, /graphicNovelTextSourceKey\\(panel, evidence\\.passages, storyContext,/u,
+  assert.doesNotMatch(handoff, /sceneBeat: compact\(\[shot\?\.narrativePurpose, evidence\.responsibility\]/u);
+  assert.match(handoff, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext,/u,
     'existing approved source identities and storage must not be modified by prompt correction');
 });
 

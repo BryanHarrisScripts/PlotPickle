@@ -97,6 +97,24 @@ test("#2821 local narration and Save/Lock share current session and durable proj
     const callSave = () => context.saveFrameVersion(artifact);
     const callLock = (decision) => context.reviewFrame(artifact, decision);
     const currentArtifact = () => browser.loadFoundationProject().build.foundations.visualArtifacts.find((item) => item.id === artifact.id);
+    // PP-SAVE-001 v1.0.0: a passing test must observe the actual Storyboard
+    // handler rejecting Lock before Save; this deliberately starts RED on the
+    // current implementation. It is not a source-pattern assertion.
+    await t.test("PP-SAVE-001 T2: unsaved image cannot be locked by the real Storyboard mutation", async () => {
+      const before = browser.loadFoundationProject();
+      assert.equal(currentArtifact().reviewState, "draft");
+      assert.equal(currentArtifact().sourceDecisionKeys.includes("storyboard-local-save:v1"), false);
+      await callLock("accept");
+      const after = browser.loadFoundationProject();
+      assert.equal(after.build.foundations.acceptedVisualArtifactIds.includes(artifact.id), false,
+        "unsaved artifact MUST NOT enter the approved/locked set");
+      assert.equal(currentArtifact().reviewState, "draft",
+        "unsaved artifact MUST remain unlocked even if the mutation is invoked directly");
+      assert.equal(after.revision, before.revision,
+        "a rejected Lock MUST NOT commit a new project revision");
+      assert.match(notices.at(-1), /save.*before.*lock|save.*first|not saved/iu,
+        "blocked Lock MUST explain that Save is required first");
+    });
     await t.test("enabled Save responds without generation readiness and stale Lock/Unlock preserves saved image", async () => {
       await callSave();
       assert.match(notices.at(-1), /saved locally/u);
@@ -118,6 +136,11 @@ test("#2821 local narration and Save/Lock share current session and durable proj
       await callSave();
       assert.match(notices.at(-1), /Save failed: Injected encrypted write failure/u);
       assert.equal(browser.getProfilePrivateSaveState().state, "blocked");
+      const revisionBeforeBlockedLock = browser.loadFoundationProject().revision;
+      await callLock("accept");
+      assert.equal(browser.loadFoundationProject().revision, revisionBeforeBlockedLock,
+        "PP-SAVE-001: blocked vault must never create another Lock revision");
+      assert.match(notices.at(-1), /Save this Storyboard Image successfully before Lock/u);
       await assert.rejects(browser.browserProfileAuthGateway.logout(), /Injected encrypted write failure/u);
       assert.equal((await (await globalThis.fetch("/api/auth/profile")).json()).authenticated, true, "failed persistence must prevent logout and cache clearing");
       assert.ok(currentArtifact().sourceDecisionKeys.includes("storyboard-local-save:v1"));

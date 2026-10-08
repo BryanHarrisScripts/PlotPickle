@@ -40,7 +40,7 @@ test("#2806 Unlock preserves the candidate and permits an intentional zero-lock 
   assert.match(loop, /const acceptedPositionArtifact = \[\.\.\.positionArtifacts\]/u);
   assert.match(loop, /const fallbackImageId = acceptedPositionArtifact\?\.id \?\? latestGeneratedArtifact\?\.id/u);
   assert.match(loop, /const accepted = Boolean\(selectedArtifact && project\.build\.foundations\.acceptedVisualArtifactIds\.includes\(selectedArtifact\.id\)\)/u);
-  assert.match(loop, /accepted \? <span[^>]*>Locked<\/span> : null/u);
+  assert.match(loop, /accepted && savedLocally \? <span[^>]*>Locked<\/span> : null/u);
   assert.doesNotMatch(loop, /acceptedPositionArtifact[\s\S]{0,300}foundations\.visual\.accept/u);
 });
 
@@ -55,7 +55,7 @@ test("#2806 Save remains independent so Unlock → Save → Lock is possible", a
   assert.match(save, /type: "foundations\.visual\.store"/u);
   assert.doesNotMatch(save, /foundations\.visual\.accept|foundations\.visual\.unaccept/u);
   assert.doesNotMatch(loop, /disabled=\{!selectedArtifact \|\| savedLocally/u);
-  assert.match(loop, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy\}/u);
-  assert.match(loop, /accepted[\s\S]*"Locked · Save confirmation pending"/u);
+  assert.match(loop, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy \|\| frameSaving\}/u);
+  assert.match(loop, /accepted[\s\S]*"Previous approval · Save required"/u);
   assert.match(loop, /savedLocally \? "Saved locally"/u);
 });

@@ -146,6 +146,9 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     const selectedNumber = Number(anchorMatch[1]);
     const selectedMiniBlockNumber = Number(anchorMatch[2]);
     let current = promotedProject;
+    // This isolated packaged-media fixture simulates durable acknowledgements.
+    // Until a Save actually completes it must not grant Lock authority.
+    let acknowledged = false;
     const notices = [];
     const component = await readText("app/_components/storyboard/storyboard-readiness-workspace.tsx");
     const handlers = stripTypeScriptTypes(component.slice(
@@ -166,9 +169,11 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
         && (item.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"),
       loadFoundationProject: () => current,
       applyStoryCommand: storyboardCommand,
+      getProfilePrivateSaveState: () => ({ state: acknowledged ? "saved" : "idle" }),
       saveFoundationProjectDurably: async (next, expectedRevision) => {
         assert.equal(current.revision, expectedRevision);
         current = next;
+        acknowledged = true;
         return next;
       },
       setFrameSaving() {},
@@ -181,7 +186,9 @@ test("#2828 real packaged Afterglow Storyboard media satisfies Save narration an
     vm.runInContext(handlers, context);
 
     const originalCount = current.build.foundations.visualArtifacts.length;
+    assert.equal(acknowledged, false);
     await context.saveFrameVersion(artifact);
+    assert.equal(acknowledged, true, "fixture grants Lock only after its simulated durable Save completes");
     let saved = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === artifact.id);
     assert.ok(saved?.sourceDecisionKeys?.includes("storyboard-local-save:v1"));
     assert.match(notices.at(-1), /saved locally with this story/u);

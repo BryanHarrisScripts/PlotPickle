@@ -38,7 +38,7 @@ test("#2819 saved status remains independent from Lock and Unlock", async () => 
   const source = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   const loop = source.slice(source.indexOf("Array.from({ length: 25 }"), source.indexOf("{promptPosition !== null"));
 
-  assert.match(loop, /accepted\s*\?\s*savedLocally \? "Locked · Saved locally" : "Locked · Save confirmation pending"/u);
+  assert.match(loop, /accepted\s*\?\s*savedLocally \? "Locked · Saved locally" : "Previous approval · Save required"/u);
   assert.match(loop, /: savedLocally \? "Saved locally"/u);
   assert.match(loop, /reviewFrame\(selectedArtifact, accepted \? "unaccept" : "accept"\)/u);
 });

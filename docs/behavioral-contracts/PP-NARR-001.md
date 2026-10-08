@@ -1,7 +1,7 @@
 # PP-NARR-001 — Storyboard Comic / Graphic Novel Bubble Truth
 
-**Status:** REVISED PROPOSAL — Human corrections incorporated; final approval pending  
-**Version:** 0.2.0 (supersedes unapproved proposal 0.1.0)  
+**Status:** APPROVED HUMAN TRUTH — implementation and live capability remain unproven  
+**Contract version:** 1.0.0 (approved 2026-10-08; supersedes proposals 0.1.0 and 0.2.0)  
 **Date:** 2026-10-08  
 **Issue:** #2852  
 **Related:** #2839 text-only narration; approved [PP-SAVE-001](./PP-SAVE-001.md) for Storyboard Save/Lock/restore; #2849 saved-and-locked Previs handoff
@@ -14,7 +14,7 @@
 >
 > Use the **already set up, working LOCAL writing provider in Settings**. Do not automatically route through Hybrid to another provider, switch to Cloud, require that I choose a provider for each Shot, or generate paid media.
 
-This is the proposed **business truth**, not a claim that the current implementation already meets it.
+This is the **approved business truth**, not a claim that the current implementation already meets it.
 
 **Terminology:** "Narration" in this contract is brief **printed** comic/graphic-novel text; it is not text-to-speech, audio narration, a new image, or video. "Save & Lock" concerns the **Bubble/Caption** decision and is distinct from saving and locking the underlying Storyboard image under PP-SAVE-001. "No Bubble" is proposed to mean an intentionally **text-free frame**: neither dialogue bubble nor caption. If a Human later wants a different meaning, the contract must be revised explicitly.
 
@@ -31,7 +31,7 @@ The agent receives the actual selected project's **Act → Block → Mini-Block 
 
 The exact source identity should include `profileId`, `projectId`, `anchorRef`, `shotPosition`, `artifactId/version`, media identity, and a fingerprint of **all relevant narration inputs**, including camera/lighting/continuity (not merely screenplay text).
 
-## 3. Proposed observable invariants
+## 3. Approved observable invariants
 
 **B1 — Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.
 
@@ -113,10 +113,10 @@ Do not assume a root cause, weaken auth, create another router/agent subsystem, 
 
 ## 7. Next proof sequence
 
-1. **Human confirms this revised contract.** Nothing here authorizes implementation until approved.
+1. **Human approval received** for the revised contract on 2026-10-08. Preserve this version as authority for implementation; any semantic change requires renewed approval.
 2. Independently reproduce the actual Storyboard narration failure on the existing Local writing path. If no usable local model is available in CI, mark that particular real-compute test **BLOCKED**, not PASS based on a stub.
 3. Capture concrete failing expectations at the true owning boundaries: local execution, original quoted dialogue, render location/form, No Bubble, exact identity, durable Save & Lock, staleness and two-surface recovery.
 4. Repair only demonstrated gaps in the existing Bubble/Graphic Novel presentation, writing-provider authority and authenticated storage. Reuse existing diagnostics, agent interfaces and test harness.
 5. Verify real local generation, actual rendered draft + Save & Lock/Regenerate/No Bubble, close/restart/restore and Previs consistency. Preserve explicit PASS/FAIL/BLOCKED/UNPROVEN, and require a separate Human device acceptance.
 
-**Approval record:** User clarified why the historical image-pixel ban existed: the old model/route **could not interpret pixels**, but a genuinely image-capable Agent **should use those pixels when its local visual capability is verified**. Do not assume all agents lack image understanding; equally do not claim the configured local writer has vision without testing. The user also corrected initial draft on 2026-10-08: use all needed relevant information (including image information when appropriate); generate a roughly five-to-eight-word bubble or description beneath the image, no more than twelve; use only the already working configured **Local** writer, not Hybrid's alternate routes; use **Save & Lock**, **Regenerate**, **No Bubble**; display unchanged in both Storyboard and Previs after restart. The user immediately clarified **“log = lock”**. These corrections have been incorporated, but an explicit final acceptance has **not** yet been inferred.
+**Approval record:** User clarified why the historical image-pixel ban existed: the old model/route **could not interpret pixels**, but a genuinely image-capable Agent **should use those pixels when its local visual capability is verified**. Do not assume all agents lack image understanding; equally do not claim the configured local writer has vision without testing. The user also corrected initial draft on 2026-10-08: use all needed relevant information (including image information when appropriate); generate a roughly five-to-eight-word bubble or description beneath the image, no more than twelve; use only the already working configured **Local** writer, not Hybrid's alternate routes; use **Save & Lock**, **Regenerate**, **No Bubble**; display unchanged in both Storyboard and Previs after restart. The user immediately clarified **“log = lock”**. These corrections were incorporated before the Human said **“ok lets sstart”** to begin this pilot on 2026-10-08, following the corrected contract explanation. This records Human approval of the **intended result**, not acceptance of any implementation, model capability, live provider success or CI proof.

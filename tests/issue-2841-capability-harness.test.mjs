@@ -39,6 +39,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
       'export { readMediaRoutingStore, writeMediaRoutingStore } from "./build/media-routing-store";',
       'export { readSynchronizedAssistantStore, writeAssistantStore } from "./build/writing-assistant-store";',
       'export { registerAiRoutingGateway, readRoutingChoice } from "./build/ai-routing-gateway";',
+      'export { registerAgentComputeGateway } from "./build/agent-compute-gateway";',
       'export { registerMediaRoutingGateway } from "./build/media-routing-gateway";',
       'export { relayCapabilityDiagnostic } from "./build/ai/capabilities/capability-diagnostics";',
       'export { saveGeneratedAsset } from "./build/media-provider-common";',
@@ -76,13 +77,18 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const middlewares = [];
     const vite = { middlewares: { use: (fn) => middlewares.push(fn) } };
     worker.profileScopedBuzzRequestContext().configureServer(vite);
-    worker.registerAiRoutingGateway(vite); worker.registerMediaRoutingGateway(vite);
+    worker.registerAiRoutingGateway(vite); worker.registerAgentComputeGateway(vite); worker.registerMediaRoutingGateway(vite);
     server = createServer((request, response) => { let index = 0; const next = () => { if (index < middlewares.length) middlewares[index++](request, response, next); else { response.statusCode = 404; response.end(); } }; next(); });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
     const session = runtime.establishSession(owner.authContext, origin);
     const headers = { Cookie: session.setCookie.split(";", 1)[0], Origin: origin, "X-PlotPickle-CSRF": session.csrfToken, "Content-Type": "application/json" };
     async function api(endpoint, body, expected = 200) { const response = await realFetch(origin + endpoint, { headers, ...(body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }) }); const result = await response.json(); assert.equal(response.status, expected, JSON.stringify(result)); return result; }
+    await scoped(() => worker.writeCredentialJson("plotpickle-agent-compute.json", { version: 1, defaultProvider: "openai", overrides: { "graphic-novel": "gemini" }, updatedAt: "synthetic-legacy-assignment" }));
+    await scoped(() => worker.writeCredentialJson("ai-routing.json", { version: 2, text: "off", image: "comfyui", video: "off", updatedAt: "synthetic" }));
+    const agentStatus = await api("/api/writing-assistant/agent-compute");
+    assert.equal(agentStatus.activeProvider, "disabled"); assert.deepEqual(agentStatus.overrides, {}, "Agent roster follows Hybrid instead of legacy assignments.");
+    await api("/api/writing-assistant/agent-compute", { scope: "default", provider: "openai" }, 400);
     const authority = { provider: "minimax", baseUrl: "https://synthetic.invalid", apiKey: "synthetic-private-minimax-key", textModel: "synthetic-text", imageModel: "synthetic-image", videoModel: "MiniMax-H3" };
     const saved = await worker.POST(new Request(origin + "/api/cloud-story-mode/provider", { method: "POST", headers, body: JSON.stringify(authority) }));
     assert.equal(saved.status, 200); assert.equal(requests, 0);

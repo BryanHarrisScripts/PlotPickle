@@ -44,7 +44,13 @@
     "tests/issue-2106-live-image-job-routing.test.mjs",
     "tests/issue-2106-story-mode-surface.test.mjs",
     "tests/issue-2841-capability-harness.test.mjs",
-    "config/development-convergence/2841.json"
+    "config/development-convergence/2841.json",
+    "app/skin-v1/plotpickle-agents-host.tsx",
+    "build/agent-compute-gateway.ts",
+    "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
+    "tests/issue-2341-dsdd-zero-config.test.mjs",
+    "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
+    "app/skin-v1/dashboard-bbs-panel.tsx"
   ],
   "acceptance": [
     {

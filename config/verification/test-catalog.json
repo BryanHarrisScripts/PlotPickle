@@ -55,7 +55,8 @@
           "tests/issue-2644-mind-map-selected-field-actions.test.mjs",
           "tests/issue-2646-mind-map-character-roster.test.mjs",
           "tests/issue-2647-mind-map-character-create-generate.test.mjs",
-          "tests/issue-2751-settings-organization.test.mjs"
+          "tests/issue-2751-settings-organization.test.mjs",
+          "tests/issue-1847-1849-cloud-agents-settings.test.mjs"
         ]
       },
       "cost": "fast",

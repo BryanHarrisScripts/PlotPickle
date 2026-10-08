@@ -11,7 +11,7 @@ import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
 // is separately owned by issue-2841-capability-harness.test.mjs.
 const artifactRoot = path.resolve(".artifacts/2841-capability-settings");
 await mkdir(artifactRoot, { recursive: true });
-const output = await build({ stdin: { contents: 'import React from "react";import {createRoot} from "react-dom/client";import Settings from "./app/skin-v1/story-mode-host.tsx";createRoot(document.getElementById("root")).render(<Settings/>);', loader: "tsx", resolveDir: process.cwd() }, bundle: true, platform: "browser", format: "esm", jsx: "automatic", outfile: "fixture.js", write: false, logLevel: "silent" });
+const output = await build({ stdin: { contents: 'import React from "react";import {createRoot} from "react-dom/client";import Settings from "./app/skin-v1/story-mode-host.tsx";import Agents from "./app/skin-v1/plotpickle-agents-host.tsx";createRoot(document.getElementById("root")).render(location.pathname === "/agents" ? <Agents/> : <Settings/>);', loader: "tsx", resolveDir: process.cwd() }, bundle: true, platform: "browser", format: "esm", jsx: "automatic", outfile: "fixture.js", write: false, logLevel: "silent" });
 const javascript = output.outputFiles.find((file) => file.path.endsWith(".js")).text;
 const css = (await readFile("app/skin-v1-definition.css", "utf8")) + (output.outputFiles.find((file) => file.path.endsWith(".css"))?.text || "");
 const option = (locality, model, extra = {}) => ({ locality, model, configured: true, ready: true, verifiedAt: "2026-10-08T00:00:00.000Z", error: "", ...extra });
@@ -39,11 +39,12 @@ try {
       const bodies = {
         "/api/auth/profile": { authenticated: true, csrfToken: "synthetic-settings-csrf", profile: { profileId: "synthetic-settings-owner", displayName: "Synthetic owner" } },
         "/api/ai-routing/status": routing, "/api/ai-routing/select": routing,
+        "/api/writing-assistant/agent-compute": { ok: true, defaultProvider: "active", activeProvider: "ollama", overrides: {}, providers: [{ id: "ollama", label: "Ollama", model: "synthetic-writing", ready: true }], agents: [{ agentId: "synthetic-agent", roleId: "graphic-novel", displayName: "Synthetic text Agent", title: "Story writer", responsibility: "Write synthetic story captions", system: "PlotPickle", configurable: true }] },
         "/api/story-mode/policy": { ok: true, mode: "hybrid" },
         "/api/media-routing/status": { ok: true, comfyui: { reachable: true, imageNodesReady: true, imageVerifiedAt: "synthetic", checkpoints: ["sd_xl_base_1.0.safetensors"] } },
         "/api/local-ai/plugins/video": { recommendation: { selected: null, candidates: [], ready: false, active: false } },
         "/api/cloud-story-mode/comfy-cloud": { ok: true, configured: true, tested: true, defaultLane: "cinematic" },
-        "/api/ai-routing/diagnostics": { ok: true, events: [{ id: "synthetic-event", at: "2026-10-08T00:00:00.000Z", capability: "video", route: "minimax-comfyui", stage: "saved", code: "video-downloaded-and-saved", jobId: "synthetic-job" }] },
+        "/api/ai-routing/diagnostics": { ok: true, events: [{ id: "synthetic-event", at: "2026-10-08T00:00:00.000Z", capability: "video", route: "minimax-comfyui", runtime: "local", provider: "minimax", stage: "saved", code: "video-downloaded-and-saved", jobId: "synthetic-job" }] },
       };
       response.end(JSON.stringify(bodies[pathname] || { ok: true })); return;
     }
@@ -89,8 +90,13 @@ try {
   await page.reload(); await page.locator('[data-story-mode-policy="hybrid"]').click();
   await page.locator('[data-hybrid-capability="video"] [data-route="minimax-comfyui"][data-selected="true"]').waitFor();
   assert.equal(writes.length, 1, "Reload/status inspection must leave route selection intact.");
+  await page.goto(baseUrl + "/agents");
+  await page.getByText("Hybrid Writing selection", { exact: true }).waitFor();
+  assert.equal(await page.locator("select").count(), 0);
+  assert.equal(writes.length, 1, "Agent roster must not change the Hybrid route.");
+  await page.screenshot({ fullPage: true, path: path.join(artifactRoot, "agents-writing-route.png") });
   assert.deepEqual(errors, []);
-  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Actual Local/Cloud/Hybrid Settings components with bounded synthetic connection status", observations: ["Local and Cloud setup navigation performs no selection/policy write", "one setup action per provider", "accessible checked Ready marker", "Hybrid has no duplicate consent or job preferences", "Hybrid selects explicit local ComfyUI MiniMax video route", "diagnostic history relays saved outcome", "reload retains the selected route"], screenshots: ["local-writing.png", "cloud-writing.png", "hybrid-video-diagnostics.png"], handlerProof: "tests/issue-2841-capability-harness.test.mjs", providerInference: false, humanWindowsAcceptance: "PENDING" };
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Actual Local/Cloud/Hybrid Settings components with bounded synthetic connection status", observations: ["Local and Cloud setup navigation performs no selection/policy write", "one setup action per provider", "accessible checked Ready marker", "Hybrid has no duplicate consent or job preferences", "Hybrid selects explicit local ComfyUI MiniMax video route", "diagnostic history relays saved outcome", "reload retains the selected route", "Agent roster displays Hybrid Writing without duplicate selectors"], screenshots: ["local-writing.png", "cloud-writing.png", "hybrid-video-diagnostics.png", "agents-writing-route.png"], handlerProof: "tests/issue-2841-capability-harness.test.mjs", providerInference: false, humanWindowsAcceptance: "PENDING" };
   await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log("#2841 rendered capability Settings proof PASS");
 } finally { await browser?.close(); server?.closeAllConnections(); if (server) await new Promise((resolve) => server.close(resolve)); }

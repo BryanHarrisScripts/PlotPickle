@@ -53,17 +53,6 @@ const panel: React.CSSProperties = {
   background: "var(--pp-skin-surface-1)",
   boxShadow: "var(--pp-skin-inset-highlight)",
 };
-const selectStyle: React.CSSProperties = {
-  minHeight: "var(--pp-skin-touch-target)",
-  width: "100%",
-  minWidth: 240,
-  padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)",
-  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line-strong)",
-  borderRadius: "var(--pp-skin-radius)",
-  background: "var(--pp-skin-surface-0)",
-  color: "var(--pp-skin-ink)",
-  font: "inherit",
-};
 const tableCell: React.CSSProperties = {
   padding: "var(--pp-skin-space-3)",
   borderBottom: "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
@@ -71,34 +60,9 @@ const tableCell: React.CSSProperties = {
   verticalAlign: "top",
 };
 
-function providerText(provider: ProviderOption) {
-  const state = provider.ready ? "READY" : provider.configured ? "TEST REQUIRED" : "NOT CONFIGURED";
-  return `${provider.label} · ${provider.model || "No model"} · ${state}`;
-}
-
-function ProviderOptionGroups({ providers }: { providers: ProviderOption[] }) {
-  const localProviders = providers.filter((provider) => provider.locality === "local");
-  const cloudProviders = providers.filter((provider) => provider.locality === "cloud");
-  return (
-    <>
-      <optgroup label="LOCAL STORY MODE">
-        {localProviders.map((provider) => (
-          <option key={provider.id} value={provider.id} disabled={!provider.ready}>{providerText(provider)}</option>
-        ))}
-      </optgroup>
-      <optgroup label="CLOUD STORY MODE">
-        {cloudProviders.map((provider) => (
-          <option key={provider.id} value={provider.id} disabled={!provider.ready}>{providerText(provider)}</option>
-        ))}
-      </optgroup>
-    </>
-  );
-}
-
 export default function PlotPickleAgentsHost() {
   const [status, setStatus] = useState<AgentComputeStatus | null>(null);
   const [notice, setNotice] = useState("Checking PlotPickle Agent compute…");
-  const [working, setWorking] = useState("");
 
   const refresh = useCallback(async (announce = false) => {
     try {
@@ -106,34 +70,14 @@ export default function PlotPickleAgentsHost() {
       const body = await response.json() as AgentComputeStatus;
       if (!response.ok || !body.ok) throw new Error(body.message || "PlotPickle Agent compute could not be loaded.");
       setStatus(body);
-      setNotice(announce ? "PlotPickle Agent compute refreshed." : "Local Story Mode and Cloud Story Mode supply PlotPickle-owned Agent compute. Other systems keep their own provider authority.");
+      setNotice(announce ? "PlotPickle Agent compute refreshed." : "PlotPickle text Agents use the Writing resource selected in Hybrid. Configure resources under Local or Cloud.");
     } catch (error) {
+      setStatus(null);
       setNotice(error instanceof Error ? error.message : "PlotPickle Agent compute could not be loaded.");
     }
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
-
-  async function save(body: Record<string, unknown>, key: string) {
-    if (working) return;
-    setWorking(key);
-    setNotice("Saving Agent compute assignment…");
-    try {
-      const response = await fetch("/api/writing-assistant/agent-compute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const next = await response.json() as AgentComputeStatus;
-      if (!response.ok || !next.ok) throw new Error(next.message || "Agent compute assignment could not be saved.");
-      setStatus(next);
-      setNotice("Assignment saved. This does not run a model or silently activate paid compute.");
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Agent compute assignment could not be saved.");
-    } finally {
-      setWorking("");
-    }
-  }
 
   if (!status) return <div style={shell}><section style={panel} role="status">{notice}</section></div>;
 
@@ -148,30 +92,18 @@ export default function PlotPickleAgentsHost() {
       <section style={panel} aria-labelledby="plotpickle-agents-title">
         <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / AGENTS</p>
         <h1 id="plotpickle-agents-title" style={{ margin: "5px 0" }}>AGENT SETUP</h1>
-        <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)" }}>One roster for PlotPickle, BUZZ and external developer Agents. Provider controls appear only where PlotPickle actually owns the Agent inference route.</p>
+        <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)" }}>One roster for PlotPickle, BUZZ and external developer Agents. PlotPickle text Agents follow the Writing route selected in Hybrid.</p>
       </section>
 
       <section style={panel} aria-labelledby="agent-default-title">
-        <h2 id="agent-default-title" style={{ marginTop: 0 }}>DEFAULT COMPUTE</h2>
-        <label style={{ display: "grid", gap: "var(--pp-skin-space-2)", maxWidth: 760 }}>
-          <span>Use this when a configurable PlotPickle Agent has no override</span>
-          <select
-            style={selectStyle}
-            value={status.defaultProvider}
-            disabled={Boolean(working)}
-            onChange={(event) => void save({ scope: "default", provider: event.target.value }, "default")}
-          >
-            <option value="active">Active Story Mode writing route · {effectiveDefaultLabel}</option>
-            <ProviderOptionGroups providers={status.providers} />
-          </select>
-        </label>
-        <p style={{ color: "var(--pp-skin-ink-soft)", marginBottom: 0 }}>Local and Cloud choices stay visible even before setup; unavailable providers are disabled until configured and tested in their Story Mode screen.</p>
-        <p style={{ color: "var(--pp-skin-ink-soft)", marginBottom: 0 }}>A fixed default never falls through to another provider. If it later becomes unavailable, PlotPickle reports the failure and asks you to change the assignment.</p>
+        <h2 id="agent-default-title" style={{ marginTop: 0 }}>WRITING COMPUTE</h2>
+        <p>Selected in Hybrid: <strong>{effectiveDefaultLabel}</strong></p>
+        <p>Configure and test resources under Local or Cloud, then choose the Writing resource in Settings → Hybrid. If that resource becomes unavailable, work stops with a diagnostic; no fallback provider is used.</p>
       </section>
 
       <section style={panel} aria-labelledby="agent-roster-title">
-        <h2 id="agent-roster-title" style={{ marginTop: 0 }}>AGENT ROSTER / PER-AGENT OVERRIDES</h2>
-        <p style={{ marginTop: 0, color: "var(--pp-skin-ink-soft)" }}>Sorted by system, then Agent name. Every known Agent is visible; only PlotPickle-owned Mastra inference is editable here.</p>
+        <h2 id="agent-roster-title" style={{ marginTop: 0 }}>AGENT ROSTER</h2>
+        <p style={{ marginTop: 0, color: "var(--pp-skin-ink-soft)" }}>Sorted by system, then Agent name. Every known Agent is visible; PlotPickle-owned text inference follows Hybrid.</p>
         <div style={{ overflowX: "auto", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
           <table style={{ width: "100%", minWidth: 980, borderCollapse: "collapse", background: "var(--pp-skin-surface-0)" }} data-agent-roster="complete">
             <thead>
@@ -185,7 +117,6 @@ export default function PlotPickleAgentsHost() {
             <tbody>
               {status.agents.map((agent) => {
                 const roleId = agent.roleId;
-                const override = roleId ? status.overrides[roleId] : undefined;
                 return (
                   <tr key={agent.agentId} data-agent-system={agent.system} data-agent-configurable={agent.configurable ? "true" : "false"}>
                     <td style={tableCell}>
@@ -197,19 +128,7 @@ export default function PlotPickleAgentsHost() {
                     </td>
                     <td style={{ ...tableCell, minWidth: 300 }}>
                       {agent.configurable && roleId ? (
-                        <label style={{ display: "grid", gap: 4 }}>
-                          <span style={{ fontSize: 12, color: "var(--pp-skin-ink-soft)" }}>{override ? "OVERRIDE" : "PLOTPICKLE DEFAULT"}</span>
-                          <select
-                            style={selectStyle}
-                            value={override || "default"}
-                            disabled={Boolean(working)}
-                            onChange={(event) => void save({ scope: "agent", agentId: roleId, provider: event.target.value }, roleId)}
-                            aria-label={`${agent.displayName} provider`}
-                          >
-                            <option value="default">Use PlotPickle default · {effectiveDefaultLabel}</option>
-                            <ProviderOptionGroups providers={status.providers} />
-                          </select>
-                        </label>
+                        <div aria-label={`${agent.displayName} provider`}><strong>{effectiveDefaultLabel}</strong><p>Hybrid Writing selection</p></div>
                       ) : (
                         <div>
                           <strong>{agent.providerLabel}</strong>

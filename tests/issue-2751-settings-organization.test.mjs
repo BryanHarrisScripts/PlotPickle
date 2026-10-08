@@ -8,6 +8,10 @@ test('#2751 General and Operations have distinct canonical panels and keyboard d
   const settings=await read('app/skin-v1/settings-workspace-panel.tsx');
   const menu=await read('app/skin-v1/dashboard-bbs-panel.tsx');
   const general=settings.slice(settings.indexOf('  const startupPage ='));
+  assert.match(settings, /section === "afterglow-management"/u);
+  assert.match(settings, /<AfterglowManagementPanel \/>/u);
+  assert.match(menu, /id: "afterglow-management"[^\n]*label: "Afterglow Management"[^\n]*group: "OPERATIONS"/u);
+
   assert.doesNotMatch(general,/<UatGuidePanel/u);
   assert.match(general,/content="source"/u);
   assert.match(general,/<SystemMathematicsCard/u);
@@ -26,8 +30,8 @@ test('#2751 General and Operations have distinct canonical panels and keyboard d
     assert.ok((await read('lib/verification/webmcp-surface-capture-registry.mjs')).includes(`id: "${id}"`));
   }
   const webmcpAudit = await read('lib/verification/webmcp-surface-visual-audit.mjs');
-  assert.match(webmcpAudit,/settingsRows.length === 10 && settingsRows.every/u);
-  assert.match(webmcpAudit,/general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,buzz-settings/u);
+  assert.match(webmcpAudit,/settingsRows.length === 11 && settingsRows.every/u);
+  assert.match(webmcpAudit,/general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,afterglow-management,agents,buzz-settings/u);
   assert.doesNotMatch(webmcpAudit,/general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u);
   assert.match(menu,/onSurfaceNameChange\(WORKSPACE_SETTINGS_LABELS\[settingsWorkspace\]\.toUpperCase\(\)\)/u);
   assert.match(menu,/setSettingsWorkspace\(null\)/u);

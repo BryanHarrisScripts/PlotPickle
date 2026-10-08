@@ -25,6 +25,7 @@ import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
   storyboardPositionProgression,
+  storyboardNarrationPassagesForPosition,
 } from "../storyboard/storyboard-editorial-model";
 import styles from "../storyboard/storyboard-readiness-workspace.module.css";
 
@@ -174,8 +175,9 @@ export default function StoryboardLockedShotHandoff({
 
   async function generateNarration(panel: PrevisGraphicNovelPanel, shotFacts: Readonly<Record<string, string>>) {
     if (busyPosition !== null) return;
-    if (!evidence.passages.length) {
-      setNotices((current) => ({ ...current, [panel.position]: "No mapped screenplay passage is available for grounded narration." }));
+    const scopedPassages = storyboardNarrationPassagesForPosition(evidence.passages, panel.position);
+    if (!scopedPassages.length) {
+      setNotices((current) => ({ ...current, [panel.position]: "No screenplay passage is mapped to this Shot. Narration was not generated." }));
       return;
     }
     const requestedSourceKey = currentApproval(panel).sourceKey;
@@ -198,7 +200,7 @@ export default function StoryboardLockedShotHandoff({
         body: JSON.stringify({
           mode: "storyboard-shot",
           storyContext,
-          passages: evidence.passages,
+          passages: scopedPassages,
           panels: [{ position: panel.position, intention: panel.narration }],
           shot: shotFacts,
         }),
@@ -211,10 +213,17 @@ export default function StoryboardLockedShotHandoff({
       if (!response.ok || !result.ok || result.panels?.length !== 1) {
         throw new Error(result.message || "Narration generation failed.");
       }
-      if (controller.signal.aborted || latestProject.current !== project) return;
-      const sourceKey = currentApproval(panel).sourceKey;
-      if (sourceKey !== requestedSourceKey) return;
+      if (controller.signal.aborted) return;
+      if (latestProject.current !== project || currentApproval(panel).sourceKey !== requestedSourceKey) {
+        setNotices((current) => ({ ...current, [panel.position]: "Shot or story changed during generation. Old draft discarded; retry the current Shot." }));
+        return;
+      }
+      const sourceKey = requestedSourceKey;
       const proposed = result.panels[0];
+      if (!proposed.narration?.trim() && !proposed.bubbles?.length) {
+        setNotices((current) => ({ ...current, [panel.position]: "Local writer returned no printed text for this Shot. Regenerate, or choose No Bubble deliberately." }));
+        return;
+      }
       setDrafts((current) => ({
         ...current,
         [panel.position]: {
@@ -276,7 +285,7 @@ export default function StoryboardLockedShotHandoff({
             // This same authored evidence is displayed to the Human AND supplied to
             // text-only narration. Never infer story details from the image pixels.
             const shotFacts = {
-              story: compact([shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
+              story: compact([artifact.narrativeIntention, shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
               sceneBeat: compact([sceneNumbers.length ? sceneNumbers.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label, progression.direction]),
               camera,
               performance,
@@ -318,7 +327,7 @@ export default function StoryboardLockedShotHandoff({
                     </>
                   ) : null}
                   {!approvalState.current && approvalState.stale ? <p>Narration exists but is stale for the current locked image/story source ({graphicNovelTextStaleReasons(approvalState.stale.sourceKey, approvalState.sourceKey).join(", ")}).</p> : null}
-                  {!approvalState.current && !approvalState.stale ? <p>Not authored yet.</p> : null}
+                  {!approvalState.current && !approvalState.stale && !draft ? <p>{notices[position] ? "No approved narration for this Shot." : "Not authored yet."}</p> : null}
 
                   {draft ? (
                     <div className={styles.handoffDraft} aria-label={`Narration draft for Shot ${position}`}>

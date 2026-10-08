@@ -191,6 +191,32 @@ export function graphicNovelTextSourceKey(
   });
 }
 
+/** Opaque diagnostic labels only: never expose a Human's screenplay or image URL. */
+export function graphicNovelTextStaleReasons(savedKey: string, currentKey: string): string[] {
+  try {
+    const saved = JSON.parse(savedKey) as Record<string, unknown>;
+    const current = JSON.parse(currentKey) as Record<string, unknown>;
+    const previousSource = saved.sourceSnapshot as Record<string, unknown> | null;
+    const currentSource = current.sourceSnapshot as Record<string, unknown> | null;
+    const changed = (a: unknown, b: unknown) => JSON.stringify(a) !== JSON.stringify(b);
+    const reasons: string[] = [];
+    if (saved.contract !== current.contract) reasons.push("contract version");
+    if (changed(previousSource?.projectId, currentSource?.projectId)
+      || changed(previousSource?.anchorRef, currentSource?.anchorRef)
+      || changed(previousSource?.position, currentSource?.position)) reasons.push("story address");
+    if (changed(previousSource?.image, currentSource?.image)) reasons.push("image identity");
+    if (changed(previousSource?.authoredShots, currentSource?.authoredShots)) reasons.push("authored Shot facts");
+    if (changed(saved.passages, current.passages)) reasons.push("screenplay evidence");
+    if (changed(saved.storyContext, current.storyContext)) reasons.push("story context");
+    if (["assetUrl", "caption", "narration", "shotLabel", "shotContext", "bubbles"].some(
+      (key) => changed(saved[key], current[key]),
+    )) reasons.push("presentation source");
+    return reasons.length ? reasons : ["other source identity"];
+  } catch {
+    return ["unreadable source identity"];
+  }
+}
+
 export function approvedGraphicNovelPanel(
   panel: PrevisGraphicNovelPanel,
   approval: PrevisGraphicNovelTextApproval,

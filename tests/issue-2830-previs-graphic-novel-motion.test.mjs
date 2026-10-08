@@ -185,7 +185,8 @@ test("#2830 Previs plays three-second Graphic Novel motion with approved bubbles
   assert.match(workspace, /selectedGraphicNovelDisplayPanel\.narration/u);
   assert.match(workspace, /Play Graphic Novel/u);
   assert.match(workspace, /Pause Graphic Novel/u);
-  assert.match(workspace, /saveFoundationProjectDurably\(next, base\.revision\)/u);
+  assert.doesNotMatch(workspace, /saveFoundationProjectDurably|lockedImageContactSheet/u,
+    "Previs plays approved motion and Bubble text without creating new approval");
   assert.match(workspace, /selectedFlipBookFrame\.locked\.assetUrl/u);
   assert.match(styles, /\.flipBookStage video/u);
   assert.match(styles, /\.motionBadge/u);

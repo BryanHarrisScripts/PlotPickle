@@ -112,3 +112,41 @@ test('#2839 changed narration product owners select the Windows rendered approva
     assert.deepEqual(selectors.filter(({ pattern }) => pattern.test(path)).map(({ lane }) => lane), ['build']);
   }
 });
+
+test('PP-NARR-001 B2: Storyboard uses the ready LOCAL writer without requiring a Hybrid selection', async () => {
+  // Executed endpoint-boundary negative proof. The first version is expected RED:
+  // existing code resolves a Hybrid route even when a verified local writer exists.
+  // This verifies dispatch authority, NOT real model capability or pixel understanding.
+  const route = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  const compiled = stripTypeScriptTypes(route.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+  const calls = [];
+  const context = vm.createContext({
+    Error, Response, URL, ...await import('../core/media/previs-narration.mjs'),
+    withAuthenticatedProfileRequest: async (_req, next) => next(),
+    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+    requestBoundary: req => req,
+    resolveConfiguredAgentExecutionProfile: async () => {
+      calls.push('hybrid');
+      throw new Error('Hybrid writing route is OFF despite ready LOCAL writer');
+    },
+    resolveConfiguredLocalNarrationProfile: async () => {
+      calls.push('local');
+      return { profile: { provider: 'local', textModel: 'ready-local-fixture' } };
+    },
+    askPlotPickleAgent: async (params) => {
+      calls.push('model');
+      assert.equal(params.profile.provider, 'local');
+      assert.equal('image' in params, false, 'text-only Local works without unproven vision');
+      return output();
+    },
+  });
+  vm.runInContext(compiled, context);
+  const response = await context.POST(new Request('http://127.0.0.1:3000/api/previs/narration', {
+    method: 'POST', body: JSON.stringify(evidence),
+  }));
+  assert.equal(response.status, 200, 'local narration should not be blocked by an unrelated Hybrid OFF state');
+  const json = await response.json();
+  assert.equal(json.ok, true);
+  assert.deepEqual(calls, ['local', 'model'], 'Storyboard must use exactly the local route and not switch to Hybrid or Cloud');
+  assert.equal(json.panels[0].narration, 'Ren hesitates before taking the next step.');
+});

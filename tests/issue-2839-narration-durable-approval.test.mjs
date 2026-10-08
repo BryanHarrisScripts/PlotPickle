@@ -98,7 +98,7 @@ test("#2839 actual approval handler persists text through encrypted unload and r
     const bubbles = [{ speaker: "REN", text: "We should go." }];
     await context.saveApproval(panel, "source-current", "Ren pauses at the door.", bubbles, false);
     assert.equal(published, 1);
-    assert.match(notices[panel.position], /approved for Previs and Timeline/);
+    assert.match(notices[panel.position], /saved and locked for Storyboard and Previs/);
     assert.deepEqual(current().build, before.build, "text approval must preserve image/lock authority");
     const id = current().id;
     browser.unloadActiveLibraryProject();
@@ -117,12 +117,12 @@ test("#2839 actual approval handler persists text through encrypted unload and r
     failAction = "save-project";
     await context.saveApproval(panel, "source-current", "", [], true);
     assert.equal(published, 1, "failed approval must not publish successful state");
-    assert.match(notices[panel.position], /not saved.*Injected durable write failure/);
+    assert.match(notices[panel.position], /Save & Lock failed.*Injected durable write failure/);
     failAction = "";
     latestProject.current = current();
     await context.saveApproval(panel, "source-current", "", [], true);
     assert.equal(published, 2);
-    assert.match(notices[panel.position], /Silent presentation approved/);
+    assert.match(notices[panel.position], /No Bubble saved and locked/);
     browser.unloadActiveLibraryProject();
     await browser.flushProfilePrivateWrites();
     browser.releaseProfilePrivateBrowserAuthority();

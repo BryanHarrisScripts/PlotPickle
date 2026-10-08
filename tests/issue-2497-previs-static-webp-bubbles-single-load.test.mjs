@@ -85,8 +85,9 @@ test("#2497 preserves Graphic Novel presentation-only authority", async () => {
     read("app/_components/previs/previs-graphic-novel-presentation.ts"),
   ]);
 
-  assert.match(workspace, /production: \{ \.\.\.base\.production, graphicNovelTextApprovals:/u);
-  assert.match(workspace, /saveFoundationProjectDurably\(next, base\.revision\)/u);
+  assert.doesNotMatch(workspace, /saveFoundationProjectDurably|graphicNovelTextApprovals: \[/u,
+    "Previs remains a playback surface; Storyboard alone owns approval persistence");
+  assert.match(workspace, /Playing approved text only/u);
   assert.doesNotMatch(workspace, /applyStoryCommand|acceptedVisualArtifactIds\s*=/u);
   assert.match(workspace, /graphicNovelPanels\.filter\(\(panel\) => panel\.authoritative && panel\.assetUrl\)/u);
   assert.match(presentation, /input\.authoritative \? graphicNovelSpeechBubbles/u);

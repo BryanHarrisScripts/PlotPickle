@@ -158,10 +158,10 @@ export default function StoryboardLockedShotHandoff({
     });
     setNotices((current) => ({
       ...current,
-      [panel.position]: noText ? "Silent presentation approved." : "Narration / bubble approved for Previs and Timeline.",
+      [panel.position]: noText ? "No Bubble saved and locked for Storyboard and Previs." : "Bubble / caption saved and locked for Storyboard and Previs.",
     }));
     } catch (error) {
-      setNotices((current) => ({ ...current, [panel.position]: `Narration approval not saved: ${error instanceof Error ? error.message : "Persistence failed."}` }));
+      setNotices((current) => ({ ...current, [panel.position]: `Bubble Save & Lock failed: ${error instanceof Error ? error.message : "Persistence failed."}` }));
     }
   }
 
@@ -214,7 +214,7 @@ export default function StoryboardLockedShotHandoff({
           bubbles: proposed.bubbles,
         },
       }));
-      setNotices((current) => ({ ...current, [panel.position]: "Draft ready for Human review. Approve, regenerate, or mark the Shot silent." }));
+      setNotices((current) => ({ ...current, [panel.position]: "Draft ready for review. Save & Lock, Regenerate, or choose No Bubble." }));
     } catch (error) {
       if (!controller.signal.aborted) {
         setNotices((current) => ({
@@ -300,8 +300,8 @@ export default function StoryboardLockedShotHandoff({
                 </dl>
 
                 <div className={styles.handoffNarration}>
-                  <strong>Narration / Graphic Novel bubble</strong>
-                  {approvalState.current?.noText ? <p>Silent · Human approved</p> : null}
+                  <strong>Graphic Novel bubble / caption</strong>
+                  {approvalState.current?.noText ? <p>No Bubble · Saved & Locked</p> : null}
                   {approvalState.current && !approvalState.current.noText ? (
                     <>
                       {approvalState.current.bubbles.map((bubble) => <p className={styles.handoffBubble} key={bubble.speaker + bubble.text}><strong>{bubble.speaker}</strong> {bubble.text}</p>)}
@@ -313,10 +313,10 @@ export default function StoryboardLockedShotHandoff({
 
                   {draft ? (
                     <div className={styles.handoffDraft} aria-label={`Narration draft for Shot ${position}`}>
-                      <small>Draft · review before approval</small>
+                      <small>Draft · not saved or locked</small>
                       {draft.bubbles.map((bubble) => <p className={styles.handoffBubble} key={bubble.speaker + bubble.text}><strong>{bubble.speaker}</strong> {bubble.text}</p>)}
                       {draft.narration ? <p>{draft.narration}</p> : (!draft.bubbles.length ? <p>No text proposed.</p> : null)}
-                      <button type="button" onClick={() => saveApproval(panel, draft.sourceKey, draft.narration, draft.bubbles, !draft.narration && !draft.bubbles.length)}>Approve text</button>
+                      <button type="button" disabled={busyPosition !== null || (!draft.narration && !draft.bubbles.length)} onClick={() => void saveApproval(panel, draft.sourceKey, draft.narration, draft.bubbles, false)}>Save &amp; Lock</button>
                     </div>
                   ) : null}
 
@@ -326,15 +326,15 @@ export default function StoryboardLockedShotHandoff({
                       type="button"
                       onClick={() => void generateNarration(panel, shotFacts)}
                     >
-                      {busyPosition === position ? "Creating…" : approvalState.current ? "Regenerate" : "Create Narration"}
+                      {busyPosition === position ? "Creating…" : draft || approvalState.current ? "Regenerate" : "Create Narration"}
                     </button>
                     <button
                       disabled={busyPosition !== null}
                       type="button"
-                      onClick={() => saveApproval(panel, approvalState.sourceKey, "", [], true)}
-                    >Set silent</button>
+                      onClick={() => void saveApproval(panel, approvalState.sourceKey, "", [], true)}
+                    >No Bubble</button>
                   </div>
-                  <small role="status">{notices[position] ?? (approvalState.current ? "Current approval will flow unchanged into Previs and Timeline." : "Human approval is required before generated text becomes current.")}</small>
+                  <small role="status">{notices[position] ?? (approvalState.current ? "Saved and locked decision will appear unchanged in Storyboard and Previs." : "Human approval is required before generated text becomes current.")}</small>
                 </div>
               </article>
             );

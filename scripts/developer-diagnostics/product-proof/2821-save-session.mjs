@@ -131,7 +131,7 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await page.getByText("Shot 01 of 25 saved locally with this story.", { exact: true }).waitFor();
   await controls.getByRole("button", { name: "Lock", exact: true }).click();
   await page.getByText("Shot 01 of 25 kept and locked.", { exact: true }).waitFor();
-  // #2839 exercise the actual Create Narration and approval controls with a
+  // PP-NARR-001 B5: exercise the actual Create Narration and Save & Lock controls with a
   // bounded text-agent fixture; no provider inference or paid request.
   let narrationPayload;
   await page.route("**/api/previs/narration", async (route) => {
@@ -148,16 +148,16 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor();
   assert.ok(narrationPayload, "rendered narration must submit text evidence");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-draft.png") });
-  await handoff.getByRole("button", { name: "Approve text", exact: true }).click();
-  await handoff.getByText("Narration / bubble approved for Previs and Timeline.", { exact: true }).waitFor();
+  await handoff.getByRole("button", { name: "Save & Lock", exact: true }).click();
+  await handoff.getByText("Bubble / caption saved and locked for Storyboard and Previs.", { exact: true }).waitFor();
   await page.reload();
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });
   await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor();
-  assert.equal(await handoff.getByRole("button", { name: "Approve text", exact: true }).count(), 0, "reopened text is approved, not a draft");
+  assert.equal(await handoff.getByRole("button", { name: "Save & Lock", exact: true }).count(), 0, "reopened saved-and-locked text is not an unsaved draft");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-reopened.png") });
   assert.deepEqual(errors, []);
-  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, committed packaged Afterglow image/story, local HTTP auth and encrypted vault in isolated verification profile", observations: ["enabled Save feedback", "one Save/Lock writes only Afterglow once in a five-story Library", "unsaved Lock disabled; confirmed Save enables Lock", "Lock and Unlock retain saved image", "failed Save disables Lock", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state", "Storyboard Create Narration submits text-only shot facts", "approved short narration survives encrypted reload"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png", "narration-draft.png", "narration-reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, committed packaged Afterglow image/story, local HTTP auth and encrypted vault in isolated verification profile", observations: ["enabled Save feedback", "one Save/Lock writes only Afterglow once in a five-story Library", "unsaved Lock disabled; confirmed Save enables Lock", "Lock and Unlock retain saved image", "failed Save disables Lock", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state", "Storyboard Create Narration submits text-only shot facts", "saved-and-locked short Bubble survives encrypted reload"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png", "narration-draft.png", "narration-reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
   await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log("#2821 rendered Save/Lock/retry/reopen proof PASS");
 } finally {

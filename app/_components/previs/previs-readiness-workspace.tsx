@@ -2,16 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
-import {
-  type PrevisGraphicNovelTextApproval,
-  type PrevisGraphicNovelTextBubble,
-} from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
 import { isSavedLockedStoryboardImage } from "@/core/contracts/build-progress";
-import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
-import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import {
   storyboardAnchorEvidence,
   storyboardPositionProgression,
@@ -293,55 +287,8 @@ const STATE_LABELS = {
   locked: "BLOCKED",
 } as const;
 
-async function lockedImageContactSheet(panels: readonly PrevisGraphicNovelPanel[], signal: AbortSignal) {
-  const width = 1440;
-  const cellWidth = 288;
-  const cellHeight = 192;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = Math.ceil(panels.length / 5) * cellHeight;
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("The browser cannot prepare the approved images for narration.");
-  context.fillStyle = "#101513";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.font = "bold 18px sans-serif";
-  context.textBaseline = "middle";
-
-  for (const [index, panel] of panels.entries()) {
-    signal.throwIfAborted();
-    const url = new URL(panel.assetUrl, window.location.origin);
-    if (url.origin !== window.location.origin || !isSupportedVisualAssetUrl(url.pathname)) {
-      throw new Error(`Shot ${panel.position} needs a supported PlotPickle Storyboard image for narration.`);
-    }
-    const response = await fetch(url, { credentials: "same-origin", cache: "no-store", signal });
-    if (!response.ok) throw new Error(`The locked image for Shot ${panel.position} could not be read (${response.status}).`);
-    const blob = await response.blob();
-    if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type) || blob.size > 12_000_000) {
-      throw new Error(`The locked image for Shot ${panel.position} is not a supported image.`);
-    }
-    const image = await createImageBitmap(blob);
-    try {
-      const x = (index % 5) * cellWidth;
-      const y = Math.floor(index / 5) * cellHeight;
-      drawCover(context, image, x, y, cellWidth, cellHeight - 30);
-      context.fillStyle = "#101513";
-      context.fillRect(x, y + cellHeight - 30, cellWidth, 30);
-      context.fillStyle = "#ffffff";
-      context.fillText(`Shot ${String(panel.position).padStart(2, "0")}`, x + 10, y + cellHeight - 15);
-    } finally {
-      image.close();
-    }
-  }
-  const sheet = canvas.toDataURL("image/jpeg", 0.75);
-  if (!sheet.startsWith("data:image/jpeg;base64,") || sheet.length > 3_000_000) {
-    throw new Error("The approved image sequence is too large for narration. Try again with smaller Storyboard images.");
-  }
-  return sheet;
-}
-
 export default function PrevisReadinessWorkspace({
   project,
-  onProjectChange,
   onOpenStoryboard,
   address,
   onAddressChange,
@@ -361,11 +308,6 @@ export default function PrevisReadinessWorkspace({
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
   const [graphicNovelMode, setGraphicNovelMode] = useState(false);
   const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
-  const [narrationGenerating, setNarrationGenerating] = useState(false);
-  const narrationRequest = useRef<AbortController | null>(null);
-  const latestSource = useRef("");
-  const latestProject = useRef(project);
-  latestProject.current = project;
   useEffect(() => {
     if (!address) return;
     setSelectedBlockNumber(address.blockNumber);
@@ -463,87 +405,18 @@ export default function PrevisReadinessWorkspace({
     selectedFlipBookFrame.locked?.id ?? "",
   );
   const lockedGraphicNovelPanels = graphicNovelPanels.filter((panel) => panel.authoritative && panel.assetUrl);
-  const narrationSource = JSON.stringify({ projectId: project.id, anchor: selectedAddressAnchor?.id,
-    passages: selectedFrameEvidence?.passages, panels: lockedGraphicNovelPanels.map((panel) => graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext)) });
-  latestSource.current = narrationSource;
 
-  async function playNarration() {
+  function playNarration() {
     if (graphicNovelPlaying) { setGraphicNovelPlaying(false); return; }
-    if (!selectedAddressAnchor || !lockedGraphicNovelPanels.length || narrationGenerating) return;
+    if (!selectedAddressAnchor || !lockedGraphicNovelPanels.length) return;
     setFlipBookPlaying(false);
     setGraphicNovelMode(true);
-    const missingPanels = lockedGraphicNovelPanels.filter((panel) => !currentTextApprovalFor(panel));
-    if (!missingPanels.length) {
-      setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
-      setGraphicNovelPlaying(true);
-      return;
-    }
-    const source = narrationSource;
-    const controller = new AbortController();
-    narrationRequest.current = controller;
-    setNarrationGenerating(true);
-    setMessage("Creating story narration for locked Shots that do not already have current approved text…");
-    try {
-      const contactSheet = await lockedImageContactSheet(missingPanels, controller.signal);
-      const profileResponse = await fetch("/api/auth/profile", {
-        cache: "no-store",
-        credentials: "same-origin",
-        signal: controller.signal,
-      });
-      const profileStatus = await profileResponse.json() as { authenticated?: boolean; csrfToken?: string; message?: string };
-      if (!profileResponse.ok) {
-        throw new Error(profileStatus.message || "PlotPickle could not verify the current Human session for narration. Retry after the active story finishes loading.");
-      }
-      if (!profileStatus.authenticated) {
-        throw new Error(profileStatus.message || "Sign in to authorize narration generation.");
-      }
-      if (!profileStatus.csrfToken) {
-        throw new Error("The active Human session proof is missing or expired. Refresh the page or sign in again.");
-      }
-      const response = await fetch("/api/previs/narration", {
-        method: "POST", credentials: "same-origin", signal: controller.signal,
-        headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": profileStatus.csrfToken },
-        body: JSON.stringify({ contactSheet, storyContext, passages: selectedFrameEvidence?.passages ?? [],
-          panels: missingPanels.map((panel) => ({ position: panel.position,
-            intention: flipBookFrames[panel.position - 1].locked?.narrativeIntention ?? "" })) }),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || "Narration generation failed.");
-      if (latestSource.current !== source || controller.signal.aborted) return;
-      if (latestProject.current !== project) {
-        setMessage("The project changed while narration was being created. Play with narration again to use the latest project.");
-        return;
-      }
-      const now = new Date().toISOString();
-      const approvals: PrevisGraphicNovelTextApproval[] = result.panels.map((panel: { position: number; narration: string; bubbles: PrevisGraphicNovelTextBubble[] }) => ({
-        anchorRef: selectedAddressAnchor.id, position: panel.position,
-        sourceKey: graphicNovelTextSourceKey(graphicNovelPanels[panel.position - 1], selectedFrameEvidence?.passages, storyContext),
-        narration: panel.narration, bubbles: panel.bubbles,
-        noText: !panel.narration && !panel.bubbles.length, approvedAt: now,
-      }));
-      const generatedPositions = new Set(approvals.map((approval) => approval.position));
-      const base = loadFoundationProject();
-      if (base.id !== project.id || base.revision !== latestProject.current.revision) {
-        throw new Error("The story changed while narration was being saved. Retry Graphic Novel playback with the current story.");
-      }
-      const next: PPFProject = { ...base, revision: base.revision + 1, updatedAt: now,
-        production: { ...base.production, graphicNovelTextApprovals: [
-          ...(base.production.graphicNovelTextApprovals ?? []).filter((item) => (
-            item.anchorRef !== selectedAddressAnchor.id || !generatedPositions.has(item.position)
-          )),
-          ...approvals,
-        ] } };
-      const saved = await saveFoundationProjectDurably(next, base.revision);
-      latestProject.current = saved;
-      onProjectChange(saved);
-      setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
-      setGraphicNovelPlaying(true);
-      setMessage("Missing story narration saved. Existing approved Shot text was preserved.");
-    } catch (error) {
-      if (!controller.signal.aborted) setMessage(error instanceof Error ? error.message : "Narration generation failed.");
-    } finally {
-      if (narrationRequest.current === controller) { narrationRequest.current = null; setNarrationGenerating(false); }
-    }
+    const missing = lockedGraphicNovelPanels.filter((panel) => !currentTextApprovalFor(panel));
+    setMessage(missing.length
+      ? `Playing approved text only. ${missing.length} Shot(s) have no current saved-and-locked Bubble; return to Storyboard to create one.`
+      : "Playing Saved & Locked Storyboard Bubble decisions without regeneration.");
+    setSelectedFramePosition(lockedGraphicNovelPanels[0].position);
+    setGraphicNovelPlaying(true);
   }
 
   useEffect(() => {
@@ -551,12 +424,8 @@ export default function PrevisReadinessWorkspace({
     setFlipBookPlaying(false);
     setGraphicNovelMode(false);
     setGraphicNovelPlaying(false);
-    narrationRequest.current?.abort();
-    narrationRequest.current = null;
-    setNarrationGenerating(false);
   }, [project.id, selectedBlockNumber, selectedMiniBlockNumber]);
 
-  useEffect(() => () => narrationRequest.current?.abort(), []);
 
   useEffect(() => {
     if (!flipBookPlaying && !graphicNovelPlaying) return;
@@ -566,7 +435,7 @@ export default function PrevisReadinessWorkspace({
       setSelectedFramePosition((position) => positions[(positions.indexOf(position) + 1) % positions.length]);
     }, graphicNovelPlaying ? PREVIS_GRAPHIC_NOVEL_INTERVAL_MS : PREVIS_FLIP_BOOK_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [flipBookPlaying, graphicNovelPlaying, narrationSource]);
+  }, [flipBookPlaying, graphicNovelPlaying, project.revision, selectedAddressAnchor?.id]);
 
   return (
     <main className={styles.workspace} aria-labelledby="previs-title">
@@ -777,13 +646,13 @@ export default function PrevisReadinessWorkspace({
                     setGraphicNovelPlaying(false);
                     setSelectedFramePosition((position) => position <= 1 ? 25 : position - 1);
                   }}>Previous</button>
-                  <button aria-pressed={flipBookPlaying} disabled={!lockedFrameCount || narrationGenerating} type="button" onClick={() => {
+                  <button aria-pressed={flipBookPlaying} disabled={!lockedFrameCount} type="button" onClick={() => {
                     setGraphicNovelMode(false);
                     setGraphicNovelPlaying(false);
                     if (!flipBookPlaying) setSelectedFramePosition(flipBookFrames.find((frame) => frame.locked)?.position ?? 1);
                     setFlipBookPlaying((playing) => !playing);
                   }}>{flipBookPlaying ? "Pause Flip Book" : "Play Flip Book"}</button>
-                  <button aria-pressed={graphicNovelMode} disabled={!lockedFrameCount || narrationGenerating} type="button" onClick={() => void playNarration()}>{narrationGenerating ? "Creating Graphic Novel…" : graphicNovelPlaying ? "Pause Graphic Novel" : "Play Graphic Novel"}</button>
+                  <button aria-pressed={graphicNovelMode} disabled={!lockedFrameCount} type="button" onClick={() => playNarration()}>{graphicNovelPlaying ? "Pause Graphic Novel" : "Play Graphic Novel"}</button>
                   <button type="button" onClick={() => onOpenStoryboard(selectedAddressAnchor)}>Open owning Storyboard Mini-Block</button>
                   <button type="button" onClick={() => {
                     setFlipBookPlaying(false);

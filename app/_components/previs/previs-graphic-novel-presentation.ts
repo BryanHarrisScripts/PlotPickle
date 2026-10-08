@@ -1,4 +1,6 @@
 import type { PrevisGraphicNovelTextApproval } from "@/core/contracts/previs";
+import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import type { PPFProject } from "@/core/project/project";
 import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } from "../storyboard/storyboard-editorial-model";
 
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
@@ -112,12 +114,52 @@ export function graphicNovelWebpExportFileName(projectTitle: string, blockNumber
 }
 
 
+/**
+ * PP-NARR-001 B6: one projection of the actual PPF project authority for
+ * Storyboard AND Previs. Do not use a UI-only shot projection as authority:
+ * Previs has no legacy-project reference and must derive the same source key.
+ *
+ * Entire scoped production records are included intentionally: a newly
+ * authored camera, blocking, lighting, timing, or continuity property must
+ * invalidate old Bubble text even if a renderer does not yet display it.
+ */
+export function graphicNovelTextSourceSnapshot(
+  project: PPFProject,
+  anchorRef: string,
+  position: number,
+  artifact: FoundationsVisualArtifact | null,
+) {
+  return {
+    projectId: project.id,
+    anchorRef,
+    position,
+    image: artifact ? {
+      id: artifact.id,
+      assetUrl: artifact.assetUrl,
+      createdAt: artifact.createdAt,
+      workflow: artifact.workflow ?? "",
+      reviewState: artifact.reviewState ?? "",
+      frameNumber: artifact.frameNumber ?? null,
+      narrativeIntention: artifact.narrativeIntention ?? "",
+      sourceDecisionKeys: artifact.sourceDecisionKeys ?? [],
+      savedAndLocked: project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id),
+    } : null,
+    authoredShots: project.production.shots
+      .filter((shot) => shot.anchorRef === anchorRef && shot.order === position)
+      .slice()
+      .sort((left, right) => left.id.localeCompare(right.id)),
+  };
+}
+
 export function graphicNovelTextSourceKey(
   panel: PrevisGraphicNovelPanel,
   passages: unknown,
   storyContext: unknown,
+  sourceSnapshot?: ReturnType<typeof graphicNovelTextSourceSnapshot>,
 ) {
   return JSON.stringify({
+    contract: "PP-NARR-001/B6-v2",
+    sourceSnapshot: sourceSnapshot ?? null,
     passages,
     storyContext,
     assetUrl: panel.assetUrl,

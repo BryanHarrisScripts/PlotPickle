@@ -1,115 +1,119 @@
-# PP-NARR-001 — Storyboard Narration Truth
+# PP-NARR-001 — Storyboard Comic / Graphic Novel Bubble Truth
 
-**Status:** PROPOSED FOR HUMAN REVIEW — not yet approved or implemented
-**Proposal version:** 0.1.0
-**Date:** 2026-10-08
-**GitHub issue:** #2852
-**Domain:** Storyboard locked Shot → short written narration/speech bubble → Human approval → Previs Graphic Novel
-**Previous work:** #2839 text-only route; #2821/#2847 Save/session; approved [PP-SAVE-001](./PP-SAVE-001.md)
-**Authority:** Human determines the intended outcome; implementation, provider selection and tests cannot silently redefine the promise.
+**Status:** REVISED PROPOSAL — Human corrections incorporated; final approval pending  
+**Version:** 0.2.0 (supersedes unapproved proposal 0.1.0)  
+**Date:** 2026-10-08  
+**Issue:** #2852  
+**Related:** #2839 text-only narration; approved [PP-SAVE-001](./PP-SAVE-001.md) for Storyboard Save/Lock/restore; #2849 saved-and-locked Previs handoff
 
-## 1. Proposed Human promise (ordinary language)
+## 1. Human's intended outcome
 
-> When I select a Saved and Locked Storyboard image and click **Create Narration**, PlotPickle must understand the moment from the **screenplay and written shot information**, not by analyzing the image. It should propose a **very short, meaningful caption or an authentic dialogue bubble** that belongs to this exact Shot. I can review it, approve it, regenerate it, or choose silence. When approved, that exact text must be preserved with the exact Shot and used unchanged by Previs, including after I close and reopen PlotPickle.
+> For each saved and locked Storyboard image, PlotPickle uses a suitable **Bubble Agent** to understand the moment from **as much relevant information as needed**: screenplay, authentic dialogue, story, Scene/Beat, Camera, character performance, lighting, continuity, timing, information boundaries and, when helpful and available, information from the selected image. The Agent suggests a **short, meaningful comic-book or graphic-novel expression** of roughly **five to eight words, at most twelve**, as either a character **dialogue bubble** or a **scene-description caption underneath the image**.
 >
-> If something prevents generation, PlotPickle must tell me **what is actually wrong** and what action is possible. It must not report that I need to sign in when I am already properly signed in, blame the image when the request is text-only, claim success when no text was produced, or silently change an existing approval.
+> My actions are **Save & Lock**, **Regenerate**, and **No Bubble**. Save & Lock is an actual durable decision about the proposed printed text, not a temporary draft. No Bubble deliberately leaves the frame without printed text. After I restart PlotPickle and restore my local story changes, the exact locked image and my chosen printed text (or No Bubble) must remain unchanged in **both Storyboard and Previs**.
+>
+> Use the **already set up, working LOCAL writing provider in Settings**. Do not automatically route through Hybrid to another provider, switch to Cloud, require that I choose a provider for each Shot, or generate paid media.
 
-**Interpretation offered for confirmation:** Here "narration" means short **printed Graphic Novel narration** (and, separately, a screenplay speech bubble). It does **not** imply text-to-speech, audio narration, image generation or video generation. This single-Shot contract is the unit that feeds a later coherent 25-Shot Graphic Novel sequence; it is not an instruction to invent 25 separate stories.
+This is the proposed **business truth**, not a claim that the current implementation already meets it.
 
-## 2. Supported inputs and eligibility
+**Terminology:** "Narration" in this contract is brief **printed** comic/graphic-novel text; it is not text-to-speech, audio narration, a new image, or video. "Save & Lock" concerns the **Bubble/Caption** decision and is distinct from saving and locking the underlying Storyboard image under PP-SAVE-001. "No Bubble" is proposed to mean an intentionally **text-free frame**: neither dialogue bubble nor caption. If a Human later wants a different meaning, the contract must be revised explicitly.
 
-- **Scope:** Same signed-in profile and selected project; exact Act → Block → Mini-Block → Shot (1–25), saved and locked image candidate/version, and corresponding screenplay passages and authored shot facts.
-- **Read-only story authority:** screenplay, Scene/Beat, Story intention, Camera, Performance/Blocking, Lighting/Look, Timing, Information Boundary and Continuity/Handoff. Empty, missing or speculative fields remain explicitly absent; camera/planning labels must not be printed as speech or invented plot.
-- **Provider authority:** the writing/text route **actually selected** in Settings → Hybrid using providers successfully configured in Local or Cloud. Image-capable inference is **not** a prerequisite. Route readiness, consent and authentication are independently checked, not assumed from a settings badge.
-- **Output:** one reviewable draft for one currently selected Shot, with at most one short caption and at most one speech bubble. Generate does not approve or mutate the image.
+## 2. Information and priority
 
-Prerequisites are divided so the UI can truthfully distinguish them:
-1. `StoryEligible`: exact selected version is durably Saved and Locked, has sufficient mapped screenplay evidence, and project/Shot selection is still current.
-2. `SessionAuthorized`: an actual valid same-profile session authorizes this request.
-3. `TextRouteReady`: the selected text-writing route is authorized, configured, tested and actually executable.
+The agent receives the actual selected project's **Act → Block → Mini-Block → Shot (1–25)** and exact Saved+Locked Storyboard image version, plus all relevant authored facts:
 
-If any prerequisite is false, the UI displays the **specific prerequisite** and prevents false generation; it does not quietly switch to an unselected or charged provider.
+- Screenplay passages, actual character identities and dialogue, story purpose, Scene and Beat.
+- Shot/camera/staging, performance/blocking, lighting/look, time and duration, information to reveal or withhold, and continuity in/out.
+- Relevant adjacent Shot context when it is already supported by the story.
+- **Optional** locally available observations from the actual selected Storyboard image where needed for the printed expression.
 
-## 3. Output truths proposed for Human acceptance
+**Authority order:** Human-authored screenplay and approved story > authored Shot facts > optional image observations > model suggestions. Pixels may help interpret what is visible but cannot invent plot, quotations, characters or override the screenplay. **Reading image pixels is allowed, not categorically prohibited; a vision model must not become mandatory** for generating a meaningful caption when adequate written evidence exists. No silent Cloud fallback for pixel reading.
 
-**N1 — story-grounded brevity.** The result summarizes the important dramatic moment of **this Shot**. Aim for roughly **five to eight words** where possible; the hard existing boundary is at most **12 words and 100 characters** for a caption. Silence (empty text) is valid when chosen and distinguishable from a model or request failure. No invented story events, character actions, lighting, character identity or spoken words. The source screenplay governs what happens.
+The exact source identity should include `profileId`, `projectId`, `anchorRef`, `shotPosition`, `artifactId/version`, media identity, and a fingerprint of **all relevant narration inputs**, including camera/lighting/continuity (not merely screenplay text).
 
-**N2 — dialogue is verbatim.** At most one bubble per Shot, up to 100 characters, uses a **contiguous exact excerpt** of supplied screenplay dialogue attributed to its actual speaker. No paraphrasing invented as a quote and no switching speakers. A Shot without supportable dialogue may receive narration alone or deliberate silence.
+## 3. Proposed observable invariants
 
-**N3 — text-only compute.** For Storyboard Create Narration, the request and model invocation depend on written story/Shot evidence only. Never fetch/encode image pixels, create a contact sheet, invoke visual inference, or fail merely because a vision model is unavailable. The existing *Previs* visual-adaptation route is a separate capability, not silently reused for this action.
+**B1 — Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.
 
-**N4 — actual capability delivery or transparent non-delivery.** When StoryEligible, SessionAuthorized and TextRouteReady hold and the route returns a valid bounded response, one matching draft must appear for Human review. If they do not hold or the remote/local provider fails, the UI must state the reason and preserve existing work. Distinguish, at minimum: unsigned/expired authorization; no active Hybrid writing route; configured route not ready or consent blocked; missing story/Shot evidence; provider execution failure/time-out; malformed/ungrounded output; rejected persistence; stale source/Shot. Do not invent a "ready" state from a passing mocked test. Numeric response limits are engineering policy to be measured and verified, not assumed here.
+**B2 — Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness.
 
-**N5 — approve is a separate durable decision.** Create/Regenerate only produces a **DRAFT**. Only pressing **Approve text** (or **Set silent**) may commit a current narrative decision. Announce approval only after confirmed encrypted durable write. A failed or pending approval retains the original approved text and the user's draft/retry path. Saving text cannot alter image bytes, Save/Lock, unrelated Shot approvals, screenplay or provider route.
+**B3 — Meaningful brevity.** Propose approximately **5–8 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state.
 
-**N6 — correct identity and staleness.** Each draft/approval belongs to the exact `profileId, projectId, anchorRef, shot position, storyboard artifactId/version` and a **source fingerprint** covering the screenplay passages, supplied authored Shot facts and story context. If the selected image/version, story evidence, camera, information boundary or other narration input changes while generation is underway or after approval, a result for the old source may not overwrite/masquerade as the current one. Stale content remains distinguishable until the Human explicitly re-approves current text.
+**B4 — Dialogue or caption.** Choose the form that makes sense:
+- **Dialogue bubble:** a short **verbatim contiguous excerpt** from actual screenplay dialogue, attributed to its actual speaker. Never invent or paraphrase speech as if quoted.
+- **Caption beneath the frame:** a concise scene description or dramatic observation grounded in screenplay and authored Shot facts. It is not attributed to a speaking character.
 
-**N7 — recover and hand off unchanged.** After a supported normal restart and Library "Open Example with Your Changes", the Human finds the same approved text or approved silence associated with the same Saved+Locked Shot. Previs receives and presents exactly that current approval; it must not silently swap a stale draft, different shot, model regeneration, or an old image version. No additional narration generation or paid compute is required to play approved content.
+Do not add a second printed sentence as a workaround to evade the word maximum. A proposed "No Bubble" decision is a separate intentional outcome.
 
-**N8 — no collateral effects.** Failed auth, no route, model failure, malformed text, timeout, cancellation, stale response and persistence failure must leave previously approved text, image state and unrelated story/profile identities unchanged. Any generated text is a proposal, never canonical screenplay truth without a separate Human decision.
+**B5 — Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**.
+- **Save & Lock** commits the exact selected proposed text, form, optional screenplay speaker, selected image/version, source fingerprint and Human approval; show success **only when durability is confirmed**.
+- **Regenerate** requests another draft **without altering the last locked text**, image or other Shots.
+- **No Bubble** is a direct Human decision to leave the frame without printed text; persist the intentional choice so Previs distinguishes it from an ungenerated/failed bubble. Report success only after confirmed Save. If a prior result is locked, changing it requires an explicit Human-directed replacement, never an automatic overwrite.
 
-## 4. Minimal observable state machine
+**B6 — Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit.
+
+**B7 — Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library → Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities.
+
+**B8 — No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display “Saved & Locked” while persistence is unknown.
+
+## 4. State model
 
 ```text
-UNAVAILABLE (not Saved+Locked / missing screenplay / no authorized text route)
-    -- prerequisites satisfied --> READY
-READY -- Create Narration --> PREFLIGHT --> GENERATING
-GENERATING -- valid text --> DRAFT
-GENERATING -- dependency/error/invalid text --> FAILED (reason; no changed approval)
-DRAFT -- Regenerate --> GENERATING (old approval intact)
-DRAFT -- Approve text --> APPROVAL_PENDING --> APPROVED (durable acknowledgement)
-DRAFT -- Set silent --> APPROVAL_PENDING --> APPROVED_SILENCE (durable acknowledgement)
-APPROVAL_PENDING -- rejected/unknown --> SAVE_FAILED_OR_UNKNOWN (no false approved claim)
-Any draft/approval -- source identity changed --> STALE (not current)
+NOT_ELIGIBLE -- image not Saved+Locked / no grounded story source --> BLOCKED
+ELIGIBLE + LOCAL_WRITER_READY --> READY
+READY -- Create Narration --> GENERATING_LOCALLY
+GENERATING_LOCALLY -- valid proposal --> DRAFT
+GENERATING_LOCALLY -- invalid/failed response --> FAILED (previous lock intact)
+DRAFT -- Regenerate --> GENERATING_LOCALLY (previous lock intact)
+DRAFT -- Save & Lock --> COMMITTING --> LOCKED_TEXT (only after durable confirmation)
+READY or DRAFT -- No Bubble --> COMMITTING --> LOCKED_NO_BUBBLE
+COMMITTING -- failure/uncertainty --> FAILED_OR_UNKNOWN (never false success)
+LOCKED_* -- Human elects replacement --> READY_TO_AMEND
+Any current source/version change --> STALE_OLD_RESULT
 ```
 
-Formal invariants (proposed):
+Formal constraints:
+- `LockedPrintedDecision(d) => ConfirmedDurableCommit(d) AND ExactCurrentShotAndSource(d)`.
+- `PrintedWordCount(d) <= 12`, with **5–8 words** the creative target.
+- `DialogueBubble(d) => VerbatimQuote(d.text, ScreenplaySpeaker(d))`.
+- `Generate(d) => ActiveProvider(d) = ConfiguredLocalWritingProvider`.
+- `CloudOrAutomaticRouteFallback(d) = FALSE`.
+- `NoBubble(d) => DurableIntentionalTextFree(d)`, **not** GenerationFailure.
+- `StoryboardPrintedResult(d) = PrevisPrintedResult(d)` for current matching Saved+Locked images.
+- `FailureOrStaleResponse => NoMutation(ExistingLocks,StoryCanon,OtherShots,OtherProfiles)`.
 
-- `PresentedAsCurrentApproved(n) ⇒ DurableApproved(n) ∧ SourceFingerprint(n)=Fingerprint(CurrentShot)`
-- `StoryboardGenerate(n) ⇒ TextOnlyRequest(n) ∧ ImagePayload(n)=∅`
-- `ApprovedBubble(b) ⇒ ContiguousScreenplayQuotation(b.text,b.speaker)`
-- `GenerationFailure ⇒ NoMutation(PreviouslyApprovedText,ImageApproval,Screenplay,OtherShots)`
-- `PrevisCurrent(n) ⇒ SavedAndLocked(AssociatedArtifact(n)) ∧ DurableApproved(n) ∧ MatchingSource(n)`
+## 5. Independent acceptance tests
 
-These constraints define the required behaviour, **not** proof that the current implementation satisfies it.
-
-## 5. Acceptance examples and deliberately failing scenarios
-
-| Human action / situation | Expected result | Independent observation |
+| Situation | Expected human-visible outcome | Independent evidence |
 | --- | --- | --- |
-| Click Create Narration on eligible 3-second Shot with usable screenplay and ready text route | One short draft capturing its story moment; not automatically approved | Real selected provider executes text-only request; inspect rendered draft and authoritative passages |
-| Play Shot with actual dialogue | Correct screenplay speaker and exact dialogue excerpt, or a grounded caption | Compare quote directly to canonical passages, reject invented speaker/words |
-| Camera/lighting/continuity changes before generation returns | Stale response cannot replace current draft/approval | Inject delayed model response, modify exactly one shot fact, observe no current approval mutation |
-| Writing route OFF/unconfigured in Hybrid | Clear blocked reason; no silent switch to another provider | Exercise configured route resolver and diagnostics, verify provider was not invoked |
-| Authenticated session is valid but endpoint produces 403 | Report actual session/CSRF boundary and operation reason, not an invented sign-in requirement | Real local profile/session HTTP interaction; recorded request ID/code with secrets redacted |
-| Text model returns invalid JSON, invented dialogue or overlong caption | Honest output validation failure; prior approval unaffected | Inject defective provider response through actual endpoint |
-| Approve text / Set silent with successful encrypted vault write | Durable current approval, independent of image Lock | Inspect real persistent store and UI, repeat after logout/process restart |
-| Save fails or response arrives for old Shot | No false approved banner; draft or old approval remains recoverable | Inject write failure/selection race; compare before and after identifiers |
-| Reopen example with local changes, then Previs | The exact approved printed text/bubble appears on the right Shot | Use the same version/identity and compare rendered Storyboard and Previs |
-| No useful screenplay evidence | Explain unavailability without fabricating an event | Remove mapped evidence, verify blocked/silence remains an intentional Human choice |
+| Afterglow Saved+Locked Shot with working local writer | Short meaningful Shot-specific draft | Actual local provider called and answered; rendered draft |
+| Writer works without vision capability | Still produces grounded printed caption from screenplay/Shot | Actual local text route, no forced pixels / no Cloud switch |
+| Image is readable by existing authorized local visual capability | Optional additional observation can inform a grounded draft | Same image version, no invented dialogue, no Cloud |
+| Actual screenplay dialogue | Short authentic bubble with the correct speaking character | Compare contiguous quote/speaker to source |
+| No suitable dialogue | Grounded caption beneath the image | Compare to screenplay + Shot information |
+| Regenerate after an earlier saved/locked result | New draft; previous lock remains intact | Compare encrypted before/after |
+| Save & Lock | Exact current printed decision gets durable confirmation | Read current encrypted decision, not UI state alone |
+| No Bubble | Intentional, durable text-free frame | Reopen image; still No Bubble, not “pending” |
+| Local writer missing/failing | Existing work kept, concise failure | Actual error logged; no provider switch |
+| Camera/dialogue/Shot changes before delayed response | Stale response cannot change current decision | Inject change/race, compare identities |
+| Application stops/restarts; open Afterglow with local changes | Identical locked image and printed text in both Storyboard and Previs | Real process, readback and visible two-surface comparison |
 
-**Special note on creative correctness:** deterministic tests can prove provenance, input/output shape, timing, scope and exact quoted dialogue. They cannot mathematically prove every poetic caption is narratively excellent. Use a small independently reviewed Afterglow example set with explicit accepted/rejected captions and retain Human approval as the final creative authority.
+## 6. Existing implementation — gaps to verify, not assumed root cause
 
-## 6. Known code and verification gaps (source inspection, not proven live cause)
+Source inspected October 8, 2026:
+- `app/_components/preproduction/storyboard-locked-shot-handoff.tsx` currently uses **Create Narration / Approve text / Regenerate / Set silent**. It does **not yet implement** the revised Save & Lock / Regenerate / No Bubble Human wording and associated printed-decision semantics.
+- `app/api/previs/narration/route.ts` currently sends Storyboard through a **text-only** agent and calls `resolveConfiguredAgentExecutionProfile`, which currently uses a **Hybrid-selected writing route**, not exclusively the user's configured working Local writer. Its generic text-compute error can conceal the actual failure source.
+- `app/_components/previs/previs-graphic-novel-presentation.ts` currently computes a source key from screenplay, story context and presentation data but does not explicitly include **every authored Shot fact** used by the generation request.
+- #2839 tests use injected successful model responses and isolated durability fixtures. A green test does **not** prove the Human's live local model can generate a bubble.
 
-- Existing Storyboard request already sends text-only data and current parser limits short caption and verbatim dialogue (`core/media/previs-narration.mjs`, #2839). Preserve these correctly functioning constraints.
-- Narration API collapses exceptions from `resolveConfiguredAgentExecutionProfile` and model invocation into a single `TEXT_COMPUTE_UNAVAILABLE` response. This can hide a missing Hybrid writing selection, missing consent, unreadiness or provider failure. The actual cause of the Human's current error is **not yet independently observed**.
-- Storyboard's pre-request `/api/auth/profile` and the narration endpoint's separate mutation authorization may disagree; compare both under an authenticated live session before changing security boundaries.
-- `graphicNovelTextSourceKey` currently covers passages, story context and panel presentation, but not every `shotFacts` field passed to narration. A camera/lighting/continuity edit may fail to invalidate a stale approval. Do not assume that a changed project revision alone closes this gap.
-- #2839 handler/endpoint tests use mocked text-model execution; Windows rendered narration proof injects a successful endpoint reply. Green tests therefore do **not** establish an actual selected Hybrid writing model answering Storyboard narration on the Human's device.
+Do not assume a root cause, weaken auth, create another router/agent subsystem, install paid models, change media Save/Lock or promise every caption is artistically perfect.
 
-## 7. Verification sequence and limits
+## 7. Next proof sequence
 
-1. **Human accepts/corrects this truth first**; preserve original Human language. Until accepted, it is a *proposal*, not PP-NARR-001 compliance authority.
-2. Independently baseline the real failure using current route/status diagnostics and an isolated authorized writing route. Do not spend cloud credits without prior route authorization; if no executable provider is available, record **BLOCKED** rather than inventing PASS.
-3. Add red-capable tests exercising real authentication/Hybrid route selection, no image payload, exact reply validation, stale identity, failed approval, and independent persistent readback.
-4. Implement only measured owning repairs in Storyboard, existing writing route, agent gateway and approval owner; no new agent framework, state store, compatibility bridge or separate verifier.
-5. Green build/CI is necessary, **not sufficient**. Run rendered Storyboard → Human Approve → restart/Library recovery → Previs; compare current source identity and content. Record PASS/FAIL/BLOCKED/UNPROVEN **per rule** and keep Human local-device acceptance separate.
+1. **Human confirms this revised contract.** Nothing here authorizes implementation until approved.
+2. Independently reproduce the actual Storyboard narration failure on the existing Local writing path. If no usable local model is available in CI, mark that particular real-compute test **BLOCKED**, not PASS based on a stub.
+3. Capture concrete failing expectations at the true owning boundaries: local execution, original quoted dialogue, render location/form, No Bubble, exact identity, durable Save & Lock, staleness and two-surface recovery.
+4. Repair only demonstrated gaps in the existing Bubble/Graphic Novel presentation, writing-provider authority and authenticated storage. Reuse existing diagnostics, agent interfaces and test harness.
+5. Verify real local generation, actual rendered draft + Save & Lock/Regenerate/No Bubble, close/restart/restore and Previs consistency. Preserve explicit PASS/FAIL/BLOCKED/UNPROVEN, and require a separate Human device acceptance.
 
-## 8. Human decisions needed
-
-1. Does "Create Narration" mean **brief printed caption/actual dialogue bubble**, with silence allowed, rather than spoken audio? *(Proposed based on the previous discussion and current Storyboard button.)*
-2. Is **roughly five to eight words preferred, 12 words maximum**, a good first output boundary? The words are not required to be exactly five or six when a complete thought needs more room.
-3. Should **both** an eligible Saved+Locked Shot and a genuinely selected, ready **Hybrid writing route** be mandatory before an attempt? If the latter is missing, the system gives one precise setup instruction and does not pretend to generate.
-
-**Contract state:** awaiting the Human's explicit approval or correction. No runtime code is authorized by this proposal alone.
+**Approval record:** User corrected initial draft on 2026-10-08: use all needed relevant information (including image information when appropriate); generate a roughly five-to-eight-word bubble or description beneath the image, no more than twelve; use only the already working configured **Local** writer, not Hybrid's alternate routes; use **Save & Lock**, **Regenerate**, **No Bubble**; display unchanged in both Storyboard and Previs after restart. The user immediately clarified **“log = lock”**. These corrections have been incorporated, but an explicit final acceptance has **not** yet been inferred.

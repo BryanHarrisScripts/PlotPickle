@@ -14,6 +14,7 @@ import { saveFoundationProjectDurably } from "@/core/storage/project-library/rev
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
+import { prepareStoryboardNarrationSequence } from "@/core/media/storyboard-sequence-evidence.mjs";
 import {
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
@@ -26,6 +27,7 @@ import {
   storyboardAnchorTargetRef,
   storyboardPositionProgression,
   storyboardNarrationPassagesForPosition,
+  storyboardNarrationSourcePassagesInStoryOrder,
 } from "../storyboard/storyboard-editorial-model";
 import styles from "../storyboard/storyboard-readiness-workspace.module.css";
 
@@ -58,6 +60,7 @@ export default function StoryboardLockedShotHandoff({
   const anchorRef = storyboardAnchorTargetRef(targetId, miniBlockNumber);
   const evidence = storyboardAnchorEvidence(project, targetId, miniBlockNumber);
   const visualStory = projectVisualStory({ project, legacyProject, blockNumber, miniBlockNumber });
+  const authoredSequencePassages = storyboardNarrationSourcePassagesInStoryOrder(project, targetId, miniBlockNumber);
   const anchor = visualStory.anchors.find((candidate) => candidate.anchorRef === anchorRef) ?? null;
   const sceneNumbers = [...new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean))].map(String);
   const storyContext = {
@@ -80,6 +83,19 @@ export default function StoryboardLockedShotHandoff({
       ))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
     return artifact ? [{ position, artifact }] : [];
+  });
+  const sequenceShots = Array.from({ length: 25 }, (_, index) => {
+    const position = index + 1;
+    const artifact = lockedArtifacts.find((item) => item.position === position)?.artifact;
+    const shot = anchor?.shots.find((item) => item.order === position);
+    return {
+      position,
+      intention: compact([
+        artifact?.narrativeIntention,
+        shot?.narrativePurpose,
+        shot?.visualIntent,
+      ]).slice(0, 1600),
+    };
   });
   const approvals = (project.production.graphicNovelTextApprovals ?? [])
     .filter((approval) => approval.anchorRef === anchorRef);
@@ -175,9 +191,18 @@ export default function StoryboardLockedShotHandoff({
 
   async function generateNarration(panel: PrevisGraphicNovelPanel, shotFacts: Readonly<Record<string, string>>) {
     if (busyPosition !== null) return;
-    const scopedPassages = storyboardNarrationPassagesForPosition(evidence.passages, panel.position);
-    if (!scopedPassages.length) {
-      setNotices((current) => ({ ...current, [panel.position]: "No screenplay passage is mapped to this Shot. Narration was not generated." }));
+    let sequenceEvidence;
+    try {
+      sequenceEvidence = prepareStoryboardNarrationSequence({
+        passages: authoredSequencePassages,
+        shots: sequenceShots,
+        position: panel.position,
+      });
+    } catch (error) {
+      setNotices((current) => ({
+        ...current,
+        [panel.position]: error instanceof Error ? error.message : "This Shot needs an authored dramatic moment.",
+      }));
       return;
     }
     const requestedSourceKey = currentApproval(panel).sourceKey;
@@ -200,7 +225,8 @@ export default function StoryboardLockedShotHandoff({
         body: JSON.stringify({
           mode: "storyboard-shot",
           storyContext,
-          passages: scopedPassages,
+          passages: sequenceEvidence.passages,
+          sequence: sequenceEvidence.sequence,
           panels: [{ position: panel.position, intention: panel.narration }],
           shot: shotFacts,
         }),
@@ -288,7 +314,7 @@ export default function StoryboardLockedShotHandoff({
             const shotScenes = [...new Set(shotPassages.map((passage) => passage.sceneNumber).filter(Boolean))];
             const shotFacts = {
               story: compact([artifact.narrativeIntention, shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
-              sceneBeat: compact([shotScenes.length ? shotScenes.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label]),
+              sceneBeat: compact([shotScenes.length ? shotScenes.map((scene) => `Scene ${scene}`).join(", ") : "", shot?.narrativePurpose]),
               camera,
               performance,
               lighting: shot?.lightingIntent ?? "",
@@ -342,7 +368,7 @@ export default function StoryboardLockedShotHandoff({
 
                   <div className={styles.handoffNarrationActions}>
                     <button
-                      disabled={busyPosition !== null || !evidence.passages.length}
+                      disabled={busyPosition !== null || (!authoredSequencePassages.length && !sequenceShots[position - 1]?.intention)}
                       type="button"
                       onClick={() => void generateNarration(panel, shotFacts)}
                     >

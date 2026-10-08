@@ -5,6 +5,7 @@ import { stripTypeScriptTypes } from 'node:module';
 import vm from 'node:vm';
 // PP-NARR-001 B6 runs in the existing Windows narration gate, not only as an unselected new test file.
 import './issue-2855-bubble-source-identity.test.mjs';
+import './issue-2841-local-writing-truth.test.mjs';
 import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest } from '../core/media/previs-narration.mjs';
 
 const storyContext = { title: 'Afterglow', act: 1, block: 1, miniBlock: 1, blockTitle: 'Opening', dramaticResponsibility: 'Establish the dilemma.' };

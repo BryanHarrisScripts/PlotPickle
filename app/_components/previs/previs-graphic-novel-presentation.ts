@@ -1,4 +1,6 @@
 import type { PrevisGraphicNovelTextApproval } from "@/core/contracts/previs";
+import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import type { PPFProject } from "@/core/project/project";
 import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } from "../storyboard/storyboard-editorial-model";
 
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
@@ -112,21 +114,137 @@ export function graphicNovelWebpExportFileName(projectTitle: string, blockNumber
 }
 
 
+/**
+ * PP-NARR-001 B6: one projection of the actual PPF project authority for
+ * Storyboard AND Previs. Do not use a UI-only shot projection as authority:
+ * Previs has no legacy-project reference and must derive the same source key.
+ *
+ * Entire scoped production records are included intentionally: a newly
+ * authored camera, blocking, lighting, timing, or continuity property must
+ * invalidate old Bubble text even if a renderer does not yet display it.
+ */
+function normalizedBubbleStoryFacts(value: unknown): unknown {
+  if (typeof value === "string") return value.trim() || null;
+  if (Array.isArray(value)) {
+    const values = value.map(normalizedBubbleStoryFacts).filter((item) => item !== null);
+    return values.length ? values : null;
+  }
+  if (value && typeof value === "object") {
+    const normalized = Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !["createdAt", "updatedAt", "reviewState", "roughMotionEvidenceRefs"].includes(key))
+      .sort(([left], [right]) => left.localeCompare(right))
+      .flatMap(([key, item]) => {
+        const next = normalizedBubbleStoryFacts(item);
+        return next === null ? [] : [[key, next] as const];
+      });
+    return normalized.length ? Object.fromEntries(normalized) : null;
+  }
+  return value === undefined ? null : value;
+}
+
+export function graphicNovelTextSourceSnapshot(
+  project: PPFProject,
+  anchorRef: string,
+  position: number,
+  artifact: FoundationsVisualArtifact | null,
+) {
+  return {
+    projectId: project.id,
+    anchorRef,
+    position,
+    image: artifact ? {
+      id: artifact.id,
+      assetUrl: artifact.assetUrl,
+      workflow: artifact.workflow ?? "",
+      reviewState: artifact.reviewState ?? "",
+      frameNumber: artifact.frameNumber ?? null,
+      narrativeIntention: artifact.narrativeIntention ?? "",
+      savedAndLocked: project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id),
+    } : null,
+    authoredShots: project.production.shots
+      .filter((shot) => shot.anchorRef === anchorRef && shot.order === position)
+      .slice()
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map((shot) => normalizedBubbleStoryFacts(shot)),
+  };
+}
+
+/**
+ * Compact *change-detection* fingerprint, not a cryptographic identity or
+ * authorization token. Each independent 32-bit mixing lane contributes to
+ * a 128-bit deterministic result. No source text is stored in the key.
+ */
+function bubbleSourceDigest(value: unknown): string {
+  const serialized = JSON.stringify(value) ?? "null";
+  const lanes = [0x811c9dc5, 0x85ebca6b, 0xc2b2ae35, 0x27d4eb2f];
+  const primes = [0x01000193, 0x1b3, 0x5bd1e995, 0x27d4eb2d];
+  for (let index = 0; index < serialized.length; index += 1) {
+    const unit = serialized.charCodeAt(index);
+    for (let lane = 0; lane < lanes.length; lane += 1) {
+      lanes[lane] = Math.imul(lanes[lane] ^ unit, primes[lane]);
+    }
+  }
+  return lanes.map((value) => (value >>> 0).toString(16).padStart(8, "0")).join("");
+}
+
+/**
+ * PP-NARR-001 B6: bounded source identity must survive encrypted PPF storage
+ * whose sourceKey limit is 4,000 characters. Splitting the digests by input
+ * authority allows bounded diagnostics without leaking the story or image.
+ */
 export function graphicNovelTextSourceKey(
   panel: PrevisGraphicNovelPanel,
   passages: unknown,
   storyContext: unknown,
+  sourceSnapshot?: ReturnType<typeof graphicNovelTextSourceSnapshot>,
 ) {
   return JSON.stringify({
-    passages,
-    storyContext,
-    assetUrl: panel.assetUrl,
-    caption: panel.caption,
-    narration: panel.narration,
-    shotLabel: panel.shotLabel,
-    shotContext: panel.shotContext,
-    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+    contract: "PP-NARR-001/B6-v3",
+    fingerprints: {
+      address: bubbleSourceDigest({
+        projectId: sourceSnapshot?.projectId ?? "",
+        anchorRef: sourceSnapshot?.anchorRef ?? "",
+        position: sourceSnapshot?.position ?? panel.position,
+      }),
+      image: bubbleSourceDigest(sourceSnapshot?.image ?? null),
+      shot: bubbleSourceDigest(sourceSnapshot?.authoredShots ?? []),
+      screenplay: bubbleSourceDigest(passages),
+      context: bubbleSourceDigest(storyContext),
+      presentation: bubbleSourceDigest({
+        assetUrl: panel.assetUrl,
+        caption: panel.caption,
+        narration: panel.narration,
+        shotLabel: panel.shotLabel,
+        shotContext: panel.shotContext,
+        bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+      }),
+    },
   });
+}
+
+/** Labels only: do not place Human screenplay, Shot contents or URLs in diagnostics. */
+export function graphicNovelTextStaleReasons(savedKey: string, currentKey: string): string[] {
+  try {
+    const saved = JSON.parse(savedKey) as {
+      contract?: string;
+      fingerprints?: Record<string, string>;
+    };
+    const current = JSON.parse(currentKey) as {
+      contract?: string;
+      fingerprints?: Record<string, string>;
+    };
+    const reasons: string[] = [];
+    if (saved.contract !== current.contract) reasons.push("contract version");
+    if (saved.fingerprints?.address !== current.fingerprints?.address) reasons.push("story address");
+    if (saved.fingerprints?.image !== current.fingerprints?.image) reasons.push("image identity");
+    if (saved.fingerprints?.shot !== current.fingerprints?.shot) reasons.push("authored Shot facts");
+    if (saved.fingerprints?.screenplay !== current.fingerprints?.screenplay) reasons.push("screenplay evidence");
+    if (saved.fingerprints?.context !== current.fingerprints?.context) reasons.push("story context");
+    if (saved.fingerprints?.presentation !== current.fingerprints?.presentation) reasons.push("presentation source");
+    return reasons.length ? reasons : ["other source identity"];
+  } catch {
+    return ["unreadable source identity"];
+  }
 }
 
 export function approvedGraphicNovelPanel(

@@ -17,6 +17,8 @@ import { projectVisualStory } from "@/lib/preproduction/visual-story-projection"
 import {
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
+  graphicNovelTextSourceSnapshot,
+  graphicNovelTextStaleReasons,
   type PrevisGraphicNovelPanel,
 } from "../previs/previs-graphic-novel-presentation";
 import {
@@ -106,7 +108,8 @@ export default function StoryboardLockedShotHandoff({
 
   function currentApproval(panel: PrevisGraphicNovelPanel) {
     const approval = approvals.find((candidate) => candidate.position === panel.position) ?? null;
-    const sourceKey = graphicNovelTextSourceKey(panel, evidence.passages, storyContext);
+    const artifact = lockedArtifacts.find((item) => item.position === panel.position)?.artifact ?? null;
+    const sourceKey = graphicNovelTextSourceKey(panel, evidence.passages, storyContext, graphicNovelTextSourceSnapshot(project, anchorRef, panel.position, artifact));
     return {
       sourceKey,
       current: approval?.sourceKey === sourceKey ? approval : null,
@@ -134,6 +137,10 @@ export default function StoryboardLockedShotHandoff({
     try {
     const base = loadFoundationProject();
     if (base.id !== project.id || base.revision !== latestProject.current.revision) throw new Error("The story changed while this narration was being reviewed. Refresh the shot before approving.");
+    const artifactId = lockedArtifacts.find((item) => item.position === panel.position)?.artifact.id;
+    const liveArtifact = base.build.foundations.visualArtifacts.find((item) => item.id === artifactId) ?? null;
+    const liveKey = graphicNovelTextSourceKey(panel, evidence.passages, storyContext, graphicNovelTextSourceSnapshot(base, anchorRef, panel.position, liveArtifact));
+    if (!liveArtifact || liveKey !== sourceKey) throw new Error("This Shot or image changed. Generate or review narration against the current saved image.");
     const next: PPFProject = {
       ...base,
       revision: base.revision + 1,
@@ -171,6 +178,7 @@ export default function StoryboardLockedShotHandoff({
       setNotices((current) => ({ ...current, [panel.position]: "No mapped screenplay passage is available for grounded narration." }));
       return;
     }
+    const requestedSourceKey = currentApproval(panel).sourceKey;
     activeRequest.current?.abort();
     const controller = new AbortController();
     activeRequest.current = controller;
@@ -204,8 +212,9 @@ export default function StoryboardLockedShotHandoff({
         throw new Error(result.message || "Narration generation failed.");
       }
       if (controller.signal.aborted || latestProject.current !== project) return;
+      const sourceKey = currentApproval(panel).sourceKey;
+      if (sourceKey !== requestedSourceKey) return;
       const proposed = result.panels[0];
-      const sourceKey = graphicNovelTextSourceKey(panel, evidence.passages, storyContext);
       setDrafts((current) => ({
         ...current,
         [panel.position]: {
@@ -308,7 +317,7 @@ export default function StoryboardLockedShotHandoff({
                       {approvalState.current.narration ? <p>{approvalState.current.narration}</p> : null}
                     </>
                   ) : null}
-                  {!approvalState.current && approvalState.stale ? <p>Narration exists but is stale for the current locked image/story source.</p> : null}
+                  {!approvalState.current && approvalState.stale ? <p>Narration exists but is stale for the current locked image/story source ({graphicNovelTextStaleReasons(approvalState.stale.sourceKey, approvalState.sourceKey).join(", ")}).</p> : null}
                   {!approvalState.current && !approvalState.stale ? <p>Not authored yet.</p> : null}
 
                   {draft ? (

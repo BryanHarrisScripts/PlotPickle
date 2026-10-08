@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { stripTypeScriptTypes } from 'node:module';
 import vm from 'node:vm';
+// PP-NARR-001 B6 runs in the existing Windows narration gate, not only as an unselected new test file.
+import './issue-2855-bubble-source-identity.test.mjs';
 import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest } from '../core/media/previs-narration.mjs';
 
 const storyContext = { title: 'Afterglow', act: 1, block: 1, miniBlock: 1, blockTitle: 'Opening', dramaticResponsibility: 'Establish the dilemma.' };
@@ -53,6 +55,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
+    currentApproval: () => ({sourceKey: 'source-current'}),
     graphicNovelTextSourceKey: () => 'source-current',
     fetch: async (url, options) => {
       if (url === '/api/auth/profile') return Response.json({ authenticated: true, csrfToken: 'test-csrf' });

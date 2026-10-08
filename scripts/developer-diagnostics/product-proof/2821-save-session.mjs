@@ -150,10 +150,24 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-draft.png") });
   await handoff.getByRole("button", { name: "Save & Lock", exact: true }).click();
   await handoff.getByText("Bubble / caption saved and locked for Storyboard and Previs.", { exact: true }).waitFor();
+  // The UI acknowledgement alone is insufficient: independently prove that
+  // the refreshed approval source key still renders the exact approved text.
+  const postSave = await Promise.allSettled([
+    handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 5000 }),
+  ]);
+  if (postSave[0].status === "rejected") {
+    throw new Error(`PP-NARR-001 B7 immediate saved Bubble mismatch: ${(await handoff.innerText()).slice(0, 2400)}`, { cause: postSave[0].reason });
+  }
   await page.reload();
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });
-  await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor();
+  const postReload = await Promise.allSettled([
+    handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 8000 }),
+  ]);
+  if (postReload[0].status === "rejected") {
+    const snapshot = await handoff.innerText();
+    throw new Error(`PP-NARR-001 B7: saved Bubble absent after reload; Storyboard state: ${snapshot.slice(0, 2400)}`, { cause: postReload[0].reason });
+  }
   assert.equal(await handoff.getByRole("button", { name: "Save & Lock", exact: true }).count(), 0, "reopened saved-and-locked text is not an unsaved draft");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-reopened.png") });
   assert.deepEqual(errors, []);

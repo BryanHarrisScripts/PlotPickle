@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { planAfterglowConsolidation, AFTERGLOW_DURABLE_FIELDS } from "../modules/library/afterglow-consolidation.mjs";
+import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions, AFTERGLOW_DURABLE_FIELDS } from "../modules/library/afterglow-consolidation.mjs";
 
 const baseline = () => ({
   format:"2.0-foundation", id:"packaged", title:"Afterglow",
@@ -151,4 +151,69 @@ test("#2863 anonymous/positional competing arrays are never blindly concatenated
   assert.equal(result.mergeShapeConsistent,false);
   assert.ok(result.conflicts.some(x=>x.path.includes("graphicNovelTextApprovals")));
   assert.deepEqual(result.candidate.production.graphicNovelTextApprovals,[]);
+});
+
+
+test("#2863 Phase 2B every competing decision requires an explicit valid Human selection", () => {
+  const base=baseline();
+  const older=working(base,"older",oct5,p=>{
+    p.storyDevelopment.fields["world:a"].value="Amy faces the truth";
+    p.mindMapNotes.fields["theme"]={text:"A choice matters"};
+  });
+  const newest=working(base,"newer",oct8,p=>{
+    p.storyDevelopment.fields["world:a"].value="Ren faces the truth";
+    p.mindMapNotes.fields["theme"]={text:"Memory matters"};
+  });
+  const input=structuredClone([older,newest]);
+  const plan=planAfterglowConsolidation({baseline:base,sources:[older,newest]});
+  assert.equal(plan.conflicts.length,2);
+  const pending=reviewAfterglowConsolidationDecisions(plan,{});
+  assert.equal(pending.unresolvedConflicts.length,2);
+  assert.equal(pending.resolved.length,0);
+  assert.equal(pending.readyForHumanCommit,false);
+  const choices=Object.fromEntries(plan.conflicts.map(c=>[c.path,1]));
+  const selected=reviewAfterglowConsolidationDecisions(plan,choices);
+  assert.equal(selected.unresolvedConflicts.length,0);
+  assert.equal(selected.resolved.length,2);
+  assert.equal(selected.decisionShapeConsistent,true);
+  assert.equal(selected.candidate.storyDevelopment.fields["world:a"].value,"Ren faces the truth");
+  assert.equal(selected.candidate.mindMapNotes.fields.theme.text,"Memory matters");
+  assert.equal(selected.readyForHumanCommit,false,"human selection is not authorization to persist");
+  assert.equal(selected.packageModified,false);
+  assert.equal(plan.candidate.storyDevelopment.fields["world:a"].value,"original","pure planner stays unchanged");
+  assert.deepEqual([older,newest],input,"saved input snapshots are immutable");
+});
+test("#2863 Phase 2B baseline is a deliberate alternative and invalid decisions fail closed", () => {
+  const base=baseline();
+  const a=working(base,"a",oct5,p=>{p.storyDevelopment.fields["world:a"].value="First";});
+  const b=working(base,"b",oct8,p=>{p.storyDevelopment.fields["world:a"].value="Second";});
+  const plan=planAfterglowConsolidation({baseline:base,sources:[a,b]});
+  const path=plan.conflicts[0].path;
+  const keep=reviewAfterglowConsolidationDecisions(plan,{[path]:"baseline"});
+  assert.equal(keep.candidate.storyDevelopment.fields["world:a"].value,"original");
+  assert.equal(keep.resolved.length,1);
+  assert.throws(()=>reviewAfterglowConsolidationDecisions(plan,{"/other/path":0}),/outside the current review/u);
+  assert.throws(()=>reviewAfterglowConsolidationDecisions(plan,{[path]:3}),/validated alternatives/u);
+  assert.throws(()=>reviewAfterglowConsolidationDecisions(plan,{[path]:"latest"}),/validated alternatives/u);
+  assert.throws(()=>reviewAfterglowConsolidationDecisions({...plan,packageModified:true},{[path]:0}),/uncommitted/u);
+});
+test("#2863 Phase 2B different media candidates must carry chosen asset verification forward", () => {
+  const base=baseline();
+  const a=working(base,"a",oct5,p=>{p.world.facts.location="/api/local-ai/assets/amy-view1.webp";});
+  const b=working(base,"b",oct8,p=>{p.world.facts.location="/api/local-ai/assets/amy-view2.webp";});
+  const plan=planAfterglowConsolidation({baseline:base,sources:[a,b]});
+  const path=plan.conflicts[0].path;
+  const reviewed=reviewAfterglowConsolidationDecisions(plan,{[path]:1});
+  assert.deepEqual(reviewed.localAssetsToVerify,["/api/local-ai/assets/amy-view2.webp"]);
+  assert.equal(reviewed.readyForHumanCommit,false);
+});
+test("#2863 Phase 2B ambiguous deletions cannot be resolved through a competing-value choice", () => {
+  const base=baseline();
+  const a=working(base,"a",oct5,p=>{p.storyDevelopment.fields["world:a"].value="";});
+  const b=working(base,"b",oct8,p=>{p.world.facts.location="the attic";});
+  const plan=planAfterglowConsolidation({baseline:base,sources:[a,b]});
+  const result=reviewAfterglowConsolidationDecisions(plan,{});
+  assert.ok(result.needsReview.length>=1);
+  assert.equal(result.decisionShapeConsistent,false);
+  assert.equal(result.readyForHumanCommit,false);
 });

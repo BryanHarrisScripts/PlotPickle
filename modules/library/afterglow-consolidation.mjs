@@ -139,6 +139,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
     const alternatives=[...new Map(items.map(x=>[stable(x.value),x])).values()];
     if(alternatives.length>1){
       conflicts.push({path,reason:"competing-values",sources:items.map(x=>x.sourceProjectId),
+        optionSources:alternatives.map(x=>x.sourceProjectId),
         options:alternatives.map(x=>copy(x.value))});
       continue;
     }
@@ -164,4 +165,68 @@ export function planAfterglowConsolidation({baseline,sources}) {
     applied,conflicts,needsReview,localAssetsToVerify:[...assetRefs].sort(),
     mergeShapeConsistent:conflicts.length===0&&needsReview.length===0,
     readyForHumanCommit:false,packageModified:false};
+}
+
+
+/**
+ * Pure, non-persisting Human choice preview for all competing-value conflicts.
+ * Decisions: {[canonicalPath]: "baseline" | integer alternative index}.
+ * A collision of overlapping paths, deletions, reorders, and missing media
+ * remains blocked; never interpret a choice as authority to save or publish.
+ */
+export function reviewAfterglowConsolidationDecisions(plan, decisions = {}) {
+  if (!isRecord(plan) || !isRecord(plan.candidate) ||
+      !Array.isArray(plan.conflicts) || !Array.isArray(plan.needsReview) ||
+      !isRecord(decisions) || plan.packageModified !== false ||
+      plan.readyForHumanCommit !== false) {
+    throw new Error("Consolidation decisions require an uncommitted, validated preview.");
+  }
+  const paths = new Set(plan.conflicts.map(conflict => conflict.path));
+  for (const path of Object.keys(decisions)) {
+    if (!paths.has(path)) throw new Error("Decision references a conflict outside the current review: " + path);
+  }
+  const candidate = structuredClone(plan.candidate);
+  const resolved = [], unresolvedConflicts = [];
+  for (const conflict of plan.conflicts) {
+    const selected = decisions[conflict.path];
+    if (selected === undefined || conflict.reason !== "competing-values") {
+      unresolvedConflicts.push(structuredClone(conflict));
+      continue;
+    }
+    if (selected !== "baseline" &&
+      (!Number.isInteger(selected) || selected < 0 ||
+        !Array.isArray(conflict.options) || selected >= conflict.options.length)) {
+      throw new Error("A conflict decision is not one of its validated alternatives: " + conflict.path);
+    }
+    const keys = conflict.path.slice(1).split("/").map(segment =>
+      segment.replaceAll("~1", "/").replaceAll("~0", "~"));
+    // Non-commuting parent/child paths were already flagged as overlapping by
+    // the planner. Never apply those decisions even if a caller sends a choice.
+    const overlaps = plan.conflicts.some(other => other !== conflict &&
+      (other.path.startsWith(conflict.path + "/") || conflict.path.startsWith(other.path + "/")));
+    if (overlaps) {
+      unresolvedConflicts.push(structuredClone(conflict));
+      continue;
+    }
+    if (selected !== "baseline") apply(candidate, keys, conflict.options[selected]);
+    resolved.push({ path: conflict.path, choice: selected });
+  }
+  // Resolve image URLs from the actual reviewed candidate. A choice might
+  // introduce an image the original unselected planner candidate did not use.
+  const localAssetsToVerify = new Set();
+  const visit = value => {
+    if (typeof value === "string" && value.startsWith("/api/local-ai/assets/")) {
+      localAssetsToVerify.add(value);
+    } else if (Array.isArray(value)) value.forEach(visit);
+    else if (isRecord(value)) Object.values(value).forEach(visit);
+  };
+  visit(candidate);
+  return {
+    candidate, resolved, unresolvedConflicts,
+    needsReview: structuredClone(plan.needsReview),
+    localAssetsToVerify: [...localAssetsToVerify].sort(),
+    decisionShapeConsistent: unresolvedConflicts.length === 0 && plan.needsReview.length === 0,
+    readyForHumanCommit: false,
+    packageModified: false,
+  };
 }

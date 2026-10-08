@@ -66,8 +66,8 @@ test("#2807 authors Graphic Novel text through the existing Previs approval auth
   assert.match(handoff, /PrevisGraphicNovelTextApproval/u);
   assert.match(handoff, /graphicNovelTextApprovals/u);
   assert.match(handoff, /Human review/u);
-  assert.match(handoff, /Approve text/u);
-  assert.match(handoff, /Set silent/u);
+  assert.match(handoff, /Save &amp; Lock/u);
+  assert.match(handoff, /No Bubble/u);
   assert.match(handoff, /noText/u);
   assert.match(presentation, /export function graphicNovelTextSourceKey/u);
   assert.match(presentation, /export function approvedGraphicNovelPanel/u);
@@ -90,10 +90,8 @@ test("#2807 Storyboard and Previs share the same narration staleness source-key 
 test("#2807 Previs fills only missing narration and preserves current Storyboard approvals", async () => {
   const previs = await read("app/_components/previs/previs-readiness-workspace.tsx");
 
-  assert.match(previs, /const missingPanels = lockedGraphicNovelPanels\.filter\(\(panel\) => !currentTextApprovalFor\(panel\)\)/u);
-  assert.match(previs, /lockedImageContactSheet\(missingPanels/u);
-  assert.match(previs, /panels: missingPanels\.map/u);
-  assert.match(previs, /const generatedPositions = new Set\(approvals\.map\(\(approval\) => approval\.position\)\)/u);
-  assert.match(previs, /item\.anchorRef !== selectedAddressAnchor\.id \|\| !generatedPositions\.has\(item\.position\)/u);
-  assert.match(previs, /Existing approved Shot text was preserved/u);
+  assert.match(previs, /const missing = lockedGraphicNovelPanels\.filter\(\(panel\) => !currentTextApprovalFor\(panel\)\)/u);
+  assert.match(previs, /Playing approved text only/u);
+  assert.doesNotMatch(previs, /lockedImageContactSheet|fetch\("\/api\/previs\/narration"|graphicNovelTextApprovals: \[/u,
+    "Previs must not create or silently approve missing Bubble text");
 });

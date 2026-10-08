@@ -84,6 +84,7 @@ test('#2839 actual narration endpoint sends text to the agent and distinguishes 
         getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
         requestBoundary: request => request,
         resolveConfiguredAgentExecutionProfile: async () => ({ profile: { model: 'text-only-fixture' } }),
+        resolveConfiguredLocalNarrationProfile: async () => ({ profile: { model: 'text-only-fixture', provider: 'local' } }),
         askPlotPickleAgent: async args => { sent = args; if (failCompute) throw new Error('offline'); return reply; },
       });
       vm.runInContext(executable, context);

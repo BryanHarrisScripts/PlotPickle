@@ -34,7 +34,7 @@ Let `u` be **any** authenticated PlotPickle user, `B` the trusted common package
 
 ## Settings ownership: installation baseline, account master and official publication
 
-**Human decision:** The consolidation and baseline controls live under **Settings → Library → Afterglow Management**, organized into two routes. Ordinary **Library → Open Afterglow** should remain simple: continue the account's single current master or intentionally start a provided-example copy. All N dated histories belong under explicit management/recovery, not the everyday chooser.
+**Human decision:** The consolidation and baseline controls live under **Settings → Afterglow Management**, organized into two routes. Ordinary **Library → Open Afterglow** should remain simple: continue the account's single current master or intentionally start a provided-example copy. All N dated histories belong under explicit management/recovery, not the everyday chooser.
 
 ### Route A — My Afterglow (every authenticated PlotPickle user)
 

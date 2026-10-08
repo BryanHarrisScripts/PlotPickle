@@ -67,13 +67,13 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.match(dashboard, /"afterglow-management": "V"/u);
   assert.match(dashboard, /isWorkspaceSettingsId\(item\.id\)/u);
   assert.match(dashboard, /<SettingsWorkspacePanel section=\{settingsWorkspace\} \/>/u);
-  assert.match(workspace, /"afterglow-management" \| "afterglow-management"|\| "afterglow-management"/u);
+  assert.match(workspace, /\| "afterglow-management"/u);
   assert.match(workspace, /value === "afterglow-management"/u);
   assert.match(workspace, /if \(section === "afterglow-management"\) \{/u);
   assert.match(workspace, /data-settings-workspace-surface="afterglow-management"/u);
   assert.match(workspace, /<AfterglowManagementPanel \/>/u);
   assert.doesNotMatch(workspace, /section === "afterglow-management" \? <SettingsReviewSystemPanel/u);
-  assert.match(menuAudit, /afterglow-management'\]\\"\)\.focus|afterglow-management/u);
+  assert.match(menuAudit, /page\.keyboard\.press\("V"\)/u);
   assert.match(menuAudit, /data-afterglow-management='phase2-preview'/u);
   assert.match(webmcpAudit, /settingsRows\.length === 11/u);
   assert.match(webmcpAudit, /data-recovery,afterglow-management,agents/u);

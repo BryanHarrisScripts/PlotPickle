@@ -100,10 +100,15 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   page.on("request", (request) => {
     if (request.url().endsWith("/api/auth/profile-private") && request.method() === "POST") writes.push(request.postDataJSON());
   });
+  // PP-SAVE-001: the rendered unsaved Shot must not offer Lock.
+  assert.equal(await controls.getByRole("button", { name: "Lock", exact: true }).isDisabled(), true,
+    "PP-SAVE-001: Lock unavailable before the selected image is durably saved");
   await controls.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText("Shot 01 of 25 saved locally with this story.", { exact: true }).waitFor();
   assert.deepEqual(writes.filter((item) => item.action === "save-project").map((item) => item.project.id), ["rendered-2821"], "one rendered Save writes only Afterglow once");
   assert.equal(writes.filter((item) => item.action === "sync-library-index").length, 1);
+  assert.equal(await controls.getByRole("button", { name: "Lock", exact: true }).isEnabled(), true,
+    "PP-SAVE-001: Lock enabled after the exact selected image is confirmed Saved");
   writes.length = 0;
   await controls.getByRole("button", { name: "Lock", exact: true }).click();
   await page.getByText("Shot 01 of 25 kept and locked.", { exact: true }).waitFor();
@@ -118,6 +123,8 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await controls.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText(/Save failed: Injected encrypted write failure/u).waitFor();
   assert.equal(await controls.getByText("Saved locally", { exact: true }).count(), 0, "failed acknowledgement cannot display Saved locally");
+  assert.equal(await controls.getByRole("button", { name: "Lock", exact: true }).isDisabled(), true,
+    "PP-SAVE-001: failed Save acknowledgement cannot allow a new Lock");
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "save-failed.png") });
   await page.unroute("**/api/auth/profile-private");
   await controls.getByRole("button", { name: "Save", exact: true }).click();
@@ -150,7 +157,7 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   assert.equal(await handoff.getByRole("button", { name: "Approve text", exact: true }).count(), 0, "reopened text is approved, not a draft");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-reopened.png") });
   assert.deepEqual(errors, []);
-  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, committed packaged Afterglow image/story, local HTTP auth and encrypted vault in isolated verification profile", observations: ["enabled Save feedback", "one Save/Lock writes only Afterglow once in a five-story Library", "Lock and Unlock retain saved image", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state", "Storyboard Create Narration submits text-only shot facts", "approved short narration survives encrypted reload"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png", "narration-draft.png", "narration-reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Real Storyboard surface, committed packaged Afterglow image/story, local HTTP auth and encrypted vault in isolated verification profile", observations: ["enabled Save feedback", "one Save/Lock writes only Afterglow once in a five-story Library", "unsaved Lock disabled; confirmed Save enables Lock", "Lock and Unlock retain saved image", "failed Save disables Lock", "failed write feedback and truthful saved badge", "retry and browser reload retain saved/locked state", "Storyboard Create Narration submits text-only shot facts", "approved short narration survives encrypted reload"], screenshots: ["saved-locked.png", "save-failed.png", "reopened.png", "narration-draft.png", "narration-reopened.png"], providerInference: false, humanAcceptance: "PENDING" };
   await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log("#2821 rendered Save/Lock/retry/reopen proof PASS");
 } finally {

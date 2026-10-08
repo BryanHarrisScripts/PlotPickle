@@ -214,6 +214,12 @@ export default function StoryboardReadinessWorkspace({
       const now = new Date().toISOString();
       let next: PPFProject = current;
       if (decision === "accept") {
+        // PP-SAVE-001 T2: approving a version is forbidden until that same
+        // version has an explicit Save marker AND confirmed vault acknowledgement.
+        // Re-evaluate against the latest canonical artifact, not a UI snapshot.
+        if (!storyboardArtifactSavedLocally(currentArtifact) || getProfilePrivateSaveState().state !== "saved") {
+          throw new Error("Save this Storyboard Image successfully before Lock.");
+        }
         const scope = `storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`;
         for (const previous of current.build.foundations.visualArtifacts.filter((candidate) =>
           candidate.id !== artifact.id && candidate.frameNumber === currentArtifact.frameNumber
@@ -666,9 +672,9 @@ export default function StoryboardReadinessWorkspace({
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
                   const savedLocally = Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact) && privateSaveState.state === "saved");
-                  const reviewState = accepted ? "locked" : savedLocally ? "saved" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
+                  const reviewState = accepted && savedLocally ? "locked" : savedLocally ? "saved" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
                   const reviewLabel = accepted
-                    ? savedLocally ? "Locked · Saved locally" : "Locked · Save confirmation pending"
+                    ? savedLocally ? "Locked · Saved locally" : "Previous approval · Save required"
                     : savedLocally ? "Saved locally"
                       : selectedArtifact ? "Ready to save"
                         : selectedImage ? "Reference Storyboard Image" : "No Storyboard Image";
@@ -703,7 +709,7 @@ export default function StoryboardReadinessWorkspace({
                           ? <img alt={selectedImage.label} decoding="async" loading="lazy" src={selectedImage.assetUrl} />
                           : <span>No Storyboard Image selected</span>}
                         {savedLocally ? <span className={`${styles.frameStateBadge} ${styles.frameSavedBadge}`}>Saved locally</span> : null}
-                        {accepted ? <span className={`${styles.frameStateBadge} ${styles.frameLockedBadge}`}>Locked</span> : null}
+                        {accepted && savedLocally ? <span className={`${styles.frameStateBadge} ${styles.frameLockedBadge}`}>Locked</span> : null}
                         {positionImages.length > 1 ? <button
                           aria-label={`Next Storyboard Image for Shot ${String(position).padStart(2, "0")}`}
                           className={`${styles.frameChevron} ${styles.frameChevronNext}`}
@@ -724,7 +730,8 @@ export default function StoryboardReadinessWorkspace({
                         >{frameSaving ? "Saving…" : "Save"}</button>
                         <button
                           aria-pressed={accepted}
-                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving}
+                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving || (!accepted && !savedLocally)}
+                          title={!accepted && !savedLocally ? "Save this Storyboard Image successfully before Lock." : undefined}
                           type="button"
                           onClick={() => selectedArtifact && void reviewFrame(selectedArtifact, accepted ? "unaccept" : "accept")}
                         >{accepted ? "Unlock" : "Lock"}</button>

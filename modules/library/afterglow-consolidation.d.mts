@@ -30,3 +30,19 @@ export declare function planAfterglowConsolidation(input: {
   readonly sources: ReadonlyArray<Readonly<{ project: LibraryPPFProject }>>;
 }): AfterglowConsolidationPlan;
 export declare const AFTERGLOW_DURABLE_FIELDS: readonly string[];
+
+export type AfterglowConflictChoice = number | "baseline";
+export type AfterglowDecisionPreview = Readonly<{
+  candidate: LibraryPPFProject;
+  resolved: ReadonlyArray<Readonly<{ path: string; choice: AfterglowConflictChoice }>>;
+  unresolvedConflicts: AfterglowConsolidationConflict[];
+  needsReview: AfterglowConsolidationReview[];
+  localAssetsToVerify: string[];
+  decisionShapeConsistent: boolean;
+  readyForHumanCommit: false;
+  packageModified: false;
+}>;
+export declare function reviewAfterglowConsolidationDecisions(
+  plan: AfterglowConsolidationPlan,
+  decisions: Readonly<Record<string, AfterglowConflictChoice>>,
+): AfterglowDecisionPreview;

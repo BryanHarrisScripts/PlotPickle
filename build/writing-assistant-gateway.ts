@@ -220,12 +220,16 @@ async function handleTest(request: IncomingMessage, response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const provider = isTextProvider(body.provider) ? body.provider : store.activeProvider;
   if (!isTextProvider(provider)) throw new Error("Choose a configured text provider before running the test.");
-  if (provider === "local") await refreshLocalProfile(store, "fast");
+  // A Bubble asks the local Quality role, not the separately tested Fast role.
+  // Explicitly bind a Writing test to that actual execution model.
+  const localRole = body.modelRole === "quality" ? "quality" : "fast";
+  if (provider === "local") await refreshLocalProfile(store, localRole);
   const result = await testAssistantProfile(store, provider);
   sendJson(response, 200, {
     ok: true,
     provider,
     runtimeProvider: result.profile.runtime || result.profile.provider,
+    modelRole: provider === "local" ? localRole : undefined,
     model: result.profile.textModel,
     text: result.text,
     latencyMs: result.profile.lastLatencyMs,

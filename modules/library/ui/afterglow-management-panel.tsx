@@ -124,7 +124,7 @@ export default function AfterglowManagementPanel() {
         sampleChanges: result.applied.slice(0, 35),
         conflictCount: result.conflicts.length,
         reviewCount: result.needsReview.length,
-        conflicts: result.conflicts.slice(0, 35),
+        conflicts: result.conflicts,
         needsReview: result.needsReview.slice(0, 35),
         localAssetCount: result.localAssetsToVerify.length,
         mergeShapeConsistent: result.mergeShapeConsistent,

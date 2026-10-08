@@ -326,7 +326,7 @@ export default function StoryboardLockedShotHandoff({
                       type="button"
                       onClick={() => void generateNarration(panel, shotFacts)}
                     >
-                      {busyPosition === position ? "Creating…" : approvalState.current ? "Regenerate" : "Create Narration"}
+                      {busyPosition === position ? "Creating…" : draft || approvalState.current ? "Regenerate" : "Create Narration"}
                     </button>
                     <button
                       disabled={busyPosition !== null}

@@ -83,8 +83,8 @@ test("#2807 Storyboard and Previs share the same narration staleness source-key 
 
   assert.match(handoff, /shotContext: "~3-second planning target"/u);
   assert.match(previs, /shotContext: "~3-second planning target"/u);
-  assert.match(handoff, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext\)/u);
-  assert.match(previs, /approval\.sourceKey === graphicNovelTextSourceKey\(panel, selectedFrameEvidence\?\.passages, storyContext\)/u);
+  assert.match(handoff, /graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)/u);
+  assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact\)/u);
 });
 
 test("#2807 Previs fills only missing narration and preserves current Storyboard approvals", async () => {

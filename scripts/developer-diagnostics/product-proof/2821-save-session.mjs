@@ -156,11 +156,12 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await page.reload();
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });
-  try {
-    await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 8000 });
-  } catch {
+  const postReload = await Promise.allSettled([
+    handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 8000 }),
+  ]);
+  if (postReload[0].status === "rejected") {
     const snapshot = await handoff.innerText();
-    throw new Error(`PP-NARR-001 B7: saved Bubble absent after reload; Storyboard state: ${snapshot.slice(0, 2400)}`);
+    throw new Error(`PP-NARR-001 B7: saved Bubble absent after reload; Storyboard state: ${snapshot.slice(0, 2400)}`, { cause: postReload[0].reason });
   }
   assert.equal(await handoff.getByRole("button", { name: "Save & Lock", exact: true }).count(), 0, "reopened saved-and-locked text is not an unsaved draft");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-reopened.png") });

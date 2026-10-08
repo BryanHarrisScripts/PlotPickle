@@ -273,8 +273,8 @@ test("PP-SAVE-001 T7 same-version recovered media must be BOTH explicitly Saved 
   assert.equal(eligible({ ...saved, id: saved.id + "-alternate" }, accepted), false, "another candidate cannot inherit a Shot's approval");
   assert.equal(eligible({ ...saved, workflow: "storyboard-reference-adoption-v1" }, accepted), false, "other workflows cannot be silently promoted as saved Storyboard frames");
   assert.equal(eligible(JSON.parse(JSON.stringify(saved)), accepted), true, "saved exact artifact stays eligible after serialization");
-  assert.match(previsSource, /isSavedLockedStoryboardImage\\(artifact, acceptedVisualIds\\)/u,
+  assert.match(previsSource, /isSavedLockedStoryboardImage\(artifact, acceptedVisualIds\)/u,
     "live Previs Flip Book/Graphic Novel must consult the exact-version Save+Lock gate");
-  assert.match(handoffSource, /isSavedLockedStoryboardImage\\(candidate, acceptedIds\\)/u,
+  assert.match(handoffSource, /isSavedLockedStoryboardImage\(candidate, acceptedIds\)/u,
     "live Storyboard narration/handoff must consult the same Save+Lock gate");
 });

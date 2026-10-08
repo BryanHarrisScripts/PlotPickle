@@ -136,6 +136,11 @@ test("#2821 local narration and Save/Lock share current session and durable proj
       await callSave();
       assert.match(notices.at(-1), /Save failed: Injected encrypted write failure/u);
       assert.equal(browser.getProfilePrivateSaveState().state, "blocked");
+      const revisionBeforeBlockedLock = browser.loadFoundationProject().revision;
+      await callLock("accept");
+      assert.equal(browser.loadFoundationProject().revision, revisionBeforeBlockedLock,
+        "PP-SAVE-001: blocked vault must never create another Lock revision");
+      assert.match(notices.at(-1), /Save this Storyboard Image successfully before Lock/u);
       await assert.rejects(browser.browserProfileAuthGateway.logout(), /Injected encrypted write failure/u);
       assert.equal((await (await globalThis.fetch("/api/auth/profile")).json()).authenticated, true, "failed persistence must prevent logout and cache clearing");
       assert.ok(currentArtifact().sourceDecisionKeys.includes("storyboard-local-save:v1"));

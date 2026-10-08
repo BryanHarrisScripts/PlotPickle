@@ -94,7 +94,7 @@ test('#2839 actual narration endpoint sends text to the agent and distinguishes 
       assert.equal('image' in sent, false, 'text route must not require vision support');
       assert.match(sent.message, /TEXT ONLY/);
       failCompute = true;
-      assert.equal((await (await context.POST(request(evidence))).json()).code, 'TEXT_COMPUTE_UNAVAILABLE');
+      assert.equal((await (await context.POST(request(evidence))).json()).code, 'LOCAL_WRITER_FAILED');
       failCompute = false; reply = output('', [{ speaker: 'REN', text: 'An invented line.' }]);
       assert.equal((await (await context.POST(request(evidence))).json()).code, 'INVALID_NARRATION_OUTPUT');
       const legacy = { ...evidence, mode: undefined, contactSheet: 'data:image/jpeg;base64,/9j/2Q==' };

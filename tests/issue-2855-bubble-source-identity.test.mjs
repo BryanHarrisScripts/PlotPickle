@@ -44,6 +44,15 @@ test("PP-NARR-001 B6 uses one exact saved frame and complete authored Shot sourc
   const source = (p = project, artifact = image) =>
     key(panel, passages, context, snapshot(p, anchorRef, 1, artifact));
   const approved = source();
+  assert.ok(approved.length < 1_000, "source identity must fit existing 4,000-character encrypted storage limit");
+  assert.equal(JSON.parse(approved).contract, "PP-NARR-001/B6-v3");
+  const oversizedStory = [{ ...passages[0], text: "A very long screenplay passage. ".repeat(1_500) }];
+  const bounded = key(panel, oversizedStory, context, snapshot(project, anchorRef, 1, image));
+  assert.ok(bounded.length < 1_000, "even long screenplay evidence must not create a truncated approval key");
+  assert.notEqual(bounded, approved, "bounded fingerprints must still notice a changed screenplay");
+  const normalizedKey = approved.trim().slice(0, 4_000);
+  assert.equal(normalizedKey, approved, "PPF normalized approval key must not truncate current identity");
+  assert.ok((await identityFunctions()).graphicNovelTextStaleReasons(approved, bounded).includes("screenplay evidence"));
   assert.equal(source(JSON.parse(JSON.stringify(project)), JSON.parse(JSON.stringify(image))), approved,
     "serialized/reloaded project retains the same exact approval key");
   assert.equal(source({

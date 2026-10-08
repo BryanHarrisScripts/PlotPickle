@@ -149,6 +149,34 @@ export default function LocalRuntimePanel() {
   const [message, setMessage] = useState("Detecting local compute...");
   const [busy, setBusy] = useState(false);
   const [installPlan, setInstallPlan] = useState<Record<string, unknown> | null>(null);
+  const [writingTest, setWritingTest] = useState<{ model: string; runtime: string; verifiedAt: string } | null>(null);
+  const [writingTestError, setWritingTestError] = useState("");
+  const [testingWriting, setTestingWriting] = useState(false);
+
+  async function testActualBubbleWriter() {
+    setTestingWriting(true);
+    setWritingTest(null);
+    setWritingTestError("");
+    try {
+      const response = await fetch("/api/writing-assistant/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "local", modelRole: "quality" }),
+      });
+      const result = await response.json() as { ok?: boolean; message?: string; model?: string; runtimeProvider?: string; verifiedAt?: string };
+      if (!response.ok || !result.ok || !result.verifiedAt || !result.model) {
+        throw new Error(result.message || "The local Quality writer has not completed a real text-generation test.");
+      }
+      setWritingTest({ model: result.model, runtime: result.runtimeProvider || "local", verifiedAt: result.verifiedAt });
+      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+      void refresh(true);
+    } catch (error) {
+      setWritingTestError(error instanceof Error ? error.message : "Writing response test failed.");
+    } finally {
+      setTestingWriting(false);
+    }
+  }
+
 
   const refresh = useCallback(async (announce = false) => {
     try {
@@ -214,6 +242,17 @@ export default function LocalRuntimePanel() {
         </div>
         <button type="button" disabled={busy} onClick={() => void refresh(true)} style={{ padding: "8px 12px" }}>Refresh hardware and models</button>
       </div>
+
+      <section aria-label="Storyboard Bubble Writing verification" style={{ ...card, marginTop: 16 }}>
+        <h2 style={{ margin: 0, fontSize: 18 }}>Writing · actual narration model</h2>
+        <p>Hardware and model detection are not proof of Writing readiness. Test the exact Local Quality writer that Storyboard Create Narration uses.</p>
+        <button type="button" disabled={testingWriting || busy} onClick={() => void testActualBubbleWriter()}>
+          {testingWriting ? "Testing Writing…" : "Test Writing for Bubble narration"}
+        </button>
+        {writingTest ? <p role="status">Writing verified: {writingTest.runtime} · {writingTest.model} · {new Date(writingTest.verifiedAt).toLocaleString()}</p> : null}
+        {writingTestError ? <p role="alert">Writing test failed: {writingTestError}</p> : null}
+        <p>Hybrid Writing uses independently verified status. This test never selects a provider or triggers Cloud charges.</p>
+      </section>
 
       {message ? <p role="status" aria-live="polite" style={{ marginTop: 16 }}>{message}</p> : null}
 

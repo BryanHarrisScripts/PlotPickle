@@ -1124,6 +1124,7 @@
         "app/previs/page.tsx",
         "app/api/previs/narration/route.ts",
         "core/media/previs-narration.mjs",
+        "core/media/storyboard-sequence-evidence.mjs",
         "build/previs-graphic-novel-webp.ts",
         "app/api/previs/graphic-novel/export/route.ts"
       ],

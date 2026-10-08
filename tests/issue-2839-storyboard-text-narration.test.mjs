@@ -58,7 +58,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     authoredSequencePassages: passages,
     sequenceShots,
-    prepareStoryboardNarrationSequence,
+    prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention,
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({sourceKey: 'source-current'}),
@@ -190,7 +190,7 @@ test('#2855 empty model text is reported as no proposal rather than silently sug
   const context = vm.createContext({
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     storyContext, activeRequest: { current: null }, AbortController,
-    authoredSequencePassages: passages, sequenceShots, prepareStoryboardNarrationSequence,
+    authoredSequencePassages: passages, sequenceShots, prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); },
     setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({ sourceKey: 'fixed-source' }),

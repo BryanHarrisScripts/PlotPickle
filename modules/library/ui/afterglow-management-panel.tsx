@@ -52,9 +52,10 @@ function summarizeHumanValue(value: unknown) {
 }
 
 /**
- * Phase 2A is deliberately read-only. The actual account-owned commit,
- * explicit Human conflict choices, verified media reads, pinned-baseline reset
- * and designated-publisher release are independent pending acceptance gates.
+ * Phase 2B lets the Human review competing values without any mutation.
+ * The account-owned durable commit, ambiguous deletion/ordering decisions,
+ * verified media reads, pinned-baseline reset and designated-publisher release
+ * remain independent pending acceptance gates.
  */
 export default function AfterglowManagementPanel() {
   const [authenticated, setAuthenticated] = useState(false);

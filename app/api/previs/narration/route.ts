@@ -36,9 +36,16 @@ async function handlePost(request: Request) {
   } catch (error) {
     return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",message:error instanceof Error ? error.message : "Narration needs the approved screenplay and locked Shot evidence."},{status:400});
   }
+  let profile;
+  try {
+    profile = (storyboardShot ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality")).profile;
+  } catch {
+    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_NOT_READY":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
+      ? "The local writing model is not ready. Verify it in Settings → Local."
+      : "The Graphic Novel provider is not ready. Check Settings."},{status:503});
+  }
   let text;
   try {
-    const { profile } = storyboardShot ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality");
     if (storyboardShot) {
       // Storyboard is a text-writing task. Do not send the locked image to the model.
       text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardNarrationPrompt(input),signal:request.signal});

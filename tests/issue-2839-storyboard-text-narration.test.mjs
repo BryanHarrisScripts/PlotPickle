@@ -30,6 +30,34 @@ test('#2839 text-only Shot evidence includes every authored fact without image i
   assert.throws(() => narrationRequest({ ...evidence, mode: undefined }), /contact sheet/);
 });
 
+test('#2855 Human Shot 13 and 20 have shot-specific output examples and no invented speech placeholders', () => {
+  for (const position of [1, 13, 20, 25]) {
+    const request = storyboardNarrationRequest({
+      ...evidence,
+      sequence: { ...evidence.sequence, selectedPosition: position },
+      panels: [{ position, intention: '' }],
+      shot: { ...shot, story: '', sceneBeat: '' },
+    });
+    const prompt = storyboardNarrationPrompt(request);
+    assert.match(prompt, new RegExp('"position":' + position + ',"narration":"","bubbles":\\[\\]'),
+      'the JSON shape must always use the REAL selected Shot, never a hard-coded 1');
+    if (position !== 1) assert.doesNotMatch(prompt, /"position":1[},]/u,
+      'a later Shot must not be biased toward Shot 1 by a worked example');
+    assert.doesNotMatch(prompt, /"speaker":"NAME"|"text":"ACTUAL DIALOGUE"/u,
+      'the schema must not invite invented dummy dialogue and made-up speakers');
+    assert.match(prompt, /actual speaker and an exact contiguous screenplay quotation/u);
+    assert.match(prompt, /without an authored source-to-Shot association/u);
+    assert.throws(() => parseStoryboardNarration(
+      JSON.stringify({ panels: [{ position: position === 1 ? 20 : 1, narration: 'Wrong Shot.', bubbles: [] }] }),
+      request), /invalid narration pacing or positions/i,
+      'wrong Shot must still fail closed: do not silently relabel a model output');
+    assert.throws(() => parseStoryboardNarration(
+      JSON.stringify({ panels: [{ position, narration: '', bubbles: [{ speaker: 'NAME', text: 'ACTUAL DIALOGUE' }] }] }),
+      request), /unsupported speaker/i,
+      'plausible-looking dummy speech must still be rejected');
+  }
+});
+
 test('#2839 short output, silence, exact dialogue and actual speaker are enforced', () => {
   assert.equal(parseStoryboardNarration(output(), input)[0].position, 19);
   assert.equal(parseStoryboardNarration(output('', []), input)[0].narration, '');

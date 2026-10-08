@@ -9,6 +9,7 @@ import {
   type PrevisGraphicNovelTextBubble,
 } from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
+import { isSavedLockedStoryboardImage } from "@/core/contracts/build-progress";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import {
@@ -391,7 +392,8 @@ export default function PrevisReadinessWorkspace({
     const artifacts = activeFrameArtifacts
       .filter((artifact) => artifact.frameNumber === position)
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-    const locked = artifacts.find((artifact) => acceptedVisualIds.has(artifact.id) && artifact.reviewState === "accepted") ?? null;
+    const locked = artifacts.find((artifact) => acceptedVisualIds.has(artifact.id) && artifact.reviewState === "accepted"
+      && isSavedLockedStoryboardImage(artifact, acceptedVisualIds)) ?? null;
     const candidate = artifacts[0] ?? null;
     return {
       position,
@@ -712,7 +714,7 @@ export default function PrevisReadinessWorkspace({
                 <div>
                   <span className={styles.eyebrow}>Locked Storyboard sequence</span>
                   <h3 id="previs-flipbook-title">Flip Book · Mini-Block {selectedAddressAnchor.blockNumber}.{selectedAddressAnchor.miniBlockNumber}</h3>
-                  <p>Play the same 25 planned Shots from Storyboard in order. Locked Storyboard Images are authoritative Previs inputs; unlocked candidates remain visible only as review context.</p>
+                  <p>Play the same 25 planned Shots from Storyboard in order. Saved and locked Storyboard Images are authoritative Previs inputs; other candidates remain visible only as review context.</p>
                 </div>
                 <strong>{lockedFrameCount}/25 locked Storyboard Images</strong>
               </header>
@@ -738,7 +740,7 @@ export default function PrevisReadinessWorkspace({
                   ) : (
                     <div className={styles.flipBookBlocked}>
                       <strong>Shot {String(selectedFramePosition).padStart(2, "0")} of 25 is not locked for Previs.</strong>
-                      <span>{selectedFlipBookFrame.candidate ? "A Storyboard Image candidate exists, but Lock is required in Storyboard before it enters the Flip Book." : "No Storyboard Image is available for this planned Shot yet."}</span>
+                      <span>{selectedFlipBookFrame.candidate ? "A Storyboard Image candidate exists, but a confirmed Save followed by Lock is required in Storyboard before it enters the Flip Book." : "No Storyboard Image is available for this planned Shot yet."}</span>
                     </div>
                   )}
                   {graphicNovelMode && selectedGraphicNovelHasText ? (

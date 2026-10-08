@@ -1,7 +1,7 @@
 # PP-SAVE-001 — Storyboard Save, Lock and Recovery Truth
 
-**Status:** PROPOSED — awaiting Human review; **not authoritative and not approved**
-**Proposal version:** 0.1.0-proposed
+**Status:** PARTIALLY CONFIRMED — Human approved Save-before-Lock ordering on 2026-10-08; full contract remains PROPOSED pending other decisions
+**Proposal version:** 0.2.0-proposed
 **Stable truth ID:** PP-SAVE-001
 **Date proposed:** 2026-10-08
 **Owning domain:** Storyboard visual versions and approval, with Library/profile storage and Previs handoff boundaries
@@ -13,7 +13,9 @@
 
 > When I save a Storyboard image, PlotPickle must preserve that exact image. When I lock it, my approval must also be preserved. I must be able to close PlotPickle, restart it, reopen the same story, and find the same image and approval exactly as I left them. Nothing else should change. PlotPickle must never tell me something is saved unless it can substantiate that claim.
 
-The Human decides whether this reflects the intended result; the engineering system chooses code, storage protocols, formal notation and verification mechanisms.
+**Confirmed Human Rule 3 (2026-10-08):** Saving must finish successfully before the selected image can be Locked. Lock is unavailable while that same selected version is Unsaved, Pending, Unknown, or Rejected. Once its durable Save is confirmed, Lock becomes available; it then requires its own confirmed approval commit. This ordering is a Human decision, not an engineering inference.
+
+The Human decides whether the other proposed statements reflect the intended result; the engineering system chooses code, storage protocols, formal notation and verification mechanisms.
 
 ### Proposed recovery scope — decision required
 
@@ -29,7 +31,7 @@ No assumption in this section becomes approved solely by the proposal being in G
 
 - **Identity:** `profileId`, `projectId`, `miniBlockId`, `shotId`, `artifactId`, `artifactVersion`, media digest/identity, and revision/operation ID.
 - **Save** is durable persistence of the *selected exact artifact version* with recoverable media and authoritative metadata within the accepted scope. A browser marker, queued request, cached state, or successful API invocation alone is not a durable outcome.
-- **Lock** is an explicit Human approval of an exact artifact version and its approval metadata. It is not an alternate Save operation. Locked and Saved are separate facts. A durable Lock acknowledgement is needed before presenting Lock as persisted approval.
+- **Lock** is an explicit Human approval of an exact artifact version and its approval metadata, **permitted only after that exact selected version is durably Saved**. It is not an alternate Save operation and never implicitly saves an unsaved artifact. Saved is a prerequisite for Locked, but Saved alone does not imply Locked. A durable Lock acknowledgement is needed before presenting Lock as persisted approval. The displayed Lock action must be disabled/unavailable with an understandable reason until the prerequisite is proven.
 - **Current editor content** and **last successfully saved version** are different when further edits occur while a write is pending.
 - **Downstream Previs** may treat an artifact as an available approved Storyboard image only when the same artifact identity has the required saved-media and approved-state evidence.
 - **Existing authoritative owners** retain responsibility: current runtime controls behaviour; canonical project and media store own the saved project/artifact; authenticated encrypted profile vault owns account-scoped durability; no new global registry or storage engine is created.
@@ -39,7 +41,7 @@ No assumption in this section becomes approved solely by the proposal being in G
 
 Save-operation states: `READY` -> `PENDING` -> `COMMITTED` / `REJECTED` / `UNKNOWN`. `UNKNOWN` can reconcile to `COMMITTED` or `REJECTED` using original operation identity, without assuming failure on timeout. A retry cannot silently create a second write for the same logical operation.
 
-Approval states: `UNLOCKED` / `LOCK_PENDING` / `LOCKED` / `UNLOCK_PENDING` / `APPROVAL_UNKNOWN`; confirmed Lock and Unlock changes are durable and scoped to the selected artifact version. Save and approval state are orthogonal; one action does not erase the other.
+Approval states: `UNLOCKED` / `LOCK_PENDING` / `LOCKED` / `UNLOCK_PENDING` / `APPROVAL_UNKNOWN`. Entry into `LOCK_PENDING` is allowed only from a **confirmed `COMMITTED` Save for the exact selected artifact/version/digest**; the canonical Save prerequisite is rechecked when applying the Lock, so a changed selection, stale acknowledgement or racing edit cannot bypass the guard. Confirmed Lock and Unlock changes are durable and scoped to the selected artifact version. Save and approval remain separate operations: Unlock cannot erase durable media, and Save does not imply Lock. The global valid-state invariant is `LOCKED => SAVED` for the same artifact/version.
 
 UI may distinguish `Saved version N; newer edits pending` from `Current version saved`. A legacy `savedLocally` marker is intent/history and cannot alone prove the backing store acknowledged the current version.
 
@@ -51,9 +53,10 @@ Variables: `p` profile, `q` project, `s` shot, `a` artifact, `v` artifact versio
 `DisplaySaved(p,q,s,a,v,h) => ConfirmedDurableCommit(p,q,s,a,v,h)`.
 A successful status must identify the exact version that was durably committed; late acknowledgement of an older version cannot mark a newer edit saved.
 
-**T2 — durable approval (safety):**
-`DisplayLocked(p,q,s,a,v) => ConfirmedDurableApproval(p,q,s,a,v)`.
-A pending/unknown approval cannot appear as a confirmed persisted approval.
+**T2 — confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**
+`AllowedLock(p,q,s,a,v,h) => ConfirmedDurableCommit(p,q,s,a,v,h)`.
+`DisplayLocked(p,q,s,a,v,h) => ConfirmedDurableCommit(p,q,s,a,v,h) AND ConfirmedDurableApproval(p,q,s,a,v)`.
+Lock must be unavailable for an unsaved, pending, rejected or unknown Save of that exact selected image. The guard must be revalidated on transition, not inferred from a stale UI flag. A pending/unknown approval cannot appear as a confirmed persisted approval. Saved does not imply Locked.
 
 **T3 — independence/non-interference (invariant):**
 For any permitted Save/Lock/Unlock action on `(p,q,s,a)`, durable media and approval for every unrelated identity are unchanged, unless independently authorized by that identity's own action.
@@ -81,6 +84,7 @@ Technical formalization can use a finite-state transition model or property test
 | Case | User-visible promise | Independent check |
 | --- | --- | --- |
 | A. First Save | Correct selected image reports Saved only on durable acknowledgement | Read committed media and metadata; compare identity and digest |
+| A2. Lock before first confirmed Save | Lock is unavailable for unsaved, pending, failed or unknown Saves, with a clear reason; no approval is committed | Attempt Lock through actual interface and domain boundary at each invalid state; ensure approval unchanged |
 | B. Save twice | Still Saved, no second artifact and no unrelated write | Count artifact IDs, backing writes and touched projects |
 | C. Save → Lock → Unlock → Save → Lock | Same saved image; final saved + approved Lock | Verify transitions, media bytes/identity and final approval |
 | D. Exit, restart, restore Afterglow | Same exact selected image and Lock reappear | Stop process; re-authenticate/unlock; reopen and independently compare |
@@ -118,13 +122,13 @@ Capture a baseline and comparison for: user workflow completed, false Saved/Lock
 
 ## 9. Human decisions / approval record
 
-**Status:** AWAITING HUMAN CONFIRMATION.
+**Status:** SAVE-BEFORE-LOCK RULE CONFIRMED BY HUMAN; OTHER CONTRACT DECISIONS AWAITING CONFIRMATION.
 
 Review in ordinary language:
 1. Is the human promise in section 1 the desired result?
 2. Is same-profile/same-device recovery the initial scope, with device-loss and cross-device recovery out of scope for this pilot?
 3. When a Save/Lock result is still pending or cannot be confirmed, should the app prevent unsafe unload/logout and preserve your work, or allow an explicit informed leave with a documented recovery path?
-4. May an unsaved image be selected for Lock with a clear "not saved" status, while Previs requires confirmed Save + Lock?
+4. **DECIDED by Human on 2026-10-08:** No. Lock is prohibited until the exact selected image has been durably Saved; only then may it be Locked. This replaces the previous proposal that an unsaved image could be Locked. Previs still requires both durable Save and durable Lock. This decision must not be reopened without explicit Human revision.
 
 Record the Human's answers and approved revision here. Until then, no inference is authoritative and no change to application behaviour is authorized by this document alone.
 
@@ -132,7 +136,7 @@ Record the Human's answers and approved revision here. Until then, no inference 
 | --- | --- |
 | Original Human statement | Preserved in conversation and referenced in #2845 |
 | Interpretation status | Proposed |
-| Confirmed by Human | Not yet |
-| Approved version | None |
+| Confirmed by Human | Rule 3: Save must be confirmed before Lock; stated explicitly on 2026-10-08. Other proposed contract statements await approval. |
+| Approved version | No full contract version approved yet; the Save-before-Lock decision is confirmed and must be retained in subsequent revisions. |
 | Verification baseline | Not yet executed for PP-SAVE-001 |
 | Current delivery | Contract proposal and evidence plan only |

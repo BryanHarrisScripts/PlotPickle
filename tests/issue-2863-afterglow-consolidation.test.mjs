@@ -60,6 +60,29 @@ test("#2863 no newest-wins loss: merge distinct earlier Mind Map, World Map and 
   assert.deepEqual(base,original,"preview cannot mutate provided example");
   assert.deepEqual([a,b],input,"preview cannot mutate saved Human working copies");
 });
+test("#2863 every user can consolidate an unbounded number N of owned saved versions", () => {
+  const base=baseline();
+  // The source count is discovered at runtime. Four is today's example, not a system limit.
+  for (const count of [1,2,4,7,12,50]) {
+    const versions=Array.from({length:count},(_,i)=>working(
+      base, "account-version-"+i,
+      "2026-10-"+String(1+Math.floor(i/24)).padStart(2,"0")+"T00:00:"+String(i%60).padStart(2,"0")+"Z",
+      project => {project.mindMapNotes.fields["unique-approval-"+i]={text:"Approved idea "+i};}
+    ));
+    const preview=planAfterglowConsolidation({baseline:base,sources:[...versions].reverse()});
+    assert.equal(preview.sources.length,count,"all saved versions must be compared at N="+count);
+    assert.equal(preview.conflicts.length,0,"distinct account-approved fields must coexist at N="+count);
+    assert.equal(preview.needsReview.length,0,"valid distinct fields must not be lost at N="+count);
+    assert.equal(Object.keys(preview.candidate.mindMapNotes.fields).length,count,
+      "the consolidated candidate must contain every unique contribution at N="+count);
+    for (let i=0;i<count;i++) {
+      assert.equal(preview.candidate.mindMapNotes.fields["unique-approval-"+i].text,"Approved idea "+i);
+    }
+    assert.equal(preview.packageModified,false,"merging must not publish the shared example");
+    assert.equal(preview.readyForHumanCommit,false,"the local user must still approve and verify media");
+  }
+});
+
 test("#2863 identical changed fields converge but competing Human truth remains unresolved", () => {
   const base=baseline();
   const common=working(base,"common",oct5,p=>{p.storyDevelopment.fields["world:a"].value="Amy returns home";});

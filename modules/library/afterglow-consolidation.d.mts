@@ -5,6 +5,7 @@ export type AfterglowConsolidationConflict = Readonly<{
   path: string;
   reason: string;
   sources: string[];
+  optionSources?: string[];
   options?: unknown[];
 }>;
 export type AfterglowConsolidationReview = Readonly<{

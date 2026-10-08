@@ -2177,6 +2177,7 @@
           "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
           "tests/issue-2832-profile-save-work.test.mjs",
           "tests/issue-2835-startup-account-afterglow.test.mjs",
+          "tests/issue-2863-afterglow-consolidation.test.mjs",
           "tests/issue-2839-storyboard-text-narration.test.mjs",
           "tests/issue-2839-narration-durable-approval.test.mjs"
         ]

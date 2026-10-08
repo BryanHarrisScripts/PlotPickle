@@ -6,7 +6,7 @@ import vm from "node:vm";
 
 async function identityFunctions() {
   const source = await readFile("app/_components/previs/previs-graphic-novel-presentation.ts", "utf8");
-  const start = source.indexOf("export function graphicNovelTextSourceSnapshot(");
+  const start = source.indexOf("function normalizedBubbleStoryFacts(");
   const end = source.indexOf("\nexport function approvedGraphicNovelPanel(", start);
   assert.ok(start > 0 && end > start, "actual shared production identity implementation must exist");
   const executable = stripTypeScriptTypes(source.slice(start, end)).replace(/^export /gmu, "");
@@ -46,6 +46,16 @@ test("PP-NARR-001 B6 uses one exact saved frame and complete authored Shot sourc
   const approved = source();
   assert.equal(source(JSON.parse(JSON.stringify(project)), JSON.parse(JSON.stringify(image))), approved,
     "serialized/reloaded project retains the same exact approval key");
+  assert.equal(source({
+    ...project, production: { shots: [
+      { updatedAt: "later", createdAt: "reloaded", reviewState: "approved",
+        performanceEnergy: "hesitant", ...shot, transitionIn: "cut", },
+      project.production.shots[1],
+    ] },
+  }), approved, "lifecycle bookkeeping is not changed screenplay/Shot intent");
+  const reorderedShot = Object.fromEntries(Object.entries(shot).reverse());
+  assert.equal(source({ ...project, production: { shots: [reorderedShot, project.production.shots[1]] } }), approved,
+    "storage normalization/reordering must not invalidate otherwise identical authored facts");
   assert.notEqual(key(panel, passages, context), approved,
     "old three-argument approvals cannot silently remain current");
   const change = (field, value) => ({

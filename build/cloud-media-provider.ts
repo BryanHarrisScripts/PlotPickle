@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { scryptSync } from "node:crypto";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -37,7 +37,8 @@ export type CloudVideoJob = {
 };
 
 export function videoAuthorityHash(profile: MediaProfile) {
-  return createHash("sha256").update(JSON.stringify([profile.baseUrl, profile.videoModel, profile.apiKey])).digest("hex");
+  const salt = JSON.stringify(["plotpickle-video-authority-v1", profile.baseUrl, profile.videoModel]);
+  return scryptSync(profile.apiKey, salt, 32, { N: 16384, r: 8, p: 1 }).toString("hex");
 }
 async function readJobs(): Promise<CloudVideoJob[]> {
   return await readCredentialJson<CloudVideoJob[]>("media-cloud-video-jobs.json") || [];

@@ -43,6 +43,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
       'export { registerMediaRoutingGateway } from "./build/media-routing-gateway";',
       'export { relayCapabilityDiagnostic } from "./build/ai/capabilities/capability-diagnostics";',
       'export { saveGeneratedAsset } from "./build/media-provider-common";',
+      'export { videoAuthorityHash } from "./build/cloud-media-provider";',
       'export { POST } from "./app/api/cloud-story-mode/provider/route";',
     ].map((line) => line.replace(/from "\.\//, `from "${process.cwd().replaceAll("\\", "/")}/`)).join("\n"));
     const outfile = path.join(root, "worker.mjs");
@@ -90,6 +91,12 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     assert.equal(agentStatus.activeProvider, "disabled"); assert.deepEqual(agentStatus.overrides, {}, "Agent roster follows Hybrid instead of legacy assignments.");
     await api("/api/writing-assistant/agent-compute", { scope: "default", provider: "openai" }, 400);
     const authority = { provider: "minimax", baseUrl: "https://synthetic.invalid", apiKey: "synthetic-private-minimax-key", textModel: "synthetic-text", imageModel: "synthetic-image", videoModel: "MiniMax-H3" };
+    const authorityHash = worker.videoAuthorityHash(authority);
+    assert.match(authorityHash, /^[a-f0-9]{64}$/);
+    assert.equal(worker.videoAuthorityHash({ ...authority }), authorityHash, "Reopened configuration keeps its job authority.");
+    for (const [field, value] of [["apiKey", "synthetic-other-key"], ["baseUrl", "https://other.invalid"], ["videoModel", "other-model"]]) {
+      assert.notEqual(worker.videoAuthorityHash({ ...authority, [field]: value }), authorityHash, `Changed ${field} cannot reuse job authority.`);
+    }
     const saved = await worker.POST(new Request(origin + "/api/cloud-story-mode/provider", { method: "POST", headers, body: JSON.stringify(authority) }));
     assert.equal(saved.status, 200); assert.equal(requests, 0);
     let media = await scoped(() => worker.readMediaRoutingStore());

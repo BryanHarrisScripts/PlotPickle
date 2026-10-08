@@ -6,7 +6,7 @@
 **Date proposed:** 2026-10-08
 **Owning domain:** Storyboard visual versions and approval, with Library/profile storage and Previs handoff boundaries
 **GitHub issue:** #2845
-**Related work:** #2819, #2821, #2830, #2832; [white paper](../white-papers/AI_Programming_Evolution_White_Paper.md)
+**Related work:** #2819, #2821, #2830, #2832, #2847 (independent baseline); [white paper](../white-papers/AI_Programming_Evolution_White_Paper.md); [machine-readable Casebook definition](./PP-SAVE-001.casebook.json)
 **Source of requirement:** Human conversations reporting Save confirmation pending, unreliable Lock/reload, and downstream Previs rejecting saved images. Specific proposed interpretations are labelled below rather than retroactively attributed to the Human.
 
 ## 1. Approved Human promise

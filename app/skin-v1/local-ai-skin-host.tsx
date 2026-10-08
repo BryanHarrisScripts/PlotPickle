@@ -6,6 +6,7 @@ import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent 
 import ComputeReadyMarker from "./compute-ready-marker";
 import LocalComfyUiApiVideoSetup from "./local-comfyui-api-video-setup";
 import LocalRuntimePanel from "../local-runtime-panel";
+import LocalWritingVerificationPanel from "./local-writing-verification";
 import LocalComfyUiPanel from "./local-comfyui-panel";
 import LocalH3SetupPanel from "./local-h3-setup-panel";
 import LocalLtxSetupPanel from "./local-ltx-setup-panel";
@@ -293,6 +294,23 @@ export default function LocalAiSkinHost() {
     }
   };
 
+  function localWritingConnection(capability: CapabilityKey): StoryModeConnectionRow {
+    const group = routing?.text;
+    const option = group?.options.local;
+    const state = connectionState(option);
+    return {
+      id: "local",
+      label: "Automatic Local Runtime",
+      role: capability === "agents" ? "Local Quality text model" : "Quality model used by Storyboard Bubble",
+      detail: "Uses a real text model through llama.cpp, Ollama, LM Studio or another compatible runtime. Discovery alone is not readiness; test the exact Quality model.",
+      state,
+      model: option?.model || undefined,
+      active: Boolean(option?.ready && group?.selected === "local" && option.locality === "local"),
+      setupLabel: "Open Writing setup",
+      onSetup: () => setView("ollama"),
+    };
+  }
+
   function ollamaConnection(capability: CapabilityKey): StoryModeConnectionRow {
     const group = routing?.text;
     const option = group?.options.ollama;
@@ -366,7 +384,7 @@ export default function LocalAiSkinHost() {
   }
 
   function capabilityConnections(capability: CapabilityKey): StoryModeConnectionRow[] {
-    if (capability === "writing" || capability === "agents") return [ollamaConnection(capability)];
+    if (capability === "writing" || capability === "agents") return [localWritingConnection(capability), ollamaConnection(capability)];
     if (capability === "images") return [imageComfyConnection()];
     return [videoRuntimeConnection(), { id: "comfyui-native", label: "ComfyUI — Native local inference", role: "Local H3 weights", detail: LOCAL_DETAILS.h3, state: connectionState(routing?.video.options["comfyui-native"]), setupLabel: "Setup", onSetup: () => setView("h3") }];
   }
@@ -391,7 +409,13 @@ export default function LocalAiSkinHost() {
             notice={notice}
           />
         ) : null}
-        {view === "ollama" ? <LocalRuntimePanel /> : null}
+        {view === "writing" || view === "ollama" ? <LocalWritingVerificationPanel /> : null}
+        {view === "ollama" ? (
+          <details style={{ marginTop: "var(--pp-skin-space-3)" }}>
+            <summary>Advanced hardware and model inventory</summary>
+            <LocalRuntimePanel />
+          </details>
+        ) : null}
         {view === "comfyui" ? <><LocalComfyUiPanel /><LocalComfyUiApiVideoSetup /></> : null}
         {view === "ltx" ? <LocalLtxSetupPanel /> : null}
         {view === "h3" ? <LocalH3SetupPanel /> : null}

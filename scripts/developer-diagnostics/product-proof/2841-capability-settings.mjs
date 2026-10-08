@@ -17,7 +17,7 @@ const css = (await readFile("app/skin-v1-definition.css", "utf8")) + (output.out
 const option = (locality, model, extra = {}) => ({ locality, model, configured: true, ready: true, verifiedAt: "2026-10-08T00:00:00.000Z", error: "", ...extra });
 const routing = {
   ok: true,
-  text: { selected: "ollama", options: { ollama: option("local", "synthetic-writing"), minimax: option("cloud", "synthetic-minimax"), openai: option("cloud", "synthetic-openai"), gemini: option("cloud", "synthetic-gemini") } },
+  text: { selected: "ollama", options: { local: option("local", "synthetic-quality", { ready: false, verifiedAt: "", runtime: "ollama", baseUrl: "http://127.0.0.1:11434/v1", error: "" }), ollama: option("local", "synthetic-writing"), minimax: option("cloud", "synthetic-minimax"), openai: option("cloud", "synthetic-openai"), gemini: option("cloud", "synthetic-gemini") } },
   image: { selected: "comfyui", options: { comfyui: option("local", "sd_xl_base_1.0.safetensors"), openai: option("cloud", "synthetic-image"), minimax: option("cloud", "synthetic-image") } },
   video: { selected: "minimax", options: { "minimax-comfyui": option("local", "MiniMax-H3", { label: "ComfyUI", provider: "minimax", inferenceLocation: "cloud", cost: "Cloud generation through your MiniMax API account" }), minimax: option("cloud", "MiniMax-H3"), "comfyui-native": option("local", "MiniMax-H3", { label: "ComfyUI — Native local inference", ready: false }), "comfy-cloud": option("cloud", "", { label: "ComfyUI Cloud", ready: false, supported: false, error: "Generation workflow required." }), openai: option("cloud", "", { ready: false, supported: false, error: "OpenAI Videos API was removed." }) } },
 };
@@ -64,7 +64,13 @@ try {
   await page.locator('[data-story-mode-policy="local"]').click();
   await page.locator('[data-skin-menu-row="writing"]').click();
   const writing = page.locator('[data-story-mode-capability="writing"]');
-  assert.equal(await writing.locator("button").count(), 1);
+  assert.equal(await writing.locator("button").count(), 2, "Local Writing shows its exact Quality runtime separately from the optional Ollama profile");
+  assert.equal(await writing.locator('[data-story-mode-connection="local"][data-connection-state="needs-test"]').count(), 1,
+    "discovered Quality model is not falsely READY without a successful response test");
+  assert.equal(await writing.locator('[data-story-mode-connection="ollama"][data-connection-state="ready"]').count(), 1,
+    "a separately tested Ollama resource retains its own verified status");
+  assert.equal(await page.getByRole("button", { name: "Test Writing" }).count(), 1,
+    "Human can request a real exact-model response test from Local Writing");
   assert.equal(await writing.getByRole("img", { name: "Ollama Ready" }).count(), 1);
   assert.equal(await writing.getByText("Use for Writing", { exact: true }).count(), 0);
   assert.equal(writes.length, 0, "Opening Local/Writing must never activate a route or execution policy.");

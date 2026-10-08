@@ -1,6 +1,7 @@
 import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { readCapabilityChoice, requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
+import { qualityWritingReadiness, sameLocalWritingExecution } from "../core/contracts/compute/local-writing-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
@@ -110,19 +111,10 @@ function providerLabel(provider: "openai" | "minimax" | "gemini") {
   return provider === "openai" ? "OpenAI" : provider === "gemini" ? "Google Gemini" : "MiniMax";
 }
 
-async function synchronizeLocalFastProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"]) {
-  const snapshot = await localRuntimeSnapshot();
-  if (!snapshot.activeRuntime.reachable || !snapshot.roles.fast.available) return snapshot;
-  const execution = await localTextExecutionProfile("fast");
-  store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
-  await writeAssistantStore(store);
-  return snapshot;
-}
-
 async function handleStatus(response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const [localRuntime, ollama] = await Promise.all([
-    synchronizeLocalFastProfile(store).catch(() => localRuntimeSnapshot()),
+    localRuntimeSnapshot(),
     probeOllama(store.ollamaBaseUrl || store.profiles.ollama?.baseUrl || DEFAULT_OLLAMA_URL),
   ]);
   sendJson(response, 200, {
@@ -130,14 +122,14 @@ async function handleStatus(response: ServerResponse) {
     activeProvider: store.activeProvider,
     explicitlyDisabled: store.explicitlyDisabled,
     providers: {
-      local: { ...publicProfile(store.profiles.local, store.activeProvider), ...writingReadiness(store.profiles.local, localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available) },
+      local: { ...publicProfile(store.profiles.local, store.activeProvider), ...qualityWritingReadiness(store.profiles.local, localRuntime) },
       ollama: publicProfile(store.profiles.ollama, store.activeProvider),
       openai: publicProfile(store.profiles.openai, store.activeProvider),
       minimax: publicProfile(store.profiles.minimax, store.activeProvider),
       gemini: publicProfile(store.profiles.gemini, store.activeProvider),
     },
     localRuntime: {
-      ready: localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available,
+      ready: qualityWritingReadiness(store.profiles.local, localRuntime).ready,
       runtime: localRuntime.activeRuntime.kind,
       baseUrl: localRuntime.activeRuntime.baseUrl,
       hardwareProfile: localRuntime.hardware.profile.id,
@@ -220,12 +212,13 @@ async function handleTest(request: IncomingMessage, response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const provider = isTextProvider(body.provider) ? body.provider : store.activeProvider;
   if (!isTextProvider(provider)) throw new Error("Choose a configured text provider before running the test.");
-  if (provider === "local") await refreshLocalProfile(store, "fast");
+  if (provider === "local") await refreshLocalProfile(store, body.modelRole === "quality" ? "quality" : "fast");
   const result = await testAssistantProfile(store, provider);
   sendJson(response, 200, {
     ok: true,
     provider,
     runtimeProvider: result.profile.runtime || result.profile.provider,
+    modelRole: provider === "local" ? (body.modelRole === "quality" ? "quality" : "fast") : undefined,
     model: result.profile.textModel,
     text: result.text,
     latencyMs: result.profile.lastLatencyMs,
@@ -386,8 +379,12 @@ export async function resolveConfiguredAgentExecutionProfile(agentId: PlotPickle
 }
 
 export async function resolveConfiguredLocalNarrationProfile() {
-  const { store } = await readSynchronizedAssistantStore();
-  return { profile: await profileForProvider(store, "local", "quality") };
+  const [{ store }, execution] = await Promise.all([readSynchronizedAssistantStore(), localTextExecutionProfile("quality")]);
+  const profile = store.profiles.local;
+  if (!sameLocalWritingExecution(profile, execution) || !writingReadiness(profile).ready) {
+    throw new Error("The current Local Quality writing model has not passed Test Writing. Open Settings → Local → Writing, then run Test Writing.");
+  }
+  return { profile };
 }
 
 export async function resolveStoryArchitectExecutionProfile() {

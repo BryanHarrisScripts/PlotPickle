@@ -627,6 +627,7 @@
         "build/ai/h3/comfyui-h3-native-provider.ts",
         "build/ai/h3/comfyui-h3-native-gateway.ts",
         "core/contracts/compute/compute-readiness.mjs",
+        "core/contracts/compute/local-writing-readiness.mjs",
         "build/ai/capabilities/capability-routing-state.ts",
         "core/contracts/compute/capability-routes.mjs",
         "build/ai/capabilities/capability-diagnostics.ts"
@@ -2077,6 +2078,7 @@
         "app/settings/ai-provider/gemini-provider-setup-panel.tsx",
         "app/settings/compute/cloud-model-catalog-panel.tsx",
         "app/settings/compute/local-model-catalog-panel.tsx",
+        "app/settings/compute/ai-compute-workspace.tsx",
         "app/specialist-labs.tsx",
         "app/treatment-editor.tsx",
         "app/use-cast-identity-queue.ts",

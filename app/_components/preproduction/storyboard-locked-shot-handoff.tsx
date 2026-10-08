@@ -18,6 +18,7 @@ import {
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
   graphicNovelTextSourceSnapshot,
+  graphicNovelTextStaleReasons,
   type PrevisGraphicNovelPanel,
 } from "../previs/previs-graphic-novel-presentation";
 import {
@@ -316,7 +317,7 @@ export default function StoryboardLockedShotHandoff({
                       {approvalState.current.narration ? <p>{approvalState.current.narration}</p> : null}
                     </>
                   ) : null}
-                  {!approvalState.current && approvalState.stale ? <p>Narration exists but is stale for the current locked image/story source.</p> : null}
+                  {!approvalState.current && approvalState.stale ? <p>Narration exists but is stale for the current locked image/story source ({graphicNovelTextStaleReasons(approvalState.stale.sourceKey, approvalState.sourceKey).join(", ")}).</p> : null}
                   {!approvalState.current && !approvalState.stale ? <p>Not authored yet.</p> : null}
 
                   {draft ? (

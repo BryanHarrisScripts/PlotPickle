@@ -176,7 +176,7 @@ export default function AfterglowManagementPanel() {
               <strong> {preview.appliedCount}</strong> proposed field/entity changes;
               <strong> {preview.conflictCount}</strong> conflicting paths;
               <strong> {preview.reviewCount}</strong> other review items;
-              <strong> {preview.localAssetCount}</strong> local media references requiring verification.</p>
+              <strong> {reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local media references requiring verification.</p>
             <p>{preview.mergeShapeConsistent
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
@@ -212,6 +212,17 @@ export default function AfterglowManagementPanel() {
                           ))}
                         </select>
                       ) : <p>Overlapping paths require further review. No automatic selection is allowed.</p>}
+                      {selectable ? (
+                        <details>
+                          <summary>Inspect complete saved alternatives before deciding</summary>
+                          {item.options?.map((value, optionIndex) => (
+                            <div key={optionIndex}>
+                              <p>Saved copy: {item.optionSources?.[optionIndex] ?? "Unknown source"}</p>
+                              <pre className={styles.valueDetail}>{JSON.stringify(value, null, 2)}</pre>
+                            </div>
+                          ))}
+                        </details>
+                      ) : null}
                     </div>
                   );
                 })}

@@ -267,6 +267,14 @@ export function profilePrivateBrowserAuthorityMatches(profileId: string, token: 
   return Boolean(normalizedProfileId && token && hydratedProfileId === normalizedProfileId && csrfToken === token);
 }
 
+/** Read-only authority check for profile-scoped Settings previews.
+ * An initialized browser Library alone is not proof of a signed-in Human.
+ * This exposes no token, credentials, private project data or write authority.
+ */
+export function profilePrivateBrowserReadyFor(profileId: string) {
+  return Boolean(profileId.trim() && hydratedProfileId === profileId.trim() && csrfToken);
+}
+
 export function listProfileRecoveryPoints(projectId = "") {
   const points = normalizeRecoveryPoints(hydrated.recoveryPoints);
   const normalizedProjectId = projectId.trim();

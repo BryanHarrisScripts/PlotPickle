@@ -25,3 +25,16 @@ export function afterglowRestoreChoices(
     .map((point) => ({ id: `point:${point.id}`, label: `Recovery point · ${point.createdAt}`, project: point.project, recoveryPointId: point.id }));
   return [...projects, ...recovery];
 }
+
+/**
+ * Continue the newest complete saved working project by default.
+ * This is a presentation preference, NOT a merge of independent project IDs.
+ * Older saved projects and explicit recovery points remain profile-owned.
+ */
+export function latestAfterglowSavedChoice(
+  choices: readonly AfterglowRestoreChoice[],
+): AfterglowRestoreChoice | null {
+  return choices
+    .filter((choice) => choice.id === `saved:${choice.project.id}` && choice.recoveryPointId === null)
+    .sort((left, right) => right.project.updatedAt.localeCompare(left.project.updatedAt))[0] ?? null;
+}

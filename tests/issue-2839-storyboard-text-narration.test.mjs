@@ -41,8 +41,9 @@ test('#2855 Human Shot 13 and 20 have shot-specific output examples and no inven
     const prompt = storyboardNarrationPrompt(request);
     assert.match(prompt, new RegExp('"position":' + position + ',"narration":"","bubbles":\\[\\]'),
       'the JSON shape must always use the REAL selected Shot, never a hard-coded 1');
-    if (position !== 1) assert.doesNotMatch(prompt, /"position":1[},]/u,
-      'a later Shot must not be biased toward Shot 1 by a worked example');
+    const instruction = prompt.slice(0, prompt.indexOf('Evidence: '));
+    if (position !== 1) assert.doesNotMatch(instruction, /"position":1[},]/u,
+      'a later Shot must not be biased toward Shot 1 by a worked example (the evidence still lists all 25 positions)');
     assert.doesNotMatch(prompt, /"speaker":"NAME"|"text":"ACTUAL DIALOGUE"/u,
       'the schema must not invite invented dummy dialogue and made-up speakers');
     assert.match(prompt, /actual speaker and an exact contiguous screenplay quotation/u);

@@ -72,8 +72,11 @@ test("PP-NARR-001 B6 uses one exact saved frame and complete authored Shot sourc
     `editing ${field} must make a saved Bubble stale`);
   assert.notEqual(source(project, { ...image, id: "accepted-image-02" }), approved,
     "another image version cannot inherit a saved caption");
-  assert.notEqual(source(project, { ...image, createdAt: "2026-10-08T02:00:00.000Z" }), approved);
-  assert.notEqual(source(project, { ...image, sourceDecisionKeys: [anchorRef, "storyboard-upstream:changed"] }), approved);
+  assert.notEqual(source(project, { ...image, assetUrl: "/api/local-ai/assets/replaced.webp" }), approved);
+  assert.equal(source(project, { ...image, createdAt: "2026-10-08T02:00:00.000Z" }), approved,
+    "recovering identical image bytes must not make a Bubble stale merely because its file timestamp changed");
+  assert.equal(source(project, { ...image, sourceDecisionKeys: [anchorRef, "storyboard-local-saved-v1"] }), approved,
+    "storage/local-save markers do not change picture or story meaning");
   assert.notEqual(source({ ...project, id: "different-project" }), approved);
   assert.notEqual(source({ ...project, build: { foundations: { acceptedVisualArtifactIds: [] } } }), approved,
     "an image that is no longer accepted cannot continue as current");

@@ -88,6 +88,10 @@ test("#2839 actual approval handler persists text through encrypted unload and r
     const latestProject = { current: current() };
     const context = vm.createContext({
       Error, Date, anchorRef, project: current(), latestProject,
+      lockedArtifacts: [{ position: panel.position, artifact }],
+      graphicNovelTextSourceSnapshot: () => ({}),
+      graphicNovelTextSourceKey: () => "source-current",
+      evidence: { passages: [] }, storyContext: {},
       loadFoundationProject: current,
       saveFoundationProjectDurably: browser.saveFoundationProjectDurably,
       onProjectChange(saved) { published++; latestProject.current = saved; },

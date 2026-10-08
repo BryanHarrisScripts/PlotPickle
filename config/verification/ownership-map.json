@@ -215,7 +215,8 @@
       "classification": "production",
       "include": [
         "modules/library/project-library-catalog.ts",
-        "modules/library/local-resource-recovery.ts"
+        "modules/library/local-resource-recovery.ts",
+        "modules/library/afterglow-consolidation.mjs"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

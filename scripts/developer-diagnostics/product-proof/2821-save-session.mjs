@@ -152,11 +152,7 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   await handoff.getByText("Bubble / caption saved and locked for Storyboard and Previs.", { exact: true }).waitFor();
   // The UI acknowledgement alone is insufficient: independently prove that
   // the refreshed approval source key still renders the exact approved text.
-  try {
-    await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 5000 });
-  } catch {
-    throw new Error(`PP-NARR-001 B7: Bubble not current immediately after save; state: ${(await handoff.innerText()).slice(0, 2000)}`);
-  }
+  await handoff.getByText("The moment hangs in silence.", { exact: true }).waitFor({ timeout: 5000 });
   await page.reload();
   await controls.getByText("Locked · Saved locally", { exact: true }).waitFor();
   await controls.locator("..").screenshot({ path: path.join(artifactRoot, "reopened.png") });

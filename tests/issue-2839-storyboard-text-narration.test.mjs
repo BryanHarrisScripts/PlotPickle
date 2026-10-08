@@ -53,6 +53,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
+    currentApproval: () => ({sourceKey: 'source-current'}),
     graphicNovelTextSourceKey: () => 'source-current',
     fetch: async (url, options) => {
       if (url === '/api/auth/profile') return Response.json({ authenticated: true, csrfToken: 'test-csrf' });

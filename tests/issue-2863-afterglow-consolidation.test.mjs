@@ -24,7 +24,7 @@ const working = (base,id,time,edit) => {
 };
 const oct5="2026-10-05T10:00:00Z", oct8="2026-10-08T22:29:42Z";
 test("#2863 all durable roots are declared and the package path includes Mind Map fields", async () => {
-  for(const field of ["foundations","world","build","production","structure","writing","discovery",
+  for(const field of ["title","learning","foundations","world","build","production","structure","writing","discovery",
     "worldMap","storyDevelopment","mindMapNotes","sourceEvidence"]) {
     assert.ok(AFTERGLOW_DURABLE_FIELDS.includes(field),field);
   }
@@ -101,6 +101,21 @@ test("#2863 rejects foreign projects, modified screenplay source identity and du
   assert.throws(()=>planAfterglowConsolidation({baseline:base,sources:[a,a]}),/duplicate/u);
   assert.throws(()=>planAfterglowConsolidation({baseline:base,sources:[]}),/saved projects/u);
 });
+test("#2863 any future project fields fail closed instead of silently disappearing", () => {
+  const base=baseline();
+  const extension=working(base,"extension",oct8,p=>{
+    p.futureAuthoringField={question:"new story truth"};
+  });
+  assert.throws(()=>planAfterglowConsolidation({baseline:base,sources:[extension]}),/Unrecognized saved Afterglow field/u);
+  const named=working(base,"named",oct8,p=>{
+    p.title="Afterglow — Human's Complete Working Draft";
+    p.learning={activeLessonId:"structure",completedLessonIds:["world"]};
+  });
+  const merged=planAfterglowConsolidation({baseline:base,sources:[named]});
+  assert.equal(merged.candidate.title,named.project.title);
+  assert.deepEqual(merged.candidate.learning,named.project.learning);
+});
+
 test("#2863 anonymous/positional competing arrays are never blindly concatenated", () => {
   const base=baseline();base.production.graphicNovelTextApprovals=[];
   const a=working(base,"a",oct5,p=>{

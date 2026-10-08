@@ -1,0 +1,26 @@
+.workspace{display:grid;gap:14px;margin:0 0 20px}
+.panel{padding:18px;border:1px solid rgba(40,82,71,.75);border-radius:9px;background:rgba(8,23,19,.62);color:var(--pp-text,#f1eee7)}
+.panel h2,.panel h3{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;font-weight:500}
+.panel h2{font-size:24px}.panel h3{font-size:19px}
+.panel p{color:var(--pp-muted,#b5b1aa);font-size:12px;line-height:1.65;margin:10px 0}
+.heading{display:flex;gap:12px;align-items:start;justify-content:space-between;flex-wrap:wrap}
+.eyebrow{color:var(--pp-teal,#35c9b8)!important;font-size:10px!important;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin:0 0 4px!important}
+.status{padding:5px 9px;border-radius:6px;border:1px solid rgba(213,172,99,.4);color:var(--pp-gold,#d5ac63);font-size:10px}
+.metric{display:flex;gap:10px;align-items:center;margin:16px 0;padding:10px;border:1px solid rgba(53,201,184,.25);border-radius:7px}
+.metric strong{font-size:30px;font-weight:500;color:var(--pp-teal,#35c9b8)}
+.metric span{font-size:11px}
+.sourceList{max-height:260px;overflow:auto;padding:0;margin:14px 0;list-style:none;display:grid;gap:6px}
+.sourceList li{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;padding:9px 11px;border:1px solid rgba(40,82,71,.62);border-radius:5px;font-size:11px}
+.sourceList li span{color:var(--pp-muted,#aaa398)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.actions button{font:inherit;font-size:11px;cursor:pointer;padding:11px 13px;border-radius:7px;border:1px solid rgba(53,201,184,.45);background:rgba(53,201,184,.08);color:var(--pp-text,#f1eee7)}
+.actions button:last-child{border-color:rgba(53,201,184,.82);background:rgba(53,201,184,.16)}
+.actions button:disabled{opacity:.5;cursor:not-allowed}
+.actions button:focus-visible{outline:2px solid var(--pp-teal,#35c9b8);outline-offset:2px}
+.notice{border-left:3px solid var(--pp-gold,#d5ac63);padding:8px 10px;background:rgba(213,172,99,.07)}
+.result{margin:16px 0 0;padding:16px;border:1px solid rgba(53,201,184,.35);border-radius:7px}
+.result details{margin-top:10px;padding:10px;border:1px solid rgba(40,82,71,.6);border-radius:5px}
+.result summary{font-size:11px;cursor:pointer}
+.result ul{margin:8px 0;padding-left:22px;max-height:200px;overflow:auto}
+.result li{font-size:10px;overflow-wrap:anywhere;margin:5px 0}
+.caution{color:var(--pp-gold,#d5ac63)!important;font-weight:600}

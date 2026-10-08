@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReleaseHistoryPanel from "../modules/dashboard/ui/release-history";
 import ArchiveStoriesPanel from "../modules/library/ui/archive-stories-panel";
+import AfterglowManagementPanel from "../modules/library/ui/afterglow-management-panel";
 import AgentObservabilityPanel from "./agent-observability-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
 import BuzzSettingsPanel from "./buzz-settings-panel";
@@ -30,6 +31,7 @@ type SettingsSection =
   | "voice"
   | "comfyui"
   | "archive"
+  | "afterglow-management"
   | "buzz"
   | "activity"
   | "runtime";
@@ -71,6 +73,12 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
+    label: "AFTERGLOW",
+    items: [
+      { id: "afterglow-management", label: "Afterglow Management", detail: "Review saved versions and plan your current master" },
+    ],
+  },
+  {
     label: "COMMUNITY",
     items: [
       { id: "buzz", label: "BUZZ Setup", detail: "Relay, Guildhall and live connection test" },
@@ -106,6 +114,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-images": "local-compute",
   "settings-video": "local-compute",
   "settings-archive": "archive",
+  "settings-afterglow-management": "afterglow-management",
   "settings-buzz": "buzz",
   "settings-advanced": "runtime",
   quick: "overview",
@@ -203,6 +212,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · AI Compute" title="Set up ComfyUI." detail="Install, connect and verify the local image and video engine here. Local Compute continues to own route selection, while cloud providers remain separately configured in Cloud Compute." /><MediaRoutingPanel onManage={(target) => { if (/openai|minimax|cloud/i.test(target)) navigateSection("cloud-compute"); }} /></section>;
       case "archive":
         return <section id="settings-archive"><SectionIntro eyebrow="Settings · Library" title="Archive." detail="Archived stories remain the same local projects. Restore them to Library here without creating a copy or deleting the original PPF." /><ArchiveStoriesPanel /></section>;
+      case "afterglow-management":
+        return <section id="settings-afterglow-management"><SectionIntro eyebrow="Settings · Afterglow Management" title="Afterglow Management." detail="Review your profile-owned Afterglow versions, inspect consolidation conflicts, and understand the protected provided-baseline and publisher-only paths." /><AfterglowManagementPanel /></section>;
       case "buzz":
         return <section id="settings-buzz"><SectionIntro eyebrow="Settings · Community" title="Configure and test BUZZ transport." detail="Profile owns the Human BUZZ identity. Settings owns relay/runtime diagnostics and the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "activity":

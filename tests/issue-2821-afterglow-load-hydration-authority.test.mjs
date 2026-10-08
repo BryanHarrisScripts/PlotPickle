@@ -203,16 +203,16 @@ test("#2821 when current artifact is missing, newest matching durable snapshot b
 
 
 test("#2821 narration says Sign in only for a rejected Human session, not every authorization failure", async () => {
-  const [route, previs] = await Promise.all([
+  const [route, storyboard] = await Promise.all([
     read("app/api/previs/narration/route.ts"),
-    read("app/_components/previs/previs-readiness-workspace.tsx"),
+    read("app/_components/preproduction/storyboard-locked-shot-handoff.tsx"),
   ]);
 
   assert.match(route, /code === "SESSION_REJECTED"[\s\S]*"Sign in to authorize narration generation\."/u);
   assert.match(route, /code === "CSRF_REJECTED"[\s\S]*session proof is missing or expired/u);
   assert.match(route, /current Human session could not authorize narration/u);
-  assert.match(previs, /if \(!profileResponse\.ok\)[\s\S]*could not verify the current Human session for narration/u);
-  assert.match(previs, /if \(!profileStatus\.authenticated\)[\s\S]*Sign in to authorize narration generation/u);
+  assert.match(storyboard, /if \(!profileResponse\.ok\)[\s\S]*could not verify the current session/u);
+  assert.match(storyboard, /if \(!profileStatus\.authenticated\)[\s\S]*Sign in to authorize narration generation/u);
 });
 
 test("#2821 Storyboard action feedback is visible even when the generation prompt is closed", async () => {

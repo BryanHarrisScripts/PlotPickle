@@ -123,6 +123,25 @@ export function graphicNovelWebpExportFileName(projectTitle: string, blockNumber
  * authored camera, blocking, lighting, timing, or continuity property must
  * invalidate old Bubble text even if a renderer does not yet display it.
  */
+function normalizedBubbleStoryFacts(value: unknown): unknown {
+  if (typeof value === "string") return value.trim() || null;
+  if (Array.isArray(value)) {
+    const values = value.map(normalizedBubbleStoryFacts).filter((item) => item !== null);
+    return values.length ? values : null;
+  }
+  if (value && typeof value === "object") {
+    const normalized = Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !["createdAt", "updatedAt", "reviewState", "roughMotionEvidenceRefs"].includes(key))
+      .sort(([left], [right]) => left.localeCompare(right))
+      .flatMap(([key, item]) => {
+        const next = normalizedBubbleStoryFacts(item);
+        return next === null ? [] : [[key, next] as const];
+      });
+    return normalized.length ? Object.fromEntries(normalized) : null;
+  }
+  return value === undefined ? null : value;
+}
+
 export function graphicNovelTextSourceSnapshot(
   project: PPFProject,
   anchorRef: string,
@@ -147,7 +166,8 @@ export function graphicNovelTextSourceSnapshot(
     authoredShots: project.production.shots
       .filter((shot) => shot.anchorRef === anchorRef && shot.order === position)
       .slice()
-      .sort((left, right) => left.id.localeCompare(right.id)),
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map((shot) => normalizedBubbleStoryFacts(shot)),
   };
 }
 

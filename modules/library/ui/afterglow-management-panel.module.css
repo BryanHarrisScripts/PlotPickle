@@ -31,3 +31,5 @@
 .decisionRow label span{font-size:10px;color:var(--pp-gold,#d5ac63)}
 .decisionRow select{max-width:100%;min-height:42px;padding:8px;border:1px solid rgba(53,201,184,.5);border-radius:5px;background:#101f1c;color:var(--pp-text,#f1eee7);font-size:11px;font-family:inherit}
 .decisionRow select:focus-visible{outline:2px solid var(--pp-teal,#35c9b8);outline-offset:2px}
+
+.valueDetail{white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(53,201,184,.2);background:rgba(8,18,16,.84);font-size:10px}

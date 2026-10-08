@@ -98,6 +98,26 @@ test("#2839 actual approval handler persists text through encrypted unload and r
       setDrafts() {}, setNotices(fn) { notices = fn(notices); },
     });
     vm.runInContext(handler, context);
+    // Real encrypted hydrate/restore must not silently change the authored
+    // evidence fingerprint; a browser reload is not a new Shot decision.
+    const presentationSource = await readFile("app/_components/previs/previs-graphic-novel-presentation.ts", "utf8");
+    const fingerprintStart = presentationSource.indexOf("function normalizedBubbleStoryFacts(");
+    const fingerprintEnd = presentationSource.indexOf("\nexport function approvedGraphicNovelPanel(", fingerprintStart);
+    assert.ok(fingerprintStart > 0 && fingerprintEnd > fingerprintStart);
+    const identityContext = vm.createContext({ JSON });
+    vm.runInContext(stripTypeScriptTypes(presentationSource.slice(fingerprintStart, fingerprintEnd))
+      .replace(/^export /gmu, ""), identityContext);
+    const visualPanel = {
+      position: panel.position, assetUrl: artifact.assetUrl, caption: "Scene 1", narration: "Ren pauses",
+      shotLabel: "Shot 01 of 25", shotContext: "3s", bubbles: [],
+    };
+    const identity = () => {
+      const stored = current();
+      const frame = stored.build.foundations.visualArtifacts.find((item) => item.id === artifact.id);
+      return identityContext.graphicNovelTextSourceKey(visualPanel, [], {},
+        identityContext.graphicNovelTextSourceSnapshot(stored, anchorRef, panel.position, frame));
+    };
+    const beforeIdentity = identity();
     const before = current();
     const bubbles = [{ speaker: "REN", text: "We should go." }];
     await context.saveApproval(panel, "source-current", "Ren pauses at the door.", bubbles, false);
@@ -113,6 +133,7 @@ test("#2839 actual approval handler persists text through encrypted unload and r
     browser.switchActiveLibraryProject(id);
     await browser.flushProfilePrivateWrites();
     const approval = current().production.graphicNovelTextApprovals.find(item => item.anchorRef === anchorRef && item.position === panel.position);
+    assert.equal(identity(), beforeIdentity, "real encrypted unload/reload must retain the exact Bubble source identity");
     assert.equal(approval.sourceKey, "source-current");
     assert.equal(approval.narration, "Ren pauses at the door.");
     assert.deepEqual(approval.bubbles, bubbles);

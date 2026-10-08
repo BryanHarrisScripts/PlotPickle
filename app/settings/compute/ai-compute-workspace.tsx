@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AiRoutingPanel from "../../ai-routing-panel";
 import LocalAiReadinessSummary from "../../local-ai-readiness-summary";
 import LocalRuntimePanel from "../../local-runtime-panel";
+import LocalWritingVerificationPanel from "../../skin-v1/local-writing-verification";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
 import GeminiProviderSetupPanel from "../ai-provider/gemini-provider-setup-panel";
@@ -231,7 +232,7 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
         <button type="button" onClick={() => openAdvanced()} aria-expanded={advancedOpen}>Advanced Options</button>
       </section>
 
-      {mode === "local" && activeCapability === "writing" ? <LocalAiReadinessSummary onOpenAdvanced={() => openAdvanced()} /> : null}
+      {mode === "local" && activeCapability === "writing" ? <><LocalWritingVerificationPanel /><LocalAiReadinessSummary onOpenAdvanced={() => openAdvanced()} /></> : null}
       {mode === "cloud" ? <RemoteExecutionGuide /> : null}
 
       <AiRoutingPanel

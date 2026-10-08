@@ -111,15 +111,6 @@ function providerLabel(provider: "openai" | "minimax" | "gemini") {
   return provider === "openai" ? "OpenAI" : provider === "gemini" ? "Google Gemini" : "MiniMax";
 }
 
-async function synchronizeLocalFastProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"]) {
-  const snapshot = await localRuntimeSnapshot();
-  if (!snapshot.activeRuntime.reachable || !snapshot.roles.fast.available) return snapshot;
-  const execution = await localTextExecutionProfile("fast");
-  store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
-  await writeAssistantStore(store);
-  return snapshot;
-}
-
 async function handleStatus(response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const [localRuntime, ollama] = await Promise.all([

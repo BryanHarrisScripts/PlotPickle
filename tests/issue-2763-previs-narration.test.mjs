@@ -23,8 +23,8 @@ test('narration submits approved images to the Mastra agent and distinguishes pr
  const workspace = await readFile(new URL('../app/_components/previs/previs-readiness-workspace.tsx',import.meta.url),'utf8');
  const route = await readFile(new URL('../app/api/previs/narration/route.ts',import.meta.url),'utf8');
  const runtime = await readFile(new URL('../build/mastra-agent-runtime.ts',import.meta.url),'utf8');
- assert.match(workspace,/lockedImageContactSheet\(missingPanels, controller\.signal\)/u);
- assert.match(workspace,/contactSheet, storyContext, passages:/u);
+ assert.doesNotMatch(workspace,/lockedImageContactSheet|contactSheet, storyContext, passages:/u);
+ assert.match(workspace,/Playing approved text only/u);
  assert.match(route,/image:input\.image/u);
  assert.match(route,/image-capable model/u);
  assert.match(runtime,/type: "image" as const, image: input\.image/u);

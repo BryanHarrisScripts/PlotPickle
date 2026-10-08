@@ -2179,6 +2179,7 @@
           "tests/issue-2835-startup-account-afterglow.test.mjs",
           "tests/issue-2863-afterglow-consolidation.test.mjs",
           "tests/issue-2863-afterglow-settings-preview.test.mjs",
+          "tests/issue-2863-afterglow-conflict-decisions.test.mjs",
           "tests/issue-2839-storyboard-text-narration.test.mjs",
           "tests/issue-2839-narration-durable-approval.test.mjs"
         ]

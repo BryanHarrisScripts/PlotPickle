@@ -1,5 +1,6 @@
 import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
+import { qualityWritingReadiness } from "../core/contracts/compute/local-writing-readiness.mjs";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 import { readCapabilityChoice, readProviderConsent, saveProviderConsent, requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { requireSelectedCapability } from "../core/contracts/compute/capability-routes.mjs";
@@ -172,8 +173,8 @@ async function statusBody() {
       selected: choice.text,
       options: {
         local: {
-          ...textProfileState(assistant.profiles.local, localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available),
-          locality: "local", cost: "No per-request provider charge", settingsTarget: "",
+          ...qualityWritingReadiness(assistant.profiles.local, localRuntime),
+          locality: "local", cost: "No per-request provider charge", settingsTarget: "local-quality",
         },
         ollama: {
           ...textProfileState(ollama, Boolean(ollamaProbe?.reachable && ollamaProbe.models.includes(ollama?.textModel || ""))),

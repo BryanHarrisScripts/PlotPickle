@@ -105,6 +105,12 @@ export function parseStoryboardNarration(text, input) {
   if (panel.narration.length > 100 || panel.narration.split(/\s+/u).filter(Boolean).length > 12) {
     throw new Error('Storyboard narration exceeds the 12-word / 100-character bubble limit.');
   }
+  if (panel.narration && panel.bubbles.length) {
+    throw new Error('One Shot may have either a scene caption or a dialogue bubble, not both.');
+  }
+  if (panel.bubbles.some(bubble => bubble.text.split(/\s+/u).filter(Boolean).length > 12)) {
+    throw new Error('A printed dialogue bubble cannot exceed twelve words.');
+  }
   const dialogue = screenplayDialoguePairs(input.passages);
   for (const bubble of panel.bubbles) {
     const excerpt = bubble.text.replace(/\s+/gu, ' ').trim();

@@ -226,6 +226,29 @@ function targetBlockNumber(targetId: string) {
   return match ? Number(match[1]) : 0;
 }
 
+/**
+ * The Bubble Agent reads the screenplay in its authored source order.
+ * Do not alter the older ID-sorted UI projection: doing so would needlessly
+ * invalidate already Human-approved caption source identities on upgrade.
+ */
+export function storyboardNarrationSourcePassagesInStoryOrder(
+  project: PPFProject,
+  targetId: string,
+  miniBlockNumber: number,
+) {
+  const blockNumber = targetBlockNumber(targetId);
+  if (!blockNumber) return [];
+  return (normalizedSourceEvidence(project).screenplay?.passages ?? [])
+    .filter((passage) => passage.blockNumber === blockNumber && passage.miniBlockNumber === miniBlockNumber)
+    .map((passage) => ({
+      id: passage.id,
+      type: passage.type,
+      text: passage.text,
+      sceneId: passage.sceneId,
+      sceneNumber: passage.sceneNumber,
+    }));
+}
+
 export function storyboardSourceEvidenceForAnchor(project: PPFProject, targetId: string, miniBlockNumber: number) {
   const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];

@@ -7,11 +7,13 @@ import vm from 'node:vm';
 import './issue-2855-bubble-source-identity.test.mjs';
 import './issue-2841-local-writing-truth.test.mjs';
 import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest } from '../core/media/previs-narration.mjs';
+import { prepareStoryboardNarrationSequence, screenplayFormattingDirective } from '../core/media/storyboard-sequence-evidence.mjs';
 
 const storyContext = { title: 'Afterglow', act: 1, block: 1, miniBlock: 1, blockTitle: 'Opening', dramaticResponsibility: 'Establish the dilemma.' };
 const passages = [{ type: 'character', text: 'REN' }, { type: 'parenthetical', text: '(quietly)' }, { type: 'dialogue', text: 'We should go. Before they return.' }, { type: 'character', text: 'AVA' }, { type: 'dialogue', text: 'Wait for me.' }];
 const shot = { story: 'Ren hesitates at the door.', sceneBeat: 'Scene 1: hesitation', camera: 'Close-up', performance: 'Still', lighting: 'Low', timing: '3s authored', informationBoundary: 'withhold: destination', continuity: 'Exit to corridor' };
-const evidence = { mode: 'storyboard-shot', storyContext, passages, panels: [{ position: 19, intention: 'Ren pauses at the door.' }], shot };
+const sequenceShots = Array.from({ length: 25 }, (_, i) => ({ position: i + 1, intention: 'Authored moment for image ' + (i + 1) }));
+const evidence = { mode: 'storyboard-shot', storyContext, passages, sequence: { selectedPosition: 19, shots: sequenceShots }, panels: [{ position: 19, intention: 'Ren pauses at the door.' }], shot };
 const input = storyboardNarrationRequest(evidence);
 const output = (narration = 'Ren hesitates before taking the next step.', bubbles = []) => JSON.stringify({ panels: [{ position: 19, narration, bubbles }] });
 
@@ -54,10 +56,9 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   let drafts = {}, notices = {}, submitted;
   const context = vm.createContext({
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
-    storyboardNarrationPassagesForPosition: (source, position) => {
-      assert.equal(position, 19);
-      return source.slice(3, 5);
-    },
+    authoredSequencePassages: passages,
+    sequenceShots,
+    prepareStoryboardNarrationSequence,
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({sourceKey: 'source-current'}),
@@ -75,40 +76,67 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
   await context.generateNarration({ position: 19, narration: evidence.panels[0].intention }, shot);
   assert.equal(submitted.mode, 'storyboard-shot');
   assert.deepEqual(submitted.shot, shot);
-  assert.equal(submitted.passages.length, 2, 'narrator only sees the selected screenplay window');
-  assert.equal(submitted.passages[0].text, 'AVA');
-  assert.equal(submitted.passages[1].text, 'Wait for me.');
+  assert.equal(submitted.passages.length, passages.length, 'writer sees the full ordered dramatic sequence');
+  assert.equal(submitted.passages[0].text, 'REN');
+  assert.equal(submitted.passages.at(-1).text, 'Wait for me.');
+  assert.equal(submitted.sequence.shots.length, 25, 'every authored Shot is available for sequencing');
+  assert.equal(submitted.sequence.selectedPosition, 19);
   assert.equal('contactSheet' in submitted, false);
   assert.equal(drafts[19].narration, 'Ren hesitates before taking the next step.');
   assert.match(notices[19], /review/);
 });
 
-test('#2855 narrated shot uses image-planning screenplay window and keeps speaker provenance', async () => {
-  const editorial = await readFile('app/_components/storyboard/storyboard-editorial-model.ts', 'utf8');
-  const start = editorial.indexOf('function passageWindow(');
-  const end = editorial.indexOf('\nfunction clean(', start);
-  assert.ok(start >= 0 && end > start);
-  const functions = stripTypeScriptTypes(editorial.slice(start, end)).replace(/^export /gmu, '');
-  const context = vm.createContext({});
-  vm.runInContext(functions, context);
-  const make = (n) => ({ id: String(n), type: 'action', text: 'Selected Shot ' + n + ': unique action ' + n });
-  const all = Array.from({ length: 25 }, (_, index) => make(index + 1));
-  for (let position = 1; position <= 25; position += 1) {
-    const window = context.storyboardNarrationPassagesForPosition(all, position);
-    assert.equal(window.length, 1);
-    assert.equal(window[0].text, make(position).text,
-      'Shot ' + position + ' must not receive another shot screenplay text');
+test('#2855 sequence evidence excludes FADE IN and preserves sparse-story order across 25 images', async () => {
+  const sparse = [
+    { type: 'action', text: 'FADE IN:\nAmy watches the visitors approach.' },
+    { type: 'scene-heading', text: 'INT. BBT TECHNOLOGIES - DAY' },
+    { type: 'character', text: 'AMY' },
+    { type: 'dialogue', text: 'I have a question.' },
+    { type: 'transition', text: 'CUT TO:' },
+    { type: 'action', text: 'The monitoring light flickers.' },
+  ];
+  const shots = Array.from({ length: 25 }, (_, i) => ({
+    position: i + 1,
+    intention: i === 24 ? 'Amy chooses silence as the screen fades.' : 'Image ' + (i + 1) + ': human tension increases.',
+  }));
+  for (let i = 1; i <= 25; i++) {
+    const prepared = prepareStoryboardNarrationSequence({ passages: sparse, shots, position: i });
+    assert.equal(prepared.passages.length, 4, 'all authored story information, not arithmetic position windows');
+    assert.deepEqual(prepared.passages.map(p => p.text),
+      ['Amy watches the visitors approach.', 'AMY', 'I have a question.', 'The monitoring light flickers.']);
+    assert.equal(prepared.sequence.selectedPosition, i);
+    assert.equal(prepared.sequence.shots.length, 25);
+    assert.match(prepared.sequence.shots[i - 1].intention, i === 25 ? /chooses silence/ : /Image/);
+    assert.equal(prepared.sequence.shots[24].intention, shots[24].intention,
+      'Shots 11–25 cannot automatically inherit the final screenplay line as their own moment');
   }
-  const withDialogue = [...all];
-  withDialogue[17] = { id: 'ren-speaker', type: 'character', text: 'REN' };
-  withDialogue[18] = { id: 'ren-line', type: 'dialogue', text: 'We should go. Before they return.' };
-  const quoted = context.storyboardNarrationPassagesForPosition(withDialogue, 19);
-  assert.deepEqual(Array.from(quoted, item => item.type), ['character', 'dialogue']);
-  assert.equal(quoted[0].text, 'REN');
-  const scoped = storyboardNarrationRequest({ ...evidence, passages: quoted });
-  assert.equal(parseStoryboardNarration(output('', [{ speaker: 'REN', text: 'Before they return.' }]), scoped)[0].bubbles.length, 1);
-  assert.throws(() => parseStoryboardNarration(output('', [{ speaker: 'AVA', text: 'Wait for me.' }]), scoped),
-    'dialogue from another Shot must not pass grounded quotation proof');
+  const noDrama = [{ type: 'action', text: 'FADE IN:' }, { type: 'transition', text: 'CUT TO:' }];
+  assert.throws(() => prepareStoryboardNarrationSequence({
+    passages: noDrama,
+    shots: shots.map(item => ({ ...item, intention: '' })),
+    position: 11,
+  }), /no authored dramatic context/i);
+  assert.equal(screenplayFormattingDirective('FADE IN:'), true);
+  assert.equal(screenplayFormattingDirective('CUT TO:'), true);
+  assert.equal(screenplayFormattingDirective('Amy watches the visitors approach.'), false);
+  const file = await readFile('app/_components/storyboard/storyboard-editorial-model.ts', 'utf8');
+  const start = file.indexOf('export function storyboardNarrationSourcePassagesInStoryOrder');
+  const end = file.indexOf('export function storyboardSourceEvidenceForAnchor', start);
+  assert.ok(start > -1 && end > start);
+  assert.doesNotMatch(file.slice(start, end), /\.sort\(/,
+    'screenplay may not be reordered by opaque passage identifier for narration');
+});
+
+test('#2855 formatting-only output is a rejected draft, not comic dialogue or caption', () => {
+  for (const caption of ['FADE IN', 'FADE IN:', 'CUT TO:', 'EXT. CITY - NIGHT', 'SCENE 23', 'FADE OUT.']) {
+    assert.throws(() => parseStoryboardNarration(output(caption), input), /formatting/i, caption);
+  }
+  assert.equal(parseStoryboardNarration(output('Amy has a question, but waits.'), input)[0].narration,
+    'Amy has a question, but waits.');
+  assert.throws(() => storyboardNarrationRequest({ ...evidence, sequence: { selectedPosition: 12, shots: sequenceShots } }),
+    /exact 25-Shot sequence/i, 'selected Shot is not interchangeable with another Shot');
+  assert.throws(() => storyboardNarrationRequest({ ...evidence, sequence: { selectedPosition: 19, shots: sequenceShots.slice(0, 24) } }),
+    /25-Shot sequence/i, 'partial sequence cannot masquerade as complete arc');
 });
 
 test('#2855 empty model text is reported as no proposal rather than silently suggesting approval', async () => {
@@ -120,7 +148,7 @@ test('#2855 empty model text is reported as no proposal rather than silently sug
   const context = vm.createContext({
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     storyContext, activeRequest: { current: null }, AbortController,
-    storyboardNarrationPassagesForPosition: (source) => source,
+    authoredSequencePassages: passages, sequenceShots, prepareStoryboardNarrationSequence,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); },
     setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({ sourceKey: 'fixed-source' }),

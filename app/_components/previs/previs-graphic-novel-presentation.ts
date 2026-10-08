@@ -169,6 +169,29 @@ export function graphicNovelTextSourceSnapshot(
   };
 }
 
+/**
+ * Compact *change-detection* fingerprint, not a cryptographic identity or
+ * authorization token. Each independent 32-bit mixing lane contributes to
+ * a 128-bit deterministic result. No source text is stored in the key.
+ */
+function bubbleSourceDigest(value: unknown): string {
+  const serialized = JSON.stringify(value) ?? "null";
+  const lanes = [0x811c9dc5, 0x85ebca6b, 0xc2b2ae35, 0x27d4eb2f];
+  const primes = [0x01000193, 0x1b3, 0x5bd1e995, 0x27d4eb2d];
+  for (let index = 0; index < serialized.length; index += 1) {
+    const unit = serialized.charCodeAt(index);
+    for (let lane = 0; lane < lanes.length; lane += 1) {
+      lanes[lane] = Math.imul(lanes[lane] ^ unit, primes[lane]);
+    }
+  }
+  return lanes.map((value) => (value >>> 0).toString(16).padStart(8, "0")).join("");
+}
+
+/**
+ * PP-NARR-001 B6: bounded source identity must survive encrypted PPF storage
+ * whose sourceKey limit is 4,000 characters. Splitting the digests by input
+ * authority allows bounded diagnostics without leaking the story or image.
+ */
 export function graphicNovelTextSourceKey(
   panel: PrevisGraphicNovelPanel,
   passages: unknown,
@@ -176,39 +199,48 @@ export function graphicNovelTextSourceKey(
   sourceSnapshot?: ReturnType<typeof graphicNovelTextSourceSnapshot>,
 ) {
   return JSON.stringify({
-    contract: "PP-NARR-001/B6-v2",
-    sourceSnapshot: sourceSnapshot ?? null,
-    passages,
-    storyContext,
-    assetUrl: panel.assetUrl,
-    caption: panel.caption,
-    narration: panel.narration,
-    shotLabel: panel.shotLabel,
-    shotContext: panel.shotContext,
-    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+    contract: "PP-NARR-001/B6-v3",
+    fingerprints: {
+      address: bubbleSourceDigest({
+        projectId: sourceSnapshot?.projectId ?? "",
+        anchorRef: sourceSnapshot?.anchorRef ?? "",
+        position: sourceSnapshot?.position ?? panel.position,
+      }),
+      image: bubbleSourceDigest(sourceSnapshot?.image ?? null),
+      shot: bubbleSourceDigest(sourceSnapshot?.authoredShots ?? []),
+      screenplay: bubbleSourceDigest(passages),
+      context: bubbleSourceDigest(storyContext),
+      presentation: bubbleSourceDigest({
+        assetUrl: panel.assetUrl,
+        caption: panel.caption,
+        narration: panel.narration,
+        shotLabel: panel.shotLabel,
+        shotContext: panel.shotContext,
+        bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
+      }),
+    },
   });
 }
 
-/** Opaque diagnostic labels only: never expose a Human's screenplay or image URL. */
+/** Labels only: do not place Human screenplay, Shot contents or URLs in diagnostics. */
 export function graphicNovelTextStaleReasons(savedKey: string, currentKey: string): string[] {
   try {
-    const saved = JSON.parse(savedKey) as Record<string, unknown>;
-    const current = JSON.parse(currentKey) as Record<string, unknown>;
-    const previousSource = saved.sourceSnapshot as Record<string, unknown> | null;
-    const currentSource = current.sourceSnapshot as Record<string, unknown> | null;
-    const changed = (a: unknown, b: unknown) => JSON.stringify(a) !== JSON.stringify(b);
+    const saved = JSON.parse(savedKey) as {
+      contract?: string;
+      fingerprints?: Record<string, string>;
+    };
+    const current = JSON.parse(currentKey) as {
+      contract?: string;
+      fingerprints?: Record<string, string>;
+    };
     const reasons: string[] = [];
     if (saved.contract !== current.contract) reasons.push("contract version");
-    if (changed(previousSource?.projectId, currentSource?.projectId)
-      || changed(previousSource?.anchorRef, currentSource?.anchorRef)
-      || changed(previousSource?.position, currentSource?.position)) reasons.push("story address");
-    if (changed(previousSource?.image, currentSource?.image)) reasons.push("image identity");
-    if (changed(previousSource?.authoredShots, currentSource?.authoredShots)) reasons.push("authored Shot facts");
-    if (changed(saved.passages, current.passages)) reasons.push("screenplay evidence");
-    if (changed(saved.storyContext, current.storyContext)) reasons.push("story context");
-    if (["assetUrl", "caption", "narration", "shotLabel", "shotContext", "bubbles"].some(
-      (key) => changed(saved[key], current[key]),
-    )) reasons.push("presentation source");
+    if (saved.fingerprints?.address !== current.fingerprints?.address) reasons.push("story address");
+    if (saved.fingerprints?.image !== current.fingerprints?.image) reasons.push("image identity");
+    if (saved.fingerprints?.shot !== current.fingerprints?.shot) reasons.push("authored Shot facts");
+    if (saved.fingerprints?.screenplay !== current.fingerprints?.screenplay) reasons.push("screenplay evidence");
+    if (saved.fingerprints?.context !== current.fingerprints?.context) reasons.push("story context");
+    if (saved.fingerprints?.presentation !== current.fingerprints?.presentation) reasons.push("presentation source");
     return reasons.length ? reasons : ["other source identity"];
   } catch {
     return ["unreadable source identity"];

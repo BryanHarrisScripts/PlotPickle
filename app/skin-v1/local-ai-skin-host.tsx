@@ -293,6 +293,20 @@ export default function LocalAiSkinHost() {
     }
   };
 
+  function automaticLocalWritingConnection(capability: CapabilityKey): StoryModeConnectionRow {
+    const group = routing?.text;
+    const option = group?.options.local;
+    const state = connectionState(option);
+    return {
+      id: "local", label: "Automatic Local Writer",
+      role: capability === "agents" ? "Local text Agent models" : "Local Quality writer used by Storyboard narration",
+      detail: "A detected model or hardware slot is not a verified Writing response.",
+      state, model: option?.model || undefined,
+      active: Boolean(option?.ready && group?.selected === "local"),
+      setupLabel: setupActionLabel(state), onSetup: () => setView("ollama"),
+    };
+  }
+
   function ollamaConnection(capability: CapabilityKey): StoryModeConnectionRow {
     const group = routing?.text;
     const option = group?.options.ollama;
@@ -366,7 +380,7 @@ export default function LocalAiSkinHost() {
   }
 
   function capabilityConnections(capability: CapabilityKey): StoryModeConnectionRow[] {
-    if (capability === "writing" || capability === "agents") return [ollamaConnection(capability)];
+    if (capability === "writing" || capability === "agents") return [automaticLocalWritingConnection(capability), ollamaConnection(capability)];
     if (capability === "images") return [imageComfyConnection()];
     return [videoRuntimeConnection(), { id: "comfyui-native", label: "ComfyUI — Native local inference", role: "Local H3 weights", detail: LOCAL_DETAILS.h3, state: connectionState(routing?.video.options["comfyui-native"]), setupLabel: "Setup", onSetup: () => setView("h3") }];
   }

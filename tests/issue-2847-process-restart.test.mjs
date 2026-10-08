@@ -24,7 +24,7 @@ test("PP-SAVE-001 T6: saved/locked Afterglow image survives a genuine process ex
     assert.equal(child.signal, null, name + " child process terminated by signal " + child.signal);
     assert.equal(child.status, 0, name + " must independently succeed (exit " + child.status
       + ")\\nstdout:\\n" + child.stdout + "\\nstderr:\\n" + child.stderr);
-    const result = JSON.parse(child.stdout.trim().split(/\\r?\\n/u).at(-1));
+    const result = JSON.parse(child.stdout.trim().split(/\r?\n/u).at(-1));
     assert.equal(result.phase, name);
     return result;
   };

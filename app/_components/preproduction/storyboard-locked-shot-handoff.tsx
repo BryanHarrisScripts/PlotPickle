@@ -284,9 +284,11 @@ export default function StoryboardLockedShotHandoff({
             const duration = production?.durationSeconds ?? shot?.durationSeconds ?? null;
             // This same authored evidence is displayed to the Human AND supplied to
             // text-only narration. Never infer story details from the image pixels.
+            const shotPassages = storyboardNarrationPassagesForPosition(evidence.passages, position);
+            const shotScenes = [...new Set(shotPassages.map((passage) => passage.sceneNumber).filter(Boolean))];
             const shotFacts = {
               story: compact([artifact.narrativeIntention, shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
-              sceneBeat: compact([sceneNumbers.length ? sceneNumbers.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label, progression.direction]),
+              sceneBeat: compact([shotScenes.length ? shotScenes.map((scene) => `Scene ${scene}`).join(", ") : "", progression.label]),
               camera,
               performance,
               lighting: shot?.lightingIntent ?? "",

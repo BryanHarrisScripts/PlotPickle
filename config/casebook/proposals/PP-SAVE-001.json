@@ -11,12 +11,16 @@
       "action": "Authenticate in a test-scoped profile; open a story and identify a selected Storyboard artifact and version."
     },
     {
+      "id": "attempt-lock-unsaved",
+      "action": "Before any confirmed Save, try the actual Lock control: it must be unavailable with a clear reason and must not commit approval, including via direct command."
+    },
+    {
       "id": "save",
-      "action": "Press actual Storyboard Save and observe pending then independently acknowledged result."
+      "action": "Press actual Storyboard Save; compare selected artifact/version/digest and observe pending then independently acknowledged durable commit."
     },
     {
       "id": "lock",
-      "action": "Press actual Lock for the same exact version, verifying approval commits separately."
+      "action": "Only after independently confirmed Save of the exact selected version, press actual Lock for that version and verify committed approval."
     },
     {
       "id": "restart",
@@ -36,12 +40,17 @@
     "Known reversible non-sensitive test media and test-scoped profile; do not alter real Human content.",
     "Observed environment, contract version and git revision recorded."
   ],
-  "expectedOutcome": "Only actual durable persistence and approval yield Saved and Locked claims; the exact artifact identity, bytes/digest, version and lock return after restart, unrelated identities remain unchanged, and Previs sees only the same approved version.",
+  "expectedOutcome": "Lock is not permitted until the exact selected artifact/version has a confirmed durable Save; only actual durable persistence and approval yield Saved and Locked claims; the exact artifact identity, bytes/digest, version and approval return after restart, unrelated identities remain unchanged, and Previs sees only the same approved version.",
   "requiredEvidence": [
     {
       "id": "pre-state",
       "kind": "state",
       "description": "Known digest, media identity, artifact revision, selected shot, project and scoped profile before Save."
+    },
+    {
+      "id": "unsaved-lock-rejected",
+      "kind": "ui",
+      "description": "Actual Lock control and underlying command reject attempts before confirmed exact-version Save, including pending/rejected/unknown states and stale selection; no approval mutation."
     },
     {
       "id": "commit-readback",
@@ -87,9 +96,11 @@
     "profile switch/authorization loss",
     "media file missing although metadata says saved",
     "packaged-vs-local asset mismatch",
-    "Previs accepts wrong candidate"
+    "Previs accepts wrong candidate",
+    "Lock allowed on unsaved or pending selection because of stale UI saved marker or stale operation acknowledgement"
   ],
   "injectedFailureModes": [
+    "Attempt Lock on unsaved, pending, unknown, rejected or stale-selected version; assert no approval side effect",
     "Vault write rejected before commit",
     "Commit succeeds but network acknowledgement is lost",
     "Old version acknowledgement arrives after new edit",
@@ -119,7 +130,8 @@
     "No merge changing approved semantics without recorded Human approval."
   ],
   "successCriteria": [
-    "Human approves the exact recovery scope and pending/unload/Lock-before-Save decisions before the contract is binding.",
+    "Human has confirmed Save-before-Lock ordering; Human approves the remaining recovery scope and pending/unload policy before the full contract is binding.",
+    "Actual UI and domain logic prevent Lock before confirmed durable Save of the exact selected artifact/version.",
     "Actual rendered interface and encrypted backing store prove Saved and Locked outcomes under defined conditions.",
     "Actual process restart recovers identical media identity/digest and approved lock.",
     "No unrelated artifact/profile changes, duplicates or false Saved/Locked claims in observed fault sequences.",
@@ -156,7 +168,7 @@
     "previs-readiness-workspace"
   ],
   "truthStatus": "proposed-human-approval-required",
-  "contractVersion": "0.1.0-proposed",
+  "contractVersion": "0.2.0-proposed",
   "specification": "docs/behavioral-contracts/PP-SAVE-001.md",
   "issue": 2845,
   "verificationImplementationStatus": "not implemented; this is a proposed Casebook-compatible definition, not a passing case",
@@ -167,7 +179,7 @@
     },
     {
       "id": "T2",
-      "property": "DisplayLocked(identity,version) implies ConfirmedDurableApproval(same identity,version)"
+      "property": "AllowedLock(identity,version,digest) implies ConfirmedDurableCommit(same identity,version,digest). DisplayLocked implies both ConfirmedDurableCommit and ConfirmedDurableApproval for same selected version; Lock requires commit, not optimistic saved marker."
     },
     {
       "id": "T3",
@@ -192,6 +204,15 @@
     {
       "id": "T8",
       "property": "Under declared available dependencies Save reaches verified commit or explicit rejection; uncertainty has reconciliation"
+    }
+  ],
+  "humanConfirmedDecisions": [
+    {
+      "rule": "R3-save-before-lock",
+      "confirmedAt": "2026-10-08",
+      "status": "confirmed",
+      "originalIntent": "You can't lock unless it has been saved. And then, then you can lock.",
+      "effect": "Lock unavailable until exact selected image/version has confirmed durable Save. A Saved version may be Locked only after Save completion; rejected, unknown, pending and unsaved versions cannot be Locked. Previs requires both."
     }
   ]
 }

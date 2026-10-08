@@ -1,6 +1,6 @@
 import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-request-context";
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
-import { resolveConfiguredAgentExecutionProfile } from "../../../../build/writing-assistant-gateway";
+import { resolveConfiguredAgentExecutionProfile, resolveConfiguredLocalNarrationProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
 import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration } from "../../../../core/media/previs-narration.mjs";
 
@@ -38,7 +38,7 @@ async function handlePost(request: Request) {
   }
   let text;
   try {
-    const { profile } = await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality");
+    const { profile } = storyboardShot ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality");
     if (storyboardShot) {
       // Storyboard is a text-writing task. Do not send the locked image to the model.
       text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardNarrationPrompt(input),signal:request.signal});

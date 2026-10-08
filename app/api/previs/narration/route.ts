@@ -54,8 +54,8 @@ async function handlePost(request: Request) {
       text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:narrationPrompt(input),image:input.image,signal:request.signal});
     }
   } catch {
-    return Response.json({ok:false,code:storyboardShot?"TEXT_COMPUTE_UNAVAILABLE":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
-      ? "The Graphic Novel writing agent could not use a ready text model. Verify a writing/Agent model under Local or Cloud Settings and retry."
+    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_FAILED":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
+      ? "The configured Local writing model did not return narration. Check Local diagnostics and retry."
       : "The Graphic Novel agent could not read the approved images. Check its image-capable model in Settings, then retry."},{status:502});
   }
   try {

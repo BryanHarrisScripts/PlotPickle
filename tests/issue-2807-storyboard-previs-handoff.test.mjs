@@ -65,7 +65,7 @@ test("#2807 authors Graphic Novel text through the existing Previs approval auth
   assert.match(handoff, /fetch\("\/api\/previs\/narration"/u);
   assert.match(handoff, /PrevisGraphicNovelTextApproval/u);
   assert.match(handoff, /graphicNovelTextApprovals/u);
-  assert.match(handoff, /Human review/u);
+  assert.match(handoff, /Draft · review before approval/u);
   assert.match(handoff, /Save &amp; Lock/u);
   assert.match(handoff, /No Bubble/u);
   assert.match(handoff, /noText/u);

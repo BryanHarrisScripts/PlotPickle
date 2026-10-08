@@ -13,6 +13,20 @@ export function screenplayFormattingDirective(text) {
   return /^(?:(?:FADE\s+(?:IN|OUT)|FADE\s+TO\s+BLACK|CUT\s+TO|SMASH\s+CUT\s+TO|DISSOLVE\s+TO|MATCH\s+CUT\s+TO|BACK\s+TO|CONTINUED|THE\s+END|END\s+OF\s+SCENE|INTERCUT|MONTAGE|SUPER|TITLE\s+CARD|OPEN\s+ON)\s*[:.!–-]*|(?:INT|EXT|INT\/EXT|EXT\/INT)\.\s+.+|(?:PAGE|SCENE|SHOT)\s+\d+\s*[:.!-]*)$/iu.test(value);
 }
 
+/**
+ * Recovery provenance is not a creative description of the image.
+ * Older approvals retain their original keys; filtering applies to the writer
+ * evidence packet and explanatory UI, not the durable Storyboard artifact.
+ */
+export function storyboardNarrationAuthoredIntention(value) {
+  const text = String(value ?? "").trim();
+  if (/^Recovered local Storyboard frame\s*[·-]\s*position\s*\d{1,2}\s*$/iu.test(text)
+      || /^Recovered local Storyboard resource\b/iu.test(text)
+      || /^Original Storyboard (?:Image )?prompt unavailable\b/iu.test(text)
+      || screenplayFormattingDirective(text)) return "";
+  return text;
+}
+
 function narrativePassage(value) {
   if (!value || typeof value !== "object" || typeof value.type !== "string" || typeof value.text !== "string") return null;
   const type = value.type.trim().toLowerCase();
@@ -43,7 +57,7 @@ export function prepareStoryboardNarrationSequence(value) {
         || seen.has(item.position) || typeof item.intention !== "string"
         || item.intention.length > 1600) throw new Error("Invalid authored sequence Shot.");
     seen.add(item.position);
-    const intention = item.intention.trim().slice(0, 420);
+    const intention = storyboardNarrationAuthoredIntention(item.intention).slice(0, 420);
     return { position: item.position, intention: screenplayFormattingDirective(intention) ? "" : intention };
   });
   if (sources.length !== 25 || seen.size !== 25) throw new Error("A 25-Shot sequence plan is required.");

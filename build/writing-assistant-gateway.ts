@@ -385,6 +385,11 @@ export async function resolveConfiguredAgentExecutionProfile(agentId: PlotPickle
   return { profile, assigned, requestedProvider, store };
 }
 
+export async function resolveConfiguredLocalNarrationProfile() {
+  const { store } = await readSynchronizedAssistantStore();
+  return { profile: await profileForProvider(store, "local", "quality") };
+}
+
 export async function resolveStoryArchitectExecutionProfile() {
   const { profile, assigned } = await resolveConfiguredAgentExecutionProfile("story-architect", "quality");
   return { profile, source: assigned.source };

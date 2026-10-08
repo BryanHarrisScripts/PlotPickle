@@ -6,8 +6,8 @@ import vm from 'node:vm';
 // PP-NARR-001 B6 runs in the existing Windows narration gate, not only as an unselected new test file.
 import './issue-2855-bubble-source-identity.test.mjs';
 import './issue-2841-local-writing-truth.test.mjs';
-import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest } from '../core/media/previs-narration.mjs';
-import { prepareStoryboardNarrationSequence, screenplayFormattingDirective } from '../core/media/storyboard-sequence-evidence.mjs';
+import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest, storyboardNarrationOutputFailure } from '../core/media/previs-narration.mjs';
+import { prepareStoryboardNarrationSequence, screenplayFormattingDirective, storyboardNarrationAuthoredIntention } from '../core/media/storyboard-sequence-evidence.mjs';
 
 const storyContext = { title: 'Afterglow', act: 1, block: 1, miniBlock: 1, blockTitle: 'Opening', dramaticResponsibility: 'Establish the dilemma.' };
 const passages = [{ type: 'character', text: 'REN' }, { type: 'parenthetical', text: '(quietly)' }, { type: 'dialogue', text: 'We should go. Before they return.' }, { type: 'character', text: 'AVA' }, { type: 'dialogue', text: 'Wait for me.' }];
@@ -58,7 +58,7 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     authoredSequencePassages: passages,
     sequenceShots,
-    prepareStoryboardNarrationSequence,
+    prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention,
     storyContext, activeRequest: { current: null }, AbortController,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); }, setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({sourceKey: 'source-current'}),
@@ -139,6 +139,48 @@ test('#2855 formatting-only output is a rejected draft, not comic dialogue or ca
     /25-Shot sequence/i, 'partial sequence cannot masquerade as complete arc');
 });
 
+test('#2855 recovery provenance is never a Shot-story source and approved decisions are not rewritten', async () => {
+  for (const position of [1, 3, 13, 15, 20, 25]) {
+    assert.equal(storyboardNarrationAuthoredIntention('Recovered local Storyboard frame · position ' + String(position).padStart(2, '0')), '');
+  }
+  assert.equal(storyboardNarrationAuthoredIntention('Original Storyboard Image prompt unavailable for this image.'), '');
+  assert.equal(storyboardNarrationAuthoredIntention('Amy hesitates before opening the door'), 'Amy hesitates before opening the door');
+  const empty = Array.from({ length: 25 }, (_, i) => ({ position: i + 1, intention: 'Recovered local Storyboard frame · position ' + String(i + 1).padStart(2, '0') }));
+  assert.throws(() => prepareStoryboardNarrationSequence({ passages: [], shots: empty, position: 20 }), /no authored dramatic context/i);
+  const stage = prepareStoryboardNarrationSequence({ passages, shots: empty, position: 20 });
+  assert.equal(stage.sequence.shots[19].intention, '', 'recovered description is not original per-shot story truth');
+  assert.equal(stage.passages[0].text, 'REN', 'authored screenplay is still available when recovered images have no shot intent');
+  const handoff = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
+  assert.match(handoff, /storyboardNarrationAuthoredIntention\(artifact\.narrativeIntention\)/u);
+  assert.match(handoff, /No specific Scene or Beat authored for this Shot/u);
+  assert.doesNotMatch(handoff, /sceneBeat: compact\(\[shot\?\.narrativePurpose, evidence\.responsibility\]/u);
+  assert.match(handoff, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext,/u,
+    'existing approved source identities and storage must not be modified by prompt correction');
+});
+
+test('#2855 observed validation outcomes distinguish JSON, format, incomplete prose, quote and structure', () => {
+  const examples = [
+    [new SyntaxError('model output leaked private text'), 'OUTPUT_NOT_JSON'],
+    [new Error('Screenplay formatting cannot be printed as a Graphic Novel caption.'), 'SCREENPLAY_FORMATTING'],
+    [new Error('An unfinished caption fragment cannot be printed as a Graphic Novel caption.'), 'UNFINISHED_CAPTION'],
+    [new Error('A speech bubble must quote actual dialogue by its screenplay speaker.'), 'DIALOGUE_NOT_IN_SCREENPLAY'],
+    [new Error('Storyboard narration exceeds the 12-word / 100-character bubble limit.'), 'TEXT_TOO_LONG'],
+    [new Error('One Shot may have either a scene caption or a dialogue bubble, not both.'), 'CAPTION_AND_DIALOGUE'],
+    [new Error('The agent returned invalid narration pacing or positions.'), 'INVALID_SHOT_RESPONSE'],
+    [new Error('Private unrecognized runtime content'), 'INVALID_MODEL_RESPONSE'],
+  ];
+  for (const [error, expected] of examples) {
+    const failure = storyboardNarrationOutputFailure(error);
+    assert.equal(failure.reason, expected);
+    assert.equal(/model output leaked private text|Private unrecognized runtime content/iu.test(failure.message), false,
+      'no raw model response or exception details may escape into the UI');
+  }
+  assert.throws(() => parseStoryboardNarration(output('In her quiet attic,'), input), /unfinished caption fragment/i,
+    'an incomplete literary phrase cannot silently become a new approved panel');
+  assert.equal(parseStoryboardNarration(output('Ren considers the decision.'), input)[0].narration, 'Ren considers the decision.',
+    'complete short proposals remain available to Human review');
+});
+
 test('#2855 empty model text is reported as no proposal rather than silently suggesting approval', async () => {
   const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
   const start = source.indexOf('  async function generateNarration(');
@@ -148,7 +190,7 @@ test('#2855 empty model text is reported as no proposal rather than silently sug
   const context = vm.createContext({
     busyPosition: null, evidence: { passages }, project, latestProject: { current: project },
     storyContext, activeRequest: { current: null }, AbortController,
-    authoredSequencePassages: passages, sequenceShots, prepareStoryboardNarrationSequence,
+    authoredSequencePassages: passages, sequenceShots, prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention,
     setBusyPosition() {}, setNotices(fn) { notices = fn(notices); },
     setDrafts(fn) { drafts = fn(drafts); },
     currentApproval: () => ({ sourceKey: 'fixed-source' }),

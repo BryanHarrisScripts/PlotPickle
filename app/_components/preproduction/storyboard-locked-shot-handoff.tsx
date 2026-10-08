@@ -14,7 +14,7 @@ import { saveFoundationProjectDurably } from "@/core/storage/project-library/rev
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import { prepareStoryboardNarrationSequence } from "@/core/media/storyboard-sequence-evidence.mjs";
+import { prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention } from "@/core/media/storyboard-sequence-evidence.mjs";
 import {
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
@@ -90,7 +90,7 @@ export default function StoryboardLockedShotHandoff({
     return {
       position,
       intention: compact([
-        artifact?.narrativeIntention,
+        storyboardNarrationAuthoredIntention(artifact?.narrativeIntention),
         shot?.narrativePurpose,
         shot?.visualIntent,
       ]).slice(0, 1600),
@@ -226,7 +226,7 @@ export default function StoryboardLockedShotHandoff({
           storyContext,
           passages: sequenceEvidence.passages,
           sequence: sequenceEvidence.sequence,
-          panels: [{ position: panel.position, intention: panel.narration }],
+          panels: [{ position: panel.position, intention: storyboardNarrationAuthoredIntention(panel.narration) }],
           shot: shotFacts,
         }),
       });
@@ -310,8 +310,8 @@ export default function StoryboardLockedShotHandoff({
             // This same authored evidence is displayed to the Human AND supplied to
             // text-only narration. Never infer story details from the image pixels.
             const shotFacts = {
-              story: compact([artifact.narrativeIntention, shot?.narrativePurpose, shot?.visualIntent, evidence.responsibility]),
-              sceneBeat: compact([shot?.narrativePurpose, evidence.responsibility]) || "No specific Scene or Beat authored",
+              story: compact([storyboardNarrationAuthoredIntention(artifact.narrativeIntention), shot?.narrativePurpose, shot?.visualIntent]),
+              sceneBeat: compact([shot?.narrativePurpose]) || "No specific Scene or Beat authored for this Shot",
               camera,
               performance,
               lighting: shot?.lightingIntent ?? "",
@@ -344,6 +344,9 @@ export default function StoryboardLockedShotHandoff({
 
                 <div className={styles.handoffNarration}>
                   <strong>Graphic Novel bubble / caption</strong>
+                  {!shotFacts.story ? (
+                    <small>Recovered-image provenance is not an authored Shot intention. This Local text writer uses screenplay context; it has not inspected this image. Review any proposal against the image before approving.</small>
+                  ) : null}
                   {approvalState.current?.noText ? <p>No Bubble · Saved & Locked</p> : null}
                   {approvalState.current && !approvalState.current.noText ? (
                     <>

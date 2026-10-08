@@ -43,7 +43,8 @@ export function prepareStoryboardNarrationSequence(value) {
         || seen.has(item.position) || typeof item.intention !== "string"
         || item.intention.length > 1600) throw new Error("Invalid authored sequence Shot.");
     seen.add(item.position);
-    return { position: item.position, intention: item.intention.trim().slice(0, 420) };
+    const intention = item.intention.trim().slice(0, 420);
+    return { position: item.position, intention: screenplayFormattingDirective(intention) ? "" : intention };
   });
   if (sources.length !== 25 || seen.size !== 25) throw new Error("A 25-Shot sequence plan is required.");
   const shots = sources.sort((a, b) => a.position - b.position);

@@ -294,7 +294,7 @@ jobs:
         run: node tests/issue-2789-windows-cold-runtime.mjs
       - name: Prove Save, Lock and session continuity on Windows
         shell: pwsh
-        run: node --test tests/issue-2821-save-session-continuity.test.mjs tests/issue-2821-afterglow-load-hydration-authority.test.mjs tests/issue-2819-storyboard-idempotent-save.test.mjs tests/issue-2832-profile-save-work.test.mjs tests/issue-2839-storyboard-text-narration.test.mjs tests/issue-2839-narration-durable-approval.test.mjs tests/issue-2835-startup-account-afterglow.test.mjs
+        run: node --test tests/issue-2821-save-session-continuity.test.mjs tests/issue-2847-process-restart.test.mjs tests/issue-2821-afterglow-load-hydration-authority.test.mjs tests/issue-2819-storyboard-idempotent-save.test.mjs tests/issue-2832-profile-save-work.test.mjs tests/issue-2839-storyboard-text-narration.test.mjs tests/issue-2839-narration-durable-approval.test.mjs tests/issue-2835-startup-account-afterglow.test.mjs
       - name: Render Storyboard Save, Lock, retry and reopen
         shell: pwsh
         env:

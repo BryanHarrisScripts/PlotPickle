@@ -30,6 +30,8 @@ const PROJECT_KEYS = [
   "writing",
   "discovery",
   "worldMap",
+  "storyDevelopment",
+  "mindMapNotes",
 ];
 
 function record(value) {

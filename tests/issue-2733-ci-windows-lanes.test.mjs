@@ -104,3 +104,14 @@ test("#2753 workflow metadata changes do not fan out into unrelated heavyweight 
     assert.ok(scope.includes(productPath), lane + " retains a product/runtime selector");
   }
 });
+
+
+test("#2863 Afterglow Settings product edits select focused Windows build without broad Library fanout", async () => {
+  const architecture=await read(".github/workflows/architecture-shadow.yml");
+  const scope=architecture.slice(architecture.indexOf("  windows-product-scope:"),architecture.indexOf("  windows-product-proof:"));
+  const buildSelector=scope.split("\n").find(line=>line.includes("then build=true; fi"));
+  assert.ok(buildSelector,"targeted Windows build selector is required");
+  assert.match(buildSelector,/modules\/library\/ui\/afterglow-management-panel/u);
+  assert.doesNotMatch(buildSelector,/modules\/library\/ui\/\|/u);
+  assert.match(buildSelector,/app\/api\/previs\/narration/u,"existing build triggers stay intact");
+});

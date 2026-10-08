@@ -20,6 +20,8 @@ type Preview = Readonly<{
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
   sampleChanges: readonly AfterglowConsolidationChange[];
+  conflictCount: number;
+  reviewCount: number;
   conflicts: readonly AfterglowConsolidationConflict[];
   needsReview: readonly AfterglowConsolidationReview[];
   localAssetCount: number;
@@ -100,6 +102,8 @@ export default function AfterglowManagementPanel() {
         sources: result.sources,
         appliedCount: result.applied.length,
         sampleChanges: result.applied.slice(0, 35),
+        conflictCount: result.conflicts.length,
+        reviewCount: result.needsReview.length,
         conflicts: result.conflicts.slice(0, 35),
         needsReview: result.needsReview.slice(0, 35),
         localAssetCount: result.localAssetsToVerify.length,
@@ -132,7 +136,7 @@ export default function AfterglowManagementPanel() {
               <ol className={styles.sourceList}>
                 {sources.map(source => (
                   <li key={source.id}><strong>{displayDate(source.updatedAt)}</strong>
-                    <span>Revision {source.id ? loadLibraryProjectSnapshot(source.id)?.revision ?? "unknown" : "unknown"}</span></li>
+                    <span>Saved working copy · {source.id.slice(0, 8)}</span></li>
                 ))}
               </ol>
             ) : <p>No saved Afterglow working versions were found. The provided example remains available in Library.</p>}
@@ -150,8 +154,8 @@ export default function AfterglowManagementPanel() {
             <h3 id="afterglow-preview-heading">Consolidation review — not saved</h3>
             <p><strong>{preview.sources.length}</strong> saved versions compared;
               <strong> {preview.appliedCount}</strong> proposed field/entity changes;
-              <strong> {preview.conflicts.length}</strong> conflicting paths;
-              <strong> {preview.needsReview.length}</strong> other review items;
+              <strong> {preview.conflictCount}</strong> conflicting paths;
+              <strong> {preview.reviewCount}</strong> other review items;
               <strong> {preview.localAssetCount}</strong> local media references requiring verification.</p>
             <p>{preview.mergeShapeConsistent
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."

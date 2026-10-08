@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { currentProfileRequestContext } from "../auth/profile-request-context";
-import { readCredentialJson, writeCredentialJson } from "../local-credentials";
-import { routeExecution } from "../../core/contracts/compute/capability-routes.mjs";
+import { currentProfileRequestContext } from "../../auth/profile-request-context";
+import { readCredentialJson, writeCredentialJson } from "../../local-credentials";
+import { routeExecution } from "../../../core/contracts/compute/capability-routes.mjs";
 
 type Stage = "selection" | "preflight" | "submitted" | "polling" | "saved" | "failed";
 type Diagnostic = { id: string; at: string; capability: string; route: string; runtime: string; provider: string; stage: Stage; code: string; jobId: string };

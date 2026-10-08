@@ -1,5 +1,5 @@
-import { relayCapabilityDiagnostic } from "./ai/capability-diagnostics";
-import { readCapabilityChoice, requireRouteConsent } from "./ai/capability-routing-state";
+import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
+import { readCapabilityChoice, requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { writingReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";

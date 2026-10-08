@@ -1,4 +1,4 @@
-import { readCapabilityChoice } from "./ai/capability-routing-state";
+import { readCapabilityChoice } from "./ai/capabilities/capability-routing-state";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { readNativeH3Store } from "./ai/h3/comfyui-h3-native-provider";

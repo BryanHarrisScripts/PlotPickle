@@ -1,8 +1,8 @@
-import { readCredentialJson, writeCredentialJson } from "../local-credentials";
-import { readMediaRoutingStore } from "../media-routing-store";
-import { readSynchronizedAssistantStore } from "../writing-assistant-store";
-import { readNativeH3Store } from "./h3/comfyui-h3-native-provider";
-import { CAPABILITY_ROUTES, routeExecution } from "../../core/contracts/compute/capability-routes.mjs";
+import { readCredentialJson, writeCredentialJson } from "../../local-credentials";
+import { readMediaRoutingStore } from "../../media-routing-store";
+import { readSynchronizedAssistantStore } from "../../writing-assistant-store";
+import { readNativeH3Store } from "../h3/comfyui-h3-native-provider";
+import { CAPABILITY_ROUTES, routeExecution } from "../../../core/contracts/compute/capability-routes.mjs";
 
 export type CapabilityChoice = { version: 1 | 2; text: string; image: string; video: string; updatedAt: string };
 export async function readCapabilityChoice(): Promise<CapabilityChoice> {

@@ -1,6 +1,6 @@
-import { relayCapabilityDiagnostic } from "./ai/capability-diagnostics";
+import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { selectedImageExecution } from "../core/contracts/compute/capability-routes.mjs";
-import { requireRouteConsent } from "./ai/capability-routing-state";
+import { requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { cloudMediaReadiness, computeReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";

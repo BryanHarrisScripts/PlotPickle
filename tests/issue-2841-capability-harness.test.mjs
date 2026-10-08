@@ -40,7 +40,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
       'export { readSynchronizedAssistantStore, writeAssistantStore } from "./build/writing-assistant-store";',
       'export { registerAiRoutingGateway, readRoutingChoice } from "./build/ai-routing-gateway";',
       'export { registerMediaRoutingGateway } from "./build/media-routing-gateway";',
-      'export { relayCapabilityDiagnostic } from "./build/ai/capability-diagnostics";',
+      'export { relayCapabilityDiagnostic } from "./build/ai/capabilities/capability-diagnostics";',
       'export { saveGeneratedAsset } from "./build/media-provider-common";',
       'export { POST } from "./app/api/cloud-story-mode/provider/route";',
     ].map((line) => line.replace(/from "\.\//, `from "${process.cwd().replaceAll("\\", "/")}/`)).join("\n"));
@@ -173,7 +173,7 @@ test("#2841 setup controls render one Setup action and a checked readiness marke
   const root = await mkdtemp(path.join(path.resolve("node_modules"), ".setup-render-2841-"));
   try {
     const entry = path.join(root, "render.tsx");
-    await writeFile(entry, `import React from "react"; import { renderToStaticMarkup } from "react-dom/server"; import Connections from "${process.cwd()}/app/skin-v1/story-mode-capability-connections"; export const html = renderToStaticMarkup(<Connections mode="local" capability="writing" connections={[{ id:"ollama", label:"Ollama", role:"Writing", detail:"Synthetic configured resource", state:"ready", setupLabel:"Setup", onSetup:()=>{} }]} />);`);
+    await writeFile(entry, `import React from "react"; import { renderToStaticMarkup } from "react-dom/server"; import Connections from "${process.cwd().replaceAll("\\", "/")}/app/skin-v1/story-mode-capability-connections"; export const html = renderToStaticMarkup(<Connections mode="local" capability="writing" connections={[{ id:"ollama", label:"Ollama", role:"Writing", detail:"Synthetic configured resource", state:"ready", setupLabel:"Setup", onSetup:()=>{} }]} />);`);
     const output = path.join(root, "render.mjs");
     await build({ entryPoints: [entry], outfile: output, bundle: true, platform: "node", format: "esm", packages: "external", jsx: "automatic", logLevel: "silent" });
     const { html } = await import(pathToFileURL(output).href);

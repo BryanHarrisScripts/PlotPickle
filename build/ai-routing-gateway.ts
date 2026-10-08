@@ -1,7 +1,7 @@
-import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capability-diagnostics";
+import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
-import { readCapabilityChoice, readProviderConsent, saveProviderConsent, requireRouteConsent } from "./ai/capability-routing-state";
+import { readCapabilityChoice, readProviderConsent, saveProviderConsent, requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { requireSelectedCapability } from "../core/contracts/compute/capability-routes.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";

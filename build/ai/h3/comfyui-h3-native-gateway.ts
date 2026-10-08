@@ -1,5 +1,5 @@
-import { relayCapabilityDiagnostic } from "../capability-diagnostics";
-import { readCapabilityChoice } from "../capability-routing-state";
+import { relayCapabilityDiagnostic } from "../capabilities/capability-diagnostics";
+import { readCapabilityChoice } from "../capabilities/capability-routing-state";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {

@@ -1,7 +1,7 @@
 # PP-SAVE-001 — Storyboard Save, Lock and Recovery Truth
 
-**Status:** PARTIALLY CONFIRMED — Human approved Save-before-Lock ordering on 2026-10-08; full contract remains PROPOSED pending other decisions
-**Proposal version:** 0.2.0-proposed
+**Status:** APPROVED — Human accepted PP-SAVE-001 after confirming Save-before-Lock ordering, 2026-10-08
+**Contract version:** 1.0.0
 **Stable truth ID:** PP-SAVE-001
 **Date proposed:** 2026-10-08
 **Owning domain:** Storyboard visual versions and approval, with Library/profile storage and Previs handoff boundaries
@@ -9,23 +9,24 @@
 **Related work:** #2819, #2821, #2830, #2832; [white paper](../white-papers/AI_Programming_Evolution_White_Paper.md)
 **Source of requirement:** Human conversations reporting Save confirmation pending, unreliable Lock/reload, and downstream Previs rejecting saved images. Specific proposed interpretations are labelled below rather than retroactively attributed to the Human.
 
-## 1. Human promise (proposed interpretation)
+## 1. Approved Human promise
 
 > When I save a Storyboard image, PlotPickle must preserve that exact image. When I lock it, my approval must also be preserved. I must be able to close PlotPickle, restart it, reopen the same story, and find the same image and approval exactly as I left them. Nothing else should change. PlotPickle must never tell me something is saved unless it can substantiate that claim.
 
 **Confirmed Human Rule 3 (2026-10-08):** Saving must finish successfully before the selected image can be Locked. Lock is unavailable while that same selected version is Unsaved, Pending, Unknown, or Rejected. Once its durable Save is confirmed, Lock becomes available; it then requires its own confirmed approval commit. This ordering is a Human decision, not an engineering inference.
 
-The Human decides whether the other proposed statements reflect the intended result; the engineering system chooses code, storage protocols, formal notation and verification mechanisms.
+The Human accepted the complete first-pilot promise on 2026-10-08 after correcting Save-before-Lock. This approval governs the supported scope below; the engineering system chooses code, storage protocols, formal notation and verification mechanisms. Future substantive changes require explicit Human approval.
 
-### Proposed recovery scope — decision required
+### Approved initial recovery scope
 
 1. Same authenticated Human profile on the same Windows device, through a normal PlotPickle stop/start and Library **Open Example with Your Changes** (or the corresponding saved-story reopen operation).
 2. The required media and supported persistent storage remain present and accessible; account/profile recovery conditions hold.
 3. Applies to local-generated and packaged Afterglow media once participating in the same Storyboard Save/Lock workflow.
-4. Does not yet promise cross-device synchronization or recovery after storage/device loss. Those require separately accepted truths.
-5. The treatment of closing, unloading or logging out while writes are **pending/unknown** is an explicit user-visible policy to confirm. Until then, the minimum safety requirement is **no false success, no silent loss, and no silent profile/identity switch**.
+4. No cross-device synchronization or recovery after storage/device loss is guaranteed by PP-SAVE-001 v1; those require separately accepted truths.
+5. When a Save or Lock is **pending or unknown**, PlotPickle must preserve current work, visibly report uncertainty, prevent unsafe in-app Unload/Logout/profile switch that would discard the unreconciled operation, and provide a retry/reconciliation path. Rejecting the operation must preserve unsaved work. An external forced process termination cannot be prevented; the supported recovery procedure must distinguish confirmed committed state from unconfirmed state after restart.
+6. The engineering system must define and verify a finite pending-to-unknown presentation timeout and reconciliation mechanism compatible with actual storage/auth constraints. The Human approved the outcome (no indefinite misleading Saved state or lost edits), not an arbitrary numeric timeout.
 
-No assumption in this section becomes approved solely by the proposal being in GitHub.
+These decisions are approved for the initial same-device, same-profile pilot; changes to the user-visible outcome need another Human decision.
 
 ## 2. Objects, authority and observable meanings
 
@@ -37,7 +38,7 @@ No assumption in this section becomes approved solely by the proposal being in G
 - **Existing authoritative owners** retain responsibility: current runtime controls behaviour; canonical project and media store own the saved project/artifact; authenticated encrypted profile vault owns account-scoped durability; no new global registry or storage engine is created.
 - **Recovery evidence** requires an independent read and visible UI comparison after ending the original process; implementation self-reports are not sufficient.
 
-## 3. Proposed state machine
+## 3. Contract state machine
 
 Save-operation states: `READY` -> `PENDING` -> `COMMITTED` / `REJECTED` / `UNKNOWN`. `UNKNOWN` can reconcile to `COMMITTED` or `REJECTED` using original operation identity, without assuming failure on timeout. A retry cannot silently create a second write for the same logical operation.
 
@@ -45,7 +46,7 @@ Approval states: `UNLOCKED` / `LOCK_PENDING` / `LOCKED` / `UNLOCK_PENDING` / `AP
 
 UI may distinguish `Saved version N; newer edits pending` from `Current version saved`. A legacy `savedLocally` marker is intent/history and cannot alone prove the backing store acknowledged the current version.
 
-## 4. Proposed mathematically constrained obligations
+## 4. Required mathematically constrained obligations
 
 Variables: `p` profile, `q` project, `s` shot, `a` artifact, `v` artifact version, `h` immutable content digest, `op` operation ID; `State` is the relevant canonical state.
 
@@ -75,11 +76,11 @@ Following confirmed Save and Lock within the supported recovery assumptions, nor
 `PrevisApproved(a,v) => SavedMedia(a,v) AND DurableApprovedLock(a,v)`. Previs cannot substitute another image or accept approval belonging to a different candidate.
 
 **T8 — meaningful progress / truthful uncertainty:**
-Under defined available-storage/auth conditions, a submitted Save eventually reaches an observable confirmed or rejected outcome, within a specified product response policy. Interruption/uncertainty produces `UNKNOWN` with reconciliation, not a false `COMMITTED`, a permanent misleading spinner or lost edits. **Response limit and leave/logout policy remain proposed decisions to resolve before final approval.**
+Under defined available-storage/auth conditions, a submitted Save eventually reaches an observable confirmed or rejected outcome, within a finite product response policy. Interruption/uncertainty produces `UNKNOWN` with reconciliation, not a false `COMMITTED`, a permanent misleading spinner or lost edits. Unsafe in-app Unload/Logout/profile switch is blocked until pending work is resolved or a separately accepted recoverable exit policy exists; work remains available. The engineering system selects and tests the concrete timeout without silently weakening this user-visible promise.
 
-Technical formalization can use a finite-state transition model or property tests on top of existing tools; this notation is an initial contract translation, not proof of delivery.
+Technical formalization can use a finite-state transition model or property tests on top of existing tools. Approval establishes the requirements, not proof that any currently deployed implementation satisfies them.
 
-## 5. Concrete scenarios for Human review
+## 5. Approved acceptance scenarios
 
 | Case | User-visible promise | Independent check |
 | --- | --- | --- |
@@ -93,7 +94,7 @@ Technical formalization can use a finite-state transition model or property test
 | G. New edit during previous Save | Earlier Save cannot claim new edit was saved | Delay old acknowledgement, compare current and committed versions |
 | H. Wrong candidate / stale revision | Never silently substitute or overwrite accepted work | Introduce conflicting revision / candidate and observe rejection |
 | I. Previs handoff | Only the exact saved and locked artifact is consumed | Compare recovered Storyboard identity and Previs consumer input |
-| J. Unload with pending work | No silent work loss or unsupported final Saved claim | Interrupt pending work, observe leave behaviour and recoverability; final policy awaits Human decision |
+| J. Unload/Logout with pending work | Preserve unsaved work, disclose pending/unknown state and block unsafe in-app leave or profile switch | Inject delayed/failed write; attempt Unload/Logout/profile switch; observe blocked transition, accessible work and reconciliation |
 
 ## 6. Baseline and verification separation
 
@@ -108,7 +109,7 @@ Technical formalization can use a finite-state transition model or property test
 
 ## 7. What adoption must NOT do
 
-- Do not write or refactor application code before the Human has accepted the behavioural meaning and an initial independent baseline exists.
+- Do not write or refactor application code until a truthful independent baseline against existing implementation has been recorded. The Human accepted the meaning on 2026-10-08.
 - Do not create an alternative DSDD/Casebook harness, a second project-state authority, another optimistic Save indicator, or a compatibility bridge by default.
 - Do not weaken prior Save/Lock protections or reclassify existing defects as approved behaviour.
 - Do not alter provider routing, generate paid image/video, migrate story data, or treat docs-only checks as verified user functionality.
@@ -118,25 +119,32 @@ Technical formalization can use a finite-state transition model or property test
 
 Capture a baseline and comparison for: user workflow completed, false Saved/Locked claims, image/approval loss after restart, repeat repairs, escaped regressions, diagnosis time, write amplification, and number of times Human intent must be restated. Measure verification maintenance cost, too. No invented baseline or performance target may substitute for recorded observations.
 
-**Acceptance for the pilot:** agreed contract version + model consistency + independent end-to-end evidence + retained exact recovered user outcome, with stated support conditions and no contradiction of protected identities. Before those observations, PP-SAVE-001 is proposed or unproven, not "green".
+**Acceptance for the pilot:** approved contract v1.0.0 + model consistency + independent end-to-end evidence + retained exact recovered user outcome, with stated support conditions and no contradiction of protected identities. The contract is approved but implementation conformance remains **UNPROVEN** until those observations; acceptance of meaning is not a green product result.
 
 ## 9. Human decisions / approval record
 
-**Status:** SAVE-BEFORE-LOCK RULE CONFIRMED BY HUMAN; OTHER CONTRACT DECISIONS AWAITING CONFIRMATION.
+**Status:** APPROVED — 2026-10-08, v1.0.0. Approval follows explicit Human correction of the Save-before-Lock ordering and later statement “approved - whats next”.
 
-Review in ordinary language:
-1. Is the human promise in section 1 the desired result?
-2. Is same-profile/same-device recovery the initial scope, with device-loss and cross-device recovery out of scope for this pilot?
-3. When a Save/Lock result is still pending or cannot be confirmed, should the app prevent unsafe unload/logout and preserve your work, or allow an explicit informed leave with a documented recovery path?
-4. **DECIDED by Human on 2026-10-08:** No. Lock is prohibited until the exact selected image has been durably Saved; only then may it be Locked. This replaces the previous proposal that an unsaved image could be Locked. Previs still requires both durable Save and durable Lock. This decision must not be reopened without explicit Human revision.
+| Decision | Accepted meaning |
+| --- | --- |
+| Human promise | Exactly saved selected media and its separately confirmed Lock survive normal same-profile/device restart and story reopening; no false success or unrelated mutation. |
+| Recovery scope | Same authenticated Human/profile and same device, supported persistent media available; no promise of cross-device or device-loss recovery in v1. |
+| Pending/unknown leave policy | Preserve work, report uncertainty, prevent unsafe in-app Unload/Logout/profile switch until reconciliation; routine timeouts/retry mechanism belong to engineering design. |
+| Save-before-Lock | Lock is impossible until durable Save of the exact selected artifact/version succeeds. A Save in READY, PENDING, REJECTED or UNKNOWN does not permit Lock. |
+| Previs handoff | Previs consumes only the exact durably Saved and durably Locked candidate. |
 
-Record the Human's answers and approved revision here. Until then, no inference is authoritative and no change to application behaviour is authorized by this document alone.
-
-| Item | Value |
+| Record | Value |
 | --- | --- |
 | Original Human statement | Preserved in conversation and referenced in #2845 |
-| Interpretation status | Proposed |
-| Confirmed by Human | Rule 3: Save must be confirmed before Lock; stated explicitly on 2026-10-08. Other proposed contract statements await approval. |
-| Approved version | No full contract version approved yet; the Save-before-Lock decision is confirmed and must be retained in subsequent revisions. |
-| Verification baseline | Not yet executed for PP-SAVE-001 |
-| Current delivery | Contract proposal and evidence plan only |
+| Approved version | 1.0.0 |
+| Approval date | 2026-10-08 |
+| Approval route | User corrected Rule 3, then explicitly replied “approved - whats next” to the proposed first pilot |
+| Contract acceptance | Confirmed |
+| Model consistency baseline | Not yet executed |
+| Independent implementation verification | UNPROVEN — no PP-SAVE-001-specific baseline run has yet occurred |
+| Live Windows Human recovery acceptance | Not yet observed |
+| Current delivery | Approved normative contract plus proposed Casebook verification definition; implementation work follows independent baseline |
+
+## 10. Evolution and evidence rule
+
+Future model sessions, PRs, migrations and repairs must receive this approved contract version rather than freshly interpreting earlier text. Behavioural changes require an explicitly reviewed successor contract; technical fixes preserving the approved outcome need no repeat approval. Each verification record must identify the contract version, exact code revision, environment, observed artefact identities and PASS/FAIL/BLOCKED/UNPROVEN results by scope.

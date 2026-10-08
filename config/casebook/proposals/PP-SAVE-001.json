@@ -1,0 +1,197 @@
+{
+  "id": "PP-SAVE-001",
+  "domain": "storyboard-persistence",
+  "priority": "P0",
+  "title": "Storyboard selected image and approval recover exactly after restart",
+  "situation": "The Human saves and locks an exact Storyboard image in an authenticated profile, then ends and restarts PlotPickle and reopens the same story.",
+  "businessReason": "Repeated apparently successful Save/Lock changes have left the Human unsure whether approved media survives restart and feeds Previs correctly. The human promise must outrank code and implementation-authored tests.",
+  "humanJourney": [
+    {
+      "id": "open-story",
+      "action": "Authenticate in a test-scoped profile; open a story and identify a selected Storyboard artifact and version."
+    },
+    {
+      "id": "save",
+      "action": "Press actual Storyboard Save and observe pending then independently acknowledged result."
+    },
+    {
+      "id": "lock",
+      "action": "Press actual Lock for the same exact version, verifying approval commits separately."
+    },
+    {
+      "id": "restart",
+      "action": "Stop the running application process, restart it and reopen the same project with changes."
+    },
+    {
+      "id": "compare",
+      "action": "Compare recovered media digest, artifact identity, version, visible Save/Lock badges and project scope against the known pre-restart values."
+    },
+    {
+      "id": "handoff",
+      "action": "Confirm downstream Previs reads the same durably saved-and-locked artifact, not a stale candidate."
+    }
+  ],
+  "preconditions": [
+    "Proposed and awaiting Human approval: supported normal same-device restart, same authenticated Human and project, required media and encrypted storage accessible.",
+    "Known reversible non-sensitive test media and test-scoped profile; do not alter real Human content.",
+    "Observed environment, contract version and git revision recorded."
+  ],
+  "expectedOutcome": "Only actual durable persistence and approval yield Saved and Locked claims; the exact artifact identity, bytes/digest, version and lock return after restart, unrelated identities remain unchanged, and Previs sees only the same approved version.",
+  "requiredEvidence": [
+    {
+      "id": "pre-state",
+      "kind": "state",
+      "description": "Known digest, media identity, artifact revision, selected shot, project and scoped profile before Save."
+    },
+    {
+      "id": "commit-readback",
+      "kind": "storage",
+      "description": "Independent authenticated read of exact persisted artifact and approval, not only a handler or UI flag."
+    },
+    {
+      "id": "rendered-status",
+      "kind": "ui",
+      "description": "Actual rendered Save and Lock controls show truthful status and version after acknowledgement and recovery."
+    },
+    {
+      "id": "process-restart",
+      "kind": "persistence",
+      "description": "Actual process ended and new process recovered the exact media and approval state."
+    },
+    {
+      "id": "noninterference",
+      "kind": "state",
+      "description": "Unrelated artifact/project/profile snapshots remain unchanged without authorized actions."
+    },
+    {
+      "id": "previs-consumer",
+      "kind": "integration",
+      "description": "Previs input corresponds to the exact saved-and-locked artifact version."
+    },
+    {
+      "id": "failure-recovery",
+      "kind": "fault",
+      "description": "Injected write denial and uncertain acknowledgement never create false success or discard unsaved work."
+    }
+  ],
+  "independentVerification": {
+    "source": "pp-save-001-independent-recovery-observer",
+    "proves": "An observer holding the pre-save expected image digest and approval state independently reads real backing storage and reopened rendered UI after a genuine process restart; simulated verification must be labelled insufficient for actual Windows acceptance."
+  },
+  "knownRisks": [
+    "cached marker misreported as durable",
+    "stale render/project state",
+    "out-of-order write acknowledgement",
+    "double write after retry",
+    "conflicting edit silently overwritten",
+    "profile switch/authorization loss",
+    "media file missing although metadata says saved",
+    "packaged-vs-local asset mismatch",
+    "Previs accepts wrong candidate"
+  ],
+  "injectedFailureModes": [
+    "Vault write rejected before commit",
+    "Commit succeeds but network acknowledgement is lost",
+    "Old version acknowledgement arrives after new edit",
+    "Repeated same operation with same digest; conflicting reuse with different digest",
+    "Stale revision and locked/unlocked racing update",
+    "Attempt read/write under different authenticated profile",
+    "Restart after Save and Lock; verify media identity and approval",
+    "Unavailable local media despite Saved metadata",
+    "Unload while write pending, assessed after Human chooses policy"
+  ],
+  "allowedSkills": [
+    "storyboard-ui-observation",
+    "profile-auth-test",
+    "project-read-test",
+    "vault-commit-observation",
+    "process-restart",
+    "media-digest-compare",
+    "previs-handoff-inspection",
+    "fault-injection-isolated"
+  ],
+  "authorityBoundaries": [
+    "Human-approved business truth is authoritative; proposed interpretation is not yet approved.",
+    "Use current existing storage/project/profile/DSDD/Casebook owners; no new authoritative state manager.",
+    "Do not change real personal projects, keys, credentials, media or perform paid generation.",
+    "A simulated or mocked test cannot be reported as proven real Windows application restart.",
+    "Lock approval and media Save are separate; neither may falsely imply the other.",
+    "No merge changing approved semantics without recorded Human approval."
+  ],
+  "successCriteria": [
+    "Human approves the exact recovery scope and pending/unload/Lock-before-Save decisions before the contract is binding.",
+    "Actual rendered interface and encrypted backing store prove Saved and Locked outcomes under defined conditions.",
+    "Actual process restart recovers identical media identity/digest and approved lock.",
+    "No unrelated artifact/profile changes, duplicates or false Saved/Locked claims in observed fault sequences.",
+    "Previs consumes the identical saved-and-locked selected artifact version.",
+    "Evidence records PASS/FAIL/BLOCKED/UNPROVEN scope; green build is not a substitute."
+  ],
+  "quantitativeMeasurements": [
+    "Number of false Saved or Locked claims",
+    "Media or approval recoverability mismatches",
+    "Number of duplicate artifact/resource writes per retry",
+    "Unexpected changes to other artifact/project/profile identities",
+    "Elapsed time from approved truth to independently verified user outcome",
+    "Repeat repairs and Human re-explanations",
+    "Verification execution and maintenance effort"
+  ],
+  "retrievalTags": [
+    "PP-SAVE-001",
+    "storyboard",
+    "save",
+    "lock",
+    "restart",
+    "recovery",
+    "truth-first",
+    "behavioral-contract",
+    "independent-verification"
+  ],
+  "relatedComponents": [
+    "storyboard-readiness-workspace",
+    "foundation-project-browser",
+    "project-library-browser",
+    "revision-safe-browser",
+    "profile-private-browser",
+    "profile-storage",
+    "previs-readiness-workspace"
+  ],
+  "truthStatus": "proposed-human-approval-required",
+  "contractVersion": "0.1.0-proposed",
+  "specification": "docs/behavioral-contracts/PP-SAVE-001.md",
+  "issue": 2845,
+  "verificationImplementationStatus": "not implemented; this is a proposed Casebook-compatible definition, not a passing case",
+  "formalConstraints": [
+    {
+      "id": "T1",
+      "property": "DisplaySaved(identity,version,digest) implies ConfirmedDurableCommit(same identity,version,digest)"
+    },
+    {
+      "id": "T2",
+      "property": "DisplayLocked(identity,version) implies ConfirmedDurableApproval(same identity,version)"
+    },
+    {
+      "id": "T3",
+      "property": "Save/Lock/Unlock of selected artifact preserves all unrelated durable media and approvals; Unlock does not erase Save"
+    },
+    {
+      "id": "T4",
+      "property": "Same operation identifier+same version+same digest has one durable effect; same identifier+different payload rejects"
+    },
+    {
+      "id": "T5",
+      "property": "Old expected revision may not overwrite newer accepted revision"
+    },
+    {
+      "id": "T6",
+      "property": "Confirmed Save+Lock survives a supported process restart and exact scoped project recovery"
+    },
+    {
+      "id": "T7",
+      "property": "Previs approved artifact requires matching durable saved media and durable lock"
+    },
+    {
+      "id": "T8",
+      "property": "Under declared available dependencies Save reaches verified commit or explicit rejection; uncertainty has reconciliation"
+    }
+  ]
+}

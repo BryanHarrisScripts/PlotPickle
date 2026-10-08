@@ -624,7 +624,10 @@
         "build/provider-url.ts",
         "lib/runtime/ai/local-runtime.ts",
         "build/ai/h3/comfyui-h3-native-provider.ts",
-        "core/contracts/compute/compute-readiness.mjs"
+        "core/contracts/compute/compute-readiness.mjs",
+        "build/ai/capability-routing-state.ts",
+        "core/contracts/compute/capability-routes.mjs",
+        "build/ai/capability-diagnostics.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [
@@ -1430,6 +1433,7 @@
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/developer-diagnostics/2821-save-session-product-proof.mjs",
         "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+        "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",
         "scripts/performance/measure-browser-responsiveness.mjs",

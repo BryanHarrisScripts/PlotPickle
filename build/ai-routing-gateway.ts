@@ -1,16 +1,18 @@
+import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capability-diagnostics";
 import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
-import { currentProfileRequestContext } from "./auth/profile-request-context";
+import { readCapabilityChoice, readProviderConsent, saveProviderConsent, requireRouteConsent } from "./ai/capability-routing-state";
+import { requireSelectedCapability } from "../core/contracts/compute/capability-routes.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { readCredentialJson, writeCredentialJson } from "./local-credentials";
+import { readCredentialJson, writeCredentialJson, writeComputeSelection } from "./local-credentials";
 import {
   probeNativeH3,
   readNativeH3Store,
   writeNativeH3Store,
 } from "./ai/h3/comfyui-h3-native-provider";
 import { diagnoseComfyUI } from "./ai/comfyui-connection-diagnostics";
-import { generateComfyImage } from "./ai/comfyui-media-provider";
+import { generateComfyImage, probeComfyUI } from "./ai/comfyui-media-provider";
 import {
   readMediaRoutingStore,
   writeMediaRoutingStore,
@@ -22,7 +24,7 @@ import {
   type ActiveTextProvider,
   type ProviderProfile,
 } from "./writing-assistant-store";
-import { generateAssistantText } from "./writing-assistant-provider";
+import { generateAssistantText, probeOllama } from "./writing-assistant-provider";
 import {
   normalizedUrl,
   providerForm,
@@ -36,10 +38,10 @@ import {
 
 export type TextRoute = "local" | "ollama" | "openai" | "minimax" | "gemini" | "off";
 export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
-export type VideoRoute = "comfyui-native" | "minimax" | "openai" | "off";
+export type VideoRoute = "comfyui-native" | "minimax" | "minimax-comfyui" | "openai" | "off";
 
 type RoutingChoice = {
-  version: 1;
+  version: 1 | 2;
   text: TextRoute;
   image: ImageRoute;
   video: VideoRoute;
@@ -113,71 +115,8 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
   return parsed as Record<string, unknown>;
 }
 
-function textRoute(value: ActiveTextProvider): TextRoute | null {
-  if (value === "local" || value === "ollama" || value === "openai" || value === "minimax" || value === "gemini") return value;
-  if (value === "disabled") return "off";
-  return null;
-}
-
-function normalizeChoice(value: unknown): RoutingChoice | null {
-  if (!value || typeof value !== "object") return null;
-  const item = value as Partial<RoutingChoice>;
-  if (!["local", "ollama", "openai", "minimax", "gemini", "off"].includes(String(item.text))) return null;
-  if (!["comfyui", "ollama-comfyui", "openai", "minimax", "manual"].includes(String(item.image))) return null;
-  if (!["comfyui-native", "minimax", "openai", "off"].includes(String(item.video))) return null;
-  return {
-    version: 1,
-    text: item.text as TextRoute,
-    image: item.image as ImageRoute,
-    video: item.video as VideoRoute,
-    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
-  };
-}
-
-export async function readRoutingChoice() {
-  const [stored, assistantResult, media, native] = await Promise.all([
-    readCredentialJson<unknown>(ROUTING_FILE),
-    readSynchronizedAssistantStore(),
-    readMediaRoutingStore(),
-    readNativeH3Store(),
-  ]);
-  const existing = normalizeChoice(stored);
-  const assistantSelection = textRoute(assistantResult.store.activeProvider);
-  const inferred: RoutingChoice = existing ?? {
-    version: 1,
-    text: assistantSelection ?? "off",
-    image: media.imageRoute,
-    video: native.active ? "comfyui-native" : media.videoRoute === "none" ? "off" : "minimax",
-    updatedAt: new Date().toISOString(),
-  };
-
-  let changed = !existing;
-  if (assistantSelection && inferred.text !== assistantSelection) {
-    inferred.text = assistantSelection;
-    changed = true;
-  }
-  const hybridImageUsesComfy = inferred.image === "ollama-comfyui" && media.imageRoute === "comfyui";
-  if (!hybridImageUsesComfy && inferred.image !== media.imageRoute) {
-    inferred.image = media.imageRoute;
-    changed = true;
-  }
-  if (native.active && inferred.video !== "comfyui-native") {
-    inferred.video = "comfyui-native";
-    changed = true;
-  } else if (!native.active && media.videoRoute !== "none" && inferred.video !== "minimax") {
-    inferred.video = "minimax";
-    changed = true;
-  }
-  if (changed && currentProfileRequestContext()) {
-    inferred.updatedAt = new Date().toISOString();
-    await writeCredentialJson(ROUTING_FILE, inferred);
-  }
-  return inferred;
-}
-
-async function writeRoutingChoice(value: RoutingChoice) {
-  value.updatedAt = new Date().toISOString();
-  await writeCredentialJson(ROUTING_FILE, value);
+export async function readRoutingChoice(): Promise<RoutingChoice> {
+  return await readCapabilityChoice() as RoutingChoice;
 }
 
 function profileState(profile: MediaProfile | undefined, kind: "image" | "video") {
@@ -199,6 +138,12 @@ async function statusBody() {
     probeNativeH3(native),
     localRuntimeSnapshot(),
   ]);
+  const [ollamaProbe, providerConsent, comfyCloud, qwenProbe] = await Promise.all([
+    assistantResult.store.profiles.ollama ? probeOllama(assistantResult.store.profiles.ollama.baseUrl) : Promise.resolve(null),
+    readProviderConsent(),
+    readCredentialJson<{ apiKey?: string; testedAt?: string }>("comfy-cloud.json"),
+    media.comfyui.imageProfile === "qwen-image-2.1-experimental" ? probeComfyUI(media.comfyui.baseUrl, media.comfyui.qwenImage21.workflow) : Promise.resolve(null),
+  ]);
   const assistant = assistantResult.store;
   const ollama = assistant.profiles.ollama;
   const openAiText = assistant.profiles.openai;
@@ -206,12 +151,18 @@ async function statusBody() {
   const geminiText = assistant.profiles.gemini;
   const checkpoint = media.comfyui.checkpoint || comfy.checkpoints[0] || "";
   const comfyImageConfigured = Boolean(comfy.reachable && checkpoint);
-  const comfyImageReady = computeReadiness({ configured: comfyImageConfigured && comfy.imageNodesReady, available: comfy.reachable, verifiedAt: media.comfyui.imageVerifiedAt, error: media.comfyui.lastError }).ready;
+  const sdxlImageReady = computeReadiness({ configured: comfyImageConfigured && comfy.imageNodesReady, available: comfy.reachable, verifiedAt: media.comfyui.imageVerifiedAt, error: media.comfyui.lastError }).ready;
+  const comfyImageReady = qwenProbe ? Boolean(qwenProbe.reachable && qwenProbe.workflowNodesReady && media.comfyui.qwenImage21.licenseAcknowledgedAt && media.comfyui.imageVerifiedAt && !media.comfyui.qwenImage21.lastError) : sdxlImageReady;
+  const workflow = media.comfyui.h3Workflow;
+  const apiVideoConfigured = Boolean(workflow && media.profiles.minimax?.apiKey && media.profiles.minimax.videoModel);
+  const apiVideoReady = Boolean(apiVideoConfigured && comfy.reachable && comfy.workflowNodesReady && workflow?.verifiedAt && workflow.verifiedHash === workflow.hash && !workflow.lastError);
+  const cloudConnection = { label: "ComfyUI Cloud", configured: Boolean(comfyCloud?.apiKey), connectionVerified: Boolean(comfyCloud?.testedAt), ready: false, model: "", verifiedAt: "", locality: "cloud", cost: "Comfy Cloud account usage", settingsTarget: "comfy-cloud", supported: false, error: "Connection setup is available; an executable, verified generation workflow is still required." };
   const ollamaImageConfigured = Boolean(ollama?.textModel && comfyImageConfigured);
-  const ollamaImageReady = Boolean(ollama?.assistantVerifiedAt && comfyImageReady);
+  const ollamaImageReady = Boolean(writingReadiness(ollama, Boolean(ollamaProbe?.reachable && ollamaProbe.models.includes(ollama?.textModel || ""))).ready && comfyImageReady);
   return {
     ok: true,
     choice,
+    providerConsent,
     consent: {
       cloudSelectionRequiresCostAcknowledgement: true,
       cloudVideoRequiresDataSharingAcknowledgement: true,
@@ -225,7 +176,7 @@ async function statusBody() {
           locality: "local", cost: "No per-request provider charge", settingsTarget: "",
         },
         ollama: {
-          ...textProfileState(ollama),
+          ...textProfileState(ollama, Boolean(ollamaProbe?.reachable && ollamaProbe.models.includes(ollama?.textModel || ""))),
           locality: "local",
           cost: "No per-request provider charge",
           settingsTarget: "ollama",
@@ -250,7 +201,8 @@ async function statusBody() {
         },
         off: {
           configured: true,
-          ready: true,
+          ready: false,
+          disabled: true,
           model: "",
           verifiedAt: "",
           error: "",
@@ -285,9 +237,11 @@ async function statusBody() {
         },
         openai: { ...profileState(media.profiles.openai, "image"), locality: "cloud", cost: "Paid API usage", settingsTarget: "openai" },
         minimax: { ...profileState(media.profiles.minimax, "image"), locality: "cloud", cost: "Paid API usage", settingsTarget: "minimax" },
+        "comfy-cloud": cloudConnection,
         manual: {
           configured: true,
-          ready: true,
+          ready: false,
+          disabled: true,
           model: "",
           verifiedAt: "",
           error: "",
@@ -300,9 +254,15 @@ async function statusBody() {
     video: {
       selected: choice.video,
       options: {
+        "minimax-comfyui": {
+          label: "ComfyUI", configured: apiVideoConfigured, ready: apiVideoReady, model: media.profiles.minimax?.videoModel || "MiniMax-H3", verifiedAt: workflow?.verifiedAt || "", locality: "local", inferenceLocation: "cloud", provider: "minimax", cost: "Cloud generation through your MiniMax API account", settingsTarget: "comfyui", error: apiVideoReady ? "" : comfy.error || workflow?.lastError || "Configure and test the MiniMax API video workflow in local ComfyUI Setup.", workflowFamily: JSON.stringify(workflow?.source || {}).includes("{{PLOTPICKLE_SOURCE_IMAGE}}") ? "image-to-video" : "text-to-video",
+        },
+        "comfy-cloud": cloudConnection,
+        "comfyui-openai": { label: "ComfyUI · OpenAI", configured: false, ready: false, locality: "local", inferenceLocation: "cloud", provider: "openai", supported: false, settingsTarget: "comfyui", error: "OpenAI Videos/Sora API was removed September 24, 2026. No supported local ComfyUI video adapter is available." },
         "comfyui-native": {
+          label: "ComfyUI — Native local inference",
           configured: nativeProbe.manifestConfigured,
-          ready: nativeProbe.ready,
+          ready: Boolean(nativeProbe.ready && native.verifiedAt),
           model: "MiniMax-H3",
           verifiedAt: native.verifiedAt || "",
           error: native.lastError || nativeProbe.error,
@@ -314,10 +274,11 @@ async function statusBody() {
           performanceAcknowledged: native.allowConstrainedVram,
         },
         minimax: { ...profileState(media.profiles.minimax, "video"), locality: "cloud", cost: "Paid API usage", settingsTarget: "minimax" },
-        openai: { ...profileState(media.profiles.openai, "video"), locality: "cloud", cost: "Paid API usage", settingsTarget: "openai" },
+        openai: { ...profileState(media.profiles.openai, "video"), ready: false, supported: false, error: "OpenAI Videos/Sora API was removed September 24, 2026.", locality: "cloud", cost: "Paid API usage", settingsTarget: "openai" },
         off: {
           configured: true,
-          ready: true,
+          ready: false,
+          disabled: true,
           model: "",
           verifiedAt: "",
           error: "",
@@ -330,15 +291,14 @@ async function statusBody() {
   };
 }
 
-function requirePaidConsent(body: Record<string, unknown>) {
-  if (body.paidAcknowledged !== true) {
-    throw new Error("Confirm that the selected cloud provider can charge the user-owned API account before activating it.");
-  }
-}
-
 async function selectRoute(body: Record<string, unknown>) {
   const capability = body.capability;
   const route = body.route;
+  const names = ["ai-routing.json", "writing-assistant-profiles.json", "media-routing.json", "h3-native-routing.json"];
+  const expected = Object.fromEntries(await Promise.all(names.map(async (name) => [name, await readCredentialJson(name)])));
+  const status = await statusBody();
+  requireSelectedCapability(status, capability, route);
+  await requireRouteConsent(String(capability), String(route));
   const choice = await readRoutingChoice();
   const [assistantResult, media, native] = await Promise.all([
     readSynchronizedAssistantStore(),
@@ -348,37 +308,35 @@ async function selectRoute(body: Record<string, unknown>) {
 
   if (capability === "text") {
     if (route !== "local" && route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "gemini" && route !== "off") throw new Error("Choose Ollama, OpenAI, Google Gemini, MiniMax or Off for text.");
-    if (route === "openai" || route === "minimax" || route === "gemini") requirePaidConsent(body);
     assistantResult.store.activeProvider = route === "off" ? "disabled" : route;
     assistantResult.store.explicitlyDisabled = route === "off";
     choice.text = route;
-    await writeAssistantStore(assistantResult.store);
   } else if (capability === "image") {
     if (route !== "comfyui" && route !== "ollama-comfyui" && route !== "openai" && route !== "minimax" && route !== "manual") throw new Error("Choose ComfyUI, Ollama + ComfyUI, OpenAI, MiniMax or Manual for images.");
-    if (route === "openai" || route === "minimax") requirePaidConsent(body);
     media.imageRoute = route === "ollama-comfyui" ? "comfyui" : route;
     choice.image = route;
-    await writeMediaRoutingStore(media);
   } else if (capability === "video") {
-    if (route !== "comfyui-native" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose local ComfyUI H3, OpenAI, MiniMax or Off for video.");
-    if (route === "openai" || route === "minimax") {
-      requirePaidConsent(body);
-      if (body.dataSharingAcknowledged !== true) throw new Error("Confirm that video prompts and selected reference images may leave this computer before activating a cloud video route.");
-    }
+    if (route !== "comfyui-native" && route !== "minimax-comfyui" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose local ComfyUI H3, OpenAI, MiniMax or Off for video.");
     native.active = false;
-    media.videoRoute = route === "minimax" ? "minimax-direct" : "none";
+    media.videoRoute = route === "minimax" ? "minimax-direct" : route === "minimax-comfyui" ? "minimax-comfyui" : "none";
     if (route === "comfyui-native") {
       const probe = await probeNativeH3(native);
       native.active = probe.ready;
       native.lastError = probe.ready ? "" : probe.error || "Native H3 is selected but still needs setup.";
     }
     choice.video = route;
-    await Promise.all([writeNativeH3Store(native), writeMediaRoutingStore(media)]);
   } else {
     throw new Error("Choose text, image or video routing.");
   }
 
-  await writeRoutingChoice(choice);
+  choice.version = 2;
+  choice.updatedAt = new Date().toISOString();
+  const updates: Record<string, unknown> = { "ai-routing.json": choice, "story-mode-policy.json": { version: 1, mode: "hybrid", updatedAt: choice.updatedAt } };
+  if (capability === "text") updates["writing-assistant-profiles.json"] = assistantResult.store;
+  if (capability === "image" || capability === "video") updates["media-routing.json"] = media;
+  if (capability === "video") updates["h3-native-routing.json"] = native;
+  await writeComputeSelection(updates, Object.fromEntries(Object.entries(expected).filter(([name]) => name in updates)));
+  await relayCapabilityDiagnostic(capability as "text" | "image" | "video", String(route), "selection", "selected-ready-route");
   return statusBody();
 }
 
@@ -540,6 +498,17 @@ async function handleRoutingApi(request: IncomingMessage, response: ServerRespon
       sendJson(response, 200, await statusBody());
       return;
     }
+    if (pathname === `${API}/diagnostics` && request.method === "GET") {
+      sendJson(response, 200, { ok: true, events: await readCapabilityDiagnostics() }); return;
+    }
+    if (pathname === `${API}/consent`) {
+      if (request.method === "GET") { sendJson(response, 200, { ok: true, providers: await readProviderConsent() }); return; }
+      if (request.method === "POST") {
+        const body = await readBody(request);
+        sendJson(response, 200, { ok: true, providers: await saveProviderConsent(String(body.provider), body.billing === true, body.dataSharing === true) });
+        return;
+      }
+    }
     if (pathname === SELECT_PATH && request.method === "POST") {
       const body = await readBody(request);
       sendJson(response, 200, await selectRoute(body));
@@ -563,26 +532,29 @@ export function registerAiRoutingGateway(server: ViteDevServer) {
         sendJson(response, 403, { ok: false, message: "Video generation is available only from this local PlotPickle server." });
         return;
       }
+      let selectedVideo = "off";
       try {
         const choice = await readRoutingChoice();
+        selectedVideo = choice.video;
+        const status = await statusBody();
+        await relayCapabilityDiagnostic("video", choice.video, "preflight", status.video.options[choice.video as keyof typeof status.video.options]?.ready ? "ready" : "selected-route-unavailable");
+        requireSelectedCapability(status, "video", choice.video);
+        await requireRouteConsent("video", choice.video);
         if (choice.video === "off") {
-          sendJson(response, 409, { ok: false, message: "Video generation is Off. Select a video provider in Settings → AI Routing." });
+          sendJson(response, 409, { ok: false, message: "Video generation is Off. Select a video provider in Settings → Hybrid." });
           return;
         }
         if (choice.video === "comfyui-native") {
           const native = await readNativeH3Store();
           const probe = await probeNativeH3(native);
-          if (!native.active || !probe.ready) {
+          if (!probe.ready) {
             sendJson(response, 409, { ok: false, message: probe.error || "Local ComfyUI H3 is selected but is not ready. Open ComfyUI Settings." });
             return;
           }
           next();
           return;
         }
-        if (choice.video === "minimax") {
-          const media = await readMediaRoutingStore();
-          media.videoRoute = "minimax-direct";
-          await writeMediaRoutingStore(media);
+        if (choice.video === "minimax" || choice.video === "minimax-comfyui") {
           next();
           return;
         }
@@ -596,6 +568,7 @@ export function registerAiRoutingGateway(server: ViteDevServer) {
         const job = await createOpenAiVideo(profile, body);
         sendJson(response, 202, { ok: true, ...publicOpenAiJob(job) });
       } catch (error) {
+        await relayCapabilityDiagnostic("video", selectedVideo, "failed", "video-preflight-failed");
         sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : "The selected video provider failed." });
       }
       return;

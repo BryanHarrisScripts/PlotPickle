@@ -4,16 +4,10 @@ import test from "node:test";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("#2106 Settings exposes one parent Story Mode destination", async () => {
+test("#2841 Settings exposes Local Cloud Hybrid destinations backed by the same host", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
-
-  assert.match(dashboard, /id: "story-mode"[\s\S]*label: "Story Mode"/u);
-  assert.match(dashboard, /shortcut: SETTINGS_SHORTCUTS\["story-mode"\]/u);
-  assert.match(dashboard, /<StoryModeHost \/>/u);
-  assert.match(dashboard, /onSurfaceNameChange\("STORY MODE"\)/u);
-  assert.doesNotMatch(dashboard, /id: "local-story-mode"/u);
-  assert.doesNotMatch(dashboard, /id: "cloud"[\s\S]*label: "Cloud Story Mode"/u);
-  assert.doesNotMatch(dashboard, /setLocalStoryModeOpen|setCloudStoryModeOpen/u);
+  for (const mode of ["local", "cloud", "hybrid"]) assert.ok(dashboard.includes(`id: "${mode}"`));
+  assert.match(dashboard, /<StoryModeHost initialView=\{storyModeView\}/u);
 });
 
 test("#2106 Story Mode uses the required Local Cloud Hybrid keyboard directory", async () => {
@@ -48,33 +42,23 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /fetch\("\/api\/story-mode\/policy"/u);
   assert.match(host, /fetch\("\/api\/ai-routing\/status"/u);
   assert.match(host, /fetch\("\/api\/local-ai\/runtime"/u);
-  assert.match(host, /route\.locality === locality && route\.ready === true/u);
-  assert.match(host, /\.every\(\(capability\) =>[\s\S]*route\.locality === locality && route\.ready === true/u);
+  assert.match(host, /filter\(\(route\) => route\.locality === locality\)/u);
+  assert.match(host, /routes\.some\(\(route\) => route\.ready === true\)/u);
   assert.match(host, /const hybridReady = hybridSelectionReady\(routingStatus\)/u);
   assert.match(host, /const ready = item\.mode === "local" \? localReady : item\.mode === "cloud" \? cloudReady : hybridReady/u);
   assert.match(host, /active && ready \? " is-active" : ""/u);
-  assert.match(host, /selected\.includes\("local"\) && selected\.includes\("cloud"\)/u);
-  assert.match(host, /\{ label: "LOCAL", ready: localReady \}/u);
-  assert.match(host, /\{ label: "CLOUD", ready: cloudReady \}/u);
-  assert.match(host, /\{ label: "HYBRID", ready: hybridReady \}/u);
+  assert.match(host, /return selected\.every\(Boolean\)/u);
+  assert.match(host, /\{ label: "LOCAL", ready: localCoverage\.ready === localCoverage\.total/u);
+  assert.match(host, /\{ label: "CLOUD", ready: cloudCoverage\.ready === cloudCoverage\.total/u);
+  assert.match(host, /\{ label: "HYBRID", ready: hybridReady,/u);
   assert.match(host, /<strong>MODE<\/strong>: \{mode\.toUpperCase\(\)\}/u);
   assert.match(host, /data-story-mode-readiness=\{readinessState\(status\.ready, loaded\)\}/u);
 });
 
-test("#2106 choosing a directory policy updates the execution policy boundary", async () => {
+test("#2841 opening a setup directory never changes execution policy", async () => {
   const host = await read("app/skin-v1/story-mode-host.tsx");
-
-  assert.match(host, /method: "POST"/u);
-  assert.match(host, /body: JSON\.stringify\(\{ mode: nextMode \}\)/u);
-  assert.match(host, /setMode\(nextMode\)/u);
-  assert.match(host, /setView\(nextMode\)/u);
-  assert.match(host, /<HybridStoryModePanel onChanged=\{\(\) => void refresh\(\)\} \/>/u);
-
-  const activateStart = host.indexOf("async function activate");
-  const viewIndex = host.indexOf("setView(nextMode)", activateStart);
-  const policyWriteIndex = host.indexOf('fetch("/api/story-mode/policy"', activateStart);
-  const modeIndex = host.indexOf("setMode(nextMode)", activateStart);
-  assert.ok(activateStart >= 0 && viewIndex > activateStart, "Story Mode activation must expose the selected setup view.");
-  assert.ok(viewIndex < policyWriteIndex, "Local/Cloud/Hybrid setup must remain reachable while the policy write is pending.");
-  assert.ok(modeIndex > policyWriteIndex, "The active Story Mode policy must change only after the policy authority confirms the write.");
+  const activate = host.slice(host.indexOf("async function activate"), host.indexOf("function handleKeyDown"));
+  assert.match(activate, /setView\(nextMode\)/u);
+  assert.match(activate, /Route selection stays in Hybrid/u);
+  assert.doesNotMatch(activate, /method: "POST"|setMode\(nextMode\)/u);
 });

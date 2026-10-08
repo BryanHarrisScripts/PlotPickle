@@ -300,6 +300,14 @@ jobs:
         env:
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/developer-diagnostics/product-proof/2821-save-session.mjs
+      - name: Prove capability harness setup, selection and profile isolation
+        shell: pwsh
+        run: node --test tests/issue-2841-capability-harness.test.mjs
+      - name: Render Local, Cloud, Hybrid and diagnostics
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build
@@ -315,5 +323,7 @@ jobs:
             .artifacts/runtime-2789/windows-cold-runtime.json
             .artifacts/2821-save-session/proof.json
             .artifacts/2821-save-session/*.png
+            .artifacts/2841-capability-settings/proof.json
+            .artifacts/2841-capability-settings/*.png
           if-no-files-found: warn
           retention-days: 5

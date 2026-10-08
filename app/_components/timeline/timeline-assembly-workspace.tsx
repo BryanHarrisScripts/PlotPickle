@@ -61,7 +61,7 @@ type VideoJob = Readonly<{
 }>;
 
 type TimelineMotionRoute = Readonly<{
-  route: "minimax" | "openai" | "comfyui-native";
+  route: "minimax" | "minimax-comfyui" | "openai" | "comfyui-native";
   label: string;
   locality: "cloud" | "local";
   needsActivation: boolean;
@@ -247,39 +247,16 @@ async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket)
     return { route: "openai", label: "OpenAI video · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
 
-  const minimax = media.profiles?.minimax;
-  if (minimax?.configured && minimax.videoVerifiedAt) {
-    return {
-      route: "minimax",
-      label: `MiniMax H3 Direct · verified ${minimax.videoModel ? `· ${minimax.videoModel}` : ""}`.trim(),
-      locality: "cloud",
-      needsActivation: selected !== "minimax",
-      strategy: packet ? resolveTimelineGenerationStrategy({ route: "minimax", locality: "cloud", ready: true }, packet) : null,
-    };
+  if (selected === "minimax-comfyui" && selectedState?.ready) {
+    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "image-to-video" }, packet) : null;
+    if (strategy && !strategy.eligible) throw new Error(strategy.reason);
+    return { route: "minimax-comfyui", label: "Local ComfyUI · MiniMax API · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
 
   if (selected !== "off" && selectedState?.error) throw new Error(selectedState.error);
   throw new Error("No verified video generation route is ready for this Shot. Test the selected video workflow or choose another reviewed route in Settings.");
 }
 
-async function activateTimelineMotionRoute(route: TimelineMotionRoute) {
-  if (!route.needsActivation) return;
-  const response = await fetch("/api/ai-routing/select", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      capability: "video",
-      route: route.route,
-      paidAcknowledged: route.locality === "cloud",
-      dataSharingAcknowledged: route.locality === "cloud",
-    }),
-  });
-  const result = await response.json() as { ok?: boolean; message?: string };
-  if (!response.ok || result.ok === false) {
-    throw new Error(result.message || `PlotPickle could not activate ${route.label} for this confirmed motion request.`);
-  }
-}
 
 function derivePrevisSources(project: PPFProject): readonly TimelinePrevisSource[] {
   const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -789,7 +766,7 @@ export default function TimelineAssemblyWorkspace({
     const usesVisualReference = Boolean(strategy.sourceAssetUrl || strategy.referenceAssetUrl || strategy.lastFrameAssetUrl);
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No route activation or generation request is made unless you confirm.`,
+      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Hybrid selection remains unchanged.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });
@@ -806,8 +783,6 @@ export default function TimelineAssemblyWorkspace({
     setMessage(`Submitting Shot ${String(shotNumber).padStart(2, "0")} via ${strategy.modality} to ${route.label}…`);
     let running: TimelineMotionShot | null = null;
     try {
-      await activateTimelineMotionRoute(route);
-      if (route.needsActivation) setMotionRouteMessage(`${route.label} · activated by this confirmed request`);
       const response = await fetch("/api/local-ai/generate/video", {
         method: "POST",
         credentials: "same-origin",

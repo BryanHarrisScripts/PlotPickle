@@ -173,18 +173,15 @@ export default function H3NativePanel() {
     }
   }
 
-  async function setActive(active: boolean) {
+  async function saveSetup() {
     setWorking("activation");
     setNotice("");
     try {
       const next = await jsonRequest<NativeH3Status>(`${API}/activation`, "POST", {
-        active,
         allowConstrainedVram: status?.vramProfile === "constrained" ? performanceAcknowledged : false,
       });
       setStatus(next);
-      setNotice(active
-        ? "Native MiniMax H3 is now the local PlotPickle video route. Cloud MiniMax remains separate."
-        : "Native H3 is off. No local workflow will receive PlotPickle video requests.");
+      setNotice("Native H3 setup saved. Run a local test, then select the route in Hybrid.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Native H3 activation failed.");
       await refresh();
@@ -236,8 +233,8 @@ export default function H3NativePanel() {
   if (!status) return <section className={styles.panel}><p>{notice || "Checking native MiniMax H3 readiness…"}</p></section>;
 
   const statusLabel = status.active && status.ready ? "Active" : status.ready ? "Ready" : "Setup required";
-  const activationUnavailable = Boolean(working) || (!status.active && !status.ready);
-  const testUnavailable = Boolean(working) || !status.active || !status.ready;
+  const activationUnavailable = Boolean(working);
+  const testUnavailable = Boolean(working) || !status.ready;
   const connectionUnavailable = Boolean(working) || Boolean(connectionError);
   const manifestUnavailable = Boolean(working) || !manifestText.trim();
 
@@ -279,18 +276,18 @@ export default function H3NativePanel() {
                   setNotice(status.active ? "Wait for the current native H3 action to finish." : "Complete every native H3 readiness requirement before activation.");
                   return;
                 }
-                void setActive(!status.active);
+                void saveSetup();
               }}
               aria-disabled={activationUnavailable}
-              aria-pressed={status.active}
+
             >
-              {working === "activation" ? "Updating…" : status.active ? "Turn native H3 off" : "Use native H3 for video"}
+              {working === "activation" ? "Updating…" : "Save native H3 setup"}
             </button>
             <button
               type="button"
               onClick={() => {
                 if (testUnavailable) {
-                  setNotice("Activate a ready native H3 workflow before running the local test.");
+                  setNotice("Complete native H3 prerequisites before running the local test.");
                   return;
                 }
                 void testNative();

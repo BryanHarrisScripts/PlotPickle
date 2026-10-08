@@ -3,6 +3,8 @@
 import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
 
 import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import ComputeReadyMarker from "./compute-ready-marker";
+import ProviderConsentSetup from "./provider-consent-setup";
 import GeminiProviderSetupPanel from "../settings/ai-provider/gemini-provider-setup-panel";
 import CloudProviderSetupPanel from "./cloud-provider-setup-panel";
 import ComfyCloudSetupPanel from "./comfy-cloud-setup-panel";
@@ -118,7 +120,7 @@ const CLOUD_DISPLAY_LABELS: Record<CloudMenuView, string> = {
   video: "Video",
   agents: "Agents",
   openai: "OpenAI",
-  "comfy-cloud": "ComfyUI",
+  "comfy-cloud": "ComfyUI Cloud",
   gemini: "Gemini",
   minimax: "MiniMax",
 };
@@ -152,38 +154,17 @@ function setupActionLabel(state: StoryModeConnectionState) {
 }
 
 function cloudReady(group: RoutingGroup | undefined) {
-  if (!group) return false;
-  const option = group.options[group.selected];
-  return Boolean(option?.ready && option.locality === "cloud");
+  return Object.values(group?.options || {}).some((option) => option.locality === "cloud" && option.ready);
 }
-
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {
-  return (
-    <span
-      role="img"
-      aria-label={`${label} ${ready ? "cloud route active and ready" : "cloud route not active or not ready"}`}
-      title={ready ? "Cloud route active and ready" : "Cloud route not active or not ready"}
-      style={{
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        border: `var(--pp-skin-border-thin) solid ${ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-line)"}`,
-        background: ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-surface-3)",
-        boxShadow: ready ? "2px 2px 0 var(--pp-skin-accent-deep)" : "none",
-        justifySelf: "end",
-      }}
-    />
-  );
+  return <ComputeReadyMarker ready={ready} label={label} />;
 }
 
 export default function CloudStoryModeHost() {
   const [view, setView] = useState<CloudStoryView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
   const [comfyCloud, setComfyCloud] = useState<ComfyCloudStatus | null>(null);
-  const [paidAcknowledged, setPaidAcknowledged] = useState(false);
-  const [dataSharingAcknowledged, setDataSharingAcknowledged] = useState(false);
   const [notice, setNotice] = useState("");
-  const [working, setWorking] = useState("");
   const [menuSelectedIndex, setMenuSelectedIndex] = useState(0);
   const menuRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -192,7 +173,7 @@ export default function CloudStoryModeHost() {
       fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null),
       fetch("/api/cloud-story-mode/comfy-cloud", { cache: "no-store", credentials: "same-origin" }).catch(() => null),
     ]);
-    if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
+    setRouting(routingResponse?.ok ? await routingResponse.json() as RoutingStatus : null);
     if (comfyResponse?.ok) setComfyCloud(await comfyResponse.json() as ComfyCloudStatus);
   }, []);
 
@@ -205,8 +186,8 @@ export default function CloudStoryModeHost() {
 
   const lights: Record<CapabilityKey, boolean> = {
     writing: cloudReady(routing?.text),
-    images: cloudReady(routing?.image) || Boolean(comfyCloud?.tested),
-    video: cloudReady(routing?.video) || Boolean(comfyCloud?.tested),
+    images: cloudReady(routing?.image),
+    video: cloudReady(routing?.video),
     agents: cloudReady(routing?.text),
   };
 
@@ -261,49 +242,6 @@ export default function CloudStoryModeHost() {
     }
   };
 
-  async function selectCloudRoute(capability: CapabilityKey, route: CloudRoute) {
-    if (working) return;
-    if (!paidAcknowledged) {
-      setNotice("Confirm that remote provider API requests may incur charges before choosing a cloud route.");
-      return;
-    }
-    const capabilityId = routingCapability(capability);
-    if (capabilityId === "video" && !dataSharingAcknowledged) {
-      setNotice("Confirm that cloud video prompts and selected reference media may leave this computer before choosing a cloud video route.");
-      return;
-    }
-    const option = routing?.[capabilityId].options[route];
-    if (!option?.ready) {
-      setNotice(`${CLOUD_DISPLAY_LABELS[route]} is not ready yet. Open its Connection page and complete setup/testing first.`);
-      return;
-    }
-
-    setWorking(`${capability}:${route}`);
-    setNotice("");
-    try {
-      const response = await fetch("/api/ai-routing/select", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          capability: capabilityId,
-          route,
-          paidAcknowledged: true,
-          dataSharingAcknowledged: capabilityId === "video" ? dataSharingAcknowledged : false,
-        }),
-      });
-      const body = await response.json() as RoutingStatus & { message?: string };
-      if (!response.ok) throw new Error(body.message || "The cloud route could not be selected.");
-      setRouting(body);
-      setNotice(`${CLOUD_DISPLAY_LABELS[route]} is now the active ${CLOUD_DISPLAY_LABELS[capability].toLowerCase()} connection.`);
-      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The cloud route could not be selected.");
-      await refreshStatus();
-    } finally {
-      setWorking("");
-    }
-  }
-
   function routedConnection(capability: CapabilityKey, route: CloudRoute, role: string): StoryModeConnectionRow {
     const capabilityId = routingCapability(capability);
     const group = routing?.[capabilityId];
@@ -320,19 +258,16 @@ export default function CloudStoryModeHost() {
       active,
       setupLabel: setupActionLabel(state),
       onSetup: () => setView(route),
-      useLabel: `Use for ${CLOUD_DISPLAY_LABELS[capability]}`,
-      onUse: () => void selectCloudRoute(capability, route),
-      useDisabled: state !== "ready" || Boolean(working) || !paidAcknowledged || (capabilityId === "video" && !dataSharingAcknowledged),
     };
   }
 
   function comfyConnection(role: string): StoryModeConnectionRow {
-    const state: StoryModeConnectionState = comfyCloud?.tested ? "ready" : comfyCloud?.configured ? "needs-test" : "setup";
+    const state: StoryModeConnectionState = comfyCloud?.configured ? "needs-test" : "setup";
     return {
       id: "comfy-cloud",
-      label: "ComfyUI",
+      label: "ComfyUI Cloud",
       role,
-      detail: CLOUD_DETAILS["comfy-cloud"],
+      detail: `${CLOUD_DETAILS["comfy-cloud"]} Connection verification alone does not verify generation.` ,
       state,
       model: comfyCloud?.defaultLane ? `Workflow lane: ${comfyCloud.defaultLane}` : undefined,
       setupLabel: state === "ready" ? "Open setup" : state === "needs-test" ? "Test / setup" : "Set up",
@@ -380,13 +315,10 @@ export default function CloudStoryModeHost() {
             capability={capability}
             connections={capabilityConnections(capability)}
             notice={notice}
-            paidAcknowledged={paidAcknowledged}
-            onPaidAcknowledged={setPaidAcknowledged}
-            dataSharingAcknowledged={dataSharingAcknowledged}
-            onDataSharingAcknowledged={setDataSharingAcknowledged}
           />
         ) : null}
         {view === "openai" ? <CloudProviderSetupPanel provider="openai" /> : null}
+        {view === "openai" || view === "minimax" || view === "gemini" || view === "comfy-cloud" ? <ProviderConsentSetup provider={view} /> : null}
         {view === "comfy-cloud" ? <ComfyCloudSetupPanel /> : null}
         {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
         {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}

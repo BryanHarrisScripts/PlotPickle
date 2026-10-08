@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 
-import { COMPUTE_SETTING_NAMES, COMPUTE_PRIVATE_NAMES, readProfileComputeSetting, writeProfileComputeSetting } from "../core/storage/profile-private/profile-compute-settings.mjs";
+import { COMPUTE_SETTING_NAMES, COMPUTE_PRIVATE_NAMES, readProfileComputeSetting, writeProfileComputeSetting, writeProfileComputeSettings } from "../core/storage/profile-private/profile-compute-settings.mjs";
 
 const PROTECTED_FORMAT = "plotpickle-protected-credential";
 const DPAPI_ENTROPY = "PlotPickle local credential v1";
@@ -506,6 +506,12 @@ export async function writeCredentialJson(name: string, value: unknown) {
     throw new Error("PlotPickle will not save credentials because encrypted storage is unsupported on this operating system.");
   }
   await atomicWrite(credentialFilePath(safeName), `${JSON.stringify(envelope, null, 2)}\n`);
+}
+
+export async function writeComputeSelection(updates: Record<string, unknown>, expected: Record<string, unknown> = {}) {
+  const context = currentProfileRequestContext();
+  if (!context) throw new Error("Unlock your PlotPickle profile before selecting a route.");
+  await writeProfileComputeSettings(context, updates, expected);
 }
 
 export async function removeCredentialFile(name: string) {

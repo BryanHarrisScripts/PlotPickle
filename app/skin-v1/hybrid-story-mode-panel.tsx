@@ -3,12 +3,19 @@
 import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import CapabilityDiagnosticsLog from "./capability-diagnostics-log";
+import ComputeReadyMarker from "./compute-ready-marker";
 import styles from "./hybrid-story-mode-panel.module.css";
 
 type Capability = "text" | "image" | "video";
 type Locality = "local" | "cloud";
 
 type RoutingOption = {
+  label?: string;
+  inferenceLocation?: string;
+  provider?: string;
+  supported?: boolean;
+  disabled?: boolean;
   configured?: boolean;
   ready?: boolean;
   model?: string;
@@ -32,33 +39,15 @@ type RoutingStatus = {
   message?: string;
 };
 
-type ImageJobClass = "image-fast-draft" | "image-precision-edit";
-type JobPreference = "auto" | "local-first" | "cloud-first";
-type JobRoutingStatus = {
-  ok?: boolean;
-  jobs?: Partial<Record<ImageJobClass, JobPreference>>;
-  message?: string;
-};
-
 const CAPABILITIES: readonly { id: Capability; label: string; detail: string }[] = [
   { id: "text", label: "WRITING", detail: "Writing, planning, Sage and text Agents" },
   { id: "image", label: "IMAGES", detail: "Storyboards, reference frames and image work" },
   { id: "video", label: "VIDEO", detail: "Previs, animatic and motion work" },
 ] as const;
 
-const IMAGE_JOBS: readonly { id: ImageJobClass; label: string; detail: string }[] = [
-  { id: "image-fast-draft", label: "IMAGES — FAST / DRAFT", detail: "Exploration, thumbnails and ordinary low/medium-quality image work" },
-  { id: "image-precision-edit", label: "IMAGES — PRECISION / EDIT", detail: "High-quality, reference, identity and continuity-sensitive image work" },
-] as const;
-
-const JOB_PREFERENCES: readonly { id: JobPreference; label: string }[] = [
-  { id: "auto", label: "AUTO" },
-  { id: "local-first", label: "LOCAL FIRST" },
-  { id: "cloud-first", label: "CLOUD FIRST" },
-] as const;
-
 function routeLabel(route: string) {
-  return route
+  const labels: Record<string, string> = { comfyui: "ComfyUI", "ollama-comfyui": "Ollama + ComfyUI", "minimax-comfyui": "ComfyUI · MiniMax H3", "comfyui-native": "ComfyUI · Native inference", openai: "OpenAI", minimax: "MiniMax", gemini: "Gemini", ollama: "Ollama", local: "Local Runtime" };
+  return labels[route] || route
     .replaceAll("-", " ")
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -77,39 +66,26 @@ function selectedOption(group: RoutingGroup | undefined) {
 }
 
 function stateLabel(option: RoutingOption, selected: boolean) {
+  if (option.disabled) return "DISABLED";
+  if (option.supported === false) return "UNSUPPORTED";
   if (selected && option.ready) return "ACTIVE";
   if (option.ready) return "READY";
   if (option.configured) return "CONFIGURED · TEST NEEDED";
-  return "SETUP";
+  return "SETUP NEEDED";
 }
 
 export default function HybridStoryModePanel({ onChanged }: { readonly onChanged?: () => void }) {
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
-  const [jobRouting, setJobRouting] = useState<Record<ImageJobClass, JobPreference>>({
-    "image-fast-draft": "auto",
-    "image-precision-edit": "auto",
-  });
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("Loading Local and Cloud resources…");
-  const [paidAcknowledged, setPaidAcknowledged] = useState(false);
-  const [videoSharingAcknowledged, setVideoSharingAcknowledged] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const [routingResponse, jobResponse] = await Promise.all([
-        fetch("/api/ai-routing/status", { cache: "no-store" }),
-        fetch("/api/story-mode/job-routing", { cache: "no-store" }),
-      ]);
+      const routingResponse = await fetch("/api/ai-routing/status", { cache: "no-store" });
       const routingBody = await routingResponse.json() as RoutingStatus;
-      const jobBody = await jobResponse.json() as JobRoutingStatus;
       if (!routingResponse.ok || routingBody.ok === false) throw new Error(routingBody.message || "Compute capability status is unavailable.");
-      if (!jobResponse.ok || jobBody.ok === false || !jobBody.jobs) throw new Error(jobBody.message || "Story Mode Job Routing is unavailable.");
       setRouting(routingBody);
-      setJobRouting({
-        "image-fast-draft": jobBody.jobs["image-fast-draft"] || "auto",
-        "image-precision-edit": jobBody.jobs["image-precision-edit"] || "auto",
-      });
-      setNotice("Choose ready Local and Cloud resources, then set per-job routing preferences. AUTO preserves the currently selected ready route.");
+      setNotice("Select a ready resource for each capability. Local and Cloud configure and verify; Hybrid controls where work runs.");
     } catch (error) {
       setRouting(null);
       setNotice(error instanceof Error ? error.message : "Hybrid compute status is unavailable.");
@@ -134,8 +110,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
 
   const incompleteCapabilities = mix.flatMap((item, index) => item?.ready === true ? [] : [CAPABILITIES[index].label.toLowerCase()]);
   const hybridReady = mix.every((item) => item?.ready === true)
-    && mix.some((item) => item?.locality === "local")
-    && mix.some((item) => item?.locality === "cloud");
+;
 
   const setupCoverage = useMemo(() => {
     function summarize(locality: Locality) {
@@ -151,31 +126,6 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
     return { local: summarize("local"), cloud: summarize("cloud") };
   }, [routing]);
 
-  async function updateJobPreference(jobClass: ImageJobClass, preference: JobPreference) {
-    if (working) return;
-    setWorking(`job:${jobClass}`);
-    setNotice(`Updating ${IMAGE_JOBS.find((job) => job.id === jobClass)?.label || jobClass} routing…`);
-    try {
-      const response = await fetch("/api/story-mode/job-routing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobClass, preference }),
-      });
-      const body = await response.json() as JobRoutingStatus;
-      if (!response.ok || body.ok === false || !body.jobs) throw new Error(body.message || "Job Routing preference could not be saved.");
-      setJobRouting({
-        "image-fast-draft": body.jobs["image-fast-draft"] || "auto",
-        "image-precision-edit": body.jobs["image-precision-edit"] || "auto",
-      });
-      setNotice(`${IMAGE_JOBS.find((job) => job.id === jobClass)?.label || jobClass} now uses ${preference.toUpperCase().replace("-", " ")}. The live image request resolves only across tested routes allowed by Story Mode.`);
-      onChanged?.();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Job Routing preference could not be saved.");
-    } finally {
-      setWorking("");
-    }
-  }
-
   async function selectRoute(capability: Capability, route: string, locality: Locality) {
     if (working) return;
     const option = routing?.[capability]?.options?.[route];
@@ -183,15 +133,6 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
       setNotice(`${routeLabel(route)} is not ready. Complete its setup/testing before selecting it for ${capability}.`);
       return;
     }
-    if (locality === "cloud" && !paidAcknowledged) {
-      setNotice("Confirm that cloud provider requests may incur charges before selecting a Cloud resource.");
-      return;
-    }
-    if (capability === "video" && locality === "cloud" && !videoSharingAcknowledged) {
-      setNotice("Confirm that cloud video prompts and selected reference media may leave this computer before selecting Cloud video.");
-      return;
-    }
-
     setWorking(`${capability}:${route}`);
     setNotice(`Selecting ${routeLabel(route)} for ${capability}…`);
     try {
@@ -201,8 +142,6 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
         body: JSON.stringify({
           capability,
           route,
-          paidAcknowledged: locality === "cloud",
-          dataSharingAcknowledged: capability === "video" && locality === "cloud" ? videoSharingAcknowledged : false,
         }),
       });
       const body = await response.json() as RoutingStatus;
@@ -228,54 +167,13 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
           <span>Assign each story capability to one ready Local or Cloud resource. Writing can stay Local while Images or Video use Cloud, or any other mix you choose.</span>
         </div>
         <strong data-ready={hybridReady ? "true" : "false"}>{hybridReady ? "READY" : "NOT READY"}</strong>
-        {!hybridReady ? <p role="status">{incompleteCapabilities.length ? `The selected ${incompleteCapabilities.join(", ")} route needs setup or a successful test.` : "Select at least one ready local route and one ready cloud route for Hybrid."}</p> : null}
+        {!hybridReady ? <p role="status">{incompleteCapabilities.length ? `The selected ${incompleteCapabilities.join(", ")} route needs setup or a successful test.` : "Select ready resources for the capabilities you want to use."}</p> : null}
       </section>
 
       <div className={styles.active} aria-label="Detected Local and Cloud compute setup">
         <span><b>LOCAL SETUP</b>{setupCoverage.local.ready}/{setupCoverage.local.total} capabilities ready · {setupCoverage.local.configured}/{setupCoverage.local.total} configured</span>
         <span><b>CLOUD SETUP</b>{setupCoverage.cloud.ready}/{setupCoverage.cloud.total} capabilities ready · {setupCoverage.cloud.configured}/{setupCoverage.cloud.total} configured</span>
       </div>
-
-      <div className={styles.consent}>
-        <label>
-          <input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.currentTarget.checked)} />
-          <span>I understand selected Cloud providers may charge my configured API account.</span>
-        </label>
-        <label>
-          <input type="checkbox" checked={videoSharingAcknowledged} onChange={(event) => setVideoSharingAcknowledged(event.currentTarget.checked)} />
-          <span>I understand Cloud video may send prompts and selected reference media outside this computer.</span>
-        </label>
-      </div>
-
-      <section className={styles.jobRouting} data-story-mode-job-routing="image" aria-labelledby="hybrid-job-routing-title">
-        <header>
-          <p>JOB ROUTING</p>
-          <h3 id="hybrid-job-routing-title">Route each real image workload independently</h3>
-          <span>Preferences never change canon or provider setup. AUTO keeps the currently selected tested route; LOCAL FIRST and CLOUD FIRST resolve per request without changing the global provider selection.</span>
-        </header>
-        {IMAGE_JOBS.map((job) => (
-          <div className={styles.jobRow} key={job.id} data-job-class={job.id}>
-            <div>
-              <strong>{job.label}</strong>
-              <span>{job.detail}</span>
-            </div>
-            <div className={styles.jobChoices} role="group" aria-label={`${job.label} routing preference`}>
-              {JOB_PREFERENCES.map((preference) => (
-                <button
-                  key={preference.id}
-                  type="button"
-                  data-job-preference={preference.id}
-                  data-selected={jobRouting[job.id] === preference.id ? "true" : "false"}
-                  disabled={Boolean(working)}
-                  onClick={() => void updateJobPreference(job.id, preference.id)}
-                >
-                  {preference.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
 
       <div className={styles.matrix} role="table" aria-label="Hybrid Story Mode Local and Cloud resource matrix">
         <div className={styles.header} role="row">
@@ -310,9 +208,9 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                       disabled={Boolean(working)}
                       onClick={() => void selectRoute(capability.id, route, "local")}
                     >
-                      <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Local route"}</small></span>
-                      <em>{stateLabel(option, selected)}</em>
-                      <small>{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Local Settings; a successful capability test is still required." : "Configure this capability in Local Settings.")}</small>
+                      <span><b>{option.label || routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Local route"}</small></span>
+                      <em><ComputeReadyMarker ready={option.ready === true} /> {stateLabel(option, selected)}</em>
+                      <small>{option.cost ? `${option.cost} · ` : ""}{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Local Settings; a successful capability test is still required." : "Configure this capability in Local Settings.")}</small>
                     </button>
                   );
                 }) : <p>No Local route is registered for this capability.</p>}
@@ -333,9 +231,9 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                       disabled={Boolean(working)}
                       onClick={() => void selectRoute(capability.id, route, "cloud")}
                     >
-                      <span><b>{routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Cloud route"}</small></span>
-                      <em>{stateLabel(option, selected)}</em>
-                      <small>{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Cloud Settings; a successful capability test is still required." : "Configure this capability in Cloud Settings.")}</small>
+                      <span><b>{option.label || routeLabel(route)}</b><small>{option.model || option.settingsTarget || "Cloud route"}</small></span>
+                      <em><ComputeReadyMarker ready={option.ready === true} /> {stateLabel(option, selected)}</em>
+                      <small>{option.cost ? `${option.cost} · ` : ""}{option.ready ? `Verified${option.verifiedAt ? ` · ${new Date(option.verifiedAt).toLocaleString()}` : ""}` : option.error || (option.configured ? "Configured in Cloud Settings; a successful capability test is still required." : "Configure this capability in Cloud Settings.")}</small>
                     </button>
                   );
                 }) : <p>No Cloud route is registered for this capability.</p>}
@@ -345,6 +243,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
         })}
       </div>
 
+      <CapabilityDiagnosticsLog />
       <div className={styles.active} aria-live="polite">
         {CAPABILITIES.map(({ id, label }) => {
           const selected = selectedOption(routing?.[id]);

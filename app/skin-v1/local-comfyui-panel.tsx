@@ -220,8 +220,7 @@ export default function LocalComfyUiPanel() {
       if (!next.comfyui.qwenImage21.workflowNodesReady) return next.comfyui.qwenImage21.missingWorkflowNodes.length
         ? `ComfyUI is missing Qwen workflow nodes: ${next.comfyui.qwenImage21.missingWorkflowNodes.join(", ")}.`
         : "The Qwen-Image-2.1 workflow is not ready in ComfyUI.";
-      if (next.imageRoute !== "comfyui") return "Qwen-Image-2.1 is configured, but a different image route is active.";
-      return "IMAGES ACTIVE — Experimental Qwen-Image-2.1 is selected through local ComfyUI.";
+      return next.comfyui.imageVerifiedAt ? "READY — Experimental Qwen-Image-2.1 generation has been verified. Select it in Hybrid." : "Qwen-Image-2.1 is configured. Run a local image test to verify generation.";
     }
     if (!next.comfyui.imageNodesReady) {
       return next.comfyui.missingImageNodes.length
@@ -229,8 +228,7 @@ export default function LocalComfyUiPanel() {
         : "ComfyUI is running, but its required image nodes are not ready.";
     }
     if (!modelReady) return `ComfyUI is running, but ${LOCAL_SDXL_CHECKPOINT} is not reported by the live server.`;
-    if (next.imageRoute !== "comfyui") return "The fixed local image stack is ready, but a different image route is currently active.";
-    return "IMAGES ACTIVE — ComfyUI + SDXL 1.0 is ready locally.";
+    return next.comfyui.imageVerifiedAt ? "READY — ComfyUI + SDXL generation has been verified. Select it in Hybrid." : "ComfyUI + SDXL is configured. Run a local image test to verify generation.";
   }
 
   async function refresh(announce = false) {
@@ -452,13 +450,7 @@ export default function LocalComfyUiPanel() {
         await installStarter();
         return;
       }
-      if (next.imageRoute !== "comfyui") {
-        next = await request<MediaStatus>(`${MEDIA_API}/routes`, "POST", { imageRoute: "comfyui" });
-        setStatus(next);
-      }
-
-      announceReadyChange();
-      setNotice("IMAGES ACTIVE — PlotPickle detected the running ComfyUI server and fixed SDXL 1.0 model. No manual test is required for the green light.");
+      await testImage();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not finish local image setup.");
     } finally {
@@ -471,9 +463,10 @@ export default function LocalComfyUiPanel() {
   const nodesReady = Boolean(status?.comfyui.imageNodesReady);
   const modelReady = exactSdxlAvailable(status?.comfyui.checkpoints || []);
   const qwenActive = status?.comfyui.imageProfile === "qwen-image-2.1-experimental";
-  const qwenReady = Boolean(serverReady && status?.comfyui.qwenImage21.licenseAcknowledged && status?.comfyui.qwenImage21.workflowConfigured && status?.comfyui.qwenImage21.workflowNodesReady && status?.imageRoute === "comfyui");
-  const activeReady = qwenActive ? qwenReady : Boolean(serverReady && nodesReady && modelReady && status?.imageRoute === "comfyui");
+  const qwenReady = Boolean(serverReady && status?.comfyui.qwenImage21.licenseAcknowledged && status?.comfyui.qwenImage21.workflowConfigured && status?.comfyui.qwenImage21.workflowNodesReady );
+  const configured = qwenActive ? qwenReady : Boolean(serverReady && nodesReady && modelReady);
   const verified = Boolean(status?.comfyui.imageVerifiedAt);
+  const activeReady = configured && verified;
   const serviceLabel = status === null ? "CHECKING..." : serverReady ? "RUNNING" : lastStart && !lastStart.ready ? "FAILED TO START" : "STOPPED";
   const modelLabel = status === null ? "CHECKING..." : !serverReady ? "WAITING FOR SERVICE" : modelReady ? "FOUND" : "NOT FOUND";
 
@@ -496,13 +489,13 @@ export default function LocalComfyUiPanel() {
       <div style={{ ...card, marginTop: 16, background: "var(--pp-skin-surface-2)" }}>
         <div style={{ ...row, justifyContent: "space-between" }}>
           <div>
-            <strong>{activeReady ? "LOCAL IMAGES ARE ACTIVE" : lastStart && !lastStart.ready ? "LOCAL IMAGE SERVICE NEEDS RECOVERY" : "LET PLOTPICKLE CHECK LOCAL IMAGES"}</strong>
+            <strong>{activeReady ? "LOCAL IMAGES ARE READY" : lastStart && !lastStart.ready ? "LOCAL IMAGE SERVICE NEEDS RECOVERY" : "LET PLOTPICKLE CHECK LOCAL IMAGES"}</strong>
             <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.45 }}>
               {activeReady
-                ? "The fixed local image stack is present and active. A test render is optional verification, not a readiness requirement."
+                ? "Local image generation has been verified. Choose this resource in Hybrid when you want to use it."
                 : lastStart && !lastStart.ready
                   ? "PlotPickle already attempted the managed local service. The exact failure is shown below before SDXL is evaluated."
-                  : "PlotPickle checks the managed ComfyUI service, the fixed SDXL 1.0 model and the active local image route."}
+                  : "PlotPickle checks the managed ComfyUI service and model, then renders a local verification image."}
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void makeImagesReady()} disabled={Boolean(working) || activeReady}>
@@ -528,7 +521,7 @@ export default function LocalComfyUiPanel() {
         </div>
         <div style={card}>
           <strong>Images</strong>
-          <p>{activeReady ? "ACTIVE / GREEN" : "INACTIVE"}</p>
+          <p>{activeReady ? "VERIFIED / READY" : "TEST NEEDED"}</p>
           <small>{serverReady ? nodesReady ? "Required image nodes ready." : "Waiting for image nodes." : "Waiting for ComfyUI service."}</small>
         </div>
       </div>
@@ -559,9 +552,9 @@ export default function LocalComfyUiPanel() {
             {!serverReady && installation?.installed !== false ? <button type="button" onClick={() => void startComfyUi()} disabled={Boolean(working)}>{working === "start" ? "Starting..." : "Retry ComfyUI Service"}</button> : null}
             {serverReady && !modelReady ? <button type="button" onClick={() => void installStarter()} disabled={Boolean(working)}>{working === "starter" ? "Preparing..." : "Install SDXL 1.0"}</button> : null}
             <button type="button" style={warningButton} onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "CHECKING..." : "RUN LOCAL DIAGNOSTIC"}</button>
-            <button type="button" style={warningButton} onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "GENERATING..." : "TEST LOCAL IMAGE"}</button>
+            <button type="button" style={warningButton} onClick={() => void testImage()} disabled={Boolean(working) || !configured}>{working === "test" ? "GENERATING..." : "TEST LOCAL IMAGE"}</button>
           </div>
-          <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-soft)" }}>Last successful local image test: {timeLabel(status?.comfyui.imageVerifiedAt || "")}{verified ? "" : " — not required for READY"}</p>
+          <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-soft)" }}>Last successful local image test: {timeLabel(status?.comfyui.imageVerifiedAt || "")}{verified ? "" : " — run a test to become Ready"}</p>
         </div>
       </details>
 
@@ -622,7 +615,7 @@ export default function LocalComfyUiPanel() {
             </button>
           </div>
           <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-soft)" }}>
-            Profile: {qwenActive ? "QWEN-IMAGE-2.1 EXPERIMENTAL ACTIVE" : "SDXL 1.0 ACTIVE"} · Last Qwen verification: {timeLabel(status?.comfyui.qwenImage21.lastVerifiedAt || "")}
+            Profile: {qwenActive ? "QWEN-IMAGE-2.1 EXPERIMENTAL CONFIGURED" : "SDXL 1.0 CONFIGURED"} · Last Qwen verification: {timeLabel(status?.comfyui.qwenImage21.lastVerifiedAt || "")}
           </p>
         </div>
       </details>

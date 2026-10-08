@@ -1,3 +1,5 @@
+import { videoAuthorityHash } from "../cloud-media-provider";
+import { readCredentialJson, writeCredentialJson } from "../local-credentials";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -62,6 +64,7 @@ type ComfyVideoJob = {
   outputAssetUrl: string;
   error: string;
   workflowHash: string;
+  authorityHash: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -204,19 +207,19 @@ async function historyEntry(baseUrl: string, promptId: string) {
   return entry && typeof entry === "object" && !Array.isArray(entry) ? entry as ComfyHistoryEntry : null;
 }
 
-function firstOutput(entry: ComfyHistoryEntry | null) {
+function firstOutput(entry: ComfyHistoryEntry | null, videoOnly = false) {
   if (!entry?.outputs) return null;
   for (const output of Object.values(entry.outputs)) {
-    const candidate = output.videos?.[0] || output.gifs?.[0] || output.images?.[0];
-    if (candidate?.filename) return candidate;
+    const candidates = [...(output.videos || []), ...(output.gifs || []), ...(output.images || [])];
+    const candidate = candidates.find((item) => item.filename && (!videoOnly || /\.(mp4|webm)$/i.test(item.filename)));
+    if (candidate) return candidate;
   }
   return null;
 }
 
 function executionError(entry: ComfyHistoryEntry | null) {
   if (!entry?.status || entry.status.status_str !== "error") return "";
-  const text = JSON.stringify(entry.status.messages || []);
-  return text.slice(0, 500) || "ComfyUI workflow execution failed.";
+  return "ComfyUI workflow execution failed. Check the local ComfyUI console for the failing node.";
 }
 
 async function downloadOutput(baseUrl: string, output: ComfyOutput) {
@@ -254,7 +257,7 @@ export async function generateComfyImage(baseUrl: string, checkpoint: string, in
   throw new Error("ComfyUI did not finish the reviewed image workflow before the local timeout.");
 }
 
-function visitStrings(value: unknown, visitor: (value: string, key: string) => string, key = ""): unknown {
+function visitStrings(value: unknown, visitor: (value: string, key: string) => unknown, key = ""): unknown {
   if (typeof value === "string") return visitor(value, key);
   if (Array.isArray(value)) return value.map((item) => visitStrings(item, visitor, key));
   if (!value || typeof value !== "object") return value;
@@ -384,9 +387,10 @@ function hydrateH3Workflow(
   prompt: string,
   sourceData: string,
 ) {
-  const duration = typeof input.durationSeconds === "number" ? Math.max(4, Math.min(15, Math.round(input.durationSeconds))) : 5;
+  const fixedDuration = Object.values(source).map((node) => (node as { inputs?: { duration?: unknown } })?.inputs?.duration).find((value) => typeof value === "number");
+  const duration = typeof fixedDuration === "number" ? fixedDuration : typeof input.durationSeconds === "number" ? Math.max(4, Math.min(15, Math.round(input.durationSeconds))) : 5;
   const aspect = input.aspectRatio === "9:16" || input.aspectRatio === "1:1" ? input.aspectRatio : "16:9";
-  return visitStrings(source, (value) => value
+  return visitStrings(source, (value) => value === "{{PLOTPICKLE_DURATION}}" ? duration : value
     .replaceAll("{{PLOTPICKLE_PROMPT}}", prompt)
     .replaceAll("{{PLOTPICKLE_MINIMAX_KEY}}", profile.apiKey)
     .replaceAll("{{PLOTPICKLE_SOURCE_IMAGE}}", sourceData)
@@ -394,21 +398,12 @@ function hydrateH3Workflow(
     .replaceAll("{{PLOTPICKLE_ASPECT_RATIO}}", aspect)) as Record<string, unknown>;
 }
 
-function comfyJobsPath() {
-  return path.join(persistentHome(), "media-comfy-video-jobs.json");
-}
-
 async function readComfyJobs(): Promise<ComfyVideoJob[]> {
-  const jobsPath = comfyJobsPath();
-  if (!existsSync(jobsPath)) return [];
-  const value = JSON.parse(await readFile(jobsPath, "utf8")) as unknown;
-  return Array.isArray(value) ? value.filter((item): item is ComfyVideoJob => Boolean(item && typeof item === "object" && typeof (item as ComfyVideoJob).id === "string")) : [];
+  return await readCredentialJson<ComfyVideoJob[]>("media-comfy-video-jobs.json") || [];
 }
-
 async function saveComfyJob(job: ComfyVideoJob) {
   const jobs = await readComfyJobs();
-  await mkdir(persistentHome(), { recursive: true, mode: 0o700 });
-  await writeFile(comfyJobsPath(), `${JSON.stringify([job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200), null, 2)}\n`, { mode: 0o600 });
+  await writeCredentialJson("media-comfy-video-jobs.json", [job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200));
   return job;
 }
 
@@ -424,6 +419,7 @@ export async function createComfyVideo(
   const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 7_000) : "";
   if (!prompt) throw new Error("Enter a motion prompt before creating a ComfyUI H3 job.");
   const sourceAssetUrl = typeof input.sourceAssetUrl === "string" ? input.sourceAssetUrl.trim() : "";
+  if (sourceAssetUrl && !JSON.stringify(workflow.source).includes("{{PLOTPICKLE_SOURCE_IMAGE}}")) throw new Error("This workflow cannot accept the selected Storyboard image. Import an image-to-video workflow.");
   const sourceData = await videoSourceReference(sourceAssetUrl);
   const promptId = await submitWorkflow(baseUrl, hydrateH3Workflow(workflow.source, profile, input, prompt, sourceData));
   const id = `comfyui-${promptId}`;
@@ -438,18 +434,19 @@ export async function createComfyVideo(
     prompt,
     sourceAssetUrl,
     assetId: safeAssetStem(input.assetId || id),
-    durationSeconds: typeof input.durationSeconds === "number" ? Math.max(4, Math.min(15, Math.round(input.durationSeconds))) : 5,
+    durationSeconds: (Object.values(workflow.source).map((node) => (node as { inputs?: { duration?: unknown } })?.inputs?.duration).find((value) => typeof value === "number") as number | undefined) || (typeof input.durationSeconds === "number" ? Math.max(4, Math.min(15, Math.round(input.durationSeconds))) : 5),
     aspectRatio: input.aspectRatio === "9:16" || input.aspectRatio === "1:1" ? input.aspectRatio : "16:9",
     outputAssetUrl: "",
     error: "",
     workflowHash: workflow.hash,
+    authorityHash: videoAuthorityHash(profile),
     createdAt: now,
     updatedAt: now,
   });
 }
 
 export function publicComfyVideoJob(job: ComfyVideoJob) {
-  return { ...job, promptId: undefined, prompt: undefined, workflowHash: undefined, reviewState: "unreviewed" };
+  return { ...job, promptId: undefined, prompt: undefined, workflowHash: undefined, authorityHash: undefined, reviewState: "unreviewed" };
 }
 
 export async function queryComfyVideo(baseUrl: string, id: string) {
@@ -459,7 +456,7 @@ export async function queryComfyVideo(baseUrl: string, id: string) {
   const entry = await historyEntry(baseUrl, existing.promptId);
   const error = executionError(entry);
   if (error) return saveComfyJob({ ...existing, status: "failed", error, updatedAt: new Date().toISOString() });
-  const output = firstOutput(entry);
+  const output = firstOutput(entry, true);
   if (!output) return saveComfyJob({ ...existing, status: entry ? "running" : "queued", updatedAt: new Date().toISOString() });
   const extension = output.filename.toLowerCase().endsWith(".webm") ? ".webm" : output.filename.toLowerCase().endsWith(".mp4") ? ".mp4" : null;
   if (!extension) return saveComfyJob({ ...existing, status: "failed", error: "The reviewed H3 workflow must return an MP4 or WebM output.", updatedAt: new Date().toISOString() });

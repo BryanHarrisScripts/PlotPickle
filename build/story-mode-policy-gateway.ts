@@ -1,3 +1,4 @@
+import { readCapabilityChoice } from "./ai/capability-routing-state";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { readNativeH3Store } from "./ai/h3/comfyui-h3-native-provider";
@@ -240,7 +241,7 @@ export function storyModeRouteLocality(capability: "text" | "image" | "video", r
     return "unknown";
   }
   if (value === "comfyui-native") return "local";
-  if (value === "openai" || value === "minimax") return "cloud";
+  if (value === "openai" || value === "minimax" || value === "minimax-comfyui" || value === "comfy-cloud") return "cloud";
   if (value === "off" || value === "none") return "neutral";
   return "unknown";
 }
@@ -253,20 +254,7 @@ export function storyModeAllowsLocality(mode: StoryModePolicy, locality: StoryMo
 }
 
 async function selectedRoute(capability: "text" | "image" | "video") {
-  const [routing, assistantResult, media, native] = await Promise.all([
-    readCredentialJson<RoutingChoiceSnapshot>(ROUTING_FILE),
-    readSynchronizedAssistantStore(),
-    readMediaRoutingStore(),
-    readNativeH3Store(),
-  ]);
-  if (capability === "text") return assistantResult.store.activeProvider;
-  if (routing && typeof routing === "object" && !Array.isArray(routing)) {
-    const route = routing[capability];
-    if (typeof route === "string") return route;
-  }
-  if (capability === "image") return media.imageRoute;
-  if (native.active) return "comfyui-native";
-  return media.videoRoute === "none" ? "off" : "minimax";
+  return (await readCapabilityChoice())[capability];
 }
 
 async function enforceGenerationPolicy(request: IncomingMessage, pathname: string, response: ServerResponse, next: () => void) {

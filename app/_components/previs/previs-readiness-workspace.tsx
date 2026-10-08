@@ -20,6 +20,7 @@ import {
   approvedGraphicNovelPanel,
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
+  graphicNovelTextSourceSnapshot,
   type PrevisGraphicNovelPanel,
 } from "./previs-graphic-novel-presentation";
 import { currentTimelineMotionForStoryboardShot } from "../timeline/timeline-motion-source";
@@ -384,7 +385,10 @@ export default function PrevisReadinessWorkspace({
     .filter((approval) => approval.anchorRef === selectedAddressAnchor?.id);
   const currentTextApprovalFor = (panel: PrevisGraphicNovelPanel) => {
     const approval = graphicNovelTextApprovals.find((candidate) => candidate.position === panel.position) ?? null;
-    return approval && approval.sourceKey === graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext) ? approval : null;
+    const artifact = flipBookFrames[panel.position - 1]?.locked ?? null;
+    const sourceKey = graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext,
+      graphicNovelTextSourceSnapshot(project, selectedAddressAnchor?.id ?? "", panel.position, artifact));
+    return panel.authoritative && approval && approval.sourceKey === sourceKey ? approval : null;
   };
   const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];
   const selectedGraphicNovelApproval = currentTextApprovalFor(selectedGraphicNovelPanel);

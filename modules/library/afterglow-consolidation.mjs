@@ -38,6 +38,10 @@ function collect(base, current, keys, edits, reviews) {
   if (equal(base,current)) return;
   const path = pathLabel(keys);
   if (current === ABSENT) { reviews.push({path,reason:"possible-deletion"}); return; }
+  // A newly added entity must remain one atomic record with its stable ID.
+  if (base === ABSENT && isRecord(current) && keys.at(-1)?.startsWith("@")) {
+    edits.push({path,keys,value:copy(current)}); return;
+  }
   if ((isRecord(base) && isRecord(current)) || (base === ABSENT && isRecord(current))) {
     const prior = isRecord(base) ? base : {};
     const names = [...new Set([...Object.keys(prior),...Object.keys(current)])].sort();
@@ -48,8 +52,8 @@ function collect(base, current, keys, edits, reviews) {
     }
     return;
   }
-  if (Array.isArray(base) && Array.isArray(current)) {
-    const old = keyed(base), next = keyed(current);
+  if ((Array.isArray(base) || base === ABSENT) && Array.isArray(current)) {
+    const old = base === ABSENT ? new Map() : keyed(base), next = keyed(current);
     if (old && next && (old.size || next.size)) {
       const oldOrder = [...old.keys()].filter(id => next.has(id));
       const newOrder = [...next.keys()].filter(id => old.has(id));

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -9,7 +9,10 @@ import {
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor } from "../../../core/storage/profile-private-browser";
+import { reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
 import type {
+  AfterglowConsolidationPlan,
+  AfterglowConflictChoice,
   AfterglowConsolidationChange,
   AfterglowConsolidationConflict,
   AfterglowConsolidationReview,
@@ -17,6 +20,7 @@ import type {
 import styles from "./afterglow-management-panel.module.css";
 
 type Preview = Readonly<{
+  plan: AfterglowConsolidationPlan;
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
   sampleChanges: readonly AfterglowConsolidationChange[];
@@ -40,6 +44,12 @@ function displayDate(value: string) {
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
   return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
 }
+function summarizeHumanValue(value: unknown) {
+  let result = "";
+  try { result = JSON.stringify(value); }
+  catch { return "Complex value — review saved version"; }
+  return result && result.length > 200 ? result.slice(0, 200) + "…" : result || "Empty";
+}
 
 /**
  * Phase 2A is deliberately read-only. The actual account-owned commit,
@@ -50,14 +60,21 @@ export default function AfterglowManagementPanel() {
   const [authenticated, setAuthenticated] = useState(false);
   const [sources, setSources] = useState<readonly ProjectLibrarySummary[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
+  const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const reviewed = useMemo(() => preview
+    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions)
+    : null, [preview, decisions]);
 
   const refresh = useCallback(() => {
     const ready = profileReady();
     setAuthenticated(ready);
     setSources(ready ? listAfterglowExampleProjects() : []);
     setPreview(null);
+    setDecisions({});
+    setConflictPage(0);
   }, []);
   useEffect(() => {
     refresh();
@@ -69,6 +86,8 @@ export default function AfterglowManagementPanel() {
     if (busy) return;
     setBusy(true);
     setPreview(null);
+    setDecisions({});
+    setConflictPage(0);
     setNotice("");
     try {
       if (!profileReady()) throw new Error("Unlock your PlotPickle profile before reviewing Afterglow.");
@@ -99,6 +118,7 @@ export default function AfterglowManagementPanel() {
         sources: complete,
       });
       setPreview({
+        plan: result,
         sources: result.sources,
         appliedCount: result.applied.length,
         sampleChanges: result.applied.slice(0, 35),
@@ -160,10 +180,55 @@ export default function AfterglowManagementPanel() {
             <p>{preview.mergeShapeConsistent
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
-            {preview.conflicts.length ? (
-              <details><summary>Conflicting paths (first 35)</summary>
-                <ul>{preview.conflicts.map((item, index) => <li key={item.path + index}>{item.path} — {item.reason}</li>)}</ul>
-              </details>
+            {preview.conflictCount ? (
+              <section aria-label="Resolve competing saved values" className={styles.decisionArea}>
+                <h3>Review conflicting values</h3>
+                <p>Choose the value to keep for each competing field. These choices only update your review;
+                  they do not save, delete, publish, or replace any source version.
+                  Structural overlaps still require a separate resolution.</p>
+                {preview.conflicts.slice(conflictPage * 10, (conflictPage + 1) * 10).map((item, index) => {
+                  const id = "afterglow-conflict-" + (conflictPage * 10 + index);
+                  const selectable = item.reason === "competing-values" && (item.options?.length ?? 0) > 0;
+                  return (
+                    <div className={styles.decisionRow} key={item.path}>
+                      <label htmlFor={id}><strong>{item.path}</strong><span>{item.reason}</span></label>
+                      {selectable ? (
+                        <select id={id}
+                          value={decisions[item.path] === undefined ? "" : String(decisions[item.path])}
+                          onChange={event => setDecisions(previous => {
+                            const next = { ...previous };
+                            if (!event.target.value) delete next[item.path];
+                            else next[item.path] = event.target.value === "baseline"
+                              ? "baseline" : Number(event.target.value);
+                            return next;
+                          })}>
+                          <option value="">Choose an approved value…</option>
+                          <option value="baseline">Keep the provided baseline value</option>
+                          {item.options?.map((value, optionIndex) => (
+                            <option value={optionIndex} key={optionIndex}>
+                              {"Saved " + (item.optionSources?.[optionIndex] ?? "version").slice(0, 22)
+                                + ": " + summarizeHumanValue(value)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : <p>Overlapping paths require further review. No automatic selection is allowed.</p>}
+                    </div>
+                  );
+                })}
+                {preview.conflictCount > 10 ? (
+                  <div className={styles.actions}>
+                    <button type="button" disabled={conflictPage <= 0} onClick={() => setConflictPage(p => Math.max(0, p - 1))}>Previous conflicts</button>
+                    <span className={styles.status}>Page {conflictPage + 1} of {Math.ceil(preview.conflictCount / 10)}</span>
+                    <button type="button" disabled={(conflictPage + 1) * 10 >= preview.conflictCount} onClick={() => setConflictPage(p => p + 1)}>Next conflicts</button>
+                  </div>
+                ) : null}
+                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> selected;
+                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> conflicting paths unresolved;
+                  <strong> {preview.reviewCount}</strong> other review items still require decisions.</p>
+                <p>{reviewed?.decisionShapeConsistent
+                  ? "All reported structural choices are accounted for. Media verification, an approved durable master, and restart readback are still required."
+                  : "The master is not ready to save; some changes still require review."}</p>
+              </section>
             ) : null}
             {preview.needsReview.length ? (
               <details><summary>Unresolved review items (first 35)</summary>

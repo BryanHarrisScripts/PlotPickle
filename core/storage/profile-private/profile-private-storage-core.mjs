@@ -617,12 +617,20 @@ export function createProfilePrivateStorageService(options) {
     async loadActiveProject(authContext) {
       const access = await authority(authContext);
       const active = activeProjects.get(authContext.sessionId);
-      // The encrypted Library registry is the restart authority. The in-memory
-      // activeProjects cache is only a same-session accelerator.
-      const projectId = active?.profileId === access.profileId
-        ? active.projectId : (await readLibrary(access)).activeProjectId;
+      // Login remains deliberately detached: do not silently reopen yesterday's
+      // active story merely because the encrypted Library has a current ID.
+      const projectId = active?.profileId === access.profileId ? active.projectId : null;
       if (!projectId) return null;
       const project = await readObject(access, "projects", projectId);
+      return project === null || typeof options.normalizeProject !== "function" ? project : options.normalizeProject(project);
+    },
+    /** Explicit user choice to resume the durable Afterglow master after restart. */
+    async loadAfterglowCurrentMaster(authContext) {
+      const access = await authority(authContext);
+      const library = await readLibrary(access);
+      const summary = library.projects.find((item) => item.projectId === library.activeProjectId);
+      if (!summary || summary.archivedAt || summary.sourceKind !== "example" || summary.sourceId !== "afterglow-v9") return null;
+      const project = await readObject(access, "projects", summary.projectId);
       return project === null || typeof options.normalizeProject !== "function" ? project : options.normalizeProject(project);
     },
     async writeCredential(authContext, name, value) {

@@ -163,5 +163,5 @@ test("#2863 changed narration/source fingerprint remains a real shot-level confl
   });
   const plan=planAfterglowConsolidation({baseline:b,sources:[a,c]});
   assert.equal(plan.conflicts.length,1);
-  assert.match(plan.conflicts[0].path,/graphicNovelTextApprovals\/\@approval:/u);
+  assert.match(plan.conflicts[0].path,/graphicNovelTextApprovals\/@approval:/u);
 });

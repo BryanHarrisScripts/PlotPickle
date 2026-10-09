@@ -57,11 +57,12 @@ test("#2863 Phase 2 selected story evidence is still protected by read-only prev
 });
 
 test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management, not Data Recovery", async () => {
-  const [dashboard,workspace,menuAudit,webmcpAudit] = await Promise.all([
+  const [dashboard,workspace,menuAudit,webmcpAudit,registryText] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/settings-workspace-panel.tsx"),
     read("lib/verification/skin-v1-menu-contract-audit.mjs"),
     read("lib/verification/webmcp-surface-visual-audit.mjs"),
+    read("config/skin-v1-surface-registry.json"),
   ]);
   assert.match(dashboard, /id: "afterglow-management"[^\n]*label: "Afterglow Management"/u);
   assert.match(dashboard, /"afterglow-management": "V"/u);
@@ -77,4 +78,14 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.match(menuAudit, /data-afterglow-management='phase2-preview'/u);
   assert.match(webmcpAudit, /settingsRows\.length === 11/u);
   assert.match(webmcpAudit, /data-recovery,afterglow-management,agents/u);
+  const afterglowSurface = JSON.parse(registryText).surfaces.find((item) => item.id === "afterglow-management");
+  assert.ok(afterglowSurface, "the actual Human route must be registered with the Matrix orchestrator");
+  assert.equal(afterglowSurface.parent, "settings");
+  assert.equal(afterglowSurface.orchestrated, true);
+  assert.equal(afterglowSurface.runtimeSelector, "section[aria-label='Afterglow Management settings']");
+  assert.equal(afterglowSurface.runtimeReadySelector,
+    "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
+  assert.match(menuAudit, /const afterglowReturn = page\\.locator\\("button\\.pp-skin-v1-orchestrator-return:visible"\\)/u);
+  assert.match(menuAudit, /await afterglowReturn\\.click\\(\\)/u);
+  assert.match(menuAudit, /Back to Settings/u);
 });

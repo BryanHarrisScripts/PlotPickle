@@ -2189,7 +2189,8 @@
           "tests/issue-2839-narration-durable-approval.test.mjs",
           "tests/issue-2863-afterglow-recovery-first.test.mjs",
           "tests/issue-2863-creative-master-selection.test.mjs",
-          "tests/issue-2863-afterglow-version-summary.test.mjs"
+          "tests/issue-2863-afterglow-version-summary.test.mjs",
+          "tests/issue-2863-afterglow-recovery-source-audit.test.mjs"
         ]
       },
       "cost": "fast",

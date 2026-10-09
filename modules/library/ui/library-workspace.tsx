@@ -53,7 +53,7 @@ import {
 import styles from "./library-workspace.module.css";
 import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
 
-import { afterglowRestoreChoices, type AfterglowRestoreChoice } from "../afterglow-open-contract";
+import { afterglowRestoreChoices, latestAfterglowSavedChoice, type AfterglowRestoreChoice } from "../afterglow-open-contract";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
@@ -1076,8 +1076,13 @@ export default function LibraryWorkspace() {
               posterUrls={isExamples ? afterglowPosters : undefined}
               onLoad={() => {
                 if (isExamples) {
-                  setAfterglowSource("defaults");
-                  setAfterglowOpening({ item, choices: afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints()) });
+                  const choices = afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints());
+                  // Opening the example is an explicit choice, but a returning
+                  // Human should continue the most recent saved working state
+                  // instead of accidentally creating another blank example.
+                  // This is not a claim that older independent copies were merged.
+                  setAfterglowSource(latestAfterglowSavedChoice(choices)?.id ?? "defaults");
+                  setAfterglowOpening({ item, choices });
                   return;
                 }
                 setPending({ kind: "catalog", sourceKind: "preset", item });
@@ -1209,11 +1214,13 @@ export default function LibraryWorkspace() {
             if (event.key === "Escape" && !loadingReference) setAfterglowOpening(null);
           }}>
             <h2 id="afterglow-open-title">Open Afterglow</h2>
-            <p>The provided example is protected. Choose your starting point.</p>
+            <p>Continue your saved personal Afterglow by default. Your next edits will build on that same
+              saved working copy. Until consolidation is completed, older independent saved versions remain separate.
+              Loading the provided example deliberately creates a new copy and never replaces your saved work.</p>
             <label>
               <span>Starting point</span>
               <select value={afterglowSource} onChange={(event) => setAfterglowSource(event.target.value)}>
-                <option value="defaults">Load the provided example</option>
+                <option value="defaults">Load the provided example (start a separate new copy)</option>
                 {afterglowOpening.choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
               </select>
             </label>

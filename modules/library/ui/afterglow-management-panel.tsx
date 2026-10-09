@@ -219,7 +219,7 @@ export default function AfterglowManagementPanel() {
                         <code>{item.path}</code>
                       </div>
                       {selectable ? (
-                        <select id={id}
+                        <select id={id} aria-label={"Choose " + category.label + " from saved alternatives"}
                           value={decisions[item.path] === undefined ? "" : String(decisions[item.path])}
                           onChange={event => setDecisions(previous => {
                             const next = { ...previous };

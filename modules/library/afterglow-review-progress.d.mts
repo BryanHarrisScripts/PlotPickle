@@ -9,7 +9,7 @@ export type AfterglowReviewProgress = Readonly<{
 }>;
 export function afterglowReviewProgress(input:Readonly<{
   groups:readonly Readonly<{id:string;label:string;items:readonly Readonly<{
-    id:string;label:string;reviewPath?:string|null;
+    id:string;label:string;kind?:string;reviewPath?:string|null;
   }>[]}>[];
   candidatePaths:readonly string[];
   conflictPaths:readonly string[];

@@ -110,6 +110,14 @@ function apply(target,keys,value) {
     }
   }
 }
+function orderGraphicNovelApprovals(project) {
+  const approvals = project?.production?.graphicNovelTextApprovals;
+  if (!Array.isArray(approvals)) return;
+  // Ordering is presentation only. Human authority is (anchorRef, position).
+  // Never sort by encoded string position: Shot 15 must follow Shot 2.
+  approvals.sort((a,b)=>String(a.anchorRef).localeCompare(String(b.anchorRef))
+    || Number(a.position)-Number(b.position));
+}
 function sourceId(value){return value?.sourceEvidence?.referenceFixture?.sourceId;}
 
 // These are references, not proven, readable local bytes. Inspection must
@@ -206,6 +214,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
     apply(candidate,items[0].keys,items[0].value);
     applied.push({path,sources:items.map(x=>x.sourceProjectId)});
   }
+  orderGraphicNovelApprovals(candidate);
   // Local asset bytes must be checked by the authenticated runtime before the
   // Human can commit a merged copy, then copied into the repo only on promotion.
   const assetRefs=new Set();
@@ -269,6 +278,7 @@ export function reviewAfterglowConsolidationDecisions(plan, decisions = {}) {
     if (selected !== "baseline") apply(candidate, keys, conflict.options[selected]);
     resolved.push({ path: conflict.path, choice: selected });
   }
+  orderGraphicNovelApprovals(candidate);
   // Resolve image URLs from the actual reviewed candidate. A choice might
   // introduce an image the original unselected planner candidate did not use.
   const localAssetsToVerify = new Set();

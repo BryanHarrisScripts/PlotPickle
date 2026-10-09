@@ -764,21 +764,27 @@ export default function AfterglowManagementPanel() {
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
         {saveReceipt ? <section className={styles.consolidatedResult}
           role="status" aria-label="Consolidated Afterglow saved confirmation">
-          <h3>Consolidated Afterglow saved successfully.</h3>
+          <h3>{saveReceipt.libraryRefreshed
+            ? "Consolidated Afterglow saved and verified in Library."
+            : "Consolidated Afterglow saved on the server; Library opening is not verified."}</h3>
           <p>Your current personal Afterglow now contains your confirmed creative choices.
             <strong> {saveReceipt.decisionsCompleted}</strong> review decisions were accepted from
             <strong> {saveReceipt.sourceCount}</strong> saved source states, with
             <strong> {saveReceipt.historicalSources}</strong> historical sources preserved.
             The new encrypted master passed independent readback.</p>
-          <p><strong>To continue:</strong> go to Library → Examples → Afterglow.
-            It opens your consolidated personal story. There is no separate public
-            “Consolidated Afterglow” example.</p>
+          {saveReceipt.libraryRefreshed ? <p><strong>To continue:</strong> go to Library → Examples → Afterglow
+            and select your saved personal version, not “Load the provided example.”
+            The original packaged example is a separate fresh starting point.</p> : null}
           <p>You may return to Afterglow Recovery to review previous saved points.
             Your original working versions and recovery history remain protected;
             general Data Recovery is still separate.</p>
-          {!saveReceipt.libraryRefreshed ? <p className={styles.caution}>
-            Your master was verified on the server, but the local Library list
-            could not refresh. Sign in again before opening Afterglow. Do not save twice.
+          {!saveReceipt.libraryRefreshed ? <p className={styles.caution} role="alert">
+            The server verified your encrypted master, but the exact saved project
+            is missing from the refreshed Library. Do not create another example,
+            repeat consolidation, or overwrite recovery points. Reopen your profile
+            to refresh the Library; if the saved master still is not listed,
+            keep your original recovery history intact for diagnosis.
+            Saved master ID: {saveReceipt.masterId}.
           </p> : null}
           <p>This is your personal master only. Publishing the official Afterglow
             for new users requires separate publisher approval.</p>

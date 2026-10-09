@@ -47,7 +47,7 @@ test("#2308 reconciles live Dashboard destinations instead of assuming the gover
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   assert.equal(SKIN_V1_SURFACES.length, 80);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 45);
+  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 46);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "public-exception").length, 5);
 
   assert.equal(SKIN_V1_SURFACES.some((surface) => surface.id === "pitch-package"), true);

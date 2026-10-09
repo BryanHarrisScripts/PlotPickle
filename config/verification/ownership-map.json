@@ -220,6 +220,7 @@
         "modules/library/local-resource-recovery.ts",
         "modules/library/afterglow-consolidation.mjs",
         "modules/library/afterglow-evidence-reconciliation.mjs",
+        "modules/library/afterglow-media-integrity.mjs",
         "modules/library/afterglow-consolidation.d.mts"
       ],
       "ownerLayer": "story-canon",

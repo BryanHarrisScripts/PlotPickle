@@ -144,3 +144,28 @@ test("#2863 opening Afterglow continues the saved personal copy unless the Human
   assert.match(chooser,/\.filter\(\(choice\) => choice\.id === `saved:\$\{choice\.project\.id\}`/u);
   assert.doesNotMatch(library,/setAfterglowSource\("defaults"\);\s*setAfterglowOpening/u);
 });
+
+test("#2863 library opens only an authenticated, freshly verified Afterglow master, never stale browser choices",async()=>{
+  const [library,browser,api,choices]=await Promise.all([
+    "modules/library/ui/library-workspace.tsx",
+    "core/storage/profile-private-browser.ts",
+    "app/api/auth/profile-private/route.ts",
+    "modules/library/afterglow-open-contract.ts",
+  ].map(file=>readFile(new URL("../"+file,import.meta.url),"utf8")));
+  const opener=library.slice(library.indexOf("async function openVerifiedAfterglow"),
+    library.indexOf("async function unloadCurrentStory"));
+  assert.match(opener,/await refreshAfterglowLibraryFromEncryptedProfile\(\)/u);
+  assert.match(opener,/afterglowRestoreChoices\(listAfterglowExampleProjects\(\)/u);
+  assert.ok(opener.indexOf("await refreshAfterglowLibraryFromEncryptedProfile()")
+    <opener.indexOf("afterglowRestoreChoices("),"refresh must precede building choices");
+  assert.match(opener,/authority\.masterId/u);
+  assert.match(opener,/setAfterglowOpening\(\{ item, choices \}\)/u);
+  assert.match(library,/The refreshed encrypted profile has no verified consolidated master/u);
+  assert.match(browser,/await flushProfilePrivateWrites\(\)/u);
+  assert.match(browser,/await hydrateProfilePrivateBrowser\(profileId, token, true\)/u);
+  assert.match(browser,/const serverMaster = server\.afterglowMaster/u);
+  assert.match(api,/const ledgerId = "afterglow-master-" \+ createHash\("sha256"\)/u);
+  assert.match(api,/afterglowMaster: verifiedMasters\[0\] \?\? null/u);
+  assert.match(choices,/Consolidated master/u);
+  assert.doesNotMatch(opener,/createLibraryWorkingCopy|commitConsolidatedAfterglow/u);
+});

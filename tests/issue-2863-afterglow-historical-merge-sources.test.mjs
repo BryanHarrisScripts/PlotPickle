@@ -127,7 +127,7 @@ test("#2863 recovery-to-merge UI includes old point choices and blocks mistaken 
   assert.match(ui,/source\.kind==="recovery-point"/u);
   assert.match(ui,/includedHistoricalSources/u);
   assert.match(ui,/original saves and Data Recovery history remain unchanged/u);
-  assert.match(ui,/durable master save readiness requires independent encrypted snapshot provenance/u);
+  assert.match(ui,/Durable master save readiness requires independent encrypted snapshot provenance/u);
   assert.doesNotMatch(ui,/commitAfterglowMaster\(/u);
   assert.doesNotMatch(ui,/restoreRecoveryPoint\(/u);
 });

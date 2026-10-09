@@ -229,7 +229,7 @@ export function describeAfterglowConsolidationConflict(path) {
   }
   return {kind:"other",label:"Story project change",requiresSpecialReconciliation:false};
 }
-function questionEvidenceFor({baseline,projects,changes,questions,needsReview}) {
+function questionEvidenceFor({baseline,projects,sourceKeys,changes,questions,needsReview}) {
   if (questions !== undefined && (!isRecord(questions)
      || Object.values(questions).some(q=>typeof q!=="string" || !q.trim()))) {
     throw new Error("Canonical story questions must be a validated field-to-question map.");
@@ -246,11 +246,11 @@ function questionEvidenceFor({baseline,projects,changes,questions,needsReview}) 
     const question=Object.hasOwn(known,fieldId)?known[fieldId]:null;
     const status=questions===undefined?"catalog-not-provided":question?"canonical-question-matched":"unknown-canonical-question";
     if(status==="unknown-canonical-question") {
-      needsReview.push({path:key,reason:"unknown-canonical-question",sourceProjectId:sources[0]?.id??"baseline"});
+      needsReview.push({path:key,reason:"unknown-canonical-question",sourceProjectId:sourceKeys[projects.indexOf(sources[0])]??"baseline"});
     }
     rows.push({fieldId,path:key,question,questionStatus:status,
       semanticStatus:"not-assessed",
-      sourceProjectIds:sources.map(p=>p.id),
+      sourceProjectIds:sources.map(p=>sourceKeys[projects.indexOf(p)]),
       distinctAnswers:[...new Set(sources.map(p=>contributionSignature(key,p.storyDevelopment.fields[fieldId])))].length});
   }
   return rows;
@@ -265,10 +265,12 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
     if(!roots.has(key))throw new Error("Unrecognized Afterglow project field requires review: "+key);
   }
   const ids=new Set();
-  const projects=sources.map(x=>{
+  const entries=sources.map(x=>{
     const p=x?.project;
+    const id=x?.sourceKey??p?.id;
     if(!isRecord(p)||p.format!==baseline.format||sourceId(p)!==EXPECTED_REFERENCE
-       ||typeof p.id!=="string"||!p.id||ids.has(p.id)
+       ||typeof p.id!=="string"||!p.id || typeof id!=="string"||!id||ids.has(id)
+       ||(x?.sourceKey!==undefined && !(id.startsWith("point:") || id==="archived:"+p.id))
        ||typeof p.updatedAt!=="string"||!Number.isFinite(Date.parse(p.updatedAt))
        ||!equal(p.sourceEvidence.referenceFixture,baseline.sourceEvidence.referenceFixture)){
       throw new Error("Consolidation rejected invalid, foreign, altered-source or duplicate Afterglow state.");
@@ -276,22 +278,24 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
     for(const key of Object.keys(p)){
       if(!roots.has(key))throw new Error("Unrecognized saved Afterglow field requires review: "+key);
     }
-    ids.add(p.id);return p;
-  }).sort((a,b)=>a.updatedAt.localeCompare(b.updatedAt)||a.id.localeCompare(b.id));
+    ids.add(id);return {project:p,key:id,kind:x?.sourceKey?.startsWith("point:")?"recovery-point":
+      x?.sourceKey?.startsWith("archived:")?"archived-copy":"working-copy"};
+  }).sort((a,b)=>a.project.updatedAt.localeCompare(b.project.updatedAt)||a.key.localeCompare(b.key));
+  const projects=entries.map(entry=>entry.project),sourceKeys=entries.map(entry=>entry.key);
   const changes=new Map(), needsReview=[];
-  for(const p of projects){
+  for(const {project:p,key} of entries){
     const edits=[], reviews=[];
     for(const root of AFTERGLOW_DURABLE_FIELDS){
       collect(Object.hasOwn(baseline,root)?baseline[root]:ABSENT,
         Object.hasOwn(p,root)?p[root]:ABSENT,[root],edits,reviews);
     }
-    for(const x of reviews)needsReview.push({...x,sourceProjectId:p.id});
+    for(const x of reviews)needsReview.push({...x,sourceProjectId:key});
     for(const x of edits){
       if(!changes.has(x.path))changes.set(x.path,[]);
-      changes.get(x.path).push({...x,sourceProjectId:p.id});
+      changes.get(x.path).push({...x,sourceProjectId:key});
     }
   }
-  const questionEvidence=questionEvidenceFor({baseline,projects,changes,questions,needsReview});
+  const questionEvidence=questionEvidenceFor({baseline,projects,sourceKeys,changes,questions,needsReview});
   const candidate=copy(baseline),applied=[],conflicts=[];
   for(const [path,items] of [...changes].sort(([a],[b])=>a.localeCompare(b))){
     const alternatives=[...new Map(items.map(x=>[contributionSignature(path,x.value),x])).values()];
@@ -313,7 +317,7 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
       baselineValue:before===ABSENT?null:copy(before)});
 
   }
-  const reconciledVisuals=reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,conflicts});
+  const reconciledVisuals=reconcileAfterglowAcceptedVisuals({baseline,projects,sourceKeys,candidate,conflicts});
   candidate.build=reconciledVisuals.candidate.build;
   needsReview.push(...reconciledVisuals.needsReview);
   orderGraphicNovelApprovals(candidate);
@@ -328,7 +332,7 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
   visit(candidate);
   // Project ID, timestamps, profile session and revision are deliberately
   // assigned only by the later authenticated commit.
-  return {candidate,sources:projects.map(p=>({id:p.id,revision:p.revision,updatedAt:p.updatedAt})),
+  return {candidate,sources:entries.map(({project:p,key,kind})=>({id:key,projectId:p.id,kind,revision:p.revision,updatedAt:p.updatedAt})),
     applied,conflicts,needsReview,questionEvidence,
     reconciledVisuals:reconciledVisuals.reconciled,
     sourceMediaReferences:sourceMediaReferences(projects),

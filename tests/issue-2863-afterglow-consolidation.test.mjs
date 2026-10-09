@@ -94,7 +94,7 @@ test("#2863 identical changed fields converge but competing Human truth remains 
   const blocked=planAfterglowConsolidation({baseline:base,sources:[common,incompatible]});
   assert.equal(blocked.mergeShapeConsistent,false);
   assert.equal(blocked.conflicts.length,1);
-  assert.match(blocked.conflicts[0].path,/storyDevelopment\/fields\/world:a\/value/u);
+  assert.equal(blocked.conflicts[0].path,"/storyDevelopment/fields/world:a");
   assert.equal(blocked.candidate.storyDevelopment.fields["world:a"].value,"original",
     "never silently prefer newest or older contrary decision");
 });

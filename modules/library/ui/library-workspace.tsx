@@ -51,7 +51,7 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
-import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshAfterglowLibraryFromEncryptedProfile } from "../../../core/storage/profile-private-browser";
+import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshAfterglowLibraryFromEncryptedProfile, readAfterglowMasterSaveAudit, type AfterglowMasterSaveAudit } from "../../../core/storage/profile-private-browser";
 
 import { afterglowRestoreChoices, latestAfterglowSavedChoice, type AfterglowRestoreChoice } from "../afterglow-open-contract";
 
@@ -537,6 +537,7 @@ export default function LibraryWorkspace() {
     masterId: string | null;
     masterUpdatedAt: string | null;
   } | null>(null);
+  const [afterglowSaveAudit, setAfterglowSaveAudit] = useState<AfterglowMasterSaveAudit | null>(null);
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [loadPage, setLoadPage] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
@@ -637,10 +638,12 @@ export default function LibraryWorkspace() {
     setNotice("");
     setAfterglowOpening(null);
     setAfterglowMasterStatus(null);
+    setAfterglowSaveAudit(null);
     try {
       // No cached chooser can establish that the latest Save reached this
       // Human's encrypted profile. Explicitly reload before listing choices.
       const authority = await refreshAfterglowLibraryFromEncryptedProfile();
+      const saveAudit = await readAfterglowMasterSaveAudit();
       const choices = afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints());
       if (authority.masterId && !choices.some(choice => choice.id === `saved:${authority.masterId}`)) {
         throw new Error("The server has a consolidated Afterglow, but Library cannot list that exact master. Your recovery points are preserved.");
@@ -650,6 +653,7 @@ export default function LibraryWorkspace() {
         : latestAfterglowSavedChoice(choices)?.id ?? "defaults";
       setAfterglowSource(defaultChoice);
       setAfterglowMasterStatus(authority);
+      setAfterglowSaveAudit(saveAudit);
       setAfterglowOpening({ item, choices });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Encrypted Afterglow verification failed. Do not consolidate again.");
@@ -1248,7 +1252,18 @@ export default function LibraryWorkspace() {
             ) : (
               <p role="alert">The refreshed encrypted profile has no verified consolidated master.
                 Entries below are earlier independent saved changes, not proof that your latest consolidation was saved.
-                Check Afterglow Recovery’s save receipt before making another change.</p>
+                Check Afterglow Recovery’s save receipt before making another change.
+                {afterglowSaveAudit?.status === "blocked" ? (
+                  <span> Last saved attempt was blocked at {afterglowSaveAudit.stage}:
+                    {" "}{afterglowSaveAudit.message}</span>
+                ) : afterglowSaveAudit?.status === "started" ? (
+                  <span> The last attempt never recorded a completed save.</span>
+                ) : afterglowSaveAudit?.status === "saved" ? (
+                  <span> The last attempt was recorded as saved, but the verified master is
+                    missing from the current Library; preserve recovery points and investigate the index.</span>
+                ) : (
+                  <span> No previous save diagnostic was recorded.</span>
+                )}</p>
             )}
             <label>
               <span>Starting point</span>

@@ -92,6 +92,8 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   const orchestrator = await read("app/skin-v1/surface-orchestrator.tsx");
   assert.match(orchestrator, /if \(active\?\.parent === "settings"\) return null;/u,
     "Nested Settings children must not delegate Back to Dashboard legacy controls.");
+  assert.match(orchestrator, /const deepestVisible = Math\.max\(0, \.\.\.matches\.map\(surfaceDepth\)\)/u,
+    "Visible nested surfaces outrank shallower route hints on the shared Skin V1 page.");
   assert.match(orchestrator, /parentSurface: active\.parent/u,
     "Orchestrator must navigate to the registered Settings parent.");
 });

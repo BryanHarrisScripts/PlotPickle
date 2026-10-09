@@ -38,7 +38,7 @@ test("#2863 Phase 2B conflict decisions are exact, account-owned and never writa
 });
 test("#2863 Phase 2B UI shows all conflicts across pages, full values and no Save Master",async()=>{
   const content=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
-  assert.match(content,/reviewAfterglowConsolidationDecisions\(preview\.plan, decisions\)/u);
+  assert.match(content,/reviewAfterglowConsolidationDecisions\(preview\.plan, decisions, exclusions\)/u);
   assert.match(content,/conflicts: result\.conflicts,/u);
   assert.match(content,/preview\.conflicts\.slice\(conflictPage \* 10, \(conflictPage \+ 1\) \* 10\)/u);
   assert.match(content,/setConflictPage\(p => p \+ 1\)/u);

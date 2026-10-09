@@ -16,6 +16,8 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
+import { listAfterglowImageChoices, applyAfterglowImageChoices, imageIncludedInCandidate,
+  type AfterglowImageChoice } from "../afterglow-image-review.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -66,6 +68,7 @@ function describeRecoveredSnapshot(project: LibraryPPFProject, key: string,
 type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
   recovery: AfterglowRecoveredWork;
+  imageOptions: readonly AfterglowImageChoice[];
   initialProofs: readonly AfterglowSavedSnapshotProof[];
   sources: AfterglowConsolidationPlan["sources"];
   sourceInventory: string;
@@ -187,6 +190,7 @@ export default function AfterglowManagementPanel() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [exclusions, setExclusions] = useState<string[]>([]);
+  const [imageChoices, setImageChoices] = useState<Record<string,"keep"|"exclude">>({});
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -278,10 +282,24 @@ export default function AfterglowManagementPanel() {
     }
     return lookup;
   }, [canonicalFields]);
-  const reviewed = useMemo(() => preview
+  const textReviewed = useMemo(() => preview
     ? reviewAfterglowConsolidationDecisions(preview.plan, decisions, exclusions)
     : null, [preview, decisions, exclusions]);
-  const selectionFingerprint = JSON.stringify({ decisions, exclusions });
+  const imageReview=useMemo(()=>preview && textReviewed
+    ? applyAfterglowImageChoices({
+        candidate:textReviewed.candidate,items:preview.imageOptions,choices:imageChoices,
+      })
+    : null,[preview,textReviewed,imageChoices]);
+  const reviewed=useMemo(()=>textReviewed && imageReview ? {
+    ...textReviewed,candidate:imageReview.candidate,
+    localAssetsToVerify:Array.from(new Set([
+      ...textReviewed.localAssetsToVerify,
+      ...preview!.imageOptions.filter(item=>imageIncludedInCandidate(imageReview.candidate,item))
+        .map(item=>item.url).filter(url=>url.startsWith("/api/local-ai/assets/")),
+    ])).filter(url=>preview!.imageOptions.every(item=>item.url!==url
+      || imageIncludedInCandidate(imageReview.candidate,item))).sort(),
+  } : null,[preview,textReviewed,imageReview]);
+  const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices });
   const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
     group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
   ) ?? []), [preview, canonicalFields]);
@@ -301,6 +319,7 @@ export default function AfterglowManagementPanel() {
     setPreview(null);
     setDecisions({});
     setExclusions([]);
+    setImageChoices({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -319,6 +338,7 @@ export default function AfterglowManagementPanel() {
     setPreview(null);
     setDecisions({});
     setExclusions([]);
+    setImageChoices({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -367,9 +387,14 @@ export default function AfterglowManagementPanel() {
         sources: complete,
         fields: canonicalFields,
       });
+      const imageOptions = listAfterglowImageChoices({
+        sources:[{project:baseline,sourceKey:"provided-example"},...complete],
+        manifest:packagedAfterglowManifest,
+      });
       setPreview({
         plan: result,
         recovery,
+        imageOptions,
         initialProofs,
         sources: result.sources,
         sourceInventory:startingInventory,
@@ -674,6 +699,55 @@ export default function AfterglowManagementPanel() {
                 </button>
               ) : null}
             </section>
+            <section aria-label="Review character image WebPs" className={styles.imageReviewArea}>
+              <h3>View and choose character images</h3>
+              <p>Open the original WebP before deciding. A GitHub link appears only for an exact
+                filename in the packaged Afterglow manifest. The packaged copy may differ from
+                your historical local image; a matching filename is not proof of identical bytes.</p>
+              <p><strong>{preview.imageOptions.length}</strong> distinct character images found
+                across the provided example and recovered sources.
+                {" "}<strong>{Object.keys(imageChoices).length}</strong> explicit Keep/Exclude decisions.</p>
+              {Array.from(new Set(preview.imageOptions.map(item=>item.characterId))).map(characterId=>{
+                const images=preview.imageOptions.filter(item=>item.characterId===characterId);
+                return <details key={characterId} className={styles.imageCharacter}>
+                  <summary>{images[0].characterName} · {images.length} saved image{images.length===1?"":"s"}</summary>
+                  <div className={styles.imageGrid}>{images.map(item=>{
+                    const inDraft=Boolean(reviewed && imageIncludedInCandidate(reviewed.candidate,item));
+                    const conflicting=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
+                      pack.characterId===item.characterId &&
+                      pack.references.some(ref=>ref.id===item.id && ref.assetUrl!==item.url));
+                    const blocked=item.conflictingSourceMetadata||Boolean(conflicting);
+                    return <article key={item.key} className={styles.imageCard}>
+                      <AfterglowWebpThumbnail item={item}/>
+                      <strong>{item.characterName} · {item.view}</strong>
+                      <small>Saved version: {item.versionId}</small>
+                      <small>Source snapshots: {item.sourceIds.length}</small>
+                      <p className={styles.imageLinks}>
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">View original WebP</a>
+                        {item.githubUrl ? <a href={item.githubUrl} target="_blank" rel="noopener noreferrer">
+                          View on GitHub (packaged copy)</a> : null}
+                      </p>
+                      <p>{inDraft?"Included in consolidated draft":
+                        imageChoices[item.key]==="exclude"?"Excluded from consolidated draft":
+                        "Recovered — not included in draft"}</p>
+                      {blocked ? <p className={styles.caution}>Conflicting reference identity or metadata.
+                        Verify the original and competing saved copy before keeping this image.</p> : null}
+                      <div className={styles.creativeActions}>
+                        <button type="button" aria-pressed={inDraft}
+                          disabled={busy||mediaBusy||preflightBusy||blocked}
+                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"keep"}))}>Keep</button>
+                        <button type="button" aria-pressed={imageChoices[item.key]==="exclude"}
+                          disabled={busy||mediaBusy||preflightBusy||item.conflictingSourceMetadata}
+                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"exclude"}))}>Exclude</button>
+                      </div>
+                      {imageReview?.clearedLocks.some(lock=>lock.characterId===item.characterId) ?
+                        <small className={styles.caution}>Excluding the last image in a locked version
+                          clears that lock in the proposed draft only. The saved original stays locked.</small> : null}
+                    </article>;
+                  })}</div>
+                </details>;
+              })}
+            </section>
             <section aria-label="Recovered Mind Map and character work" className={styles.recoveryArea}>
               <h3>CONSOLIDATED creative work</h3>
               <p>This is your proposed Afterglow assembled from the saved versions.
@@ -681,7 +755,8 @@ export default function AfterglowManagementPanel() {
                 for comparison. An Agent suggestion is not automatically an accepted answer.
                 Unverified artwork is not silently approved.
                 Original versions are unchanged; nothing has been saved yet.</p>
-              {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length).map((group,index)=>(
+              {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length
+                && group.id!=="visuals").map((group,index)=>(
                 <details key={group.id} open={index === 0}>
                   <summary><strong>{group.label}</strong> · {group.items.length} saved item{group.items.length === 1 ? "" : "s"}</summary>
                   <ul className={styles.recoveryList}>

@@ -208,9 +208,10 @@ function preserveLegacySessionRecords() {
     .map((key) => [key.includes(".quarantine.") ? key : `${LEGACY_LIBRARY_PREFIX}quarantine.sign-in.${key}`, window.sessionStorage.getItem(key)] as const);
 }
 
-export async function hydrateProfilePrivateBrowser(profileId: string, token: string) {
-  // Re-reading the same live authority must not replace a newer working story.
-  if (profilePrivateBrowserAuthorityMatches(profileId, token)) return;
+export async function hydrateProfilePrivateBrowser(profileId: string, token: string, forceVerifiedReload = false) {
+  // A normal sign-in hydration may never replace a newer working story.
+  // A verified master commit is the sole deliberate forced fresh readback.
+  if (!forceVerifiedReload && profilePrivateBrowserAuthorityMatches(profileId, token)) return;
   if (hydratedProfileId) await flushProfilePrivateWrites();
   const epoch = ++authorityEpoch;
   acknowledgedProjects.clear();
@@ -379,6 +380,56 @@ export function persistActiveProfileProject(explicitToken = "", confirmProjectId
   const clear = () => { if (pendingLibraryWrite === target) pendingLibraryWrite = null; };
   void promise.then(clear, clear);
   return promise;
+}
+
+export type ConsolidatedAfterglowReceipt = Readonly<{
+  ok:true;masterId:string;sourceCount:number;historicalSources:number;
+  archivedSourceCount:number;decisionsCompleted:number;readbackVerified:true;
+  message:string;libraryRefreshed:boolean;
+}>;
+
+/**
+ * Only a signed-in, encrypted profile may request a server-recomputed master.
+ * The caller supplies review evidence, never a client-controlled saved story.
+ */
+export async function commitConsolidatedAfterglow(input:Readonly<{
+  selections:Readonly<{
+    decisions:Readonly<Record<string,number|"baseline">>;
+    exclusions:readonly string[];
+    confirmedCurrent:Readonly<Record<string,boolean>>;
+    imageChoices:Readonly<Record<string,"keep"|"exclude">>;
+  }>;
+  expectedSources:readonly Readonly<{key:string;digest:string}>[];
+}>):Promise<ConsolidatedAfterglowReceipt> {
+  await flushProfilePrivateWrites();
+  const profileId=hydratedProfileId,token=csrfToken;
+  if(!profileId || !token || !profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("Unlock your personal profile before saving consolidated Afterglow.");
+  }
+  let receipt:ConsolidatedAfterglowReceipt|null=null;
+  await queueWriteOperation(async writeToken=>{
+    if(hydratedProfileId!==profileId||csrfToken!==token)
+      throw new Error("The signed-in profile changed before consolidation.");
+    receipt=await privateMutation("commit-afterglow-master",{
+      selections:input.selections,expectedSources:input.expectedSources,
+    },writeToken) as unknown as ConsolidatedAfterglowReceipt;
+    if(!receipt.ok || receipt.readbackVerified!==true || !receipt.masterId) {
+      throw new Error("Afterglow did not pass authenticated master readback.");
+    }
+  },token);
+  if(!receipt)throw new Error("The consolidated story did not receive a server receipt.");
+  let libraryRefreshed=false;
+  try {
+    if(profilePrivateBrowserReadyFor(profileId))
+      await hydrateProfilePrivateBrowser(profileId,token,true);
+    libraryRefreshed=profilePrivateBrowserReadyFor(profileId);
+  } catch {
+    // The server already committed and returned a validated receipt.
+    // Do not retry the transaction or misrepresent a successful write as
+    // unsaved. User can sign in again to refresh their Library.
+    libraryRefreshed=false;
+  }
+  return {...receipt,libraryRefreshed};
 }
 
 export function deleteArchivedProfileProjectFromVault(projectId: string) {

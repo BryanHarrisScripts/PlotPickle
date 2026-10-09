@@ -154,5 +154,5 @@ export async function authorizeServerAfterglowMasterCommit(input:{
     throw new Error("The proposed master differs from the independently recomputed Human choices.");
   }
   const mediaPins=await verifyServerAfterglowMedia(proposed);
-  return {authorized:true,mediaPins};
+  return {authorized:true as const,mediaPins};
 }

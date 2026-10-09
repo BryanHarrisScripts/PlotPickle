@@ -101,14 +101,13 @@ test("#2863 historical recovery states are re-read from vault and preserved beyo
   }finally{restarted.close();}
 });
 test("#2863 selected local WebP bytes are pinned in encrypted chunks and manifest before master index",async t=>{
+  const bytes=Buffer.concat([Buffer.from("RIFF"),Buffer.from([18,0,0,0]),
+    Buffer.from("WEBPchosen-Ren")]);
+  const pinHash="sha256:"+createHash("sha256").update(bytes).digest("hex");
   const {storage,root,context,proofs,master,makeStore}=await setup(t,1,
     ()=>({authorized:true,mediaPins:[{
-      url:"/api/local-ai/assets/ren-choice.webp",
-      contentHash:"sha256:"+createHash("sha256").update(
-        Buffer.from("RIFF\\x12\\x00\\x00\\x00WEBPchosen-Ren")
-      ).digest("hex"),escrow:true,
+      url:"/api/local-ai/assets/ren-choice.webp",contentHash:pinHash,escrow:true,
     }]}));
-  const bytes=Buffer.from("RIFF\\x12\\x00\\x00\\x00WEBPchosen-Ren");
   await mkdir(path.join(root,"assets"),{recursive:true});
   await writeFile(path.join(root,"assets","ren-choice.webp"),bytes);
   await storage.commitAfterglowMaster(context,{master,sources:await proofs()});

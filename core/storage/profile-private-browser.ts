@@ -42,6 +42,7 @@ type HydratedPrivateState = {
   readonly wyrmwood: unknown | null;
   readonly storyMapContexts: unknown | null;
   readonly recoveryPoints?: unknown;
+  readonly afterglowMaster?: Readonly<{ masterId: string; updatedAt: string }> | null;
 };
 
 type ProfilePrivateSaveState = Readonly<{
@@ -288,21 +289,23 @@ export async function refreshAfterglowLibraryFromEncryptedProfile(): Promise<Rea
     throw new Error("Encrypted Afterglow Library verification failed. Older browser choices are not authoritative.");
   }
   const server = await response.json() as HydratedPrivateState;
-  const serverMasters = (Array.isArray(server.projects) ? server.projects : [])
-    .filter((entry) => {
-      const summary = entry.summary;
-      const id = entry.project && typeof entry.project === "object"
-        ? (entry.project as { id?: unknown }).id : null;
-      return typeof id === "string" && id.startsWith("afterglow-consolidated-")
-        && summary?.sourceKind === "example" && summary?.sourceId === "afterglow-v9"
-        && !summary.archivedAt;
-    })
-    .sort((a, b) => String(b.summary?.updatedAt ?? "").localeCompare(String(a.summary?.updatedAt ?? "")));
-  const serverMaster = serverMasters[0] ?? null;
-  const masterId = serverMaster && typeof serverMaster.project === "object" && serverMaster.project
-    ? String((serverMaster.project as { id: string }).id) : null;
-  const masterUpdatedAt = serverMaster && typeof serverMaster.summary?.updatedAt === "string"
-    ? serverMaster.summary.updatedAt : null;
+  // GET provides only a master whose independently written encrypted commit
+  // ledger matches this profile's current unarchived Afterglow index. A normal
+  // saved copy with a convincing-looking ID is not consolidation authority.
+  const serverMaster = server.afterglowMaster;
+  const masterId = typeof serverMaster?.masterId === "string"
+    && serverMaster.masterId.startsWith("afterglow-consolidated-")
+    ? serverMaster.masterId : null;
+  const masterUpdatedAt = masterId && typeof serverMaster?.updatedAt === "string"
+    ? serverMaster.updatedAt : null;
+  if (masterId && !(server.projects ?? []).some(entry =>
+    entry.project && typeof entry.project === "object"
+    && (entry.project as { id?: unknown }).id === masterId
+    && entry.summary?.sourceKind === "example"
+    && entry.summary?.sourceId === "afterglow-v9"
+    && !entry.summary?.archivedAt)) {
+    throw new Error("Encrypted master ledger and saved Library inventory disagree. Do not save again.");
+  }
   const selectedProjectId = sessionActiveProjectId();
   await hydrateProfilePrivateBrowser(profileId, token, true);
   if (hydratedProfileId !== profileId || csrfToken !== token) {

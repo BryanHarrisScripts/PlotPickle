@@ -17,6 +17,16 @@ export type AfterglowConsolidationPlan = Readonly<{
   candidate: LibraryPPFProject;
   sources: ReadonlyArray<Readonly<{ id: string; revision: number; updatedAt: string }>>;
   applied: AfterglowConsolidationChange[];
+  /** Read-only canonical field mapping: matching a question is not semantic proof. */
+  questionEvidence: ReadonlyArray<Readonly<{
+    fieldId: string;
+    path: string;
+    question: string | null;
+    questionStatus: "catalog-not-provided" | "canonical-question-matched" | "unknown-canonical-question";
+    semanticStatus: "not-assessed";
+    sourceProjectIds: string[];
+    distinctAnswers: number;
+  }>>;
   /** Existing Human visual acceptances reconciled from every snapshot. */
   reconciledVisuals: ReadonlyArray<Readonly<{
     path: string;
@@ -39,6 +49,8 @@ export type AfterglowConsolidationPlan = Readonly<{
 export declare function planAfterglowConsolidation(input: {
   readonly baseline: LibraryPPFProject;
   readonly sources: ReadonlyArray<Readonly<{ project: LibraryPPFProject }>>;
+  /** Exact canonical field ID → original curriculum prompt; required by live UI. */
+  readonly questions?: Readonly<Record<string, string>>;
 }): AfterglowConsolidationPlan;
 export declare const AFTERGLOW_DURABLE_FIELDS: readonly string[];
 export declare function describeAfterglowConsolidationConflict(path: string): Readonly<{

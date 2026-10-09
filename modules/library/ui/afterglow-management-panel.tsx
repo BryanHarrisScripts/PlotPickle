@@ -87,6 +87,23 @@ type Preview = Readonly<{
   mergeShapeConsistent: boolean;
 }>;
 
+function AfterglowWebpThumbnail({item}:{readonly item:AfterglowImageChoice}) {
+  const [unavailable,setUnavailable] = useState(false);
+  return <div className={styles.imagePreview}>
+    {!unavailable ? <img src={item.url}
+      loading="lazy" alt={item.characterName+" — "+item.view}
+      onError={()=>setUnavailable(true)}/> : (
+      <div className={styles.missingImage}>
+        Local image unavailable. Open the original or inspect the packaged comparison below.
+      </div>
+    )}
+    {unavailable && item.packagedPublicUrl ? <>
+      <img src={item.packagedPublicUrl} loading="lazy"
+        alt={"Packaged comparison only: "+item.characterName+" — "+item.view}/>
+      <small>Packaged comparison only — not proof of the original saved bytes</small>
+    </> : null}
+  </div>;
+}
 function profileReady() {
   const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
   return profilePrivateBrowserReadyFor(profileId);

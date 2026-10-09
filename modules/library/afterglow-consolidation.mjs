@@ -139,7 +139,7 @@ export function describeAfterglowConsolidationConflict(path) {
       requiresSpecialReconciliation:true};
   }
   if (path.startsWith("/production/graphicNovelTextApprovals/@approval:")) {
-    const number = /:position:(\\d+)$/.exec(path);
+    const number = /:position:(\d+)$/.exec(path);
     return {kind:"shot-narration-approval",
       label:number?"Graphic Novel narration — Shot "+number[1]:"Graphic Novel narration approval",
       requiresSpecialReconciliation:true};

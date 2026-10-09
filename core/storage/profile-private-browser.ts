@@ -264,6 +264,65 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   }
 }
 
+/**
+ * Opening the Afterglow chooser is an explicit read of the encrypted Library,
+ * never a read of an hours-old browser dropdown. Do not create a story, mark a
+ * browser snapshot as server truth, or discard any queued authoring writes.
+ *
+ * The committed server master is identified by its server-minted immutable ID,
+ * not by the generic Library active-story selection (which unload can clear).
+ */
+export async function refreshAfterglowLibraryFromEncryptedProfile(): Promise<Readonly<{
+  readonly masterId: string | null;
+  readonly masterUpdatedAt: string | null;
+}>> {
+  const profileId = hydratedProfileId, token = csrfToken;
+  if (!profileId || !token || !profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("Unlock your personal profile to check saved Afterglow.");
+  }
+  await flushProfilePrivateWrites();
+  const response = await fetch("/api/auth/profile-private", {
+    credentials: "same-origin", cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("Encrypted Afterglow Library verification failed. Older browser choices are not authoritative.");
+  }
+  const server = await response.json() as HydratedPrivateState;
+  const serverMasters = (Array.isArray(server.projects) ? server.projects : [])
+    .filter((entry) => {
+      const summary = entry.summary;
+      const id = entry.project && typeof entry.project === "object"
+        ? (entry.project as { id?: unknown }).id : null;
+      return typeof id === "string" && id.startsWith("afterglow-consolidated-")
+        && summary?.sourceKind === "example" && summary?.sourceId === "afterglow-v9"
+        && !summary.archivedAt;
+    })
+    .sort((a, b) => String(b.summary?.updatedAt ?? "").localeCompare(String(a.summary?.updatedAt ?? "")));
+  const serverMaster = serverMasters[0] ?? null;
+  const masterId = serverMaster && typeof serverMaster.project === "object" && serverMaster.project
+    ? String((serverMaster.project as { id: string }).id) : null;
+  const masterUpdatedAt = serverMaster && typeof serverMaster.summary?.updatedAt === "string"
+    ? serverMaster.summary.updatedAt : null;
+  const selectedProjectId = sessionActiveProjectId();
+  await hydrateProfilePrivateBrowser(profileId, token, true);
+  if (hydratedProfileId !== profileId || csrfToken !== token) {
+    throw new Error("The signed-in profile changed during Afterglow verification.");
+  }
+  if (masterId) {
+    const masterSummary = listAfterglowExampleProjects().find(item => item.id === masterId);
+    const snapshot = masterSummary ? loadLibraryProjectSnapshot(masterId) : null;
+    if (!snapshot || snapshot.id !== masterId
+      || snapshot.sourceEvidence.referenceFixture?.sourceId !== "afterglow-v9-complete-baseline") {
+      throw new Error("The encrypted profile has a consolidated Afterglow, but Library cannot read its exact saved snapshot. Do not save again.");
+    }
+  }
+  // Browsing a starting-point dialog is not consent to unload another story.
+  if (selectedProjectId && loadLibraryProjectSnapshot(selectedProjectId)) {
+    resumeSessionActiveProject(selectedProjectId);
+  }
+  return {masterId, masterUpdatedAt};
+}
+
 export function profilePrivateBrowserAuthorityMatches(profileId: string, token: string) {
   const normalizedProfileId = profileId.trim();
   return Boolean(normalizedProfileId && token && hydratedProfileId === normalizedProfileId && csrfToken === token);

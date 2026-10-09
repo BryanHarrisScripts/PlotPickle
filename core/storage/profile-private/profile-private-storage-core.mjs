@@ -396,6 +396,133 @@ export function createProfilePrivateStorageService(options) {
     async saveProject(authContext, input) {
       return withMutation(authContext, (access) => saveProjectInternal(access, input));
     },
+    /**
+     * #2863 Phase 2C: stage a completely new, account-owned Afterglow master,
+     * verify its encrypted readback, then publish ONE atomic Library index
+     * transition. The source project objects are never overwritten/deleted.
+     *
+     * This intentionally has NO public HTTP action. A trusted server-side
+     * media/semantic approval gate must be installed before it can execute.
+     * Browser flags or a user-supplied "approved" value are not authority.
+     */
+    async commitAfterglowMaster(authContext, input) {
+      return withMutation(authContext, async (access) => {
+        if (typeof options.authorizeAfterglowMasterCommit !== "function") {
+          fail("A trusted Afterglow media and creative approval gate is not installed.", "AFTERGLOW_COMMIT_NOT_AUTHORIZED");
+        }
+        if (!input || !Array.isArray(input.sources) || !input.sources.length || input.sources.length > 1000
+          || !input.master || typeof input.master !== "object" || Array.isArray(input.master)) {
+          fail("The complete Afterglow source set and master are required.", "INVALID_AFTERGLOW_MASTER");
+        }
+        const library = await readLibrary(access);
+        const originals = library.projects.filter((item) =>
+          item.sourceKind === "example" && item.sourceId === "afterglow-v9" && !item.archivedAt);
+        const proofMap = new Map();
+        for (const proof of input.sources) {
+          if (!proof || typeof proof.projectId !== "string" || !proof.projectId
+            || proofMap.has(proof.projectId) || !/^sha256:[a-f0-9]{64}$/.test(proof.digest ?? "")
+            || !Number.isInteger(proof.revision) || typeof proof.updatedAt !== "string") {
+            fail("Source identities or content hashes are missing, invalid or duplicated.", "INVALID_AFTERGLOW_SOURCE_PROOFS");
+          }
+          proofMap.set(proof.projectId, proof);
+        }
+        if (originals.length !== proofMap.size || originals.some((item) => !proofMap.has(item.projectId))) {
+          fail("The account-owned Afterglow source set changed or is incomplete.", "STALE_AFTERGLOW_SOURCE_SET");
+        }
+        const storedSources = [];
+        for (const summary of originals) {
+          const saved = await readObject(access, "projects", summary.projectId);
+          const proof = proofMap.get(summary.projectId);
+          if (!saved || saved.id !== summary.projectId
+            || saved.revision !== proof.revision || summary.updatedAt !== proof.updatedAt
+            || "sha256:" + createHash("sha256").update(JSON.stringify(saved)).digest("hex") !== proof.digest) {
+            fail("An Afterglow source changed since review; no master was made current.", "STALE_AFTERGLOW_SOURCE_BYTES");
+          }
+          storedSources.push({ summary, project: saved, proof });
+        }
+        const proposed = typeof options.normalizeProject === "function"
+          ? options.normalizeProject(input.master) : structuredClone(input.master);
+        if (!proposed || typeof proposed !== "object" || Array.isArray(proposed)) {
+          fail("Master normalization failed.", "INVALID_AFTERGLOW_MASTER");
+        }
+        const masterId = normalizeObjectId(proposed.id, "Consolidated master");
+        if (library.projects.some((item) => item.projectId === masterId)
+          || await readObject(access, "projects", masterId) !== null
+          || proposed?.sourceEvidence?.referenceFixture?.sourceId !== "afterglow-v9-complete-baseline") {
+          fail("Master must have a new identity and the unchanged Afterglow baseline provenance.", "INVALID_AFTERGLOW_MASTER");
+        }
+        const approved = await options.authorizeAfterglowMasterCommit({
+          profileId: access.profileId,
+          candidate: structuredClone(proposed),
+          originals: structuredClone(storedSources),
+        });
+        if (approved !== true) {
+          fail("Independent media, question relevance and Human confirmation did not all pass.", "AFTERGLOW_COMMIT_NOT_AUTHORIZED");
+        }
+        // Recheck after the asynchronous trusted approval callback. No
+        // other service mutation can interleave with this profile's queue.
+        const fresh = await readLibrary(access);
+        if (JSON.stringify(fresh.projects) !== JSON.stringify(library.projects)
+          || fresh.activeProjectId !== library.activeProjectId) {
+          fail("The Library changed while the master was being approved.", "STALE_AFTERGLOW_SOURCE_SET");
+        }
+        for (const original of storedSources) {
+          const current = await readObject(access, "projects", original.summary.projectId);
+          if ("sha256:" + createHash("sha256").update(JSON.stringify(current)).digest("hex") !== original.proof.digest) {
+            fail("Saved Afterglow bytes changed before the commit.", "STALE_AFTERGLOW_SOURCE_BYTES");
+          }
+        }
+        const committedAt = now();
+        const masterSummary = projectSummary(proposed, {
+          title: proposed.title, createdAt: committedAt, updatedAt: committedAt,
+          sourceKind: "example", sourceId: "afterglow-v9", archivedAt: null,
+          genre: storedSources[0].summary.genre, format: storedSources[0].summary.format,
+        }, committedAt);
+        const originalIds = new Set(storedSources.map((item) => item.summary.projectId));
+        const next = {
+          ...library,
+          activeProjectId: masterId,
+          projects: [
+            masterSummary,
+            ...library.projects.map((item) =>
+              originalIds.has(item.projectId) ? { ...item, archivedAt: committedAt } : item),
+          ],
+          updatedAt: committedAt,
+        };
+        // Write an encrypted rollback ledger BEFORE staging the new file.
+        // The old index remains authoritative until the single registry write.
+        const ledgerId = "afterglow-master-" + createHash("sha256").update(masterId).digest("hex");
+        await writeObject(access, "indexes", ledgerId, {
+          version: 1, previousRegistry: library, masterId, committedAt,
+          originalProofs: storedSources.map((item) => item.proof),
+        });
+        await writeObject(access, "projects", masterId, proposed);
+        const staged = await readObject(access, "projects", masterId);
+        if (JSON.stringify(staged) !== JSON.stringify(proposed)) {
+          fail("Encrypted master readback differs from the selected candidate.", "AFTERGLOW_MASTER_READBACK_FAILED");
+        }
+        await writeLibrary(access, next);
+        const verifiedIndex = await readLibrary(access);
+        const verifiedMaster = await readObject(access, "projects", masterId);
+        if (verifiedIndex.activeProjectId !== masterId
+          || JSON.stringify(verifiedIndex.projects) !== JSON.stringify(next.projects)
+          || JSON.stringify(verifiedMaster) !== JSON.stringify(proposed)) {
+          fail("The committed master or Library registry failed independent readback.", "AFTERGLOW_MASTER_READBACK_FAILED");
+        }
+        // Do not silently drop original project objects after index publication.
+        for (const original of storedSources) {
+          const preserved = await readObject(access, "projects", original.summary.projectId);
+          if ("sha256:" + createHash("sha256").update(JSON.stringify(preserved)).digest("hex") !== original.proof.digest) {
+            fail("An original Afterglow snapshot failed post-commit recovery readback.", "AFTERGLOW_HISTORY_READBACK_FAILED");
+          }
+        }
+        activeProjects.set(authContext.sessionId, { profileId: access.profileId, projectId: masterId });
+        return Object.freeze({
+          masterId, sourceCount: storedSources.length, archivedSourceCount: storedSources.length,
+          readbackVerified: true,
+        });
+      });
+    },
     async syncLibrary(authContext, input) {
       return withMutation(authContext, async (access) => {
         if (!Array.isArray(input?.projects) || input.projects.length > 1000) fail("Profile Library sync inventory is invalid.", "INVALID_PROJECT_INVENTORY");

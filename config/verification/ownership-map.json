@@ -226,7 +226,9 @@
         "modules/library/afterglow-media-integrity.d.mts",
         "modules/library/afterglow-consolidation.d.mts",
         "modules/library/afterglow-work-recovery.mjs",
-        "modules/library/afterglow-work-recovery.d.mts"
+        "modules/library/afterglow-work-recovery.d.mts",
+        "modules/library/afterglow-version-summary.mjs",
+        "modules/library/afterglow-version-summary.d.mts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

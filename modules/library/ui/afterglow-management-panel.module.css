@@ -66,3 +66,12 @@
 .creativeActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
 .creativeActions span{font-size:11px;color:var(--pp-teal,#35c9b8)}
 .creativeReview .recoveryValue p{font-size:12px;white-space:pre-wrap}
+
+/* Brief per-copy inventory at the original Settings → Afterglow list. */
+.sourceList li.sourceRow{display:grid;gap:5px;justify-content:stretch;padding:11px 12px}
+.sourceHeading{display:flex;gap:8px 14px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.sourceHeading strong{color:var(--pp-text,#f1eee7);font-size:12px}
+.sourceList li.sourceRow p{margin:2px 0 0;line-height:1.55}
+.sourceBrief{font-size:11px!important;color:var(--pp-text,#f1eee7)!important;overflow-wrap:anywhere}
+.sourceBrief strong{color:var(--pp-teal,#35c9b8);font-weight:700}
+.sourceTopics{font-size:10px!important;color:var(--pp-muted,#b5b1aa)!important;overflow-wrap:anywhere}

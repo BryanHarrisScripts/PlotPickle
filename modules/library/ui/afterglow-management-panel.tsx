@@ -5,7 +5,7 @@ import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catal
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
-import type { AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
+import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -74,6 +74,24 @@ async function exactSavedSnapshotProofs(items: readonly {readonly project: {
     return {id:project.id,revision:project.revision,updatedAt:project.updatedAt,digest:"sha256:"+hex};
   }));
 }
+function readableCreativeChoice(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item=value as Record<string, unknown>;
+  if (typeof item.value === "string" && item.value.trim()) return item.value;
+  if (typeof item.text === "string" && item.text.trim()) return item.text;
+  if (item.noText === true) return "Approved: no caption or dialogue";
+  if (typeof item.narration === "string" && item.narration.trim()) return item.narration;
+  if (Array.isArray(item.bubbles)) {
+    const dialogue=item.bubbles.map(bubble => {
+      if (!bubble || typeof bubble !== "object") return "";
+      const text=bubble as {text?: unknown; dialogue?:unknown; content?:unknown};
+      return [text.text,text.dialogue,text.content].find(part=>typeof part==="string" && part.trim()) ?? "";
+    }).filter(Boolean);
+    if (dialogue.length) return dialogue.join("\n");
+  }
+  return null;
+}
 function summarizeHumanValue(value: unknown, path = "") {
   if (Array.isArray(value) && path.endsWith("/acceptedVisualArtifactIds")) {
     return value.length + " accepted artwork IDs; lock and media proof required";
@@ -112,6 +130,7 @@ export default function AfterglowManagementPanel() {
   const [sources, setSources] = useState<readonly ProjectLibrarySummary[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
+  const [exclusions, setExclusions] = useState<string[]>([]);
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -129,19 +148,24 @@ export default function AfterglowManagementPanel() {
   } | null>(null);
   const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
+  const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
-    for (const field of buildStoryDevelopmentFields(plotPickleCurriculum)) {
+    for (const field of canonicalFields) {
       lookup.set(field.canonicalId, field.prompt);
       if (field.scope !== "project-wide") {
         for (const act of field.validActs) lookup.set(field.canonicalId + "::act-" + act, field.prompt);
       }
     }
     return lookup;
-  }, []);
+  }, [canonicalFields]);
   const reviewed = useMemo(() => preview
-    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions)
-    : null, [preview, decisions]);
+    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions, exclusions)
+    : null, [preview, decisions, exclusions]);
+  const selectionFingerprint = JSON.stringify({ decisions, exclusions });
+  const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
+    group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
+  ) ?? []), [preview, canonicalFields]);
 
   const refresh = useCallback(() => {
     const ready = profileReady();
@@ -149,6 +173,7 @@ export default function AfterglowManagementPanel() {
     setSources(ready ? listAfterglowExampleProjects() : []);
     setPreview(null);
     setDecisions({});
+    setExclusions([]);
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -166,6 +191,7 @@ export default function AfterglowManagementPanel() {
     setBusy(true);
     setPreview(null);
     setDecisions({});
+    setExclusions([]);
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -209,7 +235,7 @@ export default function AfterglowManagementPanel() {
       const recovery = inventoryAfterglowRecoveredWork({
         baseline,
         sources: complete,
-        fields: buildStoryDevelopmentFields(plotPickleCurriculum),
+        fields: canonicalFields,
       });
       setPreview({
         plan: result,
@@ -238,7 +264,7 @@ export default function AfterglowManagementPanel() {
 
   const mediaMatches = mediaState !== null
     && mediaState.sources === inventoryFingerprint(sources)
-    && mediaState.choices === JSON.stringify(decisions);
+    && mediaState.choices === selectionFingerprint;
   const mediaReport = mediaMatches ? mediaState.report : null;
 
   async function verifyMediaEvidence() {
@@ -250,7 +276,7 @@ export default function AfterglowManagementPanel() {
     setPreflightNotice("");
     const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
     const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
-    const choices = JSON.stringify(decisions);
+    const choices = selectionFingerprint;
     const guard = () => {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profilePrivateBrowserReadyFor(profileId)
@@ -326,7 +352,7 @@ export default function AfterglowManagementPanel() {
       if (JSON.stringify(await exactSavedSnapshotProofs(snapshots)) !== JSON.stringify(preview.initialProofs)) {
         throw new Error("Saved source bytes changed during inspection. Refresh and repeat the review.");
       }
-      if (choices !== JSON.stringify(decisions)) {
+      if (choices !== selectionFingerprint) {
         throw new Error("Conflict choices changed during media inspection. Inspect the new selection again.");
       }
       setMediaState({report:result,sources:startingInventory,choices});
@@ -338,7 +364,7 @@ export default function AfterglowManagementPanel() {
 
   const preflightReport = preflightState !== null && mediaMatches
     && preflightState.sources === inventoryFingerprint(sources)
-    && preflightState.choices === JSON.stringify(decisions) ? preflightState.report : null;
+    && preflightState.choices === selectionFingerprint ? preflightState.report : null;
   async function checkMasterSavePreflight() {
     if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
     setPreflightBusy(true);
@@ -372,10 +398,10 @@ export default function AfterglowManagementPanel() {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profileReady() || inventory !== inventoryFingerprint(listAfterglowExampleProjects())
         || JSON.stringify(finalProofs) !== JSON.stringify(currentProofs)
-        || JSON.stringify(decisions) !== (mediaState?.choices ?? "")) {
+        || selectionFingerprint !== (mediaState?.choices ?? "")) {
         throw new Error("Profile, saved bytes or selected story decisions changed. Re-run the review.");
       }
-      setPreflightState({report:result,sources:inventory,choices:JSON.stringify(decisions)});
+      setPreflightState({report:result,sources:inventory,choices:selectionFingerprint});
       setPreflightNotice("Read-only save-preparation check completed. No new master was created.");
     } catch(error) {
       setPreflightNotice(error instanceof Error ? error.message : "The save-preparation proof could not complete.");

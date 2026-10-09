@@ -162,3 +162,27 @@ test("#2863 authenticated HTTP save is now independently recomputed and rejects 
   assert.match(panel,/reviewProgress\.allCreativeDecided/u);
   assert.match(panel,/commitConsolidatedAfterglow\(/u);
 });
+
+test("#2863 encrypted consolidation ledger outlives unload and a detached restart", async t => {
+  const {storage,context,makeStore,proofs,master}=await setup(t,4,allow);
+  await storage.commitAfterglowMaster(context,{master,sources:await proofs()});
+  // The UI intentionally detaches the active selection during Unload, but
+  // must never lose the independently verified current personal master.
+  await storage.syncLibraryIndex(context,{
+    summaries:await storage.listProjects(context),activeProjectId:null,
+  });
+  const restarted=makeStore();
+  try {
+    const next={sessionId:"detached-afterglow",profileId:context.profileId};
+    assert.equal(await restarted.loadActiveProject(next),null);
+    const list=await restarted.listProjects(next);
+    const saved=list.filter(row=>!row.archivedAt && row.sourceKind==="example"
+      && row.sourceId==="afterglow-v9");
+    assert.equal(saved.length,1,"unload may clear selection but not archive current master");
+    assert.equal(saved[0].projectId,master.id);
+    const ledgerId="afterglow-master-"+createHash("sha256").update(master.id).digest("hex");
+    const ledger=await restarted.readPrivateJson(next,{domain:"indexes",objectId:ledgerId});
+    assert.equal(ledger.masterId,master.id,"server proof cannot be inferred from a browser timestamp");
+    assert.equal((await restarted.loadProject(next,master.id)).id,master.id);
+  }finally{restarted.close();}
+});

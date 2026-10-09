@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
+import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -42,6 +44,12 @@ function displayDate(value: string) {
   return Number.isNaN(date.valueOf()) ? "Date unavailable" :
     new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
+function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, string>) {
+  const match = /^\/storyDevelopment\/fields\/([^/]+)\/(?:value|updatedAt)$/.exec(path);
+  if (!match) return null;
+  const storedFieldId = match[1].replace(/~1/g, "/").replace(/~0/g, "~");
+  return questions.get(storedFieldId) ?? null;
+}
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
   return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
 }
@@ -80,6 +88,16 @@ export default function AfterglowManagementPanel() {
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const questionByField = useMemo(() => {
+    const lookup = new Map<string, string>();
+    for (const field of buildStoryDevelopmentFields(plotPickleCurriculum)) {
+      lookup.set(field.canonicalId, field.prompt);
+      if (field.scope !== "project-wide") {
+        for (const act of field.validActs) lookup.set(field.canonicalId + "::act-" + act, field.prompt);
+      }
+    }
+    return lookup;
+  }, []);
   const reviewed = useMemo(() => preview
     ? reviewAfterglowConsolidationDecisions(preview.plan, decisions)
     : null, [preview, decisions]);
@@ -203,12 +221,14 @@ export default function AfterglowManagementPanel() {
             {preview.conflictCount ? (
               <section aria-label="Resolve competing saved values" className={styles.decisionArea}>
                 <h3>Review conflicting values</h3>
-                <p>Choose the value to keep for each competing field. These choices only update your review;
-                  they do not save, delete, publish, or replace any source version.
-                  Structural overlaps still require a separate resolution.</p>
+                <p>PlotPickle should automatically reconcile repeated testing and complementary approved changes
+                  against each field's actual question. This diagnostic view shows unresolved exceptions;
+                  only genuinely incompatible answers should need a targeted choice.
+                  No selection here saves, deletes, publishes, or replaces a source version.</p>
                 {preview.conflicts.slice(conflictPage * 10, (conflictPage + 1) * 10).map((item, index) => {
                   const id = "afterglow-conflict-" + (conflictPage * 10 + index);
                   const category = describeAfterglowConsolidationConflict(item.path);
+                  const canonicalQuestion = canonicalQuestionForPath(item.path, questionByField);
                   const selectable = item.reason === "competing-values" && (item.options?.length ?? 0) > 0
                     && !["visual-approval-collection", "narration-approval-collection", "authorship-metadata"].includes(category.kind);
                   return (
@@ -216,6 +236,7 @@ export default function AfterglowManagementPanel() {
                       <div className={styles.conflictHeading}>
                         <strong>{category.label}</strong>
                         <span>{item.reason}</span>
+                        {canonicalQuestion ? <p className={styles.question}><strong>Original question:</strong> {canonicalQuestion}</p> : null}
                         <code>{item.path}</code>
                       </div>
                       {selectable ? (
@@ -268,9 +289,10 @@ export default function AfterglowManagementPanel() {
                     <button type="button" disabled={(conflictPage + 1) * 10 >= preview.conflictCount} onClick={() => setConflictPage(p => p + 1)}>Next conflicts</button>
                   </div>
                 ) : null}
-                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> selected;
-                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> conflicting paths unresolved;
-                  <strong> {preview.reviewCount}</strong> other review items still require decisions.</p>
+                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> diagnostic selections;
+                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> remaining conflicting paths;
+                  <strong> {preview.reviewCount}</strong> other items requiring deterministic reconciliation.
+                  These are not necessarily additional Human approvals.</p>
                 <p>{reviewed?.decisionShapeConsistent
                   ? "All reported structural choices are accounted for. Media verification, an approved durable master, and restart readback are still required."
                   : "The master is not ready to save; some changes still require review."}</p>

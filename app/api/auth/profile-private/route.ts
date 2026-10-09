@@ -1,4 +1,7 @@
 import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
+import { randomUUID,createHash } from "node:crypto";
+import {readServerAfterglowSources,prepareServerAfterglowMaster}
+  from "../../../../modules/library/afterglow-master-server";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
@@ -92,6 +95,48 @@ export async function POST(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request, true);
     const input = await request.json() as Record<string, unknown>;
+    if (input.action === "commit-afterglow-master") {
+      // The browser supplies only choice evidence and source fingerprints.
+      // Never accept a client-created master, ready flag, archive index or
+      // provider approval as write authority.
+      const selections=input.selections as {
+        decisions:Record<string,number|"baseline">;
+        exclusions:string[];
+        confirmedCurrent:Record<string,boolean>;
+        imageChoices:Record<string,"keep"|"exclude">;
+      };
+      const expectedSources=input.expectedSources as {key:string;digest:string}[];
+      const inventory=await readServerAfterglowSources(runtimeState.privateStorage,authContext);
+      const masterId="afterglow-consolidated-"+randomUUID();
+      const createdAt=new Date().toISOString();
+      const prepared=await prepareServerAfterglowMaster({
+        sources:inventory.sources,selections,expectedSources,masterId,now:createdAt,
+      });
+      if(prepared.progress.pending!==0||prepared.progress.total<1) {
+        return response({message:"Every creative choice must be decided before saving."},409);
+      }
+      const originals=inventory.summaries.filter(s=>!s.archivedAt);
+      const proofs=await Promise.all(originals.map(async s=>{
+        const project=await runtimeState.privateStorage.loadProject(authContext,s.projectId);
+        if(!project)throw new Error("A saved working Afterglow source is unavailable.");
+        return {projectId:s.projectId,revision:(project as {revision:number}).revision,
+          updatedAt:s.updatedAt,
+          digest:"sha256:"+createHash("sha256").update(JSON.stringify(project)).digest("hex")};
+      }));
+      const result=await runtimeState.privateStorage.commitAfterglowMaster(authContext,{
+        master:prepared.candidate,sources:proofs,selections,expectedSources,
+      });
+      const readback=await runtimeState.privateStorage.loadAfterglowCurrentMaster(authContext);
+      if(!readback || JSON.stringify(readback)!==JSON.stringify(prepared.candidate)) {
+        throw new Error("Afterglow was not confirmed after encrypted master readback.");
+      }
+      return response({ok:true,masterId:result.masterId,sourceCount:prepared.sourceCount,
+        historicalSources:prepared.includedHistorical,
+        archivedSourceCount:result.archivedSourceCount,
+        decisionsCompleted:prepared.progress.completed,
+        readbackVerified:true,
+        message:"Consolidated Afterglow saved successfully."});
+    }
     if (input.action === "save-project") {
       const project = normalizeLibraryProject(input.project);
       const summary = input.summary && typeof input.summary === "object" && !Array.isArray(input.summary)

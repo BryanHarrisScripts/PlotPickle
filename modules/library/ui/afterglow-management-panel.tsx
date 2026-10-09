@@ -908,18 +908,16 @@ export default function AfterglowManagementPanel() {
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
             {preview.conflictCount ? (
               <details aria-label="Resolve competing saved values" className={styles.decisionArea}>
-                <summary>Compare {preview.conflictCount} competing saved changes (only if needed)</summary>
-                <h3>Review conflicting values</h3>
-                <p>PlotPickle should automatically reconcile repeated testing and complementary approved changes
-                  against each field's actual question. This diagnostic view shows unresolved exceptions;
-                  only genuinely incompatible answers should need a targeted choice.
-                  No selection here saves, deletes, publishes, or replaces a source version.</p>
+                <summary>Advanced verification details — {preview.conflictCount} unresolved differences (not your creative choices)</summary>
+                <h3>Technical preservation checks</h3>
+                <p>These are raw storage differences for independent verification. Your creative decisions are
+                  already in CONSOLIDATED creative work above. Do not choose media IDs, timestamps, hashes,
+                  or approval records as if they were story answers. No selection here saves or deletes anything.</p>
                 {preview.conflicts.slice(conflictPage * 10, (conflictPage + 1) * 10).map((item, index) => {
                   const id = "afterglow-conflict-" + (conflictPage * 10 + index);
                   const category = describeAfterglowConsolidationConflict(item.path);
                   const canonicalQuestion = canonicalQuestionForPath(item.path, questionByField);
-                  const selectable = item.reason === "competing-values" && (item.options?.length ?? 0) > 0
-                    && !["visual-approval-collection", "narration-approval-collection", "authorship-metadata"].includes(category.kind);
+                  const selectable = false; // Human choices live only in CONSOLIDATED creative work.
                   return (
                     <div className={styles.decisionRow} key={item.path}>
                       <div className={styles.conflictHeading}>
@@ -978,7 +976,7 @@ export default function AfterglowManagementPanel() {
                     <button type="button" disabled={(conflictPage + 1) * 10 >= preview.conflictCount} onClick={() => setConflictPage(p => p + 1)}>Next conflicts</button>
                   </div>
                 ) : null}
-                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> diagnostic selections;
+                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> saved creative selections;
                   <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> remaining conflicting paths;
                   <strong> {preview.reviewCount}</strong> other items requiring deterministic reconciliation.
                   These are not necessarily additional Human approvals.</p>

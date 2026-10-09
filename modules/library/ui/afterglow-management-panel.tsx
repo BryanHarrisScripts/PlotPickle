@@ -382,7 +382,7 @@ export default function AfterglowManagementPanel() {
         sourceMediaCount: result.sourceMediaReferences.length,
         mergeShapeConsistent: result.mergeShapeConsistent,
       });
-      setNotice("Read-only review includes saved working copies and eligible older recovery states. No source was restored, saved or published.");
+      setNotice("Read-only review includes saved working copies and eligible older recovery states. No project, approval, image, or provided example was changed.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Afterglow could not be reviewed. Your saved work is unchanged.");
     } finally {

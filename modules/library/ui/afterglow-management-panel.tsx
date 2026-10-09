@@ -30,7 +30,7 @@ import {
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
-  commitConsolidatedAfterglow,lastAfterglowMasterSaveAttempt,
+  commitConsolidatedAfterglow,lastAfterglowMasterSaveAttempt,readAfterglowMasterSaveAudit,
   type AfterglowMasterSaveAudit,type ConsolidatedAfterglowReceipt,
   type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
@@ -376,6 +376,11 @@ export default function AfterglowManagementPanel() {
   }, []);
   useEffect(() => {
     refresh();
+    // A previous rejected save remains visible after leaving Settings, even
+    // when this session was hydrated before the attempted transaction.
+    if (profileReady()) {
+      void readAfterglowMasterSaveAudit().then(setLastSaveAudit).catch(() => undefined);
+    }
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, [refresh]);
@@ -670,6 +675,7 @@ export default function AfterglowManagementPanel() {
     } catch(error) {
       setSaveError(error instanceof Error?error.message:
         "The consolidated story was not confirmed. The original saved work remains untouched.");
+      try { setLastSaveAudit(await readAfterglowMasterSaveAudit()); } catch { /* Show direct error. */ }
       // Do not clear the reviewed choices on a rejected Save. The inline
       // failure appears at the same Save button the Human just pressed.
     } finally {

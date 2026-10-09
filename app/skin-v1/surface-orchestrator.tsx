@@ -172,6 +172,10 @@ function existingReturnControl(active: ActiveSurface | null) {
 }
 
 function delegatedReturn(active: ActiveSurface | null): DelegatedReturn | null {
+  // Settings children must always return to their registered Settings parent.
+  // A legacy nested "Back to Dashboard" control is not allowed to override
+  // that navigation truth (or the click destination).
+  if (active?.parent === "settings") return null;
   const control = existingReturnControl(active);
   const text = control?.textContent?.trim() ?? "";
   const match = /^(?:Back|Return) to\s+(.+)$/iu.exec(text);

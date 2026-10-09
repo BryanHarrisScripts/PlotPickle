@@ -404,26 +404,31 @@ export default function AfterglowManagementPanel() {
     setPreflightState(null);
     setPreflightNotice("");
     const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
-    const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
+    const startingInventory = preview.sourceInventory;
     const choices = selectionFingerprint;
     const guard = () => {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profilePrivateBrowserReadyFor(profileId)
-        || startingInventory !== inventoryFingerprint(listAfterglowExampleProjects())
-        || startingInventory !== inventoryFingerprint(sources)) {
+        || startingInventory !== reviewSourceInventoryFingerprint()) {
         throw new Error("Afterglow account or saved versions changed during inspection. Refresh and review again.");
       }
     };
     try {
       guard();
-      const snapshots = preview.sources.map(source => {
-        const project = loadLibraryProjectSnapshot(source.id);
-        if (!project || project.id !== source.id || project.revision !== source.revision
-          || project.updatedAt !== source.updatedAt) {
-          throw new Error("A source changed since the review. Re-run consolidation before checking media.");
+      const collected=collectAfterglowReviewSources({
+        active:listAfterglowExampleProjects(),archived:archivedAfterglowSummaries(),
+        recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot,
+      }).sources;
+      const byKey=new Map(collected.map(source=>[source.sourceKey??source.project.id,source]));
+      const snapshots=preview.sources.map(item=>{
+        const source=byKey.get(item.id);
+        if(!source || source.project.id!==item.projectId
+          ||source.project.revision!==item.revision || source.project.updatedAt!==item.updatedAt) {
+          throw new Error("A saved historical snapshot or working version changed. Review again.");
         }
-        return {project};
+        return source;
       });
+      if(snapshots.length!==collected.length)throw new Error("Afterglow source inventory changed. Review again.");
       const indexResponse = await fetch("/api/local-ai/assets", {
         credentials: "same-origin", cache: "no-store", redirect: "error",
         headers: {Accept: "application/json"},
@@ -478,7 +483,8 @@ export default function AfterglowManagementPanel() {
         },
       });
       guard();
-      if (JSON.stringify(await exactSavedSnapshotProofs(snapshots)) !== JSON.stringify(preview.initialProofs)) {
+      if (JSON.stringify(await exactSavedSnapshotProofs(
+        snapshots.filter(source=>source.sourceKind==="working-copy"))) !== JSON.stringify(preview.initialProofs)) {
         throw new Error("Saved source bytes changed during inspection. Refresh and repeat the review.");
       }
       if (choices !== selectionFingerprint) {
@@ -492,18 +498,22 @@ export default function AfterglowManagementPanel() {
   }
 
   const preflightReport = preflightState !== null && mediaMatches
-    && preflightState.sources === inventoryFingerprint(sources)
+    && preflightState.sources === preview?.sourceInventory
     && preflightState.choices === selectionFingerprint ? preflightState.report : null;
   async function checkMasterSavePreflight() {
     if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
+    if(preview.includedHistoricalSources) {
+      setPreflightNotice("Historical recovery states are now included in the draft. Durable master save readiness requires independent encrypted snapshot provenance and cannot yet be authorized.");
+      return;
+    }
     setPreflightBusy(true);
     setPreflightState(null);
     setPreflightNotice("");
     try {
       if (!profileReady()) throw new Error("Unlock your profile before checking master save readiness.");
       const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
-      const inventory = inventoryFingerprint(sources);
-      if (inventory !== inventoryFingerprint(listAfterglowExampleProjects())) {
+      const inventory = reviewSourceInventoryFingerprint();
+      if (inventory !== preview.sourceInventory) {
         throw new Error("Saved versions changed; review again before checking readiness.");
       }
       const snapshots = preview.sources.map(source => {
@@ -525,7 +535,7 @@ export default function AfterglowManagementPanel() {
       });
       const finalProofs = await exactSavedSnapshotProofs(snapshots);
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
-        || !profileReady() || inventory !== inventoryFingerprint(listAfterglowExampleProjects())
+        || !profileReady() || inventory !== reviewSourceInventoryFingerprint()
         || JSON.stringify(finalProofs) !== JSON.stringify(currentProofs)
         || selectionFingerprint !== (mediaState?.choices ?? "")) {
         throw new Error("Profile, saved bytes or selected story decisions changed. Re-run the review.");

@@ -67,6 +67,11 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
+    if (new URL(request.url).searchParams.get("afterglowSaveAudit") === "1") {
+      return response({ lastSave: await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-master-last-attempt",
+      }) });
+    }
     const summaries = await runtimeState.privateStorage.listProjects(authContext);
     const project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
     const [projects, wyrmwood, storyMapContexts, recoveryPoints] = await Promise.all([
@@ -182,8 +187,13 @@ export async function POST(request: Request) {
           ? message : "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry.";
         // The stage and actionable safe reason outlive navigation/restart.
         // No master is claimed when the encrypted commit was not acknowledged.
-        const reason = userMessage !== "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry."
-          ? userMessage : `The ${stage.replaceAll("-", " ")} check did not pass. Your earlier saved versions remain intact.`;
+        const missingMedia = (error as { code?: unknown })?.code === "ENOENT"
+          && stage === "verify-images-and-commit";
+        const reason = missingMedia
+          ? "A selected Storyboard or World Map image file cannot be found on this device. Nothing was consolidated. Inspect the saved media references before retrying."
+          : userMessage !== "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry."
+            ? userMessage
+            : `The ${stage.replaceAll("-", " ")} check did not pass. Your earlier saved versions remain intact.`;
         await recordAttempt({ status: "blocked", stage, message: reason });
         return response({code:"AFTERGLOW_SAVE_VERIFICATION_BLOCKED",stage,message:reason},409);
       }

@@ -127,3 +127,10 @@
 .recoveryList li[data-afterglow-decision-state="confirmed"]{border-color:rgba(81,217,147,.58);background:rgba(32,125,76,.10)}
 .imageCard[data-afterglow-decision-state="current"],
 .recoveryList li[data-afterglow-decision-state="current"]{border-color:rgba(237,186,85,.29)}
+
+/* A rejected consolidated save must be visible at the action itself. */
+.saveFailure{margin:12px 0;padding:13px 15px;border:2px solid #d59c56;
+  border-radius:7px;background:rgba(138,66,31,.15);color:var(--pp-text,#f1eee7)}
+.saveFailure strong{display:block;color:#f1b36f;font-size:13px}
+.saveFailure p{color:var(--pp-text,#f1eee7)!important;font-size:12px!important;
+  line-height:1.5;overflow-wrap:anywhere}

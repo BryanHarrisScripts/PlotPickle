@@ -6,6 +6,36 @@
  * Snapshot/format/media problems are independent blockers. They must never
  * be counted as completed, converted to a Human vote, or silently discarded.
  */
+export function afterglowImageSlotKey(item) {
+  if(!item || typeof item.characterId!=="string" || typeof item.view!=="string") {
+    throw new Error("Image choice needs a character and view identity.");
+  }
+  return JSON.stringify([item.characterId,item.view]);
+}
+
+/** Selecting an image for a view excludes competing versions in the draft. */
+export function selectAfterglowImageOption(items,existing,key,choice) {
+  if(!Array.isArray(items)||!existing||typeof existing!=="object"||
+     !["keep","exclude"].includes(choice))throw new Error("A valid image choice is required.");
+  const item=items.find(value=>value.key===key);
+  if(!item)throw new Error("Image choice is not in the current recovery inventory.");
+  const slot=afterglowImageSlotKey(item);
+  const result={...existing};
+  if(choice==="keep") {
+    for(const competitor of items.filter(value=>afterglowImageSlotKey(value)===slot)) {
+      result[competitor.key]="exclude";
+    }
+  }
+  result[key]=choice;
+  return result;
+}
+
+export function resetAfterglowImageSlot(items,existing,slot) {
+  const result={...existing};
+  for(const item of items.filter(value=>afterglowImageSlotKey(value)===slot))delete result[item.key];
+  return result;
+}
+
 export function afterglowReviewProgress({
   groups, candidatePaths, conflictPaths, confirmations, exclusions, decisions,
   extraConflicts, imageOptions, imageChoices,
@@ -57,19 +87,27 @@ export function afterglowReviewProgress({
       total:items.length,completed:items.filter(item=>item.reviewed).length,items});
   }
   if(imageOptions.length){
-    const unique=new Set(),items=[];
+    const slots=new Map();
+    const keys=new Set();
     for(const item of imageOptions){
-      if(!item || typeof item.key!=="string" || unique.has(item.key)){
+      if(!item || typeof item.key!=="string" || keys.has(item.key)) {
         throw new Error("Image choices must have unique exact recovery identities.");
       }
-      unique.add(item.key);
-      const choice=imageChoices[item.key];
-      if(choice!==undefined && choice!=="keep" && choice!=="exclude") {
-        throw new Error("Unknown image decision cannot complete a recovery review.");
-      }
-      const key="image:"+item.key,reviewed=choice!==undefined;
+      keys.add(item.key);
+      const slot=afterglowImageSlotKey(item);
+      if(!slots.has(slot))slots.set(slot,[]);
+      slots.get(slot).push(item);
+    }
+    const items=[];
+    for(const [slot,versions] of slots) {
+      const kept=versions.filter(image=>imageChoices[image.key]==="keep");
+      const excluded=versions.filter(image=>imageChoices[image.key]==="exclude");
+      if(kept.length>1)throw new Error("Only one image version per character/view can be kept.");
+      const reviewed=(kept.length===1 && excluded.length===versions.length-1)
+        || excluded.length===versions.length;
+      const key="image-slot:"+slot;
       required.add(key);if(reviewed)done.add(key);
-      items.push({key,id:item.id,label:item.characterName+" — "+item.view,
+      items.push({key,id:slot,label:versions[0].characterName+" — "+versions[0].view,
         reviewed,status:reviewed?"confirmed":"current"});
     }
     sections.push({id:"images",label:"Characters & Images",

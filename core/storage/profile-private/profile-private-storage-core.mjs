@@ -617,7 +617,10 @@ export function createProfilePrivateStorageService(options) {
     async loadActiveProject(authContext) {
       const access = await authority(authContext);
       const active = activeProjects.get(authContext.sessionId);
-      const projectId = active?.profileId === access.profileId ? active.projectId : null;
+      // The encrypted Library registry is the restart authority. The in-memory
+      // activeProjects cache is only a same-session accelerator.
+      const projectId = active?.profileId === access.profileId
+        ? active.projectId : (await readLibrary(access)).activeProjectId;
       if (!projectId) return null;
       const project = await readObject(access, "projects", projectId);
       return project === null || typeof options.normalizeProject !== "function" ? project : options.normalizeProject(project);

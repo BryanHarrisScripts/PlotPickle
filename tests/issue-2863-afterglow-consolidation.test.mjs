@@ -282,7 +282,8 @@ test("#2863 UAT: unselected-source media remains inventoried, not falsely report
   });
   const plan=planAfterglowConsolidation({baseline:base,sources:[first,second]});
   assert.deepEqual(plan.sourceMediaReferences,
-    ["/api/local-ai/assets/frame1.webp","/api/local-ai/assets/frame2.webp"]);
+    ["/api/local-ai/assets/frame1.webp","/api/local-ai/assets/frame2.webp",
+      "/assets/library/examples/afterglow/current/shot1.webp"]);
   assert.equal(plan.packageModified,false);
   assert.equal(describeAfterglowConsolidationConflict("/build/foundations/acceptedVisualArtifactIds").requiresSpecialReconciliation,true);
   assert.equal(plan.readyForHumanCommit,false,"a URL in the source is not readable-byte verification");

@@ -26,6 +26,7 @@ type Preview = Readonly<{
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
   reconciledVisualCount: number;
+  questionEvidence: AfterglowConsolidationPlan["questionEvidence"];
   sampleChanges: readonly AfterglowConsolidationChange[];
   conflictCount: number;
   reviewCount: number;
@@ -46,7 +47,7 @@ function displayDate(value: string) {
     new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, string>) {
-  const match = /^\/storyDevelopment\/fields\/([^/]+)\/(?:value|updatedAt)$/.exec(path);
+  const match = /^\/storyDevelopment\/fields\/([^/]+)(?:\/(?:value|updatedAt))?$/.exec(path);
   if (!match) return null;
   const storedFieldId = match[1].replace(/~1/g, "/").replace(/~0/g, "~");
   return questions.get(storedFieldId) ?? null;
@@ -66,6 +67,12 @@ function summarizeHumanValue(value: unknown, path = "") {
     const a = value as { position?: number; narration?: string; noText?: boolean };
     const label = a.noText ? "Human approved no text" : (a.narration || "Approved dialogue bubbles");
     return "Shot " + (a.position ?? "?") + " — " + label.slice(0, 140);
+  }
+  if (path.startsWith("/storyDevelopment/fields/") && value && typeof value === "object"
+      && !Array.isArray(value) && "value" in value) {
+    const state = value as { value?: string; acceptedSource?: string | null };
+    return (typeof state.value === "string" ? state.value.slice(0, 145) : "No saved answer")
+      + (state.acceptedSource ? " · source: " + state.acceptedSource : "");
   }
   if (path.endsWith("/updatedAt") && typeof value === "string") return displayDate(value);
   if (typeof value === "string") return value.length > 160 ? value.slice(0, 160) + "…" : value;
@@ -151,12 +158,14 @@ export default function AfterglowManagementPanel() {
       const result = planAfterglowConsolidation({
         baseline: createAfterglowPackagedCurrentReference(),
         sources: complete,
+        questions: Object.fromEntries(questionByField),
       });
       setPreview({
         plan: result,
         sources: result.sources,
         appliedCount: result.applied.length,
         reconciledVisualCount: result.reconciledVisuals.length,
+        questionEvidence: result.questionEvidence,
         sampleChanges: result.applied.slice(0, 35),
         conflictCount: result.conflicts.length,
         reviewCount: result.needsReview.length,
@@ -215,6 +224,18 @@ export default function AfterglowManagementPanel() {
               <strong> {preview.conflictCount}</strong> conflicting paths;
               <strong> {preview.reviewCount}</strong> other review items;
               <strong> {preview.sourceMediaCount}</strong> source-media URLs awaiting verification.</p>
+            <p><strong>{preview.questionEvidence.length}</strong> authored fields traced to saved changes;
+              <strong> {preview.questionEvidence.filter(item=>item.questionStatus === "canonical-question-matched").length}</strong> matched to original questions;
+              <strong> {preview.questionEvidence.filter(item=>item.questionStatus !== "canonical-question-matched").length}</strong> question identities still unverified.</p>
+            <details>
+              <summary>Question-to-answer evidence (original field identity, not a semantic quality verdict)</summary>
+              <ul>{preview.questionEvidence.map(item=><li key={item.fieldId}>
+                <strong>{item.question ?? "Original question not found — review required"}</strong>
+                {" · "}{item.sourceProjectIds.length} saved source{item.sourceProjectIds.length === 1 ? "" : "s"},
+                {" "}{item.distinctAnswers} distinct recorded answer{item.distinctAnswers === 1 ? "" : "s"}.
+                {" "}Textual relevance has not been independently assessed.
+              </li>)}</ul>
+            </details>
             <p>The original saves may contain images not yet present in this draft master.
               This count does not verify the files exist or can be read. The selected draft currently has
               {" "}<strong>{reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local asset URLs identified for later readback.</p>

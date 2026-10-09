@@ -110,6 +110,36 @@ function collect(base, current, keys, edits, reviews) {
   }
   edits.push({path,keys,value:copy(current)});
 }
+function readAt(target,keys) {
+  let node = target;
+  for (const name of keys) {
+    if (name.startsWith("@")) {
+      if (!Array.isArray(node)) return ABSENT;
+      node = node.find(item => entityId(item) === name.slice(1));
+    } else {
+      if (!isRecord(node) || !Object.hasOwn(node,name)) return ABSENT;
+      node = node[name];
+    }
+    if (node === undefined) return ABSENT;
+  }
+  return node;
+}
+function restore(target,keys,value) {
+  // Explicit Human exclusion only: restore the *provided reference* at this
+  // exact automatically included path. Never mutate any saved source.
+  if (value !== ABSENT) { apply(target,keys,value); return; }
+  const parent = readAt(target,keys.slice(0,-1));
+  const last=keys.at(-1);
+  if (last?.startsWith("@")) {
+    if (!Array.isArray(parent)) throw new Error("Cannot exclude missing creative entity.");
+    const index=parent.findIndex(item=>entityId(item)===last.slice(1));
+    if(index>=0) parent.splice(index,1);
+  } else if (isRecord(parent)) {
+    delete parent[last];
+  } else {
+    throw new Error("Cannot exclude unrecognized story path.");
+  }
+}
 function apply(target,keys,value) {
   let node = target;
   for (let i=0;i<keys.length;i++) {
@@ -276,7 +306,12 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
       continue;
     }
     apply(candidate,items[0].keys,items[0].value);
-    applied.push({path,sources:items.map(x=>x.sourceProjectId)});
+    const first=items[0];
+    const before=readAt(baseline,first.keys);
+    applied.push({path,sources:items.map(x=>x.sourceProjectId),
+      baselineAbsent:before===ABSENT,
+      baselineValue:before===ABSENT?null:copy(before)});
+
   }
   const reconciledVisuals=reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,conflicts});
   candidate.build=reconciledVisuals.candidate.build;
@@ -309,7 +344,7 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
  * A collision of overlapping paths, deletions, reorders, and missing media
  * remains blocked; never interpret a choice as authority to save or publish.
  */
-export function reviewAfterglowConsolidationDecisions(plan, decisions = {}) {
+export function reviewAfterglowConsolidationDecisions(plan, decisions = {}, exclusions = []) {
   if (!isRecord(plan) || !isRecord(plan.candidate) ||
       !Array.isArray(plan.conflicts) || !Array.isArray(plan.needsReview) ||
       !isRecord(decisions) || plan.packageModified !== false ||
@@ -320,7 +355,27 @@ export function reviewAfterglowConsolidationDecisions(plan, decisions = {}) {
   for (const path of Object.keys(decisions)) {
     if (!paths.has(path)) throw new Error("Decision references a conflict outside the current review: " + path);
   }
+  if (!Array.isArray(exclusions) || new Set(exclusions).size !== exclusions.length
+    || exclusions.some(path => typeof path !== "string")) {
+    throw new Error("Excluded creative selections must be unique canonical paths.");
+  }
+  const applied = new Map(plan.applied.map(change=>[change.path,change]));
+  for (const path of exclusions) {
+    const change = applied.get(path);
+    if (!change || typeof change.baselineAbsent !== "boolean") {
+      throw new Error("A creative exclusion is outside the automatically merged draft: " + path);
+    }
+    // Source selection and exclusions cannot target overlapping entities.
+    if ([...applied.keys()].some(other=>other!==path&&(other.startsWith(path+"/")||path.startsWith(other+"/")))) {
+      throw new Error("Cannot exclude a path with overlapping approved changes: " + path);
+    }
+  }
   const candidate = structuredClone(plan.candidate);
+  for (const path of exclusions) {
+    const change=applied.get(path);
+    const keys=path.slice(1).split("/").map(segment=>segment.replaceAll("~1","/").replaceAll("~0","~"));
+    restore(candidate,keys,change.baselineAbsent?ABSENT:change.baselineValue);
+  }
   const resolved = [], unresolvedConflicts = [];
   for (const conflict of plan.conflicts) {
     const selected = decisions[conflict.path];
@@ -358,7 +413,7 @@ export function reviewAfterglowConsolidationDecisions(plan, decisions = {}) {
   };
   visit(candidate);
   return {
-    candidate, resolved, unresolvedConflicts,
+    candidate, resolved, excluded: [...exclusions], unresolvedConflicts,
     needsReview: structuredClone(plan.needsReview),
     localAssetsToVerify: [...localAssetsToVerify].sort(),
     decisionShapeConsistent: unresolvedConflicts.length === 0 && plan.needsReview.length === 0,

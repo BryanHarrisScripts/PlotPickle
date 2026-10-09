@@ -128,7 +128,7 @@ export async function POST(request: Request) {
         master:prepared.candidate,sources:proofs,selections,expectedSources,
       });
       const readback=await runtimeState.privateStorage.loadAfterglowCurrentMaster(authContext);
-      if(!readback || JSON.stringify(readback)!==JSON.stringify(prepared.candidate)) {
+      if(!readback || JSON.stringify(readback)!==JSON.stringify(normalizeLibraryProject(prepared.candidate))) {
         throw new Error("Afterglow was not confirmed after encrypted master readback.");
       }
       return response({ok:true,masterId:result.masterId,sourceCount:prepared.sourceCount,

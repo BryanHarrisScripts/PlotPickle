@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
+import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
+import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -95,6 +97,13 @@ export default function AfterglowManagementPanel() {
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [mediaState, setMediaState] = useState<{
+    readonly report: AfterglowMediaVerification;
+    readonly sources: string;
+    readonly choices: string;
+  } | null>(null);
+  const [mediaNotice, setMediaNotice] = useState("");
   const [notice, setNotice] = useState("");
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -116,6 +125,8 @@ export default function AfterglowManagementPanel() {
     setSources(ready ? listAfterglowExampleProjects() : []);
     setPreview(null);
     setDecisions({});
+    setMediaState(null);
+    setMediaNotice("");
     setConflictPage(0);
   }, []);
   useEffect(() => {
@@ -125,10 +136,12 @@ export default function AfterglowManagementPanel() {
   }, [refresh]);
 
   async function reviewConsolidation() {
-    if (busy) return;
+    if (busy || mediaBusy) return;
     setBusy(true);
     setPreview(null);
     setDecisions({});
+    setMediaState(null);
+    setMediaNotice("");
     setConflictPage(0);
     setNotice("");
     try {
@@ -183,6 +196,101 @@ export default function AfterglowManagementPanel() {
     }
   }
 
+  const mediaMatches = mediaState !== null
+    && mediaState.sources === inventoryFingerprint(sources)
+    && mediaState.choices === JSON.stringify(decisions);
+  const mediaReport = mediaMatches ? mediaState.report : null;
+
+  async function verifyMediaEvidence() {
+    if (!preview || mediaBusy || busy) return;
+    setMediaBusy(true);
+    setMediaState(null);
+    setMediaNotice("");
+    const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+    const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
+    const choices = JSON.stringify(decisions);
+    const guard = () => {
+      if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
+        || !profilePrivateBrowserReadyFor(profileId)
+        || startingInventory !== inventoryFingerprint(listAfterglowExampleProjects())
+        || startingInventory !== inventoryFingerprint(sources)) {
+        throw new Error("Afterglow account or saved versions changed during inspection. Refresh and review again.");
+      }
+    };
+    try {
+      guard();
+      const snapshots = preview.sources.map(source => {
+        const project = loadLibraryProjectSnapshot(source.id);
+        if (!project || project.id !== source.id || project.revision !== source.revision
+          || project.updatedAt !== source.updatedAt) {
+          throw new Error("A source changed since the review. Re-run consolidation before checking media.");
+        }
+        return {project};
+      });
+      const indexResponse = await fetch("/api/local-ai/assets", {
+        credentials: "same-origin", cache: "no-store", redirect: "error",
+        headers: {Accept: "application/json"},
+      });
+      if (!indexResponse.ok) throw new Error("Local asset inventory is not available. No media verified.");
+      const localAssetIndex = await indexResponse.json() as {assets?: {url:string;contentHash:string}[]};
+      guard();
+      const {verifyAfterglowMedia} = await import("../afterglow-media-integrity.mjs");
+      const candidate = reviewed?.candidate ?? preview.plan.candidate;
+      const result = await verifyAfterglowMedia({
+        candidate, sources:snapshots, packagedManifest:packagedAfterglowManifest,
+        localAssetIndex,
+        beforeRead: guard,
+        read: async (url, maximum) => {
+          guard();
+          const response = await fetch(url, {
+            credentials:"same-origin",cache:"no-store",redirect:"error",
+            signal:AbortSignal.timeout(20_000),
+          });
+          if (!response.ok || !response.body) return {ok:false};
+          const length = Number(response.headers.get("content-length") || 0);
+          if (length > maximum) return {ok:false};
+          const reader = response.body.getReader();
+          const parts:Uint8Array[] = [];
+          let total=0;
+          try {
+            while(true) {
+              const {done,value} = await reader.read();
+              guard();
+              if(done) break;
+              if(!value) continue;
+              total+=value.byteLength;
+              if(total>maximum) {await reader.cancel();return {ok:false};}
+              parts.push(value);
+            }
+          } finally {reader.releaseLock();}
+          const bytes=new Uint8Array(total);
+          let offset=0;
+          for(const part of parts){bytes.set(part,offset);offset+=part.length;}
+          return {ok:true,bytes};
+        },
+        hash: async bytes => {
+          const digest=await crypto.subtle.digest("SHA-256", bytes.slice().buffer);
+          return "sha256:"+Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+        },
+        decode: async (bytes,url) => {
+          const type = url.toLowerCase().endsWith(".png") ? "image/png"
+            : /\.jpe?g$/i.test(url) ? "image/jpeg" : "image/webp";
+          const image = await createImageBitmap(new Blob([bytes.slice()], {type}));
+          try {if(image.width<1 || image.height<1) throw new Error("Decoded image has no dimensions.");}
+          finally {image.close();}
+        },
+      });
+      guard();
+      if (choices !== JSON.stringify(decisions)) {
+        throw new Error("Conflict choices changed during media inspection. Inspect the new selection again.");
+      }
+      setMediaState({report:result,sources:startingInventory,choices});
+      setMediaNotice("Read-only byte and image-decoder check completed. No source or example was modified.");
+    } catch (error) {
+      setMediaNotice(error instanceof Error ? error.message : "Media verification could not complete; previous work is unchanged.");
+    } finally {setMediaBusy(false);}
+  }
+
   return (
     <div className={styles.workspace} data-afterglow-management="phase2-preview">
       <section className={styles.panel} aria-labelledby="afterglow-personal-heading">
@@ -207,8 +315,8 @@ export default function AfterglowManagementPanel() {
               </ol>
             ) : <p>No saved Afterglow working versions were found. The provided example remains available in Library.</p>}
             <div className={styles.actions}>
-              <button type="button" disabled={busy} onClick={refresh}>Refresh saved versions</button>
-              <button type="button" disabled={busy || !sources.length} onClick={() => void reviewConsolidation()}>
+              <button type="button" disabled={busy || mediaBusy} onClick={refresh}>Refresh saved versions</button>
+              <button type="button" disabled={busy || mediaBusy || !sources.length} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review consolidation"}
               </button>
             </div>
@@ -239,6 +347,34 @@ export default function AfterglowManagementPanel() {
             <p>The original saves may contain images not yet present in this draft master.
               This count does not verify the files exist or can be read. The selected draft currently has
               {" "}<strong>{reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local asset URLs identified for later readback.</p>
+            <div className={styles.actions}>
+              <button type="button" disabled={busy || mediaBusy} onClick={() => void verifyMediaEvidence()}>
+                {mediaBusy ? "Reading saved media…" : "Verify source and selected media (read-only)"}
+              </button>
+            </div>
+            {mediaNotice ? <p role="status" className={styles.notice}>{mediaNotice}</p> : null}
+            {mediaReport ? (
+              <section className={styles.result} aria-label="Afterglow media verification results">
+                <h3>Media readback — not a master save</h3>
+                <p><strong>{mediaReport.selectedCount}</strong> media URLs selected for the draft;
+                  {" "}<strong>{mediaReport.historyCount}</strong> additional historical URLs inspected;
+                  {" "}<strong>{mediaReport.verifiedPinned}</strong> selected items match a packaged manifest digest;
+                  {" "}<strong>{mediaReport.readableWithoutSavedProof}</strong> selected items readable but not historically pinned;
+                  {" "}<strong>{mediaReport.failed}</strong> selected items missing, invalid or changed.</p>
+                <p>Local inventory SHA-256 proves only the bytes seen during this inspection.
+                  A stored historical content hash is still needed to prove local image identity at Save Current Master.
+                  Readback does not grant write or publishing authority.</p>
+                {mediaReport.results.some(item => !["verified-pinned","verified-current"].includes(item.status)) ? (
+                  <details><summary>Media evidence and unresolved items</summary>
+                    <ul>{mediaReport.results.filter(item=>!["verified-pinned","verified-current"].includes(item.status))
+                      .map(item=><li key={item.url}>
+                        <strong>{item.selected ? "Proposed master" : "Recoverable historical copy"}</strong>
+                        {" · "}{item.status}: {item.reason} ({item.url})
+                      </li>)}</ul>
+                  </details>
+                ) : null}
+              </section>
+            ) : null}
             <p>{preview.mergeShapeConsistent
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>

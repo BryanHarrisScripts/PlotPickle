@@ -114,3 +114,25 @@ test("#2863 post-save receipt must prove exact master is available in Library, n
   assert.match(panel,/Saved master ID: \{saveReceipt\.masterId\}/u);
   assert.match(panel,/Do not create another example/u);
 });
+
+test("#2863 rejected Save is visibly not saved at the action and remains auditable after navigation",async()=>{
+  const [api,browser,panel,library]=await Promise.all([
+    "../app/api/auth/profile-private/route.ts",
+    "../core/storage/profile-private-browser.ts",
+    "../modules/library/ui/afterglow-management-panel.tsx",
+    "../modules/library/ui/library-workspace.tsx",
+  ].map(url=>readFile(new URL(url,import.meta.url),"utf8")));
+  assert.match(api,/objectId: "afterglow-master-last-attempt"/u);
+  assert.match(api,/status: "started"/u);
+  assert.match(api,/status: "blocked", stage, message: reason/u);
+  assert.match(api,/status: "saved", stage: "complete", masterId: result\.masterId/u);
+  assert.match(api,/afterglowSaveAudit/u);
+  assert.match(browser,/readAfterglowMasterSaveAudit/u);
+  assert.match(panel,/NOT SAVED — consolidated Afterglow was rejected/u);
+  assert.match(panel,/NOT SAVED — last consolidation attempt was blocked/u);
+  const savePanel=panel.slice(panel.indexOf('aria-label="Save Consolidated Afterglow"'));
+  assert.match(savePanel,/\{saveError \? <div role="alert" className=\{styles\.saveFailure\}/u);
+  assert.match(panel,/setLastSaveAudit\(await readAfterglowMasterSaveAudit\(\)\)/u);
+  assert.match(library,/const saveAudit = await readAfterglowMasterSaveAudit\(\)/u);
+  assert.match(library,/Last saved attempt was blocked at/u);
+});

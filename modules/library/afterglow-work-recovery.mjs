@@ -152,6 +152,26 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
     }
   }
 
+  // Canonical Character Truth lives outside Mind Map answer fields. A Human
+  // must see recovered Joy/Kai/J claims even when no authored field differs.
+  // Recording a source-only claim does NOT mean it was Human-approved.
+  const previousClaims=new Map((baseline.sourceEvidence?.characterTruth?.claims??[])
+    .map(claim=>[claim.id,claim]));
+  for(const source of sources) {
+    const {project}=source;
+    for(const claim of project.sourceEvidence?.characterTruth?.claims??[]) {
+      if(!claim?.id || !Array.isArray(claim.characterIds)
+        || claim.reviewState==="rejected" || claim.handling!=="writer-reference")continue;
+      const original=previousClaims.get(claim.id);
+      if(original && JSON.stringify(original)===JSON.stringify(claim))continue;
+      add("character",claim.id,
+        (claim.kind==="identity"?"Character identity":"Character "+claim.kind)+
+          " · "+claim.characterIds.join(", "),
+        "saved-character-truth",claim.summary+
+          " [recorded status: "+claim.reviewState+"]",source);
+    }
+  }
+
   const priorArtwork = new Map((baseline.worldMap?.characterVisuals ?? []).map(item=>[item.characterId,item]));
   for (const source of sources) {
         const {project}=source;

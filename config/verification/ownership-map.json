@@ -234,7 +234,9 @@
         "modules/library/afterglow-review-sources.mjs",
         "modules/library/afterglow-review-sources.d.mts",
         "modules/library/afterglow-creative-choice-boundary.mjs",
-        "modules/library/afterglow-creative-choice-boundary.d.mts"
+        "modules/library/afterglow-creative-choice-boundary.d.mts",
+        "modules/library/afterglow-image-review.mjs",
+        "modules/library/afterglow-image-review.d.mts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

@@ -1220,7 +1220,7 @@ export default function LibraryWorkspace() {
             <label>
               <span>Starting point</span>
               <select value={afterglowSource} onChange={(event) => setAfterglowSource(event.target.value)}>
-                <option value="defaults">Load the provided example (start a separate new copy)</option>
+                <option value="defaults">Load the provided example</option>
                 {afterglowOpening.choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
               </select>
             </label>

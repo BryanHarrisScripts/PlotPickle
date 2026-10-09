@@ -530,7 +530,7 @@ export function createProfilePrivateStorageService(options) {
           if(!pin.escrow)continue; // packaged artifacts are pinned by git manifest
           const url=pin.url;
           if(typeof url!=="string" ||
-            !/^\\/api\\/local-ai\\/assets\\/[a-z0-9][a-z0-9._-]*\\.(?:webp|png|jpe?g)$/i.test(url)
+            !/^\/api\/local-ai\/assets\/[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(url)
             || !/^sha256:[a-f0-9]{64}$/.test(pin.contentHash) || mediaIds.has(url)) {
             fail("A selected local image has invalid signed evidence.", "AFTERGLOW_MEDIA_UNVERIFIED");
           }

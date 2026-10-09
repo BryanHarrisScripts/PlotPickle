@@ -2191,7 +2191,8 @@
           "tests/issue-2863-creative-master-selection.test.mjs",
           "tests/issue-2863-afterglow-version-summary.test.mjs",
           "tests/issue-2863-afterglow-recovery-source-audit.test.mjs",
-          "tests/issue-2863-afterglow-historical-merge-sources.test.mjs"
+          "tests/issue-2863-afterglow-historical-merge-sources.test.mjs",
+          "tests/issue-2863-consolidated-human-outcome.test.mjs"
         ]
       },
       "cost": "fast",

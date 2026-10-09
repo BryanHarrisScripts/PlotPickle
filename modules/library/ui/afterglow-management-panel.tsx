@@ -678,7 +678,8 @@ export default function AfterglowManagementPanel() {
               <h3>CONSOLIDATED creative work</h3>
               <p>This is your proposed Afterglow assembled from the saved versions.
                 A creative choice updates this draft immediately. Other saved alternatives stay available
-                for comparison. Unaccepted Agent suggestions and unverified artwork are not silently approved.
+                for comparison. An Agent suggestion is not automatically an accepted answer.
+                Unverified artwork is not silently approved.
                 Original versions are unchanged; nothing has been saved yet.</p>
               {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length).map((group,index)=>(
                 <details key={group.id} open={index === 0}>
@@ -794,7 +795,7 @@ export default function AfterglowManagementPanel() {
                           :source.kind==="archived-copy"?"Archived copy · ":"Working copy · ")
                           +displayDate(source.savedAt??source.updatedAt) : "Saved copy"}
                           {" · "}{source?.id.slice(0,12) ?? "source"}</small>
-                        <p>{text ?? "This saved alternative needs a more specific creative description before it can be selected here."}</p>
+                        <p>{text ?? "Technical creative content cannot be presented as an approved answer without verified text."}</p>
                         {selectable ? <button type="button" className={styles.creativeOption}
                           disabled={busy || mediaBusy || preflightBusy}
                           aria-pressed={decisions[conflict.path] === index}

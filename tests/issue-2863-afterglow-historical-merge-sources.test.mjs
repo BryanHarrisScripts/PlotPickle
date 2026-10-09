@@ -4,6 +4,7 @@ import {readFile} from "node:fs/promises";
 import {planAfterglowConsolidation,reviewAfterglowConsolidationDecisions} from "../modules/library/afterglow-consolidation.mjs";
 import {inventoryAfterglowRecoveredWork} from "../modules/library/afterglow-work-recovery.mjs";
 import {collectAfterglowReviewSources} from "../modules/library/afterglow-review-sources.mjs";
+import {inventoryAfterglowMedia} from "../modules/library/afterglow-media-integrity.mjs";
 
 const date=day=>"2026-10-"+String(day).padStart(2,"0")+"T13:00:00.000Z";
 function baseline(){
@@ -129,4 +130,23 @@ test("#2863 recovery-to-merge UI includes old point choices and blocks mistaken 
   assert.match(ui,/durable master save readiness requires independent encrypted snapshot provenance/u);
   assert.doesNotMatch(ui,/commitAfterglowMaster\(/u);
   assert.doesNotMatch(ui,/restoreRecoveryPoint\(/u);
+});
+
+test("#2863 character identity evidence and historical media provenance are traced to the exact recovery snapshot",()=>{
+  const base=baseline(),{points}=assemble(base);
+  const state=points[0].project;
+  state.sourceEvidence.characterTruth={principalCharacterIds:["joy"],claims:[{
+    id:"joy-identity",kind:"identity",characterIds:["joy"],summary:"Joy",
+    reviewState:"human-approved",handling:"writer-reference",
+  }]};
+  const sources=[{project:state,sourceKey:"point:"+points[0].id,savedAt:points[0].createdAt}];
+  const found=results(sources);
+  const character=found.groups.find(group=>group.id==="character").items[0];
+  assert.equal(character.kind,"saved-character-truth");
+  assert.match(character.alternatives[0].text,/Joy.*human-approved/u);
+  assert.equal(character.alternatives[0].sources[0].id,"point:recovery-3pm");
+  const media=inventoryAfterglowMedia({candidate:base,sources});
+  assert.ok(media.find(entry=>entry.url==="/api/local-ai/assets/joy-front.webp"
+    && entry.sourceProjectIds.includes("point:recovery-3pm")));
+  assert.equal(base.sourceEvidence.characterTruth,undefined,"inspection does not modify baseline");
 });

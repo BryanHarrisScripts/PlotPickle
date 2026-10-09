@@ -179,3 +179,25 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
     readyForHumanCommit:false,
   };
 }
+
+/**
+ * Exact canonical destination of an authored recovery item in the consolidation
+ * planner. Returning null is intentional for pending Agent suggestions, legacy
+ * unknown fields and image/lock evidence, which cannot be dropped as raw text.
+ */
+export function afterglowRecoveryItemPath(item, fields) {
+  if (!item || !Array.isArray(fields)) return null;
+  const escape = part => part.replaceAll("~","~0").replaceAll("/","~1");
+  if (item.kind === "human-note") {
+    const match=/^(fields|topics):(.+)$/.exec(item.id);
+    return match ? "/mindMapNotes/"+match[1]+"/"+escape(match[2]) : null;
+  }
+  if (item.kind !== "saved-answer") return null;
+  const field=fields.find(entry => item.id===entry.canonicalId
+    || item.id.startsWith(entry.canonicalId+"::"));
+  if (!field) return null;
+  if (item.id===field.canonicalId && ["foundations","world"].includes(field.topicId)) {
+    return "/"+field.topicId+"/lessons/"+escape(field.lessonId)+"/answers/"+escape(field.fieldId);
+  }
+  return "/storyDevelopment/fields/"+escape(item.id);
+}

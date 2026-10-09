@@ -19,15 +19,16 @@ function sourceProof(artifact,scope) {
      &&!(artifact.sourceDecisionKeys??[]).includes("storyboard-local-save:v1"))return false;
   return true;
 }
-export function reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,conflicts}) {
+export function reconcileAfterglowAcceptedVisuals({baseline,projects,sourceKeys,candidate,conflicts}) {
   if(!record(baseline)||!Array.isArray(projects)||!projects.length
      ||!record(candidate)||!Array.isArray(conflicts))throw new Error("Valid consolidation evidence required.");
+  if(sourceKeys!==undefined && (!Array.isArray(sourceKeys)||sourceKeys.length!==projects.length || new Set(sourceKeys).size!==sourceKeys.length))throw new Error("Every source snapshot requires unique reconciliation provenance.");
   const proposed=copy(candidate),reconciled=[],needsReview=[];
   for(const [scope,limit] of SCOPES){
     const base=baseline.build?.[scope]??{};
     const original=list(base,"acceptedVisualArtifactIds");
     const originals=list(base,"visualArtifacts");
-    const snapshots=projects.map(p=>({id:p.id,group:p.build?.[scope]??{}}));
+    const snapshots=projects.map((p,index)=>({id:sourceKeys?.[index]??p.id,group:p.build?.[scope]??{}}));
     const acceptedBySource=new Map();
     const allIds=distinct([...original,...snapshots.flatMap(x=>list(x.group,"acceptedVisualArtifactIds"))]);
     const path="/build/"+scope+"/acceptedVisualArtifactIds";

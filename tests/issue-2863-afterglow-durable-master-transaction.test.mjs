@@ -102,10 +102,13 @@ test("#2863 same revision and timestamp but changed source content invalidates t
   assert.equal(await storage.loadProject(context,master.id),null);
   assert.equal((await storage.listProjects(context)).filter(s=>s.archivedAt).length,0);
 });
-test("#2863 no HTTP action or UI Save button exposes the internal transaction early",async()=>{
+test("#2863 authenticated HTTP save is now independently recomputed and rejects browser-supplied master authority",async()=>{
   const api=await readFile(new URL("../app/api/auth/profile-private/route.ts",import.meta.url),"utf8");
   const panel=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
-  assert.doesNotMatch(api,/commit-afterglow-master|commitAfterglowMaster/u);
-  assert.doesNotMatch(panel,/onClick=\{\(\) => void commitAfterglowMaster/u);
-  assert.match(panel,/No Save Current Master action is enabled/u);
+  assert.match(api,/input.action === "commit-afterglow-master"/u);
+  assert.match(api,/await prepareServerAfterglowMaster\(/u);
+  assert.match(api,/await runtimeState.privateStorage.commitAfterglowMaster\(/u);
+  assert.doesNotMatch(api,/input\.master|input\.approved/u);
+  assert.match(panel,/reviewProgress\.allCreativeDecided/u);
+  assert.match(panel,/commitConsolidatedAfterglow\(/u);
 });

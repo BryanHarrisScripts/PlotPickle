@@ -307,15 +307,20 @@ export default function AfterglowManagementPanel() {
         candidate:textReviewed.candidate,items:preview.imageOptions,choices:imageChoices,
       })
     : null,[preview,textReviewed,imageChoices]);
-  const reviewed=useMemo(()=>textReviewed && imageReview ? {
-    ...textReviewed,candidate:imageReview.candidate,
-    localAssetsToVerify:Array.from(new Set([
-      ...textReviewed.localAssetsToVerify,
-      ...preview!.imageOptions.filter(item=>imageIncludedInCandidate(imageReview.candidate,item))
-        .map(item=>item.url).filter(url=>url.startsWith("/api/local-ai/assets/")),
-    ])).filter(url=>preview!.imageOptions.every(item=>item.url!==url
-      || imageIncludedInCandidate(imageReview.candidate,item))).sort(),
-  } : null,[preview,textReviewed,imageReview]);
+  const reviewed=useMemo(()=>{
+    if(!textReviewed || !imageReview) return null;
+    const media = new Set<string>();
+    const visit = (value:unknown) => {
+      if(typeof value==="string" && value.startsWith("/api/local-ai/assets/")) media.add(value);
+      else if(Array.isArray(value))value.forEach(visit);
+      else if(value && typeof value==="object")Object.values(value).forEach(visit);
+    };
+    // Never subtract a URL because an image reference was excluded if another
+    // approved Storyboard/narration surface still uses those same bytes.
+    visit(imageReview.candidate);
+    return {...textReviewed,candidate:imageReview.candidate,
+      localAssetsToVerify:[...media].sort()};
+  },[textReviewed,imageReview]);
   const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices });
   const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
     group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))

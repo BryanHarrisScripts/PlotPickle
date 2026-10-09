@@ -42,7 +42,7 @@ export function reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,c
       continue;
     }
     const existing=list(candidateGroup,"visualArtifacts");
-    const safeIds=[];
+    const safeIds=[],safeEvidence=[];
     for(const id of allIds) {
       const baselineAccepted=original.includes(id);
       const witnesses=[];
@@ -88,7 +88,7 @@ export function reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,c
       if(!invalid) {
         safeIds.push(id);
         if(!baselineAccepted&&witnesses.length){
-          reconciled.push({path:pathFor(scope,id),artifactId:id,scope,
+          safeEvidence.push({path:pathFor(scope,id),artifactId:id,scope,
             sources:witnesses.map(x=>x.sourceProjectId),kind:"preserved-existing-human-acceptance"});
         }
       }
@@ -100,6 +100,7 @@ export function reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,c
     // never silently promote some subset into a proposed final authority.
     if(!needsReview.some(x=>x.path===path||x.path.startsWith("/build/"+scope+"/visualArtifacts/"))){
       candidateGroup.acceptedVisualArtifactIds=distinct([...original,...safeIds.filter(id=>!original.includes(id))]);
+      reconciled.push(...safeEvidence);
     }
   }
   return {candidate:proposed,reconciled,needsReview};

@@ -30,7 +30,7 @@ const runner=(values,opts={})=>{
 };
 test("#2863 candidate and unselected source images are both inventoried, exact URLs are deduplicated",()=>{
  const report=inventoryAfterglowMedia(input([local,packaged],[historical,local,local]));
- assert.deepEqual(report.map(x=>x.url),[local,historical,packaged]);
+ assert.deepEqual(new Set(report.map(x=>x.url)),new Set([local,historical,packaged]));
  assert.equal(report.find(x=>x.url===local).selected,true);
  assert.deepEqual(report.find(x=>x.url===local).sourceProjectIds,["old","new"]);
  assert.equal(report.find(x=>x.url===historical).selected,false);

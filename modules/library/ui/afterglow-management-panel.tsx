@@ -337,7 +337,7 @@ export default function AfterglowManagementPanel() {
   const reviewProgress=useMemo(()=>afterglowReviewProgress({
     groups:preview?.recovery.groups.map(group=>({
       id:group.id,label:group.label,items:group.items.map(item=>({
-        id:item.id,label:item.label,
+        id:item.id,label:item.label,kind:item.kind,
         reviewPath:afterglowRecoveryItemPath(item,canonicalFields),
       })),
     }))??[],

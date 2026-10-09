@@ -86,3 +86,11 @@
 
 .recoverySourceWarnings{margin:8px 0!important;padding:8px 8px 8px 25px!important;border-left:2px solid var(--pp-gold,#d5ac63);background:rgba(213,172,99,.06);color:var(--pp-gold,#d5ac63)}
 .recoverySourceWarnings li{font-size:11px!important;line-height:1.5}
+
+/* Human-owned consolidated outcome; alternative versions are secondary evidence. */
+.consolidatedResult{border-left:3px solid var(--pp-teal,#35c9b8);padding:9px 11px;margin:10px 0;background:rgba(53,201,184,.075)}
+.consolidatedResult>strong{display:block;color:var(--pp-teal,#35c9b8);font-size:10px;letter-spacing:.03em}
+.consolidatedResult p{margin:7px 0 2px!important;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--pp-text,#f1eee7)!important;font-size:12px!important}
+.consolidatedStatus{color:var(--pp-gold,#d5ac63)!important;font-size:11px!important}
+.savedAlternatives{margin:8px 0;padding:9px!important;background:rgba(10,22,20,.36)}
+.savedAlternatives summary{font-size:11px!important}

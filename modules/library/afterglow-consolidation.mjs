@@ -54,6 +54,22 @@ function collect(base, current, keys, edits, reviews) {
   // atomic pick-one list. Evidence reconciliation below handles all sources.
   if (/^\/build\/(foundations|world)\/acceptedVisualArtifactIds$/.test(path)) return;
   if (current === ABSENT) { reviews.push({path,reason:"possible-deletion"}); return; }
+  // Field and note state are indivisible records: approval source, answer,
+  // proposal provenance and timestamps must travel together. A latest-date
+  // vote must never splice the metadata of one answer onto another.
+  const storyField=keys.length===3 && keys[0]==="storyDevelopment" && keys[1]==="fields";
+  const authorNote=keys.length===3 && keys[0]==="mindMapNotes"
+    && (keys[1]==="fields" || keys[1]==="topics");
+  if ((storyField || authorNote) && isRecord(current)) {
+    const textKey=storyField?"value":"text";
+    const original=isRecord(base)?base[textKey]:undefined;
+    if (typeof original==="string" && original.trim()
+      && (current[textKey]===null || current[textKey]===undefined
+        || typeof current[textKey]==="string" && !current[textKey].trim())) {
+      reviews.push({path,reason:"clear-existing-value"}); return;
+    }
+    edits.push({path,keys,value:copy(current)}); return;
+  }
   // Approval records must remain atomic even when the baseline has an older
   // approval for this shot; mixing a source fingerprint with another narration
   // could manufacture a false Human approval.
@@ -116,6 +132,13 @@ function apply(target,keys,value) {
   }
 }
 function contributionSignature(path,value) {
+  if (isRecord(value) && (/^\/storyDevelopment\/fields\/[^/]+$/.test(path)
+    || /^\/mindMapNotes\/(fields|topics)\/[^/]+$/.test(path))) {
+    // Re-saved identical answers do not create new creative decisions.
+    // Preserve the first source's complete accepted answer and metadata.
+    const {updatedAt,...authored}=value;
+    return stable(authored);
+  }
   if (path.startsWith("/production/graphicNovelTextApprovals/@approval:") && isRecord(value)) {
     // A new approval timestamp from repeated testing is not a new narration.
     const {approvedAt,...content}=value;
@@ -169,13 +192,40 @@ export function describeAfterglowConsolidationConflict(path) {
     return {kind:"authorship-metadata",label:"Story-field edit date (not a story decision)",
       requiresSpecialReconciliation:true};
   }
-  if (path.startsWith("/storyDevelopment/fields/") && path.endsWith("/value")) {
-    return {kind:"story-field-content",label:"Approved Mind Map story value",
+  if (/^\/storyDevelopment\/fields\/[^/]+$/.test(path)
+      || path.startsWith("/storyDevelopment/fields/") && path.endsWith("/value")) {
+    return {kind:"story-field-content",label:"Authored answer and its original approval evidence",
       requiresSpecialReconciliation:false};
   }
   return {kind:"other",label:"Story project change",requiresSpecialReconciliation:false};
 }
-export function planAfterglowConsolidation({baseline,sources}) {
+function questionEvidenceFor({baseline,projects,changes,questions,needsReview}) {
+  if (questions !== undefined && (!isRecord(questions)
+     || Object.values(questions).some(q=>typeof q!=="string" || !q.trim()))) {
+    throw new Error("Canonical story questions must be a validated field-to-question map.");
+  }
+  const known=questions ?? {};
+  const fields=[...new Set([...Object.keys(baseline.storyDevelopment?.fields??{}),
+    ...projects.flatMap(p=>Object.keys(p.storyDevelopment?.fields??{}))])].sort();
+  const rows=[];
+  for (const fieldId of fields) {
+    const key="/storyDevelopment/fields/"+fieldId.replaceAll("~","~0").replaceAll("/","~1");
+    if (![...changes.keys()].some(path=>path===key || path.startsWith(key+"/")))continue;
+    const sources=projects.filter(p=>p.storyDevelopment?.fields?.[fieldId]!==undefined
+      && !equal(p.storyDevelopment.fields[fieldId],baseline.storyDevelopment?.fields?.[fieldId]??ABSENT));
+    const question=Object.hasOwn(known,fieldId)?known[fieldId]:null;
+    const status=questions===undefined?"catalog-not-provided":question?"canonical-question-matched":"unknown-canonical-question";
+    if(status==="unknown-canonical-question") {
+      needsReview.push({path:key,reason:"unknown-canonical-question",sourceProjectId:sources[0]?.id??"baseline"});
+    }
+    rows.push({fieldId,path:key,question,questionStatus:status,
+      semanticStatus:"not-assessed",
+      sourceProjectIds:sources.map(p=>p.id),
+      distinctAnswers:[...new Set(sources.map(p=>contributionSignature(key,p.storyDevelopment.fields[fieldId])))].length});
+  }
+  return rows;
+}
+export function planAfterglowConsolidation({baseline,sources,questions}) {
   if(!isRecord(baseline)||sourceId(baseline)!==EXPECTED_REFERENCE
      ||baseline.format!=="2.0-foundation"||!Array.isArray(sources)||!sources.length){
     throw new Error("Consolidation needs the trusted Afterglow baseline and saved projects.");
@@ -211,6 +261,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
       changes.get(x.path).push({...x,sourceProjectId:p.id});
     }
   }
+  const questionEvidence=questionEvidenceFor({baseline,projects,changes,questions,needsReview});
   const candidate=copy(baseline),applied=[],conflicts=[];
   for(const [path,items] of [...changes].sort(([a],[b])=>a.localeCompare(b))){
     const alternatives=[...new Map(items.map(x=>[contributionSignature(path,x.value),x])).values()];
@@ -243,7 +294,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
   // Project ID, timestamps, profile session and revision are deliberately
   // assigned only by the later authenticated commit.
   return {candidate,sources:projects.map(p=>({id:p.id,revision:p.revision,updatedAt:p.updatedAt})),
-    applied,conflicts,needsReview,
+    applied,conflicts,needsReview,questionEvidence,
     reconciledVisuals:reconciledVisuals.reconciled,
     sourceMediaReferences:sourceMediaReferences(projects),
     localAssetsToVerify:[...assetRefs].sort(),

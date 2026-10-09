@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -72,6 +72,56 @@ test("#2863 durable master stages encrypted bytes, atomically updates index, pre
     }finally{restarted.close();}
   });
 });
+test("#2863 historical recovery states are re-read from vault and preserved beyond rolling cache after master commit",async t=>{
+  let inspected=null;
+  const allowHistory=input=>{
+    inspected=input;
+    return {authorized:true,mediaPins:[]};
+  };
+  const {storage,context,proofs,master,makeStore}=await setup(t,2,allowHistory);
+  const historical=makeProject("afterglow-source-0","Earlier Ren and Joy decisions");
+  const point={id:"recovery-oct7-557",projectId:historical.id,title:historical.title,
+    createdAt:"2026-10-07T15:17:00.000Z",revision:historical.revision,
+    reason:"unload",project:historical};
+  await storage.writePrivateJson(context,{domain:"cache",objectId:"library-recovery-points",
+    value:[point]});
+  const result=await storage.commitAfterglowMaster(context,{master,sources:await proofs(),
+    selections:{decisions:{},exclusions:[],confirmedCurrent:{},imageChoices:{}},
+    expectedSources:[]});
+  assert.equal(result.readbackVerified,true);
+  assert.equal(inspected.historical.length,1);
+  assert.equal(inspected.historical[0].sourceKey,"point:recovery-oct7-557");
+  const objectId="ag-history-"+createHash("sha256").update("point:recovery-oct7-557").digest("hex");
+  const restarted=makeStore();
+  try{
+    const escrow=await restarted.readPrivateJson(context,{domain:"indexes",objectId});
+    assert.equal(escrow.project.storyDevelopment.fields["character:afterglow-source-0"].value,
+      "Earlier Ren and Joy decisions");
+    assert.equal(escrow.digest,hashProject(historical));
+  }finally{restarted.close();}
+});
+test("#2863 selected local WebP bytes are pinned in encrypted chunks and manifest before master index",async t=>{
+  const bytes=Buffer.concat([Buffer.from("RIFF"),Buffer.from([18,0,0,0]),
+    Buffer.from("WEBPchosen-Ren")]);
+  const pinHash="sha256:"+createHash("sha256").update(bytes).digest("hex");
+  const {storage,root,context,proofs,master,makeStore}=await setup(t,1,
+    ()=>({authorized:true,mediaPins:[{
+      url:"/api/local-ai/assets/ren-choice.webp",contentHash:pinHash,escrow:true,
+    }]}));
+  await mkdir(path.join(root,"assets"),{recursive:true});
+  await writeFile(path.join(root,"assets","ren-choice.webp"),bytes);
+  await storage.commitAfterglowMaster(context,{master,sources:await proofs()});
+  const hash=createHash("sha256").update(bytes).digest("hex"),restarted=makeStore();
+  try{
+    const manifest=await restarted.readPrivateJson(context,{domain:"assets",
+      objectId:"ag-media-"+hash+"-manifest"});
+    assert.equal(manifest.bytes,bytes.length);
+    assert.equal(manifest.chunks,1);
+    const chunk=await restarted.readPrivateJson(context,{domain:"assets",
+      objectId:"ag-media-"+hash+"-0"});
+    assert.deepEqual(Buffer.from(chunk.data,"base64"),bytes);
+  }finally{restarted.close();}
+});
 test("#2863 no trusted independent approval gate means no master and no source archives",async t=>{
   const {storage,context,proofs,master}=await setup(t,4);
   await assert.rejects(storage.commitAfterglowMaster(context,{master,sources:await proofs()}),/trusted Afterglow media/);
@@ -102,10 +152,13 @@ test("#2863 same revision and timestamp but changed source content invalidates t
   assert.equal(await storage.loadProject(context,master.id),null);
   assert.equal((await storage.listProjects(context)).filter(s=>s.archivedAt).length,0);
 });
-test("#2863 no HTTP action or UI Save button exposes the internal transaction early",async()=>{
+test("#2863 authenticated HTTP save is now independently recomputed and rejects browser-supplied master authority",async()=>{
   const api=await readFile(new URL("../app/api/auth/profile-private/route.ts",import.meta.url),"utf8");
   const panel=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
-  assert.doesNotMatch(api,/commit-afterglow-master|commitAfterglowMaster/u);
-  assert.doesNotMatch(panel,/onClick=\{\(\) => void commitAfterglowMaster/u);
-  assert.match(panel,/No Save Current Master action is enabled/u);
+  assert.match(api,/input.action === "commit-afterglow-master"/u);
+  assert.match(api,/await prepareServerAfterglowMaster\(/u);
+  assert.match(api,/await runtimeState.privateStorage.commitAfterglowMaster\(/u);
+  assert.doesNotMatch(api,/input\.master|input\.approved/u);
+  assert.match(panel,/reviewProgress\.allCreativeDecided/u);
+  assert.match(panel,/commitConsolidatedAfterglow\(/u);
 });

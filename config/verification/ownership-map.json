@@ -238,7 +238,10 @@
         "modules/library/afterglow-image-review.mjs",
         "modules/library/afterglow-image-review.d.mts",
         "modules/library/afterglow-review-progress.mjs",
-        "modules/library/afterglow-review-progress.d.mts"
+        "modules/library/afterglow-review-progress.d.mts",
+        "modules/library/master/afterglow-master-authority.mjs",
+        "modules/library/master/afterglow-master-authority.d.mts",
+        "modules/library/master/afterglow-master-server.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

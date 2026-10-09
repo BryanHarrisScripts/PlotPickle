@@ -30,6 +30,7 @@ import {
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
+  commitConsolidatedAfterglow,type ConsolidatedAfterglowReceipt,
   type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
 import type {
@@ -228,6 +229,8 @@ export default function AfterglowManagementPanel() {
   } | null>(null);
   const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
+  const [saveReceipt,setSaveReceipt] = useState<ConsolidatedAfterglowReceipt|null>(null);
+  const [saveError,setSaveError] = useState("");
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   // Library is the source of truth. Each brief describes one complete saved
   // snapshot (not a guessed difference against the latest version).
@@ -334,7 +337,7 @@ export default function AfterglowManagementPanel() {
   const reviewProgress=useMemo(()=>afterglowReviewProgress({
     groups:preview?.recovery.groups.map(group=>({
       id:group.id,label:group.label,items:group.items.map(item=>({
-        id:item.id,label:item.label,
+        id:item.id,label:item.label,kind:item.kind,
         reviewPath:afterglowRecoveryItemPath(item,canonicalFields),
       })),
     }))??[],
@@ -389,6 +392,8 @@ export default function AfterglowManagementPanel() {
     setPreflightNotice("");
     setConflictPage(0);
     setNotice("");
+    setSaveReceipt(null);
+    setSaveError("");
     try {
       if (!profileReady()) throw new Error("Unlock your PlotPickle profile before reviewing Afterglow.");
       const start = listAfterglowExampleProjects();
@@ -621,13 +626,58 @@ export default function AfterglowManagementPanel() {
     } finally {setPreflightBusy(false);}
   }
 
+  async function saveConsolidatedMaster() {
+    if(!preview || !reviewed || busy || mediaBusy || preflightBusy
+      || !reviewProgress.allCreativeDecided || reviewProgress.needsIndependentReview.length
+      || preview.sourceWarnings.length) {
+      setSaveError("Decide every required creative choice and resolve preservation blockers before saving.");
+      return;
+    }
+    setBusy(true);
+    setSaveError("");
+    setSaveReceipt(null);
+    try {
+      if(!profileReady()||reviewSourceInventoryFingerprint()!==preview.sourceInventory){
+        throw new Error("The signed-in Afterglow source inventory changed. Start a new review.");
+      }
+      const collected=collectAfterglowReviewSources({
+        active:listAfterglowExampleProjects(),archived:archivedAfterglowSummaries(),
+        recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot,
+      });
+      if(collected.warnings.length || collected.sources.length!==preview.sources.length)
+        throw new Error("Some saved recovery sources are unavailable. No master was saved.");
+      const expectedSources=await Promise.all(collected.sources.map(async source=>{
+        const bytes=new TextEncoder().encode(JSON.stringify(source.project));
+        const hash=await crypto.subtle.digest("SHA-256",bytes);
+        return {key:source.sourceKey??source.project.id,
+          digest:"sha256:"+Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,"0")).join("")};
+      }));
+      if(!profileReady() || preview.sourceInventory!==reviewSourceInventoryFingerprint() ||
+        selectionFingerprint!==JSON.stringify({decisions,exclusions,imageChoices,confirmedCurrent})) {
+        throw new Error("Source snapshots or creative decisions changed while preparing to save.");
+      }
+      const receipt=await commitConsolidatedAfterglow({
+        selections:{decisions,exclusions,confirmedCurrent,imageChoices},
+        expectedSources,
+      });
+      setSaveReceipt(receipt);
+      setPreview(null);
+      setNotice("");
+    } catch(error) {
+      setSaveError(error instanceof Error?error.message:
+        "The consolidated story was not confirmed. The original saved work remains untouched.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className={styles.workspace} data-afterglow-management="phase2-preview">
       <section className={styles.panel} aria-labelledby="afterglow-personal-heading">
         <div className={styles.heading}>
           <div><p className={styles.eyebrow}>Every authenticated PlotPickle user</p>
             <h2 id="afterglow-personal-heading">My Afterglow</h2></div>
-          <span className={styles.status}>Read-only review</span>
+          <span className={styles.status}>Review, confirm, save</span>
         </div>
         <p>Your personal Afterglow is a continuing working story: future edits should build on the same saved version.
           Find earlier Mind Map, Ask Agent, Story Bible and character work before creating one current master.
@@ -712,6 +762,28 @@ export default function AfterglowManagementPanel() {
           </>
         )}
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
+        {saveReceipt ? <section className={styles.consolidatedResult}
+          role="status" aria-label="Consolidated Afterglow saved confirmation">
+          <h3>Consolidated Afterglow saved successfully.</h3>
+          <p>Your current personal Afterglow now contains your confirmed creative choices.
+            <strong> {saveReceipt.decisionsCompleted}</strong> review decisions were accepted from
+            <strong> {saveReceipt.sourceCount}</strong> saved source states, with
+            <strong> {saveReceipt.historicalSources}</strong> historical sources preserved.
+            The new encrypted master passed independent readback.</p>
+          <p><strong>To continue:</strong> go to Library → Examples → Afterglow.
+            It opens your consolidated personal story. There is no separate public
+            “Consolidated Afterglow” example.</p>
+          <p>You may return to Afterglow Recovery to review previous saved points.
+            Your original working versions and recovery history remain protected;
+            general Data Recovery is still separate.</p>
+          {!saveReceipt.libraryRefreshed ? <p className={styles.caution}>
+            Your master was verified on the server, but the local Library list
+            could not refresh. Sign in again before opening Afterglow. Do not save twice.
+          </p> : null}
+          <p>This is your personal master only. Publishing the official Afterglow
+            for new users requires separate publisher approval.</p>
+        </section> : null}
+        {saveError ? <p role="alert" className={styles.caution}>{saveError}</p> : null}
         {preview ? (
           <section className={styles.result} aria-labelledby="afterglow-preview-heading">
             <h3 id="afterglow-preview-heading">Find your saved Afterglow work — not saved</h3>
@@ -1185,8 +1257,25 @@ export default function AfterglowManagementPanel() {
                 <ul>{preview.sampleChanges.map((item, index) => <li key={item.path + index}>{item.path}</li>)}</ul>
               </details>
             ) : null}
-            <p className={styles.caution}>Review only: no Save Master action is available until conflict resolution,
-              media verification, Human confirmation, and persisted readback are implemented and tested.</p>
+            <section className={styles.saveMasterArea} aria-label="Save Consolidated Afterglow">
+              <h3>Save Consolidated Afterglow</h3>
+              <p><strong>{reviewProgress.completed} of {reviewProgress.total}</strong> creative
+                classifications explicitly confirmed. Every required classification must
+                be resolved before saving. Structural and media evidence is checked again
+                independently on the authenticated server.</p>
+              <button type="button" disabled={busy||mediaBusy||preflightBusy||
+                !reviewProgress.allCreativeDecided||Boolean(reviewProgress.needsIndependentReview.length)||
+                Boolean(preview.sourceWarnings.length)}
+                onClick={()=>void saveConsolidatedMaster()}>
+                {busy?"Creating verified consolidated Afterglow…":"Save Consolidated Afterglow"}
+              </button>
+              {reviewProgress.pending>0?<p className={styles.reviewCurrent}>
+                {reviewProgress.pending} choices still need your confirmation; save is disabled.
+              </p>:null}
+              <p>Your choices create a new personal master only after encrypted readback.
+                Older copies and recovery points are preserved, not deleted. An unverified
+                file, conflict, missing question or altered source blocks the save.</p>
+            </section>
           </section>
         ) : null}
       </section>

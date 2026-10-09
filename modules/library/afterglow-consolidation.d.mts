@@ -1,6 +1,6 @@
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 
-export type AfterglowConsolidationChange = Readonly<{ path: string; sources: string[] }>;
+export type AfterglowConsolidationChange = Readonly<{ path: string; sources: string[]; baselineAbsent: boolean; baselineValue: unknown }>;
 export type AfterglowConsolidationConflict = Readonly<{
   path: string;
   reason: string;
@@ -64,6 +64,7 @@ export type AfterglowConflictChoice = number | "baseline";
 export type AfterglowDecisionPreview = Readonly<{
   candidate: LibraryPPFProject;
   resolved: ReadonlyArray<Readonly<{ path: string; choice: AfterglowConflictChoice }>>;
+  excluded: readonly string[];
   unresolvedConflicts: AfterglowConsolidationConflict[];
   needsReview: AfterglowConsolidationReview[];
   localAssetsToVerify: string[];
@@ -74,4 +75,5 @@ export type AfterglowDecisionPreview = Readonly<{
 export declare function reviewAfterglowConsolidationDecisions(
   plan: AfterglowConsolidationPlan,
   decisions: Readonly<Record<string, AfterglowConflictChoice>>,
+  exclusions?: readonly string[],
 ): AfterglowDecisionPreview;

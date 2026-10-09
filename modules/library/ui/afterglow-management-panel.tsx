@@ -5,7 +5,7 @@ import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catal
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
-import type { AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
+import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -74,6 +74,24 @@ async function exactSavedSnapshotProofs(items: readonly {readonly project: {
     return {id:project.id,revision:project.revision,updatedAt:project.updatedAt,digest:"sha256:"+hex};
   }));
 }
+function readableCreativeChoice(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item=value as Record<string, unknown>;
+  if (typeof item.value === "string" && item.value.trim()) return item.value;
+  if (typeof item.text === "string" && item.text.trim()) return item.text;
+  if (item.noText === true) return "Approved: no caption or dialogue";
+  if (typeof item.narration === "string" && item.narration.trim()) return item.narration;
+  if (Array.isArray(item.bubbles)) {
+    const dialogue=item.bubbles.map(bubble => {
+      if (!bubble || typeof bubble !== "object") return "";
+      const text=bubble as {text?: unknown; dialogue?:unknown; content?:unknown};
+      return [text.text,text.dialogue,text.content].find(part=>typeof part==="string" && part.trim()) ?? "";
+    }).filter(Boolean);
+    if (dialogue.length) return dialogue.join("\n");
+  }
+  return null;
+}
 function summarizeHumanValue(value: unknown, path = "") {
   if (Array.isArray(value) && path.endsWith("/acceptedVisualArtifactIds")) {
     return value.length + " accepted artwork IDs; lock and media proof required";
@@ -112,6 +130,7 @@ export default function AfterglowManagementPanel() {
   const [sources, setSources] = useState<readonly ProjectLibrarySummary[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
+  const [exclusions, setExclusions] = useState<string[]>([]);
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -129,19 +148,24 @@ export default function AfterglowManagementPanel() {
   } | null>(null);
   const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
+  const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
-    for (const field of buildStoryDevelopmentFields(plotPickleCurriculum)) {
+    for (const field of canonicalFields) {
       lookup.set(field.canonicalId, field.prompt);
       if (field.scope !== "project-wide") {
         for (const act of field.validActs) lookup.set(field.canonicalId + "::act-" + act, field.prompt);
       }
     }
     return lookup;
-  }, []);
+  }, [canonicalFields]);
   const reviewed = useMemo(() => preview
-    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions)
-    : null, [preview, decisions]);
+    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions, exclusions)
+    : null, [preview, decisions, exclusions]);
+  const selectionFingerprint = JSON.stringify({ decisions, exclusions });
+  const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
+    group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
+  ) ?? []), [preview, canonicalFields]);
 
   const refresh = useCallback(() => {
     const ready = profileReady();
@@ -149,6 +173,7 @@ export default function AfterglowManagementPanel() {
     setSources(ready ? listAfterglowExampleProjects() : []);
     setPreview(null);
     setDecisions({});
+    setExclusions([]);
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -166,6 +191,7 @@ export default function AfterglowManagementPanel() {
     setBusy(true);
     setPreview(null);
     setDecisions({});
+    setExclusions([]);
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -209,7 +235,7 @@ export default function AfterglowManagementPanel() {
       const recovery = inventoryAfterglowRecoveredWork({
         baseline,
         sources: complete,
-        fields: buildStoryDevelopmentFields(plotPickleCurriculum),
+        fields: canonicalFields,
       });
       setPreview({
         plan: result,
@@ -238,7 +264,7 @@ export default function AfterglowManagementPanel() {
 
   const mediaMatches = mediaState !== null
     && mediaState.sources === inventoryFingerprint(sources)
-    && mediaState.choices === JSON.stringify(decisions);
+    && mediaState.choices === selectionFingerprint;
   const mediaReport = mediaMatches ? mediaState.report : null;
 
   async function verifyMediaEvidence() {
@@ -250,7 +276,7 @@ export default function AfterglowManagementPanel() {
     setPreflightNotice("");
     const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
     const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
-    const choices = JSON.stringify(decisions);
+    const choices = selectionFingerprint;
     const guard = () => {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profilePrivateBrowserReadyFor(profileId)
@@ -326,7 +352,7 @@ export default function AfterglowManagementPanel() {
       if (JSON.stringify(await exactSavedSnapshotProofs(snapshots)) !== JSON.stringify(preview.initialProofs)) {
         throw new Error("Saved source bytes changed during inspection. Refresh and repeat the review.");
       }
-      if (choices !== JSON.stringify(decisions)) {
+      if (choices !== selectionFingerprint) {
         throw new Error("Conflict choices changed during media inspection. Inspect the new selection again.");
       }
       setMediaState({report:result,sources:startingInventory,choices});
@@ -338,7 +364,7 @@ export default function AfterglowManagementPanel() {
 
   const preflightReport = preflightState !== null && mediaMatches
     && preflightState.sources === inventoryFingerprint(sources)
-    && preflightState.choices === JSON.stringify(decisions) ? preflightState.report : null;
+    && preflightState.choices === selectionFingerprint ? preflightState.report : null;
   async function checkMasterSavePreflight() {
     if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
     setPreflightBusy(true);
@@ -372,10 +398,10 @@ export default function AfterglowManagementPanel() {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profileReady() || inventory !== inventoryFingerprint(listAfterglowExampleProjects())
         || JSON.stringify(finalProofs) !== JSON.stringify(currentProofs)
-        || JSON.stringify(decisions) !== (mediaState?.choices ?? "")) {
+        || selectionFingerprint !== (mediaState?.choices ?? "")) {
         throw new Error("Profile, saved bytes or selected story decisions changed. Re-run the review.");
       }
-      setPreflightState({report:result,sources:inventory,choices:JSON.stringify(decisions)});
+      setPreflightState({report:result,sources:inventory,choices:selectionFingerprint});
       setPreflightNotice("Read-only save-preparation check completed. No new master was created.");
     } catch(error) {
       setPreflightNotice(error instanceof Error ? error.message : "The save-preparation proof could not complete.");
@@ -422,6 +448,24 @@ export default function AfterglowManagementPanel() {
               {" "}<strong>{preview.recovery.recoveredItemCount}</strong> saved additions or edits found beyond the provided example;
               {" "}<strong>{preview.recovery.differingValueCount}</strong> fields or artifacts have different saved versions to compare.
               Repeated identical answers are listed once, with every source shown.</p>
+            <section aria-label="Draft master selection" className={styles.creativeReview}>
+              <h3>Build one current Afterglow</h3>
+              <p>Distinct compatible work from all saved dates is included automatically. You can exclude a particular
+                field from the draft or choose between different saved versions below. These choices affect only
+                the proposed master — they do not change, delete or archive a saved version.</p>
+              <p role="status">
+                <strong>{Math.max(0,preview.appliedCount-exclusions.length)}</strong> compatible updates included;
+                {" "}<strong>{exclusions.length}</strong> explicitly excluded;
+                {" "}<strong>{reviewed?.resolved.length ?? 0}</strong> competing choices selected;
+                {" "}<strong>{reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> comparisons still unresolved.
+              </p>
+              {exclusions.length || Object.keys(decisions).length ? (
+                <button type="button" className={styles.selectionReset}
+                  onClick={() => { setExclusions([]); setDecisions({}); }}>
+                  Restore all draft selections
+                </button>
+              ) : null}
+            </section>
             <section aria-label="Recovered Mind Map and character work" className={styles.recoveryArea}>
               <h3>Previously saved creative work</h3>
               <p>These are the actual saved values, Agent suggestions, notes and character image references found in this profile,
@@ -431,8 +475,13 @@ export default function AfterglowManagementPanel() {
                 <details key={group.id} open={index === 0}>
                   <summary><strong>{group.label}</strong> · {group.items.length} saved item{group.items.length === 1 ? "" : "s"}</summary>
                   <ul className={styles.recoveryList}>
-                    {group.items.map(item=>(
-                      <li key={item.kind+item.id}>
+                    {group.items.map(item=>{
+                      const path=afterglowRecoveryItemPath(item,canonicalFields);
+                      const automaticallyIncluded=Boolean(path && preview.plan.applied.some(change=>change.path===path));
+                      const excluded=Boolean(path && exclusions.includes(path));
+                      const conflict=path ? preview.conflicts.find(change=>change.path===path
+                        && change.reason==="competing-values") : null;
+                      return <li key={item.kind+item.id}>
                         <strong>{item.label}</strong>
                         <span className={styles.recoveryKind}>{item.kind === "unaccepted-agent-suggestion"
                           ? "Agent suggestion only — not accepted"
@@ -443,20 +492,93 @@ export default function AfterglowManagementPanel() {
                         {item.alternatives.length > 1 ? (
                           <span className={styles.recoveryKind}>Different saved values — compare before combining</span>
                         ) : null}
-                        {item.alternatives.map((alternative,index)=>(
-                          <div key={index} className={styles.recoveryValue}>
+                        {item.alternatives.map((alternative,index)=>{
+                          const optionIndex=conflict?.options?.findIndex((option,position)=>
+                            readableCreativeChoice(option)?.trim() === alternative.text
+                            && alternative.sources.some(source=>source.id === conflict.optionSources?.[position])) ?? -1;
+                          return <div key={index} className={styles.recoveryValue}>
                             <p>{alternative.text}</p>
                             <small>Saved in {alternative.sources.map(source=>
                               displayDate(source.updatedAt)+" ("+source.id.slice(0,8)+")").join(", ")}</small>
+                            {conflict && optionIndex >= 0 ? (
+                              <button type="button" className={styles.creativeOption}
+                                aria-pressed={decisions[conflict.path] === optionIndex}
+                                disabled={busy || mediaBusy || preflightBusy}
+                                onClick={()=>setDecisions(previous=>({...previous,[conflict.path]:optionIndex}))}>
+                                {decisions[conflict.path] === optionIndex ? "Selected for draft" : "Use this saved version"}
+                              </button>
+                            ) : null}
+                          </div>;
+                        })}
+                        {automaticallyIncluded ? (
+                          <div className={styles.creativeActions}>
+                            <span>{excluded ? "Excluded from draft — originals preserved" : "Included in draft"}</span>
+                            <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                              aria-pressed={excluded}
+                              onClick={()=>setExclusions(previous=>excluded
+                                ? previous.filter(entry=>entry!==path)
+                                : [...previous,path!])}>
+                              {excluded ? "Restore to draft" : "Exclude from draft"}
+                            </button>
                           </div>
-                        ))}
-                      </li>
-                    ))}
+                        ) : conflict ? (
+                          <div className={styles.creativeActions}>
+                            <span>{decisions[conflict.path] === undefined ? "Choose which saved answer to keep" : "A draft choice is selected"}</span>
+                            <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                              onClick={()=>setDecisions(previous=>({...previous,[conflict.path]:"baseline"}))}>
+                              {decisions[conflict.path] === "baseline" ? "Original example selected" : "Keep original example value"}
+                            </button>
+                          </div>
+                        ) : null}
+                      </li>;
+                    })}
                   </ul>
                 </details>
               )) : <p>No authored additions differing from the provided example were found in these saved copies.
                 This does not search other profiles or unsaved Agent conversations.</p>}
             </section>
+            {preview.conflicts.some(conflict=>conflict.reason==="competing-values" && !recoveryPaths.has(conflict.path)) ? (
+              <section aria-label="Compare saved creative decisions" className={styles.creativeReview}>
+                <h3>Choose between saved creative decisions</h3>
+                <p>These are places where the same shot or story decision was saved differently.
+                  Choose the version you want. Other independent edits are already included.</p>
+                {preview.conflicts.filter(conflict=>conflict.reason==="competing-values"
+                  && !recoveryPaths.has(conflict.path)).map(conflict=>{
+                  const category=describeAfterglowConsolidationConflict(conflict.path);
+                  const approvedKind=["shot-narration-approval","story-field-content","other"].includes(category.kind);
+                  const options=conflict.options ?? [];
+                  return <div key={conflict.path} className={styles.creativeConflict}>
+                    <strong>{category.label}</strong>
+                    {options.map((option,index)=>{
+                      const text=readableCreativeChoice(option);
+                      const source=preview.sources.find(item=>item.id===conflict.optionSources?.[index]);
+                      const selectable=approvedKind && Boolean(text);
+                      return <div key={index} className={styles.recoveryValue}>
+                        <small>{source ? displayDate(source.updatedAt) : "Saved working copy"}
+                          {" · "}{source?.id.slice(0,8) ?? "source"}</small>
+                        <p>{text ?? "This saved alternative needs a more specific creative description before it can be selected here."}</p>
+                        {selectable ? <button type="button" className={styles.creativeOption}
+                          disabled={busy || mediaBusy || preflightBusy}
+                          aria-pressed={decisions[conflict.path] === index}
+                          onClick={()=>setDecisions(previous=>({...previous,[conflict.path]:index}))}>
+                          {decisions[conflict.path] === index ? "Selected for draft" : "Use this saved version"}
+                        </button> : null}
+                      </div>;
+                    })}
+                    {approvedKind ? <button type="button" className={styles.selectionReset}
+                      disabled={busy || mediaBusy || preflightBusy}
+                      aria-pressed={decisions[conflict.path] === "baseline"}
+                      onClick={()=>setDecisions(previous=>({...previous,[conflict.path]:"baseline"}))}>
+                      {decisions[conflict.path] === "baseline"
+                        ? "Original example selected" : "Exclude these alternatives; retain original example"}
+                    </button> : <p>This approval collection cannot safely be resolved as a single choice.
+                      Its original artifacts and locks remain protected pending individual reconciliation.</p>}
+                  </div>;
+                })}
+              </section>
+            ) : null}
+            <p className={styles.caution}>Draft selection only. Save Current Master will become available
+              only after all original saves, media, narration, and the final encrypted readback are verified.</p>
             <details>
               <summary>Advanced consolidation diagnostics — field, question and media evidence</summary>
               <p><strong>{preview.appliedCount}</strong> proposed field/entity changes;

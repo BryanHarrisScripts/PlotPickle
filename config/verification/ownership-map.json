@@ -239,9 +239,9 @@
         "modules/library/afterglow-image-review.d.mts",
         "modules/library/afterglow-review-progress.mjs",
         "modules/library/afterglow-review-progress.d.mts",
-        "modules/library/afterglow-master-authority.mjs",
-        "modules/library/afterglow-master-authority.d.mts",
-        "modules/library/afterglow-master-server.ts"
+        "modules/library/master/afterglow-master-authority.mjs",
+        "modules/library/master/afterglow-master-authority.d.mts",
+        "modules/library/master/afterglow-master-server.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

@@ -16,6 +16,7 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
+import { afterglowReviewProgress, afterglowImageSlotKey, selectAfterglowImageOption, resetAfterglowImageSlot } from "../afterglow-review-progress.mjs";
 import { listAfterglowImageChoices, applyAfterglowImageChoices, imageIncludedInCandidate,
   type AfterglowImageChoice } from "../afterglow-image-review.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
@@ -208,6 +209,8 @@ export default function AfterglowManagementPanel() {
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [imageChoices, setImageChoices] = useState<Record<string,"keep"|"exclude">>({});
+  const [confirmedCurrent, setConfirmedCurrent] = useState<Record<string,boolean>>({});
+  const [expandedImageSlots, setExpandedImageSlots] = useState<Record<string,boolean>>({});
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -321,14 +324,29 @@ export default function AfterglowManagementPanel() {
     return {...textReviewed,candidate:imageReview.candidate,
       localAssetsToVerify:[...media].sort()};
   },[textReviewed,imageReview]);
-  const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices });
+  const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices, confirmedCurrent });
   const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
     group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
   ) ?? []), [preview, canonicalFields]);
   const creativeChoices=useMemo(()=>partitionAfterglowChoices(preview?.conflicts ?? [],
     [...recoveryPaths]),[preview,recoveryPaths]);
-  const pendingHumanChoices=[...creativeChoices.human,...creativeChoices.inRecovered]
-    .filter(item=>decisions[item.path]===undefined).length;
+
+  const reviewProgress=useMemo(()=>afterglowReviewProgress({
+    groups:preview?.recovery.groups.map(group=>({
+      id:group.id,label:group.label,items:group.items.map(item=>({
+        id:item.id,label:item.label,
+        reviewPath:afterglowRecoveryItemPath(item,canonicalFields),
+      })),
+    }))??[],
+    candidatePaths:preview?.plan.applied.map(item=>item.path)??[],
+    conflictPaths:[...creativeChoices.human,...creativeChoices.inRecovered].map(item=>item.path),
+    confirmations:confirmedCurrent,exclusions,decisions,
+    extraConflicts:creativeChoices.human.map(item=>({
+      path:item.path,label:describeAfterglowConsolidationConflict(item.path).label,
+    })),
+    imageOptions:preview?.imageOptions??[],imageChoices,
+  }),[preview,canonicalFields,creativeChoices,confirmedCurrent,exclusions,decisions,imageChoices]);
+  const pendingHumanChoices=reviewProgress.pending;
 
   const refresh = useCallback(() => {
     const ready = profileReady();
@@ -342,6 +360,8 @@ export default function AfterglowManagementPanel() {
     setDecisions({});
     setExclusions([]);
     setImageChoices({});
+    setConfirmedCurrent({});
+    setExpandedImageSlots({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -361,6 +381,8 @@ export default function AfterglowManagementPanel() {
     setDecisions({});
     setExclusions([]);
     setImageChoices({});
+    setConfirmedCurrent({});
+    setExpandedImageSlots({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -714,10 +736,31 @@ export default function AfterglowManagementPanel() {
                 {" "}<strong>{pendingHumanChoices}</strong> creative choices still needed.
                 {" "}<strong>{creativeChoices.verification.length}</strong> technical differences remain for independent verification, not Human selection.
               </p>
-              {exclusions.length || Object.keys(decisions).length ? (
+              <div className={styles.reviewProgress} role="status" aria-label="Consolidation review progress">
+                <strong>{reviewProgress.completed} of {reviewProgress.total} creative choices confirmed</strong>
+                <p>{reviewProgress.pending ? reviewProgress.pending+" choices still need your decision.":
+                  "All listed creative choices are confirmed. Independent recovery and media verification is still required before saving."}</p>
+                <progress max={Math.max(1,reviewProgress.total)} value={reviewProgress.completed}
+                  aria-label="Creative review completion"/>
+                {reviewProgress.sections.map(section=><div className={styles.reviewSectionCount} key={section.id}>
+                  <span>{section.label}</span>
+                  <strong className={section.completed===section.total ? styles.reviewConfirmed : styles.reviewCurrent}>
+                    {section.completed} / {section.total} confirmed
+                  </strong>
+                </div>)}
+                {reviewProgress.needsIndependentReview.length ? <p>
+                  {reviewProgress.needsIndependentReview.length} additional nonselectable records remain
+                  in independent preservation review and are not counted as approved.
+                </p> : null}
+              </div>
+              <p>Yellow = current saved value, not yet confirmed for this consolidation.
+                Green = your explicit Keep, Exclude, or selected alternative.
+                All required choices must be decided before a consolidated save can be authorized.</p>
+              {exclusions.length || Object.keys(decisions).length || Object.keys(imageChoices).length
+                || Object.keys(confirmedCurrent).length ? (
                 <button type="button" className={styles.selectionReset}
-                  onClick={() => { setExclusions([]); setDecisions({}); }}>
-                  Restore all draft selections
+                  onClick={() => { setExclusions([]); setDecisions({}); setImageChoices({}); setConfirmedCurrent({}); }}>
+                  Reset review decisions (originals unchanged)
                 </button>
               ) : null}
             </section>
@@ -734,9 +777,18 @@ export default function AfterglowManagementPanel() {
                 {" "}<strong>{Object.keys(imageChoices).length}</strong> explicit Keep/Exclude decisions.</p>
               {Array.from(new Set(preview.imageOptions.map(item=>item.characterId))).map(characterId=>{
                 const images=preview.imageOptions.filter(item=>item.characterId===characterId);
+                const views=new Set(images.map(afterglowImageSlotKey));
+                const reviewedViews=[...views].filter(slot=>
+                  reviewProgress.sections.find(section=>section.id==="images")?.items.some(item=>item.id===slot&&item.reviewed)).length;
+                const shown=images.filter(item=>{
+                  const slot=afterglowImageSlotKey(item);
+                  const kept=images.find(version=>afterglowImageSlotKey(version)===slot&&imageChoices[version.key]==="keep");
+                  return !kept||Boolean(expandedImageSlots[slot])||kept.key===item.key;
+                });
                 return <details key={characterId} className={styles.imageCharacter}>
-                  <summary>{images[0].characterName} · {images.length} saved image{images.length===1?"":"s"}</summary>
-                  <div className={styles.imageGrid}>{images.map(item=>{
+                  <summary>{images[0].characterName} · {reviewedViews}
+                    / {views.size} views reviewed</summary>
+                  <div className={styles.imageGrid}>{shown.map(item=>{
                     const inDraft=Boolean(reviewed && imageIncludedInCandidate(reviewed.candidate,item));
                     const conflicting=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
                       pack.characterId===item.characterId &&
@@ -745,7 +797,8 @@ export default function AfterglowManagementPanel() {
                       pack.characterId===item.characterId && pack.lockedVersionId===item.versionId
                       && !pack.references.some(ref=>ref.id===item.id&&ref.assetUrl===item.url));
                     const blocked=item.conflictingSourceMetadata||Boolean(conflicting)||Boolean(lockedVersionConflict);
-                    return <article key={item.key} className={styles.imageCard}>
+                    return <article key={item.key} className={styles.imageCard}
+                      data-afterglow-decision-state={imageChoices[item.key] ? "confirmed" : "current"}>
                       <AfterglowWebpThumbnail item={item}/>
                       <strong>{item.characterName} · {item.view}</strong>
                       <small>Saved version: {item.versionId}</small>
@@ -755,9 +808,12 @@ export default function AfterglowManagementPanel() {
                         {item.githubUrl ? <a href={item.githubUrl} target="_blank" rel="noopener noreferrer">
                           View on GitHub (packaged copy)</a> : null}
                       </p>
-                      <p>{inDraft?"Included in consolidated draft":
-                        imageChoices[item.key]==="exclude"?"Excluded from consolidated draft":
-                        "Recovered — not included in draft"}</p>
+                      <p className={imageChoices[item.key] ? styles.reviewConfirmed : styles.reviewCurrent}>
+                        {imageChoices[item.key]==="keep"?"Kept for consolidated draft"
+                          :imageChoices[item.key]==="exclude"?"Excluded from consolidated draft"
+                          :inDraft?"Current image — confirm Keep or Exclude"
+                            :"Recovered option — confirm Keep or Exclude"}
+                      </p>
                       {blocked ? <p className={styles.caution}>
                         {lockedVersionConflict ? "This image belongs to a locked version. Verify the complete character version first."
                           : "Conflicting reference identity or metadata. Verify the saved source before keeping this image."}
@@ -765,10 +821,23 @@ export default function AfterglowManagementPanel() {
                       <div className={styles.creativeActions}>
                         <button type="button" aria-pressed={inDraft}
                           disabled={busy||mediaBusy||preflightBusy||blocked}
-                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"keep"}))}>Keep</button>
+                          onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
+                            preview.imageOptions,previous,item.key,"keep"))}>Keep</button>
                         <button type="button" aria-pressed={imageChoices[item.key]==="exclude"}
                           disabled={busy||mediaBusy||preflightBusy||item.conflictingSourceMetadata}
-                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"exclude"}))}>Exclude</button>
+                          onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
+                            preview.imageOptions,previous,item.key,"exclude"))}>Exclude</button>
+                        {imageChoices[item.key]==="keep" ? <button type="button"
+                          onClick={()=>{const slot=afterglowImageSlotKey(item);
+                            setExpandedImageSlots(previous=>({...previous,[slot]:!previous[slot]}));}}>
+                          {expandedImageSlots[afterglowImageSlotKey(item)]?"Hide alternatives":"View other saved versions"}
+                        </button> : null}
+                        {imageChoices[item.key]==="keep" && expandedImageSlots[afterglowImageSlotKey(item)]
+                          ? <button type="button" onClick={()=>{
+                            const slot=afterglowImageSlotKey(item);
+                            setImageChoices(previous=>resetAfterglowImageSlot(preview.imageOptions,previous,slot));}}>
+                            Change selection
+                          </button> : null}
                       </div>
                       {imageReview?.clearedLocks.some(lock=>lock.characterId===item.characterId) ?
                         <small className={styles.caution}>Excluding the last image in a locked version
@@ -788,7 +857,8 @@ export default function AfterglowManagementPanel() {
               {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length
                 && group.id!=="visuals").map((group,index)=>(
                 <details key={group.id} open={index === 0}>
-                  <summary><strong>{group.label}</strong> · {group.items.length} saved item{group.items.length === 1 ? "" : "s"}</summary>
+                  <summary><strong>{group.label}</strong> · {reviewProgress.sections.find(section=>section.id===group.id)?.completed ?? 0}
+                    / {reviewProgress.sections.find(section=>section.id===group.id)?.total ?? 0} confirmed</summary>
                   <ul className={styles.recoveryList}>
                     {group.items.map(item=>{
                       const path=afterglowRecoveryItemPath(item,canonicalFields);
@@ -796,7 +866,10 @@ export default function AfterglowManagementPanel() {
                       const excluded=Boolean(path && exclusions.includes(path));
                       const conflict=path ? preview.conflicts.find(change=>change.path===path
                         && change.reason==="competing-values") : null;
-                      return <li key={item.kind+item.id}>
+                      const pathConfirmed=Boolean(path && (
+                    exclusions.includes(path)||decisions[path]!==undefined||confirmedCurrent[path]));
+                  return <li key={item.kind+item.id}
+                    data-afterglow-decision-state={pathConfirmed?"confirmed":"current"}>
                         <strong>{item.label}</strong>
                         <span className={styles.recoveryKind}>{item.kind === "unaccepted-agent-suggestion"
                           ? "Agent suggestion only — not accepted"
@@ -813,9 +886,11 @@ export default function AfterglowManagementPanel() {
                                 : readableCreativeChoice(conflict.options?.[Number(decisions[conflict.path])])
                                   ?? "Your approved choice is recorded; structural evidence must be verified."}</p>
                             </div>
-                          ) : conflict ? <p className={styles.consolidatedStatus}>Creative choice needed before this item is final.</p>
+                          ) : conflict ? <p className={styles.reviewCurrent}>Current alternative — choose a saved version to confirm.</p>
                           : automaticallyIncluded && item.alternatives.length===1
-                            ? <div className={styles.consolidatedResult}><strong>Included automatically</strong>
+                            ? <div className={confirmedCurrent[path!] ? styles.consolidatedResult : styles.currentResult}>
+                                <strong>{confirmedCurrent[path!] ? "Current value confirmed" :
+                                  "Current value — not yet confirmed"}</strong>
                                 <p>{item.alternatives[0].text}</p></div>
                             : <p className={styles.consolidatedStatus}>Recovered for review — not yet confirmed in the draft.</p>}
                         <details className={styles.savedAlternatives} open={Boolean(conflict && decisions[conflict.path]===undefined)}>
@@ -847,13 +922,21 @@ export default function AfterglowManagementPanel() {
                         </details>
                         {automaticallyIncluded ? (
                           <div className={styles.creativeActions}>
-                            <span>{excluded ? "Excluded from draft — originals preserved" : "Included in draft"}</span>
+                            <span className={confirmedCurrent[path!]||excluded ? styles.reviewConfirmed : styles.reviewCurrent}>
+                              {excluded?"Excluded by your choice":confirmedCurrent[path!]?
+                                "Current value confirmed":"Current value not reviewed"}</span>
+                            <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                              aria-pressed={Boolean(confirmedCurrent[path!])&&!excluded}
+                              onClick={()=>{setExclusions(previous=>previous.filter(entry=>entry!==path));
+                                setConfirmedCurrent(previous=>({...previous,[path!]:true}));}}>
+                              Confirm current
+                            </button>
                             <button type="button" disabled={busy || mediaBusy || preflightBusy}
                               aria-pressed={excluded}
-                              onClick={()=>setExclusions(previous=>excluded
-                                ? previous.filter(entry=>entry!==path)
-                                : [...previous,path!])}>
-                              {excluded ? "Restore to draft" : "Exclude from draft"}
+                              onClick={()=>{setConfirmedCurrent(previous=>({...previous,[path!]:false}));
+                                setExclusions(previous=>excluded
+                                  ? previous.filter(entry=>entry!==path):[...previous,path!]);}}>
+                              {excluded ? "Reconsider exclusion" : "Exclude from draft"}
                             </button>
                           </div>
                         ) : conflict ? (

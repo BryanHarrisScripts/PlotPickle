@@ -125,11 +125,11 @@ test("#2863 new creative review actions remain read-only with a single pending m
   assert.match(ui,/Build one current Afterglow/u);
   assert.match(ui,/afterglowRecoveryItemPath\(item,canonicalFields\)/u);
   assert.match(ui,/Exclude from draft/u);
-  assert.match(ui,/Restore to draft/u);
+  assert.match(ui,/Reconsider exclusion/u);
   assert.match(ui,/Use this saved version/u);
   assert.match(ui,/Compare saved creative decisions/u);
   assert.match(ui,/reviewAfterglowConsolidationDecisions\(preview.plan, decisions, exclusions\)/u);
-  assert.match(ui,/selectionFingerprint = JSON.stringify\(\{ decisions, exclusions, imageChoices \}\)/u);
+  assert.match(ui,/selectionFingerprint = JSON.stringify\(\{ decisions, exclusions, imageChoices, confirmedCurrent \}\)/u);
   assert.match(ui,/mediaState\.choices === selectionFingerprint/u);
   assert.match(ui,/No Save Current Master action is enabled/u);
   assert.doesNotMatch(ui,/saveActiveLibraryProject|commitAfterglowMaster|deleteArchivedLibraryProject/u);

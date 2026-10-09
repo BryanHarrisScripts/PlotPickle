@@ -2194,7 +2194,8 @@
           "tests/issue-2863-afterglow-recovery-source-audit.test.mjs",
           "tests/issue-2863-afterglow-historical-merge-sources.test.mjs",
           "tests/issue-2863-consolidated-human-outcome.test.mjs",
-          "tests/issue-2863-afterglow-image-visual-choices.test.mjs"
+          "tests/issue-2863-afterglow-image-visual-choices.test.mjs",
+          "tests/issue-2863-deterministic-review-completion.test.mjs"
         ]
       },
       "cost": "fast",

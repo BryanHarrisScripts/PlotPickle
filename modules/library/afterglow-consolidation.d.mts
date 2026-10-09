@@ -20,6 +20,8 @@ export type AfterglowConsolidationPlan = Readonly<{
   conflicts: AfterglowConsolidationConflict[];
   needsReview: AfterglowConsolidationReview[];
   localAssetsToVerify: string[];
+  /** All distinct asset URLs in all source snapshots, not byte-verified. */
+  sourceMediaReferences: string[];
   mergeShapeConsistent: boolean;
   readyForHumanCommit: false;
   packageModified: false;
@@ -31,6 +33,12 @@ export declare function planAfterglowConsolidation(input: {
   readonly sources: ReadonlyArray<Readonly<{ project: LibraryPPFProject }>>;
 }): AfterglowConsolidationPlan;
 export declare const AFTERGLOW_DURABLE_FIELDS: readonly string[];
+export declare function describeAfterglowConsolidationConflict(path: string): Readonly<{
+  kind: "visual-approval-collection" | "narration-approval-collection" |
+    "shot-narration-approval" | "authorship-metadata" | "story-field-content" | "other";
+  label: string;
+  requiresSpecialReconciliation: boolean;
+}>;
 
 export type AfterglowConflictChoice = number | "baseline";
 export type AfterglowDecisionPreview = Readonly<{

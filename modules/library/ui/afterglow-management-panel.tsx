@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
+import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -9,7 +11,7 @@ import {
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor } from "../../../core/storage/profile-private-browser";
-import { reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
+import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
 import type {
   AfterglowConsolidationPlan,
   AfterglowConflictChoice,
@@ -29,6 +31,7 @@ type Preview = Readonly<{
   conflicts: readonly AfterglowConsolidationConflict[];
   needsReview: readonly AfterglowConsolidationReview[];
   localAssetCount: number;
+  sourceMediaCount: number;
   mergeShapeConsistent: boolean;
 }>;
 
@@ -41,14 +44,34 @@ function displayDate(value: string) {
   return Number.isNaN(date.valueOf()) ? "Date unavailable" :
     new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
+function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, string>) {
+  const match = /^\/storyDevelopment\/fields\/([^/]+)\/(?:value|updatedAt)$/.exec(path);
+  if (!match) return null;
+  const storedFieldId = match[1].replace(/~1/g, "/").replace(/~0/g, "~");
+  return questions.get(storedFieldId) ?? null;
+}
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
   return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
 }
-function summarizeHumanValue(value: unknown) {
+function summarizeHumanValue(value: unknown, path = "") {
+  if (Array.isArray(value) && path.endsWith("/acceptedVisualArtifactIds")) {
+    return value.length + " accepted artwork IDs; lock and media proof required";
+  }
+  if (Array.isArray(value) && path.includes("graphicNovelTextApprovals")) {
+    return value.length + " Graphic Novel panel approvals";
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)
+      && "anchorRef" in value && "position" in value) {
+    const a = value as { position?: number; narration?: string; noText?: boolean };
+    const label = a.noText ? "Human approved no text" : (a.narration || "Approved dialogue bubbles");
+    return "Shot " + (a.position ?? "?") + " — " + label.slice(0, 140);
+  }
+  if (path.endsWith("/updatedAt") && typeof value === "string") return displayDate(value);
+  if (typeof value === "string") return value.length > 160 ? value.slice(0, 160) + "…" : value;
   let result = "";
   try { result = JSON.stringify(value); }
   catch { return "Complex value — review saved version"; }
-  return result && result.length > 200 ? result.slice(0, 200) + "…" : result || "Empty";
+  return result && result.length > 160 ? result.slice(0, 160) + "…" : result || "Empty";
 }
 
 /**
@@ -65,6 +88,16 @@ export default function AfterglowManagementPanel() {
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const questionByField = useMemo(() => {
+    const lookup = new Map<string, string>();
+    for (const field of buildStoryDevelopmentFields(plotPickleCurriculum)) {
+      lookup.set(field.canonicalId, field.prompt);
+      if (field.scope !== "project-wide") {
+        for (const act of field.validActs) lookup.set(field.canonicalId + "::act-" + act, field.prompt);
+      }
+    }
+    return lookup;
+  }, []);
   const reviewed = useMemo(() => preview
     ? reviewAfterglowConsolidationDecisions(preview.plan, decisions)
     : null, [preview, decisions]);
@@ -128,6 +161,7 @@ export default function AfterglowManagementPanel() {
         conflicts: result.conflicts,
         needsReview: result.needsReview.slice(0, 35),
         localAssetCount: result.localAssetsToVerify.length,
+        sourceMediaCount: result.sourceMediaReferences.length,
         mergeShapeConsistent: result.mergeShapeConsistent,
       });
       setNotice("Read-only review complete. No project, approval, image, or provided example was changed.");
@@ -177,24 +211,36 @@ export default function AfterglowManagementPanel() {
               <strong> {preview.appliedCount}</strong> proposed field/entity changes;
               <strong> {preview.conflictCount}</strong> conflicting paths;
               <strong> {preview.reviewCount}</strong> other review items;
-              <strong> {reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local media references requiring verification.</p>
+              <strong> {preview.sourceMediaCount}</strong> source-media URLs awaiting verification.</p>
+            <p>The original saves may contain images not yet present in this draft master.
+              This count does not verify the files exist or can be read. The selected draft currently has
+              {" "}<strong>{reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local asset URLs identified for later readback.</p>
             <p>{preview.mergeShapeConsistent
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
             {preview.conflictCount ? (
               <section aria-label="Resolve competing saved values" className={styles.decisionArea}>
                 <h3>Review conflicting values</h3>
-                <p>Choose the value to keep for each competing field. These choices only update your review;
-                  they do not save, delete, publish, or replace any source version.
-                  Structural overlaps still require a separate resolution.</p>
+                <p>PlotPickle should automatically reconcile repeated testing and complementary approved changes
+                  against each field's actual question. This diagnostic view shows unresolved exceptions;
+                  only genuinely incompatible answers should need a targeted choice.
+                  No selection here saves, deletes, publishes, or replaces a source version.</p>
                 {preview.conflicts.slice(conflictPage * 10, (conflictPage + 1) * 10).map((item, index) => {
                   const id = "afterglow-conflict-" + (conflictPage * 10 + index);
-                  const selectable = item.reason === "competing-values" && (item.options?.length ?? 0) > 0;
+                  const category = describeAfterglowConsolidationConflict(item.path);
+                  const canonicalQuestion = canonicalQuestionForPath(item.path, questionByField);
+                  const selectable = item.reason === "competing-values" && (item.options?.length ?? 0) > 0
+                    && !["visual-approval-collection", "narration-approval-collection", "authorship-metadata"].includes(category.kind);
                   return (
                     <div className={styles.decisionRow} key={item.path}>
-                      <label htmlFor={id}><strong>{item.path}</strong><span>{item.reason}</span></label>
+                      <div className={styles.conflictHeading}>
+                        <strong>{category.label}</strong>
+                        <span>{item.reason}</span>
+                        {canonicalQuestion ? <p className={styles.question}><strong>Original question:</strong> {canonicalQuestion}</p> : null}
+                        <code>{item.path}</code>
+                      </div>
                       {selectable ? (
-                        <select id={id}
+                        <select id={id} aria-label={"Choose " + category.label + " from saved alternatives"}
                           value={decisions[item.path] === undefined ? "" : String(decisions[item.path])}
                           onChange={event => setDecisions(previous => {
                             const next = { ...previous };
@@ -208,18 +254,27 @@ export default function AfterglowManagementPanel() {
                           {item.options?.map((value, optionIndex) => (
                             <option value={optionIndex} key={optionIndex}>
                               {"Saved " + (item.optionSources?.[optionIndex] ?? "version").slice(0, 22)
-                                + ": " + summarizeHumanValue(value)}
+                                + ": " + summarizeHumanValue(value, item.path)}
                             </option>
                           ))}
                         </select>
-                      ) : <p>Overlapping paths require further review. No automatic selection is allowed.</p>}
+                      ) : <p>{category.kind === "visual-approval-collection"
+                        ? "Approved visual artifacts must be reconciled individually against saved image, lock, and acceptance evidence. Do not select an entire saved list."
+                        : category.kind === "authorship-metadata"
+                          ? "The timestamp belongs with the selected approved story value. It is not a separate creative choice."
+                          : "This approval collection requires per-shot review. Choosing a whole list could drop valid approvals."}</p>}
                       {selectable ? (
                         <details>
-                          <summary>Inspect complete saved alternatives before deciding</summary>
+                          <summary>Compare human-readable saved alternatives</summary>
                           {item.options?.map((value, optionIndex) => (
                             <div key={optionIndex}>
                               <p>Saved copy: {item.optionSources?.[optionIndex] ?? "Unknown source"}</p>
-                              <pre className={styles.valueDetail}>{JSON.stringify(value, null, 2)}</pre>
+                              <p className={styles.approvalSummary}>{summarizeHumanValue(value, item.path)}</p>
+                              {value && typeof value === "object" && !Array.isArray(value)
+                                && "sourceKey" in value ? <p>Source fingerprint recorded — not yet verified against the selected locked image.</p> : null}
+                              <details><summary>Advanced technical evidence</summary>
+                                <pre className={styles.valueDetail}>{JSON.stringify(value, null, 2)}</pre>
+                              </details>
                             </div>
                           ))}
                         </details>
@@ -234,9 +289,10 @@ export default function AfterglowManagementPanel() {
                     <button type="button" disabled={(conflictPage + 1) * 10 >= preview.conflictCount} onClick={() => setConflictPage(p => p + 1)}>Next conflicts</button>
                   </div>
                 ) : null}
-                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> selected;
-                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> conflicting paths unresolved;
-                  <strong> {preview.reviewCount}</strong> other review items still require decisions.</p>
+                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> diagnostic selections;
+                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> remaining conflicting paths;
+                  <strong> {preview.reviewCount}</strong> other items requiring deterministic reconciliation.
+                  These are not necessarily additional Human approvals.</p>
                 <p>{reviewed?.decisionShapeConsistent
                   ? "All reported structural choices are accounted for. Media verification, an approved durable master, and restart readback are still required."
                   : "The master is not ready to save; some changes still require review."}</p>

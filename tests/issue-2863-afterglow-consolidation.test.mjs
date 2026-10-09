@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions, AFTERGLOW_DURABLE_FIELDS } from "../modules/library/afterglow-consolidation.mjs";
+import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions, describeAfterglowConsolidationConflict, AFTERGLOW_DURABLE_FIELDS } from "../modules/library/afterglow-consolidation.mjs";
 
 const baseline = () => ({
   format:"2.0-foundation", id:"packaged", title:"Afterglow",
@@ -216,4 +216,108 @@ test("#2863 Phase 2B ambiguous deletions cannot be resolved through a competing-
   assert.ok(result.needsReview.length>=1);
   assert.equal(result.decisionShapeConsistent,false);
   assert.equal(result.readyForHumanCommit,false);
+});
+
+
+test("#2863 UAT: separately approved Graphic Novel shots converge without losing either", () => {
+  const base=baseline();
+  base.production.graphicNovelTextApprovals=[];
+  const anchorRef="storyboard-anchor:block:block-01:mini-1";
+  const approval=(position,narration)=>({
+    anchorRef,position,sourceKey:"frame-source-"+position,narration,bubbles:[],noText:false,
+    approvedAt:"2026-10-08T18:00:00Z",
+  });
+  const old=working(base,"old",oct5,p=>{
+    p.production.graphicNovelTextApprovals=[approval(2,"Ren receives the news.")];
+  });
+  const newSource=working(base,"new",oct8,p=>{
+    p.production.graphicNovelTextApprovals=[approval(15,"Amy studies the photo.")];
+  });
+  const plan=planAfterglowConsolidation({baseline:base,sources:[old,newSource]});
+  assert.equal(plan.conflicts.length,0,JSON.stringify(plan.conflicts));
+  assert.equal(plan.needsReview.length,0);
+  assert.deepEqual(plan.candidate.production.graphicNovelTextApprovals.map(x=>x.position),[2,15]);
+  assert.deepEqual(plan.candidate.production.graphicNovelTextApprovals.map(x=>x.narration),
+    ["Ren receives the news.","Amy studies the photo."]);
+  assert.equal(plan.readyForHumanCommit,false,"approval aggregation still requires media/source verification");
+});
+
+test("#2863 UAT: competing approval of the same shot stays atomic and Human-owned", () => {
+  const base=baseline();base.production.graphicNovelTextApprovals=[];
+  const anchorRef="storyboard-anchor:block:block-01:mini-1";
+  const a=working(base,"a",oct5,p=>{p.production.graphicNovelTextApprovals=[{
+    anchorRef,position:2,sourceKey:"saved-image-A",narration:"Amy waits.",bubbles:[],noText:false,approvedAt:oct5,
+  }];});
+  const b=working(base,"b",oct8,p=>{p.production.graphicNovelTextApprovals=[{
+    anchorRef,position:2,sourceKey:"saved-image-B",narration:"Ren waits.",bubbles:[],noText:false,approvedAt:oct8,
+  }];});
+  const plan=planAfterglowConsolidation({baseline:base,sources:[a,b]});
+  assert.equal(plan.conflicts.length,1,JSON.stringify(plan.conflicts));
+  const conflict=plan.conflicts[0];
+  assert.match(conflict.path,/graphicNovelTextApprovals\/@approval:/u);
+  assert.deepEqual(conflict.optionSources,["a","b"]);
+  assert.equal(describeAfterglowConsolidationConflict(conflict.path).kind,"shot-narration-approval");
+  assert.deepEqual(plan.candidate.production.graphicNovelTextApprovals,[]);
+  const picked=reviewAfterglowConsolidationDecisions(plan,{[conflict.path]:1});
+  assert.equal(picked.candidate.production.graphicNovelTextApprovals.length,1);
+  assert.equal(picked.candidate.production.graphicNovelTextApprovals[0].sourceKey,"saved-image-B");
+  assert.equal(picked.candidate.production.graphicNovelTextApprovals[0].narration,"Ren waits.");
+  assert.equal(picked.readyForHumanCommit,false);
+  assert.equal(picked.packageModified,false);
+});
+
+test("#2863 UAT: unselected-source media remains inventoried, not falsely reported as safe zero", () => {
+  const base=baseline();
+  const first=working(base,"first",oct5,p=>{
+    p.build.foundations.visualArtifacts=[
+      {id:"visual-1",assetUrl:"/api/local-ai/assets/frame1.webp",reviewState:"accepted"},
+    ];
+    p.build.foundations.acceptedVisualArtifactIds=["visual-1"];
+  });
+  const second=working(base,"second",oct8,p=>{
+    p.build.foundations.visualArtifacts=[
+      {id:"visual-2",assetUrl:"/api/local-ai/assets/frame2.webp",reviewState:"accepted"},
+    ];
+    p.build.foundations.acceptedVisualArtifactIds=["visual-2"];
+  });
+  const plan=planAfterglowConsolidation({baseline:base,sources:[first,second]});
+  assert.deepEqual(plan.sourceMediaReferences,
+    ["/api/local-ai/assets/frame1.webp","/api/local-ai/assets/frame2.webp",
+      "/assets/library/examples/afterglow/current/shot1.webp"]);
+  assert.equal(plan.packageModified,false);
+  assert.equal(describeAfterglowConsolidationConflict("/build/foundations/acceptedVisualArtifactIds").requiresSpecialReconciliation,true);
+  assert.equal(plan.readyForHumanCommit,false,"a URL in the source is not readable-byte verification");
+});
+
+test("#2863 UAT: UI never offers a choose-one dropdown for whole approved-image lists", async () => {
+  const ui=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
+  assert.match(ui,/sourceMediaCount: result\.sourceMediaReferences\.length/u);
+  assert.match(ui,/source-media URLs awaiting verification/u);
+  assert.match(ui,/visual-approval-collection/u);
+  assert.match(ui,/authorship-metadata/u);
+  assert.match(ui,/Compare human-readable saved alternatives/u);
+  assert.match(ui,/Advanced technical evidence/u);
+  assert.match(ui,/Approved visual artifacts must be reconciled individually/u);
+  assert.doesNotMatch(ui,/Save Current Master.*onClick/u);
+});
+
+
+test("#2863 Human corrections: compare each authored answer to its original canonical question", async () => {
+  const [surface,contract,fieldDefinitions] = await Promise.all([
+    readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../docs/behavioral-contracts/PP-AFTERGLOW-CONSOLIDATE-001.md",import.meta.url),"utf8"),
+    readFile(new URL("../modules/learn/model/story-development-fields.ts",import.meta.url),"utf8"),
+  ]);
+  assert.match(surface,/buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface,/canonicalQuestionForPath\(item\.path, questionByField\)/u);
+  assert.match(surface,/Original question:/u);
+  assert.match(surface,/not necessarily additional Human approvals/u);
+  assert.match(surface,/field\.canonicalId \+ "::act-" \+ act/u);
+  assert.match(fieldDefinitions,/canonicalId: storyDevelopmentCanonicalId\(topic\.id, lesson\.id, fieldId\)/u);
+  assert.match(fieldDefinitions,/prompt,/u);
+  assert.match(contract,/question → retained answer/u);
+  assert.match(contract,/one Human confirmation/u);
+  assert.match(contract,/independently verifiable question-to-answer\/evidence mapping/u);
+  assert.match(contract,/do not ask the Human to approve the same work again/u);
+  assert.doesNotMatch(surface,/onClick=\{[^}]+Save Current Master/u);
 });

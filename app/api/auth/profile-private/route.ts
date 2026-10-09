@@ -78,7 +78,24 @@ export async function GET(request: Request) {
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts" }),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "library-recovery-points" }),
     ]);
+    // A normal Library unload may clear the active story; that must not erase
+    // proof of a previously committed personal Afterglow master. Resolve the
+    // independent encrypted commit ledger, never a client-invented ID prefix.
+    const possibleMasters = summaries.filter(summary =>
+      !summary.archivedAt && summary.sourceKind === "example" && summary.sourceId === "afterglow-v9"
+      && summary.projectId.startsWith("afterglow-consolidated-"));
+    const verifiedMasters = (await Promise.all(possibleMasters.map(async summary => {
+      const ledgerId = "afterglow-master-" + createHash("sha256").update(summary.projectId).digest("hex");
+      const ledger = await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "indexes", objectId: ledgerId,
+      });
+      const valid = ledger && typeof ledger === "object" && !Array.isArray(ledger)
+        && (ledger as { masterId?: unknown }).masterId === summary.projectId;
+      return valid ? { masterId: summary.projectId, updatedAt: summary.updatedAt } : null;
+    }))).filter((entry): entry is { masterId: string; updatedAt: string } => entry !== null)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     return response({
+      afterglowMaster: verifiedMasters[0] ?? null,
       project,
       activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof (project as { id?: unknown }).id === "string" ? (project as { id: string }).id : null,
       projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),

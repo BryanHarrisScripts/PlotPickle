@@ -85,7 +85,7 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.equal(afterglowSurface.runtimeSelector, "section[aria-label='Afterglow Management settings']");
   assert.equal(afterglowSurface.runtimeReadySelector,
     "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
-  assert.match(menuAudit, /const afterglowReturn = page\\.locator\\("button\\.pp-skin-v1-orchestrator-return:visible"\\)/u);
-  assert.match(menuAudit, /await afterglowReturn\\.click\\(\\)/u);
+  assert.ok(menuAudit.includes('const afterglowReturn = page.locator("button.pp-skin-v1-orchestrator-return:visible")'));
+  assert.ok(menuAudit.includes("await afterglowReturn.click()"));
   assert.match(menuAudit, /Back to Settings/u);
 });

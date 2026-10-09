@@ -34,6 +34,12 @@ test("#2863 approval lineage, image metadata, timestamps and arbitrary project a
   assert.equal(result.inRecovered.length,0);
   assert.ok(result.verification.includes(technical[0]),"all opaque conflicts survive for independent verification");
   assert.ok(result.verification.includes(technical[3]),"no metadata may be silently dropped");
+  assert.equal(afterglowChoiceKind(competing("/storyDevelopment/fields/theme",[
+    {updatedAt:"2026-10-08"},{updatedAt:"2026-10-09"}
+  ])),"verification","opaque field metadata is not a creative choice");
+  assert.equal(afterglowChoiceKind(competing("/production/graphicNovelTextApprovals/@approval:shot:position:1",[
+    {sourceKey:"hash-a"},{sourceKey:"hash-b"}
+  ])),"verification","unreadable caption metadata cannot be chosen as dialogue");
 });
 test("#2863 canonical Mind Map field choices are presented in their consolidated group once",()=>{
   const field=competing("/storyDevelopment/fields/character:character-engine:output-1",[

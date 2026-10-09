@@ -733,10 +733,31 @@ export default function AfterglowManagementPanel() {
                 {" "}<strong>{pendingHumanChoices}</strong> creative choices still needed.
                 {" "}<strong>{creativeChoices.verification.length}</strong> technical differences remain for independent verification, not Human selection.
               </p>
-              {exclusions.length || Object.keys(decisions).length ? (
+              <div className={styles.reviewProgress} role="status" aria-label="Consolidation review progress">
+                <strong>{reviewProgress.completed} of {reviewProgress.total} creative choices confirmed</strong>
+                <p>{reviewProgress.pending ? reviewProgress.pending+" choices still need your decision.":
+                  "All listed creative choices are confirmed. Independent recovery and media verification is still required before saving."}</p>
+                <progress max={Math.max(1,reviewProgress.total)} value={reviewProgress.completed}
+                  aria-label="Creative review completion"/>
+                {reviewProgress.sections.map(section=><div className={styles.reviewSectionCount} key={section.id}>
+                  <span>{section.label}</span>
+                  <strong className={section.completed===section.total ? styles.reviewConfirmed : styles.reviewCurrent}>
+                    {section.completed} / {section.total} confirmed
+                  </strong>
+                </div>)}
+                {reviewProgress.needsIndependentReview.length ? <p>
+                  {reviewProgress.needsIndependentReview.length} additional nonselectable records remain
+                  in independent preservation review and are not counted as approved.
+                </p> : null}
+              </div>
+              <p>Yellow = current saved value, not yet confirmed for this consolidation.
+                Green = your explicit Keep, Exclude, or selected alternative.
+                All required choices must be decided before a consolidated save can be authorized.</p>
+              {exclusions.length || Object.keys(decisions).length || Object.keys(imageChoices).length
+                || Object.keys(confirmedCurrent).length ? (
                 <button type="button" className={styles.selectionReset}
-                  onClick={() => { setExclusions([]); setDecisions({}); }}>
-                  Restore all draft selections
+                  onClick={() => { setExclusions([]); setDecisions({}); setImageChoices({}); setConfirmedCurrent({}); }}>
+                  Reset review decisions (originals unchanged)
                 </button>
               ) : null}
             </section>

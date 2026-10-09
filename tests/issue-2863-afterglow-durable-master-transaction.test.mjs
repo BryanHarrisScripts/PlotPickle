@@ -186,3 +186,24 @@ test("#2863 encrypted consolidation ledger outlives unload and a detached restar
     assert.equal((await restarted.loadProject(next,master.id)).id,master.id);
   }finally{restarted.close();}
 });
+
+test("#2863 encrypted last-save receipt is retained after restart without story or source mutation",async t=>{
+  const {storage,context,makeStore}=await setup(t,2,allow);
+  const before=await storage.listProjects(context);
+  const event={version:1,at:"2026-10-09T23:59:00.000Z",status:"blocked",
+    stage:"verify-images-and-commit",
+    message:"A selected image file cannot be found on this device."};
+  await storage.writePrivateJson(context,{
+    domain:"cache",objectId:"afterglow-master-last-attempt",value:event,
+  });
+  const restarted=makeStore();
+  try{
+    assert.deepEqual(await restarted.readPrivateJson(context,{
+      domain:"cache",objectId:"afterglow-master-last-attempt",
+    }),event);
+    assert.deepEqual(await restarted.listProjects(context),before,
+      "recording a blocked attempt must not change the saved story index");
+    assert.equal((await restarted.listProjects(context))
+      .filter(x=>x.projectId.startsWith("afterglow-consolidated-")).length,0);
+  }finally{restarted.close();}
+});

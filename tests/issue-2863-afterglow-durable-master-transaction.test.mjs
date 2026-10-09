@@ -49,7 +49,7 @@ async function setup(t, count, authorize) {
   return {storage,root,context,makeStore,proofs,master:makeProject("afterglow-master-"+count,"Union of every accepted decision.")};
 }
 const allow = ({candidate,originals}) => Boolean(candidate && originals.length);
-test("#2863 durable master stages encrypted bytes, atomically updates index, preserves N originals and reopens after restart",async t=>{
+test("#2863 durable master stages encrypted bytes, atomically updates index, preserves N originals and explicitly reopens after restart",async t=>{
   for(const n of [1,4,50]) await t.test("N="+n,async t=>{
     const {storage,context,makeStore,proofs,master}=await setup(t,n,allow);
     const evidence=await proofs();
@@ -65,8 +65,10 @@ test("#2863 durable master stages encrypted bytes, atomically updates index, pre
     }
     const restarted=makeStore();
     try{
-      const reopened=await restarted.loadActiveProject({sessionId:"new-session",profileId:context.profileId});
-      assert.deepEqual(reopened,master,"restart must resolve persisted registry, not old session cache");
+      const newSession={sessionId:"new-session",profileId:context.profileId};
+      assert.equal(await restarted.loadActiveProject(newSession),null,"fresh login intentionally starts detached");
+      const reopened=await restarted.loadAfterglowCurrentMaster(newSession);
+      assert.deepEqual(reopened,master,"explicit Library Open must read persisted current master");
     }finally{restarted.close();}
   });
 });

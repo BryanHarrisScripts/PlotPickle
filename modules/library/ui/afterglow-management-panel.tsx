@@ -833,7 +833,8 @@ export default function AfterglowManagementPanel() {
               {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length
                 && group.id!=="visuals").map((group,index)=>(
                 <details key={group.id} open={index === 0}>
-                  <summary><strong>{group.label}</strong> · {group.items.length} saved item{group.items.length === 1 ? "" : "s"}</summary>
+                  <summary><strong>{group.label}</strong> · {reviewProgress.sections.find(section=>section.id===group.id)?.completed ?? 0}
+                    / {reviewProgress.sections.find(section=>section.id===group.id)?.total ?? 0} confirmed</summary>
                   <ul className={styles.recoveryList}>
                     {group.items.map(item=>{
                       const path=afterglowRecoveryItemPath(item,canonicalFields);
@@ -841,7 +842,10 @@ export default function AfterglowManagementPanel() {
                       const excluded=Boolean(path && exclusions.includes(path));
                       const conflict=path ? preview.conflicts.find(change=>change.path===path
                         && change.reason==="competing-values") : null;
-                      return <li key={item.kind+item.id}>
+                      const pathConfirmed=Boolean(path && (
+                    exclusions.includes(path)||decisions[path]!==undefined||confirmedCurrent[path]));
+                  return <li key={item.kind+item.id}
+                    data-afterglow-decision-state={pathConfirmed?"confirmed":"current"}>
                         <strong>{item.label}</strong>
                         <span className={styles.recoveryKind}>{item.kind === "unaccepted-agent-suggestion"
                           ? "Agent suggestion only — not accepted"
@@ -858,9 +862,11 @@ export default function AfterglowManagementPanel() {
                                 : readableCreativeChoice(conflict.options?.[Number(decisions[conflict.path])])
                                   ?? "Your approved choice is recorded; structural evidence must be verified."}</p>
                             </div>
-                          ) : conflict ? <p className={styles.consolidatedStatus}>Creative choice needed before this item is final.</p>
+                          ) : conflict ? <p className={styles.reviewCurrent}>Current alternative — choose a saved version to confirm.</p>
                           : automaticallyIncluded && item.alternatives.length===1
-                            ? <div className={styles.consolidatedResult}><strong>Included automatically</strong>
+                            ? <div className={confirmedCurrent[path!] ? styles.consolidatedResult : styles.currentResult}>
+                                <strong>{confirmedCurrent[path!] ? "Current value confirmed" :
+                                  "Current value — not yet confirmed"}</strong>
                                 <p>{item.alternatives[0].text}</p></div>
                             : <p className={styles.consolidatedStatus}>Recovered for review — not yet confirmed in the draft.</p>}
                         <details className={styles.savedAlternatives} open={Boolean(conflict && decisions[conflict.path]===undefined)}>
@@ -892,13 +898,21 @@ export default function AfterglowManagementPanel() {
                         </details>
                         {automaticallyIncluded ? (
                           <div className={styles.creativeActions}>
-                            <span>{excluded ? "Excluded from draft — originals preserved" : "Included in draft"}</span>
+                            <span className={confirmedCurrent[path!]||excluded ? styles.reviewConfirmed : styles.reviewCurrent}>
+                              {excluded?"Excluded by your choice":confirmedCurrent[path!]?
+                                "Current value confirmed":"Current value not reviewed"}</span>
+                            <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                              aria-pressed={Boolean(confirmedCurrent[path!])&&!excluded}
+                              onClick={()=>{setExclusions(previous=>previous.filter(entry=>entry!==path));
+                                setConfirmedCurrent(previous=>({...previous,[path!]:true}));}}>
+                              Confirm current
+                            </button>
                             <button type="button" disabled={busy || mediaBusy || preflightBusy}
                               aria-pressed={excluded}
-                              onClick={()=>setExclusions(previous=>excluded
-                                ? previous.filter(entry=>entry!==path)
-                                : [...previous,path!])}>
-                              {excluded ? "Restore to draft" : "Exclude from draft"}
+                              onClick={()=>{setConfirmedCurrent(previous=>({...previous,[path!]:false}));
+                                setExclusions(previous=>excluded
+                                  ? previous.filter(entry=>entry!==path):[...previous,path!]);}}>
+                              {excluded ? "Reconsider exclusion" : "Exclude from draft"}
                             </button>
                           </div>
                         ) : conflict ? (

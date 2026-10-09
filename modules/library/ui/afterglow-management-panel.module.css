@@ -75,3 +75,11 @@
 .sourceBrief{font-size:11px!important;color:var(--pp-text,#f1eee7)!important;overflow-wrap:anywhere}
 .sourceBrief strong{color:var(--pp-teal,#35c9b8);font-weight:700}
 .sourceTopics{font-size:10px!important;color:var(--pp-muted,#b5b1aa)!important;overflow-wrap:anywhere}
+
+.recoverySourceArea{border:1px solid rgba(213,172,99,.32);border-radius:7px;margin:16px 0;padding:14px;background:rgba(213,172,99,.035)}
+.recoverySourceArea h3{margin-bottom:5px;font-size:17px}
+.recoverySourceArea p{margin:7px 0;font-size:11px}
+.recoverySourceList{max-height:320px!important;overflow:auto;list-style:none!important;padding:0!important;margin:10px 0!important;display:grid;gap:8px}
+.recoverySourceList li{padding:10px 12px;border:1px solid rgba(40,82,71,.62);border-radius:5px}
+.recoverySourceList li p{color:var(--pp-text,#f1eee7)!important;overflow-wrap:anywhere}
+.recoverySourceNotice{color:var(--pp-gold,#d5ac63)!important}

@@ -115,3 +115,5 @@
   outline: 2px solid var(--pp-skin-focus);
   outline-offset: 2px;
 }
+
+.timeNote{font-size:12px;line-height:1.55;margin:0;color:var(--pp-skin-ink-soft)}

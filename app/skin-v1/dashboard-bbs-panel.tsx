@@ -21,7 +21,7 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
   "semantic-uat": "U",
   "data-recovery": "D",
-  "afterglow-management": "V",
+  "afterglow-management": "F",
   command: "M",
   local: "L",
   cloud: "C",
@@ -38,11 +38,11 @@ const SETTINGS_MENU = [
   { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "COMPUTE" },
   { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "COMPUTE" },
   { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Hybrid", description: "Route capabilities across Local and Cloud.", group: "COMPUTE" },
-  { id: "semantic-uat", shortcut: SETTINGS_SHORTCUTS["semantic-uat"], label: "Semantic UAT", description: "Run and review the local semantic UAT evidence.", group: "OPERATIONS" },
-  { id: "data-recovery", shortcut: SETTINGS_SHORTCUTS["data-recovery"], label: "Data Recovery", description: "Review project files and rolling recovery points.", group: "OPERATIONS" },
-  { id: "afterglow-management", shortcut: SETTINGS_SHORTCUTS["afterglow-management"], label: "Afterglow Management", description: "Review saved Afterglow versions and resolve story conflicts safely.", group: "OPERATIONS" },
+  { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "Buzz", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
   { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Inspect Agents and their Hybrid Writing resource.", group: "OPERATIONS" },
-  { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
+  { id: "data-recovery", shortcut: SETTINGS_SHORTCUTS["data-recovery"], label: "Data Recovery", description: "Review project files and rolling recovery points.", group: "OPERATIONS" },
+  { id: "afterglow-management", shortcut: SETTINGS_SHORTCUTS["afterglow-management"], label: "Afterglow Recovery", description: "Compare recovered creative work without restoring or publishing a story.", group: "OPERATIONS" },
+  { id: "semantic-uat", shortcut: SETTINGS_SHORTCUTS["semantic-uat"], label: "Semantic UAT", description: "Run and review the local semantic UAT evidence.", group: "OPERATIONS" },
 ] as const;
 
 const CONNECTED_SETTINGS_ITEMS = new Set(SETTINGS_MENU.map((item) => item.id));

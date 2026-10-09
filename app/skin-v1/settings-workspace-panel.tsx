@@ -16,10 +16,40 @@ import styles from "./settings-workspace-panel.module.css";
 
 export type WorkspaceSettingsId = "general" | "semantic-uat" | "data-recovery" | "afterglow-management";
 
-export const WORKSPACE_SETTINGS_LABELS: Record<WorkspaceSettingsId, string> = { general: "General", "semantic-uat": "Semantic UAT", "data-recovery": "Data Recovery", "afterglow-management": "Afterglow Management" };
+export const WORKSPACE_SETTINGS_LABELS: Record<WorkspaceSettingsId, string> = { general: "General", "semantic-uat": "Semantic UAT", "data-recovery": "Data Recovery", "afterglow-management": "Afterglow Recovery" };
 type SkinTheme = "skin-v1" | "skin-v2";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
+
+/** OS/browser-local presentation; never alters or reinterprets the UTC instant saved in PPF. */
+function LocalDeviceDateTime() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    const update = () => setNow(new Date());
+    update();
+    const timer = window.setInterval(update, 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const timeZone = now ? Intl.DateTimeFormat().resolvedOptions().timeZone || "Not available" : "";
+  const zoneName = now ? new Intl.DateTimeFormat(undefined, {
+    hour: "numeric", timeZoneName: "long",
+  }).formatToParts(now).find((part) => part.type === "timeZoneName")?.value : "";
+  return <section className={styles.form} aria-label="Date and time settings">
+    <h3>Date &amp; Time</h3>
+    <label>
+      <span>Local date and time</span>
+      <output className={styles.value} aria-live="off">{now
+        ? new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" }).format(now)
+        : "Reading this device’s clock…"}</output>
+    </label>
+    <label>
+      <span>Time zone</span>
+      <output className={styles.value}>{now ? timeZone + (zoneName ? " · " + zoneName : "") : "Detecting…"}</output>
+      <small>Automatically detected from this device’s operating system/browser. Adjust the system clock or time zone to change it; daylight saving time is automatic.</small>
+    </label>
+    <p className={styles.timeNote}>Saved events use an unambiguous UTC timestamp. PlotPickle displays saved dates in this device’s local time. Changing the display time zone never alters the original saved instant.</p>
+  </section>;
+}
 
 export function isWorkspaceSettingsId(value: string): value is WorkspaceSettingsId {
   return value === "general" || value === "semantic-uat" || value === "data-recovery" || value === "afterglow-management";
@@ -123,6 +153,7 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
         </label>
       </section>
 
+      <LocalDeviceDateTime />
       <SettingsReviewSystemPanel systemId="advanced" embedded content="source" />
       <SystemMathematicsCard />
     </div>

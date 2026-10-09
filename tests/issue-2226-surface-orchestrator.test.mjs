@@ -89,9 +89,9 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   assert.equal(afterglow?.parent, "settings");
   assert.equal(afterglow?.capturePolicy, "census-only");
   assert.equal(afterglow?.orchestrated, true);
-  assert.equal(afterglow?.runtimeSelector, "section[aria-label='Afterglow Management settings']");
+  assert.equal(afterglow?.runtimeSelector, "section[aria-label='Afterglow Recovery settings']");
   assert.equal(afterglow?.runtimeReadySelector,
-    "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
+    "section[aria-label='Afterglow Recovery settings'] [data-settings-workspace-surface='afterglow-management']");
 
   assert.equal(edit?.capturePolicy, "census-only");
   assert.equal(edit?.orchestrated, true);

@@ -75,7 +75,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     label: "AFTERGLOW",
     items: [
-      { id: "afterglow-management", label: "Afterglow Management", detail: "Review saved versions and plan your current master" },
+      { id: "afterglow-management", label: "Afterglow Recovery", detail: "Review saved versions and plan your current master" },
     ],
   },
   {
@@ -213,7 +213,7 @@ export default function SageSettingsWorkspace() {
       case "archive":
         return <section id="settings-archive"><SectionIntro eyebrow="Settings · Library" title="Archive." detail="Archived stories remain the same local projects. Restore them to Library here without creating a copy or deleting the original PPF." /><ArchiveStoriesPanel /></section>;
       case "afterglow-management":
-        return <section id="settings-afterglow-management"><SectionIntro eyebrow="Settings · Afterglow Management" title="Afterglow Management." detail="Review your profile-owned Afterglow versions, inspect consolidation conflicts, and understand the protected provided-baseline and publisher-only paths." /><AfterglowManagementPanel /></section>;
+        return <section id="settings-afterglow-management"><SectionIntro eyebrow="Settings · Afterglow Recovery" title="Afterglow Management." detail="Review your profile-owned Afterglow versions, inspect consolidation conflicts, and understand the protected provided-baseline and publisher-only paths." /><AfterglowManagementPanel /></section>;
       case "buzz":
         return <section id="settings-buzz"><SectionIntro eyebrow="Settings · Community" title="Configure and test BUZZ transport." detail="Profile owns the Human BUZZ identity. Settings owns relay/runtime diagnostics and the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "activity":

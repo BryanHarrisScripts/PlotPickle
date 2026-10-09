@@ -502,7 +502,7 @@ export default function AfterglowManagementPanel() {
     && preflightState.choices === selectionFingerprint ? preflightState.report : null;
   async function checkMasterSavePreflight() {
     if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
-    if(preview.includedHistoricalSources) {
+    if(preview.includedHistoricalSources || preview.sourceWarnings.length) {
       setPreflightNotice("Historical recovery states are now included in the draft. Durable master save readiness requires independent encrypted snapshot provenance and cannot yet be authorized.");
       return;
     }
@@ -842,7 +842,7 @@ export default function AfterglowManagementPanel() {
             {mediaReport ? (
               <div className={styles.actions}>
                 <button type="button" disabled={busy || mediaBusy || preflightBusy
-                  || Boolean(preview.includedHistoricalSources)}
+                  || Boolean(preview.includedHistoricalSources || preview.sourceWarnings.length)}
                   onClick={() => void checkMasterSavePreflight()}>
                   {preflightBusy ? "Checking source integrity…" : "Check master save readiness (read-only)"}
                 </button>

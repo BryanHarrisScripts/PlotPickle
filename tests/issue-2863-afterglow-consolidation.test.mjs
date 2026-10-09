@@ -300,3 +300,24 @@ test("#2863 UAT: UI never offers a choose-one dropdown for whole approved-image 
   assert.match(ui,/Approved visual artifacts must be reconciled individually/u);
   assert.doesNotMatch(ui,/Save Current Master.*onClick/u);
 });
+
+
+test("#2863 Human corrections: compare each authored answer to its original canonical question", async () => {
+  const [surface,contract,fieldDefinitions] = await Promise.all([
+    readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../docs/behavioral-contracts/PP-AFTERGLOW-CONSOLIDATE-001.md",import.meta.url),"utf8"),
+    readFile(new URL("../modules/learn/model/story-development-fields.ts",import.meta.url),"utf8"),
+  ]);
+  assert.match(surface,/buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
+  assert.match(surface,/canonicalQuestionForPath\(item\.path, questionByField\)/u);
+  assert.match(surface,/Original question:/u);
+  assert.match(surface,/not necessarily additional Human approvals/u);
+  assert.match(surface,/field\.canonicalId \+ "::act-" \+ act/u);
+  assert.match(fieldDefinitions,/canonicalId: storyDevelopmentCanonicalId\(topic\.id, lesson\.id, fieldId\)/u);
+  assert.match(fieldDefinitions,/prompt,/u);
+  assert.match(contract,/question → retained answer/u);
+  assert.match(contract,/one Human confirmation/u);
+  assert.match(contract,/independently verifiable question-to-answer\/evidence mapping/u);
+  assert.match(contract,/do not ask the Human to approve the same work again/u);
+  assert.doesNotMatch(surface,/onClick=\{[^}]+Save Current Master/u);
+});

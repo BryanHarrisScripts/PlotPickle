@@ -57,6 +57,21 @@ test("#2863 exact independent historical snapshot identity and digest must match
   const partial=input(sources,{});
   assert.throws(()=>prepareVerifiedAfterglowMaster(partial),/All creative sections/u);
 });
+test("#2863 proposals not accepted by the Human are preserved in history without becoming a decision",async()=>{
+  const {afterglowReviewProgress}=await import("../modules/library/afterglow-review-progress.mjs");
+  const result=afterglowReviewProgress({
+    groups:[{id:"notes",label:"Working notes",items:[
+      {id:"agent-1",kind:"unaccepted-agent-suggestion",label:"Agent proposal",reviewPath:null},
+      {id:"genre",kind:"saved-answer",label:"Genre",reviewPath:genre},
+    ]}],
+    candidatePaths:[genre],conflictPaths:[],
+    confirmations:{[genre]:true},exclusions:[],decisions:{},
+    extraConflicts:[],imageOptions:[],imageChoices:{},
+  });
+  assert.equal(result.total,1);
+  assert.equal(result.completed,1);
+  assert.equal(result.needsIndependentReview.length,0);
+});
 test("#2863 no browser approval flag or client-created master is accepted by the authenticated route",async()=>{
   const api=await readFile(new URL("../app/api/auth/profile-private/route.ts",import.meta.url),"utf8");
   const runtime=await readFile(new URL("../core/auth/profile-experience/profile-experience-runtime.ts",import.meta.url),"utf8");

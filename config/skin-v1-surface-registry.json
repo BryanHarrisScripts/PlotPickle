@@ -811,7 +811,7 @@
     },
     {
       "id": "afterglow-management",
-      "label": "Afterglow Management",
+      "label": "Afterglow Recovery",
       "family": "settings",
       "parent": "settings",
       "surfaceClass": "nested",
@@ -827,7 +827,7 @@
         {
           "order": 9,
           "slug": "afterglow-management",
-          "label": "Afterglow Management"
+          "label": "Afterglow Recovery"
         }
       ],
       "formatProfile": {
@@ -837,8 +837,8 @@
         "selectedState": "not-applicable",
         "typography": "standard-ui"
       },
-      "runtimeSelector": "section[aria-label='Afterglow Management settings']",
-      "runtimeReadySelector": "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']",
+      "runtimeSelector": "section[aria-label='Afterglow Recovery settings']",
+      "runtimeReadySelector": "section[aria-label='Afterglow Recovery settings'] [data-settings-workspace-surface='afterglow-management']",
       "orchestrated": true
     },
     {
@@ -2083,7 +2083,7 @@
     },
     {
       "id": "buzz-settings",
-      "label": "BUZZ Settings",
+      "label": "Buzz",
       "family": "settings",
       "parent": "settings",
       "surfaceClass": "nested",
@@ -2102,7 +2102,7 @@
         {
           "order": 8,
           "slug": "buzz-settings",
-          "label": "BUZZ Settings"
+          "label": "Buzz"
         }
       ]
     },

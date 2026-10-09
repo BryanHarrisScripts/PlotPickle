@@ -99,3 +99,18 @@ test("#2863 user only receives saved confirmation after server encrypted readbac
   assert.match(browser,/hydrateProfilePrivateBrowser\(profileId,token,true\)/u);
   assert.match(browser,/receipt\.readbackVerified!==true/u);
 });
+
+test("#2863 post-save receipt must prove exact master is available in Library, not merely authenticated",async()=>{
+  const browser=await readFile(new URL("../core/storage/profile-private-browser.ts",import.meta.url),"utf8");
+  const panel=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
+  assert.match(browser,/masterSummary = listAfterglowExampleProjects\(\)\.find/u);
+  assert.match(browser,/item\.id === receipt\.masterId && !item\.archivedAt/u);
+  assert.match(browser,/loadLibraryProjectSnapshot\(receipt\.masterId\)/u);
+  assert.match(browser,/masterSnapshot\.sourceEvidence\.referenceFixture\?\.sourceId/u);
+  assert.match(browser,/resumeSessionActiveProject\(receipt\.masterId\)/u);
+  assert.doesNotMatch(browser,/libraryRefreshed=profilePrivateBrowserReadyFor\(profileId\);/u);
+  assert.match(panel,/Library opening is not verified/u);
+  assert.match(panel,/role="alert"/u);
+  assert.match(panel,/Saved master ID: \{saveReceipt\.masterId\}/u);
+  assert.match(panel,/Do not create another example/u);
+});

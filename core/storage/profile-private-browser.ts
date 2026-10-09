@@ -11,6 +11,7 @@ import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   hydrateProfileProjectLibrary,
   listArchivedLibraryProjects,
+  listAfterglowExampleProjects,
   listPersistableLibraryProjects,
   loadLibraryProjectSnapshot,
   libraryProjectSnapshotText,
@@ -422,7 +423,23 @@ export async function commitConsolidatedAfterglow(input:Readonly<{
   try {
     if(profilePrivateBrowserReadyFor(profileId))
       await hydrateProfilePrivateBrowser(profileId,token,true);
-    libraryRefreshed=profilePrivateBrowserReadyFor(profileId);
+    // A successful profile reload is NOT proof the newly committed master is
+    // available from Library. Match the exact encrypted receipt identity and
+    // packaged-reference lineage, rather than relying on a recent timestamp.
+    const masterSummary = listAfterglowExampleProjects().find(item =>
+      item.id === receipt.masterId && !item.archivedAt);
+    const masterSnapshot = masterSummary ? loadLibraryProjectSnapshot(receipt.masterId) : null;
+    libraryRefreshed = profilePrivateBrowserReadyFor(profileId)
+      && Boolean(masterSummary && masterSnapshot
+        && masterSnapshot.id === receipt.masterId
+        && masterSnapshot.sourceEvidence.referenceFixture?.sourceId === "afterglow-v9-complete-baseline");
+    // The deliberate save is an explicit user choice of the new working story.
+    // Make that same verified master current for this session, including after
+    // Library unload/reopen, without silently opening anything on future login.
+    if (libraryRefreshed) {
+      const reopened = resumeSessionActiveProject(receipt.masterId);
+      libraryRefreshed = Boolean(reopened && reopened.id === receipt.masterId);
+    }
   } catch {
     // The server already committed and returned a validated receipt.
     // Do not retry the transaction or misrepresent a successful write as

@@ -775,7 +775,8 @@ export default function AfterglowManagementPanel() {
               {Array.from(new Set(preview.imageOptions.map(item=>item.characterId))).map(characterId=>{
                 const images=preview.imageOptions.filter(item=>item.characterId===characterId);
                 return <details key={characterId} className={styles.imageCharacter}>
-                  <summary>{images[0].characterName} · {images.length} saved image{images.length===1?"":"s"}</summary>
+                  <summary>{images[0].characterName} · {images.filter(image=>imageChoices[image.key]).length}
+                    / {images.length} images reviewed</summary>
                   <div className={styles.imageGrid}>{images.map(item=>{
                     const inDraft=Boolean(reviewed && imageIncludedInCandidate(reviewed.candidate,item));
                     const conflicting=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
@@ -785,7 +786,8 @@ export default function AfterglowManagementPanel() {
                       pack.characterId===item.characterId && pack.lockedVersionId===item.versionId
                       && !pack.references.some(ref=>ref.id===item.id&&ref.assetUrl===item.url));
                     const blocked=item.conflictingSourceMetadata||Boolean(conflicting)||Boolean(lockedVersionConflict);
-                    return <article key={item.key} className={styles.imageCard}>
+                    return <article key={item.key} className={styles.imageCard}
+                      data-afterglow-decision-state={imageChoices[item.key] ? "confirmed" : "current"}>
                       <AfterglowWebpThumbnail item={item}/>
                       <strong>{item.characterName} · {item.view}</strong>
                       <small>Saved version: {item.versionId}</small>
@@ -795,9 +797,12 @@ export default function AfterglowManagementPanel() {
                         {item.githubUrl ? <a href={item.githubUrl} target="_blank" rel="noopener noreferrer">
                           View on GitHub (packaged copy)</a> : null}
                       </p>
-                      <p>{inDraft?"Included in consolidated draft":
-                        imageChoices[item.key]==="exclude"?"Excluded from consolidated draft":
-                        "Recovered — not included in draft"}</p>
+                      <p className={imageChoices[item.key] ? styles.reviewConfirmed : styles.reviewCurrent}>
+                        {imageChoices[item.key]==="keep"?"Kept for consolidated draft"
+                          :imageChoices[item.key]==="exclude"?"Excluded from consolidated draft"
+                          :inDraft?"Current image — confirm Keep or Exclude"
+                            :"Recovered option — confirm Keep or Exclude"}
+                      </p>
                       {blocked ? <p className={styles.caution}>
                         {lockedVersionConflict ? "This image belongs to a locked version. Verify the complete character version first."
                           : "Conflicting reference identity or metadata. Verify the saved source before keeping this image."}

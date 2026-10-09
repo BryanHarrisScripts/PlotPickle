@@ -51,7 +51,7 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
-import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject } from "../../../core/storage/profile-private-browser";
+import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshAfterglowLibraryFromEncryptedProfile } from "../../../core/storage/profile-private-browser";
 
 import { afterglowRestoreChoices, latestAfterglowSavedChoice, type AfterglowRestoreChoice } from "../afterglow-open-contract";
 
@@ -533,6 +533,10 @@ export default function LibraryWorkspace() {
   const [archivedCount, setArchivedCount] = useState(0);
   const [afterglowOpening, setAfterglowOpening] = useState<{ item: LibraryCatalogItem; choices: readonly AfterglowRestoreChoice[] } | null>(null);
   const [afterglowSource, setAfterglowSource] = useState("defaults");
+  const [afterglowMasterStatus, setAfterglowMasterStatus] = useState<{
+    masterId: string | null;
+    masterUpdatedAt: string | null;
+  } | null>(null);
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [loadPage, setLoadPage] = useState(0);
   const [pending, setPending] = useState<PendingLoad | null>(null);
@@ -624,6 +628,33 @@ export default function LibraryWorkspace() {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       activateDestination(index);
+    }
+  }
+
+  async function openVerifiedAfterglow(item: LibraryCatalogItem) {
+    if (loadingReference) return;
+    setLoadingReference(true);
+    setNotice("");
+    setAfterglowOpening(null);
+    setAfterglowMasterStatus(null);
+    try {
+      // No cached chooser can establish that the latest Save reached this
+      // Human's encrypted profile. Explicitly reload before listing choices.
+      const authority = await refreshAfterglowLibraryFromEncryptedProfile();
+      const choices = afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints());
+      if (authority.masterId && !choices.some(choice => choice.id === `saved:${authority.masterId}`)) {
+        throw new Error("The server has a consolidated Afterglow, but Library cannot list that exact master. Your recovery points are preserved.");
+      }
+      const defaultChoice = authority.masterId
+        ? `saved:${authority.masterId}`
+        : latestAfterglowSavedChoice(choices)?.id ?? "defaults";
+      setAfterglowSource(defaultChoice);
+      setAfterglowMasterStatus(authority);
+      setAfterglowOpening({ item, choices });
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Encrypted Afterglow verification failed. Do not consolidate again.");
+    } finally {
+      setLoadingReference(false);
     }
   }
 
@@ -1076,13 +1107,7 @@ export default function LibraryWorkspace() {
               posterUrls={isExamples ? afterglowPosters : undefined}
               onLoad={() => {
                 if (isExamples) {
-                  const choices = afterglowRestoreChoices(listAfterglowExampleProjects(), loadLibraryProjectSnapshot, listProfileRecoveryPoints());
-                  // Opening the example is an explicit choice, but a returning
-                  // Human should continue the most recent saved working state
-                  // instead of accidentally creating another blank example.
-                  // This is not a claim that older independent copies were merged.
-                  setAfterglowSource(latestAfterglowSavedChoice(choices)?.id ?? "defaults");
-                  setAfterglowOpening({ item, choices });
+                  void openVerifiedAfterglow(item);
                   return;
                 }
                 setPending({ kind: "catalog", sourceKind: "preset", item });
@@ -1217,6 +1242,14 @@ export default function LibraryWorkspace() {
             <p>Continue your saved personal Afterglow by default. Your next edits will build on that same
               saved working copy. Until consolidation is completed, older independent saved versions remain separate.
               Loading the provided example deliberately creates a new copy and never replaces your saved work.</p>
+            {afterglowMasterStatus?.masterId ? (
+              <p role="status">Verified encrypted-profile consolidated master: <strong>{afterglowMasterStatus.masterUpdatedAt}</strong>.
+                The starting point is your saved personal master, not the packaged original.</p>
+            ) : (
+              <p role="alert">The refreshed encrypted profile has no verified consolidated master.
+                Entries below are earlier independent saved changes, not proof that your latest consolidation was saved.
+                Check Afterglow Recovery’s save receipt before making another change.</p>
+            )}
             <label>
               <span>Starting point</span>
               <select value={afterglowSource} onChange={(event) => setAfterglowSource(event.target.value)}>

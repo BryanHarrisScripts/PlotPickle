@@ -48,7 +48,11 @@ test("#2559 Examples exposes exactly the clean-default and restore choices for A
   const examplesStart = source.indexOf('if (destination === "examples" || destination === "presets")');
   const examplesEnd = source.indexOf('if (destination === "avery")', examplesStart);
   const examples = source.slice(examplesStart, examplesEnd);
-  assert.match(examples, /setAfterglowOpening/u);
+  assert.match(examples, /openVerifiedAfterglow\(item\)/u);
+  const verifier = source.slice(source.indexOf("async function openVerifiedAfterglow"),
+    source.indexOf("async function unloadCurrentStory"));
+  assert.match(verifier, /await refreshAfterglowLibraryFromEncryptedProfile\(\)/u);
+  assert.match(verifier, /setAfterglowOpening\(\{ item, choices \}\)/u);
   assert.doesNotMatch(examples, /sourceKind: isExamples \? "example"/u);
 });
 

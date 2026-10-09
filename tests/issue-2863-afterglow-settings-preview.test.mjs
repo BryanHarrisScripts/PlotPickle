@@ -7,13 +7,13 @@ const read = file => readFile(new URL("../" + file, import.meta.url), "utf8");
 test("#2863 Phase 2 Settings owns Afterglow Management directly, not nested inside Library", async () => {
   const settings = await read("app/sage-settings-workspace.tsx");
   assert.match(settings, /"afterglow-management"/u);
-  assert.match(settings, /label: "Afterglow Management"/u);
+  assert.match(settings, /label: "Afterglow Recovery"/u);
   assert.match(settings, /case "afterglow-management":/u);
   assert.match(settings, /<AfterglowManagementPanel \/>/u);
   assert.match(settings, /Settings · Afterglow Management/u);
   const start = settings.indexOf('label: "AFTERGLOW"');
   const section = settings.slice(start,start+215);
-  assert.match(section, /label: "Afterglow Management"/u);
+  assert.match(section, /label: "Afterglow Recovery"/u);
   assert.doesNotMatch(section,/label: "Library"/iu);
 });
 
@@ -65,8 +65,8 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
     read("lib/verification/webmcp-surface-visual-audit.mjs"),
     read("config/skin-v1-surface-registry.json"),
   ]);
-  assert.match(dashboard, /id: "afterglow-management"[^\n]*label: "Afterglow Management"/u);
-  assert.match(dashboard, /"afterglow-management": "V"/u);
+  assert.match(dashboard, /id: "afterglow-management"[^\n]*label: "Afterglow Recovery"/u);
+  assert.match(dashboard, /"afterglow-management": "F"/u);
   assert.match(dashboard, /isWorkspaceSettingsId\(item\.id\)/u);
   assert.match(dashboard, /<SettingsWorkspacePanel section=\{settingsWorkspace\} \/>/u);
   assert.match(workspace, /\| "afterglow-management"/u);
@@ -83,9 +83,9 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.ok(afterglowSurface, "the actual Human route must be registered with the Matrix orchestrator");
   assert.equal(afterglowSurface.parent, "settings");
   assert.equal(afterglowSurface.orchestrated, true);
-  assert.equal(afterglowSurface.runtimeSelector, "section[aria-label='Afterglow Management settings']");
+  assert.equal(afterglowSurface.runtimeSelector, "section[aria-label='Afterglow Recovery settings']");
   assert.equal(afterglowSurface.runtimeReadySelector,
-    "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
+    "section[aria-label='Afterglow Recovery settings'] [data-settings-workspace-surface='afterglow-management']");
   assert.ok(menuAudit.includes('const afterglowReturn = page.locator("button.pp-skin-v1-orchestrator-return:visible")'));
   assert.ok(menuAudit.includes("await afterglowReturn.click()"));
   assert.match(menuAudit, /Back to Settings/u);

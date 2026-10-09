@@ -22,11 +22,11 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
     ["local", "L", "Local", "COMPUTE", "Local writing, images, video and Agent compute."],
     ["cloud", "C", "Cloud", "COMPUTE", "Explicit cloud providers and paid capability routes."],
     ["hybrid", "H", "Hybrid", "COMPUTE", "Route capabilities across Local and Cloud."],
-    ["semantic-uat", "U", "Semantic UAT", "OPERATIONS", "Run and review the local semantic UAT evidence."],
+    ["buzz-settings", "B", "Buzz", "OPERATIONS", "Configure BUZZ identity, presence and runtime settings."],
+    ["agents", "A", "Agents", "OPERATIONS", "Inspect Agents and their Hybrid Writing resource."],
     ["data-recovery", "D", "Data Recovery", "OPERATIONS", "Review project files and rolling recovery points."],
-    ["afterglow-management", "V", "Afterglow Management", "OPERATIONS", "Review saved Afterglow versions and resolve story conflicts safely."],
-    ["agents", "A", "Agents", "OPERATIONS", "Assign compute to PlotPickle Agents."],
-    ["buzz-settings", "B", "BUZZ Settings", "OPERATIONS", "Configure BUZZ identity, presence and runtime settings."],
+    ["afterglow-management", "F", "Afterglow Recovery", "OPERATIONS", "Compare recovered creative work without restoring or publishing a story."],
+    ["semantic-uat", "U", "Semantic UAT", "OPERATIONS", "Run and review the local semantic UAT evidence."],
   ];
 
   let previousIndex = -1;
@@ -49,10 +49,10 @@ test("#2730 Settings groups the approved destinations under System, Compute and 
   }
 
   assert.doesNotMatch(menu, /id: "ai-routing"/u, "Legacy Operations AI Routing must stay retired from the current Settings directory.");
-  assert.match(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,afterglow-management,agents,buzz-settings/u, "WebMCP must verify the eleven current Settings destinations.");
+  assert.match(webmcpAudit, /general,node-info,command,local,cloud,hybrid,buzz-settings,agents,data-recovery,afterglow-management,semantic-uat/u, "WebMCP must verify the eleven current Settings destinations.");
   assert.doesNotMatch(webmcpAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u, "WebMCP may not require retired AI Routing.");
-  assert.match(menuContractAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,afterglow-management,agents,buzz-settings/u, "Governed keyboard audit must use eleven active Settings destinations.");
-  assert.match(menuContractAudit, /G,I,M,L,C,H,U,D,V,A,B/u, "Governed keyboard audit must not require the retired R shortcut.");
+  assert.match(menuContractAudit, /general,node-info,command,local,cloud,hybrid,buzz-settings,agents,data-recovery,afterglow-management,semantic-uat/u, "Governed keyboard audit must use eleven active Settings destinations.");
+  assert.match(menuContractAudit, /G,I,M,L,C,H,B,A,D,F,U/u, "Governed keyboard audit must not require the retired R shortcut.");
   assert.doesNotMatch(menuContractAudit, /general,node-info,command,local,cloud,hybrid,semantic-uat,data-recovery,agents,ai-routing,buzz-settings/u);
   assert.match(dashboard, /const showGroup = index === 0 \|\| SETTINGS_MENU\[index - 1\]\?\.group !== item\.group/u);
   assert.match(dashboard, />-- \{item\.group\} --<\/div>/u);
@@ -62,7 +62,7 @@ const shortcuts = {
   general: "G",
   "semantic-uat": "U",
   "data-recovery": "D",
-  "afterglow-management": "V",
+  "afterglow-management": "F",
   "node-info": "I",
   command: "M",
   local: "L",

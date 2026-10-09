@@ -111,3 +111,19 @@
 .missingImage{padding:15px;text-align:center;font-size:11px;color:var(--pp-gold,#d5ac63)}
 .imageLinks{display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere}
 .imageLinks a{font-size:11px;color:var(--pp-teal,#35c9b8);text-decoration:underline}
+
+/* #2863 human-owned review truth. Yellow=current, green=explicitly confirmed. */
+.reviewProgress{border:1px solid rgba(89,167,148,.45);padding:13px;margin:12px 0;border-radius:7px}
+.reviewProgress>strong{font-size:15px}
+.reviewProgress p{font-size:12px;line-height:1.5}
+.reviewProgress progress{width:100%;height:10px;accent-color:#24a96f}
+.reviewSectionCount{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(120,144,139,.21);padding:7px 0;font-size:12px}
+.reviewCurrent{color:#edba55!important;font-weight:700}
+.reviewConfirmed{color:#51d993!important;font-weight:700}
+.currentResult{border-left:3px solid #edba55;padding:9px 11px;margin:10px 0;background:rgba(237,186,85,.07)}
+.currentResult>strong{display:block;color:#edba55;font-size:11px}
+.currentResult p{margin:7px 0 2px!important;overflow-wrap:anywhere;white-space:pre-wrap}
+.imageCard[data-afterglow-decision-state="confirmed"],
+.recoveryList li[data-afterglow-decision-state="confirmed"]{border-color:rgba(81,217,147,.58);background:rgba(32,125,76,.10)}
+.imageCard[data-afterglow-decision-state="current"],
+.recoveryList li[data-afterglow-decision-state="current"]{border-color:rgba(237,186,85,.29)}

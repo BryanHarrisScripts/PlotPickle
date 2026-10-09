@@ -230,7 +230,9 @@
         "modules/library/afterglow-version-summary.mjs",
         "modules/library/afterglow-version-summary.d.mts",
         "modules/library/afterglow-recovery-snapshot.mjs",
-        "modules/library/afterglow-recovery-snapshot.d.mts"
+        "modules/library/afterglow-recovery-snapshot.d.mts",
+        "modules/library/afterglow-review-sources.mjs",
+        "modules/library/afterglow-review-sources.d.mts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

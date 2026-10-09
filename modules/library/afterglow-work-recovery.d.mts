@@ -25,7 +25,7 @@ export type AfterglowRecoveredWork = Readonly<{
 
 export function inventoryAfterglowRecoveredWork(input: Readonly<{
   baseline: LibraryPPFProject;
-  sources: readonly Readonly<{project:LibraryPPFProject}>[];
+  sources: readonly Readonly<{project:LibraryPPFProject;sourceKey?:string;savedAt?:string}>[];
   fields: readonly Pick<StoryDevelopmentFieldDefinition,
     "canonicalId" | "topicId" | "lessonId" | "lessonTitle" | "fieldId">[];
 }>): AfterglowRecoveredWork;

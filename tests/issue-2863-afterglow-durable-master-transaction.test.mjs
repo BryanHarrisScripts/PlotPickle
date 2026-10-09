@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -71,6 +71,57 @@ test("#2863 durable master stages encrypted bytes, atomically updates index, pre
       assert.deepEqual(reopened,master,"explicit Library Open must read persisted current master");
     }finally{restarted.close();}
   });
+});
+test("#2863 historical recovery states are re-read from vault and preserved beyond rolling cache after master commit",async t=>{
+  let inspected=null;
+  const allowHistory=input=>{
+    inspected=input;
+    return {authorized:true,mediaPins:[]};
+  };
+  const {storage,context,proofs,master,makeStore}=await setup(t,2,allowHistory);
+  const historical=makeProject("afterglow-source-0","Earlier Ren and Joy decisions");
+  const point={id:"recovery-oct7-557",projectId:historical.id,title:historical.title,
+    createdAt:"2026-10-07T15:17:00.000Z",revision:historical.revision,
+    reason:"unload",project:historical};
+  await storage.writePrivateJson(context,{domain:"cache",objectId:"library-recovery-points",
+    value:[point]});
+  const result=await storage.commitAfterglowMaster(context,{master,sources:await proofs(),
+    selections:{decisions:{},exclusions:[],confirmedCurrent:{},imageChoices:{}},
+    expectedSources:[]});
+  assert.equal(result.readbackVerified,true);
+  assert.equal(inspected.historical.length,1);
+  assert.equal(inspected.historical[0].sourceKey,"point:recovery-oct7-557");
+  const objectId="ag-history-"+createHash("sha256").update("point:recovery-oct7-557").digest("hex");
+  const restarted=makeStore();
+  try{
+    const escrow=await restarted.readPrivateJson(context,{domain:"indexes",objectId});
+    assert.equal(escrow.project.storyDevelopment.fields["character:afterglow-source-0"].value,
+      "Earlier Ren and Joy decisions");
+    assert.equal(escrow.digest,hashProject(historical));
+  }finally{restarted.close();}
+});
+test("#2863 selected local WebP bytes are pinned in encrypted chunks and manifest before master index",async t=>{
+  const {storage,root,context,proofs,master,makeStore}=await setup(t,1,
+    ()=>({authorized:true,mediaPins:[{
+      url:"/api/local-ai/assets/ren-choice.webp",
+      contentHash:"sha256:"+createHash("sha256").update(
+        Buffer.from("RIFF\\x12\\x00\\x00\\x00WEBPchosen-Ren")
+      ).digest("hex"),escrow:true,
+    }]}));
+  const bytes=Buffer.from("RIFF\\x12\\x00\\x00\\x00WEBPchosen-Ren");
+  await mkdir(path.join(root,"assets"),{recursive:true});
+  await writeFile(path.join(root,"assets","ren-choice.webp"),bytes);
+  await storage.commitAfterglowMaster(context,{master,sources:await proofs()});
+  const hash=createHash("sha256").update(bytes).digest("hex"),restarted=makeStore();
+  try{
+    const manifest=await restarted.readPrivateJson(context,{domain:"assets",
+      objectId:"ag-media-"+hash+"-manifest"});
+    assert.equal(manifest.bytes,bytes.length);
+    assert.equal(manifest.chunks,1);
+    const chunk=await restarted.readPrivateJson(context,{domain:"assets",
+      objectId:"ag-media-"+hash+"-0"});
+    assert.deepEqual(Buffer.from(chunk.data,"base64"),bytes);
+  }finally{restarted.close();}
 });
 test("#2863 no trusted independent approval gate means no master and no source archives",async t=>{
   const {storage,context,proofs,master}=await setup(t,4);

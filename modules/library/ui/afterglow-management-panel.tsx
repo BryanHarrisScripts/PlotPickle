@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
+import { LEARN_TOPIC_SPINE } from "../../learn/model/story-learning-context";
+import { relevantProjectContextForField } from "../../learn/model/relevant-project-context";
+import { summarizeAfterglowSavedVersion, type AfterglowSavedVersionSummary } from "../afterglow-version-summary.mjs";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
@@ -149,6 +152,31 @@ export default function AfterglowManagementPanel() {
   const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
+  // Library is the source of truth. Each brief describes one complete saved
+  // snapshot (not a guessed difference against the latest version).
+  const sourceSummaries = useMemo(() => {
+    const summaries = new Map<string, AfterglowSavedVersionSummary | null>();
+    for (const source of sources) {
+      try {
+        const project = loadLibraryProjectSnapshot(source.id);
+        if (!project || project.id !== source.id) {
+          summaries.set(source.id, null);
+          continue;
+        }
+        const characterIds = project.sourceEvidence?.characterTruth?.principalCharacterIds ?? [];
+        summaries.set(source.id, summarizeAfterglowSavedVersion({
+          project,
+          fields: canonicalFields,
+          contextForField: (field, act) => field.topicId === "character" && characterIds.length
+            ? characterIds.flatMap(characterId => relevantProjectContextForField(project, field, act, characterId))
+            : relevantProjectContextForField(project, field, act, null),
+        }));
+      } catch {
+        summaries.set(source.id, null);
+      }
+    }
+    return summaries;
+  }, [sources, canonicalFields]);
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
     for (const field of canonicalFields) {
@@ -426,10 +454,33 @@ export default function AfterglowManagementPanel() {
             <div className={styles.metric}><strong>{sources.length}</strong><span>saved working version{sources.length === 1 ? "" : "s"} found in this profile</span></div>
             {sources.length ? (
               <ol className={styles.sourceList}>
-                {sources.map(source => (
-                  <li key={source.id}><strong>{displayDate(source.updatedAt)}</strong>
-                    <span>Saved working copy · {source.id.slice(0, 8)}</span></li>
-                ))}
+                {sources.map(source => {
+                  const summary = sourceSummaries.get(source.id);
+                  return <li key={source.id} className={styles.sourceRow}>
+                    <div className={styles.sourceHeading}>
+                      <strong>{displayDate(source.updatedAt)}</strong>
+                      <span>Saved working copy · {source.id.slice(0, 8)}</span>
+                    </div>
+                    {summary ? (
+                      <>
+                        <p className={styles.sourceBrief}>
+                          <strong>{summary.completedFields} / {summary.possibleFields}</strong> Mind Map fields with saved answers
+                          {" · "}<strong>{summary.contextCount}</strong> distinct context references
+                          {summary.noteCount ? <>{" · "}{summary.noteCount} notes</> : null}
+                          {summary.suggestionCount ? <>{" · "}{summary.suggestionCount} Agent suggestions</> : null}
+                        </p>
+                        <p className={styles.sourceTopics}>
+                          {summary.topicBreakdown.length
+                            ? "Includes: "+summary.topicBreakdown.slice(0, 4).map(topic => (
+                              (LEARN_TOPIC_SPINE.find(item => item.id === topic.topicId)?.label ?? topic.topicId)
+                              + " " + topic.count
+                            )).join(" · ")
+                            : "No authored Mind Map answers yet"}
+                        </p>
+                      </>
+                    ) : <p className={styles.sourceBrief}>Summary unavailable — review or refresh this saved copy.</p>}
+                  </li>;
+                })}
               </ol>
             ) : <p>No saved Afterglow working versions were found. The provided example remains available in Library.</p>}
             <div className={styles.actions}>

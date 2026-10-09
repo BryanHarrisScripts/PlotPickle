@@ -89,4 +89,9 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.ok(menuAudit.includes('const afterglowReturn = page.locator("button.pp-skin-v1-orchestrator-return:visible")'));
   assert.ok(menuAudit.includes("await afterglowReturn.click()"));
   assert.match(menuAudit, /Back to Settings/u);
+  const orchestrator = await read("app/skin-v1/surface-orchestrator.tsx");
+  assert.match(orchestrator, /if \(active\?\.parent === "settings"\) return null;/u,
+    "Nested Settings children must not delegate Back to Dashboard legacy controls.");
+  assert.match(orchestrator, /parentSurface: active\.parent/u,
+    "Orchestrator must navigate to the registered Settings parent.");
 });

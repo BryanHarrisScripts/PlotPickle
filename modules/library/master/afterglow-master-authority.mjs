@@ -54,7 +54,7 @@ export function prepareVerifiedAfterglowMaster({
   const conflicts=[...creative.human,...creative.inRecovered];
   const progress=afterglowReviewProgress({
     groups:recovery.groups.map(group=>({id:group.id,label:group.label,
-      items:group.items.map(item=>({id:item.id,label:item.label,
+      items:group.items.map(item=>({id:item.id,label:item.label,kind:item.kind,
         reviewPath:afterglowRecoveryItemPath(item,fields)}))})),
     candidatePaths:plan.applied.map(x=>x.path), conflictPaths:conflicts.map(x=>x.path),
     confirmations:selections.confirmedCurrent,exclusions:selections.exclusions,

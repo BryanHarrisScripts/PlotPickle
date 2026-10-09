@@ -451,12 +451,41 @@ export function createProfilePrivateStorageService(options) {
           || proposed?.sourceEvidence?.referenceFixture?.sourceId !== "afterglow-v9-complete-baseline") {
           fail("Master must have a new identity and the unchanged Afterglow baseline provenance.", "INVALID_AFTERGLOW_MASTER");
         }
+        const archived = [];
+        for(const summary of library.projects.filter(item=>
+          item.sourceKind==="example" && item.sourceId==="afterglow-v9" && Boolean(item.archivedAt))) {
+          const saved=await readObject(access,"projects",summary.projectId);
+          if(!saved || saved.id!==summary.projectId) {
+            fail("Archived Afterglow recovery history is missing or damaged.", "AFTERGLOW_HISTORY_UNREADABLE");
+          }
+          archived.push({project:saved,sourceKey:"archived:"+summary.projectId,
+            savedAt:summary.updatedAt,sourceKind:"archived-copy"});
+        }
+        const recovery=await readObject(access,"cache","library-recovery-points")??[];
+        if(!Array.isArray(recovery))fail("Recovery-point cache is invalid.", "AFTERGLOW_HISTORY_UNREADABLE");
+        const historical=[...archived];
+        const keys=new Set(historical.map(item=>item.sourceKey));
+        for(const point of recovery) {
+          if(point?.project?.sourceEvidence?.referenceFixture?.sourceId!=="afterglow-v9-complete-baseline")continue;
+          if(typeof point.id!=="string"||!point.id.trim()
+            ||point.project?.id!==point.projectId || !point.createdAt) {
+            fail("An Afterglow recovery point has invalid snapshot provenance.", "AFTERGLOW_HISTORY_UNREADABLE");
+          }
+          const sourceKey="point:"+point.id;
+          if(keys.has(sourceKey))fail("Duplicate Afterglow recovery point identity.", "AFTERGLOW_HISTORY_UNREADABLE");
+          keys.add(sourceKey);
+          historical.push({project:point.project,sourceKey,savedAt:point.createdAt,
+            sourceKind:"recovery-point"});
+        }
         const approved = await options.authorizeAfterglowMasterCommit({
           profileId: access.profileId,
           candidate: structuredClone(proposed),
           originals: structuredClone(storedSources),
+          historical: structuredClone(historical),
+          selections: structuredClone(input.selections??null),
+          expectedSources: structuredClone(input.expectedSources??[]),
         });
-        if (approved !== true) {
+        if (approved !== true && (!approved || approved.authorized !== true)) {
           fail("Independent media, question relevance and Human confirmation did not all pass.", "AFTERGLOW_COMMIT_NOT_AUTHORIZED");
         }
         // Recheck after the asynchronous trusted approval callback. No
@@ -495,6 +524,9 @@ export function createProfilePrivateStorageService(options) {
         await writeObject(access, "indexes", ledgerId, {
           version: 1, previousRegistry: library, masterId, committedAt,
           originalProofs: storedSources.map((item) => item.proof),
+          historicalProofs: historical.map(item=>({key:item.sourceKey,
+            digest:"sha256:"+createHash("sha256").update(JSON.stringify(item.project)).digest("hex")})),
+          mediaPins: approved && typeof approved==="object" ? approved.mediaPins??[] : [],
         });
         await writeObject(access, "projects", masterId, proposed);
         const staged = await readObject(access, "projects", masterId);

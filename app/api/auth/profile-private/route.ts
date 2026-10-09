@@ -1,7 +1,7 @@
 import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
 import { randomUUID,createHash } from "node:crypto";
 import {readServerAfterglowSources,prepareServerAfterglowMaster}
-  from "../../../../modules/library/afterglow-master-server";
+  from "../../../../modules/library/master/afterglow-master-server";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";

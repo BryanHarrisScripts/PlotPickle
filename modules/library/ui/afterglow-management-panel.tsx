@@ -6,6 +6,11 @@ import { buildStoryDevelopmentFields } from "../../learn/model/story-development
 import { LEARN_TOPIC_SPINE } from "../../learn/model/story-learning-context";
 import { relevantProjectContextForField } from "../../learn/model/relevant-project-context";
 import { summarizeAfterglowSavedVersion, type AfterglowSavedVersionSummary } from "../afterglow-version-summary.mjs";
+import { isAfterglowRecoverySnapshot, summarizeAfterglowRecoverySnapshot,
+  type AfterglowRecoverySnapshotSummary } from "../afterglow-recovery-snapshot.mjs";
+import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-roster";
+import type { LibraryPPFProject } from "../../../core/storage/library-project";
+import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
@@ -14,11 +19,13 @@ import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
   listAfterglowExampleProjects,
+  listArchivedLibraryProjects,
   loadLibraryProjectSnapshot,
   libraryProjectSnapshotText,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
-import { profilePrivateBrowserReadyFor } from "../../../core/storage/profile-private-browser";
+import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
+  type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
 import type {
   AfterglowConsolidationPlan,
@@ -29,6 +36,31 @@ import type {
 } from "../afterglow-consolidation.mjs";
 import styles from "./afterglow-management-panel.module.css";
 
+type RecoverySourcePreview = Readonly<{
+  key: string;
+  kind: "recovery-point" | "archived-copy";
+  date: string;
+  revision: number;
+  description: string;
+  creative: AfterglowRecoverySnapshotSummary;
+  fields: AfterglowSavedVersionSummary;
+}>;
+function describeRecoveredSnapshot(project: LibraryPPFProject, key: string,
+  kind: RecoverySourcePreview["kind"], date: string, fields: readonly StoryDevelopmentFieldDefinition[],
+  description: string): RecoverySourcePreview {
+  const roster = mindMapCharacterRoster(project);
+  const ids = project.sourceEvidence?.characterTruth?.principalCharacterIds ?? [];
+  return {
+    key, kind, date, revision: project.revision, description,
+    creative: summarizeAfterglowRecoverySnapshot({project, characters:roster}),
+    fields: summarizeAfterglowSavedVersion({
+      project, fields,
+      contextForField: (field, act) => field.topicId === "character" && ids.length
+        ? ids.flatMap(characterId=>relevantProjectContextForField(project,field,act,characterId))
+        : relevantProjectContextForField(project,field,act,null),
+    }),
+  };
+}
 type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
   recovery: AfterglowRecoveredWork;
@@ -131,6 +163,8 @@ function summarizeHumanValue(value: unknown, path = "") {
 export default function AfterglowManagementPanel() {
   const [authenticated, setAuthenticated] = useState(false);
   const [sources, setSources] = useState<readonly ProjectLibrarySummary[]>([]);
+  const [recoveryPoints, setRecoveryPoints] = useState<readonly ProfileRecoveryPoint[]>([]);
+  const [archivedAfterglow, setArchivedAfterglow] = useState<readonly ProjectLibrarySummary[]>([]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [exclusions, setExclusions] = useState<string[]>([]);
@@ -177,6 +211,29 @@ export default function AfterglowManagementPanel() {
     }
     return summaries;
   }, [sources, canonicalFields]);
+  const recoverySourcePreviews = useMemo(() => {
+    const found: RecoverySourcePreview[] = [];
+    for (const point of recoveryPoints) {
+      // A recovery point can reference the SAME underlying project ID as an
+      // active copy: its independent key must be the recovery-point ID.
+      if (!isAfterglowRecoverySnapshot(point.project) || point.project.id !== point.projectId) continue;
+      try {
+        found.push(describeRecoveredSnapshot(point.project, "point:"+point.id,
+          "recovery-point", point.createdAt, canonicalFields,
+          point.reason === "unload" ? "Saved before unloading"
+            : point.reason === "pre-restore" ? "Saved before a restore" : "Manual recovery point"));
+      } catch { /* Invalid older snapshots remain available in Data Recovery. */ }
+    }
+    for (const archived of archivedAfterglow) {
+      const project=loadLibraryProjectSnapshot(archived.id);
+      if (!isAfterglowRecoverySnapshot(project) || project.id !== archived.id) continue;
+      try {
+        found.push(describeRecoveredSnapshot(project, "archived:"+archived.id,
+          "archived-copy", archived.updatedAt, canonicalFields, "Archived working copy"));
+      } catch { /* Never promote an incomplete or unreadable archive into a merge. */ }
+    }
+    return found.sort((a,b)=>b.date.localeCompare(a.date)||a.key.localeCompare(b.key));
+  }, [recoveryPoints, archivedAfterglow, canonicalFields]);
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
     for (const field of canonicalFields) {
@@ -199,6 +256,11 @@ export default function AfterglowManagementPanel() {
     const ready = profileReady();
     setAuthenticated(ready);
     setSources(ready ? listAfterglowExampleProjects() : []);
+    // Data Recovery remains the owner of restore operations. Afterglow only
+    // reads its matching, account-owned recovery and archived snapshots.
+    setRecoveryPoints(ready ? listProfileRecoveryPoints() : []);
+    setArchivedAfterglow(ready ? listArchivedLibraryProjects().filter(
+      item=>item.sourceKind==="example" && item.sourceId==="afterglow-v9") : []);
     setPreview(null);
     setDecisions({});
     setExclusions([]);
@@ -483,6 +545,35 @@ export default function AfterglowManagementPanel() {
                 })}
               </ol>
             ) : <p>No saved Afterglow working versions were found. The provided example remains available in Library.</p>}
+            <section aria-label="Other Afterglow recovery sources" className={styles.recoverySourceArea}>
+              <h3>Older Afterglow states found in Data Recovery</h3>
+              <p>These sources are separate from the {sources.length} active Library copies.
+                They can contain missing character images, locks, Mind Map work or narration.
+                This is a read-only inventory, not a restore or a completed merge.</p>
+              {recoverySourcePreviews.length ? (
+                <ul className={styles.recoverySourceList}>
+                  {recoverySourcePreviews.map(source => <li key={source.key}>
+                    <div className={styles.sourceHeading}>
+                      <strong>{displayDate(source.date)}</strong>
+                      <span>{source.description} · revision {source.revision}</span>
+                    </div>
+                    <p><strong>{source.fields.completedFields} / {source.fields.possibleFields}</strong> Mind Map fields
+                      {" · "}{source.creative.characterCount} characters
+                      {" · "}{source.creative.characterImageReferences} character image references
+                      {" · "}{source.creative.lockedCharacterVersions} character versions locked</p>
+                    <p>{source.creative.storyboardImages} Storyboard images
+                      {" · "}{source.creative.lockedStoryboardImages} locked
+                      {" · "}{source.creative.approvedNarrationCount} narration approvals</p>
+                    {source.creative.characterNames.length ? <p>Characters: {source.creative.characterNames.join(", ")}</p> : null}
+                    <p className={styles.recoverySourceNotice}>Not yet included in the consolidation draft.
+                      Media files have not been verified.</p>
+                  </li>)}
+                </ul>
+              ) : <p>No additional readable Afterglow recovery snapshots were found in this signed-in profile.</p>}
+              <p>Operations → Data Recovery remains the place to preview or intentionally restore
+                a whole saved state. Legacy disk backups must be separately inspected and imported before
+                Afterglow can treat them as merge sources. Nothing is restored here.</p>
+            </section>
             <div className={styles.actions}>
               <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={refresh}>Refresh saved versions</button>
               <button type="button" disabled={busy || mediaBusy || preflightBusy || !sources.length} onClick={() => void reviewConsolidation()}>

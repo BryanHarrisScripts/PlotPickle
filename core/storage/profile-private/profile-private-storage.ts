@@ -49,6 +49,13 @@ export type ProfilePrivateStorageService = {
   writePrivateJson(authContext: AuthContext, input: { readonly domain: ProfileStorageDomain; readonly objectId: string; readonly value: unknown }): Promise<unknown>;
   saveProject(authContext: AuthContext, input: { readonly project: unknown; readonly summary?: Partial<ProfileProjectSummary>; readonly activate?: boolean }): Promise<{ readonly project: unknown; readonly summary: ProfileProjectSummary }>;
   syncLibrary(authContext: AuthContext, input: { readonly activeProjectId: string | null; readonly projects: readonly { readonly project: unknown; readonly summary?: Partial<ProfileProjectSummary> }[] }): Promise<{ readonly activeProjectId: string | null; readonly projectCount: number }>;
+  /** Internal-only, not exposed on the profile-private API until trusted proof is available. */
+  /** Explicit library master readback without automatically activating a fresh login. */
+  loadAfterglowCurrentMaster(authContext: AuthContext): Promise<unknown | null>;
+  commitAfterglowMaster(authContext: AuthContext, input: {
+    readonly master: unknown;
+    readonly sources: readonly { readonly projectId: string; readonly revision: number; readonly updatedAt: string; readonly digest: string }[];
+  }): Promise<{ readonly masterId: string; readonly sourceCount: number; readonly archivedSourceCount: number; readonly readbackVerified: true }>;
   syncLibraryIndex(authContext: AuthContext, input: { readonly activeProjectId: string | null; readonly summaries: readonly Partial<ProfileProjectSummary>[] }): Promise<{ readonly activeProjectId: string | null; readonly projectCount: number }>;
   deleteArchivedProject(authContext: AuthContext, projectId: string): Promise<{ readonly deletedProjectId: string }>;
   loadProject(authContext: AuthContext, projectId: string): Promise<unknown | null>;
@@ -88,6 +95,12 @@ export const createProfilePrivateStorageService = core.createProfilePrivateStora
   readonly root: string;
   readonly authService: Pick<PlotPickleAuthService, "createProfileVaultCapability" | "registerVaultCleanupHook">;
   readonly normalizeProject?: (value: unknown) => unknown;
+  /** Trusted independent semantic/media/confirmation verifier; absent by default (fail closed). */
+  readonly authorizeAfterglowMasterCommit?: (input: {
+    readonly profileId: string;
+    readonly candidate: unknown;
+    readonly originals: readonly { readonly summary: ProfileProjectSummary; readonly project: unknown; readonly proof: { readonly projectId: string; readonly revision: number; readonly updatedAt: string; readonly digest: string } }[];
+  }) => Promise<boolean> | boolean;
   readonly now?: () => string;
   readonly migrationLog?: (event: Readonly<Record<string, unknown>>) => void;
 }) => ProfilePrivateStorageService;

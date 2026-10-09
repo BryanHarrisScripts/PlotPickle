@@ -17,6 +17,14 @@ export type AfterglowConsolidationPlan = Readonly<{
   candidate: LibraryPPFProject;
   sources: ReadonlyArray<Readonly<{ id: string; revision: number; updatedAt: string }>>;
   applied: AfterglowConsolidationChange[];
+  /** Existing Human visual acceptances reconciled from every snapshot. */
+  reconciledVisuals: ReadonlyArray<Readonly<{
+    path: string;
+    artifactId: string;
+    scope: "foundations" | "world";
+    sources: string[];
+    kind: "preserved-existing-human-acceptance";
+  }>>;
   conflicts: AfterglowConsolidationConflict[];
   needsReview: AfterglowConsolidationReview[];
   localAssetsToVerify: string[];

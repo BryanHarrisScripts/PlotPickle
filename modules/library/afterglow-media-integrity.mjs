@@ -7,7 +7,7 @@
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const SHA = /^sha256:[a-f0-9]{64}$/i;
 const LOCAL = /^\/api\/local-ai\/assets\/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpe?g|webp)$/i;
-const PACKAGE = /^\/assets\/library\/examples\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+\.(?:png|jpe?g|webp)$/i;
+const PACKAGE = /^\/assets\/library\/examples\/(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpe?g|webp)$/i;
 const BUNDLED = /^\/afterglow\/storyboard\/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpe?g|webp)$/i;
 const MAX_IMAGE_BYTES = 24 * 1024 * 1024;
 const classify = url => LOCAL.test(url) ? "local" : PACKAGE.test(url) ? "packaged"

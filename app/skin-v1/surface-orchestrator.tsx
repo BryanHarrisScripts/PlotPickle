@@ -95,10 +95,18 @@ function findActiveSurface(): ActiveSurface | null {
       ([key, value]) => currentUrl.searchParams.get(key) === value,
     );
   });
-  const routeCandidates = exactRouteMatches.length
-    ? exactRouteMatches
-    : directRouteMatches.length
-      ? directRouteMatches
+  // A visible nested Settings surface is more specific than an ancestor's
+  // matching /skin-v1 route. Route hints must not hide the actual active
+  // child merely because that child has no separate browser URL.
+  const deepestVisible = Math.max(0, ...matches.map(surfaceDepth));
+  const mostSpecificRoutes = exactRouteMatches.filter(
+    surface => surfaceDepth(surface) >= deepestVisible);
+  const fallbackRoutes = directRouteMatches.filter(
+    surface => surfaceDepth(surface) >= deepestVisible);
+  const routeCandidates = mostSpecificRoutes.length
+    ? mostSpecificRoutes
+    : fallbackRoutes.length
+      ? fallbackRoutes
       : matches;
   const ownedInlineSurfaceIds = new Set(
     routeCandidates.flatMap((surface) => surface.ownsInlineSurfaces ?? []),

@@ -211,28 +211,43 @@ export default function AfterglowManagementPanel() {
     }
     return summaries;
   }, [sources, canonicalFields]);
-  const recoverySourcePreviews = useMemo(() => {
+  const recoverySourceAudit = useMemo(() => {
     const found: RecoverySourcePreview[] = [];
+    const warnings: string[] = [];
     for (const point of recoveryPoints) {
       // A recovery point can reference the SAME underlying project ID as an
       // active copy: its independent key must be the recovery-point ID.
-      if (!isAfterglowRecoverySnapshot(point.project) || point.project.id !== point.projectId) continue;
+      if (!isAfterglowRecoverySnapshot(point.project)) continue;
+      if (point.project.id !== point.projectId) {
+        warnings.push("Recovery point from "+displayDate(point.createdAt)+" has mismatched project identity.");
+        continue;
+      }
       try {
         found.push(describeRecoveredSnapshot(point.project, "point:"+point.id,
           "recovery-point", point.createdAt, canonicalFields,
           point.reason === "unload" ? "Saved before unloading"
             : point.reason === "pre-restore" ? "Saved before a restore" : "Manual recovery point"));
-      } catch { /* Invalid older snapshots remain available in Data Recovery. */ }
+      } catch (error) {
+        warnings.push("Recovery point from "+displayDate(point.createdAt)
+          +" cannot be inspected: "+(error instanceof Error ? error.message : "invalid saved content"));
+      }
     }
     for (const archived of archivedAfterglow) {
       const project=loadLibraryProjectSnapshot(archived.id);
-      if (!isAfterglowRecoverySnapshot(project) || project.id !== archived.id) continue;
+      if (!isAfterglowRecoverySnapshot(project) || project.id !== archived.id) {
+        warnings.push("Archived Afterglow copy from "+displayDate(archived.updatedAt)
+          +" is unavailable or has invalid project identity.");
+        continue;
+      }
       try {
         found.push(describeRecoveredSnapshot(project, "archived:"+archived.id,
           "archived-copy", archived.updatedAt, canonicalFields, "Archived working copy"));
-      } catch { /* Never promote an incomplete or unreadable archive into a merge. */ }
+      } catch (error) {
+        warnings.push("Archived Afterglow copy from "+displayDate(archived.updatedAt)
+          +" cannot be inspected: "+(error instanceof Error ? error.message : "invalid saved content"));
+      }
     }
-    return found.sort((a,b)=>b.date.localeCompare(a.date)||a.key.localeCompare(b.key));
+    return {found:found.sort((a,b)=>b.date.localeCompare(a.date)||a.key.localeCompare(b.key)),warnings};
   }, [recoveryPoints, archivedAfterglow, canonicalFields]);
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -550,9 +565,9 @@ export default function AfterglowManagementPanel() {
               <p>These sources are separate from the {sources.length} active Library copies.
                 They can contain missing character images, locks, Mind Map work or narration.
                 This is a read-only inventory, not a restore or a completed merge.</p>
-              {recoverySourcePreviews.length ? (
+              {recoverySourceAudit.found.length ? (
                 <ul className={styles.recoverySourceList}>
-                  {recoverySourcePreviews.map(source => <li key={source.key}>
+                  {recoverySourceAudit.found.map(source => <li key={source.key}>
                     <div className={styles.sourceHeading}>
                       <strong>{displayDate(source.date)}</strong>
                       <span>{source.description} · revision {source.revision}</span>
@@ -570,6 +585,9 @@ export default function AfterglowManagementPanel() {
                   </li>)}
                 </ul>
               ) : <p>No additional readable Afterglow recovery snapshots were found in this signed-in profile.</p>}
+              {recoverySourceAudit.warnings.length ? <ul className={styles.recoverySourceWarnings}>
+                {recoverySourceAudit.warnings.map((warning,index)=><li key={index}>{warning}</li>)}
+              </ul> : null}
               <p>Operations → Data Recovery remains the place to preview or intentionally restore
                 a whole saved state. Legacy disk backups must be separately inspected and imported before
                 Afterglow can treat them as merge sources. Nothing is restored here.</p>

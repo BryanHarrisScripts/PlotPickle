@@ -29,3 +29,9 @@ export function inventoryAfterglowRecoveredWork(input: Readonly<{
   fields: readonly Pick<StoryDevelopmentFieldDefinition,
     "canonicalId" | "topicId" | "lessonId" | "lessonTitle" | "fieldId">[];
 }>): AfterglowRecoveredWork;
+
+export function afterglowRecoveryItemPath(
+  item: AfterglowRecoveredWork["groups"][number]["items"][number],
+  fields: readonly Pick<StoryDevelopmentFieldDefinition,
+    "canonicalId" | "topicId" | "lessonId" | "fieldId">[],
+): string | null;

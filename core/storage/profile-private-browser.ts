@@ -43,7 +43,17 @@ type HydratedPrivateState = {
   readonly storyMapContexts: unknown | null;
   readonly recoveryPoints?: unknown;
   readonly afterglowMaster?: Readonly<{ masterId: string; updatedAt: string }> | null;
+  readonly afterglowLastSave?: AfterglowMasterSaveAudit | null;
 };
+
+export type AfterglowMasterSaveAudit = Readonly<{
+  version: 1;
+  at: string;
+  status: "started" | "blocked" | "saved";
+  stage: string;
+  message?: string;
+  masterId?: string;
+}>;
 
 type ProfilePrivateSaveState = Readonly<{
   state: "saved" | "saving" | "blocked";
@@ -324,6 +334,13 @@ export async function refreshAfterglowLibraryFromEncryptedProfile(): Promise<Rea
     resumeSessionActiveProject(selectedProjectId);
   }
   return {masterId, masterUpdatedAt};
+}
+
+/** Diagnostic receipt from the authenticated encrypted profile, not localStorage. */
+export function lastAfterglowMasterSaveAttempt(): AfterglowMasterSaveAudit | null {
+  const entry = hydrated.afterglowLastSave;
+  return entry?.version === 1 && (entry.status === "started" ||
+    entry.status === "blocked" || entry.status === "saved") ? entry : null;
 }
 
 export function profilePrivateBrowserAuthorityMatches(profileId: string, token: string) {

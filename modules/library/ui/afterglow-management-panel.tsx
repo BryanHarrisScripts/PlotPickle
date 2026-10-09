@@ -5,6 +5,7 @@ import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catal
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
+import type { AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -27,6 +28,7 @@ import styles from "./afterglow-management-panel.module.css";
 
 type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
+  recovery: AfterglowRecoveredWork;
   initialProofs: readonly AfterglowSavedSnapshotProof[];
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
@@ -185,9 +187,11 @@ export default function AfterglowManagementPanel() {
         return { project };
       });
       const initialProofs = await exactSavedSnapshotProofs(complete);
-      const [{ createAfterglowPackagedCurrentReference }, { planAfterglowConsolidation }] = await Promise.all([
+      const [{ createAfterglowPackagedCurrentReference }, { planAfterglowConsolidation },
+        { inventoryAfterglowRecoveredWork }] = await Promise.all([
         import("../reference/afterglow-packaged-current"),
         import("../afterglow-consolidation.mjs"),
+        import("../afterglow-work-recovery.mjs"),
       ]);
       // A save or account switch during an asynchronous review invalidates
       // the results. Never publish a preview for a different hydrated profile.
@@ -196,13 +200,20 @@ export default function AfterglowManagementPanel() {
         || JSON.stringify(initialProofs) !== JSON.stringify(await exactSavedSnapshotProofs(complete))) {
         throw new Error("Afterglow changed during review. Refresh and review the complete current list.");
       }
+      const baseline = createAfterglowPackagedCurrentReference();
       const result = planAfterglowConsolidation({
-        baseline: createAfterglowPackagedCurrentReference(),
+        baseline,
         sources: complete,
         questions: Object.fromEntries(questionByField),
       });
+      const recovery = inventoryAfterglowRecoveredWork({
+        baseline,
+        sources: complete,
+        fields: buildStoryDevelopmentFields(plotPickleCurriculum),
+      });
       setPreview({
         plan: result,
+        recovery,
         initialProofs,
         sources: result.sources,
         appliedCount: result.applied.length,
@@ -379,8 +390,9 @@ export default function AfterglowManagementPanel() {
             <h2 id="afterglow-personal-heading">My Afterglow</h2></div>
           <span className={styles.status}>Read-only review</span>
         </div>
-        <p>Inspect every saved working version in this account before combining approved story decisions.
-          A later verified step will save one current master and retain previous versions for recovery.</p>
+        <p>Your personal Afterglow is a continuing working story: future edits should build on the same saved version.
+          Find earlier Mind Map, Ask Agent, Story Bible and character work before creating one current master.
+          The provided Afterglow distributed to other users is a separate, publisher-approved release.</p>
         {!authenticated ? (
           <p role="status">Your encrypted profile is not ready. Sign in and unlock your profile before reviewing your saved Afterglow.</p>
         ) : (
@@ -405,24 +417,65 @@ export default function AfterglowManagementPanel() {
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
         {preview ? (
           <section className={styles.result} aria-labelledby="afterglow-preview-heading">
-            <h3 id="afterglow-preview-heading">Consolidation review — not saved</h3>
-            <p><strong>{preview.sources.length}</strong> saved versions compared;
-              <strong> {preview.appliedCount}</strong> proposed field/entity changes;
-              <strong> {preview.reconciledVisualCount}</strong> saved visual acceptances reconciled by artifact evidence;
-              <strong> {preview.conflictCount}</strong> conflicting paths;
-              <strong> {preview.reviewCount}</strong> other review items;
-              <strong> {preview.sourceMediaCount}</strong> source-media URLs awaiting verification.</p>
-            <p><strong>{preview.questionEvidence.length}</strong> authored fields traced to saved changes;
-              <strong> {preview.questionEvidence.filter(item=>item.questionStatus === "canonical-question-matched").length}</strong> matched to original questions;
-              <strong> {preview.questionEvidence.filter(item=>item.questionStatus !== "canonical-question-matched").length}</strong> question identities still unverified.</p>
+            <h3 id="afterglow-preview-heading">Find your saved Afterglow work — not saved</h3>
+            <p><strong>{preview.sources.length}</strong> account-owned saved versions examined.
+              {" "}<strong>{preview.recovery.recoveredItemCount}</strong> saved additions or edits found beyond the provided example;
+              {" "}<strong>{preview.recovery.differingValueCount}</strong> fields or artifacts have different saved versions to compare.
+              Repeated identical answers are listed once, with every source shown.</p>
+            <section aria-label="Recovered Mind Map and character work" className={styles.recoveryArea}>
+              <h3>Previously saved creative work</h3>
+              <p>These are the actual saved values, Agent suggestions, notes and character image references found in this profile,
+                not answers guessed by an AI. An Agent suggestion is not automatically an accepted answer.
+                Original versions are unchanged.</p>
+              {preview.recovery.recoveredItemCount ? preview.recovery.groups.filter(group=>group.items.length).map((group,index)=>(
+                <details key={group.id} open={index === 0}>
+                  <summary><strong>{group.label}</strong> · {group.items.length} saved item{group.items.length === 1 ? "" : "s"}</summary>
+                  <ul className={styles.recoveryList}>
+                    {group.items.map(item=>(
+                      <li key={item.kind+item.id}>
+                        <strong>{item.label}</strong>
+                        <span className={styles.recoveryKind}>{item.kind === "unaccepted-agent-suggestion"
+                          ? "Agent suggestion only — not accepted"
+                          : item.kind === "human-note" ? "Working note — not story canon"
+                            : item.kind.startsWith("saved-image") ? "Image/lock reference — media not yet verified"
+                              : item.kind === "unknown-field-answer" ? "Saved answer — field identity needs checking"
+                                : "Saved answer"}</span>
+                        {item.alternatives.length > 1 ? (
+                          <span className={styles.recoveryKind}>Different saved values — compare before combining</span>
+                        ) : null}
+                        {item.alternatives.map((alternative,index)=>(
+                          <div key={index} className={styles.recoveryValue}>
+                            <p>{alternative.text}</p>
+                            <small>Saved in {alternative.sources.map(source=>
+                              displayDate(source.updatedAt)+" ("+source.id.slice(0,8)+")").join(", ")}</small>
+                          </div>
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )) : <p>No authored additions differing from the provided example were found in these saved copies.
+                This does not search other profiles or unsaved Agent conversations.</p>}
+            </section>
             <details>
-              <summary>Question-to-answer evidence (original field identity, not a semantic quality verdict)</summary>
-              <ul>{preview.questionEvidence.map(item=><li key={item.fieldId}>
-                <strong>{item.question ?? "Original question not found — review required"}</strong>
-                {" · "}{item.sourceProjectIds.length} saved source{item.sourceProjectIds.length === 1 ? "" : "s"},
-                {" "}{item.distinctAnswers} distinct recorded answer{item.distinctAnswers === 1 ? "" : "s"}.
-                {" "}Textual relevance has not been independently assessed.
-              </li>)}</ul>
+              <summary>Advanced consolidation diagnostics — field, question and media evidence</summary>
+              <p><strong>{preview.appliedCount}</strong> proposed field/entity changes;
+                <strong> {preview.reconciledVisualCount}</strong> saved visual acceptances reconciled by artifact evidence;
+                <strong> {preview.conflictCount}</strong> conflicting paths;
+                <strong> {preview.reviewCount}</strong> structural review items;
+                <strong> {preview.sourceMediaCount}</strong> source-media URLs awaiting verification.</p>
+              <p><strong>{preview.questionEvidence.length}</strong> authored fields traced to saved changes;
+                <strong> {preview.questionEvidence.filter(item=>item.questionStatus === "canonical-question-matched").length}</strong> matched to original questions;
+                <strong> {preview.questionEvidence.filter(item=>item.questionStatus !== "canonical-question-matched").length}</strong> question identities still unverified.</p>
+              <details>
+                <summary>Question-to-answer evidence (original field identity, not a semantic quality verdict)</summary>
+                <ul>{preview.questionEvidence.map(item=><li key={item.fieldId}>
+                  <strong>{item.question ?? "Original question not found — review required"}</strong>
+                  {" · "}{item.sourceProjectIds.length} saved source{item.sourceProjectIds.length === 1 ? "" : "s"},
+                  {" "}{item.distinctAnswers} distinct recorded answer{item.distinctAnswers === 1 ? "" : "s"}.
+                  {" "}Textual relevance has not been independently assessed.
+                </li>)}</ul>
+              </details>
             </details>
             <p>The original saves may contain images not yet present in this draft master.
               This count does not verify the files exist or can be read. The selected draft currently has
@@ -481,7 +534,8 @@ export default function AfterglowManagementPanel() {
               ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
               : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
             {preview.conflictCount ? (
-              <section aria-label="Resolve competing saved values" className={styles.decisionArea}>
+              <details aria-label="Resolve competing saved values" className={styles.decisionArea}>
+                <summary>Compare {preview.conflictCount} competing saved changes (only if needed)</summary>
                 <h3>Review conflicting values</h3>
                 <p>PlotPickle should automatically reconcile repeated testing and complementary approved changes
                   against each field's actual question. This diagnostic view shows unresolved exceptions;
@@ -558,7 +612,7 @@ export default function AfterglowManagementPanel() {
                 <p>{reviewed?.decisionShapeConsistent
                   ? "All reported structural choices are accounted for. Media verification, an approved durable master, and restart readback are still required."
                   : "The master is not ready to save; some changes still require review."}</p>
-              </section>
+              </details>
             ) : null}
             {preview.needsReview.length ? (
               <details><summary>Unresolved review items (first 35)</summary>
@@ -585,9 +639,10 @@ export default function AfterglowManagementPanel() {
       </section>
       <section className={styles.panel} aria-labelledby="afterglow-publish-heading">
         <h2 id="afterglow-publish-heading">Publish Official Example</h2>
-        <p>Restricted to the designated publisher with separately verified PlotPickle publisher authority and
-          canonical GitHub repository permissions. No public publishing action is available on this screen.
-          Your private consolidation cannot update the example distributed to other users.</p>
+        <p>Your personal Afterglow remains your own, continuously editable version. When the designated publisher
+          approves a complete master for the next PlotPickle release, a separate permission-checked GitHub
+          publication can update the official example installed by future users. Signing in and saving
+          your own work never publishes it for everyone else. No public publishing action is available on this screen.</p>
       </section>
     </div>
   );

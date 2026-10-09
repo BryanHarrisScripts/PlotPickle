@@ -224,7 +224,9 @@
         "modules/library/afterglow-master-save-preflight.mjs",
         "modules/library/afterglow-master-save-preflight.d.mts",
         "modules/library/afterglow-media-integrity.d.mts",
-        "modules/library/afterglow-consolidation.d.mts"
+        "modules/library/afterglow-consolidation.d.mts",
+        "modules/library/afterglow-work-recovery.mjs",
+        "modules/library/afterglow-work-recovery.d.mts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

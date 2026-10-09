@@ -46,6 +46,8 @@ test("#2863 Keep from historical source is an exact reference, not inferred from
     choices:{[image.key]:"keep"}});
   assert.equal(imageIncludedInCandidate(chosen.candidate,image),true);
   assert.equal(chosen.candidate.worldMap.characterVisuals.length,2);
+  assert.equal(chosen.candidate.worldMap.characterVisuals.find(p=>p.characterId==="ren").references[0].reviewState,"draft",
+    "Keep does not silently approve a historical partial character version");
   assert.equal(chosen.candidate.worldMap.characterVisuals.find(p=>p.characterId==="ren").lockedVersionId,null,
     "restored partial version does not inherit unverified locked status");
   assert.equal(chosen.readyForHumanCommit,false);
@@ -79,6 +81,13 @@ test("#2863 cannot Keep conflicting reference ID before deliberately excluding c
     choices:{[old.key]:"exclude",[image.key]:"keep"}});
   assert.equal(imageIncludedInCandidate(next.candidate,image),true);
   assert.equal(next.candidate.worldMap.characterVisuals[0].references.length,1);
+});
+test("#2863 Keep cannot add an unverified recovered frame to an already locked version",()=>{
+  const items=catalog(),image=items.find(item=>item.characterId==="ren");
+  const existing=project([pack("ren",[ref("ren","different","/api/local-ai/assets/ren-front.webp")])],"candidate");
+  assert.throws(()=>applyAfterglowImageChoices({candidate:existing,items,
+    choices:{[image.key]:"keep"}}),/full-version verification/u);
+  assert.equal(existing.worldMap.characterVisuals[0].references.length,1);
 });
 test("#2863 untrusted, path traversal, unsupported image URLs and unknown decisions fail closed",()=>{
   const invalid=project([pack("ren",[ref("ren","bad","/api/local-ai/assets/../../secret.webp")])]);

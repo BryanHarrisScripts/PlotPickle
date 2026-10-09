@@ -501,6 +501,69 @@ export function createProfilePrivateStorageService(options) {
             fail("Saved Afterglow bytes changed before the commit.", "STALE_AFTERGLOW_SOURCE_BYTES");
           }
         }
+        // Durable recovery escrow is independent of the rolling 20-point
+        // Data Recovery cache. Never prune a historical source after N→1.
+        for(const source of historical) {
+          const objectId="ag-history-"+createHash("sha256").update(source.sourceKey).digest("hex");
+          const proof="sha256:"+createHash("sha256").update(JSON.stringify(source.project)).digest("hex");
+          const previous=await readObject(access,"indexes",objectId);
+          if(previous && (previous.digest!==proof || previous.sourceKey!==source.sourceKey)) {
+            fail("A preserved historical Afterglow snapshot has changed identity.", "AFTERGLOW_HISTORY_CONFLICT");
+          }
+          if(!previous)await writeObject(access,"indexes",objectId,
+            {sourceKey:source.sourceKey,savedAt:source.savedAt,digest:proof,project:source.project});
+          const readback=await readObject(access,"indexes",objectId);
+          if(!readback || readback.digest!==proof ||
+            "sha256:"+createHash("sha256").update(JSON.stringify(readback.project)).digest("hex")!==proof) {
+            fail("Encrypted historical recovery escrow failed readback.", "AFTERGLOW_HISTORY_READBACK_FAILED");
+          }
+        }
+        // Pin selected local WebP/image bytes into encrypted profile vault
+        // chunks BEFORE publishing the new master index. The original local
+        // URL remains usable; this is a separately recoverable source of bytes.
+        const mediaPins=approved && typeof approved==="object" ? approved.mediaPins??[] : [];
+        if(!Array.isArray(mediaPins)||mediaPins.length>500)
+          fail("Verified media escrow inventory is invalid.", "AFTERGLOW_MEDIA_UNVERIFIED");
+        let escrowTotal=0;
+        const mediaIds=new Set();
+        for(const pin of mediaPins) {
+          if(!pin.escrow)continue; // packaged artifacts are pinned by git manifest
+          const url=pin.url;
+          if(typeof url!=="string" ||
+            !/^\\/api\\/local-ai\\/assets\\/[a-z0-9][a-z0-9._-]*\\.(?:webp|png|jpe?g)$/i.test(url)
+            || !/^sha256:[a-f0-9]{64}$/.test(pin.contentHash) || mediaIds.has(url)) {
+            fail("A selected local image has invalid signed evidence.", "AFTERGLOW_MEDIA_UNVERIFIED");
+          }
+          mediaIds.add(url);
+          const file=fixedPath(home,"assets",url.slice("/api/local-ai/assets/".length));
+          await assertRegularFile(file);
+          const bytes=await readFile(file);
+          escrowTotal+=bytes.length;
+          if(bytes.length<16||bytes.length>24*1024*1024||
+            escrowTotal>512*1024*1024 ||
+            "sha256:"+createHash("sha256").update(bytes).digest("hex")!==pin.contentHash){
+            fail("A selected image changed after independent media verification.", "AFTERGLOW_MEDIA_UNVERIFIED");
+          }
+          const id=pin.contentHash.slice(7), chunkSize=4*1024*1024;
+          const chunks=Math.ceil(bytes.length/chunkSize);
+          for(let i=0;i<chunks;i++) {
+            const chunkId="ag-media-"+id+"-"+i;
+            const data=bytes.subarray(i*chunkSize,(i+1)*chunkSize).toString("base64");
+            const saved=await readObject(access,"assets",chunkId);
+            if(saved && saved.data!==data)
+              fail("An immutable encrypted image escrow chunk differs.", "AFTERGLOW_MEDIA_ESCROW_CONFLICT");
+            if(!saved)await writeObject(access,"assets",chunkId,{contentHash:pin.contentHash,index:i,data});
+            const verified=await readObject(access,"assets",chunkId);
+            if(verified?.data!==data)fail("Image escrow chunk readback failed.", "AFTERGLOW_MEDIA_ESCROW_FAILED");
+          }
+          const manifestId="ag-media-"+id+"-manifest";
+          await writeObject(access,"assets",manifestId,
+            {url,contentHash:pin.contentHash,bytes:bytes.length,chunks});
+          const verifiedManifest=await readObject(access,"assets",manifestId);
+          if(verifiedManifest?.contentHash!==pin.contentHash||
+            verifiedManifest?.bytes!==bytes.length||verifiedManifest?.chunks!==chunks)
+            fail("Image escrow manifest failed encrypted readback.", "AFTERGLOW_MEDIA_ESCROW_FAILED");
+        }
         const committedAt = now();
         const masterSummary = projectSummary(proposed, {
           title: proposed.title, createdAt: committedAt, updatedAt: committedAt,

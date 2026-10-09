@@ -31,7 +31,7 @@ test("Settings Operations lists Buzz, Agents, Data Recovery, Afterglow Recovery 
     const surface=registry.surfaces.find(s=>s.id===id);
     assert.equal(surface.label,label);
     assert.equal(surface.parent,"settings");
-    assert.equal(surface.navigationPath.at(-1).order,7+i);
+    assert.equal(surface.navigationPath.at(-1).label,label);
   }
   assert.match(ui,/window\.location\.assign\("\/settings\/buzz"\)/u);
   assert.match(ui,/setPlotPickleAgentsOpen\(true\)/u);

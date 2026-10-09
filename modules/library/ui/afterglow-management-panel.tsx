@@ -5,11 +5,13 @@ import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catal
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
+import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
   listAfterglowExampleProjects,
   loadLibraryProjectSnapshot,
+  libraryProjectSnapshotText,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor } from "../../../core/storage/profile-private-browser";
@@ -25,6 +27,7 @@ import styles from "./afterglow-management-panel.module.css";
 
 type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
+  initialProofs: readonly AfterglowSavedSnapshotProof[];
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
   reconciledVisualCount: number;
@@ -56,6 +59,18 @@ function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, s
 }
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
   return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
+}
+
+async function exactSavedSnapshotProofs(items: readonly {readonly project: {
+  readonly id: string; readonly revision: number; readonly updatedAt: string;
+}}[]): Promise<AfterglowSavedSnapshotProof[]> {
+  return Promise.all(items.map(async ({project}) => {
+    const raw = libraryProjectSnapshotText(project.id);
+    if (!raw) throw new Error("The saved Library bytes are unavailable. Reopen this profile and review again.");
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+    const hex = Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2,"0")).join("");
+    return {id:project.id,revision:project.revision,updatedAt:project.updatedAt,digest:"sha256:"+hex};
+  }));
 }
 function summarizeHumanValue(value: unknown, path = "") {
   if (Array.isArray(value) && path.endsWith("/acceptedVisualArtifactIds")) {
@@ -104,6 +119,13 @@ export default function AfterglowManagementPanel() {
     readonly choices: string;
   } | null>(null);
   const [mediaNotice, setMediaNotice] = useState("");
+  const [preflightBusy, setPreflightBusy] = useState(false);
+  const [preflightState, setPreflightState] = useState<{
+    readonly report: AfterglowMasterSavePreflight;
+    readonly sources: string;
+    readonly choices: string;
+  } | null>(null);
+  const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
   const questionByField = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -127,6 +149,8 @@ export default function AfterglowManagementPanel() {
     setDecisions({});
     setMediaState(null);
     setMediaNotice("");
+    setPreflightState(null);
+    setPreflightNotice("");
     setConflictPage(0);
   }, []);
   useEffect(() => {
@@ -136,12 +160,14 @@ export default function AfterglowManagementPanel() {
   }, [refresh]);
 
   async function reviewConsolidation() {
-    if (busy || mediaBusy) return;
+    if (busy || mediaBusy || preflightBusy) return;
     setBusy(true);
     setPreview(null);
     setDecisions({});
     setMediaState(null);
     setMediaNotice("");
+    setPreflightState(null);
+    setPreflightNotice("");
     setConflictPage(0);
     setNotice("");
     try {
@@ -158,6 +184,7 @@ export default function AfterglowManagementPanel() {
         }
         return { project };
       });
+      const initialProofs = await exactSavedSnapshotProofs(complete);
       const [{ createAfterglowPackagedCurrentReference }, { planAfterglowConsolidation }] = await Promise.all([
         import("../reference/afterglow-packaged-current"),
         import("../afterglow-consolidation.mjs"),
@@ -165,7 +192,8 @@ export default function AfterglowManagementPanel() {
       // A save or account switch during an asynchronous review invalidates
       // the results. Never publish a preview for a different hydrated profile.
       if (!profileReady() ||
-        inventoryFingerprint(start) !== inventoryFingerprint(listAfterglowExampleProjects())) {
+        inventoryFingerprint(start) !== inventoryFingerprint(listAfterglowExampleProjects())
+        || JSON.stringify(initialProofs) !== JSON.stringify(await exactSavedSnapshotProofs(complete))) {
         throw new Error("Afterglow changed during review. Refresh and review the complete current list.");
       }
       const result = planAfterglowConsolidation({
@@ -175,6 +203,7 @@ export default function AfterglowManagementPanel() {
       });
       setPreview({
         plan: result,
+        initialProofs,
         sources: result.sources,
         appliedCount: result.applied.length,
         reconciledVisualCount: result.reconciledVisuals.length,
@@ -202,10 +231,12 @@ export default function AfterglowManagementPanel() {
   const mediaReport = mediaMatches ? mediaState.report : null;
 
   async function verifyMediaEvidence() {
-    if (!preview || mediaBusy || busy) return;
+    if (!preview || mediaBusy || busy || preflightBusy) return;
     setMediaBusy(true);
     setMediaState(null);
     setMediaNotice("");
+    setPreflightState(null);
+    setPreflightNotice("");
     const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
     const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
     const choices = JSON.stringify(decisions);
@@ -281,6 +312,9 @@ export default function AfterglowManagementPanel() {
         },
       });
       guard();
+      if (JSON.stringify(await exactSavedSnapshotProofs(snapshots)) !== JSON.stringify(preview.initialProofs)) {
+        throw new Error("Saved source bytes changed during inspection. Refresh and repeat the review.");
+      }
       if (choices !== JSON.stringify(decisions)) {
         throw new Error("Conflict choices changed during media inspection. Inspect the new selection again.");
       }
@@ -289,6 +323,52 @@ export default function AfterglowManagementPanel() {
     } catch (error) {
       setMediaNotice(error instanceof Error ? error.message : "Media verification could not complete; previous work is unchanged.");
     } finally {setMediaBusy(false);}
+  }
+
+  const preflightReport = preflightState !== null && mediaMatches
+    && preflightState.sources === inventoryFingerprint(sources)
+    && preflightState.choices === JSON.stringify(decisions) ? preflightState.report : null;
+  async function checkMasterSavePreflight() {
+    if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
+    setPreflightBusy(true);
+    setPreflightState(null);
+    setPreflightNotice("");
+    try {
+      if (!profileReady()) throw new Error("Unlock your profile before checking master save readiness.");
+      const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+      const inventory = inventoryFingerprint(sources);
+      if (inventory !== inventoryFingerprint(listAfterglowExampleProjects())) {
+        throw new Error("Saved versions changed; review again before checking readiness.");
+      }
+      const snapshots = preview.sources.map(source => {
+        const project = loadLibraryProjectSnapshot(source.id);
+        if (!project || project.id !== source.id || project.revision !== source.revision ||
+          project.updatedAt !== source.updatedAt) throw new Error("A saved source revision changed. Refresh the review.");
+        return {project};
+      });
+      const currentProofs = await exactSavedSnapshotProofs(snapshots);
+      const [{preflightAfterglowMasterSave},{normalizeLibraryProject}] = await Promise.all([
+        import("../afterglow-master-save-preflight.mjs"),
+        import("../../../core/storage/library-project"),
+      ]);
+      const normalizedCandidate = normalizeLibraryProject(reviewed.candidate);
+      const result = preflightAfterglowMasterSave({
+        plan:preview.plan, reviewed,
+        initialProofs:preview.initialProofs,currentProofs,
+        sourceSnapshots:snapshots,mediaReport,normalizedCandidate,
+      });
+      const finalProofs = await exactSavedSnapshotProofs(snapshots);
+      if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
+        || !profileReady() || inventory !== inventoryFingerprint(listAfterglowExampleProjects())
+        || JSON.stringify(finalProofs) !== JSON.stringify(currentProofs)
+        || JSON.stringify(decisions) !== (mediaState?.choices ?? "")) {
+        throw new Error("Profile, saved bytes or selected story decisions changed. Re-run the review.");
+      }
+      setPreflightState({report:result,sources:inventory,choices:JSON.stringify(decisions)});
+      setPreflightNotice("Read-only save-preparation check completed. No new master was created.");
+    } catch(error) {
+      setPreflightNotice(error instanceof Error ? error.message : "The save-preparation proof could not complete.");
+    } finally {setPreflightBusy(false);}
   }
 
   return (
@@ -315,8 +395,8 @@ export default function AfterglowManagementPanel() {
               </ol>
             ) : <p>No saved Afterglow working versions were found. The provided example remains available in Library.</p>}
             <div className={styles.actions}>
-              <button type="button" disabled={busy || mediaBusy} onClick={refresh}>Refresh saved versions</button>
-              <button type="button" disabled={busy || mediaBusy || !sources.length} onClick={() => void reviewConsolidation()}>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={refresh}>Refresh saved versions</button>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || !sources.length} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review consolidation"}
               </button>
             </div>
@@ -348,7 +428,7 @@ export default function AfterglowManagementPanel() {
               This count does not verify the files exist or can be read. The selected draft currently has
               {" "}<strong>{reviewed?.localAssetsToVerify.length ?? preview.localAssetCount}</strong> local asset URLs identified for later readback.</p>
             <div className={styles.actions}>
-              <button type="button" disabled={busy || mediaBusy} onClick={() => void verifyMediaEvidence()}>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={() => void verifyMediaEvidence()}>
                 {mediaBusy ? "Reading saved media…" : "Verify source and selected media (read-only)"}
               </button>
             </div>
@@ -373,6 +453,28 @@ export default function AfterglowManagementPanel() {
                       </li>)}</ul>
                   </details>
                 ) : null}
+              </section>
+            ) : null}
+            {mediaReport ? (
+              <div className={styles.actions}>
+                <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                  onClick={() => void checkMasterSavePreflight()}>
+                  {preflightBusy ? "Checking source integrity…" : "Check master save readiness (read-only)"}
+                </button>
+              </div>
+            ) : null}
+            {preflightNotice ? <p role="status" className={styles.notice}>{preflightNotice}</p> : null}
+            {preflightReport ? (
+              <section className={styles.result} aria-label="Afterglow master preflight results">
+                <h3>Save readiness — not authorized</h3>
+                <p>{preflightReport.sourceCount} source versions fingerprinted;
+                  {" "}{preflightReport.questionCount} authored questions traced;
+                  {" "}{preflightReport.selectedMediaCount} media references selected;
+                  {" "}{preflightReport.blockers.length} readiness blockers.</p>
+                <ul>{preflightReport.blockers.map((item,index)=><li key={item.code+index}>
+                  <strong>{item.code}</strong>: {item.detail}
+                </li>)}</ul>
+                <p>No Save Current Master action is enabled. This preflight does not grant write authority.</p>
               </section>
             ) : null}
             <p>{preview.mergeShapeConsistent

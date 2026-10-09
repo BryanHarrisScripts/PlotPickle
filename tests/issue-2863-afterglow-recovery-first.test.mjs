@@ -132,3 +132,15 @@ test("#2863 readable recovery view is primary, advanced evidence remains optiona
   assert.match(ui,/No Save Current Master action is enabled/u);
   assert.doesNotMatch(ui,/onClick=\{\(\) => void commitAfterglowMaster/u);
 });
+
+test("#2863 opening Afterglow continues the saved personal copy unless the Human explicitly starts a fresh reference",async()=>{
+  const library=await readFile(new URL("../modules/library/ui/library-workspace.tsx",import.meta.url),"utf8");
+  const chooser=await readFile(new URL("../modules/library/afterglow-open-contract.ts",import.meta.url),"utf8");
+  assert.match(library,/latestAfterglowSavedChoice\(choices\)\?\.id \?\? "defaults"/u);
+  assert.match(library,/setAfterglowOpening\(\{ item, choices \}\)/u);
+  assert.match(library,/sourceId: AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID/u);
+  assert.match(library,/Continue your saved personal Afterglow by default/u);
+  assert.match(library,/Loading the provided example deliberately creates a new copy/u);
+  assert.match(chooser,/\.filter\(\(choice\) => choice\.id === `saved:\$\{choice\.project\.id\}`/u);
+  assert.doesNotMatch(library,/setAfterglowSource\("defaults"\);\s*setAfterglowOpening/u);
+});

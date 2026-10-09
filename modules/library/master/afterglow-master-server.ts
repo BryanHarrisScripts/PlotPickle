@@ -7,8 +7,8 @@ import type {ProfilePrivateStorageService,ProfileProjectSummary} from "../../../
 import type {AuthContext} from "../../../core/auth/plotpickle-auth";
 import {plotPickleCurriculum} from "../../../adapters/curriculum/current-catalog";
 import {buildStoryDevelopmentFields} from "../../learn/model/story-development-fields";
-import {createAfterglowPackagedCurrentReference} from "../reference/afterglow-packaged-current";
 import manifest from "../../../data/afterglow-packaged-current/manifest.json";
+import packagedSnapshot from "../../../data/afterglow-packaged-current/snapshot.json";
 import {collectAfterglowReviewSources} from "../afterglow-review-sources.mjs";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot} from "./afterglow-master-authority.mjs";
 
@@ -124,8 +124,17 @@ export async function prepareServerAfterglowMaster(input:{
   masterId?:string;now?:string;
 }) {
   const {fields,questions}=questionsAndFields();
+  // Package authority is the verified published JSON, not a runtime import of
+  // the full Afterglow screenplay/curriculum graph. This keeps the authenticated
+  // profile server independent of heavyweight authoring fixtures and avoids a
+  // vite-config alias failure during Windows production build.
+  if(manifest.status!=="promoted" || packagedSnapshot.status!=="promoted" ||
+    !packagedSnapshot.project || typeof packagedSnapshot.project!=="object") {
+    throw new Error("The official Afterglow package has not been verified for consolidation.");
+  }
+  const baseline=normalizeLibraryProject(packagedSnapshot.project);
   return prepareVerifiedAfterglowMaster({
-    baseline:createAfterglowPackagedCurrentReference(),sources:input.sources,
+    baseline,sources:input.sources,
     fields,questions,manifest,selections:input.selections,
     expectedSources:input.expectedSources,masterId:input.masterId,now:input.now,
   }) as {candidate:LibraryPPFProject;progress:{pending:number;completed:number;total:number};

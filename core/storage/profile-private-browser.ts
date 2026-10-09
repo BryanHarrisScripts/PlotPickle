@@ -336,6 +336,26 @@ export async function refreshAfterglowLibraryFromEncryptedProfile(): Promise<Rea
   return {masterId, masterUpdatedAt};
 }
 
+/** Read the last authoritative save result without resetting in-progress review choices. */
+export async function readAfterglowMasterSaveAudit(): Promise<AfterglowMasterSaveAudit | null> {
+  const profileId = hydratedProfileId, token = csrfToken;
+  if (!profileId || !token || !profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("Unlock your profile before checking Afterglow save status.");
+  }
+  const response = await fetch("/api/auth/profile-private?afterglowSaveAudit=1", {
+    credentials: "same-origin", cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Could not verify the last encrypted Afterglow save attempt.");
+  const record = await response.json() as {lastSave?: AfterglowMasterSaveAudit | null};
+  if (profileId !== hydratedProfileId || token !== csrfToken) {
+    throw new Error("The signed-in profile changed while checking Afterglow save status.");
+  }
+  const entry = record.lastSave;
+  if (!entry || entry.version !== 1 ||
+      !["started", "blocked", "saved"].includes(entry.status)) return null;
+  return entry;
+}
+
 /** Diagnostic receipt from the authenticated encrypted profile, not localStorage. */
 export function lastAfterglowMasterSaveAttempt(): AfterglowMasterSaveAudit | null {
   const entry = hydrated.afterglowLastSave;

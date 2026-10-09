@@ -726,6 +726,9 @@ export default function AfterglowManagementPanel() {
               <p>Open the original WebP before deciding. A GitHub link appears only for an exact
                 filename in the packaged Afterglow manifest. The packaged copy may differ from
                 your historical local image; a matching filename is not proof of identical bytes.</p>
+              <p>Keep retains the recovered reference in your draft; a newly restored partial version
+                remains unlocked until its full image set and approvals can be verified.
+                Exclude removes it only from the proposed master.</p>
               <p><strong>{preview.imageOptions.length}</strong> distinct character images found
                 across the provided example and recovered sources.
                 {" "}<strong>{Object.keys(imageChoices).length}</strong> explicit Keep/Exclude decisions.</p>
@@ -738,7 +741,10 @@ export default function AfterglowManagementPanel() {
                     const conflicting=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
                       pack.characterId===item.characterId &&
                       pack.references.some(ref=>ref.id===item.id && ref.assetUrl!==item.url));
-                    const blocked=item.conflictingSourceMetadata||Boolean(conflicting);
+                    const lockedVersionConflict=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
+                      pack.characterId===item.characterId && pack.lockedVersionId===item.versionId
+                      && !pack.references.some(ref=>ref.id===item.id&&ref.assetUrl===item.url));
+                    const blocked=item.conflictingSourceMetadata||Boolean(conflicting)||Boolean(lockedVersionConflict);
                     return <article key={item.key} className={styles.imageCard}>
                       <AfterglowWebpThumbnail item={item}/>
                       <strong>{item.characterName} · {item.view}</strong>
@@ -752,8 +758,10 @@ export default function AfterglowManagementPanel() {
                       <p>{inDraft?"Included in consolidated draft":
                         imageChoices[item.key]==="exclude"?"Excluded from consolidated draft":
                         "Recovered — not included in draft"}</p>
-                      {blocked ? <p className={styles.caution}>Conflicting reference identity or metadata.
-                        Verify the original and competing saved copy before keeping this image.</p> : null}
+                      {blocked ? <p className={styles.caution}>
+                        {lockedVersionConflict ? "This image belongs to a locked version. Verify the complete character version first."
+                          : "Conflicting reference identity or metadata. Verify the saved source before keeping this image."}
+                      </p> : null}
                       <div className={styles.creativeActions}>
                         <button type="button" aria-pressed={inDraft}
                           disabled={busy||mediaBusy||preflightBusy||blocked}

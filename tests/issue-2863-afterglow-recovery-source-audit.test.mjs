@@ -73,8 +73,8 @@ test("#2863 recovery discovery is in Afterglow only, while general Data Recovery
   assert.match(ui,/key: string/u);
   assert.match(ui,/"point:"\+point\.id/u);
   assert.match(ui,/Older Afterglow states found in Data Recovery/u);
-  assert.match(ui,/Not yet included in the consolidation draft/u);
-  assert.match(ui,/Media files have not been verified/u);
+  assert.match(ui,/Will be included in Review consolidation/u);
+  assert.match(ui,/not yet saved or media-verified/u);
   assert.match(ui,/Legacy disk backups must be separately inspected and imported/u);
   assert.match(dataRecovery,/async function restoreRecoveryPoint\(point: ProfileRecoveryPoint\)/u);
   assert.match(dataRecovery,/createProfileRecoveryPoint\(current, "pre-restore"\)/u);

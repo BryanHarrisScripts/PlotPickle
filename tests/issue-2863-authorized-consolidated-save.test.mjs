@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import test from "node:test";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot}
-  from "../modules/library/afterglow-master-authority.mjs";
+  from "../modules/library/master/afterglow-master-authority.mjs";
 
 const date="2026-10-09T09:00:00.000Z";
 const base=()=>({

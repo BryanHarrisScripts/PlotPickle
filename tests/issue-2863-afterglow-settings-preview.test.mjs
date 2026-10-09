@@ -55,3 +55,37 @@ test("#2863 Phase 2 selected story evidence is still protected by read-only prev
   assert.match(panel, /without|can't|No project|Review only/iu);
   assert.match(panel, /profileReady\(\)/u);
 });
+
+test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management, not Data Recovery", async () => {
+  const [dashboard,workspace,menuAudit,webmcpAudit,registryText] = await Promise.all([
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/settings-workspace-panel.tsx"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
+    read("lib/verification/webmcp-surface-visual-audit.mjs"),
+    read("config/skin-v1-surface-registry.json"),
+  ]);
+  assert.match(dashboard, /id: "afterglow-management"[^\n]*label: "Afterglow Management"/u);
+  assert.match(dashboard, /"afterglow-management": "V"/u);
+  assert.match(dashboard, /isWorkspaceSettingsId\(item\.id\)/u);
+  assert.match(dashboard, /<SettingsWorkspacePanel section=\{settingsWorkspace\} \/>/u);
+  assert.match(workspace, /\| "afterglow-management"/u);
+  assert.match(workspace, /value === "afterglow-management"/u);
+  assert.match(workspace, /if \(section === "afterglow-management"\) \{/u);
+  assert.match(workspace, /data-settings-workspace-surface="afterglow-management"/u);
+  assert.match(workspace, /<AfterglowManagementPanel \/>/u);
+  assert.doesNotMatch(workspace, /section === "afterglow-management" \? <SettingsReviewSystemPanel/u);
+  assert.match(menuAudit, /page\.keyboard\.press\("V"\)/u);
+  assert.match(menuAudit, /data-afterglow-management='phase2-preview'/u);
+  assert.match(webmcpAudit, /settingsRows\.length === 11/u);
+  assert.match(webmcpAudit, /data-recovery,afterglow-management,agents/u);
+  const afterglowSurface = JSON.parse(registryText).surfaces.find((item) => item.id === "afterglow-management");
+  assert.ok(afterglowSurface, "the actual Human route must be registered with the Matrix orchestrator");
+  assert.equal(afterglowSurface.parent, "settings");
+  assert.equal(afterglowSurface.orchestrated, true);
+  assert.equal(afterglowSurface.runtimeSelector, "section[aria-label='Afterglow Management settings']");
+  assert.equal(afterglowSurface.runtimeReadySelector,
+    "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
+  assert.ok(menuAudit.includes('const afterglowReturn = page.locator("button.pp-skin-v1-orchestrator-return:visible")'));
+  assert.ok(menuAudit.includes("await afterglowReturn.click()"));
+  assert.match(menuAudit, /Back to Settings/u);
+});

@@ -9,19 +9,20 @@ import {
 import { announceSettingsChanged, SETTINGS_STORAGE_KEY } from "../use-connection-status";
 import { DASHBOARD_STARTUP_CHOICES, isDashboardStartupId } from "./dashboard-menu-registry";
 import SettingsReviewSystemPanel from "./settings-review-system-panel";
+import AfterglowManagementPanel from "../../modules/library/ui/afterglow-management-panel";
 import UatGuidePanel from "./uat-guide-panel";
 import SystemMathematicsCard from "../_components/settings/system-mathematics-card";
 import styles from "./settings-workspace-panel.module.css";
 
-export type WorkspaceSettingsId = "general" | "semantic-uat" | "data-recovery";
+export type WorkspaceSettingsId = "general" | "semantic-uat" | "data-recovery" | "afterglow-management";
 
-export const WORKSPACE_SETTINGS_LABELS: Record<WorkspaceSettingsId, string> = { general: "General", "semantic-uat": "Semantic UAT", "data-recovery": "Data Recovery" };
+export const WORKSPACE_SETTINGS_LABELS: Record<WorkspaceSettingsId, string> = { general: "General", "semantic-uat": "Semantic UAT", "data-recovery": "Data Recovery", "afterglow-management": "Afterglow Management" };
 type SkinTheme = "skin-v1" | "skin-v2";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 
 export function isWorkspaceSettingsId(value: string): value is WorkspaceSettingsId {
-  return value === "general" || value === "semantic-uat" || value === "data-recovery";
+  return value === "general" || value === "semantic-uat" || value === "data-recovery" || value === "afterglow-management";
 }
 
 function readSettings() {
@@ -57,6 +58,12 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
     setSkinTheme(next);
     window.localStorage.setItem(SKIN_STORAGE_KEY, next);
     window.dispatchEvent(new CustomEvent("plotpickle:skin-change"));
+  }
+
+  if (section === "afterglow-management") {
+    return <div className={styles.surface} data-settings-workspace-surface="afterglow-management">
+      <AfterglowManagementPanel />
+    </div>;
   }
 
   if (section !== "general") {

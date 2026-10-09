@@ -84,7 +84,14 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   const feedback = byId.get("feedback");
 
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 32);
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 45);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 46);
+  const afterglow = registry.surfaces.find((surface) => surface.id === "afterglow-management");
+  assert.equal(afterglow?.parent, "settings");
+  assert.equal(afterglow?.capturePolicy, "census-only");
+  assert.equal(afterglow?.orchestrated, true);
+  assert.equal(afterglow?.runtimeSelector, "section[aria-label='Afterglow Management settings']");
+  assert.equal(afterglow?.runtimeReadySelector,
+    "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']");
 
   assert.equal(edit?.capturePolicy, "census-only");
   assert.equal(edit?.orchestrated, true);

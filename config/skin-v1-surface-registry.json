@@ -810,6 +810,38 @@
       "orchestrated": true
     },
     {
+      "id": "afterglow-management",
+      "label": "Afterglow Management",
+      "family": "settings",
+      "parent": "settings",
+      "surfaceClass": "nested",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 9,
+          "slug": "afterglow-management",
+          "label": "Afterglow Management"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "section[aria-label='Afterglow Management settings']",
+      "runtimeReadySelector": "section[aria-label='Afterglow Management settings'] [data-settings-workspace-surface='afterglow-management']",
+      "orchestrated": true
+    },
+    {
       "id": "story-mode",
       "label": "Story Mode compatibility",
       "family": "settings",

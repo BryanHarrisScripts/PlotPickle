@@ -675,7 +675,13 @@ export default function AfterglowManagementPanel() {
     } catch(error) {
       setSaveError(error instanceof Error?error.message:
         "The consolidated story was not confirmed. The original saved work remains untouched.");
-      try { setLastSaveAudit(await readAfterglowMasterSaveAudit()); } catch { /* Show direct error. */ }
+      try {
+        setLastSaveAudit(await readAfterglowMasterSaveAudit());
+      } catch (auditError) {
+        const detail = auditError instanceof Error ? auditError.message
+          : "The encrypted save diagnostic could not be read.";
+        setSaveError(previous => previous + " Diagnostic readback: " + detail);
+      }
       // Do not clear the reviewed choices on a rejected Save. The inline
       // failure appears at the same Save button the Human just pressed.
     } finally {

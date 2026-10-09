@@ -152,7 +152,17 @@ test("#2863 repeated same-shot approved narration does not conflict just because
   const plan=planAfterglowConsolidation({baseline:b,sources:[a,c]});
   assert.deepEqual(plan.conflicts,[]);
   assert.deepEqual(plan.candidate.production.graphicNovelTextApprovals.map(x=>x.position),[2,15]);
-  assert.equal(plan.candidate.production.graphicNovelTextApprovals[0].approvedAt,"2026-10-08T10:00:00Z");
+  // Re-running the same approved narration must not rewrite its original
+  // approval timestamp or create a second approval just because the saved
+  // working copy has a later date.
+  assert.equal(plan.candidate.production.graphicNovelTextApprovals[0].approvedAt,"2026-10-07T10:00:00Z");
+  assert.equal(plan.candidate.production.graphicNovelTextApprovals[0].narration,
+    "Human-approved caption for shot 2.");
+  assert.equal(plan.candidate.production.graphicNovelTextApprovals[0].sourceKey,"grounded-shot-2");
+  assert.equal(plan.applied.find(item=>item.path.includes("@approval:")&&item.path.includes("position:2")).sources.length,2);
+  const reverse=planAfterglowConsolidation({baseline:b,sources:[c,a]});
+  assert.deepEqual(reverse.candidate.production.graphicNovelTextApprovals,
+    plan.candidate.production.graphicNovelTextApprovals,"input array order cannot rewrite approval authority");
   assert.equal(plan.readyForHumanCommit,false);
 });
 

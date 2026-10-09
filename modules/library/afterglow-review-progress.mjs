@@ -54,6 +54,9 @@ export function afterglowReviewProgress({
     if(group.id==="visuals")continue;
     const items=[];
     for(const item of group.items??[]) {
+      // Unaccepted Agent proposals are deliberately not story canon. They
+      // remain in the preserved historical snapshot, not in Human choices.
+      if(item.kind==="unaccepted-agent-suggestion")continue;
       const path=typeof item.reviewPath==="string"?item.reviewPath:"";
       if(!path || (!auto.has(path)&&!competing.has(path))) {
         needsIndependentReview.push({groupId:group.id,id:item.id,reason:"not an independently selectable creative field"});

@@ -35,6 +35,7 @@ export function reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,c
       needsReview.push({path,reason:"invalid-approval-identity",sourceProjectId:"baseline"});
       continue;
     }
+    if(allIds.length===0) continue;
     const candidateGroup=proposed.build?.[scope];
     if(!record(candidateGroup)) {
       if(allIds.length)needsReview.push({path,reason:"missing-candidate-artifact-collection",sourceProjectId:"baseline"});

@@ -614,8 +614,11 @@ export default function AfterglowManagementPanel() {
                       {" · "}{source.creative.lockedStoryboardImages} locked
                       {" · "}{source.creative.approvedNarrationCount} narration approvals</p>
                     {source.creative.characterNames.length ? <p>Characters: {source.creative.characterNames.join(", ")}</p> : null}
-                    <p className={styles.recoverySourceNotice}>Not yet included in the consolidation draft.
-                      Media files have not been verified.</p>
+                    <p className={styles.recoverySourceNotice}>
+                      {preview?.sources.some(item=>item.id===source.key)
+                        ? "Included in current draft comparison — not saved or media-verified."
+                        : "Will be included in Review consolidation — not yet saved or media-verified."}
+                    </p>
                   </li>)}
                 </ul>
               ) : <p>No additional readable Afterglow recovery snapshots were found in this signed-in profile.</p>}
@@ -628,7 +631,7 @@ export default function AfterglowManagementPanel() {
             </section>
             <div className={styles.actions}>
               <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={refresh}>Refresh saved versions</button>
-              <button type="button" disabled={busy || mediaBusy || preflightBusy || !sources.length} onClick={() => void reviewConsolidation()}>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || (!sources.length && !recoverySourceAudit.found.length)} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review consolidation"}
               </button>
             </div>
@@ -638,10 +641,15 @@ export default function AfterglowManagementPanel() {
         {preview ? (
           <section className={styles.result} aria-labelledby="afterglow-preview-heading">
             <h3 id="afterglow-preview-heading">Find your saved Afterglow work — not saved</h3>
-            <p><strong>{preview.sources.length}</strong> account-owned saved versions examined.
+            <p><strong>{preview.sources.length}</strong> saved Afterglow snapshots compared,
+              including <strong>{preview.includedHistoricalSources}</strong> recovery points or archived working copies.
               {" "}<strong>{preview.recovery.recoveredItemCount}</strong> saved additions or edits found beyond the provided example;
               {" "}<strong>{preview.recovery.differingValueCount}</strong> fields or artifacts have different saved versions to compare.
               Repeated identical answers are listed once, with every source shown.</p>
+            {preview.sourceWarnings.length ? <p role="status" className={styles.notice}>
+              {preview.sourceWarnings.length} historical sources could not be included. Inspect their warnings above.
+              This draft must not be treated as the complete recovered master.
+            </p> : null}
             <section aria-label="Draft master selection" className={styles.creativeReview}>
               <h3>Build one current Afterglow</h3>
               <p>Distinct compatible work from all saved dates is included automatically. You can exclude a particular
@@ -692,8 +700,13 @@ export default function AfterglowManagementPanel() {
                             && alternative.sources.some(source=>source.id === conflict.optionSources?.[position])) ?? -1;
                           return <div key={index} className={styles.recoveryValue}>
                             <p>{alternative.text}</p>
-                            <small>Saved in {alternative.sources.map(source=>
-                              displayDate(source.updatedAt)+" ("+source.id.slice(0,8)+")").join(", ")}</small>
+                            <small>Saved in {alternative.sources.map(source=>{
+                              const matched=preview.sources.find(item=>item.id===source.id);
+                              const kind=matched?.kind==="recovery-point"?"Recovery point"
+                                :matched?.kind==="archived-copy"?"Archived copy":"Working copy";
+                              return kind+" · "+displayDate(matched?.savedAt??source.updatedAt)
+                                +" ("+source.id.slice(0,12)+")";
+                            }).join(", ")}</small>
                             {conflict && optionIndex >= 0 ? (
                               <button type="button" className={styles.creativeOption}
                                 aria-pressed={decisions[conflict.path] === optionIndex}
@@ -748,8 +761,10 @@ export default function AfterglowManagementPanel() {
                       const source=preview.sources.find(item=>item.id===conflict.optionSources?.[index]);
                       const selectable=approvedKind && Boolean(text);
                       return <div key={index} className={styles.recoveryValue}>
-                        <small>{source ? displayDate(source.updatedAt) : "Saved working copy"}
-                          {" · "}{source?.id.slice(0,8) ?? "source"}</small>
+                        <small>{source ? (source.kind==="recovery-point"?"Recovery point · "
+                          :source.kind==="archived-copy"?"Archived copy · ":"Working copy · ")
+                          +displayDate(source.savedAt??source.updatedAt) : "Saved copy"}
+                          {" · "}{source?.id.slice(0,12) ?? "source"}</small>
                         <p>{text ?? "This saved alternative needs a more specific creative description before it can be selected here."}</p>
                         {selectable ? <button type="button" className={styles.creativeOption}
                           disabled={busy || mediaBusy || preflightBusy}
@@ -826,12 +841,19 @@ export default function AfterglowManagementPanel() {
             ) : null}
             {mediaReport ? (
               <div className={styles.actions}>
-                <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                <button type="button" disabled={busy || mediaBusy || preflightBusy
+                  || Boolean(preview.includedHistoricalSources)}
                   onClick={() => void checkMasterSavePreflight()}>
                   {preflightBusy ? "Checking source integrity…" : "Check master save readiness (read-only)"}
                 </button>
               </div>
             ) : null}
+            {preview.includedHistoricalSources ? <p className={styles.caution}>
+              Recovery-point contributions are now compared and selectable in the same draft.
+              The final save readiness check remains disabled until historical encrypted
+              snapshot identity and media provenance can be independently verified.
+              Your original saves and Data Recovery history remain unchanged.
+            </p> : null}
             {preflightNotice ? <p role="status" className={styles.notice}>{preflightNotice}</p> : null}
             {preflightReport ? (
               <section className={styles.result} aria-label="Afterglow master preflight results">

@@ -642,7 +642,7 @@ export default function AfterglowManagementPanel() {
         <p>Your personal Afterglow remains your own, continuously editable version. When the designated publisher
           approves a complete master for the next PlotPickle release, a separate permission-checked GitHub
           publication can update the official example installed by future users. Signing in and saving
-          your own work never publishes it for everyone else. Publication is not yet enabled here.</p>
+          your own work never publishes it for everyone else. No public publishing action is available on this screen.</p>
       </section>
     </div>
   );

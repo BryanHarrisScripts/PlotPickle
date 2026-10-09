@@ -114,13 +114,15 @@ export function preflightAfterglowMasterSave({
       for(const item of mediaInventory) {
         const result=observed.find(x=>x.url===item.url);
         if(result.selected!==item.selected)blockers.push({code:"changed-media-selection",detail:"Selected media differs from the inspected draft."});
+        if(!item.selected) {
+          blockers.push({code:"historical-media-not-retained",detail:"A saved source includes media absent from the draft. Reconcile it or retain that source as recoverable history."});
+        }
         if(result.status==="verified-pinned")continue;
         if(result.status==="verified-current"||result.status==="readable-unpinned") {
           blockers.push({code:"unproven-original-media-hash",detail:"Media is readable now but lacks original save-time identity proof."});
         } else {
           blockers.push({code:"unreadable-or-altered-media",detail:"Media is missing, unsupported, corrupt or hash-mismatched."});
         }
-        if(!item.selected)blockers.push({code:"historical-media-not-retained",detail:"A saved source includes media absent from the draft. Reconcile or preserve that source as recoverable history."});
       }
     }
   }

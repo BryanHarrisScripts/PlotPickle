@@ -94,6 +94,7 @@ export function applyAfterglowImageChoices({candidate,items,choices}) {
     if(pack.lockedVersionId && !pack.references.some(ref=>ref.versionId===pack.lockedVersionId)) {
       clearedLocks.push({characterId:item.characterId,versionId:pack.lockedVersionId});
       pack.lockedVersionId=null;pack.approvedAt=null;
+      pack.references=pack.references.map(ref=>({...ref,reviewState:"draft"}));
     }
   }
   for(const [key,choice] of selected.filter(([,value])=>value==="keep")) {
@@ -104,12 +105,15 @@ export function applyAfterglowImageChoices({candidate,items,choices}) {
       if(existing.references.some(ref=>ref.id===item.id)) {
         throw new Error("A different image holds this reference identity; exclude it explicitly before keeping another.");
       }
-      existing.references.push(structuredClone(item.reference));
+      if(existing.lockedVersionId===item.versionId) {
+        throw new Error("Adding an image to a locked historical version requires full-version verification.");
+      }
+      existing.references.push({...structuredClone(item.reference),reviewState:"draft"});
     } else {
       const pack=structuredClone(item.sourcePackage);
-      pack.references=[structuredClone(item.reference)];
-      // Human Keep retains the actual reference, not an unproven lock on an
-      // incomplete restored character package.
+      pack.references=[{...structuredClone(item.reference),reviewState:"draft"}];
+      // Keep retains the selected source bytes/identity in the candidate, but
+      // an incomplete historical version is NOT newly approved or locked.
       pack.lockedVersionId=null;pack.approvedAt=null;
       project.worldMap.characterVisuals.push(pack);
     }

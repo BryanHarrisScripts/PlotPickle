@@ -28,11 +28,13 @@ test("#2310 separates migration inventory from current Matrix governance", () =>
     "plan",
     "production",
     "pitch-package",
+    "afterglow-management",
     "command",
   ]);
   for (const id of CURRENT_MATRIX_SURFACE_LIFECYCLE.activeGovernedAdditional) {
     assert.equal(isCurrentMatrixSupplementalGoverned(id), true);
   }
+  assert.equal(isCurrentMatrixSupplementalGoverned("afterglow-management"), true);
   assert.equal(isCurrentMatrixSupplementalGoverned("edit"), false);
 });
 

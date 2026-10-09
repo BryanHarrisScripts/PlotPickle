@@ -1,3 +1,5 @@
+import { reconcileAfterglowAcceptedVisuals } from "./afterglow-evidence-reconciliation.mjs";
+
 /**
  * Truth-first Afterglow consolidation planner (#2863).
  * No mutation, persistence, external calls, account selection, or package update.
@@ -48,6 +50,9 @@ function keyed(value) {
 function collect(base, current, keys, edits, reviews) {
   if (equal(base,current)) return;
   const path = pathLabel(keys);
+  // Accepted image IDs are derived from saved artifact authority, not an
+  // atomic pick-one list. Evidence reconciliation below handles all sources.
+  if (/^\/build\/(foundations|world)\/acceptedVisualArtifactIds$/.test(path)) return;
   if (current === ABSENT) { reviews.push({path,reason:"possible-deletion"}); return; }
   // Approval records must remain atomic even when the baseline has an older
   // approval for this shot; mixing a source fingerprint with another narration
@@ -109,6 +114,14 @@ function apply(target,keys,value) {
       }
     }
   }
+}
+function contributionSignature(path,value) {
+  if (path.startsWith("/production/graphicNovelTextApprovals/@approval:") && isRecord(value)) {
+    // A new approval timestamp from repeated testing is not a new narration.
+    const {approvedAt,...content}=value;
+    return stable(content);
+  }
+  return stable(value);
 }
 function orderGraphicNovelApprovals(project) {
   const approvals = project?.production?.graphicNovelTextApprovals;
@@ -200,7 +213,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
   }
   const candidate=copy(baseline),applied=[],conflicts=[];
   for(const [path,items] of [...changes].sort(([a],[b])=>a.localeCompare(b))){
-    const alternatives=[...new Map(items.map(x=>[stable(x.value),x])).values()];
+    const alternatives=[...new Map(items.map(x=>[contributionSignature(path,x.value),x])).values()];
     if(alternatives.length>1){
       conflicts.push({path,reason:"competing-values",sources:items.map(x=>x.sourceProjectId),
         optionSources:alternatives.map(x=>x.sourceProjectId),
@@ -214,6 +227,9 @@ export function planAfterglowConsolidation({baseline,sources}) {
     apply(candidate,items[0].keys,items[0].value);
     applied.push({path,sources:items.map(x=>x.sourceProjectId)});
   }
+  const reconciledVisuals=reconcileAfterglowAcceptedVisuals({baseline,projects,candidate,conflicts});
+  candidate.build=reconciledVisuals.candidate.build;
+  needsReview.push(...reconciledVisuals.needsReview);
   orderGraphicNovelApprovals(candidate);
   // Local asset bytes must be checked by the authenticated runtime before the
   // Human can commit a merged copy, then copied into the repo only on promotion.
@@ -228,6 +244,7 @@ export function planAfterglowConsolidation({baseline,sources}) {
   // assigned only by the later authenticated commit.
   return {candidate,sources:projects.map(p=>({id:p.id,revision:p.revision,updatedAt:p.updatedAt})),
     applied,conflicts,needsReview,
+    reconciledVisuals:reconciledVisuals.reconciled,
     sourceMediaReferences:sourceMediaReferences(projects),
     localAssetsToVerify:[...assetRefs].sort(),
     mergeShapeConsistent:conflicts.length===0&&needsReview.length===0,

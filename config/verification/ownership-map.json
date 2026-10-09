@@ -222,6 +222,7 @@
         "modules/library/afterglow-evidence-reconciliation.mjs",
         "modules/library/afterglow-media-integrity.mjs",
         "modules/library/afterglow-master-save-preflight.mjs",
+        "modules/library/afterglow-master-save-preflight.d.mts",
         "modules/library/afterglow-media-integrity.d.mts",
         "modules/library/afterglow-consolidation.d.mts"
       ],

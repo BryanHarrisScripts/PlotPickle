@@ -137,6 +137,7 @@ test("#2863 serialization limit blocks overlarge accepted collection instead of 
   });
   const plan=planAfterglowConsolidation({baseline:b,sources:[large]});
   assert.ok(plan.needsReview.some(x=>x.reason==="artifact-collection-exceeds-roundtrip-limit"));
+  assert.equal(plan.reconciledVisuals.length,0,"a blocked union is not completed acceptance");
   assert.equal(plan.readyForHumanCommit,false);
 });
 

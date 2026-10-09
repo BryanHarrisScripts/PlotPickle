@@ -15,7 +15,7 @@ export type AfterglowConsolidationReview = Readonly<{
 }>;
 export type AfterglowConsolidationPlan = Readonly<{
   candidate: LibraryPPFProject;
-  sources: ReadonlyArray<Readonly<{ id: string; revision: number; updatedAt: string }>>;
+  sources: ReadonlyArray<Readonly<{ id: string; projectId: string; kind: "working-copy" | "recovery-point" | "archived-copy"; revision: number; updatedAt: string; savedAt?: string }>>;
   applied: AfterglowConsolidationChange[];
   /** Read-only canonical field mapping: matching a question is not semantic proof. */
   questionEvidence: ReadonlyArray<Readonly<{
@@ -48,7 +48,7 @@ export type AfterglowConsolidationPlan = Readonly<{
 /** Pure preview; no current profile, media, or publication authorization. */
 export declare function planAfterglowConsolidation(input: {
   readonly baseline: LibraryPPFProject;
-  readonly sources: ReadonlyArray<Readonly<{ project: LibraryPPFProject }>>;
+  readonly sources: ReadonlyArray<Readonly<{ project: LibraryPPFProject; sourceKey?: string; savedAt?: string }>>;
   /** Exact canonical field ID → original curriculum prompt; required by live UI. */
   readonly questions?: Readonly<Record<string, string>>;
 }): AfterglowConsolidationPlan;

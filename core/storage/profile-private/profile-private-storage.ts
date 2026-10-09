@@ -55,6 +55,8 @@ export type ProfilePrivateStorageService = {
   commitAfterglowMaster(authContext: AuthContext, input: {
     readonly master: unknown;
     readonly sources: readonly { readonly projectId: string; readonly revision: number; readonly updatedAt: string; readonly digest: string }[];
+    readonly selections?: unknown;
+    readonly expectedSources?: readonly {readonly key:string;readonly digest:string}[];
   }): Promise<{ readonly masterId: string; readonly sourceCount: number; readonly archivedSourceCount: number; readonly readbackVerified: true }>;
   syncLibraryIndex(authContext: AuthContext, input: { readonly activeProjectId: string | null; readonly summaries: readonly Partial<ProfileProjectSummary>[] }): Promise<{ readonly activeProjectId: string | null; readonly projectCount: number }>;
   deleteArchivedProject(authContext: AuthContext, projectId: string): Promise<{ readonly deletedProjectId: string }>;
@@ -100,7 +102,13 @@ export const createProfilePrivateStorageService = core.createProfilePrivateStora
     readonly profileId: string;
     readonly candidate: unknown;
     readonly originals: readonly { readonly summary: ProfileProjectSummary; readonly project: unknown; readonly proof: { readonly projectId: string; readonly revision: number; readonly updatedAt: string; readonly digest: string } }[];
-  }) => Promise<boolean> | boolean;
+    readonly historical: readonly {readonly project:unknown;readonly sourceKey:string;readonly savedAt:string;readonly sourceKind:string}[];
+    readonly selections: {
+      readonly decisions:Record<string,number|"baseline">;readonly exclusions:string[];
+      readonly confirmedCurrent:Record<string,boolean>;readonly imageChoices:Record<string,"keep"|"exclude">;
+    };
+    readonly expectedSources:readonly {readonly key:string;readonly digest:string}[];
+  }) => Promise<boolean | {readonly authorized:true;readonly mediaPins:readonly {readonly url:string;readonly contentHash:string;readonly bytes:number;readonly escrow:boolean}[]}> | boolean;
   readonly now?: () => string;
   readonly migrationLog?: (event: Readonly<Record<string, unknown>>) => void;
 }) => ProfilePrivateStorageService;

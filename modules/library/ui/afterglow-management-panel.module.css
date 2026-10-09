@@ -38,3 +38,6 @@
 .conflictHeading span{font-size:10px;color:var(--pp-gold,#d5ac63)}
 .conflictHeading code{font:10px/1.5 monospace;color:var(--pp-muted,#aaa398);overflow-wrap:anywhere}
 .approvalSummary{padding:9px 11px;color:var(--pp-text,#f1eee7)!important;border-left:2px solid var(--pp-teal,#35c9b8);background:rgba(53,201,184,.05)}
+
+.question{margin:5px 0!important;padding:9px 11px;border-left:2px solid var(--pp-teal,#35c9b8);background:rgba(53,201,184,.07);color:var(--pp-text,#f1eee7)!important;font-size:12px!important;line-height:1.55}
+.question strong{color:var(--pp-teal,#35c9b8)}

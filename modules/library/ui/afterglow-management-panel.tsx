@@ -765,7 +765,7 @@ export default function AfterglowManagementPanel() {
         {saveReceipt ? <section className={styles.consolidatedResult}
           role="status" aria-label="Consolidated Afterglow saved confirmation">
           <h3>{saveReceipt.libraryRefreshed
-            ? "Consolidated Afterglow saved and verified in Library."
+            ? "Consolidated Afterglow saved successfully and verified in Library."
             : "Consolidated Afterglow saved on the server; Library opening is not verified."}</h3>
           <p>Your current personal Afterglow now contains your confirmed creative choices.
             <strong> {saveReceipt.decisionsCompleted}</strong> review decisions were accepted from

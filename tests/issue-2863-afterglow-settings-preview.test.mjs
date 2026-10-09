@@ -10,7 +10,7 @@ test("#2863 Phase 2 Settings owns Afterglow Management directly, not nested insi
   assert.match(settings, /label: "Afterglow Recovery"/u);
   assert.match(settings, /case "afterglow-management":/u);
   assert.match(settings, /<AfterglowManagementPanel \/>/u);
-  assert.match(settings, /Settings · Afterglow Management/u);
+  assert.match(settings, /Settings · Afterglow Recovery/u);
   const start = settings.indexOf('label: "AFTERGLOW"');
   const section = settings.slice(start,start+215);
   assert.match(section, /label: "Afterglow Recovery"/u);
@@ -78,7 +78,7 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.match(menuAudit, /page\.keyboard\.press\("V"\)/u);
   assert.match(menuAudit, /data-afterglow-management='phase2-preview'/u);
   assert.match(webmcpAudit, /settingsRows\.length === 11/u);
-  assert.match(webmcpAudit, /data-recovery,afterglow-management,agents/u);
+  assert.match(webmcpAudit, /agents,data-recovery,afterglow-management,semantic-uat/u);
   const afterglowSurface = JSON.parse(registryText).surfaces.find((item) => item.id === "afterglow-management");
   assert.ok(afterglowSurface, "the actual Human route must be registered with the Matrix orchestrator");
   assert.equal(afterglowSurface.parent, "settings");

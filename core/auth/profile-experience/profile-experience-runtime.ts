@@ -16,7 +16,7 @@ import {
   type SessionRequest,
 } from "../server-session/server-session-boundary";
 import { normalizeLibraryProject } from "../../storage/library-project";
-import {authorizeServerAfterglowMasterCommit} from "../../../modules/library/afterglow-master-server";
+import {authorizeServerAfterglowMasterCommit} from "../../../modules/library/master/afterglow-master-server";
 import {
   createProfilePrivateStorageService,
   type ProfilePrivateStorageService,

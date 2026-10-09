@@ -28,6 +28,13 @@ function entityId(item) {
   if (typeof item.id === "string" && item.id) return "id:" + item.id;
   if (typeof item.shotId === "string" && item.shotId) return "shot:" + item.shotId;
   if (typeof item.characterId === "string" && item.characterId) return "character:" + item.characterId;
+  // Graphic Novel Human approvals have a stable *shot* identity, not an id or
+  // an order. Treat each approval as one atomic human decision; never splice
+  // sourceKey/narration/timestamp pieces from unrelated saves.
+  if (typeof item.anchorRef === "string" && item.anchorRef
+      && Number.isInteger(item.position) && item.position >= 1 && item.position <= 25) {
+    return "approval:" + item.anchorRef + ":position:" + item.position;
+  }
   if (typeof item.anchorRef === "string" && Number.isInteger(item.order)) return "anchor:" + item.anchorRef + ":order:" + item.order;
   return null;
 }
@@ -42,6 +49,12 @@ function collect(base, current, keys, edits, reviews) {
   if (equal(base,current)) return;
   const path = pathLabel(keys);
   if (current === ABSENT) { reviews.push({path,reason:"possible-deletion"}); return; }
+  // Approval records must remain atomic even when the baseline has an older
+  // approval for this shot; mixing a source fingerprint with another narration
+  // could manufacture a false Human approval.
+  if (isRecord(current) && keys.at(-1)?.startsWith("@approval:")) {
+    edits.push({path,keys,value:copy(current)}); return;
+  }
   // A newly added entity must remain one atomic record with its stable ID.
   if (base === ABSENT && isRecord(current) && keys.at(-1)?.startsWith("@")) {
     edits.push({path,keys,value:copy(current)}); return;
@@ -98,6 +111,49 @@ function apply(target,keys,value) {
   }
 }
 function sourceId(value){return value?.sourceEvidence?.referenceFixture?.sourceId;}
+
+// These are references, not proven, readable local bytes. Inspection must
+// include *all source snapshots*: a competing unselected visual array might
+// not appear in the proposed candidate yet.
+function sourceMediaReferences(projects) {
+  const refs = new Set();
+  const visit = value => {
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    if (!isRecord(value)) return;
+    if (typeof value.assetUrl === "string" && value.assetUrl.trim()) refs.add(value.assetUrl.trim());
+    Object.values(value).forEach(visit);
+  };
+  projects.forEach(visit);
+  return [...refs].sort();
+}
+
+export function describeAfterglowConsolidationConflict(path) {
+  if (path === "/build/foundations/acceptedVisualArtifactIds"
+      || path === "/build/world/acceptedVisualArtifactIds") {
+    return {kind:"visual-approval-collection",
+      label:"Approved image and Storyboard locks",
+      requiresSpecialReconciliation:true};
+  }
+  if (path === "/production/graphicNovelTextApprovals") {
+    return {kind:"narration-approval-collection",label:"Graphic Novel narration approvals",
+      requiresSpecialReconciliation:true};
+  }
+  if (path.startsWith("/production/graphicNovelTextApprovals/@approval:")) {
+    const number = /:position:(\\d+)$/.exec(path);
+    return {kind:"shot-narration-approval",
+      label:number?"Graphic Novel narration — Shot "+number[1]:"Graphic Novel narration approval",
+      requiresSpecialReconciliation:true};
+  }
+  if (path.startsWith("/storyDevelopment/fields/") && path.endsWith("/updatedAt")) {
+    return {kind:"authorship-metadata",label:"Story-field edit date (not a story decision)",
+      requiresSpecialReconciliation:true};
+  }
+  if (path.startsWith("/storyDevelopment/fields/") && path.endsWith("/value")) {
+    return {kind:"story-field-content",label:"Approved Mind Map story value",
+      requiresSpecialReconciliation:false};
+  }
+  return {kind:"other",label:"Story project change",requiresSpecialReconciliation:false};
+}
 export function planAfterglowConsolidation({baseline,sources}) {
   if(!isRecord(baseline)||sourceId(baseline)!==EXPECTED_REFERENCE
      ||baseline.format!=="2.0-foundation"||!Array.isArray(sources)||!sources.length){
@@ -162,7 +218,9 @@ export function planAfterglowConsolidation({baseline,sources}) {
   // Project ID, timestamps, profile session and revision are deliberately
   // assigned only by the later authenticated commit.
   return {candidate,sources:projects.map(p=>({id:p.id,revision:p.revision,updatedAt:p.updatedAt})),
-    applied,conflicts,needsReview,localAssetsToVerify:[...assetRefs].sort(),
+    applied,conflicts,needsReview,
+    sourceMediaReferences:sourceMediaReferences(projects),
+    localAssetsToVerify:[...assetRefs].sort(),
     mergeShapeConsistent:conflicts.length===0&&needsReview.length===0,
     readyForHumanCommit:false,packageModified:false};
 }

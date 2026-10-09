@@ -16,6 +16,7 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
+import { afterglowReviewProgress } from "../afterglow-review-progress.mjs";
 import { listAfterglowImageChoices, applyAfterglowImageChoices, imageIncludedInCandidate,
   type AfterglowImageChoice } from "../afterglow-image-review.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
@@ -208,6 +209,7 @@ export default function AfterglowManagementPanel() {
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [imageChoices, setImageChoices] = useState<Record<string,"keep"|"exclude">>({});
+  const [confirmedCurrent, setConfirmedCurrent] = useState<Record<string,boolean>>({});
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -321,14 +323,29 @@ export default function AfterglowManagementPanel() {
     return {...textReviewed,candidate:imageReview.candidate,
       localAssetsToVerify:[...media].sort()};
   },[textReviewed,imageReview]);
-  const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices });
+  const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices, confirmedCurrent });
   const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
     group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
   ) ?? []), [preview, canonicalFields]);
   const creativeChoices=useMemo(()=>partitionAfterglowChoices(preview?.conflicts ?? [],
     [...recoveryPaths]),[preview,recoveryPaths]);
-  const pendingHumanChoices=[...creativeChoices.human,...creativeChoices.inRecovered]
-    .filter(item=>decisions[item.path]===undefined).length;
+
+  const reviewProgress=useMemo(()=>afterglowReviewProgress({
+    groups:preview?.recovery.groups.map(group=>({
+      id:group.id,label:group.label,items:group.items.map(item=>({
+        id:item.id,label:item.label,
+        reviewPath:afterglowRecoveryItemPath(item,canonicalFields),
+      })),
+    }))??[],
+    candidatePaths:preview?.plan.applied.map(item=>item.path)??[],
+    conflictPaths:[...creativeChoices.human,...creativeChoices.inRecovered].map(item=>item.path),
+    confirmations:confirmedCurrent,exclusions,decisions,
+    extraConflicts:creativeChoices.human.map(item=>({
+      path:item.path,label:describeAfterglowConsolidationConflict(item.path).label,
+    })),
+    imageOptions:preview?.imageOptions??[],imageChoices,
+  }),[preview,canonicalFields,creativeChoices,confirmedCurrent,exclusions,decisions,imageChoices]);
+  const pendingHumanChoices=reviewProgress.pending;
 
   const refresh = useCallback(() => {
     const ready = profileReady();
@@ -342,6 +359,7 @@ export default function AfterglowManagementPanel() {
     setDecisions({});
     setExclusions([]);
     setImageChoices({});
+    setConfirmedCurrent({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -361,6 +379,7 @@ export default function AfterglowManagementPanel() {
     setDecisions({});
     setExclusions([]);
     setImageChoices({});
+    setConfirmedCurrent({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);

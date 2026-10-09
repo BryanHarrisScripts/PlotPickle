@@ -38,7 +38,6 @@ function keyLabel(field, key) {
   const suffix = key.slice(field.canonicalId.length);
   return field.lessonTitle + (suffix ? " · " + suffix.replace(/^::/, "").replaceAll("-", " ") : "");
 }
-function valueSignature(value) { return string(value); }
 
 /**
  * Inspect all N authenticated, already-loaded saved snapshots without mutating
@@ -59,7 +58,7 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
 
   const inventory = new Map();
   function add(groupId,id,label,kind,value,project) {
-    const text = valueSignature(value);
+    const text = string(value);
     if (!text) return;
     const unique = groupId + "|" + kind + "|" + id;
     if (!inventory.has(unique)) inventory.set(unique,{

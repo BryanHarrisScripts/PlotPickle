@@ -752,7 +752,7 @@
           "label": "Settings"
         },
         {
-          "order": 11,
+          "order": 7,
           "slug": "semantic-uat",
           "label": "Semantic UAT"
         }
@@ -789,7 +789,7 @@
           "label": "Settings"
         },
         {
-          "order": 9,
+          "order": 8,
           "slug": "data-recovery",
           "label": "Data Recovery"
         }
@@ -825,7 +825,7 @@
           "label": "Settings"
         },
         {
-          "order": 10,
+          "order": 9,
           "slug": "afterglow-management",
           "label": "Afterglow Recovery"
         }
@@ -1043,7 +1043,7 @@
           "label": "Settings"
         },
         {
-          "order": 8,
+          "order": 6,
           "slug": "agents",
           "label": "Agents"
         }
@@ -2100,7 +2100,7 @@
           "label": "Settings"
         },
         {
-          "order": 7,
+          "order": 8,
           "slug": "buzz-settings",
           "label": "Buzz"
         }

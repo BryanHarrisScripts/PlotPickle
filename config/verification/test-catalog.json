@@ -2181,6 +2181,7 @@
           "tests/issue-2863-afterglow-evidence-reconcile.test.mjs",
           "tests/issue-2863-afterglow-question-provenance.test.mjs",
           "tests/issue-2863-afterglow-media-integrity.test.mjs",
+          "tests/issue-2863-afterglow-master-save-preflight.test.mjs",
           "tests/issue-2863-afterglow-settings-preview.test.mjs",
           "tests/issue-2863-afterglow-conflict-decisions.test.mjs",
           "tests/issue-2839-storyboard-text-narration.test.mjs",

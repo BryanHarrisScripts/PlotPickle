@@ -16,7 +16,7 @@ import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
 import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../afterglow-work-recovery.mjs";
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
-import { afterglowReviewProgress } from "../afterglow-review-progress.mjs";
+import { afterglowReviewProgress, afterglowImageSlotKey, selectAfterglowImageOption, resetAfterglowImageSlot } from "../afterglow-review-progress.mjs";
 import { listAfterglowImageChoices, applyAfterglowImageChoices, imageIncludedInCandidate,
   type AfterglowImageChoice } from "../afterglow-image-review.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
@@ -210,6 +210,7 @@ export default function AfterglowManagementPanel() {
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [imageChoices, setImageChoices] = useState<Record<string,"keep"|"exclude">>({});
   const [confirmedCurrent, setConfirmedCurrent] = useState<Record<string,boolean>>({});
+  const [expandedImageSlots, setExpandedImageSlots] = useState<Record<string,boolean>>({});
   const [conflictPage, setConflictPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -360,6 +361,7 @@ export default function AfterglowManagementPanel() {
     setExclusions([]);
     setImageChoices({});
     setConfirmedCurrent({});
+    setExpandedImageSlots({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -380,6 +382,7 @@ export default function AfterglowManagementPanel() {
     setExclusions([]);
     setImageChoices({});
     setConfirmedCurrent({});
+    setExpandedImageSlots({});
     setMediaState(null);
     setMediaNotice("");
     setPreflightState(null);
@@ -774,10 +777,18 @@ export default function AfterglowManagementPanel() {
                 {" "}<strong>{Object.keys(imageChoices).length}</strong> explicit Keep/Exclude decisions.</p>
               {Array.from(new Set(preview.imageOptions.map(item=>item.characterId))).map(characterId=>{
                 const images=preview.imageOptions.filter(item=>item.characterId===characterId);
+                const views=new Set(images.map(afterglowImageSlotKey));
+                const reviewedViews=[...views].filter(slot=>
+                  reviewProgress.sections.find(section=>section.id==="images")?.items.some(item=>item.id===slot&&item.reviewed)).length;
+                const shown=images.filter(item=>{
+                  const slot=afterglowImageSlotKey(item);
+                  const kept=images.find(version=>afterglowImageSlotKey(version)===slot&&imageChoices[version.key]==="keep");
+                  return !kept||Boolean(expandedImageSlots[slot])||kept.key===item.key;
+                });
                 return <details key={characterId} className={styles.imageCharacter}>
-                  <summary>{images[0].characterName} · {images.filter(image=>imageChoices[image.key]).length}
-                    / {images.length} images reviewed</summary>
-                  <div className={styles.imageGrid}>{images.map(item=>{
+                  <summary>{images[0].characterName} · {reviewedViews}
+                    / {views.size} views reviewed</summary>
+                  <div className={styles.imageGrid}>{shown.map(item=>{
                     const inDraft=Boolean(reviewed && imageIncludedInCandidate(reviewed.candidate,item));
                     const conflicting=reviewed?.candidate.worldMap?.characterVisuals?.some(pack=>
                       pack.characterId===item.characterId &&
@@ -810,10 +821,23 @@ export default function AfterglowManagementPanel() {
                       <div className={styles.creativeActions}>
                         <button type="button" aria-pressed={inDraft}
                           disabled={busy||mediaBusy||preflightBusy||blocked}
-                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"keep"}))}>Keep</button>
+                          onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
+                            preview.imageOptions,previous,item.key,"keep"))}>Keep</button>
                         <button type="button" aria-pressed={imageChoices[item.key]==="exclude"}
                           disabled={busy||mediaBusy||preflightBusy||item.conflictingSourceMetadata}
-                          onClick={()=>setImageChoices(previous=>({...previous,[item.key]:"exclude"}))}>Exclude</button>
+                          onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
+                            preview.imageOptions,previous,item.key,"exclude"))}>Exclude</button>
+                        {imageChoices[item.key]==="keep" ? <button type="button"
+                          onClick={()=>{const slot=afterglowImageSlotKey(item);
+                            setExpandedImageSlots(previous=>({...previous,[slot]:!previous[slot]}));}}>
+                          {expandedImageSlots[afterglowImageSlotKey(item)]?"Hide alternatives":"View other saved versions"}
+                        </button> : null}
+                        {imageChoices[item.key]==="keep" && expandedImageSlots[afterglowImageSlotKey(item)]
+                          ? <button type="button" onClick={()=>{
+                            const slot=afterglowImageSlotKey(item);
+                            setImageChoices(previous=>resetAfterglowImageSlot(preview.imageOptions,previous,slot));}}>
+                            Change selection
+                          </button> : null}
                       </div>
                       {imageReview?.clearedLocks.some(lock=>lock.characterId===item.characterId) ?
                         <small className={styles.caution}>Excluding the last image in a locked version

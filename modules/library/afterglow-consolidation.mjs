@@ -278,7 +278,7 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
     for(const key of Object.keys(p)){
       if(!roots.has(key))throw new Error("Unrecognized saved Afterglow field requires review: "+key);
     }
-    ids.add(id);return {project:p,key:id,kind:x?.sourceKey?.startsWith("point:")?"recovery-point":
+    ids.add(id);return {project:p,key:id,savedAt:x?.savedAt??p.updatedAt,kind:x?.sourceKey?.startsWith("point:")?"recovery-point":
       x?.sourceKey?.startsWith("archived:")?"archived-copy":"working-copy"};
   }).sort((a,b)=>a.project.updatedAt.localeCompare(b.project.updatedAt)||a.key.localeCompare(b.key));
   const projects=entries.map(entry=>entry.project),sourceKeys=entries.map(entry=>entry.key);
@@ -332,7 +332,7 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
   visit(candidate);
   // Project ID, timestamps, profile session and revision are deliberately
   // assigned only by the later authenticated commit.
-  return {candidate,sources:entries.map(({project:p,key,kind})=>({id:key,projectId:p.id,kind,revision:p.revision,updatedAt:p.updatedAt})),
+  return {candidate,sources:entries.map(({project:p,key,kind,savedAt})=>({id:key,projectId:p.id,kind,revision:p.revision,updatedAt:p.updatedAt,savedAt})),
     applied,conflicts,needsReview,questionEvidence,
     reconciledVisuals:reconciledVisuals.reconciled,
     sourceMediaReferences:sourceMediaReferences(projects),

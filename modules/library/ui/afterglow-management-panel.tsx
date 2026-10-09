@@ -9,6 +9,7 @@ import { summarizeAfterglowSavedVersion, type AfterglowSavedVersionSummary } fro
 import { isAfterglowRecoverySnapshot, summarizeAfterglowRecoverySnapshot,
   type AfterglowRecoverySnapshotSummary } from "../afterglow-recovery-snapshot.mjs";
 import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-roster";
+import { collectAfterglowReviewSources } from "../afterglow-review-sources.mjs";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
 import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
@@ -65,7 +66,10 @@ type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
   recovery: AfterglowRecoveredWork;
   initialProofs: readonly AfterglowSavedSnapshotProof[];
-  sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
+  sources: AfterglowConsolidationPlan["sources"];
+  sourceInventory: string;
+  includedHistoricalSources: number;
+  sourceWarnings: readonly string[];
   appliedCount: number;
   reconciledVisualCount: number;
   questionEvidence: AfterglowConsolidationPlan["questionEvidence"];
@@ -96,6 +100,20 @@ function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, s
 }
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
   return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
+}
+function archivedAfterglowSummaries() {
+  return listArchivedLibraryProjects().filter(item =>
+    item.sourceKind === "example" && item.sourceId === "afterglow-v9");
+}
+function reviewSourceInventoryFingerprint() {
+  // Include content in the historical snapshot identity, not merely its
+  // parent project ID or a date. Saving a new recovery point invalidates review.
+  return JSON.stringify({
+    active:inventoryFingerprint(listAfterglowExampleProjects()),
+    archived:inventoryFingerprint(archivedAfterglowSummaries()),
+    points:listProfileRecoveryPoints().filter(point=>isAfterglowRecoverySnapshot(point.project))
+      .map(point=>[point.id,point.projectId,point.createdAt,point.project]),
+  });
 }
 
 async function exactSavedSnapshotProofs(items: readonly {readonly project: {
@@ -274,8 +292,7 @@ export default function AfterglowManagementPanel() {
     // Data Recovery remains the owner of restore operations. Afterglow only
     // reads its matching, account-owned recovery and archived snapshots.
     setRecoveryPoints(ready ? listProfileRecoveryPoints() : []);
-    setArchivedAfterglow(ready ? listArchivedLibraryProjects().filter(
-      item=>item.sourceKind==="example" && item.sourceId==="afterglow-v9") : []);
+    setArchivedAfterglow(ready ? archivedAfterglowSummaries() : []);
     setPreview(null);
     setDecisions({});
     setExclusions([]);
@@ -306,18 +323,20 @@ export default function AfterglowManagementPanel() {
     try {
       if (!profileReady()) throw new Error("Unlock your PlotPickle profile before reviewing Afterglow.");
       const start = listAfterglowExampleProjects();
-      if (!start.length) {
-        setNotice("No saved Afterglow working versions exist in this profile yet. You can open the provided example from Library.");
+      const startingInventory=reviewSourceInventoryFingerprint();
+      const {sources:complete,warnings:sourceWarnings} = collectAfterglowReviewSources({
+        active:start,archived:archivedAfterglowSummaries(),
+        recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot,
+      });
+      if (!complete.length) {
+        setNotice("No eligible saved Afterglow or profile recovery snapshots could be read. Original work was not changed.");
         return;
       }
-      const complete = start.map(summary => {
-        const project = loadLibraryProjectSnapshot(summary.id);
-        if (!project || project.id !== summary.id) {
-          throw new Error("A saved Afterglow version could not be read. Your existing work was not changed.");
-        }
-        return { project };
-      });
-      const initialProofs = await exactSavedSnapshotProofs(complete);
+      // Exact browser Library-byte proofs are applicable only to active
+      // working copies. Historical private recovery cache is not falsely
+      // presented as containing original-save byte fingerprints.
+      const initialProofs = await exactSavedSnapshotProofs(complete.filter(
+        source=>source.sourceKind==="working-copy"));
       const [{ createAfterglowPackagedCurrentReference }, { planAfterglowConsolidation },
         { inventoryAfterglowRecoveredWork }] = await Promise.all([
         import("../reference/afterglow-packaged-current"),
@@ -327,8 +346,9 @@ export default function AfterglowManagementPanel() {
       // A save or account switch during an asynchronous review invalidates
       // the results. Never publish a preview for a different hydrated profile.
       if (!profileReady() ||
-        inventoryFingerprint(start) !== inventoryFingerprint(listAfterglowExampleProjects())
-        || JSON.stringify(initialProofs) !== JSON.stringify(await exactSavedSnapshotProofs(complete))) {
+        startingInventory !== reviewSourceInventoryFingerprint()
+        || JSON.stringify(initialProofs) !== JSON.stringify(await exactSavedSnapshotProofs(
+          complete.filter(source=>source.sourceKind==="working-copy")))) {
         throw new Error("Afterglow changed during review. Refresh and review the complete current list.");
       }
       const baseline = createAfterglowPackagedCurrentReference();
@@ -347,6 +367,9 @@ export default function AfterglowManagementPanel() {
         recovery,
         initialProofs,
         sources: result.sources,
+        sourceInventory:startingInventory,
+        sourceWarnings,
+        includedHistoricalSources:complete.filter(source=>source.sourceKind!=="working-copy").length,
         appliedCount: result.applied.length,
         reconciledVisualCount: result.reconciledVisuals.length,
         questionEvidence: result.questionEvidence,
@@ -359,7 +382,7 @@ export default function AfterglowManagementPanel() {
         sourceMediaCount: result.sourceMediaReferences.length,
         mergeShapeConsistent: result.mergeShapeConsistent,
       });
-      setNotice("Read-only review complete. No project, approval, image, or provided example was changed.");
+      setNotice("Read-only review includes saved working copies and eligible older recovery states. No project, approval, image, or provided example was changed.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Afterglow could not be reviewed. Your saved work is unchanged.");
     } finally {
@@ -367,8 +390,9 @@ export default function AfterglowManagementPanel() {
     }
   }
 
-  const mediaMatches = mediaState !== null
-    && mediaState.sources === inventoryFingerprint(sources)
+  const mediaMatches = mediaState !== null && preview !== null
+    && mediaState.sources === preview.sourceInventory
+    && mediaState.sources === reviewSourceInventoryFingerprint()
     && mediaState.choices === selectionFingerprint;
   const mediaReport = mediaMatches ? mediaState.report : null;
 
@@ -380,26 +404,31 @@ export default function AfterglowManagementPanel() {
     setPreflightState(null);
     setPreflightNotice("");
     const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
-    const startingInventory = inventoryFingerprint(listAfterglowExampleProjects());
+    const startingInventory = preview.sourceInventory;
     const choices = selectionFingerprint;
     const guard = () => {
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
         || !profilePrivateBrowserReadyFor(profileId)
-        || startingInventory !== inventoryFingerprint(listAfterglowExampleProjects())
-        || startingInventory !== inventoryFingerprint(sources)) {
+        || startingInventory !== reviewSourceInventoryFingerprint()) {
         throw new Error("Afterglow account or saved versions changed during inspection. Refresh and review again.");
       }
     };
     try {
       guard();
-      const snapshots = preview.sources.map(source => {
-        const project = loadLibraryProjectSnapshot(source.id);
-        if (!project || project.id !== source.id || project.revision !== source.revision
-          || project.updatedAt !== source.updatedAt) {
-          throw new Error("A source changed since the review. Re-run consolidation before checking media.");
+      const collected=collectAfterglowReviewSources({
+        active:listAfterglowExampleProjects(),archived:archivedAfterglowSummaries(),
+        recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot,
+      }).sources;
+      const byKey=new Map(collected.map(source=>[source.sourceKey??source.project.id,source]));
+      const snapshots=preview.sources.map(item=>{
+        const source=byKey.get(item.id);
+        if(!source || source.project.id!==item.projectId
+          ||source.project.revision!==item.revision || source.project.updatedAt!==item.updatedAt) {
+          throw new Error("A saved historical snapshot or working version changed. Review again.");
         }
-        return {project};
+        return source;
       });
+      if(snapshots.length!==collected.length)throw new Error("Afterglow source inventory changed. Review again.");
       const indexResponse = await fetch("/api/local-ai/assets", {
         credentials: "same-origin", cache: "no-store", redirect: "error",
         headers: {Accept: "application/json"},
@@ -454,7 +483,8 @@ export default function AfterglowManagementPanel() {
         },
       });
       guard();
-      if (JSON.stringify(await exactSavedSnapshotProofs(snapshots)) !== JSON.stringify(preview.initialProofs)) {
+      if (JSON.stringify(await exactSavedSnapshotProofs(
+        snapshots.filter(source=>source.sourceKind==="working-copy"))) !== JSON.stringify(preview.initialProofs)) {
         throw new Error("Saved source bytes changed during inspection. Refresh and repeat the review.");
       }
       if (choices !== selectionFingerprint) {
@@ -468,18 +498,22 @@ export default function AfterglowManagementPanel() {
   }
 
   const preflightReport = preflightState !== null && mediaMatches
-    && preflightState.sources === inventoryFingerprint(sources)
+    && preflightState.sources === preview?.sourceInventory
     && preflightState.choices === selectionFingerprint ? preflightState.report : null;
   async function checkMasterSavePreflight() {
     if (!preview || !reviewed || !mediaReport || busy || mediaBusy || preflightBusy) return;
+    if(preview.includedHistoricalSources || preview.sourceWarnings.length) {
+      setPreflightNotice("Historical recovery states are now included in the draft. Durable master save readiness requires independent encrypted snapshot provenance and cannot yet be authorized.");
+      return;
+    }
     setPreflightBusy(true);
     setPreflightState(null);
     setPreflightNotice("");
     try {
       if (!profileReady()) throw new Error("Unlock your profile before checking master save readiness.");
       const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
-      const inventory = inventoryFingerprint(sources);
-      if (inventory !== inventoryFingerprint(listAfterglowExampleProjects())) {
+      const inventory = reviewSourceInventoryFingerprint();
+      if (inventory !== preview.sourceInventory) {
         throw new Error("Saved versions changed; review again before checking readiness.");
       }
       const snapshots = preview.sources.map(source => {
@@ -501,7 +535,7 @@ export default function AfterglowManagementPanel() {
       });
       const finalProofs = await exactSavedSnapshotProofs(snapshots);
       if (!profileId || window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
-        || !profileReady() || inventory !== inventoryFingerprint(listAfterglowExampleProjects())
+        || !profileReady() || inventory !== reviewSourceInventoryFingerprint()
         || JSON.stringify(finalProofs) !== JSON.stringify(currentProofs)
         || selectionFingerprint !== (mediaState?.choices ?? "")) {
         throw new Error("Profile, saved bytes or selected story decisions changed. Re-run the review.");
@@ -580,8 +614,11 @@ export default function AfterglowManagementPanel() {
                       {" · "}{source.creative.lockedStoryboardImages} locked
                       {" · "}{source.creative.approvedNarrationCount} narration approvals</p>
                     {source.creative.characterNames.length ? <p>Characters: {source.creative.characterNames.join(", ")}</p> : null}
-                    <p className={styles.recoverySourceNotice}>Not yet included in the consolidation draft.
-                      Media files have not been verified.</p>
+                    <p className={styles.recoverySourceNotice}>
+                      {preview?.sources.some(item=>item.id===source.key)
+                        ? "Included in current draft comparison — not saved or media-verified."
+                        : "Will be included in Review consolidation — not yet saved or media-verified."}
+                    </p>
                   </li>)}
                 </ul>
               ) : <p>No additional readable Afterglow recovery snapshots were found in this signed-in profile.</p>}
@@ -594,7 +631,7 @@ export default function AfterglowManagementPanel() {
             </section>
             <div className={styles.actions}>
               <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={refresh}>Refresh saved versions</button>
-              <button type="button" disabled={busy || mediaBusy || preflightBusy || !sources.length} onClick={() => void reviewConsolidation()}>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || (!sources.length && !recoverySourceAudit.found.length)} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review consolidation"}
               </button>
             </div>
@@ -604,10 +641,15 @@ export default function AfterglowManagementPanel() {
         {preview ? (
           <section className={styles.result} aria-labelledby="afterglow-preview-heading">
             <h3 id="afterglow-preview-heading">Find your saved Afterglow work — not saved</h3>
-            <p><strong>{preview.sources.length}</strong> account-owned saved versions examined.
+            <p><strong>{preview.sources.length}</strong> saved Afterglow snapshots compared,
+              including <strong>{preview.includedHistoricalSources}</strong> recovery points or archived working copies.
               {" "}<strong>{preview.recovery.recoveredItemCount}</strong> saved additions or edits found beyond the provided example;
               {" "}<strong>{preview.recovery.differingValueCount}</strong> fields or artifacts have different saved versions to compare.
               Repeated identical answers are listed once, with every source shown.</p>
+            {preview.sourceWarnings.length ? <p role="status" className={styles.notice}>
+              {preview.sourceWarnings.length} historical sources could not be included. Inspect their warnings above.
+              This draft must not be treated as the complete recovered master.
+            </p> : null}
             <section aria-label="Draft master selection" className={styles.creativeReview}>
               <h3>Build one current Afterglow</h3>
               <p>Distinct compatible work from all saved dates is included automatically. You can exclude a particular
@@ -658,8 +700,13 @@ export default function AfterglowManagementPanel() {
                             && alternative.sources.some(source=>source.id === conflict.optionSources?.[position])) ?? -1;
                           return <div key={index} className={styles.recoveryValue}>
                             <p>{alternative.text}</p>
-                            <small>Saved in {alternative.sources.map(source=>
-                              displayDate(source.updatedAt)+" ("+source.id.slice(0,8)+")").join(", ")}</small>
+                            <small>Saved in {alternative.sources.map(source=>{
+                              const matched=preview.sources.find(item=>item.id===source.id);
+                              const kind=matched?.kind==="recovery-point"?"Recovery point"
+                                :matched?.kind==="archived-copy"?"Archived copy":"Working copy";
+                              return kind+" · "+displayDate(matched?.savedAt??source.updatedAt)
+                                +" ("+source.id.slice(0,12)+")";
+                            }).join(", ")}</small>
                             {conflict && optionIndex >= 0 ? (
                               <button type="button" className={styles.creativeOption}
                                 aria-pressed={decisions[conflict.path] === optionIndex}
@@ -714,8 +761,10 @@ export default function AfterglowManagementPanel() {
                       const source=preview.sources.find(item=>item.id===conflict.optionSources?.[index]);
                       const selectable=approvedKind && Boolean(text);
                       return <div key={index} className={styles.recoveryValue}>
-                        <small>{source ? displayDate(source.updatedAt) : "Saved working copy"}
-                          {" · "}{source?.id.slice(0,8) ?? "source"}</small>
+                        <small>{source ? (source.kind==="recovery-point"?"Recovery point · "
+                          :source.kind==="archived-copy"?"Archived copy · ":"Working copy · ")
+                          +displayDate(source.savedAt??source.updatedAt) : "Saved copy"}
+                          {" · "}{source?.id.slice(0,12) ?? "source"}</small>
                         <p>{text ?? "This saved alternative needs a more specific creative description before it can be selected here."}</p>
                         {selectable ? <button type="button" className={styles.creativeOption}
                           disabled={busy || mediaBusy || preflightBusy}
@@ -792,12 +841,19 @@ export default function AfterglowManagementPanel() {
             ) : null}
             {mediaReport ? (
               <div className={styles.actions}>
-                <button type="button" disabled={busy || mediaBusy || preflightBusy}
+                <button type="button" disabled={busy || mediaBusy || preflightBusy
+                  || Boolean(preview.includedHistoricalSources || preview.sourceWarnings.length)}
                   onClick={() => void checkMasterSavePreflight()}>
                   {preflightBusy ? "Checking source integrity…" : "Check master save readiness (read-only)"}
                 </button>
               </div>
             ) : null}
+            {preview.includedHistoricalSources ? <p className={styles.caution}>
+              Recovery-point contributions are now compared and selectable in the same draft.
+              The final save readiness check remains disabled until historical encrypted
+              snapshot identity and media provenance can be independently verified.
+              Your original saves and Data Recovery history remain unchanged.
+            </p> : null}
             {preflightNotice ? <p role="status" className={styles.notice}>{preflightNotice}</p> : null}
             {preflightReport ? (
               <section className={styles.result} aria-label="Afterglow master preflight results">

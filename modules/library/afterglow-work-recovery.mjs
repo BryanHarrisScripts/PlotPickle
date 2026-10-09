@@ -50,14 +50,16 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
   }
   const seen = new Set();
   for (const entry of sources) {
-    if (!entry?.project || typeof entry.project.id !== "string" || seen.has(entry.project.id)) {
+    const key=entry?.sourceKey??entry?.project?.id;
+    if (!entry?.project || typeof entry.project.id !== "string" || !entry.project.id
+      || typeof key !== "string" || !key || seen.has(key)) {
       throw new Error("Recovery inventory cannot inspect a duplicate or unidentified saved copy.");
     }
-    seen.add(entry.project.id);
+    seen.add(key);
   }
 
   const inventory = new Map();
-  function add(groupId,id,label,kind,value,project) {
+  function add(groupId,id,label,kind,value,source) {
     const text = string(value);
     if (!text) return;
     const unique = groupId + "|" + kind + "|" + id;
@@ -70,8 +72,9 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
       alternative = {text,sources:[]};
       row.alternatives.push(alternative);
     }
-    if (!alternative.sources.some(item => item.id === project.id)) {
-      alternative.sources.push({id:project.id,updatedAt:project.updatedAt});
+    const sourceKey=source.sourceKey??source.project.id;
+    if (!alternative.sources.some(item => item.id === sourceKey)) {
+      alternative.sources.push({id:sourceKey,updatedAt:source.savedAt??source.project.updatedAt});
     }
   }
 
@@ -86,10 +89,11 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
     // not in storyDevelopment.fields.value (which can be blank metadata).
     if (field.topicId === "world" || field.topicId === "foundations") {
       const original = rootAnswer(baseline,field);
-      for (const {project} of sources) {
+      for (const source of sources) {
+        const {project}=source;
         const value = rootAnswer(project,field);
         if (value && value !== original) {
-          add(category,field.canonicalId,keyLabel(field,field.canonicalId),"saved-answer",value,project);
+          add(category,field.canonicalId,keyLabel(field,field.canonicalId),"saved-answer",value,source);
         }
       }
     }
@@ -97,7 +101,8 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
       if (key !== field.canonicalId && !key.startsWith(field.canonicalId+"::")) continue;
       knownKeys.add(key);
       const baselineState = fieldState(baseline,key);
-      for (const {project} of sources) {
+      for (const source of sources) {
+        const {project}=source;
         const current = fieldState(project,key);
         const savedValue = string(current.value);
         const originalValue = string(baselineState.value);
@@ -105,11 +110,11 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
         // lesson answers above; scoped overrides do live here.
         if (savedValue && savedValue !== originalValue
           && (key !== field.canonicalId || !["world","foundations"].includes(field.topicId))) {
-          add(category,key,keyLabel(field,key),"saved-answer",savedValue,project);
+          add(category,key,keyLabel(field,key),"saved-answer",savedValue,source);
         }
         const proposal = string(current.proposal);
         if (proposal && proposal !== string(baselineState.proposal)) {
-          add(category,key,keyLabel(field,key),"unaccepted-agent-suggestion",proposal,project);
+          add(category,key,keyLabel(field,key),"unaccepted-agent-suggestion",proposal,source);
         }
       }
     }
@@ -120,13 +125,14 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
   for (const key of allKeys) {
     if (knownKeys.has(key) || definitions.has(key)) continue;
     const original = fieldState(baseline,key);
-    for (const {project} of sources) {
+    for (const source of sources) {
+        const {project}=source;
       const value = fieldState(project,key);
       if (string(value.value) && string(value.value) !== string(original.value)) {
-        add("other",key,"Saved field (question not identified): "+key,"unknown-field-answer",value.value,project);
+        add("other",key,"Saved field (question not identified): "+key,"unknown-field-answer",value.value,source);
       }
       if (string(value.proposal) && string(value.proposal) !== string(original.proposal)) {
-        add("other",key,"Saved Agent suggestion (question not identified): "+key,"unaccepted-agent-suggestion",value.proposal,project);
+        add("other",key,"Saved Agent suggestion (question not identified): "+key,"unaccepted-agent-suggestion",value.proposal,source);
       }
     }
   }
@@ -135,18 +141,40 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
     const noteIds = new Set(sources.flatMap(({project})=>Object.keys(record(project.mindMapNotes?.[domain]))));
     for (const id of noteIds) {
       const baselineText = string(baseline.mindMapNotes?.[domain]?.[id]?.text);
-      for (const {project} of sources) {
+      for (const source of sources) {
+        const {project}=source;
         const text = string(project.mindMapNotes?.[domain]?.[id]?.text);
         if (text && text !== baselineText) {
           add("notes",domain+":"+id,(domain === "fields" ? "Field note: " : "Topic note: ")+id,
-            "human-note",text,project);
+            "human-note",text,source);
         }
       }
     }
   }
 
+  // Canonical Character Truth lives outside Mind Map answer fields. A Human
+  // must see recovered Joy/Kai/J claims even when no authored field differs.
+  // Recording a source-only claim does NOT mean it was Human-approved.
+  const previousClaims=new Map((baseline.sourceEvidence?.characterTruth?.claims??[])
+    .map(claim=>[claim.id,claim]));
+  for(const source of sources) {
+    const {project}=source;
+    for(const claim of project.sourceEvidence?.characterTruth?.claims??[]) {
+      if(!claim?.id || !Array.isArray(claim.characterIds)
+        || claim.reviewState==="rejected" || claim.handling!=="writer-reference")continue;
+      const original=previousClaims.get(claim.id);
+      if(original && JSON.stringify(original)===JSON.stringify(claim))continue;
+      add("character",claim.id,
+        (claim.kind==="identity"?"Character identity":"Character "+claim.kind)+
+          " · "+claim.characterIds.join(", "),
+        "saved-character-truth",claim.summary+
+          " [recorded status: "+claim.reviewState+"]",source);
+    }
+  }
+
   const priorArtwork = new Map((baseline.worldMap?.characterVisuals ?? []).map(item=>[item.characterId,item]));
-  for (const {project} of sources) {
+  for (const source of sources) {
+        const {project}=source;
     for (const character of project.worldMap?.characterVisuals ?? []) {
       const original = priorArtwork.get(character.characterId);
       const oldReferences = new Map((original?.references ?? []).map(ref=>[ref.id,ref]));
@@ -156,11 +184,11 @@ export function inventoryAfterglowRecoveredWork({baseline,sources,fields}) {
           && prior.versionId === ref.versionId) continue;
         add("visuals",character.characterId+":"+ref.id,
           character.characterName+" · "+ref.view,"saved-image-reference",
-          ref.reviewState+" · "+ref.assetUrl,project);
+          ref.reviewState+" · "+ref.assetUrl,source);
       }
       if (character.lockedVersionId && character.lockedVersionId !== original?.lockedVersionId) {
         add("visuals",character.characterId+":lock",
-          character.characterName+" · saved lock","saved-image-lock",character.lockedVersionId,project);
+          character.characterName+" · saved lock","saved-image-lock",character.lockedVersionId,source);
       }
     }
   }

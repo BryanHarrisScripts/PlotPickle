@@ -39,7 +39,7 @@ export function inventoryAfterglowMedia({candidate, sources}) {
     inventory.set(url,existing);
   };
   for(const url of selected) include(url,null);
-  for(const {project} of sources) for(const url of imageReferences(project)) include(url,project.id);
+  for(const {project,sourceKey} of sources) for(const url of imageReferences(project)) include(url,sourceKey??project.id);
   return [...inventory.values()].sort((a,b)=>a.url.localeCompare(b.url));
 }
 

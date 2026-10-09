@@ -25,11 +25,12 @@ test("#2863 Phase 2 read-only preview requires hydrated profile and includes all
   assert.match(panel, /profilePrivateBrowserReadyFor\(profileId\)/u);
   assert.match(panel, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
   assert.match(panel, /listAfterglowExampleProjects\(\)/u);
-  assert.match(panel, /start\.map\(summary =>/u);
-  assert.match(panel, /loadLibraryProjectSnapshot\(summary\.id\)/u);
+  assert.match(panel, /collectAfterglowReviewSources\(/u);
+  assert.match(panel, /recoveryPoints:listProfileRecoveryPoints\(\)/u);
+  assert.match(panel, /load:loadLibraryProjectSnapshot/u);
   assert.match(panel, /sources: complete/u);
   assert.match(panel, /planAfterglowConsolidation\(/u);
-  assert.match(panel, /inventoryFingerprint\(start\) !== inventoryFingerprint\(listAfterglowExampleProjects\(\)\)/u);
+  assert.match(panel, /startingInventory !== reviewSourceInventoryFingerprint\(\)/u);
   assert.match(panel, /No project, approval, image, or provided example was changed/u);
   assert.match(panel, /mergeShapeConsistent/u);
   assert.match(panel, /conflictCount: result\.conflicts\.length/u);

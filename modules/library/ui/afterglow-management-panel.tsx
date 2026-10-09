@@ -25,6 +25,7 @@ type Preview = Readonly<{
   plan: AfterglowConsolidationPlan;
   sources: ReadonlyArray<{ id: string; revision: number; updatedAt: string }>;
   appliedCount: number;
+  reconciledVisualCount: number;
   sampleChanges: readonly AfterglowConsolidationChange[];
   conflictCount: number;
   reviewCount: number;
@@ -155,6 +156,7 @@ export default function AfterglowManagementPanel() {
         plan: result,
         sources: result.sources,
         appliedCount: result.applied.length,
+        reconciledVisualCount: result.reconciledVisuals.length,
         sampleChanges: result.applied.slice(0, 35),
         conflictCount: result.conflicts.length,
         reviewCount: result.needsReview.length,
@@ -209,6 +211,7 @@ export default function AfterglowManagementPanel() {
             <h3 id="afterglow-preview-heading">Consolidation review — not saved</h3>
             <p><strong>{preview.sources.length}</strong> saved versions compared;
               <strong> {preview.appliedCount}</strong> proposed field/entity changes;
+              <strong> {preview.reconciledVisualCount}</strong> saved visual acceptances reconciled by artifact evidence;
               <strong> {preview.conflictCount}</strong> conflicting paths;
               <strong> {preview.reviewCount}</strong> other review items;
               <strong> {preview.sourceMediaCount}</strong> source-media URLs awaiting verification.</p>

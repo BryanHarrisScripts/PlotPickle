@@ -16,6 +16,7 @@ import {
   type SessionRequest,
 } from "../server-session/server-session-boundary";
 import { normalizeLibraryProject } from "../../storage/library-project";
+import {authorizeServerAfterglowMasterCommit} from "../../../modules/library/afterglow-master-server";
 import {
   createProfilePrivateStorageService,
   type ProfilePrivateStorageService,
@@ -112,6 +113,7 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
     root: home,
     authService: auth,
     normalizeProject: normalizeLibraryProject,
+    authorizeAfterglowMasterCommit:authorizeServerAfterglowMasterCommit,
   });
   const boundaries = new Map<string, ServerSessionBoundary>();
 

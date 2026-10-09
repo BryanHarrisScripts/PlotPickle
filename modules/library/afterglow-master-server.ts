@@ -46,7 +46,11 @@ export async function readServerAfterglowSources(
     if(project?.sourceEvidence?.referenceFixture?.sourceId!=="afterglow-v9-complete-baseline")return [];
     if(typeof row.id!=="string"||!row.id||row.projectId!==project.id||
       typeof row.createdAt!=="string")throw new Error("Historical Afterglow recovery point has invalid identity.");
-    return [{id:row.id,projectId:row.projectId,createdAt:row.createdAt,project}];
+    return [{id:row.id,projectId:row.projectId as string,
+      title:typeof row.title==="string"?row.title:project.title,
+      revision:typeof row.revision==="number"?row.revision:project.revision,
+      createdAt:row.createdAt,reason:row.reason==="manual"||row.reason==="pre-restore"
+        ?row.reason:"unload" as const,project:normalizeLibraryProject(project)}];
   });
   const snapshots=new Map<string,LibraryPPFProject>();
   for(const s of afterglow){
@@ -54,8 +58,14 @@ export async function readServerAfterglowSources(
     if(!p)throw new Error("A saved Afterglow Library copy is missing.");
     snapshots.set(s.projectId,normalizeLibraryProject(p));
   }
-  const active=afterglow.filter(s=>!s.archivedAt).map(s=>({id:s.projectId,updatedAt:s.updatedAt}));
-  const archived=afterglow.filter(s=>Boolean(s.archivedAt)).map(s=>({id:s.projectId,updatedAt:s.updatedAt}));
+  const toLibrarySummary=(s:ProfileProjectSummary)=>({
+    id:s.projectId,title:s.title,updatedAt:s.updatedAt,createdAt:s.createdAt,
+    progress:s.progress,frontier:s.frontier,thumbnail:s.thumbnailRef,
+    sourceKind:s.sourceKind,sourceId:s.sourceId,genre:s.genre,format:s.format,
+    archivedAt:s.archivedAt,
+  });
+  const active=afterglow.filter(s=>!s.archivedAt).map(toLibrarySummary);
+  const archived=afterglow.filter(s=>Boolean(s.archivedAt)).map(toLibrarySummary);
   const collected=collectAfterglowReviewSources({
     active,archived,recoveryPoints:points,
     load:(id:string)=>snapshots.get(id)??null,

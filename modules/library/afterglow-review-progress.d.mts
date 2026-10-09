@@ -20,3 +20,14 @@ export function afterglowReviewProgress(input:Readonly<{
   imageOptions:readonly Readonly<{key:string;id:string;characterName:string;view:string}>[];
   imageChoices:Readonly<Record<string,"keep"|"exclude">>;
 }>):AfterglowReviewProgress;
+
+export function afterglowImageSlotKey(item:Readonly<{characterId:string;view:string}>):string;
+export function selectAfterglowImageOption(
+  items:readonly Readonly<{key:string;characterId:string;view:string}>[],
+  existing:Readonly<Record<string,"keep"|"exclude">>,key:string,
+  choice:"keep"|"exclude",
+):Record<string,"keep"|"exclude">;
+export function resetAfterglowImageSlot(
+  items:readonly Readonly<{key:string;characterId:string;view:string}>[],
+  existing:Readonly<Record<string,"keep"|"exclude">>,slot:string,
+):Record<string,"keep"|"exclude">;

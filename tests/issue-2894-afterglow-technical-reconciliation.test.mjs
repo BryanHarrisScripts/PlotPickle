@@ -1,11 +1,38 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {planAfterglowConsolidation,reviewAfterglowConsolidationDecisions} from '../modules/library/afterglow-consolidation.mjs';
-import {reconcileAfterglowTechnicalRecords} from '../modules/library/master/afterglow-technical-reconciliation.mjs';
+import {reconcileAfterglowTechnicalRecords,afterglowCollidingMediaUrls} from '../modules/library/master/afterglow-technical-reconciliation.mjs';
 const artifact=(id,extra={})=>({id,assetUrl:'/api/local-ai/assets/'+id+'.webp',reviewState:'accepted',workflow:'storyboard-frame-webp-v2',sourceDecisionKeys:['storyboard-local-save:v1'],parentArtifactId:null,narrativeIntention:'Shot '+id,...extra});
 const baseline=()=>({id:'base',format:'2.0-foundation',revision:0,updatedAt:'2026-10-01T00:00:00Z',sourceEvidence:{referenceFixture:{sourceId:'afterglow-v9-complete-baseline'}},build:{foundations:{visualArtifacts:[],acceptedVisualArtifactIds:[]},world:{visualArtifacts:[],acceptedVisualArtifactIds:[]}}});
 const saved=(b,id,artifacts,revision=1)=>({project:{...structuredClone(b),id,revision,build:{...b.build,foundations:{visualArtifacts:artifacts,acceptedVisualArtifactIds:artifacts.filter(x=>x.reviewState==='accepted').map(x=>x.id)}}}});
-function reconcile(b,sources){const plan=planAfterglowConsolidation({baseline:b,sources});return reconcileAfterglowTechnicalRecords({baseline:b,sources,reviewed:reviewAfterglowConsolidationDecisions(plan)});}
+function reconcile(b,sources,verifiedMediaHashes){const plan=planAfterglowConsolidation({baseline:b,sources});return reconcileAfterglowTechnicalRecords({baseline:b,sources,verifiedMediaHashes,reviewed:reviewAfterglowConsolidationDecisions(plan)});}
+test('#2896 bundled and local aliases require independent matching byte hashes',()=>{
+ const b=baseline();b.build.foundations={visualArtifacts:[artifact('one',{assetUrl:'/assets/library/examples/afterglow/current/generated/one.webp'})],acceptedVisualArtifactIds:['one']};
+ const sources=[saved(b,'working',[artifact('one')])],originals=structuredClone(sources);
+ const packaged=b.build.foundations.visualArtifacts[0].assetUrl,local=sources[0].project.build.foundations.visualArtifacts[0].assetUrl;
+ assert.deepEqual(afterglowCollidingMediaUrls({baseline:b,sources}),[local,packaged].sort());
+ assert.match(reconcile(b,sources).technicalBlockers.join(' '),/assetUrl/);
+ const hash='sha256:'+'a'.repeat(64);
+ assert.match(reconcile(b,sources,{[packaged]:hash}).technicalBlockers.join(' '),/assetUrl/);
+ const verified={[packaged]:hash,[local]:hash};
+ assert.deepEqual(reconcile(b,sources,verified).technicalBlockers,[]);
+ assert.equal(reconcile(b,sources,verified).candidate.build.foundations.visualArtifacts[0].assetUrl,packaged);
+ assert.deepEqual(sources,originals);
+ assert.match(reconcile(b,sources,{...verified,[local]:'sha256:'+'b'.repeat(64)}).technicalBlockers.join(' '),/assetUrl/);
+ sources[0].project.build.foundations.visualArtifacts[0].prompt='A different shot';
+ assert.match(reconcile(b,sources,verified).technicalBlockers.join(' '),/prompt/);
+});
+test('#2896 recovery hash claims do not authorize media equivalence or change approval',()=>{
+ const b=baseline(),a=saved(b,'a',[artifact('one')]),other=saved(b,'b',[artifact('one',{assetUrl:'/api/local-ai/assets/other.webp',sourceDecisionKeys:['storyboard-local-save:v1','recovery-content-hash:sha256:'+'a'.repeat(64)]})]);
+ assert.match(reconcile(b,[a,other]).technicalBlockers.join(' '),/assetUrl/);
+ const verified={'/api/local-ai/assets/one.webp':'sha256:'+'a'.repeat(64),'/api/local-ai/assets/other.webp':'sha256:'+'a'.repeat(64)};
+ other.project.build.foundations.acceptedVisualArtifactIds=[];other.project.build.foundations.visualArtifacts[0].reviewState='draft';
+ assert.match(reconcile(b,[a,other],verified).technicalBlockers.join(' '),/another unlocks/);
+});
+test('#2896 remaining story blockers identify exact paths',()=>{
+ const b=baseline(),r=reconcileAfterglowTechnicalRecords({baseline:b,sources:[],reviewed:{candidate:b,unresolvedConflicts:[{path:'/writing/script',reason:'competing-values'}],needsReview:[{path:'/worldMap/visualBible',reason:'possible-deletion'}]}});
+ assert.match(r.technicalBlockers.join(' '),/\/writing\/script/);assert.match(r.technicalBlockers.join(' '),/\/worldMap\/visualBible/);
+});
 test('bookkeeping order, lineage and source keys converge without changing images or source snapshots',()=>{
  const b=baseline();b.build.foundations={visualArtifacts:[artifact('one',{parentArtifactId:'original'}),artifact('two')],acceptedVisualArtifactIds:['one','two']};
  const sources=[saved(b,'working',[artifact('two'),artifact('one',{sourceDecisionKeys:['storyboard-local-save:v1','recorded-evidence']})])];

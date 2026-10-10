@@ -13,7 +13,7 @@ import manifest from "../../../data/afterglow-packaged-current/manifest.json";
 import packagedSnapshot from "../../../data/afterglow-packaged-current/snapshot.json";
 import {collectAfterglowReviewSources} from "../afterglow-review-sources.mjs";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot} from "./afterglow-master-authority.mjs";
-import {AfterglowSaveVerificationError} from "./afterglow-technical-reconciliation.mjs";
+import {AfterglowSaveVerificationError,afterglowCollidingMediaUrls} from "./afterglow-technical-reconciliation.mjs";
 
 type StoredSource = {project:LibraryPPFProject;sourceKey?:string;savedAt?:string;sourceKind?:string};
 type Choices = {decisions:Record<string,number|"baseline">;exclusions:string[];
@@ -78,7 +78,7 @@ export async function readServerAfterglowSources(
 }
 
 /** Must recalculate every selected byte on the server, never trust browser digest. */
-export async function verifyServerAfterglowMedia(candidate:LibraryPPFProject) {
+export async function verifyServerAfterglowMedia(candidate:unknown) {
   const urls=new Set<string>();
   const visit=(v:unknown)=>{
     if(typeof v==="string" && (v.startsWith("/api/local-ai/assets/")||
@@ -138,10 +138,12 @@ export async function prepareServerAfterglowMaster(input:{
     throw new Error("The official Afterglow package has not been verified for consolidation.");
   }
   const baseline=normalizeLibraryProject(packagedSnapshot.project);
+  const aliasMedia=await verifyServerAfterglowMedia(afterglowCollidingMediaUrls({baseline,sources:input.sources}));
+  const verifiedMediaHashes=Object.fromEntries(aliasMedia.map(item=>[item.url,item.contentHash]));
   const prepared=prepareVerifiedAfterglowMaster({
     baseline,sources:input.sources,
     fields,questions,manifest,selections:input.selections,
-    expectedSources:input.expectedSources,masterId:input.masterId,now:input.now,
+    expectedSources:input.expectedSources,masterId:input.masterId,now:input.now,verifiedMediaHashes,
   });
   const normalized=normalizeLibraryProject(prepared.candidate);
   for(const root of AFTERGLOW_DURABLE_FIELDS) {

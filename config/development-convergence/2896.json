@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "issue": 2896,
+  "brief": "docs/developer-briefs/2896-afterglow-media-alias-evidence.md",
+  "allowedChanges": [
+    "config/development-convergence/2896.json",
+    "docs/developer-briefs/2896-afterglow-media-alias-evidence.md",
+    "modules/library/master/afterglow-master-authority.d.mts",
+    "modules/library/master/afterglow-master-authority.mjs",
+    "modules/library/master/afterglow-master-server.ts",
+    "modules/library/master/afterglow-technical-reconciliation.d.mts",
+    "modules/library/master/afterglow-technical-reconciliation.mjs",
+    "modules/library/ui/afterglow-management-panel.tsx",
+    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+    "tests/issue-2894-afterglow-technical-reconciliation.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "HASH",
+      "criterion": "Independent matching byte hashes reconcile aliases",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "bundled and local aliases require independent matching byte hashes"
+        }
+      ]
+    },
+    {
+      "id": "AUTHORITY",
+      "criterion": "Stored hash claims and genuine approval disagreement remain blocked",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "recovery hash claims do not authorize media equivalence or change approval"
+        }
+      ]
+    },
+    {
+      "id": "PATHS",
+      "criterion": "Remaining story blockers identify exact paths",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "remaining story blockers identify exact paths"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT",
+      "criterion": "Rendered authenticated Save exercises a real local alias file",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+          "contains": "bundled and local saved image alternatives are visible before Save"
+        }
+      ]
+    }
+  ]
+}

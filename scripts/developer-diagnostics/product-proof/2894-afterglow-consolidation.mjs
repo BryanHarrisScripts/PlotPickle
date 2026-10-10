@@ -22,6 +22,10 @@ try {
   const serverFile = path.join(temporary, "gateway.mjs");
   await build({ stdin: { contents: 'export {localProfileAuthGateway} from "./build/local-profile-auth-gateway.ts";export {resetProfileExperienceRuntime} from "./core/auth/profile-experience/profile-experience-runtime.ts";', resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", packages: "external", outfile: serverFile, logLevel: "silent" });
   runtime = await import(pathToFileURL(serverFile).href);
+  const aliasSnapshot=JSON.parse(await readFile("data/afterglow-packaged-current/snapshot.json","utf8"));
+  const aliasBytes=await readFile(path.join("public",aliasSnapshot.project.build.foundations.visualArtifacts[0].assetUrl));
+  await mkdir(path.join(temporary,"assets"),{recursive:true});
+  await writeFile(path.join(temporary,"assets","2896-alias.webp"),aliasBytes);
   const client = await build({ stdin: { contents: `
 import React from "react";
 import {createRoot} from "react-dom/client";
@@ -42,7 +46,8 @@ if(!listAfterglowExampleProjects().length){
   const lesson=p[field.topicId].lessons[field.lessonId]??{answers:{},draftProposals:[]};
   lesson.answers[field.fieldId]="Synthetic reviewed story answer";
   p[field.topicId].lessons[field.lessonId]=lesson;
-  if(n)p.build.foundations.visualArtifacts[0].sourceDecisionKeys.push("synthetic-recorded-bookkeeping");
+  if(n){p.build.foundations.visualArtifacts[0].sourceDecisionKeys.push("synthetic-recorded-bookkeeping");
+    p.build.foundations.visualArtifacts[0].assetUrl="/api/local-ai/assets/2896-alias.webp";}
   saveFoundationProject(p);await flushProfilePrivateWrites();
  }
 }
@@ -58,6 +63,7 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   let middleware;
   runtime.localProfileAuthGateway().configureServer({ middlewares: { use(handler) { middleware = handler; } } });
   server = createServer((request, response) => middleware(request, response, () => {
+    if(request.url==="/api/local-ai/assets/2896-alias.webp"){response.setHeader("Content-Type","image/webp");response.end(aliasBytes);return;}
     if (fonts.has(request.url)) { response.setHeader("Content-Type", "font/woff2"); response.end(fonts.get(request.url)); return; }
     if (packagedImages.has(request.url)) { response.setHeader("Content-Type", "image/webp"); response.end(packagedImages.get(request.url)); return; }
     if (request.url === "/fixture.js") { response.setHeader("Content-Type", "text/javascript"); response.end(javascript); return; }
@@ -94,6 +100,8 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   await page.getByRole("button",{name:"Review Consolidation",exact:true}).click();
   await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
   await page.locator('details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  await page.getByText("Saved image differences — images, paths and recorded approvals",{exact:true}).waitFor();
+  assert.ok(await page.locator('img[src="/api/local-ai/assets/2896-alias.webp"]').count(),"bundled and local saved image alternatives are visible before Save");
   for(const button of await page.getByRole("button",{name:"Confirm current",exact:true}).all())await button.click();
   // Choose one image per character/view; the actual control excludes competitors.
   // Image cards are inside details; choose first unreviewed slot each pass.

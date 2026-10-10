@@ -12,7 +12,7 @@ const signature=(artifact,verifiedMediaHashes)=>{
   if(/^sha256:[a-f0-9]{64}$/.test(hash??""))content.assetUrl=hash;
   return stable(content);
 };
-import {isAfterglowRecordDecision} from "../afterglow-record-review.mjs";
+import {isAfterglowRecordDecision} from "./afterglow-record-review.mjs";
 const recordPath=(scope,id)=>"/build/"+scope+"/visualArtifacts/@id:"+id.replaceAll("~","~0").replaceAll("/","~1");
 export function afterglowCollidingMediaUrls({baseline,sources,decisions={}}) {
   const urls=new Set();

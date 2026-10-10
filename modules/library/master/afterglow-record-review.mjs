@@ -1,5 +1,5 @@
 /** Explicit source-bound inclusion decisions. Never writes source snapshots. */
-import {readAfterglowRecordPath,writeAfterglowRecordPath,AFTERGLOW_DURABLE_FIELDS} from './afterglow-consolidation.mjs';
+import {readAfterglowRecordPath,writeAfterglowRecordPath,AFTERGLOW_DURABLE_FIELDS} from '../afterglow-consolidation.mjs';
 const prefix='/afterglow-record-review';
 export const isAfterglowRecordDecision=key=>key.startsWith(prefix+'/');
 export const afterglowRecordDecisionKey=path=>prefix+path;
@@ -84,4 +84,14 @@ export function applyAfterglowRecordChoices({baseline,sources,plan,reviewed,deci
  const needsReview=reviewed.needsReview.filter(item=>!resolvedRecordPaths.some(path=>covers(path,item.path)));
  return {...reviewed,candidate,unresolvedConflicts,needsReview,resolvedRecordPaths,
    decisionShapeConsistent:!unresolvedConflicts.length&&!needsReview.length};
+}
+
+/** A complete character-version choice supersedes only that character's earlier image choices. */
+export function afterglowUncoveredImageChoices({items,choices,resolvedRecordPaths}){
+ const index=new Map(items.map(item=>[item.key,item]));
+ return Object.fromEntries(Object.entries(choices).filter(([key])=>{
+   const item=index.get(key);if(!item)return true; // Existing authority rejects unknown keys.
+   const path='/worldMap/characterVisuals/@character:'+item.characterId.replaceAll('~','~0').replaceAll('/','~1');
+   return !resolvedRecordPaths.includes(path);
+ }));
 }

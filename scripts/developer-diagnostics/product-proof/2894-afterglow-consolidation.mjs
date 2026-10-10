@@ -113,15 +113,15 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   const optional=page.locator('[data-afterglow-record="/build/foundations/visualArtifacts/@id:2898-optional-poster"]');
   await optional.evaluate(node=>node.open=true);
   await optional.getByRole("button",{name:"Not required",exact:true}).click();
-  assert.match(await optional.locator("summary").innerText(),/Not required/);
+  assert.match(await optional.locator("summary").first().innerText(),/Not required/);
   assert.ok(await page.locator('img[src="/api/local-ai/assets/2896-alias.webp"]').count(),"bundled and local saved image alternatives are visible before Save");
   await page.getByText(/^Review saved ·/).first().waitFor();
   await page.reload();
   await page.getByRole("button",{name:"Continue Last Review",exact:true}).click();
   await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
   await page.locator('details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
-  assert.match(await optional.locator("summary").innerText(),/Not required/);
-  assert.match(await record.locator("summary").innerText(),/Saved to master selection/);
+  assert.match(await optional.locator("summary").first().innerText(),/Not required/);
+  assert.match(await record.locator("summary").first().innerText(),/Saved to master selection/);
   for(const button of await page.getByRole("button",{name:"Confirm current",exact:true}).all())await button.click();
   // Choose one image per character/view; the actual control excludes competitors.
   // Image cards are inside details; choose first unreviewed slot each pass.

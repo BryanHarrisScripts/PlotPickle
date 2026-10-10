@@ -45,7 +45,7 @@ import type {
   AfterglowConsolidationConflict,
   AfterglowConsolidationReview,
 } from "../afterglow-consolidation.mjs";
-import {afterglowCreativeDecisions,applyAfterglowRecordChoices,listAfterglowReviewRecords,type AfterglowRecordSources} from "../afterglow-record-review.mjs";
+import {afterglowCreativeDecisions,applyAfterglowRecordChoices,afterglowUncoveredImageChoices,listAfterglowReviewRecords,type AfterglowRecordSources} from "../master/afterglow-record-review.mjs";
 import styles from "./afterglow-management-panel.module.css";
 
 type RecoverySourcePreview = Readonly<{
@@ -337,7 +337,7 @@ export default function AfterglowManagementPanel() {
     : null, [preview, decisions, exclusions]);
   const imageReview=useMemo(()=>preview && textReviewed
     ? applyAfterglowImageChoices({
-        candidate:textReviewed.candidate,items:preview.imageOptions,choices:imageChoices,
+        candidate:textReviewed.candidate,items:preview.imageOptions,choices:afterglowUncoveredImageChoices({items:preview.imageOptions,choices:imageChoices,resolvedRecordPaths:textReviewed.resolvedRecordPaths}),
       })
     : null,[preview,textReviewed,imageChoices]);
   const reviewed=useMemo(()=>{
@@ -350,8 +350,9 @@ export default function AfterglowManagementPanel() {
     };
     // Never subtract a URL because an image reference was excluded if another
     // approved Storyboard/narration surface still uses those same bytes.
-    visit(imageReview.candidate);
-    return {...textReviewed,candidate:preview?applyAfterglowRecordChoices({baseline:preview.baseline,sources:preview.recordSources,plan:preview.plan,reviewed:{...textReviewed,candidate:imageReview.candidate},decisions}).candidate:imageReview.candidate,
+    const candidate=preview?applyAfterglowRecordChoices({baseline:preview.baseline,sources:preview.recordSources,plan:preview.plan,reviewed:{...textReviewed,candidate:imageReview.candidate},decisions}).candidate:imageReview.candidate;
+    visit(candidate);
+    return {...textReviewed,candidate,
       localAssetsToVerify:[...media].sort()};
   },[textReviewed,imageReview,preview,decisions]);
   const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices, confirmedCurrent });

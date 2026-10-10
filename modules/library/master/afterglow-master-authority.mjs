@@ -13,7 +13,7 @@ import { afterglowReviewProgress } from "../afterglow-review-progress.mjs";
 
 import { reconcileAfterglowTechnicalRecords,AfterglowSaveVerificationError } from "./afterglow-technical-reconciliation.mjs";
 
-import {afterglowCreativeDecisions,applyAfterglowRecordChoices} from "../afterglow-record-review.mjs";
+import {afterglowCreativeDecisions,applyAfterglowRecordChoices,afterglowUncoveredImageChoices} from "./afterglow-record-review.mjs";
 
 const record=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 export const shaAfterglowSnapshot=value=>"sha256:"+createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -84,7 +84,7 @@ export function prepareVerifiedAfterglowMaster({
     throw new Error("Saved alternatives remain unresolved; no consolidated master was saved.");
   }
   const images=applyAfterglowImageChoices({
-    candidate:reviewed.candidate,items:imageOptions,choices:selections.imageChoices,
+    candidate:reviewed.candidate,items:imageOptions,choices:afterglowUncoveredImageChoices({items:imageOptions,choices:selections.imageChoices,resolvedRecordPaths:reviewed.resolvedRecordPaths}),
   });
   if(images.clearedLocks.some(lock=>!reviewed.resolvedRecordPaths.includes("/worldMap/characterVisuals/@character:"+lock.characterId.replaceAll("~","~0").replaceAll("/","~1")))) {
     throw new Error("Removing the last approved frame would clear a saved character lock. Review the complete version first.");

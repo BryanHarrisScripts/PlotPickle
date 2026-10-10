@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {planAfterglowConsolidation,reviewAfterglowConsolidationDecisions} from '../modules/library/afterglow-consolidation.mjs';
-import {listAfterglowReviewRecords,applyAfterglowRecordChoices,afterglowCreativeDecisions} from '../modules/library/afterglow-record-review.mjs';
+import {listAfterglowReviewRecords,applyAfterglowRecordChoices,afterglowCreativeDecisions} from '../modules/library/master/afterglow-record-review.mjs';
 import {reconcileAfterglowTechnicalRecords,afterglowCollidingMediaUrls} from '../modules/library/master/afterglow-technical-reconciliation.mjs';
 const image=(id='poster',extra={})=>({id,assetUrl:'/api/local-ai/assets/'+id+'.webp',reviewState:'accepted',workflow:'storyboard-frame-webp-v2',sourceDecisionKeys:['storyboard-local-save:v1'],narrativeIntention:'Poster',...extra});
 const project=(id,artifacts=[])=>({id,format:'2.0-foundation',sourceEvidence:{referenceFixture:{sourceId:'afterglow-v9-complete-baseline'}},revision:1,updatedAt:'2026-10-10T00:00:00Z',learning:{activeLessonId:'original'},build:{foundations:{visualArtifacts:artifacts,acceptedVisualArtifactIds:artifacts.filter(a=>a.reviewState==='accepted').map(a=>a.id)},world:{visualArtifacts:[],acceptedVisualArtifactIds:[]}}});
@@ -61,4 +61,21 @@ test('new choices survive the durable draft format alongside all ninety previous
  const draft=normalizeAfterglowReviewDraft({version:1,sourceFingerprint:'sha256:'+'a'.repeat(64),selections});
  const reopened=normalizeAfterglowReviewDraft(JSON.parse(JSON.stringify(draft)));
  assert.deepEqual(reopened.selections,selections);assert.equal(Object.keys(reopened.selections.confirmedCurrent).length,90);
+});
+import {afterglowUncoveredImageChoices} from '../modules/library/master/afterglow-record-review.mjs';
+test('complete character version overrides only its old image selections without erasing the ninety stored choices',()=>{
+ const choices={amy:'keep',ren:'exclude',unknown:'keep'},items=[{key:'amy',characterId:'Amy'},{key:'ren',characterId:'Ren'}],before=structuredClone(choices);
+ const filtered=afterglowUncoveredImageChoices({items,choices,resolvedRecordPaths:['/worldMap/characterVisuals/@character:Amy']});
+ assert.deepEqual(filtered,{ren:'exclude',unknown:'keep'});assert.deepEqual(choices,before);
+});
+
+import {applyAfterglowImageChoices} from '../modules/library/afterglow-image-review.mjs';
+test('saved complete character version survives a conflicting prior per-image keep',()=>{
+ const reference={id:'frame',versionId:'version',assetUrl:'/api/local-ai/assets/selected.webp'};
+ const candidate={worldMap:{characterVisuals:[{characterId:'Amy',references:[reference],lockedVersionId:null}]}};
+ const items=[{key:'prior',characterId:'Amy',id:'frame',url:'/api/local-ai/assets/prior.webp',reference:{...reference,assetUrl:'/api/local-ai/assets/prior.webp'},conflictingSourceMetadata:false}],choices={prior:'keep'};
+ assert.throws(()=>applyAfterglowImageChoices({candidate,items,choices}),/different image holds/);
+ const filtered=afterglowUncoveredImageChoices({items,choices,resolvedRecordPaths:['/worldMap/characterVisuals/@character:Amy']});
+ assert.deepEqual(applyAfterglowImageChoices({candidate,items,choices:filtered}).candidate,candidate);
+ assert.deepEqual(choices,{prior:'keep'});
 });

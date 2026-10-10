@@ -420,6 +420,19 @@ export default function AfterglowManagementPanel() {
   },[selectionFingerprint,preview?.sourceFingerprint]);
 
 
+  useEffect(() => {
+    if(draftSaveStatus!=="saving")return;
+    // Leaving while an encrypted acknowledgement is still pending can abort
+    // the last click. A native leave warning protects the final in-flight
+    // decision instead of falsely promising it has already been saved.
+    const pendingReview=(event:BeforeUnloadEvent)=>{
+      event.preventDefault();
+      event.returnValue="";
+    };
+    window.addEventListener("beforeunload",pendingReview);
+    return ()=>window.removeEventListener("beforeunload",pendingReview);
+  },[draftSaveStatus]);
+
   const refresh = useCallback(() => {
     const ready = profileReady();
     setAuthenticated(ready);

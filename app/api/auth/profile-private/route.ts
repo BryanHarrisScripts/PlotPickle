@@ -4,7 +4,7 @@ import {readServerAfterglowSources,prepareServerAfterglowMaster}
   from "../../../../modules/library/master/afterglow-master-server";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
-import { normalizeAfterglowReviewDraft } from "../../../../modules/library/afterglow-review-draft.mjs";
+import { normalizeAfterglowReviewDraft } from "../../../../modules/library/master/afterglow-review-draft.mjs";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {

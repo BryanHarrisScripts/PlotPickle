@@ -67,6 +67,11 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
+    if (new URL(request.url).searchParams.get("afterglowSaveAudit") === "1") {
+      return response({ lastSave: await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-master-last-attempt",
+      }) });
+    }
     const summaries = await runtimeState.privateStorage.listProjects(authContext);
     const project = await runtimeState.privateStorage.loadActiveProject(authContext).catch(() => null);
     const [projects, wyrmwood, storyMapContexts, recoveryPoints] = await Promise.all([
@@ -96,6 +101,9 @@ export async function GET(request: Request) {
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     return response({
       afterglowMaster: verifiedMasters[0] ?? null,
+      afterglowLastSave: await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-master-last-attempt",
+      }),
       project,
       activeProjectId: project && typeof project === "object" && !Array.isArray(project) && typeof (project as { id?: unknown }).id === "string" ? (project as { id: string }).id : null,
       projects: projects.filter((item): item is NonNullable<typeof item> => Boolean(item)),
@@ -113,6 +121,18 @@ export async function POST(request: Request) {
     const { runtimeState, authContext } = await authorized(request, true);
     const input = await request.json() as Record<string, unknown>;
     if (input.action === "commit-afterglow-master") {
+      const at = new Date().toISOString();
+      let stage = "read-saved-sources";
+      // Only diagnostic metadata is stored: never decisions, image URLs,
+      // creative text, credentials or unverified client-controlled content.
+      // Persist the result in the same encrypted Human profile as the story.
+      const recordAttempt = async (value: Record<string, unknown>) => {
+        await runtimeState.privateStorage.writePrivateJson(authContext, {
+          domain: "cache", objectId: "afterglow-master-last-attempt",
+          value: { version: 1, at, ...value },
+        }).catch(() => undefined); // Diagnostics must not mutate save authority.
+      };
+      await recordAttempt({ status: "started", stage });
       try {
       // The browser supplies only choice evidence and source fingerprints.
       // Never accept a client-created master, ready flag, archive index or
@@ -127,12 +147,14 @@ export async function POST(request: Request) {
       const inventory=await readServerAfterglowSources(runtimeState.privateStorage,authContext);
       const masterId="afterglow-consolidated-"+randomUUID();
       const createdAt=new Date().toISOString();
+      stage = "verify-creative-choices";
       const prepared=await prepareServerAfterglowMaster({
         sources:inventory.sources,selections,expectedSources,masterId,now:createdAt,
       });
       if(prepared.progress.pending!==0||prepared.progress.total<1) {
         return response({message:"Every creative choice must be decided before saving."},409);
       }
+      stage = "verify-saved-source-bytes";
       const originals=inventory.summaries.filter(s=>!s.archivedAt);
       const proofs=await Promise.all(originals.map(async s=>{
         const project=await runtimeState.privateStorage.loadProject(authContext,s.projectId);
@@ -141,13 +163,16 @@ export async function POST(request: Request) {
           updatedAt:s.updatedAt,
           digest:"sha256:"+createHash("sha256").update(JSON.stringify(project)).digest("hex")};
       }));
+      stage = "verify-images-and-commit";
       const result=await runtimeState.privateStorage.commitAfterglowMaster(authContext,{
         master:prepared.candidate,sources:proofs,selections,expectedSources,
       });
+      stage = "verify-encrypted-master-readback";
       const readback=await runtimeState.privateStorage.loadAfterglowCurrentMaster(authContext);
       if(!readback || JSON.stringify(readback)!==JSON.stringify(normalizeLibraryProject(prepared.candidate))) {
         throw new Error("Afterglow was not confirmed after encrypted master readback.");
       }
+      await recordAttempt({ status: "saved", stage: "complete", masterId: result.masterId });
       return response({ok:true,masterId:result.masterId,sourceCount:prepared.sourceCount,
         historicalSources:prepared.includedHistorical,
         archivedSourceCount:result.archivedSourceCount,
@@ -160,7 +185,17 @@ export async function POST(request: Request) {
         // authenticated Human. Internal vault exceptions are not file paths.
         const userMessage=/^All creative sections|^Saved Afterglow source snapshots changed|^Saved alternatives remain|^A recovered answer has no|^Structural or media|^Every selection category|^An image|^A selected image|^Removing the last|^The proposed master differs|^Some Afterglow recovery sources|^A saved Afterglow Library copy|^Historical Afterglow recovery point|^Consolidated story has lost|^An unrecognized|^Invalid or partial Human decision|^Some saved recovery|^Selected packaged image|^Selected image file|^Selected image bytes|^A confirmed field/i.test(message)
           ? message : "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry.";
-        return response({code:"AFTERGLOW_SAVE_VERIFICATION_BLOCKED",message:userMessage},409);
+        // The stage and actionable safe reason outlive navigation/restart.
+        // No master is claimed when the encrypted commit was not acknowledged.
+        const missingMedia = (error as { code?: unknown })?.code === "ENOENT"
+          && stage === "verify-images-and-commit";
+        const reason = missingMedia
+          ? "A selected Storyboard or World Map image file cannot be found on this device. Nothing was consolidated. Inspect the saved media references before retrying."
+          : userMessage !== "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry."
+            ? userMessage
+            : `The ${stage.replaceAll("-", " ")} check did not pass. Your earlier saved versions remain intact.`;
+        await recordAttempt({ status: "blocked", stage, message: reason });
+        return response({code:"AFTERGLOW_SAVE_VERIFICATION_BLOCKED",stage,message:reason},409);
       }
     }
     if (input.action === "save-project") {

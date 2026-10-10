@@ -30,7 +30,8 @@ import {
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
-  commitConsolidatedAfterglow,type ConsolidatedAfterglowReceipt,
+  commitConsolidatedAfterglow,lastAfterglowMasterSaveAttempt,readAfterglowMasterSaveAudit,
+  type AfterglowMasterSaveAudit,type ConsolidatedAfterglowReceipt,
   type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
 import type {
@@ -231,6 +232,7 @@ export default function AfterglowManagementPanel() {
   const [notice, setNotice] = useState("");
   const [saveReceipt,setSaveReceipt] = useState<ConsolidatedAfterglowReceipt|null>(null);
   const [saveError,setSaveError] = useState("");
+  const [lastSaveAudit,setLastSaveAudit] = useState<AfterglowMasterSaveAudit|null>(null);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   // Library is the source of truth. Each brief describes one complete saved
   // snapshot (not a guessed difference against the latest version).
@@ -354,6 +356,7 @@ export default function AfterglowManagementPanel() {
   const refresh = useCallback(() => {
     const ready = profileReady();
     setAuthenticated(ready);
+    setLastSaveAudit(ready ? lastAfterglowMasterSaveAttempt() : null);
     setSources(ready ? listAfterglowExampleProjects() : []);
     // Data Recovery remains the owner of restore operations. Afterglow only
     // reads its matching, account-owned recovery and archived snapshots.
@@ -373,6 +376,11 @@ export default function AfterglowManagementPanel() {
   }, []);
   useEffect(() => {
     refresh();
+    // A previous rejected save remains visible after leaving Settings, even
+    // when this session was hydrated before the attempted transaction.
+    if (profileReady()) {
+      void readAfterglowMasterSaveAudit().then(setLastSaveAudit).catch(() => undefined);
+    }
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, [refresh]);
@@ -661,11 +669,21 @@ export default function AfterglowManagementPanel() {
         expectedSources,
       });
       setSaveReceipt(receipt);
+      setLastSaveAudit(lastAfterglowMasterSaveAttempt());
       setPreview(null);
       setNotice("");
     } catch(error) {
       setSaveError(error instanceof Error?error.message:
         "The consolidated story was not confirmed. The original saved work remains untouched.");
+      try {
+        setLastSaveAudit(await readAfterglowMasterSaveAudit());
+      } catch (auditError) {
+        const detail = auditError instanceof Error ? auditError.message
+          : "The encrypted save diagnostic could not be read.";
+        setSaveError(previous => previous + " Diagnostic readback: " + detail);
+      }
+      // Do not clear the reviewed choices on a rejected Save. The inline
+      // failure appears at the same Save button the Human just pressed.
     } finally {
       setBusy(false);
     }
@@ -762,6 +780,18 @@ export default function AfterglowManagementPanel() {
           </>
         )}
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
+        {lastSaveAudit?.status === "blocked" && !saveReceipt && !saveError ? (
+          <section role="alert" className={styles.saveFailure} aria-label="Previous Afterglow save was blocked">
+            <strong>NOT SAVED — last consolidation attempt was blocked</strong>
+            <p>{lastSaveAudit.message || "The independent master verification did not complete."}</p>
+            <p>Verification stage: {lastSaveAudit.stage}. Attempt: {displayDate(lastSaveAudit.at)}.
+              Your earlier saved copies were not replaced.</p>
+          </section>
+        ) : null}
+        {lastSaveAudit?.status === "started" && !saveReceipt && !saveError ? (
+          <p role="status" className={styles.caution}>The previous consolidation has no completed save receipt.
+            Do not assume a master was created; check the encrypted Library before retrying.</p>
+        ) : null}
         {saveReceipt ? <section className={styles.consolidatedResult}
           role="status" aria-label="Consolidated Afterglow saved confirmation">
           <h3>{saveReceipt.libraryRefreshed
@@ -1275,6 +1305,13 @@ export default function AfterglowManagementPanel() {
                 onClick={()=>void saveConsolidatedMaster()}>
                 {busy?"Creating verified consolidated Afterglow…":"Save Consolidated Afterglow"}
               </button>
+              {saveError ? <div role="alert" className={styles.saveFailure}>
+                <strong>NOT SAVED — consolidated Afterglow was rejected</strong>
+                <p>{saveError}</p>
+                <p>The reviewed choices have been retained on this page.
+                  Your older saved copies and recovery points remain available.
+                  Do not interpret this attempt as a consolidated master.</p>
+              </div> : null}
               {reviewProgress.pending>0?<p className={styles.reviewCurrent}>
                 {reviewProgress.pending} choices still need your confirmation; save is disabled.
               </p>:null}

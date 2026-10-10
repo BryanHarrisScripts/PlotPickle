@@ -1,3 +1,5 @@
+import {isDeepStrictEqual} from "node:util";
+import {AFTERGLOW_DURABLE_FIELDS} from "../afterglow-consolidation.mjs";
 import {createHash} from "node:crypto";
 import {lstat,readFile,realpath} from "node:fs/promises";
 import path from "node:path";
@@ -11,6 +13,7 @@ import manifest from "../../../data/afterglow-packaged-current/manifest.json";
 import packagedSnapshot from "../../../data/afterglow-packaged-current/snapshot.json";
 import {collectAfterglowReviewSources} from "../afterglow-review-sources.mjs";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot} from "./afterglow-master-authority.mjs";
+import {AfterglowSaveVerificationError} from "./afterglow-technical-reconciliation.mjs";
 
 type StoredSource = {project:LibraryPPFProject;sourceKey?:string;savedAt?:string;sourceKind?:string};
 type Choices = {decisions:Record<string,number|"baseline">;exclusions:string[];
@@ -90,7 +93,9 @@ export async function verifyServerAfterglowMedia(candidate:LibraryPPFProject) {
     const file=projectImageAssetFilePath(url);
     const root=LOCAL.test(url)?assetsDirectory():
       path.resolve(process.cwd(),"public","assets","library","examples");
-    const disk=await realpath(file);
+    let disk:string;
+    try { disk=await realpath(file); }
+    catch { throw new AfterglowSaveVerificationError("A saved image is no longer available: "+url.split("/").at(-1)+". Open its Storyboard or character image and save it again. Your review choices are retained."); }
     const realRoot=await realpath(root);
     const relative=path.relative(realRoot,disk);
     if(!relative||relative===".."||relative.startsWith(".."+path.sep)||path.isAbsolute(relative)||
@@ -133,12 +138,18 @@ export async function prepareServerAfterglowMaster(input:{
     throw new Error("The official Afterglow package has not been verified for consolidation.");
   }
   const baseline=normalizeLibraryProject(packagedSnapshot.project);
-  return prepareVerifiedAfterglowMaster({
+  const prepared=prepareVerifiedAfterglowMaster({
     baseline,sources:input.sources,
     fields,questions,manifest,selections:input.selections,
     expectedSources:input.expectedSources,masterId:input.masterId,now:input.now,
-  }) as {candidate:LibraryPPFProject;progress:{pending:number;completed:number;total:number};
-    sourceCount:number;includedHistorical:number;sourceProofs:SourceProof[]};
+  });
+  const normalized=normalizeLibraryProject(prepared.candidate);
+  for(const root of AFTERGLOW_DURABLE_FIELDS) {
+    if(!isDeepStrictEqual((prepared.candidate as unknown as Record<string,unknown>)[root],
+      (normalized as unknown as Record<string,unknown>)[root]))
+      throw new AfterglowSaveVerificationError("The consolidated "+root+" records cannot be saved without changing data. Your review is retained; no master was saved.");
+  }
+  return prepared;
 }
 
 export async function authorizeServerAfterglowMasterCommit(input:{

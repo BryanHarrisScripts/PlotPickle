@@ -242,6 +242,8 @@
         "modules/library/master/afterglow-review-draft.mjs",
         "modules/library/master/afterglow-review-draft.d.mts",
         "modules/library/master/afterglow-master-authority.mjs",
+        "modules/library/master/afterglow-technical-reconciliation.mjs",
+        "modules/library/master/afterglow-technical-reconciliation.d.mts",
         "modules/library/master/afterglow-master-authority.d.mts",
         "modules/library/master/afterglow-master-server.ts"
       ],
@@ -1466,6 +1468,7 @@
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/developer-diagnostics/2821-save-session-product-proof.mjs",
         "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+        "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
         "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",

@@ -40,12 +40,12 @@ test("#2863 Phase 2B UI shows all conflicts across pages, full values and no Sav
   const content=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
   assert.match(content,/reviewAfterglowConsolidationDecisions\(preview\.plan, decisions, exclusions\)/u);
   assert.match(content,/conflicts: result\.conflicts,/u);
-  assert.match(content,/preview\.conflicts\.slice\(conflictPage \* 10, \(conflictPage \+ 1\) \* 10\)/u);
-  assert.match(content,/setConflictPage\(p => p \+ 1\)/u);
-  assert.match(content,/setConflictPage\(p => Math\.max\(0, p - 1\)\)/u);
-  assert.match(content,/item\.optionSources\?\.\[optionIndex\]/u);
-  assert.match(content,/JSON\.stringify\(value, null, 2\)/u);
-  assert.match(content,/Keep the provided baseline value/u);
+  assert.match(content,/creativeChoices\.human\.map\(conflict/u);
+  assert.match(content,/Choose or change saved version/u);
+  assert.match(content,/savedAlternatives/u);
+  assert.match(content,/conflict\.optionSources\?\.\[index\]/u);
+  assert.match(content,/readableCreativeChoice\(option\)/u);
+  assert.match(content,/Keep original example value/u);
   assert.match(content,/No project, approval, image, or provided example was changed/u);
   assert.match(content,/ready to save|not ready to save|not saved/iu);
   assert.doesNotMatch(content,/createLibraryWorkingCopy|saveActiveLibraryProject|archiveLibraryProject|persistActiveProfileProject/u);

@@ -110,7 +110,7 @@ test("#2863 read-only real Settings workflow rehashes exact snapshot bytes and c
   assert.match(panel,/initialProofs:preview\.initialProofs,currentProofs/u);
   assert.match(panel,/normalizeLibraryProject\(reviewed\.candidate\)/u);
   assert.match(panel,/JSON\.stringify\(finalProofs\) !== JSON\.stringify\(currentProofs\)/u);
-  assert.match(panel,/Check master save readiness \(read-only\)/u);
-  assert.match(panel,/No Save Current Master action is enabled/u);
+  assert.doesNotMatch(panel,/Check master save readiness \(read-only\)/u);
+  assert.match(panel,/Save Consolidated Afterglow verifies/u);
   assert.doesNotMatch(panel,/createLibraryWorkingCopy|saveActiveLibraryProject|archiveLibraryProject|persistActiveProfileProject/u);
 });

@@ -369,10 +369,8 @@ export default function AfterglowManagementPanel() {
     })),
     imageOptions:preview?.imageOptions??[],imageChoices,
   }),[preview,canonicalFields,creativeChoices,confirmedCurrent,exclusions,decisions,imageChoices]);
-  // Human decisions (green) are necessary, but cannot override the server's
-  // independent structural/question/technical-verification truth gates.
-  // A clickable Save must never invite an attempt that the server is known
-  // to reject even before inspecting the encrypted bytes.
+  // Raw differences are diagnostics, not a second Human approval gate.
+  // The authenticated Save independently reconciles records and reads media bytes.
   const technicalSaveBlockers = preview ? [
     ...preview.plan.needsReview.map(item => item.reason),
     ...creativeChoices.verification.map(item => item.reason),
@@ -384,8 +382,7 @@ export default function AfterglowManagementPanel() {
   const canSaveMaster = Boolean(preview && reviewed
     && reviewProgress.allCreativeDecided
     && !reviewProgress.needsIndependentReview.length
-    && !preview.sourceWarnings.length
-    && !technicalSaveBlockers.length);
+    && !preview.sourceWarnings.length);
   useEffect(() => {
     if (!saveReceipt) return;
     // The review containing the Save button disappears after a successful
@@ -760,10 +757,8 @@ export default function AfterglowManagementPanel() {
   }
 
   async function saveConsolidatedMaster() {
-    if(!canSaveMaster || busy || mediaBusy || preflightBusy) {
-      setSaveError(technicalSaveBlockers.length
-        ? "Independent verification is unresolved: " + technicalSaveBlockers.join(", ") + ". Your creative selections have been retained; no master was saved."
-        : "Decide every required creative choice and resolve preservation blockers before saving.");
+    if(!preview || !reviewed || !canSaveMaster || busy || mediaBusy || preflightBusy) {
+      setSaveError("Complete every creative choice and refresh any unavailable saved versions before saving.");
       return;
     }
     setBusy(true);
@@ -1079,7 +1074,7 @@ export default function AfterglowManagementPanel() {
                           : "Conflicting reference identity or metadata. Verify the saved source before keeping this image."}
                       </p> : null}
                       <div className={styles.creativeActions}>
-                        <button type="button" aria-pressed={inDraft}
+                        <button type="button" aria-pressed={imageChoices[item.key]==="keep"}
                           disabled={busy||mediaBusy||preflightBusy||blocked}
                           onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
                             preview.imageOptions,previous,item.key,"keep"))}>Keep</button>
@@ -1137,6 +1132,7 @@ export default function AfterglowManagementPanel() {
                             : item.kind.startsWith("saved-image") ? "Image/lock reference — media not yet verified"
                               : item.kind === "unknown-field-answer" ? "Saved answer — field identity needs checking"
                                 : "Saved answer"}</span>
+                        {path && canonicalQuestionForPath(path,questionByField) ? <p>Original question: {canonicalQuestionForPath(path,questionByField)}</p> : null}
                         {excluded ? <p className={styles.consolidatedStatus}>Excluded from this draft by your choice.</p>
                           : conflict && decisions[conflict.path] !== undefined ? (
                             <div className={styles.consolidatedResult}>
@@ -1323,128 +1319,8 @@ export default function AfterglowManagementPanel() {
                 ) : null}
               </section>
             ) : null}
-            {mediaReport ? (
-              <div className={styles.actions}>
-                <button type="button" disabled={busy || mediaBusy || preflightBusy
-                  || Boolean(preview.includedHistoricalSources || preview.sourceWarnings.length)}
-                  onClick={() => void checkMasterSavePreflight()}>
-                  {preflightBusy ? "Checking source integrity…" : "Check master save readiness (read-only)"}
-                </button>
-              </div>
-            ) : null}
-            {preview.includedHistoricalSources ? <p className={styles.caution}>
-              Recovery-point contributions are now compared and selectable in the same draft.
-              The final save readiness check remains disabled until historical encrypted
-              snapshot identity and media provenance can be independently verified.
-              Your original saves and Data Recovery history remain unchanged.
-            </p> : null}
-            {preflightNotice ? <p role="status" className={styles.notice}>{preflightNotice}</p> : null}
-            {preflightReport ? (
-              <section className={styles.result} aria-label="Afterglow master preflight results">
-                <h3>Save readiness — not authorized</h3>
-                <p>{preflightReport.sourceCount} source versions fingerprinted;
-                  {" "}{preflightReport.questionCount} authored questions traced;
-                  {" "}{preflightReport.selectedMediaCount} media references selected;
-                  {" "}{preflightReport.blockers.length} readiness blockers.</p>
-                <ul>{preflightReport.blockers.map((item,index)=><li key={item.code+index}>
-                  <strong>{item.code}</strong>: {item.detail}
-                </li>)}</ul>
-                <p>No Save Current Master action is enabled. This preflight does not grant write authority.</p>
-              </section>
-            ) : null}
-            <p>{preview.mergeShapeConsistent
-              ? "The compared changes have no detected structural conflicts. This is not approval: source media and a durable round-trip still need verification."
-              : "The merged master cannot be saved yet. Conflicts or ambiguous changes require explicit decisions."}</p>
-            {preview.conflictCount ? (
-              <details aria-label="Resolve competing saved values" className={styles.decisionArea}>
-                <summary>Advanced verification details — {preview.conflictCount} unresolved differences (not your creative choices)</summary>
-                <h3>Technical preservation checks</h3>
-                <p>These are raw storage differences for independent verification. Your creative decisions are
-                  already in CONSOLIDATED creative work above. Do not choose media IDs, timestamps, hashes,
-                  or approval records as if they were story answers. No selection here saves or deletes anything.</p>
-                {preview.conflicts.slice(conflictPage * 10, (conflictPage + 1) * 10).map((item, index) => {
-                  const id = "afterglow-conflict-" + (conflictPage * 10 + index);
-                  const category = describeAfterglowConsolidationConflict(item.path);
-                  const canonicalQuestion = canonicalQuestionForPath(item.path, questionByField);
-                  const selectable = false; // Human choices live only in CONSOLIDATED creative work.
-                  return (
-                    <div className={styles.decisionRow} key={item.path}>
-                      <div className={styles.conflictHeading}>
-                        <strong>{category.label}</strong>
-                        <span>{item.reason}</span>
-                        {canonicalQuestion ? <p className={styles.question}><strong>Original question:</strong> {canonicalQuestion}</p> : null}
-                        <code>{item.path}</code>
-                      </div>
-                      {selectable ? (
-                        <select id={id} aria-label={"Choose " + category.label + " from saved alternatives"}
-                          value={decisions[item.path] === undefined ? "" : String(decisions[item.path])}
-                          onChange={event => setDecisions(previous => {
-                            const next = { ...previous };
-                            if (!event.target.value) delete next[item.path];
-                            else next[item.path] = event.target.value === "baseline"
-                              ? "baseline" : Number(event.target.value);
-                            return next;
-                          })}>
-                          <option value="">Choose an approved value…</option>
-                          <option value="baseline">Keep the provided baseline value</option>
-                          {item.options?.map((value, optionIndex) => (
-                            <option value={optionIndex} key={optionIndex}>
-                              {"Saved " + (item.optionSources?.[optionIndex] ?? "version").slice(0, 22)
-                                + ": " + summarizeHumanValue(value, item.path)}
-                            </option>
-                          ))}
-                        </select>
-                      ) : <p>{category.kind === "visual-approval-collection"
-                        ? "Approved visual artifacts must be reconciled individually against saved image, lock, and acceptance evidence. Do not select an entire saved list."
-                        : category.kind === "authorship-metadata"
-                          ? "The timestamp belongs with the selected approved story value. It is not a separate creative choice."
-                          : "This approval collection requires per-shot review. Choosing a whole list could drop valid approvals."}</p>}
-                      {selectable ? (
-                        <details>
-                          <summary>Compare human-readable saved alternatives</summary>
-                          {item.options?.map((value, optionIndex) => (
-                            <div key={optionIndex}>
-                              <p>Saved copy: {item.optionSources?.[optionIndex] ?? "Unknown source"}</p>
-                              <p className={styles.approvalSummary}>{summarizeHumanValue(value, item.path)}</p>
-                              {value && typeof value === "object" && !Array.isArray(value)
-                                && "sourceKey" in value ? <p>Source fingerprint recorded — not yet verified against the selected locked image.</p> : null}
-                              <details><summary>Advanced technical evidence</summary>
-                                <pre className={styles.valueDetail}>{JSON.stringify(value, null, 2)}</pre>
-                              </details>
-                            </div>
-                          ))}
-                        </details>
-                      ) : null}
-                    </div>
-                  );
-                })}
-                {preview.conflictCount > 10 ? (
-                  <div className={styles.actions}>
-                    <button type="button" disabled={conflictPage <= 0} onClick={() => setConflictPage(p => Math.max(0, p - 1))}>Previous conflicts</button>
-                    <span className={styles.status}>Page {conflictPage + 1} of {Math.ceil(preview.conflictCount / 10)}</span>
-                    <button type="button" disabled={(conflictPage + 1) * 10 >= preview.conflictCount} onClick={() => setConflictPage(p => p + 1)}>Next conflicts</button>
-                  </div>
-                ) : null}
-                <p role="status"><strong>{reviewed?.resolved.length ?? 0}</strong> saved creative selections;
-                  <strong> {reviewed?.unresolvedConflicts.length ?? preview.conflictCount}</strong> remaining conflicting paths;
-                  <strong> {preview.reviewCount}</strong> other items requiring deterministic reconciliation.
-                  These are not necessarily additional Human approvals.</p>
-                <p>{reviewed?.decisionShapeConsistent
-                  ? "All reported structural choices are accounted for. Media verification, an approved durable master, and restart readback are still required."
-                  : "The master is not ready to save; some changes still require review."}</p>
-              </details>
-            ) : null}
-            {preview.needsReview.length ? (
-              <details><summary>Unresolved review items (first 35)</summary>
-                <ul>{preview.needsReview.map((item, index) =>
-                  <li key={item.path + index}>{item.path} — {item.reason}</li>)}</ul>
-              </details>
-            ) : null}
-            {preview.sampleChanges.length ? (
-              <details><summary>Proposed changes (first 35)</summary>
-                <ul>{preview.sampleChanges.map((item, index) => <li key={item.path + index}>{item.path}</li>)}</ul>
-              </details>
-            ) : null}
+            <p>Your earlier saves remain protected. Once your creative choices are complete,
+              Save Consolidated Afterglow verifies the selected images and saved approvals automatically.</p>
             <section className={styles.saveMasterArea} aria-label="Save Consolidated Afterglow">
               <h3>Save Consolidated Afterglow</h3>
               <p><strong>{reviewProgress.completed} of {reviewProgress.total}</strong> creative
@@ -1465,11 +1341,10 @@ export default function AfterglowManagementPanel() {
                   Do not interpret this attempt as a consolidated master.</p>
               </div> : null}
               {technicalSaveBlockers.length ? <div role="status" className={styles.saveFailure}>
-                <strong>Cannot save yet — independent verification is incomplete</strong>
-                <p>All green creative decisions remain selected. PlotPickle must resolve these
-                  technical truth checks independently, rather than asking you to approve
-                  hashes, timestamps or structural conflicts as story choices.</p>
-                <ul>{technicalSaveBlockers.map(reason => <li key={reason}>{reason}</li>)}</ul>
+                <strong>Your creative choices are retained</strong>
+                <p>All green creative decisions remain selected. When you save, PlotPickle checks
+                  the saved images and approvals automatically. These are not additional choices
+                  for you. If a check fails, the save result explains the affected item.</p>
               </div> : null}
               {reviewProgress.pending>0?<p className={styles.reviewCurrent}>
                 {reviewProgress.pending} choices still need your confirmation; save is disabled.

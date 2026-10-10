@@ -81,15 +81,15 @@ test("#2863 creative selection changes the proposed outcome but never edits the 
 test("#2863 consolidated creative work appears before advanced verification, with selected outcome and expandable history",async()=>{
   const ui=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
   const title=ui.indexOf("CONSOLIDATED creative work");
-  const technical=ui.indexOf("Advanced verification details");
+  const technical=ui.indexOf("Save Consolidated Afterglow verifies");
   assert.ok(title>0&&technical>title);
   assert.match(ui,/partitionAfterglowChoices\(preview\?\.conflicts/u);
   assert.match(ui,/YOUR CHOICE — included in consolidated draft/u);
   assert.match(ui,/readableCreativeChoice\(conflict\.options\?\.\[Number\(decisions\[conflict\.path\]\)\]\)/u);
   assert.match(ui,/savedAlternatives/u);
   assert.match(ui,/technical differences remain for independent verification/u);
-  assert.match(ui,/Technical preservation checks/u);
+  assert.doesNotMatch(ui,/Advanced verification details|Unresolved review items \(first 35\)/u);
   assert.doesNotMatch(ui,/This saved alternative needs a more specific creative description before it can be selected here/u);
-  assert.match(ui,/No Save Current Master action is enabled/u);
+  assert.match(ui,/saved approvals automatically/u);
   assert.doesNotMatch(ui,/commitAfterglowMaster\(/u);
 });

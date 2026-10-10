@@ -94,6 +94,6 @@ test("#2863 UI shows rolling section truth and remains non-authorizing without v
   assert.match(ui,/View other saved versions/u);
   assert.match(ui,/confirmedCurrent/u);
   assert.match(ui,/All required choices must be decided/u);
-  assert.match(ui,/No Save Current Master action is enabled/u);
+  assert.match(ui,/Save Consolidated Afterglow verifies/u);
   assert.doesNotMatch(ui,/commitAfterglowMaster\(/u);
 });

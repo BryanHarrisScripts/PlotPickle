@@ -67,10 +67,13 @@ test("#2821 local narration and Save/Lock share current session and durable proj
     window.localStorage = new MemoryStorage();
     window.sessionStorage = new MemoryStorage();
     globalThis.window = window;
-    let failWrites = false, deferRead = null;
+    let failWrites = false, deferRead = null, corruptReviewDigest = false;
     globalThis.fetch = async (url, options = {}) => {
       if (url === "/api/auth/profile-private" && options.method === "POST" && failWrites) return Response.json({ message: "Injected encrypted write failure" }, { status: 503 });
       const response = await originalFetch(new URL(url, baseUrl), { ...options, headers: { ...headers, ...options.headers } });
+      if(corruptReviewDigest && options.method === "POST"
+        && JSON.parse(options.body).action === "save-afterglow-review-draft")
+        return Response.json({...await response.json(),selectionsDigest:"sha256:"+"0".repeat(64)});
       if (url === "/api/auth/profile-private" && !options.method && deferRead) await deferRead;
       return response;
     };
@@ -158,6 +161,24 @@ test("#2821 local narration and Save/Lock share current session and durable proj
       assert.equal(currentArtifact().reviewState, "accepted");
       assert.ok(currentArtifact().sourceDecisionKeys.includes("storyboard-local-save:v1"));
       assert.equal((await (await globalThis.fetch("/api/auth/profile")).json()).authenticated, true);
+    });
+    await t.test("#2894 autosave and final Save category order both pass exact encrypted review readback",async()=>{
+      const sourceFingerprint="sha256:"+"a".repeat(64);
+      const decisions={"/world/lessons/genres/answers/output-1":1};
+      const exclusions=["/mindMapNotes/fields/unused-note"];
+      const imageChoices={"synthetic-image":"keep"};
+      const confirmedCurrent={"/storyDevelopment/fields/character~1joy":true};
+      const autosave={decisions,exclusions,imageChoices,confirmedCurrent};
+      const finalSave={decisions,exclusions,confirmedCurrent,imageChoices};
+      assert.notEqual(JSON.stringify(autosave),JSON.stringify(finalSave));
+      await browser.saveAfterglowReviewDraft({sourceFingerprint,selections:autosave});
+      await browser.saveAfterglowReviewDraft({sourceFingerprint,selections:finalSave});
+      assert.deepEqual((await browser.loadAfterglowReviewDraft()).selections,autosave);
+      corruptReviewDigest=true;
+      await assert.rejects(browser.saveAfterglowReviewDraft({sourceFingerprint,selections:finalSave}),
+        /encrypted review readback did not match/u);
+      corruptReviewDigest=false;
+      await browser.saveAfterglowReviewDraft({sourceFingerprint,selections:finalSave});
     });
     await t.test("same authority hydration cannot replace a newer project; stale hydration cannot resurrect released authority", async () => {
       const current = browser.loadFoundationProject();

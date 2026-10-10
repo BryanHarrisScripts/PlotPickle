@@ -64,7 +64,7 @@ test("generated artifacts persist as project metadata while image bytes stay in 
   assert.match(project, /if \(!isSupportedVisualAssetUrl\(item\.assetUrl\)\) return null/);
   assert.match(visualAsset, /LOCAL_GENERATED_VISUAL_ASSET_PREFIX = "\/api\/local-ai\/assets\/"/);
   assert.match(visualAsset, /PACKAGED_EXAMPLE_VISUAL_ASSET_PREFIX = "\/assets\/library\/examples\/"/);
-  assert.match(project, /\.slice\(0, 75\)/);
+  assert.doesNotMatch(project, /\.slice\(0, 75\)/, "durable normalization must preserve consolidated images");
   assert.match(reducer, /case "foundations\.visual\.store"/);
   assert.match(reducer, /visualArtifacts: \[\{ \.\.\.command\.artifact, reviewState:/);
   assert.match(storage, /saveActiveLibraryProject as saveFoundationProject/);

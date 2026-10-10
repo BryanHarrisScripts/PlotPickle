@@ -2,6 +2,7 @@ import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story
 import { randomUUID,createHash } from "node:crypto";
 import {readServerAfterglowSources,prepareServerAfterglowMaster}
   from "../../../../modules/library/master/afterglow-master-server";
+import {AfterglowSaveVerificationError} from "../../../../modules/library/master/afterglow-technical-reconciliation.mjs";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { normalizeAfterglowReviewDraft } from "../../../../modules/library/master/afterglow-review-draft.mjs";
@@ -190,7 +191,7 @@ export async function POST(request: Request) {
         const message=error instanceof Error?error.message:"Afterglow verification could not complete.";
         // Only expose actionable, approved verification explanations to the
         // authenticated Human. Internal vault exceptions are not file paths.
-        const userMessage=/^All creative sections|^Saved Afterglow source snapshots changed|^Saved alternatives remain|^A recovered answer has no|^Structural or media|^Every selection category|^An image|^A selected image|^Removing the last|^The proposed master differs|^Some Afterglow recovery sources|^A saved Afterglow Library copy|^Historical Afterglow recovery point|^Consolidated story has lost|^An unrecognized|^Invalid or partial Human decision|^Some saved recovery|^Selected packaged image|^Selected image file|^Selected image bytes|^A confirmed field/i.test(message)
+        const userMessage=error instanceof AfterglowSaveVerificationError || /^All creative sections|^Saved Afterglow source snapshots changed|^Saved alternatives remain|^A recovered answer has no|^Structural or media|^Every selection category|^An image|^A selected image|^Removing the last|^The proposed master differs|^Some Afterglow recovery sources|^A saved Afterglow Library copy|^Historical Afterglow recovery point|^Consolidated story has lost|^An unrecognized|^Invalid or partial Human decision|^Some saved recovery|^Selected packaged image|^Selected image file|^Selected image bytes|^A confirmed field/i.test(message)
           ? message : "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry.";
         // The stage and actionable safe reason outlive navigation/restart.
         // No master is claimed when the encrypted commit was not acknowledged.

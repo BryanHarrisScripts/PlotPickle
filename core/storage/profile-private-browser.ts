@@ -500,7 +500,12 @@ export async function saveAfterglowReviewDraft(input: Readonly<{
   // Capture the exact click's choices synchronously, then queue BEFORE any
   // asynchronous hashing. Otherwise a slow earlier digest could queue behind
   // a newer choice and incorrectly become the last saved review.
-  const selections=JSON.parse(JSON.stringify(input.selections)) as AfterglowReviewSelections;
+  // The server stores these categories in this order. Caller object order is
+  // not a creative decision: autosave and final Save must compare the same bytes.
+  const selections=JSON.parse(JSON.stringify({
+    decisions:input.selections.decisions,exclusions:input.selections.exclusions,
+    imageChoices:input.selections.imageChoices,confirmedCurrent:input.selections.confirmedCurrent,
+  })) as AfterglowReviewSelections;
   let savedAt="";
   await queueWriteOperation(async writeToken=>{
     const digestBytes=await crypto.subtle.digest("SHA-256",

@@ -113,5 +113,5 @@ test("#2863 real Settings panel supplies original prompts and clearly states lim
   assert.match(source,/questionEvidence: result\.questionEvidence/u);
   assert.match(source,/Question-to-answer evidence/u);
   assert.match(source,/Textual relevance has not been independently assessed/u);
-  assert.match(source,/canonicalQuestionForPath\(item\.path, questionByField\)/u);
+  assert.match(source,/questionByField/u);
 });

@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "issue": 2894,
+  "brief": "docs/developer-briefs/2894-afterglow-technical-reconciliation.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/2894.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/project/project.ts",
+    "docs/developer-briefs/2894-afterglow-technical-reconciliation.md",
+    "modules/library/master/afterglow-master-authority.mjs",
+    "modules/library/master/afterglow-master-server.ts",
+    "modules/library/master/afterglow-technical-reconciliation.d.mts",
+    "modules/library/master/afterglow-technical-reconciliation.mjs",
+    "modules/library/ui/afterglow-management-panel.tsx",
+    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+    "tests/foundations-build-visual-workshop.test.mjs",
+    "tests/issue-2863-afterglow-conflict-decisions.test.mjs",
+    "tests/issue-2863-afterglow-consolidation.test.mjs",
+    "tests/issue-2863-afterglow-historical-merge-sources.test.mjs",
+    "tests/issue-2863-afterglow-image-visual-choices.test.mjs",
+    "tests/issue-2863-afterglow-master-save-preflight.test.mjs",
+    "tests/issue-2863-afterglow-question-provenance.test.mjs",
+    "tests/issue-2863-afterglow-recovery-first.test.mjs",
+    "tests/issue-2863-authorized-consolidated-save.test.mjs",
+    "tests/issue-2863-consolidated-human-outcome.test.mjs",
+    "tests/issue-2863-creative-master-selection.test.mjs",
+    "tests/issue-2863-deterministic-review-completion.test.mjs",
+    "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+    "core/storage/profile-private-browser.ts",
+    "tests/issue-2821-save-session-continuity.test.mjs",
+    "app/api/auth/profile-private/route.ts"
+  ],
+  "acceptance": [
+    {
+      "id": "RECONCILE",
+      "criterion": "Bookkeeping is reconstructed from saved image evidence",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "bookkeeping order, lineage and source keys converge"
+        }
+      ]
+    },
+    {
+      "id": "CONFLICT",
+      "criterion": "Independent approval/media disagreement remains blocked",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "independent approval disagreement and different bytes fail"
+        }
+      ]
+    },
+    {
+      "id": "PRESERVE",
+      "criterion": "Durable normalizer preserves collections above old limit",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "contains": "production normalizer retains consolidated collection"
+        }
+      ]
+    },
+    {
+      "id": "SAVE",
+      "criterion": "Completed creative review reaches server preparation",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2863-authorized-consolidated-save.test.mjs",
+          "contains": "completed creative review reaches independently recomputed master"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT",
+      "criterion": "Actual rendered review invokes authenticated master save and observes encrypted Library receipt",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+          "contains": "completed creative review enables independent Save despite bookkeeping conflicts"
+        }
+      ]
+    },
+    {
+      "id": "READBACK",
+      "criterion": "Autosave and final Save compare equivalent choices in canonical category order without weakening digest checks",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "autosave and final Save category order both pass exact encrypted review readback"
+        }
+      ]
+    }
+  ]
+}

@@ -239,6 +239,8 @@
         "modules/library/afterglow-image-review.d.mts",
         "modules/library/afterglow-review-progress.mjs",
         "modules/library/afterglow-review-progress.d.mts",
+        "modules/library/afterglow-review-draft.mjs",
+        "modules/library/afterglow-review-draft.d.mts",
         "modules/library/master/afterglow-master-authority.mjs",
         "modules/library/master/afterglow-master-authority.d.mts",
         "modules/library/master/afterglow-master-server.ts"

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import test from "node:test";
+// The #2890 durable review regression must execute in the canonical Afterglow lane.
+import "./issue-2890-afterglow-resumable-review.test.mjs";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot}
   from "../modules/library/master/afterglow-master-authority.mjs";
 

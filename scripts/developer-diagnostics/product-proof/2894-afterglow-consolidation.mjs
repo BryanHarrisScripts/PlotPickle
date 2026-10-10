@@ -112,7 +112,14 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   await save.scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(artifactRoot,"ready-to-save.png")});
   await save.click();
-  await page.getByText("Consolidated Afterglow saved successfully and verified in Library.",{exact:true}).waitFor({timeout:30000});
+  try{
+    await page.getByText("Consolidated Afterglow saved successfully and verified in Library.",{exact:true}).waitFor({timeout:30000});
+  }catch(error){
+    await page.screenshot({path:path.join(artifactRoot,"save-rejected.png"),fullPage:true});
+    console.log(await page.locator('body').innerText());
+    console.log("Browser errors:",JSON.stringify(errors));
+    throw error;
+  }
   await page.screenshot({path:path.join(artifactRoot,"saved.png")});
   assert.deepEqual(errors,[]);
   await page.reload();

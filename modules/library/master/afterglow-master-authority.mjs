@@ -11,7 +11,7 @@ import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary
 import { listAfterglowImageChoices,applyAfterglowImageChoices } from "../afterglow-image-review.mjs";
 import { afterglowReviewProgress } from "../afterglow-review-progress.mjs";
 
-import { reconcileAfterglowTechnicalRecords } from "./afterglow-technical-reconciliation.mjs";
+import { reconcileAfterglowTechnicalRecords,AfterglowSaveVerificationError } from "./afterglow-technical-reconciliation.mjs";
 
 const record=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 export const shaAfterglowSnapshot=value=>"sha256:"+createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -76,7 +76,7 @@ export function prepareVerifiedAfterglowMaster({
   }
   const reviewed=reconcileAfterglowTechnicalRecords({baseline,sources,
     reviewed:reviewAfterglowConsolidationDecisions(plan,selections.decisions,selections.exclusions)});
-  if(reviewed.technicalBlockers.length) throw new Error(reviewed.technicalBlockers.join(" "));
+  if(reviewed.technicalBlockers.length) throw new AfterglowSaveVerificationError(reviewed.technicalBlockers.join(" "));
   if(reviewed.unresolvedConflicts.length||reviewed.needsReview.length) {
     throw new Error("Saved alternatives remain unresolved; no consolidated master was saved.");
   }

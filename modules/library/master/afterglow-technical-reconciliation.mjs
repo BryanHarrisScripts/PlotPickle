@@ -1,4 +1,5 @@
 /** Saved record reconciliation. No new image approval or creative selection. */
+export class AfterglowSaveVerificationError extends Error {}
 const scopes=["foundations","world"];
 const stable=v=>Array.isArray(v)?JSON.stringify(v):v&&typeof v==="object"
   ?"{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+stable(v[k])).join(",")+"}":JSON.stringify(v);

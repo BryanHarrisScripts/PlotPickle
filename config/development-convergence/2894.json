@@ -27,7 +27,10 @@
     "tests/issue-2863-consolidated-human-outcome.test.mjs",
     "tests/issue-2863-creative-master-selection.test.mjs",
     "tests/issue-2863-deterministic-review-completion.test.mjs",
-    "tests/issue-2894-afterglow-technical-reconciliation.test.mjs"
+    "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+    "core/storage/profile-private-browser.ts",
+    "tests/issue-2821-save-session-continuity.test.mjs",
+    "app/api/auth/profile-private/route.ts"
   ],
   "acceptance": [
     {
@@ -82,6 +85,17 @@
           "type": "file-contains",
           "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
           "contains": "completed creative review enables independent Save despite bookkeeping conflicts"
+        }
+      ]
+    },
+    {
+      "id": "READBACK",
+      "criterion": "Autosave and final Save compare equivalent choices in canonical category order without weakening digest checks",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2821-save-session-continuity.test.mjs",
+          "contains": "autosave and final Save category order both pass exact encrypted review readback"
         }
       ]
     }

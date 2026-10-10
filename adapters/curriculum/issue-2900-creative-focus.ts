@@ -172,3 +172,21 @@ export function withIssue2900CreativeFocus(documents: readonly TopicDocument[]):
   }
   return projected;
 }
+
+export function withIssue2900CreativeFocusLessons(lessons: readonly CurriculumLesson[]): readonly CurriculumLesson[] {
+  const topics = [...new Set(lessons.map((lesson) => lesson.topic))];
+  const documents = topics.map((topic) => {
+    const topicLessons = lessons.filter((lesson) => lesson.topic === topic);
+    return {
+      schemaVersion: "2.0",
+      topic: { id: topic, title: topic },
+      lessonCount: topicLessons.length,
+      sourceCount: topicLessons.flatMap((lesson) => lesson.sources).length,
+      lessons: topicLessons,
+    };
+  });
+  const enhanced = withIssue2900CreativeFocus(documents);
+  const byId = new Map(enhanced.flatMap((document) => document.lessons).map((lesson) => [lesson.id, lesson]));
+  if (byId.size !== lessons.length) throw new Error("Creative Focus lesson identity changed.");
+  return lessons.map((lesson) => byId.get(lesson.id) ?? lesson);
+}

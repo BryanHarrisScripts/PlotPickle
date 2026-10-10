@@ -46,8 +46,13 @@ test("#2900 supplies eight unique current-lesson supplements with explicit agent
   for (const id of ["story-development-craft", "story-revision-review", "sequence-director"]) {
     assert.ok(module.includes(`"skillId": "${id}"`));
   }
-  const catalog = await read("adapters/curriculum/current-catalog-integrated.ts");
-  assert.match(catalog, /withIssue2900CreativeFocus\(withIssue2094FinalFidelity\(/);
+  const presentation = await read("adapters/curriculum/issue-2900-current-presentation.ts");
+  assert.match(presentation, /withIssue2900CreativeFocusLessons\(plotPickleCurriculum\)/);
+  const audited = await read("adapters/curriculum/current-catalog-integrated.ts");
+  assert.doesNotMatch(audited, /issue-2900-creative-focus/);
+  for (const route of ["app/api/learn/explore/route.ts", "app/api/learn/journey-courses/route.ts", "app/global-sage-overlay.tsx", "app/page.tsx"]) {
+    assert.match(await read(route), /issue-2900-current-presentation/);
+  }
   assert.match(module, /if \(found.size !== ISSUE_2900_CREATIVE_FOCUS.length\)/);
   const archive = await readJson("learn/index.json");
   assert.equal(archive.lessonCount, 81);

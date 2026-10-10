@@ -38,7 +38,7 @@ Cinema-skills: 00-pipeline, screenwriting, directing, cinematography, editing, c
 | Shot continuity | Quillan / sequence-director | ai-revision-visual-pageflow |
 | Connected narration | Quillan / sequence-director | essentials-screen-evidence |
 
-All eight are authored as current presentation supplements on existing IDs by `withIssue2900CreativeFocus` in the canonical catalog; the 12 topics, 24 Craft Modules, 89 canonical archive lessons, 96 presentation lessons, source counts and completion IDs remain the same. The frozen source files and historical #1976 enrichment hash are left intact.
+All eight are authored as current presentation supplements on existing IDs by a current learner/Sage projection layered over the audited canonical catalog; the 12 topics, 24 Craft Modules, 89 canonical archive lessons, 96 presentation lessons, source counts and completion IDs remain the same. The frozen source files and historical #1976 enrichment hash are left intact.
 
 ## Verification and limitations
 

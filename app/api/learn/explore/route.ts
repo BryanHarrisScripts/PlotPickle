@@ -1,4 +1,4 @@
-import { canonicalTopicDocuments, plotPickleCurriculum } from "../../../../adapters/curriculum/current-catalog";
+import { creativeFocusCanonicalTopicDocuments as canonicalTopicDocuments, creativeFocusPlotPickleCurriculum as plotPickleCurriculum } from "../../../../adapters/curriculum/issue-2900-current-presentation";
 import { FOUNDATION_PROMOTED_SOURCE_IDS } from "../../../../adapters/curriculum/foundation-reference-lessons";
 import { ISSUE_1976_CANONICAL_REGISTRY } from "../../../../adapters/curriculum/issue-1976-canonical";
 import type { CurriculumLesson } from "../../../../core/contracts/curriculum";

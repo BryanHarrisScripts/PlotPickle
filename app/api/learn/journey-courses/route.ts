@@ -1,4 +1,4 @@
-import { canonicalTopicDocuments } from "../../../../adapters/curriculum/current-catalog";
+import { creativeFocusCanonicalTopicDocuments as canonicalTopicDocuments } from "../../../../adapters/curriculum/issue-2900-current-presentation";
 import { ISSUE_1976_CANONICAL_REGISTRY } from "../../../../adapters/curriculum/issue-1976-canonical";
 import { LEARN_PROGRAM_COURSE_SPECS } from "../../../../learn/program-map-spec.mjs";
 import type { CurriculumLesson } from "../../../../core/contracts/curriculum";

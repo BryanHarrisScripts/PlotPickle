@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-location-assign-relative-destination -- project-state-sensitive navigation deliberately reloads profile-owned project state */
 
 import { useEffect, useState } from "react";
-import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
+import { creativeFocusPlotPickleCurriculum as plotPickleCurriculum } from "../adapters/curriculum/issue-2900-current-presentation";
 import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../core/storage/foundation-project-browser";
 import { hasActiveLibraryProject } from "../core/storage/project-library-browser";

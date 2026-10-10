@@ -4,6 +4,7 @@ import {readServerAfterglowSources,prepareServerAfterglowMaster}
   from "../../../../modules/library/master/afterglow-master-server";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
+import { normalizeAfterglowReviewDraft } from "../../../../modules/library/master/afterglow-review-draft.mjs";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
@@ -67,6 +68,12 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
+    if (new URL(request.url).searchParams.get("afterglowReviewDraft") === "1") {
+      const draft = await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-review-draft",
+      });
+      return response({ draft: draft === null ? null : normalizeAfterglowReviewDraft(draft, (draft as {savedAt:string}).savedAt) });
+    }
     if (new URL(request.url).searchParams.get("afterglowSaveAudit") === "1") {
       return response({ lastSave: await runtimeState.privateStorage.readPrivateJson(authContext, {
         domain: "cache", objectId: "afterglow-master-last-attempt",
@@ -197,6 +204,34 @@ export async function POST(request: Request) {
         await recordAttempt({ status: "blocked", stage, message: reason });
         return response({code:"AFTERGLOW_SAVE_VERIFICATION_BLOCKED",stage,message:reason},409);
       }
+    }
+    if (input.action === "save-afterglow-review-draft") {
+      const draft = normalizeAfterglowReviewDraft(input.draft, new Date().toISOString());
+      await runtimeState.privateStorage.writePrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-review-draft", value: draft,
+      });
+      const readback = await runtimeState.privateStorage.readPrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-review-draft",
+      });
+      if (JSON.stringify(readback) !== JSON.stringify(draft)) {
+        throw new Error("Afterglow review choices failed encrypted readback.");
+      }
+      const selectionsDigest = "sha256:" + createHash("sha256")
+        .update(JSON.stringify(draft.selections)).digest("hex");
+      return response({ ok: true, sourceFingerprint: draft.sourceFingerprint,
+        selectionsDigest, savedAt: draft.savedAt });
+    }
+    if (input.action === "clear-afterglow-review-draft") {
+      // Only the exact verified master may complete the in-progress review.
+      const active = await runtimeState.privateStorage.loadAfterglowCurrentMaster(authContext);
+      const expectedVerifiedMaster = typeof input["masterId"] === "string" ? input["masterId"] : "";
+      if (!active || active.id !== expectedVerifiedMaster) {
+        return response({ message: "The exact verified master is not current; review draft was preserved." }, 409);
+      }
+      await runtimeState.privateStorage.writePrivateJson(authContext, {
+        domain: "cache", objectId: "afterglow-review-draft", value: null,
+      });
+      return response({ ok: true });
     }
     if (input.action === "save-project") {
       const project = normalizeLibraryProject(input.project);

@@ -11,6 +11,7 @@ import { isAfterglowRecoverySnapshot, summarizeAfterglowRecoverySnapshot,
 import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-roster";
 import { collectAfterglowReviewSources } from "../afterglow-review-sources.mjs";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
+import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../master/afterglow-review-draft.mjs";
 import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
@@ -31,6 +32,8 @@ import {
 } from "../../../core/storage/project-library-browser";
 import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
   commitConsolidatedAfterglow,lastAfterglowMasterSaveAttempt,readAfterglowMasterSaveAudit,
+  loadAfterglowReviewDraft,saveAfterglowReviewDraft,clearAfterglowReviewDraft,
+  refreshAfterglowLibraryFromEncryptedProfile,
   type AfterglowMasterSaveAudit,type ConsolidatedAfterglowReceipt,
   type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
@@ -75,6 +78,7 @@ type Preview = Readonly<{
   initialProofs: readonly AfterglowSavedSnapshotProof[];
   sources: AfterglowConsolidationPlan["sources"];
   sourceInventory: string;
+  sourceFingerprint: string;
   includedHistoricalSources: number;
   sourceWarnings: readonly string[];
   appliedCount: number;
@@ -123,7 +127,11 @@ function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, s
   return questions.get(storedFieldId) ?? null;
 }
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
-  return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
+  // An edited answer or World Map lock can change without a reliable updatedAt
+  // in older snapshots. Bind a resume to exact serialized saved source bytes.
+  return JSON.stringify(sources.map(item => [
+    item.id, item.updatedAt, item.archivedAt, libraryProjectSnapshotText(item.id),
+  ]));
 }
 function archivedAfterglowSummaries() {
   return listArchivedLibraryProjects().filter(item =>
@@ -150,6 +158,10 @@ async function exactSavedSnapshotProofs(items: readonly {readonly project: {
     const hex = Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2,"0")).join("");
     return {id:project.id,revision:project.revision,updatedAt:project.updatedAt,digest:"sha256:"+hex};
   }));
+}
+async function afterglowInventoryDigest(value:string) {
+  const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));
+  return "sha256:"+Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 function readableCreativeChoice(value: unknown): string | null {
   if (typeof value === "string" && value.trim()) return value;
@@ -233,6 +245,11 @@ export default function AfterglowManagementPanel() {
   const [saveReceipt,setSaveReceipt] = useState<ConsolidatedAfterglowReceipt|null>(null);
   const savedConfirmationRef = useRef<HTMLElement | null>(null);
   const [saveError,setSaveError] = useState("");
+  const [lastReview,setLastReview] = useState<AfterglowReviewDraft|null>(null);
+  const [draftSaveStatus,setDraftSaveStatus] = useState<"idle"|"saving"|"saved"|"blocked">("idle");
+  const [refreshingSources,setRefreshingSources] = useState(false);
+  const [draftSaveMessage,setDraftSaveMessage] = useState("");
+  const draftWriteGeneration=useRef(0);
   const [lastSaveAudit,setLastSaveAudit] = useState<AfterglowMasterSaveAudit|null>(null);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   // Library is the source of truth. Each brief describes one complete saved
@@ -380,6 +397,43 @@ export default function AfterglowManagementPanel() {
     return () => window.cancelAnimationFrame(frame);
   }, [saveReceipt]);
   const pendingHumanChoices=reviewProgress.pending;
+  useEffect(() => {
+    if(!preview) return;
+    const selected=JSON.parse(selectionFingerprint) as AfterglowReviewSelections;
+    if(!Object.keys(selected.decisions).length&&!selected.exclusions.length
+      &&!Object.keys(selected.imageChoices).length&&!Object.keys(selected.confirmedCurrent).length) return;
+    const generation=++draftWriteGeneration.current;
+    setDraftSaveStatus("saving");
+    setDraftSaveMessage("Saving review choices…");
+    void saveAfterglowReviewDraft({
+      sourceFingerprint:preview.sourceFingerprint,selections:selected,
+    }).then(savedAt=>{
+      if(generation!==draftWriteGeneration.current)return;
+      setDraftSaveStatus("saved");
+      setDraftSaveMessage("Review saved · "+displayDate(savedAt));
+      setLastReview({version:1,sourceFingerprint:preview.sourceFingerprint,
+        selections:selected,savedAt});
+    }).catch(error=>{
+      if(generation!==draftWriteGeneration.current)return;
+      setDraftSaveStatus("blocked");
+      setDraftSaveMessage(error instanceof Error?error.message:
+        "Review autosave failed. Your choices are still on this page but not confirmed in your profile.");
+    });
+  },[selectionFingerprint,preview?.sourceFingerprint]);
+
+
+  useEffect(() => {
+    if(draftSaveStatus!=="saving")return;
+    // Leaving while an encrypted acknowledgement is still pending can abort
+    // the last click. A native leave warning protects the final in-flight
+    // decision instead of falsely promising it has already been saved.
+    const pendingReview=(event:BeforeUnloadEvent)=>{
+      event.preventDefault();
+      event.returnValue="";
+    };
+    window.addEventListener("beforeunload",pendingReview);
+    return ()=>window.removeEventListener("beforeunload",pendingReview);
+  },[draftSaveStatus]);
 
   const refresh = useCallback(() => {
     const ready = profileReady();
@@ -390,17 +444,8 @@ export default function AfterglowManagementPanel() {
     // reads its matching, account-owned recovery and archived snapshots.
     setRecoveryPoints(ready ? listProfileRecoveryPoints() : []);
     setArchivedAfterglow(ready ? archivedAfterglowSummaries() : []);
-    setPreview(null);
-    setDecisions({});
-    setExclusions([]);
-    setImageChoices({});
-    setConfirmedCurrent({});
-    setExpandedImageSlots({});
-    setMediaState(null);
-    setMediaNotice("");
-    setPreflightState(null);
-    setPreflightNotice("");
-    setConflictPage(0);
+    // REFRESH is a read-only source-list action. It must never clear a
+    // draft or current decisions, including on unrelated Library events.
   }, []);
   useEffect(() => {
     refresh();
@@ -408,12 +453,31 @@ export default function AfterglowManagementPanel() {
     // when this session was hydrated before the attempted transaction.
     if (profileReady()) {
       void readAfterglowMasterSaveAudit().then(setLastSaveAudit).catch(() => undefined);
+      void loadAfterglowReviewDraft().then(setLastReview).catch(error=>
+        setDraftSaveMessage(error instanceof Error?error.message:"Saved review could not be inspected."));
     }
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, [refresh]);
 
-  async function reviewConsolidation() {
+  async function refreshSavedSources() {
+    if(busy||mediaBusy||preflightBusy||refreshingSources)return;
+    setRefreshingSources(true);
+    try {
+      await refreshAfterglowLibraryFromEncryptedProfile();
+      const changed=Boolean(preview && preview.sourceInventory!==reviewSourceInventoryFingerprint());
+      refresh();
+      setNotice(changed
+        ? "Saved versions changed in your encrypted profile. Your current selections and last review remain intact; review the new versions before committing."
+        : "Saved versions refreshed from your encrypted profile. Your consolidation selections remain intact.");
+    } catch(error) {
+      setNotice(error instanceof Error?error.message:"Saved versions could not be verified. Your last review remains untouched.");
+    } finally {
+      setRefreshingSources(false);
+    }
+  }
+
+  async function reviewConsolidation(resumeDraft: AfterglowReviewDraft|null = null) {
     if (busy || mediaBusy || preflightBusy) return;
     setBusy(true);
     setPreview(null);
@@ -430,10 +494,16 @@ export default function AfterglowManagementPanel() {
     setNotice("");
     setSaveReceipt(null);
     setSaveError("");
+    setDraftSaveStatus("idle");
+    setDraftSaveMessage("");
     try {
       if (!profileReady()) throw new Error("Unlock your PlotPickle profile before reviewing Afterglow.");
       const start = listAfterglowExampleProjects();
       const startingInventory=reviewSourceInventoryFingerprint();
+      const sourceFingerprint=await afterglowInventoryDigest(startingInventory);
+      if(resumeDraft && resumeDraft.sourceFingerprint!==sourceFingerprint) {
+        throw new Error("Saved Afterglow sources changed since this review. Your last saved decisions remain encrypted and untouched; start a new review of the current versions.");
+      }
       const {sources:complete,warnings:sourceWarnings} = collectAfterglowReviewSources({
         active:start,archived:archivedAfterglowSummaries(),
         recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot,
@@ -483,6 +553,7 @@ export default function AfterglowManagementPanel() {
         initialProofs,
         sources: result.sources,
         sourceInventory:startingInventory,
+        sourceFingerprint,
         sourceWarnings,
         includedHistoricalSources:complete.filter(source=>source.sourceKind!=="working-copy").length,
         appliedCount: result.applied.length,
@@ -497,11 +568,37 @@ export default function AfterglowManagementPanel() {
         sourceMediaCount: result.sourceMediaReferences.length,
         mergeShapeConsistent: result.mergeShapeConsistent,
       });
-      setNotice("Read-only review includes saved working copies and eligible older recovery states. No project, approval, image, or provided example was changed.");
+      if(resumeDraft) {
+        setDecisions({...resumeDraft.selections.decisions});
+        setExclusions([...resumeDraft.selections.exclusions]);
+        setImageChoices({...resumeDraft.selections.imageChoices});
+        setConfirmedCurrent({...resumeDraft.selections.confirmedCurrent});
+        setDraftSaveStatus("saved");
+        setDraftSaveMessage("Last review restored · "+displayDate(resumeDraft.savedAt));
+        setNotice("Continued your single saved Afterglow review. All previous selections are restored; no story was replaced.");
+      } else {
+        setNotice("Read-only review includes saved working and recovery states. No project, approval, image, or provided example was changed. Every new creative selection will be automatically saved to your encrypted profile.");
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Afterglow could not be reviewed. Your saved work is unchanged.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function continueLastReview() {
+    if(busy||mediaBusy||preflightBusy)return;
+    try {
+      const draft=await loadAfterglowReviewDraft();
+      if(!draft) {
+        setLastReview(null);
+        setNotice("There is no saved consolidation review to continue.");
+        return;
+      }
+      setLastReview(draft);
+      await reviewConsolidation(draft);
+    } catch(error) {
+      setNotice(error instanceof Error?error.message:"The saved review could not be opened.");
     }
   }
 
@@ -692,12 +789,30 @@ export default function AfterglowManagementPanel() {
         selectionFingerprint!==JSON.stringify({decisions,exclusions,imageChoices,confirmedCurrent})) {
         throw new Error("Source snapshots or creative decisions changed while preparing to save.");
       }
+      // Final commit is a distinct transaction. First prove that the latest
+      // choices survived the encrypted draft round-trip.
+      if(draftSaveStatus==="blocked")throw new Error("Review autosave is blocked; no consolidated master was attempted.");
+      const draftSelections={decisions,exclusions,confirmedCurrent,imageChoices};
+      const savedAt=await saveAfterglowReviewDraft({
+        sourceFingerprint:preview.sourceFingerprint,selections:draftSelections,
+      });
+      setDraftSaveStatus("saved");
+      setDraftSaveMessage("Review saved · "+displayDate(savedAt));
       const receipt=await commitConsolidatedAfterglow({
         selections:{decisions,exclusions,confirmedCurrent,imageChoices},
         expectedSources,
       });
       setSaveReceipt(receipt);
       setLastSaveAudit(lastAfterglowMasterSaveAttempt());
+      if(receipt.libraryRefreshed) {
+        try {
+          await clearAfterglowReviewDraft(receipt.masterId);
+          setLastReview(null);
+        } catch(error) {
+          setNotice(error instanceof Error?error.message:
+            "Your consolidated master is verified; the review draft could not yet be retired.");
+        }
+      }
       setPreview(null);
       setNotice("");
     } catch(error) {
@@ -800,11 +915,19 @@ export default function AfterglowManagementPanel() {
                 Afterglow can treat them as merge sources. Nothing is restored here.</p>
             </section>
             <div className={styles.actions}>
-              <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={refresh}>Refresh saved versions</button>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || refreshingSources}
+                onClick={()=>void refreshSavedSources()}>{refreshingSources?"Refreshing encrypted versions…":"Refresh Saved Versions"}</button>
               <button type="button" disabled={busy || mediaBusy || preflightBusy || (!sources.length && !recoverySourceAudit.found.length)} onClick={() => void reviewConsolidation()}>
-                {busy ? "Reviewing…" : "Review consolidation"}
+                {busy ? "Reviewing…" : "Review Consolidation"}
               </button>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || !lastReview}
+                onClick={()=>void continueLastReview()}>Continue Last Review</button>
             </div>
+            {lastReview ? <p role="status">Last review automatically saved {displayDate(lastReview.savedAt)}.
+              Select Continue Last Review to reopen your confirmed choices.</p> : null}
+            {draftSaveMessage ? <p role={draftSaveStatus==="blocked"?"alert":"status"}
+              className={draftSaveStatus==="blocked"?styles.caution:styles.notice}>
+              {draftSaveMessage}</p> : null}
           </>
         )}
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
@@ -1332,6 +1455,8 @@ export default function AfterglowManagementPanel() {
                 onClick={()=>void saveConsolidatedMaster()}>
                 {busy?"Creating verified consolidated Afterglow…":"Save Consolidated Afterglow"}
               </button>
+              {draftSaveMessage ? <p role={draftSaveStatus==="blocked"?"alert":"status"}>
+                {draftSaveMessage}</p> : null}
               {saveError ? <div role="alert" className={styles.saveFailure}>
                 <strong>NOT SAVED — consolidated Afterglow was rejected</strong>
                 <p>{saveError}</p>

@@ -224,7 +224,8 @@ export async function POST(request: Request) {
     if (input.action === "clear-afterglow-review-draft") {
       // Only the exact verified master may complete the in-progress review.
       const active = await runtimeState.privateStorage.loadAfterglowCurrentMaster(authContext);
-      if (!active || active.id !== input.masterId) {
+      const expectedVerifiedMaster = typeof input["masterId"] === "string" ? input["masterId"] : "";
+      if (!active || active.id !== expectedVerifiedMaster) {
         return response({ message: "The exact verified master is not current; review draft was preserved." }, 409);
       }
       await runtimeState.privateStorage.writePrivateJson(authContext, {

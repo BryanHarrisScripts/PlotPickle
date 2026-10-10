@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
+import { stripTypeScriptTypes } from "node:module";
+import { dirname, extname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { loadAgentSkill, materializeAgentSkillRunManifest } from "../scripts/agent-skills.mjs";
 
@@ -57,6 +61,51 @@ test("#2900 supplies eight unique current-lesson supplements with explicit agent
   const archive = await readJson("learn/index.json");
   assert.equal(archive.lessonCount, 81);
   assert.equal(archive.sourceCount, 95);
+});
+
+const root = fileURLToPath(new URL("..", import.meta.url));
+const moduleUrls = new Map();
+async function moduleUrl(path) {
+  const absolute = resolve(path);
+  if (moduleUrls.has(absolute)) return moduleUrls.get(absolute);
+  let source = extname(absolute) === ".json"
+    ? `export default ${readFileSync(absolute, "utf8")};`
+    : stripTypeScriptTypes(readFileSync(absolute, "utf8"));
+  if (extname(absolute) !== ".json") {
+    for (const match of [...source.matchAll(/from\s*["'](\.[^"']+)["']/gu)]) {
+      const requested = resolve(dirname(absolute), match[1]);
+      const target = [requested, `${requested}.ts`, `${requested}.json`, resolve(requested, "index.ts")]
+        .find((candidate) => existsSync(candidate) && /\.(ts|json)$/u.test(candidate));
+      assert.ok(target, `Missing curriculum import ${match[1]}`);
+      source = source.replace(match[0], `from "${await moduleUrl(target)}"`);
+    }
+  }
+  const url = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
+  moduleUrls.set(absolute, url);
+  return url;
+}
+
+test("#2900 current teaching projection enriches exactly eight real lessons without mutating certified presentation", async () => {
+  const [{ plotPickleCurriculum: baseline }, { creativeFocusPlotPickleCurriculum: current, creativeFocusCanonicalTopicDocuments: topics }] = await Promise.all([
+    import(await moduleUrl(resolve(root, "adapters/curriculum/current-catalog.ts"))),
+    import(await moduleUrl(resolve(root, "adapters/curriculum/issue-2900-current-presentation.ts"))),
+  ]);
+  assert.equal(current.length, 96);
+  assert.equal(baseline.length, 96);
+  assert.equal(topics.length, 12);
+  assert.deepEqual(current.map((lesson) => lesson.id), baseline.map((lesson) => lesson.id));
+  const touched = current.filter((lesson, i) => lesson.sections.length !== baseline[i].sections.length);
+  const ids = [
+    "24b-reflection", "world-building", "ai-revision-representation-research", "essentials-audit",
+    "dialogue-voiceprint", "early-visual-development", "ai-revision-visual-pageflow", "essentials-screen-evidence",
+  ];
+  assert.deepEqual(new Set(touched.map((lesson) => lesson.id)), new Set(ids));
+  for (const lesson of touched) {
+    assert.ok(lesson.sections.some((section) => section.heading.startsWith("Creative Focus:")));
+    assert.ok(lesson.sections.some((section) => section.heading === "Apply this to your story"));
+    assert.ok(lesson.sections.find((section) => section.heading === "Apply this to your story").points.length);
+    assert.ok(!baseline.find((original) => original.id === lesson.id).sections.some((section) => section.heading.startsWith("Creative Focus:")));
+  }
 });
 
 test("#2900 keeps unsupported completion and automatic authority out of native skills", async () => {

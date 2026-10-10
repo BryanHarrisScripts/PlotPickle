@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile} from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import test from "node:test";
-import {normalizeAfterglowReviewDraft} from "../modules/library/afterglow-review-draft.mjs";
+import {normalizeAfterglowReviewDraft} from "../modules/library/master/afterglow-review-draft.mjs";
 import {createProfilePrivateStorageService} from "../core/storage/profile-private/profile-private-storage-core.mjs";
 
 const fingerprint=label=>"sha256:"+createHash("sha256").update(label).digest("hex");

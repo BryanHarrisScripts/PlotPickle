@@ -558,7 +558,7 @@ export default function AfterglowManagementPanel() {
         setDraftSaveMessage("Last review restored · "+displayDate(resumeDraft.savedAt));
         setNotice("Continued your single saved Afterglow review. All previous selections are restored; no story was replaced.");
       } else {
-        setNotice("Reviewing current saved Afterglow versions. Every creative selection will be automatically saved to your encrypted profile.");
+        setNotice("Read-only review includes saved working and recovery states. No project, approval, image, or provided example was changed. Every new creative selection will be automatically saved to your encrypted profile.");
       }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Afterglow could not be reviewed. Your saved work is unchanged.");

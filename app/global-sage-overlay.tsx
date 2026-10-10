@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
+import { creativeFocusPlotPickleCurriculum as plotPickleCurriculum } from "../adapters/curriculum/issue-2900-current-presentation";
 import AgentPortrait from "../components/agent-portrait";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";

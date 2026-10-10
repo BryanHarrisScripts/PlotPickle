@@ -238,6 +238,28 @@
       ],
       "evalStatus": "covered",
       "lastEvaluatedRevision": "issue-2414"
+    },
+    {
+      "uri": "skill://plotpickle/story-development-craft",
+      "displayName": "Story Development Craft",
+      "requestedCapabilityClasses": [
+        "bounded-project-context",
+        "curriculum-read",
+        "proposal-draft"
+      ],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-2900"
+    },
+    {
+      "uri": "skill://plotpickle/story-revision-review",
+      "displayName": "Story Revision Review",
+      "requestedCapabilityClasses": [
+        "bounded-project-context",
+        "curriculum-read",
+        "proposal-draft"
+      ],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-2900"
     }
   ]
 }

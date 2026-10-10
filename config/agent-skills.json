@@ -375,6 +375,93 @@
       ],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "story-development-craft",
+      "name": "Story Development Craft",
+      "description": "Test premise, causality, promises and payoffs, world-rule costs and research provenance through bounded story-development proposals.",
+      "entry": ".agents/skills/story-development-craft/SKILL.md",
+      "path": ".agents/skills/story-development-craft",
+      "uri": "skill://plotpickle/story-development-craft",
+      "roles": [
+        "story-architect"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "story-architect"
+      ],
+      "mcpReady": true,
+      "localOnly": true,
+      "learning": {
+        "domains": [
+          "story-craft"
+        ],
+        "lessonRefs": [
+          "24b-reflection",
+          "world-building",
+          "ai-revision-representation-research"
+        ],
+        "actions": [
+          "explain",
+          "diagnose",
+          "exercise",
+          "compare"
+        ],
+        "contextClasses": [
+          "curriculum-read",
+          "bounded-project-context"
+        ],
+        "visibility": "learner",
+        "runtimeCompatibility": [
+          "host",
+          "mastra"
+        ],
+        "evaluationCoverage": "covered",
+        "provenanceClass": "built-in"
+      }
+    },
+    {
+      "id": "story-revision-review",
+      "name": "Story Revision Review",
+      "description": "Diagnose dialogue voice, continuity and simulated reader feedback as evidence-based, writer-approved revision proposals.",
+      "entry": ".agents/skills/story-revision-review/SKILL.md",
+      "path": ".agents/skills/story-revision-review",
+      "uri": "skill://plotpickle/story-revision-review",
+      "roles": [
+        "continuity"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "continuity"
+      ],
+      "mcpReady": true,
+      "localOnly": true,
+      "learning": {
+        "domains": [
+          "story-craft"
+        ],
+        "lessonRefs": [
+          "dialogue-voiceprint",
+          "essentials-audit"
+        ],
+        "actions": [
+          "explain",
+          "diagnose",
+          "exercise",
+          "compare"
+        ],
+        "contextClasses": [
+          "curriculum-read",
+          "bounded-project-context"
+        ],
+        "visibility": "learner",
+        "runtimeCompatibility": [
+          "host",
+          "mastra"
+        ],
+        "evaluationCoverage": "covered",
+        "provenanceClass": "built-in"
+      }
     }
   ]
 }

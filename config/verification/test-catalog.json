@@ -654,6 +654,7 @@
         "targets": [
           "tests/issue-1918-learn-curriculum-integrity.test.mjs",
           "tests/issue-2094-lesson-integration.test.mjs",
+          "tests/issue-2900-creative-focus.test.mjs",
           "tests/issue-2076-learn-source-drain.test.mjs",
           "tests/issue-2077-learn-source-drain.test.mjs",
           "tests/issue-2078-learn-source-drain.test.mjs"

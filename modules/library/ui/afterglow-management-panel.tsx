@@ -126,7 +126,11 @@ function canonicalQuestionForPath(path: string, questions: ReadonlyMap<string, s
   return questions.get(storedFieldId) ?? null;
 }
 function inventoryFingerprint(sources: readonly ProjectLibrarySummary[]) {
-  return JSON.stringify(sources.map(item => [item.id, item.updatedAt]));
+  // An edited answer or World Map lock can change without a reliable updatedAt
+  // in older snapshots. Bind a resume to exact serialized saved source bytes.
+  return JSON.stringify(sources.map(item => [
+    item.id, item.updatedAt, item.archivedAt, libraryProjectSnapshotText(item.id),
+  ]));
 }
 function archivedAfterglowSummaries() {
   return listArchivedLibraryProjects().filter(item =>

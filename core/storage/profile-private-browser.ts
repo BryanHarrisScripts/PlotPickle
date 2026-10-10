@@ -497,13 +497,16 @@ export async function saveAfterglowReviewDraft(input: Readonly<{
   if (!profileId||!token||!profilePrivateBrowserReadyFor(profileId)) {
     throw new Error("Unlock your profile before automatically saving this review.");
   }
+  // Capture the exact click's choices synchronously, then queue BEFORE any
+  // asynchronous hashing. Otherwise a slow earlier digest could queue behind
+  // a newer choice and incorrectly become the last saved review.
   const selections=JSON.parse(JSON.stringify(input.selections)) as AfterglowReviewSelections;
-  const digestBytes=await crypto.subtle.digest("SHA-256",
-    new TextEncoder().encode(JSON.stringify(selections)));
-  const selectionsDigest="sha256:"+Array.from(new Uint8Array(digestBytes))
-    .map(b=>b.toString(16).padStart(2,"0")).join("");
   let savedAt="";
   await queueWriteOperation(async writeToken=>{
+    const digestBytes=await crypto.subtle.digest("SHA-256",
+      new TextEncoder().encode(JSON.stringify(selections)));
+    const selectionsDigest="sha256:"+Array.from(new Uint8Array(digestBytes))
+      .map(b=>b.toString(16).padStart(2,"0")).join("");
     const ack=await privateMutation("save-afterglow-review-draft",{
       draft:{version:1,sourceFingerprint:input.sourceFingerprint,selections},
     },writeToken);

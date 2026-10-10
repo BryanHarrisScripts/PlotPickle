@@ -4,6 +4,7 @@ import {
   type StoryMapContext,
 } from "./story-map-context";
 import { normalizeLibraryProject, type LibraryPPFProject } from "./library-project";
+import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../../modules/library/afterglow-review-draft.mjs";
 import {
   clearLibraryProjectSessionCache,
   consumeSessionActiveProjectHandoff,
@@ -480,6 +481,67 @@ export function persistActiveProfileProject(explicitToken = "", confirmProjectId
   const clear = () => { if (pendingLibraryWrite === target) pendingLibraryWrite = null; };
   void promise.then(clear, clear);
   return promise;
+}
+
+/**
+ * A single, authenticated encrypted review draft. Queued writes serialize
+ * rapid creative selections with existing profile persistence operations.
+ * The server confirms encrypted readback, and the browser checks exact
+ * decision bytes; an unacknowledged write is NEVER "Review saved".
+ */
+export async function saveAfterglowReviewDraft(input: Readonly<{
+  sourceFingerprint: string;
+  selections: AfterglowReviewSelections;
+}>): Promise<string> {
+  const profileId=hydratedProfileId,token=csrfToken;
+  if (!profileId||!token||!profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("Unlock your profile before automatically saving this review.");
+  }
+  const selections=JSON.parse(JSON.stringify(input.selections)) as AfterglowReviewSelections;
+  const digestBytes=await crypto.subtle.digest("SHA-256",
+    new TextEncoder().encode(JSON.stringify(selections)));
+  const selectionsDigest="sha256:"+Array.from(new Uint8Array(digestBytes))
+    .map(b=>b.toString(16).padStart(2,"0")).join("");
+  let savedAt="";
+  await queueWriteOperation(async writeToken=>{
+    const ack=await privateMutation("save-afterglow-review-draft",{
+      draft:{version:1,sourceFingerprint:input.sourceFingerprint,selections},
+    },writeToken);
+    if(ack.ok!==true || ack.sourceFingerprint!==input.sourceFingerprint ||
+      ack.selectionsDigest!==selectionsDigest || typeof ack.savedAt!=="string") {
+      throw new Error("The encrypted review readback did not match your selected choices.");
+    }
+    if(!profilePrivateBrowserReadyFor(profileId)) {
+      throw new Error("The signed-in profile changed before review save confirmation.");
+    }
+    savedAt=ack.savedAt;
+  },token);
+  return savedAt;
+}
+
+/** Read exact single current review; never restore a working project or backup. */
+export async function loadAfterglowReviewDraft(): Promise<AfterglowReviewDraft | null> {
+  const profileId=hydratedProfileId,token=csrfToken;
+  if(!profileId||!token||!profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("Unlock your profile to continue your last Afterglow review.");
+  }
+  await flushProfilePrivateWrites();
+  const result=await fetch("/api/auth/profile-private?afterglowReviewDraft=1",{
+    credentials:"same-origin",cache:"no-store",
+  });
+  if(!result.ok)throw new Error("Encrypted Afterglow review could not be read.");
+  const payload=await result.json() as {draft?:AfterglowReviewDraft|null};
+  if(hydratedProfileId!==profileId||csrfToken!==token) {
+    throw new Error("The signed-in profile changed while loading the saved review.");
+  }
+  return payload.draft?.version===1?payload.draft:null;
+}
+
+export async function clearAfterglowReviewDraft(masterId:string):Promise<void> {
+  if(!masterId.startsWith("afterglow-consolidated-")) {
+    throw new Error("A verified consolidated master ID is required.");
+  }
+  await queueWrite("clear-afterglow-review-draft",{masterId});
 }
 
 export type ConsolidatedAfterglowReceipt = Readonly<{

@@ -72,6 +72,7 @@ function describeRecoveredSnapshot(project: LibraryPPFProject, key: string,
   };
 }
 type Preview = Readonly<{
+  savedProjects: readonly Readonly<{label:string;project:LibraryPPFProject}>[];
   plan: AfterglowConsolidationPlan;
   recovery: AfterglowRecoveredWork;
   imageOptions: readonly AfterglowImageChoice[];
@@ -544,6 +545,10 @@ export default function AfterglowManagementPanel() {
         manifest:packagedAfterglowManifest,
       });
       setPreview({
+        savedProjects:[{label:"Provided example",project:baseline},...complete.map(source=>({
+          label:displayDate(source.savedAt??source.project.updatedAt)+" · revision "+source.project.revision,
+          project:source.project,
+        }))],
         plan: result,
         recovery,
         imageOptions,
@@ -1278,6 +1283,46 @@ export default function AfterglowManagementPanel() {
               <p><strong>{preview.questionEvidence.length}</strong> authored fields traced to saved changes;
                 <strong> {preview.questionEvidence.filter(item=>item.questionStatus === "canonical-question-matched").length}</strong> matched to original questions;
                 <strong> {preview.questionEvidence.filter(item=>item.questionStatus !== "canonical-question-matched").length}</strong> question identities still unverified.</p>
+              <details>
+                <summary>Saved image differences — images, paths and recorded approvals</summary>
+                <p>These are saved records for inspection, not additional creative approvals.
+                  Different paths may contain identical bytes; Save checks them on the server.</p>
+                {(["foundations","world"] as const).flatMap(scope=>{
+                  const ids=new Set(preview.savedProjects.flatMap(source=>source.project.build?.[scope]?.visualArtifacts.map(item=>item.id)??[]));
+                  return [...ids].map(id=>{
+                    const records=preview.savedProjects.flatMap(source=>{
+                      const group=source.project.build?.[scope];
+                      const artifact=group?.visualArtifacts.find(item=>item.id===id);
+                      return artifact?[{...source,artifact,accepted:group?.acceptedVisualArtifactIds.includes(id)??false}]:[];
+                    });
+                    if(new Set(records.map(record=>JSON.stringify({...record.artifact,createdAt:undefined,sourceDecisionKeys:undefined,accepted:record.accepted}))).size<2)return null;
+                    return <details key={scope+id}>
+                      <summary>{records[0].artifact.narrativeIntention??"Saved image"} · {records.length} saved copies</summary>
+                      <div className={styles.imageGrid}>{records.map((record,index)=><div className={styles.imageCard} key={index}>
+                        <p>{record.label} · {record.accepted?"Recorded as approved":"Not recorded as approved"}</p>
+                        {/^(?:\/api\/local-ai\/assets\/|\/assets\/library\/examples\/)[A-Za-z0-9/._-]+\.(?:webp|png|jpe?g)$/i.test(record.artifact.assetUrl)
+                          ? <img src={record.artifact.assetUrl} loading="lazy" style={{maxWidth:280,maxHeight:200}} alt={record.artifact.narrativeIntention??"Saved image comparison"}/> : null}
+                        <p>{record.artifact.assetUrl}</p>
+                        <details><summary>Saved shot details</summary><pre>{JSON.stringify(record.artifact,null,2)}</pre></details>
+                      </div>)}</div>
+                    </details>;
+                  });
+                })}
+              </details>
+              <details>
+                <summary>Remaining saved field differences</summary>
+                <p>Exact unresolved paths and saved alternatives. Completed creative selections are retained.</p>
+                {textReviewed?.unresolvedConflicts.filter(item=>!/^\/build\/(foundations|world)\/(visualArtifacts|acceptedVisualArtifactIds)(?:\/|$)/.test(item.path)).map(item=><details key={item.path}>
+                  <summary>{item.path} · {item.reason}</summary>
+                  {(item.options??[]).map((value,index)=><div key={index}>
+                    <p>Saved source: {item.optionSources?.[index]??item.sources[index]??"Unknown"}</p>
+                    <pre>{JSON.stringify(value,null,2)}</pre>
+                  </div>)}
+                </details>)}
+                <ul>{textReviewed?.needsReview.filter(item=>!/^\/build\/(foundations|world)\/(visualArtifacts|acceptedVisualArtifactIds)(?:\/|$)/.test(item.path)).map((item,index)=><li key={index}>
+                  {item.path} · {item.reason} · saved source: {item.sourceProjectId}
+                </li>)}</ul>
+              </details>
               <details>
                 <summary>Question-to-answer evidence (original field identity, not a semantic quality verdict)</summary>
                 <ul>{preview.questionEvidence.map(item=><li key={item.fieldId}>

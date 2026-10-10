@@ -32,7 +32,7 @@ function fingerprintSources(sources) {
 }
 export function prepareVerifiedAfterglowMaster({
   baseline,sources,fields,questions,manifest,selections,expectedSources,
-  masterId,now,
+  masterId,now,verifiedMediaHashes,
 }) {
   validSelections(selections);
   if(!Array.isArray(sources)||!sources.length||!Array.isArray(fields)||
@@ -74,7 +74,7 @@ export function prepareVerifiedAfterglowMaster({
   if(plan.questionEvidence.some(x=>x.questionStatus!=="canonical-question-matched")) {
     throw new Error("A recovered answer has no verified canonical question.");
   }
-  const reviewed=reconcileAfterglowTechnicalRecords({baseline,sources,
+  const reviewed=reconcileAfterglowTechnicalRecords({baseline,sources,verifiedMediaHashes,
     reviewed:reviewAfterglowConsolidationDecisions(plan,selections.decisions,selections.exclusions)});
   if(reviewed.technicalBlockers.length) throw new AfterglowSaveVerificationError(reviewed.technicalBlockers.join(" "));
   if(reviewed.unresolvedConflicts.length||reviewed.needsReview.length) {

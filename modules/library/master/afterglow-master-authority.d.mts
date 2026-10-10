@@ -16,6 +16,7 @@ export function prepareVerifiedAfterglowMaster(input:Readonly<{
  selections:AfterglowSelectionSet;
  expectedSources:readonly AfterglowExpectedSource[];
  masterId?:string;now?:string;
+ verifiedMediaHashes?:Readonly<Record<string,string>>;
 }>):Readonly<{
  candidate:LibraryPPFProject;
  progress:Readonly<{completed:number;total:number;pending:number;allCreativeDecided:boolean}>;

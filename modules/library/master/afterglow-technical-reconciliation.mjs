@@ -4,11 +4,28 @@ const scopes=["foundations","world"];
 const stable=v=>Array.isArray(v)?JSON.stringify(v):v&&typeof v==="object"
   ?"{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+stable(v[k])).join(",")+"}":JSON.stringify(v);
 const visualPath=path=>/^\/build\/(foundations|world)\/(visualArtifacts|acceptedVisualArtifactIds)(?:\/|$)/.test(path);
-const signature=artifact=>{
+const signature=(artifact,verifiedMediaHashes)=>{
   const {sourceDecisionKeys,parentArtifactId,createdAt,updatedAt,reviewState,...content}=artifact;
+  // Only hashes calculated by the authenticated server may equate two paths.
+  // Recovery markers and browser-supplied digests are not file readback.
+  const hash=verifiedMediaHashes[content.assetUrl];
+  if(/^sha256:[a-f0-9]{64}$/.test(hash??""))content.assetUrl=hash;
   return stable(content);
 };
-export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed}) {
+export function afterglowCollidingMediaUrls({baseline,sources}) {
+  const urls=new Set();
+  for(const scope of scopes){
+    const records=new Map();
+    for(const project of [baseline,...sources.map(x=>x.project)])
+      for(const artifact of project.build?.[scope]?.visualArtifacts??[]){
+        if(!records.has(artifact.id))records.set(artifact.id,new Set());
+        if(artifact.assetUrl)records.get(artifact.id).add(artifact.assetUrl);
+      }
+    for(const variants of records.values())if(variants.size>1)for(const url of variants)urls.add(url);
+  }
+  return [...urls].sort();
+}
+export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed,verifiedMediaHashes={}}) {
   const candidate=structuredClone(reviewed.candidate),blockers=[];
   for(const scope of scopes){
     const groups=[baseline,...sources.map(source=>source.project)].map(p=>({project:p,group:p.build?.[scope]})).filter(x=>x.group);
@@ -29,8 +46,11 @@ export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed}) 
       const current=witnesses.filter(x=>x.project!==baseline);
       // A baseline reference is not competing user authority, but a different
       // image under its ID still cannot be replaced through bookkeeping.
-      if(new Set(witnesses.map(x=>signature(x.artifact))).size!==1){
-        blockers.push(label+": saved versions contain different image content or shot details. Compare the images before consolidating.");continue;
+      if(new Set(witnesses.map(x=>signature(x.artifact,verifiedMediaHashes))).size!==1){
+        const fields=[...new Set(witnesses.flatMap(x=>Object.keys(x.artifact)))].filter(key=>
+          !["sourceDecisionKeys","parentArtifactId","createdAt","updatedAt","reviewState"].includes(key)
+          &&new Set(witnesses.map(x=>stable(key==="assetUrl"?(verifiedMediaHashes[x.artifact[key]]??x.artifact[key]):x.artifact[key]))).size>1);
+        blockers.push(label+": saved versions contain different image content or shot details ("+fields.join(", ")+"). Inspect Saved image differences below before consolidating.");continue;
       }
       const lineage=new Map();
       for(const witness of current){
@@ -62,7 +82,7 @@ export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed}) 
   const remainingConflicts=reviewed.unresolvedConflicts.filter(x=>!visualPath(x.path));
   const remainingReviews=reviewed.needsReview.filter(x=>!visualPath(x.path));
   for(const item of [...remainingConflicts,...remainingReviews])blockers.push(
-    "A saved story change outside image bookkeeping still needs verification ("+item.reason+"). Your completed creative selections are preserved.");
+    "A saved story change still needs verification at "+item.path+" ("+item.reason+"). Inspect Remaining saved field differences below. Your completed creative selections are preserved.");
   return {...reviewed,candidate,unresolvedConflicts:remainingConflicts,needsReview:remainingReviews,
     technicalBlockers:[...new Set(blockers)],decisionShapeConsistent:!blockers.length};
 }

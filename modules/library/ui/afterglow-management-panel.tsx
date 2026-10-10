@@ -11,7 +11,7 @@ import { isAfterglowRecoverySnapshot, summarizeAfterglowRecoverySnapshot,
 import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-roster";
 import { collectAfterglowReviewSources } from "../afterglow-review-sources.mjs";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
-import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../afterglow-review-draft.mjs";
+import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../master/afterglow-review-draft.mjs";
 import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";

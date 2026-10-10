@@ -325,7 +325,7 @@ function normalizeBuild(value: unknown): BuildProgressState {
       .map(normalizeVisualArtifact)
       .filter((artifact): artifact is FoundationsVisualArtifact => Boolean(artifact))
       .filter((artifact, index, all) => all.findIndex((candidate) => candidate.id === artifact.id) === index)
-      .slice(0, 75)
+      // Durable saves must retain every validated image, including consolidation history.
     : [];
   const foundationKnownIds = new Set(foundationArtifacts.map((artifact) => artifact.id));
   const foundationAcceptedIds = normalizeAcceptedIds(source.foundations?.acceptedVisualArtifactIds, foundationKnownIds);
@@ -347,7 +347,7 @@ function normalizeBuild(value: unknown): BuildProgressState {
         ...artifact,
         retainedFoundationArtifactIds: artifact.retainedFoundationArtifactIds.filter((id) => foundationKnownIds.has(id)),
       }))
-      .slice(0, 100)
+      // Generation limits do not authorize truncating a durable saved collection.
     : [];
   const worldKnownIds = new Set(worldArtifacts.map((artifact) => artifact.id));
   const worldAcceptedIds = normalizeAcceptedIds(source.world?.acceptedVisualArtifactIds, worldKnownIds);

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import test from "node:test";
-// The #2890 durable review regression must execute in the canonical Afterglow lane.
+// Durable review and technical reconciliation execute in the canonical Afterglow lane.
 import "./issue-2890-afterglow-resumable-review.test.mjs";
+import "./issue-2894-afterglow-technical-reconciliation.test.mjs";
 import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot}
   from "../modules/library/master/afterglow-master-authority.mjs";
 
@@ -139,18 +140,18 @@ test("#2863 rejected Save is visibly not saved at the action and remains auditab
   assert.match(library,/Last saved attempt was blocked at/u);
 });
 
-test("#2863 Save stays disabled for independent technical truth even at 100% Human decisions",async()=>{
+test("#2863 Save invokes independent technical verification after Human decisions",async()=>{
   const panel=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
   assert.match(panel,/const technicalSaveBlockers = preview \?/u);
   assert.match(panel,/preview\.plan\.needsReview\.map/u);
   assert.match(panel,/creativeChoices\.verification\.map/u);
   assert.match(panel,/item\.questionStatus !== "canonical-question-matched"/u);
   assert.match(panel,/textReviewed\?\.unresolvedConflicts/u);
-  assert.match(panel,/!technicalSaveBlockers\.length/u);
+  assert.doesNotMatch(panel,/&& !technicalSaveBlockers\.length/u);
   assert.match(panel,/disabled=\{busy\|\|mediaBusy\|\|preflightBusy\|\|!canSaveMaster\}/u);
-  assert.match(panel,/Cannot save yet — independent verification is incomplete/u);
+  assert.match(panel,/checks[\s\S]*the saved images and approvals automatically/u);
   assert.match(panel,/All green creative decisions remain selected/u);
-  assert.match(panel,/if\(!canSaveMaster \|\| busy \|\| mediaBusy \|\| preflightBusy\)/u);
+  assert.match(panel,/if\(!preview \|\| !reviewed \|\| !canSaveMaster \|\| busy \|\| mediaBusy \|\| preflightBusy\)/u);
 });
 test("#2863 after encrypted readback, success receipt is scrolled and focused into view",async()=>{
   const panel=await readFile(new URL("../modules/library/ui/afterglow-management-panel.tsx",import.meta.url),"utf8");
@@ -160,4 +161,14 @@ test("#2863 after encrypted readback, success receipt is scrolled and focused in
   assert.match(panel,/ref=\{savedConfirmationRef\} tabIndex=\{-1\}/u);
   assert.match(panel,/setSaveReceipt\(receipt\);[\s\S]*setPreview\(null\);/u);
   assert.match(panel,/Save Consolidated Afterglow/u);
+});
+
+test('#2894 completed creative review reaches independently recomputed master despite image bookkeeping conflicts',()=>{
+ const first=source('science fiction','a'),second=source('science fiction','b');
+ const image={id:'saved-frame',assetUrl:'/api/local-ai/assets/frame.webp',reviewState:'accepted',workflow:'storyboard-frame-webp-v2',sourceDecisionKeys:['storyboard-local-save:v1'],parentArtifactId:null};
+ for(const item of [first,second])item.project.build.foundations={visualArtifacts:[structuredClone(image)],acceptedVisualArtifactIds:['saved-frame']};
+ second.project.build.foundations.visualArtifacts[0].sourceDecisionKeys.push('historically-recorded-key');
+ const prepared=prepareVerifiedAfterglowMaster(input([first,second],{confirmedCurrent:{[genre]:true}}));
+ assert.equal(prepared.progress.pending,0);assert.deepEqual(prepared.candidate.build.foundations.acceptedVisualArtifactIds,['saved-frame']);
+ assert.equal(prepared.candidate.world.lessons.genres.answers.genre,'science fiction');
 });

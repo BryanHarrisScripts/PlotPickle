@@ -129,7 +129,7 @@ test("#2863 readable recovery view is primary, advanced evidence remains optiona
   assert.match(ui,/Original versions are unchanged/u);
   assert.match(ui,/separate, publisher-approved release/u);
   assert.match(ui,/Signing in and saving[\s\S]*never publishes it for everyone else/u);
-  assert.match(ui,/No Save Current Master action is enabled/u);
+  assert.match(ui,/Save Consolidated Afterglow verifies/u);
   assert.doesNotMatch(ui,/onClick=\{\(\) => void commitAfterglowMaster/u);
 });
 

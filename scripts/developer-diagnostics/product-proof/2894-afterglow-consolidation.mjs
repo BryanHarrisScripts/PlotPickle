@@ -48,6 +48,10 @@ if(!listAfterglowExampleProjects().length){
   p[field.topicId].lessons[field.lessonId]=lesson;
   if(n){p.build.foundations.visualArtifacts[0].sourceDecisionKeys.push("synthetic-recorded-bookkeeping");
     p.build.foundations.visualArtifacts[0].assetUrl="/api/local-ai/assets/2896-alias.webp";}
+  const extra={...structuredClone(p.build.foundations.visualArtifacts[0]),id:"2898-optional-poster",narrativeIntention:"Optional poster to leave out",parentArtifactId:null};
+  p.build.foundations.visualArtifacts.push(extra);p.build.foundations.acceptedVisualArtifactIds.push(extra.id);
+  if(!n){p.build.foundations.visualArtifacts[0].reviewState="draft";
+    p.build.foundations.acceptedVisualArtifactIds=p.build.foundations.acceptedVisualArtifactIds.filter(id=>id!==p.build.foundations.visualArtifacts[0].id);}
   saveFoundationProject(p);await flushProfilePrivateWrites();
  }
 }
@@ -100,8 +104,24 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   await page.getByRole("button",{name:"Review Consolidation",exact:true}).click();
   await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
   await page.locator('details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
-  await page.getByText("Saved image differences — images, paths and recorded approvals",{exact:true}).waitFor();
+  await page.getByText("Save or leave out remaining items",{exact:true}).first().waitFor();
+  const record=page.locator(`[data-afterglow-record="/build/foundations/visualArtifacts/@id:${snapshot.project.build.foundations.visualArtifacts[0].id}"]`);
+  // Explicitly select a complete saved image, preserving its actual approval.
+  await record.evaluate(node=>node.open=true);
+  await record.locator("select").selectOption(String(await record.locator("option").count()-1));
+  await record.getByRole("button",{name:"Save to master",exact:true}).click();
+  const optional=page.locator('[data-afterglow-record="/build/foundations/visualArtifacts/@id:2898-optional-poster"]');
+  await optional.evaluate(node=>node.open=true);
+  await optional.getByRole("button",{name:"Not required",exact:true}).click();
+  assert.match(await optional.locator("summary").innerText(),/Not required/);
   assert.ok(await page.locator('img[src="/api/local-ai/assets/2896-alias.webp"]').count(),"bundled and local saved image alternatives are visible before Save");
+  await page.getByText(/^Review saved ·/).first().waitFor();
+  await page.reload();
+  await page.getByRole("button",{name:"Continue Last Review",exact:true}).click();
+  await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
+  await page.locator('details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
+  assert.match(await optional.locator("summary").innerText(),/Not required/);
+  assert.match(await record.locator("summary").innerText(),/Saved to master selection/);
   for(const button of await page.getByRole("button",{name:"Confirm current",exact:true}).all())await button.click();
   // Choose one image per character/view; the actual control excludes competitors.
   // Image cards are inside details; choose first unreviewed slot each pass.
@@ -129,10 +149,16 @@ createRoot(document.getElementById("root")).render(<Panel/>);
     throw error;
   }
   await page.screenshot({path:path.join(artifactRoot,"saved.png")});
+  const downloadPromise=page.waitForEvent("download");
+  await page.getByRole("button",{name:"Export consolidated master",exact:true}).click();
+  const download=await downloadPromise;
+  const exported=JSON.parse(await readFile(await download.path(),"utf8"));
+  assert.ok(!exported.build.foundations.visualArtifacts.some(item=>item.id==="2898-optional-poster"),"excluded image stays absent in actual saved master export");
+  assert.ok(exported.build.foundations.visualArtifacts.some(item=>item.assetUrl==="/api/local-ai/assets/2896-alias.webp"),"saved source version survives encrypted commit and export");
   assert.deepEqual(errors,[]);
   await page.reload();
   await page.getByRole("button",{name:"Review Consolidation",exact:true}).waitFor();
-  const report={status:"PASS",sourceHead:process.env.PLOTPICKLE_PROOF_SOURCE_HEAD||"local-working-tree",scope:"Real Afterglow management, synthetic authenticated profile, compatible saved image bookkeeping and encrypted master commit",observations:["completed creative review enables Save","raw diagnostic cards are absent","server reconciles saved image bookkeeping","encrypted readback confirms consolidated master in Library","profile reopens after save"],providerInference:false,humanAcceptance:"PENDING"};
+  const report={status:"PASS",sourceHead:process.env.PLOTPICKLE_PROOF_SOURCE_HEAD||"local-working-tree",scope:"Real Afterglow management, synthetic authenticated profile, compatible saved image bookkeeping and encrypted master commit",observations:["completed creative review enables Save","raw diagnostic cards are absent","Save resolves actual saved approval disagreement", "Not required excludes optional poster", "server reconciles saved image bookkeeping","encrypted readback confirms consolidated master in Library","saved record choices survive review reload", "export contains actual verified master", "profile reopens after save"],providerInference:false,humanAcceptance:"PENDING"};
   await writeFile(path.join(artifactRoot,"proof.json"),JSON.stringify(report,null,2)+"\n");
   console.log("#2894 rendered consolidation proof PASS");
 } finally {

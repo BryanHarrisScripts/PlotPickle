@@ -2197,7 +2197,8 @@
           "tests/issue-2863-afterglow-image-visual-choices.test.mjs",
           "tests/issue-2863-deterministic-review-completion.test.mjs",
           "tests/issue-2863-authorized-consolidated-save.test.mjs",
-          "tests/issue-2894-afterglow-technical-reconciliation.test.mjs"
+          "tests/issue-2894-afterglow-technical-reconciliation.test.mjs",
+          "tests/issue-2898-afterglow-record-review.test.mjs"
         ]
       },
       "cost": "fast",

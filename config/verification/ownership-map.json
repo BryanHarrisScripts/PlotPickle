@@ -242,6 +242,8 @@
         "modules/library/master/afterglow-review-draft.mjs",
         "modules/library/master/afterglow-review-draft.d.mts",
         "modules/library/master/afterglow-master-authority.mjs",
+        "modules/library/afterglow-record-review.mjs",
+        "modules/library/afterglow-record-review.d.mts",
         "modules/library/master/afterglow-technical-reconciliation.mjs",
         "modules/library/master/afterglow-technical-reconciliation.d.mts",
         "modules/library/master/afterglow-master-authority.d.mts",

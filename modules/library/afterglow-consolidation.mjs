@@ -124,6 +124,15 @@ function readAt(target,keys) {
   }
   return node;
 }
+export function readAfterglowRecordPath(project,path) {
+  const value=readAt(project,path.slice(1).split("/").map(key=>key.replaceAll("~1","/").replaceAll("~0","~")));
+  return value===ABSENT?{present:false}:{present:true,value:copy(value)};
+}
+export function writeAfterglowRecordPath(project,path,record) {
+  const keys=path.slice(1).split("/").map(key=>key.replaceAll("~1","/").replaceAll("~0","~"));
+  if(record.present)apply(project,keys,record.value);
+  else if(readAt(project,keys)!==ABSENT)restore(project,keys,ABSENT);
+}
 function restore(target,keys,value) {
   // Explicit Human exclusion only: restore the *provided reference* at this
   // exact automatically included path. Never mutate any saved source.

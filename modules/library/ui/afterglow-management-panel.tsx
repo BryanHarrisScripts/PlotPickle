@@ -10,6 +10,7 @@ import { isAfterglowRecoverySnapshot, summarizeAfterglowRecoverySnapshot,
   type AfterglowRecoverySnapshotSummary } from "../afterglow-recovery-snapshot.mjs";
 import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-roster";
 import { collectAfterglowReviewSources } from "../afterglow-review-sources.mjs";
+import {serializeLibraryBackup,libraryBackupFileName} from "../../../core/storage/library-project";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
 import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../master/afterglow-review-draft.mjs";
 import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
@@ -44,6 +45,7 @@ import type {
   AfterglowConsolidationConflict,
   AfterglowConsolidationReview,
 } from "../afterglow-consolidation.mjs";
+import {afterglowCreativeDecisions,applyAfterglowRecordChoices,listAfterglowReviewRecords,type AfterglowRecordSources} from "../afterglow-record-review.mjs";
 import styles from "./afterglow-management-panel.module.css";
 
 type RecoverySourcePreview = Readonly<{
@@ -72,7 +74,8 @@ function describeRecoveredSnapshot(project: LibraryPPFProject, key: string,
   };
 }
 type Preview = Readonly<{
-  savedProjects: readonly Readonly<{label:string;project:LibraryPPFProject}>[];
+  baseline:LibraryPPFProject;
+  recordSources:AfterglowRecordSources;
   plan: AfterglowConsolidationPlan;
   recovery: AfterglowRecoveredWork;
   imageOptions: readonly AfterglowImageChoice[];
@@ -326,8 +329,11 @@ export default function AfterglowManagementPanel() {
     }
     return lookup;
   }, [canonicalFields]);
+  const [recordVersions,setRecordVersions]=useState<Record<string,number>>({});
+  const reviewRecords=useMemo(()=>preview?listAfterglowReviewRecords({baseline:preview.baseline,sources:preview.recordSources,plan:preview.plan}):[],[preview]);
   const textReviewed = useMemo(() => preview
-    ? reviewAfterglowConsolidationDecisions(preview.plan, decisions, exclusions)
+    ? applyAfterglowRecordChoices({baseline:preview.baseline,sources:preview.recordSources,plan:preview.plan,decisions,
+        reviewed:reviewAfterglowConsolidationDecisions(preview.plan, afterglowCreativeDecisions(decisions), exclusions)})
     : null, [preview, decisions, exclusions]);
   const imageReview=useMemo(()=>preview && textReviewed
     ? applyAfterglowImageChoices({
@@ -345,9 +351,9 @@ export default function AfterglowManagementPanel() {
     // Never subtract a URL because an image reference was excluded if another
     // approved Storyboard/narration surface still uses those same bytes.
     visit(imageReview.candidate);
-    return {...textReviewed,candidate:imageReview.candidate,
+    return {...textReviewed,candidate:preview?applyAfterglowRecordChoices({baseline:preview.baseline,sources:preview.recordSources,plan:preview.plan,reviewed:{...textReviewed,candidate:imageReview.candidate},decisions}).candidate:imageReview.candidate,
       localAssetsToVerify:[...media].sort()};
-  },[textReviewed,imageReview]);
+  },[textReviewed,imageReview,preview,decisions]);
   const selectionFingerprint = JSON.stringify({ decisions, exclusions, imageChoices, confirmedCurrent });
   const recoveryPaths = useMemo(() => new Set(preview?.recovery.groups.flatMap(group =>
     group.items.map(item=>afterglowRecoveryItemPath(item,canonicalFields)).filter((value): value is string => Boolean(value))
@@ -545,10 +551,7 @@ export default function AfterglowManagementPanel() {
         manifest:packagedAfterglowManifest,
       });
       setPreview({
-        savedProjects:[{label:"Provided example",project:baseline},...complete.map(source=>({
-          label:displayDate(source.savedAt??source.project.updatedAt)+" · revision "+source.project.revision,
-          project:source.project,
-        }))],
+        baseline,recordSources:complete,
         plan: result,
         recovery,
         imageOptions,
@@ -586,6 +589,15 @@ export default function AfterglowManagementPanel() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function exportConsolidatedMaster() {
+    if(!saveReceipt?.libraryRefreshed)return;
+    const master=loadLibraryProjectSnapshot(saveReceipt.masterId);
+    if(!master){setSaveError("The verified master must be loaded from your Library before exporting.");return;}
+    const url=URL.createObjectURL(new Blob([serializeLibraryBackup(master)],{type:"application/json"}));
+    const link=document.createElement("a");link.href=url;link.download=libraryBackupFileName(master.title);
+    link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 
   async function continueLastReview() {
@@ -968,8 +980,8 @@ export default function AfterglowManagementPanel() {
             keep your original recovery history intact for diagnosis.
             Saved master ID: {saveReceipt.masterId}.
           </p> : null}
-          <p>This is your personal master only. Publishing the official Afterglow
-            for new users requires separate publisher approval.</p>
+          {saveReceipt.libraryRefreshed?<button type="button" onClick={exportConsolidatedMaster}>Export consolidated master</button>:null}
+          <p>Export this verified master to update the official Afterglow example for new users.</p>
         </section> : null}
         {saveError ? <p role="alert" className={styles.caution}>{saveError}</p> : null}
         {preview ? (
@@ -1266,10 +1278,44 @@ export default function AfterglowManagementPanel() {
                 })}
               </section>
             ) : null}
+            <section aria-label="Save or leave out remaining items">
+              <h4>Save or leave out remaining items</h4>
+              <p>Each saved image or value appears once. Choose a saved version, then Save to master or Not required.
+                These choices are automatically saved with your existing review. Not required leaves the item out of the new master; older saves stay available.
+                The counts below overlap and do not represent extra creative questions.</p>
+              {reviewRecords.map(record=>{
+                const choice=decisions[record.key];
+                const index=recordVersions[record.key]??(typeof choice==="number"?choice:0);
+                const version=record.versions[index]??record.versions[0];
+                const value=version.value as Record<string,unknown>|null;
+                const url=value&&typeof value.assetUrl==="string"?value.assetUrl:null;
+                return <details key={record.key} data-afterglow-record={record.path}>
+                  <summary>{record.label} · {choice==="baseline"?"Not required":typeof choice==="number"?"Saved to master selection":"Awaiting selection"}</summary>
+                  <div className={styles.imageCard}>
+                    <label>Saved version <select value={index} onChange={event=>setRecordVersions(previous=>({...previous,[record.key]:Number(event.target.value)}))}>
+                      {record.versions.map((item,n)=><option key={n} value={n}>{item.sources[0]}{item.accepted===undefined?"":item.accepted?" · recorded approval":" · draft"}{item.sources.length>1?" · "+item.sources.length+" matching saves":""}</option>)}
+                    </select></label>
+                    {url&&/^(?:\/api\/local-ai\/assets\/|\/assets\/library\/examples\/)[A-Za-z0-9/._-]+\.(?:webp|png|jpe?g)$/i.test(url)
+                      ?<img src={url} loading="lazy" style={{maxWidth:280,maxHeight:200}} alt={record.label}/>:null}
+                    {Array.isArray(value?.references)?<div className={styles.imageGrid}>{value.references.map((item:unknown,n:number)=>{
+                      const reference=item as {assetUrl?:string;view?:string};
+                      return reference.assetUrl&&/^(?:\/api\/local-ai\/assets\/|\/assets\/library\/examples\/)[A-Za-z0-9/._-]+\.(?:webp|png|jpe?g)$/i.test(reference.assetUrl)
+                        ?<img key={n} src={reference.assetUrl} loading="lazy" style={{maxWidth:180,maxHeight:140}} alt={reference.view??record.label}/>:null;
+                    })}</div>:null}
+                    {typeof version.value==="string"||typeof version.value==="number"?<p>{String(version.value)}</p>:<p>{readableCreativeChoice(version.value)??"Complete saved record shown in details."}</p>}
+                    <details><summary>Full saved value and source details</summary><pre>{JSON.stringify(version.value,null,2)}</pre><p>{version.sources.join("; ")}</p><p>{record.path}</p></details>
+                    <button type="button" disabled={busy||mediaBusy||preflightBusy} aria-pressed={choice===index}
+                      onClick={()=>setDecisions(previous=>({...previous,[record.key]:index}))}>Save to master</button>
+                    <button type="button" disabled={busy||mediaBusy||preflightBusy} aria-pressed={choice==="baseline"}
+                      onClick={()=>setDecisions(previous=>({...previous,[record.key]:"baseline"}))}>Not required</button>
+                    <p>{record.kind==="record"&&!record.path.includes("/@")?"Not required excludes this change and retains the provided value.":"Not required excludes this item from the new master."}</p>
+                  </div>
+                </details>;
+              })}
+            </section>
             {creativeChoices.verification.length ? <p className={styles.caution}>
               {creativeChoices.verification.length} media, approval, timestamp or structural differences
-              still need independent verification. These are not choices you should make
-              from technical IDs. No original data is discarded or automatically approved.
+              are available in the item review above and still require server verification. No original data is discarded or automatically approved.
             </p> : null}
             <p className={styles.caution}>Draft selection only. Save Current Master will become available
               only after all original saves, media, narration, and the final encrypted readback are verified.</p>
@@ -1283,46 +1329,6 @@ export default function AfterglowManagementPanel() {
               <p><strong>{preview.questionEvidence.length}</strong> authored fields traced to saved changes;
                 <strong> {preview.questionEvidence.filter(item=>item.questionStatus === "canonical-question-matched").length}</strong> matched to original questions;
                 <strong> {preview.questionEvidence.filter(item=>item.questionStatus !== "canonical-question-matched").length}</strong> question identities still unverified.</p>
-              <details>
-                <summary>Saved image differences — images, paths and recorded approvals</summary>
-                <p>These are saved records for inspection, not additional creative approvals.
-                  Different paths may contain identical bytes; Save checks them on the server.</p>
-                {(["foundations","world"] as const).flatMap(scope=>{
-                  const ids=new Set(preview.savedProjects.flatMap(source=>source.project.build?.[scope]?.visualArtifacts.map(item=>item.id)??[]));
-                  return [...ids].map(id=>{
-                    const records=preview.savedProjects.flatMap(source=>{
-                      const group=source.project.build?.[scope];
-                      const artifact=group?.visualArtifacts.find(item=>item.id===id);
-                      return artifact?[{...source,artifact,accepted:group?.acceptedVisualArtifactIds.includes(id)??false}]:[];
-                    });
-                    if(new Set(records.map(record=>JSON.stringify({...record.artifact,createdAt:undefined,sourceDecisionKeys:undefined,accepted:record.accepted}))).size<2)return null;
-                    return <details key={scope+id}>
-                      <summary>{records[0].artifact.narrativeIntention??"Saved image"} · {records.length} saved copies</summary>
-                      <div className={styles.imageGrid}>{records.map((record,index)=><div className={styles.imageCard} key={index}>
-                        <p>{record.label} · {record.accepted?"Recorded as approved":"Not recorded as approved"}</p>
-                        {/^(?:\/api\/local-ai\/assets\/|\/assets\/library\/examples\/)[A-Za-z0-9/._-]+\.(?:webp|png|jpe?g)$/i.test(record.artifact.assetUrl)
-                          ? <img src={record.artifact.assetUrl} loading="lazy" style={{maxWidth:280,maxHeight:200}} alt={record.artifact.narrativeIntention??"Saved image comparison"}/> : null}
-                        <p>{record.artifact.assetUrl}</p>
-                        <details><summary>Saved shot details</summary><pre>{JSON.stringify(record.artifact,null,2)}</pre></details>
-                      </div>)}</div>
-                    </details>;
-                  });
-                })}
-              </details>
-              <details>
-                <summary>Remaining saved field differences</summary>
-                <p>Exact unresolved paths and saved alternatives. Completed creative selections are retained.</p>
-                {textReviewed?.unresolvedConflicts.filter(item=>!/^\/build\/(foundations|world)\/(visualArtifacts|acceptedVisualArtifactIds)(?:\/|$)/.test(item.path)).map(item=><details key={item.path}>
-                  <summary>{item.path} · {item.reason}</summary>
-                  {(item.options??[]).map((value,index)=><div key={index}>
-                    <p>Saved source: {item.optionSources?.[index]??item.sources[index]??"Unknown"}</p>
-                    <pre>{JSON.stringify(value,null,2)}</pre>
-                  </div>)}
-                </details>)}
-                <ul>{textReviewed?.needsReview.filter(item=>!/^\/build\/(foundations|world)\/(visualArtifacts|acceptedVisualArtifactIds)(?:\/|$)/.test(item.path)).map((item,index)=><li key={index}>
-                  {item.path} · {item.reason} · saved source: {item.sourceProjectId}
-                </li>)}</ul>
-              </details>
               <details>
                 <summary>Question-to-answer evidence (original field identity, not a semantic quality verdict)</summary>
                 <ul>{preview.questionEvidence.map(item=><li key={item.fieldId}>
@@ -1388,8 +1394,8 @@ export default function AfterglowManagementPanel() {
               {technicalSaveBlockers.length ? <div role="status" className={styles.saveFailure}>
                 <strong>Your creative choices are retained</strong>
                 <p>All green creative decisions remain selected. When you save, PlotPickle checks
-                  the saved images and approvals automatically. These are not additional choices
-                  for you. If a check fails, the save result explains the affected item.</p>
+                  the saved images and approvals automatically. Use Save to master or Not required
+                  above to resolve remaining saved alternatives. If a check fails, the save result explains the affected item.</p>
               </div> : null}
               {reviewProgress.pending>0?<p className={styles.reviewCurrent}>
                 {reviewProgress.pending} choices still need your confirmation; save is disabled.

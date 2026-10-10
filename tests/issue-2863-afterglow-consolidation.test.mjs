@@ -297,7 +297,7 @@ test("#2863 UAT: UI never offers a choose-one dropdown for whole approved-image 
   assert.match(ui,/checks[\s\S]*the saved images and approvals automatically/u);
   assert.match(ui,/Compare saved creative decisions/u);
   assert.doesNotMatch(ui,/Advanced verification details/u);
-  assert.match(ui,/These are not additional choices/u);
+  assert.match(ui,/Save to master or Not required/u);
   assert.doesNotMatch(ui,/Save Current Master.*onClick/u);
 });
 
@@ -311,7 +311,7 @@ test("#2863 Human corrections: compare each authored answer to its original cano
   assert.match(surface,/buildStoryDevelopmentFields\(plotPickleCurriculum\)/u);
   assert.match(surface,/questionByField/u);
   assert.match(surface,/Original question:/u);
-  assert.match(surface,/These are not additional choices/u);
+  assert.match(surface,/Save to master or Not required/u);
   assert.match(surface,/field\.canonicalId \+ "::act-" \+ act/u);
   assert.match(fieldDefinitions,/canonicalId: storyDevelopmentCanonicalId\(topic\.id, lesson\.id, fieldId\)/u);
   assert.match(fieldDefinitions,/prompt,/u);

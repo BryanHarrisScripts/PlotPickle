@@ -17,6 +17,7 @@ import { FOUNDATION_SOURCE_COVERAGE } from "./foundation-content-coverage";
 import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
 import { FOUNDATION_PROMOTED_SOURCE_IDS } from "./foundation-reference-lessons";
 import { ISSUE_1976_CANONICAL_LESSON_COUNT, withIssue1976CanonicalEnrichment } from "./issue-1976-canonical";
+import { withIssue2900CreativeFocus } from "./issue-2900-creative-focus";
 
 type TopicDocument = {
   readonly schemaVersion: string;
@@ -386,11 +387,11 @@ const withIssue2094FinalFidelity = (documents: readonly TopicDocument[]): readon
   lessons: document.lessons.map(integrateIssue2094FinalFidelity),
 }));
 
-export const canonicalTopicDocuments = withIssue2094FinalFidelity(
+export const canonicalTopicDocuments = withIssue2900CreativeFocus(withIssue2094FinalFidelity(
   withIssue2094LearnerIntegration(
     withIssue1976CanonicalEnrichment(baseTopicDocuments),
   ),
-);
+));
 const archive = canonicalTopicDocuments.flatMap((document) => document.lessons).sort(compareVisualWriterCurriculumOrder);
 const sourceIds = archive.flatMap((lesson) => lesson.sources.map((source) => source.id));
 const expectedArchiveLessons = index.lessonCount + ISSUE_1976_CANONICAL_LESSON_COUNT;

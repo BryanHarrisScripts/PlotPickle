@@ -66,6 +66,17 @@ Use Sequence Evidence after generation to verify what the media actually contain
 
 REFERENCE analysis of user-supplied or otherwise authorized external media may discover unknown shot boundaries and summarize measurable film grammar. Reference evidence is observational only and has no PPF canon authority; do not import dialogue, characters, story beats or shot-by-shot copyrighted expression into canon.
 
+## Creative Focus cinematic-planning procedure (issue #2900)
+
+Use these reviewed workflow ideas from the cinema-skills discipline roadmap as native PlotPickle planning guidance, not as an installed external production skill. Source contains plans and templates, not finished skill bodies.
+
+1. Take the Human-approved Mini-Block intent, visual references and screenplay. Identify scene geography, action, performance, camera intention, lighting/style constraints and narration/voice purpose.
+2. Plan the beat-to-shot causal progression in the existing Storyboard and Previs authorities. Each candidate shot describes coverage, starting state, visible action, exit state and the neighboring continuity handoff. Retain 25 planned Shots and the host's technical render grid; creative Beats remain variable.
+3. Build a small style-bible checklist from approved references: character identity, wardrobe, location, palette, light direction, camera axis, props and allowed changes. Missing evidence is a blocker or question, not a default style decision.
+4. If narration is requested, draft a line only when voice reveals, contrasts or motivates information the image alone does not convey; ground the line in the approved script. Mark speaker, proposed timing and current approval state.
+5. Before handing off to Timeline, list missing locked Storyboard images, unapproved narration, unsupported video routes and continuity risk. Do not claim audio, grading, MP4 export, motion generation or provider readiness merely from a plan.
+6. Return a writer-reviewable cinematic plan with source evidence, coverage choices, reference locks, unresolved questions and exact handoff boundaries. The host owns generation, acceptance and budget.
+
 ## Provider and runtime boundary
 
 The skill never chooses a provider, model or runtime. The PlotPickle host asks the plug-in registry for the selected capability implementation at generation time.

@@ -4,7 +4,7 @@ import {
   type StoryMapContext,
 } from "./story-map-context";
 import { normalizeLibraryProject, type LibraryPPFProject } from "./library-project";
-import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../../modules/library/afterglow-review-draft.mjs";
+import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../../modules/library/master/afterglow-review-draft.mjs";
 import {
   clearLibraryProjectSessionCache,
   consumeSessionActiveProjectHandoff,

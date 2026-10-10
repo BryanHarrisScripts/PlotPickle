@@ -33,6 +33,7 @@ import {
 import { profilePrivateBrowserReadyFor, listProfileRecoveryPoints,
   commitConsolidatedAfterglow,lastAfterglowMasterSaveAttempt,readAfterglowMasterSaveAudit,
   loadAfterglowReviewDraft,saveAfterglowReviewDraft,clearAfterglowReviewDraft,
+  refreshAfterglowLibraryFromEncryptedProfile,
   type AfterglowMasterSaveAudit,type ConsolidatedAfterglowReceipt,
   type ProfileRecoveryPoint } from "../../../core/storage/profile-private-browser";
 import { describeAfterglowConsolidationConflict, reviewAfterglowConsolidationDecisions } from "../afterglow-consolidation.mjs";
@@ -246,6 +247,7 @@ export default function AfterglowManagementPanel() {
   const [saveError,setSaveError] = useState("");
   const [lastReview,setLastReview] = useState<AfterglowReviewDraft|null>(null);
   const [draftSaveStatus,setDraftSaveStatus] = useState<"idle"|"saving"|"saved"|"blocked">("idle");
+  const [refreshingSources,setRefreshingSources] = useState(false);
   const [draftSaveMessage,setDraftSaveMessage] = useState("");
   const draftWriteGeneration=useRef(0);
   const [lastSaveAudit,setLastSaveAudit] = useState<AfterglowMasterSaveAudit|null>(null);
@@ -457,6 +459,23 @@ export default function AfterglowManagementPanel() {
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, [refresh]);
+
+  async function refreshSavedSources() {
+    if(busy||mediaBusy||preflightBusy||refreshingSources)return;
+    setRefreshingSources(true);
+    try {
+      await refreshAfterglowLibraryFromEncryptedProfile();
+      const changed=Boolean(preview && preview.sourceInventory!==reviewSourceInventoryFingerprint());
+      refresh();
+      setNotice(changed
+        ? "Saved versions changed in your encrypted profile. Your current selections and last review remain intact; review the new versions before committing."
+        : "Saved versions refreshed from your encrypted profile. Your consolidation selections remain intact.");
+    } catch(error) {
+      setNotice(error instanceof Error?error.message:"Saved versions could not be verified. Your last review remains untouched.");
+    } finally {
+      setRefreshingSources(false);
+    }
+  }
 
   async function reviewConsolidation(resumeDraft: AfterglowReviewDraft|null = null) {
     if (busy || mediaBusy || preflightBusy) return;
@@ -896,13 +915,8 @@ export default function AfterglowManagementPanel() {
                 Afterglow can treat them as merge sources. Nothing is restored here.</p>
             </section>
             <div className={styles.actions}>
-              <button type="button" disabled={busy || mediaBusy || preflightBusy} onClick={()=>{
-                const changed=preview && preview.sourceInventory!==reviewSourceInventoryFingerprint();
-                refresh();
-                setNotice(changed
-                  ? "Saved versions changed. Your review selections remain intact; start a new review before committing."
-                  : "Saved versions refreshed. Your review selections and encrypted draft remain intact.");
-              }}>Refresh Saved Versions</button>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || refreshingSources}
+                onClick={()=>void refreshSavedSources()}>{refreshingSources?"Refreshing encrypted versions…":"Refresh Saved Versions"}</button>
               <button type="button" disabled={busy || mediaBusy || preflightBusy || (!sources.length && !recoverySourceAudit.found.length)} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review Consolidation"}
               </button>

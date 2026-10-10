@@ -138,7 +138,7 @@ export async function prepareServerAfterglowMaster(input:{
     throw new Error("The official Afterglow package has not been verified for consolidation.");
   }
   const baseline=normalizeLibraryProject(packagedSnapshot.project);
-  const aliasMedia=await verifyServerAfterglowMedia(afterglowCollidingMediaUrls({baseline,sources:input.sources}));
+  const aliasMedia=await verifyServerAfterglowMedia(afterglowCollidingMediaUrls({baseline,sources:input.sources,decisions:input.selections.decisions}));
   const verifiedMediaHashes=Object.fromEntries(aliasMedia.map(item=>[item.url,item.contentHash]));
   const prepared=prepareVerifiedAfterglowMaster({
     baseline,sources:input.sources,

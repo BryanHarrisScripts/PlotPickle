@@ -1,0 +1,10 @@
+import type {LibraryPPFProject} from "../../../core/storage/library-project";
+import type {AfterglowConsolidationPlan,AfterglowDecisionPreview,AfterglowConflictChoice} from "../afterglow-consolidation.mjs";
+export type AfterglowRecordSources=readonly {project:LibraryPPFProject;sourceKey?:string;savedAt?:string}[];
+export type AfterglowReviewRecord={key:string;path:string;kind:"image"|"record";label:string;versions:{value:unknown;accepted?:boolean;sources:string[]}[]};
+export function isAfterglowRecordDecision(key:string):boolean;
+export function afterglowRecordDecisionKey(path:string):string;
+export function afterglowCreativeDecisions(decisions:Readonly<Record<string,AfterglowConflictChoice>>):Record<string,AfterglowConflictChoice>;
+export function listAfterglowReviewRecords(input:{baseline:LibraryPPFProject;sources:AfterglowRecordSources;plan:AfterglowConsolidationPlan}):AfterglowReviewRecord[];
+export function applyAfterglowRecordChoices(input:{baseline:LibraryPPFProject;sources:AfterglowRecordSources;plan:AfterglowConsolidationPlan;reviewed:AfterglowDecisionPreview;decisions:Readonly<Record<string,AfterglowConflictChoice>>}):AfterglowDecisionPreview & {resolvedRecordPaths:string[]};
+export function afterglowUncoveredImageChoices(input:{items:readonly {key:string;characterId:string}[];choices:Readonly<Record<string,"keep"|"exclude">>;resolvedRecordPaths:readonly string[]}):Record<string,"keep"|"exclude">;

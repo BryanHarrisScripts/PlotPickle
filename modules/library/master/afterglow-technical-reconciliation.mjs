@@ -12,12 +12,15 @@ const signature=(artifact,verifiedMediaHashes)=>{
   if(/^sha256:[a-f0-9]{64}$/.test(hash??""))content.assetUrl=hash;
   return stable(content);
 };
-export function afterglowCollidingMediaUrls({baseline,sources}) {
+import {isAfterglowRecordDecision} from "./afterglow-record-review.mjs";
+const recordPath=(scope,id)=>"/build/"+scope+"/visualArtifacts/@id:"+id.replaceAll("~","~0").replaceAll("/","~1");
+export function afterglowCollidingMediaUrls({baseline,sources,decisions={}}) {
   const urls=new Set();
   for(const scope of scopes){
     const records=new Map();
     for(const project of [baseline,...sources.map(x=>x.project)])
       for(const artifact of project.build?.[scope]?.visualArtifacts??[]){
+        if(Object.keys(decisions).some(key=>isAfterglowRecordDecision(key)&&key==="/afterglow-record-review"+recordPath(scope,artifact.id)))continue;
         if(!records.has(artifact.id))records.set(artifact.id,new Set());
         if(artifact.assetUrl)records.get(artifact.id).add(artifact.assetUrl);
       }
@@ -43,6 +46,16 @@ export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed,ve
     const artifacts=[],accepted=[];
     for(const [id,witnesses] of records){
       const label=witnesses[0].artifact.narrativeIntention||"Saved image "+id;
+      if((reviewed.resolvedRecordPaths??[]).includes(recordPath(scope,id))){
+        const selected=candidate.build?.[scope]?.visualArtifacts?.find(item=>item.id===id);
+        if(!selected)continue; // Explicit Not required; source history stays untouched.
+        const isAccepted=(candidate.build[scope].acceptedVisualArtifactIds??[]).includes(id);
+        if(isAccepted&&(selected.reviewState!=="accepted"||!selected.assetUrl
+          ||scope==="foundations"&&selected.workflow==="storyboard-frame-webp-v2"&&!(selected.sourceDecisionKeys??[]).includes("storyboard-local-save:v1"))){
+          blockers.push(label+": selected approval has no confirmed saved image.");continue;
+        }
+        artifacts.push(structuredClone(selected));if(isAccepted)accepted.push(id);continue;
+      }
       const current=witnesses.filter(x=>x.project!==baseline);
       // A baseline reference is not competing user authority, but a different
       // image under its ID still cannot be replaced through bookkeeping.
@@ -76,6 +89,9 @@ export function reconcileAfterglowTechnicalRecords({baseline,sources,reviewed,ve
       artifact.reviewState=states[0].accepted?"accepted":states[0].artifact.reviewState;
       artifacts.push(artifact);if(states[0].accepted)accepted.push(id);
     }
+    const retained=new Set(artifacts.map(item=>item.id));
+    for(const artifact of artifacts)if(artifact.parentArtifactId&&!retained.has(artifact.parentArtifactId)&&(reviewed.resolvedRecordPaths??[]).includes(recordPath(scope,artifact.parentArtifactId)))
+      blockers.push((artifact.narrativeIntention||artifact.id)+": its original image was left out. Save that original image or leave out this derived image too.");
     if(!candidate.build)candidate.build={};
     candidate.build[scope]={...candidate.build[scope],visualArtifacts:artifacts,acceptedVisualArtifactIds:accepted};
   }

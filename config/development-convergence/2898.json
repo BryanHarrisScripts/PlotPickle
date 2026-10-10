@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "issue": 2898,
+  "brief": "docs/developer-briefs/2898-afterglow-actionable-record-review.md",
+  "allowedChanges": [
+    "config/development-convergence/2898.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2898-afterglow-actionable-record-review.md",
+    "modules/library/afterglow-consolidation.d.mts",
+    "modules/library/afterglow-consolidation.mjs",
+    "modules/library/afterglow-record-review.d.mts",
+    "modules/library/afterglow-record-review.mjs",
+    "modules/library/master/afterglow-master-authority.mjs",
+    "modules/library/master/afterglow-master-server.ts",
+    "modules/library/master/afterglow-record-review.d.mts",
+    "modules/library/master/afterglow-record-review.mjs",
+    "modules/library/master/afterglow-technical-reconciliation.d.mts",
+    "modules/library/master/afterglow-technical-reconciliation.mjs",
+    "modules/library/ui/afterglow-management-panel.tsx",
+    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+    "tests/issue-2863-afterglow-conflict-decisions.test.mjs",
+    "tests/issue-2863-afterglow-consolidation.test.mjs",
+    "tests/issue-2863-afterglow-image-visual-choices.test.mjs",
+    "tests/issue-2863-creative-master-selection.test.mjs",
+    "tests/issue-2898-afterglow-record-review.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "ACTIONS",
+      "criterion": "Explicit saved-record choices resolve genuine disagreement",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2898-afterglow-record-review.test.mjs",
+          "contains": "source-bound Save resolves approval disagreement without inventing approval"
+        }
+      ]
+    },
+    {
+      "id": "PERSIST",
+      "criterion": "Original review persists alongside new decisions",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2898-afterglow-record-review.test.mjs",
+          "contains": "all ninety previous confirmations"
+        }
+      ]
+    },
+    {
+      "id": "AUTHORITY",
+      "criterion": "Server independently reconstructs choices",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2898-afterglow-record-review.test.mjs",
+          "contains": "authenticated master authority recomputes"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT",
+      "criterion": "Rendered UI verifies saved master export",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+          "contains": "excluded image stays absent in actual saved master export"
+        }
+      ]
+    }
+  ]
+}

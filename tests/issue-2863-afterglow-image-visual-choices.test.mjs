@@ -115,7 +115,7 @@ test("#2863 UI links are manifest-grounded, readable and choices included in sta
   assert.match(ui,/Keep<\/button>/u);
   assert.match(ui,/Exclude<\/button>/u);
   assert.match(ui,/selectionFingerprint = JSON\.stringify\(\{ decisions, exclusions, imageChoices, confirmedCurrent \}\)/u);
-  assert.match(ui,/visit\(imageReview\.candidate\)/u,"recheck every image used throughout consolidated draft");
+  assert.match(ui,/visit\(candidate\)/u,"recheck every image used throughout consolidated draft");
   assert.match(ui,/saved alternative/u);
   assert.match(ui,/Save Consolidated Afterglow verifies/u);
   assert.doesNotMatch(ui,/commitAfterglowMaster\(/u);

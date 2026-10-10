@@ -53,6 +53,8 @@ export declare function planAfterglowConsolidation(input: {
   readonly questions?: Readonly<Record<string, string>>;
 }): AfterglowConsolidationPlan;
 export declare const AFTERGLOW_DURABLE_FIELDS: readonly string[];
+export function readAfterglowRecordPath(project:unknown,path:string):{present:boolean;value?:unknown};
+export function writeAfterglowRecordPath(project:unknown,path:string,record:{present:boolean;value?:unknown}):void;
 export declare function describeAfterglowConsolidationConflict(path: string): Readonly<{
   kind: "visual-approval-collection" | "narration-approval-collection" |
     "shot-narration-approval" | "authorship-metadata" | "story-field-content" | "other";

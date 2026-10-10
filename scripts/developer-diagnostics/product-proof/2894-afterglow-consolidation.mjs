@@ -39,7 +39,9 @@ if(!listAfterglowExampleProjects().length){
  const field=buildStoryDevelopmentFields(plotPickleCurriculum).find(f=>f.scope==="project-wide");
  for(let n=0;n<2;n++){
   const p=normalizeLibraryProject(packaged.project);p.id="rendered-2894-"+n;
-  p[field.topicId].lessons[field.lessonId]={answers:{[field.fieldId]:"Synthetic reviewed story answer"},draftProposals:[]};
+  const lesson=p[field.topicId].lessons[field.lessonId]??{answers:{},draftProposals:[]};
+  lesson.answers[field.fieldId]="Synthetic reviewed story answer";
+  p[field.topicId].lessons[field.lessonId]=lesson;
   if(n)p.build.foundations.visualArtifacts[0].sourceDecisionKeys.push("synthetic-recorded-bookkeeping");
   saveFoundationProject(p);await flushProfilePrivateWrites();
  }

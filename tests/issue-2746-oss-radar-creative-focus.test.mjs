@@ -6,7 +6,7 @@ import { deriveEnrichmentEvidence } from "../lib/verification/oss-radar/enrichme
 import { publishDailyRadar } from "../lib/verification/oss-radar/issue-lifecycle.mjs";
 import { runRadar } from "../lib/verification/oss-radar/run-radar.mjs";
 import { normalizeRepository } from "../lib/verification/oss-radar/query-normalization.mjs";
-import { focusedMonthlyTitles, historicalCreativeSeeds, runCreativeReview } from "../lib/verification/oss-radar/creative-focus/review.mjs";
+import { focusedMonthlyTitles, historicalCreativeSeeds, latestPriorCreativeSelection, runCreativeReview } from "../lib/verification/oss-radar/creative-focus/review.mjs";
 import { renderCreativeReview } from "../lib/verification/oss-radar/creative-focus/report.mjs";
 import { balancedCreativeShortlist, creativeEnrichmentContract, loadCreativeFocus, refreshedCreativeEvidence, scoreCreativeCandidate } from "../lib/verification/oss-radar/creative-focus/score.mjs";
 
@@ -167,4 +167,82 @@ test("#2746 merged Radar changes publish automatically and select production bui
   assert.doesNotMatch(workflow, /^  pull_request:/mu);
   const buildSelector = architecture.split("\n").find((line) => line.includes("then build=true; fi"));
   assert.ok(buildSelector.includes("lib/verification/oss-radar/|config/oss-radar/|"));
+});
+
+
+function featured(names, date) {
+  return { created_at: date + "T12:00:00Z", html_url: "https://github.com/a/b/issues/2620#focus-" + date,
+    body: "<!-- PLOTPICKLE-OSS-RADAR-DAY:" + date + " -->\n" +
+      "## Creative Focus — Storytelling Education and Visual Production Top 3\n\n" +
+      names.map((name, index) => "### Focus " + (index + 1) + ". [" + name + "](https://github.com/" + name + ")").join("\n") +
+      "\n\n## OSS Rules — Agent Instruction Intelligence\n" };
+}
+
+test("#2892 published prior Creative Focus is the daily exclusion authority, across dates and months", () => {
+  const comments = [
+    featured(["A/ONE", "a/two", "a/three"], "2026-09-30"),
+    featured(["a/four", "A/TWO", "a/six"], "2026-10-01"),
+    featured(["a/today"], "2026-10-02"),
+  ];
+  assert.deepEqual(latestPriorCreativeSelection(comments, new Date("2026-10-02T17:00:00Z")), {
+    reportDate: "2026-10-01", repositories: ["a/four", "a/two", "a/six"],
+  });
+  assert.deepEqual(latestPriorCreativeSelection(comments, new Date("2026-10-01T17:00:00Z")), {
+    reportDate: "2026-09-30", repositories: ["a/one", "a/two", "a/three"],
+  });
+  assert.deepEqual(latestPriorCreativeSelection([], now), { reportDate: null, repositories: [] });
+  assert.throws(() => latestPriorCreativeSelection([comments[0], comments[0]], new Date("2026-10-01T12:00:00Z")), /Duplicate Creative Focus/u);
+});
+
+test("#2892 excludes all previous featured repositories before shortlist and chooses qualified replacements", async () => {
+  const today = new Date("2026-10-09T12:00:00Z");
+  const names = ["a/old1", "a/old2", "a/old3", "a/new1", "a/new2", "a/new3"];
+  const texts = Object.fromEntries(names.map((name) => [name, education]));
+  const api = apiFixture(texts);
+  const dailyHistory = featured(names.slice(0, 3), "2026-10-08");
+  const result = await runCreativeReview({ repository: "a/b", auth: "fixture", contract, profile,
+    now: today, fetchImpl: api.fetchImpl, comments: [dailyHistory, ...names.slice(0, 3).map((name) => report(name, "2026-10-07"))],
+    freshResult: { candidates: names.map((name) => candidate(name, education)), executedQueryCount: 8, uniqueCandidateCount: 6 } });
+  assert.deepEqual(result.selected.map((item) => item.fullName), names.slice(3));
+  assert.equal(result.status, "available");
+  assert.deepEqual(result.dailyNovelty.excludedRepositories, names.slice(0, 3));
+  assert.equal(result.dailyNovelty.shortfall, 0);
+  assert.ok(api.calls.every((call) => !names.slice(0, 3).some((name) => call.url.includes("/repos/" + name))));
+  assert.match(renderCreativeReview(result), /Daily non-repeat truth: Previous Creative Focus report 2026-10-08/u);
+  assert.ok(result.candidates.every((item) => !names.slice(0, 3).includes(item.fullName)));
+});
+
+test("#2892 same-day reruns ignore current report and keep the same prior-day exclusion", async () => {
+  const today = new Date("2026-10-09T12:00:00Z");
+  const api = apiFixture({ "a/old1": education, "a/fresh": visual });
+  const args = { repository: "a/b", auth: "fixture", contract, profile: { ...profile, targetFindings: 1 }, now: today,
+    fetchImpl: api.fetchImpl, freshResult: { candidates: [candidate("a/old1", education), candidate("a/fresh", visual)] } };
+  const prior = featured(["a/old1"], "2026-10-08");
+  const first = await runCreativeReview({ ...args, comments: [prior] });
+  const second = await runCreativeReview({ ...args, comments: [prior, featured(["a/fresh"], "2026-10-09"),
+    report("a/brand-new", "2026-10-09")] });
+  assert.deepEqual(first.selected.map((item) => item.fullName), ["a/fresh"]);
+  assert.deepEqual(second.selected.map((item) => item.fullName), ["a/fresh"]);
+  assert.deepEqual(second.dailyNovelty, first.dailyNovelty);
+});
+
+test("#2892 fails without padding when replacements cannot fill all daily slots", async () => {
+  const api = apiFixture({ "a/old": education, "a/new": visual });
+  const result = await runCreativeReview({ repository: "a/b", auth: "fixture", contract, now,
+    fetchImpl: api.fetchImpl, comments: [featured(["a/old"], "2026-10-04")],
+    freshResult: { candidates: [candidate("a/old", education), candidate("a/new", visual)] } });
+  assert.deepEqual(result.selected.map((item) => item.fullName), ["a/new"]);
+  assert.equal(result.status, "partial");
+  assert.equal(result.dailyNovelty.shortfall, 2);
+  assert.match(renderCreativeReview(result), /selected 1\/3; shortfall 2/u);
+});
+
+test("#2892 unavailable creative history fails closed rather than repeating unverified Top 3", async () => {
+  const result = await runCreativeReview({ repository: "a/b", auth: "fixture", contract, now,
+    fetchImpl: async () => { throw new Error("GitHub read unavailable"); },
+    freshResult: { candidates: [candidate("a/old", education)] } });
+  assert.equal(result.status, "unavailable");
+  assert.deepEqual(result.selected, []);
+  assert.match(renderCreativeReview(result), /Daily non-repeat status unavailable/u);
+  assert.match(result.warnings.join(" "), /no unverified repeat selections/u);
 });

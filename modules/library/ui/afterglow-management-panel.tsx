@@ -1074,7 +1074,7 @@ export default function AfterglowManagementPanel() {
                           : "Conflicting reference identity or metadata. Verify the saved source before keeping this image."}
                       </p> : null}
                       <div className={styles.creativeActions}>
-                        <button type="button" aria-pressed={inDraft}
+                        <button type="button" aria-pressed={imageChoices[item.key]==="keep"}
                           disabled={busy||mediaBusy||preflightBusy||blocked}
                           onClick={()=>setImageChoices(previous=>selectAfterglowImageOption(
                             preview.imageOptions,previous,item.key,"keep"))}>Keep</button>

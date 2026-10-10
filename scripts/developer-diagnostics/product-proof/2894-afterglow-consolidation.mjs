@@ -96,11 +96,15 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   // Choose one image per character/view; the actual control excludes competitors.
   // Image cards are inside details; choose first unreviewed slot each pass.
   for(let n=0;n<150;n++){
-    const unselected=page.locator('button[aria-pressed="false"]').filter({hasText:/^Keep$/});
+    const unselected=page.locator('[data-afterglow-decision-state="current"] button').filter({hasText:/^Keep$/});
     if(!await unselected.count())break;
     await unselected.first().click();
   }
   const save=page.getByRole("button",{name:"Save Consolidated Afterglow",exact:true});
+  if(!await save.isEnabled()){
+    await page.screenshot({path:path.join(artifactRoot,"review-incomplete.png"),fullPage:true});
+    console.log(await page.locator('body').innerText());
+  }
   assert.equal(await save.isEnabled(),true,"completed creative review enables independent Save despite bookkeeping conflicts");
   assert.equal(await page.getByText(/Advanced verification details|Unresolved review items/).count(),0);
   await save.scrollIntoViewIfNeeded();

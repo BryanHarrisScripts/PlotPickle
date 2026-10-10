@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
 import { buildStoryDevelopmentFields } from "../../learn/model/story-development-fields";
 import { LEARN_TOPIC_SPINE } from "../../learn/model/story-learning-context";
@@ -231,6 +231,7 @@ export default function AfterglowManagementPanel() {
   const [preflightNotice, setPreflightNotice] = useState("");
   const [notice, setNotice] = useState("");
   const [saveReceipt,setSaveReceipt] = useState<ConsolidatedAfterglowReceipt|null>(null);
+  const savedConfirmationRef = useRef<HTMLElement | null>(null);
   const [saveError,setSaveError] = useState("");
   const [lastSaveAudit,setLastSaveAudit] = useState<AfterglowMasterSaveAudit|null>(null);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
@@ -351,6 +352,33 @@ export default function AfterglowManagementPanel() {
     })),
     imageOptions:preview?.imageOptions??[],imageChoices,
   }),[preview,canonicalFields,creativeChoices,confirmedCurrent,exclusions,decisions,imageChoices]);
+  // Human decisions (green) are necessary, but cannot override the server's
+  // independent structural/question/technical-verification truth gates.
+  // A clickable Save must never invite an attempt that the server is known
+  // to reject even before inspecting the encrypted bytes.
+  const technicalSaveBlockers = preview ? [
+    ...preview.plan.needsReview.map(item => item.reason),
+    ...creativeChoices.verification.map(item => item.reason),
+    ...preview.questionEvidence.filter(item =>
+      item.questionStatus !== "canonical-question-matched").map(() => "unverified-canonical-question"),
+    ...(textReviewed?.unresolvedConflicts ?? []).map(item => item.reason),
+    ...(textReviewed?.needsReview ?? []).map(item => item.reason),
+  ].filter((value,index,array) => array.indexOf(value) === index) : [];
+  const canSaveMaster = Boolean(preview && reviewed
+    && reviewProgress.allCreativeDecided
+    && !reviewProgress.needsIndependentReview.length
+    && !preview.sourceWarnings.length
+    && !technicalSaveBlockers.length);
+  useEffect(() => {
+    if (!saveReceipt) return;
+    // The review containing the Save button disappears after a successful
+    // commit. Move the receipt into view instead of leaving it off-screen.
+    const frame = window.requestAnimationFrame(() => {
+      savedConfirmationRef.current?.scrollIntoView({ block: "center" });
+      savedConfirmationRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [saveReceipt]);
   const pendingHumanChoices=reviewProgress.pending;
 
   const refresh = useCallback(() => {
@@ -635,10 +663,10 @@ export default function AfterglowManagementPanel() {
   }
 
   async function saveConsolidatedMaster() {
-    if(!preview || !reviewed || busy || mediaBusy || preflightBusy
-      || !reviewProgress.allCreativeDecided || reviewProgress.needsIndependentReview.length
-      || preview.sourceWarnings.length) {
-      setSaveError("Decide every required creative choice and resolve preservation blockers before saving.");
+    if(!canSaveMaster || busy || mediaBusy || preflightBusy) {
+      setSaveError(technicalSaveBlockers.length
+        ? "Independent verification is unresolved: " + technicalSaveBlockers.join(", ") + ". Your creative selections have been retained; no master was saved."
+        : "Decide every required creative choice and resolve preservation blockers before saving.");
       return;
     }
     setBusy(true);
@@ -793,6 +821,7 @@ export default function AfterglowManagementPanel() {
             Do not assume a master was created; check the encrypted Library before retrying.</p>
         ) : null}
         {saveReceipt ? <section className={styles.consolidatedResult}
+          ref={savedConfirmationRef} tabIndex={-1}
           role="status" aria-label="Consolidated Afterglow saved confirmation">
           <h3>{saveReceipt.libraryRefreshed
             ? "Consolidated Afterglow saved successfully and verified in Library."
@@ -1299,9 +1328,7 @@ export default function AfterglowManagementPanel() {
                 classifications explicitly confirmed. Every required classification must
                 be resolved before saving. Structural and media evidence is checked again
                 independently on the authenticated server.</p>
-              <button type="button" disabled={busy||mediaBusy||preflightBusy||
-                !reviewProgress.allCreativeDecided||Boolean(reviewProgress.needsIndependentReview.length)||
-                Boolean(preview.sourceWarnings.length)}
+              <button type="button" disabled={busy||mediaBusy||preflightBusy||!canSaveMaster}
                 onClick={()=>void saveConsolidatedMaster()}>
                 {busy?"Creating verified consolidated Afterglow…":"Save Consolidated Afterglow"}
               </button>
@@ -1311,6 +1338,13 @@ export default function AfterglowManagementPanel() {
                 <p>The reviewed choices have been retained on this page.
                   Your older saved copies and recovery points remain available.
                   Do not interpret this attempt as a consolidated master.</p>
+              </div> : null}
+              {technicalSaveBlockers.length ? <div role="status" className={styles.saveFailure}>
+                <strong>Cannot save yet — independent verification is incomplete</strong>
+                <p>All green creative decisions remain selected. PlotPickle must resolve these
+                  technical truth checks independently, rather than asking you to approve
+                  hashes, timestamps or structural conflicts as story choices.</p>
+                <ul>{technicalSaveBlockers.map(reason => <li key={reason}>{reason}</li>)}</ul>
               </div> : null}
               {reviewProgress.pending>0?<p className={styles.reviewCurrent}>
                 {reviewProgress.pending} choices still need your confirmation; save is disabled.

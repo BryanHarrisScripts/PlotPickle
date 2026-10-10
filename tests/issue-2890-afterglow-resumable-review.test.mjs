@@ -80,7 +80,8 @@ test("#2890 authenticated save/readback, resume guard, non-destructive refresh a
   assert.match(api,/readback\) !== JSON.stringify\(draft\)/u);
   assert.match(api,/afterglowReviewDraft/u);
   assert.match(api,/input.action === "clear-afterglow-review-draft"/u);
-  assert.match(api,/active.id !== input.masterId/u);
+  assert.match(api,/active.id !== expectedVerifiedMaster/u);
+  assert.match(api,/typeof input\["masterId"\] === "string"/u);
   assert.match(browser,/queueWriteOperation\(async writeToken/u);
   assert.match(browser,/ack.selectionsDigest!==selectionsDigest/u);
   assert.match(browser,/await flushProfilePrivateWrites\(\)/u);

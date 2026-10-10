@@ -330,6 +330,21 @@
       ]
     },
     {
+      "id": "creative-focus-2900-native-agent-procedures",
+      "classification": "production",
+      "include": [
+        ".agents/skills/story-development-craft/**",
+        ".agents/skills/story-revision-review/**",
+        ".agents/skills/sequence-director/**"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "skill",
+        "canon"
+      ]
+    },
+    {
       "id": "storyboard-frame-director-agent-skill",
       "classification": "production",
       "include": [
@@ -1330,6 +1345,20 @@
       "riskTokens": [
         "canon",
         "graph"
+      ]
+    },
+    {
+      "id": "creative-focus-2900-current-teaching",
+      "classification": "production",
+      "include": [
+        "adapters/curriculum/issue-2900-creative-focus.ts",
+        "adapters/curriculum/issue-2900-current-presentation.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "curriculum",
+        "canon",
+        "agent"
       ]
     },
     {

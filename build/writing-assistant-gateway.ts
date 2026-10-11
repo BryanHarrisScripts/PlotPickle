@@ -390,9 +390,10 @@ export async function resolveConfiguredLocalNarrationProfile() {
     }
     return { profile };
   }
-  if (choice.text !== "local") {
-    throw new Error("Storyboard narration is local-only. Select Local Writing Runtime or Ollama under Connections → Writing, then verify that provider. Cloud and Off selections cannot be used without changing PP-NARR-001.");
-  }
+  // PP-NARR-001 B2: existing verified Local Quality works even when a
+  // separate general-purpose Writing route is Cloud or Off. Never send
+  // Storyboard narration to that unrelated cloud route. Explicitly selecting
+  // Ollama above opts into that local provider; all other choices keep Quality.
   const execution = await localTextExecutionProfile("quality");
   const profile = store.profiles.local;
   if (!sameLocalWritingExecution(profile, execution) || !writingReadiness(profile).ready) {

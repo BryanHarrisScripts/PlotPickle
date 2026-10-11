@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { WEBMCP_STANDARD_SURFACE_REGISTRY } from "../lib/verification/webmcp-surface-capture-registry.mjs";
+import { WEBMCP_STANDARD_SURFACE_REGISTRY, WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-canonical-surface-registry.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
@@ -86,4 +86,17 @@ test("#2914 Connections remains reachable through its governed surface catalogue
   assert.equal(surface.runtimeReadySelector, `${selector} [data-hybrid-story-mode='capability-matrix']`);
   assert.equal(surface.label, "Connections");
   assert.equal(declaration.titleStack.globalSurfaceLabel, surface.label);
+});
+
+
+test("#2914 rendered catalogue evidence manifest agrees with all canonical capture contracts", async () => {
+  const manifest = JSON.parse(await read("tests/visual-baselines/skin-v1/manifest.json"));
+  for (const id of WEBMCP_STANDARD_SURFACE_TARGETS) {
+    const contract = WEBMCP_STANDARD_SURFACE_REGISTRY[id];
+    const entry = manifest.surfaces[id];
+    assert.ok(entry, `${id} needs a visual evidence entry`);
+    assert.equal(entry.selector, contract.rootSelector, `${id} selector drift`);
+    assert.equal(entry.candidate, contract.candidate, `${id} candidate evidence drift`);
+    assert.equal(entry.baseline, contract.baseline, `${id} baseline evidence drift`);
+  }
 });

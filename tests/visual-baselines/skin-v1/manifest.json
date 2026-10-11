@@ -166,9 +166,9 @@
       "baseline": "tests/visual-baselines/skin-v1/15-manage__03-cloud.png"
     },
     "hybrid-story-mode": {
-      "label": "Hybrid",
+      "label": "Connections",
       "status": "candidate",
-      "selector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
+      "selector": "section[aria-label='Capability Connections'][data-story-mode-view='hybrid']",
       "candidate": ".artifacts/visual-readiness/15-manage__04-hybrid__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/15-manage__04-hybrid.png"
     },

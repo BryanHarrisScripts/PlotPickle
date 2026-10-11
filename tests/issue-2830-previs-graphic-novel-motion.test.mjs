@@ -457,3 +457,53 @@ test("#2830 acknowledges one atomic encrypted save of a ready Motion and Product
   assert.match(source, /await observeSubmittedMotion\(/u);
   assert.match(source, /await onProgress\(current\)/u);
 });
+
+test("#2830 transient provider status failures keep an already paid job resumable, terminal failure does not", async () => {
+  const source = await readText("app/_components/timeline/timeline-assembly-workspace.tsx");
+  const observerStart = source.indexOf("  async function observeSubmittedMotion(");
+  const observerEnd = source.indexOf("  async function generateMotionShot(", observerStart);
+  assert.ok(observerStart >= 0 && observerEnd > observerStart);
+  const code = stripTypeScriptTypes(source.slice(observerStart, observerEnd));
+  const messages = [], writes = [], urls = [];
+  let terminal = false;
+  const ctx = vm.createContext({
+    TimelineMotionSaveError: class TimelineMotionSaveError extends Error {},
+    TimelineMotionObservationError: class TimelineMotionObservationError extends Error {},
+    window: { setTimeout: callback => callback() },
+    fetch: async url => {
+      urls.push(url);
+      if (terminal) return { ok: true, json: async () => ({
+        id: "already-submitted-job", status: "failed", error: "provider rejected the exact Shot",
+      }) };
+      return { ok: false, json: async () => ({ message: "temporary status endpoint outage" }) };
+    },
+    setMessage: value => messages.push(value),
+    setGeneratingMotionStage: () => {},
+    setPlaybackMode: () => { throw new Error("no video has been confirmed"); },
+    storeMotion: async motion => { writes.push(motion); },
+    latestProject: { current: { production: { timelineMotionShots: [] } } },
+    timelineProductionShotsFor: () => [],
+  });
+  vm.runInContext(code, ctx);
+  const placement = { id: "p1" };
+  const packet = { canonicalRevision: 1, id: "packet", sourceRefs: [] };
+  const submitted = {
+    id: "timeline-existing-motion", jobId: "already-submitted-job", status: "queued",
+    provider: "verified", sourceKey: "locked-shot-source", outputAssetUrl: "",
+  };
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "network/status outage does not mark paid job terminally failed");
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /^\\/api\\/local-ai\\/video\\//u);
+  assert.match(messages.at(-1), /Resume existing motion job/u);
+  assert.match(messages.at(-1), /temporary status endpoint outage/u);
+
+  terminal = true;
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 1, "confirmed provider failure is recorded");
+  assert.equal(writes[0].status, "failed");
+  assert.equal(writes[0].jobId, "already-submitted-job");
+  assert.match(writes[0].error, /provider rejected the exact Shot/u);
+  assert.ok(urls.every(url => url.startsWith("/api/local-ai/video/")),
+    "status retry must never invoke /api/local-ai/generate/video");
+});

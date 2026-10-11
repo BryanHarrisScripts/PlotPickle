@@ -375,6 +375,6 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.equal(active.production.graphicNovelTextApprovals[0].noText, true);
   assert.match(notices[1], /No Bubble saved and locked/u);
   assert.equal(saveInFlight.current, false);
-  assert.match(source, /disabled={busyPosition !== null \|\| savingPosition !== null}/u,
+  assert.ok(source.includes('disabled={busyPosition !== null || savingPosition !== null}'),
     'the No Bubble control must be visibly disabled during a pending Save');
 });

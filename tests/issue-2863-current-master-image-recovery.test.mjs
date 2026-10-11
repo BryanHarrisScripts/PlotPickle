@@ -78,3 +78,23 @@ test("encrypted repair survives fresh storage session and requires the prior mas
   await store.saveProject(context,{project:fake,summary:{sourceKind:"example",sourceId:"afterglow-v9"},activate:false});
   await assert.rejects(store.commitAfterglowMaster(context,{master:{...fake,id:"afterglow-consolidated-rejected"},sources:await proofs(),selections:{...selections(),masterSourceId:fake.id}}),/single current verified/);
 });
+test("a convincing master ID without an encrypted commit receipt cannot authorize recovery",async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pp-2863-no-ledger-"));
+  const context={profileId:"profile_fixture_2863",sessionId:"first"};
+  const auth={resolveSession:()=>({profileId:context.profileId}),
+    createProfileVaultCapability:()=>({profileId:context.profileId,
+      wrapSecret:async({secret})=>({payload:Buffer.from(secret).toString("base64")}),
+      unwrapSecret:async({envelope})=>Uint8Array.from(Buffer.from(envelope.payload,"base64"))}),registerVaultCleanupHook:()=>()=>{}};
+  let called=false;
+  const store=createProfilePrivateStorageService({root,authService:auth,normalizeProject:p=>structuredClone(p),
+    authorizeAfterglowMasterCommit:()=>{called=true;return true;}});
+  t.after(async()=>{store.close();await rm(root,{recursive:true,force:true});});
+  await store.saveProject(context,{project:master(),summary:{sourceKind:"example",sourceId:"afterglow-v9"},activate:false});
+  const project=await store.loadProject(context,master().id);
+  const summary=(await store.listProjects(context))[0];
+  const proof={projectId:project.id,revision:project.revision,updatedAt:summary.updatedAt,digest:shaAfterglowSnapshot(project)};
+  await assert.rejects(store.commitAfterglowMaster(context,{master:prepared().candidate,sources:[proof],selections:selections()}),/encrypted master receipt/);
+  assert.equal(called,false,"unverified master must fail before the trusted recomputation gate");
+  assert.deepEqual(await store.loadProject(context,master().id),project);
+  assert.equal((await store.listProjects(context)).filter(s=>s.archivedAt).length,0);
+});

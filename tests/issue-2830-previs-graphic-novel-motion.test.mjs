@@ -353,3 +353,175 @@ test("#2830 stored Afterglow Storyboard, Bubble and current Motion recover toget
       "reopened motion must remain bound to its original exact Shot artifact");
   } finally { reopened.close(); }
 });
+
+test("#2830 resumes an exact current queued job without a second paid POST or confirmation", async () => {
+  const source = await readText("app/_components/timeline/timeline-assembly-workspace.tsx");
+  const start = source.indexOf("  async function generateMotionShot(shotNumber: number) {");
+  const end = source.indexOf("  function storeRangeExport(", start);
+  assert.ok(start >= 0 && end > start, "execute the real Timeline motion action");
+  const program = stripTypeScriptTypes(source.slice(start, end));
+  const placement = { id: "existing-placement", anchorRef: "storyboard-anchor:block:block-01:mini-1" };
+  const pending = { id: "record", jobId: "provider-job-123", status: "queued", sourceKey: "source-current", takeId: undefined };
+  const guard = { current: false };
+  const stages = [];
+  let observed = 0, resolveObserved;
+  const vmContext = vm.createContext({
+    selectedPlacement: placement,
+    generatingShotNumber: null,
+    motionAttemptInFlight: guard,
+    buildTimelineGenerationPacketForShot: () => ({ references: [], sourceFingerprint: "same-current-shot" }),
+    project: { id: "afterglow", revision: 1 },
+    timelineMotionSourceKey: () => "source-current",
+    motionFor: () => ({ current: pending }),
+    setGeneratingShotNumber: value => stages.push(["shot", value]),
+    setGeneratingMotionStage: value => stages.push(["stage", value]),
+    setMessage: () => {},
+    observeSubmittedMotion: async (_placement, _shot, _packet, record) => {
+      observed++;
+      assert.equal(record.jobId, "provider-job-123");
+      await new Promise(resolve => { resolveObserved = resolve; });
+    },
+    resolveTimelineMotionRoute: () => { throw new Error("resume must not preflight a new route"); },
+    requestPlotPickleConfirmation: () => { throw new Error("resume must not ask for new billing consent"); },
+    fetch: () => { throw new Error("resume must not submit to the video API"); },
+  });
+  vm.runInContext(program, vmContext);
+  const first = vmContext.generateMotionShot(1);
+  assert.equal(guard.current, true, "lock synchronously before any await");
+  await vmContext.generateMotionShot(1);
+  assert.equal(observed, 1, "a rapid second click does not poll or bill twice");
+  resolveObserved();
+  await first;
+  assert.equal(guard.current, false);
+  assert.deepEqual(stages.at(-1), ["stage", null]);
+  assert.match(source, /Resume existing motion job/u);
+  assert.match(source, /pending\?\.jobId && \(pending\.status === "queued" \|\| pending\.status === "running"\)/u);
+});
+
+test("#2830 acknowledges one atomic encrypted save of a ready Motion and Production Take", async () => {
+  const source = await readText("app/_components/timeline/timeline-assembly-workspace.tsx");
+  const start = source.indexOf("  async function storeMotion(motion: TimelineMotionShot, take?: ProductionTake) {");
+  const end = source.indexOf("  async function observeSubmittedMotion(", start);
+  assert.ok(start >= 0 && end > start, "test the real Timeline motion commit handler");
+  const execute = stripTypeScriptTypes(source.slice(start, end));
+  const base = { id: "afterglow", revision: 18, production: { timelineMotionShots: [], takes: [] } };
+  const current = { current: base };
+  const recorded = [];
+  let publications = 0, durableCalls = 0;
+  let failWrite = false;
+  const context = vm.createContext({
+    latestProject: current,
+    TimelineMotionSaveError: class TimelineMotionSaveError extends Error {},
+    applyStoryCommand: (project, command) => {
+      recorded.push(command.type);
+      return {
+        ...project, revision: project.revision + 1,
+        production: { ...project.production,
+          ...(command.type === "production.take.store" ? { takes: [command.take, ...project.production.takes] } : {}),
+          ...(command.type === "production.timeline.motion.store" ? { timelineMotionShots: [command.motion, ...project.production.timelineMotionShots] } : {}),
+        },
+      };
+    },
+    saveFoundationProjectDurably: async (project, revision) => {
+      durableCalls++;
+      assert.equal(revision, current.current.revision);
+      if (failWrite) throw new Error("vault acknowledgement unavailable");
+      return structuredClone(project);
+    },
+    onProjectChange: () => { publications++; },
+  });
+  vm.runInContext(execute, context);
+  const motion = {
+    id: "shot-motion", status: "succeeded", jobId: "provider-job-123",
+    sourceKey: "verified-locked-shot", outputAssetUrl: "/api/local-ai/assets/shot-01.mp4",
+    updatedAt: "2026-10-10T23:00:00.000Z",
+  };
+  const take = {
+    id: "shot-take", mediaRef: motion.outputAssetUrl,
+    createdAt: motion.updatedAt,
+  };
+  await context.storeMotion(motion, take);
+  assert.deepEqual(recorded, ["production.take.store", "production.timeline.motion.store"]);
+  assert.equal(durableCalls, 1, "the result and its Production Take share one encrypted commit");
+  assert.equal(publications, 1, "UI updates only after durable acknowledgement");
+  assert.equal(current.current.production.takes[0].mediaRef, motion.outputAssetUrl);
+  assert.equal(current.current.production.timelineMotionShots[0].jobId, motion.jobId);
+
+  failWrite = true;
+  const next = { ...motion, status: "failed", outputAssetUrl: "", updatedAt: "2026-10-10T23:01:00.000Z" };
+  await assert.rejects(() => context.storeMotion(next), /vault acknowledgement unavailable/u);
+  assert.equal(publications, 1, "failed save must not publish an unconfirmed change");
+  assert.equal(current.current.production.timelineMotionShots[0].status, "succeeded",
+    "failed write must not rewrite the last acknowledged result");
+  assert.match(source, /await storeMotion\(running\)/u);
+  assert.match(source, /await observeSubmittedMotion\(/u);
+  assert.match(source, /await onProgress\(current\)/u);
+});
+
+test("#2830 transient provider status failures keep an already paid job resumable, terminal failure does not", async () => {
+  const source = await readText("app/_components/timeline/timeline-assembly-workspace.tsx");
+  const observerStart = source.indexOf("  async function observeSubmittedMotion(");
+  const observerEnd = source.indexOf("  async function generateMotionShot(", observerStart);
+  assert.ok(observerStart >= 0 && observerEnd > observerStart);
+  const code = stripTypeScriptTypes(source.slice(observerStart, observerEnd));
+  const messages = [], writes = [], urls = [];
+  let mode = "outage";
+  const ctx = vm.createContext({
+    TimelineMotionSaveError: class TimelineMotionSaveError extends Error {},
+    TimelineMotionObservationError: class TimelineMotionObservationError extends Error {},
+    window: { setTimeout: callback => callback() },
+    fetch: async url => {
+      urls.push(url);
+      if (mode === "terminal") return { ok: true, json: async () => ({
+        id: "already-submitted-job", status: "failed", error: "provider rejected the exact Shot",
+      }) };
+      if (mode === "wrong-id") return { ok: true, json: async () => ({
+        id: "someone-elses-job", status: "succeeded",
+        outputAssetUrl: "/api/local-ai/assets/wrong-shot.mp4",
+      }) };
+      if (mode === "not-saved") return { ok: true, json: async () => ({
+        id: "already-submitted-job", status: "succeeded", outputAssetUrl: "",
+      }) };
+      return { ok: false, json: async () => ({ message: "temporary status endpoint outage" }) };
+    },
+    setMessage: value => messages.push(value),
+    setGeneratingMotionStage: () => {},
+    setPlaybackMode: () => { throw new Error("no video has been confirmed"); },
+    storeMotion: async motion => { writes.push(motion); },
+    latestProject: { current: { production: { timelineMotionShots: [] } } },
+    timelineProductionShotsFor: () => [],
+  });
+  vm.runInContext(code, ctx);
+  const placement = { id: "p1" };
+  const packet = { canonicalRevision: 1, id: "packet", sourceRefs: [] };
+  const submitted = {
+    id: "timeline-existing-motion", jobId: "already-submitted-job", status: "queued",
+    provider: "verified", sourceKey: "locked-shot-source", outputAssetUrl: "",
+  };
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "network/status outage does not mark paid job terminally failed");
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /^\/api\/local-ai\/video\//u);
+  assert.match(messages.at(-1), /Resume existing motion job/u);
+  assert.match(messages.at(-1), /temporary status endpoint outage/u);
+
+  mode = "wrong-id";
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "wrong job must never become the current Shot's media");
+  assert.match(messages.at(-1), /different job/u);
+  assert.match(messages.at(-1), /Resume existing motion job/u);
+
+  mode = "not-saved";
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "provider completion without verified asset cannot replace job receipt");
+  assert.match(messages.at(-1), /saved playable video asset/u);
+
+  mode = "terminal";
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 1, "confirmed provider failure is recorded");
+  assert.equal(writes[0].status, "failed");
+  assert.equal(writes[0].jobId, "already-submitted-job");
+  assert.match(writes[0].error, /provider rejected the exact Shot/u);
+  assert.ok(urls.every(url => url.startsWith("/api/local-ai/video/")),
+    "status retry must never invoke /api/local-ai/generate/video");
+});

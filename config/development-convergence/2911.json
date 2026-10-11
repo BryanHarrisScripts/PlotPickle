@@ -14,7 +14,8 @@
     "tests/issue-2911-profile-session-unlock.test.mjs",
     "docs/developer-briefs/2911-profile-session-unlock.md",
     "config/development-convergence/2911.json",
-    "config/verification/test-catalog.json"
+    "config/verification/test-catalog.json",
+    "tests/issue-2821-save-session-continuity.test.mjs"
   ],
   "acceptance": [
     {

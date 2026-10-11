@@ -219,8 +219,9 @@ test("#2821 status reports transient failures without claiming logout", async ()
     toPublicAuthError: (error) => ({ code: error.code, message: error.message }),
     getAutonomousGuestAuthority: () => ({ active: false }), requestBoundary: (request) => request,
     getProfileExperienceRuntime: async () => ({ accessMode: "desktop-loopback",
+      lastProfileCleanup: () => null,
       boundaryFor: () => ({ readiness: () => ({ ready: readiness, reasons: [] }), authorizeRequest: async () => { if (failure) throw failure; return { authContext: { profileId: "fixture" } }; }, listSessions: async () => [] }),
-      auth: { getAuthStatus: () => ({ configured: true, profile: { displayName: "Fixture" } }), listProfileSummaries: () => [], createBrowserSession: () => ({ csrfToken: "fixture-proof" }) },
+      auth: { getVaultStatus: () => ({ state: "unlocked" }), getAuthStatus: () => ({ configured: true, profile: { profileId: "fixture", displayName: "Fixture" } }), listProfileSummaries: () => [], createBrowserSession: () => ({ csrfToken: "fixture-proof" }) },
     }),
   });
   vm.runInContext(route, context);

@@ -1,5 +1,6 @@
 import type {LibraryPPFProject} from "../../../core/storage/library-project";
 export type AfterglowSelectionSet = Readonly<{
+ mode?:"missing-character-images";masterSourceId?:string;
  decisions:Readonly<Record<string,number|"baseline">>;
  exclusions:readonly string[];
  confirmedCurrent:Readonly<Record<string,boolean>>;

@@ -146,6 +146,7 @@ export async function POST(request: Request) {
       // Never accept a client-created master, ready flag, archive index or
       // provider approval as write authority.
       const selections=input.selections as {
+        mode?:"missing-character-images";masterSourceId?:string;
         decisions:Record<string,number|"baseline">;
         exclusions:string[];
         confirmedCurrent:Record<string,boolean>;
@@ -191,7 +192,7 @@ export async function POST(request: Request) {
         const message=error instanceof Error?error.message:"Afterglow verification could not complete.";
         // Only expose actionable, approved verification explanations to the
         // authenticated Human. Internal vault exceptions are not file paths.
-        const userMessage=error instanceof AfterglowSaveVerificationError || /^All creative sections|^Saved Afterglow source snapshots changed|^Saved alternatives remain|^A recovered answer has no|^Structural or media|^Every selection category|^An image|^A selected image|^Removing the last|^The proposed master differs|^Some Afterglow recovery sources|^A saved Afterglow Library copy|^Historical Afterglow recovery point|^Consolidated story has lost|^An unrecognized|^Invalid or partial Human decision|^Some saved recovery|^Selected packaged image|^Selected image file|^Selected image bytes|^A confirmed field/i.test(message)
+        const userMessage=error instanceof AfterglowSaveVerificationError || /^Selected missing image|^Select at least one|^Missing image recovery|^All creative sections|^Saved Afterglow source snapshots changed|^Saved alternatives remain|^A recovered answer has no|^Structural or media|^Every selection category|^An image|^A selected image|^Removing the last|^The proposed master differs|^Some Afterglow recovery sources|^A saved Afterglow Library copy|^Historical Afterglow recovery point|^Consolidated story has lost|^An unrecognized|^Invalid or partial Human decision|^Some saved recovery|^Selected packaged image|^Selected image file|^Selected image bytes|^A confirmed field/i.test(message)
           ? message : "Afterglow verification did not pass. Your earlier saved versions remain intact. Review the unresolved evidence and retry.";
         // The stage and actionable safe reason outlive navigation/restart.
         // No master is claimed when the encrypted commit was not acknowledged.

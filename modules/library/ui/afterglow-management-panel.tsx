@@ -20,7 +20,7 @@ import { afterglowRecoveryItemPath, type AfterglowRecoveredWork } from "../after
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
 import { afterglowReviewProgress, afterglowImageSlotKey, selectAfterglowImageOption, resetAfterglowImageSlot } from "../afterglow-review-progress.mjs";
 import { listAfterglowImageChoices, applyAfterglowImageChoices, imageIncludedInCandidate,
-  type AfterglowImageChoice } from "../afterglow-image-review.mjs";
+  missingAfterglowCharacterImages, type AfterglowImageChoice } from "../afterglow-image-review.mjs";
 import type { AfterglowMasterSavePreflight, AfterglowSavedSnapshotProof } from "../afterglow-master-save-preflight.mjs";
 import {
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -223,6 +223,11 @@ export default function AfterglowManagementPanel() {
   const [sources, setSources] = useState<readonly ProjectLibrarySummary[]>([]);
   const [recoveryPoints, setRecoveryPoints] = useState<readonly ProfileRecoveryPoint[]>([]);
   const [archivedAfterglow, setArchivedAfterglow] = useState<readonly ProjectLibrarySummary[]>([]);
+  const [missingImageReview,setMissingImageReview]=useState<{
+    masterId:string;items:AfterglowImageChoice[];inventory:string;
+    expectedSources:{key:string;digest:string}[];
+  }|null>(null);
+  const [missingImageChoices,setMissingImageChoices]=useState<Record<string,"keep">>({});
   const [preview, setPreview] = useState<Preview | null>(null);
   const [decisions, setDecisions] = useState<Record<string, AfterglowConflictChoice>>({});
   const [exclusions, setExclusions] = useState<string[]>([]);
@@ -490,6 +495,7 @@ export default function AfterglowManagementPanel() {
   async function reviewConsolidation(resumeDraft: AfterglowReviewDraft|null = null) {
     if (busy || mediaBusy || preflightBusy) return;
     setBusy(true);
+    setMissingImageReview(null);
     setPreview(null);
     setDecisions({});
     setExclusions([]);
@@ -780,6 +786,53 @@ export default function AfterglowManagementPanel() {
     } finally {setPreflightBusy(false);}
   }
 
+  async function reviewMissingCharacterImages() {
+    if(busy||mediaBusy||preflightBusy||refreshingSources)return;
+    setBusy(true);setSaveError("");setSaveReceipt(null);
+    setMissingImageReview(null);setMissingImageChoices({});
+    try {
+      const receipt=await refreshAfterglowLibraryFromEncryptedProfile();
+      refresh();
+      if(!receipt.masterId)throw new Error("Save a verified consolidated master before recovering missing images.");
+      const active=listAfterglowExampleProjects();
+      if(active.length!==1||active[0].id!==receipt.masterId)
+        throw new Error("Review your additional working copies before recovering images into the current master.");
+      const master=loadLibraryProjectSnapshot(receipt.masterId);
+      if(!master)throw new Error("Current encrypted master could not be loaded.");
+      const inventory=reviewSourceInventoryFingerprint();
+      const collected=collectAfterglowReviewSources({active,
+        archived:archivedAfterglowSummaries(),recoveryPoints:listProfileRecoveryPoints(),load:loadLibraryProjectSnapshot});
+      if(collected.warnings.length)throw new Error("Some saved recovery images could not be inspected.");
+      const {createAfterglowPackagedCurrentReference}=await import("../reference/afterglow-packaged-current");
+      const items=missingAfterglowCharacterImages({master,manifest:packagedAfterglowManifest,
+        sources:[{project:createAfterglowPackagedCurrentReference(),sourceKey:"provided-example"},...collected.sources]});
+      const expectedSources=await Promise.all(collected.sources.map(async source=>({
+        key:source.sourceKey??source.project.id,
+        digest:await afterglowInventoryDigest(JSON.stringify(source.project)),
+      })));
+      if(!profileReady()||inventory!==reviewSourceInventoryFingerprint())
+        throw new Error("Saved versions changed during image review. Refresh and retry.");
+      setMissingImageReview({masterId:receipt.masterId,items,inventory,expectedSources});
+    } catch(error) {setSaveError(error instanceof Error?error.message:"Missing images could not be reviewed.");}
+    finally {setBusy(false);}
+  }
+  async function saveMissingCharacterImages() {
+    if(!missingImageReview||!Object.keys(missingImageChoices).length||busy)return;
+    setBusy(true);setSaveError("");setSaveReceipt(null);
+    try {
+      if(!profileReady()||missingImageReview.inventory!==reviewSourceInventoryFingerprint())
+        throw new Error("Saved versions changed. Review missing images again before saving.");
+      const receipt=await commitConsolidatedAfterglow({
+        selections:{mode:"missing-character-images",masterSourceId:missingImageReview.masterId,
+          decisions:{},exclusions:[],confirmedCurrent:{},imageChoices:missingImageChoices},
+        expectedSources:missingImageReview.expectedSources,
+      });
+      setSaveReceipt(receipt);setMissingImageReview(null);setMissingImageChoices({});
+      setPreview(null);refresh();
+    } catch(error) {setSaveError(error instanceof Error?error.message:"Missing images were not saved.");}
+    finally {setBusy(false);}
+  }
+
   async function saveConsolidatedMaster() {
     if(!preview || !reviewed || !canSaveMaster || busy || mediaBusy || preflightBusy) {
       setSaveError("Complete every creative choice and refresh any unavailable saved versions before saving.");
@@ -935,6 +988,8 @@ export default function AfterglowManagementPanel() {
             </section>
             <div className={styles.actions}>
               <button type="button" disabled={busy || mediaBusy || preflightBusy || refreshingSources}
+                onClick={()=>void reviewMissingCharacterImages()}>Review Missing Character Images</button>
+              <button type="button" disabled={busy || mediaBusy || preflightBusy || refreshingSources}
                 onClick={()=>void refreshSavedSources()}>{refreshingSources?"Refreshing encrypted versions…":"Refresh Saved Versions"}</button>
               <button type="button" disabled={busy || mediaBusy || preflightBusy || (!sources.length && !recoverySourceAudit.found.length)} onClick={() => void reviewConsolidation()}>
                 {busy ? "Reviewing…" : "Review Consolidation"}
@@ -949,6 +1004,21 @@ export default function AfterglowManagementPanel() {
               {draftSaveMessage}</p> : null}
           </>
         )}
+        {missingImageReview ? <section aria-label="Recover missing character images">
+          <h3>Missing character images</h3>
+          <p>Select images to add to your current master. Recovered images are drafts; existing story choices and approved character versions are preserved.</p>
+          {missingImageReview.items.length ? missingImageReview.items.map(item=><div key={item.key}>
+            <AfterglowWebpThumbnail item={item}/>
+            <label><input type="checkbox" disabled={busy||item.conflictingSourceMetadata}
+              checked={missingImageChoices[item.key]==="keep"}
+              onChange={event=>{const checked=event.target.checked;setMissingImageChoices(previous=>{
+                const next={...previous};if(checked)next[item.key]="keep";else delete next[item.key];return next;
+              });}}/> {item.characterName} — {item.view}</label>
+            {item.conflictingSourceMetadata ? <p>Conflicting saved metadata requires complete character review.</p> : null}
+          </div>) : <p>No missing character images were found in readable saved versions or the provided example.</p>}
+          <button type="button" disabled={busy||!Object.keys(missingImageChoices).length}
+            onClick={()=>void saveMissingCharacterImages()}>Save Selected Missing Images</button>
+        </section> : null}
         {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
         {lastSaveAudit?.status === "blocked" && !saveReceipt && !saveError ? (
           <section role="alert" className={styles.saveFailure} aria-label="Previous Afterglow save was blocked">

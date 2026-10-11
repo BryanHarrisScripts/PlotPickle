@@ -16,7 +16,8 @@ import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot} from "./afterglow-m
 import {AfterglowSaveVerificationError,afterglowCollidingMediaUrls} from "./afterglow-technical-reconciliation.mjs";
 
 type StoredSource = {project:LibraryPPFProject;sourceKey?:string;savedAt?:string;sourceKind?:string};
-type Choices = {decisions:Record<string,number|"baseline">;exclusions:string[];
+type Choices = {mode?:"missing-character-images";masterSourceId?:string;
+  decisions:Record<string,number|"baseline">;exclusions:string[];
   confirmedCurrent:Record<string,boolean>;imageChoices:Record<string,"keep"|"exclude">};
 type SourceProof = {key:string;digest:string};
 const SHA=/^sha256:[a-f0-9]{64}$/;

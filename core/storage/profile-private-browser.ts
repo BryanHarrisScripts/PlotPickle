@@ -578,6 +578,7 @@ export type ConsolidatedAfterglowReceipt = Readonly<{
  */
 export async function commitConsolidatedAfterglow(input:Readonly<{
   selections:Readonly<{
+    mode?:"missing-character-images";masterSourceId?:string;
     decisions:Readonly<Record<string,number|"baseline">>;
     exclusions:readonly string[];
     confirmedCurrent:Readonly<Record<string,boolean>>;

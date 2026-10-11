@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "issue": 2911,
+  "brief": "docs/developer-briefs/2911-profile-session-unlock.md",
+  "allowedChanges": [
+    "app/_components/settings/profile-session-panel.tsx",
+    "app/api/auth/profile/route.ts",
+    "app/skin-v1/cloud-provider-setup-panel.tsx",
+    "app/skin-v1/settings-workspace-panel.tsx",
+    "build/local-profile-auth-gateway.ts",
+    "core/auth/profile-experience/profile-experience-runtime.ts",
+    "core/auth/profile-request-browser.ts",
+    "core/storage/profile-private-browser.ts",
+    "tests/issue-2911-profile-session-unlock.test.mjs",
+    "docs/developer-briefs/2911-profile-session-unlock.md",
+    "config/development-convergence/2911.json",
+    "config/verification/test-catalog.json",
+    "tests/issue-2821-save-session-continuity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "INLINE",
+      "criterion": "Settings and provider setup expose shared verified inline unlock.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/profile-session-panel.tsx",
+          "contains": "Profile unlocked and session verified."
+        }
+      ]
+    },
+    {
+      "id": "LIVE_RUNTIME",
+      "criterion": "Provider authority shares local login session runtime.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/local-profile-auth-gateway.ts",
+          "contains": "handlers: Object.freeze({ POST: cloudProviderPost })"
+        }
+      ]
+    },
+    {
+      "id": "DURABILITY",
+      "criterion": "Regression exercises wrong/correct unlock, encrypted save, rejected CSRF/origin and fresh runtime readback.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2911-profile-session-unlock.test.mjs",
+          "contains": "assert.equal(writing.store.profiles.minimax.apiKey, input.apiKey)"
+        }
+      ]
+    },
+    {
+      "id": "LIMITS",
+      "criterion": "Real Windows acceptance remains explicitly pending.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2911-profile-session-unlock.md",
+          "contains": "Synthetic runtime restart is not Bryan's Windows process-stop/start proof."
+        }
+      ]
+    }
+  ]
+}

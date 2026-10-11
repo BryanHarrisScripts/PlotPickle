@@ -369,6 +369,20 @@ export function profilePrivateBrowserAuthorityMatches(profileId: string, token: 
   return Boolean(normalizedProfileId && token && hydratedProfileId === normalizedProfileId && csrfToken === token);
 }
 
+/** Revalidate same-profile session authority without replacing the working story. */
+export async function refreshProfilePrivateBrowserSession(profileId: string) {
+  if (!profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("The working profile is unavailable. Sign in through the normal profile gate.");
+  }
+  const response = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
+  const status = await response.json() as { authenticated?: boolean; profile?: { profileId?: string }; csrfToken?: string };
+  if (!response.ok || !status.authenticated || status.profile?.profileId !== profileId || !status.csrfToken
+      || !profilePrivateBrowserReadyFor(profileId)) {
+    throw new Error("The session could not be verified for the working profile. Retry unlock; your working story was not replaced.");
+  }
+  csrfToken = status.csrfToken;
+}
+
 /** Read-only authority check for profile-scoped Settings previews.
  * An initialized browser Library alone is not proof of a signed-in Human.
  * This exposes no token, credentials, private project data or write authority.

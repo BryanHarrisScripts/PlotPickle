@@ -8,6 +8,7 @@ import {
   type BrowserSessionSummary,
   type PlotPickleAuthService,
   type ProfileSummary,
+  type ProfileVaultCleanupEvent,
 } from "../plotpickle-auth";
 import {
   createServerSessionBoundary,
@@ -29,6 +30,7 @@ type ProfileExperienceRuntime = {
   readonly home: string;
   readonly privateStorage: ProfilePrivateStorageService;
   boundaryFor(origin: string): ServerSessionBoundary;
+  lastProfileCleanup(profileId: string): ProfileVaultCleanupEvent | null;
   locateProfile(locator: string): Promise<string | null>;
   establishSession(authContext: AuthContext, origin: string): Readonly<{
     csrfToken: string;
@@ -116,6 +118,10 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
     authorizeAfterglowMasterCommit:authorizeServerAfterglowMasterCommit,
   });
   const boundaries = new Map<string, ServerSessionBoundary>();
+  const cleanup = new Map<string, ProfileVaultCleanupEvent>();
+  auth.registerVaultCleanupHook(event => {
+    if (mode === "desktop-loopback" && ["locked", "locking"].includes(auth.getVaultStatus(event.profileId).state)) cleanup.set(event.profileId, event);
+  });
 
   return Object.freeze({
     auth,
@@ -123,6 +129,7 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
     accessMode: mode,
     home,
     privateStorage,
+    lastProfileCleanup(profileId: string) { return cleanup.get(profileId) ?? null; },
     boundaryFor(origin: string) {
       const parsed = new URL(origin);
       if (mode === "desktop-loopback" && !new Set(["127.0.0.1", "localhost", "[::1]"]).has(parsed.hostname)) {

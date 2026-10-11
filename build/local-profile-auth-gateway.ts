@@ -5,6 +5,7 @@ import { GET as profilePresentationGet, POST as profilePresentationPost } from "
 import { GET as profilePrivateGet, POST as profilePrivatePost } from "../app/api/auth/profile-private/route";
 import { POST as profileBackupPost } from "../app/api/auth/profile-backup/route";
 import { GET as outlineTasksGet, POST as outlineTasksPost } from "../app/api/outline/tasks/route";
+import { POST as cloudProviderPost } from "../app/api/cloud-story-mode/provider/route";
 import { POST as narrationPost } from "../app/api/previs/narration/route";
 
 const PROFILE_API = "/api/auth/profile";
@@ -27,6 +28,11 @@ type RouteContract = Readonly<{
 }>;
 
 const ROUTES = new Map<string, RouteContract>([
+  // #2911: provider authority must share login's live session/vault runtime.
+  ["/api/cloud-story-mode/provider", Object.freeze({
+    maximumBodyBytes: 64 * 1024,
+    handlers: Object.freeze({ POST: cloudProviderPost }),
+  })],
   // Narration must use the same live session/vault as local login, not the
   // separate RSC module graph. Keep the route's mutation/CSRF checks intact.
   ["/api/previs/narration", Object.freeze({

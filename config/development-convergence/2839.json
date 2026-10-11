@@ -30,7 +30,11 @@
     "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
     "tests/issue-2839-narration-durable-approval.test.mjs",
     "tests/issue-2839-storyboard-text-narration.test.mjs",
-    "tests/issue-580-mastra-runtime-readiness.test.mjs"
+    "tests/issue-580-mastra-runtime-readiness.test.mjs",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "config/skin-v1-surface-registry.json",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
   ],
   "acceptance": [
     {
@@ -91,12 +95,24 @@
     {
       "id": "BRIEF",
       "criterion": "Selected Shot analysis and missing-field proposals are bounded, text-only, and reviewable",
-      "evidence": [{ "type": "file-contains", "path": "tests/issue-2839-storyboard-text-narration.test.mjs", "contains": "actual Storyboard first step creates a review-only brief" }]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "actual Storyboard first step creates a review-only brief"
+        }
+      ]
     },
     {
       "id": "REVIEW",
       "criterion": "Narration uses the reviewed brief without changing canonical Shot data, and the approval source remains current across surfaces",
-      "evidence": [{ "type": "file-contains", "path": "tests/issue-2839-narration-durable-approval.test.mjs", "contains": "reviewed non-canonical brief survives encrypted reopen" }]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-narration-durable-approval.test.mjs",
+          "contains": "reviewed non-canonical brief survives encrypted reopen"
+        }
+      ]
     }
   ]
 }

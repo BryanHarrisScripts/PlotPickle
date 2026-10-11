@@ -680,6 +680,7 @@
         "core/contracts/compute/local-writing-readiness.mjs",
         "build/ai/capabilities/capability-routing-state.ts",
         "core/contracts/compute/capability-routes.mjs",
+        "core/contracts/compute/connection-join-contract.mjs",
         "build/ai/capabilities/capability-diagnostics.ts"
       ],
       "ownerLayer": "provider-runtime",

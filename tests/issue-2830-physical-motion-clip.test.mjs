@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   ffmpegThreeSecondArgs, renderTimelineThreeSecondClip,
-  sourceVideoFileName, verifyThreeSecondProbe,
+  sourceVideoFileName, verifyThreeSecondProbe, timelineMotionTrimReadiness,
 } from "../build/timeline-72-frame-clip.mjs";
 
 const mp4 = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftypisom0000")]);
@@ -28,6 +28,32 @@ test("#2830 physical 3s MP4: input is only a local saved provider asset, never a
   assert.ok(args.includes("fps=24,trim=end_frame=72,setpts=PTS-STARTPTS"));
   assert.deepEqual(args.slice(-2), ["+faststart", "target.mp4"]);
   assert.ok(!args.includes("-c:a"), "Timeline 3s shot remains silent");
+});
+
+test("#2830 paid video preflight checks local FFmpeg libx264 and FFprobe before a charge", async () => {
+  const commands = [];
+  const capable = await timelineMotionTrimReadiness({
+    runTool: async (binary, args) => {
+      commands.push([binary, ...args]);
+      return binary === "ffmpeg" ? "Encoder libx264 [libx264 H.264]" : "ffprobe version 7.0";
+    },
+  });
+  assert.equal(capable.ready, true);
+  assert.deepEqual(commands.map(x => x[0]), ["ffmpeg", "ffprobe"]);
+  const missing = await timelineMotionTrimReadiness({
+    runTool: async (binary) => {
+      if (binary === "ffmpeg") throw new Error("ENOENT");
+      return "ffprobe version 7.0";
+    },
+  });
+  assert.equal(missing.ready, false);
+  assert.match(missing.message, /ENOENT/u);
+  assert.match(missing.message, /No provider request/u);
+  const wrongCodec = await timelineMotionTrimReadiness({
+    runTool: async (binary) => binary === "ffmpeg" ? "Unknown encoder" : "ffprobe version 7.0",
+  });
+  assert.equal(wrongCodec.ready, false);
+  assert.match(wrongCodec.message, /libx264/u);
 });
 
 test("#2830 physical 3s MP4: 72-frame, 24 fps, verified duration required", () => {
@@ -123,7 +149,12 @@ test("#2830 physical MP4 path: success is gated on authenticated local render an
     readFile(new URL("build/timeline-72-frame-clip.mjs", root), "utf8"),
   ]);
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
-  assert.match(route, /renderTimelineThreeSecondClip\(/u);
+  assert.match(route, /renderTimelineThreeSecondClip\\(/u);
+  assert.match(route, /timelineMotionTrimReadiness\\(/u);
+  assert.match(client, /fetch\\("\/api\/timeline\/motion\/trim"/u);
+  const localPreflight = client.indexOf('method: "GET", credentials: "same-origin", cache: "no-store"');
+  const humanConfirm = client.indexOf('const confirmed = await requestPlotPickleConfirmation');
+  assert.ok(localPreflight > 0 && localPreflight < humanConfirm, "prove FFmpeg readiness before any paid provider consent");
   assert.match(client, /fetch\("\/api\/timeline\/motion\/trim"/u);
   assert.match(client, /clip\.frameCount !== 72 \|\| clip\.fps !== 24/u);
   assert.match(client, /new TimelineMotionObservationError/u);

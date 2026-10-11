@@ -179,6 +179,10 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
               <div className={styles.capability} role="rowheader">
                 <strong>{capability.label}</strong>
                 <span>{capability.detail}</span>
+                <small data-active-route={group?.selected || "off"}>
+                  ACTIVE {capability.label}: {group?.selected || "off"} · {group?.selected && group.options?.[group.selected]?.ready === true ? "VERIFIED FOR GENERATION" : "NOT VERIFIED / NOT SELECTED FOR GENERATION"}
+                  {capability.id === "video" && (group?.selected === "off" || !group?.selected) ? " · A saved Join awaiting setup does not activate Timeline motion." : ""}
+                </small>
                 {joined ? <small data-join-state={joinedProof?.state || "NOT JOINED"}>
                   Joined: {joined.provider} · {joined.engine === "direct" ? "direct" : joined.engine === "comfy-local" ? "ComfyUI Local" : "ComfyUI Cloud"} · {joinedProof?.state}
                   {joinedProof?.reason ? ` · ${joinedProof.reason}` : ""}

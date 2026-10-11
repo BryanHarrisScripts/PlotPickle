@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import path from "node:path";
+import os from "node:os";
 import vm from "node:vm";
 import test from "node:test";
 import { normalizePrevisProductionState } from "../core/contracts/previs/index.ts";
+import { createProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage-core.mjs";
 
 const readText = (file) => readFile(path.resolve(file), "utf8");
 
@@ -247,4 +249,101 @@ test("#2830 Previs and Timeline runtime playback edits select the Windows build 
   ]) assert.equal(selected.test(path), true, path + " must select the Windows build gate");
   assert.equal(selected.test("docs/developer-briefs/2830-mini-block-comic-motion-slice.md"), false,
     "documentation-only changes must not fan out into the expensive Windows lane");
+});
+
+
+test("#2830 stored Afterglow Storyboard, Bubble and current Motion recover together through encrypted vault reopen", async (t) => {
+  const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-2830-reopen-"));
+  const authService = {
+    createProfileVaultCapability(context) {
+      return {
+        profileId: context.profileId,
+        async wrapSecret({ secret }) { return { payload: Buffer.from(secret).toString("base64") }; },
+        async unwrapSecret({ envelope }) { return Uint8Array.from(Buffer.from(envelope.payload, "base64")); },
+      };
+    },
+    registerVaultCleanupHook() { return () => undefined; },
+    resolveSession() { return {}; },
+  };
+  const makeVault = () => createProfilePrivateStorageService({
+    root: home, authService, normalizeProject: value => structuredClone(value),
+  });
+  const primary = { profileId: "profile_afterglow_motion", sessionId: "session_before" };
+  const another = { profileId: "profile_other_story", sessionId: "session_other" };
+  const original = JSON.parse(await readText("data/afterglow-packaged-current/snapshot.json"));
+  const project = original.project ?? original;
+  const artifact = project.build.foundations.visualArtifacts.find(item => (
+    item.workflow === "storyboard-frame-webp-v2"
+    && item.assetUrl.startsWith("/assets/library/examples/")
+    && item.sourceDecisionKeys?.some(key => /^storyboard-anchor:block:block-\\d{2}:mini-[1-4]$/u.test(key))
+  ));
+  assert.ok(artifact, "do not substitute a synthetic image for packaged Afterglow");
+  const anchorRef = artifact.sourceDecisionKeys.find(key => key.startsWith("storyboard-anchor:"));
+  const match = /^storyboard-anchor:block:block-(\\d{2}):mini-([1-4])$/u.exec(anchorRef);
+  assert.ok(match);
+  const position = artifact.frameNumber ?? 1;
+  const date = "2026-10-10T12:00:00.000Z";
+  const placement = {
+    id: "mini-block-reopen", anchorRef, blockNumber: Number(match[1]),
+    miniBlockNumber: Number(match[2]), sourceRevision: project.revision,
+    sourceKey: "previs-flip-book:" + artifact.id, sourceKind: "previs-flip-book",
+    shotImages: [{ shotNumber: position, artifactId: artifact.id }],
+    durationSeconds: 75, order: 1, createdAt: date,
+  };
+  const motionSource = await readText("app/_components/timeline/timeline-motion-source.ts");
+  const key = executableMotionCurrency(motionSource).timelineMotionSourceKey(placement, {
+    sourceFingerprint: "fingerprint-current",
+  });
+  const expectedMediaUrl = "/api/local-ai/assets/afterglow-reopen-fixture.mp4";
+  // Synthetic provider *receipt* tests persistence, not generation: no provider
+  // is contacted and this fixture does not represent a physically present MP4.
+  const normalized = normalizePrevisProductionState({
+    timelineAssemblies: [{ id: "mini-block-reopen-assembly", sourceRevision: project.revision,
+      placements: [placement], createdAt: date }],
+    timelineMotionShots: [{
+      id: "mini-block-reopen-motion", placementId: placement.id,
+      anchorRef, shotNumber: position, sourceArtifactId: artifact.id,
+      sourceKey: key, packetFingerprint: "fingerprint-current",
+      requestedDurationSeconds: 3, providerDurationSeconds: 4,
+      provider: "fixture", route: "fixture", model: "fixture", jobId: "job-fixture",
+      status: "succeeded", outputAssetUrl: expectedMediaUrl, error: "",
+      createdAt: date, updatedAt: date,
+    }],
+    graphicNovelTextApprovals: [{
+      anchorRef, position, sourceKey: "approved-bubble-fixture",
+      narration: "A choice changes everything.", bubbles: [], noText: false,
+      approvedAt: date,
+    }],
+  });
+  assert.equal(normalized.timelineMotionShots.length, 1);
+  assert.equal(normalized.graphicNovelTextApprovals.length, 1);
+  const saved = {
+    ...project, production: { ...project.production,
+      timelineAssemblies: normalized.timelineAssemblies,
+      timelineMotionShots: normalized.timelineMotionShots,
+      graphicNovelTextApprovals: normalized.graphicNovelTextApprovals },
+  };
+  const before = makeVault();
+  t.after(async () => { before.close(); await rm(home, { recursive: true, force: true }); });
+  await before.saveProject(primary, { project: saved, activate: true });
+  assert.equal(await before.loadProject(another, saved.id), null, "profile boundary excludes another user");
+  before.close();
+  const reopened = makeVault();
+  try {
+    const reloaded = await reopened.loadProject({ ...primary, sessionId: "session_after" }, saved.id);
+    assert.ok(reloaded, "same profile explicitly restores the project after a new session");
+    assert.equal(reloaded.build.foundations.visualArtifacts.find(x => x.id === artifact.id)?.assetUrl,
+      artifact.assetUrl, "same locked image identity survives encrypted reload");
+    const text = reloaded.production.graphicNovelTextApprovals.find(x => x.position === position && x.anchorRef === anchorRef);
+    assert.equal(text?.narration, "A choice changes everything.");
+    const current = executableMotionCurrency(motionSource).currentTimelineMotionForStoryboardShot(
+      reloaded, anchorRef, position, artifact.id);
+    assert.equal(current?.outputAssetUrl, expectedMediaUrl);
+    assert.equal(current?.sourceArtifactId, artifact.id);
+    assert.equal(current?.requestedDurationSeconds, 3);
+    assert.equal(current?.providerDurationSeconds, 4, "source duration remains truthful after reopen");
+    assert.equal(executableMotionCurrency(motionSource).currentTimelineMotionForStoryboardShot(
+      reloaded, anchorRef, position, "another-artifact"), null,
+      "reopened motion must remain bound to its original exact Shot artifact");
+  } finally { reopened.close(); }
 });

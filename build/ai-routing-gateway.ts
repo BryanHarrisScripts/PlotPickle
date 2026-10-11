@@ -1,4 +1,5 @@
 import { readLtxStore, probeLtxVideo } from "./ai/comfyui-ltx-local-provider";
+import { acceptedJoinRecord, connectionProof } from "../core/contracts/compute/connection-join-contract.mjs";
 import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { qualityWritingReadiness } from "../core/contracts/compute/local-writing-readiness.mjs";
@@ -72,6 +73,8 @@ type OpenAiVideoJob = {
 const API = "/api/ai-routing";
 const STATUS_PATH = `${API}/status`;
 const SELECT_PATH = `${API}/select`;
+const JOIN_PATH = `${API}/join`;
+const JOIN_FILE = "connection-joins.json";
 const VIDEO_PATH = "/api/local-ai/generate/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const ROUTING_FILE = "ai-routing.json";
@@ -129,12 +132,13 @@ function textProfileState(profile: ProviderProfile | undefined, available = true
 }
 
 async function statusBody() {
-  const [choice, assistantResult, media, native, ltx] = await Promise.all([
+  const [choice, assistantResult, media, native, ltx, joins] = await Promise.all([
     readRoutingChoice(),
     readSynchronizedAssistantStore(),
     readMediaRoutingStore(),
     readNativeH3Store(),
     readLtxStore(),
+    readCredentialJson<{ version: 1; connections?: Record<string, unknown>; updatedAt?: string }>(JOIN_FILE),
   ]);
   const [comfy, nativeProbe, localRuntime, ltxProbe] = await Promise.all([
     diagnoseComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow),
@@ -166,6 +170,7 @@ async function statusBody() {
   return {
     ok: true,
     choice,
+    joins: joins?.connections || {},
     providerConsent,
     consent: {
       cloudSelectionRequiresCostAcknowledgement: true,
@@ -228,6 +233,7 @@ async function statusBody() {
           locality: "local",
           cost: "No per-request provider charge",
           settingsTarget: "comfyui",
+          imageProfile: media.comfyui.imageProfile,
         },
         "ollama-comfyui": {
           configured: ollamaImageConfigured,
@@ -306,7 +312,7 @@ async function statusBody() {
 async function selectRoute(body: Record<string, unknown>) {
   const capability = body.capability;
   const route = body.route;
-  const names = ["ai-routing.json", "writing-assistant-profiles.json", "media-routing.json", "h3-native-routing.json"];
+  const names = ["ai-routing.json", "writing-assistant-profiles.json", "media-routing.json", "h3-native-routing.json", JOIN_FILE];
   const expected = Object.fromEntries(await Promise.all(names.map(async (name) => [name, await readCredentialJson(name)])));
   const status = await statusBody();
   requireSelectedCapability(status, capability, route);
@@ -347,9 +353,30 @@ async function selectRoute(body: Record<string, unknown>) {
   if (capability === "text") updates["writing-assistant-profiles.json"] = assistantResult.store;
   if (capability === "image" || capability === "video") updates["media-routing.json"] = media;
   if (capability === "video") updates["h3-native-routing.json"] = native;
+  if (body.connectionJoin) updates[JOIN_FILE] = body.connectionJoin;
   await writeComputeSelection(updates, Object.fromEntries(Object.entries(expected).filter(([name]) => name in updates)));
   await relayCapabilityDiagnostic(capability as "text" | "image" | "video", String(route), "selection", "selected-ready-route");
   return statusBody();
+}
+
+// Joining configures a capable pairing. Only a proved pairing can become the active dispatch route.
+async function joinConnection(body: Record<string, unknown>) {
+  const capability = String(body.capability || "");
+  const engine = String(body.engine || "");
+  const provider = String(body.provider || "");
+  const record = acceptedJoinRecord(capability, engine, provider, new Date().toISOString());
+  const current = await readCredentialJson<{ version: 1; connections?: Record<string, unknown> }>(JOIN_FILE);
+  const next = { version: 1 as const, connections: { ...(current?.connections || {}), [capability]: record }, updatedAt: record.joinedAt };
+  const status = await statusBody();
+  const proof = connectionProof(status, record);
+  if (proof.state === "NOT CAPABLE") throw new Error(proof.reason || "This route is not capable.");
+  if (proof.ready) {
+    await selectRoute({ capability, route: record.route, connectionJoin: next });
+  } else {
+    await writeComputeSelection({ [JOIN_FILE]: next }, { [JOIN_FILE]: current });
+  }
+  const refreshed = await statusBody();
+  return { ...refreshed, join: { ...record, ...proof }, message: proof.ready ? "Join verified and selected." : `Join saved. ${proof.state}: ${proof.reason || "Complete setup and verify this capability."}` };
 }
 
 export async function createOllamaComfyImage(input: ImageGenerationInput) {
@@ -520,6 +547,11 @@ async function handleRoutingApi(request: IncomingMessage, response: ServerRespon
         sendJson(response, 200, { ok: true, providers: await saveProviderConsent(String(body.provider), body.billing === true, body.dataSharing === true) });
         return;
       }
+    }
+    if (pathname === JOIN_PATH && request.method === "POST") {
+      const body = await readBody(request);
+      sendJson(response, 200, await joinConnection(body));
+      return;
     }
     if (pathname === SELECT_PATH && request.method === "POST") {
       const body = await readBody(request);

@@ -26,6 +26,7 @@ import {
   type TimelineShotGenerationPacket,
 } from "@/lib/preproduction/provider-capability-contract";
 import { requestPlotPickleConfirmation } from "../../common-overlay-layer";
+import { narrationOverallStory } from "@/core/media/storyboard-sequence-evidence.mjs";
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
@@ -33,6 +34,8 @@ import {
 } from "../storyboard/storyboard-editorial-model";
 import {
   buildPrevisGraphicNovelPanel,
+  graphicNovelTextSourceKey,
+  graphicNovelTextSourceSnapshot,
   enforceMotionPresentationEnd,
   type PrevisGraphicNovelPanel,
 } from "../previs/previs-graphic-novel-presentation";
@@ -114,19 +117,6 @@ function sourceKey(anchorRef: string, shotImages: readonly TimelineShotImageRef[
   return `previs-flip-book:${anchorRef}:${shotImages.map((image) => `${image.shotNumber}:${image.artifactId}`).join("|")}`;
 }
 
-function graphicNovelTextSourceKey(panel: PrevisGraphicNovelPanel, passages: unknown, storyContext: unknown) {
-  return JSON.stringify({
-    passages,
-    storyContext,
-    assetUrl: panel.assetUrl,
-    caption: panel.caption,
-    narration: panel.narration,
-    shotLabel: panel.shotLabel,
-    shotContext: panel.shotContext,
-    bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
-  });
-}
-
 function timelinePresentationFor(project: PPFProject, placement: TimelinePrevisPlacement, shotNumber: number) {
   const imageRef = placement.shotImages.find((image) => image.shotNumber === shotNumber) ?? null;
   const artifact = imageRef
@@ -136,6 +126,7 @@ function timelinePresentationFor(project: PPFProject, placement: TimelinePrevisP
   const sceneNumbers = [...new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean))];
   const progression = storyboardPositionProgression(shotNumber);
   const storyContext = {
+    overallStory: narrationOverallStory(project),
     title: project.title,
     act: actForBlock(placement.blockNumber),
     block: placement.blockNumber,
@@ -157,7 +148,7 @@ function timelinePresentationFor(project: PPFProject, placement: TimelinePrevisP
   });
   const approval = (project.production.graphicNovelTextApprovals ?? [])
     .find((candidate) => candidate.anchorRef === placement.anchorRef && candidate.position === shotNumber) ?? null;
-  const currentApproval = approval && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext)
+  const currentApproval = approval && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext, graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact))
     ? approval
     : null;
   return { artifact, panel, approval: currentApproval };

@@ -240,6 +240,11 @@ export interface PrevisGraphicNovelTextBubble {
   readonly text: string;
 }
 
+export interface PrevisGraphicNovelReviewedShotBrief {
+  /** Human-reviewed evidence attached to this narration decision, not canonical Shot data. */
+  readonly analysis: string;
+  readonly facts: Readonly<Record<string, string>>;
+}
 export interface PrevisGraphicNovelTextApproval {
   /** Stable Storyboard Mini-Block anchor that owns this 1–25 position. */
   readonly anchorRef: string;
@@ -251,6 +256,8 @@ export interface PrevisGraphicNovelTextApproval {
   readonly bubbles: readonly PrevisGraphicNovelTextBubble[];
   /** Explicit Human intent for a locked panel to contain no narration or bubbles. */
   readonly noText: boolean;
+  /** Optional Human-reviewed, non-canonical Shot brief used to create this text approval. */
+  readonly reviewedShotBrief?: PrevisGraphicNovelReviewedShotBrief;
   readonly approvedAt: string;
 }
 
@@ -613,7 +620,20 @@ function normalizeGraphicNovelTextApproval(value: unknown): PrevisGraphicNovelTe
       const text = cleanText(bubble.text, 180);
       return speaker && text ? [{ speaker, text } satisfies PrevisGraphicNovelTextBubble] : [];
     }).slice(0, 2);
-  if (!/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef) || !position || !sourceKey) return null;
+  const rawBrief = item.reviewedShotBrief;
+  const reviewedShotBrief = rawBrief && typeof rawBrief === "object" && !Array.isArray(rawBrief)
+    && typeof rawBrief.analysis === "string" && rawBrief.analysis.trim().length > 0 && rawBrief.analysis.trim().length <= 8_000
+    && rawBrief.facts && typeof rawBrief.facts === "object" && !Array.isArray(rawBrief.facts)
+    ? {
+      analysis: rawBrief.analysis.trim(),
+      facts: Object.fromEntries(Object.entries(rawBrief.facts as Record<string, unknown>).flatMap(([key, fact]) => (
+        ["story", "sceneBeat", "camera", "performance", "lighting", "timing", "informationBoundary", "continuity", "imagePrompt"].includes(key)
+          && typeof fact === "string" && fact.length <= (key === "imagePrompt" ? 8_000 : 1_200)
+          ? [[key, fact.trim()]]
+          : []
+      ))),
+    }
+    : undefined;  if (!/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/.test(anchorRef) || !position || !sourceKey) return null;
   if (!noText && !narration && !bubbles.length) return null;
   return {
     anchorRef,
@@ -622,6 +642,7 @@ function normalizeGraphicNovelTextApproval(value: unknown): PrevisGraphicNovelTe
     narration,
     bubbles,
     noText,
+    ...(reviewedShotBrief ? { reviewedShotBrief } : {}),
     approvedAt: cleanText(item.approvedAt, 80) || new Date().toISOString(),
   };
 }

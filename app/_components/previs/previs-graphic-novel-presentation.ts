@@ -161,6 +161,7 @@ export function graphicNovelTextSourceSnapshot(
   anchorRef: string,
   position: number,
   artifact: FoundationsVisualArtifact | null,
+  reviewedShotBrief?: { readonly analysis: string; readonly facts: Readonly<Record<string, string>> },
 ) {
   return {
     projectId: project.id,
@@ -180,6 +181,7 @@ export function graphicNovelTextSourceSnapshot(
       .slice()
       .sort((left, right) => left.id.localeCompare(right.id))
       .map((shot) => normalizedBubbleStoryFacts(shot)),
+    ...(reviewedShotBrief ? { reviewedShotBrief } : {}),
   };
 }
 
@@ -232,6 +234,7 @@ export function graphicNovelTextSourceKey(
         shotContext: panel.shotContext,
         bubbles: panel.bubbles.map((bubble) => ({ speaker: bubble.speaker, text: bubble.text })),
       }),
+      ...(sourceSnapshot?.reviewedShotBrief ? { reviewedShotBrief: bubbleSourceDigest(sourceSnapshot.reviewedShotBrief) } : {}),
     },
   });
 }
@@ -252,6 +255,7 @@ export function graphicNovelTextStaleReasons(savedKey: string, currentKey: strin
     if (saved.fingerprints?.address !== current.fingerprints?.address) reasons.push("story address");
     if (saved.fingerprints?.image !== current.fingerprints?.image) reasons.push("image identity");
     if (saved.fingerprints?.shot !== current.fingerprints?.shot) reasons.push("authored Shot facts");
+    if (saved.fingerprints?.reviewedShotBrief !== current.fingerprints?.reviewedShotBrief) reasons.push("reviewed Shot brief");
     if (saved.fingerprints?.screenplay !== current.fingerprints?.screenplay) reasons.push("screenplay evidence");
     if (saved.fingerprints?.context !== current.fingerprints?.context) reasons.push("story context");
     if (saved.fingerprints?.presentation !== current.fingerprints?.presentation) reasons.push("presentation source");

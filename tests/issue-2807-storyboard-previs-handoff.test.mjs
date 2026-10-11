@@ -51,6 +51,8 @@ test("#2807 projects current Shot production information without inventing anoth
   assert.match(handoff, /projectVisualStory\(/u);
   assert.match(handoff, /project\.production\.shots/u);
   assert.match(handoff, /storyboardAnchorEvidence\(/u);
+  assert.match(handoff, /imagePrompt: artifact\.prompt\?\.trim\(\)/u);
+  assert.match(handoff, /Scene context for this Mini-Block/u);
   assert.match(handoff, /"~3s Storyboard planning target"/u);
   assert.doesNotMatch(handoff, /localStorage|sessionStorage|createEmpty.*Store/u);
 });
@@ -65,14 +67,31 @@ test("#2807 authors Graphic Novel text through the existing Previs approval auth
   assert.match(handoff, /fetch\("\/api\/previs\/narration"/u);
   assert.match(handoff, /PrevisGraphicNovelTextApproval/u);
   assert.match(handoff, /graphicNovelTextApprovals/u);
-  assert.match(handoff, /Draft · review before approval/u);
-  assert.match(handoff, /Save &amp; Lock/u);
+  assert.match(handoff, /Draft · not saved or locked/u);
+  assert.match(handoff, /Save & Lock/u);
   assert.match(handoff, /No Bubble/u);
+  assert.match(handoff, /Analyze Shot & Prepare Brief/u);
+  assert.match(handoff, /Create Narration from Reviewed Brief/u);
+  assert.match(handoff, /Shot brief · review only/u);
+  assert.match(handoff, /reviewedShotBrief/u);
   assert.match(handoff, /noText/u);
   assert.match(presentation, /export function graphicNovelTextSourceKey/u);
   assert.match(presentation, /export function approvedGraphicNovelPanel/u);
   assert.match(previs, /graphicNovelTextSourceKey/u);
   assert.match(previs, /approvedGraphicNovelPanel/u);
+});
+
+test("#2807 embeds each locked Shot handoff in one vertical Storyboard sequence", async () => {
+  const [storyboard, handoff, styles] = await Promise.all([
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("app/_components/preproduction/storyboard-locked-shot-handoff.tsx"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
+  ]);
+  assert.match(storyboard, /data-storyboard-position=\{position\}[\s\S]*?embedded[\s\S]*?position=\{position\}/u);
+  assert.equal((storyboard.match(/<StoryboardLockedShotHandoff\b/gu) ?? []).length, 1,
+    "the handoff appears once in the selected Shot loop instead of again below all 25 cards");
+  assert.match(handoff, /data-embedded=\{embedded \? "true" : "false"\}/u);
+  assert.match(styles, /\.positionList\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/u);
 });
 
 test("#2807 Storyboard and Previs share the same narration staleness source-key inputs", async () => {
@@ -83,8 +102,8 @@ test("#2807 Storyboard and Previs share the same narration staleness source-key 
 
   assert.match(handoff, /shotContext: "~3-second planning target"/u);
   assert.match(previs, /shotContext: "~3-second planning target"/u);
-  assert.match(handoff, /graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)/u);
-  assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact\)/u);
+  assert.match(handoff, /graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact(?:, [^)]+)?\)/u);
+  assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact(?:, [^)]+)?\)/u);
 });
 
 test("#2807 Previs fills only missing narration and preserves current Storyboard approvals", async () => {

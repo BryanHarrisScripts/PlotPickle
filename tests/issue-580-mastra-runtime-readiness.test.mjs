@@ -22,14 +22,17 @@ test("Mastra execution and the Curriculum Guide keep a bounded local response bu
   ]);
 
   assert.match(runtime, /MASTRA_AGENT_TIMEOUT_MS = 25_000/);
-  assert.match(runtime, /const abortSignal = AbortSignal\.timeout\(MASTRA_AGENT_TIMEOUT_MS\)/);
+  assert.match(runtime, /STORYBOARD_SHOT_BRIEF_TIMEOUT_MS = 90_000/);
+  assert.match(runtime, /const agentTimeoutMs = input\.outputFormat\?\.kind === "storyboard-shot-brief" \? STORYBOARD_SHOT_BRIEF_TIMEOUT_MS : MASTRA_AGENT_TIMEOUT_MS/);
+  assert.match(runtime, /AbortSignal\.timeout\(agentTimeoutMs\)/);
   assert.match(runtime, /const executionOptions = \{[\s\S]*abortSignal,/);
-  assert.match(runtime, /agent\.generate\(prompt, (?:\{[\s\S]*\.\.\.executionOptions|executionOptions)\)/);
+  assert.match(runtime, /agent\.generate\((?:prompt|messages), \{[\s\S]*\.\.\.executionOptions,/);
   assert.match(runtime, /structuredOutput: \{[\s\S]*foundationProposalSchema/);
   assert.match(runtime, /structuredOutput: \{[\s\S]*storyArchitectAssessmentSchema/);
   assert.match(runtime, /const storyArchitectModelSettings = \{[\s\S]*maxOutputTokens: 1800/);
   assert.match(runtime, /jsonPromptInjection: false/);
-  assert.match(runtime, /30-second response limit/);
+  assert.match(runtime, /agentTimeoutMs \/ 1000/);
+  assert.match(runtime, /response limit/);
   assert.match(guide, /\/api\/writing-assistant\/status/);
   assert.match(guide, /status\.mastra\?\.ready/);
   assert.match(guide, /status\.localRuntime\?\.ready/);

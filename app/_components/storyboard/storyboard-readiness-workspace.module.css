@@ -375,7 +375,7 @@
 .sceneList p, .beatList p, .visualSequence p, .visualCandidates p { margin: 0; }
 .beatList, .visualSequence, .visualCandidates { display: grid; gap: var(--pp-skin-space-2); }
 .beatList { padding: var(--pp-skin-space-2); border-left: 2px solid var(--pp-skin-accent-bright); }
-.positionList { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--pp-skin-space-2); }
+.positionList { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pp-skin-space-2); }
 .positionRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -385,6 +385,8 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
 }
+.positionRowLocked { grid-template-columns: minmax(250px, .82fr) minmax(0, 2fr); align-items: stretch; }
+.positionReviewColumn { display: grid; align-content: start; gap: var(--pp-skin-space-2); min-width: 0; }
 .framePromptButton,
 .frameReview button,
 .framePromptPanel button {
@@ -453,8 +455,8 @@
   color: var(--pp-skin-ink-soft);
   font-size: var(--pp-skin-font-meta);
 }
-@media (max-width: 1500px) { .positionList { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .positionList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1500px) { .positionList { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .positionList { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 650px) { .positionList { grid-template-columns: 1fr; } }
 .positionIdentity { display: grid; gap: var(--pp-skin-space-1); }
 .positionIdentity strong { color: var(--pp-skin-ink); font-size: var(--pp-skin-font-meta); letter-spacing: var(--pp-skin-tracking-meta); text-transform: uppercase; }
@@ -637,6 +639,34 @@
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
 }
 
+.lockedShotHandoff[data-embedded="true"] {
+  grid-column: 2;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.handoffImagePrompt {
+  min-width: 0;
+  padding: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.handoffImagePrompt summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.handoffImagePrompt p {
+  margin: var(--pp-skin-space-2) 0 0;
+  overflow-wrap: anywhere;
+  color: var(--pp-skin-ink-soft);
+  line-height: 1.4;
+}
+
 .lockedShotHandoff > header {
   display: flex;
   flex-wrap: wrap;
@@ -661,10 +691,10 @@
 
 .handoffRow {
   display: grid;
-  grid-template-columns: minmax(92px, .55fr) minmax(180px, 1fr) minmax(320px, 2.1fr) minmax(260px, 1.35fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .9fr);
   min-width: 0;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-surface-1);
+  border: 0;
+  background: transparent;
 }
 
 .handoffRow > * {
@@ -713,6 +743,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
   margin: 0;
+  border-right: var(--pp-skin-border-thin) solid var(--pp-skin-line);
 }
 
 .handoffFacts div {
@@ -780,18 +811,16 @@
 }
 
 @media (max-width: 1180px) {
-  .handoffRow {
-    grid-template-columns: minmax(86px, .5fr) minmax(180px, 1fr) minmax(0, 2fr);
-  }
+  .positionRowLocked { grid-template-columns: minmax(210px, .75fr) minmax(0, 1.5fr); }
 
-  .handoffNarration {
-    grid-column: 1 / -1;
-    border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-    border-right: 0;
+  .handoffRow {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, .8fr);
   }
 }
 
 @media (max-width: 760px) {
+  .positionRowLocked { grid-template-columns: minmax(0, 1fr); }
+  .lockedShotHandoff[data-embedded="true"] { grid-column: 1; }
   .handoffRow {
     grid-template-columns: 1fr;
   }
@@ -807,6 +836,7 @@
 
   .handoffFacts {
     grid-template-columns: 1fr;
+    border-right: 0;
   }
 }
 

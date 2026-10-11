@@ -76,7 +76,18 @@ export async function GET(request: Request) {
       readinessReasons: readiness.reasons,
       autonomousGuest,
     };
-    return response(result);
+    // Remote signed-out callers receive no profile inventory or vault diagnostics.
+    const visibleProfiles = authContext && profile ? [profile] : runtimeState.accessMode === "desktop-loopback" ? result.profiles : [];
+    const profileDiagnostics = visibleProfiles.map(item => {
+      const vault = runtimeState.auth.getVaultStatus(item.profileId, authContext);
+      const cleanup = runtimeState.lastProfileCleanup(item.profileId);
+      return { profileId: item.profileId, vaultState: vault.state,
+        lastLockReason: cleanup?.reason ?? null, lastLockAt: cleanup?.occurredAt ?? null };
+    });
+    const currentSession = sessions.find(session => session.current);
+    return response({ ...result, profileDiagnostics, sessionState: authContext ? "valid" : "missing-or-expired",
+      sessionIdleExpiresAt: currentSession?.idleExpiresAt ?? null,
+      sessionAbsoluteExpiresAt: currentSession?.absoluteExpiresAt ?? null });
   } catch (error) {
     return response(publicProfileApiError(error), 503);
   }

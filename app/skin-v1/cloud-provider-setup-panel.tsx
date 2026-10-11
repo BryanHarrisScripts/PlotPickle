@@ -3,6 +3,7 @@
 import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-request-browser";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ProfileSessionPanel from "../_components/settings/profile-session-panel";
 import { OPENAI_VIDEO_SUNSET, providerPresets } from "../../lib/runtime/ai/providers";
 
 type Provider = "openai" | "minimax";
@@ -383,6 +384,7 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         <strong style={{ color: writing.configured && media.configured ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-ink-muted)" }}>{writing.configured && media.configured ? "AUTHORITY SAVED" : "SETUP REQUIRED"}</strong>
       </header>
 
+      <ProfileSessionPanel onVerified={refresh} />
       <div style={{ ...grid, marginTop: "var(--pp-skin-space-4)" }}>
         <label style={field}><span>API key</span><input style={input} type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder={writing.configured && media.configured ? "Leave blank to keep protected key" : `Enter ${label} API key`} /></label>
         <label style={field}><span>Provider API address</span><input style={input} value={form.baseUrl} onChange={(event) => update("baseUrl", event.target.value)} spellCheck={false} /></label>
@@ -396,6 +398,7 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)" }}>Owner: {profileName || "Checking current human profile"}. The secret is kept outside the PPF and is never rendered back to this screen.</p>
       </div>
 
+      <a href="#profile-session-status">Check profile status or unlock before retrying provider setup</a>
       <div style={{ display: "flex", gap: "var(--pp-skin-space-2)", flexWrap: "wrap", marginTop: "var(--pp-skin-space-4)" }}>
         <button type="button" style={button} onClick={() => void saveAuthority()} disabled={Boolean(working)}>{working === "save" ? "SAVING..." : "SAVE PROVIDER AUTHORITY"}</button>
         <button type="button" style={button} onClick={() => void refresh()} disabled={Boolean(working)}>REFRESH STATUS</button>

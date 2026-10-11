@@ -2286,7 +2286,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2837-profile-compute-setup.test.mjs"
+          "tests/issue-2837-profile-compute-setup.test.mjs",
+          "tests/issue-2911-profile-session-unlock.test.mjs"
         ]
       },
       "cost": "fast",

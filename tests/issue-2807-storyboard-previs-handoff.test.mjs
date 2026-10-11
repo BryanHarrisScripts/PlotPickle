@@ -138,3 +138,31 @@ test("#2807 Previs fills only missing narration and preserves current Storyboard
   assert.doesNotMatch(previs, /lockedImageContactSheet|fetch\("\/api\/previs\/narration"|graphicNovelTextApprovals: \[/u,
     "Previs must not create or silently approve missing Bubble text");
 });
+
+test("#2927 Visual Story readiness is the always-rendered 25 Shot sequence, not conditional locked-shot narration", async () => {
+  const [workspace, registryText, canonicalText, declarationsText, manifestText, windowsProof] = await Promise.all([
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("lib/verification/webmcp-surface-capture-registry.mjs"),
+    read("config/skin-v1-surface-registry.json"),
+    read("config/skin-v1-surface-declarations/standard-surfaces.json"),
+    read("tests/visual-baselines/skin-v1/manifest.json"),
+    read("scripts/developer-diagnostics/product-proof/2821-save-session.mjs"),
+  ]);
+  const selector = "[data-storyboard-scene-beat-detail='inline']";
+  const registrySection = registryText.slice(registryText.indexOf('"visual-story": Object.freeze({'), registryText.indexOf("profile: Object.freeze", registryText.indexOf('"visual-story": Object.freeze({')));
+  const canonical = JSON.parse(canonicalText).surfaces.find((surface) => surface.id === "visual-story");
+  const declaration = JSON.parse(declarationsText).surfaces["visual-story"];
+  const manifest = JSON.parse(manifestText).surfaces["visual-story"];
+  assert.match(workspace, /data-storyboard-scene-beat-detail="inline"/u);
+  assert.match(workspace, /Array\.from\(\{ length: 25 \}/u);
+  assert.match(workspace, /accepted && savedLocally \? <StoryboardLockedShotHandoff/u);
+  assert.ok(registrySection.includes('rootSelector: "' + selector + '"'));
+  assert.ok(registrySection.includes('readySelector: "' + selector + '"'));
+  assert.equal(canonical.runtimeSelector, selector);
+  assert.equal(canonical.runtimeReadySelector, selector);
+  assert.equal(declaration.runtimeSelector, selector);
+  assert.equal(manifest.selector, selector);
+  assert.match(windowsProof, /Analyze Shot & Prepare Brief/u);
+  assert.match(windowsProof, /Create Narration from Reviewed Brief/u);
+  assert.match(windowsProof, /payload\.shotAnalysis, reviewedAnalysis/u);
+});

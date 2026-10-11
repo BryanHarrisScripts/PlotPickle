@@ -552,7 +552,7 @@
       "surfaceId": "visual-story",
       "label": "Visual Story",
       "parent": "storyboard",
-      "runtimeSelector": "[data-storyboard-locked-shot-handoff='previs']",
+      "runtimeSelector": "[data-storyboard-scene-beat-detail='inline']",
       "formatProfile": {
         "layout": "canvas-visual-workspace",
         "shell": "production-nested",

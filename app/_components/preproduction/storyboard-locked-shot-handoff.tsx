@@ -1,5 +1,7 @@
 "use client";
 
+import { narrationOverallStory } from "@/core/media/storyboard-sequence-evidence.mjs";
+
 /* eslint-disable @next/next/no-img-element -- locked Storyboard images are local PlotPickle assets. */
 
 import { useRef, useState } from "react";
@@ -63,6 +65,7 @@ export default function StoryboardLockedShotHandoff({
   const anchor = visualStory.anchors.find((candidate) => candidate.anchorRef === anchorRef) ?? null;
   const sceneNumbers = [...new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean))].map(String);
   const storyContext = {
+    overallStory: narrationOverallStory(project),
     title: project.title,
     act: Math.ceil(blockNumber / 6),
     block: blockNumber,

@@ -183,6 +183,10 @@ try {
     await completeStage("reopen-startup"); await reportFocusedPass(); return;
   }
   await api(session, "/api/writing-assistant/ollama", { baseUrl: `http://127.0.0.1:${fixture.address().port}`, model: "synthetic-outline-product" });
+  // Configuration verifies this synthetic provider; Hybrid selection remains a
+  // separate explicit action through the normal authenticated routing boundary.
+  await api(session, "/api/ai-routing/select", { capability: "text", route: "ollama" });
+  assert.equal((await api(session, "/api/ai-routing/status")).text.selected, "ollama");
   assert.ok(Array.isArray((await api(session, "/api/outline/tasks")).tasks), "Authenticated task discovery returns a task list.");
   if (selectedStage === "execution") {
     await enterStage("execution");

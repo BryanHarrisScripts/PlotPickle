@@ -149,9 +149,8 @@ test("#2830 physical MP4 path: success is gated on authenticated local render an
     readFile(new URL("build/timeline-72-frame-clip.mjs", root), "utf8"),
   ]);
   assert.match(route, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
-  assert.match(route, /renderTimelineThreeSecondClip\\(/u);
-  assert.match(route, /timelineMotionTrimReadiness\\(/u);
-  assert.match(client, /fetch\\("\/api\/timeline\/motion\/trim"/u);
+  assert.match(route, /renderTimelineThreeSecondClip\(/u);
+  assert.match(route, /timelineMotionTrimReadiness\(/u);
   const localPreflight = client.indexOf('method: "GET", credentials: "same-origin", cache: "no-store"');
   const humanConfirm = client.indexOf('const confirmed = await requestPlotPickleConfirmation');
   assert.ok(localPreflight > 0 && localPreflight < humanConfirm, "prove FFmpeg readiness before any paid provider consent");

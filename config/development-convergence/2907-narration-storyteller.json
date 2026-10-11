@@ -14,7 +14,8 @@
     "tests/issue-2839-storyboard-text-narration.test.mjs",
     "docs/developer-briefs/2907-narration-storyteller.md",
     "config/development-convergence/2907-narration-storyteller.json",
-    "core/media/storyboard-sequence-evidence.mjs"
+    "core/media/storyboard-sequence-evidence.mjs",
+    "scripts/pi/durable/outline-product-proof.mjs"
   ],
   "acceptance": [
     {

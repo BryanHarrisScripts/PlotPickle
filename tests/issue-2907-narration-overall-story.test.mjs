@@ -63,3 +63,12 @@ test('#2907 Storyboard and Previs fingerprint the same shared overall context', 
   assert.match(source, /"graphic-novel": NARRATION_STORYTELLER_PROCEDURE/);
   assert.match(source, /Specialist responsibility: \$\{role\}/);
  });
+
+ test('#2907 Windows runtime fixture selects its verified synthetic route explicitly', async () => {
+  const source = await readFile(new URL('../scripts/pi/durable/outline-product-proof.mjs', import.meta.url), 'utf8');
+  const configure = source.indexOf('await api(session, "/api/writing-assistant/ollama"');
+  const select = source.indexOf('await api(session, "/api/ai-routing/select", { capability: "text", route: "ollama" })');
+  const start = source.indexOf('action: "start"', configure);
+  assert.ok(configure >= 0 && select > configure && select < start);
+  assert.match(source, /assert.equal\(\(await api\(session, "\/api\/ai-routing\/status"\)\).text.selected, "ollama"\)/);
+ });

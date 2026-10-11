@@ -9,3 +9,5 @@ Implemented scope: a native storyteller procedure shared by runtime role and nar
 Acceptance: whole-story interpretation precedes Mini-Block placement; character motivation, cause/choice/consequence, theme, subtext, emotional change, setup/payoff, rhythm and silence guide a connected narrative. Preserve exact dialogue and 12-word/100-character limits. Reject invalid overall evidence. Both consumers use the same source identity.
 
 Verification: nearest executable request/projection regressions, existing narration/approval tests, focused UAT, production build, typecheck and independent exact-head CI. Deterministic tests verify evidence and procedure wiring, not literary quality. Real local-model storyteller quality remains Human acceptance under #2855.
+
+Windows proof repair: the existing synthetic Outline fixture configured and verified Ollama but never selected it in Hybrid. Add explicit authenticated route selection and readback before task admission; preserve all product provider/auth checks. This proves the fixture runs its own synthetic loopback provider, not the default local runtime.

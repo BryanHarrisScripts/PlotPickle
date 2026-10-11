@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "issue": 2914,
+  "brief": "docs/developer-briefs/2914-compute-connections-routing.md",
+  "allowedChanges": [
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/skin-v1-standard-surface-shell.css",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/hybrid-story-mode-panel.tsx",
+    "app/skin-v1/local-ai-skin-host.tsx",
+    "app/skin-v1/story-mode-capability-connections.tsx",
+    "app/skin-v1/story-mode-host.tsx",
+    "build/ai-routing-gateway.ts",
+    "build/ai/comfyui-ltx-local-gateway.ts",
+    "build/ai/comfyui-ltx-local-provider.ts",
+    "build/auth/profile-request-context.ts",
+    "build/media-routing-gateway.ts",
+    "build/story-mode-policy-gateway.ts",
+    "config/verification/test-catalog.json",
+    "core/contracts/compute/capability-routes.mjs",
+    "core/storage/profile-private/profile-compute-settings.mjs",
+    "lib/preproduction/provider-capability-contract.ts",
+    "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
+    "tests/issue-2106-story-mode-surface.test.mjs",
+    "tests/issue-2837-profile-compute-setup.test.mjs",
+    "tests/issue-2841-capability-harness.test.mjs",
+    "tests/ltx-bundled-default.test.mjs",
+    "docs/developer-briefs/2914-compute-connections-routing.md",
+    "config/development-convergence/2914.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ROUTE",
+      "criterion": "LTX participates in selected capability routing",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/ai-routing-gateway.ts",
+          "contains": "\"ltx-video\": {"
+        }
+      ]
+    },
+    {
+      "id": "TEST_IDENTITY",
+      "criterion": "Explicit direct tests reach MiniMax with LTX registered",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "The LTX gateway must not intercept an explicit direct MiniMax test"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE",
+      "criterion": "LTX selection verification and job history survive encrypted session restart",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "LTX verification survives a fresh encrypted session."
+        }
+      ]
+    },
+    {
+      "id": "ISOLATED",
+      "criterion": "LTX jobs remain profile-private",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/storage/profile-private/profile-compute-settings.mjs",
+          "contains": "\"ltx-video-jobs.json\""
+        }
+      ]
+    },
+    {
+      "id": "STRATEGY",
+      "criterion": "Text-only LTX receives no unsupported source image",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2841-capability-harness.test.mjs",
+          "contains": "Text-only LTX must not receive unsupported image input."
+        }
+      ]
+    },
+    {
+      "id": "SURFACE",
+      "criterion": "Connections separates workflow routing from direct providers",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2841-capability-settings.mjs",
+          "contains": "Remote ComfyUI is a workflow route, not a direct cloud provider."
+        }
+      ]
+    },
+    {
+      "id": "LIMIT",
+      "criterion": "Actual model inference is not claimed by synthetic tests",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2914-compute-connections-routing.md",
+          "contains": "Actual Windows provider execution and Shot 1 three-second motion remain UNPROVEN"
+        }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@ import {
   holdLocalGpuMediaLease,
   releaseLocalGpuMediaLease,
 } from "../local-gpu-resource-manager";
-import { readMediaRoutingStore } from "../media-routing-store";
+import { readCapabilityChoice } from "./capabilities/capability-routing-state";
 import type { VideoGenerationInput } from "../media-provider-common";
 
 const PROFILE_PATH = "/api/local-ai/ltx-video";
@@ -24,7 +24,6 @@ const MANIFEST_PATH = `${PROFILE_PATH}/manifest`;
 const SETUP_PATH = `${PROFILE_PATH}/setup`;
 const LTX_TEST_PATH = `${PROFILE_PATH}/test`;
 const VIDEO_PATH = "/api/local-ai/generate/video";
-const TEST_VIDEO_PATH = "/api/media-routing/test/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const LOCAL_VIDEO_WAIT_MS = 30 * 60_000;
 const INSTALL_SCRIPT_NAME = "install-comfyui-ltx-2b-starter.ps1";
@@ -154,9 +153,8 @@ function startReviewedLtxInstall() {
   });
 }
 
-async function usesDefaultLocalVideo() {
-  const media = await readMediaRoutingStore();
-  return media.videoRoute === "none";
+async function usesSelectedLtxVideo() {
+  return (await readCapabilityChoice()).video === "ltx-video";
 }
 
 async function waitForLocalVideo(job: LtxJob) {
@@ -185,7 +183,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
     const pathname = request.url?.split("?", 1)[0] || "";
     const profileOperation = pathname === PROFILE_PATH || pathname === MANIFEST_PATH || pathname === SETUP_PATH || pathname === LTX_TEST_PATH;
     const jobOperation = pathname.startsWith(VIDEO_JOB_PATH) && pathname.slice(VIDEO_JOB_PATH.length).startsWith("ltx-");
-    const generationOperation = (pathname === VIDEO_PATH || pathname === TEST_VIDEO_PATH) && request.method === "POST";
+    const generationOperation = pathname === VIDEO_PATH && request.method === "POST";
     if (!profileOperation && !jobOperation && !generationOperation) {
       next();
       return;
@@ -196,7 +194,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
     }
 
     void (async () => {
-      if (generationOperation && !(await usesDefaultLocalVideo())) {
+      if (generationOperation && !(await usesSelectedLtxVideo())) {
         next();
         return;
       }
@@ -272,7 +270,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
       }
       if (generationOperation || (pathname === LTX_TEST_PATH && request.method === "POST")) {
         const body = await readBody(request);
-        const input: VideoGenerationInput = pathname === TEST_VIDEO_PATH || pathname === LTX_TEST_PATH ? {
+        const input: VideoGenerationInput = pathname === LTX_TEST_PATH ? {
           prompt: typeof body.prompt === "string" ? body.prompt : "A cinematic storyboard frame comes gently to life with a subtle camera push and natural character motion.",
           assetId: "ltx-local-video-test",
           durationSeconds: 2,

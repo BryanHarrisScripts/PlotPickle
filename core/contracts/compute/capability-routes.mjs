@@ -2,13 +2,13 @@
 export const CAPABILITY_ROUTES = Object.freeze({
   text: ["local", "ollama", "openai", "minimax", "gemini", "off"],
   image: ["comfyui", "ollama-comfyui", "openai", "minimax", "manual"],
-  video: ["comfyui-native", "minimax", "minimax-comfyui", "openai", "off"],
+  video: ["ltx-video", "comfyui-native", "minimax", "minimax-comfyui", "openai", "off"],
 });
 export function routeExecution(capability, route) {
   const disabled = route === "off" || route === "manual";
   const provider = route === "minimax-comfyui" ? "minimax" : route;
   const remote = ["openai", "minimax", "gemini", "comfy-cloud"].includes(provider);
-  return { disabled, provider, runtimeLocation: route === "minimax-comfyui" || ["local", "ollama", "comfyui", "ollama-comfyui", "comfyui-native"].includes(route) ? "local" : remote ? "cloud" : "off", inferenceLocation: remote ? "cloud" : disabled ? "off" : "local", paid: remote, dataSharing: remote && capability === "video" };
+  return { disabled, provider, runtimeLocation: route === "minimax-comfyui" || ["local", "ollama", "comfyui", "ollama-comfyui", "ltx-video", "comfyui-native"].includes(route) ? "local" : remote ? "cloud" : "off", inferenceLocation: remote ? "cloud" : disabled ? "off" : "local", paid: remote, dataSharing: remote && capability === "video" };
 }
 export function requireSelectedCapability(status, capability, route) {
   if (!CAPABILITY_ROUTES[capability]?.includes(route)) throw new Error("Choose a supported capability route.");

@@ -240,7 +240,7 @@ export function storyModeRouteLocality(capability: "text" | "image" | "video", r
     if (value === "manual") return "neutral";
     return "unknown";
   }
-  if (value === "comfyui-native") return "local";
+  if (value === "ltx-video" || value === "comfyui-native") return "local";
   if (value === "openai" || value === "minimax" || value === "minimax-comfyui" || value === "comfy-cloud") return "cloud";
   if (value === "off" || value === "none") return "neutral";
   return "unknown";

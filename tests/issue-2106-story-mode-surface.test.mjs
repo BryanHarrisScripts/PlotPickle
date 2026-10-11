@@ -15,7 +15,7 @@ test("#2106 Story Mode uses the required Local Cloud Hybrid keyboard directory",
 
   assert.match(host, /mode: "local"[\s\S]*shortcut: "L"[\s\S]*label: "LOCAL"/u);
   assert.match(host, /mode: "cloud"[\s\S]*shortcut: "C"[\s\S]*label: "CLOUD"/u);
-  assert.match(host, /mode: "hybrid"[\s\S]*shortcut: "H"[\s\S]*label: "HYBRID"/u);
+  assert.match(host, /mode: "hybrid"[\s\S]*shortcut: "H"[\s\S]*label: "CONNECTIONS"/u);
   assert.match(host, /data-story-mode-policy=\{item\.mode\}/u);
   assert.match(host, /event\.key === "ArrowDown"/u);
   assert.match(host, /event\.key === "ArrowUp"/u);
@@ -50,8 +50,8 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /return selected\.every\(Boolean\)/u);
   assert.match(host, /\{ label: "LOCAL", ready: localCoverage\.ready === localCoverage\.total/u);
   assert.match(host, /\{ label: "CLOUD", ready: cloudCoverage\.ready === cloudCoverage\.total/u);
-  assert.match(host, /\{ label: "HYBRID", ready: hybridReady,/u);
-  assert.match(host, /<strong>MODE<\/strong>: \{mode\.toUpperCase\(\)\}/u);
+  assert.match(host, /\{ label: "CONNECTIONS", ready: hybridReady,/u);
+  assert.match(host, /<strong>MODE<\/strong>: \{mode === "hybrid" \? "CONNECTIONS" : mode\.toUpperCase\(\)\}/u);
   assert.match(host, /data-story-mode-readiness=\{readinessState\(status\.ready, loaded\)\}/u);
 });
 
@@ -59,6 +59,6 @@ test("#2841 opening a setup directory never changes execution policy", async () 
   const host = await read("app/skin-v1/story-mode-host.tsx");
   const activate = host.slice(host.indexOf("async function activate"), host.indexOf("function handleKeyDown"));
   assert.match(activate, /setView\(nextMode\)/u);
-  assert.match(activate, /Route selection stays in Hybrid/u);
+  assert.match(activate, /Route selection stays in Connections/u);
   assert.doesNotMatch(activate, /method: "POST"|setMode\(nextMode\)/u);
 });

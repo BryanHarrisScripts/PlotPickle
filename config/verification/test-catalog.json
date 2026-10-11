@@ -703,7 +703,8 @@
         "targets": [
           "tests/local-ai-plugin-registry.test.mjs",
           "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
-          "tests/issue-2841-capability-harness.test.mjs"
+          "tests/issue-2841-capability-harness.test.mjs",
+          "tests/ltx-bundled-default.test.mjs"
         ]
       },
       "cost": "fast",

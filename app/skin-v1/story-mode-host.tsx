@@ -52,7 +52,7 @@ const STORY_MODE_ROWS = [
   {
     mode: "hybrid",
     shortcut: "H",
-    label: "HYBRID",
+    label: "CONNECTIONS",
     description: "Route across Local and Cloud capabilities",
   },
 ] as const;
@@ -117,7 +117,7 @@ function StoryModeReadiness({
   const statuses = [
     { label: "LOCAL", ready: localCoverage.ready === localCoverage.total, value: coverageLabel(localCoverage, loaded) },
     { label: "CLOUD", ready: cloudCoverage.ready === cloudCoverage.total, value: coverageLabel(cloudCoverage, loaded) },
-    { label: "HYBRID", ready: hybridReady, value: readinessLabel(hybridReady, loaded) },
+    { label: "CONNECTIONS", ready: hybridReady, value: readinessLabel(hybridReady, loaded) },
   ] as const;
 
   return (
@@ -128,7 +128,7 @@ function StoryModeReadiness({
           <strong>{status.label}</strong>: {status.value}
         </span>
       ))}
-      <span data-story-mode-active-policy={mode}><strong>MODE</strong>: {mode.toUpperCase()}</span>
+      <span data-story-mode-active-policy={mode}><strong>MODE</strong>: {mode === "hybrid" ? "CONNECTIONS" : mode.toUpperCase()}</span>
     </div>
   );
 }
@@ -167,7 +167,7 @@ export default function StoryModeHost({
       if (!routingResponse.ok || !routing.ok) throw new Error(routing.message || "Story Mode readiness is unavailable.");
       setMode(policy.mode);
       setRoutingStatus(routing);
-      setMessage("LOCAL and CLOUD report the capability setup actually detected in each system area. HYBRID is READY only when the selected Writing, Images and Video mix is tested and uses both Local and Cloud.");
+      setMessage("LOCAL and CLOUD report the capability setup actually detected in each system area. CONNECTIONS is READY when the selected Writing, Images and Video routes are tested.");
     } catch (error) {
       setRoutingStatus(null);
       setMessage(error instanceof Error ? error.message : "Story Mode readiness is unavailable.");
@@ -218,7 +218,7 @@ export default function StoryModeHost({
 
   async function activate(nextMode: StoryModePolicy) {
     setView(nextMode);
-    setMessage(nextMode === "hybrid" ? "Hybrid controls capability routing." : `${nextMode.toUpperCase()} configures and verifies resources. Route selection stays in Hybrid.`);
+    setMessage(nextMode === "hybrid" ? "Connections controls capability routing." : `${nextMode.toUpperCase()} configures and verifies resources. Route selection stays in Connections.`);
     void refresh();
   }
 
@@ -289,11 +289,11 @@ export default function StoryModeHost({
 
   if (view === "hybrid") {
     return (
-      <section aria-label="Hybrid Story Mode" data-story-mode-view="hybrid" onKeyDown={(event) => {
+      <section aria-label="Capability Connections" data-story-mode-view="hybrid" onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); returnFromMode(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>HYBRID</h1>
+          <h1>CONNECTIONS</h1>
           <button type="button" className="pp-skin-v1-return" onClick={returnFromMode}>{onReturnToSettings ? "Back to Settings" : "Back to Story Mode"}</button>
         </div>
         <StoryModeReadiness localCoverage={localCoverage} cloudCoverage={cloudCoverage} hybridReady={hybridReady} loaded={loaded} mode={mode} />

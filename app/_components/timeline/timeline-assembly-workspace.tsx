@@ -63,7 +63,7 @@ type VideoJob = Readonly<{
 }>;
 
 type TimelineMotionRoute = Readonly<{
-  route: "minimax" | "minimax-comfyui" | "openai" | "comfyui-native";
+  route: "ltx-video" | "minimax" | "minimax-comfyui" | "openai" | "comfyui-native";
   label: string;
   locality: "cloud" | "local";
   needsActivation: boolean;
@@ -233,6 +233,10 @@ async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket)
 
   const selected = routing.video?.selected ?? "off";
   const selectedState = routing.video?.options?.[selected];
+  if (selected === "ltx-video" && selectedState?.ready) {
+    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "ltx-video", locality: "local", ready: true, workflowFamily: "text-to-video" }, packet) : null;
+    return { route: "ltx-video", label: "Local ComfyUI · LTX-Video · selected and verified", locality: "local", needsActivation: false, strategy };
+  }
   if (selected === "comfyui-native" && selectedState?.ready) {
     const strategy = packet ? resolveTimelineGenerationStrategy({
       route: "comfyui-native",
@@ -939,7 +943,7 @@ export default function TimelineAssemblyWorkspace({
     const usesVisualReference = Boolean(strategy.sourceAssetUrl || strategy.referenceAssetUrl || strategy.lastFrameAssetUrl);
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Hybrid selection remains unchanged.`,
+      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Connections selection remains unchanged.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });

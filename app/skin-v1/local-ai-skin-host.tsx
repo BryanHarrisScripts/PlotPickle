@@ -351,7 +351,7 @@ export default function LocalAiSkinHost() {
 
   function videoRuntimeConnection(): StoryModeConnectionRow {
     const option = routing?.video.options["minimax-comfyui"];
-    return { id: "minimax-comfyui", label: "ComfyUI", role: "MiniMax API video workflow", detail: "Local ComfyUI runs the workflow; MiniMax generates video using your API account.", state: connectionState(option), model: option?.model, active: routing?.video.selected === "minimax-comfyui", setupLabel: "Setup", onSetup: () => setView("comfyui") };
+    return { id: "minimax-comfyui", label: "ComfyUI", role: "MiniMax API video workflow", detail: "Local ComfyUI runs the workflow; MiniMax generates video using your API account.", state: connectionState(option), blocker: option?.error, model: option?.model, active: routing?.video.selected === "minimax-comfyui", setupLabel: "Setup", onSetup: () => setView("comfyui") };
   }
 
   function videoPluginConnection(kind: "ltx" | "h3"): StoryModeConnectionRow {
@@ -386,7 +386,7 @@ export default function LocalAiSkinHost() {
   function capabilityConnections(capability: CapabilityKey): StoryModeConnectionRow[] {
     if (capability === "writing" || capability === "agents") return [localWritingConnection(capability), ollamaConnection(capability)];
     if (capability === "images") return [imageComfyConnection()];
-    return [videoRuntimeConnection(), { id: "comfyui-native", label: "ComfyUI — Native local inference", role: "Local H3 weights", detail: LOCAL_DETAILS.h3, state: connectionState(routing?.video.options["comfyui-native"]), setupLabel: "Setup", onSetup: () => setView("h3") }];
+    return [{ id: "ltx-video", label: "ComfyUI · LTX-Video", role: "Local text-to-video workflow", detail: LOCAL_DETAILS.ltx, state: connectionState(routing?.video.options["ltx-video"]), model: routing?.video.options["ltx-video"]?.model, active: routing?.video.selected === "ltx-video", blocker: routing?.video.options["ltx-video"]?.error, setupLabel: "Setup", onSetup: () => setView("ltx") }, videoRuntimeConnection(), { id: "comfyui-native", label: "ComfyUI — Native local inference", role: "Local H3 weights", detail: LOCAL_DETAILS.h3, state: connectionState(routing?.video.options["comfyui-native"]), blocker: routing?.video.options["comfyui-native"]?.error, setupLabel: "Setup", onSetup: () => setView("h3") }];
   }
 
   if (view !== "menu") {

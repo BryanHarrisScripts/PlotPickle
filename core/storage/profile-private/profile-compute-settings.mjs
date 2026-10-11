@@ -1,11 +1,11 @@
 // One account-owned encrypted record; adapters retain their existing typed projections.
 export const COMPUTE_SETTING_NAMES = Object.freeze([
   "ai-connection.json", "writing-assistant-profiles.json", "media-routing.json",
-  "ai-routing.json", "plotpickle-agent-compute.json", "h3-native-routing.json",
+  "ai-routing.json", "plotpickle-agent-compute.json", "h3-native-routing.json", "ltx-video-local.json",
   "local-runtime.json", "story-mode-policy.json", "story-mode-job-routing.json", "provider-consent.json", "comfy-cloud.json",
 ]);
 export const COMPUTE_PRIVATE_NAMES = Object.freeze([
-  ...COMPUTE_SETTING_NAMES, "openai-video-jobs.json", "h3-native-jobs.json", "media-comfy-video-jobs.json", "media-cloud-video-jobs.json", "capability-diagnostics.json",
+  ...COMPUTE_SETTING_NAMES, "openai-video-jobs.json", "h3-native-jobs.json", "ltx-video-jobs.json", "media-comfy-video-jobs.json", "media-cloud-video-jobs.json", "capability-diagnostics.json",
 ]);
 const RECORD = "compute-setup.json";
 const queues = new WeakMap();
@@ -36,7 +36,7 @@ export function writeProfileComputeSettings(context, updates, expected = {}) {
     const settings = stored?.version === 1 ? { ...stored.settings } : {};
     for (const [name, value] of Object.entries(expected)) {
       const current = Object.hasOwn(settings, name) ? settings[name] : await context.privateStorage.readCredential(context.authContext, name);
-      if (JSON.stringify(current ?? null) !== JSON.stringify(value ?? null)) throw new Error("Compute setup changed during selection. Refresh Hybrid and retry; no route was changed.");
+      if (JSON.stringify(current ?? null) !== JSON.stringify(value ?? null)) throw new Error("Compute setup changed during selection. Refresh Connections and retry; no route was changed.");
     }
     Object.assign(settings, updates);
     await context.privateStorage.writeCredential(context.authContext, RECORD, { version: 1, settings });

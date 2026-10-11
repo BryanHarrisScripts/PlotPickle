@@ -67,7 +67,7 @@ test("#2614 keeps built-in trust metadata exactly aligned with the expanded skil
     readJson("config/agent-skills.json"),
     readJson("config/agent-skill-trust.json"),
   ]);
-  assert.equal(registry.skills.length, 21);
+  assert.equal(registry.skills.length, 22);
   assert.equal(trust.records.length, registry.skills.length);
   assert.deepEqual(
     trust.records.map((record) => record.uri).sort(),

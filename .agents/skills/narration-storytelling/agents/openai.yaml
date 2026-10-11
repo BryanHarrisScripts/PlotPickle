@@ -1,0 +1,4 @@
+interface:
+  display_name: "Narration Storytelling"
+  short_description: "Place narration through dramatic change and subtext"
+  default_prompt: "Use $narration-storytelling to place captions within this Mini-Block and its overall story."

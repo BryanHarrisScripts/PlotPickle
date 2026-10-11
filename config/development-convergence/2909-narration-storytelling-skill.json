@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 2909,
+  "phase": "registered-narration-storytelling",
+  "brief": "docs/developer-briefs/2909-narration-storytelling-skill.md",
+  "allowedChanges": [
+    ".agents/skills/narration-storytelling/",
+    "build/mastra-agent-runtime.ts",
+    "config/agent-skills.json",
+    "config/agent-skill-trust.json",
+    "config/verification/ownership-map.json",
+    "tests/issue-2909-narration-storytelling-skill.test.mjs",
+    "tests/issue-2839-storyboard-text-narration.test.mjs",
+    "docs/developer-briefs/2909-narration-storytelling-skill.md",
+    "config/development-convergence/2909-narration-storytelling-skill.json",
+    "tests/issue-2614-quillan-skill-registry.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "DISCOVERY",
+      "criterion": "Native registered skill is a direct Graphic Novel consumer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/agent-skills.json",
+          "contains": "\"id\": \"narration-storytelling\""
+        }
+      ]
+    },
+    {
+      "id": "RUNTIME",
+      "criterion": "The actual runtime loads the skill for Graphic Novel.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/mastra-agent-runtime.ts",
+          "contains": "id === \"graphic-novel\" ? `Narration Storytelling skill:"
+        }
+      ]
+    },
+    {
+      "id": "REGRESSION",
+      "criterion": "Regression constructs a real Mastra agent and verifies the full procedure.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2909-narration-storytelling-skill.test.mjs",
+          "contains": "assert.ok(instructions.includes(procedure))"
+        }
+      ]
+    },
+    {
+      "id": "TRIALS",
+      "criterion": "Contrasting independent trials cover reveal boundaries, exact dialogue, silence and essential causal information.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2909-narration-storytelling-skill.md",
+          "contains": "Real local-model narration quality remains Human acceptance"
+        }
+      ]
+    }
+  ]
+}

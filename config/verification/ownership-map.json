@@ -1900,7 +1900,9 @@
       "classification": "production",
       "include": [
         "build/timeline-media-engine-handoff.ts",
-        "app/api/timeline/media-engine/render/route.ts"
+        "app/api/timeline/media-engine/render/route.ts",
+        "build/timeline-72-frame-clip.mjs",
+        "app/api/timeline/motion/trim/route.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

@@ -214,6 +214,11 @@ export type TimelineShotGenerationPacketInput = Readonly<{
   nextShotContext?: string;
   narrativeIntention?: string;
   visualDirection?: string;
+  savedStoryDecisions?: string;
+  savedStoryFoundations?: string;
+  savedStoryArc?: string;
+  approvedNarration?: string;
+  approvedDialogue?: string;
   characterFacts?: readonly string[];
   productionDirection?: readonly string[];
   continuityLocks?: readonly string[];
@@ -244,6 +249,11 @@ export type TimelineShotGenerationPacket = Readonly<{
   }>;
   narrativeIntention: string;
   visualDirection: string;
+  savedStoryDecisions: string;
+  savedStoryFoundations: string;
+  savedStoryArc: string;
+  approvedNarration: string;
+  approvedDialogue: string;
   characterFacts: readonly string[];
   productionDirection: readonly string[];
   continuityLocks: readonly string[];
@@ -269,6 +279,7 @@ export type TimelineGenerationStrategy = Readonly<{
   sourceAssetUrl: string;
   lastFrameAssetUrl: string;
   referenceAssetUrl: string;
+  sourceImageUse: "input-image" | "context-only" | "none";
 }>;
 
 function clean(value: string | undefined) {
@@ -323,6 +334,11 @@ export function buildTimelineShotGenerationPacket(
     },
     narrativeIntention: clean(input.narrativeIntention),
     visualDirection: clean(input.visualDirection),
+    savedStoryDecisions: clean(input.savedStoryDecisions).slice(0, 1400),
+    savedStoryFoundations: clean(input.savedStoryFoundations).slice(0, 900),
+    savedStoryArc: clean(input.savedStoryArc).slice(0, 1500),
+    approvedNarration: clean(input.approvedNarration).slice(0, 140),
+    approvedDialogue: clean(input.approvedDialogue).slice(0, 200),
     characterFacts: [...new Set((input.characterFacts ?? []).map(clean).filter(Boolean))].sort(),
     productionDirection: [...new Set((input.productionDirection ?? []).map(clean).filter(Boolean))].sort(),
     continuityLocks: [...new Set((input.continuityLocks ?? []).map(clean).filter(Boolean))].sort(),
@@ -359,12 +375,13 @@ export function resolveTimelineGenerationStrategy(
     sourceAssetUrl: sourceImage?.assetUrl ?? "",
     lastFrameAssetUrl: lastFrame?.assetUrl ?? "",
     referenceAssetUrl: explicitReference?.assetUrl ?? sourceImage?.assetUrl ?? "",
+    sourceImageUse: sourceImage ? "input-image" : "none",
   });
 
   if (!capability.ready) return unavailable("The selected video route is not ready.");
 
   if (capability.route === "ltx-video") {
-    return { ...unavailable(""), eligible: true, modality: "text-to-video", reason: "", sourceAssetUrl: "", lastFrameAssetUrl: "", referenceAssetUrl: "" };
+    return { ...unavailable(""), eligible: true, modality: "text-to-video", reason: "", sourceAssetUrl: "", lastFrameAssetUrl: "", referenceAssetUrl: "", sourceImageUse: sourceImage ? "context-only" : "none" };
   }
 
   if (capability.route === "comfyui-native") {
@@ -375,6 +392,8 @@ export function resolveTimelineGenerationStrategy(
         eligible: true,
         modality: "text-to-video",
         reason: "",
+        sourceAssetUrl: "", lastFrameAssetUrl: "", referenceAssetUrl: "",
+        sourceImageUse: sourceImage ? "context-only" : "none",
       };
     }
     if (family === "image-to-video") {
@@ -384,6 +403,7 @@ export function resolveTimelineGenerationStrategy(
         eligible: true,
         modality: "image-to-video",
         reason: "",
+        sourceImageUse: "input-image",
       };
     }
     if (family === "first-last-frame") {
@@ -393,6 +413,7 @@ export function resolveTimelineGenerationStrategy(
         eligible: true,
         modality: "first-last-frame",
         reason: "",
+        sourceImageUse: "input-image",
       };
     }
     if (family === "reference-to-video") {
@@ -402,6 +423,7 @@ export function resolveTimelineGenerationStrategy(
         eligible: true,
         modality: "reference-to-video",
         reason: "",
+        sourceImageUse: "input-image",
       };
     }
     if (family === "in-place-edit") {
@@ -410,11 +432,25 @@ export function resolveTimelineGenerationStrategy(
     return unavailable("The active local H3 workflow family is unknown. Re-check H3 setup before generating.");
   }
 
+  if (capability.route === "minimax-comfyui") {
+    // This route is one inspected ComfyUI workflow, not an abstract cloud model.
+    // Never guess image input from the presence of an approved Storyboard frame.
+    if (capability.workflowFamily === "image-to-video") {
+      if (!sourceImage) return unavailable("The verified MiniMax ComfyUI image-to-video workflow requires the approved locked Shot image.");
+      return { ...unavailable(""), eligible: true, modality: "image-to-video", reason: "", sourceImageUse: "input-image" };
+    }
+    if (capability.workflowFamily === "text-to-video") {
+      return { ...unavailable(""), eligible: true, modality: "text-to-video", reason: "", sourceAssetUrl: "", lastFrameAssetUrl: "", referenceAssetUrl: "", sourceImageUse: sourceImage ? "context-only" : "none" };
+    }
+    return unavailable("The selected MiniMax ComfyUI workflow is not verified as text-to-video or image-to-video. Test the exact workflow family in Settings → Connections → Video.");
+  }
+
   return {
     ...unavailable(""),
     eligible: true,
     modality: sourceImage ? "image-to-video" : "text-to-video",
     reason: "",
+    sourceImageUse: sourceImage ? "input-image" : "none",
   };
 }
 
@@ -437,6 +473,12 @@ export function serializeTimelineShotGenerationPacket(
     packet.progression.next ? `Next Shot handoff: ${packet.progression.next}` : "",
     packet.narrativeIntention ? `Approved visual narrative intention: ${packet.narrativeIntention}` : "",
     packet.visualDirection ? `Approved visual direction: ${packet.visualDirection}` : "",
+    packet.approvedNarration ? `Current Human-approved printed caption: ${packet.approvedNarration}` : "",
+    packet.approvedDialogue ? `Current Human-approved screenplay dialogue: ${packet.approvedDialogue}` : "",
+    packet.savedStoryDecisions ? `Saved whole-story decisions (continuity reference, not permission to reveal future events): ${packet.savedStoryDecisions}` : "",
+    packet.savedStoryFoundations ? `Saved Foundations brief (do not spoil future events): ${packet.savedStoryFoundations}` : "",
+    packet.savedStoryArc ? `24-Block structural map (orientation only; reveal only this Shot\u0027s current information boundary): ${packet.savedStoryArc}` : "",
+    strategy.sourceImageUse === "input-image" ? "The approved locked Storyboard image is provided as the actual generation input. Preserve its character and composition." : strategy.sourceImageUse === "context-only" ? "TEXT-TO-VIDEO ADAPTATION: the approved locked Storyboard frame is NOT transmitted as an image. Use its authored textual intention and continuity facts to create a new interpretation; do not claim to animate the exact image." : "",
     packet.characterFacts.length ? `Character truth: ${packet.characterFacts.join("; ")}` : "",
     packet.productionDirection.length ? `Production direction: ${packet.productionDirection.join("; ")}` : "",
     packet.continuityLocks.length ? `Continuity locks: ${packet.continuityLocks.join("; ")}` : "",

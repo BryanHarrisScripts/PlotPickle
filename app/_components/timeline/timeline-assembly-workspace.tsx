@@ -811,6 +811,12 @@ export default function TimelineAssemblyWorkspace({
         if (error instanceof TimelineMotionObservationError) throw error;
         throw new TimelineMotionObservationError(error instanceof Error ? error.message : "The submitted provider job could not be checked.");
       }
+      if (result.id !== current.id) {
+        throw new TimelineMotionObservationError("Provider status returned a different job than the submitted and saved provider receipt.");
+      }
+      if (result.status === "succeeded" && !result.outputAssetUrl) {
+        throw new TimelineMotionObservationError("The provider reports success, but a saved playable video asset is not ready for this job yet.");
+      }
       current = result;
       if (current.status !== lastStatus) {
         lastStatus = current.status;

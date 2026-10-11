@@ -190,6 +190,8 @@ test("#2924 derives selected text versus image video inputs from the actual veri
     "locked Storyboard frame is NOT transmitted",
   ]) assert.ok(prompt.includes(phrase), "modality-specific packet must include " + phrase);
   assert.ok(prompt.length <= 7000);
+  assert.match(packet.sourceFingerprint, /^PP-MOTION-002:[a-f0-9]{32}$/u);
+  assert.doesNotMatch(packet.sourceFingerprint, /Ren|secret|Foundation/u, "source identity must not leak the saved story");
   assert.notEqual(
     packet.sourceFingerprint,
     buildTimelineShotGenerationPacket(packetInput({

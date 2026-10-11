@@ -1395,7 +1395,7 @@ export default function TimelineAssemblyWorkspace({
                       onClick={() => void generateMotionShot(shotNumber)}
                       type="button"
                     >
-                      {working ? "Generating…" : current?.status === "failed" || state.stale ? "Retry motion" : current?.status === "succeeded" ? "Regenerate motion" : "Generate motion"}
+                      {working ? "Checking…" : current?.jobId && (current.status === "queued" || current.status === "running") ? "Resume existing motion job" : current?.status === "failed" || state.stale ? "Retry motion" : current?.status === "succeeded" ? "Regenerate motion" : "Generate motion"}
                     </button>
                   </div>
                 </article>

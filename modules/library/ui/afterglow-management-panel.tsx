@@ -12,7 +12,7 @@ import { mindMapCharacterRoster } from "../../learn/model/mind-map-character-ros
 import { collectAfterglowReviewSources } from "../afterglow-review-sources.mjs";
 import {serializeLibraryBackup,libraryBackupFileName} from "../../../core/storage/library-project";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
-import type { AfterglowReviewDraft, AfterglowReviewSelections } from "../master/afterglow-review-draft.mjs";
+import { withoutAfterglowReviewConfirmation, type AfterglowReviewDraft, type AfterglowReviewSelections } from "../master/afterglow-review-draft.mjs";
 import type { StoryDevelopmentFieldDefinition } from "../../learn/model/story-development-fields";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import type { AfterglowMediaVerification } from "../afterglow-media-integrity.mjs";
@@ -253,6 +253,7 @@ export default function AfterglowManagementPanel() {
   const [draftSaveStatus,setDraftSaveStatus] = useState<"idle"|"saving"|"saved"|"blocked">("idle");
   const [refreshingSources,setRefreshingSources] = useState(false);
   const [draftSaveMessage,setDraftSaveMessage] = useState("");
+  const [persistEmptyReview,setPersistEmptyReview] = useState(false);
   const draftWriteGeneration=useRef(0);
   const [lastSaveAudit,setLastSaveAudit] = useState<AfterglowMasterSaveAudit|null>(null);
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
@@ -405,8 +406,12 @@ export default function AfterglowManagementPanel() {
   useEffect(() => {
     if(!preview) return;
     const selected=JSON.parse(selectionFingerprint) as AfterglowReviewSelections;
-    if(!Object.keys(selected.decisions).length&&!selected.exclusions.length
-      &&!Object.keys(selected.imageChoices).length&&!Object.keys(selected.confirmedCurrent).length) return;
+    const hasSelections=Boolean(Object.keys(selected.decisions).length||selected.exclusions.length
+      ||Object.keys(selected.imageChoices).length||Object.keys(selected.confirmedCurrent).length);
+    // Starting a new review is read-only until the Human chooses something.
+    // Explicit Reset must persist the empty manifest: otherwise Continue Last
+    // Review silently resurrects previously selected answers after reload.
+    if(!hasSelections&&!persistEmptyReview)return;
     const generation=++draftWriteGeneration.current;
     setDraftSaveStatus("saving");
     setDraftSaveMessage("Saving review choices…");
@@ -424,7 +429,7 @@ export default function AfterglowManagementPanel() {
       setDraftSaveMessage(error instanceof Error?error.message:
         "Review autosave failed. Your choices are still on this page but not confirmed in your profile.");
     });
-  },[selectionFingerprint,preview?.sourceFingerprint]);
+  },[selectionFingerprint,preview?.sourceFingerprint,persistEmptyReview]);
 
 
   useEffect(() => {
@@ -501,6 +506,7 @@ export default function AfterglowManagementPanel() {
     setSaveError("");
     setDraftSaveStatus("idle");
     setDraftSaveMessage("");
+    setPersistEmptyReview(false);
     try {
       if (!profileReady()) throw new Error("Unlock your PlotPickle profile before reviewing Afterglow.");
       const start = listAfterglowExampleProjects();
@@ -1032,7 +1038,8 @@ export default function AfterglowManagementPanel() {
               {exclusions.length || Object.keys(decisions).length || Object.keys(imageChoices).length
                 || Object.keys(confirmedCurrent).length ? (
                 <button type="button" className={styles.selectionReset}
-                  onClick={() => { setExclusions([]); setDecisions({}); setImageChoices({}); setConfirmedCurrent({}); }}>
+                  onClick={() => { setExclusions([]); setDecisions({}); setImageChoices({}); setConfirmedCurrent({});
+                     setPersistEmptyReview(true); }}>
                   Reset review decisions (originals unchanged)
                 </button>
               ) : null}
@@ -1207,7 +1214,7 @@ export default function AfterglowManagementPanel() {
                             </button>
                             <button type="button" disabled={busy || mediaBusy || preflightBusy}
                               aria-pressed={excluded}
-                              onClick={()=>{setConfirmedCurrent(previous=>({...previous,[path!]:false}));
+                              onClick={()=>{setConfirmedCurrent(previous=>withoutAfterglowReviewConfirmation(previous,path!));
                                 setExclusions(previous=>excluded
                                   ? previous.filter(entry=>entry!==path):[...previous,path!]);}}>
                               {excluded ? "Reconsider exclusion" : "Exclude from draft"}

@@ -42,6 +42,7 @@ const STATUS_API = "/api/local-ai/ltx-video";
 const MANIFEST_API = "/api/local-ai/ltx-video/manifest";
 const SETUP_API = "/api/local-ai/ltx-video/setup";
 const TEST_API = "/api/local-ai/ltx-video/test";
+const JOIN_API = "/api/ai-routing/join";
 
 const panel: React.CSSProperties = {
   border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)",
@@ -106,6 +107,7 @@ export default function LocalLtxSetupPanel() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [manifestText, setManifestText] = useState("");
   const [testResult, setTestResult] = useState<LtxTestResult | null>(null);
+  const [routeSelected, setRouteSelected] = useState(false);
 
   async function refresh() {
     try {
@@ -183,6 +185,29 @@ export default function LocalLtxSetupPanel() {
     }
   }
 
+  async function selectLtxForTimeline() {
+    if (working || !status?.verifiedAt || status.lastError) return;
+    setWorking(true);
+    setNotice("Selecting the verified local LTX workflow for Timeline without changing Images or Writing…");
+    try {
+      // Join is an explicit, Human-triggered routing decision. Its server-side
+      // capability proof must pass before it becomes the selected Video route.
+      const response = await fetch(JOIN_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ capability: "video", engine: "comfy-local", provider: "ltx-video" }),
+      });
+      const result = await readJson<{ join?: { ready?: boolean }; message?: string }>(response, "The verified LTX route could not be selected.");
+      if (result.join?.ready !== true) throw new Error(result.message || "LTX still needs capability verification before Timeline can use it.");
+      setRouteSelected(true);
+      setNotice("LTX-Video verified and selected for Timeline. Existing Storyboard images and narration are unchanged.");
+      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+      window.dispatchEvent(new CustomEvent("plotpickle:connection-status-refresh"));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "LTX route selection failed; no video provider was changed.");
+    } finally { setWorking(false); }
+  }
+
   async function testLocalVideo() {
     if (working || !status?.ready) return;
     setWorking(true);
@@ -202,7 +227,8 @@ export default function LocalLtxSetupPanel() {
       }
       await refresh();
       setTestResult(result);
-      setNotice("Local LTX video test passed.");
+      setRouteSelected(false);
+      setNotice("Local LTX video test passed. Choose USE LTX FOR TIMELINE to activate this verified local route; no cloud video charge.");
       window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "The local LTX test failed.";
@@ -252,6 +278,7 @@ export default function LocalLtxSetupPanel() {
           <button type="button" style={warningButton} onClick={() => void setupDefault()} disabled={working || installing}>{installing ? "INSTALLING LTX MODELS..." : "SET UP LTX"}</button>
           <button type="button" style={warningButton} onClick={() => void refresh()} disabled={working}>{working ? "WORKING..." : "CHECK AGAIN"}</button>
           <button type="button" style={status?.ready ? button : { ...button, opacity: 0.45, cursor: "not-allowed" }} onClick={() => void testLocalVideo()} disabled={working || installing || !status?.ready}>TEST LOCAL VIDEO</button>
+          {testPassed ? <button type="button" style={button} onClick={() => void selectLtxForTimeline()} disabled={working || routeSelected}>{routeSelected ? "LTX SELECTED FOR TIMELINE" : "USE LTX FOR TIMELINE"}</button> : null}
         </div>
       </div>
 

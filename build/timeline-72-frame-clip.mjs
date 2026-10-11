@@ -7,7 +7,8 @@ const SOURCE_PREFIX = "/api/local-ai/assets/";
 const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
 const TARGET_FRAMES = 72;
 const TARGET_FPS = 24;
-const MAX_TOOL_OUTPUT = 3_000;
+// FFmpeg codec-help output can exceed 3K; preserve its encoder-identifying header.
+const MAX_TOOL_OUTPUT = 16_384;
 
 // The API never receives a disk path, a command, or command-line arguments.
 // This validator only permits PlotPickle's already-saved local provider video.

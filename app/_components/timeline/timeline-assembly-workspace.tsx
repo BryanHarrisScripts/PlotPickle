@@ -74,6 +74,10 @@ type MotionGenerationStage = "PREFLIGHT" | "SUBMITTING" | "QUEUED" | "RUNNING";
 
 class TimelineMotionSaveError extends Error {}
 
+// Provider polling failures do not prove that an already-submitted job failed.
+// Preserve its existing receipt, and allow a no-charge status retry instead.
+class TimelineMotionObservationError extends Error {}
+
 type TimelinePrevisSource = Readonly<{
   anchorRef: string;
   targetId: string;
@@ -779,8 +783,8 @@ export default function TimelineAssemblyWorkspace({
         setMessage(`Motion save is not confirmed: ${error.message} The existing job ${running.jobId} must be recovered, not submitted again.`);
         return;
       }
-      if (error instanceof Error && error.message.startsWith("The motion job is still running after")) {
-        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} remains in progress. Use Resume existing motion job to check status without a new provider charge.`);
+      if (error instanceof TimelineMotionObservationError) {
+        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} could not be checked: ${error.message} Keep the current submitted job and use Resume existing motion job; do not pay to generate it again.`);
         return;
       }
       const failedAt = new Date().toISOString();
@@ -798,9 +802,15 @@ export default function TimelineAssemblyWorkspace({
     let lastStatus = current.status;
     for (let attempt = 0; attempt < 150 && (current.status === "queued" || current.status === "running"); attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 2_000));
-      const response = await fetch(`/api/local-ai/video/${encodeURIComponent(current.id)}`, { credentials: "same-origin", cache: "no-store" });
-      const result = await response.json() as VideoJob & { message?: string };
-      if (!response.ok) throw new Error(result.message || "The active video route could not report motion progress.");
+      let result: VideoJob & { message?: string };
+      try {
+        const response = await fetch(`/api/local-ai/video/${encodeURIComponent(current.id)}`, { credentials: "same-origin", cache: "no-store" });
+        result = await response.json() as VideoJob & { message?: string };
+        if (!response.ok) throw new TimelineMotionObservationError(result.message || "The active video route could not report motion progress.");
+      } catch (error) {
+        if (error instanceof TimelineMotionObservationError) throw error;
+        throw new TimelineMotionObservationError(error instanceof Error ? error.message : "The submitted provider job could not be checked.");
+      }
       current = result;
       if (current.status !== lastStatus) {
         lastStatus = current.status;
@@ -809,7 +819,7 @@ export default function TimelineAssemblyWorkspace({
     }
     if (current.status === "succeeded" && current.outputAssetUrl) return current;
     if (current.status === "queued" || current.status === "running") {
-      throw new Error("The motion job is still running after the Timeline review window. Retry status later without replacing the locked still.");
+      throw new TimelineMotionObservationError("The motion job is still running after the Timeline review window.");
     }
     throw new Error(current.error || `The motion job ended with status ${current.status}.`);
   }

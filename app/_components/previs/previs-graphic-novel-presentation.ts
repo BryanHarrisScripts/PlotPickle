@@ -6,6 +6,20 @@ import { storyboardPassageWindowForPosition, type StoryboardPlanningPassage } fr
 export const PREVIS_FLIP_BOOK_INTERVAL_MS = 900;
 export const PREVIS_GRAPHIC_NOVEL_INTERVAL_MS = 3000;
 
+/** Limit playback to the authoritative Shot presentation window.
+ * Source media can be longer than the three-second Timeline/Graphic Novel slot.
+ * This controls the viewer only; it never claims the MP4 itself was trimmed.
+ */
+export function enforceMotionPresentationEnd(
+  video: Pick<HTMLVideoElement, "currentTime" | "pause">,
+  endSeconds: number,
+): boolean {
+  if (!Number.isFinite(endSeconds) || endSeconds <= 0 || video.currentTime < endSeconds) return false;
+  video.pause();
+  if (video.currentTime > endSeconds) video.currentTime = endSeconds;
+  return true;
+}
+
 export type PrevisGraphicNovelBubble = Readonly<{
   speaker: string;
   text: string;

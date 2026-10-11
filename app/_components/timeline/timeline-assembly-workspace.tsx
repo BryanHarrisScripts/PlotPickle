@@ -32,6 +32,7 @@ import {
 } from "../storyboard/storyboard-editorial-model";
 import {
   buildPrevisGraphicNovelPanel,
+  enforceMotionPresentationEnd,
   type PrevisGraphicNovelPanel,
 } from "../previs/previs-graphic-novel-presentation";
 import {
@@ -1157,7 +1158,10 @@ export default function TimelineAssemblyWorkspace({
         </header>
         <div className={styles.stage}>
           {activeMotion.current?.status === "succeeded" && activeMotion.current.outputAssetUrl
-            ? <video controls key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef} src={activeMotion.current.outputAssetUrl} />
+            ? <video controls key={activeMotion.current.outputAssetUrl} muted playsInline preload="metadata" ref={motionVideoRef}
+              onTimeUpdate={(event) => enforceMotionPresentationEnd(event.currentTarget, PLANNING_SECONDS_PER_SHOT)}
+              onSeeking={(event) => enforceMotionPresentationEnd(event.currentTarget, PLANNING_SECONDS_PER_SHOT)}
+              src={activeMotion.current.outputAssetUrl} />
             : activeImage?.assetUrl
               ? <img alt={activeImage.narrativeIntention || "Storyboard Image for Shot " + activeShotNumber} src={activeImage.assetUrl} />
               : <div className={styles.missing}><strong>Shot {String(activeShotNumber).padStart(2, "0")} of 25</strong><span>{activeMotion.stale ? "The saved motion belongs to an older Shot Generation Packet. Regenerate this Shot." : activeMotion.current?.status === "failed" ? activeMotion.current.error || "Motion generation failed." : "No locked Storyboard Image exists in this saved Timeline source snapshot."}</span></div>}

@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { isSupportedVisualAssetUrl } from "@/core/media/visual-asset-url";
 import type { PPFProject } from "@/core/project/project";
 import { isSavedLockedStoryboardImage } from "@/core/contracts/build-progress";
@@ -17,6 +17,7 @@ import {
 import {
   PREVIS_FLIP_BOOK_INTERVAL_MS,
   PREVIS_GRAPHIC_NOVEL_INTERVAL_MS,
+  enforceMotionPresentationEnd,
   approvedGraphicNovelPanel,
   buildPrevisGraphicNovelPanel,
   graphicNovelTextSourceKey,
@@ -309,6 +310,7 @@ export default function PrevisReadinessWorkspace({
   const [flipBookPlaying, setFlipBookPlaying] = useState(false);
   const [graphicNovelMode, setGraphicNovelMode] = useState(false);
   const [graphicNovelPlaying, setGraphicNovelPlaying] = useState(false);
+  const graphicNovelVideoRef = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
     if (!address) return;
     setSelectedBlockNumber(address.blockNumber);
@@ -440,6 +442,19 @@ export default function PrevisReadinessWorkspace({
     }, graphicNovelPlaying ? PREVIS_GRAPHIC_NOVEL_INTERVAL_MS : PREVIS_FLIP_BOOK_INTERVAL_MS);
     return () => window.clearInterval(timer);
   }, [flipBookPlaying, graphicNovelPlaying, project.revision, selectedAddressAnchor?.id]);
+
+  // Graphic Novel Pause must pause actual video, not only stop the frame timer.
+  // A fresh Shot's keyed video begins only while presentation playback is active.
+  useEffect(() => {
+    const video = graphicNovelVideoRef.current;
+    if (!video) return;
+    if (!graphicNovelMode || !graphicNovelPlaying) {
+      video.pause();
+      return;
+    }
+    if (video.currentTime >= PREVIS_GRAPHIC_NOVEL_INTERVAL_MS / 1000) video.currentTime = 0;
+    void video.play().catch(() => undefined);
+  }, [graphicNovelMode, graphicNovelPlaying, selectedGraphicNovelMotion?.id, selectedFramePosition]);
 
   return (
     <main className={styles.workspace} aria-labelledby="previs-title">
@@ -597,10 +612,12 @@ export default function PrevisReadinessWorkspace({
                   {selectedFlipBookFrame.locked ? (
                     graphicNovelMode && selectedGraphicNovelMotion ? (
                       <video
-                        autoPlay
+                        autoPlay={graphicNovelPlaying}
                         key={selectedGraphicNovelMotion.id}
                         muted
                         playsInline
+                        ref={graphicNovelVideoRef}
+                        onTimeUpdate={(event) => enforceMotionPresentationEnd(event.currentTarget, PREVIS_GRAPHIC_NOVEL_INTERVAL_MS / 1000)}
                         src={selectedGraphicNovelMotion.outputAssetUrl}
                       />
                     ) : (

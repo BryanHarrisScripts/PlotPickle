@@ -196,3 +196,38 @@ test("#2830 Previs plays three-second Graphic Novel motion with approved bubbles
   assert.match(timelineWorkspace, /buildTimelineGenerationPacketForShot\(project,/u);
   assert.match(timelineWorkspace, /timelineMotionSourceKey\(/u);
 });
+
+test("#2830 Graphic Novel and Timeline cap provider video to three seconds and Pause controls real playback", async () => {
+  const [presentation, previs, timeline] = await Promise.all([
+    readText("app/_components/previs/previs-graphic-novel-presentation.ts"),
+    readText("app/_components/previs/previs-readiness-workspace.tsx"),
+    readText("app/_components/timeline/timeline-assembly-workspace.tsx"),
+  ]);
+  const start = presentation.indexOf("export function enforceMotionPresentationEnd(");
+  const end = presentation.indexOf("export type PrevisGraphicNovelBubble", start);
+  assert.ok(start >= 0 && end > start, "the actual presentation end guard must be executable");
+  const code = stripTypeScriptTypes(presentation.slice(start, end)).replace(/\\bexport\\s+/gu, "");
+  const enforce = vm.runInNewContext(code + "\\n enforceMotionPresentationEnd", { Number });
+  const video = { currentTime: 2.4, paused: 0, pause() { this.paused++; } };
+  assert.equal(enforce(video, 3), false);
+  assert.equal(video.currentTime, 2.4);
+  assert.equal(video.paused, 0);
+  video.currentTime = 3;
+  assert.equal(enforce(video, 3), true);
+  assert.equal(video.paused, 1);
+  video.currentTime = 4.2; // legal provider duration can exceed desired timeline slot
+  assert.equal(enforce(video, 3), true);
+  assert.equal(video.currentTime, 3);
+  assert.equal(video.paused, 2);
+  video.currentTime = 2;
+  assert.equal(enforce(video, 0), false, "invalid presentation duration cannot pause a clip");
+  assert.equal(video.paused, 2);
+
+  assert.match(previs, /autoPlay=\\{graphicNovelPlaying\\}/u);
+  assert.match(previs, /ref=\\{graphicNovelVideoRef\\}/u);
+  assert.match(previs, /if \\(!graphicNovelMode \\|\\| !graphicNovelPlaying\\) \\{\\s*video\\.pause\\(\\)/u);
+  assert.match(previs, /onTimeUpdate=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PREVIS_GRAPHIC_NOVEL_INTERVAL_MS \\/ 1000\\)\\}/u);
+  assert.match(timeline, /onTimeUpdate=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PLANNING_SECONDS_PER_SHOT\\)\\}/u);
+  assert.match(timeline, /onSeeking=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PLANNING_SECONDS_PER_SHOT\\)\\}/u);
+  assert.match(previs, /selectedFlipBookFrame\\.locked\\.assetUrl/u, "missing or stale motion still shows authoritative image");
+});

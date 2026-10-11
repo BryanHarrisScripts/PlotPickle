@@ -195,7 +195,7 @@ export default function StoryboardLockedShotHandoff({
       [panel.position]: noText ? "No Bubble saved and locked for Storyboard and Previs." : "Bubble / caption saved and locked for Storyboard and Previs.",
     }));
     } catch (error) {
-      setNotices((current) => ({ ...current, [panel.position]: `ERROR · BUBBLE_SAVE_FAILED · stage=PERSISTENCE · Shot ${String(panel.position).padStart(2, "0")} · ${error instanceof Error ? error.message : "Encrypted save was not acknowledged."} · Next: retry Save & Lock after checking your unlocked profile. The previous approval is unchanged.` }));
+      setNotices((current) => ({ ...current, [panel.position]: `ERROR · BUBBLE_SAVE_FAILED · stage=PERSISTENCE · Shot ${String(panel.position).padStart(2, "0")} · Save & Lock failed: ${error instanceof Error ? error.message : "Encrypted save was not acknowledged."} · Next: retry Save & Lock after checking your unlocked profile. The previous approval is unchanged.` }));
     } finally {
       saveInFlight.current = false;
       setSavingPosition(null);

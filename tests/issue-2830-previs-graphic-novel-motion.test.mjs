@@ -465,15 +465,22 @@ test("#2830 transient provider status failures keep an already paid job resumabl
   assert.ok(observerStart >= 0 && observerEnd > observerStart);
   const code = stripTypeScriptTypes(source.slice(observerStart, observerEnd));
   const messages = [], writes = [], urls = [];
-  let terminal = false;
+  let mode = "outage";
   const ctx = vm.createContext({
     TimelineMotionSaveError: class TimelineMotionSaveError extends Error {},
     TimelineMotionObservationError: class TimelineMotionObservationError extends Error {},
     window: { setTimeout: callback => callback() },
     fetch: async url => {
       urls.push(url);
-      if (terminal) return { ok: true, json: async () => ({
+      if (mode === "terminal") return { ok: true, json: async () => ({
         id: "already-submitted-job", status: "failed", error: "provider rejected the exact Shot",
+      }) };
+      if (mode === "wrong-id") return { ok: true, json: async () => ({
+        id: "someone-elses-job", status: "succeeded",
+        outputAssetUrl: "/api/local-ai/assets/wrong-shot.mp4",
+      }) };
+      if (mode === "not-saved") return { ok: true, json: async () => ({
+        id: "already-submitted-job", status: "succeeded", outputAssetUrl: "",
       }) };
       return { ok: false, json: async () => ({ message: "temporary status endpoint outage" }) };
     },
@@ -498,7 +505,18 @@ test("#2830 transient provider status failures keep an already paid job resumabl
   assert.match(messages.at(-1), /Resume existing motion job/u);
   assert.match(messages.at(-1), /temporary status endpoint outage/u);
 
-  terminal = true;
+  mode = "wrong-id";
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "wrong job must never become the current Shot's media");
+  assert.match(messages.at(-1), /different job/u);
+  assert.match(messages.at(-1), /Resume existing motion job/u);
+
+  mode = "not-saved";
+  await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
+  assert.equal(writes.length, 0, "provider completion without verified asset cannot replace job receipt");
+  assert.match(messages.at(-1), /saved playable video asset/u);
+
+  mode = "terminal";
   await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
   assert.equal(writes.length, 1, "confirmed provider failure is recorded");
   assert.equal(writes[0].status, "failed");

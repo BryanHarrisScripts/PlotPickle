@@ -35,7 +35,7 @@ async function handlePost(request: Request) {
     storyboardShot = value?.mode === "storyboard-shot";
     input = storyboardShot ? storyboardNarrationRequest(value) : narrationRequest(value);
   } catch (error) {
-    return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",stage:"STORY_EVIDENCE",message:"Narration requires a current saved and locked Shot, supported screenplay evidence and an exact 1-Shot request. Review the selected image and story before retrying."},{status:400});
+    return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",stage:"STORY_EVIDENCE",message:"Narration requires mapped script evidence, a current saved and locked Shot, and an exact 1-Shot request. Review the selected image and story before retrying."},{status:400});
   }
   let profile;
   try {

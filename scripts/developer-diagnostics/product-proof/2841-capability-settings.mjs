@@ -107,7 +107,7 @@ try {
   await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-local"]').click();
   await hybrid.locator('[data-hybrid-capability="video"] [data-provider="minimax-h3-api"]').click();
   await hybrid.locator('[data-join-capability="video"]').click();
-  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').waitFor();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').filter({ hasText: /Joined: minimax-h3-api/ }).waitFor();
   assert.equal(writes.length, 1); assert.equal(writes[0].pathname, "/api/ai-routing/join");
   assert.equal(writes[0].body.provider, "minimax-h3-api");
   assert.equal(routing.video.selected, "minimax-comfyui");
@@ -119,7 +119,7 @@ try {
   await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-local"]').click();
   await hybrid.locator('[data-hybrid-capability="video"] [data-provider="ltx-video"]').click();
   await hybrid.locator('[data-join-capability="video"]').click();
-  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').waitFor();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').filter({ hasText: /Joined: ltx-video/ }).waitFor();
   assert.equal(writes.length, 2);
   assert.equal(writes[1].body.provider, "ltx-video");
   assert.equal(routing.video.selected, "ltx-video");

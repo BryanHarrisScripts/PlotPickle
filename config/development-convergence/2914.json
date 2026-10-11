@@ -26,7 +26,8 @@
     "tests/issue-2841-capability-harness.test.mjs",
     "tests/ltx-bundled-default.test.mjs",
     "docs/developer-briefs/2914-compute-connections-routing.md",
-    "config/development-convergence/2914.json"
+    "config/development-convergence/2914.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {

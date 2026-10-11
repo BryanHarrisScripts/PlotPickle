@@ -347,9 +347,20 @@ export function buildTimelineShotGenerationPacket(
   };
 
   const { canonicalRevision: _canonicalRevision, ...fingerprintSource } = base;
+  // Compact, source-light deterministic identity: project screenplay and story
+  // decisions must not be copied into a persisted Timeline operational sourceKey.
+  // Four independent 32-bit lanes give bounded 128-bit change detection.
+  const serial = JSON.stringify(fingerprintSource);
+  const lanes = [0x811c9dc5, 0x85ebca6b, 0xc2b2ae35, 0x27d4eb2f];
+  const primes = [0x01000193, 0x1b3, 0x5bd1e995, 0x27d4eb2d];
+  for (let i = 0; i < serial.length; i++) {
+    for (let j = 0; j < lanes.length; j++) {
+      lanes[j] = Math.imul(lanes[j] ^ serial.charCodeAt(i), primes[j]);
+    }
+  }
   return {
     ...base,
-    sourceFingerprint: JSON.stringify(fingerprintSource),
+    sourceFingerprint: "PP-MOTION-002:" + lanes.map((lane) => (lane >>> 0).toString(16).padStart(8, "0")).join(""),
   };
 }
 

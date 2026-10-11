@@ -251,7 +251,7 @@ async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket)
   }
 
   if (selected === "minimax-comfyui" && selectedState?.ready) {
-    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "image-to-video" }, packet) : null;
+    const strategy = packet ? resolveTimelineGenerationStrategy({ route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: (selectedState.workflowFamily ?? "") as "text-to-video" | "image-to-video" | "" }, packet) : null;
     if (strategy && !strategy.eligible) throw new Error(strategy.reason);
     return { route: "minimax-comfyui", label: "Local ComfyUI · MiniMax API · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
@@ -901,9 +901,14 @@ export default function TimelineAssemblyWorkspace({
       if (!clipReadyResponse.ok || !clipReady.ready) {
         throw new Error(clipReady.message || "Local FFmpeg/FFprobe must be verified before a new paid Timeline video request.");
       }
+      const imageDisclosure = route.strategy.sourceImageUse === "input-image"
+        ? "exact locked Storyboard image supplied to the video provider"
+        : route.strategy.sourceImageUse === "context-only"
+          ? "text-to-video reimagining; locked image not supplied as video input"
+          : "story-grounded text-only video";
       setMotionRouteMessage(route.needsActivation
-        ? `${route.label} · ${route.strategy.modality} · ready to activate only after Generate motion is confirmed`
-        : `${route.label} · ${route.strategy.modality}`);
+        ? `${route.label} · ${route.strategy.modality} · ${imageDisclosure} · ready to activate only after Generate motion is confirmed`
+        : `${route.label} · ${route.strategy.modality} · ${imageDisclosure}`);
     } catch (error) {
       const detail = error instanceof Error ? error.message : "No compatible video generation route is available.";
       const failedAt = new Date().toISOString();
@@ -943,9 +948,14 @@ export default function TimelineAssemblyWorkspace({
 
     const strategy = route.strategy!;
     const usesVisualReference = Boolean(strategy.sourceAssetUrl || strategy.referenceAssetUrl || strategy.lastFrameAssetUrl);
+    const sourceDisclosure = strategy.sourceImageUse === "input-image"
+      ? "The locked Storyboard Image will be supplied to the verified image-capable workflow, alongside the authored motion instructions."
+      : strategy.sourceImageUse === "context-only"
+        ? "THIS IS TEXT-TO-VIDEO: the provider cannot receive the locked Storyboard Image. PlotPickle will derive a story-grounded motion prompt, but the clip will be a new visual interpretation, NOT an animation of your exact image."
+        : "The provider will receive the Shot story and motion instructions without image input.";
     const confirmed = await requestPlotPickleConfirmation({
       title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
-      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Connections selection remains unchanged.`,
+      description: `PlotPickle selected ${strategy.modality} automatically for the verified ${route.label} workflow. ${sourceDisclosure} ${usesVisualReference ? "Only approved visual reference assets will be included. " : ""}The packet contains bounded screenplay, saved story context, authored camera/character continuity and current approved Bubble text, where available. A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Connections selection remains unchanged.`,
       confirmLabel: "Generate motion",
       cancelLabel: "Keep still image",
     });
@@ -984,6 +994,7 @@ export default function TimelineAssemblyWorkspace({
             packetId: packet.id,
             packetFingerprint: packet.sourceFingerprint,
             generationMode: strategy.modality,
+            sourceImageUse: strategy.sourceImageUse,
             placementId: selectedPlacement.id,
             anchorRef: selectedPlacement.anchorRef,
             sourceArtifactId: sourceImage?.id ?? "",
@@ -1443,6 +1454,7 @@ export default function TimelineAssemblyWorkspace({
                       <small>{generationPacket.dramaticResponsibility || "No separate Mini-Block responsibility text."}</small>
                       <small>{generationPacket.progression.label} · {generationPacket.progression.direction}</small>
                       <small>{generationPacket.references.length} approved reference binding{generationPacket.references.length === 1 ? "" : "s"} · {generationPacket.sourceRefs.length} provenance refs</small>
+                      <small>{generationPacket.savedStoryDecisions || generationPacket.savedStoryFoundations || generationPacket.savedStoryArc ? "Saved overall-story and 24-Block context included" : "No saved whole-story decisions to include"} · {generationPacket.approvedNarration || generationPacket.approvedDialogue ? "Current approved Bubble / caption included" : "No current approved printed text; no Bubble invented"}</small>
                     </details>
                     <button
                       disabled={generatingShotNumber !== null}

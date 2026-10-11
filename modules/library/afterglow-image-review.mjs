@@ -128,10 +128,27 @@ export function imageIncludedInCandidate(project,item) {
     pack.references?.some(ref=>ref.id===item.id&&ref.assetUrl===item.url)));
 }
 
+// Stable copy identity only, not a cryptographic byte/approval proof. Exact
+// media hashes and source fingerprints remain the server's save authority.
+function recoveredImageId(item) {
+  const key=afterglowImageKey(item.characterId,item.id,item.url);
+  const parts=[2166136261,2246822519].map(seed=>{
+    let hash=seed;
+    for(let i=0;i<key.length;i++)hash=Math.imul(hash^key.charCodeAt(i),16777619)>>>0;
+    return hash.toString(16).padStart(8,"0");
+  });
+  return "recovered-"+parts.join("");
+}
+function recoveredImageIncluded(project,item) {
+  return Boolean(project?.worldMap?.characterVisuals?.some(pack=>
+    pack.characterId===item.characterId&&pack.references?.some(ref=>
+      ref.id===recoveredImageId(item)&&ref.assetUrl===item.url)));
+}
+
 /** Missing-only recovery preserves the current master and never grants approval. */
 export function missingAfterglowCharacterImages({master,sources,manifest}) {
   return listAfterglowImageChoices({sources,manifest}).filter(item=>
-    !imageIncludedInCandidate(master,item));
+    !imageIncludedInCandidate(master,item)&&!recoveredImageIncluded(master,item));
 }
 export function restoreMissingAfterglowCharacterImages({master,items,choices}) {
   if(!record(master)||!Array.isArray(items)||!record(choices))throw new Error("Invalid missing image review.");
@@ -139,13 +156,13 @@ export function restoreMissingAfterglowCharacterImages({master,items,choices}) {
   const candidate=structuredClone(master);
   for(const [key,choice] of Object.entries(choices).sort(([a],[b])=>a.localeCompare(b))) {
     const item=indexed.get(key);
-    if(choice!=="keep"||!item||item.conflictingSourceMetadata||imageIncludedInCandidate(master,item))
+    if(choice!=="keep"||!item||item.key!==afterglowImageKey(item.characterId,item.id,item.url)
+      ||item.conflictingSourceMetadata||imageIncludedInCandidate(master,item)||recoveredImageIncluded(master,item))
       throw new Error("Selected missing image is not an unambiguous recovery option.");
     const packs=candidate.worldMap?.characterVisuals;
     if(!Array.isArray(packs))throw new Error("Current master has invalid character visuals.");
     let pack=packs.find(row=>row.characterId===item.characterId);
-    if(pack?.references.some(ref=>ref.id===item.id))
-      throw new Error("Selected missing image conflicts with an existing reference identity. Review the complete character version.");
+
     if(!pack) {
       pack={...structuredClone(item.sourcePackage),references:[],lockedVersionId:null,approvedAt:null};
       packs.push(pack);
@@ -154,7 +171,12 @@ export function restoreMissingAfterglowCharacterImages({master,items,choices}) {
     // merely because its historical version matches the existing lock.
     let versionId="recovered-images";
     while(versionId===pack.lockedVersionId)versionId="recovered-"+versionId;
-    pack.references.push({...structuredClone(item.reference),versionId,reviewState:"draft"});
+    // Historical snapshots can reuse an ID for different saved image bytes.
+    // Copy the explicitly selected frame; never replace the current identity.
+    const id=pack.references.some(ref=>ref.id===item.id)?recoveredImageId(item):item.id;
+    if(pack.references.some(ref=>ref.id===id))
+      throw new Error("Selected missing image recovery identity conflicts. Existing images were preserved.");
+    pack.references.push({...structuredClone(item.reference),id,versionId,reviewState:"draft"});
   }
   if(!Object.keys(choices).length)throw new Error("Select at least one missing character image.");
   return candidate;

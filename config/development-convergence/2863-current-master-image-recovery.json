@@ -15,7 +15,10 @@
     "modules/library/ui/afterglow-management-panel.tsx",
     "tests/issue-2863-current-master-image-recovery.test.mjs",
     "docs/developer-briefs/2863-current-master-image-recovery.md",
-    "config/development-convergence/2863-current-master-image-recovery.json"
+    "config/development-convergence/2863-current-master-image-recovery.json",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "tests/issue-2733-ci-windows-lanes.test.mjs"
   ],
   "acceptance": [
     {
@@ -59,6 +62,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2863-current-master-image-recovery.md",
           "contains": "Synthetic storage restart does not prove"
+        }
+      ]
+    },
+    {
+      "id": "HISTORICAL_IDENTITY",
+      "criterion": "Restore a selected historical frame with reused ID as a distinct draft, preserving the current frame and surviving encrypted reopen.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2863-current-master-image-recovery.test.mjs",
+          "contains": "with historical identity reuse"
+        },
+        {
+          "type": "file-contains",
+          "path": "modules/library/afterglow-image-review.mjs",
+          "contains": "recoveredImageIncluded"
         }
       ]
     }

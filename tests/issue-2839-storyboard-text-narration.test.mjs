@@ -384,7 +384,7 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
 test('#2920 Storyboard local narration follows explicit Ollama but never silently uses a Cloud/Off route', async () => {
   const source = await readFile('build/writing-assistant-gateway.ts', 'utf8');
   const start = source.indexOf('export async function resolveConfiguredLocalNarrationProfile()');
-  const end = source.indexOf('\n}\n', start);
+  const end = source.indexOf('\n}', start);
   assert.ok(start > 0 && end > start, 'Local narration resolver is available');
   const fn = source.slice(start, end + 2).replace('export ', '');
   const selected = { text: 'ollama' };

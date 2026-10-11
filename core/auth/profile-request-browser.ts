@@ -50,7 +50,7 @@ export async function authenticatedProfileFetch(input: RequestInfo | URL, init: 
 export function authenticatedComputeFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const raw = typeof Request !== "undefined" && input instanceof Request ? input.url : String(input);
   const url = new URL(raw, window.location.href);
-  const prefixes = ["/api/cloud-story-mode", "/api/writing-assistant", "/api/media-routing", "/api/ai-routing", "/api/ai-model-catalog", "/api/provider-diagnostics", "/api/local-ai/runtime", "/api/local-ai/plugins", "/api/local-ai/connection", "/api/local-ai/generate", "/api/local-ai/video", "/api/story-mode"];
+  const prefixes = ["/api/cloud-story-mode", "/api/writing-assistant", "/api/media-routing", "/api/ai-routing", "/api/ai-model-catalog", "/api/provider-diagnostics", "/api/local-ai/runtime", "/api/local-ai/plugins", "/api/local-ai/connection", "/api/local-ai/ltx-video", "/api/local-ai/generate", "/api/local-ai/video", "/api/story-mode"];
   if (url.origin === window.location.origin && prefixes.some((prefix) => url.pathname.startsWith(prefix))) return authenticatedProfileFetch(input, init);
   return globalThis.fetch(input, init);
 }

@@ -198,9 +198,11 @@ test("#2837 retires legacy Operations AI Routing and keeps Hybrid sourced from L
 
   assert.match(hybrid, /LOCAL SETUP/u);
   assert.match(hybrid, /CLOUD SETUP/u);
-  assert.match(hybrid, /CONFIGURED · TEST NEEDED/u);
-  assert.match(hybrid, /option\.configured \|\| option\.ready/u);
-  assert.match(hybrid, /filter\(\(option\) => option\.locality === locality\)/u);
+  assert.match(hybrid, /connectionProof\(routing, joined\)/u, "Join state comes from the verified capability router.");
+  assert.match(hybrid, /status\.state/u, "Every provider displays an explicit joined/test/setup status.");
+  assert.match(hybrid, /SETUP NEEDED/u);
+  assert.match(hybrid, /item\.configured \|\| item\.ready/u);
+  assert.match(hybrid, /filter\(\(item\) => item\.locality === locality\)/u);
   assert.match(storyMode, /function localityCoverage/u);
   assert.match(storyMode, /coverageLabel/u);
   assert.match(storyMode, /LOCAL and CLOUD report the capability setup actually detected/u);

@@ -9,7 +9,6 @@ import {
   connectionProof,
 } from "../../core/contracts/compute/connection-join-contract.mjs";
 import CapabilityDiagnosticsLog from "./capability-diagnostics-log";
-import ComputeReadyMarker from "./compute-ready-marker";
 import styles from "./hybrid-story-mode-panel.module.css";
 
 type Capability = "text" | "image" | "video";

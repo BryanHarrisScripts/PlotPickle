@@ -62,3 +62,21 @@ test("#2841 opening a setup directory never changes execution policy", async () 
   assert.match(activate, /Route selection stays in Connections/u);
   assert.doesNotMatch(activate, /method: "POST"|setMode\(nextMode\)/u);
 });
+
+test("#2914 Connections remains reachable through its governed surface catalogue", async () => {
+  const [host, registryText, declarationsText] = await Promise.all([
+    read("app/skin-v1/story-mode-host.tsx"), read("config/skin-v1-surface-registry.json"),
+    read("config/skin-v1-surface-declarations/standard-surfaces.json"),
+  ]);
+  const label = host.match(/<section aria-label="([^"]+)" data-story-mode-view="hybrid"/u)?.[1];
+  assert.ok(label, "The actual Connections host must expose its surface identity.");
+  const selector = `section[aria-label='${label}'][data-story-mode-view='hybrid']`;
+  const surface = JSON.parse(registryText).surfaces.find(item => item.id === "hybrid-story-mode");
+  const declarations = JSON.parse(declarationsText);
+  const declaration = declarations.surfaces?.["hybrid-story-mode"] ?? declarations["hybrid-story-mode"];
+  assert.equal(surface.runtimeSelector, selector);
+  assert.equal(declaration.runtimeSelector, selector);
+  assert.equal(surface.runtimeReadySelector, `${selector} [data-hybrid-story-mode='capability-matrix']`);
+  assert.equal(surface.label, "Connections");
+  assert.equal(declaration.titleStack.globalSurfaceLabel, surface.label);
+});

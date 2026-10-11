@@ -954,7 +954,7 @@
     },
     {
       "id": "hybrid-story-mode",
-      "label": "Hybrid",
+      "label": "Connections",
       "family": "settings",
       "parent": "settings",
       "surfaceClass": "nested",
@@ -971,7 +971,7 @@
         {
           "order": 4,
           "slug": "hybrid",
-          "label": "Hybrid"
+          "label": "Connections"
         }
       ],
       "legacyEvidence": {
@@ -985,8 +985,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
       },
-      "runtimeSelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
-      "runtimeReadySelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid'] [data-hybrid-story-mode='capability-matrix']",
+      "runtimeSelector": "section[aria-label='Capability Connections'][data-story-mode-view='hybrid']",
+      "runtimeReadySelector": "section[aria-label='Capability Connections'][data-story-mode-view='hybrid'] [data-hybrid-story-mode='capability-matrix']",
       "orchestrated": true
     },
     {

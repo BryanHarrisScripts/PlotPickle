@@ -281,11 +281,11 @@ test("#2830 stored Afterglow Storyboard, Bubble and current Motion recover toget
   const artifact = project.build.foundations.visualArtifacts.find(item => (
     item.workflow === "storyboard-frame-webp-v2"
     && approvedPackagedMedia.has(item.assetUrl)
-    && item.sourceDecisionKeys?.some(key => /^storyboard-anchor:block:block-\\d{2}:mini-[1-4]$/u.test(key))
+    && item.sourceDecisionKeys?.some(key => /^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(key))
   ));
   assert.ok(artifact, "do not substitute a synthetic image for packaged Afterglow");
   const anchorRef = artifact.sourceDecisionKeys.find(key => key.startsWith("storyboard-anchor:"));
-  const match = /^storyboard-anchor:block:block-(\\d{2}):mini-([1-4])$/u.exec(anchorRef);
+  const match = /^storyboard-anchor:block:block-(\d{2}):mini-([1-4])$/u.exec(anchorRef);
   assert.ok(match);
   const position = artifact.frameNumber ?? 1;
   const date = "2026-10-10T12:00:00.000Z";

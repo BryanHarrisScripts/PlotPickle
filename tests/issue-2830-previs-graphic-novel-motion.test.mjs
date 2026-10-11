@@ -395,7 +395,7 @@ test("#2830 resumes an exact current queued job without a second paid POST or co
   assert.equal(guard.current, false);
   assert.deepEqual(stages.at(-1), ["stage", null]);
   assert.match(source, /Resume existing motion job/u);
-  assert.match(source, /pending\\?\\.jobId && \\(pending\\.status === "queued" \\|\\| pending\\.status === "running"\\)/u);
+  assert.match(source, /pending\?\.jobId && \(pending\.status === "queued" \|\| pending\.status === "running"\)/u);
 });
 
 test("#2830 acknowledges one atomic encrypted save of a ready Motion and Production Take", async () => {
@@ -453,7 +453,7 @@ test("#2830 acknowledges one atomic encrypted save of a ready Motion and Product
   assert.equal(publications, 1, "failed save must not publish an unconfirmed change");
   assert.equal(current.current.production.timelineMotionShots[0].status, "succeeded",
     "failed write must not rewrite the last acknowledged result");
-  assert.match(source, /await storeMotion\\(running\\)/u);
-  assert.match(source, /await observeSubmittedMotion\\(/u);
-  assert.match(source, /await onProgress\\(current\\)/u);
+  assert.match(source, /await storeMotion\(running\)/u);
+  assert.match(source, /await observeSubmittedMotion\(/u);
+  assert.match(source, /await onProgress\(current\)/u);
 });

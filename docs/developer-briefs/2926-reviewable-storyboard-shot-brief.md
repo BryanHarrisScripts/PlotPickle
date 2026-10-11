@@ -11,7 +11,7 @@ Deliver a two-stage, single-shot workflow:
 1. Analyze the selected shot from available authored evidence and propose missing facts.
 2. Let the Human review and edit the proposal, then draft short narration from that reviewed brief.
 
-Show one vertical sequence of unified panels. Each panel places the image carousel and image controls plus its prompt on the left, shot facts in the middle, and narration controls and status on the right. Locked-shot Previs handoff stays within the corresponding shot panel.
+Show one vertical sequence of unified panels. Each panel places the image carousel and image controls plus its prompt first; the locked-shot handoff and narration review follow beneath those controls. When analysis is ready, put the full shot-brief review and editable proposals in a full-width section so long text is easy to read and its fields do not collapse into narrow columns. Keep shot facts and narration controls/status side by side where space allows. Locked-shot Previs handoff stays within the corresponding shot panel.
 
 ## Acceptance criteria
 
@@ -22,6 +22,8 @@ Show one vertical sequence of unified panels. Each panel places the image carous
 - The existing durable approval path records the reviewed brief as source evidence without changing image lock, screenplay, or shot canon.
 - Only storyboard-shot-brief gets the longer bounded local response window; standard requests and final narration keep their current budget. Provider selection does not silently change and no Cloud fallback is added.
 - A timeout reports the actual configured response limit, and failed analysis leaves all existing saved state unchanged.
+- Put the reviewed shot-brief analysis and editable proposals below the image prompt controls in a full-width readable area, with fields sized for multi-line review.
+- Do not offer a new "No Bubble" choice in Storyboard; keep existing saved no-text approvals readable and compatible.
 - Focused regressions verify two-stage flow, source grounding, editing/proposal boundary, durable reopen/source identity, unified panel layout, and request-specific response limits.
 
 ## Impact map

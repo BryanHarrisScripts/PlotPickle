@@ -640,7 +640,7 @@
 }
 
 .lockedShotHandoff[data-embedded="true"] {
-  grid-column: 2;
+  grid-column: 1 / -1;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -793,6 +793,41 @@
   background: var(--pp-skin-surface-0);
 }
 
+.handoffBriefReview {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: var(--pp-skin-space-3);
+  overflow-wrap: anywhere;
+}
+
+.handoffBriefFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  min-width: 0;
+}
+
+.handoffBriefFields label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.handoffBriefFields textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 7rem;
+  padding: var(--pp-skin-space-2);
+  border: 1px solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}
+
 .handoffDraft p {
   margin: 0;
 }
@@ -838,6 +873,8 @@
     grid-template-columns: 1fr;
     border-right: 0;
   }
+
+  .handoffBriefFields { grid-template-columns: 1fr; }
 }
 
 

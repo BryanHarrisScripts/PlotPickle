@@ -28,9 +28,9 @@
   "acceptance": [
     {
       "id": "SHOT-PANEL",
-      "criterion": "Storyboard presents each shot as one vertical image, facts and narration panel",
+      "criterion": "Storyboard presents each shot as a vertical image, prompt, readable full-width brief, facts and narration panel",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-2807-storyboard-previs-handoff.test.mjs", "contains": "embeds each locked Shot handoff in one vertical Storyboard sequence" }
+        { "type": "file-contains", "path": "tests/issue-2807-storyboard-previs-handoff.test.mjs", "contains": "keeps reviewed shot briefs readable below image prompt controls without a new No Bubble choice" }
       ]
     },
     {

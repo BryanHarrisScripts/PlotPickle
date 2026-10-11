@@ -453,7 +453,7 @@ test('PP-NARR-001 B2: Storyboard uses the ready LOCAL writer without requiring a
   assert.equal(json.panels[0].narration, 'Ren hesitates before taking the next step.');
 });
 
-test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypted write', async () => {
+test('PP-NARR-001 duplicate Save & Lock clicks cannot race an encrypted write and No Bubble is not offered', async () => {
   const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
   const start = source.indexOf('  async function saveApproval(');
   const end = source.indexOf('  async function generateNarration(', start);
@@ -495,9 +495,9 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.equal(saveInFlight.current, true);
   assert.equal(writes, 1);
   assert.match(notices[1], /Saving the Bubble decision/u);
-  const raced = context.saveApproval(shot, 'shot-source', '', [], true);
+  const raced = context.saveApproval(shot, 'shot-source', 'One printed caption.', [], false);
   await raced;
-  assert.equal(writes, 1, 'No Bubble cannot overwrite an outstanding Save & Lock');
+  assert.equal(writes, 1, 'a duplicate Save & Lock cannot race the outstanding approval write');
   assert.equal(saving.filter(value => value === 1).length, 1);
   release();
   await first;
@@ -505,15 +505,17 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.equal(active.production.graphicNovelTextApprovals[0].noText, false);
   assert.match(notices[1], /saved and locked/u);
   assert.equal(saving.at(-1), null);
-  const second = context.saveApproval(shot, 'shot-source', '', [], true);
-  assert.equal(writes, 2, 'a new explicit decision is allowed after the first readback');
+  const second = context.saveApproval(shot, 'shot-source', 'A reviewed replacement caption.', [], false);
+  assert.equal(writes, 2, 'a new reviewed narration decision is allowed after the first readback');
   release();
   await second;
-  assert.equal(active.production.graphicNovelTextApprovals[0].noText, true);
-  assert.match(notices[1], /No Bubble saved and locked/u);
+  assert.equal(active.production.graphicNovelTextApprovals[0].noText, false);
+  assert.match(notices[1], /saved and locked/u);
   assert.equal(saveInFlight.current, false);
-  assert.ok(source.includes('disabled={busyPosition !== null || savingPosition !== null}'),
-    'the No Bubble control must be visibly disabled during a pending Save');
+  assert.doesNotMatch(source, />\{savingPosition === position \? "Saving…" : "No Bubble"\}</u,
+    'new No Bubble decisions are no longer offered in Storyboard');
+  assert.match(source, /approvalState\.current\?\.noText[\s\S]*?No Bubble · Saved & Locked/u,
+    'previously saved no-text decisions remain visible');
 });
 
 test('#2920 Storyboard local narration follows explicit Ollama but never silently uses a Cloud/Off route', async () => {

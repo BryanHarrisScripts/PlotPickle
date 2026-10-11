@@ -69,7 +69,9 @@ test("#2807 authors Graphic Novel text through the existing Previs approval auth
   assert.match(handoff, /graphicNovelTextApprovals/u);
   assert.match(handoff, /Draft · not saved or locked/u);
   assert.match(handoff, /Save & Lock/u);
-  assert.match(handoff, /No Bubble/u);
+  assert.doesNotMatch(handoff, />\{savingPosition === position \? "Saving…" : "No Bubble"\}</u);
+  assert.match(handoff, /approvalState\.current\?\.noText[\s\S]*?No Bubble · Saved & Locked/u,
+    "existing no-text approvals remain visible without offering a new No Bubble choice");
   assert.match(handoff, /Analyze Shot & Prepare Brief/u);
   assert.match(handoff, /Create Narration from Reviewed Brief/u);
   assert.match(handoff, /Shot brief · review only/u);
@@ -92,6 +94,28 @@ test("#2807 embeds each locked Shot handoff in one vertical Storyboard sequence"
     "the handoff appears once in the selected Shot loop instead of again below all 25 cards");
   assert.match(handoff, /data-embedded=\{embedded \? "true" : "false"\}/u);
   assert.match(styles, /\.positionList\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/u);
+  assert.match(styles, /\.lockedShotHandoff\[data-embedded="true"\]\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/u,
+    "the handoff and shot-brief review sit on a full-width row after image and prompt controls");
+  assert.match(handoff, /className=\{`\$\{styles\.handoffDraft\} \$\{styles\.handoffBriefReview\}`\}[\s\S]*?Reviewed Shot brief/u);
+  assert.match(styles, /\.handoffBriefReview\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/u);
+  assert.match(styles, /\.handoffBriefFields textarea\s*\{[^}]*width:\s*100%[^}]*min-height:\s*7rem/u);
+});
+
+test("#2926 keeps reviewed shot briefs readable below image prompt controls without a new No Bubble choice", async () => {
+  const [storyboard, handoff, styles] = await Promise.all([
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("app/_components/preproduction/storyboard-locked-shot-handoff.tsx"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
+  ]);
+  assert.ok(storyboard.indexOf("framePromptButton") < storyboard.indexOf("<StoryboardLockedShotHandoff"),
+    "review information follows the image and prompt controls in the same Shot card");
+  assert.match(styles, /\.lockedShotHandoff\[data-embedded="true"\]\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/u);
+  assert.match(styles, /\.handoffBriefReview\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/u);
+  assert.match(styles, /\.handoffBriefFields textarea\s*\{[^}]*width:\s*100%[^}]*min-height:\s*7rem/u);
+  assert.doesNotMatch(handoff, />\{savingPosition === position \? "Saving…" : "No Bubble"\}</u,
+    "the Storyboard does not offer a new no-text choice");
+  assert.match(handoff, /approvalState\.current\?\.noText[\s\S]*?No Bubble · Saved & Locked/u,
+    "existing no-text approvals remain displayable");
 });
 
 test("#2807 Storyboard and Previs share the same narration staleness source-key inputs", async () => {

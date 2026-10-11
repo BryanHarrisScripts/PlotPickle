@@ -159,7 +159,7 @@ export default function StoryboardLockedShotHandoff({
     noText: boolean,
     reviewedShotBrief?: ReviewedShotBrief,
   ) {
-    // Synchronous guard: the second Save & Lock / No Bubble click cannot race
+    // Synchronous guard: duplicate Save & Lock clicks cannot race
     // the first encrypted write before React has rerendered disabled controls.
     if (saveInFlight.current || busyPosition !== null) return;
     saveInFlight.current = true;
@@ -323,7 +323,7 @@ export default function StoryboardLockedShotHandoff({
       const sourceKey = requestedSourceKey;
       const proposed = result.panels[0];
       if (!proposed.narration?.trim() && !proposed.bubbles?.length) {
-        setNotices((current) => ({ ...current, [panel.position]: "ERROR · EMPTY_NARRATION_OUTPUT · stage=OUTPUT_VALIDATION · The selected local writer returned no printed text. Next: Regenerate, or intentionally choose No Bubble." }));
+        setNotices((current) => ({ ...current, [panel.position]: "ERROR · EMPTY_NARRATION_OUTPUT · stage=OUTPUT_VALIDATION · The selected local writer returned no printed text. Next: review the Shot brief and Regenerate." }));
         return;
       }
       setDrafts((current) => ({
@@ -335,7 +335,7 @@ export default function StoryboardLockedShotHandoff({
           reviewedShotBrief,
         },
       }));
-      setNotices((current) => ({ ...current, [panel.position]: "Draft ready for review. Save & Lock, Regenerate, or choose No Bubble." }));
+      setNotices((current) => ({ ...current, [panel.position]: "Draft ready for review. Save & Lock or Regenerate." }));
     } catch (error) {
       if (!controller.signal.aborted) {
         setNotices((current) => ({
@@ -406,6 +406,21 @@ export default function StoryboardLockedShotHandoff({
             };
             return (
               <article className={styles.handoffRow} data-storyboard-handoff-shot={position} key={artifact.id}>
+                {brief ? (
+                  <div className={`${styles.handoffDraft} ${styles.handoffBriefReview}`} aria-label={"Reviewed Shot brief for Shot " + position}>
+                    <strong>Shot brief · review only</strong>
+                    <p>{brief.analysis}</p>
+                    <small>Existing authored fields remain unchanged. Edit proposed missing details below; the text-only writer cannot inspect image pixels.</small>
+                    <div className={styles.handoffBriefFields}>
+                      {Object.entries(brief.facts).filter(([field]) => !shotFacts[field]?.trim()).map(([field, value]) => (
+                        <label key={field}>{field === "imagePrompt" ? "Image prompt proposal" : field.replace(/[A-Z]/gu, (letter) => " " + letter.toLowerCase())}
+                          <textarea value={value} maxLength={field === "imagePrompt" ? 8_000 : 1_200} onChange={(event) => setShotBriefs((current) => ({ ...current, [position]: { ...brief, facts: { ...brief.facts, [field]: event.currentTarget.value } } }))} />
+                        </label>
+                      ))}
+                    </div>
+                    <button type="button" disabled={busyPosition !== null || savingPosition !== null} onClick={() => void generateNarration(panel, brief.facts, brief)}>{busyPosition === position ? "Creating…" : "Create Narration from Reviewed Brief"}</button>
+                  </div>
+                ) : null}
                 <dl className={styles.handoffFacts}>
                   <div><dt>Story</dt><dd>{shotFacts.story || "No additional story responsibility authored."}</dd></div>
                   <div><dt>Scene / Beat</dt><dd>{shotFacts.sceneBeat}</dd></div>
@@ -420,19 +435,6 @@ export default function StoryboardLockedShotHandoff({
                   <strong>Graphic Novel bubble / caption</strong>
                   {!shotFacts.story ? (
                     <small>Recovered-image provenance is not an authored Shot intention. This Local text writer uses screenplay context; it has not inspected this image. Review any proposal against the image before approving.</small>
-                  ) : null}
-                  {brief ? (
-                    <div className={styles.handoffDraft} aria-label={"Reviewed Shot brief for Shot " + position}>
-                      <strong>Shot brief · review only</strong>
-                      <p>{brief.analysis}</p>
-                      <small>Existing authored fields remain unchanged. Edit proposed missing details below; the text-only writer cannot inspect image pixels.</small>
-                      {Object.entries(brief.facts).filter(([field]) => !shotFacts[field]?.trim()).map(([field, value]) => (
-                        <label key={field}>{field === "imagePrompt" ? "Image prompt proposal" : field.replace(/[A-Z]/gu, (letter) => " " + letter.toLowerCase())}
-                          <textarea value={value} maxLength={field === "imagePrompt" ? 8_000 : 1_200} onChange={(event) => setShotBriefs((current) => ({ ...current, [position]: { ...brief, facts: { ...brief.facts, [field]: event.currentTarget.value } } }))} />
-                        </label>
-                      ))}
-                      <button type="button" disabled={busyPosition !== null || savingPosition !== null} onClick={() => void generateNarration(panel, brief.facts, brief)}>{busyPosition === position ? "Creating…" : "Create Narration from Reviewed Brief"}</button>
-                    </div>
                   ) : null}
                   {approvalState.current?.noText ? <p>No Bubble · Saved & Locked</p> : null}
                   {approvalState.current && !approvalState.current.noText ? (
@@ -462,11 +464,6 @@ export default function StoryboardLockedShotHandoff({
                       {busyPosition === position ? "Preparing…" : brief ? "Reprepare Shot Brief" : "Analyze Shot & Prepare Brief"}
                     </button>
                     {draft && brief ? <button type="button" onClick={() => void generateNarration(panel, brief.facts, brief)} disabled={busyPosition !== null || savingPosition !== null}>Regenerate Narration</button> : null}
-                    <button
-                      disabled={busyPosition !== null || savingPosition !== null}
-                      type="button"
-                      onClick={() => void saveApproval(panel, approvalState.sourceKey, "", [], true, brief ?? approvalState.current?.reviewedShotBrief)}
-                    >{savingPosition === position ? "Saving…" : "No Bubble"}</button>
                   </div>
                   <small role={notices[position]?.startsWith("ERROR · ") ? "alert" : "status"} data-narration-failure={notices[position]?.startsWith("ERROR · ") ? "true" : "false"}>{notices[position] ?? (approvalState.current ? "Saved and locked decision will appear unchanged in Storyboard and Previs." : "Human approval is required before generated text becomes current.")}</small>
                 </div>

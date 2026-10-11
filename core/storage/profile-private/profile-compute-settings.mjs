@@ -2,7 +2,7 @@
 export const COMPUTE_SETTING_NAMES = Object.freeze([
   "ai-connection.json", "writing-assistant-profiles.json", "media-routing.json",
   "ai-routing.json", "plotpickle-agent-compute.json", "h3-native-routing.json", "ltx-video-local.json",
-  "local-runtime.json", "story-mode-policy.json", "story-mode-job-routing.json", "provider-consent.json", "comfy-cloud.json",
+  "local-runtime.json", "story-mode-policy.json", "story-mode-job-routing.json", "provider-consent.json", "comfy-cloud.json", "connection-joins.json",
 ]);
 export const COMPUTE_PRIVATE_NAMES = Object.freeze([
   ...COMPUTE_SETTING_NAMES, "openai-video-jobs.json", "h3-native-jobs.json", "ltx-video-jobs.json", "media-comfy-video-jobs.json", "media-cloud-video-jobs.json", "capability-diagnostics.json",

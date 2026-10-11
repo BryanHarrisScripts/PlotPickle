@@ -104,6 +104,14 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const agentStatus = await api("/api/writing-assistant/agent-compute");
     assert.equal(agentStatus.activeProvider, "disabled"); assert.deepEqual(agentStatus.overrides, {}, "Agent roster follows Hybrid instead of legacy assignments.");
     await api("/api/writing-assistant/agent-compute", { scope: "default", provider: "openai" }, 400);
+    // A capable Join is durable configuration, not verified model execution.
+    const savedJoin = await api("/api/ai-routing/join", { capability: "text", engine: "direct", provider: "ollama" });
+    assert.equal(savedJoin.joins.text.provider, "ollama");
+    assert.match(savedJoin.join.state, /SETUP NEEDED|TEST NEEDED/);
+    assert.equal((await scoped(() => worker.readRoutingChoice())).text, "off");
+    await api("/api/ai-routing/join", { capability: "video", engine: "comfy-local", provider: "openai" }, 400);
+    assert.equal((await api("/api/ai-routing/status")).joins.video, undefined, "Rejected Join cannot be saved.");
+    assert.equal(requests, 0, "Join setup cannot generate images/video or incur cost.");
     const authority = { provider: "minimax", baseUrl: "https://synthetic.invalid", apiKey: "synthetic-private-minimax-key", textModel: "synthetic-text", imageModel: "synthetic-image", videoModel: "MiniMax-H3" };
     const authorityHash = worker.videoAuthorityHash(authority);
     assert.match(authorityHash, /^[a-f0-9]{64}$/);
@@ -174,11 +182,13 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const other = await runtime.auth.createProfile({ displayName: "Synthetic isolated owner", password }, owner.authContext);
     const otherContext = { authContext: other.authContext, profileId: other.profile.profileId, privateStorage: runtime.privateStorage };
     assert.equal(await worker.profileRequestScope.run(otherContext, () => worker.readCredentialJson("media-comfy-video-jobs.json")), null);
+    assert.equal(await worker.profileRequestScope.run(otherContext, () => worker.readCredentialJson("connection-joins.json")), null, "No Join leaks across profiles.");
     assert.equal(await worker.profileRequestScope.run(otherContext, () => worker.readCredentialJson("capability-diagnostics.json")), null);
     await worker.resetProfileExperienceRuntime(); runtime = await worker.getProfileExperienceRuntime();
     owner = await runtime.auth.authenticate({ profileId: ownerId, password });
     context = { authContext: owner.authContext, profileId: ownerId, privateStorage: runtime.privateStorage };
     assert.equal((await scoped(() => worker.readRoutingChoice())).video, "minimax-comfyui");
+    assert.equal((await scoped(() => worker.readCredentialJson("connection-joins.json"))).connections.text.provider, "ollama", "Unverified Join persists across restart.");
     media = await scoped(() => worker.readMediaRoutingStore()); assert.ok(media.comfyui.h3Workflow.verifiedAt);
     assert.equal((await scoped(() => worker.readCredentialJson("provider-consent.json"))).minimax.billing, true);
     assert.ok((await scoped(() => worker.readCredentialJson("media-comfy-video-jobs.json"))).length);
@@ -203,7 +213,9 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     status = await api("/api/ai-routing/status");
     assert.equal(status.video.options["ltx-video"].ready, true);
     assert.equal(status.video.options["ltx-video"].locality, "local");
-    await api("/api/ai-routing/select", { capability: "video", route: "ltx-video" });
+    const ltxJoin = await api("/api/ai-routing/join", { capability: "video", engine: "comfy-local", provider: "ltx-video" });
+    assert.equal(ltxJoin.join.state, "VERIFIED");
+    assert.equal(ltxJoin.joins.video.route, "ltx-video");
     const ltxGeneration = await api("/api/local-ai/generate/video", { prompt: "Synthetic local motion" });
     assert.match(ltxGeneration.id, /^ltx-/);
     assert.equal(ltxGeneration.status, "succeeded");
@@ -211,6 +223,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     owner = await runtime.auth.authenticate({ profileId: ownerId, password });
     context = { authContext: owner.authContext, profileId: ownerId, privateStorage: runtime.privateStorage };
     assert.equal((await scoped(() => worker.readRoutingChoice())).video, "ltx-video");
+    assert.equal((await scoped(() => worker.readCredentialJson("connection-joins.json"))).connections.video.provider, "ltx-video");
     assert.ok((await scoped(() => worker.readCredentialJson("ltx-video-jobs.json"))).some((job) => job.id === ltxGeneration.id));
     const reopenedOther = await runtime.auth.authenticate({ profileId: other.profile.profileId, password });
     const reopenedOtherContext = { authContext: reopenedOther.authContext, profileId: other.profile.profileId, privateStorage: runtime.privateStorage };

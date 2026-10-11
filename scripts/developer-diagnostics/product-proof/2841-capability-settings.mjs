@@ -6,6 +6,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 import { ensureVerificationTools } from "../../run-webmcp-startup-uat.mjs";
+import { resolveConnectionJoin, connectionProof } from "../../../core/contracts/compute/connection-join-contract.mjs";
 
 // Real Settings components against bounded synthetic status. Handler/vault proof
 // is separately owned by issue-2841-capability-harness.test.mjs.
@@ -17,8 +18,9 @@ const css = (await readFile("app/skin-v1-definition.css", "utf8")) + (output.out
 const option = (locality, model, extra = {}) => ({ locality, model, configured: true, ready: true, verifiedAt: "2026-10-08T00:00:00.000Z", error: "", ...extra });
 const routing = {
   ok: true,
+  joins: {},
   text: { selected: "ollama", options: { local: option("local", "synthetic-quality", { ready: false, verifiedAt: "", runtime: "ollama", baseUrl: "http://127.0.0.1:11434/v1", error: "" }), ollama: option("local", "synthetic-writing"), minimax: option("cloud", "synthetic-minimax"), openai: option("cloud", "synthetic-openai"), gemini: option("cloud", "synthetic-gemini") } },
-  image: { selected: "comfyui", options: { comfyui: option("local", "sd_xl_base_1.0.safetensors"), openai: option("cloud", "synthetic-image"), minimax: option("cloud", "synthetic-image") } },
+  image: { selected: "comfyui", options: { comfyui: option("local", "sd_xl_base_1.0.safetensors", { imageProfile: "sdxl-1.0" }), openai: option("cloud", "synthetic-image"), minimax: option("cloud", "synthetic-image") } },
   video: { selected: "minimax", options: { "ltx-video": option("local", "LTX-Video 2B", { label: "ComfyUI · LTX-Video", inferenceLocation: "local", workflowFamily: "text-to-video" }), "minimax-comfyui": option("local", "MiniMax-H3", { label: "ComfyUI", provider: "minimax", inferenceLocation: "cloud", cost: "Cloud generation through your MiniMax API account" }), minimax: option("cloud", "MiniMax-H3"), "comfyui-native": option("local", "MiniMax-H3", { label: "ComfyUI — Native local inference", ready: false }), "comfy-cloud": option("cloud", "", { label: "ComfyUI Cloud", ready: false, supported: false, error: "Generation workflow required." }), openai: option("cloud", "", { ready: false, supported: false, error: "OpenAI Videos API was removed." }) } },
 };
 const writes = [];
@@ -34,11 +36,19 @@ try {
       if (request.method === "POST") {
         let source = ""; for await (const chunk of request) source += chunk;
         const body = JSON.parse(source); writes.push({ pathname, body });
+        if (pathname === "/api/ai-routing/join") {
+          const resolved = resolveConnectionJoin(body.capability, body.engine, body.provider);
+          assert.equal(resolved.capable, true, resolved.reason);
+          const joined = { capability: body.capability, engine: body.engine, provider: body.provider, route: resolved.route, joinedAt: "synthetic-join" };
+          const proof = connectionProof(routing, joined);
+          routing.joins[body.capability] = joined;
+          if (proof.ready) routing[body.capability].selected = resolved.route;
+        }
         if (pathname === "/api/ai-routing/select") { assert.ok(routing[body.capability].options[body.route].ready); routing[body.capability].selected = body.route; }
       }
       const bodies = {
         "/api/auth/profile": { authenticated: true, csrfToken: "synthetic-settings-csrf", profile: { profileId: "synthetic-settings-owner", displayName: "Synthetic owner" } },
-        "/api/ai-routing/status": routing, "/api/ai-routing/select": routing,
+        "/api/ai-routing/status": routing, "/api/ai-routing/select": routing, "/api/ai-routing/join": routing,
         "/api/writing-assistant/agent-compute": { ok: true, defaultProvider: "active", activeProvider: "ollama", overrides: {}, providers: [{ id: "ollama", label: "Ollama", model: "synthetic-writing", ready: true }], agents: [{ agentId: "synthetic-agent", roleId: "graphic-novel", displayName: "Synthetic text Agent", title: "Story writer", responsibility: "Write synthetic story captions", system: "PlotPickle", configurable: true }] },
         "/api/story-mode/policy": { ok: true, mode: "hybrid" },
         "/api/media-routing/status": { ok: true, comfyui: { reachable: true, imageNodesReady: true, imageVerifiedAt: "synthetic", checkpoints: ["sd_xl_base_1.0.safetensors"] } },
@@ -84,26 +94,41 @@ try {
   await page.getByRole("button", { name: "Back to Story Mode", exact: true }).click();
   await page.locator('[data-story-mode-policy="hybrid"]').click();
   const hybrid = page.locator('[data-hybrid-story-mode="capability-matrix"]');
-  await hybrid.locator('[data-route="minimax-comfyui"]').waitFor();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-provider="ltx-video"]').waitFor();
   assert.equal(await hybrid.locator('input[type="checkbox"]').count(), 0);
   assert.equal(await hybrid.locator('[data-story-mode-job-routing]').count(), 0);
-  await hybrid.locator('[data-hybrid-capability="video"] [data-route="minimax-comfyui"]').click();
-  await hybrid.locator('[data-hybrid-capability="video"] [data-route="minimax-comfyui"][data-selected="true"]').waitFor();
-  assert.equal(writes.length, 1); assert.equal(writes[0].pathname, "/api/ai-routing/select");
+  assert.equal(await hybrid.getByRole("columnheader", { name: "WORKFLOW ROUTING", exact: true }).count(), 1);
+  assert.equal(await hybrid.getByRole("columnheader", { name: "LOCAL AND CLOUD PROVIDERS", exact: true }).count(), 1);
+  assert.equal(await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-cloud"]').count(), 1);
+  assert.equal(await hybrid.locator('[data-hybrid-capability="image"] [data-provider="sdxl-base"]').count(), 1);
+  assert.equal(await hybrid.locator('[data-hybrid-capability="image"] [data-provider="qwen-image-2.1"]').count(), 1);
+  assert.equal(await hybrid.locator('[data-hybrid-capability="video"] [data-provider="minimax-h3-local"]').count(), 1);
+  assert.equal(writes.length, 0, "Opening Connections must never select a route.");
+  await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-local"]').click();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-provider="minimax-h3-api"]').click();
+  await hybrid.locator('[data-join-capability="video"]').click();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').filter({ hasText: /Joined: minimax-h3-api/ }).waitFor();
+  assert.equal(writes.length, 1); assert.equal(writes[0].pathname, "/api/ai-routing/join");
+  assert.equal(writes[0].body.provider, "minimax-h3-api");
+  assert.equal(routing.video.selected, "minimax-comfyui");
+
+  await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-cloud"]').click();
+  await hybrid.locator('[data-join-capability="video"]').click();
+  await hybrid.getByRole("status").getByText(/not capable/i).waitFor();
+  assert.equal(writes.length, 1, "Unsupported cloud adapter cannot trigger a Join write.");
+  await hybrid.locator('[data-hybrid-capability="video"] [data-engine="comfy-local"]').click();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-provider="ltx-video"]').click();
+  await hybrid.locator('[data-join-capability="video"]').click();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').filter({ hasText: /Joined: ltx-video/ }).waitFor();
+  assert.equal(writes.length, 2);
+  assert.equal(writes[1].body.provider, "ltx-video");
+  assert.equal(routing.video.selected, "ltx-video");
   await page.getByText("Connectivity diagnostics", { exact: true }).click();
   await page.getByRole("log").getByText(/video downloaded and saved/).waitFor();
-  assert.equal(await hybrid.getByRole("columnheader", { name: "WORKFLOW ROUTING", exact: true }).count(), 1);
-  assert.equal(await hybrid.getByRole("columnheader", { name: "CLOUD PROVIDERS", exact: true }).count(), 1);
-  assert.equal(await hybrid.locator('[data-hybrid-capability="video"] [data-locality="local"] [data-route="comfy-cloud"]').count(), 1,
-    "Remote ComfyUI is a workflow route, not a direct cloud provider.");
-  await hybrid.locator('[data-hybrid-capability="video"] [data-route="ltx-video"]').click();
-  await hybrid.locator('[data-hybrid-capability="video"] [data-route="ltx-video"][data-selected="true"]').waitFor();
-  assert.equal(writes.length, 2);
-  assert.equal(writes[1].body.route, "ltx-video");
   await page.screenshot({ fullPage: true, path: path.join(artifactRoot, "hybrid-video-diagnostics.png") });
   await page.reload(); await page.locator('[data-story-mode-policy="hybrid"]').click();
-  await page.locator('[data-hybrid-capability="video"] [data-route="ltx-video"][data-selected="true"]').waitFor();
-  assert.equal(writes.length, 2, "Reload/status inspection must leave route selection intact.");
+  await page.locator('[data-hybrid-capability="video"] [data-join-state="VERIFIED"]').waitFor();
+  assert.equal(writes.length, 2, "Reload/status inspection must leave Join selection intact.");
   await page.goto(baseUrl + "/agents");
   await page.getByText("Hybrid Writing selection", { exact: true }).waitFor();
   assert.equal(await page.locator("select").count(), 0);

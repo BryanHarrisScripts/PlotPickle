@@ -704,7 +704,8 @@
           "tests/local-ai-plugin-registry.test.mjs",
           "tests/issue-2495-previs-webp-sharp-runtime.test.mjs",
           "tests/issue-2841-capability-harness.test.mjs",
-          "tests/ltx-bundled-default.test.mjs"
+          "tests/ltx-bundled-default.test.mjs",
+          "tests/issue-2918-connections-join-truth.test.mjs"
         ]
       },
       "cost": "fast",
@@ -730,7 +731,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification. #2495 also protects the shared local image-runtime/storage seam used by Animated WebP export."
+      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification. #2495 also protects the shared local image-runtime/storage seam used by Animated WebP export. #2918 capability Join registry checks direct Ollama, SDXL/Qwen image profiles, LTX/H3 video, disabled cloud adapters, and proof-state invariants."
     },
     {
       "id": "provider.qwen-image-21-experimental",

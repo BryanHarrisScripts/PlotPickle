@@ -886,6 +886,15 @@ export default function TimelineAssemblyWorkspace({
       if (!route.strategy?.eligible || !route.strategy.modality) {
         throw new Error(route.strategy?.reason || "The selected video route cannot render this Shot Generation Packet.");
       }
+      // A paid provider video is useful only if the local machine can turn it
+      // into a verified 72-frame MP4. Check before Human billing confirmation.
+      const clipReadyResponse = await fetch("/api/timeline/motion/trim", {
+        method: "GET", credentials: "same-origin", cache: "no-store",
+      });
+      const clipReady = await clipReadyResponse.json() as { ready?: boolean; message?: string };
+      if (!clipReadyResponse.ok || !clipReady.ready) {
+        throw new Error(clipReady.message || "Local FFmpeg/FFprobe must be verified before a new paid Timeline video request.");
+      }
       setMotionRouteMessage(route.needsActivation
         ? `${route.label} · ${route.strategy.modality} · ready to activate only after Generate motion is confirmed`
         : `${route.label} · ${route.strategy.modality}`);

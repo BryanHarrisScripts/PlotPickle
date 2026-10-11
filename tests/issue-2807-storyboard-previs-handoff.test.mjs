@@ -155,7 +155,11 @@ test("#2927 Visual Story readiness is the always-rendered 25 Shot sequence, not 
   const manifest = JSON.parse(manifestText).surfaces["visual-story"];
   assert.match(workspace, /data-storyboard-scene-beat-detail="inline"/u);
   assert.match(workspace, /Array\.from\(\{ length: 25 \}/u);
-  assert.match(workspace, /accepted && savedLocally \? <StoryboardLockedShotHandoff/u);
+  assert.match(workspace, /lockedImageHandoffReady \? <StoryboardLockedShotHandoff/u);
+  assert.match(workspace, /const lockedImageHandoffReady = accepted && Boolean\(selectedArtifact && storyboardArtifactSavedLocally\(selectedArtifact\)\)/u,
+    "locked Shot handoff stays mounted during unrelated profile-private narration saves");
+  assert.match(workspace, /const savedLocally = Boolean\(selectedArtifact && storyboardArtifactSavedLocally\(selectedArtifact\) && privateSaveState.state === "saved"\)/u,
+    "initial image save still requires the private vault acknowledgement");
   assert.ok(registrySection.includes('rootSelector: "' + selector + '"'));
   assert.ok(registrySection.includes('readySelector: "' + selector + '"'));
   assert.equal(canonical.runtimeSelector, selector);

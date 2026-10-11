@@ -17,6 +17,7 @@ import { approvedWorldMapCharacterReferences } from "@/core/contracts/world-map"
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
+import { saveFoundationProjectDurably } from "@/core/storage/project-library/revision-safe-browser";
 import type { LibraryPPFProject } from "@/core/storage/library-project";
 import {
   resolveTimelineGenerationStrategy,
@@ -70,6 +71,8 @@ type TimelineMotionRoute = Readonly<{
 }>;
 
 type MotionGenerationStage = "PREFLIGHT" | "SUBMITTING" | "QUEUED" | "RUNNING";
+
+class TimelineMotionSaveError extends Error {}
 
 type TimelinePrevisSource = Readonly<{
   anchorRef: string;
@@ -426,6 +429,7 @@ export default function TimelineAssemblyWorkspace({
   const [generatingMotionStage, setGeneratingMotionStage] = useState<MotionGenerationStage | null>(null);
   const [motionRouteMessage, setMotionRouteMessage] = useState("Checking video generation provider…");
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
+  const motionAttemptInFlight = useRef(false);
   const latestProject = useRef<PPFProject>(project);
   latestProject.current = project;
   const [openingSegmentCount, setOpeningSegmentCount] = useState(1);
@@ -667,29 +671,127 @@ export default function TimelineAssemblyWorkspace({
     if (placementIndex < placements.length - 1) seekToShot(placementIndex + 1, 1);
   }
 
-  function storeMotion(motion: TimelineMotionShot) {
-    const next = applyStoryCommand(latestProject.current, {
+  // Saving provider progress must acknowledge the encrypted profile write before
+  // Timeline reports readiness or permits another (potentially paid) request.
+  // A completed Production Take and its Timeline Motion are one canonical revision.
+  async function storeMotion(motion: TimelineMotionShot, take?: ProductionTake) {
+    const base = latestProject.current;
+    const withTake = take ? applyStoryCommand(base, {
+      type: "production.take.store",
+      take,
+      occurredAt: take.createdAt,
+    }) : base;
+    const next = applyStoryCommand(withTake, {
       type: "production.timeline.motion.store",
       motion,
       occurredAt: motion.updatedAt,
     });
-    const saved = saveFoundationProject(next);
+    let saved: PPFProject;
+    try {
+      saved = await saveFoundationProjectDurably(next, base.revision);
+    } catch (error) {
+      throw new TimelineMotionSaveError(error instanceof Error ? error.message : "Encrypted Timeline motion write was not acknowledged.");
+    }
+    const recovered = (saved.production.timelineMotionShots ?? []).find((entry) => entry.id === motion.id);
+    const savedTake = take ? (saved.production.takes ?? []).find((entry) => entry.id === take.id) : null;
+    if (!recovered || recovered.jobId !== motion.jobId || recovered.status !== motion.status
+      || recovered.sourceKey !== motion.sourceKey || recovered.outputAssetUrl !== motion.outputAssetUrl
+      || (take && (!savedTake || savedTake.mediaRef !== take.mediaRef))) {
+      throw new TimelineMotionSaveError("Encrypted Timeline motion readback did not match the submitted Shot and Production Take.");
+    }
     latestProject.current = saved;
     onProjectChange(saved);
   }
 
-  function storeProductionTake(take: ProductionTake) {
-    const next = applyStoryCommand(latestProject.current, {
-      type: "production.take.store",
-      take,
-      occurredAt: take.createdAt,
-    });
-    const saved = saveFoundationProject(next);
-    latestProject.current = saved;
-    onProjectChange(saved);
+  async function observeSubmittedMotion(
+    placement: TimelinePrevisPlacement,
+    shotNumber: number,
+    packet: TimelineShotGenerationPacket,
+    original: TimelineMotionShot,
+    priorTakeId: string | undefined,
+  ) {
+    let running = original;
+    try {
+      const result = await pollMotionJob({
+        id: running.jobId,
+        status: running.status === "queued" ? "queued" : "running",
+        provider: running.provider,
+        route: running.route,
+        model: running.model,
+        durationSeconds: running.providerDurationSeconds ?? undefined,
+      }, async (progress) => {
+        if (progress.status !== "queued" && progress.status !== "running") return;
+        const progressAt = new Date().toISOString();
+        running = {
+          ...running,
+          provider: progress.provider ?? running.provider,
+          route: progress.route ?? running.route,
+          model: progress.model ?? running.model,
+          jobId: progress.id,
+          providerDurationSeconds: progress.durationSeconds ?? running.providerDurationSeconds,
+          status: progress.status,
+          updatedAt: progressAt,
+        };
+        await storeMotion(running);
+        setGeneratingMotionStage(progress.status === "queued" ? "QUEUED" : "RUNNING");
+        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} ${progress.status} on ${running.provider || "the verified video provider"}.`);
+      });
+      if (!result.outputAssetUrl) throw new Error("The completed video job did not return a saved playable asset.");
+      const completedAt = new Date().toISOString();
+      const productionShot = timelineProductionShotsFor(latestProject.current, placement, shotNumber)[0] ?? null;
+      const takeId = productionShot
+        ? `timeline-take:${placement.id}:shot-${String(shotNumber).padStart(2, "0")}:${result.id}`
+        : "";
+      const take: ProductionTake | undefined = productionShot ? {
+        id: takeId,
+        productionShotId: productionShot.id,
+        sourceRevision: packet.canonicalRevision,
+        storyboardDependencyKey: productionShot.storyboardDependencyKey,
+        mediaRef: result.outputAssetUrl,
+        provider: result.provider ?? running.provider,
+        model: result.model ?? running.model,
+        intendedDurationSeconds: PLANNING_SECONDS_PER_SHOT,
+        observedDurationSeconds: result.durationSeconds ?? null,
+        provenanceRefs: [packet.id, ...packet.sourceRefs],
+        reviewState: "candidate",
+        ...(priorTakeId ? { replacesTakeId: priorTakeId } : {}),
+        createdAt: completedAt,
+      } : undefined;
+      await storeMotion({
+        ...running,
+        provider: result.provider ?? running.provider,
+        route: result.route ?? running.route,
+        model: result.model ?? running.model,
+        jobId: result.id,
+        providerDurationSeconds: result.durationSeconds ?? running.providerDurationSeconds,
+        takeId,
+        status: "succeeded",
+        outputAssetUrl: result.outputAssetUrl,
+        error: "",
+        updatedAt: completedAt,
+      }, take);
+      setPlaybackMode("motion");
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} is saved and ready. The original provider duration remains recorded; the Timeline presents three seconds.`);
+    } catch (error) {
+      if (error instanceof TimelineMotionSaveError) {
+        setMessage(`Motion save is not confirmed: ${error.message} The existing job ${running.jobId} must be recovered, not submitted again.`);
+        return;
+      }
+      if (error instanceof Error && error.message.startsWith("The motion job is still running after")) {
+        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} remains in progress. Use Resume existing motion job to check status without a new provider charge.`);
+        return;
+      }
+      const failedAt = new Date().toISOString();
+      try {
+        await storeMotion({ ...running, status: "failed", outputAssetUrl: "", error: error instanceof Error ? error.message : "Motion generation failed.", updatedAt: failedAt });
+        setMessage(error instanceof Error ? error.message : "Motion generation failed; the locked still remains available.");
+      } catch (saveError) {
+        setMessage(`Motion status could not be saved: ${saveError instanceof Error ? saveError.message : "Profile write failed."} No new provider request was made.`);
+      }
+    }
   }
 
-  async function pollMotionJob(initial: VideoJob, onProgress: (job: VideoJob) => void) {
+  async function pollMotionJob(initial: VideoJob, onProgress: (job: VideoJob) => Promise<void>) {
     let current = initial;
     let lastStatus = current.status;
     for (let attempt = 0; attempt < 150 && (current.status === "queued" || current.status === "running"); attempt += 1) {
@@ -700,7 +802,7 @@ export default function TimelineAssemblyWorkspace({
       current = result;
       if (current.status !== lastStatus) {
         lastStatus = current.status;
-        onProgress(current);
+        await onProgress(current);
       }
     }
     if (current.status === "succeeded" && current.outputAssetUrl) return current;

@@ -819,3 +819,15 @@
   background: rgba(5, 8, 7, 0.48);
   color: inherit;
 }
+
+/* #2920: failed local narration is unmistakable without relying on color alone. */
+.handoffNarration [data-narration-failure="true"] {
+  display: block;
+  padding: var(--pp-skin-space-2);
+  border: 1px solid var(--pp-skin-danger);
+  color: var(--pp-skin-danger);
+  background: var(--pp-skin-surface-0);
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

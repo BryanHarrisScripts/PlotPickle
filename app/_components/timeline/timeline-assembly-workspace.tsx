@@ -256,6 +256,15 @@ async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket)
     return { route: "minimax-comfyui", label: "Local ComfyUI · MiniMax API · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
 
+  if (selected === "off") {
+    const ltx = routing.video?.options?.["ltx-video"];
+    const ltxAdvice = ltx?.ready
+      ? "LTX is verified but not selected. Open Settings → Local → LTX-Video and choose USE LTX FOR TIMELINE."
+      : ltx?.configured
+        ? "LTX models and workflow are configured but a real video test is not verified. Open Settings → Local → LTX-Video, run TEST LOCAL VIDEO, then USE LTX FOR TIMELINE."
+        : "Choose and verify a capable Video route in Settings → Connections → Video.";
+    throw new Error(`route=off · stage=CAPABILITY_SELECTION · No video provider is selected for Timeline. ${ltxAdvice} The locked Storyboard Image is preserved.`);
+  }
   if (selected !== "off" && selectedState?.error) {
     throw new Error(`route=${selected} · stage=CAPABILITY_VERIFICATION · configured=${selectedState.configured === true} · verified=${selectedState.ready === true} · ${selectedState.error} · Next: open Settings → Connections → Video, inspect the selected workflow/provider and run its capability test.`);
   }

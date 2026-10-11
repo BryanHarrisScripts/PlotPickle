@@ -29,7 +29,9 @@
     "config/development-convergence/2914.json",
     "config/verification/ownership-map.json",
     "config/skin-v1-surface-registry.json",
-    "config/skin-v1-surface-declarations/standard-surfaces.json"
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
   ],
   "acceptance": [
     {

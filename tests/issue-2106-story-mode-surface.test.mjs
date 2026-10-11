@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { WEBMCP_STANDARD_SURFACE_REGISTRY } from "../lib/verification/webmcp-surface-capture-registry.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
@@ -74,6 +75,12 @@ test("#2914 Connections remains reachable through its governed surface catalogue
   const surface = JSON.parse(registryText).surfaces.find(item => item.id === "hybrid-story-mode");
   const declarations = JSON.parse(declarationsText);
   const declaration = declarations.surfaces?.["hybrid-story-mode"] ?? declarations["hybrid-story-mode"];
+  const capture = WEBMCP_STANDARD_SURFACE_REGISTRY["hybrid-story-mode"];
+  assert.equal(capture.rootSelector, selector);
+  assert.equal(capture.readySelector, surface.runtimeReadySelector);
+  assert.equal(capture.label, surface.label);
+  const menuAudit = await read("lib/verification/skin-v1-menu-contract-audit.mjs");
+  assert.ok(menuAudit.includes(`section[aria-label='${label}']`), "The keyboard audit must await the actual Connections host.");
   assert.equal(surface.runtimeSelector, selector);
   assert.equal(declaration.runtimeSelector, selector);
   assert.equal(surface.runtimeReadySelector, `${selector} [data-hybrid-story-mode='capability-matrix']`);

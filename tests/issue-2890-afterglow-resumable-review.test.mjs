@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile} from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import test from "node:test";
-import {normalizeAfterglowReviewDraft} from "../modules/library/master/afterglow-review-draft.mjs";
+import {normalizeAfterglowReviewDraft,withoutAfterglowReviewConfirmation} from "../modules/library/master/afterglow-review-draft.mjs";
 import {createProfilePrivateStorageService} from "../core/storage/profile-private/profile-private-storage-core.mjs";
 
 const fingerprint=label=>"sha256:"+createHash("sha256").update(label).digest("hex");
@@ -95,4 +95,48 @@ test("#2890 authenticated save/readback, resume guard, non-destructive refresh a
   assert.match(panel,/await saveAfterglowReviewDraft\(\{[\s\S]*const receipt=await commitConsolidatedAfterglow/u);
   assert.match(panel,/if\(receipt.libraryRefreshed\)/u);
   assert.match(panel,/await clearAfterglowReviewDraft\(receipt.masterId\)/u);
+  assert.match(panel,/withoutAfterglowReviewConfirmation\(previous,path!\)/u);
+  assert.match(panel,/setPersistEmptyReview\(true\)/u);
+  assert.match(panel,/if\(!hasSelections&&!persistEmptyReview\)return;/u);
+});
+
+test("#2890 exclude after confirming cannot poison encrypted autosave; explicit Reset remains empty after restart",async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"plotpickle-2890-reset-"));
+  const makeStore=()=>createProfilePrivateStorageService({root,authService,
+    normalizeProject:value=>structuredClone(value)});
+  const storage=makeStore();
+  t.after(async()=>{storage.close();await rm(root,{recursive:true,force:true})});
+  const profile={sessionId:"first-session",profileId:"profile_review_reset"};
+  const key={domain:"cache",objectId:"afterglow-review-draft"};
+  const reviewPath="/storyDevelopment/fields/character~1joy";
+  const previous=normalizeAfterglowReviewDraft(draft("same-sources"),"2026-10-10T00:01:00Z");
+  await storage.writePrivateJson(profile,{...key,value:previous});
+
+  const confirmations=withoutAfterglowReviewConfirmation(previous.selections.confirmedCurrent,reviewPath);
+  assert.equal(Object.hasOwn(confirmations,reviewPath),false,"Exclude removes the prior confirmation key");
+  assert.equal(previous.selections.confirmedCurrent[reviewPath],true,"original saved decisions are immutable");
+  const excluded=normalizeAfterglowReviewDraft({version:1,
+    sourceFingerprint:previous.sourceFingerprint,
+    selections:{...previous.selections,confirmedCurrent:confirmations,
+      exclusions:[...previous.selections.exclusions,reviewPath]}}, "2026-10-10T00:02:00Z");
+  await storage.writePrivateJson(profile,{...key,value:excluded});
+  assert.deepEqual(await storage.readPrivateJson(profile,key),excluded,
+    "Exclude must be acknowledged by encrypted readback");
+  assert.throws(()=>normalizeAfterglowReviewDraft({...draft("same-sources"),selections:{
+    ...previous.selections,confirmedCurrent:{[reviewPath]:false}}}),/Invalid confirmation/u);
+
+  // The UI's explicit Reset now sends this empty choice manifest instead of
+  // skipping autosave, leaving stale earlier selections for Continue Last Review.
+  const empty=normalizeAfterglowReviewDraft({version:1,
+    sourceFingerprint:previous.sourceFingerprint,
+    selections:{decisions:{},exclusions:[],imageChoices:{},confirmedCurrent:{}}},
+  "2026-10-10T00:03:00Z");
+  await storage.writePrivateJson(profile,{...key,value:empty});
+  const restarted=makeStore();
+  try {
+    assert.deepEqual(await restarted.readPrivateJson({...profile,sessionId:"after-restart"},key),empty);
+    assert.deepEqual(empty.selections,{decisions:{},exclusions:[],imageChoices:{},confirmedCurrent:{}});
+    assert.notDeepEqual(empty.selections,previous.selections,
+      "reopening after Reset must not resurrect the old choices");
+  } finally { restarted.close(); }
 });

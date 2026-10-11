@@ -11,3 +11,4 @@ export type AfterglowReviewDraft = Readonly<{
   savedAt:string;
 }>;
 export function normalizeAfterglowReviewDraft(input:unknown,now?:string):AfterglowReviewDraft;
+export function withoutAfterglowReviewConfirmation(confirmedCurrent:Readonly<Record<string,boolean>>,path:string):Record<string,boolean>;

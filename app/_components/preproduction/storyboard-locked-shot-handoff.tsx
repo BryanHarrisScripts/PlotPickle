@@ -1,6 +1,6 @@
 "use client";
 
-import { narrationOverallStory } from "@/core/media/narration-story-context.mjs";
+import { narrationOverallStory } from "@/core/media/storyboard-sequence-evidence.mjs";
 
 /* eslint-disable @next/next/no-img-element -- locked Storyboard images are local PlotPickle assets. */
 

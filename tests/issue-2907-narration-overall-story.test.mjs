@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { narrationOverallStory, validateNarrationOverallStory } from '../core/media/narration-story-context.mjs';
+import { narrationOverallStory, validateNarrationOverallStory } from '../core/media/storyboard-sequence-evidence.mjs';
 import { storyboardNarrationRequest, storyboardNarrationPrompt } from '../core/media/previs-narration.mjs';
 
 const project = {

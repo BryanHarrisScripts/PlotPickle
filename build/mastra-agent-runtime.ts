@@ -1,4 +1,4 @@
-import { NARRATION_STORYTELLER_PROCEDURE } from "../core/media/narration-story-context.mjs";
+import { NARRATION_STORYTELLER_PROCEDURE } from "../core/media/storyboard-sequence-evidence.mjs";
 import { craftRouteInstruction } from "../core/learning/live-craft-runtime";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";

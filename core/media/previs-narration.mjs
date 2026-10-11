@@ -1,5 +1,4 @@
-import { validateNarrationOverallStory, NARRATION_STORYTELLER_PROCEDURE } from './narration-story-context.mjs';
-import { prepareStoryboardNarrationSequence, screenplayFormattingDirective } from './storyboard-sequence-evidence.mjs';
+import { validateNarrationOverallStory, NARRATION_STORYTELLER_PROCEDURE, prepareStoryboardNarrationSequence, screenplayFormattingDirective } from './storyboard-sequence-evidence.mjs';
 
 /** Presentation-only adaptation; source screenplay remains authoritative. */
 export function narrationRequest(value) {

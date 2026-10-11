@@ -448,3 +448,59 @@ test('#2920 Timeline recovers exact saved Storyboard Bubble fingerprints rather 
   assert.doesNotMatch(timeline, /function graphicNovelTextSourceKey\(/u, 'Timeline must not implement a second incompatible Bubble fingerprint');
   assert.match(timeline, /timelinePresentationFor\(project, selectedPlacement, position\)/u, 'Timeline export uses the shared source identity');
 });
+
+test('#2922 invalid local narration JSON gets one bounded repair on the same locked Shot and local model', async () => {
+  const route = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  const source = stripTypeScriptTypes(route.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+  let calls = 0;
+  const lockedWriter = { provider: 'local', textModel: 'verified-local-fixture' };
+  const context = vm.createContext({
+    Error, Response, URL, ...await import('../core/media/previs-narration.mjs'),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
+    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+    requestBoundary: request => request,
+    resolveConfiguredLocalNarrationProfile: async () => ({ profile: lockedWriter }),
+    resolveConfiguredAgentExecutionProfile: async () => { throw new Error('wrong provider'); },
+    askPlotPickleAgent: async args => {
+      calls++;
+      assert.equal(args.profile, lockedWriter, 'retry must not switch to a cloud provider');
+      assert.equal(args.agentId, 'graphic-novel');
+      assert.match(args.message, /Ren hesitates at the door/u, 'same authored Storyboard evidence');
+      if (calls === 1) return 'Sorry, here is my explanation, not JSON';
+      assert.match(args.message, /FORMAT CORRECTION/u);
+      assert.match(args.message, /"position":19/u);
+      assert.doesNotMatch(args.message, /Sorry, here is my explanation/u, 'never echo previous model output');
+      return output('Ren hesitates before taking the next step.');
+    },
+  });
+  vm.runInContext(source, context);
+  const req = () => new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(evidence) });
+  const result = await context.POST(req());
+  assert.equal(result.status, 200);
+  assert.equal((await result.json()).repaired, true);
+  assert.equal(calls, 2, 'one original inference and one bounded local correction');
+});
+
+test('#2922 repeated invalid local narration remains failed after one correction, with approved text unchanged', async () => {
+  const route = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  const source = stripTypeScriptTypes(route.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+  let calls = 0;
+  const context = vm.createContext({
+    Error, Response, URL, ...await import('../core/media/previs-narration.mjs'),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
+    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+    requestBoundary: request => request,
+    resolveConfiguredLocalNarrationProfile: async () => ({ profile: { provider: 'local' } }),
+    askPlotPickleAgent: async () => { calls++; return 'This is not JSON'; },
+  });
+  vm.runInContext(source, context);
+  const result = await context.POST(new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(evidence) }));
+  assert.equal(result.status, 502);
+  const failure = await result.json();
+  assert.equal(failure.code, 'INVALID_NARRATION_OUTPUT');
+  assert.equal(failure.reason, 'OUTPUT_NOT_JSON');
+  assert.equal(failure.priorReason, 'OUTPUT_NOT_JSON');
+  assert.equal(failure.attempts, 2);
+  assert.equal(calls, 2);
+  assert.equal('panels' in failure, false, 'never manufacture accepted text');
+});

@@ -68,15 +68,36 @@ async function handlePost(request: Request) {
     return Response.json({ok:true,panels:storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
   } catch (error) {
     if (storyboardShot) {
-      const failure = storyboardNarrationOutputFailure(error);
+      const firstFailure = storyboardNarrationOutputFailure(error);
+      // One bounded local-only correction. Repeat the same exact one-Shot evidence;
+      // do not forward model output or silently change provider/source/approval.
+      // The previous locked Bubble stays untouched until Human Save & Lock.
+      if (!request.signal.aborted) {
+        try {
+          const position = input.panels[0].position;
+          const repairInstruction = `\\n\\nFORMAT CORRECTION: The preceding response failed validation (${firstFailure.reason}). Re-evaluate the SAME supplied story and Shot facts. Return ONE complete printable expression of at most twelve words OR exact screenplay dialogue. Respond with ONLY this JSON shape, replacing its blank text as appropriate: {"panels":[{"position":${position},"narration":"","bubbles":[]}]}. No code fences, reasoning, markdown or invented dialogue.`;
+          const retry = await askPlotPickleAgent({
+            profile, agentId:"graphic-novel", tone:"direct",
+            message: storyboardNarrationPrompt(input) + repairInstruction,
+            signal: request.signal,
+          });
+          const repaired = parseStoryboardNarration(retry, input);
+          return Response.json({ok:true,panels:repaired,repaired:true},{headers:{"Cache-Control":"no-store"}});
+        } catch (retryError) {
+          const secondFailure = storyboardNarrationOutputFailure(retryError);
+          return Response.json({
+            ok:false, code:"INVALID_NARRATION_OUTPUT", stage:"OUTPUT_VALIDATION",
+            route:profile?.provider || "unknown", reason:secondFailure.reason,
+            priorReason:firstFailure.reason, attempts:2,
+            message:`The local writer returned invalid narration after one automatic format correction (first: ${firstFailure.reason}; second: ${secondFailure.reason}). The current Shot and all saved Bubble approvals are unchanged. Check the Local Writing test or try Regenerate.`,
+          },{status:502,headers:{"Cache-Control":"no-store"}});
+        }
+      }
       return Response.json({
-        ok: false,
-        code: "INVALID_NARRATION_OUTPUT",
-        stage: "OUTPUT_VALIDATION",
-        route: profile?.provider || "unknown",
-        reason: failure.reason,
-        message: failure.message,
-      }, { status: 502, headers: { "Cache-Control": "no-store" } });
+        ok:false, code:"INVALID_NARRATION_OUTPUT", stage:"OUTPUT_VALIDATION",
+        route:profile?.provider || "unknown", reason:firstFailure.reason,
+        message:firstFailure.message,
+      },{status:502,headers:{"Cache-Control":"no-store"}});
     }
     return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",stage:"OUTPUT_VALIDATION",message:
       "The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502});

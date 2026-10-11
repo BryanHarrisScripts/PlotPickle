@@ -245,3 +245,46 @@ test("a rejected submission cannot leave VIDEO green from an earlier proof", asy
   assert.equal(status.active, false);
   assert.match(status.error, /LOCAL TEST FAILED/);
 });
+
+test("#2922 authenticated LTX local video test attaches a fresh session CSRF token without weakening auth", async () => {
+  const calls = [];
+  let authenticated = true;
+  const browser = await compile("core/auth/profile-request-browser.ts", {}, {
+    window: { location: { href: "http://127.0.0.1:4173/skin-v1", origin: "http://127.0.0.1:4173" } },
+    Headers, Request, Response,
+    fetch: async (url, init = {}) => {
+      if (url === "/api/auth/profile") return Response.json(authenticated
+        ? { authenticated: true, csrfToken: "test-current-session-proof" }
+        : { authenticated: false });
+      calls.push({ url, method: init.method, headers: new Headers(init.headers) });
+      return Response.json({ ok: true, status: "succeeded", outputAssetUrl: "/mock-proof.mp4" });
+    },
+  });
+  const endpoint = "/api/local-ai/ltx-video/test";
+  const response = await browser.authenticatedComputeFetch(endpoint, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: "A verified local-only fixture" }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, endpoint);
+  assert.equal(calls[0].headers.get("x-plotpickle-csrf"), "test-current-session-proof");
+  assert.equal(calls[0].headers.get("content-type"), "application/json");
+  authenticated = false;
+  await assert.rejects(browser.authenticatedComputeFetch(endpoint, { method: "POST", body: "{}" }), /Unlock a PlotPickle Human profile/);
+  assert.equal(calls.length, 1, "an expired session must not launch or bill a video test");
+});
+
+test("#2922 LTX selection explicitly Joins verified ComfyUI Local video instead of leaving Timeline Off", async () => {
+  const [panel, gateway, route] = await Promise.all([
+    read("app/skin-v1/local-ltx-setup-panel.tsx"),
+    read("build/ai-routing-gateway.ts"),
+    read("core/auth/profile-request-browser.ts"),
+  ]);
+  assert.match(route, /"\/api\/local-ai\/ltx-video"/u);
+  assert.match(panel, /USE LTX FOR TIMELINE/u);
+  assert.match(panel, /capability: "video", engine: "comfy-local", provider: "ltx-video"/u);
+  assert.match(panel, /if \(result\.join\?\.ready !== true\)/u);
+  assert.match(gateway, /if \(proof\.ready\) \{\s*await selectRoute/u);
+  assert.match(panel, /plotpickle:connection-status-refresh/u);
+});

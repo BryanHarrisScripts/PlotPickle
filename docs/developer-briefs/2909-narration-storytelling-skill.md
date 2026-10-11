@@ -33,3 +33,5 @@ These trials test transferable procedure on contrasting tasks, including when si
 ## Validation
 
 Relevant runtime and discovery regressions, focused UAT contracts, production build, convergence and current-head independent CI are required before merge. No provider requests or paid generation are part of this change.
+
+The existing #2614 registry snapshot increases from 21 to 22 skills; exact skill/trust URI alignment remains enforced.

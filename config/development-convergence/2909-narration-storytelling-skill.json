@@ -12,7 +12,8 @@
     "tests/issue-2909-narration-storytelling-skill.test.mjs",
     "tests/issue-2839-storyboard-text-narration.test.mjs",
     "docs/developer-briefs/2909-narration-storytelling-skill.md",
-    "config/development-convergence/2909-narration-storytelling-skill.json"
+    "config/development-convergence/2909-narration-storytelling-skill.json",
+    "tests/issue-2614-quillan-skill-registry.test.mjs"
   ],
   "acceptance": [
     {

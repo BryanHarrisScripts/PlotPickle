@@ -29,7 +29,7 @@ test("#2440 Story Architect failure diagnostics expose the safe execution route 
   const gateway = await read("build/writing-assistant-gateway.ts");
 
   const helperStart = gateway.indexOf("function storyArchitectExecutionRoute(");
-  const helperEnd = gateway.indexOf("\n}\n", helperStart);
+  const helperEnd = gateway.indexOf("\n}", helperStart);
   assert.ok(helperStart >= 0 && helperEnd > helperStart);
   const helper = gateway.slice(helperStart, helperEnd + 2);
 

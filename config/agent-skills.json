@@ -462,6 +462,23 @@
         "evaluationCoverage": "covered",
         "provenanceClass": "built-in"
       }
+    },
+    {
+      "id": "narration-storytelling",
+      "name": "Narration Storytelling",
+      "description": "Place narration through dramatic change, dialogue as action, subtext, audience knowledge and purposeful silence within approved story evidence.",
+      "entry": ".agents/skills/narration-storytelling/SKILL.md",
+      "path": ".agents/skills/narration-storytelling",
+      "uri": "skill://plotpickle/narration-storytelling",
+      "roles": [
+        "graphic-novel"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "graphic-novel"
+      ],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

@@ -18,6 +18,12 @@ function stripSkillFrontmatter(content: string) {
   return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "").trim();
 }
 
+export function loadNarrationStorytellingSkill() {
+  const procedure = stripSkillFrontmatter(readFileSync(resolve(process.cwd(), ".agents/skills/narration-storytelling/SKILL.md"), "utf8"));
+  if (!procedure) throw new Error("Narration Storytelling skill is empty.");
+  return procedure;
+}
+
 export function loadSageBrinewickPlaybook() {
   try {
     const skill = stripSkillFrontmatter(readFileSync(SAGE_BRINEWICK_SKILL_PATH, "utf8"));
@@ -394,6 +400,7 @@ export function createPlotPickleMastra(profile: ProviderProfile) {
       instructions: [
         BASE_INSTRUCTIONS,
         `Specialist responsibility: ${role}`,
+        id === "graphic-novel" ? `Narration Storytelling skill:\n${loadNarrationStorytellingSkill()}` : "",
         id === "curriculum-guide" ? `Sage Brinewick skill:\n${SAGE_BRINEWICK_PLAYBOOK}` : "",
         id === "discovery-mapper" ? `Discovery Mapper skill:\n${stripSkillFrontmatter(readFileSync(resolve(process.cwd(), ".agents/skills/discovery-mapper/SKILL.md"), "utf8"))}` : "",
         id === "wyrmwood-rival-director" ? `Master Oaken-Vague playbook:\n${MASTER_OAKEN_VAGUE_PLAYBOOK}` : "",

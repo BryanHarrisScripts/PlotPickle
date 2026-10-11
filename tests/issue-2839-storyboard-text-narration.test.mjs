@@ -6,6 +6,7 @@ import vm from 'node:vm';
 // PP-NARR-001 B6 runs in the existing Windows narration gate, not only as an unselected new test file.
 import './issue-2855-bubble-source-identity.test.mjs';
 import './issue-2907-narration-overall-story.test.mjs';
+import './issue-2909-narration-storytelling-skill.test.mjs';
 import './issue-2841-local-writing-truth.test.mjs';
 import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest, storyboardNarrationOutputFailure } from '../core/media/previs-narration.mjs';
 import { prepareStoryboardNarrationSequence, screenplayFormattingDirective, storyboardNarrationAuthoredIntention } from '../core/media/storyboard-sequence-evidence.mjs';

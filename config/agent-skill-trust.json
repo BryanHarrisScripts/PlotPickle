@@ -260,6 +260,16 @@
       ],
       "evalStatus": "covered",
       "lastEvaluatedRevision": "issue-2900"
+    },
+    {
+      "uri": "skill://plotpickle/narration-storytelling",
+      "displayName": "Narration Storytelling",
+      "requestedCapabilityClasses": [
+        "bounded-project-context",
+        "proposal-draft"
+      ],
+      "evalStatus": "partial",
+      "lastEvaluatedRevision": "issue-2909"
     }
   ]
 }

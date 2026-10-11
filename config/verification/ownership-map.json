@@ -335,7 +335,8 @@
       "include": [
         ".agents/skills/story-development-craft/**",
         ".agents/skills/story-revision-review/**",
-        ".agents/skills/sequence-director/**"
+        ".agents/skills/sequence-director/**",
+        ".agents/skills/narration-storytelling/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

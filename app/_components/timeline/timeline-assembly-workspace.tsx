@@ -265,8 +265,10 @@ async function resolveTimelineMotionRoute(packet?: TimelineShotGenerationPacket)
     return { route: "minimax-comfyui", label: "Local ComfyUI · MiniMax API · selected and verified", locality: "cloud", needsActivation: false, strategy };
   }
 
-  if (selected !== "off" && selectedState?.error) throw new Error(selectedState.error);
-  throw new Error("No verified video generation route is ready for this Shot. Test the selected video workflow or choose another reviewed route in Settings.");
+  if (selected !== "off" && selectedState?.error) {
+    throw new Error(`route=${selected} · stage=CAPABILITY_VERIFICATION · configured=${selectedState.configured === true} · verified=${selectedState.ready === true} · ${selectedState.error} · Next: open Settings → Connections → Video, inspect the selected workflow/provider and run its capability test.`);
+  }
+  throw new Error(`route=${selected} · stage=CAPABILITY_SELECTION · configured=${selectedState?.configured === true} · verified=${selectedState?.ready === true} · No verified video generation route is ready for this Shot. Next: select and verify a capable route in Settings → Connections → Video.`);
 }
 
 
@@ -809,7 +811,7 @@ export default function TimelineAssemblyWorkspace({
         return;
       }
       if (error instanceof TimelineMotionObservationError) {
-        setMessage(`Shot ${String(shotNumber).padStart(2, "0")} could not be checked: ${error.message} Keep the current submitted job and use Resume existing motion job; do not pay to generate it again.`);
+        setMessage(`OBSERVATION BLOCKED · Shot ${String(shotNumber).padStart(2, "0")} · route=${running.route || "unknown"} · stage=PROVIDER_STATUS · job=${running.jobId || "not-recorded"} · ${error.message} · Next: check provider status and Resume existing motion job. Do not submit or pay again.`);
         return;
       }
       const failedAt = new Date().toISOString();
@@ -1023,7 +1025,7 @@ export default function TimelineAssemblyWorkspace({
       await observeSubmittedMotion(selectedPlacement, shotNumber, packet, running, priorTakeId);
     } catch (error) {
       if (error instanceof TimelineMotionSaveError) {
-        setMessage(`Motion request receipt could not be saved: ${error.message} Do not submit a second paid request; recover the job first.`);
+        setMessage(`SAVE FAILED · route=${route.route} · stage=JOB_RECEIPT_PERSISTENCE · ${error.message} · Next: unlock your profile and recover the existing provider job receipt. Do not submit or pay again.`);
       } else {
         const failedAt = new Date().toISOString();
         const previous = running ?? motionFor(selectedPlacement, shotNumber).current;
@@ -1051,8 +1053,8 @@ export default function TimelineAssemblyWorkspace({
           updatedAt: failedAt,
         };
         try {
-          await storeMotion({ ...failed, status: "failed", outputAssetUrl: "", error: error instanceof Error ? error.message : "Motion submission failed.", updatedAt: failedAt });
-          setMessage(error instanceof Error ? error.message : "Motion submission failed; the locked still remains available.");
+          await storeMotion({ ...failed, status: "failed", outputAssetUrl: "", error: `SUBMISSION FAILED · route=${route.route} · stage=PROVIDER_REQUEST · ${error instanceof Error ? error.message : "Motion submission failed."} · Next: check the selected provider test and permissions in Settings → Connections. If a job was submitted, recover its receipt before retrying.`, updatedAt: failedAt });
+          setMessage(`SUBMISSION FAILED · route=${route.route} · stage=PROVIDER_REQUEST · ${error instanceof Error ? error.message : "Motion submission failed; the locked still remains available."} · Next: verify Connections and check for an existing provider job before retrying.`);
         } catch (saveError) {
           setMessage(`Motion submission failed and its status could not be saved: ${saveError instanceof Error ? saveError.message : "Profile write failed."}`);
         }
@@ -1435,7 +1437,7 @@ export default function TimelineAssemblyWorkspace({
                   <div className={styles.motionCell} data-motion-status={state.stale ? "stale" : current?.status ?? "empty"}>
                     <strong>{label}</strong>
                     {current?.provider || current?.model ? <small>{[current.generationMode, current.provider, current.model].filter(Boolean).join(" · ")}</small> : <small>Shot packet can route through text or approved visual references.</small>}
-                    {current?.error ? <small>{current.error}</small> : null}
+                    {current?.error ? <small className={styles.failureDiagnostic} role="alert" data-motion-failure="true">Motion failed · Shot {String(shotNumber).padStart(2, "0")} · stage={current.error.startsWith("PREFLIGHT FAILED") ? "PREFLIGHT" : "PROVIDER_OR_CLIP"} · route={current.route || "not resolved"} · provider={current.provider || "not resolved"} · job={current.jobId || "not submitted"} · {current.error} · Next: check Settings → Connections → Video and its exact capability test; retry only if no submitted job requires recovery.</small> : null}
                     <details>
                       <summary>Generation packet</summary>
                       <small>{generationPacket.dramaticResponsibility || "No separate Mini-Block responsibility text."}</small>
@@ -1530,7 +1532,7 @@ export default function TimelineAssemblyWorkspace({
 
           <section className={styles.providerStatus}>
             <p className={styles.kicker}>Motion provider</p>
-            <span>{motionRouteMessage}</span>
+            <span data-motion-failure={/PREFLIGHT FAILED|failed|not ready|not capable/i.test(motionRouteMessage) ? "true" : "false"}>{motionRouteMessage}</span>
           </section>
         </aside>
       </div>
@@ -1594,7 +1596,7 @@ export default function TimelineAssemblyWorkspace({
         </div>
       </section>
 
-      <p className={styles.status} role="status">{message}</p>
+      <p className={styles.status} role={/PREFLIGHT FAILED|SUBMISSION FAILED|SAVE FAILED|OBSERVATION BLOCKED|failed|could not|unavailable|not ready/i.test(message) ? "alert" : "status"} data-motion-failure={/PREFLIGHT FAILED|SUBMISSION FAILED|SAVE FAILED|OBSERVATION BLOCKED|failed|could not|unavailable|not ready/i.test(message) ? "true" : "false"}>{message}</p>
     </section>
   );
 }

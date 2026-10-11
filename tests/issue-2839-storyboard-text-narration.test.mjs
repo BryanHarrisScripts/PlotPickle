@@ -435,3 +435,16 @@ test('#2920 narration and motion failures display actionable red provider diagno
   assert.match(timelineCss, /var\(--pp-skin-danger\)/u);
   assert.doesNotMatch(route, /return Response\.json\(\{.*apiKey/u);
 });
+
+test('#2920 Timeline recovers exact saved Storyboard Bubble fingerprints rather than marking them stale', async () => {
+  const [storyboard, timeline] = await Promise.all([
+    readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8'),
+    readFile('app/_components/timeline/timeline-assembly-workspace.tsx', 'utf8'),
+  ]);
+  assert.match(storyboard, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)\)/u);
+  assert.match(timeline, /graphicNovelTextSourceKey,\s*graphicNovelTextSourceSnapshot/u);
+  assert.match(timeline, /overallStory: narrationOverallStory\(project\)/u);
+  assert.match(timeline, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, placement\.anchorRef, shotNumber, artifact\)\)/u);
+  assert.doesNotMatch(timeline, /function graphicNovelTextSourceKey\(/u, 'Timeline must not implement a second incompatible Bubble fingerprint');
+  assert.match(timeline, /timelinePresentationFor\(project, selectedPlacement, position\)/u, 'Timeline export uses the shared source identity');
+});

@@ -1,0 +1,80 @@
+import assert from "node:assert/strict";
+import {mkdtemp,rm} from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import test from "node:test";
+import {build} from "esbuild";
+const bundled=await build({entryPoints:["core/contracts/world-map/index.ts"],bundle:true,platform:"node",format:"esm",write:false});
+const {normalizeWorldMapState}=await import("data:text/javascript;base64,"+Buffer.from(bundled.outputFiles[0].text).toString("base64"));
+import {missingAfterglowCharacterImages,restoreMissingAfterglowCharacterImages} from "../modules/library/afterglow-image-review.mjs";
+import {prepareVerifiedAfterglowMaster,shaAfterglowSnapshot} from "../modules/library/master/afterglow-master-authority.mjs";
+import {createProfilePrivateStorageService} from "../core/storage/profile-private/profile-private-storage-core.mjs";
+const date="2026-10-11T10:00:00.000Z";
+const ref=(id)=>({id,characterId:"ren",characterName:"Ren",versionId:"approved-v1",view:"front-full-body",
+  assetUrl:"/api/local-ai/assets/"+id+".webp",prompt:"Synthetic fixture",provider:"fixture",model:"fixture",createdAt:date,reviewState:"approved"});
+const master=()=>({id:"afterglow-consolidated-original",title:"Human's master",revision:0,createdAt:date,updatedAt:date,
+  sourceEvidence:{referenceFixture:{sourceId:"afterglow-v9-complete-baseline"}},
+  storyDevelopment:{fields:{genre:{value:"Human's resolved genre"}}},
+  screenplay:{narration:"Human's resolved narration"},
+  worldMap:{version:1,characterVisuals:[{characterId:"ren",characterName:"Ren",references:[ref("kept")],lockedVersionId:"approved-v1",approvedAt:date,updatedAt:date}]}});
+const history=()=>{const p=master();p.id="original-source";p.title="Older title";
+  p.storyDevelopment.fields.genre.value="Unwanted old alternative";p.worldMap.characterVisuals[0].references.push(ref("missing"),ref("unselected"));return p;};
+const sources=()=>[{project:master()},{project:history(),sourceKey:"archived:original-source"}];
+const options=()=>missingAfterglowCharacterImages({master:master(),sources:sources(),manifest:{assets:[]}});
+const selections=()=>({mode:"missing-character-images",masterSourceId:master().id,decisions:{},exclusions:[],confirmedCurrent:{},imageChoices:{[options()[0].key]:"keep"}});
+function prepared(rows=sources(),choices=selections()) {return prepareVerifiedAfterglowMaster({baseline:history(),sources:rows,
+  fields:[],questions:{},manifest:{assets:[]},selections:choices,
+  expectedSources:rows.map(s=>({key:s.sourceKey??s.project.id,digest:shaAfterglowSnapshot(s.project)})),masterId:"afterglow-consolidated-repaired",now:date});}
+test("missing-only recovery preserves every prior decision and existing approved reference",()=>{
+  const original=master(),past=history();
+  const result=restoreMissingAfterglowCharacterImages({master:original,items:options(),choices:selections().imageChoices});
+  const pack=result.worldMap.characterVisuals[0];
+  assert.deepEqual(result.storyDevelopment,original.storyDevelopment);
+  assert.deepEqual(result.screenplay,original.screenplay);assert.equal(result.title,original.title);
+  assert.deepEqual(pack.references[0],original.worldMap.characterVisuals[0].references[0]);
+  assert.equal(pack.lockedVersionId,"approved-v1");assert.equal(pack.approvedAt,date);
+  assert.equal(pack.references[1].reviewState,"draft");assert.notEqual(pack.references[1].versionId,pack.lockedVersionId);
+  assert.deepEqual(normalizeWorldMapState(result.worldMap),result.worldMap,"normalization must preserve drafts and approval exactly");
+  assert.equal(pack.references[1].assetUrl,ref("missing").assetUrl);assert.equal(pack.references.length,2);
+  assert.deepEqual(master(),original);assert.deepEqual(history(),past);
+  assert.equal(prepared().progress.pending,0);
+});
+test("recovery rejects forged choices, competing identity, narrative changes and stale source bytes",()=>{
+  assert.throws(()=>prepared(sources(),{...selections(),decisions:{genre:0}}),/cannot change prior story/);
+  assert.throws(()=>prepared(sources(),{...selections(),imageChoices:{forged:"keep"}}),/unambiguous recovery/);
+  assert.throws(()=>prepared(sources(),{...selections(),imageChoices:{[options()[0].key]:"exclude"}}),/unambiguous recovery/);
+  const rows=sources();rows[0].sourceKey="archived:current";
+  assert.throws(()=>prepared(rows),/single current verified/);
+  const item={...options()[0],id:"kept"};
+  assert.throws(()=>restoreMissingAfterglowCharacterImages({master:master(),items:[item],choices:{[item.key]:"keep"}}),/existing reference identity/);
+  const args={baseline:history(),sources:sources(),fields:[],questions:{},manifest:{assets:[]},selections:selections(),expectedSources:[]};
+  assert.throws(()=>prepareVerifiedAfterglowMaster(args),/snapshots changed/);
+});
+test("encrypted repair survives fresh storage session and requires the prior master ledger",async t=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pp-2863-recovery-"));
+  const auth={resolveSession:()=>({profileId:"profile_fixture_2863"}),createProfileVaultCapability:c=>({profileId:c.profileId,wrapSecret:async({secret})=>({payload:Buffer.from(secret).toString("base64")}),unwrapSecret:async({envelope})=>Uint8Array.from(Buffer.from(envelope.payload,"base64"))}),registerVaultCleanupHook:()=>()=>{}};
+  const context={profileId:"profile_fixture_2863",sessionId:"first"};
+  const gate=input=>{
+    if(input.selections?.mode!=="missing-character-images")return {authorized:true,mediaPins:[]};
+    const rows=[...input.originals.map(x=>({project:x.project})),...input.historical];
+    const recomputed=prepared(rows,input.selections).candidate;
+    assert.deepEqual(input.candidate,recomputed);
+    return {authorized:true,mediaPins:[]};
+  };
+  const make=()=>createProfilePrivateStorageService({root,authService:auth,normalizeProject:p=>structuredClone(p),authorizeAfterglowMasterCommit:gate});
+  let store=make();t.after(async()=>{store.close();await rm(root,{recursive:true,force:true});});
+  const proofs=async()=>Promise.all((await store.listProjects(context)).filter(s=>!s.archivedAt).map(async s=>{const p=await store.loadProject(context,s.projectId);return {projectId:s.projectId,revision:p.revision,updatedAt:s.updatedAt,digest:shaAfterglowSnapshot(p)};}));
+  await store.saveProject(context,{project:history(),summary:{sourceKind:"example",sourceId:"afterglow-v9"},activate:false});
+  await store.commitAfterglowMaster(context,{master:master(),sources:await proofs()});
+  const rows=[{project:await store.loadAfterglowCurrentMaster(context)},{project:await store.loadProject(context,history().id),sourceKey:"archived:"+history().id}];
+  const preparedResult=prepared(rows);
+  await store.commitAfterglowMaster(context,{master:preparedResult.candidate,sources:await proofs(),selections:selections(),expectedSources:preparedResult.sourceProofs});
+  store.close();store=make();
+  const reopened=await store.loadAfterglowCurrentMaster({...context,sessionId:"restarted"});
+  assert.deepEqual(reopened,preparedResult.candidate);
+  assert.deepEqual(await store.loadProject(context,master().id),master());
+  assert.deepEqual(await store.loadProject(context,history().id),history());
+  const fake=master();fake.id="afterglow-consolidated-unverified";
+  await store.saveProject(context,{project:fake,summary:{sourceKind:"example",sourceId:"afterglow-v9"},activate:false});
+  await assert.rejects(store.commitAfterglowMaster(context,{master:{...fake,id:"afterglow-consolidated-rejected"},sources:await proofs(),selections:{...selections(),masterSourceId:fake.id}}),/single current verified/);
+});

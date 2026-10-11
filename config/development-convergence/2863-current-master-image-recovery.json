@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "issue": 2863,
+  "brief": "docs/developer-briefs/2863-current-master-image-recovery.md",
+  "allowedChanges": [
+    "app/api/auth/profile-private/route.ts",
+    "config/verification/test-catalog.json",
+    "core/storage/profile-private-browser.ts",
+    "core/storage/profile-private/profile-private-storage-core.mjs",
+    "modules/library/afterglow-image-review.d.mts",
+    "modules/library/afterglow-image-review.mjs",
+    "modules/library/master/afterglow-master-authority.d.mts",
+    "modules/library/master/afterglow-master-authority.mjs",
+    "modules/library/master/afterglow-master-server.ts",
+    "modules/library/ui/afterglow-management-panel.tsx",
+    "tests/issue-2863-current-master-image-recovery.test.mjs",
+    "docs/developer-briefs/2863-current-master-image-recovery.md",
+    "config/development-convergence/2863-current-master-image-recovery.json"
+  ],
+  "acceptance": [
+    {
+      "id": "MISSING_ONLY",
+      "criterion": "Recover selected missing frames from the current master without redoing story decisions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/afterglow-management-panel.tsx",
+          "contains": "Review Missing Character Images"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE",
+      "criterion": "Recompute exact source evidence and require the encrypted master receipt.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/storage/profile-private/profile-private-storage-core.mjs",
+          "contains": "Missing image recovery requires an encrypted master receipt."
+        }
+      ]
+    },
+    {
+      "id": "RESTART",
+      "criterion": "Prove draft and lock preservation, independent encrypted readback after restart.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2863-current-master-image-recovery.test.mjs",
+          "contains": "encrypted repair survives fresh storage session"
+        }
+      ]
+    },
+    {
+      "id": "LIMITS",
+      "criterion": "Actual Windows disk and provider acceptance remain separate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2863-current-master-image-recovery.md",
+          "contains": "Synthetic storage restart does not prove"
+        }
+      ]
+    }
+  ]
+}

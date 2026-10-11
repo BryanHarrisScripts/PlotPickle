@@ -127,3 +127,35 @@ export function imageIncludedInCandidate(project,item) {
     pack.characterId===item.characterId &&
     pack.references?.some(ref=>ref.id===item.id&&ref.assetUrl===item.url)));
 }
+
+/** Missing-only recovery preserves the current master and never grants approval. */
+export function missingAfterglowCharacterImages({master,sources,manifest}) {
+  return listAfterglowImageChoices({sources,manifest}).filter(item=>
+    !imageIncludedInCandidate(master,item));
+}
+export function restoreMissingAfterglowCharacterImages({master,items,choices}) {
+  if(!record(master)||!Array.isArray(items)||!record(choices))throw new Error("Invalid missing image review.");
+  const indexed=new Map(items.map(item=>[item.key,item]));
+  const candidate=structuredClone(master);
+  for(const [key,choice] of Object.entries(choices).sort(([a],[b])=>a.localeCompare(b))) {
+    const item=indexed.get(key);
+    if(choice!=="keep"||!item||item.conflictingSourceMetadata||imageIncludedInCandidate(master,item))
+      throw new Error("Selected missing image is not an unambiguous recovery option.");
+    const packs=candidate.worldMap?.characterVisuals;
+    if(!Array.isArray(packs))throw new Error("Current master has invalid character visuals.");
+    let pack=packs.find(row=>row.characterId===item.characterId);
+    if(pack?.references.some(ref=>ref.id===item.id))
+      throw new Error("Selected missing image conflicts with an existing reference identity. Review the complete character version.");
+    if(!pack) {
+      pack={...structuredClone(item.sourcePackage),references:[],lockedVersionId:null,approvedAt:null};
+      packs.push(pack);
+    }
+    // A separate draft version prevents normalization from approving a frame
+    // merely because its historical version matches the existing lock.
+    let versionId="recovered-images";
+    while(versionId===pack.lockedVersionId)versionId="recovered-"+versionId;
+    pack.references.push({...structuredClone(item.reference),versionId,reviewState:"draft"});
+  }
+  if(!Object.keys(choices).length)throw new Error("Select at least one missing character image.");
+  return candidate;
+}

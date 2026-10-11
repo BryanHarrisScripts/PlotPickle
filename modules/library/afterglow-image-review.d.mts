@@ -41,3 +41,12 @@ export function applyAfterglowImageChoices(input:Readonly<{
 export function imageIncludedInCandidate(
   project:LibraryPPFProject,item:AfterglowImageChoice,
 ):boolean;
+
+export function missingAfterglowCharacterImages(input:Readonly<{
+  master:LibraryPPFProject;sources:readonly Readonly<{project:LibraryPPFProject;sourceKey?:string}>[];
+  manifest:Parameters<typeof listAfterglowImageChoices>[0]["manifest"];
+}>):AfterglowImageChoice[];
+export function restoreMissingAfterglowCharacterImages(input:Readonly<{
+  master:LibraryPPFProject;items:readonly AfterglowImageChoice[];
+  choices:Readonly<Record<string,"keep">>;
+}>):LibraryPPFProject;

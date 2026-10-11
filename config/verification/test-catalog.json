@@ -2181,6 +2181,7 @@
           "tests/issue-2832-profile-save-work.test.mjs",
           "tests/issue-2835-startup-account-afterglow.test.mjs",
           "tests/issue-2863-afterglow-consolidation.test.mjs",
+          "tests/issue-2863-current-master-image-recovery.test.mjs",
           "tests/issue-2863-afterglow-evidence-reconcile.test.mjs",
           "tests/issue-2863-afterglow-question-provenance.test.mjs",
           "tests/issue-2863-afterglow-media-integrity.test.mjs",

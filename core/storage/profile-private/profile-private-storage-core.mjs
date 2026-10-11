@@ -440,6 +440,15 @@ export function createProfilePrivateStorageService(options) {
           }
           storedSources.push({ summary, project: saved, proof });
         }
+        if(input.selections?.mode==="missing-character-images") {
+          const sourceId=input.selections.masterSourceId;
+          if(originals.length!==1||originals[0].projectId!==sourceId)
+            fail("Missing image recovery requires the single current verified master.","INVALID_AFTERGLOW_RECOVERY_MASTER");
+          const ledgerId="afterglow-master-"+createHash("sha256").update(sourceId).digest("hex");
+          const ledger=await readObject(access,"indexes",ledgerId);
+          if(ledger?.masterId!==sourceId)
+            fail("Missing image recovery requires an encrypted master receipt.","INVALID_AFTERGLOW_RECOVERY_MASTER");
+        }
         const proposed = typeof options.normalizeProject === "function"
           ? options.normalizeProject(input.master) : structuredClone(input.master);
         if (!proposed || typeof proposed !== "object" || Array.isArray(proposed)) {

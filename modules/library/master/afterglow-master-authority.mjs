@@ -8,7 +8,7 @@ import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions,
   AFTERGLOW_DURABLE_FIELDS } from "../afterglow-consolidation.mjs";
 import { inventoryAfterglowRecoveredWork,afterglowRecoveryItemPath } from "../afterglow-work-recovery.mjs";
 import { partitionAfterglowChoices } from "../afterglow-creative-choice-boundary.mjs";
-import { listAfterglowImageChoices,applyAfterglowImageChoices } from "../afterglow-image-review.mjs";
+import { listAfterglowImageChoices,applyAfterglowImageChoices,missingAfterglowCharacterImages,restoreMissingAfterglowCharacterImages } from "../afterglow-image-review.mjs";
 import { afterglowReviewProgress } from "../afterglow-review-progress.mjs";
 
 import { reconcileAfterglowTechnicalRecords,AfterglowSaveVerificationError } from "./afterglow-technical-reconciliation.mjs";
@@ -47,6 +47,25 @@ export function prepareVerifiedAfterglowMaster({
   if(JSON.stringify(actual)!==JSON.stringify(expected)) {
     throw new Error("Saved Afterglow source snapshots changed since Human review. Review again.");
   }
+  if(selections.mode==="missing-character-images") {
+    if(Object.keys(selections.decisions).length||selections.exclusions.length||Object.keys(selections.confirmedCurrent).length)
+      throw new Error("Missing image recovery cannot change prior story decisions.");
+    const active=sources.filter(source=>!source.sourceKey);
+    if(active.length!==1||active[0].project.id!==selections.masterSourceId)
+      throw new Error("Missing image recovery requires the single current verified master.");
+    const master=active[0].project;
+    const items=missingAfterglowCharacterImages({master,
+      sources:[{project:baseline,sourceKey:"provided-example"},...sources],manifest});
+    const candidate=restoreMissingAfterglowCharacterImages({master,items,choices:selections.imageChoices});
+    candidate.id=masterId||"afterglow-consolidated-"+randomUUID();
+    candidate.revision=0;
+    candidate.createdAt=now||new Date().toISOString();candidate.updatedAt=candidate.createdAt;
+    const total=Object.keys(selections.imageChoices).length;
+    return {candidate,progress:{pending:0,total,completed:total,allCreativeDecided:true},sourceProofs:actual,
+      sourceCount:sources.length,includedHistorical:sources.filter(x=>x.sourceKey).length,
+      readyForIndependentMedia:true};
+  }
+  if(selections.mode!==undefined)throw new Error("Unrecognized Afterglow review mode.");
   const plan=planAfterglowConsolidation({baseline,sources,questions});
   const recovery=inventoryAfterglowRecoveredWork({baseline,sources,fields});
   const imageOptions=listAfterglowImageChoices({

@@ -231,3 +231,20 @@ test("#2830 Graphic Novel and Timeline cap provider video to three seconds and P
   assert.match(timeline, /onSeeking=\{\(event\) => enforceMotionPresentationEnd\(event\.currentTarget, PLANNING_SECONDS_PER_SHOT\)\}/u);
   assert.match(previs, /selectedFlipBookFrame\.locked\.assetUrl/u, "missing or stale motion still shows authoritative image");
 });
+
+test("#2830 Previs and Timeline runtime playback edits select the Windows build proof", async () => {
+  const workflow = await readText(".github/workflows/architecture-shadow.yml");
+  const scope = workflow.split("\n").find((line) => line.includes("then build=true; fi"));
+  assert.ok(scope, "the product Windows lane must have an explicit build selection");
+  const rawPattern = scope.match(/grep -Eq '([^']+)'/u)?.[1];
+  assert.ok(rawPattern, "read the exact executable Windows impact regex");
+  const selected = new RegExp(rawPattern);
+  for (const path of [
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/previs/previs-graphic-novel-presentation.ts",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+  ]) assert.equal(selected.test(path), true, path + " must select the Windows build gate");
+  assert.equal(selected.test("docs/developer-briefs/2830-mini-block-comic-motion-slice.md"), false,
+    "documentation-only changes must not fan out into the expensive Windows lane");
+});

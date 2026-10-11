@@ -112,6 +112,10 @@ test("#2863 Afterglow Settings product edits select focused Windows build withou
   const buildSelector=scope.split("\n").find(line=>line.includes("then build=true; fi"));
   assert.ok(buildSelector,"targeted Windows build selector is required");
   assert.match(buildSelector,/modules\/library\/ui\/afterglow-management-panel/u);
+  assert.ok(buildSelector.includes("modules/library/afterglow-image-review"));
+  assert.ok(buildSelector.includes("tests/issue-2863-current-master-image-recovery"));
+  const product=await read(".github/workflows/product-gate.yml");
+  assert.ok(product.includes("node --test tests/issue-2863-current-master-image-recovery.test.mjs"));
   assert.doesNotMatch(buildSelector,/modules\/library\/ui\/\|/u);
   assert.match(buildSelector,/app\/api\/previs\/narration/u,"existing build triggers stay intact");
 });

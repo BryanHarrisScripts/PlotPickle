@@ -15,7 +15,10 @@
     "modules/library/ui/afterglow-management-panel.tsx",
     "tests/issue-2863-current-master-image-recovery.test.mjs",
     "docs/developer-briefs/2863-current-master-image-recovery.md",
-    "config/development-convergence/2863-current-master-image-recovery.json"
+    "config/development-convergence/2863-current-master-image-recovery.json",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "tests/issue-2733-ci-windows-lanes.test.mjs"
   ],
   "acceptance": [
     {

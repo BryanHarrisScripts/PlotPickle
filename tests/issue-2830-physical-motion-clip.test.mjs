@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -131,4 +132,29 @@ test("#2830 physical MP4 path: success is gated on authenticated local render an
   assert.match(client, /providerDurationSeconds: result\.durationSeconds \?\? running\.providerDurationSeconds/u);
   assert.match(engine, /"ffmpeg"/u);
   assert.match(engine, /"ffprobe"/u);
+});
+
+test("#2830 physical 3s MP4: real local FFmpeg encodes a 4-second fixture into 72 frames when tools are present", async t => {
+  const ffmpeg = spawnSync("ffmpeg", ["-version"], { encoding: "utf8", timeout: 12_000, windowsHide: true });
+  const ffprobe = spawnSync("ffprobe", ["-version"], { encoding: "utf8", timeout: 12_000, windowsHide: true });
+  if (ffmpeg.status !== 0 || ffprobe.status !== 0) return t.skip("FFmpeg/FFprobe not installed on this test host; simulated-tool tests still run.");
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-72f-real-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const source = path.join(root, "four-second-source.mp4");
+  const generated = spawnSync("ffmpeg", [
+    "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+    "-f", "lavfi", "-i", "color=c=black:s=320x180:r=24",
+    "-t", "4", "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p", source,
+  ], { encoding: "utf8", timeout: 45_000, windowsHide: true });
+  if (generated.status !== 0) return t.skip("Test host FFmpeg has no libx264 fixture encoder: " + (generated.stderr ?? "").slice(-160));
+  const input = await readFile(source);
+  const clip = await renderTimelineThreeSecondClip({
+    sourceAssetUrl: "/api/local-ai/assets/four-second-source.mp4", directory: root,
+  });
+  assert.equal(clip.frameCount, 72);
+  assert.equal(clip.fps, 24);
+  assert.ok(clip.durationSeconds >= 2.90 && clip.durationSeconds <= 3.10);
+  assert.deepEqual(await readFile(source), input, "physical renderer retains the input provider MP4 byte-for-byte");
+  assert.ok((await readFile(path.join(root, clip.outputAssetUrl.split("/").at(-1)))).length > 12,
+    "the encoded output is a real, readable saved file");
 });

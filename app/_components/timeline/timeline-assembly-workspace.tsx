@@ -822,13 +822,13 @@ export default function TimelineAssemblyWorkspace({
     const id = `timeline-motion:${selectedPlacement.id}:shot-${String(shotNumber).padStart(2, "0")}`;
     const sourceKey = timelineMotionSourceKey(selectedPlacement, packet);
 
-    // An already submitted job must never be billed/submitted again on refresh.
-    // Its exact source packet remains authoritative; changed Shots cannot resume.
     const pending = motionFor(selectedPlacement, shotNumber).current;
+    // A current, already-submitted provider job is resumed by id. Do not
+    // perform a second route preflight, confirmation, or billable POST.
     if (pending?.jobId && (pending.status === "queued" || pending.status === "running")) {
       setGeneratingShotNumber(shotNumber);
       setGeneratingMotionStage(pending.status === "queued" ? "QUEUED" : "RUNNING");
-      setMessage(`Resuming Shot ${String(shotNumber).padStart(2, "0")} job ${pending.jobId} without a new provider request…`);
+      setMessage(`Resuming Shot ${String(shotNumber).padStart(2, "0")} job ${pending.jobId}; no new provider request.`);
       try {
         await observeSubmittedMotion(selectedPlacement, shotNumber, packet, pending, pending.takeId);
       } finally {
@@ -851,8 +851,127 @@ export default function TimelineAssemblyWorkspace({
         ? `${route.label} · ${route.strategy.modality} · ready to activate only after Generate motion is confirmed`
         : `${route.label} · ${route.strategy.modality}`);
     } catch (error) {
+      const detail = error instanceof Error ? error.message : "No compatible video generation route is available.";
+      const failedAt = new Date().toISOString();
+      const failed: TimelineMotionShot = {
+        id,
+        placementId: selectedPlacement.id,
+        anchorRef: selectedPlacement.anchorRef,
+        shotNumber,
+        sourceArtifactId: sourceImage?.id ?? "",
+        sourceKey,
+        prompt: "",
+        packetFingerprint: packet.sourceFingerprint,
+        inputReferenceAssetIds: packet.references.map((reference) => reference.id),
+        requestedDurationSeconds: 3,
+        providerDurationSeconds: null,
+        provider: "",
+        route: "",
+        model: "",
+        jobId: "",
+        status: "failed",
+        outputAssetUrl: "",
+        error: `PREFLIGHT FAILED · ${detail}`,
+        createdAt: now,
+        updatedAt: failedAt,
+      };
+      try {
+        await storeMotion(failed);
+        setMessage(failed.error);
+      } catch (saveError) {
+        setMessage(`Preflight failed but its diagnostic could not be saved: ${saveError instanceof Error ? saveError.message : "Profile persistence failed."}`);
+      }
+      setMotionRouteMessage(failed.error);
+      setGeneratingShotNumber(null);
+      setGeneratingMotionStage(null);
+      return;
+    }
+
+    const strategy = route.strategy!;
+    const usesVisualReference = Boolean(strategy.sourceAssetUrl || strategy.referenceAssetUrl || strategy.lastFrameAssetUrl);
+    const confirmed = await requestPlotPickleConfirmation({
+      title: `Generate motion for Shot ${String(shotNumber).padStart(2, "0")}?`,
+      description: `PlotPickle will send this Shot Generation Packet to ${route.label} using ${strategy.modality}. ${usesVisualReference ? "Approved visual reference media will be included where the provider supports it. " : ""}A cloud route may charge your account and send the disclosed story/reference material off this computer. No generation request is made unless you confirm. Your Hybrid selection remains unchanged.`,
+      confirmLabel: "Generate motion",
+      cancelLabel: "Keep still image",
+    });
+    if (!confirmed) {
+      setMessage("Motion generation was cancelled. Existing Timeline sources remain unchanged.");
+      setGeneratingShotNumber(null);
+      setGeneratingMotionStage(null);
+      return;
+    }
+
+    const prompt = serializeTimelineShotGenerationPacket(packet, strategy);
+    const priorTakeId = motionFor(selectedPlacement, shotNumber).current?.takeId;
+    setGeneratingMotionStage("SUBMITTING");
+    setMessage(`Submitting Shot ${String(shotNumber).padStart(2, "0")} via ${strategy.modality} to ${route.label}…`);
+    let running: TimelineMotionShot | null = null;
+    try {
+      const response = await fetch("/api/local-ai/generate/video", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          ...(strategy.sourceAssetUrl ? { sourceAssetUrl: strategy.sourceAssetUrl } : {}),
+          ...(strategy.modality === "first-last-frame" ? {
+            firstFrameAssetUrl: strategy.sourceAssetUrl,
+            lastFrameAssetUrl: strategy.lastFrameAssetUrl,
+          } : {}),
+          ...(strategy.modality === "reference-to-video" && strategy.referenceAssetUrl
+            ? { referenceAssetUrl: strategy.referenceAssetUrl }
+            : {}),
+          assetId: `timeline-${selectedPlacement.blockNumber}-${selectedPlacement.miniBlockNumber}-shot-${shotNumber}`,
+          durationSeconds: 4,
+          aspectRatio: "16:9",
+          performanceAcknowledged: strategy.performanceAcknowledged,
+          continuityMetadata: {
+            packetId: packet.id,
+            packetFingerprint: packet.sourceFingerprint,
+            generationMode: strategy.modality,
+            placementId: selectedPlacement.id,
+            anchorRef: selectedPlacement.anchorRef,
+            sourceArtifactId: sourceImage?.id ?? "",
+            sourceRefs: packet.sourceRefs,
+            requestedTimelineSeconds: PLANNING_SECONDS_PER_SHOT,
+          },
+          billingAcknowledged: true,
+          dataSharingAcknowledged: true,
+        }),
+      });
+      const job = await response.json() as VideoJob & { message?: string };
+      if (!response.ok || !job.id) throw new Error(job.message || "The active video route did not accept this Shot Generation Packet.");
+      running = {
+        id,
+        placementId: selectedPlacement.id,
+        anchorRef: selectedPlacement.anchorRef,
+        shotNumber,
+        sourceArtifactId: sourceImage?.id ?? "",
+        sourceKey,
+        prompt,
+        generationMode: strategy.modality,
+        packetFingerprint: packet.sourceFingerprint,
+        inputReferenceAssetIds: packet.references.map((reference) => reference.id),
+        requestedDurationSeconds: 3,
+        providerDurationSeconds: job.durationSeconds ?? null,
+        provider: job.provider ?? "",
+        route: job.route ?? "",
+        model: job.model ?? "",
+        jobId: job.id,
+        status: job.status === "queued" ? "queued" : "running",
+        outputAssetUrl: "",
+        error: "",
+        createdAt: now,
+        updatedAt: now,
+      };
+      await storeMotion(running);
+      setGeneratingMotionStage(job.status === "queued" ? "QUEUED" : "RUNNING");
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} has a saved provider job receipt. Checking status…`);
+      await observeSubmittedMotion(selectedPlacement, shotNumber, packet, running, priorTakeId);
+    } catch (error) {
       if (error instanceof TimelineMotionSaveError) {
-        setMessage(`The provider accepted the motion job, but its encrypted receipt was not confirmed: ${error.message} Do not submit another paid request until this job has been recovered.`);
+        setMessage(`Motion request receipt could not be saved: ${error.message} Do not submit a second paid request; recover the job first.`);
       } else {
         const failedAt = new Date().toISOString();
         const previous = running ?? motionFor(selectedPlacement, shotNumber).current;
@@ -881,7 +1000,7 @@ export default function TimelineAssemblyWorkspace({
         };
         try {
           await storeMotion({ ...failed, status: "failed", outputAssetUrl: "", error: error instanceof Error ? error.message : "Motion submission failed.", updatedAt: failedAt });
-          setMessage(error instanceof Error ? error.message : "Motion submission failed; the locked still is unchanged.");
+          setMessage(error instanceof Error ? error.message : "Motion submission failed; the locked still remains available.");
         } catch (saveError) {
           setMessage(`Motion submission failed and its status could not be saved: ${saveError instanceof Error ? saveError.message : "Profile write failed."}`);
         }

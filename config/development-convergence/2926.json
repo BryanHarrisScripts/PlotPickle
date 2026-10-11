@@ -28,7 +28,8 @@
     "config/skin-v1-surface-registry.json",
     "config/skin-v1-surface-declarations/standard-surfaces.json",
     "tests/visual-baselines/skin-v1/manifest.json",
-    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs"
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
   ],
   "acceptance": [
     {

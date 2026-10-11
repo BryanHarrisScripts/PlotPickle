@@ -742,7 +742,28 @@ export default function TimelineAssemblyWorkspace({
         setGeneratingMotionStage(progress.status === "queued" ? "QUEUED" : "RUNNING");
         setMessage(`Shot ${String(shotNumber).padStart(2, "0")} ${progress.status} on ${running.provider || "the verified video provider"}.`);
       });
-      if (!result.outputAssetUrl) throw new Error("The completed video job did not return a saved playable asset.");
+      if (!result.outputAssetUrl) throw new TimelineMotionObservationError("The completed provider video has no saved playable asset yet.");
+      // The provider's 4-second (or longer) source remains untouched. Do not
+      // report a ready 3-second Shot until a local, physical 72-frame/24fps MP4
+      // has been produced and independently verified on this computer.
+      setMessage(`Preparing a verified three-second MP4 for Shot ${String(shotNumber).padStart(2, "0")} from the saved provider video…`);
+      let clip: { outputAssetUrl?: string; frameCount?: number; fps?: number; durationSeconds?: number; message?: string; ok?: boolean };
+      try {
+        const response = await fetch("/api/timeline/motion/trim", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceAssetUrl: result.outputAssetUrl }),
+        });
+        clip = await response.json() as typeof clip;
+        if (!response.ok || !clip.ok || !clip.outputAssetUrl || clip.frameCount !== 72 || clip.fps !== 24
+          || typeof clip.durationSeconds !== "number" || clip.durationSeconds < 2.90 || clip.durationSeconds > 3.10) {
+          throw new Error(clip.message || "Local 72-frame motion clip verification was not acknowledged.");
+        }
+      } catch (error) {
+        throw new TimelineMotionObservationError(error instanceof Error ? error.message : "Could not prepare a verified local three-second video clip.");
+      }
+      const verifiedClipAssetUrl = clip.outputAssetUrl;
       const completedAt = new Date().toISOString();
       const productionShot = timelineProductionShotsFor(latestProject.current, placement, shotNumber)[0] ?? null;
       const takeId = productionShot
@@ -753,7 +774,7 @@ export default function TimelineAssemblyWorkspace({
         productionShotId: productionShot.id,
         sourceRevision: packet.canonicalRevision,
         storyboardDependencyKey: productionShot.storyboardDependencyKey,
-        mediaRef: result.outputAssetUrl,
+        mediaRef: verifiedClipAssetUrl,
         provider: result.provider ?? running.provider,
         model: result.model ?? running.model,
         intendedDurationSeconds: PLANNING_SECONDS_PER_SHOT,
@@ -772,12 +793,12 @@ export default function TimelineAssemblyWorkspace({
         providerDurationSeconds: result.durationSeconds ?? running.providerDurationSeconds,
         takeId,
         status: "succeeded",
-        outputAssetUrl: result.outputAssetUrl,
+        outputAssetUrl: verifiedClipAssetUrl,
         error: "",
         updatedAt: completedAt,
       }, take);
       setPlaybackMode("motion");
-      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} is saved and ready. The original provider duration remains recorded; the Timeline presents three seconds.`);
+      setMessage(`Shot ${String(shotNumber).padStart(2, "0")} is saved as a real 72-frame MP4 at 24 fps. The original provider duration remains recorded separately.`);
     } catch (error) {
       if (error instanceof TimelineMotionSaveError) {
         setMessage(`Motion save is not confirmed: ${error.message} The existing job ${running.jobId} must be recovered, not submitted again.`);
@@ -864,6 +885,15 @@ export default function TimelineAssemblyWorkspace({
       route = await resolveTimelineMotionRoute(packet);
       if (!route.strategy?.eligible || !route.strategy.modality) {
         throw new Error(route.strategy?.reason || "The selected video route cannot render this Shot Generation Packet.");
+      }
+      // A paid provider video is useful only if the local machine can turn it
+      // into a verified 72-frame MP4. Check before Human billing confirmation.
+      const clipReadyResponse = await fetch("/api/timeline/motion/trim", {
+        method: "GET", credentials: "same-origin", cache: "no-store",
+      });
+      const clipReady = await clipReadyResponse.json() as { ready?: boolean; message?: string };
+      if (!clipReadyResponse.ok || !clipReady.ready) {
+        throw new Error(clipReady.message || "Local FFmpeg/FFprobe must be verified before a new paid Timeline video request.");
       }
       setMotionRouteMessage(route.needsActivation
         ? `${route.label} · ${route.strategy.modality} · ready to activate only after Generate motion is confirmed`

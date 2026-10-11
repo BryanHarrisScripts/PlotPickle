@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+// The Architecture Experience Skins suite includes this established #2830 test owner.
+// Import the real 72-frame motion proofs so a green gate cannot omit them.
+import "./issue-2830-physical-motion-clip.test.mjs";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import path from "node:path";

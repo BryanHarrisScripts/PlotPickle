@@ -146,3 +146,78 @@ test("#2803 Timeline dispatch carries packet lineage, H3 acknowledgement and Pro
   assert.match(contract, /takeId\?: string/u);
   assert.match(contract, /Empty for a valid text-to-video Shot/u);
 });
+
+test("#2924 derives selected text versus image video inputs from the actual verified workflow, not a label", async () => {
+  const { buildTimelineShotGenerationPacket, resolveTimelineGenerationStrategy, serializeTimelineShotGenerationPacket } = await generationModule();
+  const packet = buildTimelineShotGenerationPacket(packetInput({
+    references: [{ role: "source-image", id: "locked-01", assetUrl: "/api/generated-assets/locked-01.webp" }],
+    savedStoryDecisions: "Ren carries the burden of a secret.",
+    savedStoryFoundations: "Reveal only information supported by the opening scene.",
+    savedStoryArc: "Block 1: Entry boundary — establish the ordinary condition.",
+    approvedNarration: "The shop is already changing.",
+    approvedDialogue: "REN: We should go.",
+  }));
+  const expected = "/api/generated-assets/locked-01.webp";
+  const image = resolveTimelineGenerationStrategy({
+    route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "image-to-video",
+  }, packet);
+  assert.equal(image.eligible, true);
+  assert.equal(image.modality, "image-to-video");
+  assert.equal(image.sourceImageUse, "input-image");
+  assert.equal(image.sourceAssetUrl, expected);
+  const text = resolveTimelineGenerationStrategy({
+    route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "text-to-video",
+  }, packet);
+  assert.equal(text.eligible, true);
+  assert.equal(text.modality, "text-to-video");
+  assert.equal(text.sourceImageUse, "context-only");
+  assert.equal(text.sourceAssetUrl, "", "text-only ComfyUI workflow must never receive an unsupported source image");
+  assert.equal(text.referenceAssetUrl, "");
+  const unknown = resolveTimelineGenerationStrategy({
+    route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "",
+  }, packet);
+  assert.equal(unknown.eligible, false, "verified provider without a verified actual workflow family cannot claim modality");
+
+  const localText = resolveTimelineGenerationStrategy({
+    route: "ltx-video", locality: "local", ready: true, workflowFamily: "text-to-video",
+  }, packet);
+  assert.equal(localText.sourceImageUse, "context-only");
+  assert.equal(localText.sourceAssetUrl, "");
+  const prompt = serializeTimelineShotGenerationPacket(packet, localText);
+  for (const phrase of [
+    "Current Human-approved printed caption:", "Current Human-approved screenplay dialogue:",
+    "Saved whole-story decisions", "Saved Foundations brief", "24-Block structural map",
+    "locked Storyboard frame is NOT transmitted",
+  ]) assert.ok(prompt.includes(phrase), "modality-specific packet must include " + phrase);
+  assert.ok(prompt.length <= 7000);
+  assert.match(packet.sourceFingerprint, /^PP-MOTION-002:[a-f0-9]{32}$/u);
+  assert.doesNotMatch(packet.sourceFingerprint, /Ren|secret|Foundation/u, "source identity must not leak the saved story");
+  assert.notEqual(
+    packet.sourceFingerprint,
+    buildTimelineShotGenerationPacket(packetInput({
+      references: [{ role: "source-image", id: "locked-01", assetUrl: expected }],
+      approvedNarration: "A changed approved caption.",
+    })).sourceFingerprint,
+    "changing approved narration changes the motion source identity",
+  );
+});
+
+test("#2924 only current approved Bubble and authoritative story contribute to motion; never infer a neighbour as end frame", async () => {
+  const [motion, workspace] = await Promise.all([
+    read("app/_components/timeline/timeline-motion-source.ts"),
+    read("app/_components/timeline/timeline-assembly-workspace.tsx"),
+  ]);
+  assert.match(motion, /narrationOverallStory\(project\)/u);
+  assert.match(motion, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext/u);
+  assert.match(motion, /graphicNovelTextSourceSnapshot\(project, placement\.anchorRef, shotNumber, artifact\)/u);
+  assert.match(motion, /approvedNarration: approvedText\?\.noText/u);
+  assert.match(motion, /approvedDialogue: approvedText\?\.noText/u);
+  assert.match(motion, /savedStoryArc: story\.blocks\.map/u);
+  assert.doesNotMatch(motion, /role: "last-frame" as const/u,
+    "the next separate Storyboard Shot is not approved as the current Shot last frame");
+  assert.match(workspace, /workflowFamily: \(selectedState\.workflowFamily \?\? ""\) as "text-to-video" \| "image-to-video" \| ""/u);
+  assert.doesNotMatch(workspace, /route: "minimax-comfyui", locality: "cloud", ready: true, workflowFamily: "image-to-video"/u);
+  assert.match(workspace, /sourceDisclosure/u);
+  assert.match(workspace, /not an animation of your exact image/i);
+  assert.match(workspace, /sourceImageUse: strategy\.sourceImageUse/u);
+});

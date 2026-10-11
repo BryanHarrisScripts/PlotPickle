@@ -3,6 +3,12 @@ import type {
   TimelinePrevisPlacement,
 } from "@/core/contracts/previs";
 import { approvedWorldMapCharacterReferences } from "@/core/contracts/world-map";
+import { narrationOverallStory } from "@/core/media/storyboard-sequence-evidence.mjs";
+import {
+  buildPrevisGraphicNovelPanel,
+  graphicNovelTextSourceKey,
+  graphicNovelTextSourceSnapshot,
+} from "../previs/previs-graphic-novel-presentation";
 import type { PPFProject } from "@/core/project/project";
 import {
   buildTimelineShotGenerationPacket,
@@ -96,19 +102,41 @@ export function buildTimelineGenerationPacketForShot(
   const screenplay = evidence.passages.map((passage) => passage.text).filter(Boolean).join(" ").replace(/\s+/gu, " ").trim().slice(0, 1_800);
   const characters = timelineCharacterReferences(project, placement);
   const productionShots = timelineProductionShotsFor(project, placement, shotNumber);
-  const nextArtifact = shotNumber < SHOTS_PER_MINI_BLOCK
-    ? storyboardArtifactFor(project, placement, shotNumber + 1)
-    : null;
+  // A neighbouring Storyboard image is its own distinct Shot, not an approved
+  // last frame for this Shot. Never invent first/last-frame cinematic authority.
+  const story = narrationOverallStory(project);
+  const storyContext = {
+    overallStory: story,
+    title: project.title,
+    act: Math.ceil(placement.blockNumber / 6),
+    block: placement.blockNumber,
+    miniBlock: placement.miniBlockNumber,
+    blockTitle: evidence.blockTitle ?? "",
+    dramaticResponsibility: evidence.responsibility ?? "",
+  };
+  const sceneNumbers = [...new Set(evidence.passages.map((passage) => passage.sceneNumber).filter(Boolean))].map(String);
+  const panel = buildPrevisGraphicNovelPanel({
+    position: shotNumber,
+    assetUrl: artifact?.assetUrl ?? "",
+    authoritative: Boolean(artifact),
+    narrativeIntention: artifact?.narrativeIntention ?? "",
+    sceneNumbers,
+    beatLabel: progression.label,
+    beatDirection: progression.direction,
+    shotLabel: `Shot ${String(shotNumber).padStart(2, "0")} of 25`,
+    shotContext: "~3-second planning target",
+    passages: evidence.passages,
+  });
+  const approvedText = artifact ? (project.production.graphicNovelTextApprovals ?? [])
+    .find((approval) => approval.anchorRef === placement.anchorRef
+      && approval.position === shotNumber
+      && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext,
+        graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact))) ?? null : null;
   const references = [
     ...(artifact?.assetUrl ? [{
       role: "source-image" as const,
       id: artifact.id,
       assetUrl: artifact.assetUrl,
-    }] : []),
-    ...(nextArtifact?.assetUrl ? [{
-      role: "last-frame" as const,
-      id: nextArtifact.id,
-      assetUrl: nextArtifact.assetUrl,
     }] : []),
     ...characters.flatMap((character) => character.imageUrls.map((assetUrl, index) => ({
       role: "character" as const,
@@ -133,6 +161,11 @@ export function buildTimelineGenerationPacketForShot(
     nextShotContext: next ? `${next.label}. ${next.direction}` : "Mini-Block closing handoff.",
     narrativeIntention: artifact?.narrativeIntention ?? "",
     visualDirection: artifact?.prompt?.slice(0, 1_200) ?? "",
+    savedStoryDecisions: story.decisions,
+    savedStoryFoundations: story.foundations,
+    savedStoryArc: story.blocks.map((block) => `Block ${block.block}: ${block.title} — ${block.responsibility}`).join("; "),
+    approvedNarration: approvedText?.noText ? "" : approvedText?.narration ?? "",
+    approvedDialogue: approvedText?.noText ? "" : approvedText?.bubbles.map((bubble) => `${bubble.speaker}: ${bubble.text}`).join("; ") ?? "",
     characterFacts: characters.flatMap((character) => [character.name, ...character.facts]),
     productionDirection: productionShots.flatMap((shot) => [
       shot.shotSize ? `Framing: ${shot.shotSize}` : "",

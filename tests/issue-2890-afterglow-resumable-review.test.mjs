@@ -108,22 +108,22 @@ test("#2890 exclude after confirming cannot poison encrypted autosave; explicit 
   t.after(async()=>{storage.close();await rm(root,{recursive:true,force:true})});
   const profile={sessionId:"first-session",profileId:"profile_review_reset"};
   const key={domain:"cache",objectId:"afterglow-review-draft"};
-  const path="/storyDevelopment/fields/character~1joy";
+  const reviewPath="/storyDevelopment/fields/character~1joy";
   const previous=normalizeAfterglowReviewDraft(draft("same-sources"),"2026-10-10T00:01:00Z");
   await storage.writePrivateJson(profile,{...key,value:previous});
 
-  const confirmations=withoutAfterglowReviewConfirmation(previous.selections.confirmedCurrent,path);
-  assert.equal(Object.hasOwn(confirmations,path),false,"Exclude removes the prior confirmation key");
-  assert.equal(previous.selections.confirmedCurrent[path],true,"original saved decisions are immutable");
+  const confirmations=withoutAfterglowReviewConfirmation(previous.selections.confirmedCurrent,reviewPath);
+  assert.equal(Object.hasOwn(confirmations,reviewPath),false,"Exclude removes the prior confirmation key");
+  assert.equal(previous.selections.confirmedCurrent[reviewPath],true,"original saved decisions are immutable");
   const excluded=normalizeAfterglowReviewDraft({version:1,
     sourceFingerprint:previous.sourceFingerprint,
     selections:{...previous.selections,confirmedCurrent:confirmations,
-      exclusions:[...previous.selections.exclusions,path]}}, "2026-10-10T00:02:00Z");
+      exclusions:[...previous.selections.exclusions,reviewPath]}}, "2026-10-10T00:02:00Z");
   await storage.writePrivateJson(profile,{...key,value:excluded});
   assert.deepEqual(await storage.readPrivateJson(profile,key),excluded,
     "Exclude must be acknowledged by encrypted readback");
   assert.throws(()=>normalizeAfterglowReviewDraft({...draft("same-sources"),selections:{
-    ...previous.selections,confirmedCurrent:{[path]:false}}}),/Invalid confirmation/u);
+    ...previous.selections,confirmedCurrent:{[reviewPath]:false}}}),/Invalid confirmation/u);
 
   // The UI's explicit Reset now sends this empty choice manifest instead of
   // skipping autosave, leaving stale earlier selections for Continue Last Review.

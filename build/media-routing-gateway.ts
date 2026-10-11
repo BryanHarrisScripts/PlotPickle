@@ -309,7 +309,7 @@ async function queryVideo(store: MediaRoutingStore, id: string) {
       store.comfyui.h3Workflow.verifiedAt = now;
       store.comfyui.h3Workflow.verifiedHash = store.comfyui.h3Workflow.hash;
       store.comfyui.h3Workflow.lastError = "";
-      profile.videoVerifiedAt = now;
+      // A ComfyUI workflow result proves this workflow, not the direct provider route.
       await writeMediaRoutingStore(store);
     }
     await relayCapabilityDiagnostic("video", "minimax-comfyui", job.status === "succeeded" ? "saved" : job.status === "failed" ? "failed" : "polling", job.status === "succeeded" ? "video-downloaded-and-saved" : `job-${job.status}`, job.id);
@@ -339,7 +339,7 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
       return;
     }
     if (pathname === ROUTES_PATH && request.method === "POST") {
-      throw new Error("Select capability routes in Settings → Hybrid. Connection setup does not activate a route.");
+      throw new Error("Select capability routes in Settings → Connections. Connection setup does not activate a route.");
     }
     if (pathname === COMFYUI_CONNECTION_PATH && request.method === "POST") {
       const body = await readBody(request);
@@ -508,7 +508,7 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
       const route = choice.video === "minimax" ? "minimax-direct" : choice.video === "minimax-comfyui" ? "minimax-comfyui" : "none";
       await requireRouteConsent("video", choice.video);
       const status = await mediaStatus(store);
-      if (route === "minimax-comfyui" ? !status.hybridGate.ready : route === "none" || !cloudMediaReadiness(store.profiles.minimax, "video").ready) throw new Error("The selected Video route is not verified and available. Open Settings → Hybrid.");
+      if (route === "minimax-comfyui" ? !status.hybridGate.ready : route === "none" || !cloudMediaReadiness(store.profiles.minimax, "video").ready) throw new Error("The selected Video route is not verified and available. Open Settings → Connections.");
       const job = await createVideo(store, route, await readBody(request, 128 * 1024) as VideoGenerationInput);
       sendJson(response, 200, { ok: true, ...job });
       return;

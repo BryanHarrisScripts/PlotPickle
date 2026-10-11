@@ -1,8 +1,6 @@
 import { bundledLtxManifest, LTX_DEFAULT_PRESET, LTX_MIN_COMFY_VERSION } from "./comfyui-ltx-default";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { persistentHome, readCredentialJson, writeCredentialJson } from "../local-credentials";
+import { readCredentialJson, writeCredentialJson } from "../local-credentials";
 import {
   saveGeneratedAsset,
   safeAssetStem,
@@ -299,21 +297,19 @@ async function submitWorkflow(store: LtxStore, workflow: Record<string, unknown>
   return promptId;
 }
 
-function jobsPath() {
-  return path.join(persistentHome(), JOB_FILE);
-}
-
 async function readJobs(): Promise<LtxJob[]> {
-  try {
-    const value = JSON.parse(await readFile(jobsPath(), "utf8")) as unknown;
-    return Array.isArray(value) ? value.filter((item): item is LtxJob => Boolean(item && typeof item === "object" && typeof (item as LtxJob).id === "string")) : [];
-  } catch { return []; }
+  const value = await readCredentialJson<unknown>(JOB_FILE);
+  return Array.isArray(value) ? value.filter((item): item is LtxJob => Boolean(item && typeof item === "object" && typeof (item as LtxJob).id === "string")) : [];
 }
 
+let jobWrites: Promise<void> = Promise.resolve();
 async function saveJob(job: LtxJob) {
-  const jobs = await readJobs();
-  await mkdir(persistentHome(), { recursive: true, mode: 0o700 });
-  await writeFile(jobsPath(), `${JSON.stringify([job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200), null, 2)}\n`, { mode: 0o600 });
+  const pending = jobWrites.then(async () => {
+    const jobs = await readJobs();
+    await writeCredentialJson(JOB_FILE, [job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200));
+  });
+  jobWrites = pending.then(() => {}, () => {});
+  await pending;
   return job;
 }
 

@@ -200,7 +200,7 @@ test("#2837 retires legacy Operations AI Routing and keeps Hybrid sourced from L
   assert.match(hybrid, /CLOUD SETUP/u);
   assert.match(hybrid, /CONFIGURED · TEST NEEDED/u);
   assert.match(hybrid, /option\.configured \|\| option\.ready/u);
-  assert.match(hybrid, /optionsFor\(routing\?\.\[capability\.id\], locality\)/u);
+  assert.match(hybrid, /filter\(\(option\) => option\.locality === locality\)/u);
   assert.match(storyMode, /function localityCoverage/u);
   assert.match(storyMode, /coverageLabel/u);
   assert.match(storyMode, /LOCAL and CLOUD report the capability setup actually detected/u);

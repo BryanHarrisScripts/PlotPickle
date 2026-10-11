@@ -19,7 +19,7 @@ const routing = {
   ok: true,
   text: { selected: "ollama", options: { local: option("local", "synthetic-quality", { ready: false, verifiedAt: "", runtime: "ollama", baseUrl: "http://127.0.0.1:11434/v1", error: "" }), ollama: option("local", "synthetic-writing"), minimax: option("cloud", "synthetic-minimax"), openai: option("cloud", "synthetic-openai"), gemini: option("cloud", "synthetic-gemini") } },
   image: { selected: "comfyui", options: { comfyui: option("local", "sd_xl_base_1.0.safetensors"), openai: option("cloud", "synthetic-image"), minimax: option("cloud", "synthetic-image") } },
-  video: { selected: "minimax", options: { "minimax-comfyui": option("local", "MiniMax-H3", { label: "ComfyUI", provider: "minimax", inferenceLocation: "cloud", cost: "Cloud generation through your MiniMax API account" }), minimax: option("cloud", "MiniMax-H3"), "comfyui-native": option("local", "MiniMax-H3", { label: "ComfyUI — Native local inference", ready: false }), "comfy-cloud": option("cloud", "", { label: "ComfyUI Cloud", ready: false, supported: false, error: "Generation workflow required." }), openai: option("cloud", "", { ready: false, supported: false, error: "OpenAI Videos API was removed." }) } },
+  video: { selected: "minimax", options: { "ltx-video": option("local", "LTX-Video 2B", { label: "ComfyUI · LTX-Video", inferenceLocation: "local", workflowFamily: "text-to-video" }), "minimax-comfyui": option("local", "MiniMax-H3", { label: "ComfyUI", provider: "minimax", inferenceLocation: "cloud", cost: "Cloud generation through your MiniMax API account" }), minimax: option("cloud", "MiniMax-H3"), "comfyui-native": option("local", "MiniMax-H3", { label: "ComfyUI — Native local inference", ready: false }), "comfy-cloud": option("cloud", "", { label: "ComfyUI Cloud", ready: false, supported: false, error: "Generation workflow required." }), openai: option("cloud", "", { ready: false, supported: false, error: "OpenAI Videos API was removed." }) } },
 };
 const writes = [];
 let server, browser;
@@ -92,17 +92,25 @@ try {
   assert.equal(writes.length, 1); assert.equal(writes[0].pathname, "/api/ai-routing/select");
   await page.getByText("Connectivity diagnostics", { exact: true }).click();
   await page.getByRole("log").getByText(/video downloaded and saved/).waitFor();
+  assert.equal(await hybrid.getByRole("columnheader", { name: "WORKFLOW ROUTING", exact: true }).count(), 1);
+  assert.equal(await hybrid.getByRole("columnheader", { name: "CLOUD PROVIDERS", exact: true }).count(), 1);
+  assert.equal(await hybrid.locator('[data-hybrid-capability="video"] [data-locality="local"] [data-route="comfy-cloud"]').count(), 1,
+    "Remote ComfyUI is a workflow route, not a direct cloud provider.");
+  await hybrid.locator('[data-hybrid-capability="video"] [data-route="ltx-video"]').click();
+  await hybrid.locator('[data-hybrid-capability="video"] [data-route="ltx-video"][data-selected="true"]').waitFor();
+  assert.equal(writes.length, 2);
+  assert.equal(writes[1].body.route, "ltx-video");
   await page.screenshot({ fullPage: true, path: path.join(artifactRoot, "hybrid-video-diagnostics.png") });
   await page.reload(); await page.locator('[data-story-mode-policy="hybrid"]').click();
-  await page.locator('[data-hybrid-capability="video"] [data-route="minimax-comfyui"][data-selected="true"]').waitFor();
-  assert.equal(writes.length, 1, "Reload/status inspection must leave route selection intact.");
+  await page.locator('[data-hybrid-capability="video"] [data-route="ltx-video"][data-selected="true"]').waitFor();
+  assert.equal(writes.length, 2, "Reload/status inspection must leave route selection intact.");
   await page.goto(baseUrl + "/agents");
   await page.getByText("Hybrid Writing selection", { exact: true }).waitFor();
   assert.equal(await page.locator("select").count(), 0);
-  assert.equal(writes.length, 1, "Agent roster must not change the Hybrid route.");
+  assert.equal(writes.length, 2, "Agent roster must not change the Hybrid route.");
   await page.screenshot({ fullPage: true, path: path.join(artifactRoot, "agents-writing-route.png") });
   assert.deepEqual(errors, []);
-  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Actual Local/Cloud/Hybrid Settings components with bounded synthetic connection status", observations: ["Local and Cloud setup navigation performs no selection/policy write", "one setup action per provider", "accessible checked Ready marker", "Hybrid has no duplicate consent or job preferences", "Hybrid selects explicit local ComfyUI MiniMax video route", "diagnostic history relays saved outcome", "reload retains the selected route", "Agent roster displays Hybrid Writing without duplicate selectors"], screenshots: ["local-writing.png", "cloud-writing.png", "hybrid-video-diagnostics.png", "agents-writing-route.png"], handlerProof: "tests/issue-2841-capability-harness.test.mjs", providerInference: false, humanWindowsAcceptance: "PENDING" };
+  const report = { status: "PASS", sourceHead: process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "local-working-tree", scope: "Actual Local/Cloud/Hybrid Settings components with bounded synthetic connection status", observations: ["Local and Cloud setup navigation performs no selection/policy write", "one setup action per provider", "accessible checked Ready marker", "Hybrid has no duplicate consent or job preferences", "Connections selects explicit ComfyUI MiniMax and LTX video routes", "Remote ComfyUI belongs to workflow routing; direct providers remain separate", "diagnostic history relays saved outcome", "reload retains the selected route", "Agent roster displays Hybrid Writing without duplicate selectors"], screenshots: ["local-writing.png", "cloud-writing.png", "hybrid-video-diagnostics.png", "agents-writing-route.png"], handlerProof: "tests/issue-2841-capability-harness.test.mjs", providerInference: false, humanWindowsAcceptance: "PENDING" };
   await writeFile(path.join(artifactRoot, "proof.json"), JSON.stringify(report, null, 2) + "\n");
   console.log("#2841 rendered capability Settings proof PASS");
 } finally { await browser?.close(); server?.closeAllConnections(); if (server) await new Promise((resolve) => server.close(resolve)); }

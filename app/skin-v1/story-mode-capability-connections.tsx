@@ -12,6 +12,7 @@ export type StoryModeConnectionRow = Readonly<{
   state: StoryModeConnectionState;
   model?: string;
   active?: boolean;
+  blocker?: string;
   setupLabel: string;
   onSetup: () => void;
 }>;
@@ -119,7 +120,7 @@ export default function StoryModeCapabilityConnections({
       </header>
 
       <div style={boundary}>
-        <strong>Configure and verify resources here. Select the route in Hybrid.</strong>
+        <strong>Configure and verify resources here. Select the route in Connections.</strong>
         <p>Local workflows can use local hardware or a provider API account. Account usage and data transfer are shown in connection setup.</p>
       </div>
 
@@ -141,6 +142,7 @@ export default function StoryModeCapabilityConnections({
 
             <div>
               <strong style={{ color: stateColor(connection.state) }}>{stateLabel(connection.state)}</strong>
+              {connection.blocker && connection.state !== "ready" ? <p style={{ margin: "4px 0 0" }}>{connection.blocker}</p> : null}
               {connection.active ? <p style={{ margin: "4px 0 0", color: "var(--pp-skin-accent-bright)" }}>Active</p> : null}
             </div>
 

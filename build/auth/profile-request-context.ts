@@ -18,6 +18,7 @@ const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-ai/generate",
   "/api/story-mode",
   "/api/local-ai/video",
+  "/api/local-ai/ltx-video",
   "/api/story-workflow/buzz-bridge",
   "/api/story-decisions",
   "/api/dsdd",

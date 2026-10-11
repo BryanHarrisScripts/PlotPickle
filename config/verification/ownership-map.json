@@ -665,6 +665,8 @@
         "build/ai-routing-gateway.ts",
         "build/ai/comfyui-media-provider.ts",
         "build/ai/comfyui-sdxl-local-gateway.ts",
+        "build/ai/comfyui-ltx-local-gateway.ts",
+        "build/ai/comfyui-ltx-local-provider.ts",
         "build/cloud-media-provider.ts",
         "build/media-provider-common.ts",
         "build/media-routing-gateway.ts",

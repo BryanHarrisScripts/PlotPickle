@@ -253,7 +253,7 @@ export type TimelineShotGenerationPacket = Readonly<{
 }>;
 
 export type TimelineVideoCapability = Readonly<{
-  route: "comfyui-native" | "minimax" | "minimax-comfyui" | "openai";
+  route: "ltx-video" | "comfyui-native" | "minimax" | "minimax-comfyui" | "openai";
   locality: "local" | "cloud";
   ready: boolean;
   workflowFamily?: TimelineVideoWorkflowFamily;
@@ -362,6 +362,10 @@ export function resolveTimelineGenerationStrategy(
   });
 
   if (!capability.ready) return unavailable("The selected video route is not ready.");
+
+  if (capability.route === "ltx-video") {
+    return { ...unavailable(""), eligible: true, modality: "text-to-video", reason: "", sourceAssetUrl: "", lastFrameAssetUrl: "", referenceAssetUrl: "" };
+  }
 
   if (capability.route === "comfyui-native") {
     const family = capability.workflowFamily ?? "";

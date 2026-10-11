@@ -1,3 +1,4 @@
+import { readLtxStore, probeLtxVideo } from "./ai/comfyui-ltx-local-provider";
 import { readCapabilityDiagnostics, relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { cloudMediaReadiness, writingReadiness, computeReadiness } from "../core/contracts/compute/compute-readiness.mjs";
 import { qualityWritingReadiness } from "../core/contracts/compute/local-writing-readiness.mjs";
@@ -39,7 +40,7 @@ import {
 
 export type TextRoute = "local" | "ollama" | "openai" | "minimax" | "gemini" | "off";
 export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
-export type VideoRoute = "comfyui-native" | "minimax" | "minimax-comfyui" | "openai" | "off";
+export type VideoRoute = "ltx-video" | "comfyui-native" | "minimax" | "minimax-comfyui" | "openai" | "off";
 
 type RoutingChoice = {
   version: 1 | 2;
@@ -128,16 +129,18 @@ function textProfileState(profile: ProviderProfile | undefined, available = true
 }
 
 async function statusBody() {
-  const [choice, assistantResult, media, native] = await Promise.all([
+  const [choice, assistantResult, media, native, ltx] = await Promise.all([
     readRoutingChoice(),
     readSynchronizedAssistantStore(),
     readMediaRoutingStore(),
     readNativeH3Store(),
+    readLtxStore(),
   ]);
-  const [comfy, nativeProbe, localRuntime] = await Promise.all([
+  const [comfy, nativeProbe, localRuntime, ltxProbe] = await Promise.all([
     diagnoseComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow),
     probeNativeH3(native),
     localRuntimeSnapshot(),
+    probeLtxVideo(ltx),
   ]);
   const [ollamaProbe, providerConsent, comfyCloud, qwenProbe] = await Promise.all([
     assistantResult.store.profiles.ollama ? probeOllama(assistantResult.store.profiles.ollama.baseUrl) : Promise.resolve(null),
@@ -255,6 +258,14 @@ async function statusBody() {
     video: {
       selected: choice.video,
       options: {
+        "ltx-video": {
+          label: "ComfyUI · LTX-Video", configured: ltxProbe.manifestConfigured,
+          ready: Boolean(ltxProbe.ready && ltx.verifiedAt && !ltx.lastError),
+          model: ltxProbe.model, verifiedAt: ltx.verifiedAt, locality: "local",
+          inferenceLocation: "local", cost: "No per-request provider charge",
+          settingsTarget: "ltx", workflowFamily: "text-to-video",
+          error: ltxProbe.error || ltx.lastError || (!ltx.verifiedAt ? "Run the LTX video capability test in LTX Setup." : ""),
+        },
         "minimax-comfyui": {
           label: "ComfyUI", configured: apiVideoConfigured, ready: apiVideoReady, model: media.profiles.minimax?.videoModel || "MiniMax-H3", verifiedAt: workflow?.verifiedAt || "", locality: "local", inferenceLocation: "cloud", provider: "minimax", cost: "Cloud generation through your MiniMax API account", settingsTarget: "comfyui", error: apiVideoReady ? "" : comfy.error || workflow?.lastError || "Configure and test the MiniMax API video workflow in local ComfyUI Setup.", workflowFamily: JSON.stringify(workflow?.source || {}).includes("{{PLOTPICKLE_SOURCE_IMAGE}}") ? "image-to-video" : "text-to-video",
         },
@@ -317,7 +328,7 @@ async function selectRoute(body: Record<string, unknown>) {
     media.imageRoute = route === "ollama-comfyui" ? "comfyui" : route;
     choice.image = route;
   } else if (capability === "video") {
-    if (route !== "comfyui-native" && route !== "minimax-comfyui" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose local ComfyUI H3, OpenAI, MiniMax or Off for video.");
+    if (route !== "ltx-video" && route !== "comfyui-native" && route !== "minimax-comfyui" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose local LTX, ComfyUI H3, OpenAI, MiniMax or Off for video.");
     native.active = false;
     media.videoRoute = route === "minimax" ? "minimax-direct" : route === "minimax-comfyui" ? "minimax-comfyui" : "none";
     if (route === "comfyui-native") {
@@ -542,7 +553,11 @@ export function registerAiRoutingGateway(server: ViteDevServer) {
         requireSelectedCapability(status, "video", choice.video);
         await requireRouteConsent("video", choice.video);
         if (choice.video === "off") {
-          sendJson(response, 409, { ok: false, message: "Video generation is Off. Select a video provider in Settings → Hybrid." });
+          sendJson(response, 409, { ok: false, message: "Video generation is Off. Select a video provider in Settings → Connections." });
+          return;
+        }
+        if (choice.video === "ltx-video") {
+          next();
           return;
         }
         if (choice.video === "comfyui-native") {

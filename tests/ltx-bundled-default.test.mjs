@@ -26,6 +26,7 @@ async function fixture(t) {
   t.after(() => rm(directory, { recursive: true, force: true }));
   const defaults = await compile("build/ai/comfyui-ltx-default.ts");
   let stored = null;
+  let jobs = [];
   let writes = 0;
   let version = "0.3.50";
   let online = true;
@@ -41,8 +42,8 @@ async function fixture(t) {
     "./comfyui-ltx-default": defaults,
     "../local-credentials": {
       persistentHome: () => directory,
-      readCredentialJson: async () => structuredClone(stored),
-      writeCredentialJson: async (_file, value) => { stored = plain(value); writes++; },
+      readCredentialJson: async (file) => structuredClone(file === "ltx-video-jobs.json" ? jobs : stored),
+      writeCredentialJson: async (file, value) => { if (file === "ltx-video-jobs.json") jobs = plain(value); else { stored = plain(value); writes++; } },
     },
     "../media-provider-common": {
       safeAssetStem: (value) => value,
@@ -152,7 +153,7 @@ test("LTX test endpoint cannot fall through to a selected cloud route and releas
       createLtxVideo: async () => { renders++; return { id: "ltx-test", status: "succeeded", outputAssetUrl: "/proof.mp4" }; },
     },
     "../local-gpu-resource-manager": { holdLocalGpuMediaLease() {}, async releaseLocalGpuMediaLease() { releases++; } },
-    "../media-routing-store": { readMediaRoutingStore: async () => ({ videoRoute: "cloud" }) },
+    "./capabilities/capability-routing-state": { readCapabilityChoice: async () => ({ video: "minimax" }) },
   });
   gateway.registerLtxLocalVideoGateway({ middlewares: { use(value) { handler = value; } } });
   async function request(url, origin = "http://localhost:3000") {

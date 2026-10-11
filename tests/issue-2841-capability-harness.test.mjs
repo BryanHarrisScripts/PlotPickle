@@ -27,6 +27,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
   let requests = 0;
   let reachable = true;
   let submitted;
+  let ltxManifest;
   const workflow = { "1": { class_type: "MiniMaxH3KeyNode", inputs: { token: "{{PLOTPICKLE_MINIMAX_KEY}}", base_url: "https://synthetic.invalid" } }, "2": { class_type: "MiniMaxH3FirstLastFrameURLNode", inputs: { key: ["1", 0], prompt: "{{PLOTPICKLE_PROMPT}}", first_frame_url: "{{PLOTPICKLE_SOURCE_IMAGE}}", duration: 5 } }, "3": { class_type: "SaveVideo", inputs: { video: ["2", 0] } } };
   const nodeNames = ["CheckpointLoaderSimple", "CLIPTextEncode", "EmptyLatentImage", "KSampler", "VAEDecode", "SaveImage", ...Object.values(workflow).map((node) => node.class_type)];
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=", "base64");
@@ -39,6 +40,10 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
       'export { readMediaRoutingStore, writeMediaRoutingStore } from "./build/media-routing-store";',
       'export { readSynchronizedAssistantStore, writeAssistantStore } from "./build/writing-assistant-store";',
       'export { registerAiRoutingGateway, readRoutingChoice } from "./build/ai-routing-gateway";',
+      'export { resolveTimelineGenerationStrategy } from "./lib/preproduction/provider-capability-contract";',
+      'export { registerLtxLocalVideoGateway } from "./build/ai/comfyui-ltx-local-gateway";',
+      'export { readLtxStore } from "./build/ai/comfyui-ltx-local-provider";',
+      'export { bundledLtxManifest } from "./build/ai/comfyui-ltx-default";',
       'export { registerAgentComputeGateway } from "./build/agent-compute-gateway";',
       'export { registerMediaRoutingGateway } from "./build/media-routing-gateway";',
       'export { relayCapabilityDiagnostic } from "./build/ai/capabilities/capability-diagnostics";',
@@ -49,6 +54,11 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const outfile = path.join(root, "worker.mjs");
     await build({ entryPoints: [entry], outfile, bundle: true, platform: "node", format: "esm", packages: "external", logLevel: "silent" });
     worker = await import(pathToFileURL(outfile).href);
+    const strategy = worker.resolveTimelineGenerationStrategy({ route: "ltx-video", locality: "local", ready: true }, { references: [{ role: "source-image", assetUrl: "/approved.png" }] });
+    assert.equal(strategy.modality, "text-to-video");
+    assert.equal(strategy.sourceAssetUrl, "", "Text-only LTX must not receive unsupported image input.");
+    ltxManifest = worker.bundledLtxManifest();
+    nodeNames.push(...Object.values(ltxManifest.workflow).map((node) => node.class_type));
     globalThis.fetch = async (input, init) => {
       const url = new URL(typeof input === "string" ? input : input.url || String(input));
       if (url.port === "8188") {
@@ -56,13 +66,17 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
         if (url.pathname === "/system_stats") return Response.json({ system: { comfyui_version: "synthetic" }, devices: [{ name: "Synthetic GPU", type: "cuda", vram_total: 32 * 1024 ** 3, vram_free: 32 * 1024 ** 3 }] });
         if (url.pathname.startsWith("/object_info")) {
           const names = url.pathname === "/object_info" ? nodeNames : [decodeURIComponent(url.pathname.split("/").at(-1))];
-          return Response.json(Object.fromEntries(names.filter((name) => nodeNames.includes(name)).map((name) => [name, { input: { required: name === "CheckpointLoaderSimple" ? { ckpt_name: [["sd_xl_base_1.0.safetensors"]] } : {} } }])));
+          return Response.json(Object.fromEntries(names.filter((name) => nodeNames.includes(name)).map((name) => [name, { input: { required: name === "CheckpointLoaderSimple" ? { ckpt_name: [["sd_xl_base_1.0.safetensors", ltxManifest.requiredModelNames[0]]] } : name === "CLIPLoader" ? { clip_name: [[ltxManifest.requiredModelNames[1]]] } : {} } }])));
         }
-        if (url.pathname === "/prompt") { submitted = JSON.parse(init.body).prompt; requests++; return Response.json({ prompt_id: submitted["3"]?.class_type === "SaveVideo" ? "synthetic-video" : "synthetic-image" }); }
+        if (url.pathname === "/prompt") { submitted = JSON.parse(init.body).prompt; requests++; return Response.json({ prompt_id: Object.values(submitted).some((node) => node.class_type === "SaveVideo") ? "synthetic-video" : "synthetic-image" }); }
         if (url.pathname.startsWith("/history/")) { const id = url.pathname.split("/").at(-1); return Response.json({ [id]: { outputs: { "3": id === "synthetic-video" ? { videos: [{ filename: "synthetic.mp4", type: "output" }] } : { images: [{ filename: "synthetic.png", type: "output" }] } }, status: { status_str: "success" } } }); }
         if (url.pathname === "/view") return new Response(url.searchParams.get("filename").endsWith(".mp4") ? Buffer.from("synthetic-video-bytes-for-handler-proof") : png);
       }
-      if (url.hostname === "synthetic.invalid") { requests++; return Response.json({ task_id: "synthetic-direct" }); }
+      if (url.hostname === "synthetic.invalid") {
+        if (url.pathname === "/synthetic.mp4") return new Response(Buffer.from("synthetic-provider-video"));
+        if (url.pathname.includes("/query/video_generation/")) return Response.json({ task: { status: "succeeded", content: { url: "https://synthetic.invalid/synthetic.mp4" } } });
+        requests++; return Response.json({ task_id: "synthetic-direct" });
+      }
       if (url.port === "11434") {
         if (url.pathname.endsWith("/tags")) return Response.json({ models: [{ name: "synthetic-writing" }] });
         if (url.pathname.endsWith("/version")) return Response.json({ version: "synthetic" });
@@ -78,7 +92,7 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const middlewares = [];
     const vite = { middlewares: { use: (fn) => middlewares.push(fn) } };
     worker.profileScopedBuzzRequestContext().configureServer(vite);
-    worker.registerAiRoutingGateway(vite); worker.registerAgentComputeGateway(vite); worker.registerMediaRoutingGateway(vite);
+    worker.registerAiRoutingGateway(vite); worker.registerAgentComputeGateway(vite); worker.registerLtxLocalVideoGateway(vite); worker.registerMediaRoutingGateway(vite);
     server = createServer((request, response) => { let index = 0; const next = () => { if (index < middlewares.length) middlewares[index++](request, response, next); else { response.statusCode = 404; response.end(); } }; next(); });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
@@ -117,6 +131,15 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     assert.equal((await scoped(() => worker.readRoutingChoice())).video, "minimax", "Test completion must not change selection.");
     media = await scoped(() => worker.readMediaRoutingStore());
     assert.equal(media.videoRoute, "none", "Test must not change the execution projection.");
+    assert.equal(media.profiles.minimax.videoVerifiedAt, "synthetic-direct-proof", "ComfyUI verification must not rewrite direct provider proof.");
+    media.profiles.minimax.videoVerifiedAt = "";
+    await scoped(() => worker.writeMediaRoutingStore(media));
+    const directTest = await api("/api/media-routing/test/video", { route: "minimax-direct", billingAcknowledged: true, dataSharingAcknowledged: true });
+    assert.equal(directTest.id, "synthetic-direct", "The LTX gateway must not intercept an explicit direct MiniMax test when the media route is none.");
+    const directFinished = await api(`/api/local-ai/video/${directTest.id}`);
+    assert.equal(directFinished.status, "succeeded");
+    assert.ok((await scoped(() => worker.readMediaRoutingStore())).profiles.minimax.videoVerifiedAt);
+    assert.equal((await scoped(() => worker.readRoutingChoice())).video, "minimax");
     let status = await api("/api/ai-routing/status");
     assert.equal(status.video.options["minimax-comfyui"].ready, true);
     assert.equal(status.video.options.off.ready, false);
@@ -173,6 +196,34 @@ test("#2841 actual authenticated setup, test, select, dispatch and encrypted res
     const beforeRetest = requests;
     await api("/api/local-ai/generate/video", { prompt: "Synthetic blocked replacement" }, 400);
     assert.equal(requests, beforeRetest, "A replacement workflow requires new proof before dispatch.");
+    await api("/api/ai-routing/select", { capability: "video", route: "ltx-video" }, 400);
+    const testedLtx = await api("/api/local-ai/ltx-video/test", {});
+    assert.equal(testedLtx.status, "succeeded");
+    assert.equal((await scoped(() => worker.readRoutingChoice())).video, "minimax-comfyui", "LTX testing must not change selection.");
+    status = await api("/api/ai-routing/status");
+    assert.equal(status.video.options["ltx-video"].ready, true);
+    assert.equal(status.video.options["ltx-video"].locality, "local");
+    await api("/api/ai-routing/select", { capability: "video", route: "ltx-video" });
+    const ltxGeneration = await api("/api/local-ai/generate/video", { prompt: "Synthetic local motion" });
+    assert.match(ltxGeneration.id, /^ltx-/);
+    assert.equal(ltxGeneration.status, "succeeded");
+    await worker.resetProfileExperienceRuntime(); runtime = await worker.getProfileExperienceRuntime();
+    owner = await runtime.auth.authenticate({ profileId: ownerId, password });
+    context = { authContext: owner.authContext, profileId: ownerId, privateStorage: runtime.privateStorage };
+    assert.equal((await scoped(() => worker.readRoutingChoice())).video, "ltx-video");
+    assert.ok((await scoped(() => worker.readCredentialJson("ltx-video-jobs.json"))).some((job) => job.id === ltxGeneration.id));
+    const reopenedOther = await runtime.auth.authenticate({ profileId: other.profile.profileId, password });
+    const reopenedOtherContext = { authContext: reopenedOther.authContext, profileId: other.profile.profileId, privateStorage: runtime.privateStorage };
+    assert.equal(await worker.profileRequestScope.run(reopenedOtherContext, () => worker.readCredentialJson("ltx-video-jobs.json")), null);
+    assert.ok((await scoped(() => worker.readLtxStore())).verifiedAt, "LTX verification survives a fresh encrypted session.");
+    const ltxSession = runtime.establishSession(owner.authContext, origin);
+    headers.Cookie = ltxSession.setCookie.split(";", 1)[0]; headers["X-PlotPickle-CSRF"] = ltxSession.csrfToken;
+    assert.equal((await api("/api/ai-routing/status")).video.options["ltx-video"].ready, true);
+    const beforeLocalBlock = requests;
+    reachable = false;
+    await api("/api/local-ai/generate/video", { prompt: "Unavailable local route" }, 400);
+    assert.equal(requests, beforeLocalBlock, "Unavailable LTX must not send paid fallback requests.");
+    reachable = true;
   } finally {
     globalThis.fetch = realFetch; await worker?.resetProfileExperienceRuntime();
     server?.closeAllConnections(); if (server) await new Promise((resolve) => server.close(resolve));

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { WEBMCP_STANDARD_SURFACE_REGISTRY, WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-canonical-surface-registry.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
@@ -15,7 +16,7 @@ test("#2106 Story Mode uses the required Local Cloud Hybrid keyboard directory",
 
   assert.match(host, /mode: "local"[\s\S]*shortcut: "L"[\s\S]*label: "LOCAL"/u);
   assert.match(host, /mode: "cloud"[\s\S]*shortcut: "C"[\s\S]*label: "CLOUD"/u);
-  assert.match(host, /mode: "hybrid"[\s\S]*shortcut: "H"[\s\S]*label: "HYBRID"/u);
+  assert.match(host, /mode: "hybrid"[\s\S]*shortcut: "H"[\s\S]*label: "CONNECTIONS"/u);
   assert.match(host, /data-story-mode-policy=\{item\.mode\}/u);
   assert.match(host, /event\.key === "ArrowDown"/u);
   assert.match(host, /event\.key === "ArrowUp"/u);
@@ -50,8 +51,8 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /return selected\.every\(Boolean\)/u);
   assert.match(host, /\{ label: "LOCAL", ready: localCoverage\.ready === localCoverage\.total/u);
   assert.match(host, /\{ label: "CLOUD", ready: cloudCoverage\.ready === cloudCoverage\.total/u);
-  assert.match(host, /\{ label: "HYBRID", ready: hybridReady,/u);
-  assert.match(host, /<strong>MODE<\/strong>: \{mode\.toUpperCase\(\)\}/u);
+  assert.match(host, /\{ label: "CONNECTIONS", ready: hybridReady,/u);
+  assert.match(host, /<strong>MODE<\/strong>: \{mode === "hybrid" \? "CONNECTIONS" : mode\.toUpperCase\(\)\}/u);
   assert.match(host, /data-story-mode-readiness=\{readinessState\(status\.ready, loaded\)\}/u);
 });
 
@@ -59,6 +60,43 @@ test("#2841 opening a setup directory never changes execution policy", async () 
   const host = await read("app/skin-v1/story-mode-host.tsx");
   const activate = host.slice(host.indexOf("async function activate"), host.indexOf("function handleKeyDown"));
   assert.match(activate, /setView\(nextMode\)/u);
-  assert.match(activate, /Route selection stays in Hybrid/u);
+  assert.match(activate, /Route selection stays in Connections/u);
   assert.doesNotMatch(activate, /method: "POST"|setMode\(nextMode\)/u);
+});
+
+test("#2914 Connections remains reachable through its governed surface catalogue", async () => {
+  const [host, registryText, declarationsText] = await Promise.all([
+    read("app/skin-v1/story-mode-host.tsx"), read("config/skin-v1-surface-registry.json"),
+    read("config/skin-v1-surface-declarations/standard-surfaces.json"),
+  ]);
+  const label = host.match(/<section aria-label="([^"]+)" data-story-mode-view="hybrid"/u)?.[1];
+  assert.ok(label, "The actual Connections host must expose its surface identity.");
+  const selector = `section[aria-label='${label}'][data-story-mode-view='hybrid']`;
+  const surface = JSON.parse(registryText).surfaces.find(item => item.id === "hybrid-story-mode");
+  const declarations = JSON.parse(declarationsText);
+  const declaration = declarations.surfaces?.["hybrid-story-mode"] ?? declarations["hybrid-story-mode"];
+  const capture = WEBMCP_STANDARD_SURFACE_REGISTRY["hybrid-story-mode"];
+  assert.equal(capture.rootSelector, selector);
+  assert.equal(capture.readySelector, surface.runtimeReadySelector);
+  assert.equal(capture.label, surface.label);
+  const menuAudit = await read("lib/verification/skin-v1-menu-contract-audit.mjs");
+  assert.ok(menuAudit.includes(`section[aria-label='${label}']`), "The keyboard audit must await the actual Connections host.");
+  assert.equal(surface.runtimeSelector, selector);
+  assert.equal(declaration.runtimeSelector, selector);
+  assert.equal(surface.runtimeReadySelector, `${selector} [data-hybrid-story-mode='capability-matrix']`);
+  assert.equal(surface.label, "Connections");
+  assert.equal(declaration.titleStack.globalSurfaceLabel, surface.label);
+});
+
+
+test("#2914 rendered catalogue evidence manifest agrees with all canonical capture contracts", async () => {
+  const manifest = JSON.parse(await read("tests/visual-baselines/skin-v1/manifest.json"));
+  for (const id of WEBMCP_STANDARD_SURFACE_TARGETS) {
+    const contract = WEBMCP_STANDARD_SURFACE_REGISTRY[id];
+    const entry = manifest.surfaces[id];
+    assert.ok(entry, `${id} needs a visual evidence entry`);
+    assert.equal(entry.selector, contract.rootSelector, `${id} selector drift`);
+    assert.equal(entry.candidate, contract.candidate, `${id} candidate evidence drift`);
+    assert.equal(entry.baseline, contract.baseline, `${id} baseline evidence drift`);
+  }
 });

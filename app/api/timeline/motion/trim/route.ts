@@ -1,6 +1,6 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../../core/auth/profile-experience/profile-experience-runtime";
 import { assetsDirectory } from "../../../../../build/media-storage-common";
-import { renderTimelineThreeSecondClip } from "../../../../../build/timeline-72-frame-clip.mjs";
+import { renderTimelineThreeSecondClip, timelineMotionTrimReadiness } from "../../../../../build/timeline-72-frame-clip.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +14,18 @@ function response(value: unknown, status = 200) {
       "X-Content-Type-Options": "nosniff",
     },
   });
+}
+
+/** Readiness is checked before billing acknowledgement; this endpoint creates no video. */
+export async function GET(request: Request) {
+  try {
+    const experience = await getProfileExperienceRuntime();
+    await experience.boundaryFor(new URL(request.url).origin)
+      .authorizeRequest(requestBoundary(request), { mutation: false });
+  } catch {
+    return response({ ready: false, message: "Unlock your Human profile before testing local motion readiness." }, 403);
+  }
+  return response(await timelineMotionTrimReadiness());
 }
 
 export async function POST(request: Request) {

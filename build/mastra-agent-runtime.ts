@@ -14,6 +14,69 @@ const MASTER_OAKEN_VAGUE_PLAYBOOK_PATH = resolve(process.cwd(), "agents/master-o
 const MASTER_OAKEN_VAGUE_FALLBACK = "Be Master Oaken-Vague, Wyrmwood's impartial Rival Director. In one structured response create one playable curriculum-bound Pickle and distinct actions for all five trope rivals. The deterministic game engine owns Spotlight, rewards, progress and persistence. Never judge the player's answer in Phase 2.";
 const WYRMWOOD_EVALUATOR_PLAYBOOK_PATH = resolve(process.cwd(), "agents/wyrmwood-curriculum-evaluator.md");
 const WYRMWOOD_EVALUATOR_FALLBACK = "Judge only the supplied Wyrmwood player response against the supplied PlotPickle lesson and scene. Score the six visible rubric dimensions, name concrete strengths and improvements, and explain the lesson connection. Never calculate or alter Spotlight, XP, Brine Coins, ranks, levels, or persistent game state.";
+const STORYBOARD_NARRATION_WORD_LIMIT_PATTERN = "^(?:\\S+(?:\\s+\\S+){0,11})?$";
+function storyboardNarrationOutputSchema(position: number) {
+  return jsonSchema<{
+  panels: Array<{
+    position: number;
+    narration: string;
+    bubbles: Array<{ speaker: string; text: string }>;
+  }>;
+}>({
+  type: "object",
+  properties: {
+    panels: {
+      type: "array",
+      minItems: 1,
+      maxItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          position: { type: "integer", enum: [position] },
+          narration: { type: "string", maxLength: 100, pattern: STORYBOARD_NARRATION_WORD_LIMIT_PATTERN },
+          bubbles: {
+            type: "array",
+            maxItems: 1,
+            items: {
+              type: "object",
+              properties: {
+                speaker: { type: "string", minLength: 1, maxLength: 100 },
+                text: { type: "string", minLength: 1, maxLength: 100, pattern: STORYBOARD_NARRATION_WORD_LIMIT_PATTERN },
+              },
+              required: ["speaker", "text"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["position", "narration", "bubbles"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["panels"],
+  additionalProperties: false,
+  });
+}
+function storyboardShotBriefOutputSchema() {
+  const fields = ["story", "sceneBeat", "camera", "performance", "lighting", "timing", "informationBoundary", "continuity", "imagePrompt"] as const;
+  return jsonSchema<{
+    analysis: string;
+    proposals: Record<(typeof fields)[number], string>;
+  }>({
+    type: "object",
+    properties: {
+      analysis: { type: "string", minLength: 1, maxLength: 8_000 },
+      proposals: {
+        type: "object",
+        properties: Object.fromEntries(fields.map((field) => [field, { type: "string", maxLength: field === "imagePrompt" ? 8_000 : 1_200 }])),
+        required: [...fields],
+        additionalProperties: false,
+      },
+    },
+    required: ["analysis", "proposals"],
+    additionalProperties: false,
+  });
+}
 function stripSkillFrontmatter(content: string) {
   return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "").trim();
 }
@@ -88,6 +151,7 @@ const BASE_INSTRUCTIONS = [
 ].join(" ");
 
 const MASTRA_AGENT_TIMEOUT_MS = 25_000;
+const STORYBOARD_SHOT_BRIEF_TIMEOUT_MS = 90_000;
 const MASTRA_RUNTIME_VERSION = (() => {
   try {
     const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), "node_modules/@mastra/core/package.json"), "utf8")) as { readonly version?: string };
@@ -418,9 +482,8 @@ export function foundationPlannerMaxOutputTokens(fieldCount: number) {
   return Math.min(2_600, 640 + boundedFieldCount * 320);
 }
 
-export async function askPlotPickleAgent(input: {
+type PlotPickleAgentRequestBase = {
   profile: ProviderProfile;
-  agentId: PlotPickleAgentId;
   tone: PlotPickleTone;
   message: string;
   /** A bounded approved-image contact sheet for the Graphic Novel narrator. */
@@ -433,7 +496,15 @@ export async function askPlotPickleAgent(input: {
   signal?: AbortSignal;
   /** Structured Story Architect accounting; absence of provider usage stays unknown. */
   onAssessmentUsage?: (usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number }) => void | Promise<void>;
-}) {
+};
+
+type PlotPickleAgentRequest = PlotPickleAgentRequestBase & (
+  | { agentId: PlotPickleAgentId; outputFormat?: never }
+  | { agentId: "graphic-novel"; /** Request schema-constrained Graphic Novel narration for this exact Shot. */ outputFormat: { kind: "storyboard-narration"; position: number } }
+  | { agentId: "graphic-novel"; /** Request bounded, review-only Storyboard Shot brief proposals. */ outputFormat: { kind: "storyboard-shot-brief" } }
+);
+
+export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
   input.signal?.throwIfAborted();
   const mastra = createPlotPickleMastra(input.profile);
   const agent = mastra.getAgent(input.agentId);
@@ -453,12 +524,14 @@ export async function askPlotPickleAgent(input: {
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");
-  const timeoutSignal = AbortSignal.timeout(MASTRA_AGENT_TIMEOUT_MS);
+  const agentTimeoutMs = input.outputFormat?.kind === "storyboard-shot-brief" ? STORYBOARD_SHOT_BRIEF_TIMEOUT_MS : MASTRA_AGENT_TIMEOUT_MS;
+  const timeoutSignal = AbortSignal.timeout(agentTimeoutMs);
   const abortSignal = input.signal ? AbortSignal.any([input.signal, timeoutSignal]) : timeoutSignal;
   const standardModelSettings = {
     temperature: input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
     maxOutputTokens: input.agentId === "foundations-planner" ? foundationPlannerMaxOutputTokens(input.foundationFieldIds?.length ?? 1) : input.agentId === "wyrmwood-rival-director" ? 1100 : input.agentId === "discovery-mapper" ? 420 : 480,
   };
+  const storyboardShotBriefModelSettings = { temperature: 0.2, maxOutputTokens: 2_600 };
   const storyCouncilModelSettings = {
     temperature: 0.2,
     maxOutputTokens: 850,
@@ -470,11 +543,13 @@ export async function askPlotPickleAgent(input: {
   try {
     const executionOptions = {
       abortSignal,
-      ...(storyCouncilMode || input.agentId === "story-architect" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
+      ...(storyCouncilMode || input.agentId === "story-architect" || input.outputFormat?.kind === "storyboard-narration" || input.outputFormat?.kind === "storyboard-shot-brief" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
         modelSettings: storyCouncilMode
           ? storyCouncilModelSettings
           : input.agentId === "story-architect"
             ? storyArchitectModelSettings
+            : input.outputFormat?.kind === "storyboard-shot-brief"
+              ? storyboardShotBriefModelSettings
             : standardModelSettings,
       } : {}),
     };
@@ -487,6 +562,28 @@ export async function askPlotPickleAgent(input: {
         },
       });
       if (!result.object) throw new Error("The Story Council specialist did not return a structured contribution.");
+      return JSON.stringify(result.object);
+    }
+    if (input.outputFormat?.kind === "storyboard-narration") {
+      const result = await agent.generate(prompt, {
+        ...executionOptions,
+        structuredOutput: {
+          schema: storyboardNarrationOutputSchema(input.outputFormat.position),
+          jsonPromptInjection: false,
+        },
+      });
+      if (!result.object) throw new Error("The Graphic Novel specialist did not return structured narration.");
+      return JSON.stringify(result.object);
+    }
+    if (input.outputFormat?.kind === "storyboard-shot-brief") {
+      const result = await agent.generate(prompt, {
+        ...executionOptions,
+        structuredOutput: {
+          schema: storyboardShotBriefOutputSchema(),
+          jsonPromptInjection: false,
+        },
+      });
+      if (!result.object) throw new Error("The Graphic Novel specialist did not return a structured Shot brief.");
       return JSON.stringify(result.object);
     }
     if (!directConversationMode && input.agentId === "story-architect") {
@@ -566,7 +663,7 @@ export async function askPlotPickleAgent(input: {
   } catch (error) {
     if (input.signal?.aborted) throw new Error("The Mastra agent request was cancelled. No finding was saved.", { cause: error });
     if (abortSignal.aborted) {
-      throw new Error("The Mastra agent did not finish within PlotPickle's 30-second response limit. Try again or choose a faster local model.");
+      throw new Error("The Mastra agent did not finish within PlotPickle's " + (agentTimeoutMs / 1000) + "-second response limit. Try again or choose a faster local model.");
     }
     throw error;
   }

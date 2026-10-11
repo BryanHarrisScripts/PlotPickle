@@ -392,7 +392,7 @@ export default function PrevisReadinessWorkspace({
     const approval = graphicNovelTextApprovals.find((candidate) => candidate.position === panel.position) ?? null;
     const artifact = flipBookFrames[panel.position - 1]?.locked ?? null;
     const sourceKey = graphicNovelTextSourceKey(panel, selectedFrameEvidence?.passages, storyContext,
-      graphicNovelTextSourceSnapshot(project, selectedAddressAnchor?.id ?? "", panel.position, artifact));
+      graphicNovelTextSourceSnapshot(project, selectedAddressAnchor?.id ?? "", panel.position, artifact, approval?.reviewedShotBrief));
     return panel.authoritative && approval && approval.sourceKey === sourceKey ? approval : null;
   };
   const selectedGraphicNovelPanel = graphicNovelPanels[selectedFramePosition - 1];

@@ -113,16 +113,18 @@ test("#2839 actual approval handler persists text through encrypted unload and r
       position: panel.position, assetUrl: artifact.assetUrl, caption: "Scene 1", narration: "Ren pauses",
       shotLabel: "Shot 01 of 25", shotContext: "3s", bubbles: [],
     };
-    const identity = () => {
+    const reviewedShotBrief = { analysis: "Ren pauses at a consequential exit.", facts: { story: "A reviewed dramatic choice.", imagePrompt: "The saved prompt remains textual intent." } };
+    const identity = (brief) => {
       const stored = current();
       const frame = stored.build.foundations.visualArtifacts.find((item) => item.id === artifact.id);
+      const sourceBrief = brief ?? stored.production.graphicNovelTextApprovals[0]?.reviewedShotBrief;
       return identityContext.graphicNovelTextSourceKey(visualPanel, [], {},
-        identityContext.graphicNovelTextSourceSnapshot(stored, anchorRef, panel.position, frame));
+        identityContext.graphicNovelTextSourceSnapshot(stored, anchorRef, panel.position, frame, sourceBrief));
     };
-    const beforeIdentity = identity();
+    const beforeIdentity = identity(reviewedShotBrief);
     const before = current();
     const bubbles = [{ speaker: "REN", text: "We should go." }];
-    await context.saveApproval(panel, "source-current", "Ren pauses at the door.", bubbles, false);
+    await context.saveApproval(panel, "source-current", "Ren pauses at the door.", bubbles, false, reviewedShotBrief);
     assert.equal(published, 1);
     assert.match(notices[panel.position], /saved and locked for Storyboard and Previs/);
     assert.deepEqual(current().build, before.build, "text approval must preserve image/lock authority");
@@ -140,14 +142,15 @@ test("#2839 actual approval handler persists text through encrypted unload and r
     assert.equal(approval.narration, "Ren pauses at the door.");
     assert.deepEqual(approval.bubbles, bubbles);
     assert.equal(approval.noText, false);
+    assert.deepEqual(approval.reviewedShotBrief, reviewedShotBrief, "reviewed non-canonical brief survives encrypted reopen");
     latestProject.current = current();
     failAction = "save-project";
-    await context.saveApproval(panel, "source-current", "", [], true);
+    await context.saveApproval(panel, "source-current", "", [], true, reviewedShotBrief);
     assert.equal(published, 1, "failed approval must not publish successful state");
     assert.match(notices[panel.position], /Save & Lock failed.*Injected durable write failure/);
     failAction = "";
     latestProject.current = current();
-    await context.saveApproval(panel, "source-current", "", [], true);
+    await context.saveApproval(panel, "source-current", "", [], true, reviewedShotBrief);
     assert.equal(published, 2);
     assert.match(notices[panel.position], /No Bubble saved and locked/);
     browser.unloadActiveLibraryProject();

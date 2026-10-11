@@ -50,6 +50,12 @@ test("PP-NARR-001 B6 uses one exact saved frame and complete authored Shot sourc
   const bounded = key(panel, oversizedStory, context, snapshot(project, anchorRef, 1, image));
   assert.ok(bounded.length < 1_000, "even long screenplay evidence must not create a truncated approval key");
   assert.notEqual(bounded, approved, "bounded fingerprints must still notice a changed screenplay");
+  const reviewedBrief = { analysis: "A reviewed narrative moment.", facts: { story: "A character faces a choice.", imagePrompt: "Textual image-generation intent." } };
+  const reviewedSource = key(panel, passages, context, snapshot(project, anchorRef, 1, image, reviewedBrief));
+  assert.notEqual(reviewedSource, approved, "reviewed proposal evidence is fingerprinted separately from canon");
+  assert.ok((await identityFunctions()).graphicNovelTextStaleReasons(approved, reviewedSource).includes("reviewed Shot brief"));
+  assert.equal(key(panel, passages, context, snapshot(project, anchorRef, 1, image, reviewedBrief)), reviewedSource,
+    "the reviewed proposal yields a stable source key for Storyboard, Previs and Timeline");
   const normalizedKey = approved.trim().slice(0, 4_000);
   assert.equal(normalizedKey, approved, "PPF normalized approval key must not truncate current identity");
   assert.ok((await identityFunctions()).graphicNovelTextStaleReasons(approved, bounded).includes("screenplay evidence"));
@@ -98,11 +104,11 @@ test("PP-NARR-001 B6 Storyboard and Previs derive the identical snapshot, never 
     readFile("app/_components/preproduction/storyboard-locked-shot-handoff.tsx", "utf8"),
     readFile("app/_components/previs/previs-readiness-workspace.tsx", "utf8"),
   ]);
-  assert.match(storyboard, /graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)/u);
-  assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact\)/u);
+  assert.match(storyboard, /graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact, sourceBrief\)/u);
+  assert.match(previs, /graphicNovelTextSourceSnapshot\(project, selectedAddressAnchor\?\.id \?\? "", panel\.position, artifact, approval\?\.reviewedShotBrief\)/u);
   assert.match(storyboard, /if \(!liveArtifact \|\| liveKey !== sourceKey\) throw new Error/u,
     "durable approval must revalidate the real current source");
-  assert.match(storyboard, /latestProject\.current !== project \|\| currentApproval\(panel\)\.sourceKey !== requestedSourceKey/u,
+  assert.match(storyboard, /latestProject\.current !== project \|\| currentApproval\(panel, reviewedShotBrief\)\.sourceKey !== requestedSourceKey/u,
     "out-of-date generated responses must be discarded after explicit status feedback");
   assert.match(previs, /return panel\.authoritative && approval && approval\.sourceKey === sourceKey/u);
 });

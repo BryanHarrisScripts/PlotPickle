@@ -8,12 +8,12 @@ import './issue-2855-bubble-source-identity.test.mjs';
 import './issue-2907-narration-overall-story.test.mjs';
 import './issue-2909-narration-storytelling-skill.test.mjs';
 import './issue-2841-local-writing-truth.test.mjs';
-import { storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, narrationRequest, storyboardNarrationOutputFailure } from '../core/media/previs-narration.mjs';
+import { storyboardNarrationRequest, storyboardNarrationPrompt, storyboardShotBriefRequest, storyboardShotBriefPrompt, parseStoryboardShotBrief, parseStoryboardNarration, narrationRequest, storyboardNarrationOutputFailure } from '../core/media/previs-narration.mjs';
 import { prepareStoryboardNarrationSequence, screenplayFormattingDirective, storyboardNarrationAuthoredIntention } from '../core/media/storyboard-sequence-evidence.mjs';
 
 const storyContext = { title: 'Afterglow', act: 1, block: 1, miniBlock: 1, blockTitle: 'Opening', dramaticResponsibility: 'Establish the dilemma.' };
 const passages = [{ type: 'character', text: 'REN' }, { type: 'parenthetical', text: '(quietly)' }, { type: 'dialogue', text: 'We should go. Before they return.' }, { type: 'character', text: 'AVA' }, { type: 'dialogue', text: 'Wait for me.' }];
-const shot = { story: 'Ren hesitates at the door.', sceneBeat: 'Scene 1: hesitation', camera: 'Close-up', performance: 'Still', lighting: 'Low', timing: '3s authored', informationBoundary: 'withhold: destination', continuity: 'Exit to corridor' };
+const shot = { story: 'Ren hesitates at the door.', sceneBeat: 'Scene 1: hesitation', camera: 'Close-up', performance: 'Still', lighting: 'Low', timing: '3s authored', informationBoundary: 'withhold: destination', continuity: 'Exit to corridor', imagePrompt: 'Black-and-white frame, close on Ren at the doorway.' };
 const sequenceShots = Array.from({ length: 25 }, (_, i) => ({ position: i + 1, intention: 'Authored moment for image ' + (i + 1) }));
 const evidence = { mode: 'storyboard-shot', storyContext, passages, sequence: { selectedPosition: 19, shots: sequenceShots }, panels: [{ position: 19, intention: 'Ren pauses at the door.' }], shot };
 const input = storyboardNarrationRequest(evidence);
@@ -22,6 +22,7 @@ const output = (narration = 'Ren hesitates before taking the next step.', bubble
 test('#2839 text-only Shot evidence includes every authored fact without image input', () => {
   assert.equal('image' in input, false);
   assert.equal('contactSheet' in input, false);
+  assert.equal(input.shot.imagePrompt, shot.imagePrompt);
   const prompt = storyboardNarrationPrompt(input);
   for (const fact of Object.values(shot)) assert.ok(prompt.includes(fact));
   assert.ok(prompt.includes(passages[2].text));
@@ -29,7 +30,37 @@ test('#2839 text-only Shot evidence includes every authored fact without image i
   assert.throws(() => storyboardNarrationRequest({ ...evidence, image: [] }), /text-only/);
   assert.throws(() => storyboardNarrationRequest({ ...evidence, panels: [...evidence.panels, { position: 20, intention: '' }] }), /one locked Shot/);
   assert.throws(() => storyboardNarrationRequest({ ...evidence, shot: { ...shot, camera: null } }), /Shot evidence/);
+  assert.throws(() => storyboardNarrationRequest({ ...evidence, shot: { ...shot, imagePrompt: 'x'.repeat(8_001) } }), /Shot evidence: imagePrompt/);
   assert.throws(() => narrationRequest({ ...evidence, mode: undefined }), /contact sheet/);
+});
+
+test('#2839 the Shot brief analyzes one selected Shot and returns only bounded missing-field proposals', () => {
+  const briefInput = storyboardShotBriefRequest({
+    ...evidence,
+    mode: 'storyboard-shot-brief',
+    shot: { ...shot, story: '', camera: '' },
+  });
+  const prompt = storyboardShotBriefPrompt(briefInput);
+  assert.match(prompt, /review material, not saved Shot canon/u);
+  assert.match(prompt, /never claim to have viewed or describe the locked image/u);
+  assert.match(prompt, /Only these currently missing fields/u);
+  assert.ok(prompt.includes(shot.imagePrompt));
+  const proposals = Object.fromEntries(['story', 'sceneBeat', 'camera', 'performance', 'lighting', 'timing', 'informationBoundary', 'continuity', 'imagePrompt'].map((field) => [field, '']));
+  proposals.story = 'Ren weighs the risk of leaving.';
+  proposals.camera = 'Close framing from the doorway.';
+  proposals.lighting = 'Must not overwrite authored lighting.';
+  proposals.imagePrompt = 'A proposed text prompt.';
+  const parsed = parseStoryboardShotBrief(JSON.stringify({ analysis: 'Ren faces a choice before the exit.', proposals }), briefInput);
+  assert.equal(parsed.analysis, 'Ren faces a choice before the exit.');
+  assert.equal(parsed.proposals.story, proposals.story);
+  assert.equal(parsed.proposals.camera, proposals.camera);
+  assert.equal(parsed.proposals.lighting, '', 'authored facts cannot be replaced by a proposal');
+  assert.equal(parsed.proposals.imagePrompt, '', 'an existing saved prompt cannot be overwritten by a proposal');
+  const missingPromptInput = storyboardShotBriefRequest({ ...evidence, mode: 'storyboard-shot-brief', shot: { ...shot, imagePrompt: '' } });
+  const missingPromptBrief = parseStoryboardShotBrief(JSON.stringify({ analysis: 'The prompt is missing.', proposals }), missingPromptInput);
+  assert.equal(missingPromptBrief.proposals.imagePrompt, proposals.imagePrompt, 'a missing prompt may be proposed for review');
+  assert.throws(() => parseStoryboardShotBrief(JSON.stringify({ analysis: 'x', proposals: { ...proposals, extra: 'not allowed' } }), briefInput), /proposals are invalid/u);
+  assert.throws(() => storyboardShotBriefRequest({ ...evidence, mode: 'storyboard-shot-brief', image: [] }), /text-only/u);
 });
 
 test('#2855 Human Shot 13 and 20 have shot-specific output examples and no invented speech placeholders', () => {
@@ -63,7 +94,8 @@ test('#2855 Human Shot 13 and 20 have shot-specific output examples and no inven
 
 test('#2839 short output, silence, exact dialogue and actual speaker are enforced', () => {
   assert.equal(parseStoryboardNarration(output(), input)[0].position, 19);
-  assert.equal(parseStoryboardNarration(output('', []), input)[0].narration, '');
+  assert.throws(() => parseStoryboardNarration(output('', []), input), /empty narration output/i,
+    'a structurally valid but empty model result must enter the bounded correction path');
   assert.equal(parseStoryboardNarration(output('', [{ speaker: 'REN', text: 'Before they return.' }]), input)[0].bubbles[0].text, 'Before they return.');
   for (const invalid of [
     output('one two three four five six seven eight nine ten eleven twelve thirteen'),
@@ -76,6 +108,104 @@ test('#2839 short output, silence, exact dialogue and actual speaker are enforce
     output('', [{ speaker: 'INVENTED', text: 'We should go.' }]),
     JSON.stringify({ panels: [{ position: 1, narration: '', bubbles: [] }] }),
   ]) assert.throws(() => parseStoryboardNarration(invalid, input));
+});
+
+test('#2922 empty structured narration receives one bounded correction on the same locked Shot and local model', async () => {
+  const route = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  const source = stripTypeScriptTypes(route.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+  let calls = 0;
+  const lockedWriter = { provider: 'local', textModel: 'verified-local-fixture' };
+  const context = vm.createContext({
+    Error, Response, URL, ...await import('../core/media/previs-narration.mjs'),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
+    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+    requestBoundary: request => request,
+    resolveConfiguredLocalNarrationProfile: async () => ({ profile: lockedWriter }),
+    resolveConfiguredAgentExecutionProfile: async () => { throw new Error('wrong provider'); },
+    askPlotPickleAgent: async args => {
+      calls++;
+      assert.equal(args.outputFormat.kind, 'storyboard-narration');
+      assert.equal(args.outputFormat.position, 19);
+      assert.equal(args.profile, lockedWriter, 'correction must keep the selected local writer');
+      assert.match(args.message, /Ren hesitates at the door/u, 'correction must reuse the same authored Shot evidence');
+      if (calls === 1) return output('', []);
+      assert.match(args.message, /FORMAT CORRECTION:.*EMPTY_NARRATION_OUTPUT/su);
+      return output('Ren pauses before stepping into the corridor.');
+    },
+  });
+  vm.runInContext(source, context);
+  const result = await context.POST(new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(evidence) }));
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.repaired, true);
+  assert.equal(body.panels[0].narration, 'Ren pauses before stepping into the corridor.');
+  assert.equal(calls, 2, 'empty output gets one correction, never an unbounded retry');
+});
+
+test('#2922 invalid dialogue correction requests one short caption on the same Shot', async () => {
+  const route = await readFile('app/api/previs/narration/route.ts', 'utf8');
+  const source = stripTypeScriptTypes(route.replace(/^import .*;\r?\n/gmu, '')).replace(/\bexport /gu, '');
+  let calls = 0;
+  const context = vm.createContext({
+    Error, Response, URL, ...await import('../core/media/previs-narration.mjs'),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
+    getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
+    requestBoundary: request => request,
+    resolveConfiguredLocalNarrationProfile: async () => ({ profile: { provider: 'local', textModel: 'verified-local-fixture' } }),
+    resolveConfiguredAgentExecutionProfile: async () => { throw new Error('wrong provider'); },
+    askPlotPickleAgent: async args => {
+      calls++;
+      assert.equal(args.outputFormat.kind, 'storyboard-narration');
+      assert.equal(args.outputFormat.position, 19);
+      if (calls === 1) return output('', [{ speaker: 'REN', text: 'This line is not in the supplied screenplay.' }]);
+      assert.match(args.message, /Do not use dialogue bubbles/u);
+      assert.match(args.message, /complete scene caption/u);
+      assert.match(args.message, /twelve words and one hundred characters/u);
+      return output('Ren pauses before the open door.');
+    },
+  });
+  vm.runInContext(source, context);
+  const result = await context.POST(new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(evidence) }));
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.repaired, true);
+  assert.equal(body.panels[0].narration, 'Ren pauses before the open door.');
+  assert.equal(calls, 2);
+});
+
+test('#2839 actual Storyboard first step creates a review-only brief for the selected Shot', async () => {
+  const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
+  const start = source.indexOf('  async function prepareShotBrief(');
+  const end = source.indexOf('  async function generateNarration(', start);
+  assert.ok(start > -1 && end > start);
+  const executable = stripTypeScriptTypes(source.slice(start, end));
+  let briefs = {}, submitted;
+  const context = vm.createContext({
+    busyPosition: null, authoredSequencePassages: passages, sequenceShots,
+    prepareStoryboardNarrationSequence, storyboardNarrationAuthoredIntention, storyContext,
+    activeRequest: { current: null }, AbortController,
+    setBusyPosition() {}, setNotices() {}, setDrafts() {}, setShotBriefs(fn) { briefs = fn(briefs); },
+    storyboardShotBriefRequest, parseStoryboardShotBrief,
+    fetch: async (url, options) => {
+      if (url === '/api/auth/profile') return Response.json({ authenticated: true, csrfToken: 'test-csrf' });
+      submitted = JSON.parse(options.body);
+      assert.equal(options.headers['X-PlotPickle-CSRF'], 'test-csrf');
+      assert.equal('contactSheet' in submitted, false);
+      const validated = storyboardShotBriefRequest(submitted);
+      const proposals = Object.fromEntries(['story','sceneBeat','camera','performance','lighting','timing','informationBoundary','continuity','imagePrompt'].map((field) => [field, '']));
+      proposals.story = 'A reviewable choice proposal.';
+      return Response.json({ ok: true, shotBrief: parseStoryboardShotBrief(JSON.stringify({ analysis: 'The character weighs a choice.', proposals }), validated) });
+    },
+  });
+  vm.runInContext(executable, context);
+  const missingFacts = { ...shot, story: '' };
+  await context.prepareShotBrief({ position: 19, narration: 'Ren pauses at the door.' }, missingFacts);
+  assert.equal(submitted.mode, 'storyboard-shot-brief');
+  assert.equal(submitted.panels[0].position, 19);
+  assert.equal(briefs[19].analysis, 'The character weighs a choice.');
+  assert.equal(briefs[19].facts.story, proposalsStory());
+  assert.match(briefs[19].facts.imagePrompt, /Black-and-white/u, 'the saved prompt stays available as text evidence');
+  function proposalsStory() { return 'A reviewable choice proposal.'; }
 });
 
 test('#2839 actual Storyboard generation handler never reads image pixels and submits shot text', async () => {
@@ -104,8 +234,10 @@ test('#2839 actual Storyboard generation handler never reads image pixels and su
     },
   });
   vm.runInContext(executable, context);
-  await context.generateNarration({ position: 19, narration: evidence.panels[0].intention }, shot);
+  const reviewedBrief = { analysis: 'The selected moment is a choice.', facts: shot };
+  await context.generateNarration({ position: 19, narration: evidence.panels[0].intention }, shot, reviewedBrief);
   assert.equal(submitted.mode, 'storyboard-shot');
+  assert.equal(submitted.shotAnalysis, reviewedBrief.analysis);
   assert.deepEqual(submitted.shot, shot);
   assert.equal(submitted.passages.length, passages.length, 'writer sees the full ordered dramatic sequence');
   assert.equal(submitted.passages[0].text, 'REN');
@@ -183,7 +315,10 @@ test('#2855 recovery provenance is never a Shot-story source and approved decisi
   assert.equal(stage.passages[0].text, 'REN', 'authored screenplay is still available when recovered images have no shot intent');
   const handoff = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
   assert.match(handoff, /storyboardNarrationAuthoredIntention\(artifact\.narrativeIntention\)/u);
-  assert.match(handoff, /No specific Scene or Beat authored for this Shot/u);
+  assert.match(handoff, /Scene context for this Mini-Block/u);
+  assert.match(handoff, /Authored Mini-Block Beat context \(not assigned to this Shot\)/u);
+  assert.match(handoff, /imagePrompt: artifact\.prompt\?\.trim\(\)/u);
+  assert.doesNotMatch(handoff, /sceneBeat: compact\(\[shot\?\.narrativePurpose\]\)/u);
   assert.doesNotMatch(handoff, /sceneBeat: compact\(\[shot\?\.narrativePurpose, evidence\.responsibility\]/u);
   assert.match(handoff, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext,/u,
     'existing approved source identities and storage must not be modified by prompt correction');
@@ -230,7 +365,7 @@ test('#2855 empty model text is reported as no proposal rather than silently sug
       : Response.json({ ok: true, panels: [{ position: 19, narration: '', bubbles: [] }] }),
   });
   vm.runInContext(stripTypeScriptTypes(source.slice(start, end)), context);
-  await context.generateNarration({ position: 19, narration: 'Ren at the door' }, shot);
+  await context.generateNarration({ position: 19, narration: 'Ren at the door' }, shot, { analysis: 'The selected moment is a choice.', facts: shot });
   assert.equal(Object.keys(drafts).length, 0, 'empty AI response is not a reviewable approved draft');
   assert.match(notices[19], /no printed text/i);
   assert.match(notices[19], /Regenerate/);
@@ -318,7 +453,7 @@ test('PP-NARR-001 B2: Storyboard uses the ready LOCAL writer without requiring a
   assert.equal(json.panels[0].narration, 'Ren hesitates before taking the next step.');
 });
 
-test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypted write', async () => {
+test('PP-NARR-001 duplicate Save & Lock clicks cannot race an encrypted write and No Bubble is not offered', async () => {
   const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
   const start = source.indexOf('  async function saveApproval(');
   const end = source.indexOf('  async function generateNarration(', start);
@@ -360,9 +495,9 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.equal(saveInFlight.current, true);
   assert.equal(writes, 1);
   assert.match(notices[1], /Saving the Bubble decision/u);
-  const raced = context.saveApproval(shot, 'shot-source', '', [], true);
+  const raced = context.saveApproval(shot, 'shot-source', 'One printed caption.', [], false);
   await raced;
-  assert.equal(writes, 1, 'No Bubble cannot overwrite an outstanding Save & Lock');
+  assert.equal(writes, 1, 'a duplicate Save & Lock cannot race the outstanding approval write');
   assert.equal(saving.filter(value => value === 1).length, 1);
   release();
   await first;
@@ -370,15 +505,17 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.equal(active.production.graphicNovelTextApprovals[0].noText, false);
   assert.match(notices[1], /saved and locked/u);
   assert.equal(saving.at(-1), null);
-  const second = context.saveApproval(shot, 'shot-source', '', [], true);
-  assert.equal(writes, 2, 'a new explicit decision is allowed after the first readback');
+  const second = context.saveApproval(shot, 'shot-source', 'A reviewed replacement caption.', [], false);
+  assert.equal(writes, 2, 'a new reviewed narration decision is allowed after the first readback');
   release();
   await second;
-  assert.equal(active.production.graphicNovelTextApprovals[0].noText, true);
-  assert.match(notices[1], /No Bubble saved and locked/u);
+  assert.equal(active.production.graphicNovelTextApprovals[0].noText, false);
+  assert.match(notices[1], /saved and locked/u);
   assert.equal(saveInFlight.current, false);
-  assert.ok(source.includes('disabled={busyPosition !== null || savingPosition !== null}'),
-    'the No Bubble control must be visibly disabled during a pending Save');
+  assert.doesNotMatch(source, />\{savingPosition === position \? "Saving…" : "No Bubble"\}</u,
+    'new No Bubble decisions are no longer offered in Storyboard');
+  assert.match(source, /approvalState\.current\?\.noText[\s\S]*?No Bubble · Saved & Locked/u,
+    'previously saved no-text decisions remain visible');
 });
 
 test('#2920 Storyboard local narration follows explicit Ollama but never silently uses a Cloud/Off route', async () => {
@@ -441,10 +578,10 @@ test('#2920 Timeline recovers exact saved Storyboard Bubble fingerprints rather 
     readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8'),
     readFile('app/_components/timeline/timeline-assembly-workspace.tsx', 'utf8'),
   ]);
-  assert.match(storyboard, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)\)/u);
+  assert.match(storyboard, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact(?:, [^)]+)?\)\)/u);
   assert.match(timeline, /graphicNovelTextSourceKey,\s*graphicNovelTextSourceSnapshot/u);
   assert.match(timeline, /overallStory: narrationOverallStory\(project\)/u);
-  assert.match(timeline, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, placement\.anchorRef, shotNumber, artifact\)\)/u);
+  assert.match(timeline, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, placement\.anchorRef, shotNumber, artifact, approval\.reviewedShotBrief\)\)/u);
   assert.doesNotMatch(timeline, /function graphicNovelTextSourceKey\(/u, 'Timeline must not implement a second incompatible Bubble fingerprint');
   assert.match(timeline, /timelinePresentationFor\(project, selectedPlacement, position\)/u, 'Timeline export uses the shared source identity');
 });
@@ -463,6 +600,8 @@ test('#2922 invalid local narration JSON gets one bounded repair on the same loc
     resolveConfiguredAgentExecutionProfile: async () => { throw new Error('wrong provider'); },
     askPlotPickleAgent: async args => {
       calls++;
+      assert.equal(args.outputFormat.kind, 'storyboard-narration', 'local inference must use the structured narration contract');
+      assert.equal(args.outputFormat.position, 19, 'the schema must target the exact selected Shot');
       assert.equal(args.profile, lockedWriter, 'retry must not switch to a cloud provider');
       assert.equal(args.agentId, 'graphic-novel');
       assert.match(args.message, /Ren hesitates at the door/u, 'same authored Storyboard evidence');
@@ -491,7 +630,12 @@ test('#2922 repeated invalid local narration remains failed after one correction
     getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
     requestBoundary: request => request,
     resolveConfiguredLocalNarrationProfile: async () => ({ profile: { provider: 'local' } }),
-    askPlotPickleAgent: async () => { calls++; return 'This is not JSON'; },
+    askPlotPickleAgent: async args => {
+      calls++;
+      assert.equal(args.outputFormat.kind, 'storyboard-narration', 'initial and correction calls must use the structured narration contract');
+      assert.equal(args.outputFormat.position, 19, 'the schema must target the exact selected Shot');
+      return 'This is not JSON';
+    },
   });
   vm.runInContext(source, context);
   const result = await context.POST(new Request('http://localhost/api/previs/narration', { method: 'POST', body: JSON.stringify(evidence) }));

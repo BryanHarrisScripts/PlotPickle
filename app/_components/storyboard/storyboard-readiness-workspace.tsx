@@ -672,6 +672,10 @@ export default function StoryboardReadinessWorkspace({
                   const selectedArtifact = positionArtifacts.find((artifact) => artifact.id === selectedImageId) ?? null;
                   const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
                   const savedLocally = Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact) && privateSaveState.state === "saved");
+                  // A separate narration write temporarily changes the global vault state to "saving".
+                  // Keep an already accepted, locally saved image and its narration review mounted
+                  // through that transition so the acknowledgement and draft state are not lost.
+                  const lockedImageHandoffReady = accepted && Boolean(selectedArtifact && storyboardArtifactSavedLocally(selectedArtifact));
                   const reviewState = accepted && savedLocally ? "locked" : savedLocally ? "saved" : selectedArtifact ? "review" : selectedImage ? "reference" : "empty";
                   const reviewLabel = accepted
                     ? savedLocally ? "Locked · Saved locally" : "Previous approval · Save required"
@@ -685,7 +689,8 @@ export default function StoryboardReadinessWorkspace({
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Planned Shot · camera intent open";
                   return (
-                    <div className={styles.positionRow} data-storyboard-position={position} key={position}>
+                    <div className={`${styles.positionRow} ${lockedImageHandoffReady ? styles.positionRowLocked : ""}`} data-storyboard-position={position} key={position}>
+                      <div className={styles.positionReviewColumn}>
                       <div className={styles.positionIdentity}>
                         <strong>Shot {String(position).padStart(2, "0")} of 25</strong>
                         <span>{shotLabel}</span>
@@ -758,7 +763,18 @@ export default function StoryboardReadinessWorkspace({
                         <strong>Storyboard Image Prompt</strong>
                         <p>{selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image."}</p>
                       </div> : null}
-                      {!selectedImage ? <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create Storyboard Image prompt</button> : null}
+                      {(!selectedImage || !selectedImage.prompt) ? <button className={styles.framePromptButton} type="button" onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>{selectedImage ? "Prepare a new prompt proposal" : "Create Storyboard Image prompt"}</button> : null}
+                      </div>
+                      {lockedImageHandoffReady ? <StoryboardLockedShotHandoff
+                        blockNumber={selectedNumber}
+                        embedded
+                        legacyProject={legacyProject}
+                        miniBlockNumber={selectedMiniBlockNumber}
+                        onProjectChange={onProjectChange}
+                        position={position}
+                        project={project}
+                        targetId={selectedTarget.id}
+                      /> : null}
                     </div>
                   );
                 })}
@@ -783,14 +799,6 @@ export default function StoryboardReadinessWorkspace({
               ) : null}
             </div>
 
-            <StoryboardLockedShotHandoff
-              blockNumber={selectedNumber}
-              legacyProject={legacyProject}
-              miniBlockNumber={selectedMiniBlockNumber}
-              onProjectChange={onProjectChange}
-              project={project}
-              targetId={selectedTarget.id}
-            />
           </section>
         </section>
       ) : null}

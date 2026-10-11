@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "issue": 2926,
+  "brief": "docs/developer-briefs/2926-reviewable-storyboard-shot-brief.md",
+  "allowedChanges": [
+    "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+    "app/_components/previs/previs-graphic-novel-presentation.ts",
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/_components/timeline/timeline-motion-source.ts",
+    "app/api/previs/narration/route.ts",
+    "build/mastra-agent-runtime.ts",
+    "config/development-convergence/2926.json",
+    "core/contracts/previs/index.ts",
+    "core/media/previs-narration.mjs",
+    "docs/developer-briefs/2926-reviewable-storyboard-shot-brief.md",
+    "config/development-convergence/2839.json",
+    "docs/developer-briefs/2839-storyboard-text-narration.md",
+    "tests/issue-2807-storyboard-previs-handoff.test.mjs",
+    "tests/issue-2839-narration-durable-approval.test.mjs",
+    "tests/issue-2839-storyboard-text-narration.test.mjs",
+    "tests/issue-2855-bubble-source-identity.test.mjs",
+    "tests/issue-2909-narration-storytelling-skill.test.mjs",
+    "tests/issue-580-mastra-runtime-readiness.test.mjs",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "config/skin-v1-surface-registry.json",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "tests/visual-baselines/skin-v1/manifest.json",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "SHOT-PANEL",
+      "criterion": "Storyboard presents each shot as a vertical image, prompt, readable full-width brief, facts and narration panel",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2807-storyboard-previs-handoff.test.mjs",
+          "contains": "keeps reviewed shot briefs readable below image prompt controls without a new No Bubble choice"
+        }
+      ]
+    },
+    {
+      "id": "BRIEF",
+      "criterion": "Selected-shot analysis proposes editable missing facts without writing canon",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "actual Storyboard first step creates a review-only brief"
+        }
+      ]
+    },
+    {
+      "id": "APPROVAL",
+      "criterion": "Reviewed brief stays attached to durable narration approval evidence",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-narration-durable-approval.test.mjs",
+          "contains": "reviewed non-canonical brief survives encrypted reopen"
+        }
+      ]
+    },
+    {
+      "id": "TIMEOUT",
+      "criterion": "Only the structured shot brief receives a longer bounded provider response window",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2909-narration-storytelling-skill.test.mjs",
+          "contains": "#2926 only the structured Storyboard shot brief gets the extended local response window"
+        }
+      ]
+    },
+    {
+      "id": "SOURCES",
+      "criterion": "Storyboard, Previs and Timeline share the approved shot and reviewed brief source identity",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2855-bubble-source-identity.test.mjs",
+          "contains": "unrelated Shot edits must not invalidate this Shot's Bubble"
+        }
+      ]
+    },
+    {
+      "id": "LIVE-GATES",
+      "criterion": "Visual Story is ready before any Shot is locked, and Windows proves both stages of reviewed narration",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2807-storyboard-previs-handoff.test.mjs",
+          "contains": "#2927 Visual Story readiness is the always-rendered 25 Shot sequence"
+        }
+      ]
+    }
+  ]
+}

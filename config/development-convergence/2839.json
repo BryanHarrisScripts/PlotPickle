@@ -6,16 +6,36 @@
     ".github/workflows/architecture-shadow.yml",
     ".github/workflows/product-gate.yml",
     "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+    "tests/issue-2907-narration-storytelling-skill.test.mjs",
+    "tests/issue-2909-narration-storytelling-skill.test.mjs",
+    "tests/issue-2855-bubble-source-identity.test.mjs",
+    "tests/issue-2807-storyboard-previs-handoff.test.mjs",
+    "core/contracts/previs/index.ts",
+    "build/mastra-agent-runtime.ts",
+    "app/_components/timeline/timeline-motion-source.ts",
+    "app/_components/timeline/timeline-assembly-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/previs/previs-readiness-workspace.tsx",
+    "app/_components/previs/previs-graphic-novel-presentation.ts",
     "app/api/previs/narration/route.ts",
     "config/development-convergence/2839.json",
+    "config/development-convergence/2926.json",
     "config/verification/test-catalog.json",
     "core/media/previs-narration.mjs",
     "docs/developer-briefs/2839-storyboard-text-narration.md",
+    "docs/developer-briefs/2926-reviewable-storyboard-shot-brief.md",
     "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
     "tests/issue-2763-previs-narration.test.mjs",
     "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
     "tests/issue-2839-narration-durable-approval.test.mjs",
-    "tests/issue-2839-storyboard-text-narration.test.mjs"
+    "tests/issue-2839-storyboard-text-narration.test.mjs",
+    "tests/issue-580-mastra-runtime-readiness.test.mjs",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "config/skin-v1-surface-registry.json",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
   ],
   "acceptance": [
     {
@@ -70,6 +90,28 @@
           "type": "file-contains",
           "path": "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
           "contains": "Storyboard Create Narration submits text-only shot facts"
+        }
+      ]
+    },
+    {
+      "id": "BRIEF",
+      "criterion": "Selected Shot analysis and missing-field proposals are bounded, text-only, and reviewable",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-storyboard-text-narration.test.mjs",
+          "contains": "actual Storyboard first step creates a review-only brief"
+        }
+      ]
+    },
+    {
+      "id": "REVIEW",
+      "criterion": "Narration uses the reviewed brief without changing canonical Shot data, and the approval source remains current across surfaces",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2839-narration-durable-approval.test.mjs",
+          "contains": "reviewed non-canonical brief survives encrypted reopen"
         }
       ]
     }

@@ -131,7 +131,7 @@ export function buildTimelineGenerationPacketForShot(
     .find((approval) => approval.anchorRef === placement.anchorRef
       && approval.position === shotNumber
       && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext,
-        graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact))) ?? null : null;
+        graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact, approval.reviewedShotBrief))) ?? null : null;
   const references = [
     ...(artifact?.assetUrl ? [{
       role: "source-image" as const,

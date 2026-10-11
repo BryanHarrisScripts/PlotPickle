@@ -3,7 +3,7 @@ import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/a
 import { resolveConfiguredAgentExecutionProfile, resolveConfiguredLocalNarrationProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
 import { readCapabilityChoice } from "../../../../build/ai/capabilities/capability-routing-state";
-import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
+import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, storyboardShotBriefRequest, storyboardShotBriefPrompt, parseStoryboardShotBrief, parseStoryboardNarration, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,44 +28,52 @@ async function handlePost(request: Request) {
   }
   let input;
   let storyboardShot = false;
+  let storyboardShotBrief = false;
   try {
     const raw = await request.text();
     if (raw.length > 3_800_000) throw new Error("Narration request is too large.");
     const value = JSON.parse(raw);
     storyboardShot = value?.mode === "storyboard-shot";
-    input = storyboardShot ? storyboardNarrationRequest(value) : narrationRequest(value);
+    storyboardShotBrief = value?.mode === "storyboard-shot-brief";
+    input = storyboardShot
+      ? storyboardNarrationRequest(value)
+      : storyboardShotBrief
+        ? storyboardShotBriefRequest(value)
+        : narrationRequest(value);
   } catch (error) {
     return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",stage:"STORY_EVIDENCE",message:"Narration requires mapped script evidence, a current saved and locked Shot, and an exact 1-Shot request. Review the selected image and story before retrying."},{status:400});
   }
   let profile;
   try {
-    profile = (storyboardShot ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality")).profile;
+    profile = (storyboardShot || storyboardShotBrief ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality")).profile;
   } catch {
     const route = (await readCapabilityChoice()).text;
-    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_NOT_READY":"VISUAL_NARRATION_UNAVAILABLE",
+    return Response.json({ok:false,code:storyboardShot || storyboardShotBrief ? "LOCAL_WRITER_NOT_READY":"VISUAL_NARRATION_UNAVAILABLE",
       stage:"WRITING_PREFLIGHT",route,
-      message:storyboardShot
+      message:storyboardShot || storyboardShotBrief
         ? `Storyboard narration requires a verified local Writing route. Selected: ${route}. Select and Test Writing with Local Runtime or Ollama in Settings → Connections; cloud and Off are not approved for Storyboard bubbles.`
         : `The Graphic Novel provider on the selected Writing route (${route}) is not ready. Test that model and its image capability in Settings.`},{status:503});
   }
   let text;
   try {
-    if (storyboardShot) {
+    if (storyboardShot || storyboardShotBrief) {
       // Storyboard is a text-writing task. Do not send the locked image to the model.
-      text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardNarrationPrompt(input),signal:request.signal});
+      text = storyboardShotBrief
+        ? await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardShotBriefPrompt(input),outputFormat:{kind:"storyboard-shot-brief"},signal:request.signal})
+        : await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:storyboardNarrationPrompt(input),outputFormat:{kind:"storyboard-narration",position:input.panels[0].position},signal:request.signal});
     } else {
       // Previs retains the existing, explicitly visual contact-sheet adaptation.
       text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:narrationPrompt(input),image:input.image,signal:request.signal});
     }
   } catch {
-    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_FAILED":"VISUAL_NARRATION_UNAVAILABLE",
+    return Response.json({ok:false,code:storyboardShot || storyboardShotBrief ? "LOCAL_WRITER_FAILED":"VISUAL_NARRATION_UNAVAILABLE",
       stage:"PROVIDER_EXECUTION",route:profile?.provider || "unknown",
-      message:storyboardShot
+      message:storyboardShot || storyboardShotBrief
         ? `The selected ${profile?.provider || "local"} writer failed during narration inference. Check model availability and Test Writing in Settings → Connections, then retry this Shot; the previous Bubble lock is unchanged.`
         : "The Graphic Novel agent failed during visual narration inference. Check the selected Writing model and verified image-reading capability, then retry."},{status:502});
   }
   try {
-    return Response.json({ok:true,panels:storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
+    return Response.json({ok:true,...(storyboardShotBrief ? { shotBrief: parseStoryboardShotBrief(text,input) } : { panels: storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input) })},{headers:{"Cache-Control":"no-store"}});
   } catch (error) {
     if (storyboardShot) {
       const firstFailure = storyboardNarrationOutputFailure(error);
@@ -75,10 +83,18 @@ async function handlePost(request: Request) {
       if (!request.signal.aborted) {
         try {
           const position = input.panels[0].position;
-          const repairInstruction = `\\n\\nFORMAT CORRECTION: The preceding response failed validation (${firstFailure.reason}). Re-evaluate the SAME supplied story and Shot facts. Return ONE complete printable expression of at most twelve words OR exact screenplay dialogue. Respond with ONLY this JSON shape, replacing its blank text as appropriate: {"panels":[{"position":${position},"narration":"","bubbles":[]}]}. No code fences, reasoning, markdown or invented dialogue.`;
+          const correctionGuidance = firstFailure.reason === "INVALID_DIALOGUE_SHAPE" || firstFailure.reason === "DIALOGUE_NOT_IN_SCREENPLAY"
+            ? "Do not use dialogue bubbles. Return only one complete scene caption grounded in the supplied evidence."
+            : firstFailure.reason === "TEXT_TOO_LONG"
+              ? "Return a complete sentence with no more than twelve words and one hundred characters."
+              : firstFailure.reason === "UNFINISHED_CAPTION"
+                ? "Return one complete sentence with a finished thought; do not end with a comma, colon, or semicolon."
+                : "Return one complete printable expression of at most twelve words or exact screenplay dialogue.";
+          const repairInstruction = `\\n\\nFORMAT CORRECTION: The preceding response failed validation (${firstFailure.reason}). Re-evaluate the SAME supplied story and Shot facts. ${correctionGuidance} Keep the result within twelve words and one hundred characters. Respond with ONLY this JSON shape, replacing the blank text as appropriate: {"panels":[{"position":${position},"narration":"","bubbles":[]}]}. No code fences, reasoning, markdown or invented dialogue.`;
           const retry = await askPlotPickleAgent({
             profile, agentId:"graphic-novel", tone:"direct",
             message: storyboardNarrationPrompt(input) + repairInstruction,
+            outputFormat:{kind:"storyboard-narration",position:input.panels[0].position},
             signal: request.signal,
           });
           const repaired = parseStoryboardNarration(retry, input);

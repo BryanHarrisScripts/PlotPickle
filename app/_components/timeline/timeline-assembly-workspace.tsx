@@ -148,7 +148,7 @@ function timelinePresentationFor(project: PPFProject, placement: TimelinePrevisP
   });
   const approval = (project.production.graphicNovelTextApprovals ?? [])
     .find((candidate) => candidate.anchorRef === placement.anchorRef && candidate.position === shotNumber) ?? null;
-  const currentApproval = approval && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext, graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact))
+  const currentApproval = approval && approval.sourceKey === graphicNovelTextSourceKey(panel, evidence.passages, storyContext, graphicNovelTextSourceSnapshot(project, placement.anchorRef, shotNumber, artifact, approval.reviewedShotBrief))
     ? approval
     : null;
   return { artifact, panel, approval: currentApproval };

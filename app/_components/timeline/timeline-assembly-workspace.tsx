@@ -824,6 +824,9 @@ export default function TimelineAssemblyWorkspace({
       }
     }
     if (current.status === "succeeded" && current.outputAssetUrl) return current;
+    if (current.status === "succeeded" && !current.outputAssetUrl) {
+      throw new TimelineMotionObservationError("The provider reports completion, but no saved playable video has been returned yet.");
+    }
     if (current.status === "queued" || current.status === "running") {
       throw new TimelineMotionObservationError("The motion job is still running after the Timeline review window.");
     }

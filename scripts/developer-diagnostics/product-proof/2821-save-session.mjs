@@ -167,7 +167,13 @@ createRoot(document.getElementById("root")).render(<Harness/>);
   assert.ok(narrationPayload, "rendered narration must submit text evidence");
   await handoff.screenshot({ path: path.join(artifactRoot, "narration-draft.png") });
   await handoff.getByRole("button", { name: "Save & Lock", exact: true }).click();
-  await handoff.getByText("Bubble / caption saved and locked for Storyboard and Previs.", { exact: true }).waitFor();
+  try {
+    await handoff.getByText("Bubble / caption saved and locked for Storyboard and Previs.", { exact: true }).waitFor({ timeout: 15_000 });
+  } catch (error) {
+    const actual = await handoff.count() ? await handoff.innerText() : "Locked Shot narration panel was unmounted during the encrypted write.";
+    await page.screenshot({ path: path.join(artifactRoot, "narration-save-diagnostic.png"), fullPage: true });
+    throw new Error(`PP-NARR-001 B7: Save & Lock did not acknowledge persistence. Current Shot status: ${actual.slice(0, 3_000)}`, { cause: error });
+  }
   // The UI acknowledgement alone is insufficient: independently prove that
   // the refreshed approval source key still renders the exact approved text.
   const postSave = await Promise.allSettled([

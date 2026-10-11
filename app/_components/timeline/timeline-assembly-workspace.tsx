@@ -690,7 +690,9 @@ export default function TimelineAssemblyWorkspace({
     try {
       saved = await saveFoundationProjectDurably(next, base.revision);
     } catch (error) {
-      throw new TimelineMotionSaveError(error instanceof Error ? error.message : "Encrypted Timeline motion write was not acknowledged.");
+      const detail = error && typeof error === "object" && "message" in error && typeof error.message === "string"
+        ? error.message : "Encrypted Timeline motion write was not acknowledged.";
+      throw new TimelineMotionSaveError(detail);
     }
     const recovered = (saved.production.timelineMotionShots ?? []).find((entry) => entry.id === motion.id);
     const savedTake = take ? (saved.production.takes ?? []).find((entry) => entry.id === take.id) : null;

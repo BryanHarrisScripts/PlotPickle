@@ -61,6 +61,22 @@
           "contains": "Synthetic storage restart does not prove"
         }
       ]
+    },
+    {
+      "id": "HISTORICAL_IDENTITY",
+      "criterion": "Restore a selected historical frame with reused ID as a distinct draft, preserving the current frame and surviving encrypted reopen.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2863-current-master-image-recovery.test.mjs",
+          "contains": "with historical identity reuse"
+        },
+        {
+          "type": "file-contains",
+          "path": "modules/library/afterglow-image-review.mjs",
+          "contains": "recoveredImageIncluded"
+        }
+      ]
     }
   ]
 }

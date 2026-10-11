@@ -67,6 +67,25 @@ export function runVideoTool(executable, args, timeoutMs = 120_000) {
   });
 }
 
+/** Check local 3-second clip tooling before a Human confirms a potentially charged video job. */
+export async function timelineMotionTrimReadiness({ runTool = runVideoTool } = {}) {
+  try {
+    const [encoder, probe] = await Promise.all([
+      runTool("ffmpeg", ["-hide_banner", "-h", "encoder=libx264"], 12_000),
+      runTool("ffprobe", ["-version"], 12_000),
+    ]);
+    if (!/Encoder libx264/iu.test(encoder) || !/ffprobe version/iu.test(probe)) {
+      return { ready: false, message: "Local FFmpeg must support libx264, and FFprobe must be installed, before generating a paid Timeline Shot." };
+    }
+    return { ready: true, message: "Local FFmpeg/FFprobe 72-frame output is ready." };
+  } catch (error) {
+    return {
+      ready: false,
+      message: `Local 3-second MP4 tooling is unavailable: ${error && typeof error === "object" && "message" in error ? String(error.message) : "FFmpeg or FFprobe could not run."} No provider request was submitted.`,
+    };
+  }
+}
+
 async function validMediaFile(filePath, limit = MAX_VIDEO_BYTES) {
   const info = await lstat(filePath);
   if (!info.isFile() || info.isSymbolicLink() || info.size < 12 || info.size > limit) {

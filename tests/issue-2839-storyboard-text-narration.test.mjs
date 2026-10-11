@@ -315,3 +315,66 @@ test('PP-NARR-001 B2: Storyboard uses the ready LOCAL writer without requiring a
   assert.deepEqual(calls, ['local', 'model'], 'Storyboard must use exactly the local route and not switch to Hybrid or Cloud');
   assert.equal(json.panels[0].narration, 'Ren hesitates before taking the next step.');
 });
+
+test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypted write', async () => {
+  const source = await readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8');
+  const start = source.indexOf('  async function saveApproval(');
+  const end = source.indexOf('  async function generateNarration(', start);
+  assert.ok(start >= 0 && end > start, 'test the actual Storyboard Save & Lock handler');
+  const executable = stripTypeScriptTypes(source.slice(start, end));
+  let active = {
+    id: 'afterglow', revision: 1,
+    build: { foundations: { visualArtifacts: [{ id: 'locked-webp' }] } },
+    production: { graphicNovelTextApprovals: [] },
+  };
+  const saving = [];
+  const saveInFlight = { current: false };
+  let notices = {}, drafts = { 1: { sourceKey: 'shot-source' } };
+  let writes = 0;
+  let release;
+  const context = vm.createContext({
+    saveInFlight, busyPosition: null,
+    setSavingPosition(position) { saving.push(position); },
+    setNotices(update) { notices = update(notices); },
+    setDrafts(update) { drafts = update(drafts); },
+    project: active, latestProject: { current: active }, anchorRef: 'block-1.1',
+    lockedArtifacts: [{ position: 1, artifact: { id: 'locked-webp' } }],
+    storyContext, evidence: { passages },
+    graphicNovelTextSourceSnapshot: () => ({}),
+    graphicNovelTextSourceKey: () => 'shot-source',
+    loadFoundationProject: () => active,
+    saveFoundationProjectDurably: async (next, expectedRevision) => {
+      assert.equal(expectedRevision, active.revision);
+      writes += 1;
+      await new Promise(resolve => { release = resolve; });
+      active = next;
+      return next;
+    },
+    onProjectChange: () => {},
+  });
+  vm.runInContext(executable, context);
+  const shot = { position: 1 };
+  const first = context.saveApproval(shot, 'shot-source', 'One printed caption.', [], false);
+  assert.equal(saveInFlight.current, true);
+  assert.equal(writes, 1);
+  assert.match(notices[1], /Saving the Bubble decision/u);
+  const raced = context.saveApproval(shot, 'shot-source', '', [], true);
+  await raced;
+  assert.equal(writes, 1, 'No Bubble cannot overwrite an outstanding Save & Lock');
+  assert.equal(saving.filter(value => value === 1).length, 1);
+  release();
+  await first;
+  assert.equal(saveInFlight.current, false);
+  assert.equal(active.production.graphicNovelTextApprovals[0].noText, false);
+  assert.match(notices[1], /saved and locked/u);
+  assert.equal(saving.at(-1), null);
+  const second = context.saveApproval(shot, 'shot-source', '', [], true);
+  assert.equal(writes, 2, 'a new explicit decision is allowed after the first readback');
+  release();
+  await second;
+  assert.equal(active.production.graphicNovelTextApprovals[0].noText, true);
+  assert.match(notices[1], /No Bubble saved and locked/u);
+  assert.equal(saveInFlight.current, false);
+  assert.match(source, /disabled={busyPosition !== null \\|\\| savingPosition !== null}/u,
+    'the No Bubble control must be visibly disabled during a pending Save');
+});

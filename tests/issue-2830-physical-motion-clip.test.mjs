@@ -26,6 +26,8 @@ test("#2830 physical 3s MP4: input is only a local saved provider asset, never a
   const args = ffmpegThreeSecondArgs("source.mp4", "target.mp4");
   assert.deepEqual(args.slice(0, 5), ["-nostdin", "-hide_banner", "-loglevel", "error", "-y"]);
   assert.ok(args.includes("fps=24,trim=end_frame=72,setpts=PTS-STARTPTS"));
+  assert.ok(args.includes("-fps_mode") && args.includes("cfr"), "muxer must preserve a 3.000s / 72-frame constant-framerate stream");
+  assert.ok(args.includes("-r") && args[args.indexOf("-r") + 1] === "24");
   assert.deepEqual(args.slice(-2), ["+faststart", "target.mp4"]);
   assert.ok(!args.includes("-c:a"), "Timeline 3s shot remains silent");
 });

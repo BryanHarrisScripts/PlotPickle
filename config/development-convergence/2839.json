@@ -34,7 +34,8 @@
     "config/skin-v1-surface-declarations/standard-surfaces.json",
     "config/skin-v1-surface-registry.json",
     "lib/verification/webmcp-surface-capture-registry.mjs",
-    "tests/visual-baselines/skin-v1/manifest.json"
+    "tests/visual-baselines/skin-v1/manifest.json",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
   ],
   "acceptance": [
     {

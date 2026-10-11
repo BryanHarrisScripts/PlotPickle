@@ -1,5 +1,7 @@
 "use client";
 
+import { narrationOverallStory } from "@/core/media/narration-story-context.mjs";
+
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -355,6 +357,7 @@ export default function PrevisReadinessWorkspace({
     ? storyboardAnchorEvidence(project, selectedAddressAnchor.targetId, selectedAddressAnchor.miniBlockNumber)
     : null;
   const storyContext = {
+    overallStory: narrationOverallStory(project),
     title: project.title,
     act: selectedAct,
     block: selectedAddressAnchor?.blockNumber,

@@ -1,3 +1,4 @@
+import { NARRATION_STORYTELLER_PROCEDURE } from "../core/media/narration-story-context.mjs";
 import { craftRouteInstruction } from "../core/learning/live-craft-runtime";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -61,7 +62,7 @@ export const PLOTPICKLE_AGENT_ROLES = {
   continuity: "Treat the supplied PPF context as canon, locate contradictions, and express every change as a proposal.",
   "visual-director": "Translate story intention into composition, visual language, imagery, and screen direction.",
   screenwriter: "Help with playable action, scenes, dialogue, and screenplay craft without silently replacing accepted material.",
-  "graphic-novel": "Explore panels, page flow, reveals, and visual narrative beats as reviewable candidates.",
+  "graphic-novel": NARRATION_STORYTELLER_PROCEDURE,
   production: "Turn approved creative direction into local-first, provider-ready production work without triggering paid generation.",
   critic: "Pressure-test clarity, stakes, causality, and audience experience; report evidence before suggesting changes.",
   "workflow-change": "Help the user describe a PlotPickle product or workflow change. Separate the visible problem, reproduction or affected workflow, expected behaviour, current behaviour, and the smallest useful acceptance criteria. Never include credentials or unpublished story material. Prepare a reviewable change request; never claim it was submitted.",

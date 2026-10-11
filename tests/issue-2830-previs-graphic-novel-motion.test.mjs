@@ -206,8 +206,8 @@ test("#2830 Graphic Novel and Timeline cap provider video to three seconds and P
   const start = presentation.indexOf("export function enforceMotionPresentationEnd(");
   const end = presentation.indexOf("export type PrevisGraphicNovelBubble", start);
   assert.ok(start >= 0 && end > start, "the actual presentation end guard must be executable");
-  const code = stripTypeScriptTypes(presentation.slice(start, end)).replace(/\\bexport\\s+/gu, "");
-  const enforce = vm.runInNewContext(code + "\\n enforceMotionPresentationEnd", { Number });
+  const code = stripTypeScriptTypes(presentation.slice(start, end)).replace(/\bexport\s+/gu, "");
+  const enforce = vm.runInNewContext(code + "\n enforceMotionPresentationEnd", { Number });
   const video = { currentTime: 2.4, paused: 0, pause() { this.paused++; } };
   assert.equal(enforce(video, 3), false);
   assert.equal(video.currentTime, 2.4);
@@ -223,11 +223,11 @@ test("#2830 Graphic Novel and Timeline cap provider video to three seconds and P
   assert.equal(enforce(video, 0), false, "invalid presentation duration cannot pause a clip");
   assert.equal(video.paused, 2);
 
-  assert.match(previs, /autoPlay=\\{graphicNovelPlaying\\}/u);
-  assert.match(previs, /ref=\\{graphicNovelVideoRef\\}/u);
-  assert.match(previs, /if \\(!graphicNovelMode \\|\\| !graphicNovelPlaying\\) \\{\\s*video\\.pause\\(\\)/u);
-  assert.match(previs, /onTimeUpdate=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PREVIS_GRAPHIC_NOVEL_INTERVAL_MS \\/ 1000\\)\\}/u);
-  assert.match(timeline, /onTimeUpdate=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PLANNING_SECONDS_PER_SHOT\\)\\}/u);
-  assert.match(timeline, /onSeeking=\\{\\(event\\) => enforceMotionPresentationEnd\\(event\\.currentTarget, PLANNING_SECONDS_PER_SHOT\\)\\}/u);
-  assert.match(previs, /selectedFlipBookFrame\\.locked\\.assetUrl/u, "missing or stale motion still shows authoritative image");
+  assert.match(previs, /autoPlay=\{graphicNovelPlaying\}/u);
+  assert.match(previs, /ref=\{graphicNovelVideoRef\}/u);
+  assert.match(previs, /if \(!graphicNovelMode \|\| !graphicNovelPlaying\) \{\s*video\.pause\(\)/u);
+  assert.match(previs, /onTimeUpdate=\{\(event\) => enforceMotionPresentationEnd\(event\.currentTarget, PREVIS_GRAPHIC_NOVEL_INTERVAL_MS \/ 1000\)\}/u);
+  assert.match(timeline, /onTimeUpdate=\{\(event\) => enforceMotionPresentationEnd\(event\.currentTarget, PLANNING_SECONDS_PER_SHOT\)\}/u);
+  assert.match(timeline, /onSeeking=\{\(event\) => enforceMotionPresentationEnd\(event\.currentTarget, PLANNING_SECONDS_PER_SHOT\)\}/u);
+  assert.match(previs, /selectedFlipBookFrame\.locked\.assetUrl/u, "missing or stale motion still shows authoritative image");
 });

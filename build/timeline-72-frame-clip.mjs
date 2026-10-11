@@ -28,7 +28,8 @@ export function ffmpegThreeSecondArgs(sourcePath, outputPath) {
     "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
     "-i", sourcePath, "-map", "0:v:0", "-an",
     "-vf", "fps=24,trim=end_frame=72,setpts=PTS-STARTPTS",
-    "-frames:v", String(TARGET_FRAMES), "-c:v", "libx264", "-preset", "veryfast",
+    "-frames:v", String(TARGET_FRAMES), "-r", String(TARGET_FPS), "-fps_mode", "cfr",
+    "-c:v", "libx264", "-preset", "veryfast",
     "-pix_fmt", "yuv420p", "-movflags", "+faststart", outputPath,
   ];
 }

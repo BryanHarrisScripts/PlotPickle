@@ -380,3 +380,71 @@ test('PP-NARR-001 simultaneous Save & Lock and No Bubble cannot race an encrypte
   assert.ok(source.includes('disabled={busyPosition !== null || savingPosition !== null}'),
     'the No Bubble control must be visibly disabled during a pending Save');
 });
+
+test('#2920 Storyboard local narration follows explicit Ollama but never silently uses a Cloud/Off route', async () => {
+  const source = await readFile('build/writing-assistant-gateway.ts', 'utf8');
+  const start = source.indexOf('export async function resolveConfiguredLocalNarrationProfile()');
+  const end = source.indexOf('\n}', start);
+  assert.ok(start > 0 && end > start, 'Local narration resolver is available');
+  const fn = source.slice(start, end + 2).replace('export ', '');
+  const selected = { text: 'ollama' };
+  const local = { provider: 'local', textModel: 'quality-local' };
+  const ollama = { provider: 'ollama', textModel: 'ollama-local', baseUrl: 'http://127.0.0.1:11434' };
+  let attempted = [];
+  const resolver = vm.runInNewContext('(' + fn + ')', {
+    readCapabilityChoice: async () => selected,
+    readSynchronizedAssistantStore: async () => ({ store: { profiles: { local, ollama } } }),
+    profileForProvider: async (_store, provider) => { attempted.push(provider); return ollama; },
+    probeOllama: async () => ({ reachable: true, models: ['ollama-local'] }),
+    localTextExecutionProfile: async () => ({ textModel: 'quality-local' }),
+    sameLocalWritingExecution: () => true,
+    writingReadiness: () => ({ ready: true }),
+    Error, Promise,
+  });
+  assert.equal((await resolver()).profile.provider, 'ollama');
+  assert.deepEqual(attempted, ['ollama']);
+  selected.text = 'off';
+  assert.equal((await resolver()).profile.provider, 'local', 'approved local narration must work when Hybrid is Off');
+  selected.text = 'openai';
+  assert.equal((await resolver()).profile.provider, 'local', 'a cloud route may not receive the Storyboard prompt without new Human truth');
+  assert.deepEqual(attempted, ['ollama'], 'no Cloud provider resolution or paid fallback');
+});
+
+test('#2920 narration and motion failures display actionable red provider diagnostic states', async () => {
+  const [route, storyboard, storyboardCss, timeline, timelineCss] = await Promise.all([
+    readFile('app/api/previs/narration/route.ts', 'utf8'),
+    readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8'),
+    readFile('app/_components/storyboard/storyboard-readiness-workspace.module.css', 'utf8'),
+    readFile('app/_components/timeline/timeline-assembly-workspace.tsx', 'utf8'),
+    readFile('app/_components/timeline/timeline-assembly-workspace.module.css', 'utf8'),
+  ]);
+  for (const stage of ['SESSION_AUTH', 'STORY_EVIDENCE', 'WRITING_PREFLIGHT', 'PROVIDER_EXECUTION', 'OUTPUT_VALIDATION']) {
+    assert.ok(route.includes(stage), 'narration preserves precise failure stage: ' + stage);
+  }
+  assert.match(route, /route:profile\?\.provider/u);
+  assert.match(storyboard, /data-narration-failure/u);
+  assert.match(storyboard, /role=\{notices\[position\]\?\.startsWith/u);
+  assert.match(storyboardCss, /\[data-narration-failure="true"\]/u);
+  assert.match(storyboardCss, /var\(--pp-skin-danger\)/u);
+  assert.match(timeline, /CAPABILITY_VERIFICATION/u);
+  assert.match(timeline, /route=\$\{selected\}/u);
+  assert.match(timeline, /OBSERVATION BLOCKED/u);
+  assert.match(timeline, /JOB_RECEIPT_PERSISTENCE/u);
+  assert.match(timeline, /data-motion-failure/u);
+  assert.match(timelineCss, /\.failureDiagnostic/u);
+  assert.match(timelineCss, /var\(--pp-skin-danger\)/u);
+  assert.doesNotMatch(route, /return Response\.json\(\{.*apiKey/u);
+});
+
+test('#2920 Timeline recovers exact saved Storyboard Bubble fingerprints rather than marking them stale', async () => {
+  const [storyboard, timeline] = await Promise.all([
+    readFile('app/_components/preproduction/storyboard-locked-shot-handoff.tsx', 'utf8'),
+    readFile('app/_components/timeline/timeline-assembly-workspace.tsx', 'utf8'),
+  ]);
+  assert.match(storyboard, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, anchorRef, panel\.position, artifact\)\)/u);
+  assert.match(timeline, /graphicNovelTextSourceKey,\s*graphicNovelTextSourceSnapshot/u);
+  assert.match(timeline, /overallStory: narrationOverallStory\(project\)/u);
+  assert.match(timeline, /graphicNovelTextSourceKey\(panel, evidence\.passages, storyContext, graphicNovelTextSourceSnapshot\(project, placement\.anchorRef, shotNumber, artifact\)\)/u);
+  assert.doesNotMatch(timeline, /function graphicNovelTextSourceKey\(/u, 'Timeline must not implement a second incompatible Bubble fingerprint');
+  assert.match(timeline, /timelinePresentationFor\(project, selectedPlacement, position\)/u, 'Timeline export uses the shared source identity');
+});

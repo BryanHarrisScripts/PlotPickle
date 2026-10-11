@@ -379,10 +379,25 @@ export async function resolveConfiguredAgentExecutionProfile(agentId: PlotPickle
 }
 
 export async function resolveConfiguredLocalNarrationProfile() {
-  const [{ store }, execution] = await Promise.all([readSynchronizedAssistantStore(), localTextExecutionProfile("quality")]);
+  // PP-NARR-001: Storyboard bubble generation is local-only. Honor an explicitly
+  // selected Ollama Writing connection, but never silently fall back to cloud.
+  const [choice, { store }] = await Promise.all([readCapabilityChoice(), readSynchronizedAssistantStore()]);
+  if (choice.text === "ollama") {
+    const profile = await profileForProvider(store, "ollama", "quality");
+    const probe = await probeOllama(profile.baseUrl);
+    if (!probe.reachable || !probe.models.includes(profile.textModel)) {
+      throw new Error("Selected Ollama Writing model is unavailable. Open Settings → Local → Ollama, check the running model, and run Test Writing.");
+    }
+    return { profile };
+  }
+  // PP-NARR-001 B2: existing verified Local Quality works even when a
+  // separate general-purpose Writing route is Cloud or Off. Never send
+  // Storyboard narration to that unrelated cloud route. Explicitly selecting
+  // Ollama above opts into that local provider; all other choices keep Quality.
+  const execution = await localTextExecutionProfile("quality");
   const profile = store.profiles.local;
   if (!sameLocalWritingExecution(profile, execution) || !writingReadiness(profile).ready) {
-    throw new Error("The current Local Quality writing model has not passed Test Writing. Open Settings → Local → Writing, then run Test Writing.");
+    throw new Error("The selected Local Quality writing model has not passed Test Writing. Open Settings → Local → Writing, then run Test Writing.");
   }
   return { profile };
 }

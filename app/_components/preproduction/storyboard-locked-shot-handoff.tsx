@@ -195,7 +195,7 @@ export default function StoryboardLockedShotHandoff({
       [panel.position]: noText ? "No Bubble saved and locked for Storyboard and Previs." : "Bubble / caption saved and locked for Storyboard and Previs.",
     }));
     } catch (error) {
-      setNotices((current) => ({ ...current, [panel.position]: `Bubble Save & Lock failed: ${error instanceof Error ? error.message : "Persistence failed."}` }));
+      setNotices((current) => ({ ...current, [panel.position]: `ERROR · BUBBLE_SAVE_FAILED · stage=PERSISTENCE · Shot ${String(panel.position).padStart(2, "0")} · Save & Lock failed: ${error instanceof Error ? error.message : "Encrypted save was not acknowledged."} · Next: retry Save & Lock after checking your unlocked profile. The previous approval is unchanged.` }));
     } finally {
       saveInFlight.current = false;
       setSavingPosition(null);
@@ -214,7 +214,7 @@ export default function StoryboardLockedShotHandoff({
     } catch (error) {
       setNotices((current) => ({
         ...current,
-        [panel.position]: error instanceof Error ? error.message : "This Shot needs an authored dramatic moment.",
+        [panel.position]: `ERROR · INVALID_NARRATION_EVIDENCE · stage=STORY_EVIDENCE · ${error instanceof Error ? error.message : "This Shot needs an authored dramatic moment."} · Next: review the locked Shot and screenplay before retrying.`,
       }));
       return;
     }
@@ -247,10 +247,14 @@ export default function StoryboardLockedShotHandoff({
       const result = await response.json() as {
         ok?: boolean;
         message?: string;
+        code?: string;
+        stage?: string;
+        route?: string;
+        reason?: string;
         panels?: { position: number; narration: string; bubbles: PrevisGraphicNovelTextBubble[] }[];
       };
       if (!response.ok || !result.ok || result.panels?.length !== 1) {
-        throw new Error(result.message || "Narration generation failed.");
+        throw new Error(`ERROR · ${result.code || "NARRATION_REQUEST_FAILED"} · stage=${result.stage || "RESPONSE"} · route=${result.route || "local-writing"} · HTTP ${response.status} · ${result.message || "Narration generation failed."} ${result.reason ? `· reason=${result.reason}` : ""} · Next: check Connections → Writing and the local provider test; retry this Shot without changing the existing lock.`);
       }
       if (controller.signal.aborted) return;
       if (latestProject.current !== project || currentApproval(panel).sourceKey !== requestedSourceKey) {
@@ -260,7 +264,7 @@ export default function StoryboardLockedShotHandoff({
       const sourceKey = requestedSourceKey;
       const proposed = result.panels[0];
       if (!proposed.narration?.trim() && !proposed.bubbles?.length) {
-        setNotices((current) => ({ ...current, [panel.position]: "Local writer returned no printed text for this Shot. Regenerate, or choose No Bubble deliberately." }));
+        setNotices((current) => ({ ...current, [panel.position]: "ERROR · EMPTY_NARRATION_OUTPUT · stage=OUTPUT_VALIDATION · The selected local writer returned no printed text. Next: Regenerate, or intentionally choose No Bubble." }));
         return;
       }
       setDrafts((current) => ({
@@ -276,7 +280,7 @@ export default function StoryboardLockedShotHandoff({
       if (!controller.signal.aborted) {
         setNotices((current) => ({
           ...current,
-          [panel.position]: error instanceof Error ? error.message : "Narration generation failed.",
+          [panel.position]: error instanceof Error && error.message.startsWith("ERROR · ") ? error.message : `ERROR · NARRATION_REQUEST_FAILED · stage=REQUEST · ${error instanceof Error ? error.message : "Narration generation failed."} · Next: verify your unlocked profile and selected local Writing route.`,
         }));
       }
     } finally {
@@ -394,7 +398,7 @@ export default function StoryboardLockedShotHandoff({
                       onClick={() => void saveApproval(panel, approvalState.sourceKey, "", [], true)}
                     >{savingPosition === position ? "Saving…" : "No Bubble"}</button>
                   </div>
-                  <small role="status">{notices[position] ?? (approvalState.current ? "Saved and locked decision will appear unchanged in Storyboard and Previs." : "Human approval is required before generated text becomes current.")}</small>
+                  <small role={notices[position]?.startsWith("ERROR · ") ? "alert" : "status"} data-narration-failure={notices[position]?.startsWith("ERROR · ") ? "true" : "false"}>{notices[position] ?? (approvalState.current ? "Saved and locked decision will appear unchanged in Storyboard and Previs." : "Human approval is required before generated text becomes current.")}</small>
                 </div>
               </article>
             );

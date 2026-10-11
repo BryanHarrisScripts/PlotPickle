@@ -270,11 +270,17 @@ test("#2830 stored Afterglow Storyboard, Bubble and current Motion recover toget
   });
   const primary = { profileId: "profile_afterglow_motion", sessionId: "session_before" };
   const another = { profileId: "profile_other_story", sessionId: "session_other" };
-  const original = JSON.parse(await readText("data/afterglow-packaged-current/snapshot.json"));
+  const [original, manifest] = await Promise.all([
+    readText("data/afterglow-packaged-current/snapshot.json").then(JSON.parse),
+    readText("data/afterglow-packaged-current/manifest.json").then(JSON.parse),
+  ]);
   const project = original.project ?? original;
+  const approvedPackagedMedia = new Set((manifest.assets ?? [])
+    .map(item => item?.publicUrl)
+    .filter(value => typeof value === "string" && value.includes("/storyboard-")));
   const artifact = project.build.foundations.visualArtifacts.find(item => (
     item.workflow === "storyboard-frame-webp-v2"
-    && item.assetUrl.startsWith("/assets/library/examples/")
+    && approvedPackagedMedia.has(item.assetUrl)
     && item.sourceDecisionKeys?.some(key => /^storyboard-anchor:block:block-\\d{2}:mini-[1-4]$/u.test(key))
   ));
   assert.ok(artifact, "do not substitute a synthetic image for packaged Afterglow");

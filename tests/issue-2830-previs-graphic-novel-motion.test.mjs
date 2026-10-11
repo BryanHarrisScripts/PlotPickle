@@ -494,7 +494,7 @@ test("#2830 transient provider status failures keep an already paid job resumabl
   await ctx.observeSubmittedMotion(placement, 1, packet, submitted, undefined);
   assert.equal(writes.length, 0, "network/status outage does not mark paid job terminally failed");
   assert.equal(urls.length, 1);
-  assert.match(urls[0], /^\\/api\\/local-ai\\/video\\//u);
+  assert.match(urls[0], /^\/api\/local-ai\/video\//u);
   assert.match(messages.at(-1), /Resume existing motion job/u);
   assert.match(messages.at(-1), /temporary status endpoint outage/u);
 

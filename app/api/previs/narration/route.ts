@@ -2,6 +2,7 @@ import { withAuthenticatedProfileRequest } from "../../../../build/auth/profile-
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { resolveConfiguredAgentExecutionProfile, resolveConfiguredLocalNarrationProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
+import { readCapabilityChoice } from "../../../../build/ai/capabilities/capability-routing-state";
 import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, parseStoryboardNarration, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
 
 export const runtime = "nodejs";
@@ -23,7 +24,7 @@ async function handlePost(request: Request) {
       : code === "SESSION_REJECTED"
         ? "Sign in to authorize narration generation."
         : "The current Human session could not authorize narration. Retry after PlotPickle finishes loading the active story; if it persists, review the reported authorization code.";
-    return Response.json({ok:false,code:code || "AUTHORIZATION_REJECTED",message},{status:403});
+    return Response.json({ok:false,code:code || "AUTHORIZATION_REJECTED",stage:"SESSION_AUTH",message},{status:403});
   }
   let input;
   let storyboardShot = false;
@@ -34,15 +35,18 @@ async function handlePost(request: Request) {
     storyboardShot = value?.mode === "storyboard-shot";
     input = storyboardShot ? storyboardNarrationRequest(value) : narrationRequest(value);
   } catch (error) {
-    return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",message:error instanceof Error ? error.message : "Narration needs the approved screenplay and locked Shot evidence."},{status:400});
+    return Response.json({ok:false,code:"INVALID_NARRATION_EVIDENCE",stage:"STORY_EVIDENCE",message:"Narration requires a current saved and locked Shot, supported screenplay evidence and an exact 1-Shot request. Review the selected image and story before retrying."},{status:400});
   }
   let profile;
   try {
     profile = (storyboardShot ? await resolveConfiguredLocalNarrationProfile() : await resolveConfiguredAgentExecutionProfile("graphic-novel", "quality")).profile;
   } catch {
-    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_NOT_READY":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
-      ? "The local writing model is not ready. Verify it in Settings → Local."
-      : "The Graphic Novel provider is not ready. Check Settings."},{status:503});
+    const route = (await readCapabilityChoice()).text;
+    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_NOT_READY":"VISUAL_NARRATION_UNAVAILABLE",
+      stage:"WRITING_PREFLIGHT",route,
+      message:storyboardShot
+        ? `Storyboard narration requires a verified local Writing route. Selected: ${route}. Select and Test Writing with Local Runtime or Ollama in Settings → Connections; cloud and Off are not approved for Storyboard bubbles.`
+        : `The Graphic Novel provider on the selected Writing route (${route}) is not ready. Test that model and its image capability in Settings.`},{status:503});
   }
   let text;
   try {
@@ -54,9 +58,11 @@ async function handlePost(request: Request) {
       text = await askPlotPickleAgent({profile,agentId:"graphic-novel",tone:"direct",message:narrationPrompt(input),image:input.image,signal:request.signal});
     }
   } catch {
-    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_FAILED":"VISUAL_NARRATION_UNAVAILABLE",message:storyboardShot
-      ? "The configured Local writing model did not return narration. Check Local diagnostics and retry."
-      : "The Graphic Novel agent could not read the approved images. Check its image-capable model in Settings, then retry."},{status:502});
+    return Response.json({ok:false,code:storyboardShot?"LOCAL_WRITER_FAILED":"VISUAL_NARRATION_UNAVAILABLE",
+      stage:"PROVIDER_EXECUTION",route:profile?.provider || "unknown",
+      message:storyboardShot
+        ? `The selected ${profile?.provider || "local"} writer failed during narration inference. Check model availability and Test Writing in Settings → Connections, then retry this Shot; the previous Bubble lock is unchanged.`
+        : "The Graphic Novel agent failed during visual narration inference. Check the selected Writing model and verified image-reading capability, then retry."},{status:502});
   }
   try {
     return Response.json({ok:true,panels:storyboardShot ? parseStoryboardNarration(text,input) : parseNarration(text,input)},{headers:{"Cache-Control":"no-store"}});
@@ -66,16 +72,18 @@ async function handlePost(request: Request) {
       return Response.json({
         ok: false,
         code: "INVALID_NARRATION_OUTPUT",
+        stage: "OUTPUT_VALIDATION",
+        route: profile?.provider || "unknown",
         reason: failure.reason,
         message: failure.message,
       }, { status: 502, headers: { "Cache-Control": "no-store" } });
     }
-    return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",message:
+    return Response.json({ok:false,code:"INVALID_NARRATION_OUTPUT",stage:"OUTPUT_VALIDATION",message:
       "The Graphic Novel agent returned an incomplete or invalid story sequence. Retry narration."},{status:502});
   }
 }
 
 export async function POST(request: Request) {
   try { return await withAuthenticatedProfileRequest(request, () => handlePost(request)); }
-  catch (error) { return Response.json({ ok: false, code: authorizationCode(error) || "AUTHORIZATION_REJECTED", message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
+  catch (error) { return Response.json({ ok: false, code: authorizationCode(error) || "AUTHORIZATION_REJECTED", stage: "SESSION_AUTH", message: "Unlock your PlotPickle profile and refresh the session before continuing." }, { status: 403 }); }
 }

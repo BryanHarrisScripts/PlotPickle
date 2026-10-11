@@ -89,8 +89,7 @@ async function probeClip(filePath, runTool) {
     "-show_entries", "stream=nb_read_frames,avg_frame_rate:format=duration",
     "-of", "json", filePath,
   ], 30_000);
-  try { return verifyThreeSecondProbe(JSON.parse(stdout)); }
-  catch (error) { throw new Error(error instanceof Error ? error.message : "ffprobe could not verify the output file."); }
+  return verifyThreeSecondProbe(JSON.parse(stdout));
 }
 
 /** Physically render an existing provider asset; never generate or charge for a new provider job.
@@ -115,12 +114,11 @@ export async function renderTimelineThreeSecondClip({ sourceAssetUrl, directory 
     fps: verified.fps,
     durationSeconds: verified.durationSeconds,
   });
-  try {
-    await validMediaFile(output);
-    return response(await probeClip(output, runTool));
-  } catch {
-    // An invalid prior attempt is never reported ready.
-  }
+  const cached = await Promise.allSettled([validMediaFile(output).then(() => probeClip(output, runTool))]);
+  if (cached[0].status === "fulfilled") return response(cached[0].value);
+  // Failed validation is explicit evidence that a prior file must not be reused.
+  // Removing it prevents a corrupt or partial clip from being presented as ready.
+  await rm(output, { force: true });
   await mkdir(root, { recursive: true });
   const temporary = path.join(root, `timeline-72f-${key}-${randomUUID()}.tmp.mp4`);
   try {

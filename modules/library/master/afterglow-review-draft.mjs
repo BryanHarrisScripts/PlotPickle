@@ -44,3 +44,10 @@ export function normalizeAfterglowReviewDraft(input,now){
     throw new Error("Review choices exceed the allowed draft size.");
   return result;
 }
+/** Excluding an already confirmed saved answer must remove its confirmation,
+ * never persist `false`: the encrypted draft schema accepts only true entries. */
+export function withoutAfterglowReviewConfirmation(confirmedCurrent,path){
+  const next={...confirmedCurrent};
+  delete next[path];
+  return next;
+}

@@ -57,6 +57,13 @@ test("#2932 selection, forged aggregate PASS, partial and duplicate results cann
   assert.match(validateEvidenceRecord({evidence: forged, architecture}).join(" "), /PASS requires/u);
   delete forged.claims;
   assert.match(validateEvidenceRecord({evidence: forged, architecture}).join(" "), /bounded execution claims/u);
+  const successful = emitEvidence({...fixture,run:{result:"pass",results:[{id:"probe",result:"pass"},{id:"second",result:"pass"}]}});
+  const contradictory = {...successful,claims:[...successful.claims,{...successful.claims[0],executionStatus:"FAIL"}]};
+  assert.match(validateEvidenceRecord({evidence: contradictory, architecture}).join(" "), /must not duplicate|require FAIL/u);
+  const replaced = {...successful,claims:successful.claims.map((claim)=>claim.testId==="probe"?{...claim,executionStatus:"FAIL"}:claim)};
+  assert.match(validateEvidenceRecord({evidence: replaced, architecture}).join(" "), /require FAIL/u);
+  const unrelated = {...successful,claims:[...successful.claims,{...successful.claims[0],testId:"unselected"}]};
+  assert.match(validateEvidenceRecord({evidence: unrelated, architecture}).join(" "), /unselected test identity/u);
 });
 
 test("#2932 skipped and unaffected execution never prove a product promise", () => {

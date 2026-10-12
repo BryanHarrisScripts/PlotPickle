@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { emitEvidence, planVerification, runLayer } from "../lib/verification/verification-core.mjs";
+import { assessRepositoryTestTruth } from "../lib/verification/development/test-truth-admission.mjs";
 
 const root = process.cwd();
 const artifactRoot = path.join(root, ".artifacts", "verification-shadow");
@@ -166,10 +167,13 @@ export function buildMigrationComparison({ migration, layerId, run, commitSha })
 export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "linux", allowNetwork = false }) {
   const started = Date.now();
   const configuration = await loadConfiguration();
-  const changedFiles = changedFilesFrom(baseRef);
   const checkedOutSha = runGit(["rev-parse", "HEAD"]);
   if (commitSha && commitSha !== checkedOutSha) throw new Error("Evidence revision must match the checked-out HEAD.");
   const exactSha = checkedOutSha;
+  const truthAdmission = await assessRepositoryTestTruth({root,baseRef:baseRef || "origin/main"});
+  await writeJson("test-truth-admission.json",truthAdmission);
+  if (truthAdmission.status !== "ready") throw new Error(`Approved test truth admission BLOCKED: ${truthAdmission.findings.map((finding)=>`${finding.target}: ${finding.detail}`).join("\n")}`);
+  const changedFiles = changedFilesFrom(baseRef);
   const plan = planVerification({
     ...configuration,
     changedFiles,
@@ -212,6 +216,7 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
     run,
     runtime: { platform, runner: "github-shadow", nodeVersion: process.version },
     durationMs,
+    truthAdmission,
   });
 
   const evidencePath = await writeJson(`${layerId}.json`, evidence);

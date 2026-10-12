@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "issue": 2934,
+  "brief": "docs/developer-briefs/2934-future-test-approved-truth.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "AGENTS.md",
+    "config/verification/test-catalog.json",
+    "lib/verification/verification-contracts.mjs",
+    "lib/verification/verification-core.mjs",
+    "schema/verification/evidence.schema.json",
+    "schema/verification/test-catalog.schema.json",
+    "scripts/verification-core.mjs",
+    "scripts/verification-shadow.mjs",
+    "docs/developer-briefs/2934-future-test-approved-truth.md",
+    "lib/verification/development/test-truth-admission.mjs",
+    "scripts/verification-test-truth.mjs",
+    "tests/issue-2934-future-test-truth.test.mjs",
+    "config/development-convergence/2934.json",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ADMISSION",
+      "criterion": "All seven execution adapters reject missing trusted admission before runners.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2934-future-test-truth.test.mjs",
+          "contains": "missing comparison authority blocks all seven execution adapters before runners"
+        }
+      ]
+    },
+    {
+      "id": "ORACLE",
+      "criterion": "Proposals and implementation-authored approvals cannot define expected truth.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2934-future-test-truth.test.mjs",
+          "contains": "a proposed truth, wrong version, unknown obligation or same-PR approval cannot serve as oracle"
+        }
+      ]
+    },
+    {
+      "id": "INPUTS",
+      "criterion": "Complete changed test sources and inputs invalidate stale approval bindings.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2934-future-test-truth.test.mjs",
+          "contains": "new or revised cases and helper inputs cannot keep a stale approved binding"
+        }
+      ]
+    },
+    {
+      "id": "BEYOND-SAVE",
+      "criterion": "Narration and Local Writing have bounded approved-truth bindings.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2841-local-writing-truth.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2855-bubble-source-identity.test.mjs"
+        }
+      ]
+    }
+  ]
+}

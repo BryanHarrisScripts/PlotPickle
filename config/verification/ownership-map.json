@@ -1563,6 +1563,7 @@
         "scripts/validate-verification-phase-1.mjs",
         "scripts/verification-core.mjs",
         "scripts/verification-shadow.mjs",
+        "scripts/verification-test-truth.mjs",
         "scripts/run-uat-closed-loop.mjs",
         "scripts/package-smoke.mjs",
         "scripts/windows-server-smoke.mjs",

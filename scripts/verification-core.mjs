@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { emitEvidence, explainPlan, planVerification, runLayer } from "../lib/verification/verification-core.mjs";
 import { resolveProofRoute } from "../lib/verification/development/proof-routing.mjs";
+import { assessRepositoryTestTruth } from "../lib/verification/development/test-truth-admission.mjs";
 
 const root = process.cwd();
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), "utf8"));
@@ -168,6 +169,8 @@ async function main() {
   }
 
   const started = Date.now();
+  const truthAdmission = await assessRepositoryTestTruth({root,baseRef:options.baseRef || "origin/main",includeWorkingTree:true});
+  if (truthAdmission.status !== "ready") throw new Error(`Approved test truth admission BLOCKED: ${truthAdmission.findings.map((finding)=>`${finding.target}: ${finding.detail}`).join("\n")}`);
   const run = await runLayer({ plan, catalog: configuration.catalog, layerId: options.layerId, runners: typedRunners(), context: { source: "local-cli" } });
   const evidence = emitEvidence({
     plan,
@@ -178,6 +181,7 @@ async function main() {
     run,
     runtime: { platform: options.platform, runner: "local-cli", nodeVersion: process.version },
     durationMs: Date.now() - started,
+    truthAdmission,
   });
   const artifactDir = path.join(root, ".artifacts", "verification");
   await mkdir(artifactDir, { recursive: true });

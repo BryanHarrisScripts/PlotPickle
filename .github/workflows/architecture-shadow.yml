@@ -96,6 +96,7 @@ jobs:
             .artifacts/verification-shadow/${{ matrix.id }}.json
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
             .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
+            .artifacts/verification-shadow/test-truth-admission.json
             .artifacts/ben-code-quality/
             .artifacts/development-convergence/
             .artifacts/verification-live/webmcp-live.json
@@ -201,10 +202,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24.19.0'
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install pinned dependencies for Windows production build
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund

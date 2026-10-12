@@ -37,12 +37,12 @@ export function registerLibraryPpfImportGateway(server: ViteDevServer) {
         if (!header || Array.isArray(header)) throw new Error("Choose a Final Draft .fdx screenplay.");
         const decoded = decodeURIComponent(header);
         const sourceName = path.posix.basename(decoded.replace(/\\/g, "/"));
-        if (!sourceName.toLowerCase().endsWith(".fdx") || sourceName.length > 200 || /[\\u0000-\\u001f\\u007f]/.test(sourceName)) {
+        if (!sourceName.toLowerCase().endsWith(".fdx") || sourceName.length > 200 || /[\u0000-\u001f\u007f]/.test(sourceName)) {
           throw new Error("Choose a valid Final Draft .fdx screenplay filename.");
         }
         const sourceText = (await readLocalPpfRequest(request, "Final Draft screenplay")).toString("utf8");
-        if (!/^\\uFEFF?\\s*(?:<\\?xml[^>]*>\\s*)?<FinalDraft\\b/i.test(sourceText)
-          || !/<Content\\b/i.test(sourceText) || !/<Paragraph\\b/i.test(sourceText) || !/<Text\\b/i.test(sourceText)) {
+        if (!/^\uFEFF?\s*(?:<\?xml[^>]*>\s*)?<FinalDraft\b/i.test(sourceText)
+          || !/<Content\b/i.test(sourceText) || !/<Paragraph\b/i.test(sourceText) || !/<Text\b/i.test(sourceText)) {
           throw new Error("The selected file does not contain a recognizable Final Draft screenplay.");
         }
         const result = convertScreenplayTextToPpf({ fileName: sourceName, sourceText });

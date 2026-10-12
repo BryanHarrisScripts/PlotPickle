@@ -52,6 +52,7 @@ function artifactRef(input = {}) {
     phase: ["before", "after", "state"].includes(input.phase) ? input.phase : "state",
     capturedAt: String(input.capturedAt || new Date().toISOString()),
     metadata: input.metadata || {},
+    ...(input.obligationEvidence ? { obligationEvidence: input.obligationEvidence } : {}),
   });
 }
 
@@ -73,6 +74,9 @@ export function createCaseEvidenceManifest(caseDefinition, input = {}) {
     realIntegrationVerified: false,
     criticalInteractionsUnreached: 0,
     faultResults: [],
+    testedCommit: input.testedCommit || "",
+    environment: input.environment || "",
+    configuration: input.configuration || "",
   };
 }
 
@@ -132,14 +136,20 @@ export function validateCaseEvidenceManifest(caseDefinition, manifest) {
   return { valid: errors.length === 0, errors };
 }
 
-export function caseRunFromEvidenceManifest(caseDefinition, manifest) {
+export function caseRunFromEvidenceManifest(caseDefinition, manifest, verification = {}) {
   const validation = validateCaseEvidenceManifest(caseDefinition, manifest);
   if (!validation.valid) throw new Error(`Invalid Casebook evidence manifest:\n${validation.errors.map((item) => `- ${item}`).join("\n")}`);
-  const contradiction = manifest.timeline.some((entry) => entry.outcome === "fail" || (entry.workerClaim === "pass" && entry.outcome !== "pass"));
+  // An unavailable observation disproves a worker's green claim, not the product obligation itself.
+  const contradiction = manifest.timeline.some((entry) => entry.outcome === "fail");
   return {
     runId: manifest.runId,
+    testedCommit: verification.testedCommit,
+    environment: verification.environment,
+    configuration: verification.configuration,
+    verifiedArtifactRefs: verification.verifiedArtifactRefs,
     steps: manifest.timeline.map((entry) => ({ id: entry.stepId, status: entry.outcome })),
     evidence: manifest.artifacts.map((item) => ({
+      ...item.obligationEvidence,
       id: item.id,
       kind: item.kind,
       status: item.status,
@@ -156,8 +166,8 @@ export function caseRunFromEvidenceManifest(caseDefinition, manifest) {
   };
 }
 
-export function evaluateCaseEvidenceManifest(caseDefinition, manifest) {
-  const result = evaluateCaseRun(caseDefinition, caseRunFromEvidenceManifest(caseDefinition, manifest));
+export function evaluateCaseEvidenceManifest(caseDefinition, manifest, verification = {}) {
+  const result = evaluateCaseRun(caseDefinition, caseRunFromEvidenceManifest(caseDefinition, manifest, verification));
   return {
     ...result,
     evidenceSchemaVersion: CASEBOOK_EVIDENCE_SCHEMA_VERSION,

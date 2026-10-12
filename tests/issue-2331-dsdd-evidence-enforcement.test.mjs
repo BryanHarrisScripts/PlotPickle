@@ -5,24 +5,30 @@ import { evaluateEvidenceUpdate } from "../build/dsdd/dsdd-evidence-contract.mjs
 
 const digest = "a".repeat(64);
 const commit = "b".repeat(40);
+const verification = {requirementId: "R1", promise: "The required behavior", testedCommit: commit,
+  environment: "test-environment", configuration: "test-configuration", verifierSource: "independent-observer",
+  verifiedArtifactRefs: ["artifact://architecture-run/123"]};
 
 function proof(overrides = {}) {
   return {
     ref: "artifact://architecture-run/123",
     summary: "Observed the locked requirement on the exact tested head.",
-    proofType: "ci",
+    proofType: "runtime",
     finding: "supports",
     intentVersion: 4,
     intentDigest: digest,
     testedSource: "BryanHarrisScripts/PlotPickle",
     testedCommit: commit,
     observedResult: "The required behavior was observed.",
+    requirementId: "R1", promise: "The required behavior", action: "Exercise the workflow",
+    environment: "test-environment", configuration: "test-configuration", source: "independent-observer",
+    independent: true, simulated: false, scope: "real-product-observation",
     ...overrides,
   };
 }
 
 test("#2331 PASS requires validated supporting evidence bound to the same locked intent and exact commit", () => {
-  const result = evaluateEvidenceUpdate({
+  const result = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "PASS",
@@ -34,10 +40,10 @@ test("#2331 PASS requires validated supporting evidence bound to the same locked
 });
 
 test("#2331 empty, mismatched, or stale proof cannot become PASS", () => {
-  const empty = evaluateEvidenceUpdate({ intentVersion: 4, intentDigest: digest, status: "PASS", evidence: [] });
+  const empty = evaluateEvidenceUpdate({ ...verification, intentVersion: 4, intentDigest: digest, status: "PASS", evidence: [] });
   assert.equal(empty.status, "UNPROVEN");
 
-  const wrongIntent = evaluateEvidenceUpdate({
+  const wrongIntent = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "PASS",
@@ -46,7 +52,7 @@ test("#2331 empty, mismatched, or stale proof cannot become PASS", () => {
   assert.equal(wrongIntent.status, "UNPROVEN");
   assert.equal(wrongIntent.evidence.length, 0);
 
-  const invalidBuild = evaluateEvidenceUpdate({
+  const invalidBuild = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "PASS",
@@ -59,15 +65,15 @@ test("#2331 empty, mismatched, or stale proof cannot become PASS", () => {
 test("#2331 contradictory evidence prevents PASS and is required for FAIL", () => {
   const contradiction = proof({ finding: "contradicts", observedResult: "The observed behavior contradicted the locked requirement." });
 
-  const claimedPass = evaluateEvidenceUpdate({
+  const claimedPass = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "PASS",
     evidence: [proof(), contradiction],
   });
-  assert.equal(claimedPass.status, "UNPROVEN");
+  assert.equal(claimedPass.status, "FAIL");
 
-  const fail = evaluateEvidenceUpdate({
+  const fail = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "FAIL",
@@ -75,11 +81,11 @@ test("#2331 contradictory evidence prevents PASS and is required for FAIL", () =
   });
   assert.equal(fail.status, "FAIL");
 
-  const unsupportedFail = evaluateEvidenceUpdate({
+  const unsupportedFail = evaluateEvidenceUpdate({ ...verification,
     intentVersion: 4,
     intentDigest: digest,
     status: "FAIL",
-    evidence: [proof()],
+    evidence: [proof({ proofType: "ci" })],
   });
   assert.equal(unsupportedFail.status, "UNPROVEN");
 });

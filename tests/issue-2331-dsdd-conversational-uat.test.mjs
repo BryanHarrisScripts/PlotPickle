@@ -103,9 +103,12 @@ test("#2331 persists semantic provenance and locks a versioned handoff packet be
   assert.match(gateway, /mergeAuthority: "github-exact-head-green-only"/u);
 });
 
-test("#2331 maps requirement evidence to PASS FAIL or UNPROVEN without rewriting locked meaning", async () => {
+test("#2331 maps requirement evidence to PASS FAIL BLOCKED or UNPROVEN without rewriting locked meaning", async () => {
   const gateway = await read("build/dsdd/dsdd-session-gateway.ts");
-  assert.match(gateway, /status !== "PASS" && status !== "FAIL" && status !== "UNPROVEN"/u);
+  assert.match(gateway, /\["PASS", "FAIL", "BLOCKED", "UNPROVEN"\]\.includes\(String\(status\)\)/u);
+  assert.match(gateway, /requirementId: requirement\.id/u);
+  assert.match(gateway, /promise: requirement\.text/u);
+  assert.match(gateway, /verifiedArtifactRefs: \[\]/u);
   assert.match(gateway, /const intent = session\.intents\.find/u);
   assert.match(gateway, /The referenced locked DSDD intent version does not exist/u);
   assert.doesNotMatch(gateway, /intent\.understoodMeaning\s*=/u);

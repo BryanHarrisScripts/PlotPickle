@@ -73,7 +73,9 @@ function resolveChangedFiles(options) {
 }
 
 function resolveCommitSha(options) {
-  return options.commitSha ?? runGit(["rev-parse", "HEAD"]);
+  const checkedOutSha = runGit(["rev-parse", "HEAD"]);
+  if (options.commitSha && options.commitSha !== checkedOutSha) throw new Error("Evidence revision must match the checked-out HEAD.");
+  return checkedOutSha;
 }
 
 function spawnChecked(command, args) {
@@ -182,7 +184,7 @@ async function main() {
   const artifactPath = path.join(artifactDir, `${options.layerId}.json`);
   await writeFile(artifactPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   console.log(JSON.stringify({ run, evidencePath: path.relative(root, artifactPath).replaceAll("\\", "/") }, null, 2));
-  if (run.result === "fail") process.exitCode = 1;
+  if (["fail", "blocked", "unproven"].includes(evidence.result)) process.exitCode = 1;
 }
 
 main().catch((error) => {

@@ -143,18 +143,28 @@ type DsddEvidence = {
   ref: string;
   summary: string;
   proofType: "test" | "ci" | "runtime" | "artifact";
-  finding: "supports" | "contradicts" | "insufficient";
+  finding: "supports" | "contradicts" | "blocked" | "insufficient";
   intentVersion: number;
   intentDigest: string;
   testedSource: string;
   testedCommit: string;
   observedResult: string;
+  requirementId: string;
+  promise: string;
+  action: string;
+  environment: string;
+  configuration: string;
+  source: string;
+  scope: string;
+  independent: boolean;
+  simulated: boolean;
+  blocker: string;
 };
 
 type DsddRequirement = {
   id: string;
   text: string;
-  status: "PASS" | "FAIL" | "UNPROVEN";
+  status: "PASS" | "FAIL" | "BLOCKED" | "UNPROVEN";
   evidence: DsddEvidence[];
 };
 
@@ -325,6 +335,12 @@ async function load() {
     objectId: OBJECT_ID,
   });
   const session = normalizeSession(stored);
+  // Historical PASS records also need current independently admitted evidence.
+  for (const intent of session.intents) {
+    for (const requirement of intent.requirements || []) {
+      if (requirement.status === "PASS") requirement.status = "UNPROVEN";
+    }
+  }
   if (!stored) await save(context, session);
   return { context, session };
 }
@@ -775,11 +791,16 @@ async function recordEvidence(body: Record<string, unknown>) {
     const item = update as Record<string, unknown>;
     const requirement = intent.requirements.find((candidate) => candidate.id === text(item.id, 40));
     const status = item.status;
-    if (!requirement || (status !== "PASS" && status !== "FAIL" && status !== "UNPROVEN")) continue;
+    if (!requirement || !["PASS", "FAIL", "BLOCKED", "UNPROVEN"].includes(String(status))) continue;
     const evaluated = evaluateEvidenceUpdate({
       intentVersion: intent.version,
       intentDigest: packet.intentDigest,
-      status,
+      requirementId: requirement.id,
+      promise: requirement.text,
+      testedCommit: currentConversationalUatIdentity().head,
+      // Submitted records remain visible, but cannot authenticate their own artifact references.
+      // No independent verifier receipt is supplied by this endpoint; product claims stay UNPROVEN.
+      verifiedArtifactRefs: [],
       evidence: item.evidence,
     });
     requirement.status = evaluated.status as DsddRequirement["status"];

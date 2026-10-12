@@ -77,7 +77,7 @@ type DsddLockedIntent = {
   humanEntryId: string;
   inputMode?: DsddInputMode;
   understoodMeaning: string;
-  requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "UNPROVEN" }>;
+  requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "BLOCKED" | "UNPROVEN" }>;
   handoffPacket?: { id: string; intentDigest: string };
   developerBrief?: DsddDeveloperBrief;
   publishedIssue?: DsddPublishedIssue;

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "issue": 2932,
+  "baselineRevision": "1b279d1bf3e7a89f1d2ba48e9d20e2d16aee4a7b",
+  "scope": "deterministic governance probes; not a Windows product observation",
+  "observations": [
+    {
+      "probe": "Missing typed runner result",
+      "baseline": "PASS",
+      "replacement": "UNPROVEN"
+    },
+    {
+      "probe": "Selected tests without run evidence",
+      "baseline": "PASS",
+      "replacement": "UNPROVEN"
+    },
+    {
+      "probe": "Generic test report used as DSDD product evidence",
+      "baseline": "PASS",
+      "replacement": "UNPROVEN"
+    }
+  ],
+  "comparisonEvidence": "tests/issue-2932-approved-truth-claims.test.mjs",
+  "limits": [
+    "Real Windows PP-SAVE-001 recovery remains UNPROVEN.",
+    "DSDD intake lacks independently admitted verifier receipts; submitted claims cannot become product PASS.",
+    "Legacy Casebook cases without an approved binding retain explicitly named legacy-journey scope.",
+    "Contract-by-contract mappings beyond PP-SAVE-001 remain future work; engineering runner claims do not prove them.",
+    "Escaped-defect reduction, repair burden and time-to-user-outcome have not been measured.",
+    "Five historical #1941 test assertions fail unchanged on baseline main; they are not selected by the current catalogue."
+  ]
+}

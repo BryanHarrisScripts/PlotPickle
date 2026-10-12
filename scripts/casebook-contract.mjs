@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createSemanticExecution } from "./semantic-execution.mjs";
+import { assessObligationProof } from "../lib/verification/development/proof-routing.mjs";
 
 export const CASEBOOK_SCHEMA_VERSION = 1;
 export const CASEBOOK_RUN_STATUSES = Object.freeze(["pass", "fail", "blocked", "uncertain"]);
@@ -126,6 +127,14 @@ export function validateCaseDefinition(caseDefinition) {
   }
   if (Array.isArray(caseDefinition.humanJourney) && !hasUniqueIds(caseDefinition.humanJourney)) errors.push("humanJourney step ids must be unique.");
   if (Array.isArray(caseDefinition.requiredEvidence) && !hasUniqueIds(caseDefinition.requiredEvidence)) errors.push("requiredEvidence ids must be unique.");
+  if (caseDefinition.behavioralContract) {
+    const contract = caseDefinition.behavioralContract;
+    if (contract.status !== "approved" || !contract.id || !contract.version || !contract.source || !contract.obligations?.length) errors.push("behavioralContract needs an approved version, source and obligations.");
+    if (!Array.isArray(contract.obligations) || !hasUniqueIds(contract.obligations)) errors.push("Contract obligation ids must be unique.");
+    for (const obligation of contract.obligations || []) {
+      if (!obligation.id || !obligation.promise || !obligation.scope) errors.push("Contract obligation needs id, promise and scope.");
+    }
+  }
   return { valid: errors.length === 0, errors };
 }
 
@@ -189,10 +198,21 @@ export function evaluateCaseRun(caseDefinition, run = {}) {
   const verifierSource = caseDefinition.independentVerification.source;
   const independentEvidence = evidence.filter((item) => item?.status === "verified" && item?.independent === true && item?.source === verifierSource);
   const independentVerified = independentEvidence.length > 0;
+  const contract = caseDefinition.behavioralContract;
+  const obligations = (contract?.obligations || []).map((obligation) => assessObligationProof({
+    obligation: { contractId: contract.id, contractVersion: contract.version, obligationId: obligation.id,
+      promise: obligation.promise, scope: obligation.scope, verifierSource },
+    evidence,
+    testedCommit: run.testedCommit,
+    environment: run.environment,
+    configuration: run.configuration,
+    verifiedArtifactRefs: run.verifiedArtifactRefs,
+  }));
+  const obligationFailure = obligations.some((item) => item.status === "FAIL");
   let status = "uncertain";
-  if (blockers.length) status = "blocked";
-  else if (explicitFailure) status = "fail";
-  else if (!missingEvidence.length && !missingJourneySteps.length && independentVerified) status = "pass";
+  if (explicitFailure || obligationFailure) status = "fail";
+  else if (blockers.length || obligations.some((item) => item.status === "BLOCKED")) status = "blocked";
+  else if (!missingEvidence.length && !missingJourneySteps.length && independentVerified && obligations.every((item) => item.status === "PASS")) status = "pass";
   return {
     schemaVersion: CASEBOOK_SCHEMA_VERSION,
     caseId: caseDefinition.id,
@@ -200,6 +220,9 @@ export function evaluateCaseRun(caseDefinition, run = {}) {
     priority: caseDefinition.priority,
     runId: cleanText(run.runId || `${caseDefinition.id}:unidentified`, 240),
     status,
+    claimStatus: status === "uncertain" ? "UNPROVEN" : status.toUpperCase(),
+    claimScope: contract ? "approved-contract-obligations" : "legacy-casebook-journey",
+    obligations,
     expectedOutcome: caseDefinition.expectedOutcome,
     missingEvidence,
     missingJourneySteps,

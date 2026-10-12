@@ -236,5 +236,53 @@
     "approvedSaveBeforeLock": "Only confirmed durable Save of the exact selected version permits Lock."
   },
   "caseDefinitionLocation": "docs/behavioral-contracts/PP-SAVE-001.casebook.json",
-  "deliveryStatus": "machine-readable reviewed definition co-located with approved documentation; future active Casebook registration requires explicit verification ownership mapping and tests"
+  "deliveryStatus": "machine-readable reviewed definition co-located with approved documentation; future active Casebook registration requires explicit verification ownership mapping and tests",
+  "behavioralContract": {
+    "id": "PP-SAVE-001",
+    "version": "1.0.0",
+    "status": "approved",
+    "source": "docs/behavioral-contracts/PP-SAVE-001.md",
+    "obligations": [
+      {
+        "id": "T1",
+        "promise": "Saved identifies the exact independently confirmed durable artifact version.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T2",
+        "promise": "Lock requires durable Save of the exact version and durable separate approval.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T3",
+        "promise": "Save, Lock and Unlock preserve unrelated identities; Unlock preserves saved media.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T4",
+        "promise": "Repeating an operation preserves its original durable effect; conflicting reuse is rejected.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T5",
+        "promise": "An obsolete revision cannot silently overwrite accepted work.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T6",
+        "promise": "A normal same-profile/device process restart recovers exact media and approval.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T7",
+        "promise": "Previs consumes the identical durably Saved and Locked artifact version.",
+        "scope": "real-product-observation"
+      },
+      {
+        "id": "T8",
+        "promise": "Save reaches a truthful outcome or reconciliation; unsafe pending departure is blocked and work retained.",
+        "scope": "real-product-observation"
+      }
+    ]
+  }
 }

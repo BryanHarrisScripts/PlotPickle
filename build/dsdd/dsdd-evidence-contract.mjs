@@ -1,5 +1,7 @@
+import { assessObligationProof } from "../../lib/verification/development/proof-routing.mjs";
+
 const PROOF_TYPES = new Set(["test", "ci", "runtime", "artifact"]);
-const FINDINGS = new Set(["supports", "contradicts", "insufficient"]);
+const FINDINGS = new Set(["supports", "contradicts", "blocked", "insufficient"]);
 const COMMIT_SHA = /^[0-9a-f]{40}$/iu;
 
 function clean(value, maximum) {
@@ -32,25 +34,40 @@ function normalizeEvidence(expected, value) {
     testedSource,
     testedCommit,
     observedResult,
+    requirementId: clean(value.requirementId, 40),
+    promise: clean(value.promise, 3000),
+    action: clean(value.action, 3000),
+    environment: clean(value.environment, 300),
+    configuration: clean(value.configuration, 300),
+    source: clean(value.source, 300),
+    scope: clean(value.scope, 80),
+    independent: value.independent === true,
+    simulated: value.simulated !== false,
+    blocker: clean(value.blocker, 1000),
   };
 }
 
-export function evaluateEvidenceUpdate({ intentVersion, intentDigest, status, evidence }) {
+export function evaluateEvidenceUpdate({ intentVersion, intentDigest, requirementId, promise, testedCommit, environment, configuration, verifierSource, verifiedArtifactRefs = [], evidence }) {
   const candidates = Array.isArray(evidence) ? evidence : [];
-  const accepted = candidates
+  const applicable = candidates
     .map((entry) => normalizeEvidence({ intentVersion, intentDigest }, entry))
-    .filter(Boolean)
-    .slice(0, 12);
+    .filter(Boolean);
+  const priority = (entry) => entry.finding === "contradicts" ? 0 : entry.finding === "blocked" ? 1 : 2;
+  const accepted = [...applicable].sort((left, right) => priority(left) - priority(right)).slice(0, 12);
 
-  const hasSupportingEvidence = accepted.some((entry) => entry.finding === "supports");
-  const hasContradictingEvidence = accepted.some((entry) => entry.finding === "contradicts");
-
-  let resolvedStatus = "UNPROVEN";
-  if (status === "PASS" && hasSupportingEvidence && !hasContradictingEvidence) resolvedStatus = "PASS";
-  if (status === "FAIL" && hasContradictingEvidence) resolvedStatus = "FAIL";
+  const result = assessObligationProof({
+    obligation: { contractId: `dsdd:${intentDigest}`, contractVersion: String(intentVersion), obligationId: requirementId,
+      promise, scope: "real-product-observation", verifierSource },
+    evidence: applicable.filter((entry) => entry.proofType === "runtime" || entry.proofType === "artifact").map((entry) => ({
+      ...entry, contractId: `dsdd:${entry.intentDigest}`, contractVersion: String(entry.intentVersion), obligationId: entry.requirementId,
+    })),
+    testedCommit, environment, configuration, verifiedArtifactRefs,
+  });
 
   return {
-    status: resolvedStatus,
+    status: result.status,
+    claimScope: "locked-requirement-product-observation",
+    missing: result.missing,
     evidence: accepted,
     rejectedEvidenceCount: Math.max(0, candidates.length - accepted.length),
   };

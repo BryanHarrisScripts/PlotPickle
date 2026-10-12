@@ -804,7 +804,7 @@ export default function StoryboardReadinessWorkspace({
                       <div className={styles.storyboardWorkflowActions} id={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`} aria-label={`Shot ${position} analysis and narration actions`}>
                         {!lockedImageHandoffReady ? <>
                           <button type="button" disabled title="Save and Lock a Storyboard Image before preparing its narration brief.">Analyze Shot &amp; Prepare Brief</button>
-                          <button type="button" disabled title="Analyze and review a locked Shot before creating narration.">Create Narration from Reviewed Brief</button>
+                          <button type="button" disabled title="Analyze and review a locked Shot before creating narration.">Create Narration</button>
                         </> : null}
                       </div>
                       </div>

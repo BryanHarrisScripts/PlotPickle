@@ -1,6 +1,7 @@
 import { evaluateCaseRun, validateCaseDefinition } from "./casebook-contract.mjs";
 import { resultText, toolArguments } from "./creative-uat/mcp-runtime.mjs";
 import { sanitizeEvidenceText } from "./evidence-text-boundary.mjs";
+import { readVerifierObservations } from "../lib/verification/development/verifier-observations.mjs";
 
 export const CASEBOOK_EVIDENCE_SCHEMA_VERSION = 1;
 export const CASEBOOK_INTERACTION_KINDS = Object.freeze([
@@ -174,6 +175,25 @@ export function evaluateCaseEvidenceManifest(caseDefinition, manifest, verificat
     timelineSteps: manifest.timeline.length,
     contradictoryWorkerClaims: manifest.timeline.filter((entry) => entry.workerClaim === "pass" && entry.outcome !== "pass").length,
   };
+}
+
+// Trusted-host adapter; neither a manifest nor its worker can configure verifier authority.
+export async function evaluateCaseEvidenceWithReceipts(caseDefinition, manifest, { authority, testedCommit, receiptIds = [], receiptDigests = {}, now } = {}) {
+  const admitted = await readVerifierObservations({ authority, testedCommit, receiptIds, receiptDigests, now,
+    subject: { kind: "casebook", caseId: caseDefinition.id, runId: manifest.runId } });
+  const run = caseRunFromEvidenceManifest(caseDefinition, manifest);
+  const signed = admitted.observations.map((record) => ({ ...record,
+    id: record.id || `obligation-${record.obligationId}`, kind: record.kind || "evaluation",
+    status: record.finding === "contradicts" ? "contradicted" : record.finding === "supports" ? "verified" : "unverified" }));
+  // Public obligation records cannot reuse admitted refs to substitute other observed contents.
+  run.evidence = [...run.evidence.map(({ contractId, contractVersion, obligationId, ref, ...record }) => record), ...signed];
+  const result = evaluateCaseRun(caseDefinition, { ...run, testedCommit,
+    environment: authority?.environment, configuration: authority?.configuration,
+    verifiedArtifactRefs: admitted.verifiedArtifactRefs });
+  return { ...result,
+    ...(result.claimStatus !== "FAIL" && admitted.diagnostics.length ? { status: "uncertain", claimStatus: "UNPROVEN", realIntegrationVerified: false } : {}),
+    receiptDigests: { ...receiptDigests, ...Object.fromEntries(admitted.observations.map((record) => [record.receiptId, record.receiptDigest])) },
+    receiptDiagnostics: admitted.diagnostics };
 }
 
 export function completeCaseEvidenceManifest(manifest, input = {}) {

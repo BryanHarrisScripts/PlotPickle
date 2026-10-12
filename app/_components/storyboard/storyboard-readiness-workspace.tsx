@@ -776,7 +776,12 @@ export default function StoryboardReadinessWorkspace({
                       </div>
                       {frameNoticePosition === position && frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
                       <button className={styles.framePromptButton} type="button" disabled={frameBusy} onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>{selectedImage ? "Prepare a new prompt proposal / Create image" : "Create Storyboard Image"}</button>
-                      <div className={styles.storyboardWorkflowActions} id={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`} aria-label={`Shot ${position} analysis and narration actions`} />
+                      <div className={styles.storyboardWorkflowActions} id={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`} aria-label={`Shot ${position} analysis and narration actions`}>
+                        {!lockedImageHandoffReady ? <>
+                          <button type="button" disabled title="Save and Lock a Storyboard Image before preparing its narration brief.">Analyze Shot &amp; Prepare Brief</button>
+                          <button type="button" disabled title="Analyze and review a locked Shot before creating narration.">Create Narration from Reviewed Brief</button>
+                        </> : null}
+                      </div>
                       </div>
                       <div className={styles.positionContextColumn} data-storyboard-shot-context={position}>
                         <div className={styles.framePromptProvenance}>

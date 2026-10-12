@@ -40,6 +40,6 @@ test("#2928 puts reviewed narration actions under image without moving approval 
   assert.match(handoff, /reviewedShotBrief/u);
   assert.doesNotMatch(handoff, /<strong>Graphic Novel bubble \/ caption<\/strong>/u);
   assert.match(styles, /\.lockedShotHandoff\[data-embedded="true"\] \.handoffFacts \{ display: none; \}/u);
-  assert.match(proof, /shotControls\.getByRole\("button", \{ name: "Analyze Shot & Prepare Brief"/u);
-  assert.match(proof, /shotControls\.getByRole\("button", \{ name: "Create Narration from Reviewed Brief"/u);
+  assert.match(proof, /shotControls\.getByRole\("button", \{ name: "Prepare Narration Brief"/u);
+  assert.match(proof, /shotControls\.getByRole\("button", \{ name: "Create Narration"/u);
 });

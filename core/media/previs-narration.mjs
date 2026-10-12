@@ -205,12 +205,12 @@ export function parseStoryboardNarration(text, input) {
   // Local models sometimes serialize the exact selected Shot as one object
   // instead of a panels array, or stringify its position. Normalize only
   // bounded shape differences; do not relabel a different Shot or invent text.
-  const raw = JSON.parse(text.trim().replace(/^\`\`\`(?:json)?\\s*/u, '').replace(/\\s*\`\`\`$/u, ''));
+  const raw = JSON.parse(text.trim().replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, ""));
   const sourcePanel = Array.isArray(raw?.panels) && raw.panels.length === 1 ? raw.panels[0]
     : raw && typeof raw === 'object' && !Array.isArray(raw) && !('panels' in raw) ? raw : null;
   let normalized = text;
   if (sourcePanel && typeof sourcePanel === 'object' && !Array.isArray(sourcePanel)) {
-    const position = typeof sourcePanel.position === 'string' && /^(?:[1-9]|1\\d|2[0-5])$/u.test(sourcePanel.position)
+    const position = typeof sourcePanel.position === 'string' && /^(?:[1-9]|1\d|2[0-5])$/u.test(sourcePanel.position)
       ? Number(sourcePanel.position) : sourcePanel.position;
     const narration = typeof sourcePanel.narration === 'string'
       ? sourcePanel.narration : sourcePanel.caption;

@@ -12,7 +12,7 @@ test("#2420 reviews only the generated candidate at its Storyboard position", as
   assert.match(source, /foundations\.visual\.unaccept/u);
   assert.match(source, /decision === "accept"[\s\S]*"foundations\.visual\.accept"[\s\S]*decision === "unaccept"[\s\S]*"foundations\.visual\.unaccept"[\s\S]*"foundations\.visual\.delete"/u);
   assert.match(source, /await saveFoundationProjectDurably\(next, current\.revision\)/u);
-  assert.match(source, /setGenerationScope\("single"\)/u);
+  assert.match(source, /generateFrame\(position, originalPrompt\)/u, "Redo generates a candidate for this exact Shot using its original prompt");
   assert.match(source, /className=\{styles\.frameReview\}[\s\S]*?>\{frameSaving \? "Saving…" : "Save"\}<[\s\S]*?\{accepted \? "Unlock" : "Lock"\}<\/button>[\s\S]*?>Redo<[\s\S]*?>Delete/u);
   assert.match(source, /disabled=\{!selectedArtifact \|\| qaOnlyAccess \|\| frameBusy \|\| frameSaving\}/u);
   assert.match(source, /setPendingDeleteArtifactId\(selectedArtifact\.id\)/u);

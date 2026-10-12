@@ -1861,7 +1861,330 @@
       "platforms": [
         "any"
       ],
-      "requirements": …2985 tokens truncated…mjs",
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "#2621 preserves Blank-at-launch with a fresh one-shot explicit Library handoff for document-level compatibility navigation. #2657 makes canonical /skin-v1 Library navigation in-shell so ordinary Matrix transitions no longer need that handoff or profile rehydration."
+    },
+    {
+      "id": "story-canon.library-unload-active-story-2625",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "project-library",
+        "profile-library-index",
+        "blank-session-selection"
+      ],
+      "triggerTokens": [
+        "canon",
+        "storage",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2625-library-unload-active-story.test.mjs",
+          "tests/issue-2581-startup-isolation.test.mjs",
+          "tests/issue-2621-library-active-handoff.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2625 verifies that Unload preserves the durable story while clearing only the current-session selection, writes a null active-project index, returns to Blank without a #2621 handoff, and leaves explicit Open Example behavior intact."
+    },
+    {
+      "id": "story-canon.mind-map-retirement-2632",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "mind-map-canonical-authoring",
+        "legacy-discovery-compatibility",
+        "project-library"
+      ],
+      "triggerTokens": [
+        "canon",
+        "storage",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+          "tests/issue-2625-library-unload-active-story.test.mjs",
+          "tests/issue-2621-library-active-handoff.test.mjs",
+          "tests/issue-2581-startup-isolation.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2632 retires the legacy sticky-note/Living MindMap UI while preserving historical discovery-card storage and re-verifying Blank, explicit-open and unload lifecycle continuity."
+    },
+    {
+      "id": "production.modular-runtime-2697",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "revision-provenance",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "cli",
+        "native",
+        "provider",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2697-live-modular-runtimes.test.mjs",
+          "tests/issue-2732-startup-status-messaging.test.mjs",
+          "tests/issue-2698-runtime-shutdown.test.mjs",
+          "tests/issue-2698-launcher-probe.test.mjs",
+          "tests/issue-2698-media-retention.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
+      },
+      "notes": "#2697 proves registered modular service startup/shutdown, bounded craft selection and real Screening adapter evidence shape. #2732 adds truthful waiting/not-started presentation, optional-media messaging and clean-closeout regression coverage."
+    },
+    {
+      "id": "production.agent-checkpoint-contract-2709",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "agent",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2709-agent-checkpoint-task.test.mjs",
+          "tests/issue-2736-phase3-durable-roles.test.mjs",
+          "tests/issue-2738-preproduction-durable-assistance.test.mjs",
+          "tests/issue-2740-owner-preserving-handoffs.test.mjs",
+          "tests/issue-2743-phase3-role-task-recovery.test.mjs",
+          "tests/issue-2743-durable-lifecycle-closeout.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "Host-scoped durable agent checkpoint contract; #2736 binds Continuity, Critics' Circle and Creative Director to the shared replay-safe seam, #2738 connects their PRE-PRODUCTION Responsibility Run envelopes, #2740 preserves BUZZ/UAT/deterministic/repository execution owners through reference-only durable handoffs, and #2743 adds task-level checkpoint/reopen proof plus Human-facing lifecycle/maintenance closeout. Actual JSONL recovery is proven separately in the Windows Pi product gate."
+    },
+    {
+      "id": "story-canon.outline-durable-input-2711",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "agent",
+        "provider",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2711-outline-durable-input.test.mjs",
+          "tests/issue-2711-outline-task-controller.test.mjs",
+          "tests/issue-2711-outline-task-gateway.test.mjs",
+          "tests/issue-2711-outline-local-auth.test.mjs",
+          "tests/issue-outline-agent-assessment.test.mjs",
+          "tests/issue-2440-story-architect-structured-execution.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json"
+        ]
+      },
+      "notes": "Story Architect shared bounded request, material identity and protected host controller. Actual Mastra/Pi close-reopen fixture runs separately in the Windows Product Gate; rendered application resume remains unproven."
+    },
+    {
+      "id": "production.openpencil-command-mcp-2780",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "security",
+        "native",
+        "windows",
+        "agent"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2780-openpencil-command-mcp.test.mjs",
+          "tests/issue-2782-openpencil-profile-startup.test.mjs",
+          "tests/issue-2787-openpencil-gui-review.test.mjs",
+          "tests/issue-2800-openpencil-auto-design-review.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#2780 proves explicit Settings \u2192 Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret \u2192 Pi Draft \u2192 Publish Brief \u2192 GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
+    },
+    {
+      "id": "story-canon.save-session-continuity-2821",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "api",
+        "security",
+        "storage",
+        "surface",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2821-save-session-continuity.test.mjs",
+          "tests/issue-2847-process-restart.test.mjs",
+          "tests/issue-2821-afterglow-load-hydration-authority.test.mjs",
+          "tests/issue-2819-storyboard-idempotent-save.test.mjs",
+          "tests/issue-2821-build-artifact.test.mjs",
+          "tests/issue-2817-uat-persistence-auth-routing.test.mjs",
+          "tests/issue-2828-packaged-storyboard-media-contract.test.mjs",
+          "tests/issue-2830-outline-lock-visual-state.test.mjs",
+          "tests/issue-2830-previs-graphic-novel-motion.test.mjs",
+          "tests/issue-2832-profile-save-work.test.mjs",
+          "tests/issue-2835-startup-account-afterglow.test.mjs",
           "tests/issue-2863-afterglow-consolidation.test.mjs",
           "tests/issue-2863-current-master-image-recovery.test.mjs",
           "tests/issue-2863-afterglow-evidence-reconcile.test.mjs",

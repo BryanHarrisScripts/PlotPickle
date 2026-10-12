@@ -146,6 +146,37 @@ Use actual Story, Scene/Beat, Camera, Performance/Blocking, Lighting, Timing, In
 You are writing for exactly Shot ${selectedPosition}. The following is an OUTPUT-SHAPE EXAMPLE, not a story suggestion and not an invitation to invent speech. Use the actual selected position verbatim. For a caption, set narration to its complete short text and bubbles to []. For valid screenplay-owned dialogue, set narration to "" and bubbles to one object with the actual speaker and an exact contiguous screenplay quotation. Otherwise return empty narration and empty bubbles for explicit Human review. Do not add any other Shot or panel.\n\nReturn ONLY JSON: {"panels":[{"position":${selectedPosition},"narration":"","bubbles":[]}]}. Evidence: ${JSON.stringify({ storyContext:input.storyContext, passages:input.passages, sequence:input.sequence, panels:input.panels, shot:input.shot, shotAnalysis:input.shotAnalysis })}`;
 }
 
+/**
+ * One local-only recovery request after a rejected response. The reduced
+ * instruction focuses on the exact Shot and remains grounded in precisely
+ * the same evidence packet. No prior model text is ever echoed back.
+ */
+export function storyboardNarrationCorrectionPrompt(input, reason) {
+  const position = input.panels[0].position;
+  const captionOnly = reason === 'INVALID_DIALOGUE_SHAPE' || reason === 'DIALOGUE_NOT_IN_SCREENPLAY'
+    || reason === 'CAPTION_AND_DIALOGUE';
+  const advice = captionOnly
+    ? 'Do not use dialogue bubbles. Return only one complete scene caption grounded in the supplied evidence.'
+    : reason === 'UNFINISHED_CAPTION'
+      ? 'Return one complete sentence with a finished thought; no dangling punctuation.'
+      : 'Return one complete printable expression without invented dialogue.';
+  return [
+    'FORMAT CORRECTION: ' + reason + '. Produce exactly ONE response for the same selected Storyboard Shot.',
+    'This is a text-only Graphic Novel draft, not an approval. Never invent dialogue, actions, speaker identity, or visual pixel facts.',
+    advice,
+    'Keep the caption within twelve words and one hundred characters. Never output screenplay or camera formatting.',
+    'Use one caption and no bubbles, unless there is unambiguously Shot-owned exact screenplay dialogue.',
+    'Return only JSON with this exact shape; position MUST be the integer shown: {"panels":[{"position":' + position + ',"narration":"","bubbles":[]}]}',
+    'Supply a short grounded caption in narration, or an exact licensed dialogue bubble instead; do not return an empty result.',
+    'No markdown, explanation, code fences, additional fields or additional shots.',
+    'Evidence: ' + JSON.stringify({
+      storyContext: input.storyContext, passages: input.passages,
+      sequence: input.sequence, panels: input.panels, shot: input.shot,
+      shotAnalysis: input.shotAnalysis,
+    }),
+  ].join('\n\n');
+}
+
 function quotationWords(value) {
   const normalized = value.normalize('NFKC').toLocaleLowerCase();
   return normalized.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -171,7 +202,22 @@ export function parseStoryboardNarration(text, input) {
   if (input?.mode !== 'storyboard-shot' || input.panels?.length !== 1) {
     throw new Error('Storyboard narration must target one text-only Shot.');
   }
-  const [panel] = parseNarration(text, input);
+  // Local models sometimes serialize the exact selected Shot as one object
+  // instead of a panels array, or stringify its position. Normalize only
+  // bounded shape differences; do not relabel a different Shot or invent text.
+  const raw = JSON.parse(text.trim().replace(/^\`\`\`(?:json)?\\s*/u, '').replace(/\\s*\`\`\`$/u, ''));
+  const sourcePanel = Array.isArray(raw?.panels) && raw.panels.length === 1 ? raw.panels[0]
+    : raw && typeof raw === 'object' && !Array.isArray(raw) && !('panels' in raw) ? raw : null;
+  let normalized = text;
+  if (sourcePanel && typeof sourcePanel === 'object' && !Array.isArray(sourcePanel)) {
+    const position = typeof sourcePanel.position === 'string' && /^(?:[1-9]|1\\d|2[0-5])$/u.test(sourcePanel.position)
+      ? Number(sourcePanel.position) : sourcePanel.position;
+    const narration = typeof sourcePanel.narration === 'string'
+      ? sourcePanel.narration : sourcePanel.caption;
+    const bubbles = sourcePanel.bubbles === undefined && typeof narration === 'string' ? [] : sourcePanel.bubbles;
+    normalized = JSON.stringify({ panels: [{ position, narration, bubbles }] });
+  }
+  const [panel] = parseNarration(normalized, input);
   if (!panel.narration && panel.bubbles.length === 0) {
     throw new Error('Empty narration output contains no printable caption or dialogue bubble.');
   }

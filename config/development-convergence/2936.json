@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "issue": 2936,
+  "brief": "docs/developer-briefs/consolidated-approved-truth-recovery.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2936-white-paper-coverage-audit.md",
+    "docs/verification/2936-white-paper-coverage.json",
+    "lib/verification/development/white-paper-coverage.mjs",
+    "scripts/verification-white-paper-coverage.mjs",
+    "tests/issue-2936-white-paper-coverage.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2936.json",
+    "docs/verification/2936-coverage-review.md",
+    "docs/developer-briefs/consolidated-approved-truth-recovery.md",
+    "docs/verification/2936-white-paper-coverage.md",
+    "tests/issue-2936-consolidated-contracts.test.mjs",
+    "tests/issue-2847-process-restart.test.mjs",
+    "tests/support/issue-2847-process-restart-worker.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "SOURCE",
+      "criterion": "Every source unit and complete candidate meaning is accounted for with exact provenance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2936-white-paper-coverage.test.mjs",
+          "contains": "missing source units, omitted fragments, stale locations and duplicate meaning fail integrity"
+        }
+      ]
+    },
+    {
+      "id": "NO-PROMOTION",
+      "criterion": "Engineering receipts and inventory integrity cannot certify product conformance or Human approval.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2936-white-paper-coverage.test.mjs",
+          "contains": "execution-only or fixture receipts cannot become observed device/provider conformance"
+        }
+      ]
+    },
+    {
+      "id": "LEGACY",
+      "criterion": "Revision-pinned legacy metadata exposes pending semantic review.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2936-white-paper-coverage.test.mjs",
+          "contains": "baseline inventory detects dropped bytes, altered owners and invented semantic certification"
+        }
+      ]
+    },
+    {
+      "id": "STALE",
+      "criterion": "Partial source enforcement references reject stale implementations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2936-white-paper-coverage.test.mjs",
+          "contains": "partial enforcement is source-pinned, scoped and never whole-paper assurance"
+        }
+      ]
+    },
+    {
+      "id": "GAPS",
+      "criterion": "Unproven real observations, formal assurance, composition/migration and measurement work remain linked.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/development/white-paper-coverage.mjs",
+          "contains": "#2937"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/development/white-paper-coverage.mjs",
+          "contains": "#2938"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/development/white-paper-coverage.mjs",
+          "contains": "#2939"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/development/white-paper-coverage.mjs",
+          "contains": "#2940"
+        }
+      ]
+    },
+    {
+      "id": "CONSOLIDATED",
+      "criterion": "All approved Save/narration obligation provenance and seven layers are accounted for without unsupported conformance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2936-consolidated-contracts.test.mjs",
+          "contains": "consolidated obligation provenance rejects missing, forged, duplicate and stale contract rows"
+        }
+      ]
+    },
+    {
+      "id": "TEXT-RECOVERY",
+      "criterion": "Two authenticated processes recover exact caption/legacy no-text and reject changed image in actual Previs predicate; rendered Human outcome remains unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/support/issue-2847-process-restart-worker.mjs",
+          "contains": "same badge cannot approve a different recovered image version"
+        }
+      ]
+    }
+  ]
+}

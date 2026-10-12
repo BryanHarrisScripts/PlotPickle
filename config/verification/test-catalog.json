@@ -1167,7 +1167,9 @@
           "tests/issue-2714-focused-uat-evidence.test.mjs",
           "tests/issue-2932-approved-truth-claims.test.mjs",
           "tests/issue-1926-verification-schemas.test.mjs",
-          "tests/issue-2934-future-test-truth.test.mjs"
+          "tests/issue-2934-future-test-truth.test.mjs",
+          "tests/issue-2936-white-paper-coverage.test.mjs",
+          "tests/issue-2936-consolidated-contracts.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2586,6 +2588,129 @@
         ],
         "limits": "Source identity and shared rendering wiring only. Real restart recovery, inference and artistic quality remain UNPROVEN.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2936-white-paper-coverage.test.mjs",
+        "targetDigest": "c3488f8b39a791660b38d115c12b9ef1bc2686cbaf3ff071d819305bc46deb7e",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W11"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W12"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Coverage/inventory integrity and adversarial provenance checks only. Semantic interpretation review, actual device/provider outcomes and measured Human benefit remain UNPROVEN.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/white-paper-coverage.mjs",
+            "digest": "ee86323dd5726fde8e7696d9920ba3a2488c27326f4209299b630b43a836d56a"
+          },
+          {
+            "path": "scripts/verification-white-paper-coverage.mjs",
+            "digest": "dc44205ec4513b7057cfcb901cc9c62184ef1d4be39bb373109950a9d367ec96"
+          },
+          {
+            "path": "docs/verification/2936-white-paper-coverage.json",
+            "digest": "4243791e2ae43a59bfc2b384cf6c2eb8ecb9ed79a4d4160a1e73f47e50bd1b61"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2936-consolidated-contracts.test.mjs",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W11"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W12"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Audit integrity and negative controls only; Human interpretation, assertion fidelity and real device/provider conformance remain UNPROVEN.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/white-paper-coverage.mjs",
+            "digest": "ee86323dd5726fde8e7696d9920ba3a2488c27326f4209299b630b43a836d56a"
+          },
+          {
+            "path": "scripts/verification-white-paper-coverage.mjs",
+            "digest": "dc44205ec4513b7057cfcb901cc9c62184ef1d4be39bb373109950a9d367ec96"
+          },
+          {
+            "path": "docs/verification/2936-white-paper-coverage.json",
+            "digest": "4243791e2ae43a59bfc2b384cf6c2eb8ecb9ed79a4d4160a1e73f47e50bd1b61"
+          }
+        ],
+        "targetDigest": "2425a5e15b0e7824ed974b1a62dedbb055e51ba58b7147a625663b1a3a2440c2"
+      },
+      {
+        "target": "tests/issue-2847-process-restart.test.mjs",
+        "targetDigest": "ab37e6e70f571b606ff6ae849613188c73af57f271988469ba0b7a5762575894",
+        "catalogueIds": [
+          "story-canon.save-session-continuity-2821"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T6"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T7"
+          },
+          {
+            "truthId": "PP-NARR-001",
+            "obligationId": "B5"
+          },
+          {
+            "truthId": "PP-NARR-001",
+            "obligationId": "B6"
+          },
+          {
+            "truthId": "PP-NARR-001",
+            "obligationId": "B7"
+          }
+        ],
+        "scopes": [
+          "real-boundary",
+          "unit-fixture"
+        ],
+        "limits": "Real authenticated HTTP/encrypted storage across separate processes; browser storage/projections use fixtures. Caption and legacy no-text recovery do not certify rendered UI, Human launcher or real local inference.",
+        "inputs": [
+          {
+            "path": "tests/support/issue-2847-process-restart-worker.mjs",
+            "digest": "3077af396b132abb04084520c6551f49283fa94b38d4783c746ee6f7f79fb2cd"
+          }
+        ]
       }
     ]
   }

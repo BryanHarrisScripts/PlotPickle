@@ -465,8 +465,8 @@ export default function StoryboardLockedShotHandoff({
                         disabled={busyPosition !== null || savingPosition !== null || (!authoredSequencePassages.length && !sequenceShots[position - 1]?.intention)}
                         type="button"
                         onClick={() => void prepareShotBrief(panel, shotFacts)}
-                      >{busyPosition === position ? "Preparing…" : brief ? "Reprepare Shot Brief" : "Analyze Shot & Prepare Brief"}</button>
-                      <button type="button" disabled={!brief || busyPosition !== null || savingPosition !== null} title={!brief ? "Analyze and review this Shot before creating narration." : undefined} onClick={() => { if (brief) void generateNarration(panel, brief.facts, brief); }}>Create Narration from Reviewed Brief</button>
+                      >{busyPosition === position ? "Preparing…" : brief ? "Reprepare Narration Brief" : "Prepare Narration Brief"}</button>
+                      <button type="button" disabled={!brief || busyPosition !== null || savingPosition !== null} title={!brief ? "Analyze and review this Shot before creating narration." : undefined} onClick={() => { if (brief) void generateNarration(panel, brief.facts, brief); }}>Create Narration</button>
                     </div>,
                     actionHost,
                   ) : null}

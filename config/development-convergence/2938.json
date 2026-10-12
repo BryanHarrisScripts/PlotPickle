@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "issue": 2938,
+  "brief": "docs/developer-briefs/2938-safety-progress-correspondence.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2938-safety-progress-correspondence.md",
+    "docs/verification/2938-safety-progress.json",
+    "docs/verification/2938-safety-progress.md",
+    "lib/verification/development/safety-progress.mjs",
+    "scripts/verification-safety-progress.mjs",
+    "tests/issue-2938-safety-progress.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2938.json"
+  ],
+  "acceptance": [
+    {
+      "id": "1",
+      "criterion": "exhaustive bounded model",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "exhaustive bounded model"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "criterion": "never-completing pending implementation",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "never-completing pending implementation"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "criterion": "multi-step distributed writes",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "multi-step distributed writes"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "criterion": "source drift invalidates",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "source drift invalidates"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "criterion": "cannot certify real product",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "cannot certify real product"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "criterion": "missing assumptions mappings gaps",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2938-safety-progress.test.mjs",
+          "contains": "missing assumptions mappings gaps"
+        }
+      ]
+    }
+  ]
+}

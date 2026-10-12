@@ -61,22 +61,21 @@ test("#2418 final prompt carries Shot-specific story progression instead of one 
   assert.match(source, /This is a Shot-planning function, not a Beat assignment/u);
 });
 
-test("#2418 Storyboard UI submits separate local WebP requests with 1 5 25 scope and character grounding", async () => {
+test("#2930 Storyboard UI submits only one selected Shot with its stable prompt and character grounding", async () => {
   const source = await readFile(workspaceUrl, "utf8");
-  assert.match(source, /useState<StoryboardGenerationScope>\("group5"\)/u);
-  assert.match(source, /Selected Shot/u);
-  assert.match(source, /Current group of 5 Shots/u);
-  assert.match(source, /All 25 Shots/u);
-  assert.match(source, /I approve this image generation request through my configured provider/u);
-  assert.match(source, /storyboardPositionsForScope\(promptPosition, generationScope\)/u);
-  assert.match(source, /for \(let index = 0; index < positions\.length; index \+= 1\)/u);
+  assert.match(source, /Create Storyboard Image Prompt/u);
+  assert.match(source, /Create Storyboard Image/u);
+  assert.match(source, /storyboardImagePrompts/u);
+  assert.match(source, /generateFrame\(position, originalPrompt\)/u);
+  assert.doesNotMatch(source, /setGenerationScope|storyboard-generation-scope|Current group of 5 Shots|All 25 Shots|frameConsent/u);
   assert.match(source, /approvedCharacterReferences: plan\.brief\.approvedVisualRefs/u);
   assert.match(source, /identityLocks: plan\.brief\.identityLocks/u);
   assert.match(source, /frameNumber: position/u);
   assert.match(source, /workflow: "storyboard-frame-webp-v2"/u);
   assert.match(source, /reviewState: "draft"/u);
-  assert.match(source, /saved locally for review/u);
+  assert.match(source, /await requestPlotPickleConfirmation/u, "cloud payment consent is retained for charged requests");
 });
+
 
 test("#2418 current diff converges and production build succeeds", { timeout: 240_000 }, async (t) => {
   const changed = changedFilesFromGit({ root });

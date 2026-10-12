@@ -16,7 +16,8 @@
     "docs/developer-briefs/2930-single-shot-narration.md",
     "config/development-convergence/2930.json",
     "tests/issue-2418-storyboard-batch-progression.test.mjs",
-    "tests/issue-2420-storyboard-frame-review.test.mjs"
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2821-afterglow-load-hydration-authority.test.mjs"
   ],
   "acceptance": [
     {

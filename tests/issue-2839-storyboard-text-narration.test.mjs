@@ -5,6 +5,7 @@ import { stripTypeScriptTypes } from 'node:module';
 import vm from 'node:vm';
 // PP-NARR-001 B6 runs in the existing Windows narration gate, not only as an unselected new test file.
 import './issue-2855-bubble-source-identity.test.mjs';
+import './issue-2930-single-shot-narration.test.mjs';
 import './issue-2907-narration-overall-story.test.mjs';
 import './issue-2909-narration-storytelling-skill.test.mjs';
 import './issue-2841-local-writing-truth.test.mjs';

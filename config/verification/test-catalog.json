@@ -1169,7 +1169,8 @@
           "tests/issue-1926-verification-schemas.test.mjs",
           "tests/issue-2934-future-test-truth.test.mjs",
           "tests/issue-2936-white-paper-coverage.test.mjs",
-          "tests/issue-2936-consolidated-contracts.test.mjs"
+          "tests/issue-2936-consolidated-contracts.test.mjs",
+          "tests/issue-2937-verifier-receipts.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2709,6 +2710,126 @@
           {
             "path": "tests/support/issue-2847-process-restart-worker.mjs",
             "digest": "3077af396b132abb04084520c6551f49283fa94b38d4783c746ee6f7f79fb2cd"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2937-verifier-receipts.test.mjs",
+        "targetDigest": "1e88d6d5dfaffcb0f6e0a2409601bc76ee24e709a3ef69e1e59f07dc286978d0",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Signed-receipt provenance, applicability and actual HTTP handler under isolated storage/Pi fixtures. Cryptographic authenticity is not semantic verifier fidelity, real Windows restart, provider execution or Human acceptance.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/verifier-observations.mjs",
+            "digest": "9c9764dbeb4b34c2463157aeae2799975c166766260cda7f6d09fc5a86c9ece5"
+          },
+          {
+            "path": "build/dsdd/dsdd-evidence-contract.mjs",
+            "digest": "db3cef87d34f0e2dd4b286d982282005887f8e2c4fea12ab5b02b843c6d3ad41"
+          },
+          {
+            "path": "build/dsdd/dsdd-session-gateway.ts",
+            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+          },
+          {
+            "path": "scripts/casebook-evidence.mjs",
+            "digest": "bd229a744881abb5f4be64a877b0ee716e1e33f96bf42aafced75a034bf6500d"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+        "targetDigest": "982a56682a0a97f92e27d65a6cd21c8ed4671fcbf5e72b504d2c82c3cb1feacf",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Signed-receipt provenance, applicability and actual HTTP handler under isolated storage/Pi fixtures. Cryptographic authenticity is not semantic verifier fidelity, real Windows restart, provider execution or Human acceptance.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/verifier-observations.mjs",
+            "digest": "9c9764dbeb4b34c2463157aeae2799975c166766260cda7f6d09fc5a86c9ece5"
+          },
+          {
+            "path": "build/dsdd/dsdd-evidence-contract.mjs",
+            "digest": "db3cef87d34f0e2dd4b286d982282005887f8e2c4fea12ab5b02b843c6d3ad41"
+          },
+          {
+            "path": "build/dsdd/dsdd-session-gateway.ts",
+            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+          },
+          {
+            "path": "scripts/casebook-evidence.mjs",
+            "digest": "bd229a744881abb5f4be64a877b0ee716e1e33f96bf42aafced75a034bf6500d"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+        "targetDigest": "e1022512a13983a39a38300edde17bd0e906f9ec61018e85df8c882709b71990",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Signed-receipt provenance, applicability and actual HTTP handler under isolated storage/Pi fixtures. Cryptographic authenticity is not semantic verifier fidelity, real Windows restart, provider execution or Human acceptance.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/verifier-observations.mjs",
+            "digest": "9c9764dbeb4b34c2463157aeae2799975c166766260cda7f6d09fc5a86c9ece5"
+          },
+          {
+            "path": "build/dsdd/dsdd-evidence-contract.mjs",
+            "digest": "db3cef87d34f0e2dd4b286d982282005887f8e2c4fea12ab5b02b843c6d3ad41"
+          },
+          {
+            "path": "build/dsdd/dsdd-session-gateway.ts",
+            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+          },
+          {
+            "path": "scripts/casebook-evidence.mjs",
+            "digest": "bd229a744881abb5f4be64a877b0ee716e1e33f96bf42aafced75a034bf6500d"
           }
         ]
       }

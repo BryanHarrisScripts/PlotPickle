@@ -7,7 +7,8 @@ import { currentProfileRequestContext } from "../auth/profile-request-context";
 import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
-import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
+import { evaluateVerifierEvidenceUpdate, retainVerifierReceiptIds } from "./dsdd-evidence-contract.mjs";
+import { verifierObservationAuthority } from "../../lib/verification/development/verifier-observations.mjs";
 import { assertDsddInterpretationIntegrity } from "../../scripts/dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 import {
@@ -166,6 +167,9 @@ type DsddRequirement = {
   text: string;
   status: "PASS" | "FAIL" | "BLOCKED" | "UNPROVEN";
   evidence: DsddEvidence[];
+  verifierReceiptIds?: string[];
+  verifierReceiptDigests?: Record<string, string>;
+  receiptDiagnostics?: Array<{ receiptId: string; reason: string }>;
 };
 
 type DsddDeveloperBrief = {
@@ -335,10 +339,24 @@ async function load() {
     objectId: OBJECT_ID,
   });
   const session = normalizeSession(stored);
-  // Historical PASS records also need current independently admitted evidence.
+  // Re-read signed observations; persisted status and public evidence are not authority.
   for (const intent of session.intents) {
     for (const requirement of intent.requirements || []) {
-      if (requirement.status === "PASS") requirement.status = "UNPROVEN";
+      if (requirement.verifierReceiptIds?.length) {
+        const packet = ensureHandoffPacket(intent);
+        const evaluated = await evaluateVerifierEvidenceUpdate({
+          authority: verifierObservationAuthority(), profileId: context.profileId, sessionId: session.sessionId,
+          intentVersion: intent.version, intentDigest: packet.intentDigest, requirementId: requirement.id,
+          promise: requirement.text, testedCommit: currentConversationalUatIdentity().head,
+          receiptIds: requirement.verifierReceiptIds, receiptDigests: requirement.verifierReceiptDigests, evidence: requirement.evidence,
+        });
+        requirement.status = evaluated.status as DsddRequirement["status"];
+        requirement.evidence = evaluated.evidence as DsddEvidence[];
+        requirement.receiptDiagnostics = evaluated.receiptDiagnostics;
+        requirement.verifierReceiptDigests = evaluated.receiptDigests;
+      } else {
+        requirement.status = "UNPROVEN";
+      }
     }
   }
   if (!stored) await save(context, session);
@@ -792,19 +810,25 @@ async function recordEvidence(body: Record<string, unknown>) {
     const requirement = intent.requirements.find((candidate) => candidate.id === text(item.id, 40));
     const status = item.status;
     if (!requirement || !["PASS", "FAIL", "BLOCKED", "UNPROVEN"].includes(String(status))) continue;
-    const evaluated = evaluateEvidenceUpdate({
+    const receiptIds = retainVerifierReceiptIds(requirement.verifierReceiptIds, item.verifierReceiptIds ?? []);
+    const evaluated = await evaluateVerifierEvidenceUpdate({
+      authority: verifierObservationAuthority(),
+      profileId: context.profileId,
+      sessionId: session.sessionId,
       intentVersion: intent.version,
       intentDigest: packet.intentDigest,
       requirementId: requirement.id,
       promise: requirement.text,
       testedCommit: currentConversationalUatIdentity().head,
-      // Submitted records remain visible, but cannot authenticate their own artifact references.
-      // No independent verifier receipt is supplied by this endpoint; product claims stay UNPROVEN.
-      verifiedArtifactRefs: [],
+      receiptIds,
+      receiptDigests: requirement.verifierReceiptDigests,
       evidence: item.evidence,
     });
     requirement.status = evaluated.status as DsddRequirement["status"];
     requirement.evidence = evaluated.evidence as DsddEvidence[];
+    requirement.verifierReceiptIds = receiptIds;
+    requirement.receiptDiagnostics = evaluated.receiptDiagnostics;
+    requirement.verifierReceiptDigests = evaluated.receiptDigests;
   }
   await runDsddPiAction({
     action: "record-evidence",

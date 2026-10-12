@@ -1,4 +1,5 @@
 import { assessObligationProof } from "../../lib/verification/development/proof-routing.mjs";
+import { readVerifierObservations } from "../../lib/verification/development/verifier-observations.mjs";
 
 const PROOF_TYPES = new Set(["test", "ci", "runtime", "artifact"]);
 const FINDINGS = new Set(["supports", "contradicts", "blocked", "insufficient"]);
@@ -71,4 +72,35 @@ export function evaluateEvidenceUpdate({ intentVersion, intentDigest, requiremen
     evidence: accepted,
     rejectedEvidenceCount: Math.max(0, candidates.length - accepted.length),
   };
+}
+
+// Public evidence may describe a claim but only signed, re-read observations decide status.
+export async function evaluateVerifierEvidenceUpdate({ authority, profileId, sessionId, intentVersion, intentDigest,
+  requirementId, promise, testedCommit, receiptIds = [], receiptDigests = {}, evidence = [], now }) {
+  const admitted = await readVerifierObservations({ authority, testedCommit, receiptIds, receiptDigests, now,
+    subject: { kind: "dsdd", profileId, sessionId, intentVersion, intentDigest, requirementId, promise } });
+  const matching = admitted.observations.filter((record) => record.contractId === `dsdd:${intentDigest}` && record.contractVersion === String(intentVersion));
+  for (const record of admitted.observations.filter((record) => !matching.includes(record))) {
+    admitted.diagnostics.push({ receiptId: record.receiptId, reason: "observation-contract-mismatch" });
+  }
+  const verifierEvidence = matching.map((record) => ({ ...record,
+    intentVersion, intentDigest, requirementId: record.obligationId,
+    proofType: "runtime", testedSource: record.source, summary: record.observedResult }));
+  // Evaluate authenticated contents alone. A public record cannot borrow their trusted refs.
+  const evaluated = evaluateEvidenceUpdate({ intentVersion, intentDigest, requirementId, promise, testedCommit,
+    environment: authority?.environment, configuration: authority?.configuration, verifierSource: authority?.source,
+    verifiedArtifactRefs: admitted.verifiedArtifactRefs, evidence: verifierEvidence });
+  const submitted = evaluateEvidenceUpdate({ intentVersion, intentDigest, requirementId, promise, testedCommit, evidence });
+  return { ...evaluated, status: evaluated.status !== "FAIL" && admitted.diagnostics.length ? "UNPROVEN" : evaluated.status,
+    evidence: evaluated.evidence.length ? evaluated.evidence : submitted.evidence,
+    receiptDigests: { ...receiptDigests, ...Object.fromEntries(matching.map((record) => [record.receiptId, record.receiptDigest])) },
+    receiptDiagnostics: admitted.diagnostics };
+}
+
+export function retainVerifierReceiptIds(previous = [], submitted = []) {
+  const valid = (ids) => Array.isArray(ids) && ids.every((id) => typeof id === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/u.test(id));
+  if (!valid(previous) || !valid(submitted)) throw new Error("Invalid verifier receipt identities.");
+  const ids = [...new Set([...previous, ...submitted])];
+  if (ids.length > 128) throw new Error("Verifier receipt limit reached; prior observations cannot be discarded by this update.");
+  return ids;
 }

@@ -92,7 +92,7 @@ test("#2331 contradictory evidence prevents PASS and is required for FAIL", () =
 
 test("#2331 gateway delegates status resolution to the deterministic evidence contract", async () => {
   const gateway = await readFile(new URL("../build/dsdd/dsdd-session-gateway.ts", import.meta.url), "utf8");
-  assert.match(gateway, /evaluateEvidenceUpdate/u);
+  assert.match(gateway, /await evaluateVerifierEvidenceUpdate/u);
   assert.match(gateway, /intentDigest: packet\.intentDigest/u);
   assert.doesNotMatch(gateway, /requirement\.status = status/u);
   assert.doesNotMatch(gateway, /intent\.understoodMeaning\s*=/u);

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "issue": 2937,
+  "brief": "docs/developer-briefs/2937-verifier-receipt-admission.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2937-verifier-receipt-admission.md",
+    "lib/verification/development/verifier-observations.mjs",
+    "build/dsdd/dsdd-evidence-contract.mjs",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "scripts/casebook-evidence.mjs",
+    "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+    "tests/issue-2937-verifier-receipts.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2937.json",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTHENTICITY",
+      "criterion": "wrong signature, modified payload and changed artifact",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "wrong signature, modified payload and changed artifact"
+        }
+      ]
+    },
+    {
+      "id": "IDENTITY",
+      "criterion": "wrong profile, session, requirement, intent",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "wrong profile, session, requirement, intent"
+        }
+      ]
+    },
+    {
+      "id": "SCOPE",
+      "criterion": "signed fixture, self-report or execution-only",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "signed fixture, self-report or execution-only"
+        }
+      ]
+    },
+    {
+      "id": "SUBSTITUTION",
+      "criterion": "public evidence cannot substitute a trusted ref",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "public evidence cannot substitute a trusted ref"
+        }
+      ]
+    },
+    {
+      "id": "RETENTION",
+      "criterion": "retained contradiction outranks blockers",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "retained contradiction outranks blockers"
+        }
+      ]
+    },
+    {
+      "id": "HTTP",
+      "criterion": "real gateway HTTP intake retains contradictions",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "real gateway HTTP intake retains contradictions"
+        }
+      ]
+    },
+    {
+      "id": "CASEBOOK",
+      "criterion": "Casebook uses the same signed observation boundary",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2937-verifier-receipts.test.mjs",
+          "contains": "Casebook uses the same signed observation boundary"
+        }
+      ]
+    }
+  ]
+}

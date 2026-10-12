@@ -108,7 +108,9 @@ test("#2331 maps requirement evidence to PASS FAIL BLOCKED or UNPROVEN without r
   assert.match(gateway, /\["PASS", "FAIL", "BLOCKED", "UNPROVEN"\]\.includes\(String\(status\)\)/u);
   assert.match(gateway, /requirementId: requirement\.id/u);
   assert.match(gateway, /promise: requirement\.text/u);
-  assert.match(gateway, /verifiedArtifactRefs: \[\]/u);
+  assert.match(gateway, /authority: verifierObservationAuthority\(\)/u);
+  assert.match(gateway, /await evaluateVerifierEvidenceUpdate/u);
+  assert.doesNotMatch(gateway, /verifiedArtifactRefs: (?:body|item)\./u);
   assert.match(gateway, /const intent = session\.intents\.find/u);
   assert.match(gateway, /The referenced locked DSDD intent version does not exist/u);
   assert.doesNotMatch(gateway, /intent\.understoodMeaning\s*=/u);

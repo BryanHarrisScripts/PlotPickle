@@ -26,20 +26,20 @@ export function isLocalPlotPickleRequest(request: IncomingMessage) {
   return !origin || (URL.canParse(origin) && new URL(origin).host === hostUrl.host);
 }
 
-export async function readLocalPpfRequest(request: IncomingMessage) {
+export async function readLocalPpfRequest(request: IncomingMessage, subject = ".ppf") {
   const contentLength = Number(request.headers["content-length"] || 0);
   if (Number.isFinite(contentLength) && contentLength > MAX_LOCAL_PPF_BYTES) {
-    throw new Error("The .ppf is larger than PlotPickle's 48 MB local ingestion limit.");
+    throw new Error(`The ${subject} is larger than PlotPickle's 48 MB local ingestion limit.`);
   }
   const chunks: Buffer[] = [];
   let length = 0;
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     length += value.length;
-    if (length > MAX_LOCAL_PPF_BYTES) throw new Error("The .ppf is larger than PlotPickle's 48 MB local ingestion limit.");
+    if (length > MAX_LOCAL_PPF_BYTES) throw new Error(`The ${subject} is larger than PlotPickle's 48 MB local ingestion limit.`);
     chunks.push(value);
   }
-  if (!length) throw new Error("Choose a PlotPickle .ppf file first.");
+  if (!length) throw new Error(`Choose a ${subject} file first.`);
   return Buffer.concat(chunks);
 }
 

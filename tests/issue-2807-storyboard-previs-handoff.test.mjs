@@ -72,8 +72,8 @@ test("#2807 authors Graphic Novel text through the existing Previs approval auth
   assert.doesNotMatch(handoff, />\{savingPosition === position \? "Saving…" : "No Bubble"\}</u);
   assert.match(handoff, /approvalState\.current\?\.noText[\s\S]*?No Bubble · Saved & Locked/u,
     "existing no-text approvals remain visible without offering a new No Bubble choice");
-  assert.match(handoff, /Analyze Shot & Prepare Brief/u);
-  assert.match(handoff, /Create Narration from Reviewed Brief/u);
+  assert.match(handoff, /Prepare Narration Brief/u);
+  assert.match(handoff, /Create Narration/u);
   assert.match(handoff, /Shot brief · review only/u);
   assert.match(handoff, /reviewedShotBrief/u);
   assert.match(handoff, /noText/u);
@@ -166,7 +166,7 @@ test("#2927 Visual Story readiness is the always-rendered 25 Shot sequence, not 
   assert.equal(canonical.runtimeReadySelector, selector);
   assert.equal(declaration.runtimeSelector, selector);
   assert.equal(manifest.selector, selector);
-  assert.match(windowsProof, /Analyze Shot & Prepare Brief/u);
-  assert.match(windowsProof, /Create Narration from Reviewed Brief/u);
+  assert.match(windowsProof, /Prepare Narration Brief/u);
+  assert.match(windowsProof, /Create Narration/u);
   assert.match(windowsProof, /payload\.shotAnalysis, reviewedAnalysis/u);
 });

@@ -378,7 +378,7 @@
 .positionList { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pp-skin-space-2); }
 .positionRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(250px, .82fr) minmax(0, 2fr);
   gap: var(--pp-skin-space-2);
   align-items: center;
   padding: var(--pp-skin-space-2);
@@ -387,6 +387,12 @@
 }
 .positionRowLocked { grid-template-columns: minmax(250px, .82fr) minmax(0, 2fr); align-items: stretch; }
 .positionReviewColumn { display: grid; align-content: start; gap: var(--pp-skin-space-2); min-width: 0; }
+.positionContextColumn { display: grid; align-content: start; gap: var(--pp-skin-space-2); min-width: 0; }
+.storyboardWorkflowActions { display: grid; gap: var(--pp-skin-space-2); min-width: 0; }
+.storyboardWorkflowActions .handoffNarrationActions { display: grid; gap: var(--pp-skin-space-2); }
+.storyboardWorkflowActions button { width: 100%; min-height: var(--pp-skin-control-height); padding: var(--pp-skin-space-2); border: 1px solid var(--pp-skin-line-strong); background: var(--pp-skin-surface-0); color: var(--pp-skin-ink); font: inherit; cursor: pointer; }
+.storyboardWorkflowActions button:disabled { opacity: .55; cursor: default; }
+.positionRow > .handoffEmpty { grid-column: 1 / -1; margin: 0; }
 .framePromptButton,
 .frameReview button,
 .framePromptPanel button {
@@ -691,7 +697,7 @@
 
 .handoffRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .9fr);
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   border: 0;
   background: transparent;
@@ -700,11 +706,12 @@
 .handoffRow > * {
   min-width: 0;
   padding: var(--pp-skin-space-2);
-  border-right: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
 }
+.lockedShotHandoff[data-embedded="true"] .handoffFacts { display: none; }
 
 .handoffRow > *:last-child {
-  border-right: 0;
+  border-bottom: 0;
 }
 
 .handoffIdentity {
@@ -854,14 +861,13 @@
 }
 
 @media (max-width: 760px) {
-  .positionRowLocked { grid-template-columns: minmax(0, 1fr); }
+  .positionRow, .positionRowLocked { grid-template-columns: minmax(0, 1fr); }
   .lockedShotHandoff[data-embedded="true"] { grid-column: 1; }
   .handoffRow {
     grid-template-columns: 1fr;
   }
 
   .handoffRow > * {
-    border-right: 0;
     border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   }
 

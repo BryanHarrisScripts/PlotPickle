@@ -1565,6 +1565,7 @@
         "scripts/verification-shadow.mjs",
         "scripts/verification-test-truth.mjs",
         "scripts/verification-white-paper-coverage.mjs",
+        "scripts/verification-safety-progress.mjs",
         "scripts/run-uat-closed-loop.mjs",
         "scripts/package-smoke.mjs",
         "scripts/windows-server-smoke.mjs",

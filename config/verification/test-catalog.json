@@ -1170,7 +1170,8 @@
           "tests/issue-2934-future-test-truth.test.mjs",
           "tests/issue-2936-white-paper-coverage.test.mjs",
           "tests/issue-2936-consolidated-contracts.test.mjs",
-          "tests/issue-2937-verifier-receipts.test.mjs"
+          "tests/issue-2937-verifier-receipts.test.mjs",
+          "tests/issue-2938-safety-progress.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2830,6 +2831,54 @@
           {
             "path": "scripts/casebook-evidence.mjs",
             "digest": "bd229a744881abb5f4be64a877b0ee716e1e33f96bf42aafced75a034bf6500d"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2938-safety-progress.test.mjs",
+        "targetDigest": "5a5ec5ee06c2020377623b61500ddc58c3532a73a3ad125f3f2c1404a3153b23",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T1"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T2"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Exhaustive bounded reference-model safety/progress and source correspondence integrity. Model assumptions are not implemented behavior; source mapping is PARTIAL, Human semantic review pending, product outcomes UNPROVEN under #2943.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/safety-progress.mjs",
+            "digest": "df9442c9f583c34595a5332f5dd25556b89958942c2b75085b99a3dac746012b"
+          },
+          {
+            "path": "docs/verification/2938-safety-progress.json",
+            "digest": "ff88688358ff0427c49217ff89d3a164c5e2644ef62f600858e94745042464bc"
+          },
+          {
+            "path": "scripts/verification-safety-progress.mjs",
+            "digest": "72c2581c88926fc6849db98cf7f3dabc07695f38ca4159efc6611fd9586117eb"
           }
         ]
       }

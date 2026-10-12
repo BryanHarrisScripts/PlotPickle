@@ -1,0 +1,532 @@
+{
+  "schemaVersion": 1,
+  "issue": 2938,
+  "correspondence": "PARTIAL",
+  "productConformance": "UNPROVEN",
+  "semanticReview": "PENDING",
+  "finalConfirmationIssue": 2943,
+  "sources": [
+    {
+      "id": "white-paper-6",
+      "path": "docs/white-papers/AI_Programming_Evolution_White_Paper.md",
+      "start": "## 6 How mathematics constrains the result",
+      "end": "## 7 What a deterministic outcome means",
+      "digest": "7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d",
+      "excerptDigest": "f0d1d3d3d396454575d8a2f85586a228af53d0298d62b96d96815a9cff184cb2"
+    },
+    {
+      "id": "save-contract",
+      "path": "docs/behavioral-contracts/PP-SAVE-001.md",
+      "start": "## 3. Contract state machine",
+      "end": "## 5. Approved acceptance scenarios",
+      "digest": "b3fb8dc244a1fecffd3fa8e4773202d5433c925b9f88ca35e63e1c51ae21f27b",
+      "excerptDigest": "66c0742fc92f4555da410a214468f0c0f15ee0c2ded3ff6788ff88a5fecee997"
+    },
+    {
+      "id": "profile-write",
+      "path": "core/storage/profile-private-browser.ts",
+      "start": "export function persistActiveProfileProject",
+      "end": "/**\n * A single, authenticated encrypted review draft.",
+      "digest": "029a030b407e7322c08732d8e42540205e13a9ec93df8bfea2e3e320869cbb53",
+      "excerptDigest": "4db3b3ee0779c4e10622267567ca2fcb306a24c82c2bcf1e0114139cb62c0ae3"
+    },
+    {
+      "id": "revision-save",
+      "path": "core/storage/project-library/revision-safe-browser.ts",
+      "start": "export async function saveFoundationProjectDurably",
+      "end": "/**\n * Save one already-reviewed canonical PPF mutation",
+      "digest": "e8293564e404f653650a08b2ca005f88e7bd6f808c2049f46c2270316a492e14",
+      "excerptDigest": "390a80da8761814302c6ac55a64ca2f2cdd4a9cab2c14f19895bee75d5434d9d"
+    }
+  ],
+  "assumptions": [
+    "Reference model: exact profile/project/shot/version identity is represented by one abstract identity; concurrent and multi-profile product execution is not exhaustively modeled.",
+    "Project and Library index acknowledgements are separate boundaries, not one transaction.",
+    "Every modeled responsive boundary settles or rejects; interruption is explicitly modeled as UNKNOWN. This is an assumption to verify, not an implementation guarantee.",
+    "Finite abstract response steps represent the approved finite response policy, not a selected numeric product timeout.",
+    "Reconciliation assumes dependencies restored, independent exact readback and original operation identity; implementation correspondence remains partial.",
+    "No cross-device or device-loss guarantee; actual media and authenticated persistent storage must remain present."
+  ],
+  "model": {
+    "initial": "ready",
+    "states": [
+      {
+        "id": "ready",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": null,
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": null
+      },
+      {
+        "id": "project-pending",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": null,
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": true,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": null
+      },
+      {
+        "id": "index-pending",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": true,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": null
+      },
+      {
+        "id": "committed",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": "image:v1",
+        "reportedSaved": "image:v1",
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": true,
+        "allowLock": true,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": "COMMITTED"
+      },
+      {
+        "id": "rejected",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": null,
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": "REJECTED"
+      },
+      {
+        "id": "unknown",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": true,
+        "outcome": "UNKNOWN"
+      },
+      {
+        "id": "reconciling",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": null,
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": false,
+        "allowLock": false,
+        "requiresResponse": true,
+        "workRetained": true,
+        "interrupted": true,
+        "outcome": null
+      },
+      {
+        "id": "approval-pending",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": "image:v1",
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": true,
+        "allowLock": false,
+        "requiresResponse": true,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": null
+      },
+      {
+        "id": "locked",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": "image:v1",
+        "reportedSaved": "image:v1",
+        "approvedIdentity": "image:v1",
+        "reportedLocked": "image:v1",
+        "indexAcknowledged": true,
+        "allowLock": true,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": "COMMITTED"
+      },
+      {
+        "id": "approval-unknown",
+        "selectedIdentity": "image:v1",
+        "projectIdentity": "image:v1",
+        "committedIdentity": "image:v1",
+        "reportedSaved": null,
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": true,
+        "allowLock": false,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": true,
+        "outcome": "UNKNOWN"
+      },
+      {
+        "id": "new-edit",
+        "selectedIdentity": "image:v2",
+        "projectIdentity": "image:v1",
+        "committedIdentity": "image:v1",
+        "reportedSaved": "image:v1",
+        "approvedIdentity": null,
+        "reportedLocked": null,
+        "indexAcknowledged": true,
+        "allowLock": false,
+        "requiresResponse": false,
+        "workRetained": true,
+        "interrupted": false,
+        "outcome": "COMMITTED"
+      }
+    ],
+    "transitions": [
+      {
+        "id": "submit",
+        "from": "ready",
+        "to": "project-pending",
+        "action": "submit exact captured version",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "project-ack",
+        "from": "project-pending",
+        "to": "index-pending",
+        "action": "acknowledge project write",
+        "atomic": false,
+        "boundaries": [
+          "save-project"
+        ]
+      },
+      {
+        "id": "project-reject",
+        "from": "project-pending",
+        "to": "rejected",
+        "action": "reject project write",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "index-ack",
+        "from": "index-pending",
+        "to": "committed",
+        "action": "acknowledge index and exact version",
+        "atomic": false,
+        "boundaries": [
+          "sync-library-index"
+        ]
+      },
+      {
+        "id": "index-reject",
+        "from": "index-pending",
+        "to": "rejected",
+        "action": "reject incomplete index update",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "lost-ack",
+        "from": "index-pending",
+        "to": "unknown",
+        "action": "finite abstract response policy reveals interruption",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "reconcile",
+        "from": "unknown",
+        "to": "reconciling",
+        "action": "resume original operation under restored dependencies",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "recovered-commit",
+        "from": "reconciling",
+        "to": "committed",
+        "action": "independent exact recovery confirms both boundaries",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "recovered-reject",
+        "from": "reconciling",
+        "to": "rejected",
+        "action": "independent recovery establishes rejection",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "request-lock",
+        "from": "committed",
+        "to": "approval-pending",
+        "action": "revalidate exact saved identity before approval",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "approval-ack",
+        "from": "approval-pending",
+        "to": "locked",
+        "action": "acknowledge exact durable approval",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "approval-interrupt",
+        "from": "approval-pending",
+        "to": "approval-unknown",
+        "action": "interrupted approval retains work without Locked",
+        "atomic": false,
+        "boundaries": []
+      },
+      {
+        "id": "edit-after-save",
+        "from": "committed",
+        "to": "new-edit",
+        "action": "new edit cannot borrow previous acknowledgement",
+        "atomic": false,
+        "boundaries": []
+      }
+    ]
+  },
+  "correspondenceRows": [
+    {
+      "transitionId": "submit",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "project-ack",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "project-reject",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "index-ack",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "index-reject",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "lost-ack",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Approved response/reconciliation requirement; mapped persistence promises can remain pending when fetch never settles. Existing restart proof is bounded fixture evidence.",
+      "status": "PARTIAL",
+      "gaps": [
+        "No finite request deadline and original-operation reconciliation mechanism established in these mapped browser functions. This reference-model transition is an obligation, not delivered behavior."
+      ]
+    },
+    {
+      "transitionId": "reconcile",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Approved response/reconciliation requirement; mapped persistence promises can remain pending when fetch never settles. Existing restart proof is bounded fixture evidence.",
+      "status": "PARTIAL",
+      "gaps": [
+        "No finite request deadline and original-operation reconciliation mechanism established in these mapped browser functions. This reference-model transition is an obligation, not delivered behavior."
+      ]
+    },
+    {
+      "transitionId": "recovered-commit",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Approved response/reconciliation requirement; mapped persistence promises can remain pending when fetch never settles. Existing restart proof is bounded fixture evidence.",
+      "status": "PARTIAL",
+      "gaps": [
+        "No finite request deadline and original-operation reconciliation mechanism established in these mapped browser functions. This reference-model transition is an obligation, not delivered behavior."
+      ]
+    },
+    {
+      "transitionId": "recovered-reject",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Approved response/reconciliation requirement; mapped persistence promises can remain pending when fetch never settles. Existing restart proof is bounded fixture evidence.",
+      "status": "PARTIAL",
+      "gaps": [
+        "No finite request deadline and original-operation reconciliation mechanism established in these mapped browser functions. This reference-model transition is an obligation, not delivered behavior."
+      ]
+    },
+    {
+      "transitionId": "request-lock",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "approval-ack",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    },
+    {
+      "transitionId": "approval-interrupt",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Approved response/reconciliation requirement; mapped persistence promises can remain pending when fetch never settles. Existing restart proof is bounded fixture evidence.",
+      "status": "PARTIAL",
+      "gaps": [
+        "No finite request deadline and original-operation reconciliation mechanism established in these mapped browser functions. This reference-model transition is an obligation, not delivered behavior."
+      ]
+    },
+    {
+      "transitionId": "edit-after-save",
+      "sourceIds": [
+        "save-contract",
+        "profile-write",
+        "revision-save"
+      ],
+      "mechanism": "Captured project bytes, queued HTTP writes, index synchronization, authority epoch and revision guard; each acknowledgement is separate.",
+      "status": "PARTIAL",
+      "gaps": [
+        "Source mapping is partial; interrupted write/retry/operation identity and exact downstream acknowledgement require independent observation."
+      ]
+    }
+  ],
+  "integrationTargets": [
+    "tests/issue-2832-profile-save-work.test.mjs",
+    "tests/issue-2847-process-restart.test.mjs",
+    "tests/issue-2819-storyboard-idempotent-save.test.mjs"
+  ],
+  "gaps": [
+    {
+      "id": "FINITE_RESPONSE_POLICY",
+      "status": "UNPROVEN",
+      "issue": 2943,
+      "detail": "privateMutation has no request deadline; a fetch that never resolves can keep pendingWrite and flushProfilePrivateWrites pending indefinitely. Confirm applicable product path and fix through a fresh issue at #2943."
+    },
+    {
+      "id": "INTERRUPTED_MULTI_WRITE",
+      "status": "UNPROVEN",
+      "issue": 2943,
+      "detail": "Project commit may precede index synchronization failure. Exact interrupted durable state and original-operation retry/deduplication consistency are not proved by treating HTTP writes as atomic."
+    },
+    {
+      "id": "RESTART_OBSERVATION",
+      "status": "UNPROVEN",
+      "issue": 2943,
+      "detail": "Existing two-process encrypted-storage fixture is not the normal Human Windows launcher and rendered Storyboard/Previs observation."
+    },
+    {
+      "id": "REVISION_IDENTITY",
+      "status": "UNPROVEN",
+      "issue": 2943,
+      "detail": "Client revision/profile guards and captured-byte queueing have bounded references; distributed server concurrency, late revision acknowledgement and full exact media/approval correspondence require scoped evidence."
+    }
+  ]
+}

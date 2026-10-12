@@ -175,7 +175,7 @@ test("issue #1338/#2603 Library and Settings reuse one Archive component and Lib
   assert.match(library, /label: "NEW", description: "Start a New Story"/);
   assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/);
   assert.doesNotMatch(library, /Coming Soon|Coming soon|data-library-ghost-card="coming-soon"/);
-  assert.match(library, /Import a legacy \.ppf story/);
+  assert.match(library, /Convert a Final Draft screenplay into a PlotPickle \.ppf/);
   assert.match(library, /\/api\/library\/import\/ppf/);
   assert.match(css, /\.cardMenu/);
   assert.match(css, /\.ghostCard/);

@@ -2496,7 +2496,7 @@
     "bindings": [
       {
         "target": "tests/issue-2934-future-test-truth.test.mjs",
-        "targetDigest": "fe9d02fc67b095ad7febf51dbe56404f478b16b1388f1dea2138fbaa5e85c41b",
+        "targetDigest": "515b2103e116a90e0055e05645dc398cab0354d46f27f24ac300de06384fe9ba",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -2517,7 +2517,7 @@
         "inputs": [
           {
             "path": "lib/verification/development/test-truth-admission.mjs",
-            "digest": "18d1115109d16f92b02dcd22dc5f8a8a98d08eb31b405562ceddc381644999e8"
+            "digest": "be87785033c4c842418b7ca87396ced07da6a54f7714f3fe2d60f3779bc58c5c"
           },
           {
             "path": "scripts/verification-test-truth.mjs",

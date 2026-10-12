@@ -66,3 +66,23 @@ test("#2934 unsafe paths and untyped evidence scope cannot become admitted proof
   f.changedFiles = ["scripts/future-proof.mjs"];
   assert.equal((await assessTestTruthAdmission(f)).status, "blocked");
 });
+
+test("#2934 changed catalogue executables require admission regardless of filename", async () => {
+  const f = fixture(), executable = "scripts/evaluate-boundary.mjs";
+  f.catalog.entries[0].runner.targets = [executable];
+  f.baseCatalog.entries[0].runner.targets = [executable];
+  f.catalog.truthGovernance.bindings = [];
+  f.changedFiles = [executable];
+  assert.ok((await assessTestTruthAdmission(f)).findings.some(x => x.code === "missing-approved-truth-binding"));
+});
+
+test("#2934 established bindings cannot be dropped and layer transfers require admission", async () => {
+  const f = fixture();
+  f.baseCatalog.truthGovernance = structuredClone(f.catalog.truthGovernance);
+  f.catalog.truthGovernance.bindings = [];
+  f.changedFiles = [];
+  assert.ok((await assessTestTruthAdmission(f)).findings.some(x => x.code === "test-binding-removed"));
+  delete f.baseCatalog.truthGovernance;
+  f.catalog.entries[0].ownerLayer = "provider-runtime";
+  assert.ok((await assessTestTruthAdmission(f)).findings.some(x => x.code === "missing-approved-truth-binding"));
+});

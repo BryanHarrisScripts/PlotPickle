@@ -49,9 +49,9 @@ test("#2930 one-shot image flow stores an immutable prompt and retains paid conf
   assert.match(workspace, /Create Storyboard Image Prompt/u);
   assert.match(workspace, /Create Storyboard Image/u);
   assert.match(workspace, /storyboardImagePrompts/u);
-  assert.match(workspace, /saved\.revision/u); // update uses the durable project acknowledgment
+  assert.match(workspace, /saveFoundationProjectDurably\(next, current\.revision\)/u); // exact-revision durable acknowledgment
   assert.match(workspace, /const originalPrompt = existingPrompt\?\.prompt \|\| selectedImage\?\.prompt \|\| ""/u);
-  assert.match(workspace, /position: position, prompt: generatedPrompt/u);
+  assert.match(workspace, /anchorRef, position, prompt: generatedPrompt/u);
   assert.match(workspace, /requestCount: 1, billingAcknowledged: true/u);
   assert.match(workspace, /if \(option\.locality !== "local"\)/u);
   assert.match(workspace, /await requestPlotPickleConfirmation/u);

@@ -14,7 +14,9 @@
     "tests/issue-2928-storyboard-shot-layout.test.mjs",
     "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
     "docs/developer-briefs/2930-single-shot-narration.md",
-    "config/development-convergence/2930.json"
+    "config/development-convergence/2930.json",
+    "tests/issue-2418-storyboard-batch-progression.test.mjs",
+    "tests/issue-2420-storyboard-frame-review.test.mjs"
   ],
   "acceptance": [
     {

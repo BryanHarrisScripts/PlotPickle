@@ -28,7 +28,7 @@ test("#2930 retains grounded exact-shot narration when local model changes JSON 
   assert.throws(() => parseStoryboardNarration(JSON.stringify({ position: "20", caption }), request), /invalid narration pacing or positions/u, "wrong Shot must never be silently renamed");
   assert.throws(() => parseStoryboardNarration(JSON.stringify({ position: "19", narration: "", bubbles: [{ speaker: "REN", text: "Not in the screenplay." }] }), request), /quote actual dialogue/u, "invented dialogue is rejected");
   assert.throws(() => parseStoryboardNarration(JSON.stringify({ position: "19", caption: "one two three four five six seven eight nine ten eleven twelve thirteen" }), request), /12-word/u, "hard caption limit remains");
-  assert.throws(() => parseStoryboardNarration(JSON.stringify({ position: "19", narration: "" }), request), /empty narration output/u, "empty draft remains invalid");
+  assert.throws(() => parseStoryboardNarration(JSON.stringify({ position: "19", narration: "" }), request), /empty narration output/iu, "empty draft remains invalid");
 });
 
 test("#2930 correction is bounded to the same Shot and same supplied story packet", () => {
@@ -69,6 +69,7 @@ test("#2930 first INVALID_DIALOGUE_SHAPE then direct caption response succeeds w
   const profile = { provider: "local", textModel: "verified-local-fixture" };
   const context = vm.createContext({
     Error, Response, URL, ...await import("../core/media/previs-narration.mjs"),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
     getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
     requestBoundary: request => request,
     resolveConfiguredLocalNarrationProfile: async () => ({ profile }),
@@ -99,6 +100,7 @@ test("#2930 invalid dialogue followed by wrong Shot still returns safe HTTP 502"
   let calls = 0;
   const context = vm.createContext({
     Error, Response, URL, ...await import("../core/media/previs-narration.mjs"),
+    withAuthenticatedProfileRequest: async (_request, callback) => callback(),
     getProfileExperienceRuntime: async () => ({ boundaryFor: () => ({ authorizeRequest: async () => {} }) }),
     requestBoundary: request => request,
     resolveConfiguredLocalNarrationProfile: async () => ({ profile: { provider: "local" } }),

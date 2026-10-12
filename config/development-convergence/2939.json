@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "issue": 2939,
+  "brief": "docs/developer-briefs/2939-composition-migration-assurance.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2939-composition-migration-assurance.md",
+    "docs/verification/2939-composition-migration.json",
+    "docs/verification/2939-composition-migration.md",
+    "lib/verification/development/composition-migration.mjs",
+    "scripts/verification-composition-migration.mjs",
+    "tests/issue-2939-composition-migration.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2939.json"
+  ],
+  "acceptance": [
+    {
+      "id": "1",
+      "criterion": "bounded composition requires each dependency assumption",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "bounded composition requires each dependency assumption"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "criterion": "local-only device-loss recovery",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "local-only device-loss recovery"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "criterion": "old/new writers and duplicate real effects",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "old/new writers and duplicate real effects"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "criterion": "rollback must read migrated schemas",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "rollback must read migrated schemas"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "criterion": "premature retirement",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "premature retirement"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "criterion": "source drift invalidates assurance",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "source drift invalidates assurance"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "criterion": "component tests cannot promote observed product",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2939-composition-migration.test.mjs",
+          "contains": "component tests cannot promote observed product"
+        }
+      ]
+    }
+  ]
+}

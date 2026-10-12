@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "issue": 2939,
+  "correspondence": "PARTIAL",
+  "semanticReview": "PENDING",
+  "productConformance": "UNPROVEN",
+  "finalConfirmationIssue": 2943,
+  "sources": [
+    {
+      "id": "white-paper",
+      "path": "docs/white-papers/AI_Programming_Evolution_White_Paper.md",
+      "digest": "7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d"
+    },
+    {
+      "id": "save-contract",
+      "path": "docs/behavioral-contracts/PP-SAVE-001.md",
+      "digest": "b3fb8dc244a1fecffd3fa8e4773202d5433c925b9f88ca35e63e1c51ae21f27b"
+    },
+    {
+      "id": "profile-write",
+      "path": "core/storage/profile-private-browser.ts",
+      "digest": "029a030b407e7322c08732d8e42540205e13a9ec93df8bfea2e3e320869cbb53"
+    },
+    {
+      "id": "revision-save",
+      "path": "core/storage/project-library/revision-safe-browser.ts",
+      "digest": "e8293564e404f653650a08b2ca005f88e7bd6f808c2049f46c2270316a492e14"
+    },
+    {
+      "id": "migration-store",
+      "path": "core/storage/profile-private/profile-private-storage-core.mjs",
+      "digest": "d5405ac257c5591b0493029f5eb3227fe2a2ca8d356fb6c829ce8e2a60328701"
+    },
+    {
+      "id": "migration-gateway",
+      "path": "build/buzz/buzz-profile-migration-gateway.ts",
+      "digest": "bbe25019bc069c19b233bfca0fec646922dce9e4dce75f3e3bffc3fd4c942167"
+    },
+    {
+      "id": "bridge-register",
+      "path": "config/repository-architecture-enforcement.json",
+      "digest": "9eed16b8f187d3ceb9a0809318a8042f2ee4c3af8bb78fee12bec87927617a46"
+    },
+    {
+      "id": "legacy-proof-0",
+      "path": "tests/issue-1141-profile-private-storage.test.mjs",
+      "digest": "6432830ce1c198a6d276361885fcc18a2189a16c82ee2428f40ae1bfb5a2d54a"
+    },
+    {
+      "id": "legacy-proof-1",
+      "path": "tests/issue-1144-buzz-profile-migration-contract.test.mjs",
+      "digest": "e552f5f05eec27590500d2c61196ad51c675d3d9ae37558cbc6f7b5bb76b80d8"
+    }
+  ],
+  "compositionRows": [
+    {
+      "id": "save-identity",
+      "dimension": "identity",
+      "assumption": "The acknowledgement identifies the exact profile/project/version requested.",
+      "mechanism": "Captured snapshot project.id is compared to the entry id; revision-safe Save checks active project before and after persistence.",
+      "sourceIds": [
+        "profile-write",
+        "revision-save"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Latest revision identity after asynchronous flush is not independently proven by these checks."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "save-order",
+      "dimension": "ordering",
+      "assumption": "The committed workflow requires project write then Library index acknowledgement.",
+      "mechanism": "persistActiveProfileProject awaits save-project and then sync-library-index; authorityEpoch checked at each boundary.",
+      "sourceIds": [
+        "profile-write"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Separate writes are not atomic; interruption between them needs reconciliation proof."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "profile-authority",
+      "dimension": "permissions",
+      "assumption": "A queued mutation retains the authenticated owner and cannot adopt another profile.",
+      "mechanism": "queueWriteOperation and authorityEpoch fences; migration gateway takes currentProfileRequestContext, not browser owner input.",
+      "sourceIds": [
+        "profile-write",
+        "migration-gateway"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Observe concurrent profile change/revocation at storage boundary; caller fencing alone cannot certify it."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "retry-identity",
+      "dimension": "retries",
+      "assumption": "Retries preserve original operation/content and cannot duplicate effective writes or external actions.",
+      "mechanism": "Browser deduplicates matching captured pending snapshots and acknowledges project snapshots; migration journal skips recorded completed identities.",
+      "sourceIds": [
+        "profile-write",
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "In-memory coalescing is not a durable operation-id deduplication guarantee; write-before-journal interruption and multi-process races need real proof."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "recovery-scope",
+      "dimension": "storage-recovery",
+      "assumption": "Confirmed Save supports same-profile/device recovery while underlying encrypted data and media remain present.",
+      "mechanism": "Encrypted profile readback and legacy migration snapshots provide bounded local mechanisms.",
+      "sourceIds": [
+        "migration-store",
+        "save-contract"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "No remote backup guarantee follows from local storage; device-loss recovery is an unmet stronger assumption."
+      ],
+      "confirmationIssue": 2943
+    }
+  ],
+  "migrationRows": [
+    {
+      "id": "migration-id",
+      "dimension": "identity",
+      "assumption": "Every migrated record retains canonical data identity.",
+      "mechanism": "migrateLegacyProfile rejects duplicate project ids and project.id mismatches; inventory must match resumed journal.",
+      "sourceIds": [
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Exact full bytes after interruption and replay still need independent recovery comparison."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "migration-format",
+      "dimension": "representation",
+      "assumption": "Representation conversion preserves logical content, source identity and unsupported information.",
+      "mechanism": "Migration copies item.value through saveProjectInternal and checks readback existence.",
+      "sourceIds": [
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Non-null readback is weaker than equality of all logical content; no blanket lossless conversion certification."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "migration-owner",
+      "dimension": "ownership",
+      "assumption": "Legacy ownership transfers to one authenticated Human profile.",
+      "mechanism": "withMutation uses authenticated access; gateway assignment marker rejects another profile; source is set read-only.",
+      "sourceIds": [
+        "migration-store",
+        "migration-gateway"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Gateway queue is process-local; concurrent processes and marker interruption remain unobserved."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "migration-recover",
+      "dimension": "recovery",
+      "assumption": "Interrupted migration can recover original data and resume without losing unrelated records.",
+      "mechanism": "Snapshot is created before journal; migratedProjects/migratedCredentials support resumption.",
+      "sourceIds": [
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Snapshot restore with actual project/media bytes and damaged journal needs real observation."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "migration-rollback",
+      "dimension": "rollback",
+      "assumption": "Old code can read migrated representation or an independently verified data recovery path exists.",
+      "mechanism": "Snapshot id is retained by the migration journal.",
+      "sourceIds": [
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "No old-reader compatibility or exercised restore follows from merely storing a snapshot id."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "migration-effects",
+      "dimension": "effects",
+      "assumption": "Old/new executions never duplicate real writes or external actions.",
+      "mechanism": "Source read-only transition precedes inventory; journal completion skips already recorded records.",
+      "sourceIds": [
+        "migration-store"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Mutation before journal update can replay; this does not prove exactly-once external effects."
+      ],
+      "confirmationIssue": 2943
+    },
+    {
+      "id": "bridge-retire",
+      "dimension": "retirement",
+      "assumption": "Retire an adapter only after consumers/data responsibilities transfer with required evidence.",
+      "mechanism": "Architecture exception names lib/pageflow.ts, canonical modules/build/pageflow.ts, issue 1466 and two remaining route consumers.",
+      "sourceIds": [
+        "bridge-register"
+      ],
+      "status": "PARTIAL",
+      "gaps": [
+        "Bridge still has consumers; do not remove it or treat historical retirement tests as current product confirmation."
+      ],
+      "confirmationIssue": 2943
+    }
+  ],
+  "compositionExample": {
+    "dependencies": [
+      {
+        "id": "declared-store",
+        "capabilities": [
+          "same-profile-project-version",
+          "project-before-index",
+          "authenticated-profile",
+          "same-operation-same-content",
+          "same-device-restart"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "identity",
+        "dimension": "identity",
+        "dependency": "declared-store",
+        "capability": "same-profile-project-version"
+      },
+      {
+        "id": "ordering",
+        "dimension": "ordering",
+        "dependency": "declared-store",
+        "capability": "project-before-index"
+      },
+      {
+        "id": "permissions",
+        "dimension": "permissions",
+        "dependency": "declared-store",
+        "capability": "authenticated-profile"
+      },
+      {
+        "id": "retries",
+        "dimension": "retries",
+        "dependency": "declared-store",
+        "capability": "same-operation-same-content"
+      },
+      {
+        "id": "storage-recovery",
+        "dimension": "storage-recovery",
+        "dependency": "declared-store",
+        "capability": "same-device-restart"
+      }
+    ]
+  },
+  "deviceLossCounterexample": {
+    "dependencies": [
+      {
+        "id": "local-store",
+        "capabilities": [
+          "same-device-restart"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "device-loss",
+        "dimension": "storage-recovery",
+        "dependency": "local-store",
+        "capability": "device-loss-recovery"
+      }
+    ]
+  },
+  "migrationExample": {
+    "owner": "profile-a",
+    "expected": [
+      {
+        "id": "story-a",
+        "contentDigest": "sha256:original-a"
+      },
+      {
+        "id": "unrelated-b",
+        "contentDigest": "sha256:original-b"
+      }
+    ],
+    "steps": [
+      {
+        "id": "copy",
+        "records": [
+          {
+            "id": "story-a",
+            "contentDigest": "sha256:original-a",
+            "schema": "legacy-v1",
+            "owner": "profile-a"
+          },
+          {
+            "id": "unrelated-b",
+            "contentDigest": "sha256:original-b",
+            "schema": "legacy-v1",
+            "owner": "profile-a"
+          }
+        ],
+        "writers": [
+          "new-store"
+        ],
+        "effects": [
+          {
+            "operationId": "migrate-a",
+            "contentDigest": "sha256:original-a",
+            "count": 1,
+            "effectId": "migration-story-a"
+          }
+        ],
+        "rollbackMode": "code",
+        "rollbackReadableSchemas": [
+          "legacy-v1",
+          "encrypted-v1"
+        ],
+        "verifiedRecovery": false,
+        "retired": false,
+        "remainingConsumers": [
+          "legacy-reader"
+        ],
+        "dataTransferred": false,
+        "removalEvidence": false
+      },
+      {
+        "id": "resume",
+        "records": [
+          {
+            "id": "story-a",
+            "contentDigest": "sha256:original-a",
+            "schema": "encrypted-v1",
+            "owner": "profile-a"
+          },
+          {
+            "id": "unrelated-b",
+            "contentDigest": "sha256:original-b",
+            "schema": "encrypted-v1",
+            "owner": "profile-a"
+          }
+        ],
+        "writers": [
+          "new-store"
+        ],
+        "effects": [
+          {
+            "operationId": "migrate-a",
+            "contentDigest": "sha256:original-a",
+            "count": 0,
+            "effectId": "migration-story-a"
+          }
+        ],
+        "rollbackMode": "code",
+        "rollbackReadableSchemas": [
+          "legacy-v1",
+          "encrypted-v1"
+        ],
+        "verifiedRecovery": false,
+        "retired": false,
+        "remainingConsumers": [
+          "legacy-reader"
+        ],
+        "dataTransferred": false,
+        "removalEvidence": false
+      },
+      {
+        "id": "retire",
+        "records": [
+          {
+            "id": "story-a",
+            "contentDigest": "sha256:original-a",
+            "schema": "encrypted-v1",
+            "owner": "profile-a"
+          },
+          {
+            "id": "unrelated-b",
+            "contentDigest": "sha256:original-b",
+            "schema": "encrypted-v1",
+            "owner": "profile-a"
+          }
+        ],
+        "writers": [
+          "new-store"
+        ],
+        "effects": [],
+        "rollbackMode": "code",
+        "rollbackReadableSchemas": [
+          "legacy-v1",
+          "encrypted-v1"
+        ],
+        "verifiedRecovery": false,
+        "retired": true,
+        "remainingConsumers": [],
+        "dataTransferred": true,
+        "removalEvidence": true
+      }
+    ]
+  },
+  "integrationTargets": [
+    "tests/issue-1951-retire-legacy-gates.test.mjs",
+    "tests/issue-2936-consolidated-contracts.test.mjs",
+    "tests/issue-2938-safety-progress.test.mjs",
+    "tests/issue-2847-process-restart.test.mjs"
+  ]
+}

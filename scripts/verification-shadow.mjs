@@ -167,7 +167,9 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
   const started = Date.now();
   const configuration = await loadConfiguration();
   const changedFiles = changedFilesFrom(baseRef);
-  const exactSha = commitSha || runGit(["rev-parse", "HEAD"]);
+  const checkedOutSha = runGit(["rev-parse", "HEAD"]);
+  if (commitSha && commitSha !== checkedOutSha) throw new Error("Evidence revision must match the checked-out HEAD.");
+  const exactSha = checkedOutSha;
   const plan = planVerification({
     ...configuration,
     changedFiles,
@@ -234,7 +236,8 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
     blockingFindings: plan.blockingFindings,
     permissions: plan.permissions,
     migrationProofs: comparison.migrations.map(({ id, catalogTestId, proofStatus, shadowResult }) => ({ id, catalogTestId, proofStatus, shadowResult })),
-    result: run.result,
+    result: evidence.result,
+    claims: evidence.claims,
     durationMs,
     evidencePath,
     comparisonPath,
@@ -249,7 +252,7 @@ async function main() {
   const result = await runShadowLayer(options);
   console.log(JSON.stringify({ summary: result.summary, summaryPath: result.summaryPath, comparisonPath: result.comparisonPath }, null, 2));
   if (result.plan.status === "blocked") process.exitCode = 3;
-  else if (result.run.result === "fail") process.exitCode = 1;
+  else if (["fail", "blocked", "unproven"].includes(result.evidence.result)) process.exitCode = 1;
 }
 
 const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

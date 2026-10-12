@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "issue": 2932,
+  "brief": "docs/developer-briefs/2932-approved-truth-claims.md",
+  "allowedChanges": [
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/dsdd/dsdd-evidence-contract.mjs",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/behavioral-contracts/PP-SAVE-001.casebook.json",
+    "lib/verification/development/proof-routing.mjs",
+    "lib/verification/verification-contracts.mjs",
+    "lib/verification/verification-core.mjs",
+    "schema/verification/evidence.schema.json",
+    "scripts/casebook-contract.mjs",
+    "scripts/casebook-evidence.mjs",
+    "scripts/verification-core.mjs",
+    "scripts/verification-shadow.mjs",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+    "docs/developer-briefs/2932-approved-truth-claims.md",
+    "tests/issue-2932-approved-truth-claims.test.mjs",
+    "config/development-convergence/2932.json",
+    "docs/verification/2932-approved-truth-baseline.json",
+    "tests/issue-1926-verification-schemas.test.mjs",
+    "tests/issue-1139-auth-core.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "CI-EXPLICIT",
+      "criterion": "Every selected execution requires an explicit result; selection does not certify execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "selection, forged aggregate PASS, partial and duplicate results cannot establish execution"
+        }
+      ]
+    },
+    {
+      "id": "SCOPE",
+      "criterion": "All seven layers report bounded execution and unproven product scope.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "all seven layers reject missing/unknown runner results"
+        }
+      ]
+    },
+    {
+      "id": "IDENTITY",
+      "criterion": "Product proof binds approved obligation/version, revision and observed environment/configuration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "obligation evidence requires exact approved identity"
+        }
+      ]
+    },
+    {
+      "id": "DSDD",
+      "criterion": "Locked intent and requirement are independently evaluated without truncating contradiction.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "DSDD binds product claims to locked requirement"
+        }
+      ]
+    },
+    {
+      "id": "SAVE",
+      "criterion": "Existing Casebook maps all approved Save obligations and rejects mocked recovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "Casebook requires all approved Save obligations"
+        }
+      ]
+    },
+    {
+      "id": "MANIFEST",
+      "criterion": "Casebook manifest preserves observation fields without trusting a submitted verifier identity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "manifest preserves obligation evidence"
+        }
+      ]
+    },
+    {
+      "id": "CATALOGUE",
+      "criterion": "Regression remains under the existing Layer 7 owner.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "governance regression belongs to the existing Layer 7 catalogue"
+        }
+      ]
+    },
+    {
+      "id": "REGISTRY-PRIVACY",
+      "criterion": "Registry privacy rejects actual forbidden fields and nested payloads without misclassifying a safe public ID as secret material.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1139-auth-core.test.mjs",
+          "contains": "registry privacy checks inspect permitted fields"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1139-auth-core.test.mjs",
+          "contains": "nestedSecret"
+        }
+      ]
+    }
+  ]
+}

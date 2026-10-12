@@ -1572,7 +1572,9 @@
         "config/visual-capture-registry.json",
         "scripts/write-skin-v1-route-migration-ledger.mjs",
         "scripts/full-verification-auth.mjs",
-        "scripts/run-uat-autopilot.mjs"
+        "scripts/run-uat-autopilot.mjs",
+        "scripts/casebook-contract.mjs",
+        "scripts/casebook-evidence.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

@@ -53,6 +53,9 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: npm
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
@@ -102,6 +105,9 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: npm
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
@@ -154,6 +160,9 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: npm
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
@@ -210,6 +219,9 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: npm
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install media proof dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
@@ -260,7 +272,14 @@ jobs:
       - name: Checkout exact head
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Validate local whisper.cpp dictation fixture
         shell: pwsh
         env:
@@ -283,6 +302,9 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: npm
+      - name: Admit tests against approved truth before Windows execution
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund

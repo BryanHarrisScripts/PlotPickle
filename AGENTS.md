@@ -68,6 +68,10 @@ For non-trivial product and architecture work, use the repository-native loop do
 
 ## Testing and UAT
 
+Future tests are governed by approved truth. Before running new or revised test sources/inputs or adding a catalogue target, declare its approved source edition and specific obligation references in `config/verification/test-catalog.json#truthGovernance`. Pin the complete test/input digests, identify evidence scope and limits, and review expected outcomes against the normative document rather than implementation output. All cases in a bound file inherit those obligations; adding or changing a case invalidates its digest. Untouched legacy tests retain execution-only scope and are not retrospectively certified.
+
+Run `node scripts/verification-test-truth.mjs --base-ref origin/main --working-tree` before local execution. CI uses its exact trusted base. A missing binding/base, unapproved proposal, stale edition or oracle changed in the implementation PR blocks admission. A source must already be approved and unchanged in the trusted base; ordinary implementation changes cannot amend indexed approval/obligation descriptors. A material successor truth requires its separate Human-approved amendment first. A binding is necessary governance, not automatic proof that every assertion faithfully expresses the Human's meaning or that the product worked.
+
 The active focused UAT scope is Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood.
 
 Before calling changed behavior complete, resolve change classes and proof requirements from `config/development-verification-routing.json` using `node scripts/verification-core.mjs plan --changed-file PATH --json`. The route adds product observations for affected runtime or user-visible behavior; it does not replace the ownership map, focused UAT or exact-head Architecture Verification. Planned product proof stays UNPROVEN until observed evidence exists. Add `--proof-class CLASS` when the task's behavior cannot be inferred from its file paths.

@@ -1042,7 +1042,7 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="import-export-title" className={styles.section} data-library-surface="import-export">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Move your work</p><h2 id="import-export-title">IMPORT EXPORT</h2></div>
-            <p>Convert a Final Draft screenplay into a PlotPickle .ppf, import a saved PlotPickle story, or export your current Library backup. Conversion does not change existing projects.</p>
+            <p>Convert a Final Draft screenplay into a PlotPickle .ppf. Import a legacy .ppf story or a Library .ppf.json backup, or export your current Library backup. Conversion does not change existing projects.</p>
           </div>
           <div className={styles.actionPanel}>
             <div><strong>Convert Final Draft to PlotPickle (.ppf)</strong><p>Choose your own Final Draft .fdx screenplay. PlotPickle creates a portable .ppf download locally, preserves the written source, and keeps suggested analysis unapproved. Your existing stories remain unchanged.</p></div>

@@ -721,7 +721,7 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
       const position = record.position;
       const prompt = cleanText(record.prompt, 8_000);
       const createdAt = cleanText(record.createdAt, 80);
-      if (!/^storyboard-anchor:block:block-\\d{2}:mini-[1-4]$/u.test(anchorRef) || !Number.isInteger(position) || position! < 1 || position! > 25 || !prompt || !createdAt) return [];
+      if (!/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(anchorRef) || !Number.isInteger(position) || position! < 1 || position! > 25 || !prompt || !createdAt) return [];
       return [{ anchorRef, position: position!, prompt, createdAt }];
     }).filter((item, index, all) => all.findIndex((candidate) => candidate.anchorRef === item.anchorRef && candidate.position === item.position) === index).slice(0, 2_400)
     : [];

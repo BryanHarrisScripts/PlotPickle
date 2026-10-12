@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { Readable, PassThrough } from "node:stream";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createServer } from "vite";
+const vite = await import("vite").catch(() => null);
+const viteDependencyRequired = vite ? false : "Vite is installed by the full Library conversion proof lane, not the lightweight architecture shadow.";
 
 const repoRoot = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, repoRoot), "utf8");
@@ -18,7 +19,8 @@ const finalDraft = `<?xml version="1.0" encoding="UTF-8"?>
 </Content></FinalDraft>`;
 
 async function withGateway(run) {
-  const server = await createServer({
+  if (!vite) throw new Error("Vite dependency unavailable: integration must run in the installed-dependency proof lane.");
+  const server = await vite.createServer({
     root: new URL("..", import.meta.url).pathname,
     configFile: false,
     logLevel: "error",
@@ -66,7 +68,7 @@ async function withGateway(run) {
   }
 }
 
-test("#2948 Final Draft upload creates a real portable PPF with original screenplay evidence", async () => {
+test("#2948 Final Draft upload creates a real portable PPF with original screenplay evidence", { skip: viteDependencyRequired }, async () => {
   await withGateway(async ({ request, parse }) => {
     const reply = await request({});
     assert.equal(reply.status, 200);
@@ -86,7 +88,7 @@ test("#2948 Final Draft upload creates a real portable PPF with original screenp
   });
 });
 
-test("#2948 local boundary refuses invalid/malformed FDX, oversized input and foreign origins", async () => {
+test("#2948 local boundary refuses invalid/malformed FDX, oversized input and foreign origins", { skip: viteDependencyRequired }, async () => {
   await withGateway(async ({ request }) => {
     const malformed = await request({ body: "<html>not a screenplay</html>" });
     assert.equal(malformed.status, 400);

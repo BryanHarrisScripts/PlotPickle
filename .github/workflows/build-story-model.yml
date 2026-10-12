@@ -2,14 +2,6 @@ name: BUILD Story Model
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'build/library-ppf-import-gateway.ts'
-      - 'build/projects/portable-ppf-reader.ts'
-      - 'modules/library/ui/library-workspace.tsx'
-      - 'tests/issue-2948-library-fdx-conversion.test.mjs'
-      - 'lib/projects/screenplay/screenplay-to-ppf.ts'
-      - '.github/workflows/build-story-model.yml'
 
 permissions:
   contents: read

@@ -86,3 +86,11 @@ test("#2934 established bindings cannot be dropped and layer transfers require a
   f.catalog.entries[0].ownerLayer = "provider-runtime";
   assert.ok((await assessTestTruthAdmission(f)).findings.some(x => x.code === "missing-approved-truth-binding"));
 });
+
+test("#2934 Windows CRLF text checkouts preserve admission without hiding changed meaning", async () => {
+  const f = fixture();
+  for (const [file, text] of f.current) f.current.set(file, text.replaceAll("\n", "\r\n"));
+  assert.equal((await assessTestTruthAdmission(f)).status, "ready");
+  f.current.set(sourcePath, f.current.get(sourcePath).replace("Only the selected Shot", "Any Shot"));
+  assert.equal((await assessTestTruthAdmission(f)).status, "blocked");
+});

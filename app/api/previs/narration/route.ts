@@ -3,7 +3,7 @@ import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/a
 import { resolveConfiguredAgentExecutionProfile, resolveConfiguredLocalNarrationProfile } from "../../../../build/writing-assistant-gateway";
 import { askPlotPickleAgent } from "../../../../build/mastra-agent-runtime";
 import { readCapabilityChoice } from "../../../../build/ai/capabilities/capability-routing-state";
-import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, storyboardShotBriefRequest, storyboardShotBriefPrompt, parseStoryboardShotBrief, parseStoryboardNarration, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
+import { narrationRequest, narrationPrompt, parseNarration, storyboardNarrationRequest, storyboardNarrationPrompt, storyboardShotBriefRequest, storyboardShotBriefPrompt, parseStoryboardShotBrief, parseStoryboardNarration, storyboardNarrationCorrectionPrompt, storyboardNarrationOutputFailure } from "../../../../core/media/previs-narration.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -82,18 +82,10 @@ async function handlePost(request: Request) {
       // The previous locked Bubble stays untouched until Human Save & Lock.
       if (!request.signal.aborted) {
         try {
-          const position = input.panels[0].position;
-          const correctionGuidance = firstFailure.reason === "INVALID_DIALOGUE_SHAPE" || firstFailure.reason === "DIALOGUE_NOT_IN_SCREENPLAY"
-            ? "Do not use dialogue bubbles. Return only one complete scene caption grounded in the supplied evidence."
-            : firstFailure.reason === "TEXT_TOO_LONG"
-              ? "Return a complete sentence with no more than twelve words and one hundred characters."
-              : firstFailure.reason === "UNFINISHED_CAPTION"
-                ? "Return one complete sentence with a finished thought; do not end with a comma, colon, or semicolon."
-                : "Return one complete printable expression of at most twelve words or exact screenplay dialogue.";
-          const repairInstruction = `\\n\\nFORMAT CORRECTION: The preceding response failed validation (${firstFailure.reason}). Re-evaluate the SAME supplied story and Shot facts. ${correctionGuidance} Keep the result within twelve words and one hundred characters. Respond with ONLY this JSON shape, replacing the blank text as appropriate: {"panels":[{"position":${position},"narration":"","bubbles":[]}]}. No code fences, reasoning, markdown or invented dialogue.`;
+          const repairInstruction = storyboardNarrationCorrectionPrompt(input, firstFailure.reason);
           const retry = await askPlotPickleAgent({
             profile, agentId:"graphic-novel", tone:"direct",
-            message: storyboardNarrationPrompt(input) + repairInstruction,
+            message: repairInstruction,
             outputFormat:{kind:"storyboard-narration",position:input.panels[0].position},
             signal: request.signal,
           });

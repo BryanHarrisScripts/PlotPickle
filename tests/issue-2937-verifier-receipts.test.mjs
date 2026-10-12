@@ -5,7 +5,8 @@ import { mkdtemp, readFile, rm, writeFile, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createServer } from "node:http";
-import { build } from "esbuild";
+import { register } from "node:module";
+import { pathToFileURL } from "node:url";
 import { readVerifierObservations, verifierObservationAuthority } from "../lib/verification/development/verifier-observations.mjs";
 import { evaluateVerifierEvidenceUpdate, retainVerifierReceiptIds } from "../build/dsdd/dsdd-evidence-contract.mjs";
 import { createCaseEvidenceManifest, evaluateCaseEvidenceWithReceipts } from "../scripts/casebook-evidence.mjs";
@@ -189,12 +190,26 @@ test("#2937 real gateway HTTP intake retains contradictions and revalidates stor
     ["../../scripts/dsdd-integrity.mjs", "export const assertDsddInterpretationIntegrity=()=>{};"],
     ["../../lib/verification/conversational-uat/referee.mjs", "export const correlateConversationalFindings=()=>{}; export const decideConversationalFinding=()=>{}; export const semanticJourneyEvent=()=>{};"],
   ]);
-  const bundled = await build({ entryPoints: ["build/dsdd/dsdd-session-gateway.ts"], bundle: true, platform: "node", format: "esm", write: false,
-    plugins: [{ name: "isolated-host-dependencies", setup(plugin) {
-      plugin.onResolve({ filter: /.*/ }, (args) => stubs.has(args.path) ? { path: args.path, namespace: "host-fixture" } : undefined);
-      plugin.onLoad({ filter: /.*/, namespace: "host-fixture" }, (args) => ({ contents: stubs.get(args.path), loader: "js" }));
-    } }] });
-  const gateway = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString("base64")}`);
+  // Layer 7 runs without npm dependencies. Use the supported Node 22.13+ native loader.
+  const gatewayUrl = pathToFileURL(path.resolve("build/dsdd/dsdd-session-gateway.ts")).href;
+  const loader = `
+    import { stripTypeScriptTypes } from "node:module";
+    import { readFile } from "node:fs/promises";
+    const gatewayUrl = ${JSON.stringify(gatewayUrl)};
+    const stubs = new Map(${JSON.stringify([...stubs])});
+    export async function resolve(specifier, context, nextResolve) {
+      if (context.parentURL === gatewayUrl && stubs.has(specifier)) {
+        return { url: "data:text/javascript," + encodeURIComponent(stubs.get(specifier)), shortCircuit: true };
+      }
+      return nextResolve(specifier, context);
+    }
+    export async function load(url, context, nextLoad) {
+      if (url === gatewayUrl) return { format: "module", source: stripTypeScriptTypes(await readFile(new URL(url), "utf8")), shortCircuit: true };
+      return nextLoad(url, context);
+    }
+  `;
+  register(`data:text/javascript,${encodeURIComponent(loader)}`, import.meta.url);
+  const gateway = await import(gatewayUrl);
   const env = { PLOTPICKLE_SOURCE_SHA: testedCommit, PLOTPICKLE_OBSERVATION_RECEIPT_ROOT: f.root,
     PLOTPICKLE_OBSERVATION_PUBLIC_KEY: publicKey, PLOTPICKLE_OBSERVATION_VERIFIER: f.authority.source,
     PLOTPICKLE_OBSERVATION_ENVIRONMENT: f.authority.environment, PLOTPICKLE_OBSERVATION_CONFIGURATION: f.authority.configuration };

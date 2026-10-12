@@ -2715,7 +2715,7 @@
       },
       {
         "target": "tests/issue-2937-verifier-receipts.test.mjs",
-        "targetDigest": "c232fee1ebcc79b3fc455bde40eae511db351b9c364deaa98e85996c6156586d",
+        "targetDigest": "1e88d6d5dfaffcb0f6e0a2409601bc76ee24e709a3ef69e1e59f07dc286978d0",
         "catalogueIds": [
           "verification.phase2-core"
         ],

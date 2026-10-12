@@ -59,8 +59,7 @@
           "tests/issue-2751-settings-organization.test.mjs",
           "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
           "tests/issue-2863-settings-time-and-operations-order.test.mjs",
-          "tests/issue-2948-library-fdx-conversion.test.mjs",
-          "tests/issue-1338-library-import-archive.test.mjs"
+          "tests/issue-2948-library-fdx-conversion.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2983,31 +2982,8 @@
         ]
       },
       {
-        "target": "tests/issue-1338-library-import-archive.test.mjs",
-        "targetDigest": "64c9e66f25e4aa480cf415b66c1d781ebce635aeea56a0b54c7e75f601111204",
-        "catalogueIds": [
-          "experience.skin-surface-contract"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "unit-fixture",
-          "static-source"
-        ],
-        "limits": "Revised Library screen assertion and controlled local fixtures only. Real Human file conversion, source interpretation, restart, profile preservation and current user story migration remain UNPROVEN.",
-        "inputs": []
-      },
-      {
         "target": "tests/issue-2948-library-fdx-conversion.test.mjs",
-        "targetDigest": "93b6dc812f3bcbe7582b002d64572b29a090d425899f9525cdb53e01d8ad7115",
+        "targetDigest": "9e6f7494b1f2fb6720aa4a8ebd74632aefd310705ea90952bffe43577f282326",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3025,7 +3001,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Local simulated HTTP boundary, structured Final Draft fixture, portable PPF readback and UI source check only. Actual Windows browser download and independent Human workflow remain UNPROVEN.",
+        "limits": "Local simulated HTTP boundary when dependencies are installed, plus dependency-free UI/source check in the Architecture shadow. Full installed-dependency conversion assertions run in BUILD Story Model PR lane. Real Windows user download and source acceptance remain UNPROVEN.",
         "inputs": []
       }
     ]

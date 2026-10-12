@@ -1172,7 +1172,8 @@
           "tests/issue-2936-consolidated-contracts.test.mjs",
           "tests/issue-2937-verifier-receipts.test.mjs",
           "tests/issue-2938-safety-progress.test.mjs",
-          "tests/issue-2939-composition-migration.test.mjs"
+          "tests/issue-2939-composition-migration.test.mjs",
+          "tests/issue-2940-outcome-measurement.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2928,6 +2929,54 @@
           {
             "path": "scripts/verification-composition-migration.mjs",
             "digest": "049611398eb38e94e4b666a55da62ee831b279ea67bfd8c08db2718b45e30761"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2940-outcome-measurement.test.mjs",
+        "targetDigest": "f5b6a352712267cfdec831bf03f87c930200a9dec3eb8d199947c26b53156c03",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W11"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W12"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T6"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Measurement protocol preparation, controlled arithmetic and signed receipt-admission fixtures only. Proposed definitions/thresholds require Human review before actual collection; baseline and candidate empty, benefit UNPROVEN under #2943. Signed fixture identity is not an observed product or independent measurement campaign.",
+        "inputs": [
+          {
+            "path": "lib/verification/development/outcome-measurement.mjs",
+            "digest": "d5b174a687005c24d13fc772e599c7aa8105cc2782d6da88ab42f98fbf1dad6b"
+          },
+          {
+            "path": "docs/verification/2940-measurement-protocol.json",
+            "digest": "e1326910b2be105b5c657e62421e86bc88eed6bdc30c84127df9130fda72e7f3"
+          },
+          {
+            "path": "docs/verification/2940-measurements.json",
+            "digest": "3a795315b636035406c96f4762d242a12f529b4b95afd3d3816a5a5951bb99dd"
+          },
+          {
+            "path": "scripts/verification-outcome-measurement.mjs",
+            "digest": "d28d3037fa5514a180f19dfecb41862c87a89f1d9cb68fa36460621c340dfe47"
           }
         ]
       }

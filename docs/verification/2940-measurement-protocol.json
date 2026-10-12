@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "issue": 2940,
+  "finalConfirmationIssue": 2943,
+  "semanticReview": "PENDING",
+  "benefit": "UNPROVEN",
+  "pilotId": "save-restart-outcomes-v1",
+  "cases": [
+    "normal-save-restart",
+    "rejected-save-retains-work",
+    "lost-acknowledgement-reconciliation",
+    "stale-revision-protection"
+  ],
+  "episodesPerCase": 1,
+  "revisions": {
+    "baseline": "9ba73ae1a22057508d7c4e8b40a6e732e3d91c91",
+    "candidate": null
+  },
+  "metrics": [
+    {
+      "id": "outcomeMinutes",
+      "unit": "elapsed-minutes",
+      "definition": "Wall clock from accepted episode truth to independently verified outcome; include waiting, repairs and all retries. Derive from acceptedTruthAt/verifiedOutcomeAt; unresolved outcome remains null, never zero.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "escapedFailures",
+      "unit": "count-per-episode",
+      "definition": "Observed contract violations after an engineering success/release claim during the fixed follow-up, including false Saved/Locked. Count each distinct incident once; preserve recurrence evidence.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "repeatRepairs",
+      "unit": "count-per-episode",
+      "definition": "Additional repair episodes for the same approved obligation after the first claimed completion; exclude new approved requirements.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "unexpectedChanges",
+      "unit": "count-per-episode",
+      "definition": "Observed unapproved behavioral differences affecting protected obligations; ordinary authorized amendments are separately recorded and cannot be matched across editions.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "diagnosisMinutes",
+      "unit": "active-person-minutes",
+      "definition": "All active engineering/operator diagnosis minutes, summed across people; exclude waiting, track full episode.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "implementationMinutes",
+      "unit": "active-person-minutes",
+      "definition": "All active implementation and repair minutes, summed across people; do not omit repeat repairs.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "contractMinutes",
+      "unit": "active-person-minutes",
+      "definition": "All active specification, contract review and maintenance minutes, including Human review where applicable.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "verificationMinutes",
+      "unit": "active-person-minutes",
+      "definition": "All active verification operation/maintenance minutes across people; CI elapsed waiting is included in outcome wall time, not double counted as active work.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "contractCostCad",
+      "unit": "CAD-per-episode",
+      "definition": "Actual monetary contract/specification maintenance cost in CAD; record known zero only if observed, otherwise null. No guessed model costs.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "verificationCostCad",
+      "unit": "CAD-per-episode",
+      "definition": "Actual monetary verification cost including paid execution and compute in CAD; no spend authorized by this protocol, record unknown when unavailable.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "restatements",
+      "unit": "count-per-episode",
+      "definition": "Times Human repeats an already accepted promise because the system lost/misunderstood it; Human adjudicates distinction from legitimate successor meaning.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "manualReproductions",
+      "unit": "count-per-episode",
+      "definition": "Human-requested/operated reproduction attempts including failed attempts; count all registered attempts.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "humanMinutes",
+      "unit": "active-human-minutes",
+      "definition": "Total active Human time across narration, restatement, reproduction, review and unnecessary technical choices. Overlap with engineering cost categories is reported, not summed twice.",
+      "missing": "UNKNOWN"
+    },
+    {
+      "id": "unnecessaryDecisions",
+      "unit": "count-per-episode",
+      "definition": "Technical choices returned to Human despite existing authority/approved meaning; Human adjudicates necessary meaning/authority decisions separately.",
+      "missing": "UNKNOWN"
+    }
+  ],
+  "thresholds": {
+    "maxEscapedFailures": 0,
+    "maxUnexpectedChanges": 0,
+    "allCandidateOutcomesVerified": true,
+    "maxEffortRatio": 1,
+    "maxHumanBurdenRatio": 1,
+    "maxEachMetricRatio": 1,
+    "strictPracticalImprovement": true
+  },
+  "baselineRule": "Prospective current supported build reference, not an invented before-CI history. Freeze actual baseline and candidate revisions in a reviewed successor protocol before collecting four matched repair/workflow episodes per cohort. Current candidate revision is unknown; no comparison is authorized.",
+  "collectionRule": "Human reviews full protocol digest and thresholds under #2943 before any cohort episode starts; host approval reference/timestamp/digest is separate from dataset. Use same approved Save edition, device/runtime/provider configuration, pseudonymous equivalent disposable workload, permissions, initial state, fault schedule and scope per pair. Register all four case episodes per cohort in Casebook before starting; retain every attempt, blocked/unknown outcome and zero/missing distinction. Episode follows an equivalent accepted repair request through independently verified outcome and fixed follow-up to next normal restart/Library reopening; record known intervening failures/repairs and all active effort. No forced execution on real private work or paid inference.",
+  "comparisonLimits": "Four matched episodes per cohort is a proposed small exploratory campaign, not statistical power or proof of causation. Non-increase for every metric plus zero candidate escaped failures/unexpected changes and strict practical reliability/Human-burden improvement; unknown/blocked/incomparable episodes make comparison UNPROVEN. Freeze amended protocol and start a new campaign if conditions or criteria change. This prospective reference cannot establish how the full historical CI transition changed outcomes.",
+  "truthEdition": "PP-SAVE-001:1.0.0"
+}

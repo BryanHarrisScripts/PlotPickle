@@ -1578,7 +1578,8 @@
         "scripts/run-uat-autopilot.mjs",
         "scripts/casebook-contract.mjs",
         "scripts/casebook-evidence.mjs",
-        "scripts/verification-composition-migration.mjs"
+        "scripts/verification-composition-migration.mjs",
+        "scripts/verification-outcome-measurement.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

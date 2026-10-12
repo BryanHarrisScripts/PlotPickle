@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "issue": 2940,
+  "brief": "docs/developer-briefs/2940-outcome-measurement.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2940-outcome-measurement.md",
+    "docs/verification/2940-outcome-measurement.md",
+    "lib/verification/development/outcome-measurement.mjs",
+    "docs/verification/2940-measurement-protocol.json",
+    "docs/verification/2940-measurements.json",
+    "scripts/verification-outcome-measurement.mjs",
+    "tests/issue-2940-outcome-measurement.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2940.json"
+  ],
+  "acceptance": [
+    {
+      "id": "1",
+      "criterion": "complete metric definitions and thresholds prepare without invented baseline",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "complete metric definitions and thresholds prepare without invented baseline"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "criterion": "thresholds and Human approval must precede observation",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "thresholds and Human approval must precede observation"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "criterion": "green CI counts cannot substitute",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "green CI counts cannot substitute"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "criterion": "unknown or missing metrics remain unknown",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "unknown or missing metrics remain unknown"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "criterion": "incomplete blocked failed or duplicated episodes",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "incomplete blocked failed or duplicated episodes"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "criterion": "existing signed receipt admission binds exact protocol",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "existing signed receipt admission binds exact protocol"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "criterion": "metric payload rejects story text",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2940-outcome-measurement.test.mjs",
+          "contains": "metric payload rejects story text"
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import test from "node:test";
 // PP-SAVE-001 T6: these are two complete, distinct Node processes using the
 // current authenticated PlotPickle loopback server + encrypted vault in the
 // same isolated test home, NOT a browser refresh or reset of a JS module.
-test("PP-SAVE-001 T6: saved/locked Afterglow image survives a genuine process exit and new authenticated process", async (t) => {
+for (const textMode of ["caption","legacy-no-text"]) test(`PP-SAVE-001 T6 and PP-NARR-001 B7: image and ${textMode} survive a genuine process exit and new authenticated process`, async (t) => {
   const home = await mkdtemp(path.resolve("node_modules/.pp-save-001-restart-"));
   const worker = path.resolve("tests/support/issue-2847-process-restart-worker.mjs");
   const env = {
@@ -15,6 +15,7 @@ test("PP-SAVE-001 T6: saved/locked Afterglow image survives a genuine process ex
     PLOTPICKLE_HOME: home,
     PLOTPICKLE_AUTH_STATE_PATH: path.join(home, "auth", "state.json"),
     PLOTPICKLE_ACCESS_MODE: "desktop-loopback",
+    PP_RESTART_TEXT_MODE:textMode,
   };
   const phase = (name) => {
     const child = spawnSync(process.execPath, [worker, name], {
@@ -47,11 +48,16 @@ test("PP-SAVE-001 T6: saved/locked Afterglow image survives a genuine process ex
     assert.equal(recovered.locked, true);
     assert.equal(recovered.previsEligible, true,
       "recovered exact saved+locked artifact must be the authoritative Previs input");
+    assert.equal(recovered.text.noText,textMode==="legacy-no-text");
+    assert.equal(recovered.text.narration,textMode==="legacy-no-text"?"":"A quiet moment before the dawn.");
+    assert.equal(recovered.text.storyboardCurrent,true);
+    assert.equal(recovered.text.previsCurrent,true);
+    assert.equal(recovered.text.sourceKey,expected.approval.sourceKey);
     t.diagnostic(JSON.stringify({
-      contract: "PP-SAVE-001", truth: "T6+T7", result: "PASS in isolated Windows/Node process-restart fixture",
+      contract: "PP-SAVE-001 + PP-NARR-001", truth: "T6+T7 and bounded B7", result: "PASS in isolated authenticated process-restart fixture", platform:process.platform,textMode,
       sameHome: true, distinctProcessIds: [first.pid, recovered.pid], projectId: expected.projectId,
       artifactId: expected.artifactId, mediaSha256: expected.digest,
-      contractLimit: "Does not certify Human's own Windows launcher, cross-device recovery or paid provider generation",
+      contractLimit: "Real HTTP/encrypted storage; browser storage and rendering are fixture boundaries. Does not certify Human launcher, rendered two-surface recovery, local model inference or paid generation.",
     }));
   } finally {
     await rm(home, { recursive: true, force: true });

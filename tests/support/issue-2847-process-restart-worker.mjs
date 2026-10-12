@@ -37,7 +37,10 @@ const client = await compile(
   'export {switchActiveLibraryProject} from "./core/storage/project-library-browser.ts";' +
   'export {saveFoundationProjectDurably} from "./core/storage/project-library/revision-safe-browser.ts";' +
   'export {applyStoryCommand} from "./core/project/apply-command.ts";' +
-  'export {isSavedLockedStoryboardImage} from "./core/contracts/build-progress.ts";',
+  'export {isSavedLockedStoryboardImage} from "./core/contracts/build-progress.ts";' +
+  'export {buildPrevisGraphicNovelPanel,graphicNovelTextSourceKey,graphicNovelTextSourceSnapshot,approvedGraphicNovelPanel} from "./app/_components/previs/previs-graphic-novel-presentation.ts";' +
+  'export {storyboardAnchorEvidence,storyboardAnchorTargetRef,storyboardPositionProgression} from "./app/_components/storyboard/storyboard-editorial-model.ts";' +
+  'export {narrationOverallStory} from "./core/media/storyboard-sequence-evidence.mjs";',
   "client");
 class MemoryStorage {
   values = new Map();
@@ -96,6 +99,72 @@ async function sha256(assetUrl) {
   assert.ok(!assetUrl.includes(".."), "reject traversal from a persisted media URL");
   return createHash("sha256").update(await readFile(path.join(root, "public", assetUrl))).digest("hex");
 }
+// Independent expected fixture text; no provider response or Human story mutation.
+const caption = "A quiet moment before the dawn.";
+const noText = process.env.PP_RESTART_TEXT_MODE === "legacy-no-text";
+function textInputs(project, artifact) {
+  const anchorRef = client.storyboardAnchorTargetRef("block:block-01", 1);
+  const evidence = client.storyboardAnchorEvidence(project, "block:block-01", 1);
+  const progression = client.storyboardPositionProgression(1);
+  const panel = client.buildPrevisGraphicNovelPanel({ position:1, assetUrl:artifact.assetUrl,
+    authoritative:true, narrativeIntention:artifact.narrativeIntention ?? "",
+    sceneNumbers:[...new Set(evidence.passages.map((passage)=>passage.sceneNumber).filter(Boolean))].map(String),
+    beatLabel:progression.label, beatDirection:progression.direction,
+    shotLabel:"Shot 01 of 25", shotContext:"~3-second planning target", passages:evidence.passages });
+  const storyContext = { overallStory:client.narrationOverallStory(project), title:project.title,
+    act:1, block:1, miniBlock:1, blockTitle:evidence.blockTitle, dramaticResponsibility:evidence.responsibility };
+  return {anchorRef,evidence,panel,storyContext};
+}
+async function saveTextApproval(project, artifact) {
+  const inputs = textInputs(project, artifact);
+  const sourceKey = client.graphicNovelTextSourceKey(inputs.panel, inputs.evidence.passages, inputs.storyContext,
+    client.graphicNovelTextSourceSnapshot(project, inputs.anchorRef, 1, artifact));
+  const source = await readFile("app/_components/preproduction/storyboard-locked-shot-handoff.tsx", "utf8");
+  const start = source.indexOf("  async function saveApproval(");
+  const end = source.indexOf("  async function prepareShotBrief(", start);
+  assert.ok(start>=0 && end>start);
+  let notices = {};
+  const context = vm.createContext({ ...client, ...inputs, project, latestProject:{current:project},
+    lockedArtifacts:[{position:1,artifact}], saveInFlight:{current:false}, busyPosition:null,
+    setSavingPosition(){},setNotices(update){notices=update(notices);},setDrafts(update){update({});},onProjectChange(){} });
+  vm.runInContext(stripTypeScriptTypes(source.slice(start,end)),context);
+  // Legacy no-text compatibility is observed through storage, not a new UI action.
+  await context.saveApproval(inputs.panel,sourceKey,noText?"":caption,[],noText);
+  assert.match(notices[1],/saved and locked/u);
+  const saved = await vaultProject(project.id);
+  const approval = saved.production.graphicNovelTextApprovals.find((item)=>item.anchorRef===inputs.anchorRef && item.position===1);
+  assert.ok(approval);
+  assert.equal(approval.narration,noText?"":caption);
+  assert.equal(approval.noText,noText);
+  assert.equal(approval.sourceKey,sourceKey);
+  return {saved,approval};
+}
+async function observeRecoveredText(project, artifact, expected) {
+  const inputs = textInputs(project,artifact);
+  const approval = project.production.graphicNovelTextApprovals.find((item)=>item.anchorRef===inputs.anchorRef && item.position===1);
+  assert.deepEqual(approval,expected.approval,"exact durable text decision survives the process boundary");
+  const handoff = await readFile("app/_components/preproduction/storyboard-locked-shot-handoff.tsx","utf8");
+  const start = handoff.indexOf("  function currentApproval(");
+  const end = handoff.indexOf("  async function saveApproval(",start);
+  const storyboard = vm.createContext({...client,...inputs,project,approvals:[approval],lockedArtifacts:[{position:1,artifact}]});
+  vm.runInContext(stripTypeScriptTypes(handoff.slice(start,end)),storyboard);
+  assert.equal(storyboard.currentApproval(inputs.panel).current,approval,"Storyboard recognizes the recovered source identity");
+  const previsSource=await readFile("app/_components/previs/previs-readiness-workspace.tsx","utf8");
+  const pStart=previsSource.indexOf("  const currentTextApprovalFor =");
+  const pEnd=previsSource.indexOf("  const selectedGraphicNovelPanel",pStart);
+  assert.ok(pStart>=0 && pEnd>pStart);
+  const previs=vm.createContext({...client,...inputs,project,selectedFrameEvidence:inputs.evidence,
+    selectedAddressAnchor:{id:inputs.anchorRef},graphicNovelTextApprovals:[approval],flipBookFrames:[{locked:artifact}]});
+  vm.runInContext(stripTypeScriptTypes(previsSource.slice(pStart,pEnd))+"\nglobalThis.readApproval=currentTextApprovalFor;",previs);
+  assert.equal(previs.readApproval(inputs.panel),approval,"Previs consumes the same recovered decision");
+  const presented=client.approvedGraphicNovelPanel(inputs.panel,approval);
+  assert.equal(presented.narration,noText?"":caption);
+  assert.equal(presented.bubbles.length,0);
+  const changed=structuredClone(artifact);changed.assetUrl+="?different-version";
+  previs.flipBookFrames=[{locked:changed}];
+  assert.equal(previs.readApproval(inputs.panel),null,"same badge cannot approve a different recovered image version");
+  return {noText,sourceKey:approval.sourceKey,narration:approval.narration,storyboardCurrent:true,previsCurrent:true};
+}
 try {
   if (phase === "save-and-lock") {
     const created = await client.browserProfileAuthGateway.createFirstProfile({
@@ -152,7 +221,7 @@ try {
     await context.reviewFrame(draft, "accept");
     assert.match(notices.at(-1), /kept and locked/u);
     const saved = client.loadFoundationProject();
-    const persisted = await vaultProject(saved.id);
+    let persisted = await vaultProject(saved.id);
     const savedArtifact = artwork(persisted, draft.id);
     assert.equal(savedArtifact.reviewState, "accepted");
     assert.ok((savedArtifact.sourceDecisionKeys ?? []).includes("storyboard-local-save:v1"));
@@ -160,10 +229,12 @@ try {
     assert.equal(client.isSavedLockedStoryboardImage(savedArtifact,
       new Set(persisted.build.foundations.acceptedVisualArtifactIds)), true);
     const digest = await sha256(savedArtifact.assetUrl);
+    const textDecision=await saveTextApproval(persisted,savedArtifact);
+    persisted=textDecision.saved;
     const expected = {
       profileId: created.profile.profileId, projectId: persisted.id,
       artifactId: savedArtifact.id, assetUrl: savedArtifact.assetUrl,
-      revision: persisted.revision, digest, originalPid: process.pid,
+      revision: persisted.revision, digest, originalPid: process.pid, approval:textDecision.approval,
     };
     await writeFile(path.join(home, "expected.json"), JSON.stringify(expected, null, 2) + "\n");
     process.stdout.write(JSON.stringify({
@@ -199,6 +270,7 @@ try {
       originalPid: expected.originalPid, newPid: process.pid,
       projectId: reloaded.id, artifactId: a.id, revision: reloaded.revision,
       assetUrl: a.assetUrl, digest, saved: true, locked: true, previsEligible,
+      text:await observeRecoveredText(reloaded,a,expected),
     };
     await writeFile(path.join(home, "observed.json"), JSON.stringify(observed, null, 2) + "\n");
     process.stdout.write(JSON.stringify({ phase, pid: process.pid, ...observed }) + "\n");

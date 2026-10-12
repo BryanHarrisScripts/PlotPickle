@@ -34,6 +34,7 @@ import {
   type StoryboardGenerationScope,
 } from "./storyboard-editorial-model";
 import StoryboardLockedShotHandoff from "../preproduction/storyboard-locked-shot-handoff";
+import { storyboardNarrationAuthoredIntention } from "@/core/media/storyboard-sequence-evidence.mjs";
 import {
   storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
@@ -685,6 +686,21 @@ export default function StoryboardReadinessWorkspace({
                   const frameVersionLabel = positionImages.length > 0 && selectedImageIndex >= 0
                     ? `${selectedImageIndex + 1}/${positionImages.length}`
                     : "0/0";
+                  const productionShots = selectedArtifact ? project.production.shots
+                    .filter((candidate) => candidate.anchorRef === storyboardAnchorTargetRef(selectedTarget.id, selectedMiniBlockNumber) && candidate.storyboardArtifactId === selectedArtifact.id)
+                    .sort((left, right) => left.order - right.order) : [];
+                  const productionShot = productionShots[0] ?? null;
+                  const story = [storyboardNarrationAuthoredIntention(selectedArtifact?.narrativeIntention), shot?.narrativePurpose, shot?.visualIntent].filter(Boolean).join(" · ");
+                  const sceneTitles = visualStory.scenes.map((scene) => scene.title).filter(Boolean);
+                  const beatContext = (selectedVisualAnchor?.beats ?? []).map((beat) => [beat.label, beat.visualAction, beat.purpose].filter(Boolean).join(" · ")).filter(Boolean).join(" · ");
+                  const sceneBeat = [
+                    sceneTitles.length ? `Scene context for this Mini-Block: ${sceneTitles.join("; ")}` : "",
+                    beatContext ? `Authored Mini-Block Beat context (not assigned to this Shot): ${beatContext}` : "No authored Beat is mapped to this Mini-Block",
+                  ].filter(Boolean).join(" · ");
+                  const camera = [productionShot?.shotSize || shot?.shotSize, productionShot?.angle || shot?.angle, productionShot?.movement || shot?.movement, productionShot?.lens || shot?.lens].filter(Boolean).join(" · ");
+                  const performance = productionShots.flatMap((candidate) => [candidate.blockingIntent, candidate.performanceEnergy, candidate.pacingIntent]).filter(Boolean).join(" · ");
+                  const continuity = productionShots.flatMap((candidate) => [candidate.transitionIn, candidate.transitionOut]).filter(Boolean).join(" · ") || [shot?.transitionIn, shot?.transitionOut].filter(Boolean).join(" · ");
+                  const duration = productionShot?.durationSeconds ?? shot?.durationSeconds ?? null;
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Planned Shot · camera intent open";
@@ -759,14 +775,28 @@ export default function StoryboardReadinessWorkspace({
                         ) : null}
                       </div>
                       {frameNoticePosition === position && frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
-                      {selectedImage ? <div className={styles.framePromptProvenance}>
-                        <strong>Storyboard Image Prompt</strong>
-                        <p>{selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image."}</p>
-                      </div> : null}
-                      {(!selectedImage || !selectedImage.prompt) ? <button className={styles.framePromptButton} type="button" onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>{selectedImage ? "Prepare a new prompt proposal" : "Create Storyboard Image prompt"}</button> : null}
+                      <button className={styles.framePromptButton} type="button" disabled={frameBusy} onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>{selectedImage ? "Prepare a new prompt proposal / Create image" : "Create Storyboard Image"}</button>
+                      <div className={styles.storyboardWorkflowActions} id={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`} aria-label={`Shot ${position} analysis and narration actions`} />
+                      </div>
+                      <div className={styles.positionContextColumn} data-storyboard-shot-context={position}>
+                        <div className={styles.framePromptProvenance}>
+                          <strong>Storyboard Image Prompt</strong>
+                          <p>{selectedImage ? (selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image.") : "No Storyboard Image is selected. Prepare an editable image prompt from the authored story context."}</p>
+                        </div>
+                        <dl className={styles.handoffFacts}>
+                          <div><dt>Story</dt><dd>{story || "No additional story responsibility authored."}</dd></div>
+                          <div><dt>Scene / Beat</dt><dd>{sceneBeat}</dd></div>
+                          <div><dt>Camera</dt><dd>{camera || "Not authored"}</dd></div>
+                          <div><dt>Performance / Blocking</dt><dd>{performance || "Not authored"}</dd></div>
+                          <div><dt>Lighting / Look</dt><dd>{shot?.lightingIntent || "Not authored"}</dd></div>
+                          <div><dt>Timing</dt><dd>{duration !== null ? `${duration}s authored` : "~3s Storyboard planning target"}</dd></div>
+                          <div><dt>Information boundary</dt><dd>{shot?.informationDirectives.map((directive) => `${directive.mode}: ${directive.statement}`).join(" · ") || "No special reveal/withhold directive"}</dd></div>
+                          <div><dt>Continuity / Handoff</dt><dd>{continuity || "No authored transition / continuity handoff"}</dd></div>
+                        </dl>
                       </div>
                       {lockedImageHandoffReady ? <StoryboardLockedShotHandoff
                         blockNumber={selectedNumber}
+                        actionHostId={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`}
                         embedded
                         legacyProject={legacyProject}
                         miniBlockNumber={selectedMiniBlockNumber}
@@ -774,7 +804,7 @@ export default function StoryboardReadinessWorkspace({
                         position={position}
                         project={project}
                         targetId={selectedTarget.id}
-                      /> : null}
+                      /> : <p className={styles.handoffEmpty} data-storyboard-narration-prerequisite={position}>Save and Lock a Storyboard Image before requesting a shot brief or narration. The Story and Scene / Beat evidence above remains available.</p>}
                     </div>
                   );
                 })}

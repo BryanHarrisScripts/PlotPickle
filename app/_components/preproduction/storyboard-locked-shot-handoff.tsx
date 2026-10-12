@@ -4,7 +4,8 @@ import { narrationOverallStory } from "@/core/media/storyboard-sequence-evidence
 
 /* eslint-disable @next/next/no-img-element -- locked Storyboard images are local PlotPickle assets. */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type {
   PrevisGraphicNovelReviewedShotBrief,
   PrevisGraphicNovelTextApproval,
@@ -52,6 +53,7 @@ export default function StoryboardLockedShotHandoff({
   targetId,
   blockNumber,
   miniBlockNumber,
+  actionHostId,
   position,
   embedded = false,
   onProjectChange,
@@ -61,6 +63,7 @@ export default function StoryboardLockedShotHandoff({
   readonly targetId: string;
   readonly blockNumber: number;
   readonly miniBlockNumber: number;
+  readonly actionHostId?: string;
   readonly position?: number;
   readonly embedded?: boolean;
   readonly onProjectChange: (project: PPFProject) => void;
@@ -112,6 +115,8 @@ export default function StoryboardLockedShotHandoff({
   });
   const approvals = (project.production.graphicNovelTextApprovals ?? [])
     .filter((approval) => approval.anchorRef === anchorRef);
+  const [actionHost, setActionHost] = useState<HTMLElement | null>(null);
+  useEffect(() => { setActionHost(actionHostId ? document.getElementById(actionHostId) : null); }, [actionHostId]);
   const [drafts, setDrafts] = useState<Readonly<Record<number, NarrationDraft>>>({});
   const [shotBriefs, setShotBriefs] = useState<Readonly<Record<number, ReviewedShotBrief>>>({});
   const [busyPosition, setBusyPosition] = useState<number | null>(null);
@@ -418,7 +423,6 @@ export default function StoryboardLockedShotHandoff({
                         </label>
                       ))}
                     </div>
-                    <button type="button" disabled={busyPosition !== null || savingPosition !== null} onClick={() => void generateNarration(panel, brief.facts, brief)}>{busyPosition === position ? "Creating…" : "Create Narration from Reviewed Brief"}</button>
                   </div>
                 ) : null}
                 <dl className={styles.handoffFacts}>
@@ -432,7 +436,7 @@ export default function StoryboardLockedShotHandoff({
                   <div><dt>Continuity / Handoff</dt><dd>{shotFacts.continuity || "No authored transition / continuity handoff"}</dd></div>
                 </dl>
                 <div className={styles.handoffNarration}>
-                  <strong>Graphic Novel bubble / caption</strong>
+                  <strong>Narration review and approval</strong>
                   {!shotFacts.story ? (
                     <small>Recovered-image provenance is not an authored Shot intention. This Local text writer uses screenplay context; it has not inspected this image. Review any proposal against the image before approving.</small>
                   ) : null}
@@ -455,16 +459,17 @@ export default function StoryboardLockedShotHandoff({
                     </div>
                   ) : null}
 
-                  <div className={styles.handoffNarrationActions}>
-                    <button
-                      disabled={busyPosition !== null || savingPosition !== null || (!authoredSequencePassages.length && !sequenceShots[position - 1]?.intention)}
-                      type="button"
-                      onClick={() => void prepareShotBrief(panel, shotFacts)}
-                    >
-                      {busyPosition === position ? "Preparing…" : brief ? "Reprepare Shot Brief" : "Analyze Shot & Prepare Brief"}
-                    </button>
-                    {draft && brief ? <button type="button" onClick={() => void generateNarration(panel, brief.facts, brief)} disabled={busyPosition !== null || savingPosition !== null}>Regenerate Narration</button> : null}
-                  </div>
+                  {actionHost ? createPortal(
+                    <div className={styles.handoffNarrationActions}>
+                      <button
+                        disabled={busyPosition !== null || savingPosition !== null || (!authoredSequencePassages.length && !sequenceShots[position - 1]?.intention)}
+                        type="button"
+                        onClick={() => void prepareShotBrief(panel, shotFacts)}
+                      >{busyPosition === position ? "Preparing…" : brief ? "Reprepare Shot Brief" : "Analyze Shot & Prepare Brief"}</button>
+                      <button type="button" disabled={!brief || busyPosition !== null || savingPosition !== null} title={!brief ? "Analyze and review this Shot before creating narration." : undefined} onClick={() => { if (brief) void generateNarration(panel, brief.facts, brief); }}>Create Narration from Reviewed Brief</button>
+                    </div>,
+                    actionHost,
+                  ) : null}
                   <small role={notices[position]?.startsWith("ERROR · ") ? "alert" : "status"} data-narration-failure={notices[position]?.startsWith("ERROR · ") ? "true" : "false"}>{notices[position] ?? (approvalState.current ? "Saved and locked decision will appear unchanged in Storyboard and Previs." : "Human approval is required before generated text becomes current.")}</small>
                 </div>
               </article>

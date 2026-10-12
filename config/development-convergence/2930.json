@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 2930,
+  "brief": "docs/developer-briefs/2930-single-shot-narration.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/_components/preproduction/storyboard-locked-shot-handoff.tsx",
+    "app/api/previs/narration/route.ts",
+    "core/media/previs-narration.mjs",
+    "core/contracts/previs/index.ts",
+    "tests/issue-2839-storyboard-text-narration.test.mjs",
+    "tests/issue-2930-single-shot-narration.test.mjs",
+    "tests/issue-2807-storyboard-previs-handoff.test.mjs",
+    "tests/issue-2928-storyboard-shot-layout.test.mjs",
+    "scripts/developer-diagnostics/product-proof/2821-save-session.mjs",
+    "docs/developer-briefs/2930-single-shot-narration.md",
+    "config/development-convergence/2930.json",
+    "tests/issue-2418-storyboard-batch-progression.test.mjs",
+    "tests/issue-2420-storyboard-frame-review.test.mjs",
+    "tests/issue-2821-afterglow-load-hydration-authority.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "SINGLE-SHOT",
+      "criterion": "Only one Shot and no repeat approval checkbox",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2930-single-shot-narration.test.mjs",
+          "contains": "one-shot image flow stores an immutable prompt"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL-REPAIR",
+      "criterion": "First invalid dialogue then direct exact-shot caption succeeds",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2930-single-shot-narration.test.mjs",
+          "contains": "first INVALID_DIALOGUE_SHAPE then direct caption response succeeds"
+        }
+      ]
+    },
+    {
+      "id": "NEGATIVE",
+      "criterion": "Wrong Shot still fails 502",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2930-single-shot-narration.test.mjs",
+          "contains": "invalid dialogue followed by wrong Shot still returns safe HTTP 502"
+        }
+      ]
+    }
+  ]
+}

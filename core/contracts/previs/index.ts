@@ -261,6 +261,14 @@ export interface PrevisGraphicNovelTextApproval {
   readonly approvedAt: string;
 }
 
+export interface StoryboardImagePromptRecord {
+  readonly anchorRef: string;
+  readonly position: number;
+  /** Original generated proposal for this Shot. Never derived from image pixels. */
+  readonly prompt: string;
+  readonly createdAt: string;
+}
+
 export interface PrevisProductionState {
   readonly shots: readonly ProductionShotIntent[];
   readonly soundCues?: readonly ProductionSoundCue[];
@@ -271,10 +279,11 @@ export interface PrevisProductionState {
   readonly timelineMotionShots?: readonly TimelineMotionShot[];
   readonly screeningObservations?: readonly ScreeningObservation[];
   readonly graphicNovelTextApprovals?: readonly PrevisGraphicNovelTextApproval[];
+  readonly storyboardImagePrompts?: readonly StoryboardImagePromptRecord[];
 }
 
 export function createEmptyPrevisProductionState(): PrevisProductionState {
-  return { shots: [], soundCues: [], takes: [], roughCuts: [], timelineAssemblies: [], timelineRangeExports: [], timelineMotionShots: [], screeningObservations: [], graphicNovelTextApprovals: [] };
+  return { shots: [], soundCues: [], takes: [], roughCuts: [], timelineAssemblies: [], timelineRangeExports: [], timelineMotionShots: [], screeningObservations: [], graphicNovelTextApprovals: [], storyboardImagePrompts: [] };
 }
 
 function cleanText(value: unknown, maximum: number) {
@@ -659,6 +668,7 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
     readonly timelineMotionShots?: unknown;
     readonly screeningObservations?: unknown;
     readonly graphicNovelTextApprovals?: unknown;
+    readonly storyboardImagePrompts?: unknown;
   };
   const shots = Array.isArray(source.shots)
     ? source.shots
@@ -703,5 +713,17 @@ export function normalizePrevisProductionState(value: unknown): PrevisProduction
       .filter((approval, index, all) => all.findIndex((candidate) => candidate.anchorRef === approval.anchorRef && candidate.position === approval.position) === index)
       .slice(0, 2_400)
     : [];
-  return { shots, soundCues, takes, roughCuts, timelineAssemblies, timelineRangeExports, timelineMotionShots, screeningObservations, graphicNovelTextApprovals };
+  const storyboardImagePrompts: StoryboardImagePromptRecord[] = Array.isArray(source.storyboardImagePrompts)
+    ? source.storyboardImagePrompts.flatMap((value: unknown) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+      const record = value as Partial<StoryboardImagePromptRecord>;
+      const anchorRef = cleanText(record.anchorRef, 240);
+      const position = record.position;
+      const prompt = cleanText(record.prompt, 8_000);
+      const createdAt = cleanText(record.createdAt, 80);
+      if (!/^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(anchorRef) || !Number.isInteger(position) || position! < 1 || position! > 25 || !prompt || !createdAt) return [];
+      return [{ anchorRef, position: position!, prompt, createdAt }];
+    }).filter((item, index, all) => all.findIndex((candidate) => candidate.anchorRef === item.anchorRef && candidate.position === item.position) === index).slice(0, 2_400)
+    : [];
+  return { shots, soundCues, takes, roughCuts, timelineAssemblies, timelineRangeExports, timelineMotionShots, screeningObservations, graphicNovelTextApprovals, storyboardImagePrompts };
 }

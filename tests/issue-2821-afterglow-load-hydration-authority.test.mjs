@@ -220,8 +220,7 @@ test("#2821 Storyboard action feedback is visible even when the generation promp
 
   const shotNoticeAt = storyboard.indexOf("frameNoticePosition === position && frameNotice");
   const fallbackNoticeAt = storyboard.indexOf("frameNoticePosition === null && frameNotice");
-  const promptAt = storyboard.indexOf("{promptPosition !== null");
   assert.ok(shotNoticeAt >= 0, "Storyboard must render Save/Lock feedback beside the affected Shot");
-  assert.ok(fallbackNoticeAt > shotNoticeAt, "Storyboard must retain non-Shot recovery feedback outside the prompt panel");
-  assert.ok(promptAt > fallbackNoticeAt, "Storyboard feedback must remain visible before the optional generation prompt");
+  assert.ok(fallbackNoticeAt > shotNoticeAt, "Storyboard must retain non-Shot recovery feedback after the 25 Shot cards");
+  assert.doesNotMatch(storyboard, /\{promptPosition !== null/, "the old separate prompt panel is removed in favor of each Shot's inline image prompt");
 });

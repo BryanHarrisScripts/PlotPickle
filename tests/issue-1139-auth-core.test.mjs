@@ -16,7 +16,19 @@ import { ARGON2ID_SECURITY_FLOOR } from "../core/auth/profile-crypto-contract-co
 const root = path.resolve(import.meta.dirname, "..");
 const password = "PlotPickle Auth Core test passphrase";
 const nodeId = "node_auth_core_fixture";
-const forbiddenRegistryTerms = /email|cloud|buzz|provider|credential|project|story|path|prompt|memory|thumbnail|master.?key|pmk|passwordEnvelope|recoveryEnvelope/iu;
+const publicProfileFields = ["authMethods", "avatarRef", "createdAt", "displayName", "profileId", "status", "updatedAt", "vaultVersion"];
+
+function assertSafeRegistry(registry) {
+  assert.deepEqual(Object.keys(registry).sort(), ["nodeId", "profiles", "version"]);
+  for (const [profileId, profile] of Object.entries(registry.profiles)) {
+    assert.deepEqual(Object.keys(profile).sort(), publicProfileFields);
+    assert.equal(profile.profileId, profileId);
+    for (const field of ["profileId", "displayName", "createdAt", "updatedAt", "status"]) assert.equal(typeof profile[field], "string");
+    assert.ok(profile.avatarRef === null || typeof profile.avatarRef === "string");
+    assert.equal(typeof profile.vaultVersion, "number");
+    assert.deepEqual(profile.authMethods, ["password", "recovery"]);
+  }
+}
 
 function serviceOptions(stateStore, overrides = {}) {
   return {
@@ -50,7 +62,7 @@ test("desktop first-run creates a random stable Human profile entirely offline",
     assert.deepEqual(created.profile.authMethods, ["password", "recovery"]);
     assert.equal(created.profile.status, "active");
     const registry = auth.readRegistrySnapshot();
-    assert.doesNotMatch(JSON.stringify(registry), forbiddenRegistryTerms);
+    assertSafeRegistry(registry);
     assert.deepEqual(Object.keys(registry.profiles), [created.profile.profileId]);
     auth.close();
 
@@ -203,14 +215,31 @@ test("disable revokes every target session and prevents later authentication", a
 test("persistent state separates safe registry metadata from encrypted credentials and recovery material", async () => {
   const { auth, created, stateStore } = await createDesktopProfile();
   const state = await stateStore.read();
-  const registryText = JSON.stringify(state.registry);
   const persistentText = JSON.stringify(state);
-  assert.doesNotMatch(registryText, forbiddenRegistryTerms);
+  assertSafeRegistry(state.registry);
   assert.equal(Object.keys(state.credentials[created.profile.profileId]).sort().join(","), "passwordEnvelope,profileId,recoveryEnvelope");
   assert.doesNotMatch(persistentText, new RegExp(password, "u"));
   assert.doesNotMatch(persistentText, new RegExp(created.recoverySecret, "u"));
   assert.doesNotMatch(persistentText, new RegExp(created.authContext.sessionId, "u"));
   auth.close();
+});
+
+test("registry privacy checks inspect permitted fields, not sensitive-looking substrings in public identifiers", () => {
+  const profileId = "profile_DkKrdeAGwPMKxynjPOZitQ";
+  const registry = {version: 1, nodeId, profiles: {[profileId]: {
+    profileId, displayName: "PMK Reader", createdAt: "2026-10-12", updatedAt: "2026-10-12",
+    status: "active", vaultVersion: 1, authMethods: ["password", "recovery"], avatarRef: "avatar:story",
+  }}};
+  assertSafeRegistry(registry);
+  for (const field of ["passwordEnvelope", "recoveryEnvelope", "pmk", "providerCredential", "buzzSignerRef", "storyText"]) {
+    assert.throws(() => assertSafeRegistry({...registry, [field]: "private material"}));
+    const contaminated = structuredClone(registry);
+    contaminated.profiles[profileId][field] = "private material";
+    assert.throws(() => assertSafeRegistry(contaminated));
+  }
+  const nestedSecret = structuredClone(registry);
+  nestedSecret.profiles[profileId].displayName = {pmk: "private material"};
+  assert.throws(() => assertSafeRegistry(nestedSecret));
 });
 
 test("JSON file storage survives restart and rejects corrupt or cross-Node state", async (context) => {

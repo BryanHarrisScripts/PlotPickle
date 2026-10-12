@@ -23,7 +23,8 @@
     "tests/issue-2932-approved-truth-claims.test.mjs",
     "config/development-convergence/2932.json",
     "docs/verification/2932-approved-truth-baseline.json",
-    "tests/issue-1926-verification-schemas.test.mjs"
+    "tests/issue-1926-verification-schemas.test.mjs",
+    "tests/issue-1139-auth-core.test.mjs"
   ],
   "acceptance": [
     {
@@ -100,6 +101,22 @@
           "type": "file-contains",
           "path": "tests/issue-2932-approved-truth-claims.test.mjs",
           "contains": "governance regression belongs to the existing Layer 7 catalogue"
+        }
+      ]
+    },
+    {
+      "id": "REGISTRY-PRIVACY",
+      "criterion": "Registry privacy rejects actual forbidden fields and nested payloads without misclassifying a safe public ID as secret material.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1139-auth-core.test.mjs",
+          "contains": "registry privacy checks inspect permitted fields"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1139-auth-core.test.mjs",
+          "contains": "nestedSecret"
         }
       ]
     }

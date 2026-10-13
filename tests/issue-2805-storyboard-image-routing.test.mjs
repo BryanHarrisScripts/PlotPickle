@@ -12,9 +12,11 @@ test("#2805 gives the provider-neutral media router sole production image owners
   ]);
 
   assert.doesNotMatch(sdxlGateway, /\/api\/local-ai\/generate\/image/u);
-  assert.match(sdxlGateway, /\/api\/media-routing\/test\/image/u);
+  assert.doesNotMatch(sdxlGateway, /server\.middlewares\.use/u);
   assert.match(mediaGateway, /const IMAGE_PATH = "\/api\/local-ai\/generate\/image"/u);
-  assert.match(composition, /registerSdxlLocalImageGateway\(server\)[\s\S]*registerMediaRoutingGateway\(server\)/u);
+  assert.doesNotMatch(composition, /registerSdxlLocalImageGateway/u);
+  assert.match(composition, /registerMediaRoutingGateway\(server\)/u);
+  assert.match(mediaGateway, /generateSdxlLocalTest\(store, input\)/u);
 });
 
 test("#2805 normalizes provider-native image output to requested Storyboard WebP", async () => {

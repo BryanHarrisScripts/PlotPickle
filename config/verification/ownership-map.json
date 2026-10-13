@@ -2261,6 +2261,22 @@
         "storage",
         "native"
       ]
+    },
+    {
+      "id": "media-image-provider-test-truth-2966",
+      "classification": "production",
+      "include": [
+        "core/contracts/compute/image-test-provider-truth.mjs",
+        "core/contracts/compute/image-test-provider-truth.d.mts",
+        "tests/issue-2966-image-provider-verification.test.mjs"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "provider",
+        "api",
+        "security",
+        "visual"
+      ]
     }
   ]
 }

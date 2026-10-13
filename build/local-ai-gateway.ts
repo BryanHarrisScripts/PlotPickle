@@ -9,7 +9,6 @@ import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./ai/h3/comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
-import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
 import { registerLocalPluginGateway } from "./ai/local-plugin-gateway";
 import { registerComfyUiOnboardingGateway } from "./ai/comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./ai/comfyui-sdxl-starter-gateway";
@@ -63,7 +62,7 @@ export function localAiGateway(): Plugin {
     registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server); registerLocalVoiceGateway(server); registerOpenPencilMcpGateway(server); registerOpenPencilGuiGateway(server); registerDsddSessionGateway(server); registerHunkReviewGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerStoryDecisionGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAutonomousGuestRoutingStatus(server); registerStoryModePolicyGateway(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
-    registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
+    registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerComfyUiSdxlStarterGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);
     registerFoundationsPpfGateway(server); registerLibraryPpfImportGateway(server); registerAgentComputeGateway(server); registerWritingAssistantGateway(server);

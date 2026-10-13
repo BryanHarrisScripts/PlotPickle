@@ -54,6 +54,7 @@ test("#2329 Qwen activation requires explicit license acknowledgement and a revi
   assert.match(gateway, /generateQwenImage21/);
   assert.match(gateway, /imageProfile === "qwen-image-2\.1-experimental"/);
   assert.match(sdxl, /store\.comfyui\.imageProfile !== "sdxl-1\.0"/);
+  assert.doesNotMatch(sdxl, /server\.middlewares\.use/);
 });
 
 test("#2329 exposes Experimental controls without adding a managed Qwen downloader", async () => {

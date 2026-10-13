@@ -29,6 +29,7 @@ import {
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
+import { requestMindMapFidelityProposal } from "../../modules/learn/model/mind-map-proposal-fidelity.mjs";
 import {
   mindMapCharacterRoster,
   mindMapCharacterVisualGenerationPlan,
@@ -516,57 +517,81 @@ export default function DiscoverySurface({
 
   async function createCanonicalFieldProposal(field: StoryDevelopmentFieldDefinition) {
     if (!project || developingFieldId) return;
+    const sourceProjectId = project.id;
+    const sourceRevision = project.revision;
+    const sourceAct = selectedAct;
+    const storageId = storyDevelopmentFieldStorageId(field, sourceAct);
+    const currentValue = fieldDrafts[storageId]
+      ?? storyDevelopmentFieldView(project, field, sourceAct).value;
     setDevelopingFieldId(field.canonicalId);
-    setNotice("Asking Agent for a suggestion…");
+    setNotice("Checking an Agent suggestion against current Human story constraints…");
     try {
-      const response = await fetch("/api/writing-assistant/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agentId: "creative-director",
-          modelRole: "quality",
-          tone: "direct",
-          conversationMode: true,
-          message: [
-            "MIND_MAP_CANONICAL_FIELD_PROPOSAL",
-            `Create one proposal for ${field.canonicalId}.`,
-            `Craft prompt: ${field.prompt}`,
-            "Use only the supplied project evidence. Do not claim the proposal is accepted canon. Return only the proposed field value, without JSON, headings, scoring or process notes.",
-            JSON.stringify({
-              topic: field.topicId,
-              lessonId: field.lessonId,
-              fieldId: field.fieldId,
-              currentValue: fieldDrafts[storyDevelopmentFieldStorageId(field, selectedAct)]
-                ?? storyDevelopmentFieldView(project, field, selectedAct).value,
-              characterTarget: field.topicId === "character" && selectedCharacter
-                ? { id: selectedCharacter.id, name: selectedCharacter.name }
-                : null,
-              context: compactProjectContext(project, selectedAct, field.topicId === "character" ? selectedCharacter?.id : null),
+      const screened = await requestMindMapFidelityProposal({
+        topicId: field.topicId,
+        currentValue,
+        fieldPrompt: field.prompt,
+        ask: async (feedback) => {
+          const response = await fetch("/api/writing-assistant/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              agentId: "creative-director",
+              modelRole: "quality",
+              tone: "direct",
+              conversationMode: true,
+              message: [
+                "MIND_MAP_CANONICAL_FIELD_PROPOSAL",
+                `Create one proposal for ${field.canonicalId}.`,
+                `Craft prompt: ${field.prompt}`,
+                "Treat explicit Human story statements as constraints. Preserve distinct people, relationships and households. Do not invent family advice, guidance or other purported existing canon.",
+                "Respond in the same language as the Human's current field value; for an English value use only English, unless the Human specifically requests another language.",
+                "Use only the supplied project evidence. Do not claim the proposal is accepted canon. Return only the proposed field value, without JSON, headings, scoring or process notes.",
+                feedback ? `PREVIOUS PROPOSAL REJECTED BY A DETERMINISTIC FIDELITY CHECK: ${feedback}. Correct these exact omissions without altering accepted Human facts.` : "",
+                JSON.stringify({
+                  topic: field.topicId,
+                  lessonId: field.lessonId,
+                  fieldId: field.fieldId,
+                  currentValue,
+                  characterTarget: field.topicId === "character" && selectedCharacter
+                    ? { id: selectedCharacter.id, name: selectedCharacter.name }
+                    : null,
+                  context: compactProjectContext(project, sourceAct, field.topicId === "character" ? selectedCharacter?.id : null),
+                }),
+              ].filter(Boolean).join("\\n\\n"),
             }),
-          ].join("\n\n"),
-        }),
+          });
+          const payload = await response.json() as AgentResponse;
+          const proposal = payload.text?.trim() ?? "";
+          if (!response.ok || !proposal) throw new Error(payload.message || "Creative Director returned no proposal.");
+          return proposal;
+        },
       });
-      const payload = await response.json() as AgentResponse;
-      const proposal = payload.text?.trim() ?? "";
-      if (!response.ok || !proposal) throw new Error(payload.message || "Creative Director returned no proposal.");
-
-      const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
-      setProposalDrafts((current) => ({ ...current, [storageId]: proposal }));
+      if (!screened.ok) {
+        setNotice(`Agent suggestion blocked after one corrective retry: ${screened.issues.join(" ")} Original Human Project Value was not changed. Edit directly or retry Ask Agent.`);
+        return;
+      }
+      // An Agent response belongs to the project revision and address that
+      // requested it, not whatever the Human selected during async inference.
+      if (project.id !== sourceProjectId || project.revision !== sourceRevision || selectedAct !== sourceAct) {
+        setNotice("Agent suggestion was not saved because the target project, revision or Act changed during inference.");
+        return;
+      }
+      setProposalDrafts((current) => ({ ...current, [storageId]: screened.proposal }));
       if (hasActiveLibraryProject()) {
         const saved = await persistCanonicalProject(writeStoryDevelopmentFieldProposal({
           project,
           field,
-          proposal,
-          sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${selectedAct}`,
-          act: selectedAct,
+          proposal: screened.proposal,
+          sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${sourceAct}`,
+          act: sourceAct,
         }));
         if (!saved) return;
-        setNotice(`${field.lessonTitle} Agent Suggestion is saved durably and ready for Human review.`);
+        setNotice(`${field.lessonTitle} Agent Suggestion passed bounded fidelity checks and is saved separately for Human review. This does not certify full story accuracy.`);
       } else {
-        setNotice(`${field.lessonTitle} Agent Suggestion is ready for Human review in this session. Save a project before restart to keep it.`);
+        setNotice(`${field.lessonTitle} Agent Suggestion passed bounded fidelity checks and awaits Human review in this session. Save the project before restart to keep it.`);
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Agent suggestion failed.");
+      setNotice(error instanceof Error ? error.message : "Agent suggestion failed. Human Project Value was not changed.");
     } finally {
       setDevelopingFieldId(null);
     }

@@ -60,7 +60,8 @@
           "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
           "tests/issue-2863-settings-time-and-operations-order.test.mjs",
           "tests/issue-2948-library-fdx-conversion.test.mjs",
-          "tests/issue-2954-fdx-title-identity.test.mjs"
+          "tests/issue-2954-fdx-title-identity.test.mjs",
+          "tests/issue-2438-dashboard-status-worldmap.test.mjs"
         ]
       },
       "cost": "fast",
@@ -3050,6 +3051,50 @@
           "static-source"
         ],
         "limits": "Executable simulated-history navigation and static source wiring checks, without real authenticated browser/project-vault or Human run. This does not establish real Windows profile retention, completed film, or media readiness.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+        "targetDigest": "82031f46cc2c7067fafcccd964668dd95dc346f31288fe110df2d89366ea4a47",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Superseded 2026 deferred gray Write row expectations only: #2953 now makes Write an in-shell Matrix surface while Edit, Refine and remaining deferred destinations stay gray. Static dashboard registry/host assertions, not authenticated Windows navigation or screenplay persistence proof.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
+        "targetDigest": "0bc919c56ad2a3374b790a46196dd7854f1fdf09cff840c06286972367319da4",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Superseded 2026 deferred gray Write row expectations only: #2953 now makes Write an in-shell Matrix surface while Edit, Refine and remaining deferred destinations stay gray. Static dashboard registry/host assertions, not authenticated Windows navigation or screenplay persistence proof.",
         "inputs": []
       }
     ]

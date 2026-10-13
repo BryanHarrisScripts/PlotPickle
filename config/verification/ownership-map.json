@@ -31,7 +31,8 @@
         "app/ai-routing/page.tsx",
         "app/responsibility-run-activity.tsx",
         "app/responsibility-run-activity.module.css",
-        "app/_components/settings/**"
+        "app/_components/settings/**",
+        "app/_components/dashboard/dashboard-exploration-surface.tsx"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

@@ -4,6 +4,7 @@
   "phase": "orange-dashboard-exploration",
   "brief": "docs/developer-briefs/dashboard-orange-availability.md",
   "allowedChanges": [
+    "config/verification/ownership-map.json",
     "app/issue-2061.css",
     "app/skin-v1/dashboard-bbs-panel.tsx",
     "app/skin-v1/dashboard-bbs-review-host.tsx",

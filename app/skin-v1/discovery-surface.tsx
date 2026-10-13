@@ -4,7 +4,7 @@ import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-requ
 
 /* eslint-disable @next/next/no-img-element -- Character roster renders project-owned local/example media references. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import { type DiscoveryAct } from "../../core/contracts/discovery";
 import { createCanonicalCharacterTruth } from "../../core/contracts/character-truth-evidence";
@@ -29,7 +29,7 @@ import {
   type StoryDevelopmentFieldDefinition,
 } from "../../modules/learn/model/story-development-fields";
 import { relevantProjectContextForField } from "../../modules/learn/model/relevant-project-context";
-import { requestMindMapFidelityProposal } from "../../modules/learn/model/mind-map-proposal-fidelity.mjs";
+import { assessMindMapProposalFidelity, requestMindMapFidelityProposal } from "../../modules/learn/model/mind-map-proposal-fidelity.mjs";
 import {
   mindMapCharacterRoster,
   mindMapCharacterVisualGenerationPlan,
@@ -44,6 +44,7 @@ import {
 import { mindMapFieldNote } from "../../core/storage/library-project";
 import {
   hasActiveLibraryProject,
+  loadActiveLibraryProject,
   saveActiveLibraryProject,
   saveDetachedLibraryProjectAs,
   type LibraryPPFProject,
@@ -157,6 +158,10 @@ export default function DiscoverySurface({
   const [notesOpen, setNotesOpen] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [savedNoteTexts, setSavedNoteTexts] = useState<Readonly<Record<string, string>>>({});
+  const proposalTargetRef = useRef("");
+  proposalTargetRef.current = project
+    ? `${project.id}:${project.revision}:${selectedAct}:${selectedFieldId ?? ""}`
+    : "";
   const canonicalFields = useMemo(() => buildStoryDevelopmentFields(plotPickleCurriculum), []);
   const characterRoster = useMemo(() => project ? mindMapCharacterRoster(project) : [], [project]);
 
@@ -520,6 +525,7 @@ export default function DiscoverySurface({
     const sourceProjectId = project.id;
     const sourceRevision = project.revision;
     const sourceAct = selectedAct;
+    const requestedTarget = proposalTargetRef.current;
     const storageId = storyDevelopmentFieldStorageId(field, sourceAct);
     const currentValue = fieldDrafts[storageId]
       ?? storyDevelopmentFieldView(project, field, sourceAct).value;
@@ -557,7 +563,7 @@ export default function DiscoverySurface({
                     : null,
                   context: compactProjectContext(project, sourceAct, field.topicId === "character" ? selectedCharacter?.id : null),
                 }),
-              ].filter(Boolean).join("\\n\\n"),
+              ].filter(Boolean).join("\n\n"),
             }),
           });
           const payload = await response.json() as AgentResponse;
@@ -572,7 +578,11 @@ export default function DiscoverySurface({
       }
       // An Agent response belongs to the project revision and address that
       // requested it, not whatever the Human selected during async inference.
-      if (project.id !== sourceProjectId || project.revision !== sourceRevision || selectedAct !== sourceAct) {
+      if (proposalTargetRef.current !== requestedTarget
+        || (hasActiveLibraryProject() && (() => {
+          const current = loadActiveLibraryProject();
+          return current.id !== sourceProjectId || current.revision !== sourceRevision;
+        })())) {
         setNotice("Agent suggestion was not saved because the target project, revision or Act changed during inference.");
         return;
       }
@@ -602,6 +612,16 @@ export default function DiscoverySurface({
     const storageId = storyDevelopmentFieldStorageId(field, selectedAct);
     const proposal = (proposalDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).proposal).trim();
     if (!proposal) return;
+    const fidelity = assessMindMapProposalFidelity({
+      topicId: field.topicId,
+      currentValue: fieldDrafts[storageId] ?? storyDevelopmentFieldView(project, field, selectedAct).value,
+      proposal,
+      fieldPrompt: field.prompt,
+    });
+    if (!fidelity.ok) {
+      setNotice(`This earlier Agent suggestion does not satisfy the current field constraints: ${fidelity.issues.join(" ")} It was not accepted. Edit directly or Ask Agent again.`);
+      return;
+    }
     const withProposal = writeStoryDevelopmentFieldProposal({
       project,
       field,

@@ -22,7 +22,7 @@ async function readStatus(): Promise<Status> {
   return body;
 }
 
-export default function ProfileSessionPanel({ onVerified }: { readonly onVerified?: () => void | Promise<void> }) {
+export default function ProfileSessionPanel({ onVerified, verifiedActionLabel = "provider setup" }: { readonly onVerified?: () => void | Promise<void>; readonly verifiedActionLabel?: string }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [profileId, setProfileId] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +63,7 @@ export default function ProfileSessionPanel({ onVerified }: { readonly onVerifie
       }
       await refreshProfilePrivateBrowserSession(profileId);
       await onVerified?.();
-      setNotice("Profile unlocked and session verified. You can retry provider setup.");
+      setNotice(`Profile unlocked and session verified. You can retry ${verifiedActionLabel}.`);
     } catch (cause) {
       setNotice(cause instanceof Error ? cause.message : "Profile verification failed.");
       // Read back after rejection, without converting a failed refresh into success.

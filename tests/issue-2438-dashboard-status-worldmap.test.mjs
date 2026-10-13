@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and keeps unavailable destinations gray", async () => {
+test("#2950 preserves locked and review semantics while admitting orange exploration", async () => {
   const [menu, dashboard, host, styles, audit] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
@@ -34,7 +34,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...disabled.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["screening", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"],
+    [],
   );
 
   assert.match(dashboard, /const locked = connected && !inReview && !unavailable/u);
@@ -43,7 +43,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   assert.match(dashboard, /aria-description=\{unavailable \? "Surface unavailable; row remains selectable\." : undefined\}/u);
   assert.doesNotMatch(dashboard, /if \(!item \|\| DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) return/u);
   assert.match(host, /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u);
-  // Pitch remains explicitly unavailable. An old route map is not active product truth.
+  // Pitch enters through the Matrix host; legacy document navigation remains absent.
   assert.doesNotMatch(host, /"pitch-deck": "\/pitch-review\?scope=pitch&view=exports&return=dashboard"/u);
   assert.doesNotMatch(host, /"pitch-package": "\/pitch-review\?scope=pitch&view=package&return=dashboard"/u);
 

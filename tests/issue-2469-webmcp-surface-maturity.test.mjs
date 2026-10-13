@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
 
 import { summarizeDashboardMaturity } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
@@ -17,7 +18,7 @@ test("#2469 projects Dashboard maturity as locked, in-review and unavailable", (
   assert.deepEqual(summary.unavailable, ["pitch-deck"]);
 });
 
-test("#2469/#2612 keeps Screening and Sound governed while deferring Dashboard maturity", async () => {
+test("#2950 Screening and Sound are enterable in review without promoting their governed baselines", async () => {
   const [registryText, menu] = await Promise.all([
     read("config/skin-v1-surface-registry.json"),
     read("app/skin-v1/dashboard-menu-registry.ts"),
@@ -29,10 +30,12 @@ test("#2469/#2612 keeps Screening and Sound governed while deferring Dashboard m
     assert.equal(surface.capturePolicy, "census-only");
     assert.equal(surface.governance, "census");
   }
-  const review = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
-  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) assert.doesNotMatch(review, new RegExp('"' + id + '"'));
-  const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) assert.match(unavailable, new RegExp('"' + id + '"'));
+  const dashboard = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(menu)).toString("base64")}`);
+  for (const id of ["screening", "sound-foley", "sound-narration", "sound-music"]) {
+    assert.ok(dashboard.DASHBOARD_REVIEW_ITEM_IDS.has(id));
+    assert.ok(dashboard.DASHBOARD_EXPLORATION_ITEM_IDS.has(id));
+    assert.equal(dashboard.DASHBOARD_UNAVAILABLE_ITEM_IDS.has(id), false);
+  }
 });
 
 test("#2469 keeps sound surfaces individually identifiable in rendered governance", async () => {

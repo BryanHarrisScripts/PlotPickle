@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
+import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_EXPLORATION_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import CommandReviewPanel from "../_components/settings/command-review-panel";
 import OpenPencilCommandPanel from "../_components/settings/openpencil-command-panel";
 import GlobalDsddConversation from "./global-dsdd-conversation";
@@ -457,6 +457,7 @@ export default function DashboardBbsPanel({
             const connected = CONNECTED_DASHBOARD_ITEM_IDS.has(item.id);
             const unavailable = DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id);
             const inReview = DASHBOARD_REVIEW_ITEM_IDS.has(item.id);
+            const exploration = DASHBOARD_EXPLORATION_ITEM_IDS.has(item.id);
             const locked = connected && !inReview && !unavailable;
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ") + ` - ${item.description}`;
@@ -473,6 +474,7 @@ export default function DashboardBbsPanel({
                 data-dashboard-shortcut={item.shortcut}
                 data-dashboard-connected={connected ? "true" : "false"}
                 data-dashboard-review={inReview ? "in-review" : undefined}
+                data-dashboard-exploration={exploration ? "true" : undefined}
                 data-dashboard-surface-state={unavailable ? "unavailable" : inReview ? "in-review" : locked ? "locked" : "unavailable"}
                 data-dashboard-locked={locked ? "true" : "false"}
                 data-skin-menu-row={item.id}

@@ -61,7 +61,8 @@
           "tests/issue-2863-settings-time-and-operations-order.test.mjs",
           "tests/issue-2948-library-fdx-conversion.test.mjs",
           "tests/issue-2954-fdx-title-identity.test.mjs",
-          "tests/issue-2438-dashboard-status-worldmap.test.mjs"
+          "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+          "tests/issue-2950-dashboard-orange-availability.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2638,24 +2639,44 @@
         "scopes": ["static-source"],
         "limits": "Revised historical #2360 assertion now matches current Matrix host architecture (single Production visual mount; separate Outline/Storyboard/Previs/Timeline). Source inspection only; no independent product/browser acceptance.",
         "inputs": [
-          {"path": "app/skin-v1/dashboard-bbs-review-host.tsx", "digest": "fa6c365d462f00d6de1e30ce00a88273431922233368c5dac9f86d342805ee41"},
+          {"path": "app/skin-v1/dashboard-bbs-review-host.tsx", "digest": "32e9b1edd779c70d03d80b0c37a7c2ea94ee0b2115e73700476bef91dfd9bc98"},
           {"path": "app/skin-v1/matrix-story-map-surface.tsx", "digest": "586c3cd203f97fcf12a1e2a5328a2debf95d08e9dea4b9c1bcce3daeeafc3c67"}
         ]
       },
       {
         "target": "tests/issue-2957-first-image-review-retry.test.mjs",
         "targetDigest": "45d87e4efcb128cd38ae5dc73f9e146de66cf416f7d33fa56009f21c1aeb4987",
-        "catalogueIds": ["experience.first-image-review-retry-2957"],
-        "truthRefs": [
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        "catalogueIds": [
+          "experience.first-image-review-retry-2957"
         ],
-        "scopes": ["unit-fixture", "static-source"],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
         "limits": "Pure deterministic candidate selection tests and inspected source wiring; no witnessed paid/local provider output, actual profile storage/restart or quality acceptance.",
         "inputs": [
-          {"path": "modules/visual/model/block-visual-candidates.mjs", "digest": "48e5ad5d785289c75a660f81b6bdbb2be0e3ee2c8a72ec20c6ed29dcdc886046"},
-          {"path": "app/skin-v1/block-visual-journey-workspace.tsx", "digest": "f90a83027e0a015445a1118e92cf0e8e3bb4aac5f05c586617120d1d7378d7f8"},
-          {"path": "core/project/apply-command.ts", "digest": "733188963855dfb4562ecd9a8ed9d3b1483b75a371a0fb53fa4547518648863e"}
+          {
+            "path": "modules/visual/model/block-visual-candidates.mjs",
+            "digest": "48e5ad5d785289c75a660f81b6bdbb2be0e3ee2c8a72ec20c6ed29dcdc886046"
+          },
+          {
+            "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+            "digest": "f90a83027e0a015445a1118e92cf0e8e3bb4aac5f05c586617120d1d7378d7f8"
+          },
+          {
+            "path": "core/project/apply-command.ts",
+            "digest": "733188963855dfb4562ecd9a8ed9d3b1483b75a371a0fb53fa4547518648863e"
+          }
         ]
       },
       {
@@ -3209,7 +3230,7 @@
       },
       {
         "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
-        "targetDigest": "ea935487ec794b1f88c82fbe3dc017ba6e708eea2710fa505c655292ca167d9b",
+        "targetDigest": "8dd3677aa34a73ee352aad341a45cc343aaeee757e564901ccf8c68dfe890edb",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3224,14 +3245,15 @@
           }
         ],
         "scopes": [
+          "unit-fixture",
           "static-source"
         ],
-        "limits": "Legacy #2438 dashboard availability and pitch route assertions reconciled to #2953 Write-only activation. Current disabled pitch remains disabled and no hidden legacy route is claimed. Static-source audit only; not Windows product acceptance.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
         "inputs": []
       },
       {
         "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-        "targetDigest": "0bc919c56ad2a3374b790a46196dd7854f1fdf09cff840c06286972367319da4",
+        "targetDigest": "77f09ae8cf66f2f7474f03cbf337ac1d75a63c333a2bdb5a7aa2ce1e9001c17d",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3246,10 +3268,57 @@
           }
         ],
         "scopes": [
+          "unit-fixture",
           "static-source"
         ],
-        "limits": "Superseded 2026 deferred gray Write row expectations only: #2953 now makes Write an in-shell Matrix surface while Edit, Refine and remaining deferred destinations stay gray. Static dashboard registry/host assertions, not authenticated Windows navigation or screenplay persistence proof.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2950-dashboard-orange-availability.test.mjs",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "inputs": [],
+        "targetDigest": "f4b07479ec7b6751e3e52197c800698964a588f60a34ad323a4d7e6f50b7cc8b"
+      },
+      {
+        "target": "tests/issue-2469-webmcp-surface-maturity.test.mjs",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "inputs": [],
+        "targetDigest": "1afa135807086261e442af5828790245ef9bcb42291cae51adbfb3c2e40e9eb9"
       }
     ]
   }

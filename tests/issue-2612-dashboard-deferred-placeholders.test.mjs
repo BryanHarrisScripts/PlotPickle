@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-const GRAY_DASHBOARD_IDS = [
+const EXPLORATION_DASHBOARD_IDS = [
   "screening",
+  "reports",
+  "write",
   "edit",
   "refine",
   "sound-foley",
@@ -18,29 +21,19 @@ const GRAY_DASHBOARD_IDS = [
   "story",
 ];
 
-test("#2612 makes the agreed future destinations gray while keeping only active review work yellow", async () => {
+test("#2950 replaces the earlier gray deferral with enterable exploration while preserving existing review work", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
-  const review = menu.slice(
-    menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
-    menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
-  );
-  const unavailable = menu.slice(
-    menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
-    menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
-  );
-
+  const registry = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(menu)).toString("base64")}`);
   assert.deepEqual(
-    [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["previs", "timeline", "production"],
+    [...registry.DASHBOARD_REVIEW_ITEM_IDS],
+    ["previs", "timeline", "production", ...EXPLORATION_DASHBOARD_IDS],
   );
-  assert.deepEqual(
-    [...unavailable.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    GRAY_DASHBOARD_IDS,
-  );
+  assert.deepEqual([...registry.DASHBOARD_EXPLORATION_ITEM_IDS], EXPLORATION_DASHBOARD_IDS);
+  assert.deepEqual([...registry.DASHBOARD_UNAVAILABLE_ITEM_IDS], []);
   assert.match(menu, /!DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)/u);
 });
 
-test("#2612 gray rows stay selectable but activation cannot leave Dashboard", async () => {
+test("#2950 retains the unavailable guard for future unsupported destinations and keeps Matrix entry in-shell", async () => {
   const [panel, host] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -68,7 +61,7 @@ test("#2612 gray rows stay selectable but activation cannot leave Dashboard", as
   );
 });
 
-test("#2612 defers Dashboard entry without deleting underlying future implementations", async () => {
+test("#2950 preserves existing workspace owners and keeps unobserved browser proofs separate", async () => {
   const [host, probe, write, edit, diagnostics, feedback, pitch, wyrmwood, story] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("lib/verification/browser-probes/continuity.mjs"),

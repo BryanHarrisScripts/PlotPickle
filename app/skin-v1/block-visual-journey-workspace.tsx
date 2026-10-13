@@ -67,6 +67,10 @@ function passageKey(passageId: string) {
   return `block-visual-passage:${passageId}`;
 }
 
+function promptIdentity(project: PPFProject, address: PreproductionReviewAddress, passage: Passage) {
+  return `${project.id}:${address.blockNumber}:${address.miniBlockNumber}:${passage.id}`;
+}
+
 function sequenceKey(address: PreproductionReviewAddress, passageId: string) {
   return `block-visual-sequence:block-${String(address.blockNumber).padStart(2, "0")}:mini-${address.miniBlockNumber}:${passageId}`;
 }
@@ -238,8 +242,10 @@ export default function BlockVisualJourneyWorkspace({
   }, [address.blockNumber, address.miniBlockNumber, passages, project, selectedPassageId]);
 
   useEffect(() => {
-    if (!project || !selectedPassage || promptPassageRef.current === selectedPassage.id) return;
-    promptPassageRef.current = selectedPassage.id;
+    if (!project || !selectedPassage) return;
+    const identity = promptIdentity(project, address, selectedPassage);
+    if (promptPassageRef.current === identity) return;
+    promptPassageRef.current = identity;
     setDraftPrompt(initialPrompt(project, address, selectedPassage));
     setMessage("");
     setPlaying(false);
@@ -281,7 +287,7 @@ export default function BlockVisualJourneyWorkspace({
 
   function choosePassage(passage: Passage) {
     setSelectedPassageId(passage.id);
-    promptPassageRef.current = passage.id;
+    promptPassageRef.current = project ? promptIdentity(project, address, passage) : "";
     if (project) setDraftPrompt(initialPrompt(project, address, passage));
     setMessage("");
     setPlaying(false);
@@ -319,6 +325,14 @@ export default function BlockVisualJourneyWorkspace({
       || activeSelection.miniBlockNumber !== requestAddress.miniBlockNumber
       || activeSelection.passageId !== requestPassageId) {
       throw new Error("The selected story position changed while this image was generating. PlotPickle did not attach the late result to the new selection.");
+    }
+    const storedPassage = storyboardAnchorEvidence(
+      current, targetId(requestAddress.blockNumber), requestAddress.miniBlockNumber,
+    ).passages.find((passage) => passage.id === requestPassageId);
+    if (!storedPassage || storedPassage.text !== selectedPassage.text
+      || storedPassage.type !== selectedPassage.type
+      || storedPassage.sceneNumber !== selectedPassage.sceneNumber) {
+      throw new Error("The screenplay passage changed during image generation. The late image was not attached to altered source.");
     }
 
     // An approved first image is Human authority, including if a separate view

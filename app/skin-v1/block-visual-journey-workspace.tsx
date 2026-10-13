@@ -18,6 +18,11 @@ import {
   persistStoryMapContext,
 } from "@/core/storage/profile-private-browser";
 import { storyboardAnchorEvidence } from "../_components/storyboard/storyboard-editorial-model";
+import {
+  canRejectFirstImage,
+  firstImageHistory,
+  visualSequenceForAddress,
+} from "../../modules/visual/model/block-visual-candidates.mjs";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 import styles from "./block-visual-journey-workspace.module.css";
 
@@ -60,6 +65,10 @@ function anchorRef(address: PreproductionReviewAddress) {
 
 function passageKey(passageId: string) {
   return `block-visual-passage:${passageId}`;
+}
+
+function promptIdentity(project: PPFProject, address: PreproductionReviewAddress, passage: Passage) {
+  return `${project.id}:${address.blockNumber}:${address.miniBlockNumber}:${passage.id}`;
 }
 
 function sequenceKey(address: PreproductionReviewAddress, passageId: string) {
@@ -112,19 +121,15 @@ function sequenceArtifacts(
   project: PPFProject,
   address: PreproductionReviewAddress,
   passageId: string,
+  acceptedIds: ReadonlySet<string>,
 ) {
-  const anchor = anchorRef(address);
-  const source = passageKey(passageId);
-  const byFrame = new Map<number, FoundationsVisualArtifact>();
-  for (const artifact of project.build.foundations.visualArtifacts) {
-    if (artifact.workflow !== WORKFLOW || artifact.reviewState === "rejected") continue;
-    const keys = artifact.sourceDecisionKeys ?? [];
-    if (!keys.includes(anchor) || !keys.includes(source)) continue;
-    const frame = artifact.frameNumber ?? 1;
-    const current = byFrame.get(frame);
-    if (!current || current.createdAt <= artifact.createdAt) byFrame.set(frame, artifact);
-  }
-  return [...byFrame.values()].sort((left, right) => (left.frameNumber ?? 1) - (right.frameNumber ?? 1));
+  return visualSequenceForAddress(
+    project.build.foundations.visualArtifacts,
+    anchorRef(address),
+    passageKey(passageId),
+    WORKFLOW,
+    acceptedIds,
+  );
 }
 
 export default function BlockVisualJourneyWorkspace({
@@ -181,17 +186,28 @@ export default function BlockVisualJourneyWorkspace({
   );
   const passages = evidence?.passages ?? [];
   const selectedPassage = passages.find((passage) => passage.id === selectedPassageId) ?? passages[0] ?? null;
-  const artifacts = useMemo(
-    () => project && selectedPassage
-      ? sequenceArtifacts(project, address, selectedPassage.id)
-      : [],
-    [address, project, selectedPassage],
-  );
-  const firstImage = artifacts.find((artifact) => (artifact.frameNumber ?? 1) === 1) ?? null;
   const acceptedIds = useMemo(
     () => new Set(project?.build.foundations.acceptedVisualArtifactIds ?? []),
     [project],
   );
+  const firstCandidates = useMemo(
+    () => project && selectedPassage
+      ? firstImageHistory(
+          project.build.foundations.visualArtifacts,
+          anchorRef(address),
+          passageKey(selectedPassage.id),
+          WORKFLOW,
+        )
+      : [],
+    [address, project, selectedPassage],
+  );
+  const artifacts = useMemo(
+    () => project && selectedPassage
+      ? sequenceArtifacts(project, address, selectedPassage.id, acceptedIds)
+      : [],
+    [address, project, selectedPassage, acceptedIds],
+  );
+  const firstImage = artifacts.find((artifact) => (artifact.frameNumber ?? 1) === 1) ?? null;
   const firstImageAccepted = Boolean(firstImage && acceptedIds.has(firstImage.id) && firstImage.reviewState === "accepted");
   const selectedRoute = routeStatus?.choice?.image || routeStatus?.image?.selected || "current Settings route";
   const selectedOption = routeStatus?.image?.options?.[selectedRoute];
@@ -226,8 +242,10 @@ export default function BlockVisualJourneyWorkspace({
   }, [address.blockNumber, address.miniBlockNumber, passages, project, selectedPassageId]);
 
   useEffect(() => {
-    if (!project || !selectedPassage || promptPassageRef.current === selectedPassage.id) return;
-    promptPassageRef.current = selectedPassage.id;
+    if (!project || !selectedPassage) return;
+    const identity = promptIdentity(project, address, selectedPassage);
+    if (promptPassageRef.current === identity) return;
+    promptPassageRef.current = identity;
     setDraftPrompt(initialPrompt(project, address, selectedPassage));
     setMessage("");
     setPlaying(false);
@@ -269,7 +287,7 @@ export default function BlockVisualJourneyWorkspace({
 
   function choosePassage(passage: Passage) {
     setSelectedPassageId(passage.id);
-    promptPassageRef.current = passage.id;
+    promptPassageRef.current = project ? promptIdentity(project, address, passage) : "";
     if (project) setDraftPrompt(initialPrompt(project, address, passage));
     setMessage("");
     setPlaying(false);
@@ -307,6 +325,27 @@ export default function BlockVisualJourneyWorkspace({
       || activeSelection.miniBlockNumber !== requestAddress.miniBlockNumber
       || activeSelection.passageId !== requestPassageId) {
       throw new Error("The selected story position changed while this image was generating. PlotPickle did not attach the late result to the new selection.");
+    }
+    const storedPassage = storyboardAnchorEvidence(
+      current, targetId(requestAddress.blockNumber), requestAddress.miniBlockNumber,
+    ).passages.find((passage) => passage.id === requestPassageId);
+    if (!storedPassage || storedPassage.text !== selectedPassage.text
+      || storedPassage.type !== selectedPassage.type
+      || storedPassage.sceneNumber !== selectedPassage.sceneNumber) {
+      throw new Error("The screenplay passage changed during image generation. The late image was not attached to altered source.");
+    }
+
+    // An approved first image is Human authority, including if a separate view
+    // accepted it while this provider request was running.
+    if (frameNumber === 1 && current.build.foundations.visualArtifacts.some((candidate) =>
+      candidate.workflow === WORKFLOW
+      && (candidate.frameNumber ?? 1) === 1
+      && candidate.reviewState === "accepted"
+      && current.build.foundations.acceptedVisualArtifactIds.includes(candidate.id)
+      && (candidate.sourceDecisionKeys ?? []).includes(anchorRef(requestAddress))
+      && (candidate.sourceDecisionKeys ?? []).includes(passageKey(requestPassageId))
+    )) {
+      throw new Error("An accepted first image is already recorded for this story passage. The late draft was not attached.");
     }
 
     const now = new Date().toISOString();
@@ -367,16 +406,24 @@ export default function BlockVisualJourneyWorkspace({
 
   async function createFirstImage() {
     if (!project || !selectedPassage || generating || !generationReady()) return;
+    if (firstImageAccepted) {
+      setMessage("This first image is already accepted. A new candidate cannot silently replace Human approval.");
+      return;
+    }
     const submittedPrompt = draftPrompt.trim();
     if (!submittedPrompt) {
       setMessage("Enter the image prompt first.");
       return;
     }
     setGenerating(true);
-    setMessage("Creating the first image from the selected passage…");
+    setMessage(firstCandidates.length ? "Regenerating an image for the same selected passage…" : "Creating the first image from the selected passage…");
     try {
-      await generateOne(submittedPrompt, 1, null);
-      setMessage("First image created. Review it, then choose Use image before building the sequence.");
+      // Each subsequent candidate points at its predecessor, even if rejected.
+      // Never mutate the earlier image or the screenplay source.
+      await generateOne(submittedPrompt, 1, firstCandidates[0]?.id ?? null);
+      setPreviewIndex(0);
+      setPlaying(false);
+      setMessage("Draft image created. Use Image, Reject Image, or revise the prompt and regenerate.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The first image could not be generated.");
     } finally {
@@ -384,30 +431,69 @@ export default function BlockVisualJourneyWorkspace({
     }
   }
 
-  function useFirstImage() {
-    if (!project || !firstImage || firstImageAccepted) return;
-    const now = new Date().toISOString();
-    const anchor = anchorRef(address);
-    let next = loadFoundationProject();
-    const accepted = new Set(next.build.foundations.acceptedVisualArtifactIds);
-    for (const artifact of next.build.foundations.visualArtifacts) {
-      if (artifact.id === firstImage.id || !accepted.has(artifact.id)) continue;
-      if ((artifact.sourceDecisionKeys ?? []).includes(anchor)) {
-        next = applyStoryCommand(next, {
-          type: "foundations.visual.unaccept",
-          artifactId: artifact.id,
-          occurredAt: now,
-        });
+  function rejectFirstImage() {
+    if (!project || !selectedPassage || !canRejectFirstImage(firstImage, acceptedIds)) return;
+    try {
+      const current = loadFoundationProject();
+      const persisted = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === firstImage?.id);
+      if (current.id !== project.id || !persisted
+        || !(persisted.sourceDecisionKeys ?? []).includes(anchorRef(address))
+        || !(persisted.sourceDecisionKeys ?? []).includes(passageKey(selectedPassage.id))
+        || !canRejectFirstImage(persisted, new Set(current.build.foundations.acceptedVisualArtifactIds))) {
+        setMessage("The working image changed before rejection. Reopen the current image to review it.");
+        return;
       }
+      const next = applyStoryCommand(current, {
+        type: "foundations.visual.discard",
+        artifactId: persisted.id,
+        occurredAt: new Date().toISOString(),
+      });
+      saveFoundationProject(next);
+      setProject(next);
+      setPlaying(false);
+      setPreviewIndex(0);
+      setMessage("Image rejected, not deleted. Its prompt and asset remain in first-image history. Revise the prompt and regenerate.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The image rejection could not be saved.");
     }
-    next = applyStoryCommand(next, {
-      type: "foundations.visual.accept",
-      artifactId: firstImage.id,
-      occurredAt: now,
-    });
-    saveFoundationProject(next);
-    setProject(next);
-    setMessage("First image accepted as the working visual for this story address. Build sequence can now add narrative progression.");
+  }
+
+  function useFirstImage() {
+    if (!project || !selectedPassage || !firstImage || firstImageAccepted) return;
+    try {
+      const current = loadFoundationProject();
+      const persisted = current.build.foundations.visualArtifacts.find((candidate) => candidate.id === firstImage.id);
+      if (current.id !== project.id || !persisted
+        || persisted.reviewState === "rejected"
+        || !(persisted.sourceDecisionKeys ?? []).includes(anchorRef(address))
+        || !(persisted.sourceDecisionKeys ?? []).includes(passageKey(selectedPassage.id))) {
+        setMessage("This candidate is no longer the current review image. Refresh the project before accepting it.");
+        return;
+      }
+      const existingAccepted = current.build.foundations.visualArtifacts.some((candidate) =>
+        candidate.id !== persisted.id
+        && candidate.workflow === WORKFLOW
+        && (candidate.frameNumber ?? 1) === 1
+        && candidate.reviewState === "accepted"
+        && current.build.foundations.acceptedVisualArtifactIds.includes(candidate.id)
+        && (candidate.sourceDecisionKeys ?? []).includes(anchorRef(address))
+        && (candidate.sourceDecisionKeys ?? []).includes(passageKey(selectedPassage.id))
+      );
+      if (existingAccepted) {
+        setMessage("Another first image was already accepted for this passage. Existing approval was not changed.");
+        return;
+      }
+      const next = applyStoryCommand(current, {
+        type: "foundations.visual.accept",
+        artifactId: persisted.id,
+        occurredAt: new Date().toISOString(),
+      });
+      saveFoundationProject(next);
+      setProject(next);
+      setMessage("First image accepted as the working visual for this story address. Build sequence can now add narrative progression.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The image acceptance could not be saved.");
+    }
   }
 
   async function buildSequence() {
@@ -550,7 +636,7 @@ export default function BlockVisualJourneyWorkspace({
         </header>
         <textarea
           aria-label="Editable first-image prompt"
-          disabled={generating || Boolean(firstImage)}
+          disabled={generating || firstImageAccepted}
           onChange={(event) => setDraftPrompt(event.target.value)}
           rows={5}
           value={draftPrompt}
@@ -567,12 +653,18 @@ export default function BlockVisualJourneyWorkspace({
           </label>
         ) : null}
         <div className={styles.actions}>
-          {!firstImage ? (
-            <button disabled={generating || !selectedPassage} onClick={() => void createFirstImage()} type="button">
-              {generating ? "CREATING IMAGE…" : "CREATE FIRST IMAGE"}
-            </button>
-          ) : !firstImageAccepted ? (
-            <button disabled={generating} onClick={useFirstImage} type="button">USE IMAGE</button>
+          {!firstImageAccepted ? (
+            <>
+              {firstImage ? (
+                <>
+                  <button disabled={generating} onClick={useFirstImage} type="button">USE IMAGE</button>
+                  <button disabled={generating || !canRejectFirstImage(firstImage, acceptedIds)} onClick={rejectFirstImage} type="button">REJECT IMAGE</button>
+                </>
+              ) : null}
+              <button disabled={generating || !selectedPassage} onClick={() => void createFirstImage()} type="button">
+                {generating ? "GENERATING IMAGE…" : firstCandidates.length ? "REGENERATE IMAGE" : "CREATE FIRST IMAGE"}
+              </button>
+            </>
           ) : artifacts.length < 3 ? (
             <button disabled={generating} onClick={() => void buildSequence()} type="button">
               {generating ? "BUILDING SEQUENCE…" : "BUILD 3-IMAGE SEQUENCE"}
@@ -582,6 +674,23 @@ export default function BlockVisualJourneyWorkspace({
           )}
           <span>{firstImage ? "First image → " : ""}{firstImageAccepted ? "accepted → " : ""}{artifacts.length >= 3 ? "sequence ready → " : ""}{artifacts.length >= 3 ? "play in place" : "next step appears here"}</span>
         </div>
+        {firstCandidates.length ? (
+          <details className={styles.history}>
+            <summary>FIRST-IMAGE HISTORY · {firstCandidates.length} candidate{firstCandidates.length === 1 ? "" : "s"} (including rejected)</summary>
+            <ol>
+              {firstCandidates.map((candidate) => (
+                <li key={candidate.id}>
+                  <img alt="" src={candidate.assetUrl} />
+                  <div>
+                    <strong>{candidate.reviewState === "rejected" ? "REJECTED" : candidate.reviewState === "accepted" ? "ACCEPTED" : "DRAFT"}</strong>
+                    <small>{candidate.provider}{candidate.model ? ` · ${candidate.model}` : ""} · {candidate.createdAt}</small>
+                    <p>{candidate.prompt}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : null}
         <p className={styles.message} role="status">{message}</p>
       </section>
 

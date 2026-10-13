@@ -196,7 +196,10 @@ export function applyStoryCommand(
           ...project.build,
           foundations: {
             ...project.build.foundations,
-            visualArtifacts: [{ ...command.artifact, reviewState: command.artifact.reviewState ?? "draft" }, ...existing].slice(0, 75),
+            // Never silently evict older visual candidates, accepted images or
+            // provenance as the movie grows past 75 generated images. Storage
+            // failure must surface through the existing save boundary instead.
+            visualArtifacts: [{ ...command.artifact, reviewState: command.artifact.reviewState ?? "draft" }, ...existing],
           },
         },
       };
@@ -207,6 +210,7 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
+            ...project.build.foundations,
             visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
               artifact.id === command.artifactId ? { ...artifact, reviewState: "rejected" as const } : artifact
             )),

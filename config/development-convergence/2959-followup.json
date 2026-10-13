@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "issue": 2959,
+  "phase": "sage-accessor-guard-and-live-handler-fixture",
+  "brief": "docs/developer-briefs/2959-sage-accessor-resilience-followup.md",
+  "allowedChanges": [
+    "modules/creative-room/sage-keyboard-shortcut.mjs",
+    "tests/issue-2959-sage-shortcut-guard.test.mjs",
+    "docs/developer-briefs/2959-sage-accessor-resilience-followup.md",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2959-followup.json"
+  ],
+  "acceptance": [
+    {
+      "id": "MALFORMED-ACCESSOR-FAIL-CLOSED",
+      "criterion": "Every malformed missing/throwing key or modifier input is inert; shortcut authority never throws.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2959-sage-shortcut-guard.test.mjs",
+          "contains": "fails closed when malformed automation event accessors throw"
+        }
+      ]
+    },
+    {
+      "id": "REAL-HANDLER-NEGATIVE-CONTROLS",
+      "criterion": "Execute actual onKeyDown in synthetic browser context and prove malformed events never touch DOM or open Sage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2959-sage-shortcut-guard.test.mjs",
+          "contains": "executes the actual global listener"
+        }
+      ]
+    },
+    {
+      "id": "SHIFT-S-PRESERVED",
+      "criterion": "Valid Shift+S retains editor/modal/visible-surface gates and proper consumption.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2959-sage-shortcut-guard.test.mjs",
+          "contains": "invisible Matrix cannot open Sage"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-ACCEPTANCE-HONEST",
+      "criterion": "Test evidence does not claim observed original Windows automation or authentic user login.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2959-sage-accessor-resilience-followup.md",
+          "contains": "**not** a witnessed return to the original authenticated Windows session"
+        }
+      ]
+    }
+  ]
+}

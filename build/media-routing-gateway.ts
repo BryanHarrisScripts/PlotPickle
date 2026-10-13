@@ -1,4 +1,5 @@
 import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
+import { generateSdxlLocalTest } from "./ai/comfyui-sdxl-local-gateway";
 import { selectedImageExecution } from "../core/contracts/compute/capability-routes.mjs";
 import { requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { cloudMediaReadiness, computeReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
@@ -440,7 +441,14 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
     }
     if (pathname === TEST_IMAGE_PATH && request.method === "POST") {
       const body = await readBody(request);
-      const route = typeof body.route === "string" ? body.route as ImageRoute : store.imageRoute;
+      // A provider-specific TEST must never inherit the current global image route.
+      // Reject unknown values before execution or readiness mutation.
+      const requestedRoute = body.route === undefined ? store.imageRoute : body.route;
+      if (requestedRoute !== "comfyui" && requestedRoute !== "openai"
+        && requestedRoute !== "minimax" && requestedRoute !== "manual") {
+        throw new Error("Choose a supported image-test route. No provider was tested.");
+      }
+      const route: ImageRoute = requestedRoute;
       const input: ImageGenerationInput = {
         prompt: typeof body.prompt === "string" ? body.prompt : "A warm cinematic storyboard frame of a writer opening PlotPickle for the first time, clear composition, expressive light, no text.",
         aspect: "landscape",
@@ -450,9 +458,15 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
         requestCount: 1,
       };
       try {
-        const result = await generateImage(store, route, input);
+        const result = route === "comfyui" && store.comfyui.imageProfile === "sdxl-1.0"
+          ? await generateSdxlLocalTest(store, input)
+          : await generateImage(store, route, input);
+        if (typeof result.assetUrl !== "string" || !result.assetUrl.startsWith("/api/local-ai/assets/")) {
+          throw new Error("The requested image provider did not return a saved local image asset.");
+        }
         await saveImageSuccess(store, route);
-        sendJson(response, 200, { ok: true, route, ...result });
+        // Put authoritative identity last so a provider payload cannot override it.
+        sendJson(response, 200, { ok: true, ...result, route, provider: route });
       } catch (error) {
         const message = error instanceof Error ? error.message : "The image test failed.";
         await saveImageError(store, route, message);

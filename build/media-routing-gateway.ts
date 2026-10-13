@@ -1,6 +1,7 @@
 import { relayCapabilityDiagnostic } from "./ai/capabilities/capability-diagnostics";
 import { generateSdxlLocalTest } from "./ai/comfyui-sdxl-local-gateway";
 import { selectedImageExecution } from "../core/contracts/compute/capability-routes.mjs";
+import { resolveImageTestRoute } from "../core/contracts/compute/image-test-provider-truth.mjs";
 import { requireRouteConsent } from "./ai/capabilities/capability-routing-state";
 import { cloudMediaReadiness, computeReadiness, invalidateImageVerification } from "../core/contracts/compute/compute-readiness.mjs";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -441,14 +442,7 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
     }
     if (pathname === TEST_IMAGE_PATH && request.method === "POST") {
       const body = await readBody(request);
-      // A provider-specific TEST must never inherit the current global image route.
-      // Reject unknown values before execution or readiness mutation.
-      const requestedRoute = body.route === undefined ? store.imageRoute : body.route;
-      if (requestedRoute !== "comfyui" && requestedRoute !== "openai"
-        && requestedRoute !== "minimax" && requestedRoute !== "manual") {
-        throw new Error("Choose a supported image-test route. No provider was tested.");
-      }
-      const route: ImageRoute = requestedRoute;
+      const route: ImageRoute = resolveImageTestRoute(body.route, store.imageRoute);
       const input: ImageGenerationInput = {
         prompt: typeof body.prompt === "string" ? body.prompt : "A warm cinematic storyboard frame of a writer opening PlotPickle for the first time, clear composition, expressive light, no text.",
         aspect: "landscape",

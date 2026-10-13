@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "issue": 2953,
+  "phase": "followup-confirmed-write-persistence",
+  "brief": "docs/developer-briefs/2953-write-confirmed-save-followup.md",
+  "allowedChanges": [
+    "modules/write/ui/block-native-write-workspace.tsx",
+    "tests/issue-2953-write-confirmed-durability.test.mjs",
+    "docs/developer-briefs/2953-write-confirmed-save-followup.md",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2953-followup.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ENCRYPTED-ACK",
+      "criterion": "Write never announces Saved from local cache; must await exact-project encrypted persistence and profile flush.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2953-write-confirmed-durability.test.mjs",
+          "contains": "Write Save requires acknowledged encrypted persistence and flush before success"
+        }
+      ]
+    },
+    {
+      "id": "NEGATIVE-OUTCOMES",
+      "criterion": "Rejecting vault writes or changing project during Save preserves working text and shows Save-not-confirmed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2953-write-confirmed-durability.test.mjs",
+          "contains": "project identity switch during persistence cannot produce a false saved badge"
+        }
+      ]
+    },
+    {
+      "id": "SAME-PROJECT-HANDOFF",
+      "criterion": "All 24 x 4 addresses preserve Matrix and imported evidence, while pending Save or dirty text blocks unsafe navigation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2953-write-confirmed-durability.test.mjs",
+          "contains": "pending Save and unsaved exit controls enforce user authority"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT-LIMITS",
+      "criterion": "No synthetic test is claimed as real Windows imported source or process-restart acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2953-write-confirmed-save-followup.md",
+          "contains": "**do not** demonstrate a real user's imported Final Draft bytes"
+        }
+      ]
+    }
+  ]
+}

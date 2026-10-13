@@ -584,6 +584,28 @@
       "notes": "#2957 PP-IMG-RETRY-001: executable candidate isolation/acceptance/rejection/history invariants and static gateway/reducer wiring under WHITE-PAPER-V3 W8/W9. Real Windows provider generation, encrypted readback and restart remain UNPROVEN."
     },
     {
+      "id": "experience.sage-keyboard-guard-2959",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
+      "triggerTokens": ["surface", "navigation", "agent"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2959-sage-shortcut-guard.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {"network": false, "native": false, "secrets": false},
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2959 PP-SAGE-KEY-001: key type/missing key and modifier negative control tests plus production wiring under WHITE-PAPER-V3 W8/W9. Original Windows automation event and real profile acceptance not independently reproduced by these tests."
+    },
+    {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
       "architectureComponents": [
@@ -2590,6 +2612,21 @@
       }
     ],
     "bindings": [
+      {
+        "target": "tests/issue-2959-sage-shortcut-guard.test.mjs",
+        "targetDigest": "cb91cd0a2dd3b87702372350850e27d1be10e6eb36dee767baee3aec3a7d8bf6",
+        "catalogueIds": ["experience.sage-keyboard-guard-2959"],
+        "truthRefs": [
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        ],
+        "scopes": ["unit-fixture", "static-source"],
+        "limits": "Executable pure malformed keyboard and modifier fixtures, plus source-level listener integration. Does not prove real physical keyboard reproduction, Windows authenticated lifecycle or credentials.",
+        "inputs": [
+          {"path": "modules/creative-room/sage-keyboard-shortcut.mjs", "digest": "6ef7389dcd7142294456f3cdb00ea715df24fcb5ddf0f81f09927e5e03f87495"},
+          {"path": "app/global-sage-overlay.tsx", "digest": "09db34109e42a956b53e36aa5da399e9ae38082d2e7a6b9e30308dbc78ee76e1"}
+        ]
+      },
       {
         "target": "tests/issue-2360-block-visual-journey.test.mjs",
         "targetDigest": "f76b91118fa4fd980e58fc973f98377adfab963bbab486b2e57d1f3bf600d230",

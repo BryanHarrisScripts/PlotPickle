@@ -117,6 +117,18 @@ jobs:
             echo 'No changed first-image review files; skipping focused image review and build proof.'
           fi
 
+      - name: Prove Sage malformed-key safety and installed build
+        if: matrix.id == 'story-canon'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(app/global-sage-overlay\.tsx$|modules/creative-room/sage-keyboard-shortcut\.|tests/issue-2959-sage-shortcut-guard\.test\.mjs$)'; then
+            node --test tests/issue-2959-sage-shortcut-guard.test.mjs
+            npm run build
+          else
+            echo 'No changed Sage keyboard logic; skipping focused keyboard proof and build.'
+          fi
+
       - name: Verify development convergence
         if: matrix.id == 'verification'
         run: >-

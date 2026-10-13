@@ -33,7 +33,7 @@ jobs:
         run: node --test tests/issue-1338-progressive-build-story-model.test.mjs
 
       - name: Validate screenplay conversion, modular import and Archive lifecycle
-        run: node --test tests/issue-1338-screenplay-to-ppf-utility.test.mjs tests/issue-1338-library-import-archive.test.mjs tests/issue-2948-library-fdx-conversion.test.mjs
+        run: node --test tests/issue-1338-screenplay-to-ppf-utility.test.mjs tests/issue-1338-library-import-archive.test.mjs tests/issue-2948-library-fdx-conversion.test.mjs tests/issue-2954-fdx-title-identity.test.mjs
 
       - name: Validate current Foundations BUILD behavior
         run: node --test tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs tests/dashboard-foundations-progression.test.mjs

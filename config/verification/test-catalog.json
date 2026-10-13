@@ -59,7 +59,8 @@
           "tests/issue-2751-settings-organization.test.mjs",
           "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
           "tests/issue-2863-settings-time-and-operations-order.test.mjs",
-          "tests/issue-2948-library-fdx-conversion.test.mjs"
+          "tests/issue-2948-library-fdx-conversion.test.mjs",
+          "tests/issue-2954-fdx-title-identity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -3002,6 +3003,29 @@
           "static-source"
         ],
         "limits": "Local simulated HTTP boundary when dependencies are installed, plus dependency-free UI/source check in the Architecture shadow. Full installed-dependency conversion assertions run in BUILD Story Model PR lane. Real Windows user download and source acceptance remain UNPROVEN.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2954-fdx-title-identity.test.mjs",
+        "targetDigest": "e6b0fb304f81a5d07dd4df2b800f3c071b9b93128aed8d0dcc8b82fcb878bc96",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Lightweight source checks run without Vite in the architecture shadow. Conversion, PPF readback and Library projection require installed Vite in BUILD Story Model. Real Windows/browser download, private screenplay identity and profile/restart acceptance remain UNPROVEN under #2943.",
         "inputs": []
       }
     ]

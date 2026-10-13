@@ -81,6 +81,18 @@ jobs:
           --platform linux
           --allow-network "${{ matrix.allow_network }}"
 
+      - name: Prove changed screenplay conversion in the existing PR gate
+        if: matrix.id == 'story-canon'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(lib/projects/screenplay/|modules/library/import/rich-ppf-to-library-project\\.ts$|build/library-ppf-import-gateway\\.ts$|tests/issue-(2948-library-fdx-conversion|2954-fdx-title-identity)\\.test\\.mjs$)'; then
+            node --test tests/issue-2948-library-fdx-conversion.test.mjs tests/issue-2954-fdx-title-identity.test.mjs
+            npm run build
+          else
+            echo 'No impacted screenplay converter files; skipping installed conversion and build proof.'
+          fi
+
       - name: Verify development convergence
         if: matrix.id == 'verification'
         run: >-

@@ -100,7 +100,12 @@ test("the actual application wires reject, editable retry, approval guards and f
   assert.match(visual, /if \(!routeReady\)/u);
   assert.match(visual, /activeSelection\.passageId !== requestPassageId/u);
   assert.match(visual, /An accepted first image is already recorded/u);
+  assert.match(visual, /storedPassage\\.text !== selectedPassage\\.text/u);
+  assert.match(visual, /function promptIdentity\\(project: PPFProject/u);
   assert.doesNotMatch(visual, /type: "foundations\.visual\.unaccept"/u);
+  const store = commands.split('case "foundations.visual.store":')[1]?.split('case "foundations.visual.discard":')[0];
+  assert.ok(store, "the actual shared visual store must exist");
+  assert.doesNotMatch(store, /slice\\(0, 75\\)/u, "no previously generated image may be silently pruned");
   const discard = commands.split('case "foundations.visual.discard":')[1]?.split('case "foundations.visual.delete":')[0];
   assert.ok(discard, "the real shared command reducer must be present");
   assert.match(discard, /\.\.\.project\.build\.foundations/u, "reject must preserve unrelated story fields");

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
 import { readFile } from "node:fs/promises";
 import { isSageOpenShortcut } from "../modules/creative-room/sage-keyboard-shortcut.mjs";
 
@@ -85,4 +86,68 @@ test("PP-SAGE-KEY-001 real overlay keeps secondary safety gates, focus behavior,
   assert.match(source, /if \(event\.key === "Escape"\)/u);
   assert.match(source, /if \(event\.key !== "Tab"\) return;/u);
   assert.match(source, /setOpen\(false\)/u);
+});
+
+test("PP-SAGE-KEY-001 fails closed when malformed automation event accessors throw", () => {
+  const brokenKeys = [
+    { ...valid, get key() { throw new Error("synthetic key getter failure"); } },
+    { ...valid, get shiftKey() { throw new Error("synthetic shift getter failure"); } },
+    { ...valid, get defaultPrevented() { throw new Error("synthetic cancelled getter failure"); } },
+    new Proxy(valid, { get() { throw new Error("synthetic proxy failure"); } }),
+  ];
+  for (const candidate of brokenKeys) {
+    assert.doesNotThrow(() => isSageOpenShortcut(candidate));
+    assert.equal(isSageOpenShortcut(candidate), false);
+  }
+});
+
+test("PP-SAGE-KEY-001 executes the actual global listener: malformed event is inert before DOM, Shift+S keeps its gates", async () => {
+  const source = await readFile(new URL("../app/global-sage-overlay.tsx", import.meta.url), "utf8");
+  const start = source.indexOf("const onKeyDown = (event: KeyboardEvent) => {");
+  const end = source.indexOf('window.addEventListener("keydown", onKeyDown, true)', start);
+  assert.ok(start >= 0 && end > start);
+  const handler = source.slice(start, end).replace("(event: KeyboardEvent)", "(event)");
+  const calls = [];
+  let editing = false, blocking = false, surface = true;
+  const context = {
+    isSageOpenShortcut,
+    isTextEditingTarget: () => { calls.push("editing-gate"); return editing; },
+    hasBlockingOverlay: () => { calls.push("blocking-gate"); return blocking; },
+    hasVisiblePlotPickleSurface: () => { calls.push("surface-gate"); return surface; },
+    document: { activeElement: null },
+    HTMLElement: class HTMLElement {},
+    originRef: {current:null},
+    setError: value => calls.push("error:"+value),
+    setOpen: value => calls.push("open:"+value),
+  };
+  const listener = vm.runInNewContext(handler + "\nonKeyDown", context);
+  const malformed = [
+    {}, null, { shiftKey:true },
+    { ...valid, key: undefined },
+    { ...valid, get key() { throw new Error("bad automation key property"); } },
+    new Proxy({ ...valid }, { get() { throw new Error("bad proxy"); } }),
+  ];
+  for(const value of malformed) {
+    calls.length = 0;
+    assert.doesNotThrow(() => listener(value));
+    assert.deepEqual(calls, [], "invalid events cannot invoke DOM or dialog state");
+  }
+  const dispatch = (overrides={}) => {
+    calls.length=0;
+    listener({ ...valid, target:null, ...overrides,
+      preventDefault() {calls.push("preventDefault");},
+      stopPropagation() {calls.push("stopPropagation");},
+    });
+    return [...calls];
+  };
+  assert.deepEqual(dispatch(), ["editing-gate","blocking-gate","surface-gate","preventDefault","stopPropagation","error:","open:true"]);
+  editing=true;
+  assert.deepEqual(dispatch(),["editing-gate"],"typing in an editor must not open Sage");
+  editing=false;blocking=true;
+  assert.deepEqual(dispatch(),["editing-gate","blocking-gate"],"modal must not open Sage");
+  blocking=false;surface=false;
+  assert.deepEqual(dispatch(),["editing-gate","blocking-gate","surface-gate"],"invisible Matrix cannot open Sage");
+  surface=true;
+  assert.deepEqual(dispatch({key:"S",ctrlKey:true}),[],"modified key remains inert");
+  assert.deepEqual(dispatch({key:"S",repeat:true}),[],"repeat remains inert");
 });

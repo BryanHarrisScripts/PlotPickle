@@ -128,6 +128,21 @@
       ]
     },
     {
+      "id": "global-sage-keyboard-contract-2959",
+      "classification": "production",
+      "include": [
+        "modules/creative-room/sage-keyboard-shortcut.mjs",
+        "modules/creative-room/sage-keyboard-shortcut.d.mts",
+        "tests/issue-2959-sage-shortcut-guard.test.mjs"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "agent"
+      ]
+    },
+    {
       "id": "global-sage-help-surface",
       "classification": "production",
       "include": [

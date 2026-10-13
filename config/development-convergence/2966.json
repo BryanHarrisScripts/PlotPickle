@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 2966,
+  "phase": "canonical-provider-image-test-truth",
+  "brief": "docs/developer-briefs/2966-provider-image-test-truth.md",
+  "allowedChanges": [
+    "build/ai/comfyui-sdxl-local-gateway.ts",
+    "build/local-ai-gateway.ts",
+    "build/media-routing-gateway.ts",
+    "app/skin-v1/cloud-provider-setup-panel.tsx",
+    "core/contracts/compute/image-test-provider-truth.mjs",
+    "core/contracts/compute/image-test-provider-truth.d.mts",
+    "tests/issue-2966-image-provider-verification.test.mjs",
+    "tests/issue-2805-storyboard-image-routing.test.mjs",
+    "tests/issue-2329-qwen-image-21-experimental.test.mjs",
+    "tests/issue-1754-skin-v1-logon.test.mjs",
+    "tests/hardware-aware-local-ai-runtime.test.mjs",
+    "tests/issue-1462-sdxl-local-move.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2966-provider-image-test-truth.md",
+    "config/development-convergence/2966.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-PROVIDER",
+      "criterion": "An explicit cloud image route wins over the global local SDXL choice and unknown routes fail before execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2966-image-provider-verification.test.mjs",
+          "contains": "explicitly requested MiniMax/OpenAI always wins over locally selected SDXL and Qwen"
+        }
+      ]
+    },
+    {
+      "id": "NO-COMPETING-HTTP-OWNER",
+      "criterion": "The canonical media router parses the test once; SDXL is a local generator and never a competing middleware.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2966-image-provider-verification.test.mjs",
+          "contains": "canonical intake owns the request exactly once"
+        }
+      ]
+    },
+    {
+      "id": "RECEIPT-AND-PERSISTENCE",
+      "criterion": "Cloud UI refuses unmatched route, provider, asset or persisted readiness.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2966-image-provider-verification.test.mjs",
+          "contains": "test-proof admission rejects local SDXL masquerading"
+        }
+      ]
+    },
+    {
+      "id": "LIMITED-PROOF",
+      "criterion": "CI does not assert a billed provider response, usable credentials or actual human device execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2966-provider-image-test-truth.md",
+          "contains": "No MiniMax key, secret, private story, actual billed generation or cloud credential success is present in CI"
+        }
+      ]
+    }
+  ]
+}

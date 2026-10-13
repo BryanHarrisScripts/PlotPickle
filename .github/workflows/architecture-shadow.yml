@@ -93,6 +93,18 @@ jobs:
             echo 'No impacted screenplay converter files; skipping installed conversion and build proof.'
           fi
 
+      - name: Prove changed in-Matrix Write build in the existing PR gate
+        if: matrix.id == 'story-canon'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(modules/write/(model/|ui/block-native-write-workspace\.tsx$)|app/skin-v1/(dashboard-menu-registry|dashboard-bbs-review-host)\.tsx?$|tests/issue-2953-write-matrix-continuity\.test\.mjs$)'; then
+            node --test tests/issue-2953-write-matrix-continuity.test.mjs
+            npm run build
+          else
+            echo 'No changed Matrix Write implementation; skipping focused build.'
+          fi
+
       - name: Verify development convergence
         if: matrix.id == 'verification'
         run: >-

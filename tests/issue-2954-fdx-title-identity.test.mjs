@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createServer } from "vite";
+import { readFile } from "node:fs/promises";
+const vite = await import("vite").catch(() => null);
+const requiresInstalledVite = vite ? false : "Full screenplay import execution requires the installed-dependency Story Model lane.";
 
 const root = new URL("..", import.meta.url);
 
 async function withConversion(run) {
-  const server = await createServer({
+  if (!vite) throw new Error("The full integration fixture requires installed Vite.");
+  const server = await vite.createServer({
     root: root.pathname,
     configFile: false,
     logLevel: "error",
@@ -43,7 +46,7 @@ function draft(titlePage) {
 </FinalDraft>`;
 }
 
-test("#2954 FDX title metadata survives portable conversion, integrity readback and Library projection", async () => {
+test("#2954 FDX title metadata survives portable conversion, integrity readback and Library projection", { skip: requiresInstalledVite }, async () => {
   await withConversion(async ({ convert, read, bridge }) => {
     const sourceText = draft(`
       <Paragraph Type="Normal"><Text>.</Text></Paragraph>
@@ -71,7 +74,7 @@ test("#2954 FDX title metadata survives portable conversion, integrity readback 
   });
 });
 
-test("#2954 rejects punctuation-only/byline title candidates and uses a readable source filename", async () => {
+test("#2954 rejects punctuation-only/byline title candidates and uses a readable source filename", { skip: requiresInstalledVite }, async () => {
   await withConversion(async ({ convert, read }) => {
     const sourceText = draft(`
       <Paragraph Type="Normal"><Text>...</Text></Paragraph>
@@ -84,7 +87,7 @@ test("#2954 rejects punctuation-only/byline title candidates and uses a readable
   });
 });
 
-test("#2954 first meaningful TitlePage paragraph and escaped XML title are handled without screenplay changes", async () => {
+test("#2954 first meaningful TitlePage paragraph and escaped XML title are handled without screenplay changes", { skip: requiresInstalledVite }, async () => {
   await withConversion(async ({ convert, read }) => {
     const sourceText = draft(`
       <Paragraph Type="Normal"><Text>.</Text></Paragraph>
@@ -96,4 +99,17 @@ test("#2954 first meaningful TitlePage paragraph and escaped XML title are handl
     assert.equal(converted.fileName, "love-loyalty.ppf");
     assert.equal(read(converted.serializedPpf).project.screenplay.sourceText, sourceText);
   });
+});
+
+
+test("#2954 lightweight architecture shadow identifies the canonical title and passage boundaries", async () => {
+  const [importer, parser] = await Promise.all([
+    readFile(new URL("../lib/projects/screenplay/screenplay-import.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/projects/screenplay/screenplay.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(importer, /function finalDraftTitleFromSource/);
+  assert.match(importer, /finalDraftPlainText/);
+  assert.match(importer, /typeName === "title"/);
+  assert.match(parser, /source\.replace\(\/<TitlePage/);
+  assert.match(parser, /paragraphPattern\.exec\(screenplayBody\)/);
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { blockWritingEntry, updateBlockWritingEntry } from "@/core/contracts/block-writing";
 import { moveWriteStoryPosition } from "../model/write-position-navigation.mjs";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
@@ -8,12 +8,14 @@ import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   loadActiveLibraryProject,
   saveActiveLibraryProject,
+  sessionActiveProjectId,
   type LibraryPPFProject,
 } from "@/core/storage/project-library-browser";
 import {
   markCreativeRevisionDependentsStale,
   planCreativeRevisionPropagation,
 } from "@/lib/preproduction/creative-revision-propagation";
+import { persistActiveProfileProject, flushProfilePrivateWrites } from "@/core/storage/profile-private-browser";
 import { createAgenticStoryToScreenProjectionRequest } from "@/lib/preproduction/agentic-story-to-screen-projection";
 import type { ResponsibilityRun } from "@/lib/agents/responsibility/responsibility-runs";
 import {
@@ -80,6 +82,10 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   const [savedText, setSavedText] = useState("");
   const [status, setStatus] = useState("");
   const [visualizing, setVisualizing] = useState(false);
+  const [savingWorkingText, setSavingWorkingText] = useState(false);
+  const saveInFlightRef = useRef(false);
+  const unconfirmedLocalWriteRef = useRef<{ key: string; text: string } | null>(null);
+  const lastHydratedEditorKeyRef = useRef("");
 
   useEffect(() => {
     const syncProject = () => setProject(loadActiveLibraryProject());
@@ -122,7 +128,16 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }, [address.blockNumber, address.miniBlockNumber, draftText, project, savedText]);
 
   useEffect(() => {
+    const key = `${project?.id ?? ""}:${address.blockNumber}:${address.miniBlockNumber}`;
     const next = entry?.text ?? "";
+    const changedAddress = lastHydratedEditorKeyRef.current !== key;
+    lastHydratedEditorKeyRef.current = key;
+    // A local cache mutation is not durable Save authority. Do not turn its
+    // optimistic text into "Saved" while encrypted profile writes are unknown.
+    if (unconfirmedLocalWriteRef.current?.key === key
+      && unconfirmedLocalWriteRef.current.text === next) return;
+    // An independent Library refresh cannot silently replace dirty editor work.
+    if (!changedAddress && draftText !== savedText) return;
     setDraftText(next);
     setSavedText(next);
     setStatus("");
@@ -142,6 +157,10 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
+    if (saveInFlightRef.current) {
+      setStatus("The encrypted screenplay Save is still pending. Keep this story position until its result is confirmed.");
+      return;
+    }
     if (blockNumber === address.blockNumber && miniBlockNumber === address.miniBlockNumber) return;
     const next = moveWriteStoryPosition({
       locationHref: window.location.href,
@@ -155,11 +174,32 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   function leaveWrite() {
+    if (saveInFlightRef.current) {
+      setStatus("Wait for the encrypted screenplay Save result before leaving Write.");
+      return;
+    }
     if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
     onBackDashboard?.();
   }
 
-  function save() {
+  function navigateFromWrite(href: string) {
+    if (saveInFlightRef.current) {
+      setStatus("Wait for the encrypted screenplay Save result before leaving Write.");
+      return;
+    }
+    if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
+    window.location.assign(href);
+  }
+
+  async function save() {
+    if (saveInFlightRef.current || !dirty) return;
+    saveInFlightRef.current = true;
+    setSavingWorkingText(true);
+    setStatus("Saving working screenplay text to the encrypted Human profile…");
+    const saveProjectId = project.id;
+    const saveAddressKey = `${saveProjectId}:${address.blockNumber}:${address.miniBlockNumber}`;
+    unconfirmedLocalWriteRef.current = { key: saveAddressKey, text: draftText };
+    try {
     const savedAt = new Date().toISOString();
     const revision = project.revision + 1;
     const revised: LibraryPPFProject = {
@@ -173,13 +213,25 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
       : revised;
     const saved = saveActiveLibraryProject(next);
     setProject(saved);
+    await persistActiveProfileProject("", saveProjectId);
+    await flushProfilePrivateWrites();
+    if (sessionActiveProjectId() !== saveProjectId) {
+      throw new Error("The active Library story changed before encrypted Save confirmation.");
+    }
+    unconfirmedLocalWriteRef.current = null;
     setSavedText(draftText);
     const affectedVisuals = revisionImpact?.staleAcceptedVisualArtifactIds.length ?? 0;
     const affectedShots = revisionImpact?.staleProductionShotIds.length ?? 0;
     setStatus(
-      `Saved Block ${String(address.blockNumber).padStart(2, "0")} · Mini-Block ${address.miniBlockNumber} working text. `
+      `Encrypted Save confirmed for Block ${String(address.blockNumber).padStart(2, "0")} · Mini-Block ${address.miniBlockNumber}. `
       + `${affectedVisuals} accepted visual${affectedVisuals === 1 ? "" : "s"} and ${affectedShots} Previs Shot${affectedShots === 1 ? "" : "s"} are dependency-affected and require review; unrelated accepted work remains intact. No regeneration was triggered.`,
     );
+    } catch (error) {
+      setStatus(`Save not confirmed. Your working text remains in this editor. Retry Save after resolving encrypted profile access. ${error instanceof Error ? error.message : "Storage verification failed."}`);
+    } finally {
+      saveInFlightRef.current = false;
+      setSavingWorkingText(false);
+    }
   }
 
   function useSourceAsStartingPoint() {
@@ -189,7 +241,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   async function visualizeBlock() {
-    if (dirty) {
+    if (dirty || saveInFlightRef.current) {
       setStatus("Save or discard the current screenplay edit before starting a visual production pass so the Responsibility Run can bind to one exact project revision.");
       return;
     }
@@ -237,9 +289,9 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         <div className={styles.headerActions}>
           {onBackDashboard ? <button type="button" onClick={leaveWrite}>Back to Dashboard</button> : null}
           <button type="button" disabled={visualizing} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing visual pass…" : "Visualize this Block"}</button>
-          <button type="button" onClick={() => window.location.assign(storyLearningReturnHref(address))}>Outline this position</button>
-          <button type="button" onClick={() => window.location.assign(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
-          <button type="button" onClick={() => window.location.assign(storyLearningHref(learning.references[0], address))}>Learn this position</button>
+          <button type="button" onClick={() => navigateFromWrite(storyLearningReturnHref(address))}>Outline this position</button>
+          <button type="button" onClick={() => navigateFromWrite(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
+          <button type="button" onClick={() => navigateFromWrite(storyLearningHref(learning.references[0], address))}>Learn this position</button>
         </div>
       </header>
 
@@ -313,8 +365,8 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
             value={draftText}
           />
           <div className={styles.editorActions}>
-            <span>{dirty ? "Unsaved changes" : savedText.trim() ? "Saved working text" : "No working text yet"}</span>
-            <button disabled={!dirty} onClick={save} type="button">Save working text</button>
+            <span>{savingWorkingText ? "Encrypted Save pending" : dirty ? "Unsaved changes" : savedText.trim() ? "Saved working text" : "No working text yet"}</span>
+            <button disabled={!dirty || savingWorkingText} onClick={() => void save()} type="button">{savingWorkingText ? "Saving to profile…" : "Save working text"}</button>
           </div>
           {status ? <p aria-live="polite" className={styles.status}>{status}</p> : null}
         </section>
@@ -360,7 +412,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
             <article key={reference.lessonId}>
               <strong>{reference.concept}</strong>
               <p>{reference.reason}</p>
-              <button onClick={() => window.location.assign(storyLearningHref(reference, address))} type="button">
+              <button onClick={() => navigateFromWrite(storyLearningHref(reference, address))} type="button">
                 {reference.actionLabel}
               </button>
             </article>

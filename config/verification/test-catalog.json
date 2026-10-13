@@ -512,7 +512,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2953-write-matrix-continuity.test.mjs"
+          "tests/issue-2953-write-matrix-continuity.test.mjs",
+          "tests/issue-2953-write-confirmed-durability.test.mjs"
         ]
       },
       "cost": "fast",
@@ -538,7 +539,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2953 governed Matrix Write activation, exact active Library project continuity across 24 Blocks/96 Mini-Blocks, denied dirty edits and unchanged imported screenplay source. Test coverage is executable simulated browser-history + static wiring, not independently observed Windows app/profile persistence."
+      "notes": "#2953 governed Matrix Write activation, exact active Library project continuity across 24 Blocks/96 Mini-Blocks, denied dirty edits and unchanged imported screenplay source. Test coverage is executable simulated browser-history + static wiring, not independently observed Windows app/profile persistence. #2953 follow-up proves actual Write Save handler pending, encrypted acknowledgement, failure and project identity negative control; does not claim real authenticated Windows profile input."
     },
     {
       "id": "experience.first-image-review-retry-2957",
@@ -3611,6 +3612,37 @@
           "static-source"
         ],
         "limits": "Controlled actual-handler simulation and pure identity/session classifier; no device login, real expired cookie, real encrypted write, authenticated Windows profile, restart, or acceptance of a returned saved Outline.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2953-write-confirmed-durability.test.mjs",
+        "targetDigest": "344ccff1738bd0f0439a6ab97b1583b49702cfbf728b68f82882c92ebfdee1e5",
+        "catalogueIds": [
+          "experience.write-matrix-continuity-2953"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T1"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T8"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Controlled VM execution of real Write Save handler, 96 pure Matrix addresses, and static exit guards. No original private imported film source, paid provider, actual account/vault, physical Windows browser or process restart was observed.",
         "inputs": []
       }
     ]

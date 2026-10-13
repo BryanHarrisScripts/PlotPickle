@@ -9,6 +9,7 @@ import type { LibraryPPFProject } from "../../core/storage/library-project";
 import type { LearnTopicSpineId } from "../../modules/learn/model/story-learning-context";
 import type { StoryDevelopmentAct } from "../../modules/learn/model/story-development-fields";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
+import BlockNativeWriteWorkspace from "../../modules/write/ui/block-native-write-workspace";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
@@ -76,6 +77,7 @@ export default function DashboardBbsReviewHost({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [writeOpen, setWriteOpen] = useState(false);
   const [screeningOpen, setScreeningOpen] = useState(false);
   const [soundOpen, setSoundOpen] = useState<ProductionSoundCueKind | null>(null);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
@@ -102,6 +104,7 @@ export default function DashboardBbsReviewHost({
   const learnRequestSequence = useRef(0);
 
   function closePreproductionSurfaces() {
+    setWriteOpen(false);
     setOutlineOpen(false);
     setBuildOpen(false);
     setStoryboardOpen(false);
@@ -148,6 +151,7 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
+      setWriteOpen(false);
       setLearnRequest(null);
       setScreeningOpen(false);
       setSoundOpen(null);
@@ -232,6 +236,7 @@ export default function DashboardBbsReviewHost({
   }
 
   function returnDashboard(itemId?: string) {
+    setWriteOpen(false);
     setDiscoveryOpen(false);
     setDiscoveryProject(null);
     setScreeningOpen(false);
@@ -429,6 +434,13 @@ export default function DashboardBbsReviewHost({
       setLibraryOpen(true);
       return;
     }
+    if (item.id === "write") {
+      onActivate(index);
+      closePreproductionSurfaces();
+      setWriteOpen(true);
+      onSurfaceNameChange("WRITE");
+      return;
+    }
     if (item.id === "plan") {
       onActivate(index);
       openOutline(DEFAULT_REVIEW_ADDRESS);
@@ -604,6 +616,14 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("library")}>Back to Dashboard</button>
         </div>
         <LibraryWorkspace />
+      </section>
+    );
+  }
+
+  if (writeOpen) {
+    return (
+      <section aria-label="Write" data-dashboard-review-surface="write">
+        <BlockNativeWriteWorkspace onBackDashboard={() => returnDashboard("write")} />
       </section>
     );
   }

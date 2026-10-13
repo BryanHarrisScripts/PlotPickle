@@ -5,6 +5,7 @@ import { creativeFocusPlotPickleCurriculum as plotPickleCurriculum } from "../ad
 import AgentPortrait from "../components/agent-portrait";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";
+import { isSageOpenShortcut } from "../modules/creative-room/sage-keyboard-shortcut.mjs";
 import styles from "./global-sage-overlay.module.css";
 
 type SageMessage = {
@@ -115,8 +116,9 @@ export default function GlobalSageOverlay() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.repeat) return;
-      if (event.key.toLowerCase() !== "s" || !event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+      // Invalid/automation-origin events must be inert; only a real
+      // Shift+S candidate reaches DOM/editor/overlay checks.
+      if (!isSageOpenShortcut(event)) return;
       if (isTextEditingTarget(event.target) || hasBlockingOverlay() || !hasVisiblePlotPickleSurface()) return;
       event.preventDefault();
       event.stopPropagation();

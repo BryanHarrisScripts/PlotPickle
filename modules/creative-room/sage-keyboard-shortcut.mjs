@@ -6,7 +6,15 @@
  * Ctrl, Meta or Alt may proceed to the existing editing/overlay gates.
  */
 export function isSageOpenShortcut(event) {
-  if (!event || event.defaultPrevented || event.repeat) return false;
-  if (typeof event.key !== "string" || event.key.toLowerCase() !== "s") return false;
-  return event.shiftKey === true && !event.ctrlKey && !event.metaKey && !event.altKey;
+  // Synthetic browser and automation events can have arbitrary property
+  // accessors. A malformed event cannot become shortcut authority or throw
+  // before the global listener reaches its normal editing/overlay guards.
+  try {
+    if (!event || event.defaultPrevented || event.repeat) return false;
+    const key = event.key;
+    if (typeof key !== "string" || key.toLowerCase() !== "s") return false;
+    return event.shiftKey === true && !event.ctrlKey && !event.metaKey && !event.altKey;
+  } catch {
+    return false;
+  }
 }

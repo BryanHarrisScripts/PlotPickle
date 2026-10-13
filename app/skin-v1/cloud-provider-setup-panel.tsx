@@ -5,6 +5,7 @@ import { authenticatedComputeFetch as fetch } from "../../core/auth/profile-requ
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ProfileSessionPanel from "../_components/settings/profile-session-panel";
 import { OPENAI_VIDEO_SUNSET, providerPresets } from "../../lib/runtime/ai/providers";
+import { assertCloudImageTestProof } from "../../core/contracts/compute/image-test-provider-truth.mjs";
 
 type Provider = "openai" | "minimax";
 type ProviderStatus = {
@@ -314,15 +315,8 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ route: provider, billingAcknowledged: true }),
       });
-      if (tested.ok !== true || tested.route !== provider || tested.provider !== provider
-        || typeof tested.assetUrl !== "string" || !tested.assetUrl.startsWith("/api/local-ai/assets/")) {
-        throw new Error(`${label} image verification rejected: the returned route, provider or saved asset does not match the requested provider. No cloud success is claimed.`);
-      }
       const verified = await json<MediaStatus>("/api/media-routing/status", { cache: "no-store" });
-      const proof = verified.profiles?.[provider];
-      if (proof?.imageReady !== true || !proof.imageVerifiedAt) {
-        throw new Error(`${label} image test returned an asset, but provider readiness was not independently persisted. Verification remains unproven.`);
-      }
+      assertCloudImageTestProof(provider, tested, verified);
       const message = `${label} image generation used the verified ${tested.provider} route and saved an asset to PlotPickle.`;
       setNotice(message);
       recordDiagnostic(message);

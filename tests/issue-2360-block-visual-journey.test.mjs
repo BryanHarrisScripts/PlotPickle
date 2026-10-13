@@ -5,16 +5,21 @@ import test from "node:test";
 const read = (path) => readFile(new URL("../" + path, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
-test("#2360 keeps one Block visual workspace across Outline, Storyboard, Previs, Timeline, and Production", async () => {
+test("#2360 keeps Block visual journey owned by Production and preserves the five current Matrix stage addresses", async () => {
   const [host, storyMap] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/skin-v1/matrix-story-map-surface.tsx"),
   ]);
 
   assert.match(host, /import BlockVisualJourneyWorkspace/u);
-  assert.equal((host.match(/<BlockVisualJourneyWorkspace/g) ?? []).length, 5);
+  // Current Matrix composes dedicated Outline/Storyboard/Previs/Timeline
+  // surfaces. BlockVisualJourneyWorkspace is mounted once in Production.
+  assert.equal((host.match(/<BlockVisualJourneyWorkspace/g) ?? []).length, 1);
+  assert.match(host, /stage="production"/u);
+  assert.match(host, /<SkinV1StoryboardReviewSurface/u);
+  assert.match(host, /<SkinV1PrevisCompositeSurface/u);
+  assert.match(host, /<SkinV1TimelineReviewSurface/u);
   for (const stage of ["outline", "storyboard", "previs", "timeline", "production"]) {
-    assert.match(host, new RegExp('stage="' + stage + '"', "u"));
     assert.match(host, new RegExp('updateReviewAddress\\("' + stage + '"', "u"));
   }
   assert.match(host, /MatrixStoryMapSurface[\s\S]*onAddressChange=\{\(address\) => updateReviewAddress\("outline", address\)\}/u);

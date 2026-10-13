@@ -468,7 +468,49 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-1969-explicit-story-startup.test.mjs",
+          "tests/issue-1969-explicit-story-startup.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact."
+    },
+    {
+      "id": "experience.write-matrix-continuity-2953",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
           "tests/issue-2953-write-matrix-continuity.test.mjs"
         ]
       },
@@ -495,7 +537,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact. #2953 adds unit-fixture and static-source coverage for Human-requested Matrix Write activation and in-place address continuity; actual Windows profile acceptance is separate."
+      "notes": "#2953 governed Matrix Write activation, exact active Library project continuity across 24 Blocks/96 Mini-Blocks, denied dirty edits and unchanged imported screenplay source. Test coverage is executable simulated browser-history + static wiring, not independently observed Windows app/profile persistence."
     },
     {
       "id": "experience.learn-journey-shell",
@@ -3034,7 +3076,7 @@
         "target": "tests/issue-2953-write-matrix-continuity.test.mjs",
         "targetDigest": "ddc06e41d852e527a058bb40df7ac2f47022f5467cf7380f39d95e0fce28bf71",
         "catalogueIds": [
-          "experience.explicit-story-startup-1969"
+          "experience.write-matrix-continuity-2953"
         ],
         "truthRefs": [
           {
@@ -3055,7 +3097,7 @@
       },
       {
         "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
-        "targetDigest": "82031f46cc2c7067fafcccd964668dd95dc346f31288fe110df2d89366ea4a47",
+        "targetDigest": "ea935487ec794b1f88c82fbe3dc017ba6e708eea2710fa505c655292ca167d9b",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3072,7 +3114,7 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Superseded 2026 deferred gray Write row expectations only: #2953 now makes Write an in-shell Matrix surface while Edit, Refine and remaining deferred destinations stay gray. Static dashboard registry/host assertions, not authenticated Windows navigation or screenplay persistence proof.",
+        "limits": "Legacy #2438 dashboard availability and pitch route assertions reconciled to #2953 Write-only activation. Current disabled pitch remains disabled and no hidden legacy route is claimed. Static-source audit only; not Windows product acceptance.",
         "inputs": []
       },
       {

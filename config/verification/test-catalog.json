@@ -2607,7 +2607,7 @@
       },
       {
         "target": "tests/issue-2957-first-image-review-retry.test.mjs",
-        "targetDigest": "46c1fd2d51ca9a1903c1bb4cc60a928e81aadfb62d9051d90cab34d261beba06",
+        "targetDigest": "45d87e4efcb128cd38ae5dc73f9e146de66cf416f7d33fa56009f21c1aeb4987",
         "catalogueIds": ["experience.first-image-review-retry-2957"],
         "truthRefs": [
           {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},

@@ -587,18 +587,39 @@
     {
       "id": "experience.sage-keyboard-guard-2959",
       "ownerLayer": "experience-contract",
-      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
-      "triggerTokens": ["surface", "navigation", "agent"],
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-2959-sage-shortcut-guard.test.mjs"]
+        "targets": [
+          "tests/issue-2959-sage-shortcut-guard.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
-      "requirements": {"network": false, "native": false, "secrets": false},
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-contract.json",
           ".artifacts/verification-shadow/experience-contract.comparison.json"
@@ -2440,6 +2461,50 @@
         ]
       },
       "notes": "#2837 real profile vault, cloud-authority route and HTTP image failure proof; synthetic provider only, no paid cloud usage. Restart, simultaneous section saves, encrypted keys, per-profile defaults and readiness invalidation."
+    },
+    {
+      "id": "provider.image-test-proof-2966",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": [
+        "provider-runtime",
+        "lifecycle-capability-routing"
+      ],
+      "triggerTokens": [
+        "provider",
+        "api",
+        "security",
+        "visual"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2966-image-provider-verification.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json",
+          ".artifacts/verification-shadow/provider-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2966 PP-IMG-PROVIDER-001: executable route and cloud proof negative cases, plus exact source wiring. No actual paid MiniMax call, credential validation or real Windows/ComfyUI device proof."
     }
   ],
   "truthGovernance": {
@@ -2616,31 +2681,64 @@
       {
         "target": "tests/issue-2959-sage-shortcut-guard.test.mjs",
         "targetDigest": "cb91cd0a2dd3b87702372350850e27d1be10e6eb36dee767baee3aec3a7d8bf6",
-        "catalogueIds": ["experience.sage-keyboard-guard-2959"],
-        "truthRefs": [
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        "catalogueIds": [
+          "experience.sage-keyboard-guard-2959"
         ],
-        "scopes": ["unit-fixture", "static-source"],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
         "limits": "Executable pure malformed keyboard and modifier fixtures, plus source-level listener integration. Does not prove real physical keyboard reproduction, Windows authenticated lifecycle or credentials.",
         "inputs": [
-          {"path": "modules/creative-room/sage-keyboard-shortcut.mjs", "digest": "6ef7389dcd7142294456f3cdb00ea715df24fcb5ddf0f81f09927e5e03f87495"},
-          {"path": "app/global-sage-overlay.tsx", "digest": "09db34109e42a956b53e36aa5da399e9ae38082d2e7a6b9e30308dbc78ee76e1"}
+          {
+            "path": "modules/creative-room/sage-keyboard-shortcut.mjs",
+            "digest": "6ef7389dcd7142294456f3cdb00ea715df24fcb5ddf0f81f09927e5e03f87495"
+          },
+          {
+            "path": "app/global-sage-overlay.tsx",
+            "digest": "09db34109e42a956b53e36aa5da399e9ae38082d2e7a6b9e30308dbc78ee76e1"
+          }
         ]
       },
       {
         "target": "tests/issue-2360-block-visual-journey.test.mjs",
         "targetDigest": "f76b91118fa4fd980e58fc973f98377adfab963bbab486b2e57d1f3bf600d230",
-        "catalogueIds": ["experience.navigation-continuity-2249"],
-        "truthRefs": [
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
-          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        "catalogueIds": [
+          "experience.navigation-continuity-2249"
         ],
-        "scopes": ["static-source"],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
         "limits": "Revised historical #2360 assertion now matches current Matrix host architecture (single Production visual mount; separate Outline/Storyboard/Previs/Timeline). Source inspection only; no independent product/browser acceptance.",
         "inputs": [
-          {"path": "app/skin-v1/dashboard-bbs-review-host.tsx", "digest": "32e9b1edd779c70d03d80b0c37a7c2ea94ee0b2115e73700476bef91dfd9bc98"},
-          {"path": "app/skin-v1/matrix-story-map-surface.tsx", "digest": "586c3cd203f97fcf12a1e2a5328a2debf95d08e9dea4b9c1bcce3daeeafc3c67"}
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "32e9b1edd779c70d03d80b0c37a7c2ea94ee0b2115e73700476bef91dfd9bc98"
+          },
+          {
+            "path": "app/skin-v1/matrix-story-map-surface.tsx",
+            "digest": "586c3cd203f97fcf12a1e2a5328a2debf95d08e9dea4b9c1bcce3daeeafc3c67"
+          }
         ]
       },
       {
@@ -3319,6 +3417,29 @@
         "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
         "inputs": [],
         "targetDigest": "1afa135807086261e442af5828790245ef9bcb42291cae51adbfb3c2e40e9eb9"
+      },
+      {
+        "target": "tests/issue-2966-image-provider-verification.test.mjs",
+        "targetDigest": "f6785d0fb68f2bdb0b8ba88b17f04a18b9405c7409e192dfcaf334d4102ffbac",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Executable pure provider identity/readiness and negative-control fixtures plus server/UI source wiring; not real paid MiniMax execution, credential acceptance, device run, media-byte audit, or Windows profile/restart observation.",
+        "inputs": []
       }
     ]
   }

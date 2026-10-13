@@ -540,6 +540,50 @@
       "notes": "#2953 governed Matrix Write activation, exact active Library project continuity across 24 Blocks/96 Mini-Blocks, denied dirty edits and unchanged imported screenplay source. Test coverage is executable simulated browser-history + static wiring, not independently observed Windows app/profile persistence."
     },
     {
+      "id": "experience.first-image-review-retry-2957",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "visual",
+        "canon",
+        "provider",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2957-first-image-review-retry.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2957 PP-IMG-RETRY-001: executable candidate isolation/acceptance/rejection/history invariants and static gateway/reducer wiring under WHITE-PAPER-V3 W8/W9. Real Windows provider generation, encrypted readback and restart remain UNPROVEN."
+    },
+    {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
       "architectureComponents": [
@@ -2546,6 +2590,22 @@
       }
     ],
     "bindings": [
+      {
+        "target": "tests/issue-2957-first-image-review-retry.test.mjs",
+        "targetDigest": "430c33923eda7d9253ebed237638be04267388951fb94ff05e9c7b344918b285",
+        "catalogueIds": ["experience.first-image-review-retry-2957"],
+        "truthRefs": [
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        ],
+        "scopes": ["unit-fixture", "static-source"],
+        "limits": "Pure deterministic candidate selection tests and inspected source wiring; no witnessed paid/local provider output, actual profile storage/restart or quality acceptance.",
+        "inputs": [
+          {"path": "modules/visual/model/block-visual-candidates.mjs", "digest": "48e5ad5d785289c75a660f81b6bdbb2be0e3ee2c8a72ec20c6ed29dcdc886046"},
+          {"path": "app/skin-v1/block-visual-journey-workspace.tsx", "digest": "52a2afd72bef87a6245f3fd73434744a5a06daf91321afd552e5b70377b5cdc5"},
+          {"path": "core/project/apply-command.ts", "digest": "268baf2d5ba34281f843ea9265c19b16d95f45ca9aaa04924d7b84c948b43d15"}
+        ]
+      },
       {
         "target": "tests/issue-2934-future-test-truth.test.mjs",
         "targetDigest": "36083edb0c518887f1c5569fbb8914c1b0621df636d49b94e99db39b4f7a86f0",

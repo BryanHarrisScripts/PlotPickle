@@ -2277,6 +2277,25 @@
         "security",
         "visual"
       ]
+    },
+    {
+      "id": "library-unload-session-recovery-2960",
+      "classification": "production",
+      "include": [
+        "modules/library/model/library-unload-session-truth.mjs",
+        "modules/library/model/library-unload-session-truth.d.mts",
+        "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+        "modules/library/ui/library-workspace.tsx",
+        "app/_components/settings/profile-session-panel.tsx"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "security",
+        "storage",
+        "surface",
+        "canon",
+        "api"
+      ]
     }
   ]
 }

@@ -37,11 +37,13 @@ function currentAddress() {
 }
 
 function addressHref(blockNumber: number, miniBlockNumber: number) {
-  const query = new URLSearchParams({
-    block: String(blockNumber),
-    mini: String(miniBlockNumber),
-  });
-  return `/write?${query.toString()}`;
+  // Keep the owning Matrix route (or the standalone Write route) unchanged.
+  // A forced /write navigation discards in-memory profile-vault snapshots.
+  if (typeof window === "undefined") return `/write?block=${blockNumber}&mini=${miniBlockNumber}`;
+  const url = new URL(window.location.href);
+  url.searchParams.set("block", String(blockNumber));
+  url.searchParams.set("mini", String(miniBlockNumber));
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function pageFlowHref(blockNumber: number, miniBlockNumber: number) {
@@ -89,13 +91,16 @@ export default function BlockNativeWriteWorkspace() {
   const [visualizing, setVisualizing] = useState(false);
 
   useEffect(() => {
-    const sync = () => setProject(loadActiveLibraryProject());
-    sync();
-    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
-    window.addEventListener("popstate", sync);
+    const syncProject = () => setProject(loadActiveLibraryProject());
+    const syncHistoryAddress = () => setAddress(currentAddress());
+    syncProject();
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, syncProject);
+    window.addEventListener("popstate", syncProject);
+    window.addEventListener("popstate", syncHistoryAddress);
     return () => {
-      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
-      window.removeEventListener("popstate", sync);
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, syncProject);
+      window.removeEventListener("popstate", syncProject);
+      window.removeEventListener("popstate", syncHistoryAddress);
     };
   }, []);
 
@@ -146,8 +151,12 @@ export default function BlockNativeWriteWorkspace() {
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
+    if (blockNumber === address.blockNumber && miniBlockNumber === address.miniBlockNumber) return;
     if (dirty && !window.confirm("Leave this story position without saving the working screenplay text?")) return;
-    window.location.assign(addressHref(blockNumber, miniBlockNumber));
+    // No document navigation: retain the exact active Library project, source
+    // evidence and profile-vault session while only changing the selected slot.
+    window.history.pushState(window.history.state, "", addressHref(blockNumber, miniBlockNumber));
+    setAddress({ blockNumber, miniBlockNumber });
   }
 
   function save() {

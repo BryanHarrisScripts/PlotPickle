@@ -557,7 +557,7 @@ export default function DiscoverySurface({
                   topic: field.topicId,
                   lessonId: field.lessonId,
                   fieldId: field.fieldId,
-                  currentValue,
+                  currentValue: fieldDrafts[storyDevelopmentFieldStorageId(field, selectedAct)] ?? currentValue,
                   characterTarget: field.topicId === "character" && selectedCharacter
                     ? { id: selectedCharacter.id, name: selectedCharacter.name }
                     : null,

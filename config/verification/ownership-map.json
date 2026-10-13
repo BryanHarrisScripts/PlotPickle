@@ -2296,6 +2296,22 @@
         "canon",
         "api"
       ]
+    },
+    {
+      "id": "mind-map-foundations-agent-fidelity-2958",
+      "classification": "production",
+      "include": [
+        "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+        "modules/learn/model/mind-map-proposal-fidelity.mjs",
+        "modules/learn/model/mind-map-proposal-fidelity.d.mts"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "agent",
+        "canon",
+        "navigation"
+      ]
     }
   ]
 }

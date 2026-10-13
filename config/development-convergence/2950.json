@@ -15,29 +15,59 @@
     "docs/developer-briefs/dashboard-orange-availability.md",
     "tests/issue-2950-dashboard-orange-availability.test.mjs",
     "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-    "tests/issue-2469-webmcp-surface-maturity.test.mjs"
-    ,"tests/issue-2438-dashboard-status-worldmap.test.mjs"
+    "tests/issue-2469-webmcp-surface-maturity.test.mjs",
+    "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs"
   ],
   "acceptance": [
     {
       "id": "AVAILABLE-EXPLORATION",
       "criterion": "All thirteen formerly unavailable entries are connected, in review and enterable in-shell without locked authority.",
-      "evidence": [{"type": "file-contains", "path": "tests/issue-2950-dashboard-orange-availability.test.mjs", "contains": "all thirteen requested destinations are available for orange exploration"}]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2950-dashboard-orange-availability.test.mjs",
+          "contains": "all thirteen requested destinations are available for orange exploration"
+        }
+      ]
     },
     {
       "id": "ORANGE-PRESENTATION",
       "criterion": "Only exploration markers gain the existing orange token; previous green/yellow classifications remain distinct.",
-      "evidence": [{"type": "file-contains", "path": "tests/issue-2950-dashboard-orange-availability.test.mjs", "contains": "orange presentation uses the existing semantic orange token without changing yellow review"}]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2950-dashboard-orange-availability.test.mjs",
+          "contains": "orange presentation uses the existing semantic orange token without changing yellow review"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "row.exploration"
+        }
+      ]
     },
     {
       "id": "CANONICAL-ENTRY-RETURN",
       "criterion": "Entry reuses the existing workspaces and the Matrix return event without creating another project store or a document-navigation fallback.",
-      "evidence": [{"type": "file-contains", "path": "tests/issue-2950-dashboard-orange-availability.test.mjs", "contains": "Matrix entry reuses canonical workspaces without document navigation or fake acceptance"}]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2950-dashboard-orange-availability.test.mjs",
+          "contains": "Matrix entry reuses canonical workspaces without document navigation or fake acceptance"
+        }
+      ]
     },
     {
       "id": "BOUNDED-TRUTH",
       "criterion": "Legacy workspace differences and unobserved full-movie outcomes remain explicit limits, not claims of conformance.",
-      "evidence": [{"type": "file-contains", "path": "docs/developer-briefs/dashboard-orange-availability.md", "contains": "No local or CI test result is a claim that the complete synthetic movie worked."}]
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/dashboard-orange-availability.md",
+          "contains": "No local or CI test result is a claim that the complete synthetic movie worked."
+        }
+      ]
     }
   ]
 }

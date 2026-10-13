@@ -3440,6 +3440,143 @@
         ],
         "limits": "Executable pure provider identity/readiness and negative-control fixtures plus server/UI source wiring; not real paid MiniMax execution, credential acceptance, device run, media-byte audit, or Windows profile/restart observation.",
         "inputs": []
+      },
+      {
+        "target": "core/contracts/compute/image-test-provider-truth.mjs",
+        "targetDigest": "073bd8efd095ce6bfc327e2e831911704c07392d847c134cef179025b340fe18",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "tests/hardware-aware-local-ai-runtime.test.mjs",
+        "targetDigest": "707255ca3f5cb9d74027a71dad05f67c20f1c90fee0c13bc5aa53fb24b9223f2",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-1462-sdxl-local-move.test.mjs",
+        "targetDigest": "aa71fe468adb9830b6efd42434b9c1b6b849a3c497e97b2dd893a09ea913e79e",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-1754-skin-v1-logon.test.mjs",
+        "targetDigest": "b425d9f172fb18550c6b29511547d7ac89ff4e4d0f68e535a2f14d2ae02d6565",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2329-qwen-image-21-experimental.test.mjs",
+        "targetDigest": "f6e6b9a3470ebd03cb554cd3a40a0315d4be9d8516bbb62af1e7ecb700fea06c",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2805-storyboard-image-routing.test.mjs",
+        "targetDigest": "4d8d059a202d4da6c96109acfca8a7f52245fa758384d7c40eecd032ec78b389",
+        "catalogueIds": [
+          "provider.image-test-proof-2966"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
       }
     ]
   }

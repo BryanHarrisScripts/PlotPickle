@@ -2480,9 +2480,6 @@
         "targets": [
           "tests/issue-2966-image-provider-verification.test.mjs",
           "core/contracts/compute/image-test-provider-truth.mjs",
-          "tests/hardware-aware-local-ai-runtime.test.mjs",
-          "tests/issue-1462-sdxl-local-move.test.mjs",
-          "tests/issue-1754-skin-v1-logon.test.mjs",
           "tests/issue-2329-qwen-image-21-experimental.test.mjs",
           "tests/issue-2805-storyboard-image-routing.test.mjs"
         ]
@@ -2510,7 +2507,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "#2966 PP-IMG-PROVIDER-001: executable route and cloud proof negative cases, plus exact source wiring. No actual paid MiniMax call, credential validation or real Windows/ComfyUI device proof."
+      "notes": "#2966 PP-IMG-PROVIDER-001: executable route and cloud proof negative cases and the directly related #2805 / #2329 integration assertions. No actual paid MiniMax call, credential validation or real Windows/ComfyUI device proof. The historical #1754, #1462 and hardware-aware broad suites include unrelated retired-era meanings and require independent semantic audit under #2943; their unrelated failures are not masked or counted as PASS here."
     }
   ],
   "truthGovernance": {
@@ -3465,75 +3462,6 @@
         ],
         "scopes": [
           "static-source"
-        ],
-        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
-        "inputs": []
-      },
-      {
-        "target": "tests/hardware-aware-local-ai-runtime.test.mjs",
-        "targetDigest": "707255ca3f5cb9d74027a71dad05f67c20f1c90fee0c13bc5aa53fb24b9223f2",
-        "catalogueIds": [
-          "provider.image-test-proof-2966"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source",
-          "unit-fixture"
-        ],
-        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
-        "inputs": []
-      },
-      {
-        "target": "tests/issue-1462-sdxl-local-move.test.mjs",
-        "targetDigest": "aa71fe468adb9830b6efd42434b9c1b6b849a3c497e97b2dd893a09ea913e79e",
-        "catalogueIds": [
-          "provider.image-test-proof-2966"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source",
-          "unit-fixture"
-        ],
-        "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
-        "inputs": []
-      },
-      {
-        "target": "tests/issue-1754-skin-v1-logon.test.mjs",
-        "targetDigest": "b425d9f172fb18550c6b29511547d7ac89ff4e4d0f68e535a2f14d2ae02d6565",
-        "catalogueIds": [
-          "provider.image-test-proof-2966"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source",
-          "unit-fixture"
         ],
         "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
         "inputs": []

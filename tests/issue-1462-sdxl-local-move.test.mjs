@@ -24,16 +24,16 @@ test("#1462 SDXL pair retires root paths while preserving local image and contin
     read("config/repository-architecture-target.json"),
   ]);
 
-  assert.doesNotMatch(host, /registerSdxlLocalImageGateway/);
+  assert.match(host, /\.\/ai\/comfyui-sdxl-local-gateway/);
   assert.doesNotMatch(host, /\.\/comfyui-sdxl-local-gateway["']/);
   assert.match(gateway, /\.\/comfyui-sdxl-local-provider/);
   assert.match(gateway, /\.\/comfyui-media-provider/);
   assert.match(gateway, /\.\.\/media-routing-store/);
   assert.match(gateway, /\.\.\/media-provider-common/);
-  assert.doesNotMatch(gateway, /server\.middlewares\.use/);
-  assert.match(gateway, /LOCAL_SDXL_CHECKPOINT/);
-  assert.match(gateway, /generateSdxlLocalTest/);
-  assert.match(gateway, /store\.comfyui\.imageProfile !== "sdxl-1\.0"/);
+  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(gateway, /maximum = 256 \* 1024/);
+  assert.match(gateway, /request\.method !== "POST"/);
+  assert.match(gateway, /store\.imageRoute !== "comfyui"/);
   assert.match(gateway, /requestCount: 1/);
   assert.match(gateway, /localProfile: "SDXL 1\.0"/);
 

@@ -2478,7 +2478,13 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2966-image-provider-verification.test.mjs"
+          "tests/issue-2966-image-provider-verification.test.mjs",
+          "core/contracts/compute/image-test-provider-truth.mjs",
+          "tests/hardware-aware-local-ai-runtime.test.mjs",
+          "tests/issue-1462-sdxl-local-move.test.mjs",
+          "tests/issue-1754-skin-v1-logon.test.mjs",
+          "tests/issue-2329-qwen-image-21-experimental.test.mjs",
+          "tests/issue-2805-storyboard-image-routing.test.mjs"
         ]
       },
       "cost": "fast",
@@ -3536,7 +3542,8 @@
         "target": "tests/issue-2329-qwen-image-21-experimental.test.mjs",
         "targetDigest": "f6e6b9a3470ebd03cb554cd3a40a0315d4be9d8516bbb62af1e7ecb700fea06c",
         "catalogueIds": [
-          "provider.image-test-proof-2966"
+          "provider.image-test-proof-2966",
+          "provider.qwen-image-21-experimental"
         ],
         "truthRefs": [
           {

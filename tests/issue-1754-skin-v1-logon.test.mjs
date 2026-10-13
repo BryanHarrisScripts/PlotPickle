@@ -370,7 +370,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.doesNotMatch(comfy, /H3NativePanel|api\.openai\.com|generativelanguage\.googleapis\.com|api\.minimax/u);
 
   assert.match(sdxlGateway, /LOCAL_SDXL_CHECKPOINT/u);
-  assert.match(sdxlGateway, /probe\.checkpoints\.find/u);
+  assert.match(sdxlGateway, /function exactSdxlCheckpoint/u);
   assert.doesNotMatch(sdxlGateway, /SDXL_PATTERN|defaultSdxlCheckpoint/u);
   assert.match(starterScript, /FileName = "sd_xl_base_1\.0\.safetensors"/u);
   assert.doesNotMatch(starterScript, /Find-CompatibleCheckpoint|existing-compatible/u);

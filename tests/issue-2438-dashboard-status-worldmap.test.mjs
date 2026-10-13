@@ -34,7 +34,7 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   );
   assert.deepEqual(
     [...disabled.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["screening", "write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"],
+    ["screening", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"],
   );
 
   assert.match(dashboard, /const locked = connected && !inReview && !unavailable/u);

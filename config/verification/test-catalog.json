@@ -626,7 +626,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2959 PP-SAGE-KEY-001: key type/missing key and modifier negative control tests plus production wiring under WHITE-PAPER-V3 W8/W9. Original Windows automation event and real profile acceptance not independently reproduced by these tests."
+      "notes": "#2959 PP-SAGE-KEY-001: key type/missing key and modifier negative control tests plus production wiring under WHITE-PAPER-V3 W8/W9. Original Windows automation event and real profile acceptance not independently reproduced by these tests. Follow-up exercises the real extracted onKeyDown listener and throwing accessor/Proxy fail-closed controls under synthetic DOM; not a Human Windows device test."
     },
     {
       "id": "experience.learn-journey-shell",
@@ -2730,7 +2730,7 @@
     "bindings": [
       {
         "target": "tests/issue-2959-sage-shortcut-guard.test.mjs",
-        "targetDigest": "cb91cd0a2dd3b87702372350850e27d1be10e6eb36dee767baee3aec3a7d8bf6",
+        "targetDigest": "af5bef1c67e1f581f5c2c1b9153a1fd5980f8862cc8b5b7dc9db6d89955d68a0",
         "catalogueIds": [
           "experience.sage-keyboard-guard-2959"
         ],
@@ -2748,11 +2748,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Executable pure malformed keyboard and modifier fixtures, plus source-level listener integration. Does not prove real physical keyboard reproduction, Windows authenticated lifecycle or credentials.",
+        "limits": "Executable pure malformed/missing/throwing keyboard accessor fixtures and actual extracted global listener with synthetic DOM gates, including normal Shift+S, editing, modal and surface negative controls. Does not prove real Windows authenticated lifecycle, the original automation device event, actual keyboard, credentials or session recovery.",
         "inputs": [
           {
             "path": "modules/creative-room/sage-keyboard-shortcut.mjs",
-            "digest": "6ef7389dcd7142294456f3cdb00ea715df24fcb5ddf0f81f09927e5e03f87495"
+            "digest": "2917c55e62273e545dcbcca8208344d2a0de83aac404667e2a7f87b35d1f37fa"
           },
           {
             "path": "app/global-sage-overlay.tsx",

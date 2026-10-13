@@ -1080,6 +1080,22 @@
       ]
     },
     {
+      "id": "block-visual-image-review-model-2957",
+      "classification": "production",
+      "include": [
+        "modules/visual/model/block-visual-candidates.mjs",
+        "modules/visual/model/block-visual-candidates.d.mts",
+        "tests/issue-2957-first-image-review-retry.test.mjs"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "canon",
+        "visual",
+        "surface",
+        "provider"
+      ]
+    },
+    {
       "id": "block-native-writing-skin",
       "classification": "production",
       "include": [

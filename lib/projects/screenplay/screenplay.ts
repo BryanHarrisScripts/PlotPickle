@@ -54,11 +54,16 @@ function finalDraftType(value: string): ScreenplayElementType {
 
 function parseFinalDraft(source: string): ParsedLine[] {
   const parsed: ParsedLine[] = [];
+  // A Final Draft TitlePage may contain its own Paragraph/Text elements. They
+  // identify the work but are not screenplay passages, scenes, or Block content.
+  // Retain the original XML in sourceText; exclude only its title-page subtree
+  // from the screenplay analysis view.
+  const screenplayBody = source.replace(/<TitlePage\b[^>]*>[\s\S]*?<\/TitlePage>/gi, "");
   const paragraphPattern = /<Paragraph\b([^>]*)>([\s\S]*?)<\/Paragraph>/gi;
   let match: RegExpExecArray | null;
   let sourceLine = 0;
   let scene = 0;
-  while ((match = paragraphPattern.exec(source))) {
+  while ((match = paragraphPattern.exec(screenplayBody))) {
     sourceLine += 1;
     const typeMatch = match[1].match(/\bType=(?:"([^"]+)"|'([^']+)')/i);
     const type = finalDraftType(typeMatch?.[1] ?? typeMatch?.[2] ?? "Action");

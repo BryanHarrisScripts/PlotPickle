@@ -117,8 +117,8 @@ test("SDXL is the default 8 GB image route and SD3.5 is only experimental", asyn
     read("build/ai/comfyui-sdxl-local-gateway.ts"),
   ]);
   assert.match(store, /imageRoute: "comfyui"/);
-  assert.match(gateway, /SDXL_PATTERN/);
-  assert.match(gateway, /find an SDXL checkpoint/);
+  assert.match(gateway, /LOCAL_SDXL_CHECKPOINT/);
+  assert.match(gateway, /find its fixed local image model/);
   assert.match(gateway, /localProfile: "SDXL 1\.0"/);
   assert.match(catalog, /SD3\.5 Medium is an advanced experimental override/);
 });

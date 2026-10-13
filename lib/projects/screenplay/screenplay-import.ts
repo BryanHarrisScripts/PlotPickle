@@ -12,6 +12,7 @@ import {
   type StoryThread,
 } from "../project";
 import { parseScreenplay, screenplayStats, type ScreenplayElement } from "./screenplay";
+import { finalDraftPlainText } from "../../../core/security/screenplay-xml-text";
 import { projectContentFingerprint } from "../persistence/project-fingerprints";
 
 const conflictWords = /\b(?:against|attacks?|blocks?|but|cannot|conflict|danger|fails?|fight|forced|however|refuses?|struggle|threat|trapped)\b/i;
@@ -21,18 +22,47 @@ const vehicleWords = /\b(?:airplane|bike|boat|bus|car|helicopter|motorcycle|ship
 const effectWords = /\b(?:blood|explosion|fire|fog|glitch|hologram|rain|smoke|snow|storm|water|wind)\b/gi;
 const stuntWords = /\b(?:chase|crash|fall|fight|jump|run|shoot|stunt|swim)\b/gi;
 
+function usableTitle(value: string) {
+  const title = value.replace(/\s+/g, " ").trim();
+  return /[\p{L}\p{N}]/u.test(title) ? title : "";
+}
+
 function cleanFileTitle(fileName: string) {
-  return fileName
+  return usableTitle(fileName
     .replace(/\.(?:txt|fountain|spmd|fdx)$/i, "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim() || "Imported Screenplay";
+    .replace(/[_-]+/g, " ")) || "Imported Screenplay";
+}
+
+/**
+ * The Final Draft TitlePage can contain decorative punctuation, a byline and
+ * multiple styled Text spans. The first Text node is not necessarily the title.
+ * Inspect only TitlePage paragraphs, preferring an explicit Title paragraph and
+ * falling back to the first meaningful non-byline paragraph.
+ */
+function finalDraftTitleFromSource(sourceText: string) {
+  const titlePage = sourceText.match(/<TitlePage\b[^>]*>([\s\S]*?)<\/TitlePage>/i)?.[1];
+  if (!titlePage) return "";
+  const candidates: { title: string; explicit: boolean }[] = [];
+  for (const paragraph of titlePage.matchAll(/<Paragraph\b([^>]*)>([\s\S]*?)<\/Paragraph>/gi)) {
+    const type = paragraph[1].match(/\bType\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+    const typeName = (type?.[1] || type?.[2] || "").toLowerCase();
+    const spans = [...paragraph[2].matchAll(/<Text\b[^>]*>([\s\S]*?)<\/Text>/gi)];
+    const rawText = spans.length ? spans.map((span) => span[1]).join("") : paragraph[2];
+    const title = usableTitle(finalDraftPlainText(rawText));
+    if (!title || /^(?:(?:written|screenplay|story|adaptation|produced)\s+by|by)$/i.test(title)) continue;
+    candidates.push({ title, explicit: typeName === "title" });
+  }
+  return candidates.find((candidate) => candidate.explicit)?.title || candidates[0]?.title || "";
 }
 
 function titleFromSource(screenplay: ScreenplayDocument) {
-  const fountainTitle = screenplay.sourceText.match(/^Title:\s*(.+)$/im)?.[1]?.trim();
-  const finalDraftTitle = screenplay.sourceText.match(/<TitlePage[\s\S]*?<Text\b[^>]*>([^<]+)<\/Text>/i)?.[1]?.trim();
-  return fountainTitle || finalDraftTitle || cleanFileTitle(screenplay.fileName);
+  const finalDraftTitle = screenplay.format === "final-draft"
+    ? finalDraftTitleFromSource(screenplay.sourceText)
+    : "";
+  const fountainTitle = screenplay.format !== "final-draft"
+    ? usableTitle(screenplay.sourceText.match(/^Title:\s*(.+)$/im)?.[1] || "")
+    : "";
+  return finalDraftTitle || fountainTitle || cleanFileTitle(screenplay.fileName);
 }
 
 function key(value: string) {

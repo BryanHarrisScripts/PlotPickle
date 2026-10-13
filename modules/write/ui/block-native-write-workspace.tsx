@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { blockWritingEntry, updateBlockWritingEntry } from "@/core/contracts/block-writing";
+import { moveWriteStoryPosition } from "../model/write-position-navigation.mjs";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -34,14 +35,6 @@ function currentAddress() {
     blockNumber: bounded(query.get("block"), 24),
     miniBlockNumber: bounded(query.get("mini"), 4),
   };
-}
-
-function addressHref(blockNumber: number, miniBlockNumber: number) {
-  const query = new URLSearchParams({
-    block: String(blockNumber),
-    mini: String(miniBlockNumber),
-  });
-  return `/write?${query.toString()}`;
 }
 
 function pageFlowHref(blockNumber: number, miniBlockNumber: number) {
@@ -80,7 +73,7 @@ async function responsibilityRunRequest(payload: Record<string, unknown>) {
   if (!response.ok) throw new Error(value.message || `Responsibility Runs returned ${response.status}.`);
 }
 
-export default function BlockNativeWriteWorkspace() {
+export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonly onBackDashboard?: () => void } = {}) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState(() => currentAddress());
   const [draftText, setDraftText] = useState("");
@@ -89,13 +82,16 @@ export default function BlockNativeWriteWorkspace() {
   const [visualizing, setVisualizing] = useState(false);
 
   useEffect(() => {
-    const sync = () => setProject(loadActiveLibraryProject());
-    sync();
-    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
-    window.addEventListener("popstate", sync);
+    const syncProject = () => setProject(loadActiveLibraryProject());
+    const syncHistoryAddress = () => setAddress(currentAddress());
+    syncProject();
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, syncProject);
+    window.addEventListener("popstate", syncProject);
+    window.addEventListener("popstate", syncHistoryAddress);
     return () => {
-      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
-      window.removeEventListener("popstate", sync);
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, syncProject);
+      window.removeEventListener("popstate", syncProject);
+      window.removeEventListener("popstate", syncHistoryAddress);
     };
   }, []);
 
@@ -130,7 +126,7 @@ export default function BlockNativeWriteWorkspace() {
     setDraftText(next);
     setSavedText(next);
     setStatus("");
-  }, [entry?.id, entry?.text]);
+  }, [entry?.id, entry?.text, address.blockNumber, address.miniBlockNumber, project?.id]);
 
   if (!project) return <p role="status">Opening Write…</p>;
 
@@ -146,8 +142,21 @@ export default function BlockNativeWriteWorkspace() {
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
-    if (dirty && !window.confirm("Leave this story position without saving the working screenplay text?")) return;
-    window.location.assign(addressHref(blockNumber, miniBlockNumber));
+    if (blockNumber === address.blockNumber && miniBlockNumber === address.miniBlockNumber) return;
+    const next = moveWriteStoryPosition({
+      locationHref: window.location.href,
+      history: window.history,
+      blockNumber,
+      miniBlockNumber,
+      dirty,
+      confirmDiscard: () => window.confirm("Leave this story position without saving the working screenplay text?"),
+    });
+    if (next) setAddress(next);
+  }
+
+  function leaveWrite() {
+    if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
+    onBackDashboard?.();
   }
 
   function save() {
@@ -212,7 +221,13 @@ export default function BlockNativeWriteWorkspace() {
   }
 
   return (
-    <main className={styles.workspace} data-block-native-write="24x96">
+    <main className={styles.workspace} data-block-native-write="24x96" onKeyDown={(event) => {
+      if (event.key === "Escape" && onBackDashboard) {
+        event.preventDefault();
+        event.stopPropagation();
+        leaveWrite();
+      }
+    }}>
       <header className={styles.header}>
         <div>
           <p>WRITE · BLOCK-NATIVE SCREENPLAY</p>
@@ -220,6 +235,7 @@ export default function BlockNativeWriteWorkspace() {
           <span>Act {block?.actNumber ?? 1} · Sequence {String(block?.sequenceNumber ?? 1).padStart(2, "0")} · Block {String(address.blockNumber).padStart(2, "0")}</span>
         </div>
         <div className={styles.headerActions}>
+          {onBackDashboard ? <button type="button" onClick={leaveWrite}>Back to Dashboard</button> : null}
           <button type="button" disabled={visualizing} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing visual pass…" : "Visualize this Block"}</button>
           <button type="button" onClick={() => window.location.assign(storyLearningReturnHref(address))}>Outline this position</button>
           <button type="button" onClick={() => window.location.assign(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>

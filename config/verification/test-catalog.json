@@ -60,7 +60,8 @@
           "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
           "tests/issue-2863-settings-time-and-operations-order.test.mjs",
           "tests/issue-2948-library-fdx-conversion.test.mjs",
-          "tests/issue-2954-fdx-title-identity.test.mjs"
+          "tests/issue-2954-fdx-title-identity.test.mjs",
+          "tests/issue-2438-dashboard-status-worldmap.test.mjs"
         ]
       },
       "cost": "fast",
@@ -494,6 +495,49 @@
         ]
       },
       "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact."
+    },
+    {
+      "id": "experience.write-matrix-continuity-2953",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2953-write-matrix-continuity.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2953 governed Matrix Write activation, exact active Library project continuity across 24 Blocks/96 Mini-Blocks, denied dirty edits and unchanged imported screenplay source. Test coverage is executable simulated browser-history + static wiring, not independently observed Windows app/profile persistence."
     },
     {
       "id": "experience.learn-journey-shell",
@@ -3026,6 +3070,73 @@
           "static-source"
         ],
         "limits": "Lightweight source checks run without Vite in the architecture shadow. Conversion, PPF readback and Library projection require installed Vite in BUILD Story Model. Real Windows/browser download, private screenplay identity and profile/restart acceptance remain UNPROVEN under #2943.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2953-write-matrix-continuity.test.mjs",
+        "targetDigest": "ddc06e41d852e527a058bb40df7ac2f47022f5467cf7380f39d95e0fce28bf71",
+        "catalogueIds": [
+          "experience.write-matrix-continuity-2953"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Executable simulated-history navigation and static source wiring checks, without real authenticated browser/project-vault or Human run. This does not establish real Windows profile retention, completed film, or media readiness.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
+        "targetDigest": "ea935487ec794b1f88c82fbe3dc017ba6e708eea2710fa505c655292ca167d9b",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Legacy #2438 dashboard availability and pitch route assertions reconciled to #2953 Write-only activation. Current disabled pitch remains disabled and no hidden legacy route is claimed. Static-source audit only; not Windows product acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
+        "targetDigest": "0bc919c56ad2a3374b790a46196dd7854f1fdf09cff840c06286972367319da4",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Superseded 2026 deferred gray Write row expectations only: #2953 now makes Write an in-shell Matrix surface while Edit, Refine and remaining deferred destinations stay gray. Static dashboard registry/host assertions, not authenticated Windows navigation or screenplay persistence proof.",
         "inputs": []
       }
     ]

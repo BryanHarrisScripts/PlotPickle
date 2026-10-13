@@ -83,7 +83,6 @@ export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
 
 export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([
   "screening",
-  "write",
   "edit",
   "refine",
   "sound-foley",

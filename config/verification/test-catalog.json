@@ -2591,6 +2591,21 @@
     ],
     "bindings": [
       {
+        "target": "tests/issue-2360-block-visual-journey.test.mjs",
+        "targetDigest": "f76b91118fa4fd980e58fc973f98377adfab963bbab486b2e57d1f3bf600d230",
+        "catalogueIds": ["experience.navigation-continuity-2249"],
+        "truthRefs": [
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
+          {"truthId": "WHITE-PAPER-V3", "obligationId": "W9"}
+        ],
+        "scopes": ["static-source"],
+        "limits": "Revised historical #2360 assertion now matches current Matrix host architecture (single Production visual mount; separate Outline/Storyboard/Previs/Timeline). Source inspection only; no independent product/browser acceptance.",
+        "inputs": [
+          {"path": "app/skin-v1/dashboard-bbs-review-host.tsx", "digest": "fa6c365d462f00d6de1e30ce00a88273431922233368c5dac9f86d342805ee41"},
+          {"path": "app/skin-v1/matrix-story-map-surface.tsx", "digest": "586c3cd203f97fcf12a1e2a5328a2debf95d08e9dea4b9c1bcce3daeeafc3c67"}
+        ]
+      },
+      {
         "target": "tests/issue-2957-first-image-review-retry.test.mjs",
         "targetDigest": "46c1fd2d51ca9a1903c1bb4cc60a928e81aadfb62d9051d90cab34d261beba06",
         "catalogueIds": ["experience.first-image-review-retry-2957"],

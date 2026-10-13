@@ -24,6 +24,7 @@ import {
   loadLibraryProjectSnapshot,
   saveActiveLibraryProject,
   stageSessionActiveProjectHandoff,
+  sessionActiveProjectId,
   switchActiveLibraryProject,
   unloadActiveLibraryProject,
   type LibraryPPFProject,
@@ -51,7 +52,9 @@ import {
   type RecoveredWorldMapPosterResource,
 } from "../local-resource-recovery";
 import styles from "./library-workspace.module.css";
-import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshAfterglowLibraryFromEncryptedProfile, readAfterglowMasterSaveAudit, type AfterglowMasterSaveAudit } from "../../../core/storage/profile-private-browser";
+import ProfileSessionPanel from "../../../app/_components/settings/profile-session-panel";
+import { assertLibraryUnloadRetryIdentity, libraryUnloadRequiresSessionRecovery } from "../model/library-unload-session-truth.mjs";
+import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshProfilePrivateBrowserSession, refreshAfterglowLibraryFromEncryptedProfile, readAfterglowMasterSaveAudit, type AfterglowMasterSaveAudit } from "../../../core/storage/profile-private-browser";
 
 import { afterglowRestoreChoices, latestAfterglowSavedChoice, type AfterglowRestoreChoice } from "../afterglow-open-contract";
 
@@ -548,6 +551,7 @@ export default function LibraryWorkspace() {
   const [convertingFinalDraft, setConvertingFinalDraft] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
   const [unloadingStory, setUnloadingStory] = useState(false);
+  const [unloadRecovery, setUnloadRecovery] = useState<null | { projectId: string; profileId: string; stage: "verify" | "retry" }>(null);
   const [restoringResources, setRestoringResources] = useState(false);
   const [rescanningResources, setRescanningResources] = useState(false);
 
@@ -667,10 +671,17 @@ export default function LibraryWorkspace() {
   async function unloadCurrentStory() {
     if (unloadingStory || !activeProject) return;
     const projectId = activeProject.id;
+    const profileId = currentProfileId();
     let detached = false;
     setUnloadingStory(true);
+    setUnloadRecovery(null);
     setNotice("");
     try {
+      // Verify existing Human authority before any recovery-point or index write.
+      assertLibraryUnloadRetryIdentity(profileId, projectId, currentProfileId(), sessionActiveProjectId());
+      await refreshProfilePrivateBrowserSession(profileId);
+      assertLibraryUnloadRetryIdentity(profileId, projectId, currentProfileId(), sessionActiveProjectId());
+
       const durableSnapshot = loadLibraryProjectSnapshot(projectId);
       if (durableSnapshot) await createProfileRecoveryPoint(durableSnapshot, "unload");
       await persistActiveProfileProject();
@@ -692,6 +703,12 @@ export default function LibraryWorkspace() {
           const detail = restoreError instanceof Error ? restoreError.message : String(restoreError);
           message = `${message} PlotPickle also could not restore the prior active-story selection: ${detail}`;
         }
+      }
+      // Failure never authorizes automatic retry, profile switch or story loss.
+      if (libraryUnloadRequiresSessionRecovery(error)
+        && currentProfileId() === profileId && sessionActiveProjectId() === projectId) {
+        setUnloadRecovery({ projectId, profileId, stage: "verify" });
+        message = `Library Unload was not completed: ${message} Your working story is still selected. Unlock and verify this same profile below, then retry Unload.`;
       }
       setNotice(message);
     } finally {
@@ -1208,6 +1225,35 @@ export default function LibraryWorkspace() {
 
       <div className={styles.libraryLayout} data-library-layout="single-surface" style={{ display: "block" }}>
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+        {unloadRecovery ? (
+          <section className={styles.actionPanel} data-library-unload-recovery={unloadRecovery.stage} aria-label="Library Unload session recovery">
+            <div>
+              <strong>Keep your working story</strong>
+              <p>{unloadRecovery.stage === "verify"
+                ? "Unload was interrupted. Your current story has not been intentionally removed. Verify or unlock the same Human profile here; PlotPickle will not leave Library or retry automatically."
+                : "This profile session was verified. The story remains loaded. Select Retry Unload to attempt the same operation again."}</p>
+            </div>
+            {unloadRecovery.stage === "verify" ? (
+              <ProfileSessionPanel verifiedActionLabel="Library Unload" onVerified={async () => {
+                assertLibraryUnloadRetryIdentity(unloadRecovery.profileId, unloadRecovery.projectId, currentProfileId(), sessionActiveProjectId());
+                await refreshProfilePrivateBrowserSession(unloadRecovery.profileId);
+                setUnloadRecovery({ ...unloadRecovery, stage: "retry" });
+                setNotice("The same Human profile was verified. Your working story is still loaded; retry Unload when ready.");
+              }} />
+            ) : (
+              <button className={styles.primaryButton} type="button" disabled={unloadingStory}
+                onClick={() => {
+                  try {
+                    assertLibraryUnloadRetryIdentity(unloadRecovery.profileId, unloadRecovery.projectId, currentProfileId(), sessionActiveProjectId());
+                    void unloadCurrentStory();
+                  } catch (error) {
+                    setUnloadRecovery(null);
+                    setNotice(error instanceof Error ? error.message : "The selected story changed; no Unload was attempted.");
+                  }
+                }}>Retry Unload</button>
+            )}
+          </section>
+        ) : null}
 
         <section
           className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.libraryDirectory}`}

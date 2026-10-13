@@ -33,9 +33,10 @@ and candidate c with immutable source association `A(c)=(p,b,m,s)`:
 5. Prompt edits are local working text until an authorized generation call;
    changing prompts never rewrites screenplay source. Existing unrelated story
    data survives Reject unchanged, including Foundations metadata.
-6. Storage and provider failures are surfaced, not called success. Existing
-   project-store capacity, external generation quality, actual saved-provider
-   output and Windows restart durability require their own observations.
+6. All previously stored visual records remain in the shared ledger without a
+   silent 75-record cutoff. Capacity or provider failures must be surfaced as
+   failures. Actual local/cloud output, Windows restart durability, and Human
+   visual quality still require independent observation.
 
 ## Negative controls
 Reject an accepted first image; reject candidate for a different source slot;

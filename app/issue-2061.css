@@ -18,3 +18,9 @@ html[data-plotpickle-skin-theme="skin-v2"] .pp-skin-v1-dashboard-status-box.is-a
   background: var(--pp-skin-warning) !important;
   box-shadow: var(--pp-skin-shadow-control) !important;
 }
+
+/* Orange is enterable exploration. It does not grant the green locked state. */
+[data-dashboard-exploration="true"] .pp-skin-v1-dashboard-status-box {
+  border-color: var(--pp-orange) !important;
+  background: var(--pp-orange) !important;
+}

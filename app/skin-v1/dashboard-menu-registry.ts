@@ -47,6 +47,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
 export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "community",
   "screening",
+  "reports",
   "sound-narration",
   "sound-music",
   "sound-foley",
@@ -75,14 +76,11 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "story-bible",
 ]);
 
-export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
-  "previs",
-  "timeline",
-  "production",
-]);
-
-export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([
+/** Enterable for Human-directed exploration; this is not acceptance or production readiness. */
+export const DASHBOARD_EXPLORATION_ITEM_IDS = new Set<string>([
   "screening",
+  "reports",
+  "write",
   "edit",
   "refine",
   "sound-foley",
@@ -94,6 +92,15 @@ export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>([
   "wyrmwood",
   "story",
 ]);
+
+export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
+  "previs",
+  "timeline",
+  "production",
+  ...DASHBOARD_EXPLORATION_ITEM_IDS,
+]);
+
+export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>();
 
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },

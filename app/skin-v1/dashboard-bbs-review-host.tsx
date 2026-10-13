@@ -10,6 +10,7 @@ import type { LearnTopicSpineId } from "../../modules/learn/model/story-learning
 import type { StoryDevelopmentAct } from "../../modules/learn/model/story-development-fields";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import BlockNativeWriteWorkspace from "../../modules/write/ui/block-native-write-workspace";
+import DashboardExplorationSurface, { isDashboardExplorationWorkspace, type DashboardExplorationWorkspace } from "../_components/dashboard/dashboard-exploration-surface";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
@@ -78,6 +79,7 @@ export default function DashboardBbsReviewHost({
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [writeOpen, setWriteOpen] = useState(false);
+  const [explorationOpen, setExplorationOpen] = useState<DashboardExplorationWorkspace | null>(null);
   const [screeningOpen, setScreeningOpen] = useState(false);
   const [soundOpen, setSoundOpen] = useState<ProductionSoundCueKind | null>(null);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
@@ -150,6 +152,7 @@ export default function DashboardBbsReviewHost({
 
   useEffect(() => {
     const returnToDashboard = () => {
+      setExplorationOpen(null);
       setLibraryOpen(false);
       setWriteOpen(false);
       setLearnRequest(null);
@@ -236,6 +239,7 @@ export default function DashboardBbsReviewHost({
   }
 
   function returnDashboard(itemId?: string) {
+    setExplorationOpen(null);
     setWriteOpen(false);
     setDiscoveryOpen(false);
     setDiscoveryProject(null);
@@ -405,6 +409,21 @@ export default function DashboardBbsReviewHost({
       onSurfaceNameChange("DASHBOARD");
       return;
     }
+    if (isDashboardExplorationWorkspace(item.id)) {
+      onActivate(index);
+      const url = new URL(window.location.href);
+      url.searchParams.set("workspace", item.id);
+      for (const key of ["scope", "view", "return"]) url.searchParams.delete(key);
+      if (item.id === "pitch-deck" || item.id === "pitch-package") {
+        url.searchParams.set("scope", "pitch");
+        url.searchParams.set("view", item.id === "pitch-deck" ? "exports" : "package");
+        url.searchParams.set("return", "dashboard");
+      }
+      window.history.replaceState(window.history.state, "", url);
+      setExplorationOpen(item.id);
+      onSurfaceNameChange(item.label.toUpperCase());
+      return;
+    }
     if (item.id === "screening") {
       onActivate(index);
       setScreeningOpen(true);
@@ -492,6 +511,28 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (explorationOpen) {
+    const label = items.find((item) => item.id === explorationOpen)?.label ?? explorationOpen;
+    const closeExploration = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("workspace", "dashboard");
+      for (const key of ["scope", "view", "return"]) url.searchParams.delete(key);
+      window.history.replaceState(window.history.state, "", url);
+      returnDashboard(explorationOpen);
+    };
+    return <section className={reviewStyles.reviewSurface} aria-label={label} data-dashboard-review-surface={explorationOpen}>
+      <div className="pp-skin-v1-bbs-banner">
+        <h1>{label.toUpperCase()}</h1><span>IN REVIEW</span>
+        <button type="button" className="pp-skin-v1-return" onClick={closeExploration}>Back to Dashboard</button>
+      </div>
+      <DashboardExplorationSurface
+        workspace={explorationOpen}
+        onOpenLearn={() => { closeExploration(); const index = items.findIndex((item) => item.id === "learn"); if (index >= 0) activateItem(index); }}
+        onOpenOutline={() => { closeExploration(); openOutline(reviewAddress); }}
+      />
+    </section>;
   }
 
   if (soundOpen) {

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "issue": 2960,
+  "phase": "library-unload-authenticated-recovery",
+  "brief": "docs/developer-briefs/2960-library-unload-session-recovery.md",
+  "allowedChanges": [
+    "modules/library/model/library-unload-session-truth.mjs",
+    "modules/library/model/library-unload-session-truth.d.mts",
+    "modules/library/ui/library-workspace.tsx",
+    "app/_components/settings/profile-session-panel.tsx",
+    "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2960-library-unload-session-recovery.md",
+    "config/development-convergence/2960.json"
+  ],
+  "acceptance": [
+    {
+      "id": "FAIL-CLOSED-SESSION",
+      "criterion": "A stale or missing authenticated Human session blocks Unload before any write, recovery point or detachment.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+          "contains": "expired auth stops before any recovery-point"
+        }
+      ]
+    },
+    {
+      "id": "VERIFIED-SAME-STORY-RETRY",
+      "criterion": "In-place normal unlock verifies the same profile and active story and leaves the choice to retry with the Human.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+          "contains": "in-place unlock is explicit, same-profile"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-ROLLBACK-TRUTH",
+      "criterion": "Preserve the pre-existing persist/flush sequence and do not navigate on failed saves, including post-detach rollback.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+          "contains": "post-detach persistence rolls back selection"
+        }
+      ]
+    },
+    {
+      "id": "NO-FALSE-WINDOWS-CLAIMS",
+      "criterion": "Simulated tests do not misrepresent real session-expiry/Windows or encrypted readback observation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2960-library-unload-session-recovery.md",
+          "contains": "does **not** isolate a token-expiry root cause"
+        }
+      ]
+    }
+  ]
+}

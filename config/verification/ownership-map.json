@@ -2198,6 +2198,21 @@
         "api",
         "security"
       ]
+    },
+    {
+      "id": "library-local-ppf-conversion-boundary",
+      "classification": "production",
+      "include": [
+        "build/library-ppf-import-gateway.ts",
+        "build/projects/portable-ppf-reader.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "api",
+        "security",
+        "storage",
+        "native"
+      ]
     }
   ]
 }

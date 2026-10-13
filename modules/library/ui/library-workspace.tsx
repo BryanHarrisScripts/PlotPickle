@@ -523,6 +523,7 @@ export default function LibraryWorkspace() {
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
   const ppfInput = useRef<HTMLInputElement>(null);
+  const finalDraftInput = useRef<HTMLInputElement>(null);
   const directoryItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [destination, setDestination] = useState<LibraryDestination>("load");
   const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
@@ -544,6 +545,7 @@ export default function LibraryWorkspace() {
   const [recovery, setRecovery] = useState<PendingResume | null>(null);
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
+  const [convertingFinalDraft, setConvertingFinalDraft] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
   const [unloadingStory, setUnloadingStory] = useState(false);
   const [restoringResources, setRestoringResources] = useState(false);
@@ -961,6 +963,50 @@ export default function LibraryWorkspace() {
     }
   }
 
+  async function convertFinalDraftToPpf(file: File) {
+    if (convertingFinalDraft) return;
+    setConvertingFinalDraft(true);
+    setNotice("");
+    try {
+      if (!file.name.toLowerCase().endsWith(".fdx")) throw new Error("Choose a Final Draft .fdx screenplay.");
+      if (!file.size || file.size > 48 * 1024 * 1024) throw new Error("Choose a nonempty Final Draft screenplay smaller than 48 MB.");
+      const response = await fetch("/api/library/convert/fdx", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "X-PlotPickle-Screenplay-Filename": encodeURIComponent(file.name),
+        },
+        body: await file.arrayBuffer(),
+      });
+      if (!response.ok) {
+        const failure = await response.json().catch(() => ({})) as { readonly message?: string };
+        throw new Error(failure.message || "PlotPickle could not convert the Final Draft screenplay.");
+      }
+      const ppf = await response.blob();
+      if (!ppf.size) throw new Error("PlotPickle returned an empty project file.");
+      const suppliedName = response.headers.get("X-PlotPickle-PPF-Filename");
+      const downloadedName = suppliedName ? decodeURIComponent(suppliedName) : file.name.replace(/\.fdx$/i, ".ppf");
+      const safeName = downloadedName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/^[-.]+/, "") || "converted-screenplay.ppf";
+      const url = URL.createObjectURL(ppf);
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = safeName.toLowerCase().endsWith(".ppf") ? safeName : `${safeName}.ppf`;
+        link.click();
+      } finally {
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      }
+      const scenes = response.headers.get("X-PlotPickle-Source-Scenes") || "unknown";
+      const passages = response.headers.get("X-PlotPickle-Source-Passages") || "unknown";
+      setNotice(`${file.name} converted to ${safeName}. ${scenes} source scenes and ${passages} screenplay passages retained. Your original and current Library stories were not changed. Import the downloaded .ppf separately when ready.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not convert the Final Draft screenplay.");
+    } finally {
+      setConvertingFinalDraft(false);
+      if (finalDraftInput.current) finalDraftInput.current.value = "";
+    }
+  }
+
   function exportCurrentStory() {
     try {
       const project = currentSessionLibraryProject() ?? initializeProjectLibrary().activeProject;
@@ -996,7 +1042,12 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="import-export-title" className={styles.section} data-library-surface="import-export">
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Move your work</p><h2 id="import-export-title">IMPORT EXPORT</h2></div>
-            <p>Import a legacy .ppf story or a Library .ppf.json backup. Export your current story as a Library backup; locally stored image files remain separate.</p>
+            <p>Convert a Final Draft screenplay into a PlotPickle .ppf. Import a legacy .ppf story or a Library .ppf.json backup, or export your current Library backup. Conversion does not change existing projects.</p>
+          </div>
+          <div className={styles.actionPanel}>
+            <div><strong>Convert Final Draft to PlotPickle (.ppf)</strong><p>Choose your own Final Draft .fdx screenplay. PlotPickle creates a portable .ppf download locally, preserves the written source, and keeps suggested analysis unapproved. Your existing stories remain unchanged.</p></div>
+            <input ref={finalDraftInput} accept=".fdx,application/xml,text/xml" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void convertFinalDraftToPpf(file); }} type="file" />
+            <button className={styles.primaryButton} disabled={convertingFinalDraft} onClick={() => finalDraftInput.current?.click()} type="button">{convertingFinalDraft ? "Converting…" : "Convert Final Draft"}</button>
           </div>
           <div className={styles.actionPanel}>
             <div><strong>Import a story</strong><p>Choose a PlotPickle .ppf or .ppf.json file. Import creates a separate local working story.</p></div>

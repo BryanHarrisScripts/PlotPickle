@@ -708,7 +708,7 @@ export default function LibraryWorkspace() {
       if (libraryUnloadRequiresSessionRecovery(error)
         && currentProfileId() === profileId && sessionActiveProjectId() === projectId) {
         setUnloadRecovery({ projectId, profileId, stage: "verify" });
-        message = `Library Unload was not completed: ${message} Your working story is still selected. Unlock and verify this same profile below, then retry Unload.`;
+        message = `Library Unload was not completed: ${message} Your working story is still selected. Verify this same profile below, then retry Unload.`;
       }
       setNotice(message);
     } finally {

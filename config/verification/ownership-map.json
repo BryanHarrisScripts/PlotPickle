@@ -1121,7 +1121,9 @@
         "app/feedback/page.tsx",
         "app/pitch-review/page.tsx",
         "app/_components/collab/collab-entry-workspace.tsx",
-        "app/reports/page.tsx"
+        "app/reports/page.tsx",
+        "modules/write/model/write-position-navigation.mjs",
+        "modules/write/model/write-position-navigation.d.mts"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

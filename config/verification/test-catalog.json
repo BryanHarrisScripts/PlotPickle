@@ -2592,7 +2592,7 @@
     "bindings": [
       {
         "target": "tests/issue-2957-first-image-review-retry.test.mjs",
-        "targetDigest": "430c33923eda7d9253ebed237638be04267388951fb94ff05e9c7b344918b285",
+        "targetDigest": "46c1fd2d51ca9a1903c1bb4cc60a928e81aadfb62d9051d90cab34d261beba06",
         "catalogueIds": ["experience.first-image-review-retry-2957"],
         "truthRefs": [
           {"truthId": "WHITE-PAPER-V3", "obligationId": "W8"},
@@ -2602,8 +2602,8 @@
         "limits": "Pure deterministic candidate selection tests and inspected source wiring; no witnessed paid/local provider output, actual profile storage/restart or quality acceptance.",
         "inputs": [
           {"path": "modules/visual/model/block-visual-candidates.mjs", "digest": "48e5ad5d785289c75a660f81b6bdbb2be0e3ee2c8a72ec20c6ed29dcdc886046"},
-          {"path": "app/skin-v1/block-visual-journey-workspace.tsx", "digest": "52a2afd72bef87a6245f3fd73434744a5a06daf91321afd552e5b70377b5cdc5"},
-          {"path": "core/project/apply-command.ts", "digest": "268baf2d5ba34281f843ea9265c19b16d95f45ca9aaa04924d7b84c948b43d15"}
+          {"path": "app/skin-v1/block-visual-journey-workspace.tsx", "digest": "f90a83027e0a015445a1118e92cf0e8e3bb4aac5f05c586617120d1d7378d7f8"},
+          {"path": "core/project/apply-command.ts", "digest": "733188963855dfb4562ecd9a8ed9d3b1483b75a371a0fb53fa4547518648863e"}
         ]
       },
       {

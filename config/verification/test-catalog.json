@@ -2508,6 +2508,52 @@
         ]
       },
       "notes": "#2966 PP-IMG-PROVIDER-001: executable route and cloud proof negative cases and the directly related #2805 / #2329 integration assertions. No actual paid MiniMax call, credential validation or real Windows/ComfyUI device proof. The historical #1754, #1462 and hardware-aware broad suites include unrelated retired-era meanings and require independent semantic audit under #2943; their unrelated failures are not masked or counted as PASS here."
+    },
+    {
+      "id": "story-canon.library-unload-session-recovery-2960",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "security",
+        "storage",
+        "surface",
+        "canon",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "modules/library/model/library-unload-session-truth.mjs",
+          "tests/issue-2960-library-unload-auth-recovery.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2960 real Library handler execution under controlled same-profile/browser fixtures, explicit auth failure, no mutation before verification, rollback, durable order and retry guard; not an actual logged-in Windows session or encrypted readback. WHITE-PAPER-V3 W8/W9 and PP-SAVE-001 T1/T6/T8."
     }
   ],
   "truthGovernance": {
@@ -3511,6 +3557,60 @@
           "unit-fixture"
         ],
         "limits": "#2966 red-to-green legacy semantic correction; validates canonical image-test owner, model boundary and source-level invariants only. Does not establish real paid provider execution, account credentials, normal Windows UI or persisted profile readback.",
+        "inputs": []
+      },
+      {
+        "target": "modules/library/model/library-unload-session-truth.mjs",
+        "targetDigest": "e72a52fc4c51bf4ba1959def17d7930ebcf7ae3395dc6472632a2b2a063966a1",
+        "catalogueIds": [
+          "story-canon.library-unload-session-recovery-2960"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T8"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Controlled actual-handler simulation and pure identity/session classifier; no device login, real expired cookie, real encrypted write, authenticated Windows profile, restart, or acceptance of a returned saved Outline.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
+        "targetDigest": "65f40dbb3a7babde3cc8f1e0b7229cb69c51a92015203482660933f8ce5b89e5",
+        "catalogueIds": [
+          "story-canon.library-unload-session-recovery-2960"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T8"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Controlled actual-handler simulation and pure identity/session classifier; no device login, real expired cookie, real encrypted write, authenticated Windows profile, restart, or acceptance of a returned saved Outline.",
         "inputs": []
       }
     ]

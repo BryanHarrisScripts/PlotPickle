@@ -6,7 +6,6 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const GRAY_DASHBOARD_IDS = [
   "screening",
-  "write",
   "edit",
   "refine",
   "sound-foley",

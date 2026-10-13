@@ -3007,7 +3007,7 @@
       },
       {
         "target": "tests/issue-2954-fdx-title-identity.test.mjs",
-        "targetDigest": "ade1ccc6a960adbccb97f122e6afc01c7be1bff19eda1a498e9ed7d8e0187102",
+        "targetDigest": "e6b0fb304f81a5d07dd4df2b800f3c071b9b93128aed8d0dcc8b82fcb878bc96",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3022,9 +3022,10 @@
           }
         ],
         "scopes": [
-          "unit-fixture"
+          "unit-fixture",
+          "static-source"
         ],
-        "limits": "Synthetic Final Draft metadata, portable-project integrity and Library projection only. Browser download, actual private screenplay identity and Windows profile/restart acceptance remain UNPROVEN under #2943 and #2954.",
+        "limits": "Lightweight source checks run without Vite in the architecture shadow. Conversion, PPF readback and Library projection require installed Vite in BUILD Story Model. Real Windows/browser download, private screenplay identity and profile/restart acceptance remain UNPROVEN under #2943.",
         "inputs": []
       }
     ]

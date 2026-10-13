@@ -40,6 +40,9 @@ type AuthorityResponse = {
 };
 type TestResponse = {
   ok?: boolean;
+  route?: string;
+  provider?: string;
+  assetUrl?: string;
   id?: string;
   status?: string;
   verifiedAt?: string;
@@ -306,12 +309,21 @@ export default function CloudProviderSetupPanel({ provider }: { provider: Provid
     setNotice(`Testing ${label} image generation with the saved authority…`);
     recordDiagnostic(`Starting ${label} image test.`);
     try {
-      await json<TestResponse>("/api/media-routing/test/image", {
+      const tested = await json<TestResponse>("/api/media-routing/test/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ route: provider, billingAcknowledged: true }),
       });
-      const message = `${label} image generation returned a verified asset to PlotPickle.`;
+      if (tested.ok !== true || tested.route !== provider || tested.provider !== provider
+        || typeof tested.assetUrl !== "string" || !tested.assetUrl.startsWith("/api/local-ai/assets/")) {
+        throw new Error(`${label} image verification rejected: the returned route, provider or saved asset does not match the requested provider. No cloud success is claimed.`);
+      }
+      const verified = await json<MediaStatus>("/api/media-routing/status", { cache: "no-store" });
+      const proof = verified.profiles?.[provider];
+      if (proof?.imageReady !== true || !proof.imageVerifiedAt) {
+        throw new Error(`${label} image test returned an asset, but provider readiness was not independently persisted. Verification remains unproven.`);
+      }
+      const message = `${label} image generation used the verified ${tested.provider} route and saved an asset to PlotPickle.`;
       setNotice(message);
       recordDiagnostic(message);
       await refresh();

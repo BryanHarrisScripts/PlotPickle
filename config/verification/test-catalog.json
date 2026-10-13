@@ -467,7 +467,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-1969-explicit-story-startup.test.mjs"
+          "tests/issue-1969-explicit-story-startup.test.mjs",
+          "tests/issue-2953-write-matrix-continuity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -493,7 +494,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact."
+      "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact. #2953 adds unit-fixture and static-source coverage for Human-requested Matrix Write activation and in-place address continuity; actual Windows profile acceptance is separate."
     },
     {
       "id": "experience.learn-journey-shell",
@@ -3026,6 +3027,29 @@
           "static-source"
         ],
         "limits": "Lightweight source checks run without Vite in the architecture shadow. Conversion, PPF readback and Library projection require installed Vite in BUILD Story Model. Real Windows/browser download, private screenplay identity and profile/restart acceptance remain UNPROVEN under #2943.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2953-write-matrix-continuity.test.mjs",
+        "targetDigest": "ddc06e41d852e527a058bb40df7ac2f47022f5467cf7380f39d95e0fce28bf71",
+        "catalogueIds": [
+          "experience.explicit-story-startup-1969"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Executable simulated-history navigation and static source wiring checks, without real authenticated browser/project-vault or Human run. This does not establish real Windows profile retention, completed film, or media readiness.",
         "inputs": []
       }
     ]

@@ -207,6 +207,7 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
+            ...project.build.foundations,
             visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
               artifact.id === command.artifactId ? { ...artifact, reviewState: "rejected" as const } : artifact
             )),

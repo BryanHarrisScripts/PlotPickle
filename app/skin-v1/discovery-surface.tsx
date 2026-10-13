@@ -561,7 +561,7 @@ export default function DiscoverySurface({
                   characterTarget: field.topicId === "character" && selectedCharacter
                     ? { id: selectedCharacter.id, name: selectedCharacter.name }
                     : null,
-                  context: compactProjectContext(project, sourceAct, field.topicId === "character" ? selectedCharacter?.id : null),
+                  context: compactProjectContext(project, selectedAct, field.topicId === "character" ? selectedCharacter?.id : null),
                 }),
               ].filter(Boolean).join("\n\n"),
             }),
@@ -586,12 +586,13 @@ export default function DiscoverySurface({
         setNotice("Agent suggestion was not saved because the target project, revision or Act changed during inference.");
         return;
       }
-      setProposalDrafts((current) => ({ ...current, [storageId]: screened.proposal }));
+      const proposal = screened.proposal;
+      setProposalDrafts((current) => ({ ...current, [storageId]: proposal }));
       if (hasActiveLibraryProject()) {
         const saved = await persistCanonicalProject(writeStoryDevelopmentFieldProposal({
           project,
           field,
-          proposal: screened.proposal,
+          proposal,
           sourceRef: `agent:creative-director:mind-map:${field.canonicalId}:act-${sourceAct}`,
           act: sourceAct,
         }));

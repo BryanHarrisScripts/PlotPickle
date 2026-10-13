@@ -43,8 +43,9 @@ test("#2438 locks green Dashboard surfaces, keeps review surfaces yellow, and ke
   assert.match(dashboard, /aria-description=\{unavailable \? "Surface unavailable; row remains selectable\." : undefined\}/u);
   assert.doesNotMatch(dashboard, /if \(!item \|\| DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) return/u);
   assert.match(host, /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u);
-  assert.match(host, /"pitch-deck": "\/pitch-review\?scope=pitch&view=exports&return=dashboard"/u);
-  assert.match(host, /"pitch-package": "\/pitch-review\?scope=pitch&view=package&return=dashboard"/u);
+  // Pitch remains explicitly unavailable. An old route map is not active product truth.
+  assert.doesNotMatch(host, /"pitch-deck": "\/pitch-review\?scope=pitch&view=exports&return=dashboard"/u);
+  assert.doesNotMatch(host, /"pitch-package": "\/pitch-review\?scope=pitch&view=package&return=dashboard"/u);
 
   assert.match(styles, /\[data-dashboard-review="in-review"\] \.pp-skin-v1-dashboard-status-box[\s\S]*--pp-skin-warning/u);
   assert.doesNotMatch(styles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);

@@ -947,6 +947,20 @@
       ]
     },
     {
+      "id": "screenplay-source-identity-and-passage-projection",
+      "classification": "production",
+      "include": [
+        "lib/projects/screenplay/screenplay-import.ts",
+        "lib/projects/screenplay/screenplay.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "storage",
+        "graph"
+      ]
+    },
+    {
       "id": "story-card-foundation-model",
       "classification": "production",
       "include": [

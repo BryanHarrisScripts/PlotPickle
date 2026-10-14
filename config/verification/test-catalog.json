@@ -4095,7 +4095,7 @@
       },
       {
         "target": "tests/issue-2980-pi-basename-grounding.test.mjs",
-        "targetDigest": "6d7c14aaa10910704d46c1afa745c5c653f850f4187e02a6121664466764cd7a",
+        "targetDigest": "c7102de19adac6f14315896c7e1b2e9b1df04d410bbb68b2c799998f382a127c",
         "catalogueIds": [
           "agent.pi-unique-basename-grounding-2980"
         ],

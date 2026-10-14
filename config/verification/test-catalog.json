@@ -2599,6 +2599,50 @@
         ]
       },
       "notes": "#2958 TRUTH-FOUNDATIONS-PROPOSAL-001: Synthetic controlled family-household, unsupported guidance and unexpected Han negative controls, bounded correction; VM executes actual Mind Map Ask Agent and Use Suggestion handlers. Not proof of semantic completeness, original private screenplay/provider response, live Windows Ollama or authenticated session."
+    },
+    {
+      "id": "experience.reports-active-library-ppf-2956",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "canon",
+        "storage"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2956-reports-library-ppf-authority.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2956 bounded selected Library PPF Reports projection, explicit no active story and mismatched ID refusal, no legacy fallback, evidence-only metrics and unsupported/truncated status. Synthetic project and route source evidence; not live Human Windows acceptance."
     }
   ],
   "truthGovernance": {
@@ -3718,6 +3762,42 @@
           {
             "path": "app/skin-v1/discovery-surface.tsx",
             "digest": "b03b1135ded7c5a0f8c87e7e51a08a745ecdc260a788175ebc49f88be595c1ee"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+        "targetDigest": "3c3df3064fb0949aa1280ca722a4f0ee9ea90d0987ed8f3c60815a5957e335dd",
+        "catalogueIds": [
+          "experience.reports-active-library-ppf-2956"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Deterministic synthetic project identity, retained screenplay passages, read-only and React route source wiring only. No original private imported story, actual authenticated Windows display/restart/readback, or verified film/video readiness.",
+        "inputs": [
+          {
+            "path": "modules/reports/model/library-ppf-report.mjs",
+            "digest": "41d08249e42f38744d4e6c0800ae26b12d7a965c4f3586727d46f676b0996185"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "00c13501517f0b2f16490ddc0f1752b3316bc2bac08d67321416a270ab1b36a0"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "6fef576d4ae03f5692900f0d74b05e8f56d847afbfbc450179c8c1c3fc31c53e"
           }
         ]
       }

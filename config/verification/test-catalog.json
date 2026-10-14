@@ -3987,7 +3987,7 @@
       },
       {
         "target": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
-        "targetDigest": "45f383b55d58cd79618fc56d6792411a2d64fefabac2875c334f363cf86db750",
+        "targetDigest": "9d7d8b4fec890c8661ee558f67285589e3c0a9defc48462895f8b7209ca1e759",
         "catalogueIds": [
           "story-canon.library-unload-session-recovery-2960"
         ],

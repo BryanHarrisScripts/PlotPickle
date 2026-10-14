@@ -31,7 +31,7 @@ test("#2960 a recovered session cannot retry on a switched story or profile", ()
 const functionSource = async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf("  async function unloadCurrentStory() {");
-  const end = source.indexOf("  async function createNewStory()", start);
+  const end = source.indexOf("  async function scanLocalResources(", start);
   assert.ok(start > 0 && end > start, "the current Library handler is executable");
   return source.slice(start, end);
 };

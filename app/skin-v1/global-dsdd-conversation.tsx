@@ -15,8 +15,8 @@ import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
 import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, executePlotPickleLibraryOpen } from "../_components/settings/plotpickle-creative-command.mjs";
-import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject } from "../../core/storage/project-library-browser";
-import { persistActiveProfileProject, flushProfilePrivateWrites } from "../../core/storage/profile-private-browser";
+import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, listPersistableLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
+import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
@@ -515,7 +515,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   async function runCreativeLibraryCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
-    if (command?.action !== "open") return false;
+    if (command?.action !== "open" && command?.action !== "library") return false;
     const snapshot = currentSurfaceContext(pathname);
     setMessages((current) => [...current, {
       id: messageId("creative-library-human"),
@@ -531,6 +531,8 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     setContext(snapshot);
     try {
       const result = await executePlotPickleLibraryOpen(command, {
+        profileReady: () => profilePrivateBrowserReadyFor(window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || ""),
+        listInventory: listPersistableLibraryProjects,
         listProjects: listHumanLibraryProjects,
         activeProjectId: sessionActiveProjectId,
         readSnapshot: loadLibraryProjectSnapshot,

@@ -62,7 +62,7 @@ function completionText(value) {
 function evidenceText(paths) {
   return [
     "READ-ONLY VERIFIED REPOSITORY EVIDENCE (tracked and present at invocation):",
-    ...paths.map((name) => `- \`\${name}\``),
+    ...paths.map((name) => `- \`${name}\``),
     "You may inspect additional paths with read/grep/find/ls, but never claim an uninspected path exists.",
     "If any desired path cannot be verified, say Unknown / requires inspection.",
   ].join("\n");

@@ -4362,6 +4362,76 @@
             "digest": "3cea7de0bfac314e3edca547dbe2e0eac5141b700bb50a1383007c034d1e7025"
           }
         ]
+      },
+      {
+        "target": "tests/issue-1969-explicit-story-startup.test.mjs",
+        "targetDigest": "9cccd25ff85eb4a737dbbf3cc4f795383746064b96ef9e6a6960433fb6f0f118",
+        "catalogueIds": [
+          "experience.explicit-story-startup-1969"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source assertions retain explicit Human Library startup and selected-story authority. They do not establish authenticated physical Windows navigation or startup after a real vault restart.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2603-blank-afterglow-migration.test.mjs",
+        "targetDigest": "0e2aa5cb310dead9c06aa640d7223d555faaa9cca886ab913085fa2adbea55f5",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.library-local-resource-recovery-2432"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Source and fixture assertions for Blank-versus-packaged Afterglow and explicit Library New input. They do not establish private film media existence, encrypted Windows persistence or Human acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2625-library-unload-active-story.test.mjs",
+        "targetDigest": "f10281006ba591f3e93618641d095c65df7fdb839cd4d15092fc4870d56a3d98",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.library-unload-active-story-2625",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static inspection of the current real Library Unload ordering, rollback, session selection and separation from Example handoff. Not a real expired-login, encrypted disk, or Windows restart proof.",
+        "inputs": []
       }
     ]
   }

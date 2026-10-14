@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2977,
+  "phase": "block01-outline-write-review-and-proposal-only-handoff",
+  "brief": "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+  "allowedChanges": [
+    "modules/write/model/block-handoff-review.mjs",
+    "modules/write/ui/block-native-write-workspace.tsx",
+    "modules/write/ui/block-native-write-workspace.module.css",
+    "tests/issue-2977-block-handoff-truth.test.mjs",
+    "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2977.json"
+  ],
+  "acceptance": [
+    {
+      "id": "SELECTED-PPF-AND-FOUR-PLAN-TRUTH",
+      "criterion": "The read-only source/Plan census is tied to exact selected project and four canonical Mini-Block addresses with no invented title or accepted decision.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "read-only Block census respects exact selected project and all four Mini-Blocks"
+        }
+      ]
+    },
+    {
+      "id": "ADVISORY-NOT-ACCEPTED",
+      "criterion": "Story Architect advisory assessment alone cannot unlock a Block proposal handoff.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "advisory Story Architect proposal never equals a Human-accepted Plan"
+        }
+      ]
+    },
+    {
+      "id": "ZERO-RUN-WHEN-BLOCKED",
+      "criterion": "Actual Write Visualize handler creates no Run when any plan lacks Human acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "actual Visualize handler refuses unaccepted Outline plans before any Run mutation"
+        }
+      ]
+    },
+    {
+      "id": "RECORDS-ARE-NOT-EXECUTION",
+      "criterion": "After four accepted Plan states, the Write action creates only candidate records and links and says no agent ran or image exists.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "accepted Outline permits only proposal record preparation"
+        }
+      ]
+    },
+    {
+      "id": "REAL-PRODUCT-BLOCKER-TRANSFER",
+      "criterion": "Authenticated Brotherly Love Block execution/Storyboard readiness and Pi semantic fidelity are not certified by this phase.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+          "contains": "remains UNPROVEN"
+        }
+      ]
+    }
+  ]
+}

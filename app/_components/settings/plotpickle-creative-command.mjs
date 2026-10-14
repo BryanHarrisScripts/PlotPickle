@@ -20,6 +20,14 @@ export function parsePlotPickleCreativeCommand(input) {
   if (!/^\/?plotpickle(?:\s|$)/iu.test(value)) return null;
   if (/^\/?plotpickle\s+(?:help|tools)$/iu.test(value)) return Object.freeze({ action: "tools" });
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
+  // An explicit selection request only. Unrecognized creative narration stays with DSDD.
+  const open = value.match(/^\/?plotpickle\s+open\s+(.+)$/iu);
+  if (open) {
+    const title = open[1].trim();
+    return title.length > 0 && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
+      ? Object.freeze({ action: "open", title })
+      : Object.freeze({ action: "invalid", reason: "Choose an existing saved Library story title (1–160 characters). Nothing was executed." });
+  }
   const match = value.match(/^\/?plotpickle\s+plan\s+block\s+(\d{1,3})$/iu);
   if (match) {
     const block = Number(match[1]);
@@ -66,7 +74,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle status | PlotPickle plan Block 01",
+      "Commands: PlotPickle tools | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title>",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."
@@ -107,4 +115,67 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
       + ". No tool was executed.";
   }
   return "Unsupported PlotPickle creative command. No tool was executed.";
+}
+
+
+/**
+ * Select one existing, profile-owned saved Library PPF and report its actual
+ * read-back state using the same inspection routines as Command.
+ * All services are passed in from the authenticated browser Library owner.
+ * No new project store, screenplay edit, agent Run, or provider call is made.
+ */
+export async function executePlotPickleLibraryOpen(command, services) {
+  if (!command || command.action !== "open") return null;
+  const norm = value => String(value || "").trim().normalize("NFC").toLocaleLowerCase("en-US");
+  const requested = norm(command.title);
+  if (!requested) return "BLOCKED: Name a saved Library PPF. Nothing was selected.";
+  try {
+    const summaries = services.listProjects();
+    if (!Array.isArray(summaries)) return "BLOCKED: Current-profile Library inventory is unavailable. Nothing was selected.";
+    const matches = summaries.filter(item => item && norm(item.title) === requested && typeof item.id === "string" && item.id.trim());
+    if (!matches.length) return "BLOCKED: No current-profile saved PPF exactly titled " + command.title
+      + " was found. Verify that the authenticated profile's Library has been unlocked and hydrated. Nothing was selected.";
+    if (matches.length > 1) {
+      return "BLOCKED: Multiple saved PPFs are titled " + command.title
+        + ". Open the intended version in Library to resolve this ambiguity. Candidates: "
+        + matches.map(item => item.id).join(", ") + ". Nothing was selected.";
+    }
+    const target = matches[0];
+    const priorId = services.activeProjectId();
+    // Do not discard potentially unsaved edits from a different active story.
+    if (priorId && priorId !== target.id) {
+      return "BLOCKED: A different PPF (" + priorId
+        + ") is already active. Finish any unsaved work and switch deliberately in Library. Nothing was selected.";
+    }
+    const expected = services.readSnapshot(target.id);
+    if (!expected || expected.id !== target.id || norm(expected.title) !== requested
+        || !Number.isInteger(expected.revision) || expected.revision < 0) {
+      return "BLOCKED: Library could not verify the requested PPF snapshot, title and revision. Nothing was selected.";
+    }
+    if (priorId !== target.id) {
+      const switched = services.switchProject(target.id);
+      if (!switched || switched.id !== target.id || switched.revision !== expected.revision) {
+        return "BLOCKED: Library switch did not confirm the requested project identity and revision. Inspect Library state before retrying.";
+      }
+      // Same encrypted profile commit acknowledgement that the Library Open action uses.
+      await services.persistProject();
+      await services.flushWrites();
+    }
+    const actualId = services.activeProjectId();
+    const project = actualId === target.id ? services.loadActiveProject() : null;
+    if (!project || project.id !== target.id || project.revision !== expected.revision || norm(project.title) !== requested) {
+      return "BLOCKED: Selected Library PPF differs from the requested saved snapshot. Inspect Library state before continuing.";
+    }
+    const options = { project, activeProjectId: actualId, currentAssessment: Boolean(services.currentAssessment(project, 1)) };
+    const status = describePlotPickleCreativeCommand({ action: "status" }, options);
+    const plan = describePlotPickleCreativeCommand({ action: "plan", blockNumber: 1 }, options);
+    return "LIBRARY PPF VERIFIED: " + project.title + " (ID " + project.id + ", revision " + project.revision
+      + "). Selected through the existing Library operation, without leaving Command.\n\n"
+      + status + "\n\n" + plan
+      + "\n\nNo creative edits, provider requests, approvals, paid generation or media playback occurred.";
+  } catch (error) {
+    return "BLOCKED: Library Open could not be durably verified: "
+      + (error instanceof Error ? error.message : "unknown Library failure")
+      + ". Selection or encrypted-save acknowledgement may be uncertain; inspect Library status before retrying. No creative production ran.";
+  }
 }

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   parsePlotPickleCreativeCommand,
   describePlotPickleCreativeCommand,
+  executePlotPickleLibraryOpen,
 } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 function project(accepted=0, targetMinutes=15) {
@@ -116,4 +117,114 @@ test("#2982 actual Command UI dispatch is guarded, read-only and leaves DSDD and
   assert.match(src,/action: "append-human"/);
   assert.match(src,/action: "draft-brief"/);
   assert.match(src,/action: "publish-brief"/);
+});
+
+function libraryHarness({ entries = [project()], selected = null, persistFails = false, switchFails = false } = {}) {
+  const calls = [];
+  let current = selected;
+  const services = {
+    listProjects() { calls.push("list"); return entries.map(p => ({ id: p.id, title: p.title })); },
+    activeProjectId() { return current; },
+    readSnapshot(id) { calls.push("read:" + id); return entries.find(p => p.id === id) ?? null; },
+    switchProject(id) {
+      calls.push("switch:" + id);
+      if (switchFails) throw new Error("Selected PPF cannot be activated.");
+      current = id;
+      // In the product, switchActiveLibraryProject also emits PROJECT_LIBRARY_CHANGED_EVENT.
+      calls.push("library-change-event");
+      return entries.find(p => p.id === id) ?? null;
+    },
+    async persistProject() { calls.push("persist"); if (persistFails) throw new Error("Vault refused encrypted save"); },
+    async flushWrites() { calls.push("flush"); },
+    loadActiveProject() { calls.push("reload"); return entries.find(p => p.id === current) ?? null; },
+    currentAssessment(p, block) { calls.push("assessment:" + p.id + ":" + block); return false; },
+  };
+  return { services, calls, currentId: () => current, entries };
+}
+
+test("#2982 explicit Library open command parses only a named saved story, not an inferred creative request", () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle open Brotherly Love"), { action: "open", title: "Brotherly Love" });
+  assert.deepEqual(parsePlotPickleCreativeCommand("/plotpickle open Brotherly Love"), { action: "open", title: "Brotherly Love" });
+  assert.equal(parsePlotPickleCreativeCommand("Open Brotherly Love and make a movie"), null);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle open"), null);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle open " + "X".repeat(170)).action, "invalid");
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle spend credits"), null);
+});
+
+test("#2982 Command opens the unique existing Human PPF via Library owner then immediately reports actual status and Block 01", async () => {
+  const h = libraryHarness();
+  const before = JSON.stringify(h.entries);
+  const output = await executePlotPickleLibraryOpen(parsePlotPickleCreativeCommand("PlotPickle open Brotherly Love"), h.services);
+  assert.match(output, /LIBRARY PPF VERIFIED: Brotherly Love/);
+  assert.match(output, /Selected PPF: Brotherly Love/);
+  assert.match(output, /PLOTPICKLE BLOCK 01/);
+  assert.match(output, /Outline: 0\/4 Human-accepted Plans/);
+  assert.match(output, /No creative edits, provider requests, approvals, paid generation/);
+  assert.deepEqual(h.calls, ["list","read:selected-ppf-2982","switch:selected-ppf-2982","library-change-event",
+    "persist","flush","reload","assessment:selected-ppf-2982:1"]);
+  assert.equal(h.currentId(),"selected-ppf-2982");
+  assert.equal(JSON.stringify(h.entries),before,"Command selection cannot rewrite screenplay, source, Plan or media");
+});
+
+test("#2982 repeat Open on the already selected PPF is idempotent and does not rewrite its encrypted snapshot", async () => {
+  const h=libraryHarness({selected:"selected-ppf-2982"});
+  const output=await executePlotPickleLibraryOpen({action:"open",title:"brotherly love"},h.services);
+  assert.match(output,/LIBRARY PPF VERIFIED/);
+  assert.ok(!h.calls.includes("persist"));
+  assert.ok(!h.calls.some(item=>item.startsWith("switch:")));
+  assert.ok(!h.calls.includes("flush"));
+});
+
+test("#2982 no story, ambiguous title, and another active PPF fail closed without changing selection", async () => {
+  const other={...project(), id:"unrelated", title:"Afterglow"};
+  for (const entries of [[], [project(), {...project(),id:"duplicate"}]]) {
+    const h=libraryHarness({entries});
+    const output=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},h.services);
+    assert.match(output,/BLOCKED/);
+    assert.ok(!h.calls.some(item=>item.startsWith("switch:")));
+    assert.ok(!h.calls.includes("persist"));
+  }
+  const h=libraryHarness({entries:[other,project()],selected:"unrelated"});
+  const output=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},h.services);
+  assert.match(output,/A different PPF/);
+  assert.equal(h.currentId(),"unrelated");
+  assert.ok(!h.calls.some(item=>item.startsWith("switch:")));
+});
+
+test("#2982 mismatched title/revision and storage errors never masquerade as completed production", async () => {
+  const candidate=project();
+  const mismatch=libraryHarness({entries:[candidate]});
+  mismatch.services.readSnapshot=()=>({...candidate,title:"Wrong project"});
+  const denied=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},mismatch.services);
+  assert.match(denied,/BLOCKED: Library could not verify/);
+  assert.ok(!mismatch.calls.some(item=>item.startsWith("switch:")));
+
+  const failed=libraryHarness({persistFails:true});
+  const output=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},failed.services);
+  assert.match(output,/BLOCKED: Library Open could not be durably verified/);
+  assert.match(output,/Selection or encrypted-save acknowledgement may be uncertain/);
+  assert.doesNotMatch(output,/LIBRARY PPF VERIFIED/);
+
+  const rejected=libraryHarness({switchFails:true});
+  const output2=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},rejected.services);
+  assert.match(output2,/BLOCKED/);
+  assert.doesNotMatch(output2,/LIBRARY PPF VERIFIED/);
+});
+
+test("#2982 actual Command Open uses Library authority then reuses existing status/plan, not fake creative workflow", async () => {
+  const [ui,library,core]=await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../core/storage/project-library-browser.ts",import.meta.url),"utf8"),
+    readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
+  ]);
+  const start=ui.indexOf("  async function runCreativeLibraryCommand(submitted: string) {");
+  const end=ui.indexOf("  function runCreativeDiscoveryCommand(submitted: string) {",start);
+  assert.ok(start>0 && end>start,"Command needs a distinct, real Library selection path");
+  const handler=ui.slice(start,end);
+  for(const symbol of ["listHumanLibraryProjects","loadLibraryProjectSnapshot","switchActiveLibraryProject",
+    "persistActiveProfileProject","flushProfilePrivateWrites","executePlotPickleLibraryOpen"]) assert.match(handler,new RegExp(symbol));
+  assert.match(ui,/if \(await runCreativeLibraryCommand\(submitted\)\) return;\s*if \(runCreativeDiscoveryCommand\(submitted\)\) return;/u);
+  assert.match(library,/export function switchActiveLibraryProject[\s\S]*markSessionActiveProject\(result\.activeProject\.id\);[\s\S]*announceChange\(\)/u);
+  assert.match(core,/const plan = describePlotPickleCreativeCommand\(\{ action: "plan", blockNumber: 1 \}/u);
+  assert.doesNotMatch(handler,/createLibraryUserProject|createLibraryWorkingCopy|saveActiveLibraryProject|\/api\/local-ai\/generate|\/api\/storyboard\//u);
 });

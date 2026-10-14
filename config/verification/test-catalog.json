@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "b950677db71c14e8bb03adc38c4389a052428d1a6e7b3e73d6182df60ff7a390",
+        "targetDigest": "ae7d6bbf26c66519dacd71e8894b499c92e19b3b13765fbaaf0a0b30ce147c66",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],
@@ -4270,7 +4270,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic PPF 24x96, actual pure read-only Block and runtime helpers, and static Command UI dispatch; not a live authenticated Windows Command run, creative agent execution, saving, real provider readiness, media, signed execution receipt or full #2982 acceptance.",
+        "limits": "Synthetic directly executed Command-to-Library selection/inspection with injected same-profile saved-PPF fixtures and negative controls, plus static actual UI/Library owner assertions. No real authenticated Windows vault round trip, persisted restart, Human creative approval, provider call, film artifact, or #2982 whole-workflow success is certified.",
         "inputs": []
       },
       {

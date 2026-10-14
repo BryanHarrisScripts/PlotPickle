@@ -14,7 +14,7 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
-import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, executePlotPickleLibraryOpen, executePlotPickleLibraryRename } from "../_components/settings/plotpickle-creative-command.mjs";
+import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, executePlotPickleLibraryOpen, executePlotPickleLibraryRename, inspectPlotPickleLibraryProject } from "../_components/settings/plotpickle-creative-command.mjs";
 import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, listPersistableLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject, saveActiveLibraryProject, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
@@ -515,7 +515,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   async function runCreativeLibraryCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
-    if (command?.action !== "open" && command?.action !== "library" && command?.action !== "rename" && command?.action !== "confirm-rename") return false;
+    if (command?.action !== "open" && command?.action !== "library" && command?.action !== "rename" && command?.action !== "confirm-rename" && command?.action !== "inspect") return false;
     const snapshot = currentSurfaceContext(pathname);
     setMessages((current) => [...current, {
       id: messageId("creative-library-human"),
@@ -546,9 +546,11 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
         currentAssessment: (project: Parameters<typeof currentOutlineAssessment>[0], blockNumber: number) =>
           Boolean(currentOutlineAssessment(project, blockNumber)),
       };
-      const result = command.action === "rename" || command.action === "confirm-rename"
-        ? await executePlotPickleLibraryRename(command, services)
-        : await executePlotPickleLibraryOpen(command, services);
+      const result = command.action === "inspect"
+        ? inspectPlotPickleLibraryProject(command, services)
+        : command.action === "rename" || command.action === "confirm-rename"
+          ? await executePlotPickleLibraryRename(command, services)
+          : await executePlotPickleLibraryOpen(command, services);
       setMessages((current) => [...current, {
         id: messageId("creative-library-result"),
         role: "tool",

@@ -2687,6 +2687,50 @@
         ]
       },
       "notes": "#2975 read-only Git-index-based Pi Draft path evidence with one local bounded correction. Synthetic git fixtures and runner stubs only: does not prove live Pi/Windows Command, original private screenplay, authenticated session, or Human acceptance."
+    },
+    {
+      "id": "experience.block01-handoff-truth-2977",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "canon",
+        "navigation",
+        "agent"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2977-block-handoff-truth.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2977 read-only selected-PPF Block 01 Outline/Write handoff and exact four-plan Human acceptance gate. Executes real Visualize handler under a synthetic controlled project; candidate Run records only. No actual model inference, Storyboard creation, live authenticated Windows Brotherly Love acceptance, or media readiness is claimed."
     }
   ],
   "truthGovernance": {
@@ -3866,6 +3910,29 @@
           "static-source"
         ],
         "limits": "Temporary tracked Git fixture, stubbed local Pi completions, read-only prompt and source-level negative checks only. Not an actual authenticated Windows Command/Pi invocation; no original film content, model response, remote provider, service Issue creation, or acceptance of the first Block handoff.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2977-block-handoff-truth.test.mjs",
+        "targetDigest": "ac90ec875702d195fb33ddd588e21cb8266eee721f1f60f807556380b55859f8",
+        "catalogueIds": [
+          "experience.block01-handoff-truth-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Read-only 24x4 synthetic PPF, actual Write handler VM and guarded proposal records; cannot establish live Human project title or revisions, agent execution, genuine first Storyboard image, provider calls, authenticated Windows session or completion of Brotherly Love Block 01.",
         "inputs": []
       }
     ]

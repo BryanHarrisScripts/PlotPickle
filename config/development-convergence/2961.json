@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "issue": 2961,
+  "phase": "library-new-human-story-format-target-intent",
+  "brief": "docs/developer-briefs/2961-library-new-story-identity-format.md",
+  "allowedChanges": [
+    "modules/library/model/new-story-intent.mjs",
+    "modules/library/model/new-story-intent.d.mts",
+    "core/storage/library-project.ts",
+    "core/storage/project-library-browser.ts",
+    "core/storage/project-library-core.mjs",
+    "modules/library/ui/library-workspace.tsx",
+    "modules/library/ui/library-workspace.module.css",
+    "tests/issue-2961-library-new-story-intent.test.mjs",
+    "tests/issue-2603-blank-afterglow-migration.test.mjs",
+    "tests/issue-1969-explicit-story-startup.test.mjs",
+    "docs/developer-briefs/2961-library-new-story-identity-format.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2961.json",
+    "tests/issue-2630-mind-map-human-notes.test.mjs",
+    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+    "tests/issue-2625-library-unload-active-story.test.mjs",
+    "tests/issue-2960-library-unload-auth-recovery.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-HUMAN-TITLE-AND-FORMAT",
+      "criterion": "Human title, format and intended length required before New creates an identified story; no default Untitled Story / Feature silently supplied.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2961-library-new-story-intent.test.mjs",
+          "contains": "format and target runtime must be explicitly selected"
+        }
+      ]
+    },
+    {
+      "id": "SAME-CANONICAL-PROFILE-PPF",
+      "criterion": "Registry, project snapshot and Human-chosen format/target share the exact new unique ID, old stories unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2961-library-new-story-intent.test.mjs",
+          "contains": "core Library creates new exact user title, format and PPF intent"
+        }
+      ]
+    },
+    {
+      "id": "NO-STRUCTURE-INFERENCE",
+      "criterion": "Selecting short-film intent does not alter 24 Blocks/96 Mini-Blocks or claim target as achieved runtime.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2961-library-new-story-identity-format.md",
+          "contains": "never license to rewrite the approved 4 Acts / 24 Blocks / 96 Mini-Blocks"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-ACK-RETRY",
+      "criterion": "Await encrypted profile write+flush and verify ID, retry same pending project instead of duplicate when confirmation fails.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2961-library-new-story-intent.test.mjs",
+          "contains": "prevents duplicate retry"
+        }
+      ]
+    },
+    {
+      "id": "LEGACY-REGRESSION-TRUTH",
+      "criterion": "Old issue tests assert corrected behaviour instead of hard-coded Untitled Story/Feature.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2603-blank-afterglow-migration.test.mjs",
+          "contains": "assert.doesNotMatch(workspace, /createLibraryUserProject"
+        }
+      ]
+    },
+    {
+      "id": "REAL-DEVICE-PROOF-REMAINS-SEPARATE",
+      "criterion": "Do not claim authenticated actual Windows startup/new/restart was witnessed in synthetic CI.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2961-library-new-story-identity-format.md",
+          "contains": "CI fixtures are not a witnessed real authenticated Windows user action"
+        }
+      ]
+    },
+    {
+      "id": "HISTORICAL-EVIDENCE-PRESERVED",
+      "criterion": "Existing Mind Map notes and historical discovery data normalizer tests retain meaningful assertions while accepting additive intent metadata.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2630-mind-map-human-notes.test.mjs",
+          "contains": "mindMapNotes, storyIntent"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+          "contains": "mindMapNotes, storyIntent"
+        }
+      ]
+    },
+    {
+      "id": "NO-PRIOR-STORY-METADATA-LEAK",
+      "criterion": "Creating a short does not re-save the previous Feature's Library format as Short Film.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/storage/project-library-core.mjs",
+          "contains": "for (const key of [\"title\", \"genre\", \"format\", \"storyIntent\", \"sourceKind\", \"sourceId\"]) delete priorInput[key]"
+        }
+      ]
+    },
+    {
+      "id": "UNLOAD-STILL-ISOLATED",
+      "criterion": "New handler signature cannot trick the existing Unload's no-handoff and reversibility test.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2625-library-unload-active-story.test.mjs",
+          "contains": "source.indexOf(\"async function scanLocalResources(\", unloadStart)"
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,7 @@ test("#2960 a recovered session cannot retry on a switched story or profile", ()
 const functionSource = async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf("  async function unloadCurrentStory() {");
-  const end = source.indexOf("  async function createNewStory()", start);
+  const end = source.indexOf("  async function scanLocalResources(", start);
   assert.ok(start > 0 && end > start, "the current Library handler is executable");
   return source.slice(start, end);
 };
@@ -137,7 +137,7 @@ test("#2960 in-place unlock is explicit, same-profile, and never triggers automa
   assert.match(panel, /refreshProfilePrivateBrowserSession\(profileId\)/);
   assert.match(panel, /next\.profile\.profileId !== profileId/);
   assert.match(panel, /Profile passphrase/);
-  assert.doesNotMatch(library.slice(library.indexOf("async function unloadCurrentStory()"), library.indexOf("async function createNewStory()")), /stageSessionActiveProjectHandoff|logout|lock|switch-profile/);
+  assert.doesNotMatch(library.slice(library.indexOf("async function unloadCurrentStory()"), library.indexOf("async function scanLocalResources(")), /stageSessionActiveProjectHandoff|logout|lock|switch-profile/);
   assert.match(storage, /The session could not be verified for the working profile/);
   assert.match(contract, /Unsafe in-app Unload\/Logout\/profile switch is blocked/);
 });

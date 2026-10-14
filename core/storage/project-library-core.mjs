@@ -495,12 +495,19 @@ export function switchProfileActiveProject(input) {
 
 export function createProfileUserProject(input) {
   const initialized = initializeProfileProjectLibrary(input);
-  if (initialized.activeProject) saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  if (initialized.activeProject) {
+    // New-story metadata belongs only to the NEW identity. Never stamp the
+    // previously active story with the next film's format/genre/source.
+    const priorInput = { ...input };
+    for (const key of ["title", "genre", "format", "storyIntent", "sourceKind", "sourceId"]) delete priorInput[key];
+    saveProfileActiveProject({ ...priorInput, project: initialized.activeProject });
+  }
   const now = input.now();
   const project = input.createProject({
     id: input.idFactory(),
     now,
     title: typeof input.title === "string" && input.title.trim() ? input.title.trim() : "Untitled Story",
+    ...(input.storyIntent ? { storyIntent: input.storyIntent } : {}),
   });
   return saveProfileActiveProject({
     ...input,

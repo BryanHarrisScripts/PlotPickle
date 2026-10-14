@@ -1246,3 +1246,22 @@
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+
+/* #2961 — explicit Library New story identity, format and target. */
+.newStoryForm { display: grid; gap: 14px; margin-top: 18px; }
+.newStoryField { display: grid; gap: 6px; color: var(--pp-skin-ink, #ecf4eb); font-size: 14px; font-weight: 650; min-width: 0; }
+.newStoryField input,
+.newStoryField select {
+  min-width: 0; width: 100%; box-sizing: border-box;
+  border: 1px solid var(--pp-skin-line, #617668);
+  border-radius: 5px; color: var(--pp-skin-ink, #f2faed);
+  background: var(--pp-skin-accent-deep, #152923);
+  font: inherit; padding: 10px 12px;
+}
+.newStoryField input:focus-visible,
+.newStoryField select:focus-visible { outline: 2px solid var(--pp-skin-accent-bright, #93cfa2); outline-offset: 2px; }
+.newStoryGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.newStoryHint { font-size: 12px; color: var(--pp-skin-ink-muted, #b2c3bb); line-height: 1.5; margin: 0; }
+.newStoryError { color: #ffaaaa; font-weight: 650; line-height: 1.5; }
+@media (max-width: 520px) { .newStoryGrid { grid-template-columns: minmax(0, 1fr); } }

@@ -65,15 +65,19 @@ export function createEmptyMindMapNotesState(): MindMapNotesState {
   return { version: MIND_MAP_NOTES_VERSION, topics: {}, fields: {} };
 }
 
-/** Human-confirmed format and target are planning metadata, never achieved film runtime. */
-export type LibraryStoryIntent = Readonly<{ format: "Short Film" | "Feature"; targetMinutes: number }>;
+/** Human-selected creation intent; never computed film structure or verified runtime. */
+export type LibraryStoryIntent = Readonly<{
+  format: "Short Film" | "Feature";
+  targetMinutes: number;
+}>;
+
 export function normalizeLibraryStoryIntent(value: unknown): LibraryStoryIntent | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const intent = value as Partial<LibraryStoryIntent>;
   if (intent.format !== "Short Film" && intent.format !== "Feature") return null;
-  if (typeof intent.targetMinutes !== "number" || !Number.isInteger(intent.targetMinutes)
-      || intent.targetMinutes < 1 || intent.targetMinutes > 240) return null;
-  return { format: intent.format, targetMinutes: intent.targetMinutes };
+  const targetMinutes = intent.targetMinutes;
+  if (typeof targetMinutes !== "number" || !Number.isInteger(targetMinutes) || targetMinutes < 1 || targetMinutes > 240) return null;
+  return { format: intent.format, targetMinutes };
 }
 
 export type LibraryPPFProject = PPFProject & {
@@ -84,7 +88,7 @@ export type LibraryPPFProject = PPFProject & {
   readonly worldMap: WorldMapState;
   readonly storyDevelopment: StoryDevelopmentState;
   readonly mindMapNotes: MindMapNotesState;
-  readonly storyIntent?: LibraryStoryIntent | null;
+  readonly storyIntent: LibraryStoryIntent | null;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {

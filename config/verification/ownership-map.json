@@ -2347,6 +2347,22 @@
         "surface",
         "visual"
       ]
+    },
+    {
+      "id": "library-new-story-intent-2961",
+      "classification": "production",
+      "include": [
+        "modules/library/model/new-story-intent.mjs",
+        "modules/library/model/new-story-intent.d.mts",
+        "tests/issue-2961-library-new-story-intent.test.mjs"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon",
+        "storage"
+      ]
     }
   ]
 }

@@ -140,8 +140,14 @@ function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
     : {};
 }
 
-function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
-  return normalizeLibraryProject(createEmptyProject(input));
+function createEmptyLibraryProject(input: {
+  readonly id: string; readonly now: string; readonly title?: string;
+  readonly storyIntent?: { readonly format: "Feature" | "Short Film"; readonly targetMinutes: number };
+}): LibraryPPFProject {
+  return normalizeLibraryProject({
+    ...createEmptyProject(input),
+    ...(input.storyIntent ? { storyIntent: input.storyIntent } : {}),
+  });
 }
 
 function answerCount(project: PPFProject) {
@@ -494,6 +500,7 @@ export function createLibraryUserProject(input: {
   readonly title: string;
   readonly genre?: string;
   readonly format?: string;
+  readonly storyIntent?: { readonly format: "Feature" | "Short Film"; readonly targetMinutes: number };
 }) {
   const created = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
     readonly activeProject: LibraryPPFProject;

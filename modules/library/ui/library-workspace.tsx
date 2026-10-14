@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
@@ -54,6 +54,7 @@ import {
 import styles from "./library-workspace.module.css";
 import ProfileSessionPanel from "../../../app/_components/settings/profile-session-panel";
 import { assertLibraryUnloadRetryIdentity, libraryUnloadRequiresSessionRecovery } from "../model/library-unload-session-truth.mjs";
+import { validateNewStoryIntent, type NewStoryIntent, type NewStoryFormat } from "../model/new-story-intent.mjs";
 import { createProfileRecoveryPoint, listProfileRecoveryPoints, flushProfilePrivateWrites, persistActiveProfileProject, refreshProfilePrivateBrowserSession, refreshAfterglowLibraryFromEncryptedProfile, readAfterglowMasterSaveAudit, type AfterglowMasterSaveAudit } from "../../../core/storage/profile-private-browser";
 
 import { afterglowRestoreChoices, latestAfterglowSavedChoice, type AfterglowRestoreChoice } from "../afterglow-open-contract";
@@ -351,7 +352,9 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
 }) {
   const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
-  const resumeDetails = savedStoryResumeDetails(loadLibraryProjectSnapshot(item.id));
+  const snapshot = loadLibraryProjectSnapshot(item.id);
+  const resumeDetails = savedStoryResumeDetails(snapshot);
+  const intendedRuntime = snapshot?.storyIntent?.targetMinutes ?? null;
 
   return (
     <article
@@ -376,7 +379,7 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
           <small>{displayDate(item.updatedAt)}</small>
         </div>
         <div className={styles.loadCardBody}>
-          <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
+          <span>{item.genre || "Story"} · {item.format || "PlotPickle"}{intendedRuntime !== null ? ` · Target ${intendedRuntime} min` : ""}</span>
           <strong>{item.title}</strong>
           <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
           {resumeDetails.actions.length ? (
@@ -506,16 +509,64 @@ function CatalogCard({ item, sourceKind, onLoad, disabled = false, posterUrls = 
   );
 }
 
-function NewStoryCard({ onCreate }: { readonly onCreate: () => void }) {
+function NewStoryCard({ onCreate, creating }: {
+  readonly onCreate: (intent: NewStoryIntent) => Promise<void>;
+  readonly creating: boolean;
+}) {
+  const [title, setTitle] = useState("");
+  const [format, setFormat] = useState<NewStoryFormat | "">("");
+  const [targetMinutes, setTargetMinutes] = useState("");
+  const [validationError, setValidationError] = useState("");
+
+  function submitNewStory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (creating) return;
+    try {
+      const intent = validateNewStoryIntent({ title, format, targetMinutes });
+      setValidationError("");
+      void onCreate(intent);
+    } catch (error) {
+      setValidationError(error instanceof Error ? error.message : "Enter a title, format and target length.");
+    }
+  }
+
   return (
     <article className={`${styles.card} ${styles.ghostCard}`} data-library-new-story-card="ready">
       <div className={styles.storyVisual}><span aria-hidden="true">+</span><strong>Ready</strong></div>
       <div className={styles.cardBody}>
-        <div className={styles.meta}><span>Story</span><span>Local PPF</span></div>
+        <div className={styles.meta}><span>Human-owned</span><span>Local PPF</span></div>
         <h3>New Project</h3>
-        <p>Start a clean local PlotPickle project. Nothing is automatically treated as canon.</p>
-        <small>This creates the same blank project state used at login, but gives it a durable Library identity immediately.</small>
-        <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Project</button>
+        <p>Name your story and choose the intended film format before creating its own durable Library identity.</p>
+        <form className={styles.newStoryForm} data-library-new-story-form="identity-intent" onSubmit={submitNewStory}>
+          <label className={styles.newStoryField} htmlFor="library-new-title">Story title
+            <input id="library-new-title" autoComplete="off" maxLength={160}
+              value={title} onChange={(event) => { setTitle(event.target.value); setValidationError(""); }}
+              placeholder="Enter a title" required disabled={creating} />
+          </label>
+          <div className={styles.newStoryGrid}>
+            <label className={styles.newStoryField} htmlFor="library-new-format">Film format
+              <select id="library-new-format" value={format} required disabled={creating}
+                onChange={(event) => {
+                  const choice = event.target.value as NewStoryFormat | "";
+                  setFormat(choice);
+                  setTargetMinutes(choice === "Short Film" ? "15" : choice === "Feature" ? "120" : "");
+                  setValidationError("");
+                }}>
+                <option value="">Choose format…</option>
+                <option value="Short Film">Short Film</option>
+                <option value="Feature">Feature</option>
+              </select>
+            </label>
+            <label className={styles.newStoryField} htmlFor="library-new-target-minutes">Target minutes
+              <input id="library-new-target-minutes" type="number" min="1" max="240" step="1"
+                value={targetMinutes} onChange={(event) => { setTargetMinutes(event.target.value); setValidationError(""); }}
+                placeholder="e.g. 15" required disabled={creating} />
+            </label>
+          </div>
+          <p className={styles.newStoryHint}>Target minutes are a Human planning preference, not calculated playback length. PlotPickle's approved 24-Block / 96-Mini-Block structure is unchanged.</p>
+          {validationError ? <p className={styles.newStoryError} role="alert">{validationError}</p> : null}
+          <button className={styles.primaryButton} disabled={creating} type="submit">{creating ? "Saving New Project…" : "Create New Project"}</button>
+        </form>
       </div>
     </article>
   );
@@ -547,6 +598,9 @@ export default function LibraryWorkspace() {
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [recovery, setRecovery] = useState<PendingResume | null>(null);
   const [notice, setNotice] = useState("");
+  const [creatingStory, setCreatingStory] = useState(false);
+  const creatingStoryRef = useRef(false);
+  const pendingNewStoryRef = useRef<{ readonly intentKey: string; readonly projectId: string } | null>(null);
   const [importingPpf, setImportingPpf] = useState(false);
   const [convertingFinalDraft, setConvertingFinalDraft] = useState(false);
   const [loadingReference, setLoadingReference] = useState(false);
@@ -716,21 +770,6 @@ export default function LibraryWorkspace() {
     }
   }
 
-  async function createNewStory() {
-    try {
-      const project = createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
-      markCurrentSessionLibraryProject(project.id);
-      await persistActiveProfileProject();
-      await flushProfilePrivateWrites();
-      if (!returnToMatrixDashboardFromLibrary()) {
-        stageSessionActiveProjectHandoff();
-        window.location.assign("/?workspace=dashboard");
-      }
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
-    }
-  }
-
   async function scanLocalResources(project: LibraryPPFProject) {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), LOCAL_RESOURCE_SCAN_TIMEOUT_MS);
@@ -753,6 +792,49 @@ export default function LibraryWorkspace() {
       throw error;
     } finally {
       window.clearTimeout(timeout);
+    }
+  }
+
+  async function createNewStory(request: NewStoryIntent) {
+    if (creatingStoryRef.current) return;
+    creatingStoryRef.current = true;
+    setCreatingStory(true);
+    setNotice("");
+    try {
+      const intent = validateNewStoryIntent(request);
+      const intentKey = JSON.stringify(intent);
+      const pending = pendingNewStoryRef.current;
+      if (pending && pending.intentKey !== intentKey) {
+        throw new Error("A newly created story still awaits a confirmed profile save. Retry that same title and format before starting a different project.");
+      }
+      // A failed encrypted flush must not create a duplicate story on Retry.
+      const previous = pending ? loadLibraryProjectSnapshot(pending.projectId) : null;
+      if (pending && (!previous || sessionActiveProjectId() !== pending.projectId)) {
+        throw new Error("The pending story no longer matches this profile's active Library selection. Reopen it in Load before retrying.");
+      }
+      const project = previous ?? createLibraryUserProject({
+        title: intent.title,
+        format: intent.format,
+        storyIntent: { format: intent.format, targetMinutes: intent.targetMinutes },
+      });
+      pendingNewStoryRef.current = { intentKey, projectId: project.id };
+      if (!previous) markCurrentSessionLibraryProject(project.id);
+      await persistActiveProfileProject("", project.id);
+      await flushProfilePrivateWrites();
+      if (sessionActiveProjectId() !== project.id) {
+        throw new Error("The selected story changed before the new project save was confirmed.");
+      }
+      pendingNewStoryRef.current = null;
+      setNotice(`${project.title} created as a ${intent.format} with a ${intent.targetMinutes}-minute target. This is planning metadata, not generated runtime.`);
+      if (!returnToMatrixDashboardFromLibrary()) {
+        stageSessionActiveProjectHandoff();
+        window.location.assign("/?workspace=dashboard");
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story. The prior project is preserved.");
+    } finally {
+      creatingStoryRef.current = false;
+      setCreatingStory(false);
     }
   }
 
@@ -1049,7 +1131,7 @@ export default function LibraryWorkspace() {
             <div><p className={styles.eyebrow}>Create a Human-owned project</p><h2 id="new-title">NEW</h2></div>
             <p>Start the same clean blank project state used at login, but save it to Library immediately with its own project identity.</p>
           </div>
-          <div className={styles.singleCard}><NewStoryCard onCreate={createNewStory} /></div>
+          <div className={styles.singleCard}><NewStoryCard onCreate={createNewStory} creating={creatingStory} /></div>
         </section>
       );
     }

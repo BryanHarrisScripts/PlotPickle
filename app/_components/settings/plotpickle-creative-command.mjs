@@ -21,6 +21,8 @@ export function parsePlotPickleCreativeCommand(input) {
   if (/^\/?plotpickle\s+(?:help|tools)$/iu.test(value)) return Object.freeze({ action: "tools" });
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
   if (/^\/?plotpickle\s+(?:library|list\s+projects)$/iu.test(value)) return Object.freeze({ action: "library" });
+  const inspect = value.match(/^\/?plotpickle\s+inspect\s+([A-Za-z0-9_.:-]{1,180})$/iu);
+  if (inspect) return Object.freeze({ action: "inspect", projectId: inspect[1] });
   // Naming changes require a separate exact-identity preview and confirmation.
   const confirmedRename = value.match(/^\/?plotpickle\s+confirm\s+rename\s+(\S+)\s+revision\s+(\d{1,12})\s+from\s+"([^"]+)"\s+to\s+"([^"]+)"$/iu);
   if (confirmedRename) {
@@ -95,7 +97,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle rename <project ID> to <new title> (preview first)",
+      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first)",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."
@@ -360,5 +362,71 @@ export async function executePlotPickleLibraryRename(command, services) {
     return "BLOCKED: Rename could not be verified: "
       + (error instanceof Error ? error.message : "unknown Library write failure")
       + ". If a write was attempted, its durable status is uncertain. Inspect the Library before retrying.";
+  }
+}
+
+
+/**
+ * Look at one exact project snapshot without selecting, renaming or saving it.
+ * Read-only screenplay identification evidence stays in the authenticated
+ * Human's local Command conversation, not in GitHub reports or external APIs.
+ */
+export function inspectPlotPickleLibraryProject(command, services) {
+  if (!command || command.action !== "inspect") return null;
+  const id = String(command.projectId || "");
+  if (!/^[A-Za-z0-9_.:-]{1,180}$/u.test(id))
+    return "BLOCKED: Supply the exact saved PPF ID from PlotPickle library. No project was changed.";
+  try {
+    if (!services.profileReady())
+      return "BLOCKED: Current Human profile is not unlocked/hydrated. No project was inspected.";
+    const profile = services.profileId();
+    if (!profile) return "BLOCKED: Current profile identity is unavailable. No project was inspected.";
+    const items = services.listInventory();
+    if (!Array.isArray(items)) return "BLOCKED: Saved PPF inventory is unavailable. No project was inspected.";
+    const matches = items.filter(item => item && item.id === id);
+    if (matches.length !== 1) return "BLOCKED: Exactly one saved Library PPF with that ID was not found in the current profile. Nothing changed.";
+    const info = matches[0];
+    const project = services.readSnapshot(id);
+    if (!project || project.id !== id || project.title !== info.title
+        || !Number.isInteger(project.revision) || project.revision < 0)
+      return "BLOCKED: Saved PPF snapshot identity/title/revision disagrees with its Library entry. Nothing changed.";
+    if (!services.profileReady() || services.profileId() !== profile)
+      return "BLOCKED: The authenticated Human profile changed during inspection. No PPF evidence was displayed.";
+    const source = project.sourceEvidence?.screenplay || null;
+    const passages = Array.isArray(source?.passages) ? source.passages : [];
+    const sane = (value, limit = 120) => typeof value === "string"
+      ? value.replace(/[\r\n\t]+/gu, " ").trim().slice(0, limit) : "";
+    const filename = sane(source?.sourceFileName, 180);
+    const kind = sane(info.sourceKind, 24) || "unknown";
+    const details = [
+      "PLOTPICKLE SAVED PPF INSPECTION · read-only",
+      "Library title: " + (sane(project.title, 160) || "[blank title]"),
+      "Project ID: " + id,
+      "Revision: " + project.revision,
+      "Library classification: " + kind,
+      "Import/source reference: " + (sane(info.sourceId, 180) || "not recorded"),
+      "Screenplay filename: " + (filename || "not recorded"),
+      "Screenplay format: " + (sane(source?.sourceFormat, 40) || "not recorded"),
+      "Screenplay analysis: " + (sane(source?.analysisStatus, 32) || "not recorded"),
+      "Source passages: " + (source ? (Number.isInteger(source.totalPassageCount)
+        ? source.totalPassageCount : "unknown") : "none")
+        + " total, " + passages.length + " retained, truncated: " + (source?.passagesTruncated === true ? "yes" : "no/unknown"),
+    ];
+    const markers = Array.isArray(source?.sectionMarkers) ? source.sectionMarkers
+      .filter(marker => marker && typeof marker.title === "string" && marker.title.trim()).slice(0, 3) : [];
+    if (markers.length) details.push("First screenplay section headings: "
+      + markers.map(marker => sane(marker.title, 90)).join(" | "));
+    const samples = passages.filter(p => p && typeof p.text === "string" && p.text.trim())
+      .slice(0, 2).map(p => "[" + sane(p.type, 24) + "] " + sane(p.text, 150));
+    if (samples.length) details.push("Opening retained source evidence:\n" + samples.join("\n"));
+    details.push(source && (filename || passages.length || markers.length)
+      ? "Review the original screenplay filename and source evidence above before proposing a title. None of this proves a particular film identity automatically."
+      : "SCREENPLAY IDENTITY UNPROVEN: This saved project lacks usable imported screenplay identification evidence. Do not rename it from title similarity alone.");
+    details.push("No PPF was selected, saved, renamed, restored or modified. No AI/media provider was called.");
+    return details.join("\n");
+  } catch(error) {
+    return "BLOCKED: Read-only saved PPF inspection failed: "
+      + (error instanceof Error ? error.message : "unknown local Library error")
+      + ". No PPF change or provider call was requested.";
   }
 }

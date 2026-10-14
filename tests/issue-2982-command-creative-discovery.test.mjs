@@ -7,6 +7,7 @@ import {
   executePlotPickleLibraryOpen,
   describePlotPickleLibraryInventory,
   executePlotPickleLibraryRename,
+  inspectPlotPickleLibraryProject,
 } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 function project(accepted=0, targetMinutes=15) {
@@ -435,4 +436,99 @@ test("#2982 Command title changes use the existing profile-owned Library Save an
   assert.match(core,/await services\.persistProject\(id\)/);
   assert.match(core,/await services\.flushWrites\(\)/);
   assert.doesNotMatch(core,/\bfetch\(|\/api\/storyboard|\/api\/local-ai\//);
+});
+
+function inspectHarness({ record, ready = true, profile = "human-profile", mismatch = false } = {}) {
+  const imported = record ?? {
+    ...project(), id: "synthetic-import-ppt", title: "-", revision: 4,
+    sourceEvidence: {
+      screenplay: {
+        sourceFileName: "Brotherly-Love-original.fdx",
+        sourceFormat: "Final Draft",
+        analysisStatus: "suggested",
+        totalPassageCount: 42,
+        storedPassageCount: 2,
+        passagesTruncated: true,
+        passages: [
+          { id: "p1", type: "scene-heading", text: "INT. STUDIO - NIGHT" },
+          { id: "p2", type: "action", text: "Two brothers talk about their future." },
+        ],
+        sectionMarkers: [{ id:"sc1", title:"ACT ONE", page:1 }],
+      },
+    },
+  };
+  const calls=[];
+  const services = {
+    profileReady() { calls.push("auth"); return ready; },
+    profileId() { return profile; },
+    listInventory() { calls.push("inventory"); return [{id:imported.id,title:imported.title,
+      sourceKind:"import",sourceId:"Brotherly-Love-original.fdx"}]; },
+    readSnapshot(id) {calls.push("read:"+id); return mismatch ? {...imported,title:"mismatch"} : id===imported.id ? imported : null; },
+    switchProject() { throw new Error("inspect must not switch project"); },
+    saveProject() { throw new Error("inspect must not save project"); },
+    persistProject() { throw new Error("inspect must not write encrypted profile"); },
+    flushWrites() { throw new Error("inspect must not flush or mutate"); },
+  };
+  return { imported, services, calls };
+}
+test("#2982 screenshot UAT imported dash-title PPF inspected without selecting, renaming or creating a story", () => {
+  const h=inspectHarness();
+  const before=JSON.stringify(h.imported);
+  const parsed=parsePlotPickleCreativeCommand("PlotPickle inspect synthetic-import-ppt");
+  assert.deepEqual(parsed,{action:"inspect",projectId:"synthetic-import-ppt"});
+  const response=inspectPlotPickleLibraryProject(parsed,h.services);
+  assert.match(response,/SAVED PPF INSPECTION · read-only/);
+  assert.match(response,/Library title: -/);
+  assert.match(response,/Library classification: import/);
+  assert.match(response,/Screenplay filename: Brotherly-Love-original.fdx/);
+  assert.match(response,/42 total, 2 retained, truncated: yes/);
+  assert.match(response,/INT\. STUDIO - NIGHT/);
+  assert.match(response,/None of this proves a particular film identity automatically/);
+  assert.match(response,/No PPF was selected, saved, renamed, restored or modified/);
+  assert.deepEqual(h.calls,["auth","inventory","read:synthetic-import-ppt","auth"]);
+  assert.equal(JSON.stringify(h.imported),before);
+});
+test("#2982 imported PPF identification remains explicitly unproven if no screenplay provenance exists", () => {
+  const h=inspectHarness({record:{...project(),id:"import-dash",title:"-",sourceEvidence:{screenplay:null}}});
+  const response=inspectPlotPickleLibraryProject({action:"inspect",projectId:"import-dash"},h.services);
+  assert.match(response,/SCREENPLAY IDENTITY UNPROVEN/);
+  assert.match(response,/not recorded/);
+  assert.doesNotMatch(response,/Screenplay filename: Brotherly/);
+  assert.ok(!h.calls.some(c=>/save|switch|persist|flush/u.test(c)));
+});
+test("#2982 PPF inspect refuses stale title, another ID, and unhydrated profile without showing private story material",()=>{
+  for (const v of [{ready:false},{mismatch:true}]){
+    const h=inspectHarness(v);
+    const result=inspectPlotPickleLibraryProject({action:"inspect",projectId:"synthetic-import-ppt"},h.services);
+    assert.match(result,/BLOCKED/);
+    assert.doesNotMatch(result,/Two brothers|Studio|ACT ONE/);
+  }
+  const h=inspectHarness();
+  const other=inspectPlotPickleLibraryProject({action:"inspect",projectId:"unknown-id"},h.services);
+  assert.match(other,/BLOCKED/);
+  assert.doesNotMatch(other,/Brotherly-Love-original/);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle inspect bad/id"),null);
+  assert.equal(parsePlotPickleCreativeCommand("Investigate my imported PPF"),null);
+});
+test("#2982 inspector observes current-profile authority again before returning any screenplay evidence",()=>{
+  const h=inspectHarness();
+  let authCount=0;
+  h.services.profileReady=()=>++authCount===1;
+  const result=inspectPlotPickleLibraryProject({action:"inspect",projectId:"synthetic-import-ppt"},h.services);
+  assert.match(result,/BLOCKED: The authenticated Human profile changed/);
+  assert.doesNotMatch(result,/Brothers|ACT ONE|original\.fdx/);
+});
+test("#2982 real Command inspector reuses only read-only authenticated Library owners",async()=>{
+  const [ui,projectCore]=await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
+  ]);
+  assert.match(ui,/inspectPlotPickleLibraryProject\(command, services\)/);
+  assert.match(ui,/listInventory: listPersistableLibraryProjects/);
+  assert.match(ui,/readSnapshot: loadLibraryProjectSnapshot/);
+  assert.match(ui,/profileReady:\s*\(\)\s*=>\s*profilePrivateBrowserReadyFor\(profileId\(\)\)/);
+  assert.match(projectCore,/export function inspectPlotPickleLibraryProject\(/);
+  const inspected=projectCore.slice(projectCore.indexOf("export function inspectPlotPickleLibraryProject("));
+  assert.doesNotMatch(inspected,/services\.(?:switchProject|saveProject|persistProject|flushWrites)\(/);
+  assert.doesNotMatch(inspected,/\bfetch\(|\/api\/storyboard|\/api\/local-ai\//);
 });

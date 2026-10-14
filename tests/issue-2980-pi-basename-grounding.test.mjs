@@ -65,13 +65,15 @@ test("#2980 ignored, deleted, traversal and untracked files never become evidenc
   await symlink(path.join(root,"AGENTS.md"),path.join(root,"tests","linked.ts"));
   const source=["untracked-mocked.ts","deleted-mocked.ts","linked.ts","../AGENTS.md"]
     .map(quote).join(" ");
-  const x=canonicalizePiBareFilenameClaims(source,root,{
-    trackedListing:"tests\\untracked-mocked.ts\0tests\\deleted-mocked.ts\0tests\\linked.ts\0../AGENTS.md\0",
-  });
-  assert.equal(x.text,source);
+  const x=canonicalizePiBareFilenameClaims(source,root);
+  assert.equal(x.text,source,"the real Git index excludes the untracked file and deleted index entry");
   assert.equal(x.replacements.length,0);
   assert.deepEqual(assessPiDraftGrounding(x.text,root).missing,
-    ["untracked-mocked.ts","deleted-mocked.ts","../AGENTS.md"]);
+    ["untracked-mocked.ts","deleted-mocked.ts","linked.ts","../AGENTS.md"]);
+  const injected=canonicalizePiBareFilenameClaims(source,root,{
+    trackedListing:present[0]+"\0tests\\deleted-mocked.ts\0tests\\linked.ts\0../AGENTS.md\0",
+  });
+  assert.equal(injected.text,source,"an injected deleted, linked or traversal entry cannot be vouched for");
 });
 test("#2980 read-only Pi repair canonically fixes valid bare names; inventing files still needs one bounded correction",async t=>{
   const root=await fixture(t);

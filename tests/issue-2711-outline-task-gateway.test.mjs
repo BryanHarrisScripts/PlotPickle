@@ -156,7 +156,7 @@ test("#2982 Command start-local goes through real authenticated Outline gateway 
   assert.equal(imported.sourceEvidence.outlineAssessments.length, 1);
   assert.equal(imported.sourceEvidence.outlineAssessments[0].blockNumber, 1);
   assert.equal(imported.sourceEvidence.outlineAssessmentRuns[0].status, "completed");
-  assert.equal(imported.structure.blocks[0].miniBlocks[0].stages.plan.acceptedAt, null);
+  assert.deepEqual(imported.structure, f.project.structure, "Advisory inference cannot accept Plans or edit canonical structure");
   assert.deepEqual(imported.writing, f.project.writing);
   assert.deepEqual(await importOutlineTaskFindings(imported, task), imported);
   await f.reopen();
@@ -181,7 +181,6 @@ test("#2982 Command start-local fails closed for even quoted OpenAI/cloud routes
 
 test("#2982 local-only admission cannot activate if the provider receipt changes mid-admission", async (t) => {
   const f = await fixture(t);
-  let resolutions=0;
   const oldHost=f.host;
   // The stored task material and compute receipt must match the preflight
   // route. Simulate an unauthorised route switch during controller.create.
@@ -198,7 +197,6 @@ test("#2982 local-only admission cannot activate if the provider receipt changes
   assert.match((await result.json()).message,/local-only Command denied/u);
   assert.equal(f.calls,0);
   assert.equal(f.opens,0);
-  assert.equal(resolutions,0);
 });
 
 test("#2982 local-only Start authenticates profile, CSRF and source fingerprint before inference", async (t) => {

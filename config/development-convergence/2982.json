@@ -23,7 +23,8 @@
     "build/projects/outline-task-http.ts",
     "modules/plan/assessments/outline-task-browser.ts",
     "tests/issue-2711-outline-task-gateway.test.mjs",
-    "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md"
+    "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs"
   ],
   "acceptance": [
     {
@@ -185,6 +186,17 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md",
           "contains": "Not delivered in this slice"
+        }
+      ]
+    },
+    {
+      "id": "DSDD-CONVERSATION-STORAGE-ISOLATION",
+      "criterion": "Preserve persistent server-owned DSDD conversation while allowing the pre-existing read-only browser session profile-ID lookup used solely for authentication; forbid storing DSDD transcripts in sessionStorage/localStorage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "contains": "That is not DSDD message storage"
         }
       ]
     }

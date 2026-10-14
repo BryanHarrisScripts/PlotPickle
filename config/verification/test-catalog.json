@@ -2775,6 +2775,50 @@
         ]
       },
       "notes": "#2977 explicit existing PPF film identity/target edit and frame-accurate 24x96 normalized grid; synthetic selected PPF and actual Write handler VM with rejected encrypted ack. Not an actual Windows vault, real Outline proposal transfer, movie Block execution, Storyboard or paid provider acceptance."
+    },
+    {
+      "id": "agent.pi-unique-basename-grounding-2980",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill",
+        "command",
+        "dsdd"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2980-pi-basename-grounding.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2980 Pi Draft unique tracked basename canonicalization with fail-closed unknown, ambiguous, symlink, deleted, untracked and Windows path proof. Synthetic fixtures and actual repair helper; authenticated Windows Command/LLM not proven."
     }
   ],
   "truthGovernance": {
@@ -4047,6 +4091,29 @@
           "static-source"
         ],
         "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2980-pi-basename-grounding.test.mjs",
+        "targetDigest": "6d7c14aaa10910704d46c1afa745c5c653f850f4187e02a6121664466764cd7a",
+        "catalogueIds": [
+          "agent.pi-unique-basename-grounding-2980"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic temp git index and actual Pi grounding-helper calls. Proves only unique present tracked basename canonicalization and preserved fail-closed second model correction; not a live Windows Command model output, substantive brief relevance, GitHub publication or creative workflow.",
         "inputs": []
       }
     ]

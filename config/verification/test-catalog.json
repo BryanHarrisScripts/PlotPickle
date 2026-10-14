@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "2ff4ed09b8a1acbdb4f000f71ba1e92eba560bc0ab9cf44b57e1bdf13ea4236e",
+        "targetDigest": "18f9ea68e2f88f42271a15cd68480dba6ad23a14d2f41cc8dd98c016f0a2cb3f",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],
@@ -4270,7 +4270,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Directly exercised synthetic current-profile saved Library title/classification inventory, exact-match rejection, missing hydration, no mutation/providercall, plus static actual Command UI/Library owner checks. No authenticated live Windows Library user-state read, cross-profile retrieval, actual vault reopen after restart, creative proposal, image/video generation or complete #2982 is established.",
+        "limits": "Synthetic directly executed current-profile exact-ID title-only preview/confirm, negative identity/revision/conflict/profile/Save failure controls, and verified actual Library owner UI dispatch. No personal Windows user content, independent vault restart/reopen, live provider, canonical artwork, or full Command production certified.",
         "inputs": []
       },
       {

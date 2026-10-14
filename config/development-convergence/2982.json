@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2982,
-  "phase": "command-creative-discovery-and-library-inventory-diagnostics",
+  "phase": "command-creative-discovery-library-diagnostics-and-explicit-title-rename",
   "brief": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -16,7 +16,8 @@
     "scripts/promote-afterglow-packaged-example.mjs",
     "tests/issue-2982-afterglow-story-intent.test.mjs",
     "docs/developer-briefs/2982-command-library-selection-phase2.md",
-    "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md"
+    "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md",
+    "docs/developer-briefs/2982-command-verified-library-title-rename-phase2c.md"
   ],
   "acceptance": [
     {
@@ -125,6 +126,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md",
           "contains": "profile is not verified hydrated"
+        }
+      ]
+    },
+    {
+      "id": "COMMAND-LIBRARY-TITLE-REVIEW-AND-CONFIRM",
+      "criterion": "Human can review current-profile Library titles then request a separate non-mutating exact-ID/revision/original-title rename preview and explicitly confirm one title-only Save. The real Library path and encrypted profile acknowledgment must be reused; absent, stale, ambiguous, conflicting, locked-profile and uncertain-commit conditions cannot be claimed as success. Image/video/writing/provider operations are not permitted by rename.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "confirmed exact title edit uses the existing Library Save"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2982-command-verified-library-title-rename-phase2c.md",
+          "contains": "explicit Human consent"
         }
       ]
     }

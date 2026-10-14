@@ -24,7 +24,8 @@
     "modules/plan/assessments/outline-task-browser.ts",
     "tests/issue-2711-outline-task-gateway.test.mjs",
     "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md",
-    "tests/issue-2331-dsdd-conversational-uat.test.mjs"
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2341-dsdd-zero-config.test.mjs"
   ],
   "acceptance": [
     {
@@ -197,6 +198,17 @@
           "type": "file-contains",
           "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
           "contains": "That is not DSDD message storage"
+        }
+      ]
+    },
+    {
+      "id": "DSDD-ZERO-CONFIG-INDEPENDENT-OF-CREATIVE-COMMAND",
+      "criterion": "Preserve local Quality DSDD interpretation and no provider-selection detour even when a separately authorized, local-only Story Architect command explains cloud spend restrictions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2341-dsdd-zero-config.test.mjs",
+          "contains": "The DSDD interpreter still does not offer or infer a text-engine picker."
         }
       ]
     }

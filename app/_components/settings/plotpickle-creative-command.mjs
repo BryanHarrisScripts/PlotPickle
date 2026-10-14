@@ -141,9 +141,9 @@ function libraryRecord(item) {
 function libraryAvailableMessage(items) {
   if (!items.length) return "This hydrated profile currently reports zero saved PPFs; no recovery or other profile was searched.";
   const shown = items.slice(0, 20);
-  return "Current-profile saved Library titles (" + items.length + "):\\n"
-    + shown.map(item => "- " + libraryRecord(item)).join("\\n")
-    + (items.length > shown.length ? "\\n... " + (items.length - shown.length) + " more; inspect Library to resolve." : "");
+  return "Current-profile saved Library titles (" + items.length + "):\n"
+    + shown.map(item => "- " + libraryRecord(item)).join("\n")
+    + (items.length > shown.length ? "\n... " + (items.length - shown.length) + " more; inspect Library to resolve." : "");
 }
 
 /**
@@ -156,9 +156,9 @@ export function describePlotPickleLibraryInventory(services) {
     const items = libraryInventory(services);
     if (!items) return "BLOCKED: Saved Library inventory is unavailable. No project was selected.";
     const selected = services.activeProjectId();
-    return "PLOTPICKLE LIBRARY · current-profile read-only inventory\\n"
-      + "Currently selected session project ID: " + (selected || "none") + "\\n"
-      + libraryAvailableMessage(items) + "\\n"
+    return "PLOTPICKLE LIBRARY · current-profile read-only inventory\n"
+      + "Currently selected session project ID: " + (selected || "none") + "\n"
+      + libraryAvailableMessage(items) + "\n"
       + "Use PlotPickle open <exact saved title>. Synthetic/example references are visible for diagnosis but not automatically opened. "
       + "No project was selected or modified; no media/provider tools ran.";
   } catch (error) {
@@ -226,9 +226,9 @@ export async function executePlotPickleLibraryOpen(command, services) {
     const status = describePlotPickleCreativeCommand({action:"status"},options);
     const plan = describePlotPickleCreativeCommand({action:"plan",blockNumber:1},options);
     return "LIBRARY PPF VERIFIED: " + project.title + " (ID " + project.id + ", revision " + project.revision
-      + "). Selected through the existing Library operation, without leaving Command.\\n\\n"
-      + status + "\\n\\n" + plan
-      + "\\n\\nNo creative edits, provider requests, approvals, paid generation or media playback occurred.";
+      + "). Selected through the existing Library operation, without leaving Command.\n\n"
+      + status + "\n\n" + plan
+      + "\n\nNo creative edits, provider requests, approvals, paid generation or media playback occurred.";
   } catch (error) {
     return "BLOCKED: Library Open could not be durably verified: "
       + (error instanceof Error ? error.message : "unknown Library failure")

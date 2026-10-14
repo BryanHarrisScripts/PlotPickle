@@ -3847,7 +3847,7 @@
       },
       {
         "target": "tests/issue-2961-library-new-story-intent.test.mjs",
-        "targetDigest": "19dcf2d84c85ab9a2e06311d9c30b752958bf4d40add87c7ac18c09d58320f0b",
+        "targetDigest": "a7897438de9892f3dfb3041aa40d584e2c4c5bb56304231f92b211c79385859e",
         "catalogueIds": [
           "experience.library-new-story-intent-2961"
         ],
@@ -3869,11 +3869,11 @@
         "inputs": [
           {
             "path": "modules/library/model/new-story-intent.mjs",
-            "digest": "787b422d9dfd5eadadf34293140bdbd67eaf73f051b59729feceaaa0524870e4"
+            "digest": "ada262e82773f786e6ffd78bf3243e8dd0e6f50dad5d1143bf62b1a3245eddea"
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "5aa04b94bb8a1db5400d4a77dcc5e5111f7eb6ced17d80118d6cefe911aeecaf"
+            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -3912,11 +3912,11 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "5aa04b94bb8a1db5400d4a77dcc5e5111f7eb6ced17d80118d6cefe911aeecaf"
+            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
           },
           {
             "path": "modules/library/model/new-story-intent.mjs",
-            "digest": "787b422d9dfd5eadadf34293140bdbd67eaf73f051b59729feceaaa0524870e4"
+            "digest": "ada262e82773f786e6ffd78bf3243e8dd0e6f50dad5d1143bf62b1a3245eddea"
           }
         ]
       },
@@ -3944,13 +3944,60 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "5aa04b94bb8a1db5400d4a77dcc5e5111f7eb6ced17d80118d6cefe911aeecaf"
+            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
           },
           {
             "path": "modules/library/model/new-story-intent.mjs",
-            "digest": "787b422d9dfd5eadadf34293140bdbd67eaf73f051b59729feceaaa0524870e4"
+            "digest": "ada262e82773f786e6ffd78bf3243e8dd0e6f50dad5d1143bf62b1a3245eddea"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
+        "targetDigest": "2efcc612c4c1a144e1a5a4ea4b82b340c20b5c6068e715253780a8c97163fde6",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "#2961 revised source contracts retain Human notes/discovery evidence and include optional canonical storyIntent; not live authenticated Windows save or restart acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "#2961 revised source contracts retain Human notes/discovery evidence and include optional canonical storyIntent; not live authenticated Windows save or restart acceptance.",
+        "inputs": []
       }
     ]
   }

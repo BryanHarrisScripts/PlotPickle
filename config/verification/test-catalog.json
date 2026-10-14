@@ -2869,13 +2869,14 @@
       "id": "story-canon.afterglow-runtime-intent-2982",
       "ownerLayer": "story-canon",
       "architectureComponents": [
-        "story-canon",
-        "saved-source-authority"
+        "story-evidence-graph",
+        "evidence-revision-review"
       ],
       "triggerTokens": [
         "canon",
+        "graph",
         "storage",
-        "story"
+        "visual"
       ],
       "runner": {
         "kind": "node-test",

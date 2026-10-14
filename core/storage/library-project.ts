@@ -84,7 +84,7 @@ export type LibraryPPFProject = PPFProject & {
   readonly worldMap: WorldMapState;
   readonly storyDevelopment: StoryDevelopmentState;
   readonly mindMapNotes: MindMapNotesState;
-  readonly storyIntent: LibraryStoryIntent | null;
+  readonly storyIntent?: LibraryStoryIntent | null;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {

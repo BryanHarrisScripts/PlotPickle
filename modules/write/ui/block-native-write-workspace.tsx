@@ -11,6 +11,7 @@ import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screen
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   loadActiveLibraryProject,
+  listLibraryProjects,
   saveActiveLibraryProject,
   sessionActiveProjectId,
   type LibraryPPFProject,
@@ -285,6 +286,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
     }
 
     const saveProjectId = project.id;
+    const priorSummaryFormat = listLibraryProjects().find((item) => item.id === saveProjectId)?.format;
     let candidateRevision = 0;
     filmSaveInFlightRef.current = true;
     setSavingFilmProfile(true);
@@ -312,6 +314,10 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
           || reread.storyIntent.targetMinutes !== intent.targetMinutes) {
         throw new Error("Stored film profile identity does not match the confirmed request.");
       }
+      const confirmedSummary = listLibraryProjects().find((item) => item.id === saveProjectId);
+      if (!confirmedSummary || confirmedSummary.title !== title || confirmedSummary.format !== intent.format) {
+        throw new Error("Library card identity/format disagrees with the confirmed PPF.");
+      }
       setProject(staged);
       setStatus(`Encrypted PPF film profile confirmed: ${title} · ${intent.format} · ${intent.targetMinutes}-minute target. All 24 Blocks and 96 Mini-Blocks retained. No story passage, Plan, Shot or media was changed.`);
     } catch (error) {
@@ -320,7 +326,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         if (staged.id === saveProjectId && staged.revision === candidateRevision) {
           // Keep the original verified in-memory content rather than projecting
           // a failed encrypted write as a newly accepted runtime.
-          saveActiveLibraryProject(project);
+          saveActiveLibraryProject(project, priorSummaryFormat);
         }
       }
       setStatus(`Film profile Save not confirmed. Review your choices and retry after resolving protected profile access. ${error instanceof Error ? error.message : "Encrypted storage rejected the update."}`);

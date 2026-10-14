@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "d0dfd0e7bcff313dc3514721dbf8197ce791e7d7fe2478e58edccc8ef3076b50",
+        "targetDigest": "d16e19a1d68138853e0afbd37c641ee2f7538bc1bf70f3cc2f959b35eba665f9",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],
@@ -4270,7 +4270,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic current-profile exact-ID read-only saved screenplay evidence report, dash-title import and negative identity/hydration/profile controls with static real Command/Library owner assertions. No live Human private Windows screenplay identity proof, replayed vault restart, creative approval, agent Run, OpenAI/MiniMax media, or full #2982 orchestration success certified.",
+        "limits": "Synthetic real authenticated Command-to-local-only Story Architect task host and source/citation/PPF advisory import contract assertions, read-only Library tests; no live Human Brotherly Love inference, actual local model readiness, full film proposal, paid OpenAI/MiniMax image/video or Windows private restart certified.",
         "inputs": []
       },
       {
@@ -4431,6 +4431,28 @@
           "static-source"
         ],
         "limits": "Static inspection of the current real Library Unload ordering, rollback, session selection and separation from Example handoff. Not a real expired-login, encrypted disk, or Windows restart proof.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2711-outline-task-gateway.test.mjs",
+        "targetDigest": "135ff179927693255d9c26d253f90813231f7a8a2eb53ad701da49a4e594fc7e",
+        "catalogueIds": [
+          "story-canon.outline-durable-input-2711"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Authenticated in-memory profile + real Outline HTTP/gateway/controller scheduler fixture (synthetic model output) tests local zero-cloud-cost admission, cloud route rejection, stale source/CSRF denial, real protected task artifact and idempotent advisory import. No live user content, real provider result, production movie, actual server restart or private Windows UI observed.",
         "inputs": []
       }
     ]

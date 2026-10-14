@@ -3981,7 +3981,7 @@
       },
       {
         "target": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
-        "targetDigest": "a14fb958d98c70d6f76f5becf1509e52eafa4f2236397b6122d1531225e18916",
+        "targetDigest": "c381e014319f86c8457ec81f5cf4092bc1a072444e1480080e236e2710da056a",
         "catalogueIds": [
           "experience.compressed-24x96-existing-ppf-2977"
         ],
@@ -4000,6 +4000,53 @@
           "static-source"
         ],
         "limits": "Synthetic PPF with real 24/96 frame projection and VM-executed Write metadata Save. Injected vault reject, ID change, bad title/duration, no overwrite and no model/content mutation. Does not establish live encrypted Windows readback, user-selected minutes, accepted Outline, executed agent or generated Storyboard image.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
+        "targetDigest": "ec5539951d70de2724d368c3287292a7ae0bb594a98dc5dd13a0c04046ab600b",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+        "targetDigest": "84e949f2dc6ec712471c524fc6a35ad5e36a4c9e1e5a06c059448303d8e7ce9c",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
         "inputs": []
       }
     ]

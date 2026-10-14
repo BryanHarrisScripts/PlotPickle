@@ -27,7 +27,7 @@ test("#2630 Library normalization preserves notes and Blank defaults them empty"
   assert.match(browser, /normalizeMindMapNotesState\(incoming\.mindMapNotes\)/u);
   assert.match(browser, /initialized\.activeProject\.mindMapNotes/u);
   assert.match(browser, /createEmptyMindMapNotesState\(\)/u);
-  assert.match(browser, /projectWithStructure = \{ \.\.\.project,[^\n]*mindMapNotes \}/u);
+  assert.match(browser, /projectWithStructure = \{ \.\.\.project,[^\n]*mindMapNotes, storyIntent \}/u);
   assert.match(contract, /source\.mindMapNotes === undefined[\s\S]*createEmptyMindMapNotesState\(\)/u);
   assert.match(contract, /topics: normalizeNotes\(source\.topics, 100\)/u);
   assert.match(contract, /fields: normalizeNotes\(source\.fields, 2_000\)/u);

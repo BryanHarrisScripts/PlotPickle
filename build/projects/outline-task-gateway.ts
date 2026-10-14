@@ -167,6 +167,21 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
       const record = await controller.create(auth, blocks);
       return activate(auth, record.scope.runId);
     },
+    /** Explicit zero-cloud-cost permission for Command. Resolve exact current
+     * compute before admission, then require the same route receipt at the
+     * authoritative task boundary. Cloud providers cannot be substituted.
+     */
+    async startLocal(auth: AuthContext, blocks: number[]) {
+      const execution = await (ports.resolveExecution?.(auth) || configuredOutlineExecution(runtime, auth));
+      if (!["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0) {
+        throw new Error("Story Architect local-only Command denied: the configured route is not verified zero-cost loopback. No paid inference authorized.");
+      }
+      const record = await controller.create(auth, blocks);
+      if (record.scope.provider !== execution.provider || record.computeReceipt !== execution.receipt) {
+        throw new Error("Story Architect local-only Command denied: compute changed during admission. No task activated.");
+      }
+      return activate(auth, record.scope.runId);
+    },
     resume: activate,
     async cancel(auth: AuthContext, id: string) {
       await view(auth, id);

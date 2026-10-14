@@ -306,7 +306,7 @@ export async function executePlotPickleLibraryRename(command, services) {
         + "\nOnly the PPF display title will change; project identity, screenplay, story and media must remain intact. "
         + "The selected profile's encrypted Library must acknowledge the write.\n"
         + "To approve this exact identity and revision, send:\nPlotPickle confirm rename " + id
-        + " revision " + snapshot.revision + " from \\"" + oldTitle + "\\" to \\"" + targetTitle + "\\"";
+        + ' revision ' + snapshot.revision + ' from "' + oldTitle + '" to "' + targetTitle + '"';
     }
     if (command.revision !== snapshot.revision || command.previousTitle !== oldTitle)
       return "BLOCKED: The saved PPF revision has changed since the preview. "

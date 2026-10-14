@@ -501,6 +501,7 @@ export function createProfileUserProject(input) {
     id: input.idFactory(),
     now,
     title: typeof input.title === "string" && input.title.trim() ? input.title.trim() : "Untitled Story",
+    ...(input.storyIntent ? { storyIntent: input.storyIntent } : {}),
   });
   return saveProfileActiveProject({
     ...input,

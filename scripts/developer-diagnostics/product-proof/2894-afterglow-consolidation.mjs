@@ -102,7 +102,24 @@ createRoot(document.getElementById("root")).render(<Panel/>);
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(baseUrl);
   await page.getByRole("button",{name:"Review Consolidation",exact:true}).click();
-  await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
+  // Failure evidence is diagnostic only. The original exact visible review
+  // requirement remains mandatory, with no fallback to a green test.
+  try {
+    await page.getByText("CONSOLIDATED creative work",{exact:true}).waitFor();
+  } catch (error) {
+    await page.screenshot({path:path.join(artifactRoot,"review-start-failed.png"),fullPage:true}).catch(() => {});
+    const visibleBody = await page.locator("body").innerText().catch((cause) =>
+      "Browser body unavailable: " + String(cause));
+    const diagnostic = {
+      step:"Afterglow Review Consolidation did not reach the actual review screen",
+      sourceHead:process.env.PLOTPICKLE_PROOF_SOURCE_HEAD || "unknown",
+      visibleBody:visibleBody.slice(0,12000),
+      pageErrors:errors.slice(-12),
+    };
+    await writeFile(path.join(artifactRoot,"review-start-failed.json"),JSON.stringify(diagnostic,null,2)+"\n");
+    console.error("[AFTERGLOW 2894] Review start failed; exact page and exception evidence:",JSON.stringify(diagnostic));
+    throw error;
+  }
   await page.locator('details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
   await page.getByText("Save or leave out remaining items",{exact:true}).first().waitFor();
   const record=page.locator(`[data-afterglow-record="/build/foundations/visualArtifacts/@id:${snapshot.project.build.foundations.visualArtifacts[0].id}"]`);

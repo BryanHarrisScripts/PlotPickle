@@ -14,7 +14,7 @@ export function validateNewStoryIntent(input) {
   if (!title) throw new Error("Enter a story title before creating a new Library project.");
   if (title.length > 160) throw new Error("Story titles must be 160 characters or fewer.");
   if (!NEW_STORY_FORMATS.includes(format)) {
-    throw new Error("Choose Short Film or Feature before creating a new Library project.");
+    throw new Error("Choose a film format: Short Film or Feature before creating a new Library project.");
   }
   if (!Number.isInteger(duration) || duration < 1 || duration > 240) {
     throw new Error("Enter a target runtime between 1 and 240 whole minutes.");

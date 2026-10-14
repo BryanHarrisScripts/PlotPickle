@@ -14,8 +14,9 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
-import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand } from "../_components/settings/plotpickle-creative-command.mjs";
-import { loadActiveLibraryProject, sessionActiveProjectId } from "../../core/storage/project-library-browser";
+import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, executePlotPickleLibraryOpen } from "../_components/settings/plotpickle-creative-command.mjs";
+import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject } from "../../core/storage/project-library-browser";
+import { persistActiveProfileProject, flushProfilePrivateWrites } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
@@ -511,6 +512,54 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     }
   }
 
+  async function runCreativeLibraryCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parsePlotPickleCreativeCommand(submitted);
+    if (command?.action !== "open") return false;
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages((current) => [...current, {
+      id: messageId("creative-library-human"),
+      role: "command",
+      text: submitted,
+      context: snapshot,
+      inputMode: draftHasVoice ? "voice" : "typed",
+    }].slice(-MAX_MESSAGES));
+    setDraft("");
+    setDraftHasVoice(false);
+    setError("");
+    setCommandWorking(true);
+    setContext(snapshot);
+    try {
+      const result = await executePlotPickleLibraryOpen(command, {
+        listProjects: listHumanLibraryProjects,
+        activeProjectId: sessionActiveProjectId,
+        readSnapshot: loadLibraryProjectSnapshot,
+        switchProject: switchActiveLibraryProject,
+        persistProject: persistActiveProfileProject,
+        flushWrites: flushProfilePrivateWrites,
+        loadActiveProject: loadActiveLibraryProject,
+        currentAssessment: (project, blockNumber) => Boolean(currentOutlineAssessment(project, blockNumber)),
+      });
+      setMessages((current) => [...current, {
+        id: messageId("creative-library-result"),
+        role: "tool",
+        text: result || "BLOCKED: The requested saved PPF was not opened.",
+        context: snapshot,
+      }].slice(-MAX_MESSAGES));
+    } catch (cause) {
+      setMessages((current) => [...current, {
+        id: messageId("creative-library-error"),
+        role: "tool",
+        text: "BLOCKED: Library selection could not be verified: "
+          + (cause instanceof Error ? cause.message : "unknown error"),
+        context: snapshot,
+      }].slice(-MAX_MESSAGES));
+    } finally {
+      setCommandWorking(false);
+    }
+    return true;
+  }
+
   function runCreativeDiscoveryCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
@@ -667,6 +716,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runCreativeLibraryCommand(submitted)) return;
     if (runCreativeDiscoveryCommand(submitted)) return;
     if (await runOpenPencilCommand(submitted)) return;
 

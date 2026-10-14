@@ -565,5 +565,5 @@ test("#2982 Command executes real Story Architect owner and imports only host-va
   assert.match(browser,/action === "start-local"/);
   assert.match(assessment,/validateOutlineAgentAssessment/);
   assert.match(save,/await flushProfilePrivateWrites\(\)/);
-  assert.doesNotMatch(ui.slice(ui.indexOf("  async function runCreativeAssessmentCommand("),ui.indexOf("  function runCreativeDiscoveryCommand(")),/fetch\("/api\/writing-assistant\/chat|\/api\/cloud-story-mode|requestWriterApproval\(/);
+  assert.doesNotMatch(ui.slice(ui.indexOf("  async function runCreativeAssessmentCommand("),ui.indexOf("  function runCreativeDiscoveryCommand(")),/\/api\/writing-assistant\/chat|\/api\/cloud-story-mode|requestWriterApproval\(/);
 });

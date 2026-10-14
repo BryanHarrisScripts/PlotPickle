@@ -3523,7 +3523,7 @@
       },
       {
         "target": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
-        "targetDigest": "c0b87024ee8efb64aeb296f93f4f3bd3869c176af66b6283709cefbccac4f01d",
+        "targetDigest": "d4a10bfc24e156b4758f55d2705167c63ec26c280077c072cdbb52637ae7fdc9",
         "catalogueIds": [
           "agent.dsdd-intent-pi-contract-2350"
         ],
@@ -4453,6 +4453,29 @@
           "unit-fixture"
         ],
         "limits": "Authenticated in-memory profile + real Outline HTTP/gateway/controller scheduler fixture (synthetic model output) tests local zero-cloud-cost admission, cloud route rejection, stale source/CSRF denial, real protected task artifact and idempotent advisory import. No live user content, real provider result, production movie, actual server restart or private Windows UI observed.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2341-dsdd-zero-config.test.mjs",
+        "targetDigest": "d8a5639f7b94b6d7ab3fd980f57f3518d8aa650aef0b990ee4c36cb15b82ded9",
+        "catalogueIds": [
+          "experience.voice-input-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "DSDD remains local Quality and does not display a configuration/provider picker; separate guarded movie-production Command may mention OpenAI/MiniMax without selecting those models for DSDD. Tests do not establish live speech input, model result, film output, real Windows profile or creative approval.",
         "inputs": []
       }
     ]

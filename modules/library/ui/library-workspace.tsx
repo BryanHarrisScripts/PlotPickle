@@ -770,6 +770,31 @@ export default function LibraryWorkspace() {
     }
   }
 
+  async function scanLocalResources(project: LibraryPPFProject) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), LOCAL_RESOURCE_SCAN_TIMEOUT_MS);
+    try {
+      const response = await fetch("/api/local-ai/assets", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const body = await response.json() as LocalAssetIndexResponse;
+      if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
+      const sourceProjects = [...listLibraryProjects(), ...listArchivedLibraryProjects()]
+        .map((item) => loadLibraryProjectSnapshot(item.id))
+        .filter((item): item is LibraryPPFProject => Boolean(item));
+      return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new Error("Local resource scan timed out. Retry the scan before restoring local media.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   async function createNewStory(request: NewStoryIntent) {
     if (creatingStoryRef.current) return;
     creatingStoryRef.current = true;
@@ -810,31 +835,6 @@ export default function LibraryWorkspace() {
     } finally {
       creatingStoryRef.current = false;
       setCreatingStory(false);
-    }
-  }
-
-  async function scanLocalResources(project: LibraryPPFProject) {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), LOCAL_RESOURCE_SCAN_TIMEOUT_MS);
-    try {
-      const response = await fetch("/api/local-ai/assets", {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      const body = await response.json() as LocalAssetIndexResponse;
-      if (!response.ok) throw new Error(body.message || "PlotPickle could not scan local resources.");
-      const sourceProjects = [...listLibraryProjects(), ...listArchivedLibraryProjects()]
-        .map((item) => loadLibraryProjectSnapshot(item.id))
-        .filter((item): item is LibraryPPFProject => Boolean(item));
-      return inventoryLocalResources(project, Array.isArray(body.assets) ? body.assets : [], sourceProjects);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new Error("Local resource scan timed out. Retry the scan before restoring local media.");
-      }
-      throw error;
-    } finally {
-      window.clearTimeout(timeout);
     }
   }
 

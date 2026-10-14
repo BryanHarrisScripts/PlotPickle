@@ -2312,6 +2312,36 @@
         "canon",
         "navigation"
       ]
+    },
+    {
+      "id": "reports-selected-library-ppf-2956",
+      "classification": "production",
+      "include": [
+        "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+        "modules/reports/model/library-ppf-report.mjs",
+        "modules/reports/model/library-ppf-report.d.mts",
+        "app/reports/library-ppf-reports-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "storage",
+        "canon"
+      ]
+    },
+    {
+      "id": "reports-active-ppf-skin-2956",
+      "classification": "production",
+      "include": [
+        "app/reports/library-ppf-reports-workspace.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
     }
   ]
 }

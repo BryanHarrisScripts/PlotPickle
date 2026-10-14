@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 2956,
+  "phase": "reports-selected-library-ppf-source-authority",
+  "brief": "docs/developer-briefs/2956-reports-active-library-ppf.md",
+  "allowedChanges": [
+    "modules/reports/model/library-ppf-report.mjs",
+    "modules/reports/model/library-ppf-report.d.mts",
+    "app/reports/page.tsx",
+    "app/reports/library-ppf-reports-workspace.tsx",
+    "app/reports/library-ppf-reports-workspace.module.css",
+    "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+    "docs/developer-briefs/2956-reports-active-library-ppf.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2956.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXACT-ACTIVE-LIBRARY-IDENTITY",
+      "criterion": "Reports only projects the same ID as the active session-selected Library snapshot, never a legacy or empty placeholder.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+          "contains": "selected Library PPF identity is necessary and sufficient"
+        }
+      ]
+    },
+    {
+      "id": "PPF-ONLY-METRICS",
+      "criterion": "Reported counts are direct read-only selected PPF quantities; structural placeholders do not become completed film metrics.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+          "contains": "counts only observed project-owned story evidence"
+        }
+      ]
+    },
+    {
+      "id": "TRUNCATION-TRUTH",
+      "criterion": "Incomplete imported evidence is explicitly marked and not presented as a complete screenplay census.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+          "contains": "cannot pretend to represent truncated full source"
+        }
+      ]
+    },
+    {
+      "id": "NO-LEGACY-FALLBACK",
+      "criterion": "Direct Reports and dashboard Reports both use the selected Library source; missing selection is explicit.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
+          "contains": "without legacy fallback"
+        }
+      ]
+    },
+    {
+      "id": "REAL-WINDOWS-LIMIT",
+      "criterion": "Synthetic tests cannot certify real Human active project, encrypted reload, imported screenplay, or video state.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2956-reports-active-library-ppf.md",
+          "contains": "They do not show the original real private screenplay"
+        }
+      ]
+    }
+  ]
+}

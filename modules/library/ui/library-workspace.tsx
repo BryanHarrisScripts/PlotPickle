@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
@@ -352,7 +352,9 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
 }) {
   const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
-  const resumeDetails = savedStoryResumeDetails(loadLibraryProjectSnapshot(item.id));
+  const snapshot = loadLibraryProjectSnapshot(item.id);
+  const resumeDetails = savedStoryResumeDetails(snapshot);
+  const intendedRuntime = snapshot?.storyIntent?.targetMinutes ?? null;
 
   return (
     <article
@@ -377,7 +379,7 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
           <small>{displayDate(item.updatedAt)}</small>
         </div>
         <div className={styles.loadCardBody}>
-          <span>{item.genre || "Story"} · {item.format || "PlotPickle"}</span>
+          <span>{item.genre || "Story"} · {item.format || "PlotPickle"}{intendedRuntime !== null ? ` · Target ${intendedRuntime} min` : ""}</span>
           <strong>{item.title}</strong>
           <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
           {resumeDetails.actions.length ? (
@@ -516,7 +518,7 @@ function NewStoryCard({ onCreate, creating }: {
   const [targetMinutes, setTargetMinutes] = useState("");
   const [validationError, setValidationError] = useState("");
 
-  function submitNewStory(event: React.FormEvent<HTMLFormElement>) {
+  function submitNewStory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (creating) return;
     try {

@@ -21,6 +21,24 @@ export function parsePlotPickleCreativeCommand(input) {
   if (/^\/?plotpickle\s+(?:help|tools)$/iu.test(value)) return Object.freeze({ action: "tools" });
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
   if (/^\/?plotpickle\s+(?:library|list\s+projects)$/iu.test(value)) return Object.freeze({ action: "library" });
+  // Naming changes require a separate exact-identity preview and confirmation.
+  const confirmedRename = value.match(/^\/?plotpickle\s+confirm\s+rename\s+(\S+)\s+revision\s+(\d{1,12})\s+to\s+(.+)$/iu);
+  if (confirmedRename) {
+    const title = confirmedRename[3].trim();
+    const revision = Number(confirmedRename[2]);
+    return /^[A-Za-z0-9_.:-]{1,180}$/u.test(confirmedRename[1]) && Number.isSafeInteger(revision)
+      && revision >= 0 && title.length > 0 && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
+      ? Object.freeze({ action: "confirm-rename", projectId: confirmedRename[1], revision, title })
+      : Object.freeze({ action: "invalid", reason: "Choose an exact saved project ID, nonnegative revision and title of 1–160 characters. Nothing was renamed." });
+  }
+  const rename = value.match(/^\/?plotpickle\s+rename\s+(\S+)\s+to\s+(.+)$/iu);
+  if (rename) {
+    const title = rename[2].trim();
+    return /^[A-Za-z0-9_.:-]{1,180}$/u.test(rename[1]) && title.length > 0
+      && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
+      ? Object.freeze({ action: "rename", projectId: rename[1], title })
+      : Object.freeze({ action: "invalid", reason: "Choose an exact saved project ID and title of 1–160 characters. Nothing was renamed." });
+  }
   // An explicit selection request only. Unrecognized creative narration stays with DSDD.
   const open = value.match(/^\/?plotpickle\s+open\s+(.+)$/iu);
   if (open) {
@@ -75,7 +93,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title>",
+      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle rename <project ID> to <new title> (preview first)",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."
@@ -233,5 +251,111 @@ export async function executePlotPickleLibraryOpen(command, services) {
     return "BLOCKED: Library Open could not be durably verified: "
       + (error instanceof Error ? error.message : "unknown Library failure")
       + ". Selection or encrypted-save acknowledgement may be uncertain; inspect Library status before retrying. No creative production ran.";
+  }
+}
+
+
+/**
+ * Preview or perform one explicitly confirmed title-only change of a saved,
+ * current-profile Human-owned PPF. Never infer identity from creative content,
+ * auto-adopt reference examples, create a project, or silently overwrite titles.
+ * Services are authoritative browser Library operations already used by the GUI.
+ */
+export async function executePlotPickleLibraryRename(command, services) {
+  if (!command || (command.action !== "rename" && command.action !== "confirm-rename")) return null;
+  const confirmed = command.action === "confirm-rename";
+  const id = String(command.projectId || "");
+  const title = String(command.title || "").trim().normalize("NFC");
+  if (!/^[A-Za-z0-9_.:-]{1,180}$/u.test(id) || !title || title.length > 160
+      || !/[\p{L}\p{N}]/u.test(title) || /[\r\n\t]/u.test(title)) {
+    return "BLOCKED: Invalid saved project ID or title. No rename was attempted.";
+  }
+  try {
+    if (!services.profileReady()) return "BLOCKED: Human profile is locked or Library is not hydrated. No rename was attempted.";
+    const authority = services.profileId();
+    if (!authority) return "BLOCKED: The authenticated profile identity is unavailable. No rename was attempted.";
+    const items = services.listProjects();
+    if (!Array.isArray(items)) return "BLOCKED: Current-profile Human Library inventory is unavailable. No rename was attempted.";
+    const matches = items.filter(item => item && item.id === id);
+    if (matches.length !== 1) return "BLOCKED: Project ID is not uniquely present in the current-profile Human Library. "
+      + "Run PlotPickle library and select a saved Human story ID. No rename was attempted.";
+    const item = matches[0];
+    const oldTitle = libraryTitle(item.title);
+    const targetTitle = libraryTitle(title);
+    const targetKey = libraryKey(targetTitle);
+    if (targetKey === libraryKey(oldTitle) && targetTitle === oldTitle)
+      return "NO CHANGE: " + libraryRecord(item) + " already has that title. No project was modified.";
+    const conflicting = services.listInventory().filter(other => other && other.id !== id
+      && libraryKey(other.title) === targetKey);
+    if (conflicting.length) return "BLOCKED: Another saved Library PPF already has the target title: "
+      + conflicting.slice(0, 4).map(libraryRecord).join("; ") + ". Nothing was renamed.";
+    const snapshot = services.readSnapshot(id);
+    if (!snapshot || snapshot.id !== id || snapshot.title !== item.title
+      || !Number.isInteger(snapshot.revision) || snapshot.revision < 0)
+      return "BLOCKED: Saved title/identity/revision does not match its Library summary. No rename was attempted.";
+    const activeId = services.activeProjectId();
+    if (activeId && activeId !== id) return "BLOCKED: Another story is active. "
+      + "To protect possible unsaved edits, finish that story in Library before renaming. No project was changed.";
+    if (!confirmed) {
+      return "TITLE RENAME PREVIEW · no changes made\n"
+        + "Saved PPF: " + oldTitle + "\nProject ID: " + id
+        + "\nRevision: " + snapshot.revision + "\nNew title: " + targetTitle
+        + "\nClassification: " + (item.sourceKind || "unknown")
+        + "\nOnly the PPF display title will change; project identity, screenplay, story and media must remain intact. "
+        + "The selected profile's encrypted Library must acknowledge the write.\n"
+        + "To approve this exact identity and revision, send:\nPlotPickle confirm rename " + id
+        + " revision " + snapshot.revision + " to " + targetTitle;
+    }
+    if (command.revision !== snapshot.revision)
+      return "BLOCKED: The saved PPF revision has changed since the preview. "
+        + "Run PlotPickle rename " + id + " to " + targetTitle + " again. No rename was attempted.";
+    // Validate all pending encrypted writes before the first local mutation.
+    await services.flushWrites();
+    if (!services.profileReady() || services.profileId() !== authority
+        || services.activeProjectId() !== activeId)
+      return "BLOCKED: Profile or active project changed during title confirmation. No rename was attempted.";
+    const check = services.readSnapshot(id);
+    if (!check || check.id !== id || check.title !== oldTitle || check.revision !== snapshot.revision
+        || !services.listProjects().some(row => row.id === id && row.title === oldTitle))
+      return "BLOCKED: Saved PPF identity/title/revision changed before the write. No rename was attempted.";
+    const currentTitleKey = libraryKey(targetTitle);
+    if (services.listInventory().some(row => row.id !== id && libraryKey(row.title) === currentTitleKey))
+      return "BLOCKED: Another PPF now uses the requested title. No rename was attempted.";
+    // Reuse the exact same switch and save path as the Library GUI. Never
+    // mutate the live snapshot in place. This intentionally selects the story.
+    if (!activeId) {
+      const switched = services.switchProject(id);
+      if (!switched || switched.id !== id || switched.revision !== snapshot.revision)
+        return "BLOCKED: Library could not verify project selection. Inspect Library before retrying.";
+    }
+    const saved = services.saveProject({ ...check, title: targetTitle });
+    if (!saved || saved.id !== id || saved.title !== targetTitle)
+      return "BLOCKED: Library did not confirm the requested title-only Save. Inspect Library; save state may be uncertain.";
+    await services.persistProject(id);
+    await services.flushWrites();
+    const after = services.readSnapshot(id);
+    const summary = services.listProjects().find(row => row.id === id);
+    if (!services.profileReady() || services.profileId() !== authority
+        || services.activeProjectId() !== id
+        || !after || after.id !== id || after.title !== targetTitle
+        || !summary || summary.title !== targetTitle)
+      return "BLOCKED: Post-save Library title/identity verification failed. The write status is uncertain; inspect Library.";
+    // Rewriting screenplay or creative decisions is never an acceptable side effect.
+    const removeTitleAndMetadata = p => {
+      const { title: _title, updatedAt: _updatedAt, revision: _revision, ...rest } = p;
+      return JSON.stringify(rest);
+    };
+    if (removeTitleAndMetadata(after) !== removeTitleAndMetadata(check))
+      return "BLOCKED: Non-title PPF fields changed during rename. Inspect saved Library/recovery immediately; acceptance is denied.";
+    return "TITLE RENAME VERIFIED · saved to current-profile Library\n"
+      + "Old title: " + oldTitle + "\nNew title: " + targetTitle
+      + "\nProject ID: " + id + "\nRevision: " + after.revision
+      + "\nThe same PPF identity remains active. Saved metadata has been read back. "
+      + "No movie operations, creative approvals or provider calls ran.\n"
+      + "Next: PlotPickle plan Block 01";
+  } catch (error) {
+    return "BLOCKED: Rename could not be verified: "
+      + (error instanceof Error ? error.message : "unknown Library write failure")
+      + ". If a write was attempted, its durable status is uncertain. Inspect the Library before retrying.";
   }
 }

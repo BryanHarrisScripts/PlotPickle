@@ -3981,7 +3981,7 @@
       },
       {
         "target": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
-        "targetDigest": "7960c266a23065462c3d296303705ce0fac66bd6b08e9339bc9482cdecebf161",
+        "targetDigest": "3b931c59a1129f88c9a1cef39a1f516da1f67a64dbc4fdef07ddbb6110432207",
         "catalogueIds": [
           "experience.compressed-24x96-existing-ppf-2977"
         ],

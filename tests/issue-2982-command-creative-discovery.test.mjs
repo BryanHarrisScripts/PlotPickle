@@ -297,7 +297,8 @@ test("#2982 Command Library lookup remains profile-gated and uses actual project
     readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
     readFile(new URL("../core/storage/profile-private-browser.ts",import.meta.url),"utf8"),
   ]);
-  assert.match(ui,/profilePrivateBrowserReadyFor\(window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
+  assert.match(ui,/const profileId\s*=\s*\(\)\s*=>\s*window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
+  assert.match(ui,/profileReady:\s*\(\)\s*=>\s*profilePrivateBrowserReadyFor\(profileId\(\)\)/);
   assert.match(ui,/listInventory: listPersistableLibraryProjects/);
   assert.match(ui,/listProjects: listHumanLibraryProjects/);
   assert.match(ui,/command\?\.action !== "open" && command\?\.action !== "library"/);

@@ -298,18 +298,19 @@ export async function executePlotPickleLibraryRename(command, services) {
     const activeId = services.activeProjectId();
     if (activeId && activeId !== id) return "BLOCKED: Another story is active. "
       + "To protect possible unsaved edits, finish that story in Library before renaming. No project was changed.";
+    if (oldTitle.includes('"') || targetTitle.includes('"')) return "BLOCKED: Quotes in saved titles require Library review before preparing a safe confirmation command. Nothing was renamed.";
     if (!confirmed) {
       return "TITLE RENAME PREVIEW · no changes made\n"
         + "Saved PPF: " + oldTitle + "\nProject ID: " + id
         + "\nRevision: " + snapshot.revision + "\nNew title: " + targetTitle
         + "\nClassification: " + (item.sourceKind || "unknown")
-        + "\nOnly the PPF display title will change; project identity, screenplay, story and media must remain intact. "
+        + "\nOnly the PPF display title will change; project identity, screenplay, story and media must remain intact. Save any unsaved editor drafts before confirming. "
         + "The selected profile's encrypted Library must acknowledge the write.\n"
         + "To approve this exact identity and revision, send:\nPlotPickle confirm rename " + id
         + ' revision ' + snapshot.revision + ' from "' + oldTitle + '" to "' + targetTitle + '"';
     }
     if (command.revision !== snapshot.revision || command.previousTitle !== oldTitle)
-      return "BLOCKED: The saved PPF revision has changed since the preview. "
+      return "BLOCKED: The saved PPF title or revision has changed since the preview. "
         + "Run PlotPickle rename " + id + " to " + targetTitle + " again. No rename was attempted.";
     // Validate all pending encrypted writes before the first local mutation.
     await services.flushWrites();
@@ -352,7 +353,7 @@ export async function executePlotPickleLibraryRename(command, services) {
     return "TITLE RENAME VERIFIED · saved to current-profile Library\n"
       + "Old title: " + oldTitle + "\nNew title: " + targetTitle
       + "\nProject ID: " + id + "\nRevision: " + after.revision
-      + "\nThe same PPF identity remains active. Saved metadata has been read back. "
+      + "\nThe same PPF identity remains active. Encrypted profile Save was acknowledged and Library session metadata was read back. Restart/reopen is not proven by this command. "
       + "No movie operations, creative approvals or provider calls ran.\n"
       + "Next: PlotPickle plan Block 01";
   } catch (error) {

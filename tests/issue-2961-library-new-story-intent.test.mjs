@@ -90,7 +90,7 @@ test("#2961 core Library creates new exact user title, format and PPF intent wit
 test("#2961 creation UI has explicit accessible Human choices, awaits encrypted persistence and prevents duplicate retry",async()=>{
   const source=await read("modules/library/ui/library-workspace.tsx");
   assert.match(source,/<h3>New Project<\/h3>/);
-  assert.match(source,/>Create New Project<\/button>/);
+  assert.match(source,/\{creating \? "Saving New Project…" : "Create New Project"\}<\/button>/);
   assert.match(source,/data-library-new-story-form="identity-intent"/);
   assert.match(source,/htmlFor="library-new-title"/);
   assert.match(source,/htmlFor="library-new-format"/);

@@ -19,7 +19,8 @@
     "config/verification/ownership-map.json",
     "config/development-convergence/2961.json",
     "tests/issue-2630-mind-map-human-notes.test.mjs",
-    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs"
+    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+    "tests/issue-2625-library-unload-active-story.test.mjs"
   ],
   "acceptance": [
     {
@@ -101,6 +102,28 @@
           "type": "file-contains",
           "path": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
           "contains": "mindMapNotes, storyIntent"
+        }
+      ]
+    },
+    {
+      "id": "NO-PRIOR-STORY-METADATA-LEAK",
+      "criterion": "Creating a short does not re-save the previous Feature's Library format as Short Film.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/storage/project-library-core.mjs",
+          "contains": "for (const key of [\"title\", \"genre\", \"format\", \"storyIntent\", \"sourceKind\", \"sourceId\"]) delete priorInput[key]"
+        }
+      ]
+    },
+    {
+      "id": "UNLOAD-STILL-ISOLATED",
+      "criterion": "New handler signature cannot trick the existing Unload's no-handoff and reversibility test.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2625-library-unload-active-story.test.mjs",
+          "contains": "source.indexOf(\"async function scanLocalResources(\", unloadStart)"
         }
       ]
     }

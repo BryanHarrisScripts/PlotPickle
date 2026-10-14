@@ -3881,7 +3881,7 @@
           },
           {
             "path": "core/storage/project-library-core.mjs",
-            "digest": "ecb0f176d5e4e6f2edcda58abbb2e83f0f10234202d11d85d4ab960866f8d614"
+            "digest": "c844197c1a949b462352ef16a03a4a38656fa88a95ece13c4fafef1e4eb1f726"
           },
           {
             "path": "core/storage/project-library-browser.ts",
@@ -3998,6 +3998,35 @@
         ],
         "limits": "#2961 revised source contracts retain Human notes/discovery evidence and include optional canonical storyIntent; not live authenticated Windows save or restart acceptance.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2625-library-unload-active-story.test.mjs",
+        "targetDigest": "f10281006ba591f3e93618641d095c65df7fdb839cd4d15092fc4870d56a3d98",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.library-unload-active-story-2625",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "#2961 updates only Unload test source extraction to the adjacent function boundary after New gained a typed signature. No-handoff, rollback, no-delete and no-profile-switch negative controls remain. Not an actual Windows Unload session.",
+        "inputs": [
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
+          }
+        ]
       }
     ]
   }

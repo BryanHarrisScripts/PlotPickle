@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { blockWritingEntry, updateBlockWritingEntry } from "@/core/contracts/block-writing";
 import { moveWriteStoryPosition } from "../model/write-position-navigation.mjs";
 import { reviewBlockHandoff } from "../model/block-handoff-review.mjs";
+import { projectRuntimeGrid } from "../model/selected-ppf-runtime-grid.mjs";
 import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
@@ -159,6 +160,8 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   const handoff = reviewBlockHandoff(project, address.blockNumber, {
     currentAssessment: Boolean(currentOutlineAssessment(project, address.blockNumber)),
   });
+  const runtimeGrid = projectRuntimeGrid(project);
+  const nominalBlock = runtimeGrid.status === "runtime-configured" ? runtimeGrid.blocks[address.blockNumber - 1] : null;
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
@@ -347,9 +350,21 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         {handoff.titleNeedsReview ? <p role="status">Project title needs review in Library: no name is inferred from imported screenplay text or this handoff.</p> : null}
         {handoff.sourceIsPartial ? <p role="status">The imported screenplay is truncated. Mapped passage counts describe retained evidence only.</p> : null}
         <p>Story Architect: {handoff.currentAssessment ? "current advisory assessment, not Human acceptance" : "no current assessment verified"}. The accepted Plan states below, not agent proposals, govern readiness.</p>
+        <div data-selected-ppf-runtime-status={runtimeGrid.status}>
+          <p>FIXED STRUCTURE · 4 ACTS / 12 SEQUENCES / 24 BLOCKS / 96 MINI-BLOCKS</p>
+          {runtimeGrid.status === "runtime-configured" ? (
+            <>
+              <p>{runtimeGrid.format} · Human-selected target {runtimeGrid.targetMinutes} minutes · nominal Block {String(address.blockNumber).padStart(2, "0")} window {nominalBlock?.startSeconds.toFixed(3)}–{nominalBlock?.endSeconds.toFixed(3)} seconds ({nominalBlock?.durationFrames} frames at 24 fps).</p>
+              <p>25 planned Storyboard Shot positions per Mini-Block; nominal time budget {runtimeGrid.shotPlanningSlotSeconds.toFixed(3)} seconds per position. {runtimeGrid.defaultThreeSecondPresetFits ? "Matches the original 120-minute / 3-second planning preset." : "Does NOT match the two-hour / 3-second timing preset; Shot and motion timing need a separately authored review."} No Shot or frame has been rendered.</p>
+            </>
+          ) : (
+            <p role="status">{runtimeGrid.reason} An existing story's target must be chosen explicitly; these regions cannot be assigned 75 seconds by default.</p>
+          )}
+        </div>
         <ol>
           {handoff.miniBlocks.map((item) => <li key={item.address}>
             <strong>Mini-Block {item.address}</strong> · {item.planAccepted ? "Plan accepted by Human" : `Plan ${item.planState} — Human acceptance required`} · {item.importedPassages} imported passage(s) · {item.savedWriting ? "saved writing present" : "no saved writing"}
+            {runtimeGrid.status === "runtime-configured" ? <small>Nominal time {runtimeGrid.miniBlocks[(address.blockNumber - 1) * 4 + item.ordinal - 1].startSeconds.toFixed(3)}–{runtimeGrid.miniBlocks[(address.blockNumber - 1) * 4 + item.ordinal - 1].endSeconds.toFixed(3)} s; not authored Shot timing</small> : null}
           </li>)}
         </ol>
         <p>{handoff.allPlansAccepted

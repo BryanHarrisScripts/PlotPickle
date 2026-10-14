@@ -5,6 +5,7 @@ import {
   parsePlotPickleCreativeCommand,
   describePlotPickleCreativeCommand,
   executePlotPickleLibraryOpen,
+  describePlotPickleLibraryInventory,
 } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 function project(accepted=0, targetMinutes=15) {
@@ -36,6 +37,8 @@ test("#2982 explicit PlotPickle commands are distinct from authored DSDD intent"
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle tools"),{action:"tools"});
   assert.deepEqual(parsePlotPickleCreativeCommand("/plotpickle help"),{action:"tools"});
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle status"),{action:"status"});
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle library"),{action:"library"});
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle list projects"),{action:"library"});
   assert.deepEqual(parsePlotPickleCreativeCommand("plotpickle plan Block 01"),{action:"plan",blockNumber:1});
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle plan Block 24"),{action:"plan",blockNumber:24});
   assert.equal(parsePlotPickleCreativeCommand("PlotPickle plan Block 25").action,"invalid");
@@ -119,10 +122,12 @@ test("#2982 actual Command UI dispatch is guarded, read-only and leaves DSDD and
   assert.match(src,/action: "publish-brief"/);
 });
 
-function libraryHarness({ entries = [project()], selected = null, persistFails = false, switchFails = false } = {}) {
+function libraryHarness({ entries = [project()], selected = null, persistFails = false, switchFails = false, ready = true, extraInventory = [] } = {}) {
   const calls = [];
   let current = selected;
   const services = {
+    profileReady() { calls.push("authority"); return ready; },
+    listInventory() { calls.push("inventory"); return [...entries.map(p => ({ id:p.id, title:p.title, sourceKind:"user" })), ...extraInventory]; },
     listProjects() { calls.push("list"); return entries.map(p => ({ id: p.id, title: p.title })); },
     activeProjectId() { return current; },
     readSnapshot(id) { calls.push("read:" + id); return entries.find(p => p.id === id) ?? null; },
@@ -160,7 +165,7 @@ test("#2982 Command opens the unique existing Human PPF via Library owner then i
   assert.match(output, /PLOTPICKLE BLOCK 01/);
   assert.match(output, /Outline: 0\/4 Human-accepted Plans/);
   assert.match(output, /No creative edits, provider requests, approvals, paid generation/);
-  assert.deepEqual(h.calls, ["list","read:selected-ppf-2982","switch:selected-ppf-2982","library-change-event",
+  assert.deepEqual(h.calls, ["authority","inventory","list","read:selected-ppf-2982","switch:selected-ppf-2982","library-change-event",
     "persist","flush","reload","assessment:selected-ppf-2982:1"]);
   assert.equal(h.currentId(),"selected-ppf-2982");
   assert.equal(JSON.stringify(h.entries),before,"Command selection cannot rewrite screenplay, source, Plan or media");
@@ -227,4 +232,75 @@ test("#2982 actual Command Open uses Library authority then reuses existing stat
   assert.match(library,/export function switchActiveLibraryProject[\s\S]*markSessionActiveProject\(result\.activeProject\.id\);[\s\S]*announceChange\(\)/u);
   assert.match(core,/const plan = describePlotPickleCreativeCommand\(\{ action: "plan", blockNumber: 1 \}/u);
   assert.doesNotMatch(handler,/createLibraryUserProject|createLibraryWorkingCopy|saveActiveLibraryProject|\/api\/local-ai\/generate|\/api\/storyboard\//u);
+});
+
+test("#2982 screenshot UAT — no exact Brotherly Love title produces current-profile diagnostics, never a fabricated Library open", async () => {
+  const h=libraryHarness({entries:[{...project(),id:"brotherly-source",title:"Brotherly Love — imported screenplay"}]});
+  const output=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},h.services);
+  assert.match(output,/BLOCKED: No Human-owned saved PPF exactly titled Brotherly Love/);
+  assert.match(output,/Other matching titles: Brotherly Love — imported screenplay/);
+  assert.match(output,/PlotPickle library/);
+  assert.equal(h.currentId(),null);
+  assert.ok(!h.calls.some(s=>s.startsWith("switch:")));
+  assert.ok(!h.calls.includes("persist"));
+});
+
+test("#2982 Command lists authoritative current-profile saved titles and classifications without switching or running providers", async () => {
+  const example={id:"packaged-example",title:"Afterglow",sourceKind:"example"};
+  const h=libraryHarness({extraInventory:[example],selected:null});
+  const output=await executePlotPickleLibraryOpen({action:"library"},h.services);
+  assert.match(output,/PLOTPICKLE LIBRARY/);
+  assert.match(output,/Brotherly Love \[id: selected-ppf-2982, kind: user\]/);
+  assert.match(output,/Afterglow \[id: packaged-example, kind: example\]/);
+  assert.match(output,/Current-profile saved Library titles \(2\)/);
+  assert.deepEqual(h.calls,["authority","inventory"]);
+  assert.equal(h.currentId(),null);
+  assert.doesNotMatch(output,/LIBRARY PPF VERIFIED/);
+});
+
+test("#2982 profile not hydrated is distinguishable from an absent saved story and reveals no names", async () => {
+  const h=libraryHarness({ready:false});
+  for(const command of [{action:"library"},{action:"open",title:"Brotherly Love"}]) {
+    const result=await executePlotPickleLibraryOpen(command,h.services);
+    assert.match(result,/BLOCKED: Authenticated profile Library is not/);
+    assert.doesNotMatch(result,/selected-ppf-2982/);
+    assert.doesNotMatch(result,/LIBRARY PPF VERIFIED/);
+  }
+  assert.ok(!h.calls.includes("inventory"));
+  assert.ok(!h.calls.some(s=>s.startsWith("switch:")));
+});
+
+test("#2982 classification exclusion is explained without converting saved examples or synthetic fixtures", async () => {
+  const h=libraryHarness({entries:[],extraInventory:[{id:"excluded",title:"Brotherly Love",sourceKind:"synthetic"}]});
+  const output=await executePlotPickleLibraryOpen({action:"open",title:"Brotherly Love"},h.services);
+  assert.match(output,/present in the current-profile Library index but excluded/);
+  assert.match(output,/kind: synthetic/);
+  assert.equal(h.currentId(),null);
+});
+
+test("#2982 read-only Library inspection handles zero projects and oversized inventories without leaking project content", () => {
+  const services={profileReady:()=>true,activeProjectId:()=>null,listInventory:()=>[]};
+  assert.match(describePlotPickleLibraryInventory(services),/zero saved PPFs/);
+  const records=Array.from({length:33},(_,i)=>({id:"rec-"+i,title:"Saved Title "+i,sourceKind:"user"}));
+  const output=describePlotPickleLibraryInventory({...services,listInventory:()=>records});
+  assert.match(output,/Current-profile saved Library titles \(33\)/);
+  assert.match(output,/13 more/);
+  assert.doesNotMatch(output,/Saved Title 32/);
+  assert.doesNotMatch(output,/screenplay|passages|provider token/i);
+});
+
+test("#2982 Command Library lookup remains profile-gated and uses actual project owner not an alternate store", async () => {
+  const [ui,library,core,profile]=await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../core/storage/project-library-browser.ts",import.meta.url),"utf8"),
+    readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
+    readFile(new URL("../core/storage/profile-private-browser.ts",import.meta.url),"utf8"),
+  ]);
+  assert.match(ui,/profilePrivateBrowserReadyFor\(window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
+  assert.match(ui,/listInventory: listPersistableLibraryProjects/);
+  assert.match(ui,/listProjects: listHumanLibraryProjects/);
+  assert.match(ui,/command\?\.action !== "open" && command\?\.action !== "library"/);
+  assert.match(library,/export function listPersistableLibraryProjects\(\)/);
+  assert.match(profile,/export function profilePrivateBrowserReadyFor\(profileId: string\)/);
+  assert.match(core,/describePlotPickleLibraryInventory/);
 });

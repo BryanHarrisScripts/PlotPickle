@@ -401,7 +401,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.mindMapNotes
       : createEmptyMindMapNotesState();
-  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes };
+  const storyIntent = "storyIntent" in incoming
+    ? incoming.storyIntent
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.storyIntent
+      : null;
+  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);

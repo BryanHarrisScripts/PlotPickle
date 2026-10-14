@@ -14,7 +14,8 @@
 .sourcePanel,
 .editorPanel,
 .learningPanel,
-.impactPanel {
+.impactPanel,
+.handoffPanel {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-fill-panel);
@@ -176,7 +177,8 @@
 .sourcePanel,
 .editorPanel,
 .learningPanel,
-.impactPanel {
+.impactPanel,
+.handoffPanel {
   padding: var(--pp-skin-space-3);
 }
 
@@ -364,4 +366,36 @@
   .sourcePanel {
     order: initial;
   }
+}
+
+.handoffPanel {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+.handoffPanel p,
+.handoffPanel small,
+.handoffPanel li {
+  margin: 0;
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+.handoffPanel p[role="status"] {
+  color: var(--pp-skin-accent-bright);
+}
+.handoffPanel ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.handoffPanel li {
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+@media (max-width: 720px) {
+  .handoffPanel ol { grid-template-columns: minmax(0, 1fr); }
 }

@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { blockWritingEntry, updateBlockWritingEntry } from "@/core/contracts/block-writing";
 import { moveWriteStoryPosition } from "../model/write-position-navigation.mjs";
+import { reviewBlockHandoff } from "../model/block-handoff-review.mjs";
+import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -154,6 +156,9 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   )) ?? [];
   const sourceText = sourcePassages.map((passage) => passage.text).join("\n\n");
   const learning = storyLearningContext(address);
+  const handoff = reviewBlockHandoff(project, address.blockNumber, {
+    currentAssessment: Boolean(currentOutlineAssessment(project, address.blockNumber)),
+  });
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
@@ -241,6 +246,10 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   async function visualizeBlock() {
+    if (!handoff.allPlansAccepted) {
+      setStatus(`Block ${String(address.blockNumber).padStart(2, "0")} has ${handoff.acceptedCount}/4 accepted Outline Mini-Block plans. Review and explicitly accept them in Outline first; no run was created.`);
+      return;
+    }
     if (dirty || saveInFlightRef.current) {
       setStatus("Save or discard the current screenplay edit before starting a visual production pass so the Responsibility Run can bind to one exact project revision.");
       return;
@@ -263,7 +272,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
       }
       setStatus(
         `Prepared ${request.stages.length} proposal-only Story-to-Screen stages for Block ${String(address.blockNumber).padStart(2, "0")} at project revision ${request.canonicalRevision}. `
-        + "They are visible in Responsibility Runs for bounded execution and Human review. No provider call, cloud spend, canon promotion, or story rewrite occurred from this action.",
+        + "These are queued proposal-only Responsibility Run records, not executed agent stages. No Outline agent result, Storyboard image, provider call, cloud spend, canon promotion, or story rewrite occurred from this action.",
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Story-to-Screen projection could not be prepared.");
@@ -288,7 +297,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         </div>
         <div className={styles.headerActions}>
           {onBackDashboard ? <button type="button" onClick={leaveWrite}>Back to Dashboard</button> : null}
-          <button type="button" disabled={visualizing} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing visual pass…" : "Visualize this Block"}</button>
+          <button type="button" disabled={visualizing || !handoff.allPlansAccepted} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing proposal stages…" : "Visualize this Block"}</button>
           <button type="button" onClick={() => navigateFromWrite(storyLearningReturnHref(address))}>Outline this position</button>
           <button type="button" onClick={() => navigateFromWrite(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
           <button type="button" onClick={() => navigateFromWrite(storyLearningHref(learning.references[0], address))}>Learn this position</button>
@@ -327,6 +336,26 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
           <span>{mini?.title ?? learning.miniRole}</span>
         </div>
         <p>{learning.positionNote}</p>
+      </section>
+
+      <section className={styles.handoffPanel} aria-label="Selected Block Outline and Write handoff" data-block-handoff-project-id={handoff.projectId}>
+        <div className={styles.sectionHeading}>
+          <p>SELECTED LIBRARY PPF · READ-ONLY HANDOFF</p>
+          <h2>Block {String(address.blockNumber).padStart(2, "0")} · Outline → Write</h2>
+        </div>
+        <p>Project: {handoff.title || "Untitled / unverified"} · Revision {handoff.revision}. Accepted Outline plans: {handoff.acceptedCount}/4. Imported passages mapped: {handoff.mappedSourcePassages}. Mini-Blocks with saved writing: {handoff.savedWritingCount}/4.</p>
+        {handoff.titleNeedsReview ? <p role="status">Project title needs review in Library: no name is inferred from imported screenplay text or this handoff.</p> : null}
+        {handoff.sourceIsPartial ? <p role="status">The imported screenplay is truncated. Mapped passage counts describe retained evidence only.</p> : null}
+        <p>Story Architect: {handoff.currentAssessment ? "current advisory assessment, not Human acceptance" : "no current assessment verified"}. The accepted Plan states below, not agent proposals, govern readiness.</p>
+        <ol>
+          {handoff.miniBlocks.map((item) => <li key={item.address}>
+            <strong>Mini-Block {item.address}</strong> · {item.planAccepted ? "Plan accepted by Human" : `Plan ${item.planState} — Human acceptance required`} · {item.importedPassages} imported passage(s) · {item.savedWriting ? "saved writing present" : "no saved writing"}
+          </li>)}
+        </ol>
+        <p>{handoff.allPlansAccepted
+          ? "Ready to prepare candidate stages for this Block. Preparation is not execution."
+          : "Return to Outline to review and accept the missing plans. No downstream Run can be prepared here yet."}</p>
+        <small>Visualize this Block prepares proposal-only records; it does not execute agents, generate images, certify Storyboard readiness, rewrite the screenplay, or spend credits. Downstream execution and Human acceptance are separate boundaries.</small>
       </section>
 
       <div className={styles.columns}>

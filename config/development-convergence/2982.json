@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2982,
-  "phase": "command-creative-tool-inventory-and-ppf-plan-readonly",
+  "phase": "command-creative-discovery-and-guarded-library-open",
   "brief": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -14,7 +14,8 @@
     "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
     "modules/library/afterglow-consolidation.mjs",
     "scripts/promote-afterglow-packaged-example.mjs",
-    "tests/issue-2982-afterglow-story-intent.test.mjs"
+    "tests/issue-2982-afterglow-story-intent.test.mjs",
+    "docs/developer-briefs/2982-command-library-selection-phase2.md"
   ],
   "acceptance": [
     {
@@ -91,6 +92,22 @@
           "type": "file-contains",
           "path": "tests/issue-2982-afterglow-story-intent.test.mjs",
           "contains": "two disagreeing Human runtimes remain one atomic decision"
+        }
+      ]
+    },
+    {
+      "id": "COMMAND-OPEN-PROFILE-PPF",
+      "criterion": "A named unique existing Library story can be opened from Command without manual navigation; same-profile, exact ID/revision, durable selection and live status/Block 01 readback are independently checked. Duplicate, absent, wrong active story and uncertain encrypted Save fail closed without creative mutation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "Command opens the unique existing Human PPF via Library owner"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2982-command-library-selection-phase2.md",
+          "contains": "not completion of #2982"
         }
       ]
     }

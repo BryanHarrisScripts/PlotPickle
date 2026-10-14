@@ -73,7 +73,7 @@ test("#2603 Library New creates Blank while Afterglow remains an explicit Exampl
   ]);
 
   assert.match(workspace, /<h3>New Project<\/h3>/u);
-  assert.match(workspace, />Create New Project<\/button>/u);
+  assert.match(workspace, /\{creating \? "Saving New Project…" : "Create New Project"\}<\/button>/u);
   assert.match(workspace, /validateNewStoryIntent\(request\)/u);
   assert.match(workspace, /createLibraryUserProject\(\{[\s\S]*?title: intent\.title,[\s\S]*?format: intent\.format,[\s\S]*?storyIntent: \{ format: intent\.format, targetMinutes: intent\.targetMinutes \}/u);
   assert.match(workspace, /<option value="Short Film">Short Film<\/option>/u);

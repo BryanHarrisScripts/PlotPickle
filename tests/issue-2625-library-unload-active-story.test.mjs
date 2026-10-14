@@ -26,7 +26,7 @@ test("#2625 Load marks the active Afterglow or Human story and exposes one Unloa
 test("#2625 unload saves before detach, persists no active story, and returns to Blank without a handoff", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf("async function unloadCurrentStory()");
-  const end = source.indexOf("async function createNewStory()", start);
+  const end = source.indexOf("async function scanLocalResources(", start);
   const unload = source.slice(start, end);
 
   const firstPersist = unload.indexOf("await persistActiveProfileProject()");
@@ -49,7 +49,7 @@ test("#2625 unload saves before detach, persists no active story, and returns to
 test("#2625 detach is reversible if the durable null-active write fails", async () => {
   const source = await read("modules/library/ui/library-workspace.tsx");
   const start = source.indexOf("async function unloadCurrentStory()");
-  const end = source.indexOf("async function createNewStory()", start);
+  const end = source.indexOf("async function scanLocalResources(", start);
   const unload = source.slice(start, end);
 
   assert.match(unload, /let detached = false/u);
@@ -84,7 +84,7 @@ test("#2625 keeps explicit Open Example handoff separate from unload", async () 
   const openEnd = source.indexOf("function ExampleGatewayCard", openStart);
   const open = source.slice(openStart, openEnd);
   const unloadStart = source.indexOf("async function unloadCurrentStory()");
-  const unloadEnd = source.indexOf("async function createNewStory()", unloadStart);
+  const unloadEnd = source.indexOf("async function scanLocalResources(", unloadStart);
   const unload = source.slice(unloadStart, unloadEnd);
 
   assert.match(open, /stageSessionActiveProjectHandoff\(\)/u);

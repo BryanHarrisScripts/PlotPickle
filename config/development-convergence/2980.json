@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 2980,
+  "phase": "bounded-unique-basename-grounding",
+  "brief": "docs/developer-briefs/2980-pi-basename-grounding.md",
+  "allowedChanges": [
+    "scripts/pi/dsdd-grounding-repair.mjs",
+    "tests/issue-2980-pi-basename-grounding.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2980.json",
+    "docs/developer-briefs/2980-pi-basename-grounding.md"
+  ],
+  "acceptance": [
+    {
+      "id": "FOUR-VERIFIED-BASENAMES",
+      "criterion": "A bare backticked basename may be replaced only by exactly one current tracked regular file's canonical repo-relative path.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2980-pi-basename-grounding.test.mjs",
+          "contains": "unique tracked basename resolves to verified full path"
+        }
+      ]
+    },
+    {
+      "id": "AMBIGUOUS-AND-MISSING-FAIL-CLOSED",
+      "criterion": "An ambiguous basename and two actually missing proposal files remain ungrounded and cannot enable Publish Brief.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2980-pi-basename-grounding.test.mjs",
+          "contains": "duplicate tracked basename stays unresolved"
+        }
+      ]
+    },
+    {
+      "id": "READONLY-EVIDENCE-FILTER",
+      "criterion": "Index consultation is read-only and deletes, symlinks, untracked and traversal filenames cannot become verified references.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2980-pi-basename-grounding.test.mjs",
+          "contains": "ignored, deleted, traversal and untracked files never become evidence"
+        }
+      ]
+    },
+    {
+      "id": "ONE-CORRECTION-AND-LOCKED-INTENT",
+      "criterion": "The actual Pi Draft repair runner executes no more than one bounded model correction and retains exact Human intent.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2980-pi-basename-grounding.test.mjs",
+          "contains": "read-only Pi repair canonically fixes valid bare names"
+        }
+      ]
+    },
+    {
+      "id": "LIVE-WINDOWS-UNPROVEN",
+      "criterion": "Exact Human authenticated Windows Settings Command replay and output semantic usefulness remain unverified until separately reported.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2980-pi-basename-grounding.md",
+          "contains": "do **not** claim the live local Qwen model"
+        }
+      ]
+    }
+  ]
+}

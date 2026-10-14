@@ -14,6 +14,7 @@ import {
   createEmptyMindMapNotesState,
   createEmptyStoryDevelopmentState,
   normalizeLibraryProject,
+  normalizeLibraryStoryIntent,
   normalizeMindMapNotesState,
   normalizeStoryDevelopmentState,
   type LibraryPPFProject,
@@ -368,7 +369,7 @@ export function loadActiveLibraryProject(): LibraryPPFProject {
   return project;
 }
 
-export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject) {
+export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject, explicitFormat?: string) {
   const initialized = initializeProjectLibrary();
   const incoming = objectRecord(project);
   const hasStructure = Boolean(incoming.structure && typeof incoming.structure === "object" && !Array.isArray(incoming.structure));
@@ -413,6 +414,9 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
       ? initialized.activeProject.storyIntent
       : null;
   const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent };
+  const selectedFormat = typeof explicitFormat === "string" && explicitFormat.trim()
+    ? explicitFormat.trim()
+    : normalizeLibraryStoryIntent(storyIntent)?.format;
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);
@@ -427,6 +431,7 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
   const result = libraryCore.saveProfileActiveProject({
     ...coreInput(),
     project: projectWithStructure,
+    ...(selectedFormat ? { format: selectedFormat } : {}),
     ...(afterglowReference
       ? { sourceKind: "example", sourceId: afterglowSourceId }
       : firstMeaningfulSave

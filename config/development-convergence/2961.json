@@ -20,7 +20,8 @@
     "config/development-convergence/2961.json",
     "tests/issue-2630-mind-map-human-notes.test.mjs",
     "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
-    "tests/issue-2625-library-unload-active-story.test.mjs"
+    "tests/issue-2625-library-unload-active-story.test.mjs",
+    "tests/issue-2960-library-unload-auth-recovery.test.mjs"
   ],
   "acceptance": [
     {

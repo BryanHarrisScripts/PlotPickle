@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "issue": 2977,
+  "phase": "block01-existing-ppf-runtime-24x96-compression",
+  "brief": "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+  "allowedChanges": [
+    "modules/write/model/block-handoff-review.mjs",
+    "modules/write/model/block-handoff-review.d.mts",
+    "modules/write/ui/block-native-write-workspace.tsx",
+    "modules/write/ui/block-native-write-workspace.module.css",
+    "tests/issue-2977-block-handoff-truth.test.mjs",
+    "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2977.json",
+    "modules/write/model/selected-ppf-runtime-grid.mjs",
+    "modules/write/model/selected-ppf-runtime-grid.d.mts",
+    "core/storage/library-project.ts",
+    "core/storage/project-library-browser.ts",
+    "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+    "tests/issue-2953-write-confirmed-durability.test.mjs",
+    "tests/issue-2630-mind-map-human-notes.test.mjs",
+    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+    "docs/developer-briefs/2977-compressed-runtime-existing-ppf.md"
+  ],
+  "acceptance": [
+    {
+      "id": "SELECTED-PPF-AND-FOUR-PLAN-TRUTH",
+      "criterion": "The read-only source/Plan census is tied to exact selected project and four canonical Mini-Block addresses with no invented title or accepted decision.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "read-only Block census respects exact selected project and all four Mini-Blocks"
+        }
+      ]
+    },
+    {
+      "id": "ADVISORY-NOT-ACCEPTED",
+      "criterion": "Story Architect advisory assessment alone cannot unlock a Block proposal handoff.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "advisory Story Architect proposal never equals a Human-accepted Plan"
+        }
+      ]
+    },
+    {
+      "id": "ZERO-RUN-WHEN-BLOCKED",
+      "criterion": "Actual Write Visualize handler creates no Run when any plan lacks Human acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "actual Visualize handler refuses unaccepted Outline plans before any Run mutation"
+        }
+      ]
+    },
+    {
+      "id": "RECORDS-ARE-NOT-EXECUTION",
+      "criterion": "After four accepted Plan states, the Write action creates only candidate records and links and says no agent ran or image exists.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "accepted Outline permits only proposal record preparation"
+        }
+      ]
+    },
+    {
+      "id": "REAL-PRODUCT-BLOCKER-TRANSFER",
+      "criterion": "Authenticated Brotherly Love Block execution/Storyboard readiness and Pi semantic fidelity are not certified by this phase.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2977-block01-outline-write-preflight.md",
+          "contains": "remains UNPROVEN"
+        }
+      ]
+    },
+    {
+      "id": "RUNTIME-24X96-FRAME-MATH",
+      "criterion": "Explicit short-film/feature target minutes map to all 24 Blocks and 96 Mini-Blocks without gaps or fabricated screenplay durations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+          "contains": "compressed 24x96 timing preserves exact structural identities and every frame"
+        }
+      ]
+    },
+    {
+      "id": "NO-SILENT-120-MINUTE-FEATURE",
+      "criterion": "Missing or invalid current PPF runtime does not create a feature-timing default.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+          "contains": "preexisting PPF and invalid inputs never invent a feature runtime"
+        }
+      ]
+    },
+    {
+      "id": "EXISTING-PPF-HUMAN-EDIT",
+      "criterion": "Only the Human updates actual selected story title/format/target, original screenplay unchanged, vault ack before success.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+          "contains": "real Write film profile Save awaits encrypted confirmation"
+        }
+      ]
+    },
+    {
+      "id": "VAULT-NEGATIVE-CONTROLS",
+      "criterion": "Encrypted reject, project identity change, invalid input and unsaved screenplay block false runtime confirmation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+          "contains": "rejected encrypted write fails closed"
+        }
+      ]
+    },
+    {
+      "id": "PRODUCTION-EXECUTION-UNPROVEN",
+      "criterion": "The first Block's Outline decisions, actual Storyboard image, motion, media and real Windows acceptance remain independently unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2977-compressed-runtime-existing-ppf.md",
+          "contains": "#2977 stays OPEN"
+        }
+      ]
+    }
+  ]
+}

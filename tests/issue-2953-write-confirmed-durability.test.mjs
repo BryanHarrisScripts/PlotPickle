@@ -5,7 +5,7 @@ import vm from "node:vm";
 import test from "node:test";
 import { moveWriteStoryPosition } from "../modules/write/model/write-position-navigation.mjs";
 
-const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const read = async path => (await readFile(new URL(`../${path}`, import.meta.url), "utf8")).replace(/\r\n/g, "\n");
 const extractSave = source => {
   const start = source.indexOf("  async function save() {");
   const end = source.indexOf("  function useSourceAsStartingPoint()", start);
@@ -27,6 +27,7 @@ async function runSaveCase({ reject = false, changedProject = false, delayed = f
     savedText: state.savedText,
     dirty: true,
     saveInFlightRef,
+    filmSaveInFlightRef: { current: false },
     unconfirmedLocalWriteRef,
     setSavingWorkingText(value) {state.saving=value;},
     setStatus(value) {state.status=value;},
@@ -107,9 +108,14 @@ test("#2953 pending Save and unsaved exit controls enforce user authority", asyn
   assert.match(pick,/saveInFlightRef\.current/);
   assert.match(pick,/confirmDiscard/);
   assert.match(pick,/navigateFromWrite/);
-  for(const destination of ["storyLearningReturnHref","pageFlowHref","storyLearningHref"]){
+  for(const destination of ["pageFlowHref","storyLearningHref"]){
     assert.match(source,new RegExp("navigateFromWrite\\("+destination+"\\("));
   }
+  const outline=source.slice(source.indexOf("  function openOutlineFromWrite()"),source.indexOf("  async function save()"));
+  assert.match(outline,/saveInFlightRef\.current \|\| filmSaveInFlightRef\.current/);
+  assert.match(outline,/dirty && !window\.confirm/);
+  assert.match(outline,/onOpenOutline\(address\)/);
+  assert.doesNotMatch(outline,/window\.location\.assign/);
   assert.match(source,/disabled=\{!dirty \|\| savingWorkingText\}/);
   assert.match(source,/Encrypted Save pending/);
   assert.doesNotMatch(source,/window\.location\.assign\(storyLearningHref/);

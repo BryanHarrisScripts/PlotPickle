@@ -2645,6 +2645,272 @@
       "notes": "#2956 bounded selected Library PPF Reports projection, explicit no active story and mismatched ID refusal, no legacy fallback, evidence-only metrics and unsupported/truncated status. Synthetic project and route source evidence; not live Human Windows acceptance."
     },
     {
+      "id": "agent.pi-draft-grounding-correction-2975",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2975-pi-grounding-correction.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2975 read-only Git-index-based Pi Draft path evidence with one local bounded correction. Synthetic git fixtures and runner stubs only: does not prove live Pi/Windows Command, original private screenplay, authenticated session, or Human acceptance."
+    },
+    {
+      "id": "experience.block01-handoff-truth-2977",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "canon",
+        "navigation",
+        "agent"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2977-block-handoff-truth.test.mjs",
+          "tests/issue-2984-write-outline-navigation.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2977 read-only selected-PPF Block 01 Outline/Write handoff and exact four-plan Human acceptance gate. Executes real Visualize handler under a synthetic controlled project; candidate Run records only. No actual model inference, Storyboard creation, live authenticated Windows Brotherly Love acceptance, or media readiness is claimed."
+    },
+    {
+      "id": "experience.compressed-24x96-existing-ppf-2977",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "canon",
+        "storage",
+        "navigation"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2977-runtime-compressed-ppf.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2977 explicit existing PPF film identity/target edit and frame-accurate 24x96 normalized grid; synthetic selected PPF and actual Write handler VM with rejected encrypted ack. Not an actual Windows vault, real Outline proposal transfer, movie Block execution, Storyboard or paid provider acceptance."
+    },
+    {
+      "id": "agent.pi-unique-basename-grounding-2980",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2980-pi-basename-grounding.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2980 Pi Draft unique tracked basename canonicalization with fail-closed unknown, ambiguous, symlink, deleted, untracked and Windows path proof. Synthetic fixtures and actual repair helper; authenticated Windows Command/LLM not proven."
+    },
+    {
+      "id": "experience.command-creative-discovery-2982",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "experience-navigation",
+        "dsdd-human-review"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2982-command-creative-discovery.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2982 Phase 1 explicit Settings Command creative tool inspection and selected PPF read-only Block preflight. Synthetic fixtures; Command local transport/human Windows tool session and actual agent execution remain UNPROVEN."
+    },
+    {
+      "id": "story-canon.afterglow-runtime-intent-2982",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "visual"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2982-afterglow-story-intent.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2982 Windows regression root cause observed: Afterglow consolidation incorrectly rejects new PPF storyIntent. Scope: synthetic preserved field, atomic format-duration alternative, invalid/missing legacy fail closed; live Windows consolidation remains independent gate."
+    },
+    {
       "id": "experience.library-new-story-intent-2961",
       "ownerLayer": "experience-contract",
       "architectureComponents": [
@@ -2915,7 +3181,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "32e9b1edd779c70d03d80b0c37a7c2ea94ee0b2115e73700476bef91dfd9bc98"
+            "digest": "abb71f4fa0f60789414772755cf57f6afdb55bea307a097da200f8118d2c854a"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -3721,7 +3987,7 @@
       },
       {
         "target": "tests/issue-2960-library-unload-auth-recovery.test.mjs",
-        "targetDigest": "65f40dbb3a7babde3cc8f1e0b7229cb69c51a92015203482660933f8ce5b89e5",
+        "targetDigest": "45f383b55d58cd79618fc56d6792411a2d64fefabac2875c334f363cf86db750",
         "catalogueIds": [
           "story-canon.library-unload-session-recovery-2960"
         ],
@@ -3748,7 +4014,7 @@
       },
       {
         "target": "tests/issue-2953-write-confirmed-durability.test.mjs",
-        "targetDigest": "344ccff1738bd0f0439a6ab97b1583b49702cfbf728b68f82882c92ebfdee1e5",
+        "targetDigest": "4fc3836554bd47f87d005e26276df823b686f0d51b192f45a8e4a754e453bbf4",
         "catalogueIds": [
           "experience.write-matrix-continuity-2953"
         ],
@@ -3846,6 +4112,214 @@
         ]
       },
       {
+        "target": "tests/issue-2975-pi-grounding-correction.test.mjs",
+        "targetDigest": "f347946dd5f375ea7dbde16d017e4a89f8a8cc66b040f2f1ebcb98add46c6a43",
+        "catalogueIds": [
+          "agent.pi-draft-grounding-correction-2975"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Temporary tracked Git fixture, stubbed local Pi completions, read-only prompt and source-level negative checks only. Not an actual authenticated Windows Command/Pi invocation; no original film content, model response, remote provider, service Issue creation, or acceptance of the first Block handoff.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2977-block-handoff-truth.test.mjs",
+        "targetDigest": "25ccfbb7287dac51821fd94802f8da44f95509ae524bae62b5f8c6c97a49c2e8",
+        "catalogueIds": [
+          "experience.block01-handoff-truth-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Read-only 24x4 synthetic PPF, actual Write handler VM and guarded proposal records; cannot establish live Human project title or revisions, agent execution, genuine first Storyboard image, provider calls, authenticated Windows session or completion of Brotherly Love Block 01.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+        "targetDigest": "3b931c59a1129f88c9a1cef39a1f516da1f67a64dbc4fdef07ddbb6110432207",
+        "catalogueIds": [
+          "experience.compressed-24x96-existing-ppf-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF with real 24/96 frame projection and VM-executed Write metadata Save. Injected vault reject, ID change, bad title/duration, no overwrite and no model/content mutation. Does not establish live encrypted Windows readback, user-selected minutes, accepted Outline, executed agent or generated Storyboard image.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
+        "targetDigest": "2efcc612c4c1a144e1a5a4ea4b82b340c20b5c6068e715253780a8c97163fde6",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2980-pi-basename-grounding.test.mjs",
+        "targetDigest": "c7102de19adac6f14315896c7e1b2e9b1df04d410bbb68b2c799998f382a127c",
+        "catalogueIds": [
+          "agent.pi-unique-basename-grounding-2980"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic temp git index and actual Pi grounding-helper calls. Proves only unique present tracked basename canonicalization and preserved fail-closed second model correction; not a live Windows Command model output, substantive brief relevance, GitHub publication or creative workflow.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2982-command-creative-discovery.test.mjs",
+        "targetDigest": "b950677db71c14e8bb03adc38c4389a052428d1a6e7b3e73d6182df60ff7a390",
+        "catalogueIds": [
+          "experience.command-creative-discovery-2982"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF 24x96, actual pure read-only Block and runtime helpers, and static Command UI dispatch; not a live authenticated Windows Command run, creative agent execution, saving, real provider readiness, media, signed execution receipt or full #2982 acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2982-afterglow-story-intent.test.mjs",
+        "targetDigest": "00bea7b3002eeb62ab36fd7eee3fdc8ac8901e144a0f0568484ee817d4e5e7a7",
+        "catalogueIds": [
+          "story-canon.afterglow-runtime-intent-2982"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF with actual read-only Afterglow consolidation planner, durable schema and promotion list; validates new film intent field, atomic conflicting Human choices, legacy absent meaning, malformed rejection. Actual authenticated Windows Afterglow preview/Save/readback and creative acceptance remain unproven until Windows gate.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2984-write-outline-navigation.test.mjs",
+        "targetDigest": "e6e0f20b89bc570134a299b2bbe118334135caf87db7b9f93e2c6b8c44c71eb5",
+        "catalogueIds": [
+          "experience.block01-handoff-truth-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Actual Write and Matrix navigation functions extracted by TypeScript AST and executed against synthetic callback ports; exact address, no reload, dirty and pending-save controls, missing host. Does not prove real Windows account session persistence or source bytes; live observation separately under #2943.",
+        "inputs": []
+      },
+      {
         "target": "tests/issue-2961-library-new-story-intent.test.mjs",
         "targetDigest": "a7897438de9892f3dfb3041aa40d584e2c4c5bb56304231f92b211c79385859e",
         "catalogueIds": [
@@ -3885,146 +4359,7 @@
           },
           {
             "path": "core/storage/project-library-browser.ts",
-            "digest": "537542b082021798d982270dbfbf4f08db0e025aeb1eecef34983eac8b63cc33"
-          }
-        ]
-      },
-      {
-        "target": "tests/issue-1969-explicit-story-startup.test.mjs",
-        "targetDigest": "9cccd25ff85eb4a737dbbf3cc4f795383746064b96ef9e6a6960433fb6f0f118",
-        "catalogueIds": [
-          "experience.explicit-story-startup-1969"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source"
-        ],
-        "limits": "#2961 supersedes a formerly hard-coded Untitled Story / Feature requirement with a source-level assertion that explicit Human inputs are required before Library New writes. Retains the prior tests' unrelated Blank, explicit startup and Afterglow separation contracts. Not authenticated real Windows acceptance or runtime delivery.",
-        "inputs": [
-          {
-            "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
-          },
-          {
-            "path": "modules/library/model/new-story-intent.mjs",
-            "digest": "ada262e82773f786e6ffd78bf3243e8dd0e6f50dad5d1143bf62b1a3245eddea"
-          }
-        ]
-      },
-      {
-        "target": "tests/issue-2603-blank-afterglow-migration.test.mjs",
-        "targetDigest": "0e2aa5cb310dead9c06aa640d7223d555faaa9cca886ab913085fa2adbea55f5",
-        "catalogueIds": [
-          "experience.skin-surface-contract",
-          "story-canon.library-local-resource-recovery-2432"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source"
-        ],
-        "limits": "#2961 supersedes a formerly hard-coded Untitled Story / Feature requirement with a source-level assertion that explicit Human inputs are required before Library New writes. Retains the prior tests' unrelated Blank, explicit startup and Afterglow separation contracts. Not authenticated real Windows acceptance or runtime delivery.",
-        "inputs": [
-          {
-            "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
-          },
-          {
-            "path": "modules/library/model/new-story-intent.mjs",
-            "digest": "ada262e82773f786e6ffd78bf3243e8dd0e6f50dad5d1143bf62b1a3245eddea"
-          }
-        ]
-      },
-      {
-        "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
-        "targetDigest": "2efcc612c4c1a144e1a5a4ea4b82b340c20b5c6068e715253780a8c97163fde6",
-        "catalogueIds": [
-          "experience.skin-surface-contract",
-          "story-canon.learn-program-map"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source"
-        ],
-        "limits": "#2961 revised source contracts retain Human notes/discovery evidence and include optional canonical storyIntent; not live authenticated Windows save or restart acceptance.",
-        "inputs": []
-      },
-      {
-        "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
-        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
-        "catalogueIds": [
-          "experience.skin-surface-contract",
-          "story-canon.learn-program-map",
-          "story-canon.mind-map-retirement-2632"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source"
-        ],
-        "limits": "#2961 revised source contracts retain Human notes/discovery evidence and include optional canonical storyIntent; not live authenticated Windows save or restart acceptance.",
-        "inputs": []
-      },
-      {
-        "target": "tests/issue-2625-library-unload-active-story.test.mjs",
-        "targetDigest": "f10281006ba591f3e93618641d095c65df7fdb839cd4d15092fc4870d56a3d98",
-        "catalogueIds": [
-          "experience.skin-surface-contract",
-          "story-canon.library-unload-active-story-2625",
-          "story-canon.mind-map-retirement-2632"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "static-source"
-        ],
-        "limits": "#2961 updates only Unload test source extraction to the adjacent function boundary after New gained a typed signature. No-handoff, rollback, no-delete and no-profile-switch negative controls remain. Not an actual Windows Unload session.",
-        "inputs": [
-          {
-            "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
+            "digest": "3cea7de0bfac314e3edca547dbe2e0eac5141b700bb50a1383007c034d1e7025"
           }
         ]
       }

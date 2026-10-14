@@ -70,7 +70,7 @@ jobs:
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
       - name: Install executable Story Canon and Agent contract dependencies
-        if: matrix.id == 'story-canon' || matrix.id == 'agent-runtime' || matrix.id == 'provider-runtime'
+        if: matrix.id == 'experience-contract' || matrix.id == 'story-canon' || matrix.id == 'agent-runtime' || matrix.id == 'provider-runtime'
         run: npm ci --ignore-scripts --include=dev --no-audit --no-fund
 
       - name: Run architecture verification

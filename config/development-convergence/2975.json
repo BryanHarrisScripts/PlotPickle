@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "issue": 2975,
+  "phase": "bounded-pi-draft-grounding-correction",
+  "brief": "docs/developer-briefs/2975-pi-draft-grounding.md",
+  "allowedChanges": [
+    "scripts/pi/dsdd-grounding-repair.mjs",
+    "scripts/dsdd-pi-draft.mjs",
+    "tests/issue-2975-pi-grounding-correction.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2975-pi-draft-grounding.md",
+    "config/development-convergence/2975.json"
+  ],
+  "acceptance": [
+    {
+      "id": "VERIFIED-TRACKED-EVIDENCE",
+      "criterion": "Only bounded existing indexed regular files become Pi repository grounding context, including Windows/deleted/untracked negative cases.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2975-pi-grounding-correction.test.mjs",
+          "contains": "tracked and present files are bounded evidence"
+        }
+      ]
+    },
+    {
+      "id": "ONE-LOCAL-CORRECTION",
+      "criterion": "Only a first ungrounded Pi completion may be corrected once without modifying locked intent.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2975-pi-grounding-correction.test.mjs",
+          "contains": "one bounded correction keeps the identical locked Human intent"
+        }
+      ]
+    },
+    {
+      "id": "FAIL-CLOSED-SECOND-RESPONSE",
+      "criterion": "A second nonexistent file and local runtime/empty failures never generate an accepted brief or third attempt.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2975-pi-grounding-correction.test.mjs",
+          "contains": "second invented path is rejected without a third attempt"
+        }
+      ]
+    },
+    {
+      "id": "MUTATION-AND-ACCEPTANCE-BOUNDARY",
+      "criterion": "Pi remains read-only and real Windows authenticated Command acceptance remains explicit and unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2975-pi-draft-grounding.md",
+          "contains": "UNPROVEN, not PASS"
+        }
+      ]
+    }
+  ]
+}

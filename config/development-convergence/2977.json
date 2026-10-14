@@ -5,6 +5,7 @@
   "brief": "docs/developer-briefs/2977-block01-outline-write-preflight.md",
   "allowedChanges": [
     "modules/write/model/block-handoff-review.mjs",
+    "modules/write/model/block-handoff-review.d.mts",
     "modules/write/ui/block-native-write-workspace.tsx",
     "modules/write/ui/block-native-write-workspace.module.css",
     "tests/issue-2977-block-handoff-truth.test.mjs",

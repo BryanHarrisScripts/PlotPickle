@@ -14,6 +14,9 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
+import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand } from "../_components/settings/plotpickle-creative-command.mjs";
+import { loadActiveLibraryProject, sessionActiveProjectId } from "../../core/storage/project-library-browser";
+import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
 
@@ -508,6 +511,47 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     }
   }
 
+  function runCreativeDiscoveryCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parsePlotPickleCreativeCommand(submitted);
+    if (!command) return false;
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages((current) => [...current, {
+      id: messageId("creative-command-human"),
+      role: "command",
+      text: submitted,
+      context: snapshot,
+      inputMode: draftHasVoice ? "voice" : "typed",
+    }].slice(-MAX_MESSAGES));
+    setDraft("");
+    setDraftHasVoice(false);
+    setError("");
+    setContext(snapshot);
+    let responseText = "";
+    try {
+      const activeProjectId = command.action === "tools" || command.action === "invalid"
+        ? null : sessionActiveProjectId();
+      const project = activeProjectId ? loadActiveLibraryProject() : null;
+      const currentAssessment = command.action === "plan" && project?.id === activeProjectId
+        ? Boolean(currentOutlineAssessment(project, command.blockNumber))
+        : false;
+      responseText = describePlotPickleCreativeCommand(command, {
+        project, activeProjectId: activeProjectId || "", currentAssessment,
+      }) || "Command produced no inspection result. Nothing was executed.";
+    } catch (cause) {
+      responseText = "BLOCKED: Cannot inspect the selected PPF: "
+        + (cause instanceof Error ? cause.message : "unknown selected story error")
+        + ". No tools ran and no story data changed.";
+    }
+    setMessages((current) => [...current, {
+      id: messageId("creative-command-inspection"),
+      role: "tool",
+      text: responseText,
+      context: snapshot,
+    }].slice(-MAX_MESSAGES));
+    return true;
+  }
+
   async function runOpenPencilCommand(submitted: string) {
     if (!embedded) return false;
     const command = parseOpenPencilCommand(submitted);
@@ -623,6 +667,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (runCreativeDiscoveryCommand(submitted)) return;
     if (await runOpenPencilCommand(submitted)) return;
 
     const snapshot = currentSurfaceContext(pathname);
@@ -935,7 +980,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
                 setDraft(next);
                 if (!next.trim()) setDraftHasVoice(false);
               }}
-              placeholder={embedded ? "Example: OpenPencil open Timeline" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
+              placeholder={embedded ? "Example: PlotPickle plan Block 01 · OpenPencil open Timeline" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
               rows={4}
               value={draft}
             />

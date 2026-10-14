@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "issue": 2982,
+  "phase": "command-creative-tool-inventory-and-ppf-plan-readonly",
+  "brief": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
+  "allowedChanges": [
+    "app/_components/settings/plotpickle-creative-command.mjs",
+    "app/_components/settings/plotpickle-creative-command.d.mts",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "tests/issue-2982-command-creative-discovery.test.mjs",
+    "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
+    "config/development-convergence/2982.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-COMMAND-DISPATCH",
+      "criterion": "Only explicit, read-only PlotPickle operational verbs route to creative discovery; all other creative narration keeps DSDD authority and OpenPencil does not regress.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "explicit PlotPickle commands are distinct from authored DSDD intent"
+        }
+      ]
+    },
+    {
+      "id": "SELECTED-PPF-TRUTH",
+      "criterion": "The actual selected PPF identity, revision, 4×24/96, accepted Outline plans, source writing and explicit runtime appear without invented approvals or provider claims.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "real Outline handoff census and compressed runtime are read-only"
+        }
+      ]
+    },
+    {
+      "id": "NO-PROJECT-AND-SAVE-MUTATION",
+      "criterion": "No selected project ID or invalid structure blocks without Run creation; inspection cannot modify saved PPF, screenplay or any media.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "selected project identity must match session"
+        }
+      ]
+    },
+    {
+      "id": "NO-FAKE-EXECUTION",
+      "criterion": "A current 4/4 accepted Plan permits only a separate proposal handoff; no agents/media are reported executed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "all four accepted Plans permit proposal preparation but not fake agent execution"
+        }
+      ]
+    },
+    {
+      "id": "REAL-EXECUTION-STILL-UNPROVEN",
+      "criterion": "Genuine Stage agent execution, media generation, durable execution receipts, Windows product acceptance and end-to-end Brotherly Love production are not certified.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
+          "contains": "Phase 1 does not achieve entire #2982"
+        }
+      ]
+    }
+  ]
+}

@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "18f9ea68e2f88f42271a15cd68480dba6ad23a14d2f41cc8dd98c016f0a2cb3f",
+        "targetDigest": "31c001fed499cf78d8b6091cf330e184116cae07b33c7f34bf631c32f6b16271",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],

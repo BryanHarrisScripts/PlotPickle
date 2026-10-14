@@ -2781,13 +2781,13 @@
       "ownerLayer": "agent-runtime",
       "architectureComponents": [
         "agent-runtime",
-        "dsdd"
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
       ],
       "triggerTokens": [
         "agent",
         "skill",
-        "command",
-        "dsdd"
+        "docs"
       ],
       "runner": {
         "kind": "node-test",

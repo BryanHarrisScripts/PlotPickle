@@ -4,7 +4,7 @@ import { projectRuntimeGrid } from "../../../modules/write/model/selected-ppf-ru
 const CANONICAL = "4 Acts / 12 Sequences / 24 Blocks / 96 Mini-Blocks";
 const TOOL_ROUTES = Object.freeze([
   Object.freeze({ tool: "Library", scope: "selected PPF", state: "read-only selection inspection" }),
-  Object.freeze({ tool: "Story Architect", scope: "Outline assessment", state: "advisory proposal, not executed" }),
+  Object.freeze({ tool: "Story Architect", scope: "Outline assessment", state: "only the explicit local-only assess command starts a real task; results remain advisory" }),
   Object.freeze({ tool: "Outline", scope: "Human-accepted Mini-Block Plan", state: "acceptance requires explicit Human review" }),
   Object.freeze({ tool: "Write", scope: "encrypted saved writing", state: "separate editor action, not executed" }),
   Object.freeze({ tool: "Storyboard", scope: "approved image candidates", state: "separate governed image generation, not executed" }),
@@ -50,6 +50,20 @@ export function parsePlotPickleCreativeCommand(input) {
     return title.length > 0 && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
       ? Object.freeze({ action: "open", title })
       : Object.freeze({ action: "invalid", reason: "Choose an existing saved Library story title (1–160 characters). Nothing was executed." });
+  }
+  const startLocal = value.match(/^\/?plotpickle\s+assess\s+block\s+(\d{1,3})\s+local$/iu);
+  if (startLocal) {
+    const blockNumber = Number(startLocal[1]);
+    return blockNumber >= 1 && blockNumber <= 24
+      ? Object.freeze({ action: "assess-local", blockNumber })
+      : Object.freeze({ action: "invalid", reason: "Story Architect Block must be 1–24. No inference ran." });
+  }
+  const status = value.match(/^\/?plotpickle\s+assessment\s+block\s+(\d{1,3})$/iu);
+  if (status) {
+    const blockNumber = Number(status[1]);
+    return blockNumber >= 1 && blockNumber <= 24
+      ? Object.freeze({ action: "assessment", blockNumber })
+      : Object.freeze({ action: "invalid", reason: "Story Architect Block must be 1–24. No tool ran." });
   }
   const match = value.match(/^\/?plotpickle\s+plan\s+block\s+(\d{1,3})$/iu);
   if (match) {
@@ -97,7 +111,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first)",
+      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first) | PlotPickle assess Block 01 local | PlotPickle assessment Block 01",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2982,
-  "phase": "command-creative-discovery-library-titles-and-source-identity-inspection",
+  "phase": "command-local-story-architect-authenticated-task-and-advisory-save",
   "brief": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -18,7 +18,14 @@
     "docs/developer-briefs/2982-command-library-selection-phase2.md",
     "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md",
     "docs/developer-briefs/2982-command-verified-library-title-rename-phase2c.md",
-    "docs/developer-briefs/2982-command-imported-ppf-inspection-phase2d.md"
+    "docs/developer-briefs/2982-command-imported-ppf-inspection-phase2d.md",
+    "build/projects/outline-task-gateway.ts",
+    "build/projects/outline-task-http.ts",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "tests/issue-2711-outline-task-gateway.test.mjs",
+    "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2341-dsdd-zero-config.test.mjs"
   ],
   "acceptance": [
     {
@@ -159,6 +166,49 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2982-command-imported-ppf-inspection-phase2d.md",
           "contains": "candidate identity"
+        }
+      ]
+    },
+    {
+      "id": "COMMAND-LOCAL-STORY-ARCHITECT-EXECUTION",
+      "criterion": "For the exact selected source-bound project, explicit Command local-only assessment uses real authenticated /api/outline/tasks and the existing Pi Durable/Mastra Outline gateway with a zero-cloud-cost loopback route; no paid provider or silent fallback. Real protected findings are reconciled and persisted to the PPF with revision guard and encrypted acknowledgement, never promoted to Human-approved Plans or claimed as completed media. Missing/changed authority/fingerprint/source/compute/CSRF fails closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2711-outline-task-gateway.test.mjs",
+          "contains": "#2982 Command start-local goes through real authenticated Outline gateway"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "#2982 Command executes real Story Architect owner"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2982-command-story-architect-local-execution-phase3a.md",
+          "contains": "Not delivered in this slice"
+        }
+      ]
+    },
+    {
+      "id": "DSDD-CONVERSATION-STORAGE-ISOLATION",
+      "criterion": "Preserve persistent server-owned DSDD conversation while allowing the pre-existing read-only browser session profile-ID lookup used solely for authentication; forbid storing DSDD transcripts in sessionStorage/localStorage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "contains": "That is not DSDD message storage"
+        }
+      ]
+    },
+    {
+      "id": "DSDD-ZERO-CONFIG-INDEPENDENT-OF-CREATIVE-COMMAND",
+      "criterion": "Preserve local Quality DSDD interpretation and no provider-selection detour even when a separately authorized, local-only Story Architect command explains cloud spend restrictions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2341-dsdd-zero-config.test.mjs",
+          "contains": "The DSDD interpreter still does not offer or infer a text-engine picker."
         }
       ]
     }

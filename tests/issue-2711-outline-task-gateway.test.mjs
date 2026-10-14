@@ -41,13 +41,14 @@ async function fixture(t) {
   const runtime = { auth, privateStorage, home, boundaryFor: () => boundary };
   const browser = auth.createBrowserSession(owner.authContext, { deviceLabel: "Fixture", originLabel: "127.0.0.1:3000" });
   let calls = 0, opens = 0;
+  let selectedProvider = "local", selectedCost = 0, selectedReceipt = "fixture-route-v1";
   let blockAfter = Infinity;
   let entered;
   let release;
   const gate = new Promise((resolve) => { release = resolve; });
   const started = new Promise((resolve) => { entered = resolve; });
   const ports = {
-    resolveExecution: async () => ({ provider: "local", model: "synthetic", receipt: "fixture-route-v1", grantedCapabilities: ["project-context-read", "proposal-draft"], tokenUpperBound: 2000, cloudCostUpperBoundUsd: 0,
+    resolveExecution: async () => ({ provider: selectedProvider, model: "synthetic", receipt: selectedReceipt, grantedCapabilities: ["project-context-read", "proposal-draft"], tokenUpperBound: 2000, cloudCostUpperBoundUsd: selectedCost,
       execute: async (input) => { calls++; if (calls > blockAfter) { entered(); await gate; input.signal.throwIfAborted(); } await input.onAssessmentUsage({ totalTokens: 90 }); return output; } }),
     openScheduler: async (_id, controller) => { opens++; let closed = false; return {
       async run(input) { for (const step of input.steps) { if (closed) return false; await controller.authorize(input.scope, step); await controller.executeStep(input.scope, step); } return true; },
@@ -63,6 +64,7 @@ async function fixture(t) {
   t.after(async () => { release(); await host.close(); privateStorage.close(); auth.close(); await rm(home, { recursive: true, force: true }); });
   return { auth, context: owner.authContext, project, privateStorage, http, request, started,
     get host() { return host; }, get calls() { return calls; }, get opens() { return opens; }, set blockAfter(value) { blockAfter = value; },
+    setProvider(provider, cost, receipt = "fixture-route-v1") { selectedProvider = provider; selectedCost = cost; selectedReceipt = receipt; },
     async reopen() { release(); await host.close(); host = createOutlineTaskGateway(runtime, ports); },
     async start() { return http.POST(request("POST", { action: "start", blocks: [1,2,3,4,5,6], projectId: project.id, materialReceipt: await outlineAssessmentMaterialReceipt(project) })); },
   };
@@ -133,4 +135,80 @@ test("configured worker reservation covers worst-case bounded serialization and 
   assert.ok(quote >= 2 * (12_000 * 6 + 1800 + 8192));
   assert.ok(6 * quote <= 2_000_000, "All six Blocks fit the unchanged Act review budget.");
   assert.throws(() => storyArchitectTokenUpperBound(12_001), /context bound/);
+});
+
+test("#2982 Command start-local goes through real authenticated Outline gateway and imports only real advisory results", async (t) => {
+  const f = await fixture(t);
+  const response = await f.http.POST(f.request("POST", {
+    action: "start-local", projectId: f.project.id, blocks: [1],
+    materialReceipt: await outlineAssessmentMaterialReceipt(f.project),
+  }));
+  assert.equal(response.status, 202);
+  const body = await response.json();
+  assert.equal(body.task.scope.provider, "local");
+  assert.equal(body.task.scope.projectId, f.project.id);
+  const task = await settled(f, body.task.scope.runId);
+  assert.equal(f.calls, 1);
+  assert.equal(f.opens, 1);
+  assert.equal(task.run.state, "waiting-for-writer");
+  assert.equal(task.proposals.length, 1);
+  const imported = await importOutlineTaskFindings(f.project, task);
+  assert.equal(imported.sourceEvidence.outlineAssessments.length, 1);
+  assert.equal(imported.sourceEvidence.outlineAssessments[0].blockNumber, 1);
+  assert.equal(imported.sourceEvidence.outlineAssessmentRuns[0].status, "completed");
+  assert.deepEqual(imported.structure, f.project.structure, "Advisory inference cannot accept Plans or edit canonical structure");
+  assert.deepEqual(imported.writing, f.project.writing);
+  assert.deepEqual(await importOutlineTaskFindings(imported, task), imported);
+  await f.reopen();
+  assert.equal((await (await f.http.GET(f.request("GET"))).json()).tasks.length,1);
+  assert.equal(f.calls,1,"Recovery status does not re-run the local worker");
+});
+
+test("#2982 Command start-local fails closed for even quoted OpenAI/cloud routes and creates no tasks", async (t) => {
+  const f = await fixture(t);
+  for (const [provider,cost] of [["openai",0.001],["openai",0],["local",0.5],["ollama",0.15]]) {
+    f.setProvider(provider, cost);
+    const response = await f.http.POST(f.request("POST", {
+      action: "start-local", projectId: f.project.id, blocks: [1],
+      materialReceipt: await outlineAssessmentMaterialReceipt(f.project),
+    }));
+    assert.equal(response.status,400,provider+"/"+cost);
+    assert.match((await response.json()).message,/local-only|zero-cost loopback/u);
+  }
+  assert.deepEqual((await (await f.http.GET(f.request("GET"))).json()).tasks, []);
+  assert.equal(f.calls,0);assert.equal(f.opens,0);
+});
+
+test("#2982 local-only admission cannot activate if the provider receipt changes mid-admission", async (t) => {
+  const f = await fixture(t);
+  const oldHost=f.host;
+  // The stored task material and compute receipt must match the preflight
+  // route. Simulate an unauthorised route switch during controller.create.
+  const original=oldHost.controller.create.bind(oldHost.controller);
+  oldHost.controller.create=async (...args)=>{
+    f.setProvider("openai",0.1,"cloud-substituted");
+    return original(...args);
+  };
+  const result = await f.http.POST(f.request("POST", {
+    action:"start-local",projectId:f.project.id,blocks:[1],
+    materialReceipt:await outlineAssessmentMaterialReceipt(f.project),
+  }));
+  assert.equal(result.status,400);
+  assert.match((await result.json()).message,/local-only Command denied/u);
+  assert.equal(f.calls,0);
+  assert.equal(f.opens,0);
+});
+
+test("#2982 local-only Start authenticates profile, CSRF and source fingerprint before inference", async (t) => {
+  const f=await fixture(t);
+  const stale = await f.http.POST(f.request("POST", {
+    action:"start-local",projectId:f.project.id,blocks:[1],materialReceipt:"unverified",
+  }));
+  assert.equal(stale.status,409);
+  const noCsrf=await f.http.POST(f.request("POST", {
+    action:"start-local",projectId:f.project.id,blocks:[1],materialReceipt:await outlineAssessmentMaterialReceipt(f.project),
+  },{csrf:false}));
+  assert.notEqual(noCsrf.status,202);
+  assert.equal(f.calls,0);
+  assert.equal(f.opens,0);
 });

@@ -3523,7 +3523,7 @@
       },
       {
         "target": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
-        "targetDigest": "e1022512a13983a39a38300edde17bd0e906f9ec61018e85df8c882709b71990",
+        "targetDigest": "d4a10bfc24e156b4758f55d2705167c63ec26c280077c072cdbb52637ae7fdc9",
         "catalogueIds": [
           "agent.dsdd-intent-pi-contract-2350"
         ],
@@ -3541,7 +3541,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Signed-receipt provenance, applicability and actual HTTP handler under isolated storage/Pi fixtures. Cryptographic authenticity is not semantic verifier fidelity, real Windows restart, provider execution or Human acceptance.",
+        "limits": "Statically verifies DSDD React/server conversation preservation and no browser-persisted transcript while allowing existing read-only same-session profile-ID authority lookup. Does not prove live model replies, technical Pi developer brief relevance or real user Windows session/restart.",
         "inputs": [
           {
             "path": "lib/verification/development/verifier-observations.mjs",
@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "d0dfd0e7bcff313dc3514721dbf8197ce791e7d7fe2478e58edccc8ef3076b50",
+        "targetDigest": "9b54427fd2e3e3afe566af0b73e2c131eced2bdb26602e6d3ea5a82c2ff555f1",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],
@@ -4270,7 +4270,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic current-profile exact-ID read-only saved screenplay evidence report, dash-title import and negative identity/hydration/profile controls with static real Command/Library owner assertions. No live Human private Windows screenplay identity proof, replayed vault restart, creative approval, agent Run, OpenAI/MiniMax media, or full #2982 orchestration success certified.",
+        "limits": "Synthetic real authenticated Command-to-local-only Story Architect task host and source/citation/PPF advisory import contract assertions, read-only Library tests; no live Human Brotherly Love inference, actual local model readiness, full film proposal, paid OpenAI/MiniMax image/video or Windows private restart certified.",
         "inputs": []
       },
       {
@@ -4431,6 +4431,51 @@
           "static-source"
         ],
         "limits": "Static inspection of the current real Library Unload ordering, rollback, session selection and separation from Example handoff. Not a real expired-login, encrypted disk, or Windows restart proof.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2711-outline-task-gateway.test.mjs",
+        "targetDigest": "135ff179927693255d9c26d253f90813231f7a8a2eb53ad701da49a4e594fc7e",
+        "catalogueIds": [
+          "story-canon.outline-durable-input-2711"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Authenticated in-memory profile + real Outline HTTP/gateway/controller scheduler fixture (synthetic model output) tests local zero-cloud-cost admission, cloud route rejection, stale source/CSRF denial, real protected task artifact and idempotent advisory import. No live user content, real provider result, production movie, actual server restart or private Windows UI observed.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2341-dsdd-zero-config.test.mjs",
+        "targetDigest": "d8a5639f7b94b6d7ab3fd980f57f3518d8aa650aef0b990ee4c36cb15b82ded9",
+        "catalogueIds": [
+          "experience.voice-input-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "DSDD remains local Quality and does not display a configuration/provider picker; separate guarded movie-production Command may mention OpenAI/MiniMax without selecting those models for DSDD. Tests do not establish live speech input, model result, film output, real Windows profile or creative approval.",
         "inputs": []
       }
     ]

@@ -18,6 +18,9 @@ import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, exec
 import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, listPersistableLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject, saveActiveLibraryProject, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
+import { changeOutlineTask, readOutlineTasks, importOutlineTaskFindings } from "../../modules/plan/assessments/outline-task-browser";
+import { outlineAssessmentMaterialReceipt } from "../../modules/plan/outline-agent-assessment";
+import { saveFoundationProjectDurably } from "../../core/storage/project-library/revision-safe-browser";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
 import styles from "./global-dsdd-conversation.module.css";
 
@@ -571,6 +574,123 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return true;
   }
 
+  // The scheduler and its checkpoints are the existing authenticated Story
+  // Architect host; Command never makes a provider request or invents a result.
+  async function reconcileStoryArchitectBlock(projectId: string, blockNumber: number): Promise<{ ongoing: boolean; text: string }> {
+    const activeId = sessionActiveProjectId();
+    if (activeId !== projectId) return { ongoing: false, text: "BLOCKED: Selected Library project changed. Protected findings remain in their owning task." };
+    const project = loadActiveLibraryProject();
+    if (project.id !== projectId) return { ongoing: false, text: "BLOCKED: Saved project does not match the selected session." };
+    const currentReceipt = await outlineAssessmentMaterialReceipt(project);
+    const tasks = (await readOutlineTasks()).filter(task => task.scope.projectId === projectId
+      && task.scope.contextReceipt === currentReceipt
+      && task.steps.length === 1 && task.steps[0].id === "block-" + blockNumber);
+    if (!tasks.length) return { ongoing: false, text: "NO TASK: No matching current-material Story Architect review has started for Block "
+      + String(blockNumber).padStart(2, "0") + ". No inference or import occurred." };
+    const task = tasks.at(-1)!;
+    if (!["local", "ollama"].includes(task.scope.provider)) return {
+      ongoing: false, text: "BLOCKED: This existing assessment is not the explicitly authorized local-only route. No candidate was imported or cloud call started.",
+    };
+    if (task.proposals.length) {
+      const next = await importOutlineTaskFindings(project, task);
+      if (next !== project) {
+        if (sessionActiveProjectId() !== projectId
+            || loadActiveLibraryProject().revision !== project.revision) throw new Error("Selected PPF changed before advisory findings could be saved.");
+        await saveFoundationProjectDurably(next, project.revision);
+      }
+    }
+    const confirmed = loadActiveLibraryProject();
+    const accepted = Boolean(currentOutlineAssessment(confirmed, blockNumber));
+    const done = task.run.state === "waiting-for-writer" && task.proposals.length === 1 && accepted;
+    const label = "Story Architect Block " + String(blockNumber).padStart(2, "0") + ": ";
+    if (task.error) return { ongoing: false, text: label + "BLOCKED: " + task.error
+      + ". " + task.proposals.length + "/1 protected result(s); current advisory finding " + (accepted ? "saved" : "not saved")
+      + ". The task did not prove completion." };
+    if (done) return { ongoing: false, text: label + "ADVISORY FINDING SAVED. "
+      + "Real existing Outline task " + task.scope.runId + " completed, with source/citation validation, "
+      + "encrypted PPF Save acknowledgement, current Block fingerprint, and " + task.proposals.length + "/1 artifact. "
+      + "Only a candidate review exists: no Plan was Human-accepted, no 25-shot production proposal was generated, "
+      + "no media or provider credits were used by Command." };
+    return { ongoing: Boolean(task.running), text: label
+      + (task.running ? "WORKING" : "PAUSED / RECOVERY REQUIRED")
+      + "; protected task " + task.scope.runId + ", state " + task.run.state
+      + ", real artifact count " + task.proposals.length + "/1, current advisory finding "
+      + (accepted ? "saved" : "not yet saved")
+      + ". " + (task.running ? "The host is executing; Command is monitoring. " : "Resume through the existing Outline recovery UI. ")
+      + "No accepted Plan or media is implied." };
+  }
+
+  async function runCreativeAssessmentCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parsePlotPickleCreativeCommand(submitted);
+    if (command?.action !== "assess-local" && command?.action !== "assessment") return false;
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages(current => [...current, { id: messageId("assessment-human"), role: "command", text: submitted,
+      context: snapshot, inputMode: draftHasVoice ? "voice" : "typed" }].slice(-MAX_MESSAGES));
+    setDraft(""); setDraftHasVoice(false); setError(""); setCommandWorking(true); setContext(snapshot);
+    try {
+      const projectId = sessionActiveProjectId();
+      const project = projectId ? loadActiveLibraryProject() : null;
+      if (!project || project.id !== projectId) throw new Error("Select an authenticated saved Library PPF before assessing any Block.");
+      const scoped = project.sourceEvidence.screenplay?.passages.filter(p => p.blockNumber === command.blockNumber) ?? [];
+      if (!scoped.length) throw new Error("The selected Block has no mapped screenplay passages. Assessment cannot substitute invented evidence.");
+      if (project.sourceEvidence.screenplay?.passagesTruncated)
+        throw new Error("Imported screenplay evidence is truncated; do not infer from an incomplete story.");
+      await flushProfilePrivateWrites();
+      if (sessionActiveProjectId() !== projectId || loadActiveLibraryProject().revision !== project.revision)
+        throw new Error("Saved PPF identity/revision changed during authenticated assessment admission.");
+      let text: string;
+      if (command.action === "assess-local") {
+        const task = await changeOutlineTask("start-local", project, { blocks: [command.blockNumber] });
+        if (task.scope.projectId !== projectId || task.scope.provider !== "local" && task.scope.provider !== "ollama")
+          throw new Error("Story Architect host did not confirm the exact project and zero-cost local provider.");
+        text = "Story Architect local-only assessment ADMITTED for " + project.title
+          + ", Block " + String(command.blockNumber).padStart(2, "0") + ", project revision " + project.revision
+          + ", task " + task.scope.runId + ", host model " + task.scope.model
+          + ". Protected task state " + task.run.state + ", artifacts " + task.proposals.length + "/1. "
+          + "No paid OpenAI or MiniMax request is authorized. Assessment output and screenplay decisions remain advisory; "
+          + "the existing task is executing or awaiting recovery, not yet completed.";
+        // Best-effort read/import of COMPLETED HOST WORK ONLY. No retries or
+        // new inference; the persistent Outline recovery owner remains canonical.
+        void (async () => {
+          for (let attempt = 0; attempt < 40; attempt += 1) {
+            await new Promise<void>(resolve => setTimeout(resolve, 2500));
+            if (sessionActiveProjectId() !== projectId) return;
+            try {
+              const state = await reconcileStoryArchitectBlock(projectId, command.blockNumber);
+              if (!state.ongoing) {
+                setMessages(current => [...current, { id: messageId("assessment-reconcile"),
+                  role: "tool", text: state.text, context: snapshot }].slice(-MAX_MESSAGES));
+                return;
+              }
+            } catch (error) {
+              setMessages(current => [...current, { id: messageId("assessment-error"),
+                role: "tool", text: "BLOCKED: Story Architect findings remain protected; automatic import not verified. "
+                + (error instanceof Error ? error.message : "Unknown local error")
+                + ". Use PlotPickle assessment Block " + String(command.blockNumber).padStart(2, "0") + " to reconcile.",
+                context: snapshot }].slice(-MAX_MESSAGES));
+              return;
+            }
+          }
+          setMessages(current => [...current, { id: messageId("assessment-timeout"), role: "tool",
+            text: "Story Architect remains in its persistent recovery task; no inference completion was claimed. "
+              + "Run PlotPickle assessment Block " + String(command.blockNumber).padStart(2, "0") + " to reconcile.",
+            context: snapshot }].slice(-MAX_MESSAGES));
+        })();
+      } else {
+        text = (await reconcileStoryArchitectBlock(projectId, command.blockNumber)).text;
+      }
+      setMessages(current => [...current, { id: messageId("assessment-result"), role: "tool",
+        text, context: snapshot }].slice(-MAX_MESSAGES));
+    } catch(error) {
+      setMessages(current => [...current, { id: messageId("assessment-blocked"), role: "tool",
+        text: "BLOCKED: " + (error instanceof Error ? error.message : "Story Architect was unavailable")
+          + " No advisory finding was fabricated, no paid media was authorized.",
+        context: snapshot }].slice(-MAX_MESSAGES));
+    } finally { setCommandWorking(false); }
+    return true;
+  }
+
   function runCreativeDiscoveryCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
@@ -727,6 +847,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runCreativeAssessmentCommand(submitted)) return;
     if (await runCreativeLibraryCommand(submitted)) return;
     if (runCreativeDiscoveryCommand(submitted)) return;
     if (await runOpenPencilCommand(submitted)) return;

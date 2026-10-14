@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2982,
-  "phase": "command-creative-discovery-and-guarded-library-open",
+  "phase": "command-creative-discovery-and-library-inventory-diagnostics",
   "brief": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -15,7 +15,8 @@
     "modules/library/afterglow-consolidation.mjs",
     "scripts/promote-afterglow-packaged-example.mjs",
     "tests/issue-2982-afterglow-story-intent.test.mjs",
-    "docs/developer-briefs/2982-command-library-selection-phase2.md"
+    "docs/developer-briefs/2982-command-library-selection-phase2.md",
+    "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md"
   ],
   "acceptance": [
     {
@@ -108,6 +109,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2982-command-library-selection-phase2.md",
           "contains": "not completion of #2982"
+        }
+      ]
+    },
+    {
+      "id": "COMMAND-LIBRARY-INVENTORY-REPRO-20261014",
+      "criterion": "When the Human's Brotherly Love title cannot be found, Command visibly diagnoses the current hydrated profile, saved titles and classifications, without guessing another project, leaking cross-profile data or changing state. Explicit read-only PlotPickle library is independently exercised under approved W8/W9; success in synthetic tests is not real Windows acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "screenshot UAT — no exact Brotherly Love title"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2982-command-library-diagnostics-phase2b.md",
+          "contains": "profile is not verified hydrated"
         }
       ]
     }

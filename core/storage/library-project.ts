@@ -75,8 +75,9 @@ export function normalizeLibraryStoryIntent(value: unknown): LibraryStoryIntent 
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const intent = value as Partial<LibraryStoryIntent>;
   if (intent.format !== "Short Film" && intent.format !== "Feature") return null;
-  if (!Number.isInteger(intent.targetMinutes) || (intent.targetMinutes ?? 0) < 1 || (intent.targetMinutes ?? 0) > 240) return null;
-  return { format: intent.format, targetMinutes: intent.targetMinutes as number };
+  const targetMinutes = intent.targetMinutes;
+  if (typeof targetMinutes !== "number" || !Number.isInteger(targetMinutes) || targetMinutes < 1 || targetMinutes > 240) return null;
+  return { format: intent.format, targetMinutes };
 }
 
 export type LibraryPPFProject = PPFProject & {

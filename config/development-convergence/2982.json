@@ -10,7 +10,8 @@
     "tests/issue-2982-command-creative-discovery.test.mjs",
     "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
     "config/development-convergence/2982.json",
-    "config/verification/test-catalog.json"
+    "config/verification/test-catalog.json",
+    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs"
   ],
   "acceptance": [
     {
@@ -65,6 +66,17 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
           "contains": "Phase 1 does not achieve entire #2982"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-AFTERGLOW-FAILURE-OBSERVABILITY",
+      "criterion": "Windows Afterglow product proof must still observe real consolidation screen; if it cannot, report synthetic page state/browser errors and fail, never silently mark green.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+          "contains": "Review start failed; exact page and exception evidence"
         }
       ]
     }

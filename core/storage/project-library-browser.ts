@@ -139,8 +139,14 @@ function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
     : {};
 }
 
-function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
-  return normalizeLibraryProject(createEmptyProject(input));
+function createEmptyLibraryProject(input: {
+  readonly id: string; readonly now: string; readonly title?: string;
+  readonly storyIntent?: { readonly format: "Feature" | "Short Film"; readonly targetMinutes: number };
+}): LibraryPPFProject {
+  return normalizeLibraryProject({
+    ...createEmptyProject(input),
+    ...(input.storyIntent ? { storyIntent: input.storyIntent } : {}),
+  });
 }
 
 function answerCount(project: PPFProject) {
@@ -401,7 +407,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.mindMapNotes
       : createEmptyMindMapNotesState();
-  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes };
+  const storyIntent = "storyIntent" in incoming
+    ? incoming.storyIntent
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.storyIntent
+      : null;
+  const projectWithStructure = { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent };
   const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
   const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
   const priorSummary = initialized.registry.projects.find((item) => item.id === project.id);
@@ -484,6 +495,7 @@ export function createLibraryUserProject(input: {
   readonly title: string;
   readonly genre?: string;
   readonly format?: string;
+  readonly storyIntent?: { readonly format: "Feature" | "Short Film"; readonly targetMinutes: number };
 }) {
   const created = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
     readonly activeProject: LibraryPPFProject;

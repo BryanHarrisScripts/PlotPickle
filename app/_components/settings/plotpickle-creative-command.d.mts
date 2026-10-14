@@ -2,6 +2,7 @@ import type { LibraryPPFProject } from "../../../core/storage/library-project";
 export type PlotPickleCreativeCommand = Readonly<
   { action: "tools" | "status" | "library" }
   | { action: "open"; title: string }
+  | { action: "inspect"; projectId: string }
   | { action: "rename"; projectId: string; title: string }
   | { action: "confirm-rename"; projectId: string; revision: number; title: string }
   | { action: "plan"; blockNumber: number }
@@ -45,3 +46,13 @@ export function executePlotPickleLibraryRename(command: PlotPickleCreativeComman
   persistProject(id: string): Promise<unknown>;
   flushWrites(): Promise<unknown>;
 }): Promise<string | null>;
+
+export function inspectPlotPickleLibraryProject(
+  command: PlotPickleCreativeCommand | null,
+  services: {
+    profileReady(): boolean;
+    profileId(): string;
+    listInventory(): readonly { id: string; title: string; sourceKind?: string; sourceId?: string | null }[];
+    readSnapshot(id: string): LibraryPPFProject | null;
+  },
+): string | null;

@@ -27,6 +27,7 @@ async function runSaveCase({ reject = false, changedProject = false, delayed = f
     savedText: state.savedText,
     dirty: true,
     saveInFlightRef,
+    filmSaveInFlightRef: { current: false },
     unconfirmedLocalWriteRef,
     setSavingWorkingText(value) {state.saving=value;},
     setStatus(value) {state.status=value;},

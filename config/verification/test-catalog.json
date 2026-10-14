@@ -2731,6 +2731,50 @@
         ]
       },
       "notes": "#2977 read-only selected-PPF Block 01 Outline/Write handoff and exact four-plan Human acceptance gate. Executes real Visualize handler under a synthetic controlled project; candidate Run records only. No actual model inference, Storyboard creation, live authenticated Windows Brotherly Love acceptance, or media readiness is claimed."
+    },
+    {
+      "id": "experience.compressed-24x96-existing-ppf-2977",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "canon",
+        "storage",
+        "navigation"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2977-runtime-compressed-ppf.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2977 explicit existing PPF film identity/target edit and frame-accurate 24x96 normalized grid; synthetic selected PPF and actual Write handler VM with rejected encrypted ack. Not an actual Windows vault, real Outline proposal transfer, movie Block execution, Storyboard or paid provider acceptance."
     }
   ],
   "truthGovernance": {
@@ -3792,7 +3836,7 @@
       },
       {
         "target": "tests/issue-2953-write-confirmed-durability.test.mjs",
-        "targetDigest": "344ccff1738bd0f0439a6ab97b1583b49702cfbf728b68f82882c92ebfdee1e5",
+        "targetDigest": "c71640b30d919ddb8013ac82756886ae45e98e42ca5c2a7c389bc6552b5dc0f0",
         "catalogueIds": [
           "experience.write-matrix-continuity-2953"
         ],
@@ -3933,6 +3977,76 @@
           "static-source"
         ],
         "limits": "Read-only 24x4 synthetic PPF, actual Write handler VM and guarded proposal records; cannot establish live Human project title or revisions, agent execution, genuine first Storyboard image, provider calls, authenticated Windows session or completion of Brotherly Love Block 01.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
+        "targetDigest": "3b931c59a1129f88c9a1cef39a1f516da1f67a64dbc4fdef07ddbb6110432207",
+        "catalogueIds": [
+          "experience.compressed-24x96-existing-ppf-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF with real 24/96 frame projection and VM-executed Write metadata Save. Injected vault reject, ID change, bad title/duration, no overwrite and no model/content mutation. Does not establish live encrypted Windows readback, user-selected minutes, accepted Outline, executed agent or generated Storyboard image.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
+        "targetDigest": "2efcc612c4c1a144e1a5a4ea4b82b340c20b5c6068e715253780a8c97163fde6",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "story-canon.learn-program-map",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
         "inputs": []
       }
     ]

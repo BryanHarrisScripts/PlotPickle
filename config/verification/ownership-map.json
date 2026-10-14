@@ -1158,7 +1158,9 @@
         "modules/write/model/write-position-navigation.mjs",
         "modules/write/model/write-position-navigation.d.mts",
         "modules/write/model/block-handoff-review.mjs",
-        "modules/write/model/block-handoff-review.d.mts"
+        "modules/write/model/block-handoff-review.d.mts",
+        "modules/write/model/selected-ppf-runtime-grid.mjs",
+        "modules/write/model/selected-ppf-runtime-grid.d.mts"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

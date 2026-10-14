@@ -399,3 +399,40 @@
 @media (max-width: 720px) {
   .handoffPanel ol { grid-template-columns: minmax(0, 1fr); }
 }
+
+.filmProfileForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr);
+  gap: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  padding: var(--pp-skin-space-3);
+  min-width: 0;
+}
+.filmProfileForm legend {
+  padding: 0 var(--pp-skin-space-2);
+  font-weight: 700;
+  color: var(--pp-skin-accent-bright);
+}
+.filmProfileForm label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  font-size: var(--pp-skin-font-meta);
+  min-width: 0;
+}
+.filmProfileForm input,
+.filmProfileForm select {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--pp-skin-space-2);
+  background: var(--pp-skin-surface-0);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  color: var(--pp-skin-ink);
+}
+.filmProfileForm button,
+.filmProfileForm small {
+  grid-column: 1 / -1;
+}
+@media (max-width: 720px) {
+  .filmProfileForm { grid-template-columns: minmax(0,1fr); }
+}

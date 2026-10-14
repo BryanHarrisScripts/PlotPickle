@@ -4,11 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { blockWritingEntry, updateBlockWritingEntry } from "@/core/contracts/block-writing";
 import { moveWriteStoryPosition } from "../model/write-position-navigation.mjs";
 import { reviewBlockHandoff } from "../model/block-handoff-review.mjs";
+import { projectRuntimeGrid } from "../model/selected-ppf-runtime-grid.mjs";
 import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
+import { normalizeLibraryStoryIntent } from "@/core/storage/library-project";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   loadActiveLibraryProject,
+  listLibraryProjects,
   saveActiveLibraryProject,
   sessionActiveProjectId,
   type LibraryPPFProject,
@@ -85,12 +88,17 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   const [status, setStatus] = useState("");
   const [visualizing, setVisualizing] = useState(false);
   const [savingWorkingText, setSavingWorkingText] = useState(false);
+  const [savingFilmProfile, setSavingFilmProfile] = useState(false);
+  const [filmTitleInput, setFilmTitleInput] = useState("");
+  const [filmFormatInput, setFilmFormatInput] = useState("");
+  const [filmMinutesInput, setFilmMinutesInput] = useState("");
+  const filmSaveInFlightRef = useRef(false);
   const saveInFlightRef = useRef(false);
   const unconfirmedLocalWriteRef = useRef<{ key: string; text: string } | null>(null);
   const lastHydratedEditorKeyRef = useRef("");
 
   useEffect(() => {
-    const syncProject = () => setProject(loadActiveLibraryProject());
+    const syncProject = () => { if (!filmSaveInFlightRef.current) setProject(loadActiveLibraryProject()); };
     const syncHistoryAddress = () => setAddress(currentAddress());
     syncProject();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, syncProject);
@@ -102,6 +110,13 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
       window.removeEventListener("popstate", syncHistoryAddress);
     };
   }, []);
+
+  useEffect(() => {
+    if (!project || filmSaveInFlightRef.current) return;
+    setFilmTitleInput(project.title);
+    setFilmFormatInput(project.storyIntent?.format ?? "");
+    setFilmMinutesInput(project.storyIntent ? String(project.storyIntent.targetMinutes) : "");
+  }, [project?.id, project?.title, project?.storyIntent?.format, project?.storyIntent?.targetMinutes]);
 
   const entry = useMemo(
     () => project ? blockWritingEntry(project.writing, address) : null,
@@ -159,11 +174,13 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   const handoff = reviewBlockHandoff(project, address.blockNumber, {
     currentAssessment: Boolean(currentOutlineAssessment(project, address.blockNumber)),
   });
+  const runtimeGrid = projectRuntimeGrid(project);
+  const nominalBlock = runtimeGrid.status === "runtime-configured" ? runtimeGrid.blocks[address.blockNumber - 1] : null;
   const dirty = draftText !== savedText;
 
   function selectAddress(blockNumber: number, miniBlockNumber: number) {
-    if (saveInFlightRef.current) {
-      setStatus("The encrypted screenplay Save is still pending. Keep this story position until its result is confirmed.");
+    if (saveInFlightRef.current || filmSaveInFlightRef.current) {
+      setStatus("An encrypted profile Save is still pending. Keep this story position until its result is confirmed.");
       return;
     }
     if (blockNumber === address.blockNumber && miniBlockNumber === address.miniBlockNumber) return;
@@ -179,8 +196,8 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   function leaveWrite() {
-    if (saveInFlightRef.current) {
-      setStatus("Wait for the encrypted screenplay Save result before leaving Write.");
+    if (saveInFlightRef.current || filmSaveInFlightRef.current) {
+      setStatus("Wait for the encrypted profile Save result before leaving Write.");
       return;
     }
     if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
@@ -188,8 +205,8 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   function navigateFromWrite(href: string) {
-    if (saveInFlightRef.current) {
-      setStatus("Wait for the encrypted screenplay Save result before leaving Write.");
+    if (saveInFlightRef.current || filmSaveInFlightRef.current) {
+      setStatus("Wait for the encrypted profile Save result before leaving Write.");
       return;
     }
     if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
@@ -197,7 +214,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
   }
 
   async function save() {
-    if (saveInFlightRef.current || !dirty) return;
+    if (saveInFlightRef.current || filmSaveInFlightRef.current || !dirty) return;
     saveInFlightRef.current = true;
     setSavingWorkingText(true);
     setStatus("Saving working screenplay text to the encrypted Human profile…");
@@ -236,6 +253,86 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
     } finally {
       saveInFlightRef.current = false;
       setSavingWorkingText(false);
+    }
+  }
+
+  async function saveFilmProfile() {
+    if (filmSaveInFlightRef.current || saveInFlightRef.current || savingWorkingText) return;
+    if (dirty) {
+      setStatus("Save or discard working screenplay edits before changing the PPF film profile.");
+      return;
+    }
+    const title = filmTitleInput.trim();
+    if (!title || title.length > 160 || !/[\\p{L}\\p{N}]/u.test(title)) {
+      setStatus("Enter the actual film title (1–160 characters with a letter or number). The former '.' name is not a valid film identity.");
+      return;
+    }
+    if (!/^[0-9]{1,3}$/u.test(filmMinutesInput.trim())) {
+      setStatus("Choose an explicit whole-number target runtime between 1 and 240 minutes.");
+      return;
+    }
+    const intent = normalizeLibraryStoryIntent({
+      format: filmFormatInput,
+      targetMinutes: Number(filmMinutesInput),
+    });
+    if (!intent) {
+      setStatus("Choose Short Film or Feature and an explicit target runtime from 1 to 240 minutes.");
+      return;
+    }
+    if (title === project.title && project.storyIntent?.format === intent.format
+        && project.storyIntent.targetMinutes === intent.targetMinutes) {
+      setStatus("The selected PPF already has this confirmed film identity and runtime; no write was needed.");
+      return;
+    }
+
+    const saveProjectId = project.id;
+    const priorSummaryFormat = listLibraryProjects().find((item) => item.id === saveProjectId)?.format;
+    let candidateRevision = 0;
+    filmSaveInFlightRef.current = true;
+    setSavingFilmProfile(true);
+    setStatus("Saving selected story identity and runtime to the encrypted Human profile…");
+    try {
+      if (sessionActiveProjectId() !== saveProjectId) throw new Error("No matching active Library PPF is selected.");
+      const now = new Date().toISOString();
+      candidateRevision = project.revision + 1;
+      const next: LibraryPPFProject = {
+        ...project,
+        title,
+        storyIntent: intent,
+        revision: candidateRevision,
+        updatedAt: now,
+      };
+      const staged = saveActiveLibraryProject(next);
+      await persistActiveProfileProject("", saveProjectId);
+      await flushProfilePrivateWrites();
+      if (sessionActiveProjectId() !== saveProjectId) {
+        throw new Error("The selected Library PPF changed before encrypted confirmation.");
+      }
+      const reread = loadActiveLibraryProject();
+      if (reread.id !== saveProjectId || reread.revision !== candidateRevision
+          || reread.title !== title || reread.storyIntent?.format !== intent.format
+          || reread.storyIntent.targetMinutes !== intent.targetMinutes) {
+        throw new Error("Stored film profile identity does not match the confirmed request.");
+      }
+      const confirmedSummary = listLibraryProjects().find((item) => item.id === saveProjectId);
+      if (!confirmedSummary || confirmedSummary.title !== title || confirmedSummary.format !== intent.format) {
+        throw new Error("Library card identity/format disagrees with the confirmed PPF.");
+      }
+      setProject(staged);
+      setStatus(`Encrypted PPF film profile confirmed: ${title} · ${intent.format} · ${intent.targetMinutes}-minute target. All 24 Blocks and 96 Mini-Blocks retained. No story passage, Plan, Shot or media was changed.`);
+    } catch (error) {
+      if (candidateRevision && sessionActiveProjectId() === saveProjectId) {
+        const staged = loadActiveLibraryProject();
+        if (staged.id === saveProjectId && staged.revision === candidateRevision) {
+          // Keep the original verified in-memory content rather than projecting
+          // a failed encrypted write as a newly accepted runtime.
+          saveActiveLibraryProject(project, priorSummaryFormat);
+        }
+      }
+      setStatus(`Film profile Save not confirmed. Review your choices and retry after resolving protected profile access. ${error instanceof Error ? error.message : "Encrypted storage rejected the update."}`);
+    } finally {
+      filmSaveInFlightRef.current = false;
+      setSavingFilmProfile(false);
     }
   }
 
@@ -347,9 +444,41 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         {handoff.titleNeedsReview ? <p role="status">Project title needs review in Library: no name is inferred from imported screenplay text or this handoff.</p> : null}
         {handoff.sourceIsPartial ? <p role="status">The imported screenplay is truncated. Mapped passage counts describe retained evidence only.</p> : null}
         <p>Story Architect: {handoff.currentAssessment ? "current advisory assessment, not Human acceptance" : "no current assessment verified"}. The accepted Plan states below, not agent proposals, govern readiness.</p>
+        <fieldset className={styles.filmProfileForm} aria-label="Human-confirmed film identity and runtime">
+          <legend>Current PPF · Human-confirmed film profile</legend>
+          <label htmlFor="write-film-title">Film title
+            <input id="write-film-title" value={filmTitleInput} maxLength={160} onChange={(event) => setFilmTitleInput(event.target.value)} />
+          </label>
+          <label htmlFor="write-film-format">Film format
+            <select id="write-film-format" value={filmFormatInput} onChange={(event) => setFilmFormatInput(event.target.value)}>
+              <option value="">Choose format</option>
+              <option value="Short Film">Short Film</option>
+              <option value="Feature">Feature</option>
+            </select>
+          </label>
+          <label htmlFor="write-film-minutes">Target runtime (minutes)
+            <input id="write-film-minutes" type="number" min={1} max={240} step={1} value={filmMinutesInput} onChange={(event) => setFilmMinutesInput(event.target.value)} />
+          </label>
+          <button type="button" disabled={savingFilmProfile || savingWorkingText || dirty} onClick={() => void saveFilmProfile()}>
+            {savingFilmProfile ? "Confirming encrypted Save…" : "Save film identity and runtime"}
+          </button>
+          <small>Only an explicit Human selection changes these fields. Runtime is a planning target, not an achieved film duration. No Outline approval, screenplay rewriting or media generation is performed.</small>
+        </fieldset>
+        <div data-selected-ppf-runtime-status={runtimeGrid.status}>
+          <p>FIXED STRUCTURE · 4 ACTS / 12 SEQUENCES / 24 BLOCKS / 96 MINI-BLOCKS</p>
+          {runtimeGrid.status === "runtime-configured" ? (
+            <>
+              <p>{runtimeGrid.format} · Human-selected target {runtimeGrid.targetMinutes} minutes · nominal Block {String(address.blockNumber).padStart(2, "0")} window {nominalBlock?.startSeconds.toFixed(3)}–{nominalBlock?.endSeconds.toFixed(3)} seconds ({nominalBlock?.durationFrames} frames at 24 fps).</p>
+              <p>25 planned Storyboard Shot positions per Mini-Block; nominal time budget {runtimeGrid.shotPlanningSlotSeconds.toFixed(3)} seconds per position. {runtimeGrid.defaultThreeSecondPresetFits ? "Matches the original 120-minute / 3-second planning preset." : "Does NOT match the two-hour / 3-second timing preset; Shot and motion timing need a separately authored review."} No Shot or frame has been rendered.</p>
+            </>
+          ) : (
+            <p role="status">{runtimeGrid.reason} An existing story's target must be chosen explicitly; these regions cannot be assigned 75 seconds by default.</p>
+          )}
+        </div>
         <ol>
           {handoff.miniBlocks.map((item) => <li key={item.address}>
             <strong>Mini-Block {item.address}</strong> · {item.planAccepted ? "Plan accepted by Human" : `Plan ${item.planState} — Human acceptance required`} · {item.importedPassages} imported passage(s) · {item.savedWriting ? "saved writing present" : "no saved writing"}
+            {runtimeGrid.status === "runtime-configured" ? <small>Nominal time {runtimeGrid.miniBlocks[(address.blockNumber - 1) * 4 + item.ordinal - 1].startSeconds.toFixed(3)}–{runtimeGrid.miniBlocks[(address.blockNumber - 1) * 4 + item.ordinal - 1].endSeconds.toFixed(3)} s; not authored Shot timing</small> : null}
           </li>)}
         </ol>
         <p>{handoff.allPlansAccepted

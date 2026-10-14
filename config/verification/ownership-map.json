@@ -407,6 +407,7 @@
         ".pi/npm/package.json",
         ".pi/npm/package-lock.json",
         "scripts/dsdd-pi-draft.mjs",
+        "scripts/pi/dsdd-grounding-repair.mjs",
         "scripts/dsdd-integrity.mjs",
         "scripts/dsdd-publish-brief.mjs",
         ".pi/settings.json",

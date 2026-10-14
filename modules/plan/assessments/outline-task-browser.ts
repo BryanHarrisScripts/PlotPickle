@@ -13,14 +13,14 @@ export async function readOutlineTasks(signal?: AbortSignal): Promise<OutlineTas
   return body.tasks;
 }
 
-export async function changeOutlineTask(action: "start" | "start-local" | "resume" | "cancel", project: LibraryPPFProject, options: { blocks?: readonly number[]; taskId?: string } = {}) {
+export async function changeOutlineTask(action: "start" | "start-local" | "start-production" | "resume" | "cancel", project: LibraryPPFProject, options: { blocks?: readonly number[]; taskId?: string } = {}) {
   const profile = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
   const session = await profile.json() as { authenticated?: boolean; csrfToken?: string };
   if (!profile.ok || !session.authenticated || !session.csrfToken) throw new Error("Unlock the Human profile before changing Story Architect recovery.");
   const response = await fetch("/api/outline/tasks", { method: "POST", credentials: "same-origin",
     headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": session.csrfToken },
     body: JSON.stringify({ action, projectId: project.id, ...options,
-      ...((action === "start" || action === "start-local") ? { materialReceipt: await outlineAssessmentMaterialReceipt(project) } : {}) }),
+      ...((action === "start" || action === "start-local" || action === "start-production") ? { materialReceipt: await outlineAssessmentMaterialReceipt(project) } : {}) }),
   });
   const body = await response.json() as { task?: OutlineTaskView; message?: string };
   if (!response.ok || !body.task) throw new Error(body.message || "Story Architect task action failed.");
@@ -37,7 +37,7 @@ export async function importOutlineTaskFindings(project: LibraryPPFProject, task
   const alreadyImported = new Set(priorRun?.completedBlockNumbers || []);
   const assessments = task.proposals.map(({ assessment }) => {
     if (outlineAssessmentFingerprint(project, assessment.blockNumber) !== assessment.inputFingerprint) throw new Error("Story Architect finding no longer matches this Block.");
-    return validateOutlineAgentAssessment(JSON.stringify(assessment), project, assessment.blockNumber, assessment.model, assessment.assessedAt);
+    return validateOutlineAgentAssessment(JSON.stringify(assessment), project, assessment.blockNumber, assessment.model, assessment.assessedAt, Boolean(task.productionPass));
   });
   const newAssessments = assessments.filter((assessment) => !alreadyImported.has(assessment.blockNumber));
   const complete = assessments.length === task.steps.length;

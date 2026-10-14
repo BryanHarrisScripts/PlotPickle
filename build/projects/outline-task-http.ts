@@ -30,8 +30,9 @@ async function POST(request: Request) {
     const project = await state.privateStorage.loadActiveProject(authContext) as LibraryPPFProject | null;
     if (!project || project.id !== input.projectId) return response({ message: "Load the approved project before changing its Outline task." }, 409);
     const host = hostFor(state);
-    if (input.action === "start" || input.action === "start-local") {
+    if (input.action === "start" || input.action === "start-local" || input.action === "start-production") {
       if (await outlineAssessmentMaterialReceipt(project) !== input.materialReceipt) return response({ message: "The saved story differs from the approved review input. Save it and retry." }, 409);
+      if (input.action === "start-production") return response({ task: await host.startProduction(authContext, input.blocks!) }, 202);
       const task = input.action === "start-local"
         ? await host.startLocal(authContext, input.blocks!)
         : await host.start(authContext, input.blocks!);

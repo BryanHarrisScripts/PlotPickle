@@ -2655,8 +2655,7 @@
       "triggerTokens": [
         "agent",
         "skill",
-        "docs",
-        "repository"
+        "docs"
       ],
       "runner": {
         "kind": "node-test",

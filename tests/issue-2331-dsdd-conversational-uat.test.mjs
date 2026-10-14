@@ -70,7 +70,14 @@ test("#2331 preserves the live conversation across navigation in the persistent 
   assert.match(panel, /const \[messages, setMessages\] = useState<DsddMessage\[\]>\(\[\]\)/u);
   assert.match(panel, /MutationObserver/u);
   assert.match(panel, /usePathname/u);
-  assert.doesNotMatch(panel, /sessionStorage|localStorage/u);
+  // The Library Command owner may READ the current authenticated profile ID
+  // from its existing session handoff. That is not DSDD message storage.
+  assert.match(panel, /window\\.sessionStorage\\.getItem\\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\\)/u);
+  const withoutProfileIdentityRead = panel.replaceAll(
+    "window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)", "",
+  );
+  assert.doesNotMatch(withoutProfileIdentityRead, /sessionStorage|localStorage/u);
+  assert.doesNotMatch(panel, /sessionStorage\\.setItem|localStorage\\.setItem/u);
 });
 
 

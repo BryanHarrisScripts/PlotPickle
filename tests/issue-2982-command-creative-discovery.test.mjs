@@ -532,3 +532,38 @@ test("#2982 real Command inspector reuses only read-only authenticated Library o
   assert.doesNotMatch(inspected,/services\.(?:switchProject|saveProject|persistProject|flushWrites)\(/);
   assert.doesNotMatch(inspected,/\bfetch\(|\/api\/storyboard|\/api\/local-ai\//);
 });
+
+test("#2982 Command accepts only explicit local-only Story Architect and read-only assessment reconciliation",()=>{
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle assess Block 01 local"),{action:"assess-local",blockNumber:1});
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle assessment Block 01"),{action:"assessment",blockNumber:1});
+  assert.deepEqual(parsePlotPickleCreativeCommand("/plotpickle assess block 24 local"),{action:"assess-local",blockNumber:24});
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle assess Block 25 local").action,"invalid");
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle assess Block 01 with OpenAI"),null);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle assess Block 01 cloud"),null);
+  assert.equal(parsePlotPickleCreativeCommand("Just create my movie with no cost"),null);
+});
+
+test("#2982 Command executes real Story Architect owner and imports only host-validated protected findings",async()=>{
+  const [ui,gateway,handler,browser,assessment,save]=await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../build/projects/outline-task-gateway.ts",import.meta.url),"utf8"),
+    readFile(new URL("../build/projects/outline-task-http.ts",import.meta.url),"utf8"),
+    readFile(new URL("../modules/plan/assessments/outline-task-browser.ts",import.meta.url),"utf8"),
+    readFile(new URL("../modules/plan/outline-agent-assessment.ts",import.meta.url),"utf8"),
+    readFile(new URL("../core/storage/project-library/revision-safe-browser.ts",import.meta.url),"utf8"),
+  ]);
+  assert.match(ui,/await changeOutlineTask\("start-local", project, \{ blocks: \[command\.blockNumber\] \}\)/);
+  assert.match(ui,/await readOutlineTasks\(\)/);
+  assert.match(ui,/await importOutlineTaskFindings\(project, task\)/);
+  assert.match(ui,/await saveFoundationProjectDurably\(next, project\.revision\)/);
+  assert.match(ui,/await runCreativeAssessmentCommand\(submitted\)/);
+  assert.match(gateway,/async startLocal\(auth: AuthContext, blocks: number\[\]\)/);
+  assert.match(gateway,/\["local", "ollama"\]\.includes\(execution\.provider\)/);
+  assert.match(gateway,/execution\.cloudCostUpperBoundUsd !== 0/);
+  assert.match(gateway,/record\.computeReceipt !== execution\.receipt/);
+  assert.match(handler,/input\.action === "start-local"/);
+  assert.match(browser,/action === "start-local"/);
+  assert.match(assessment,/validateOutlineAgentAssessment/);
+  assert.match(save,/await flushProfilePrivateWrites\(\)/);
+  assert.doesNotMatch(ui.slice(ui.indexOf("  async function runCreativeAssessmentCommand("),ui.indexOf("  function runCreativeDiscoveryCommand(")),/fetch\("/api\/writing-assistant\/chat|\/api\/cloud-story-mode|requestWriterApproval\(/);
+});

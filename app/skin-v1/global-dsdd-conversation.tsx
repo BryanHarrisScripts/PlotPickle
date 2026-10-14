@@ -18,7 +18,7 @@ import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, exec
 import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, listPersistableLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject, saveActiveLibraryProject, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
-import { changeOutlineTask, readOutlineTasks, importOutlineTaskFindings, type OutlineTaskView } from "../../modules/plan/assessments/outline-task-browser";
+import { changeOutlineTask, readOutlineTasks, importOutlineTaskFindings } from "../../modules/plan/assessments/outline-task-browser";
 import { outlineAssessmentMaterialReceipt } from "../../modules/plan/outline-agent-assessment";
 import { saveFoundationProjectDurably } from "../../core/storage/project-library/revision-safe-browser";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";

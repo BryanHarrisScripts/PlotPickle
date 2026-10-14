@@ -2555,6 +2555,50 @@
         ]
       },
       "notes": "#2960 real Library handler execution under controlled same-profile/browser fixtures, explicit auth failure, no mutation before verification, rollback, durable order and retry guard; not an actual logged-in Windows session or encrypted readback. WHITE-PAPER-V3 W8/W9 and PP-SAVE-001 T1/T6/T8."
+    },
+    {
+      "id": "experience.foundations-agent-fidelity-2958",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "agent",
+        "canon",
+        "navigation"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2958-foundations-proposal-fidelity.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2958 TRUTH-FOUNDATIONS-PROPOSAL-001: Synthetic controlled family-household, unsupported guidance and unexpected Han negative controls, bounded correction; VM executes actual Mind Map Ask Agent and Use Suggestion handlers. Not proof of semantic completeness, original private screenplay/provider response, live Windows Ollama or authenticated session."
     }
   ],
   "truthGovernance": {
@@ -3644,6 +3688,38 @@
         ],
         "limits": "Controlled VM execution of real Write Save handler, 96 pure Matrix addresses, and static exit guards. No original private imported film source, paid provider, actual account/vault, physical Windows browser or process restart was observed.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+        "targetDigest": "014cef3b49ff62d152b61e247764287c6bf969f6f435a14cb2fdf626e8783e01",
+        "catalogueIds": [
+          "experience.foundations-agent-fidelity-2958"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Pure deterministic narrow negative controls plus VM-executed actual Mind Map handlers with synthetic agent response and project values. Does not prove unrestricted language/semantic equivalence, actual Ollama or other model behaviour, Human Windows authenticated lifecycle, or original private story acceptance.",
+        "inputs": [
+          {
+            "path": "modules/learn/model/mind-map-proposal-fidelity.mjs",
+            "digest": "96b668fc61e9e3361550bc2621aceb599d27c84a4e3787fbc1d68d201368d84d"
+          },
+          {
+            "path": "app/skin-v1/discovery-surface.tsx",
+            "digest": "b03b1135ded7c5a0f8c87e7e51a08a745ecdc260a788175ebc49f88be595c1ee"
+          }
+        ]
       }
     ]
   }

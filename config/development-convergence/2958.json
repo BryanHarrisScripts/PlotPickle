@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2958,
+  "phase": "mind-map-foundations-premise-language-fidelity",
+  "brief": "docs/developer-briefs/2958-foundations-agent-proposal-truth.md",
+  "allowedChanges": [
+    "modules/learn/model/mind-map-proposal-fidelity.mjs",
+    "modules/learn/model/mind-map-proposal-fidelity.d.mts",
+    "app/skin-v1/discovery-surface.tsx",
+    "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+    "docs/developer-briefs/2958-foundations-agent-proposal-truth.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/2958.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NAMED-HUMAN-HOUSEHOLD",
+      "criterion": "The exact separate mother/father household negative control blocks a collapsed respective parents proposal.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+          "contains": "preserves two explicitly separate households"
+        }
+      ]
+    },
+    {
+      "id": "LANGUAGE-AND-UNSUPPORTED-GUIDANCE",
+      "criterion": "Unexpected Chinese-script contamination and invented parental guidance are rejected; explicit Chinese source/request remains permitted.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+          "contains": "mixed unexpected Han and invented family wisdom"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDED-CORRECTION-FAIL-CLOSED",
+      "criterion": "At most one corrective model call; two failures do not store or claim proposal success.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+          "contains": "actual Mind Map Ask Agent handler rejects both corrupt attempts"
+        }
+      ]
+    },
+    {
+      "id": "INDEPENDENT-HUMAN-CANON",
+      "criterion": "Actual source Use Suggestion rejects old unscreened invalid proposals; project/Act/revision continuity remains authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2958-foundations-proposal-fidelity.test.mjs",
+          "contains": "legacy unscreened Use Suggestion path rechecks current Human premise"
+        }
+      ]
+    },
+    {
+      "id": "EVIDENCE-HONESTY",
+      "criterion": "Bounded synthetic tests cannot certify actual Windows authenticated model responses or arbitrary semantic fidelity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2958-foundations-agent-proposal-truth.md",
+          "contains": "**do not** demonstrate every semantic obligation"
+        }
+      ]
+    }
+  ]
+}

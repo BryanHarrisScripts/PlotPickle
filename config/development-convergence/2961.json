@@ -17,7 +17,9 @@
     "docs/developer-briefs/2961-library-new-story-identity-format.md",
     "config/verification/test-catalog.json",
     "config/verification/ownership-map.json",
-    "config/development-convergence/2961.json"
+    "config/development-convergence/2961.json",
+    "tests/issue-2630-mind-map-human-notes.test.mjs",
+    "tests/issue-2632-retire-legacy-mindmap-board.test.mjs"
   ],
   "acceptance": [
     {
@@ -83,6 +85,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/2961-library-new-story-identity-format.md",
           "contains": "CI fixtures are not a witnessed real authenticated Windows user action"
+        }
+      ]
+    },
+    {
+      "id": "HISTORICAL-EVIDENCE-PRESERVED",
+      "criterion": "Existing Mind Map notes and historical discovery data normalizer tests retain meaningful assertions while accepting additive intent metadata.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2630-mind-map-human-notes.test.mjs",
+          "contains": "mindMapNotes, storyIntent"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
+          "contains": "mindMapNotes, storyIntent"
         }
       ]
     }

@@ -11,7 +11,10 @@
     "docs/developer-briefs/2982-command-creative-discovery-phase1.md",
     "config/development-convergence/2982.json",
     "config/verification/test-catalog.json",
-    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs"
+    "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
+    "modules/library/afterglow-consolidation.mjs",
+    "scripts/promote-afterglow-packaged-example.mjs",
+    "tests/issue-2982-afterglow-story-intent.test.mjs"
   ],
   "acceptance": [
     {
@@ -77,6 +80,17 @@
           "type": "file-contains",
           "path": "scripts/developer-diagnostics/product-proof/2894-afterglow-consolidation.mjs",
           "contains": "Review start failed; exact page and exception evidence"
+        }
+      ]
+    },
+    {
+      "id": "AFTERGLOW-DURABLE-RUNTIME-RECONCILIATION",
+      "criterion": "New optional PPF storyIntent is a recognized durable Afterglow field, absent legacy means no intent; changed Human format/minutes are atomic and conflicting saved choices never silently merge.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-afterglow-story-intent.test.mjs",
+          "contains": "two disagreeing Human runtimes remain one atomic decision"
         }
       ]
     }

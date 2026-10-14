@@ -6,10 +6,10 @@ import { fileURLToPath } from "node:url";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
 import { assertPiDraftGrounding } from "./dsdd-integrity.mjs";
+import { draftWithVerifiedGrounding } from "./pi/dsdd-grounding-repair.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_INPUT_BYTES = 96 * 1024;
-const MAX_BRIEF_CHARS = 12_000;
 
 async function readStdin() {
   let source = "";
@@ -85,16 +85,24 @@ async function main() {
   const pi = await ensureManagedPiInstalled({ allowInstall: false });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
-  const result = await runPiReadOnly({
-    command: pi.command,
-    runtime,
-    prompt: promptFor(input),
-    cwd: repoRoot,
-    purpose: "dsdd-brief",
-    timeout: 12 * 60_000,
+  const drafted = await draftWithVerifiedGrounding({
+    lockedPrompt: promptFor(input),
+    intentText: [
+      input.humanStatement,
+      input.understoodMeaning,
+      ...(Array.isArray(input.requirements) ? input.requirements.map((item) => item?.text) : []),
+    ].filter(Boolean).join(" "),
+    repoRoot,
+    runDraft: (prompt) => runPiReadOnly({
+      command: pi.command,
+      runtime,
+      prompt,
+      cwd: repoRoot,
+      purpose: "dsdd-brief",
+      timeout: 12 * 60_000,
+    }),
   });
-  const text = String(result.stdout || "").trim().slice(0, MAX_BRIEF_CHARS);
-  if (!text) throw new Error("Pi Draft completed without producing a technical developer brief.");
+  const text = drafted.text;
   const grounding = assertPiDraftGrounding(text, repoRoot);
   process.stdout.write(JSON.stringify({
     ok: true,
@@ -105,6 +113,7 @@ async function main() {
     tools: ["read", "grep", "find", "ls"],
     repositoryMutation: false,
     grounding,
+    groundingCorrectionAttempted: drafted.attempts === 2,
     text,
   }));
 }

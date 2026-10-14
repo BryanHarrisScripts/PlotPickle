@@ -86,7 +86,8 @@ function actualFilmProfileHandler(source) {
 async function runProfileSave({reject=false, switched=false, title="Brotherly Love", format="Short Film", minutes="15", dirty=false, priorIntent=null}={}) {
   const write=await read("modules/write/ui/block-native-write-workspace.tsx");
   const original=film(priorIntent);const untouchedSource=JSON.stringify(original.sourceEvidence);
-  const state={project:original,visibleProject:original,status:"",calls:[],saving:false,activeId:original.id};
+  const state={project:original,visibleProject:original,status:"",calls:[],saving:false,activeId:original.id,
+    summary:{id:original.id,title:original.title,format:"Imported screenplay"}};
   let finish,abort;
   const encryptedWrite=new Promise((resolve,reject)=>{finish=resolve;abort=reject});
   const ctx={
@@ -100,7 +101,13 @@ async function runProfileSave({reject=false, switched=false, title="Brotherly Lo
         ||x.targetMinutes<1||x.targetMinutes>240)return null;
       return x;
     },
-    saveActiveLibraryProject(x){state.project=x;state.calls.push("stage:"+x.revision);return x;},
+    listLibraryProjects(){return [state.summary];},
+    saveActiveLibraryProject(x,formatOverride){
+      state.project=x;
+      state.summary={...state.summary,title:x.title,format:formatOverride||x.storyIntent?.format||state.summary.format};
+      state.calls.push("stage:"+x.revision);
+      return x;
+    },
     loadActiveLibraryProject(){return state.project;},
     sessionActiveProjectId(){return state.activeId;},
     async persistActiveProfileProject(token,id){state.calls.push("encrypted:"+id);await encryptedWrite;},
@@ -128,6 +135,7 @@ test("#2977 real Write film profile Save awaits encrypted confirmation and retai
   assert.equal(x.visibleProject.title,"Brotherly Love");
   assert.deepEqual(JSON.parse(JSON.stringify(x.visibleProject.storyIntent)),{format:"Short Film",targetMinutes:15});
   assert.equal(x.visibleProject.revision,5);
+  assert.deepEqual(x.summary,{id:"current-brotherly-ppf",title:"Brotherly Love",format:"Short Film"});
   assert.equal(projectRuntimeGrid(x.visibleProject).miniBlocks[0].durationSeconds,9.375);
   assert.match(x.status,/Encrypted PPF film profile confirmed/);
 });
@@ -136,6 +144,7 @@ test("#2977 rejected encrypted write fails closed and restores previous current 
   assert.deepEqual(x.calls,["stage:5","encrypted:current-brotherly-ppf","stage:4"]);
   assert.equal(x.project.title,".");
   assert.equal(x.project.storyIntent,null);
+  assert.deepEqual(x.summary,{id:"current-brotherly-ppf",title:".",format:"Imported screenplay"});
   assert.equal(x.visibleProject.revision,4);
   assert.match(x.status,/Save not confirmed/);
 });
@@ -176,5 +185,7 @@ test("#2977 real Write binds current PPF runtime, explicit Human choices and no 
   assert.match(write,/reread\.storyIntent\?\.format/);
   assert.match(contract,/normalizeLibraryStoryIntent\(source\.storyIntent\)/);
   assert.match(store,/initialized\.activeProject\.storyIntent/);
+  assert.match(store,/format: selectedFormat/);
+  assert.match(write,/confirmedSummary\.format !== intent\.format/);
   assert.doesNotMatch(write,/setFilmMinutesInput\("120"\)/);
 });

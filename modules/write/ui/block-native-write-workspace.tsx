@@ -26,7 +26,6 @@ import type { ResponsibilityRun } from "@/lib/agents/responsibility/responsibili
 import {
   storyLearningContext,
   storyLearningHref,
-  storyLearningReturnHref,
 } from "@/modules/learn/model/story-learning-context";
 import styles from "./block-native-write-workspace.module.css";
 
@@ -80,7 +79,10 @@ async function responsibilityRunRequest(payload: Record<string, unknown>) {
   if (!response.ok) throw new Error(value.message || `Responsibility Runs returned ${response.status}.`);
 }
 
-export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonly onBackDashboard?: () => void } = {}) {
+export default function BlockNativeWriteWorkspace({ onBackDashboard, onOpenOutline }: {
+  readonly onBackDashboard?: () => void;
+  readonly onOpenOutline?: (address: { blockNumber: number; miniBlockNumber: number }) => void;
+} = {}) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState(() => currentAddress());
   const [draftText, setDraftText] = useState("");
@@ -211,6 +213,19 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
     }
     if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
     window.location.assign(href);
+  }
+
+  function openOutlineFromWrite() {
+    if (saveInFlightRef.current || filmSaveInFlightRef.current) {
+      setStatus("Wait for the encrypted profile Save result before leaving Write.");
+      return;
+    }
+    if (dirty && !window.confirm("Leave Write without saving the working screenplay text?")) return;
+    if (!onOpenOutline) {
+      setStatus("Open Outline from the PlotPickle Dashboard to review this story position.");
+      return;
+    }
+    onOpenOutline(address);
   }
 
   async function save() {
@@ -395,7 +410,7 @@ export default function BlockNativeWriteWorkspace({ onBackDashboard }: { readonl
         <div className={styles.headerActions}>
           {onBackDashboard ? <button type="button" onClick={leaveWrite}>Back to Dashboard</button> : null}
           <button type="button" disabled={visualizing || !handoff.allPlansAccepted} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing proposal stages…" : "Visualize this Block"}</button>
-          <button type="button" onClick={() => navigateFromWrite(storyLearningReturnHref(address))}>Outline this position</button>
+          <button type="button" onClick={openOutlineFromWrite}>Outline this position</button>
           <button type="button" onClick={() => navigateFromWrite(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
           <button type="button" onClick={() => navigateFromWrite(storyLearningHref(learning.references[0], address))}>Learn this position</button>
         </div>

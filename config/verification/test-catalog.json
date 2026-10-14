@@ -2704,7 +2704,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2977-block-handoff-truth.test.mjs"
+          "tests/issue-2977-block-handoff-truth.test.mjs",
+          "tests/issue-2984-write-outline-navigation.test.mjs"
         ]
       },
       "cost": "fast",
@@ -3136,7 +3137,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "32e9b1edd779c70d03d80b0c37a7c2ea94ee0b2115e73700476bef91dfd9bc98"
+            "digest": "abb71f4fa0f60789414772755cf57f6afdb55bea307a097da200f8118d2c854a"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -3969,7 +3970,7 @@
       },
       {
         "target": "tests/issue-2953-write-confirmed-durability.test.mjs",
-        "targetDigest": "c71640b30d919ddb8013ac82756886ae45e98e42ca5c2a7c389bc6552b5dc0f0",
+        "targetDigest": "4fc3836554bd47f87d005e26276df823b686f0d51b192f45a8e4a754e453bbf4",
         "catalogueIds": [
           "experience.write-matrix-continuity-2953"
         ],
@@ -4091,7 +4092,7 @@
       },
       {
         "target": "tests/issue-2977-block-handoff-truth.test.mjs",
-        "targetDigest": "ac90ec875702d195fb33ddd588e21cb8266eee721f1f60f807556380b55859f8",
+        "targetDigest": "25ccfbb7287dac51821fd94802f8da44f95509ae524bae62b5f8c6c97a49c2e8",
         "catalogueIds": [
           "experience.block01-handoff-truth-2977"
         ],
@@ -4249,6 +4250,29 @@
           "static-source"
         ],
         "limits": "Synthetic PPF with actual read-only Afterglow consolidation planner, durable schema and promotion list; validates new film intent field, atomic conflicting Human choices, legacy absent meaning, malformed rejection. Actual authenticated Windows Afterglow preview/Save/readback and creative acceptance remain unproven until Windows gate.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2984-write-outline-navigation.test.mjs",
+        "targetDigest": "e6e0f20b89bc570134a299b2bbe118334135caf87db7b9f93e2c6b8c44c71eb5",
+        "catalogueIds": [
+          "experience.block01-handoff-truth-2977"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Actual Write and Matrix navigation functions extracted by TypeScript AST and executed against synthetic callback ports; exact address, no reload, dirty and pending-save controls, missing host. Does not prove real Windows account session persistence or source bytes; live observation separately under #2943.",
         "inputs": []
       }
     ]

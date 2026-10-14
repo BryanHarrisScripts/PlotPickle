@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import vm from "node:vm";
 import test from "node:test";
+import ts from "typescript";
 import { reviewBlockHandoff } from "../modules/write/model/block-handoff-review.mjs";
 
 const read = path => readFile(new URL("../" + path, import.meta.url), "utf8");
@@ -76,10 +77,15 @@ test("#2977 every Block address stays bounded to one PPF; no automatic source re
   assert.equal(JSON.stringify(p), before);
 });
 function handler(source) {
-  const start = source.indexOf("  async function visualizeBlock() {");
-  const end = source.indexOf("\n  return (\n    <main", start);
-  assert.ok(start > 0 && end > start, "execute the real Write handler, not a mock replacement");
-  return stripTypeScriptTypes(source.slice(start, end)) + "\nvisualizeBlock";
+  const tree = ts.createSourceFile("write.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const functions = [];
+  function visit(node) {
+    if (ts.isFunctionDeclaration(node) && node.name?.text === "visualizeBlock") functions.push(node);
+    ts.forEachChild(node, visit);
+  }
+  visit(tree);
+  assert.equal(functions.length, 1, "execute the real Write handler, not a mock replacement");
+  return stripTypeScriptTypes(functions[0].getText(tree)) + "\nvisualizeBlock";
 }
 test("#2977 actual Visualize handler refuses unaccepted Outline plans before any Run mutation", async () => {
   const write = await read("modules/write/ui/block-native-write-workspace.tsx");
@@ -135,6 +141,6 @@ test("#2977 selected PPF Write surface shows real reviewed states, not a fake co
   assert.match(write, /data-block-handoff-project-id=\{handoff\.projectId\}/);
   assert.match(write, /accepted Outline plans: \{handoff\.acceptedCount\}\/4/i);
   assert.match(write, /disabled=\{visualizing \|\| !handoff\.allPlansAccepted\}/);
-  assert.match(write, /navigateFromWrite\(storyLearningReturnHref\(address\)\)/);
+  assert.match(write, /onClick=\{openOutlineFromWrite\}/);
   assert.match(write, /it does not execute agents, generate images, certify Storyboard readiness/i);
 });

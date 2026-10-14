@@ -664,7 +664,7 @@ export default function DashboardBbsReviewHost({
   if (writeOpen) {
     return (
       <section aria-label="Write" data-dashboard-review-surface="write">
-        <BlockNativeWriteWorkspace onBackDashboard={() => returnDashboard("write")} />
+        <BlockNativeWriteWorkspace onBackDashboard={() => returnDashboard("write")} onOpenOutline={(address) => { setWriteOpen(false); openOutline(address); }} />
       </section>
     );
   }

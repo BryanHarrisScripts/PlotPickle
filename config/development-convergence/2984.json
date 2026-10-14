@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "issue": 2984,
+  "phase": "write-outline-navigation-and-executable-handoff-regressions",
+  "brief": "docs/developer-briefs/2984-write-outline-handoff-repair.md",
+  "allowedChanges": [
+    "modules/write/ui/block-native-write-workspace.tsx",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "tests/issue-2977-block-handoff-truth.test.mjs",
+    "tests/issue-2953-write-confirmed-durability.test.mjs",
+    "tests/issue-2984-write-outline-navigation.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2984-write-outline-handoff-repair.md",
+    "config/development-convergence/2984.json",
+    ".github/workflows/architecture-shadow.yml"
+  ],
+  "acceptance": [
+    {
+      "id": "SAME-HOST-EXACT-ADDRESS",
+      "criterion": "Write opens existing Matrix Outline without document reload or replacing the selected story.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2984-write-outline-navigation.test.mjs",
+          "contains": "#2984 clean Outline handoff retains the exact address without document reload"
+        }
+      ]
+    },
+    {
+      "id": "PRESERVED-SAVE-AND-DIRTY-GUARDS",
+      "criterion": "Pending encrypted saves and dirty rejected departure prevent navigation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2984-write-outline-navigation.test.mjs",
+          "contains": "#2984 both in-flight encrypted saves prevent Outline handoff"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2984-write-outline-navigation.test.mjs",
+          "contains": "#2984 rejected dirty-editor departure retains work"
+        }
+      ]
+    },
+    {
+      "id": "REAL-VISUALIZE-REGRESSION",
+      "criterion": "TypeScript AST extracts the actual handler and preserves no-inference/proposal-only checks.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "ts.isFunctionDeclaration(node)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2977-block-handoff-truth.test.mjs",
+          "contains": "one parent, five child records and five edges only"
+        }
+      ]
+    }
+  ]
+}

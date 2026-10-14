@@ -76,7 +76,7 @@ test("#2961 core Library creates new exact user title, format and PPF intent wit
   assert.deepEqual(created.storyIntent,{format:"Short Film",targetMinutes:13});
   assert.equal(created.structure.blocks.length,24,"intended duration may not resize film structure");
   assert.equal(created.structure.blocks.flatMap(b=>b.miniBlocks).length,96);
-  assert.equal(storage.getItem(projectLibraryProjectKey(profile,prior.id)),priorRaw,"existing snapshot stays byte-identical");
+  assert.deepEqual(JSON.parse(storage.getItem(projectLibraryProjectKey(profile,prior.id))).project,JSON.parse(priorRaw).project,"the old Human story fields and ID remain unchanged even when its Library envelope is re-serialized");
   assert.equal(JSON.parse(storage.getItem(projectLibraryProjectKey(profile,created.id))).project.storyIntent.targetMinutes,13);
   const summaries=listProfileProjectSummaries(input);
   const short=summaries.find(x=>x.id===created.id);

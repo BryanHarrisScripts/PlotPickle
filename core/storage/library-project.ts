@@ -65,6 +65,20 @@ export function createEmptyMindMapNotesState(): MindMapNotesState {
   return { version: MIND_MAP_NOTES_VERSION, topics: {}, fields: {} };
 }
 
+/** Human-selected creation intent; never computed film structure or verified runtime. */
+export type LibraryStoryIntent = Readonly<{
+  format: "Short Film" | "Feature";
+  targetMinutes: number;
+}>;
+
+export function normalizeLibraryStoryIntent(value: unknown): LibraryStoryIntent | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const intent = value as Partial<LibraryStoryIntent>;
+  if (intent.format !== "Short Film" && intent.format !== "Feature") return null;
+  if (!Number.isInteger(intent.targetMinutes) || (intent.targetMinutes ?? 0) < 1 || (intent.targetMinutes ?? 0) > 240) return null;
+  return { format: intent.format, targetMinutes: intent.targetMinutes as number };
+}
+
 export type LibraryPPFProject = PPFProject & {
   readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
@@ -73,6 +87,7 @@ export type LibraryPPFProject = PPFProject & {
   readonly worldMap: WorldMapState;
   readonly storyDevelopment: StoryDevelopmentState;
   readonly mindMapNotes: MindMapNotesState;
+  readonly storyIntent: LibraryStoryIntent | null;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
@@ -189,7 +204,8 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const mindMapNotes = source.mindMapNotes === undefined
     ? createEmptyMindMapNotesState()
     : normalizeMindMapNotesState(source.mindMapNotes);
-  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes };
+  const storyIntent = normalizeLibraryStoryIntent(source.storyIntent);
+  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent };
 }
 
 export function libraryBackupFileName(title: string) {

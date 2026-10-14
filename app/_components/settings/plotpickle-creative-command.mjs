@@ -22,13 +22,15 @@ export function parsePlotPickleCreativeCommand(input) {
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
   if (/^\/?plotpickle\s+(?:library|list\s+projects)$/iu.test(value)) return Object.freeze({ action: "library" });
   // Naming changes require a separate exact-identity preview and confirmation.
-  const confirmedRename = value.match(/^\/?plotpickle\s+confirm\s+rename\s+(\S+)\s+revision\s+(\d{1,12})\s+to\s+(.+)$/iu);
+  const confirmedRename = value.match(/^\/?plotpickle\s+confirm\s+rename\s+(\S+)\s+revision\s+(\d{1,12})\s+from\s+"([^"]+)"\s+to\s+"([^"]+)"$/iu);
   if (confirmedRename) {
-    const title = confirmedRename[3].trim();
+    const title = confirmedRename[4].trim();
+    const previousTitle = confirmedRename[3].trim();
     const revision = Number(confirmedRename[2]);
     return /^[A-Za-z0-9_.:-]{1,180}$/u.test(confirmedRename[1]) && Number.isSafeInteger(revision)
-      && revision >= 0 && title.length > 0 && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
-      ? Object.freeze({ action: "confirm-rename", projectId: confirmedRename[1], revision, title })
+      && revision >= 0 && previousTitle.length > 0 && previousTitle.length <= 160
+      && title.length > 0 && title.length <= 160 && /[\p{L}\p{N}]/u.test(title)
+      ? Object.freeze({ action: "confirm-rename", projectId: confirmedRename[1], revision, previousTitle, title })
       : Object.freeze({ action: "invalid", reason: "Choose an exact saved project ID, nonnegative revision and title of 1–160 characters. Nothing was renamed." });
   }
   const rename = value.match(/^\/?plotpickle\s+rename\s+(\S+)\s+to\s+(.+)$/iu);
@@ -304,9 +306,9 @@ export async function executePlotPickleLibraryRename(command, services) {
         + "\nOnly the PPF display title will change; project identity, screenplay, story and media must remain intact. "
         + "The selected profile's encrypted Library must acknowledge the write.\n"
         + "To approve this exact identity and revision, send:\nPlotPickle confirm rename " + id
-        + " revision " + snapshot.revision + " to " + targetTitle;
+        + " revision " + snapshot.revision + " from \\"" + oldTitle + "\\" to \\"" + targetTitle + "\\"";
     }
-    if (command.revision !== snapshot.revision)
+    if (command.revision !== snapshot.revision || command.previousTitle !== oldTitle)
       return "BLOCKED: The saved PPF revision has changed since the preview. "
         + "Run PlotPickle rename " + id + " to " + targetTitle + " again. No rename was attempted.";
     // Validate all pending encrypted writes before the first local mutation.

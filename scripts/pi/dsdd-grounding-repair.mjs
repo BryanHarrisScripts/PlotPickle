@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { lstatSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import path from "node:path";
 import { assessPiDraftGrounding, assertPiDraftGrounding } from "../dsdd-integrity.mjs";
 
@@ -19,11 +19,8 @@ function validTrackedFile(root, raw) {
   const absolute = path.resolve(root, relative);
   const inside = absolute.startsWith(root + path.sep);
   if (!inside) return "";
-  try {
-    if (!lstatSync(absolute).isFile()) return ""; // deleted tracked files, symlinks and directories are not evidence
-  } catch {
-    return "";
-  }
+  // Nonexistent tracked entries are excluded; unexpected filesystem errors fail closed.
+  if (!existsSync(absolute) || !lstatSync(absolute).isFile()) return "";
   return relative;
 }
 

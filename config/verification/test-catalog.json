@@ -2643,6 +2643,50 @@
         ]
       },
       "notes": "#2956 bounded selected Library PPF Reports projection, explicit no active story and mismatched ID refusal, no legacy fallback, evidence-only metrics and unsupported/truncated status. Synthetic project and route source evidence; not live Human Windows acceptance."
+    },
+    {
+      "id": "experience.library-new-story-intent-2961",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "canon",
+        "storage"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2961-library-new-story-intent.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
     }
   ],
   "truthGovernance": {
@@ -3798,6 +3842,50 @@
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
             "digest": "6fef576d4ae03f5692900f0d74b05e8f56d847afbfbc450179c8c1c3fc31c53e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2961-library-new-story-intent.test.mjs",
+        "targetDigest": "19dcf2d84c85ab9a2e06311d9c30b752958bf4d40add87c7ac18c09d58320f0b",
+        "catalogueIds": [
+          "experience.library-new-story-intent-2961"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Real profile-owned Library core in-memory registry and separate project payload roundtrip, bounded inputs and static UI/normalizer wires. Does not verify actual Human Windows profile encryption/restart, future feature-film runtime math or physical media, all provider models or the original short-film installation.",
+        "inputs": [
+          {
+            "path": "modules/library/model/new-story-intent.mjs",
+            "digest": "787b422d9dfd5eadadf34293140bdbd67eaf73f051b59729feceaaa0524870e4"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "5aa04b94bb8a1db5400d4a77dcc5e5111f7eb6ced17d80118d6cefe911aeecaf"
+          },
+          {
+            "path": "core/storage/library-project.ts",
+            "digest": "b850c4943ff16951931e2beec93401f2bb3e64bd12e77b14c161ed908090c75b"
+          },
+          {
+            "path": "core/storage/project-library-core.mjs",
+            "digest": "ecb0f176d5e4e6f2edcda58abbb2e83f0f10234202d11d85d4ab960866f8d614"
+          },
+          {
+            "path": "core/storage/project-library-browser.ts",
+            "digest": "537542b082021798d982270dbfbf4f08db0e025aeb1eecef34983eac8b63cc33"
           }
         ]
       }

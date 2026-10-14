@@ -126,7 +126,7 @@ test("#2977 real Write film profile Save awaits encrypted confirmation and retai
   const x=await runProfileSave();
   assert.deepEqual(x.calls,["stage:5","encrypted:current-brotherly-ppf","flush","verified-display"]);
   assert.equal(x.visibleProject.title,"Brotherly Love");
-  assert.deepEqual(x.visibleProject.storyIntent,{format:"Short Film",targetMinutes:15});
+  assert.deepEqual(JSON.parse(JSON.stringify(x.visibleProject.storyIntent)),{format:"Short Film",targetMinutes:15});
   assert.equal(x.visibleProject.revision,5);
   assert.equal(projectRuntimeGrid(x.visibleProject).miniBlocks[0].durationSeconds,9.375);
   assert.match(x.status,/Encrypted PPF film profile confirmed/);

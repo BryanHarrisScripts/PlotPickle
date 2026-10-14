@@ -2643,6 +2643,50 @@
         ]
       },
       "notes": "#2956 bounded selected Library PPF Reports projection, explicit no active story and mismatched ID refusal, no legacy fallback, evidence-only metrics and unsupported/truncated status. Synthetic project and route source evidence; not live Human Windows acceptance."
+    },
+    {
+      "id": "agent.pi-draft-grounding-correction-2975",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2975-pi-grounding-correction.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2975 read-only Git-index-based Pi Draft path evidence with one local bounded correction. Synthetic git fixtures and runner stubs only: does not prove live Pi/Windows Command, original private screenplay, authenticated session, or Human acceptance."
     }
   ],
   "truthGovernance": {
@@ -3800,6 +3844,29 @@
             "digest": "6fef576d4ae03f5692900f0d74b05e8f56d847afbfbc450179c8c1c3fc31c53e"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2975-pi-grounding-correction.test.mjs",
+        "targetDigest": "f347946dd5f375ea7dbde16d017e4a89f8a8cc66b040f2f1ebcb98add46c6a43",
+        "catalogueIds": [
+          "agent.pi-draft-grounding-correction-2975"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Temporary tracked Git fixture, stubbed local Pi completions, read-only prompt and source-level negative checks only. Not an actual authenticated Windows Command/Pi invocation; no original film content, model response, remote provider, service Issue creation, or acceptance of the first Block handoff.",
+        "inputs": []
       }
     ]
   }

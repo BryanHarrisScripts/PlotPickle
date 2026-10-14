@@ -51,7 +51,7 @@ export function summarizeLibraryPpfReport(project) {
       acts: new Set(blocks.map(b=>b.actNumber).filter(n=>n>=1&&n<=4)).size,
       planAccepted: planned.length,
       storyboardAccepted: storyboard.length,
-      authoredBlocks: blocks.filter(b=>text(b.note).trim() || (text(b.title).trim() && !/^Block \\d{2}$/u.test(text(b.title).trim()))).length,
+      authoredBlocks: blocks.filter(b=>text(b.note).trim() || (text(b.title).trim() && !/^Block \d{2}$/u.test(text(b.title).trim()))).length,
     },
     writing: { miniBlocksWithText: writing.filter(w=>text(w.text).trim()).length },
     importedEvidence: {

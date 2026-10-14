@@ -1,6 +1,6 @@
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
 export type PlotPickleCreativeCommand = Readonly<
-  { action: "tools" | "status" }
+  { action: "tools" | "status" | "library" }
   | { action: "open"; title: string }
   | { action: "plan"; blockNumber: number }
   | { action: "invalid"; reason: string }
@@ -13,6 +13,8 @@ export function describePlotPickleCreativeCommand(command: PlotPickleCreativeCom
 }): string | null;
 
 export function executePlotPickleLibraryOpen(command: PlotPickleCreativeCommand | null, services: {
+  profileReady(): boolean;
+  listInventory(): readonly { id: string; title: string; sourceKind: string }[];
   listProjects(): readonly { id: string; title: string }[];
   activeProjectId(): string | null;
   readSnapshot(id: string): LibraryPPFProject | null;
@@ -22,3 +24,9 @@ export function executePlotPickleLibraryOpen(command: PlotPickleCreativeCommand 
   loadActiveProject(): LibraryPPFProject;
   currentAssessment(project: LibraryPPFProject, blockNumber: number): boolean;
 }): Promise<string | null>;
+
+export function describePlotPickleLibraryInventory(services: {
+  profileReady(): boolean;
+  listInventory(): readonly { id: string; title: string; sourceKind: string }[];
+  activeProjectId(): string | null;
+}): string;

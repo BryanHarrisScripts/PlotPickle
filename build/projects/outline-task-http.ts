@@ -30,16 +30,19 @@ async function POST(request: Request) {
     const project = await state.privateStorage.loadActiveProject(authContext) as LibraryPPFProject | null;
     if (!project || project.id !== input.projectId) return response({ message: "Load the approved project before changing its Outline task." }, 409);
     const host = hostFor(state);
-    if (input.action === "start") {
+    if (input.action === "start" || input.action === "start-local") {
       if (await outlineAssessmentMaterialReceipt(project) !== input.materialReceipt) return response({ message: "The saved story differs from the approved review input. Save it and retry." }, 409);
-      return response({ task: await host.start(authContext, input.blocks!) }, 202);
+      const task = input.action === "start-local"
+        ? await host.startLocal(authContext, input.blocks!)
+        : await host.start(authContext, input.blocks!);
+      return response({ task }, 202);
     }
     if (typeof input.taskId !== "string") return response({ message: "Choose a valid Outline task." }, 400);
     if (input.action === "resume") return response({ task: await host.resume(authContext, input.taskId) }, 202);
     if (input.action === "cancel") return response({ task: await host.cancel(authContext, input.taskId) });
     return response({ message: "That Outline task action is unavailable." }, 400);
   } catch (error) {
-    const message = error instanceof Error && /^(Outline |Story Architect recovery|Pi Durable|Load |Invalid |Protected |Select a configured|Story Architect grants)/u.test(error.message)
+    const message = error instanceof Error && /^(Outline |Story Architect recovery|Story Architect local-only|Pi Durable|Load |Invalid |Protected |Select a configured|Story Architect grants)/u.test(error.message)
       ? error.message.slice(0, 500) : "Story Architect task access was denied. Check the unlocked profile, current story and configured provider.";
     return response({ message }, 400);
   }

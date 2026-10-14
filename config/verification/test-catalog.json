@@ -3523,7 +3523,7 @@
       },
       {
         "target": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
-        "targetDigest": "e1022512a13983a39a38300edde17bd0e906f9ec61018e85df8c882709b71990",
+        "targetDigest": "c0b87024ee8efb64aeb296f93f4f3bd3869c176af66b6283709cefbccac4f01d",
         "catalogueIds": [
           "agent.dsdd-intent-pi-contract-2350"
         ],
@@ -3541,7 +3541,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Signed-receipt provenance, applicability and actual HTTP handler under isolated storage/Pi fixtures. Cryptographic authenticity is not semantic verifier fidelity, real Windows restart, provider execution or Human acceptance.",
+        "limits": "Statically verifies DSDD React/server conversation preservation and no browser-persisted transcript while allowing existing read-only same-session profile-ID authority lookup. Does not prove live model replies, technical Pi developer brief relevance or real user Windows session/restart.",
         "inputs": [
           {
             "path": "lib/verification/development/verifier-observations.mjs",
@@ -4252,7 +4252,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "d16e19a1d68138853e0afbd37c641ee2f7538bc1bf70f3cc2f959b35eba665f9",
+        "targetDigest": "9b54427fd2e3e3afe566af0b73e2c131eced2bdb26602e6d3ea5a82c2ff555f1",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],

@@ -3981,7 +3981,7 @@
       },
       {
         "target": "tests/issue-2977-runtime-compressed-ppf.test.mjs",
-        "targetDigest": "c381e014319f86c8457ec81f5cf4092bc1a072444e1480080e236e2710da056a",
+        "targetDigest": "7960c266a23065462c3d296303705ce0fac66bd6b08e9339bc9482cdecebf161",
         "catalogueIds": [
           "experience.compressed-24x96-existing-ppf-2977"
         ],
@@ -4004,7 +4004,7 @@
       },
       {
         "target": "tests/issue-2630-mind-map-human-notes.test.mjs",
-        "targetDigest": "ec5539951d70de2724d368c3287292a7ae0bb594a98dc5dd13a0c04046ab600b",
+        "targetDigest": "2efcc612c4c1a144e1a5a4ea4b82b340c20b5c6068e715253780a8c97163fde6",
         "catalogueIds": [
           "experience.skin-surface-contract",
           "story-canon.learn-program-map"
@@ -4027,7 +4027,7 @@
       },
       {
         "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
-        "targetDigest": "84e949f2dc6ec712471c524fc6a35ad5e36a4c9e1e5a06c059448303d8e7ce9c",
+        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
         "catalogueIds": [
           "experience.skin-surface-contract",
           "story-canon.learn-program-map",

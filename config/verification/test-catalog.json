@@ -2820,6 +2820,95 @@
         ]
       },
       "notes": "#2980 Pi Draft unique tracked basename canonicalization with fail-closed unknown, ambiguous, symlink, deleted, untracked and Windows path proof. Synthetic fixtures and actual repair helper; authenticated Windows Command/LLM not proven."
+    },
+    {
+      "id": "experience.command-creative-discovery-2982",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "experience-navigation",
+        "dsdd-human-review"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2982-command-creative-discovery.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2982 Phase 1 explicit Settings Command creative tool inspection and selected PPF read-only Block preflight. Synthetic fixtures; Command local transport/human Windows tool session and actual agent execution remain UNPROVEN."
+    },
+    {
+      "id": "story-canon.afterglow-runtime-intent-2982",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "visual"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2982-afterglow-story-intent.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#2982 Windows regression root cause observed: Afterglow consolidation incorrectly rejects new PPF storyIntent. Scope: synthetic preserved field, atomic format-duration alternative, invalid/missing legacy fail closed; live Windows consolidation remains independent gate."
     }
   ],
   "truthGovernance": {
@@ -4115,6 +4204,52 @@
           "static-source"
         ],
         "limits": "Synthetic temp git index and actual Pi grounding-helper calls. Proves only unique present tracked basename canonicalization and preserved fail-closed second model correction; not a live Windows Command model output, substantive brief relevance, GitHub publication or creative workflow.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2982-command-creative-discovery.test.mjs",
+        "targetDigest": "b950677db71c14e8bb03adc38c4389a052428d1a6e7b3e73d6182df60ff7a390",
+        "catalogueIds": [
+          "experience.command-creative-discovery-2982"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF 24x96, actual pure read-only Block and runtime helpers, and static Command UI dispatch; not a live authenticated Windows Command run, creative agent execution, saving, real provider readiness, media, signed execution receipt or full #2982 acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2982-afterglow-story-intent.test.mjs",
+        "targetDigest": "00bea7b3002eeb62ab36fd7eee3fdc8ac8901e144a0f0568484ee817d4e5e7a7",
+        "catalogueIds": [
+          "story-canon.afterglow-runtime-intent-2982"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF with actual read-only Afterglow consolidation planner, durable schema and promotion list; validates new film intent field, atomic conflicting Human choices, legacy absent meaning, malformed rejection. Actual authenticated Windows Afterglow preview/Save/readback and creative acceptance remain unproven until Windows gate.",
         "inputs": []
       },
       {

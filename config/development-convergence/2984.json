@@ -11,7 +11,8 @@
     "tests/issue-2984-write-outline-navigation.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2984-write-outline-handoff-repair.md",
-    "config/development-convergence/2984.json"
+    "config/development-convergence/2984.json",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {

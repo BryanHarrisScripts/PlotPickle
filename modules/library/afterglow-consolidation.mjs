@@ -8,12 +8,20 @@ import { reconcileAfterglowAcceptedVisuals } from "./afterglow-evidence-reconcil
 export const AFTERGLOW_DURABLE_FIELDS = Object.freeze([
   "title", "learning", "foundations", "world", "build", "production",
   "structure", "sourceEvidence", "writing", "discovery", "worldMap",
-  "storyDevelopment", "mindMapNotes",
+  "storyDevelopment", "mindMapNotes", "storyIntent",
 ]);
 // Only profile/session and storage metadata are excluded. New durable project
 // roots must be reviewed explicitly, not silently omitted from consolidation.
 const EXCLUDED_PROFILE_METADATA = ["format", "id", "revision", "createdAt", "updatedAt", "creativeRoom"];
 const EXPECTED_REFERENCE = "afterglow-v9-complete-baseline";
+function validStoryIntent(intent) {
+  return intent === null || intent === undefined || (
+    intent && typeof intent === "object" && !Array.isArray(intent)
+    && (intent.format === "Short Film" || intent.format === "Feature")
+    && Number.isInteger(intent.targetMinutes)
+    && intent.targetMinutes >= 1 && intent.targetMinutes <= 240
+  );
+}
 const ABSENT = Symbol("absent");
 const isRecord = v => v !== null && typeof v === "object" && !Array.isArray(v);
 const copy = v => v === ABSENT ? ABSENT : structuredClone(v);
@@ -54,6 +62,17 @@ function collect(base, current, keys, edits, reviews) {
   // atomic pick-one list. Evidence reconciliation below handles all sources.
   if (/^\/build\/(foundations|world)\/acceptedVisualArtifactIds$/.test(path)) return;
   if (current === ABSENT) { reviews.push({path,reason:"possible-deletion"}); return; }
+  // Film format and target duration are one Human-chosen authority pair.
+  // Mixing the format from one saved version with minutes from another would
+  // invent a third choice. Compare the whole record atomically.
+  if (keys.length === 1 && keys[0] === "storyIntent") {
+    if (current === null) {
+      reviews.push({path,reason:"clear-existing-value"});
+      return;
+    }
+    edits.push({path,keys,value:copy(current)});
+    return;
+  }
   // Field and note state are indivisible records: approval source, answer,
   // proposal provenance and timestamps must travel together. A latest-date
   // vote must never splice the metadata of one answer onto another.
@@ -269,6 +288,9 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
      ||baseline.format!=="2.0-foundation"||!Array.isArray(sources)||!sources.length){
     throw new Error("Consolidation needs the trusted Afterglow baseline and saved projects.");
   }
+  if (!validStoryIntent(baseline.storyIntent)) {
+    throw new Error("Invalid baseline film runtime intent requires review before consolidation.");
+  }
   const roots=new Set([...AFTERGLOW_DURABLE_FIELDS,...EXCLUDED_PROFILE_METADATA]);
   for(const key of Object.keys(baseline)){
     if(!roots.has(key))throw new Error("Unrecognized Afterglow project field requires review: "+key);
@@ -284,6 +306,9 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
        ||!equal(p.sourceEvidence.referenceFixture,baseline.sourceEvidence.referenceFixture)){
       throw new Error("Consolidation rejected invalid, foreign, altered-source or duplicate Afterglow state.");
     }
+    if (!validStoryIntent(p.storyIntent)) {
+      throw new Error("Invalid saved Afterglow film runtime intent requires review.");
+    }
     for(const key of Object.keys(p)){
       if(!roots.has(key))throw new Error("Unrecognized saved Afterglow field requires review: "+key);
     }
@@ -295,8 +320,13 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
   for(const {project:p,key} of entries){
     const edits=[], reviews=[];
     for(const root of AFTERGLOW_DURABLE_FIELDS){
-      collect(Object.hasOwn(baseline,root)?baseline[root]:ABSENT,
-        Object.hasOwn(p,root)?p[root]:ABSENT,[root],edits,reviews);
+      // Legacy PPF snapshots predate the optional runtime intent; absent and
+      // null both mean no Human format/duration authority, not a deletion.
+      const oldValue = root === "storyIntent" && !Object.hasOwn(baseline,root)
+        ? null : Object.hasOwn(baseline,root) ? baseline[root] : ABSENT;
+      const newValue = root === "storyIntent" && !Object.hasOwn(p,root)
+        ? null : Object.hasOwn(p,root) ? p[root] : ABSENT;
+      collect(oldValue,newValue,[root],edits,reviews);
     }
     for(const x of reviews)needsReview.push({...x,sourceProjectId:key});
     for(const x of edits){

@@ -119,7 +119,7 @@ test("#2961 canonical PPF normalizes optional intent and older saves preserve se
   assert.match(library,/readonly storyIntent: LibraryStoryIntent \| null/);
   assert.match(library,/const storyIntent = normalizeLibraryStoryIntent\(source.storyIntent\)/);
   assert.match(browser,/input.storyIntent \? \{ storyIntent: input.storyIntent \}/);
-  assert.match(browser,/initialized.activeProject\?\.storyIntent/);
+  assert.match(browser,/initialized.activeProject.storyIntent/);
   assert.match(core,/\.\.\.\(input.storyIntent \? \{ storyIntent: input.storyIntent \} : \{\}\)/);
   assert.match(structure,/STORY_BLOCK_COUNT = 24/);
   assert.match(structure,/MINI_BLOCKS_PER_BLOCK = 4/);

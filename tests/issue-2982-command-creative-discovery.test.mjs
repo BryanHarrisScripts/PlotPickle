@@ -6,6 +6,7 @@ import {
   describePlotPickleCreativeCommand,
   executePlotPickleLibraryOpen,
   describePlotPickleLibraryInventory,
+  executePlotPickleLibraryRename,
 } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 function project(accepted=0, targetMinutes=15) {
@@ -231,7 +232,7 @@ test("#2982 actual Command Open uses Library authority then reuses existing stat
   assert.match(ui,/if \(await runCreativeLibraryCommand\(submitted\)\) return;\s*if \(runCreativeDiscoveryCommand\(submitted\)\) return;/u);
   assert.match(library,/export function switchActiveLibraryProject[\s\S]*markSessionActiveProject\(result\.activeProject\.id\);[\s\S]*announceChange\(\)/u);
   assert.match(core,/const plan\s*=\s*describePlotPickleCreativeCommand\(\{\s*action:\s*"plan",\s*blockNumber:\s*1\s*\}/u);
-  assert.doesNotMatch(handler,/createLibraryUserProject|createLibraryWorkingCopy|saveActiveLibraryProject|\/api\/local-ai\/generate|\/api\/storyboard\//u);
+  assert.doesNotMatch(handler,/createLibraryUserProject|createLibraryWorkingCopy|\/api\/local-ai\/generate|\/api\/storyboard\//u);
 });
 
 test("#2982 screenshot UAT — no exact Brotherly Love title produces current-profile diagnostics, never a fabricated Library open", async () => {
@@ -296,11 +297,142 @@ test("#2982 Command Library lookup remains profile-gated and uses actual project
     readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
     readFile(new URL("../core/storage/profile-private-browser.ts",import.meta.url),"utf8"),
   ]);
-  assert.match(ui,/profilePrivateBrowserReadyFor\(window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
+  assert.match(ui,/const profileId\s*=\s*\(\)\s*=>\s*window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
+  assert.match(ui,/profileReady:\s*\(\)\s*=>\s*profilePrivateBrowserReadyFor\(profileId\(\)\)/);
   assert.match(ui,/listInventory: listPersistableLibraryProjects/);
   assert.match(ui,/listProjects: listHumanLibraryProjects/);
   assert.match(ui,/command\?\.action !== "open" && command\?\.action !== "library"/);
   assert.match(library,/export function listPersistableLibraryProjects\(\)/);
   assert.match(profile,/export function profilePrivateBrowserReadyFor\(profileId: string\)/);
   assert.match(core,/describePlotPickleLibraryInventory/);
+});
+
+function renameHarness({ records = [project()], selected = null, ready = true, failure = "", profile = "profile_verified" } = {}) {
+  const entries=records.map(p=>structuredClone(p));
+  let active=selected, profileId=profile, isReady=ready;
+  const events=[];
+  const services={
+    profileReady() {events.push("auth");return isReady;},
+    profileId() {return profileId;},
+    listProjects() {return entries.map(p=>({id:p.id,title:p.title,sourceKind:p.sourceKind||"user"})).filter(p=>!["example","synthetic"].includes(p.sourceKind));},
+    listInventory() {return entries.map(p=>({id:p.id,title:p.title,sourceKind:p.sourceKind||"user"}));},
+    activeProjectId() {return active;},
+    readSnapshot(id) {events.push("read:"+id);return entries.find(p=>p.id===id) ?? null;},
+    switchProject(id) {events.push("switch:"+id);if(failure==="switch")throw Error("switch blocked");active=id;return entries.find(p=>p.id===id);},
+    saveProject(next) {events.push("save:"+next.id); if(failure==="save")throw Error("save blocked"); const index=entries.findIndex(p=>p.id===next.id);entries[index]={...structuredClone(next),updatedAt:"new-timestamp"}; active=next.id;return entries[index];},
+    async persistProject(id) {events.push("persist:"+id);if(failure==="persist")throw Error("encrypted commit declined");},
+    async flushWrites() {events.push("flush");if(failure==="flush")throw Error("pending writes unavailable");},
+  };
+  return {services,events,entries,activeId:()=>active,setProfile:(v)=>{profileId=v;},setReady:(v)=>{isReady=v;}};
+}
+
+test("#2982 title review creates a proposal only, with exact prior title/ID/revision and no mutation",async()=>{
+  const h=renameHarness();
+  const cmd=parsePlotPickleCreativeCommand("PlotPickle rename selected-ppf-2982 to Brotherly Love");
+  const unchanged=JSON.stringify(h.entries);
+  const output=await executePlotPickleLibraryRename(cmd,h.services);
+  assert.match(output,/NO CHANGE:/);
+  assert.equal(JSON.stringify(h.entries),unchanged);
+  assert.ok(!h.events.some(e=>e.startsWith("persist:")||e.startsWith("save:")));
+
+  const preview=await executePlotPickleLibraryRename(parsePlotPickleCreativeCommand("PlotPickle rename selected-ppf-2982 to Brotherhoodly Love"),h.services);
+  assert.match(preview,/TITLE RENAME PREVIEW/);
+  assert.match(preview,/Saved PPF: Brotherly Love/);
+  assert.match(preview,/Project ID: selected-ppf-2982/);
+  assert.match(preview,/Revision: 6/);
+  assert.match(preview,/PlotPickle confirm rename selected-ppf-2982 revision 6 from "Brotherly Love" to "Brotherhoodly Love"/);
+  assert.equal(JSON.stringify(h.entries),unchanged);
+  assert.ok(!h.events.some(e=>e.startsWith("persist:")||e.startsWith("switch:")||e.startsWith("save:")));
+});
+test("#2982 confirmed exact title edit uses the existing Library Save, authenticated encrypted commit, and preserves film",async()=>{
+  const h=renameHarness();
+  const old=structuredClone(h.entries[0]);
+  const preview=await executePlotPickleLibraryRename({action:"rename",projectId:old.id,title:"Brotherly Love — Feature"},h.services);
+  const confirm=preview.trim().split("\n").at(-1);
+  const parsed=parsePlotPickleCreativeCommand(confirm);
+  assert.equal(parsed.action,"confirm-rename");
+  assert.equal(parsed.previousTitle,old.title);
+  const done=await executePlotPickleLibraryRename(parsed,h.services);
+  assert.match(done,/TITLE RENAME VERIFIED/);
+  assert.match(done,/Next: PlotPickle plan Block 01/);
+  assert.equal(h.activeId(),old.id);
+  const now=h.entries[0];
+  assert.equal(now.id,old.id);
+  assert.equal(now.title,"Brotherly Love — Feature");
+  for(const key of ["structure","sourceEvidence","writing","storyIntent"]) assert.deepEqual(now[key],old[key],key+" must survive");
+  assert.deepEqual(h.events.filter(x=>x.startsWith("switch:")||x.startsWith("save:")||x.startsWith("persist:")),
+    ["switch:selected-ppf-2982","save:selected-ppf-2982","persist:selected-ppf-2982"]);
+  assert.ok(h.events.filter(x=>x==="flush").length>=2);
+});
+test("#2982 rename refuses staleness, mismatched old title and identity without unintended writes",async()=>{
+  for(const mutation of ["revision","old-title","wrong-id","missing","duplicate-new-title"]){
+    const p=project(),other={...project(),id:"another",title:"Afterglow"};
+    const h=renameHarness({records:mutation==="duplicate-new-title"?[p,other]:[p]});
+    const preview=await executePlotPickleLibraryRename({action:"rename",projectId:p.id,title:"Afterglow"},h.services);
+    if(mutation==="duplicate-new-title"){assert.match(preview,/BLOCKED: Another saved Library PPF/);continue;}
+    const cmd={action:"confirm-rename",projectId:p.id,revision:p.revision,previousTitle:p.title,title:"Afterglow"};
+    if(mutation==="revision")h.entries[0].revision++;
+    if(mutation==="old-title")h.entries[0].title="Updated without revision";
+    if(mutation==="wrong-id")cmd.projectId="unrelated";
+    if(mutation==="missing")h.entries.length=0;
+    const result=await executePlotPickleLibraryRename(cmd,h.services);
+    assert.match(result,/BLOCKED/);
+    assert.ok(!h.events.some(e=>e.startsWith("save:")||e.startsWith("persist:")));
+  }
+});
+test("#2982 title rename must not select examples, change another active story, or run against locked/wrong profile",async()=>{
+  const saved=project(),example={...project(),id:"reference",sourceKind:"example",title:"Afterglow"};
+  for(const config of [{records:[example],selected:null,profile:"profile_verified"},
+    {records:[saved],selected:"other-project",profile:"profile_verified"},
+    {records:[saved],selected:null,ready:false,profile:"profile_verified"}]){
+    const h=renameHarness(config);
+    const id=config.records[0].id;
+    const result=await executePlotPickleLibraryRename({action:"rename",projectId:id,title:"Brotherly Love"},h.services);
+    assert.match(result,/BLOCKED|NO CHANGE/);
+    assert.ok(!h.events.some(e=>e.startsWith("save:")||e.startsWith("persist:")||e.startsWith("switch:")));
+  }
+  const h=renameHarness();
+  const cmd={action:"confirm-rename",projectId:saved.id,previousTitle:saved.title,revision:saved.revision,title:"Renamed Film"};
+  const flush=h.services.flushWrites;
+  h.services.flushWrites=async()=>{h.setProfile("other-profile");return flush();};
+  const output=await executePlotPickleLibraryRename(cmd,h.services);
+  assert.match(output,/Profile or active project changed/);
+  assert.ok(!h.events.some(e=>e.startsWith("save:")||e.startsWith("persist:")));
+});
+test("#2982 encrypted write or Library Save failure cannot be presented as a verified rename",async()=>{
+  const cmd={action:"confirm-rename",projectId:"selected-ppf-2982",revision:6,previousTitle:"Brotherly Love",title:"Renamed Film"};
+  for(const failure of ["flush","switch","save","persist"]){
+    const h=renameHarness({failure});
+    const text=await executePlotPickleLibraryRename(cmd,h.services);
+    assert.match(text,/BLOCKED/);
+    assert.doesNotMatch(text,/TITLE RENAME VERIFIED/);
+    if(failure==="flush")assert.ok(!h.events.some(e=>e.startsWith("save:")||e.startsWith("switch:")));
+  }
+});
+test("#2982 title-confirmation parser does not mistake free-form narration for authority",()=>{
+  assert.equal(parsePlotPickleCreativeCommand("Rename Brotherly Love to my film"),null);
+  const preview=parsePlotPickleCreativeCommand("PlotPickle rename selected-ppf-2982 to Brotherly Love");
+  assert.deepEqual(preview,{action:"rename",projectId:"selected-ppf-2982",title:"Brotherly Love"});
+  const confirm=parsePlotPickleCreativeCommand('PlotPickle confirm rename selected-ppf-2982 revision 6 from "Old Title" to "Brotherly Love"');
+  assert.deepEqual(confirm,{action:"confirm-rename",projectId:"selected-ppf-2982",revision:6,previousTitle:"Old Title",title:"Brotherly Love"});
+  for(const command of ["PlotPickle rename bad id to New Title","PlotPickle confirm rename abc revision x from \"Old\" to \"New\"",
+    "PlotPickle confirm rename abc revision 6 to New","PlotPickle rename bad/id to New"]) {
+    assert.notEqual(parsePlotPickleCreativeCommand(command)?.action,"confirm-rename");
+    assert.notEqual(parsePlotPickleCreativeCommand(command)?.action,"rename");
+  }
+});
+test("#2982 Command title changes use the existing profile-owned Library Save and never bypass DSDD or media gates",async()=>{
+  const [ui,core,lib]=await Promise.all([
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../app/_components/settings/plotpickle-creative-command.mjs",import.meta.url),"utf8"),
+    readFile(new URL("../core/storage/project-library-browser.ts",import.meta.url),"utf8"),
+  ]);
+  assert.match(ui,/saveProject:\s*saveActiveLibraryProject/);
+  assert.match(ui,/persistProject:\s*\(projectId\?:\s*string\)\s*=>\s*persistActiveProfileProject\("", projectId \|\| ""\)/);
+  assert.match(ui,/await executePlotPickleLibraryRename\(command, services\)/);
+  assert.match(lib,/export function saveActiveLibraryProject\(/);
+  assert.match(core,/const saved = services\.saveProject\(\{\s*\.\.\.check,\s*title:\s*targetTitle\s*\}\)/);
+  assert.match(core,/await services\.persistProject\(id\)/);
+  assert.match(core,/await services\.flushWrites\(\)/);
+  assert.doesNotMatch(core,/\bfetch\(|\/api\/storyboard|\/api\/local-ai\//);
 });

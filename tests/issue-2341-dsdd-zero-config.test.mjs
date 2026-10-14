@@ -15,7 +15,13 @@ test("#2341 DSDD bypasses global provider selection and requests local Quality d
   assert.match(gateway, /const explicitLocal = body\.provider === "local"/u);
   assert.match(gateway, /const requestedProvider = explicitLocal && dsddIntentScope \? "local" : choice\.text/u);
   assert.match(gateway, /profileForProvider\(store, requestedProvider, role\)/u);
-  assert.doesNotMatch(dsdd, /Select a text engine|Configuration Dashboard|OpenAI|Gemini|MiniMax/u);
+  // Production Command has a separate, explicit provider budget boundary.
+  // The DSDD interpreter still does not offer or infer a text-engine picker.
+  assert.doesNotMatch(dsdd, /Select a text engine|Configuration Dashboard/u);
+  const dsddIntent = dsdd.slice(dsdd.indexOf("const DSDD_INSTRUCTIONS ="),
+    dsdd.indexOf("function messageId(", dsdd.indexOf("const DSDD_INSTRUCTIONS =")));
+  assert.ok(dsddIntent.length > 150);
+  assert.doesNotMatch(dsddIntent, /OpenAI|Gemini|MiniMax/u);
 });
 
 test("#2341 owned Edge app grants the real default microphone without a settings detour", async () => {

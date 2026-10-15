@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "issue": 2999,
+  "phase": "block01-governed-openai-writing-and-scheduler-diagnostics",
+  "brief": "docs/developer-briefs/2999-block01-openai-production.md",
+  "allowedChanges": [
+    "app/_components/settings/plotpickle-creative-command.mjs",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "build/projects/outline-task-http.ts",
+    "modules/plan/assessments/outline-production-pass.ts",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "tests/issue-2986-production-pass.test.mjs",
+    "tests/issue-2995-outline-runtime.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2999-block01-openai-production.md",
+    "config/development-convergence/2999.json"
+  ],
+  "acceptance": [
+    {
+      "id": "SCOPED-OPENAI",
+      "criterion": "Existing Story Architect production controller can admit a configured OpenAI two-stage writing pass while preserving no-spend local grants.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2986-production-pass.test.mjs",
+          "contains": "#2999 scoped OpenAI writing pass reserves two calls"
+        }
+      ]
+    },
+    {
+      "id": "CMD-BOUNDARIES",
+      "criterion": "CMD distinguishes explicitly local-only production from configured OpenAI writing and persists neither user credentials nor fake completion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2986-production-pass.test.mjs",
+          "contains": "#2999 CMD separates explicitly paid-capable production"
+        }
+      ]
+    },
+    {
+      "id": "TRUTHFUL-RECOVERY",
+      "criterion": "Unknown scheduler errors remain private and cannot invite blind retries; reservation counts are not modeled as actual provider calls.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 unclassified scheduler failure never invents a cause"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve previous production grants and encrypted task history.",
+    "Do not claim live Brotherly Love acceptance from synthetic regression.",
+    "OpenAI text-only authority never grants paid MiniMax video or Human Plan acceptance."
+  ]
+}

@@ -20,6 +20,9 @@ export function parsePlotPickleCreativeCommand(input) {
   if (!/^\/?plotpickle(?:\s|$)/iu.test(value)) return null;
   if (/^\/?plotpickle\s+(?:help|tools)$/iu.test(value)) return Object.freeze({ action: "tools" });
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
+  if (/^\/?plotpickle\s+(?:connect|connections)$/iu.test(value)) return Object.freeze({ action: "connections-help" });
+  const connectionMode = value.match(/^\/?plotpickle\s+(?:connect|connections)\s+(local|cloud|hybrid)$/iu);
+  if (connectionMode) return Object.freeze({ action: "connections-open", mode: connectionMode[1].toLowerCase() });
   const production = value.match(/^\/?plotpickle\s+(produce|production|resume-production|cancel-production)\s+block\s+(\d{1,3})(\s+local)?$/iu);
   if (production) {
     const blockNumber = Number(production[2]);

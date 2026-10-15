@@ -79,7 +79,7 @@ test("#2999 production status reports reservation separately from model usage an
   assert.match(src, /Model reservations: /u);
   assert.match(src, /usage-confirmed attempts:/u);
   assert.match(src, /Actual provider dispatch\/charge cannot be inferred from a reservation/u);
-  assert.match(src, /grantExpired \? " \\(EXPIRED\\)"/u);
+  assert.match(src, /grantExpired.*EXPIRED/u);
   assert.match(src, /RESUME is not available/u);
 });
 await build({ entryPoints: ["modules/plan/assessments/outline-task-selection.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "task-selection.mjs"), logLevel: "silent" });

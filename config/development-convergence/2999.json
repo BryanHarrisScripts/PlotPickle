@@ -15,7 +15,9 @@
     "tests/issue-2995-outline-runtime.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2999-block01-openai-production.md",
-    "config/development-convergence/2999.json"
+    "config/development-convergence/2999.json",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "modules/plan/assessments/outline-task-selection.ts"
   ],
   "acceptance": [
     {
@@ -48,6 +50,17 @@
           "type": "file-contains",
           "path": "tests/issue-2995-outline-runtime.test.mjs",
           "contains": "#2999 unclassified scheduler failure never invents a cause"
+        }
+      ]
+    },
+    {
+      "id": "LIVE-STATUS-TRUTH",
+      "criterion": "Outline Assessment History never displays a stopped/recovery-required durable task as actively working; host-running and durable-run states remain distinct without altering the task.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 stopped Story Architect worker is never displayed as working even if durable run state remains working"
         }
       ]
     }

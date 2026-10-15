@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "issue": 2995,
+  "phase": "block01-structured-review-repair",
+  "brief": "docs/developer-briefs/2995-block01-structured-review.md",
+  "allowedChanges": [
+    "build/mastra-agent-runtime.ts",
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "modules/plan/assessments/outline-production-pass.ts",
+    "tests/issue-2995-outline-runtime.test.mjs",
+    "tests/issue-2986-production-pass.test.mjs",
+    "tests/issue-2440-story-architect-structured-execution.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2995-block01-structured-review.md",
+    "config/development-convergence/2995.json"
+  ],
+  "acceptance": [
+    {
+      "id": "BOUNDED-DISPATCH",
+      "criterion": "Structured deadline, fidelity schema and cancellation remain independently exercised.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2995 real Mastra dispatch"
+        }
+      ]
+    },
+    {
+      "id": "SAFE-FAILURES",
+      "criterion": "Safe scheduler timeout and arbitrary private failure redaction.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2995 scheduler timeout"
+        }
+      ]
+    },
+    {
+      "id": "GRANT-ALIGNMENT",
+      "criterion": "Two bounded calls fit while actual grant expiry still denies continuation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2986-production-pass.test.mjs",
+          "contains": "#2995 two bounded structured calls"
+        }
+      ]
+    }
+  ]
+}

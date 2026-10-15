@@ -19,7 +19,7 @@ test("#2440 Story Architect uses native Mastra structured output with an assessm
   assert.match(runtime.slice(structuredStart, genericStart), /const messages = input\.image/u);
 
   const structuredBranch = runtime.slice(structuredStart, runtime.indexOf('if (!directConversationMode && input.agentId === "discovery-mapper")', structuredStart));
-  assert.match(structuredBranch, /structuredOutput: \{[\s\S]*schema: storyArchitectAssessmentSchema\(\)[\s\S]*jsonPromptInjection: false/u);
+  assert.match(structuredBranch, /structuredOutput: \{[\s\S]*schema: productionFidelity \? productionFidelityOutputSchema\(\) : storyArchitectAssessmentSchema\(\)[\s\S]*jsonPromptInjection: false/u);
   assert.match(structuredBranch, /if \(!result\.object\) throw new Error\("Story Architect did not return a structured assessment\."\)/u);
   assert.match(structuredBranch, /return JSON\.stringify\(result\.object\)/u);
   assert.doesNotMatch(structuredBranch, /result\.text/u);

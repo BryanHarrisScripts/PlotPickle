@@ -171,7 +171,7 @@ test("#2986 cancellation between actual calls preserves assessment and prevents 
   const g = await fixture(t), pending = await g.start();
   g.execution.receipt = "changed-route";
   await assert.rejects(g.controller.executeStep(pending.scope, pending.steps[0]), /compute or grants changed/);
-  g.execution.receipt = "local-route-2986"; g.clock = "2026-10-14T00:06:00Z";
+  g.execution.receipt = "local-route-2986"; g.clock = pending.productionPass.grant.expiresAt;
   await assert.rejects(g.controller.executeStep(pending.scope, pending.steps[0]), /expired/); assert.equal(g.calls, 0);
 });
 
@@ -189,4 +189,18 @@ test("#2986 checkpoint before semantic inference survives reopen without repeati
   f.reopen(); await f.controller.activate(f.context, task.scope.runId);
   await f.controller.executeStep(task.scope, task.steps[0]);
   await f.controller.finish(f.context, task.scope.runId); assert.equal(f.calls, 2);
+});
+
+
+test("#2995 two bounded structured calls fit the production grant without extending expired grants", async t => {
+  const f = await fixture(t);
+  f.intercept = async call => { f.clock = call === 1 ? "2026-10-14T00:02:50Z" : "2026-10-14T00:05:40Z"; };
+  const task = await f.start();
+  await f.controller.executeStep(task.scope, task.steps[0]);
+  await f.controller.finish(f.context, task.scope.runId);
+  const completed = await f.controller.status(f.context, task.scope.runId);
+  assert.ok(completed.productionPass.candidate);
+  assert.equal(f.calls, 2);
+  f.clock = completed.productionPass.grant.expiresAt;
+  await assert.rejects(f.controller.activate(f.context, task.scope.runId), /expired/);
 });

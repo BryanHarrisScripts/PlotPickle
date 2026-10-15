@@ -100,6 +100,23 @@ export default function DashboardBbsPanel({
     return () => window.removeEventListener("plotpickle:return-dashboard", returnDashboard);
   }, [onSurfaceNameChange]);
 
+  // Command opens the exact existing Local / Cloud / Hybrid GUI. Credential
+  // entry and route verification stay with their authenticated Settings owners.
+  useEffect(() => {
+    const openConnections = (event: Event) => {
+      const mode = (event as CustomEvent<StoryModePolicy>).detail;
+      if (mode !== "local" && mode !== "cloud" && mode !== "hybrid") return;
+      setSettingsMenuOpen(true);
+      setCommandOpen(false);
+      setSettingsWorkspace(null);
+      setNodeInfoOpen(false);
+      setPlotPickleAgentsOpen(false);
+      setStoryModeView(mode);
+    };
+    window.addEventListener("plotpickle:open-story-mode", openConnections);
+    return () => window.removeEventListener("plotpickle:open-story-mode", openConnections);
+  }, []);
+
   useEffect(() => {
     if (!learnRequest) return;
     setLearnTarget({ topicId: learnRequest.topicId ?? null, lessonId: learnRequest.lessonId ?? null });
@@ -273,7 +290,9 @@ export default function DashboardBbsPanel({
         <button type="button" className="pp-skin-v1-return" onClick={() => setCommandOpen(false)}>Back to Settings</button>
       </div>
       <div role="group" aria-label="Command engine settings">
-        <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("local"); }}>Local engines</button>
+        <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("local"); }}>Local connections</button>
+        <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("cloud"); }}>Cloud connections</button>
+        <button type="button" onClick={() => { setCommandOpen(false); setStoryModeView("hybrid"); }}>Hybrid connections</button>
         <button type="button" onClick={() => { setCommandOpen(false); setPlotPickleAgentsOpen(true); }}>Agent compute</button>
       </div>
       <OpenPencilCommandPanel />

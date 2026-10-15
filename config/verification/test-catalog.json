@@ -4341,7 +4341,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "579223ff304ee9d991b1ab44e7456e2d444857b250172000d7ae96168a7ea32d",
+        "targetDigest": "9324d23b3ade881bdef5df108ab46fc10c2b39a9145a0ddee7b6a305d43912f4",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],

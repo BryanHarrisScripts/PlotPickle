@@ -49,6 +49,42 @@ test("#2982 explicit PlotPickle commands are distinct from authored DSDD intent"
   assert.equal(parsePlotPickleCreativeCommand("OpenPencil open Timeline"),null);
   assert.equal(parsePlotPickleCreativeCommand(""),null);
 });
+test("#3004 read-only CMD workflow inventory preserves source, proposal and media truth", () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle workflow Block 01"), { action: "workflow", blockNumber: 1 });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle workflow Block 24"), { action: "workflow", blockNumber: 24 });
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle workflow Block 25").action, "invalid");
+  const p = project(0, null);
+  p.sourceEvidence.screenplay.passages[0].text = "PRIVATE SCREENPLAY NEVER ECHO";
+  p.storyDevelopment = { fields: {
+    "foundations:x": { value: "", acceptedSource: "human", proposal: "", updatedAt: "2026-10-15T10:00:00Z" },
+    "character:y": { value: "", acceptedSource: null, proposal: "DRAFT PROPOSAL PRIVATE", updatedAt: null },
+  } };
+  p.mindMapNotes = { fields: { a: { text: "NOTE PRIVATE" } }, topics: {} };
+  p.worldMap = { characterVisuals: [
+    { characterId: "synthetic", lockedVersionId: "v1", references: [{ versionId: "v1", reviewState: "approved" }] },
+    { characterId: "draft", lockedVersionId: null, references: [] },
+  ] };
+  const before = JSON.stringify(p);
+  const info = describePlotPickleCreativeCommand({ action: "workflow", blockNumber: 1 },
+    { project: p, activeProjectId: p.id });
+  assert.match(info, /Brotherly Love/u);
+  assert.match(info, /Imported retained passages/i);
+  assert.match(info, /MIND MAP: tracked accepted field decisions 1; stored draft field proposals 1; saved nonempty notes 1/u);
+  assert.match(info, /WORLD MAP: character visual packages 2; packages with a matching approved locked version 1/u);
+  assert.match(info, /OUTLINE: 0\/4 Human-accepted Mini-Block Plans/u);
+  assert.match(info, /WRITE: saved writing in 1\/4 Mini-Blocks/u);
+  for (const stage of ["STORYBOARD", "PREVIS", "TIMELINE", "ROUGH CUT"]) assert.match(info, new RegExp(stage + ": NOT INSPECTED"));
+  assert.match(info, /BLOCKED: Outline has 4 unaccepted Mini-Block Plans/u);
+  assert.match(info, /Source-grounded Mind Map\/World Map proposal generation from Command is a future governed stage/u);
+  assert.doesNotMatch(info, /PRIVATE SCREENPLAY NEVER ECHO|DRAFT PROPOSAL PRIVATE|NOTE PRIVATE/u);
+  assert.equal(JSON.stringify(p), before, "Workflow inspection must not mutate the saved source or proposals");
+  assert.match(describePlotPickleCreativeCommand({ action: "workflow", blockNumber: 1 },
+    { project: p, activeProjectId: "foreign-project" }), /BLOCKED: No matching selected Library PPF/u);
+  const missing = { ...p, sourceEvidence: { screenplay: { passagesTruncated: true } } };
+  assert.match(describePlotPickleCreativeCommand({ action: "workflow", blockNumber: 1 },
+    { project: missing, activeProjectId: p.id }), /BLOCKED: Complete retained screenplay evidence/u);
+});
+
 test("#3000 typed CMD connects to the real Local Cloud and Hybrid Settings modes", () => {
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connections"), { action: "connections-help" });
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connect local"), { action: "connections-open", mode: "local" });

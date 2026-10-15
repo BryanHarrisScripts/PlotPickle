@@ -30,6 +30,13 @@ export function parsePlotPickleCreativeCommand(input) {
     if (blockNumber < 1 || blockNumber > 24 || (production[3] && production[1].toLowerCase() !== "produce")) return Object.freeze({ action: "invalid", reason: "Use PlotPickle produce Block 01 for configured writing, or PlotPickle produce Block 01 local for no-spend inference." });
     return Object.freeze({ action: production[1].toLowerCase(), blockNumber, ...(production[1].toLowerCase() === "produce" ? { localOnly: Boolean(production[3]) } : {}) });
   }
+  const workflow = value.match(/^\/?plotpickle\s+workflow\s+block\s+(\d{1,3})$/iu);
+  if (workflow) {
+    const blockNumber = Number(workflow[1]);
+    return blockNumber >= 1 && blockNumber <= 24
+      ? Object.freeze({ action: "workflow", blockNumber })
+      : Object.freeze({ action: "invalid", reason: "Workflow Block must be within the canonical 24 Blocks. No task ran." });
+  }
   if (/^\/?plotpickle\s+(?:library|list\s+projects)$/iu.test(value)) return Object.freeze({ action: "library" });
   const inspect = value.match(/^\/?plotpickle\s+inspect\s+([A-Za-z0-9_.:-]{1,180})$/iu);
   if (inspect) return Object.freeze({ action: "inspect", projectId: inspect[1] });
@@ -128,7 +135,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first) | PlotPickle assess Block 01 local | PlotPickle assessment Block 01 | PlotPickle diagnose Block 01 | PlotPickle produce Block 01 local | PlotPickle production Block 01 | PlotPickle resume-production Block 01 | PlotPickle cancel-production Block 01",
+      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle workflow Block 01 | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first) | PlotPickle assess Block 01 local | PlotPickle assessment Block 01 | PlotPickle diagnose Block 01 | PlotPickle produce Block 01 local | PlotPickle production Block 01 | PlotPickle resume-production Block 01 | PlotPickle cancel-production Block 01",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."
@@ -144,6 +151,46 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
         ...header,
         "Tool actions: NOT RUN. Saved Storyboard, provider readiness and Timeline playback are NOT verified by this inspection.",
         "Inspect one Block with: PlotPickle plan Block 01",
+      ].join("\n");
+    }
+    if (command.action === "workflow") {
+      const source = selected.project.sourceEvidence?.screenplay;
+      if (!source || source.passagesTruncated !== false || !Array.isArray(source.passages)) {
+        return "BLOCKED: Complete retained screenplay evidence is required for a source-grounded workflow inventory. No data was changed.";
+      }
+      const review = reviewBlockHandoff(selected.project, command.blockNumber, { currentAssessment });
+      const fields = Object.values(selected.project.storyDevelopment?.fields || {});
+      const accepted = fields.filter(field => field?.acceptedSource === "human" || field?.acceptedSource === "agent-proposal");
+      const proposals = fields.filter(field => typeof field?.proposal === "string" && field.proposal.trim());
+      const packages = Array.isArray(selected.project.worldMap?.characterVisuals) ? selected.project.worldMap.characterVisuals : [];
+      const approved = packages.filter(item => item.lockedVersionId &&
+        Array.isArray(item.references) && item.references.some(ref => ref.versionId === item.lockedVersionId && ref.reviewState === "approved"));
+      const notes = selected.project.mindMapNotes || {};
+      const noteCount = [...Object.values(notes.fields || {}), ...Object.values(notes.topics || {})]
+        .filter(note => typeof note?.text === "string" && note.text.trim()).length;
+      return [
+        "PLOTPICKLE CMD · SOURCE-BOUND WORKFLOW INVENTORY · BLOCK " + String(command.blockNumber).padStart(2, "0"),
+        ...header,
+        "SOURCE: imported retained passages for this Block " + review.mappedSourcePassages
+          + "; complete import in storage: " + (source.passagesTruncated === false ? "not truncated" : "truncation not explicitly verified"),
+        "MIND MAP: tracked accepted field decisions " + accepted.length + "; stored draft field proposals " + proposals.length
+          + "; saved nonempty notes " + noteCount
+          + ". These counts exclude untracked Foundation/World lesson values and do not prove full topic coverage.",
+        "WORLD MAP: character visual packages " + packages.length + "; packages with a matching approved locked version "
+          + approved.length + ". Source character identity/continuity and missing views are NOT verified by this inventory.",
+        "STORY ARCHITECT: " + (review.currentAssessment ? "source-matched advisory assessment reported; not approval" : "no current advisory assessment verified"),
+        "OUTLINE: " + review.acceptedCount + "/4 Human-accepted Mini-Block Plans",
+        "WRITE: saved writing in " + review.savedWritingCount + "/4 Mini-Blocks",
+        "STORYBOARD: NOT INSPECTED. 25 planned Shot addresses per Mini-Block do not prove any generated, saved or locked images.",
+        "PREVIS: NOT INSPECTED. No flipbook or Graphic Novel playback is certified.",
+        "TIMELINE: NOT INSPECTED. No verified motion route, clip or exported MP4 is certified.",
+        "ROUGH CUT: NOT INSPECTED. No assembled or playable movie is certified.",
+        review.allPlansAccepted
+          ? "NEXT: Human-reviewed Outline Plan gate is satisfied for this Block. Inspect the real Write/Storyboard owners separately; no production approval was inferred."
+          : "BLOCKED: Outline has " + (4 - review.acceptedCount) + " unaccepted Mini-Block Plans. Inspect PlotPickle assessment Block "
+            + String(command.blockNumber).padStart(2, "0") + " and the real Outline before any Write/Storyboard production.",
+        "Source-grounded Mind Map/World Map proposal generation from Command is a future governed stage, not executed here.",
+        "READ-ONLY: No agent call, candidate creation, proposal acceptance, Save/Lock, model charge or export occurred.",
       ].join("\n");
     }
     if (command.action === "plan") {

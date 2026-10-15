@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "issue": 3004,
+  "phase": "cmd-read-only-source-to-rough-cut-readiness",
+  "brief": "docs/developer-briefs/3004-cmd-workflow-readiness.md",
+  "allowedChanges": [
+    "app/_components/settings/plotpickle-creative-command.mjs",
+    "tests/issue-2982-command-creative-discovery.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3004-cmd-workflow-readiness.md",
+    "config/development-convergence/3004-workflow-readiness.json"
+  ],
+  "acceptance": [
+    {
+      "id": "PPF-SOURCE-AUTHORITY",
+      "criterion": "The active selected PPF identity and complete screenplay evidence govern a read-only bounded Block workflow inventory; foreign projects and missing source fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "#3004 read-only CMD workflow inventory preserves source, proposal and media truth"
+        }
+      ]
+    },
+    {
+      "id": "CANDIDATE-VS-APPROVAL",
+      "criterion": "Mind Map proposals and notes remain separate from tracked approved fields; World Map locked visual packages are not inferred from drafts.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "Source-grounded Mind Map"
+        }
+      ]
+    },
+    {
+      "id": "DOWNSTREAM-UNPROVEN",
+      "criterion": "The Workflow command cannot claim real Storyboard/Previs/Timeline/Rough Cut media or generate any paid results.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "NOT INSPECTED"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not write synthetic data into Brotherly Love accepted canon.",
+    "No new production grant, generated media, screenplay changes or runtime defaults.",
+    "Fixture green is not actual CMD/GUI or playable Rough Cut proof; issue #3004 remains open."
+  ]
+}

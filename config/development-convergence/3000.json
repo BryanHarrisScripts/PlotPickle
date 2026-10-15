@@ -8,6 +8,7 @@
     "app/skin-v1/dashboard-bbs-panel.tsx",
     "app/skin-v1/global-dsdd-conversation.tsx",
     "tests/issue-2982-command-creative-discovery.test.mjs",
+    "scripts/settings-command-product-proof.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3000-cmd-local-cloud-hybrid-entry.md",
     "config/development-convergence/3000.json"
@@ -43,6 +44,17 @@
           "type": "file-contains",
           "path": "app/skin-v1/global-dsdd-conversation.tsx",
           "contains": "Never paste API keys into Command"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-PRODUCT-PROOF",
+      "criterion": "Existing Windows Settings Command product proof verifies the renamed Local connections control without altering protected session or implying inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/settings-command-product-proof.mjs",
+          "contains": "name: \"Local connections\", exact: true"
         }
       ]
     }

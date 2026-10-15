@@ -2227,7 +2227,8 @@
           "tests/issue-2711-outline-local-auth.test.mjs",
           "tests/issue-outline-agent-assessment.test.mjs",
           "tests/issue-2440-story-architect-structured-execution.test.mjs",
-          "tests/issue-2986-production-pass.test.mjs"
+          "tests/issue-2986-production-pass.test.mjs",
+          "tests/issue-2995-outline-runtime.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4481,7 +4482,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "8555ca099979d20750128fec9a70274a0b786669195d0a9e9607158095302a44",
+        "targetDigest": "43bf57a18b219d2b77d745237927f9fc6b558842f642a95ef554efe73e59e788",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4499,6 +4500,28 @@
           "unit-fixture"
         ],
         "limits": "Synthetic encrypted profile and actual Outline controller exercise two separate inference ports, bounded grants, source references, cancellation, stale/remote input, invalid semantic review, restart and candidate replay. Does not establish independent dramatic correctness, real model reliability, account-owned Windows persistence or playable movie output.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2995-outline-runtime.test.mjs",
+        "targetDigest": "0347f65529b03e6430d45b320f38e98409c0264e300a97a9be12c5186285cad4",
+        "catalogueIds": [
+          "story-canon.outline-durable-input-2711"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic real Mastra dispatch and scheduler outcome diagnostics only; no live model, account-owned story or media acceptance.",
         "inputs": []
       }
     ]

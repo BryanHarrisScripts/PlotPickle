@@ -27,7 +27,7 @@ export type OutlineExecution = {
   /** Conservative host quote covering the complete request, output and runtime retries. */
   tokenUpperBound: number;
   cloudCostUpperBoundUsd: number | null;
-  execute(input: ReturnType<typeof buildOutlineAgentAssessmentRequest> & { signal: AbortSignal; onAssessmentUsage(usage: Usage): Promise<void> }): Promise<string>;
+  execute(input: (ReturnType<typeof buildOutlineAgentAssessmentRequest> | ReturnType<typeof buildProductionFidelityRequest>) & { signal: AbortSignal; onAssessmentUsage(usage: Usage): Promise<void> }): Promise<string>;
 };
 type Attempt = { id: string; stepId: string; tokens: number; cloudCostUsd: number; usage: Usage | null; status: "reserved" | "reported" };
 type Proposal = { stepId: string; artifactRef: string; assessment: OutlineAgentAssessment };
@@ -205,10 +205,11 @@ export function createOutlineTaskController(options: {
       const run = createCreativeResponsibilityRun({ runId: id, profileId: "elowen-mapweaver", goal: "Review approved Outline Blocks; findings remain advisory.", skillUris: [], allowedScopes: ["read-project-slice", "propose-project-change"], allowedConnectorIds: [], context: { taskId: id, sourceIds: [receipt], receiptGeneratedAt: timestamp }, limits: options.limits, createdAt: timestamp });
       const record: OutlineTaskRecord = { version: 1, scope, steps: blocks.map((block) => ({ id: `block-${block}`, kind: "review", replayPolicy: "safe" })), computeReceipt: execution.receipt, run, attempts: [], proposals: [] };
       if (productionPass) {
-        record.run = { ...run, limits: { ...run.limits, maxAttempts: 2, maxCloudCostUsd: 0, timeoutMs: 300_000, maxTokens: Math.min(run.limits.maxTokens, execution.tokenUpperBound * 2) } };
+        const timeoutMs = Math.min(run.limits.timeoutMs, 600_000);
+        record.run = { ...run, limits: { ...run.limits, maxAttempts: 2, maxCloudCostUsd: 0, timeoutMs, maxTokens: Math.min(run.limits.maxTokens, execution.tokenUpperBound * 2) } };
         record.productionPass = { version: 1, grant: { blockNumber: blocks[0], sourceReceipt: receipt,
           operations: ["assess", "semantic-review", "candidate-proposal"], cloudCostLimitUsd: 0,
-          expiresAt: new Date(Date.parse(timestamp) + 300_000).toISOString() }, review: null, candidate: null };
+          expiresAt: new Date(Date.parse(timestamp) + timeoutMs).toISOString() }, review: null, candidate: null };
       }
       await write(auth, record);
       await options.storage.writePrivateJson(authenticated(auth), { domain: "indexes", objectId: "outline-tasks-v1", value: [...index, id] });

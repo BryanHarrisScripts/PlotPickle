@@ -151,6 +151,7 @@ const BASE_INSTRUCTIONS = [
 ].join(" ");
 
 const MASTRA_AGENT_TIMEOUT_MS = 25_000;
+const STORY_ARCHITECT_REVIEW_TIMEOUT_MS = 180_000;
 const STORYBOARD_SHOT_BRIEF_TIMEOUT_MS = 90_000;
 const MASTRA_RUNTIME_VERSION = (() => {
   try {
@@ -197,6 +198,22 @@ function discoveryMapperSchema() {
     },
     required: ["act", "lane", "reason", "evidenceRefs"],
     additionalProperties: false,
+  });
+}
+
+/** Separate structured output for the second, evidence-linked production review. */
+function productionFidelityOutputSchema() {
+  return jsonSchema<{ findings: Array<{ dimension: string; state: string; reason: string; passageIds: string[] }> }>({
+    type: "object", additionalProperties: false, required: ["findings"],
+    properties: { findings: { type: "array", minItems: 7, maxItems: 7, items: {
+      type: "object", additionalProperties: false, required: ["dimension", "state", "reason", "passageIds"],
+      properties: {
+        dimension: { type: "string", enum: ["events", "dialogue", "characters", "causal-order", "continuity", "audience-knowledge", "coverage"] },
+        state: { type: "string", enum: ["supported", "unresolved", "contradictory"] },
+        reason: { type: "string", minLength: 18, maxLength: 600 },
+        passageIds: { type: "array", minItems: 1, items: { type: "string" } },
+      },
+    } } },
   });
 }
 
@@ -443,14 +460,14 @@ export function mastraModelConfig(profile: ProviderProfile) {
 
 /** Upper reservation for the bounded Story Architect request and one retry.
  * Six-byte JSON escapes bound every supplied UTF-16 code unit. The canonical
- * system/schema are included, plus framing allowance and the 1800-token output.
+ * system/schemas are included, plus framing allowance and the larger review output.
  */
 export function storyArchitectTokenUpperBound(maxMessageCharacters = 12_000) {
   if (!Number.isSafeInteger(maxMessageCharacters) || maxMessageCharacters < 1 || maxMessageCharacters > 12_000) throw new Error("Invalid Story Architect context bound.");
   const envelope = JSON.stringify({ system: [BASE_INSTRUCTIONS, `Specialist responsibility: ${PLOTPICKLE_AGENT_ROLES["story-architect"]}`].join("\n\n"),
     prompt: `Conversation tone: direct.\n\nWriter: ${"\u0000".repeat(maxMessageCharacters)}`,
-    schema: storyArchitectAssessmentSchema().jsonSchema });
-  return 2 * (Buffer.byteLength(envelope, "utf8") + 8192 + 1800);
+    schema: [storyArchitectAssessmentSchema().jsonSchema, productionFidelityOutputSchema().jsonSchema] });
+  return 2 * (Buffer.byteLength(envelope, "utf8") + 8192 + 4000);
 }
 
 export function createPlotPickleMastra(profile: ProviderProfile) {
@@ -500,6 +517,7 @@ type PlotPickleAgentRequestBase = {
 
 type PlotPickleAgentRequest = PlotPickleAgentRequestBase & (
   | { agentId: PlotPickleAgentId; outputFormat?: never }
+  | { agentId: "story-architect"; outputFormat: { kind: "production-fidelity" } }
   | { agentId: "graphic-novel"; /** Request schema-constrained Graphic Novel narration for this exact Shot. */ outputFormat: { kind: "storyboard-narration"; position: number } }
   | { agentId: "graphic-novel"; /** Request bounded, review-only Storyboard Shot brief proposals. */ outputFormat: { kind: "storyboard-shot-brief" } }
 );
@@ -524,7 +542,9 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");
-  const agentTimeoutMs = input.outputFormat?.kind === "storyboard-shot-brief" ? STORYBOARD_SHOT_BRIEF_TIMEOUT_MS : MASTRA_AGENT_TIMEOUT_MS;
+  const structuredStoryReview = input.agentId === "story-architect" && !directConversationMode && !storyCouncilMode;
+  const agentTimeoutMs = structuredStoryReview ? STORY_ARCHITECT_REVIEW_TIMEOUT_MS
+    : input.outputFormat?.kind === "storyboard-shot-brief" ? STORYBOARD_SHOT_BRIEF_TIMEOUT_MS : MASTRA_AGENT_TIMEOUT_MS;
   const timeoutSignal = AbortSignal.timeout(agentTimeoutMs);
   const abortSignal = input.signal ? AbortSignal.any([input.signal, timeoutSignal]) : timeoutSignal;
   const standardModelSettings = {
@@ -541,13 +561,14 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
     maxOutputTokens: 1800,
   };
   try {
+    const productionFidelity = input.outputFormat?.kind === "production-fidelity";
     const executionOptions = {
       abortSignal,
       ...(storyCouncilMode || input.agentId === "story-architect" || input.outputFormat?.kind === "storyboard-narration" || input.outputFormat?.kind === "storyboard-shot-brief" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
         modelSettings: storyCouncilMode
           ? storyCouncilModelSettings
           : input.agentId === "story-architect"
-            ? storyArchitectModelSettings
+            ? (productionFidelity ? { ...storyArchitectModelSettings, maxOutputTokens: 4000 } : storyArchitectModelSettings)
             : input.outputFormat?.kind === "storyboard-shot-brief"
               ? storyboardShotBriefModelSettings
             : standardModelSettings,
@@ -587,13 +608,18 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
       return JSON.stringify(result.object);
     }
     if (!directConversationMode && input.agentId === "story-architect") {
-      const result = await agent.generate(prompt, {
-        ...executionOptions,
-        structuredOutput: {
-          schema: storyArchitectAssessmentSchema(),
-          jsonPromptInjection: false,
-        },
-      });
+      const result = productionFidelity
+        ? await agent.generate(prompt, {
+          ...executionOptions,
+          structuredOutput: { schema: productionFidelityOutputSchema(), jsonPromptInjection: false },
+        })
+        : await agent.generate(prompt, {
+          ...executionOptions,
+          structuredOutput: {
+            schema: storyArchitectAssessmentSchema(),
+            jsonPromptInjection: false,
+          },
+        });
       const usage = result.usage;
       if (input.onAssessmentUsage) {
         const count = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : undefined;

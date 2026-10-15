@@ -40,7 +40,7 @@ export async function outlineCredentialReceipt(apiKey: string, profileId: string
 /** Quotes are host-owned encrypted settings for the exact provider/model/endpoint.
  * Unknown cloud prices fail closed; OpenAI-compatible does not mean free.
  * The token reservation covers two attempts (Mastra maxRetries=1), bounded
- * input including instructions/schema, and 1800 output tokens per attempt.
+ * input including instructions/schema, and up to 4000 output tokens per attempt.
  */
 export async function configuredOutlineExecution(runtime: Runtime, auth: AuthContext): Promise<OutlineExecution> {
   const profileId = runtime.auth.getAuthStatus(auth).profile?.profileId;
@@ -64,6 +64,15 @@ export async function configuredOutlineExecution(runtime: Runtime, auth: AuthCon
     tokenUpperBound: storyArchitectTokenUpperBound(), cloudCostUpperBoundUsd: cost,
     execute: (input) => askPlotPickleAgent({ profile, ...input }),
   };
+}
+
+/** Only host-authored, exact timeout diagnostics may leave a private scheduler checkpoint. */
+export function outlineSchedulerFailure(outcome: { status: string; error?: { message?: string } }): string {
+  const timeout = /^The Mastra agent did not finish within PlotPickle's (25|180)-second response limit\. Try again or choose a faster local model\.$/u.exec(outcome.error?.message || "");
+  if (outcome.status === "faulted" && timeout) return "The scheduler review timed out at the " + timeout[1]
+    + "-second response limit. Cancel this run and start a new review after checking local model readiness; saved findings remain available.";
+  if (outcome.status === "aborted") return "The scheduler review was cancelled. No completed review was reported; saved findings remain available.";
+  return "The scheduler stopped before completing this review. Cancel this run and start a new review; saved findings remain available.";
 }
 
 async function nativeScheduler(home: string, id: string, controller: Controller): Promise<OutlineScheduler> {
@@ -90,7 +99,8 @@ async function nativeScheduler(home: string, id: string, controller: Controller)
     async run(input) {
       const piId = await registration.admit(await harness.root(context), input, context);
       const result = await harness.waitForTask(piId, context);
-      return result.state.outcome.status === "completed";
+      if (result.state.outcome.status !== "completed") throw new Error(outlineSchedulerFailure(result.state.outcome));
+      return true;
     },
     close: () => harness.close(context),
   };

@@ -728,6 +728,28 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return true;
   }
 
+  function runConnectionsCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parsePlotPickleCreativeCommand(submitted);
+    if (command?.action !== "connections-help" && command?.action !== "connections-open") return false;
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages((current) => [...current, { id: messageId("connections-human"), role: "command",
+      text: submitted, context: snapshot, inputMode: draftHasVoice ? "voice" : "typed" }].slice(-MAX_MESSAGES));
+    setDraft(""); setDraftHasVoice(false); setError("");
+    if (command.action === "connections-help") {
+      setMessages((current) => [...current, { id: messageId("connections-help"), role: "tool",
+        text: "Use PlotPickle connect local, PlotPickle connect cloud or PlotPickle connect hybrid. "
+          + "Each opens the matching Settings GUI with the same connection setup, tests, provider choices and readiness. "
+          + "Never paste API keys into Command; enter them in the secure provider Setup screen.",
+        context: snapshot }].slice(-MAX_MESSAGES));
+    } else {
+      // Only navigation. No credential read, provider test, Join mutation, model
+      // execution or spend is performed by the Command transcript itself.
+      window.dispatchEvent(new CustomEvent("plotpickle:open-story-mode", { detail: command.mode }));
+    }
+    return true;
+  }
+
   function runCreativeDiscoveryCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
@@ -886,6 +908,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     if (!submitted || busy) return;
     if (await runCreativeAssessmentCommand(submitted)) return;
     if (await runCreativeLibraryCommand(submitted)) return;
+    if (runConnectionsCommand(submitted)) return;
     if (runCreativeDiscoveryCommand(submitted)) return;
     if (await runOpenPencilCommand(submitted)) return;
 

@@ -1009,6 +1009,7 @@
         "build/projects/outline-task-http.ts",
         "app/api/outline/tasks/route.ts",
         "modules/plan/assessments/outline-task-browser.ts",
+        "modules/plan/assessments/outline-task-selection.ts",
         "modules/plan/assessments/outline-production-pass.ts"
       ],
       "ownerLayer": "story-canon",

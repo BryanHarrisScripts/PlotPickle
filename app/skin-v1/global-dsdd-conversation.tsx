@@ -19,6 +19,7 @@ import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProje
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
 import { changeOutlineTask, readOutlineTasks, importOutlineTaskFindings } from "../../modules/plan/assessments/outline-task-browser";
+import { selectCurrentOutlineTask } from "../../modules/plan/assessments/outline-task-selection";
 import { outlineAssessmentMaterialReceipt } from "../../modules/plan/outline-agent-assessment";
 import { saveFoundationProjectDurably } from "../../core/storage/project-library/revision-safe-browser";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
@@ -576,19 +577,17 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
 
   // The scheduler and its checkpoints are the existing authenticated Story
   // Architect host; Command never makes a provider request or invents a result.
-  async function reconcileStoryArchitectBlock(projectId: string, blockNumber: number, production = false): Promise<{ ongoing: boolean; text: string }> {
+  async function reconcileStoryArchitectBlock(projectId: string, blockNumber: number, production = false, pinnedRunId?: string): Promise<{ ongoing: boolean; text: string }> {
     const activeId = sessionActiveProjectId();
     if (activeId !== projectId) return { ongoing: false, text: "BLOCKED: Selected Library project changed. Protected findings remain in their owning task." };
     const project = loadActiveLibraryProject();
     if (project.id !== projectId) return { ongoing: false, text: "BLOCKED: Saved project does not match the selected session." };
     const currentReceipt = await outlineAssessmentMaterialReceipt(project);
-    const tasks = (await readOutlineTasks()).filter(task => task.scope.projectId === projectId
-      && task.scope.contextReceipt === currentReceipt
-      && Boolean(task.productionPass) === production
-      && task.steps.length === 1 && task.steps[0].id === "block-" + blockNumber);
-    if (!tasks.length) return { ongoing: false, text: "NO TASK: No matching current-material Story Architect review has started for Block "
+    const task = selectCurrentOutlineTask(await readOutlineTasks(), {
+      projectId, contextReceipt: currentReceipt, blockNumber, production, pinnedRunId,
+    });
+    if (!task) return { ongoing: false, text: "NO TASK: No matching current-material Story Architect review has started for Block "
       + String(blockNumber).padStart(2, "0") + ". No inference or import occurred." };
-    const task = tasks.at(-1)!;
     if (!["local", "ollama"].includes(task.scope.provider)) return {
       ongoing: false, text: "BLOCKED: This existing assessment is not the explicitly authorized local-only route. No candidate was imported or cloud call started.",
     };
@@ -660,11 +659,12 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       let text: string;
       if (command.action === "resume-production" || command.action === "cancel-production") {
         const receipt = await outlineAssessmentMaterialReceipt(project);
-        const task = (await readOutlineTasks()).filter(t => t.scope.projectId === projectId && t.scope.contextReceipt === receipt
-          && t.productionPass?.grant.blockNumber === command.blockNumber).at(-1);
+        const task = selectCurrentOutlineTask(await readOutlineTasks(), {
+          projectId, contextReceipt: receipt, blockNumber: command.blockNumber, production: true,
+        });
         if (!task) throw new Error("No current production pass exists for this Block.");
         await changeOutlineTask(command.action === "resume-production" ? "resume" : "cancel", project, { taskId: task.scope.runId });
-        text = (await reconcileStoryArchitectBlock(projectId!, command.blockNumber, true)).text;
+        text = (await reconcileStoryArchitectBlock(projectId!, command.blockNumber, true, task.scope.runId)).text;
       } else if (command.action === "assess-local" || command.action === "produce") {
         const task = production
           ? await changeOutlineTask("start-production", project, { blocks: [command.blockNumber] })
@@ -684,7 +684,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             await new Promise<void>(resolve => setTimeout(resolve, 2500));
             if (sessionActiveProjectId() !== projectId) return;
             try {
-              const state = await reconcileStoryArchitectBlock(projectId, command.blockNumber, production);
+              const state = await reconcileStoryArchitectBlock(projectId, command.blockNumber, production, task.scope.runId);
               if (!state.ongoing) {
                 setMessages(current => [...current, { id: messageId("assessment-reconcile"),
                   role: "tool", text: state.text, context: snapshot }].slice(-MAX_MESSAGES));

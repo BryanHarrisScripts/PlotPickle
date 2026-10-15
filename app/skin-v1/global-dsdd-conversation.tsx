@@ -601,18 +601,25 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     }
     const packet = task.productionPass;
     if (production && packet) {
+      const grantExpired = Date.parse(packet.grant.expiresAt) <= Date.now();
+      const reportedAttempts = task.attempts.filter((attempt) => attempt.status === "reported").length;
+      const reservedAttempts = task.attempts.length - reportedAttempts;
       const candidate = packet.candidate;
       const findings = packet.review?.findings.map(f => f.dimension + ": " + f.state + " — " + f.reason + " [" + f.passageIds.join(", ") + "]").join("\n") || "Semantic review has not completed.";
       const proposals = candidate?.miniBlocks.map(m => "Mini-Block " + blockNumber + "." + m.ordinal + ": " + m.visualQuestion
         + "\nSource: " + m.passageIds.join(", ") + "; exact dialogue references: " + (m.dialoguePassageIds.join(", ") || "none")).join("\n\n") || "No production candidate is ready.";
       return { ongoing: task.running, text: "PRODUCTION PASS · " + (task.run.state === "waiting-for-writer" && candidate ? "CANDIDATE READY" : task.error || packet.review && !candidate ? "BLOCKED" : task.running ? "EXECUTING" : task.run.state === "cancelled" ? "CANCELLED" : "PAUSED / RECOVERY REQUIRED")
         + "\nProject: " + project.title + " · task " + task.scope.runId + " · model " + task.scope.model
-        + "\nReal calls/reservations: " + task.attempts.length + "/2. Source-bound assessment artifacts: " + task.proposals.length
-        + ". Grant expires " + packet.grant.expiresAt + "; token ceiling " + task.run.limits.maxTokens + "; monetary ceiling $0"
+        + "\nModel reservations: " + task.attempts.length + "/2; usage-confirmed attempts: " + reportedAttempts + "; outstanding reservations: " + reservedAttempts
+        + ". Actual provider dispatch/charge cannot be inferred from a reservation. Source-bound assessment artifacts: " + task.proposals.length
+        + ". Grant expires " + packet.grant.expiresAt + (grantExpired ? " (EXPIRED)" : " (current)") + "; token ceiling " + task.run.limits.maxTokens
+        + "; host cloud-cost reservation ceiling $" + task.run.limits.maxCloudCostUsd
         + ". Candidate packet: " + (candidate ? "saved in encrypted owning task" : "not ready")
         + "\n" + (task.error || "") + "\n" + findings + "\n\n" + proposals
         + "\nTiming follows action/dialogue; no film runtime inferred. Findings are advisory model judgments, not proof of dramatic quality. No Human Plan acceptance, locks, screenplay edits, paid media or playable export."
-        + "\nRecovery: PlotPickle production Block " + blockNumber + " · PlotPickle resume-production Block " + blockNumber + " · PlotPickle cancel-production Block " + blockNumber };
+        + (grantExpired ? "\nRecovery: The existing task grant has expired; RESUME is not available. Preserve this record for diagnosis; do not start another pass until the fault is understood."
+          : task.run.state === "cancelled" ? "\nRecovery: This task is cancelled. Use production status for read-only history; resume is not permitted."
+            : "\nRecovery: PlotPickle production Block " + blockNumber + " (read-only); PlotPickle resume-production Block " + blockNumber + " (explicit action only); PlotPickle cancel-production Block " + blockNumber + " (explicit action only). Do not retry an unexplained scheduler fault.") };
     }
     const confirmed = loadActiveLibraryProject();
     const accepted = Boolean(currentOutlineAssessment(confirmed, blockNumber));

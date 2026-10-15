@@ -11,6 +11,7 @@ import {
   type FormEvent,
 } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
+import { createConnectionCommandSession, parseConnectionCommand } from "../_components/settings/connection-command.mjs";
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
@@ -506,6 +507,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       });
       const result = await response.json() as DsddSessionPayload;
       if (!response.ok || !result.ok) throw new Error(result.message || "Could not clear the console.");
+      connectionSession.current = null;
       setMessages([]);
       setLockedIntent(null);
       setConfirmClear(false);
@@ -728,6 +730,45 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return true;
   }
 
+  const connectionSession = useRef<ReturnType<typeof createConnectionCommandSession> | null>(null);
+  async function runDirectConnectionsCommand(submitted: string) {
+    if (!embedded) return false;
+    const command = parseConnectionCommand(submitted);
+    if (!command) return false;
+    if (!connectionSession.current) connectionSession.current = createConnectionCommandSession({
+      profile: async () => {
+        const response = await authenticatedProfileFetch("/api/auth/profile", { cache: "no-store" });
+        const body = await response.json();
+        const profile = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+        return response.ok && body.authenticated === true && body.profile?.profileId === profile
+          && profilePrivateBrowserReadyFor(profile) ? profile : "";
+      },
+      request: async (path: string, body?: object) => {
+        const response = await fetch(path, { cache: "no-store", ...(body ? {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+        } : {}) });
+        const result = await response.json();
+        if (!response.ok || result.ok === false) throw new Error("Connection runtime rejected the request.");
+        return result;
+      },
+      now: () => Date.now(), token: () => crypto.randomUUID().replaceAll("-", "").slice(0, 16),
+      changed: () => {
+        window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+        window.dispatchEvent(new CustomEvent("plotpickle:connection-status-refresh"));
+      },
+    });
+    const snapshot = currentSurfaceContext(pathname);
+    // Only the parsed, allowlisted grammar can be echoed. Invalid inputs may contain secrets.
+    const safeInput = command.action === "invalid" ? "[Unrecognized connection input withheld]" : submitted;
+    setMessages(current => [...current, { id: messageId("connections-command"), role: "command", text: safeInput, context: snapshot }].slice(-MAX_MESSAGES));
+    setDraft(""); setDraftHasVoice(false); setError(""); setCommandWorking(true);
+    try {
+      const text = await connectionSession.current.execute(command);
+      setMessages(current => [...current, { id: messageId("connections-result"), role: "tool", text, context: snapshot }].slice(-MAX_MESSAGES));
+    } finally { setCommandWorking(false); }
+    return true;
+  }
+
   function runConnectionsCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
@@ -906,6 +947,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runDirectConnectionsCommand(submitted)) return;
     if (await runCreativeAssessmentCommand(submitted)) return;
     if (await runCreativeLibraryCommand(submitted)) return;
     if (runConnectionsCommand(submitted)) return;
@@ -1180,7 +1222,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             ) : null}
             {messages.map((message) => (
               <div className={message.role === "human" || message.role === "command" ? styles.humanMessage : styles.dsddMessage} key={message.id}>
-                <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "OpenPencil" : "DSDD"}</strong>
+                <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "Tool" : "DSDD"}</strong>
                 <p>{message.text}</p>
                 {message.context ? <small>{message.context.surfaceLabel} · {message.context.route}</small> : null}
                 {message.role === "dsdd" && message.model ? (
@@ -1196,7 +1238,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               </div>
             ) : null}
             {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
-            {commandWorking ? <p className={styles.working} role="status">Running the bounded local OpenPencil command…</p> : null}
+            {commandWorking ? <p className={styles.working} role="status">Running the requested Command operation…</p> : null}
             {piDrafting ? <p className={styles.working} role="status">Pi is inspecting the repository read-only and drafting developer guidance…</p> : null}
             {publishing ? <p className={styles.working} role="status">Publishing the approved developer brief as a GitHub Issue…</p> : null}
             {validatingFinding ? <p className={styles.working} role="status">Preserving Human validation and preparing the specification handoff…</p> : null}

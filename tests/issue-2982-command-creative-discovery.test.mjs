@@ -54,7 +54,7 @@ test("#3000 typed CMD connects to the real Local Cloud and Hybrid Settings modes
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connect local"), { action: "connections-open", mode: "local" });
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connect CLOUD"), { action: "connections-open", mode: "cloud" });
   assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connections hybrid"), { action: "connections-open", mode: "hybrid" });
-  assert.equal(parsePlotPickleCreativeCommand("PlotPickle connect nonsense").action, undefined);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle connect nonsense"), null);
   assert.equal(parsePlotPickleCreativeCommand("PlotPickle connect cloud key=secret"), null, "Never treat pasted credentials as a connection action");
 });
 

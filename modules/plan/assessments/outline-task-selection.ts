@@ -13,6 +13,16 @@ export type OutlineTaskSelectionScope = Readonly<{
 
 const EXECUTING_STATES = new Set(["queued", "preparing-context", "working", "verifying", "revising"]);
 
+/** Project host execution separately from a durable state that may still say "working"
+ * after the worker has stopped. This is display-only: no task lifecycle changes.
+ */
+export function outlineTaskDisplayStatus(task: Pick<OutlineTaskView, "run" | "running" | "resumeRequired" | "error">): string {
+  if (task.running && EXECUTING_STATES.has(task.run.state)) return "working";
+  if (task.resumeRequired) return task.error ? "blocked - recovery required" : "recovery required";
+  if (EXECUTING_STATES.has(task.run.state)) return "not executing - inspect recovery";
+  return task.run.state.replaceAll("-", " ");
+}
+
 function createdAt(task: OutlineTaskView): number {
   const timestamp = Date.parse(task.run.createdAt);
   return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;

@@ -83,7 +83,7 @@ test("#2999 production status reports reservation separately from model usage an
   assert.match(src, /RESUME is not available/u);
 });
 await build({ entryPoints: ["modules/plan/assessments/outline-task-selection.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "task-selection.mjs"), logLevel: "silent" });
-const { selectCurrentOutlineTask } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
+const { selectCurrentOutlineTask, outlineTaskDisplayStatus } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
 const scope = { projectId: "brotherly-love", contextReceipt: "saved-source-v1", blockNumber: 1, production: true, profileId: "human-1" };
 function productionTask(runId, state, createdAt, overrides = {}) {
   return {
@@ -129,4 +129,19 @@ test("#2997 exact authenticated project, material, profile, Block and production
   assert.equal(selectCurrentOutlineTask(tasks, scope)?.scope.runId, "current-exact");
   assert.equal(selectCurrentOutlineTask(tasks.filter(t => t !== valid), scope), null);
   assert.equal(selectCurrentOutlineTask([], scope), null);
+});
+
+test("#2999 stopped Story Architect worker is never displayed as working even if durable run state remains working", async () => {
+  const old = productionTask("saved-run", "working", "2026-10-15T09:00:00Z");
+  const failed = { ...old, running: false, resumeRequired: true, error: "The scheduler faulted (UNCLASSIFIED_PRIVATE_FAILURE)." };
+  assert.equal(outlineTaskDisplayStatus(failed), "blocked - recovery required");
+  assert.doesNotMatch(outlineTaskDisplayStatus(failed), /working|UNCLASSIFIED_PRIVATE_FAILURE/u);
+  assert.equal(outlineTaskDisplayStatus({ ...failed, error: null }), "recovery required");
+  assert.equal(outlineTaskDisplayStatus({ ...failed, resumeRequired: false }), "not executing - inspect recovery");
+  assert.equal(outlineTaskDisplayStatus({ ...failed, running: true, resumeRequired: false, error: null }), "working");
+  assert.equal(outlineTaskDisplayStatus({ ...failed, run: { ...old.run, state: "cancelled" }, resumeRequired: false, error: null }), "cancelled");
+  const src = await (await import("node:fs/promises")).readFile(
+    new URL("../app/skin-v1/story-card-foundation-board.tsx", import.meta.url), "utf8");
+  assert.match(src, /Story Architect · \{outlineTaskDisplayStatus\(task\)\}/u, "Outline UI must use actual host execution projection");
+  assert.doesNotMatch(src, /Story Architect · \{task\.run\.state\.replaceAll/u, "stale state may not label a stopped worker as working");
 });

@@ -23,6 +23,7 @@ import {
 } from "@/modules/plan/story-card-board";
 
 import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
+import { outlineTaskDisplayStatus } from "@/modules/plan/assessments/outline-task-selection";
 import { changeOutlineTask, importOutlineTaskFindings, readOutlineTasks, type OutlineTaskView } from "@/modules/plan/assessments/outline-task-browser";
 import { flushProfilePrivateWrites, persistActiveProfileProject } from "@/core/storage/profile-private-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
@@ -560,7 +561,7 @@ export default function StoryCardFoundationBoard({
         <p>Assessment receipts show what the Story Architect reviewed. They are advisory evidence records and do not change accepted story content.</p>
         {recoveryTasks.filter((task) => !act || task.steps.some((step) => Math.ceil(Number(step.id.slice(6)) / 6) === act)).map((task) => (
           <article className="pp-skin-v1-story-card-structural-review" key={task.scope.runId} data-outline-recovery-task={task.scope.runId}>
-            <strong>Story Architect · {task.run.state.replaceAll("-", " ")}</strong>
+            <strong>Story Architect · {outlineTaskDisplayStatus(task)}</strong>
             <p>{task.proposals.length} of {task.steps.length} Blocks assessed · {task.steps.length - task.proposals.length} remaining.</p>
             <small>{task.running ? "Review running" : task.resumeRequired ? "Explicit resume required" : "Review stopped or awaiting the writer"} · {task.run.usage.attempts} attempts used. No accepted story content changed.</small>
             {task.error ? <p role="status">{task.error}</p> : null}

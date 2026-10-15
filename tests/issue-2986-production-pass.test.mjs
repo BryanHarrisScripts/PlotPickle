@@ -8,6 +8,7 @@ import { build } from "esbuild";
 import { createInMemoryAuthStateStore, createPlotPickleAuthService } from "../core/auth/plotpickle-auth-core.mjs";
 import { createProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage-core.mjs";
 import { createServerSessionBoundary } from "../core/auth/server-session/server-session-boundary-core.mjs";
+import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 const compiledRoot = await mkdtemp(path.resolve("node_modules/.production-pass-2986-"));
 await build({ stdin: { contents: `
@@ -56,6 +57,12 @@ async function fixture(t) {
     reopen() { controller.close(); controller = createOutlineTaskController(options); },
   };
 }
+
+test("#2999 CMD separates explicitly paid-capable production from existing no-spend local command", () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle produce Block 01"), { action: "produce", blockNumber: 1, localOnly: false });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle produce Block 01 local"), { action: "produce", blockNumber: 1, localOnly: true });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle production Block 01"), { action: "production", blockNumber: 1 });
+});
 
 test("#2986 scoped grant executes assessment then separate semantic review and persists source-linked candidate without canon mutation", async t => {
   const f = await fixture(t), task = await f.start();

@@ -1222,7 +1222,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             ) : null}
             {messages.map((message) => (
               <div className={message.role === "human" || message.role === "command" ? styles.humanMessage : styles.dsddMessage} key={message.id}>
-                <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "OpenPencil" : "DSDD"}</strong>
+                <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "Tool" : "DSDD"}</strong>
                 <p>{message.text}</p>
                 {message.context ? <small>{message.context.surfaceLabel} · {message.context.route}</small> : null}
                 {message.role === "dsdd" && message.model ? (

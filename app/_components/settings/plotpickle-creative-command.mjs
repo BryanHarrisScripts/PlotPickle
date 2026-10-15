@@ -155,7 +155,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
     }
     if (command.action === "workflow") {
       const source = selected.project.sourceEvidence?.screenplay;
-      if (!source || source.passagesTruncated === true) {
+      if (!source || source.passagesTruncated !== false || !Array.isArray(source.passages)) {
         return "BLOCKED: Complete retained screenplay evidence is required for a source-grounded workflow inventory. No data was changed.";
       }
       const review = reviewBlockHandoff(selected.project, command.blockNumber, { currentAssessment });

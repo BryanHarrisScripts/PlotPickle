@@ -2955,6 +2955,48 @@
         ]
       },
       "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
+    },
+    {
+      "id": "agent.settings-command-win-proof-3000",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill"
+      ],
+      "runner": {
+        "kind": "browser-uat",
+        "targets": [
+          "scripts/settings-command-product-proof.mjs"
+        ]
+      },
+      "cost": "medium",
+      "modes": [
+        "manual"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "requirements": {
+        "network": false,
+        "native": true,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "report",
+          "screenshot"
+        ],
+        "artifactPaths": [
+          ".artifacts/settings-command-2717/proof.json",
+          ".artifacts/settings-command-2717/command.png",
+          ".artifacts/settings-command-2717/failure.json"
+        ]
+      },
+      "notes": "Existing authenticated Windows Settings Command product gate owns the executable browser proof; manual catalogue ownership provides approved-truth admission, not a duplicate automatic run. #3000 updates the Local connections locator to match the current GUI. No live cloud provider or screenplay generation is certified."
     }
   ],
   "truthGovernance": {
@@ -4254,7 +4296,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "9b54427fd2e3e3afe566af0b73e2c131eced2bdb26602e6d3ea5a82c2ff555f1",
+        "targetDigest": "579223ff304ee9d991b1ab44e7456e2d444857b250172000d7ae96168a7ea32d",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],
@@ -4272,7 +4314,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic real authenticated Command-to-local-only Story Architect task host and source/citation/PPF advisory import contract assertions, read-only Library tests; no live Human Brotherly Love inference, actual local model readiness, full film proposal, paid OpenAI/MiniMax image/video or Windows private restart certified.",
+        "limits": "Synthetic Command parser and source-owned navigation proof: Local/Cloud/Hybrid open identical existing Story Mode GUI, no credential capture or route mutation on navigation. Does not itself establish live provider connectivity, paid tests, account-owned Windows GUI operation or typed Join parity.",
         "inputs": []
       },
       {
@@ -4522,6 +4564,29 @@
           "unit-fixture"
         ],
         "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories and CMD read-only reservation/recovery projection; no live Windows Pi checkpoint inspection, verified provider call, paid OpenAI request, account-owned story or movie acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "scripts/settings-command-product-proof.mjs",
+        "targetDigest": "4aa00cb98a82e6237b66ebebdec1b0ce41cecd914b294d80012fd5ad203e0c79",
+        "catalogueIds": [
+          "agent.settings-command-win-proof-3000"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "real-boundary",
+          "real-device"
+        ],
+        "limits": "Windows Playwright product proof of authenticated Settings Command, Local connections navigation, unchanged session and zero inference while navigating; does not prove real paid cloud AI, Hybrid joins, user installation credentials, or provider readiness.",
         "inputs": []
       }
     ]

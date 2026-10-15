@@ -10,6 +10,7 @@ const TOOL_ROUTES = Object.freeze([
   Object.freeze({ tool: "Storyboard", scope: "approved image candidates", state: "separate governed image generation, not executed" }),
   Object.freeze({ tool: "Previs", scope: "locked storyboard image playback", state: "separate playback tool, not executed" }),
   Object.freeze({ tool: "Timeline", scope: "verified video/motion/export", state: "separate governed production tool, not executed" }),
+  Object.freeze({ tool: "Connections", scope: "Local / Cloud / Hybrid", state: "PlotPickle connect local|cloud|hybrid opens identical Settings GUI; no connection changes until the user uses those controls" }),
   Object.freeze({ tool: "Media providers", scope: "settings and provider preflight", state: "runtime readiness unknown; no spend authorized" }),
   Object.freeze({ tool: "DSDD defect brief", scope: "Interpret / Pi Draft / Publish Brief", state: "existing Human-reviewed GitHub issue workflow" }),
 ]);
@@ -20,6 +21,9 @@ export function parsePlotPickleCreativeCommand(input) {
   if (!/^\/?plotpickle(?:\s|$)/iu.test(value)) return null;
   if (/^\/?plotpickle\s+(?:help|tools)$/iu.test(value)) return Object.freeze({ action: "tools" });
   if (/^\/?plotpickle\s+status$/iu.test(value)) return Object.freeze({ action: "status" });
+  if (/^\/?plotpickle\s+(?:connect|connections)$/iu.test(value)) return Object.freeze({ action: "connections-help" });
+  const connectionMode = value.match(/^\/?plotpickle\s+(?:connect|connections)\s+(local|cloud|hybrid)$/iu);
+  if (connectionMode) return Object.freeze({ action: "connections-open", mode: connectionMode[1].toLowerCase() });
   const production = value.match(/^\/?plotpickle\s+(produce|production|resume-production|cancel-production)\s+block\s+(\d{1,3})(\s+local)?$/iu);
   if (production) {
     const blockNumber = Number(production[2]);

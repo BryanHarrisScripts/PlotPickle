@@ -2964,8 +2964,6 @@
         "experience-navigation"
       ],
       "triggerTokens": [
-        "settings",
-        "command",
         "skin",
         "surface",
         "auth"

@@ -7,6 +7,7 @@ import { normalizeAgentTaskScope as normalizeScope } from "../../core/sidecars/t
 import { buildOutlineAgentAssessmentRequest, outlineAssessmentMaterialReceipt, validateOutlineAgentAssessment } from "../../modules/plan/outline-agent-assessment";
 import { RESPONSIBILITY_RUN_STATES, addResponsibilityArtifact, beginResponsibilityAttempt, cancelResponsibilityRun, createCreativeResponsibilityRun, prepareResponsibilityRun, requestWriterApproval } from "../../lib/agents/responsibility/responsibility-runs";
 import type { ResponsibilityRun, ResponsibilityRunLimits } from "../../lib/agents/responsibility/responsibility-runs";
+import { productionPassSource, buildProductionFidelityRequest, validateProductionFidelity, buildOutlineProductionCandidate, type OutlineProductionPass } from "../../modules/plan/assessments/outline-production-pass";
 
 type Usage = { inputTokens?: number; outputTokens?: number; totalTokens?: number };
 type Scope = Readonly<{
@@ -38,6 +39,7 @@ export type OutlineTaskRecord = {
   run: ResponsibilityRun;
   attempts: Attempt[];
   proposals: Proposal[];
+  productionPass?: OutlineProductionPass;
 };
 
 const GRANTS = ["project-context-read", "proposal-draft"];
@@ -120,6 +122,12 @@ export function createOutlineTaskController(options: {
         || proposal.assessment?.blockNumber !== Number(proposal.stepId.slice(6)))
       || record.run.artifacts.length !== record.proposals.length
       || record.run.artifacts.some((artifact, index) => artifact.canonical !== false || artifact.ref !== record.proposals[index].artifactRef)) throw new Error("Corrupt Outline task artifacts.");
+    if (record.productionPass && (record.productionPass.version !== 1 || record.steps.length !== 1
+      || record.productionPass.grant.blockNumber !== Number(record.steps[0].id.slice(6))
+      || record.productionPass.grant.sourceReceipt !== record.scope.contextReceipt
+      || !same(record.productionPass.grant.operations, ["assess", "semantic-review", "candidate-proposal"])
+      || record.productionPass.grant.cloudCostLimitUsd !== 0 || record.run.limits.maxCloudCostUsd !== 0
+      || !Number.isFinite(Date.parse(record.productionPass.grant.expiresAt)))) throw new Error("Protected Outline production grant failed integrity validation.");
     return record;
   }
   async function read(candidate: AuthContext, id: string) {
@@ -147,6 +155,10 @@ export function createOutlineTaskController(options: {
     if (!project || project.id !== record.scope.projectId) throw new Error("Outline task requires its approved active project.");
     if (await outlineAssessmentMaterialReceipt(project) !== record.scope.contextReceipt) throw new Error("Outline task material is stale. Start a new review after story edits.");
     const execution = await options.resolveExecution(context);
+    if (record.productionPass && (Date.parse(now()) >= Date.parse(record.productionPass.grant.expiresAt)
+      || !["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0)) {
+      throw new Error("Outline production pass grant expired or zero-cost local compute changed.");
+    }
     const grants = [...new Set(execution.grantedCapabilities)].sort();
     if (execution.receipt !== record.computeReceipt || execution.provider !== record.scope.provider || execution.model !== record.scope.model || !same(grants, GRANTS)) throw new Error("Outline task compute or grants changed; resume denied.");
     if (!ACTIVE.has(record.run.state)) throw new Error(`Outline task cannot execute while ${record.run.state}.`);
@@ -168,17 +180,21 @@ export function createOutlineTaskController(options: {
       const records = await Promise.all(index.map((id) => this.status(auth, id)));
       return records.filter((record) => record.scope.projectId === project.id);
     },
-    async create(candidate: AuthContext, blocks: number[]) {
+    async create(candidate: AuthContext, blocks: number[], productionPass = false) {
       return locked(`admission:${candidate.profileId}`, async () => {
       const auth = authenticated(candidate);
       if (!Array.isArray(blocks) || !blocks.length || blocks.length > 6 || new Set(blocks).size !== blocks.length || blocks.some((block) => !Number.isInteger(block) || block < 1 || block > 24)) throw new Error("Outline task requires 1–6 unique Story Blocks.");
       const project = await options.storage.loadActiveProject(auth) as LibraryPPFProject | null;
       if (!project) throw new Error("Load an active project before reviewing Outline.");
       const execution = await options.resolveExecution(auth);
+      if (productionPass) {
+        if (blocks.length !== 1 || !["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0) throw new Error("Outline production pass requires one Block and zero-cost local compute.");
+        productionPassSource(project, blocks[0]);
+      }
       if (!same([...new Set(execution.grantedCapabilities)].sort(), GRANTS)) throw new Error("Story Architect grants are unavailable.");
       const existing = await this.list(auth);
       const receipt = await outlineAssessmentMaterialReceipt(project);
-      const reusable = existing.find((record) => ACTIVE.has(record.run.state) && record.scope.contextReceipt === receipt
+      const reusable = existing.find((record) => (ACTIVE.has(record.run.state) || productionPass && record.run.state === "waiting-for-writer") && Boolean(record.productionPass) === productionPass && record.scope.contextReceipt === receipt
         && record.computeReceipt === execution.receipt && same(record.steps.map((step) => Number(step.id.slice(6))), blocks));
       if (reusable) return reusable;
       const index = (await options.storage.readPrivateJson(auth, { domain: "indexes", objectId: "outline-tasks-v1" }) || []) as string[];
@@ -188,6 +204,12 @@ export function createOutlineTaskController(options: {
       const scope = normalizeAgentTaskScope({ humanProfileId: auth.profileId, projectId: project.id, projectRevision: String(project.revision), agentProfileId: "elowen-mapweaver", roleId: "story-architect", runId: id, objectiveRevision: 1, contextReceipt: receipt, provider: execution.provider, model: execution.model, humanApprovalRef: `human-approval:${randomUUID()}`, grantedCapabilities: GRANTS });
       const run = createCreativeResponsibilityRun({ runId: id, profileId: "elowen-mapweaver", goal: "Review approved Outline Blocks; findings remain advisory.", skillUris: [], allowedScopes: ["read-project-slice", "propose-project-change"], allowedConnectorIds: [], context: { taskId: id, sourceIds: [receipt], receiptGeneratedAt: timestamp }, limits: options.limits, createdAt: timestamp });
       const record: OutlineTaskRecord = { version: 1, scope, steps: blocks.map((block) => ({ id: `block-${block}`, kind: "review", replayPolicy: "safe" })), computeReceipt: execution.receipt, run, attempts: [], proposals: [] };
+      if (productionPass) {
+        record.run = { ...run, limits: { ...run.limits, maxAttempts: 2, maxCloudCostUsd: 0, timeoutMs: 300_000, maxTokens: Math.min(run.limits.maxTokens, execution.tokenUpperBound * 2) } };
+        record.productionPass = { version: 1, grant: { blockNumber: blocks[0], sourceReceipt: receipt,
+          operations: ["assess", "semantic-review", "candidate-proposal"], cloudCostLimitUsd: 0,
+          expiresAt: new Date(Date.parse(timestamp) + 300_000).toISOString() }, review: null, candidate: null };
+      }
       await write(auth, record);
       await options.storage.writePrivateJson(authenticated(auth), { domain: "indexes", objectId: "outline-tasks-v1", value: [...index, id] });
       return record;
@@ -232,27 +254,31 @@ export function createOutlineTaskController(options: {
         return { scope: record.scope, state: record.run.state, budgetAvailable: true };
       });
     },
-    async executeStep(scope: Scope, step: Step, context?: { abortSignal?: AbortSignal }) {
+    async executeStep(scope: Scope, step: Step, context?: { abortSignal?: AbortSignal }): Promise<{ artifactRef: string }> {
       const lease = leaseFor(scope);
       const signal = context?.abortSignal ? AbortSignal.any([lease.abort.signal, context.abortSignal]) : lease.abort.signal;
       signal.throwIfAborted();
       const key = `${scope.runId}:${step.id}`;
       if (inFlight.has(key)) throw new Error("Outline step is already executing.");
       inFlight.add(key);
+      let continueProduction = false;
+      let result: { artifactRef: string };
       try {
         const prepared = await locked(scope.runId, async () => {
           const record = await read(lease.auth, scope.runId);
           if (!same(record.scope, normalizeAgentTaskScope(scope)) || !record.steps.some((expected) => same(expected, step))) throw new Error("Outline callback scope or step mismatch.");
           const { project, execution } = await fresh(lease.auth, record);
           const committed = record.proposals.find((proposal) => proposal.stepId === step.id);
-          if (committed) { budget(record, true); return { committed }; }
-          if (record.steps[record.proposals.length]?.id !== step.id) throw new Error("Outline task step order mismatch.");
+          if (committed && (!record.productionPass || record.productionPass.review)) { budget(record, true); return { committed }; }
+          if (!committed && record.steps[record.proposals.length]?.id !== step.id) throw new Error("Outline task step order mismatch.");
           const used = budget(record);
           if (!Number.isSafeInteger(execution.tokenUpperBound) || execution.tokenUpperBound < 1
             || execution.cloudCostUpperBoundUsd === null || !finite(execution.cloudCostUpperBoundUsd)
             || used.tokens + execution.tokenUpperBound > record.run.limits.maxTokens
             || used.cost + execution.cloudCostUpperBoundUsd > record.run.limits.maxCloudCostUsd) throw new Error("A bounded host token/cost quote is required before inference.");
-          const payload = buildOutlineAgentAssessmentRequest(project, Number(step.id.slice(6)));
+          const payload = committed && record.productionPass
+            ? buildProductionFidelityRequest(project, committed.assessment)
+            : buildOutlineAgentAssessmentRequest(project, Number(step.id.slice(6)), Boolean(record.productionPass));
           if (payload.message.length > record.run.limits.maxContextCharacters) throw new Error("Outline task context exceeds the host limit.");
           if (record.run.state === "queued") record.run = prepareResponsibilityRun(record.run, payload.message.length, now());
           record.run = beginResponsibilityAttempt(record.run, now());
@@ -261,7 +287,7 @@ export function createOutlineTaskController(options: {
           record.attempts.push(attempt);
           record.run.usage = { ...record.run.usage, tokens: used.tokens + attempt.tokens, cloudCostUsd: used.cost + attempt.cloudCostUsd, contextCharacters: Math.max(record.run.usage.contextCharacters, payload.message.length) };
           await write(lease.auth, record); // Crash-safe reservation BEFORE any worker/provider call.
-          return { project, execution, payload, attemptId: attempt.id };
+          return { project, execution, payload, attemptId: attempt.id, reviewingProduction: Boolean(committed && record.productionPass) };
         });
         if (prepared.committed) return { artifactRef: prepared.committed.artifactRef };
         // Do not hold the task mutex across inference: cancellation must remain responsive.
@@ -280,22 +306,34 @@ export function createOutlineTaskController(options: {
             await write(lease.auth, record);
           });
         } });
-        return await locked(scope.runId, async () => {
+        result = await locked(scope.runId, async () => {
           signal.throwIfAborted();
           const record = await read(lease.auth, scope.runId);
           const attempt = record.attempts.find((item) => item.id === prepared.attemptId);
           if (attempt?.status !== "reported") throw new Error("Outline worker did not persist usage before result admission.");
           const { project } = await fresh(lease.auth, record);
           budget(record, true);
-          if (record.proposals.some((proposal) => proposal.stepId === step.id)) throw new Error("Concurrent Outline step result denied.");
-          const assessment = validateOutlineAgentAssessment(output, project, Number(step.id.slice(6)), scope.model, now());
+          const prior = record.proposals.find(proposal => proposal.stepId === step.id);
+          if (prepared.reviewingProduction && prior && record.productionPass) {
+            if (record.productionPass.review) throw new Error("Concurrent Outline semantic result denied.");
+            record.productionPass.review = { findings: validateProductionFidelity(output, project, prior.assessment), reviewedAt: now() };
+            record.productionPass.candidate = buildOutlineProductionCandidate(project, prior.assessment, record.productionPass, prior.artifactRef, scope.model, now());
+            await write(lease.auth, record);
+            return { artifactRef: prior.artifactRef };
+          }
+          if (prior) throw new Error("Concurrent Outline step result denied.");
+          const assessment = validateOutlineAgentAssessment(output, project, Number(step.id.slice(6)), scope.model, now(), Boolean(record.productionPass));
           const artifactRef = `responsibility-artifact:${scope.runId}:${step.id}`;
           record.proposals.push({ stepId: step.id, artifactRef, assessment });
           record.run = addResponsibilityArtifact(record.run, { id: step.id, kind: "proposal", ref: artifactRef, producedAt: now() });
           await write(lease.auth, record);
+          continueProduction = Boolean(record.productionPass);
           return { artifactRef };
         });
       } finally { inFlight.delete(key); }
+      // The first result is checkpointed before the second bounded call. Resume reuses it.
+      if (continueProduction) return this.executeStep(scope, step, context);
+      return result;
     },
     /** Invoke only AFTER Pi independently confirms all checkpoint steps complete. */
     async finish(candidate: AuthContext, id: string) {
@@ -304,6 +342,7 @@ export function createOutlineTaskController(options: {
         await fresh(candidate, record);
         budget(record, true);
         if (record.proposals.length !== record.steps.length) throw new Error("Outline task still has remaining Blocks.");
+        if (record.productionPass && !record.productionPass.candidate) throw new Error("Outline production handoff blocked by unresolved semantic or structural findings. Review the saved findings; no candidate-ready claim was made.");
         record.run = requestWriterApproval(record.run, now());
         await write(candidate, record);
         leases.delete(id);

@@ -5,6 +5,7 @@ export type PlotPickleCreativeCommand = Readonly<
   | { action: "inspect"; projectId: string }
   | { action: "assess-local"; blockNumber: number }
   | { action: "assessment"; blockNumber: number }
+  | { action: "produce" | "production" | "resume-production" | "cancel-production"; blockNumber: number }
   | { action: "rename"; projectId: string; title: string }
   | { action: "confirm-rename"; projectId: string; revision: number; title: string }
   | { action: "plan"; blockNumber: number }

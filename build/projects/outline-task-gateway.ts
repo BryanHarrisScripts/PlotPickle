@@ -163,6 +163,11 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
       return Promise.all([...active, ...settled].map((record) => view(auth, record.scope.runId)));
     },
     status: view,
+    async startProduction(auth: AuthContext, blocks: number[]) {
+      const record = await controller.create(auth, blocks, true);
+      if (record.run.state === "waiting-for-writer") return view(auth, record.scope.runId);
+      return activate(auth, record.scope.runId);
+    },
     async start(auth: AuthContext, blocks: number[]) {
       const record = await controller.create(auth, blocks);
       return activate(auth, record.scope.runId);

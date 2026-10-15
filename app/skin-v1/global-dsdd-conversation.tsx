@@ -576,7 +576,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
 
   // The scheduler and its checkpoints are the existing authenticated Story
   // Architect host; Command never makes a provider request or invents a result.
-  async function reconcileStoryArchitectBlock(projectId: string, blockNumber: number): Promise<{ ongoing: boolean; text: string }> {
+  async function reconcileStoryArchitectBlock(projectId: string, blockNumber: number, production = false): Promise<{ ongoing: boolean; text: string }> {
     const activeId = sessionActiveProjectId();
     if (activeId !== projectId) return { ongoing: false, text: "BLOCKED: Selected Library project changed. Protected findings remain in their owning task." };
     const project = loadActiveLibraryProject();
@@ -584,6 +584,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     const currentReceipt = await outlineAssessmentMaterialReceipt(project);
     const tasks = (await readOutlineTasks()).filter(task => task.scope.projectId === projectId
       && task.scope.contextReceipt === currentReceipt
+      && Boolean(task.productionPass) === production
       && task.steps.length === 1 && task.steps[0].id === "block-" + blockNumber);
     if (!tasks.length) return { ongoing: false, text: "NO TASK: No matching current-material Story Architect review has started for Block "
       + String(blockNumber).padStart(2, "0") + ". No inference or import occurred." };
@@ -598,6 +599,21 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             || loadActiveLibraryProject().revision !== project.revision) throw new Error("Selected PPF changed before advisory findings could be saved.");
         await saveFoundationProjectDurably(next, project.revision);
       }
+    }
+    const packet = task.productionPass;
+    if (production && packet) {
+      const candidate = packet.candidate;
+      const findings = packet.review?.findings.map(f => f.dimension + ": " + f.state + " — " + f.reason + " [" + f.passageIds.join(", ") + "]").join("\n") || "Semantic review has not completed.";
+      const proposals = candidate?.miniBlocks.map(m => "Mini-Block " + blockNumber + "." + m.ordinal + ": " + m.visualQuestion
+        + "\nSource: " + m.passageIds.join(", ") + "; exact dialogue references: " + (m.dialoguePassageIds.join(", ") || "none")).join("\n\n") || "No production candidate is ready.";
+      return { ongoing: task.running, text: "PRODUCTION PASS · " + (task.run.state === "waiting-for-writer" && candidate ? "CANDIDATE READY" : task.error || packet.review && !candidate ? "BLOCKED" : task.running ? "EXECUTING" : task.run.state === "cancelled" ? "CANCELLED" : "PAUSED / RECOVERY REQUIRED")
+        + "\nProject: " + project.title + " · task " + task.scope.runId + " · model " + task.scope.model
+        + "\nReal calls/reservations: " + task.attempts.length + "/2. Source-bound assessment artifacts: " + task.proposals.length
+        + ". Grant expires " + packet.grant.expiresAt + "; token ceiling " + task.run.limits.maxTokens + "; monetary ceiling $0"
+        + ". Candidate packet: " + (candidate ? "saved in encrypted owning task" : "not ready")
+        + "\n" + (task.error || "") + "\n" + findings + "\n\n" + proposals
+        + "\nTiming follows action/dialogue; no film runtime inferred. Findings are advisory model judgments, not proof of dramatic quality. No Human Plan acceptance, locks, screenplay edits, paid media or playable export."
+        + "\nRecovery: PlotPickle production Block " + blockNumber + " · PlotPickle resume-production Block " + blockNumber + " · PlotPickle cancel-production Block " + blockNumber };
     }
     const confirmed = loadActiveLibraryProject();
     const accepted = Boolean(currentOutlineAssessment(confirmed, blockNumber));
@@ -623,7 +639,9 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   async function runCreativeAssessmentCommand(submitted: string) {
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
-    if (command?.action !== "assess-local" && command?.action !== "assessment") return false;
+    if (command?.action !== "assess-local" && command?.action !== "assessment" && command?.action !== "produce"
+      && command?.action !== "production" && command?.action !== "resume-production" && command?.action !== "cancel-production") return false;
+    const production = ["produce", "production", "resume-production", "cancel-production"].includes(command.action);
     const snapshot = currentSurfaceContext(pathname);
     setMessages(current => [...current, { id: messageId("assessment-human"), role: "command", text: submitted,
       context: snapshot, inputMode: draftHasVoice ? "voice" : "typed" }].slice(-MAX_MESSAGES));
@@ -640,11 +658,20 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       if (sessionActiveProjectId() !== projectId || loadActiveLibraryProject().revision !== project.revision)
         throw new Error("Saved PPF identity/revision changed during authenticated assessment admission.");
       let text: string;
-      if (command.action === "assess-local") {
-        const task = await changeOutlineTask("start-local", project, { blocks: [command.blockNumber] });
+      if (command.action === "resume-production" || command.action === "cancel-production") {
+        const receipt = await outlineAssessmentMaterialReceipt(project);
+        const task = (await readOutlineTasks()).filter(t => t.scope.projectId === projectId && t.scope.contextReceipt === receipt
+          && t.productionPass?.grant.blockNumber === command.blockNumber).at(-1);
+        if (!task) throw new Error("No current production pass exists for this Block.");
+        await changeOutlineTask(command.action === "resume-production" ? "resume" : "cancel", project, { taskId: task.scope.runId });
+        text = (await reconcileStoryArchitectBlock(projectId!, command.blockNumber, true)).text;
+      } else if (command.action === "assess-local" || command.action === "produce") {
+        const task = production
+          ? await changeOutlineTask("start-production", project, { blocks: [command.blockNumber] })
+          : await changeOutlineTask("start-local", project, { blocks: [command.blockNumber] });
         if (task.scope.projectId !== projectId || task.scope.provider !== "local" && task.scope.provider !== "ollama")
           throw new Error("Story Architect host did not confirm the exact project and zero-cost local provider.");
-        text = "Story Architect local-only assessment ADMITTED for " + project.title
+        text = (production ? "Bounded production pass ADMITTED for " : "Story Architect local-only assessment ADMITTED for ") + project.title
           + ", Block " + String(command.blockNumber).padStart(2, "0") + ", project revision " + project.revision
           + ", task " + task.scope.runId + ", host model " + task.scope.model
           + ". Protected task state " + task.run.state + ", artifacts " + task.proposals.length + "/1. "
@@ -657,7 +684,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             await new Promise<void>(resolve => setTimeout(resolve, 2500));
             if (sessionActiveProjectId() !== projectId) return;
             try {
-              const state = await reconcileStoryArchitectBlock(projectId, command.blockNumber);
+              const state = await reconcileStoryArchitectBlock(projectId, command.blockNumber, production);
               if (!state.ongoing) {
                 setMessages(current => [...current, { id: messageId("assessment-reconcile"),
                   role: "tool", text: state.text, context: snapshot }].slice(-MAX_MESSAGES));
@@ -678,7 +705,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             context: snapshot }].slice(-MAX_MESSAGES));
         })();
       } else {
-        text = (await reconcileStoryArchitectBlock(projectId, command.blockNumber)).text;
+        text = (await reconcileStoryArchitectBlock(projectId, command.blockNumber, production)).text;
       }
       setMessages(current => [...current, { id: messageId("assessment-result"), role: "tool",
         text, context: snapshot }].slice(-MAX_MESSAGES));

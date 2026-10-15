@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "issue": 2986,
+  "phase": "local-semantic-review-and-persisted-production-candidate",
+  "brief": "docs/developer-briefs/2986-local-production-pass.md",
+  "allowedChanges": [
+    "app/_components/settings/plotpickle-creative-command.d.mts",
+    "app/_components/settings/plotpickle-creative-command.mjs",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "build/projects/outline-task-http.ts",
+    "modules/plan/assessments/outline-production-pass.ts",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "modules/plan/outline-agent-assessment.ts",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2986.json",
+    "docs/developer-briefs/2986-local-production-pass.md",
+    "tests/issue-2986-production-pass.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTHENTICATED-AUTOMATIC-HANDOFF",
+      "criterion": "One source-bound local grant executes two independent calls and saves a noncanonical production packet through the real authenticated gateway.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 production POST uses real auth/CSRF gateway, auto-handoff and durable candidate status" }]
+    },
+    {
+      "id": "UNRESOLVED-STOPS",
+      "criterion": "Missing, foreign or incomplete citations and unresolved/contradictory review cannot produce a candidate-ready result.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 unresolved or contradictory semantic evidence checkpoints findings but never advances candidate" }, { "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 missing or foreign citations fail closed at the real result admission boundary" }]
+    },
+    {
+      "id": "RECOVERY-AND-REVOCATION",
+      "criterion": "Reopen reuses checkpointed assessment and candidate; cancel, expiry, changed route and stale inputs deny continuation.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 checkpoint before semantic inference survives reopen without repeating assessment" }, { "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 cancellation between actual calls preserves assessment and prevents candidate; expiry and changed route deny resume" }]
+    },
+    {
+      "id": "NO-CANON-NO-SPEND-NO-TRUNCATION",
+      "criterion": "Preserve complete original source, dialogue references, accepted story state and pacing authority without cloud media spend.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 full-source assessment does not sample or truncate a retained passage" }, { "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#2986 scoped grant executes assessment then separate semantic review and persists source-linked candidate without canon mutation" }]
+    }
+  ]
+}

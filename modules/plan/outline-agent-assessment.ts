@@ -60,11 +60,12 @@ export function validateOutlineAgentAssessment(
   blockNumber: number,
   model: string,
   assessedAt: string,
+  fullSource = false,
 ): OutlineAgentAssessment {
   const data = parseAgentJson(output);
   const evidence = normalizeProjectSourceEvidence(project.sourceEvidence);
   const passages = evidence.screenplay?.passages.filter((p) => p.blockNumber === blockNumber) ?? [];
-  const sampled = samplePassages(passages);
+  const sampled = fullSource ? passages : samplePassages(passages);
   const allowed = new Set(sampled.map((p) => p.id));
   const structural = data.structural as Record<string, unknown> | undefined;
   if (!structural || !STRUCTURAL.has(String(structural.state))) throw new Error("Story Architect returned an unknown structural state. No finding was saved.");
@@ -116,18 +117,18 @@ function storyArchitectExecutionLabel(result: {
 }
 
 /** One bounded request contract shared by the browser and the future durable host worker. */
-export function buildOutlineAgentAssessmentRequest(project: LibraryPPFProject, blockNumber: number) {
+export function buildOutlineAgentAssessmentRequest(project: LibraryPPFProject, blockNumber: number, fullSource = false) {
   const block = project.structure.blocks.find((item) => item.number === blockNumber);
   if (!block) throw new Error("Choose a valid Story Block.");
   const evidence = normalizeProjectSourceEvidence(project.sourceEvidence);
   const passages = evidence.screenplay?.passages.filter((item) => item.blockNumber === blockNumber) ?? [];
-  const sample = samplePassages(passages);
+  const sample = fullSource ? passages : samplePassages(passages);
   const responsibility = evidence.storyMatrix?.blocks.find((item) => item.blockNumber === blockNumber)?.responsibility ?? "";
   const characters = evidence.characterTruth?.arcCells.filter((item) => item.blockNumber === blockNumber).map((item) => ({ id: item.characterId, passageIds: item.passageIds.filter((id) => sample.some((p) => p.id === id)) })) ?? [];
   const message = [
     "Assess this ONE Outline Block from the supplied screenplay and saved PPF planning. Return JSON only: {\"structural\":{\"state\":\"covered|condensed-shared|gap-underdeveloped|unresolved\",\"reason\":\"...\",\"passageIds\":[\"...\"]},\"characters\":[{\"characterId\":\"...\",\"state\":\"not-present-no-evidence|present-arc-neutral|pressure-introduced|belief-strategy-reinforced|belief-strategy-challenged|meaningful-choice|consequence|relationship-movement|arc-transition|unresolved-insufficient-evidence\",\"reason\":\"...\",\"passageIds\":[\"...\"]}],\"miniBlocks\":[{\"ordinal\":1,\"state\":\"supported|partial|unsupported\",\"reason\":\"...\",\"passageIds\":[\"...\"],\"storyboardCue\":\"...\"}]}. Include each listed character and all four Mini-Blocks exactly once.",
     "Use only supplied passage IDs. Explain specific causal stakes, change, dramatic pressure, or why the evidence is inconclusive. Do not infer structural coverage from density, page position, a character name mention or generic curriculum guidance. If the limited sample cannot support a conclusion, select unresolved. A storyboardCue is a visual question grounded in the text, not a generated scene or accepted visual. Profile material is not audience-visible evidence. These are proposals, not changes to canon.",
-    JSON.stringify({ title: project.title, blockNumber, responsibility, blockTitle: block.title, blockNote: block.note, sourcePlacement: evidence.screenplay?.analysisStatus, sampleIncomplete: sample.length < passages.length || Boolean(evidence.screenplay?.passagesTruncated), miniBlocks: block.miniBlocks.map((mini) => ({ ordinal: mini.ordinal, title: mini.title, note: mini.note, savedWriting: blockWritingEntry(project.writing, { blockNumber, miniBlockNumber: mini.ordinal })?.text.slice(0, 900) ?? "" })), characters, passages: sample.map((p) => ({ id: p.id, mini: p.miniBlockNumber, type: p.type, scene: p.sceneNumber, text: p.text.slice(0, 320) })) }),
+    JSON.stringify({ title: project.title, blockNumber, responsibility, blockTitle: block.title, blockNote: block.note, sourcePlacement: evidence.screenplay?.analysisStatus, sampleIncomplete: sample.length < passages.length || Boolean(evidence.screenplay?.passagesTruncated), miniBlocks: block.miniBlocks.map((mini) => ({ ordinal: mini.ordinal, title: mini.title, note: mini.note, savedWriting: blockWritingEntry(project.writing, { blockNumber, miniBlockNumber: mini.ordinal })?.text.slice(0, 900) ?? "" })), characters, passages: sample.map((p) => ({ id: p.id, mini: p.miniBlockNumber, type: p.type, scene: p.sceneNumber, text: fullSource ? p.text : p.text.slice(0, 320) })) }),
   ].join("\n\n");
   return { agentId: "story-architect" as const, modelRole: "quality" as const, tone: "direct" as const, message };
 }

@@ -2226,7 +2226,8 @@
           "tests/issue-2711-outline-task-gateway.test.mjs",
           "tests/issue-2711-outline-local-auth.test.mjs",
           "tests/issue-outline-agent-assessment.test.mjs",
-          "tests/issue-2440-story-architect-structured-execution.test.mjs"
+          "tests/issue-2440-story-architect-structured-execution.test.mjs",
+          "tests/issue-2986-production-pass.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4476,6 +4477,28 @@
           "unit-fixture"
         ],
         "limits": "DSDD remains local Quality and does not display a configuration/provider picker; separate guarded movie-production Command may mention OpenAI/MiniMax without selecting those models for DSDD. Tests do not establish live speech input, model result, film output, real Windows profile or creative approval.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2986-production-pass.test.mjs",
+        "targetDigest": "8555ca099979d20750128fec9a70274a0b786669195d0a9e9607158095302a44",
+        "catalogueIds": [
+          "story-canon.outline-durable-input-2711"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic encrypted profile and actual Outline controller exercise two separate inference ports, bounded grants, source references, cancellation, stale/remote input, invalid semantic review, restart and candidate replay. Does not establish independent dramatic correctness, real model reliability, account-owned Windows persistence or playable movie output.",
         "inputs": []
       }
     ]

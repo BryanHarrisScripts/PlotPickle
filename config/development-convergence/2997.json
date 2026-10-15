@@ -9,7 +9,8 @@
     "tests/issue-2995-outline-runtime.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2997-cmd-current-task-selection.md",
-    "config/development-convergence/2997.json"
+    "config/development-convergence/2997.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {

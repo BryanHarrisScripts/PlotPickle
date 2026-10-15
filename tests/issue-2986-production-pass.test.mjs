@@ -118,9 +118,9 @@ test("#2986 unresolved or contradictory semantic evidence checkpoints findings b
 
 test("#2986 rejects remote, cost, truncated, missing and stale inputs before calls", async t => {
   const f = await fixture(t);
-  for (const [provider, cost] of [["openai", 0], ["local", 0.01]]) {
+  for (const [provider, cost] of [["openai", 0], ["local", 0.01], ["gemini", 0.05]]) {
     f.execution.provider = provider; f.execution.cloudCostUpperBoundUsd = cost;
-    await assert.rejects(f.controller.create(f.context, [1], true), /zero-cost local/);
+    await assert.rejects(f.controller.create(f.context, [1], true), /approved local or configured OpenAI/);
   }
   f.execution.provider = "local"; f.execution.cloudCostUpperBoundUsd = 0;
   await assert.rejects(f.controller.create(f.context, [2], true), /source passages/);
@@ -131,6 +131,29 @@ test("#2986 rejects remote, cost, truncated, missing and stale inputs before cal
   await f.storage.saveProject(f.context, { project: { ...f.project, title: "Changed source identity", revision: 5 }, activate: true });
   await assert.rejects(f.controller.executeStep(task.scope, task.steps[0]), /stale/);
   assert.equal(f.calls, 0);
+});
+
+test("#2999 scoped OpenAI writing pass reserves two calls and saves a real validated candidate without canon mutation", async t => {
+  const f = await fixture(t);
+  f.execution.provider = "openai";
+  f.execution.model = "synthetic-cloud-text";
+  f.execution.receipt = "configured-openai-text-route-2999";
+  f.execution.cloudCostUpperBoundUsd = 0.25;
+  const task = await f.start();
+  assert.equal(task.productionPass.grant.cloudCostLimitUsd, 0.5);
+  assert.equal(task.run.limits.maxCloudCostUsd, 0.5);
+  assert.equal(task.run.limits.maxAttempts, 2);
+  await f.controller.executeStep(task.scope, task.steps[0]);
+  const done = await f.controller.finish(f.context, task.scope.runId);
+  assert.equal(done.productionPass.candidate?.miniBlocks.length, 4);
+  assert.equal(done.productionPass.candidate?.findings.length, 7);
+  assert.equal(done.run.usage.cloudCostUsd, 0.5, "host retains conservative reservation rather than billing claim");
+  assert.equal(f.calls, 2);
+  assert.deepEqual(await f.storage.loadActiveProject(f.context), f.project);
+  f.reopen();
+  const persisted = await f.controller.status(f.context, task.scope.runId);
+  assert.deepEqual(persisted.productionPass.candidate, done.productionPass.candidate);
+  await assert.rejects(f.controller.activate(f.context, task.scope.runId), /cannot execute|waiting-for-writer/);
 });
 
 test("#2986 missing or foreign citations fail closed at the real result admission boundary", async t => {

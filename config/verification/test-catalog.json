@@ -4254,7 +4254,7 @@
       },
       {
         "target": "tests/issue-2982-command-creative-discovery.test.mjs",
-        "targetDigest": "9a7a888245a95488a31cbe38021a43cd36274f36946b65c19555bb465c002a4b",
+        "targetDigest": "579223ff304ee9d991b1ab44e7456e2d444857b250172000d7ae96168a7ea32d",
         "catalogueIds": [
           "experience.command-creative-discovery-2982"
         ],

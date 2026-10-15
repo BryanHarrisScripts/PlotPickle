@@ -4482,7 +4482,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "43bf57a18b219d2b77d745237927f9fc6b558842f642a95ef554efe73e59e788",
+        "targetDigest": "e0c83057f625e0e16dececbb52311fc81654b7953fce656b80141780e902e9d7",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4499,12 +4499,12 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic encrypted profile and actual Outline controller exercise two separate inference ports, bounded grants, source references, cancellation, stale/remote input, invalid semantic review, restart and candidate replay. Does not establish independent dramatic correctness, real model reliability, account-owned Windows persistence or playable movie output.",
+        "limits": "Governed synthetic actual authenticated Outline controller/gateway, four-Mini-Block candidate and OpenAI paid-capable vs local-only admission, model usage reservations, source/stale budget and CSRF negatives; not live external OpenAI cost nor Human Windows proof.",
         "inputs": []
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "dced34d9fc67a40620cdda085248a660e585fbd4baac7b48939312ef6ae61759",
+        "targetDigest": "8f3394c9f03e6adab511c54b7ef5fc10cf38100df4bc0f81227c965f82dd9dee",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4521,7 +4521,7 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic real Mastra dispatch and scheduler outcome diagnostics only; no live model, account-owned story or media acceptance.",
+        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories and CMD read-only reservation/recovery projection; no live Windows Pi checkpoint inspection, verified provider call, paid OpenAI request, account-owned story or movie acceptance.",
         "inputs": []
       }
     ]

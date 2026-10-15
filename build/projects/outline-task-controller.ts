@@ -126,7 +126,12 @@ export function createOutlineTaskController(options: {
       || record.productionPass.grant.blockNumber !== Number(record.steps[0].id.slice(6))
       || record.productionPass.grant.sourceReceipt !== record.scope.contextReceipt
       || !same(record.productionPass.grant.operations, ["assess", "semantic-review", "candidate-proposal"])
-      || record.productionPass.grant.cloudCostLimitUsd !== 0 || record.run.limits.maxCloudCostUsd !== 0
+      || !finite(record.productionPass.grant.cloudCostLimitUsd)
+      || record.productionPass.grant.cloudCostLimitUsd !== record.run.limits.maxCloudCostUsd
+      || record.run.limits.maxAttempts !== 2
+      || !(record.productionPass.grant.cloudCostLimitUsd === 0
+        ? ["local", "ollama"].includes(record.scope.provider)
+        : record.scope.provider === "openai")
       || !Number.isFinite(Date.parse(record.productionPass.grant.expiresAt)))) throw new Error("Protected Outline production grant failed integrity validation.");
     return record;
   }
@@ -155,10 +160,17 @@ export function createOutlineTaskController(options: {
     if (!project || project.id !== record.scope.projectId) throw new Error("Outline task requires its approved active project.");
     if (await outlineAssessmentMaterialReceipt(project) !== record.scope.contextReceipt) throw new Error("Outline task material is stale. Start a new review after story edits.");
     const execution = await options.resolveExecution(context);
-    if (record.productionPass && (Date.parse(now()) >= Date.parse(record.productionPass.grant.expiresAt)
-      || !["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0)) {
-      throw new Error("Outline production pass grant expired or zero-cost local compute changed.");
+    if (record.productionPass && Date.parse(now()) >= Date.parse(record.productionPass.grant.expiresAt)) {
+      throw new Error("Outline production pass grant expired; no further inference is authorized.");
     }
+    if (record.productionPass && (
+      record.productionPass.grant.cloudCostLimitUsd === 0
+        ? !["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0
+        : execution.provider !== "openai" || execution.cloudCostUpperBoundUsd === null
+          || !finite(execution.cloudCostUpperBoundUsd)
+          || execution.cloudCostUpperBoundUsd <= 0
+          || execution.cloudCostUpperBoundUsd * 2 > record.productionPass.grant.cloudCostLimitUsd
+    )) throw new Error("Outline production pass provider or cost authority changed; no inference is authorized.");
     const grants = [...new Set(execution.grantedCapabilities)].sort();
     if (execution.receipt !== record.computeReceipt || execution.provider !== record.scope.provider || execution.model !== record.scope.model || !same(grants, GRANTS)) throw new Error("Outline task compute or grants changed; resume denied.");
     if (!ACTIVE.has(record.run.state)) throw new Error(`Outline task cannot execute while ${record.run.state}.`);
@@ -188,7 +200,11 @@ export function createOutlineTaskController(options: {
       if (!project) throw new Error("Load an active project before reviewing Outline.");
       const execution = await options.resolveExecution(auth);
       if (productionPass) {
-        if (blocks.length !== 1 || !["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0) throw new Error("Outline production pass requires one Block and zero-cost local compute.");
+        const local = ["local", "ollama"].includes(execution.provider) && execution.cloudCostUpperBoundUsd === 0;
+        const openai = execution.provider === "openai" && execution.cloudCostUpperBoundUsd !== null
+          && finite(execution.cloudCostUpperBoundUsd) && execution.cloudCostUpperBoundUsd > 0
+          && execution.cloudCostUpperBoundUsd <= 1;
+        if (blocks.length !== 1 || !local && !openai) throw new Error("Outline production pass requires one Block and an approved local or configured OpenAI writing route.");
         productionPassSource(project, blocks[0]);
       }
       if (!same([...new Set(execution.grantedCapabilities)].sort(), GRANTS)) throw new Error("Story Architect grants are unavailable.");
@@ -206,9 +222,11 @@ export function createOutlineTaskController(options: {
       const record: OutlineTaskRecord = { version: 1, scope, steps: blocks.map((block) => ({ id: `block-${block}`, kind: "review", replayPolicy: "safe" })), computeReceipt: execution.receipt, run, attempts: [], proposals: [] };
       if (productionPass) {
         const timeoutMs = Math.min(run.limits.timeoutMs, 600_000);
-        record.run = { ...run, limits: { ...run.limits, maxAttempts: 2, maxCloudCostUsd: 0, timeoutMs, maxTokens: Math.min(run.limits.maxTokens, execution.tokenUpperBound * 2) } };
+        const reservedCost = execution.cloudCostUpperBoundUsd! * 2;
+        if (!finite(reservedCost) || reservedCost > run.limits.maxCloudCostUsd) throw new Error("Outline production pass exceeds the host cloud reservation limit.");
+        record.run = { ...run, limits: { ...run.limits, maxAttempts: 2, maxCloudCostUsd: reservedCost, timeoutMs, maxTokens: Math.min(run.limits.maxTokens, execution.tokenUpperBound * 2) } };
         record.productionPass = { version: 1, grant: { blockNumber: blocks[0], sourceReceipt: receipt,
-          operations: ["assess", "semantic-review", "candidate-proposal"], cloudCostLimitUsd: 0,
+          operations: ["assess", "semantic-review", "candidate-proposal"], cloudCostLimitUsd: reservedCost,
           expiresAt: new Date(Date.parse(timestamp) + timeoutMs).toISOString() }, review: null, candidate: null };
       }
       await write(auth, record);

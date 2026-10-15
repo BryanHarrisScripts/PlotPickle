@@ -8,6 +8,7 @@ import { build } from "esbuild";
 import { createInMemoryAuthStateStore, createPlotPickleAuthService } from "../core/auth/plotpickle-auth-core.mjs";
 import { createProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage-core.mjs";
 import { createServerSessionBoundary } from "../core/auth/server-session/server-session-boundary-core.mjs";
+import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 const compiledRoot = await mkdtemp(path.resolve("node_modules/.production-pass-2986-"));
 await build({ stdin: { contents: `
@@ -56,6 +57,12 @@ async function fixture(t) {
     reopen() { controller.close(); controller = createOutlineTaskController(options); },
   };
 }
+
+test("#2999 CMD separates explicitly paid-capable production from existing no-spend local command", () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle produce Block 01"), { action: "produce", blockNumber: 1, localOnly: false });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle produce Block 01 local"), { action: "produce", blockNumber: 1, localOnly: true });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle production Block 01"), { action: "production", blockNumber: 1 });
+});
 
 test("#2986 scoped grant executes assessment then separate semantic review and persists source-linked candidate without canon mutation", async t => {
   const f = await fixture(t), task = await f.start();
@@ -118,9 +125,9 @@ test("#2986 unresolved or contradictory semantic evidence checkpoints findings b
 
 test("#2986 rejects remote, cost, truncated, missing and stale inputs before calls", async t => {
   const f = await fixture(t);
-  for (const [provider, cost] of [["openai", 0], ["local", 0.01]]) {
+  for (const [provider, cost] of [["openai", 0], ["local", 0.01], ["gemini", 0.05]]) {
     f.execution.provider = provider; f.execution.cloudCostUpperBoundUsd = cost;
-    await assert.rejects(f.controller.create(f.context, [1], true), /zero-cost local/);
+    await assert.rejects(f.controller.create(f.context, [1], true), /approved local or configured OpenAI/);
   }
   f.execution.provider = "local"; f.execution.cloudCostUpperBoundUsd = 0;
   await assert.rejects(f.controller.create(f.context, [2], true), /source passages/);
@@ -131,6 +138,29 @@ test("#2986 rejects remote, cost, truncated, missing and stale inputs before cal
   await f.storage.saveProject(f.context, { project: { ...f.project, title: "Changed source identity", revision: 5 }, activate: true });
   await assert.rejects(f.controller.executeStep(task.scope, task.steps[0]), /stale/);
   assert.equal(f.calls, 0);
+});
+
+test("#2999 scoped OpenAI writing pass reserves two calls and saves a real validated candidate without canon mutation", async t => {
+  const f = await fixture(t);
+  f.execution.provider = "openai";
+  f.execution.model = "synthetic-cloud-text";
+  f.execution.receipt = "configured-openai-text-route-2999";
+  f.execution.cloudCostUpperBoundUsd = 0.25;
+  const task = await f.start();
+  assert.equal(task.productionPass.grant.cloudCostLimitUsd, 0.5);
+  assert.equal(task.run.limits.maxCloudCostUsd, 0.5);
+  assert.equal(task.run.limits.maxAttempts, 2);
+  await f.controller.executeStep(task.scope, task.steps[0]);
+  const done = await f.controller.finish(f.context, task.scope.runId);
+  assert.equal(done.productionPass.candidate?.miniBlocks.length, 4);
+  assert.equal(done.productionPass.candidate?.findings.length, 7);
+  assert.equal(done.run.usage.cloudCostUsd, 0.5, "host retains conservative reservation rather than billing claim");
+  assert.equal(f.calls, 2);
+  assert.deepEqual(await f.storage.loadActiveProject(f.context), f.project);
+  f.reopen();
+  const persisted = await f.controller.status(f.context, task.scope.runId);
+  assert.deepEqual(persisted.productionPass.candidate, done.productionPass.candidate);
+  await assert.rejects(f.controller.activate(f.context, task.scope.runId), /cannot execute|waiting-for-writer/);
 });
 
 test("#2986 missing or foreign citations fail closed at the real result admission boundary", async t => {

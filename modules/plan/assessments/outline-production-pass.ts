@@ -24,7 +24,7 @@ export type OutlineProductionCandidate = {
 };
 export type OutlineProductionPass = {
   version: 1;
-  grant: { blockNumber: number; sourceReceipt: string; operations: readonly ["assess", "semantic-review", "candidate-proposal"]; cloudCostLimitUsd: 0; expiresAt: string };
+  grant: { blockNumber: number; sourceReceipt: string; operations: readonly ["assess", "semantic-review", "candidate-proposal"]; cloudCostLimitUsd: number; expiresAt: string };
   review: { findings: ProductionFidelityFinding[]; reviewedAt: string } | null;
   candidate: OutlineProductionCandidate | null;
 };

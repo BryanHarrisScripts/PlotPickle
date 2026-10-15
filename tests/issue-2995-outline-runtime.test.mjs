@@ -58,6 +58,30 @@ test("#2995 scheduler timeout is actionable and arbitrary checkpoint errors rema
   assert.doesNotMatch(gateway.outlineSchedulerFailure(fault("The Mastra agent did not finish within PlotPickle's 25-second response limit. secret-key")), /secret-key/u);
   assert.match(gateway.outlineSchedulerFailure({status:"aborted"}), /cancelled/u);
 });
+
+test("#2999 unclassified scheduler failure never invents a cause or recommends duplicate retries", () => {
+  const fault = message => ({ status: "faulted", error: { message } });
+  const secret = "private screenplay and provider key";
+  const unknown = gateway.outlineSchedulerFailure(fault(secret));
+  assert.match(unknown, /UNCLASSIFIED_PRIVATE_FAILURE/u);
+  assert.doesNotMatch(unknown, /private screenplay|provider key|Cancel this run and start a new review/u);
+  const usage = gateway.outlineSchedulerFailure(fault("Outline worker did not persist usage before result admission."));
+  assert.match(usage, /USAGE_NOT_RECORDED/u);
+  assert.match(usage, /No completed review was reported/u);
+  assert.match(gateway.outlineSchedulerFailure(fault("Outline task context exceeds the host limit.")), /SOURCE_CONTEXT_LIMIT/u);
+  assert.match(gateway.outlineSchedulerFailure({ status: "pending", error: { message: secret } }), /UNKNOWN_OUTCOME/u);
+  assert.doesNotMatch(gateway.outlineSchedulerFailure({ status: "pending", error: { message: secret } }), /private screenplay|provider key/u);
+});
+
+test("#2999 production status reports reservation separately from model usage and expired task recovery", async () => {
+  const src = await (await import("node:fs/promises")).readFile(
+    new URL("../app/skin-v1/global-dsdd-conversation.tsx", import.meta.url), "utf8");
+  assert.match(src, /Model reservations: /u);
+  assert.match(src, /usage-confirmed attempts:/u);
+  assert.match(src, /Actual provider dispatch\/charge cannot be inferred from a reservation/u);
+  assert.match(src, /grantExpired.*EXPIRED/u);
+  assert.match(src, /RESUME is not available/u);
+});
 await build({ entryPoints: ["modules/plan/assessments/outline-task-selection.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "task-selection.mjs"), logLevel: "silent" });
 const { selectCurrentOutlineTask } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
 const scope = { projectId: "brotherly-love", contextReceipt: "saved-source-v1", blockNumber: 1, production: true, profileId: "human-1" };

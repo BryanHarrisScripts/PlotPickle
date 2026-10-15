@@ -52,10 +52,19 @@ export async function configuredOutlineExecution(runtime: Runtime, auth: AuthCon
   } | null;
   const local = (profile.provider === "local" || profile.provider === "ollama")
     && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(profile.baseUrl).hostname);
-  const cost = local ? 0 : quote?.provider === profile.provider && quote.model === profile.textModel && quote.baseUrl === profile.baseUrl
+  // The Human explicitly authorized the configured OpenAI text route for this
+  // writing workflow (#2999). An internal $1/attempt reservation bounds retries;
+  // this is NOT a provider price quote or a guarantee of the eventual invoice.
+  // Other remote providers still require their exact host-approved cost quote.
+  const officialOpenAI = profile.provider === "openai"
+    && new URL(profile.baseUrl).protocol === "https:"
+    && new URL(profile.baseUrl).hostname === "api.openai.com"
+    && typeof profile.apiKey === "string" && profile.apiKey.length > 0;
+  const quoted = quote?.provider === profile.provider && quote.model === profile.textModel && quote.baseUrl === profile.baseUrl
     && Date.parse(quote.expiresAt || "") > Date.now() && Number.isFinite(quote.maxCostPerAttemptUsd) && Number(quote.maxCostPerAttemptUsd) > 0
-    ? Number(quote.maxCostPerAttemptUsd) : null;
-  if (cost === null || cost > 1) throw new Error("Story Architect recovery requires a current host-approved provider cost quote of at most $1 per attempt. Select a local loopback provider or configure the exact cloud route quote first.");
+      ? Number(quote.maxCostPerAttemptUsd) : null;
+  const cost = local ? 0 : officialOpenAI ? Math.max(quoted || 0, 1) : quoted;
+  if (cost === null || cost > 1) throw new Error("Story Architect needs a verified local route, a configured official OpenAI text API connection, or an exact host cost quote of at most $1 per attempt.");
   const receipt = createHash("sha256").update(JSON.stringify({ provider: profile.provider, runtime: profile.runtime, model: profile.textModel,
     baseUrl: profile.baseUrl, contextTokens: profile.contextTokens, source, grants, quote: local ? null : quote,
     // Credentials remain only in the configured host store; the digest detects rotation.
@@ -72,7 +81,21 @@ export function outlineSchedulerFailure(outcome: { status: string; error?: { mes
   if (outcome.status === "faulted" && timeout) return "The scheduler review timed out at the " + timeout[1]
     + "-second response limit. Cancel this run and start a new review after checking local model readiness; saved findings remain available.";
   if (outcome.status === "aborted") return "The scheduler review was cancelled. No completed review was reported; saved findings remain available.";
-  return "The scheduler stopped before completing this review. Cancel this run and start a new review; saved findings remain available.";
+  // Only exact, host-authored validation text is safe to classify. Arbitrary
+  // provider/Pi checkpoint exceptions can contain private story or credentials.
+  const safeFaults: Record<string, string> = {
+    "Outline task context exceeds the host limit.": "SOURCE_CONTEXT_LIMIT",
+    "Outline worker did not persist usage before result admission.": "USAGE_NOT_RECORDED",
+    "Outline task budget is exhausted.": "TASK_BUDGET_EXHAUSTED",
+    "A bounded host token/cost quote is required before inference.": "HOST_QUOTE_UNAVAILABLE",
+    "Outline production semantic review omitted fidelity dimensions.": "FIDELITY_SCHEMA_INVALID",
+    "Outline production semantic review has invalid or uncited findings.": "FIDELITY_EVIDENCE_INVALID",
+    "Outline production semantic review did not cover all source passages.": "FIDELITY_COVERAGE_MISSING",
+  };
+  const code = outcome.status === "faulted" ? safeFaults[outcome.error?.message || ""] : undefined;
+  return outcome.status === "faulted"
+    ? "The scheduler faulted (" + (code || "UNCLASSIFIED_PRIVATE_FAILURE") + "). No completed review was reported; inspect the protected task checkpoint before starting another pass."
+    : "The scheduler ended without completion (" + (["waiting", "paused"].includes(outcome.status) ? "NOT_COMPLETED" : "UNKNOWN_OUTCOME") + "). Do not start another pass until task state is reconciled.";
 }
 
 async function nativeScheduler(home: string, id: string, controller: Controller): Promise<OutlineScheduler> {
@@ -175,6 +198,17 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
     status: view,
     async startProduction(auth: AuthContext, blocks: number[]) {
       const record = await controller.create(auth, blocks, true);
+      if (record.run.state === "waiting-for-writer") return view(auth, record.scope.runId);
+      return activate(auth, record.scope.runId);
+    },
+    /** The legacy 'produce ... local' command retains its no-spend semantics. */
+    async startProductionLocal(auth: AuthContext, blocks: number[]) {
+      const execution = await (ports.resolveExecution?.(auth) || configuredOutlineExecution(runtime, auth));
+      if (!["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0)
+        throw new Error("Story Architect local production requires the verified local no-spend route.");
+      const record = await controller.create(auth, blocks, true);
+      if (record.scope.provider !== execution.provider || record.computeReceipt !== execution.receipt)
+        throw new Error("Story Architect local production route changed during admission; no task activated.");
       if (record.run.state === "waiting-for-writer") return view(auth, record.scope.runId);
       return activate(auth, record.scope.runId);
     },

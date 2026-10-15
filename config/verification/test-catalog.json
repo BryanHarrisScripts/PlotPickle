@@ -4482,7 +4482,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "0047e91d88bef26b7789cf703e893051e7b4916469cf219294471023856cd29a",
+        "targetDigest": "e0c83057f625e0e16dececbb52311fc81654b7953fce656b80141780e902e9d7",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4504,7 +4504,7 @@
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "d963b6b7ebf2c5eb897689c563e27f2fddf4f9788b6cfbf55d7af4d264cf0436",
+        "targetDigest": "8f3394c9f03e6adab511c54b7ef5fc10cf38100df4bc0f81227c965f82dd9dee",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],

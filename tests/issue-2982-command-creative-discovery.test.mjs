@@ -49,6 +49,34 @@ test("#2982 explicit PlotPickle commands are distinct from authored DSDD intent"
   assert.equal(parsePlotPickleCreativeCommand("OpenPencil open Timeline"),null);
   assert.equal(parsePlotPickleCreativeCommand(""),null);
 });
+test("#3000 typed CMD connects to the real Local Cloud and Hybrid Settings modes", () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connections"), { action: "connections-help" });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connect local"), { action: "connections-open", mode: "local" });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connect CLOUD"), { action: "connections-open", mode: "cloud" });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle connections hybrid"), { action: "connections-open", mode: "hybrid" });
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle connect nonsense").action, undefined);
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle connect cloud key=secret"), null, "Never treat pasted credentials as a connection action");
+});
+
+test("#3000 Command uses existing Settings StoryModeHost navigation; no duplicate provider store or secret logging", async () => {
+  const [dashboard, command, storyMode, hybrid] = await Promise.all([
+    readFile(new URL("../app/skin-v1/dashboard-bbs-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skin-v1/global-dsdd-conversation.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skin-v1/story-mode-host.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skin-v1/hybrid-story-mode-panel.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.ok(command.includes('window.dispatchEvent(new CustomEvent("plotpickle:open-story-mode"'));
+  assert.ok(command.includes("Never paste API keys into Command"));
+  assert.ok(command.includes("if (runConnectionsCommand(submitted)) return;"));
+  assert.ok(dashboard.includes('window.addEventListener("plotpickle:open-story-mode", openConnections)'));
+  for (const mode of ["local", "cloud", "hybrid"]) {
+    assert.ok(dashboard.includes('setStoryModeView("' + mode + '")'), mode);
+  }
+  assert.ok(dashboard.includes("<StoryModeHost initialView={storyModeView}"));
+  assert.ok(storyMode.includes("<HybridStoryModePanel"));
+  assert.ok(hybrid.includes('fetch("/api/ai-routing/join"'), "The existing GUI owns mutation, not the command parser");
+});
+
 test("#2982 tools inventory labels every route accurately and does not assert execution", () => {
   const s=describePlotPickleCreativeCommand({action:"tools"});
   for(const phrase of ["Library","Story Architect","Outline","Write","Storyboard","Previs","Timeline","Media providers","DSDD defect brief"]) {

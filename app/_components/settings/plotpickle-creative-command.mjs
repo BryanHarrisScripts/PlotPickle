@@ -10,6 +10,7 @@ const TOOL_ROUTES = Object.freeze([
   Object.freeze({ tool: "Storyboard", scope: "approved image candidates", state: "separate governed image generation, not executed" }),
   Object.freeze({ tool: "Previs", scope: "locked storyboard image playback", state: "separate playback tool, not executed" }),
   Object.freeze({ tool: "Timeline", scope: "verified video/motion/export", state: "separate governed production tool, not executed" }),
+  Object.freeze({ tool: "Connections", scope: "Local / Cloud / Hybrid", state: "PlotPickle connect local|cloud|hybrid opens identical Settings GUI; no connection changes until the user uses those controls" }),
   Object.freeze({ tool: "Media providers", scope: "settings and provider preflight", state: "runtime readiness unknown; no spend authorized" }),
   Object.freeze({ tool: "DSDD defect brief", scope: "Interpret / Pi Draft / Publish Brief", state: "existing Human-reviewed GitHub issue workflow" }),
 ]);

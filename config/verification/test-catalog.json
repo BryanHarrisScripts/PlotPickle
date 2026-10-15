@@ -4482,7 +4482,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "43bf57a18b219d2b77d745237927f9fc6b558842f642a95ef554efe73e59e788",
+        "targetDigest": "0047e91d88bef26b7789cf703e893051e7b4916469cf219294471023856cd29a",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4499,12 +4499,12 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic encrypted profile and actual Outline controller exercise two separate inference ports, bounded grants, source references, cancellation, stale/remote input, invalid semantic review, restart and candidate replay. Does not establish independent dramatic correctness, real model reliability, account-owned Windows persistence or playable movie output.",
+        "limits": "Governed synthetic actual authenticated Outline controller/gateway, four-Mini-Block candidate and OpenAI paid-capable vs local-only admission, model usage reservations, source/stale budget and CSRF negatives; not live external OpenAI cost nor Human Windows proof.",
         "inputs": []
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "8f3394c9f03e6adab511c54b7ef5fc10cf38100df4bc0f81227c965f82dd9dee",
+        "targetDigest": "d963b6b7ebf2c5eb897689c563e27f2fddf4f9788b6cfbf55d7af4d264cf0436",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],

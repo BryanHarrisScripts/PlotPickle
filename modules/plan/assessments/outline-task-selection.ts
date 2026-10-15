@@ -23,6 +23,31 @@ export function outlineTaskDisplayStatus(task: Pick<OutlineTaskView, "run" | "ru
   return task.run.state.replaceAll("-", " ");
 }
 
+/** Authenticated, read-only diagnostic projection; never echo provider exceptions.
+ * A reservation is not proof of a model call, invoice, or completed artifact.
+ */
+export function describeOutlineTaskDiagnostic(task: OutlineTaskView): string {
+  const reservations = Array.isArray(task.attempts) ? task.attempts : [];
+  const reported = reservations.filter(attempt => attempt.status === "reported" && attempt.usage != null).length;
+  const cause = typeof task.error === "string"
+    ? (/The scheduler faulted \(([A-Z_]+)\)\./u.exec(task.error)?.[1]
+      || (/The scheduler review timed out at the (25|180)-second response limit\./u.exec(task.error)?.[1] ? "HOST_TIMEOUT" : "UNCLASSIFIED"))
+    : "NOT_RECORDED_OR_UNAVAILABLE";
+  const candidate = task.productionPass?.candidate ? "saved candidate" : "no candidate";
+  const fidelity = task.productionPass?.review ? "saved semantic review" : "no semantic review";
+  const stage = task.running ? "executing" : task.proposals.length ? "partial or completed assessment saved" : "no admitted assessment";
+  return [
+    "Protected task: " + task.scope.runId,
+    "Provider: " + task.scope.provider + "; model: " + task.scope.model,
+    "Execution: " + outlineTaskDisplayStatus(task) + "; durable run state: " + task.run.state + "; stage: " + stage,
+    "Attempts reserved: " + reservations.length + "; usage-reported: " + reported + "; model dispatch: UNKNOWN unless independently observed",
+    "Admitted source-bound assessments: " + task.proposals.length + "/" + task.steps.length
+      + "; " + fidelity + "; " + candidate,
+    "Safe fault category: " + cause + "; protected checkpoint/private error cause: NOT INSPECTED",
+    "No resume, cancellation, new model request, creative acceptance or media generation was performed.",
+  ].join("\n");
+}
+
 function createdAt(task: OutlineTaskView): number {
   const timestamp = Date.parse(task.run.createdAt);
   return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;

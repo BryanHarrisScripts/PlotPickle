@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "issue": 2997,
+  "phase": "cmd-current-production-task",
+  "brief": "docs/developer-briefs/2997-cmd-current-task-selection.md",
+  "allowedChanges": [
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "modules/plan/assessments/outline-task-selection.ts",
+    "tests/issue-2995-outline-runtime.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2997-cmd-current-task-selection.md",
+    "config/development-convergence/2997.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ACTIVE-BEFORE-SETTLED",
+      "criterion": "A newer queued production task wins over older cancelled history regardless of list ordering.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2997 current Block task selects a newer queued run"
+        }
+      ]
+    },
+    {
+      "id": "CURRENT-SCOPE",
+      "criterion": "Project, receipt, profile, Block and production are not confused; missing pinned tasks do not silently fall back.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2997 exact authenticated project"
+        }
+      ]
+    },
+    {
+      "id": "IDENTITY-PRESERVATION",
+      "criterion": "CMD uses shared selector for status and lifecycle, and reconciles exactly the admitted task.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "selectCurrentOutlineTask(await readOutlineTasks()"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "production, task.scope.runId"
+        }
+      ]
+    }
+  ]
+}

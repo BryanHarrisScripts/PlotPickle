@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { build } from "esbuild";
+import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plotpickle-creative-command.mjs";
 
 const root = await mkdtemp(path.resolve("node_modules/.outline-runtime-2995-"));
 await build({ entryPoints: ["build/mastra-agent-runtime.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "runtime.mjs"), logLevel: "silent", plugins: [{ name: "synthetic-model", setup(b) {
@@ -48,6 +49,22 @@ test("#2995 external cancellation still aborts structured review and admits no r
 
 await build({ entryPoints: ["build/projects/outline-task-gateway.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "gateway.mjs"), logLevel: "silent" });
 const gateway = await import(pathToFileURL(path.join(root, "gateway.mjs")).href);
+test("#2999 private provider errors cannot use a host-looking prefix to leak into CMD", async () => {
+  for (const message of [
+    "Outline API key=private-password", "The scheduler <private screenplay>", "Pi Durable secret-token",
+    "Story Architect recovery with confidential project text", "Unknown provider failure",
+  ]) {
+    const safe = gateway.outlineGatewaySafeError(new Error(message));
+    assert.match(safe, /UNCLASSIFIED_PRIVATE_FAILURE/u);
+    assert.doesNotMatch(safe, /password|secret-token|private screenplay|confidential project|Unknown provider failure/u);
+  }
+  assert.match(gateway.outlineGatewaySafeError(new Error("Pi Durable is not ready. Wait for startup readiness before starting or resuming Story Architect.")), /Pi Durable is not ready/u);
+  const source = await (await import("node:fs/promises")).readFile(
+    new URL("../build/projects/outline-task-gateway.ts", import.meta.url), "utf8");
+  assert.match(source, /errors\.set\(id, outlineGatewaySafeError\(error\)\)/u);
+  assert.doesNotMatch(source, /\/\^\(Outline \|Story Architect recovery/u);
+});
+
 test("#2995 scheduler timeout is actionable and arbitrary checkpoint errors remain private", () => {
   const fault = message => ({ status: "faulted", error: {message} });
   const timeout = gateway.outlineSchedulerFailure(fault("The Mastra agent did not finish within PlotPickle's 25-second response limit. Try again or choose a faster local model."));
@@ -83,7 +100,7 @@ test("#2999 production status reports reservation separately from model usage an
   assert.match(src, /RESUME is not available/u);
 });
 await build({ entryPoints: ["modules/plan/assessments/outline-task-selection.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "task-selection.mjs"), logLevel: "silent" });
-const { selectCurrentOutlineTask, outlineTaskDisplayStatus } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
+const { selectCurrentOutlineTask, outlineTaskDisplayStatus, describeOutlineTaskDiagnostic } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
 const scope = { projectId: "brotherly-love", contextReceipt: "saved-source-v1", blockNumber: 1, production: true, profileId: "human-1" };
 function productionTask(runId, state, createdAt, overrides = {}) {
   return {
@@ -144,4 +161,33 @@ test("#2999 stopped Story Architect worker is never displayed as working even if
     new URL("../app/skin-v1/story-card-foundation-board.tsx", import.meta.url), "utf8");
   assert.match(src, /Story Architect · \{outlineTaskDisplayStatus\(task\)\}/u, "Outline UI must use actual host execution projection");
   assert.doesNotMatch(src, /Story Architect · \{task\.run\.state\.replaceAll/u, "stale state may not label a stopped worker as working");
+});
+
+test("#2999 Command read-only diagnosis shows reservations, host state and UNKNOWN dispatch without exposing protected errors", async () => {
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle diagnose Block 01"), { action: "diagnose", blockNumber: 1 });
+  assert.deepEqual(parsePlotPickleCreativeCommand("PlotPickle diagnose Block 24"), { action: "diagnose", blockNumber: 24 });
+  assert.equal(parsePlotPickleCreativeCommand("PlotPickle diagnose Block 25").action, "invalid");
+  const task = {
+    ...productionTask("outline-task-synthetic", "working", "2026-10-15T12:00:00Z"),
+    scope: { runId: "outline-task-synthetic", provider: "local", model: "synthetic", projectId: scope.projectId },
+    running: false, resumeRequired: true,
+    attempts: [{ status: "reserved", usage: null }, { status: "reported", usage: { totalTokens: 7 } }],
+    proposals: [], error: "The scheduler faulted (UNCLASSIFIED_PRIVATE_FAILURE). private-text=never-echo",
+    productionPass: { candidate: null, review: null },
+  };
+  const output = describeOutlineTaskDiagnostic(task);
+  assert.match(output, /blocked - recovery required/u);
+  assert.match(output, /Attempts reserved: 2; usage-reported: 1; model dispatch: UNKNOWN/u);
+  assert.match(output, /Admitted source-bound assessments: 0\/1/u);
+  assert.match(output, /Safe fault category: UNCLASSIFIED_PRIVATE_FAILURE/u);
+  assert.doesNotMatch(output, /private-text=never-echo/u);
+  assert.match(describeOutlineTaskDiagnostic({ ...task, running: true, resumeRequired: false, error: null }), /Execution: working/u);
+  assert.match(describeOutlineTaskDiagnostic({ ...task, error: null }), /NOT_RECORDED_OR_UNAVAILABLE/u);
+  const src = await (await import("node:fs/promises")).readFile(
+    new URL("../app/skin-v1/global-dsdd-conversation.tsx", import.meta.url), "utf8");
+  assert.match(src, /command\.action === "diagnose"/u);
+  assert.match(src, /describeOutlineTaskDiagnostic\(report\.task\)/u);
+  assert.match(src, /production \? \["local", "ollama", "openai"\] : \["local", "ollama"\]/u,
+    "Production status must allow previously authorized OpenAI text tasks");
+  assert.match(src, /const tasks = await readOutlineTasks\(\)/u);
 });

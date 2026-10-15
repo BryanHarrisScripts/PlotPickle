@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "issue": 3000,
+  "phase": "cmd-local-cloud-hybrid-existing-gui-entry",
+  "brief": "docs/developer-briefs/3000-cmd-local-cloud-hybrid-entry.md",
+  "allowedChanges": [
+    "app/_components/settings/plotpickle-creative-command.mjs",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "tests/issue-2982-command-creative-discovery.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3000-cmd-local-cloud-hybrid-entry.md",
+    "config/development-convergence/3000.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CMD-THREE-MODES",
+      "criterion": "CMD understands typed Local Cloud and Hybrid connection commands without pretending to connect or spending provider credits.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "#3000 typed CMD connects to the real Local Cloud and Hybrid Settings modes"
+        }
+      ]
+    },
+    {
+      "id": "SAME-OWNER",
+      "criterion": "CMD opens existing authoritative StoryModeHost UI and the existing Hybrid Join owner, not duplicate connection setup.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2982-command-creative-discovery.test.mjs",
+          "contains": "#3000 Command uses existing Settings StoryModeHost navigation"
+        }
+      ]
+    },
+    {
+      "id": "NO-SECRETS",
+      "criterion": "Sensitive credentials must be entered through existing secure GUI and not pasted into the Command transcript.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Never paste API keys into Command"
+        }
+      ]
+    }
+  ]
+}

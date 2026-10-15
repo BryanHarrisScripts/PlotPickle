@@ -2957,16 +2957,15 @@
       "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
     },
     {
-      "id": "experience.command-settings-win-proof-3000",
-      "ownerLayer": "experience-skins",
+      "id": "agent.settings-command-win-proof-3000",
+      "ownerLayer": "agent-runtime",
       "architectureComponents": [
-        "skin-surface-readiness",
-        "experience-navigation"
+        "agent-runtime",
+        "persistent-pi-session"
       ],
       "triggerTokens": [
-        "skin",
-        "surface",
-        "auth"
+        "agent",
+        "skill"
       ],
       "runner": {
         "kind": "browser-uat",
@@ -4571,7 +4570,7 @@
         "target": "scripts/settings-command-product-proof.mjs",
         "targetDigest": "4aa00cb98a82e6237b66ebebdec1b0ce41cecd914b294d80012fd5ad203e0c79",
         "catalogueIds": [
-          "experience.command-settings-win-proof-3000"
+          "agent.settings-command-win-proof-3000"
         ],
         "truthRefs": [
           {

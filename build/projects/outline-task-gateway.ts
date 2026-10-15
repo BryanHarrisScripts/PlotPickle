@@ -72,7 +72,21 @@ export function outlineSchedulerFailure(outcome: { status: string; error?: { mes
   if (outcome.status === "faulted" && timeout) return "The scheduler review timed out at the " + timeout[1]
     + "-second response limit. Cancel this run and start a new review after checking local model readiness; saved findings remain available.";
   if (outcome.status === "aborted") return "The scheduler review was cancelled. No completed review was reported; saved findings remain available.";
-  return "The scheduler stopped before completing this review. Cancel this run and start a new review; saved findings remain available.";
+  // Only exact, host-authored validation text is safe to classify. Arbitrary
+  // provider/Pi checkpoint exceptions can contain private story or credentials.
+  const safeFaults: Record<string, string> = {
+    "Outline task context exceeds the host limit.": "SOURCE_CONTEXT_LIMIT",
+    "Outline worker did not persist usage before result admission.": "USAGE_NOT_RECORDED",
+    "Outline task budget is exhausted.": "TASK_BUDGET_EXHAUSTED",
+    "A bounded host token/cost quote is required before inference.": "HOST_QUOTE_UNAVAILABLE",
+    "Outline production semantic review omitted fidelity dimensions.": "FIDELITY_SCHEMA_INVALID",
+    "Outline production semantic review has invalid or uncited findings.": "FIDELITY_EVIDENCE_INVALID",
+    "Outline production semantic review did not cover all source passages.": "FIDELITY_COVERAGE_MISSING",
+  };
+  const code = outcome.status === "faulted" ? safeFaults[outcome.error?.message || ""] : undefined;
+  return outcome.status === "faulted"
+    ? "The scheduler faulted (" + (code || "UNCLASSIFIED_PRIVATE_FAILURE") + "). No completed review was reported; inspect the protected task checkpoint before starting another pass."
+    : "The scheduler ended without completion (" + (["waiting", "paused"].includes(outcome.status) ? "NOT_COMPLETED" : "UNKNOWN_OUTCOME") + "). Do not start another pass until task state is reconciled.";
 }
 
 async function nativeScheduler(home: string, id: string, controller: Controller): Promise<OutlineScheduler> {

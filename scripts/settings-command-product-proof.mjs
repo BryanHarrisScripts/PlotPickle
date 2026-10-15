@@ -88,10 +88,10 @@ try {
   await page.locator("[data-skin-v1-active-surface='command'] [data-skin-v1-region-role='global-header']").getByText("Command", { exact: true }).waitFor();
   await command.getByRole("heading", { name: "Requests", exact: true }).waitFor({ timeout: 60_000 });
   await page.screenshot({ path: path.join(root, "command.png"), fullPage: true });
-  await command.getByRole("button", { name: "Local engines", exact: true }).focus();
+  await command.getByRole("button", { name: "Local connections", exact: true }).focus();
   await page.keyboard.press("Escape");
   await page.locator("[data-settings-secondary-item='command']").click();
-  await page.locator("[data-settings-command='true']").getByRole("button", { name: "Local engines", exact: true }).click();
+  await page.locator("[data-settings-command='true']").getByRole("button", { name: "Local connections", exact: true }).click();
   await page.locator("section[aria-label='Local Story Mode setup']").waitFor({ timeout: 30_000 });
   await page.locator("[data-skin-v1-return-contract='single-owner']").click();
   await page.locator("[data-settings-secondary-item='command']").click();

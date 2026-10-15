@@ -63,6 +63,22 @@
           "contains": "#2999 stopped Story Architect worker is never displayed as working even if durable run state remains working"
         }
       ]
+    },
+    {
+      "id": "READ-ONLY-CMD-DIAGNOSIS",
+      "criterion": "CMD diagnoses current saved Block assessment/production task without inference, mutable state or exposure of private provider errors; previously authorized OpenAI production run status remains readable.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 Command read-only diagnosis shows reservations, host state and UNKNOWN dispatch without exposing protected errors"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 private provider errors cannot use a host-looking prefix to leak into CMD"
+        }
+      ]
     }
   ],
   "constraints": [

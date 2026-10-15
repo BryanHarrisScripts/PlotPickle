@@ -258,7 +258,7 @@ test("#2982 actual Command Open uses Library authority then reuses existing stat
   const handler=ui.slice(start,end);
   for(const symbol of ["listHumanLibraryProjects","loadLibraryProjectSnapshot","switchActiveLibraryProject",
     "persistActiveProfileProject","flushProfilePrivateWrites","executePlotPickleLibraryOpen"]) assert.match(handler,new RegExp(symbol));
-  assert.match(ui,/if \(await runCreativeLibraryCommand\(submitted\)\) return;\s*if \(runCreativeDiscoveryCommand\(submitted\)\) return;/u);
+  assert.match(ui,/if \(await runCreativeLibraryCommand\(submitted\)\) return;\s*if \(runConnectionsCommand\(submitted\)\) return;\s*if \(runCreativeDiscoveryCommand\(submitted\)\) return;/u);
   assert.match(library,/export function switchActiveLibraryProject[\s\S]*markSessionActiveProject\(result\.activeProject\.id\);[\s\S]*announceChange\(\)/u);
   assert.match(core,/const plan\s*=\s*describePlotPickleCreativeCommand\(\{\s*action:\s*"plan",\s*blockNumber:\s*1\s*\}/u);
   assert.doesNotMatch(handler,/createLibraryUserProject|createLibraryWorkingCopy|\/api\/local-ai\/generate|\/api\/storyboard\//u);

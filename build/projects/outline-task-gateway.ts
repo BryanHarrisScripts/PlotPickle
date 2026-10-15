@@ -52,10 +52,19 @@ export async function configuredOutlineExecution(runtime: Runtime, auth: AuthCon
   } | null;
   const local = (profile.provider === "local" || profile.provider === "ollama")
     && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(profile.baseUrl).hostname);
-  const cost = local ? 0 : quote?.provider === profile.provider && quote.model === profile.textModel && quote.baseUrl === profile.baseUrl
+  // The Human explicitly authorized the configured OpenAI text route for this
+  // writing workflow (#2999). An internal $1/attempt reservation bounds retries;
+  // this is NOT a provider price quote or a guarantee of the eventual invoice.
+  // Other remote providers still require their exact host-approved cost quote.
+  const officialOpenAI = profile.provider === "openai"
+    && new URL(profile.baseUrl).protocol === "https:"
+    && new URL(profile.baseUrl).hostname === "api.openai.com"
+    && typeof profile.apiKey === "string" && profile.apiKey.length > 0;
+  const quoted = quote?.provider === profile.provider && quote.model === profile.textModel && quote.baseUrl === profile.baseUrl
     && Date.parse(quote.expiresAt || "") > Date.now() && Number.isFinite(quote.maxCostPerAttemptUsd) && Number(quote.maxCostPerAttemptUsd) > 0
-    ? Number(quote.maxCostPerAttemptUsd) : null;
-  if (cost === null || cost > 1) throw new Error("Story Architect recovery requires a current host-approved provider cost quote of at most $1 per attempt. Select a local loopback provider or configure the exact cloud route quote first.");
+      ? Number(quote.maxCostPerAttemptUsd) : null;
+  const cost = local ? 0 : officialOpenAI ? Math.max(quoted || 0, 1) : quoted;
+  if (cost === null || cost > 1) throw new Error("Story Architect needs a verified local route, a configured official OpenAI text API connection, or an exact host cost quote of at most $1 per attempt.");
   const receipt = createHash("sha256").update(JSON.stringify({ provider: profile.provider, runtime: profile.runtime, model: profile.textModel,
     baseUrl: profile.baseUrl, contextTokens: profile.contextTokens, source, grants, quote: local ? null : quote,
     // Credentials remain only in the configured host store; the digest detects rotation.
@@ -189,6 +198,17 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
     status: view,
     async startProduction(auth: AuthContext, blocks: number[]) {
       const record = await controller.create(auth, blocks, true);
+      if (record.run.state === "waiting-for-writer") return view(auth, record.scope.runId);
+      return activate(auth, record.scope.runId);
+    },
+    /** The legacy 'produce ... local' command retains its no-spend semantics. */
+    async startProductionLocal(auth: AuthContext, blocks: number[]) {
+      const execution = await (ports.resolveExecution?.(auth) || configuredOutlineExecution(runtime, auth));
+      if (!["local", "ollama"].includes(execution.provider) || execution.cloudCostUpperBoundUsd !== 0)
+        throw new Error("Story Architect local production requires the verified local no-spend route.");
+      const record = await controller.create(auth, blocks, true);
+      if (record.scope.provider !== execution.provider || record.computeReceipt !== execution.receipt)
+        throw new Error("Story Architect local production route changed during admission; no task activated.");
       if (record.run.state === "waiting-for-writer") return view(auth, record.scope.runId);
       return activate(auth, record.scope.runId);
     },

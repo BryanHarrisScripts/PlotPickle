@@ -673,16 +673,19 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
         await changeOutlineTask(command.action === "resume-production" ? "resume" : "cancel", project, { taskId: task.scope.runId });
         text = (await reconcileStoryArchitectBlock(projectId!, command.blockNumber, true, task.scope.runId)).text;
       } else if (command.action === "assess-local" || command.action === "produce") {
+        const localOnly = command.action === "assess-local" || command.action === "produce" && command.localOnly;
         const task = production
-          ? await changeOutlineTask("start-production", project, { blocks: [command.blockNumber] })
+          ? await changeOutlineTask(localOnly ? "start-production-local" : "start-production", project, { blocks: [command.blockNumber] })
           : await changeOutlineTask("start-local", project, { blocks: [command.blockNumber] });
-        if (task.scope.projectId !== projectId || task.scope.provider !== "local" && task.scope.provider !== "ollama")
-          throw new Error("Story Architect host did not confirm the exact project and zero-cost local provider.");
+        if (task.scope.projectId !== projectId || localOnly && task.scope.provider !== "local" && task.scope.provider !== "ollama"
+          || production && !["local", "ollama", "openai"].includes(task.scope.provider))
+          throw new Error("Story Architect host did not confirm the exact project and approved writing provider.");
         text = (production ? "Bounded production pass ADMITTED for " : "Story Architect local-only assessment ADMITTED for ") + project.title
           + ", Block " + String(command.blockNumber).padStart(2, "0") + ", project revision " + project.revision
-          + ", task " + task.scope.runId + ", host model " + task.scope.model
+          + ", task " + task.scope.runId + ", host provider " + task.scope.provider + ", model " + task.scope.model
           + ". Protected task state " + task.run.state + ", artifacts " + task.proposals.length + "/1. "
-          + "No paid OpenAI or MiniMax request is authorized. Assessment output and screenplay decisions remain advisory; "
+          + (task.scope.provider === "openai" ? "Configured paid OpenAI writing compute may be billed by your provider. " : "Local no-spend compute is selected. ")
+          + "No MiniMax/video request was authorized. Assessment output and screenplay decisions remain advisory; "
           + "the existing task is executing or awaiting recovery, not yet completed.";
         // Best-effort read/import of COMPLETED HOST WORK ONLY. No retries or
         // new inference; the persistent Outline recovery owner remains canonical.

@@ -20,7 +20,7 @@ import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProje
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
 import { currentOutlineAssessment } from "../../modules/plan/outline-agent-assessment";
 import { changeOutlineTask, readOutlineTasks, importOutlineTaskFindings } from "../../modules/plan/assessments/outline-task-browser";
-import { selectCurrentOutlineTask } from "../../modules/plan/assessments/outline-task-selection";
+import { selectCurrentOutlineTask, describeOutlineTaskDiagnostic } from "../../modules/plan/assessments/outline-task-selection";
 import { outlineAssessmentMaterialReceipt } from "../../modules/plan/outline-agent-assessment";
 import { saveFoundationProjectDurably } from "../../core/storage/project-library/revision-safe-browser";
 import { captureOpenPencilTimelineSnapshot } from "./openpencil-design-snapshot";
@@ -590,7 +590,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     });
     if (!task) return { ongoing: false, text: "NO TASK: No matching current-material Story Architect review has started for Block "
       + String(blockNumber).padStart(2, "0") + ". No inference or import occurred." };
-    if (!["local", "ollama"].includes(task.scope.provider)) return {
+    if (!(production ? ["local", "ollama", "openai"] : ["local", "ollama"]).includes(task.scope.provider)) return {
       ongoing: false, text: "BLOCKED: This existing assessment is not the explicitly authorized local-only route. No candidate was imported or cloud call started.",
     };
     if (task.proposals.length) {
@@ -648,7 +648,8 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     if (!embedded) return false;
     const command = parsePlotPickleCreativeCommand(submitted);
     if (command?.action !== "assess-local" && command?.action !== "assessment" && command?.action !== "produce"
-      && command?.action !== "production" && command?.action !== "resume-production" && command?.action !== "cancel-production") return false;
+      && command?.action !== "production" && command?.action !== "resume-production" && command?.action !== "cancel-production"
+      && command?.action !== "diagnose") return false;
     const production = ["produce", "production", "resume-production", "cancel-production"].includes(command.action);
     const snapshot = currentSurfaceContext(pathname);
     setMessages(current => [...current, { id: messageId("assessment-human"), role: "command", text: submitted,
@@ -658,6 +659,25 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
       const projectId = sessionActiveProjectId();
       const project = projectId ? loadActiveLibraryProject() : null;
       if (!project || project.id !== projectId) throw new Error("Select an authenticated saved Library PPF before assessing any Block.");
+      if (command.action === "diagnose") {
+        const receipt = await outlineAssessmentMaterialReceipt(project);
+        const tasks = await readOutlineTasks();
+        const reports = [false, true].map(productionScope => ({
+          scope: productionScope ? "Production pass" : "Local assessment",
+          task: selectCurrentOutlineTask(tasks, {
+            projectId, contextReceipt: receipt, blockNumber: command.blockNumber,
+            production: productionScope,
+          }),
+        }));
+        const text = "STORY ARCHITECT · READ-ONLY DIAGNOSTICS · Block " + String(command.blockNumber).padStart(2, "0")
+          + "\nSaved PPF: " + project.title + "; revision: " + project.revision
+          + "\n" + reports.map(report => report.scope + ":\n"
+            + (report.task ? describeOutlineTaskDiagnostic(report.task) : "No current-material task found; no inference was started.")).join("\n\n")
+          + "\nUNKNOWN means the private Pi checkpoint and actual model dispatch were not inspected. No automatic retry is permitted.";
+        setMessages(current => [...current, { id: messageId("diagnose-result"),
+          role: "tool", text, context: snapshot }].slice(-MAX_MESSAGES));
+        return true;
+      }
       const scoped = project.sourceEvidence.screenplay?.passages.filter(p => p.blockNumber === command.blockNumber) ?? [];
       if (!scoped.length) throw new Error("The selected Block has no mapped screenplay passages. Assessment cannot substitute invented evidence.");
       if (project.sourceEvidence.screenplay?.passagesTruncated)

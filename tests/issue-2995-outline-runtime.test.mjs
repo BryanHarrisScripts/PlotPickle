@@ -67,7 +67,7 @@ test("#2999 unclassified scheduler failure never invents a cause or recommends d
   assert.doesNotMatch(unknown, /private screenplay|provider key|Cancel this run and start a new review/u);
   const usage = gateway.outlineSchedulerFailure(fault("Outline worker did not persist usage before result admission."));
   assert.match(usage, /USAGE_NOT_RECORDED/u);
-  assert.doesNotMatch(usage, /completed review/u);
+  assert.match(usage, /No completed review was reported/u);
   assert.match(gateway.outlineSchedulerFailure(fault("Outline task context exceeds the host limit.")), /SOURCE_CONTEXT_LIMIT/u);
   assert.match(gateway.outlineSchedulerFailure({ status: "pending", error: { message: secret } }), /UNKNOWN_OUTCOME/u);
   assert.doesNotMatch(gateway.outlineSchedulerFailure({ status: "pending", error: { message: secret } }), /private screenplay|provider key/u);

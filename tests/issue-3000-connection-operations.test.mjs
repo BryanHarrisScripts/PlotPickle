@@ -32,18 +32,24 @@ test("#3000 bounded grammar withholds credential-like and unsupported input", ()
   for (const value of ["test writing openai key=secret", "join video direct openai SECRET", "confirm 0123456789abcdef charges password", "setup openai secret"]) assert.deepEqual(parseConnectionCommand(`PlotPickle connections ${value}`), { action: "invalid" });
   assert.equal(parseConnectionCommand("PlotPickle connections hybrid"), null);
   assert.equal(parseConnectionCommand("unrelated conversation"), null);
+  for (const action of ["test", "select", "join"]) for (const category of ["constructor", "__proto__", "tostring"]) {
+    assert.deepEqual(parseConnectionCommand(`PlotPickle connections ${action} ${category} direct ollama`), { action: "invalid" });
+    assert.deepEqual(parseConnectionCommand(`PlotPickle connections ${action} ${category} ollama`), { action: "invalid" });
+  }
   assert.deepEqual(parseConnectionCommand("/PlotPickle connections select writing ollama"), { action: "select", capability: "text", route: "ollama" });
 });
 
 test("#3000 read-only runtime status preserves selected/configured/verified distinctions and exact Hybrid blockers", async () => {
   const h = harness();
   h.state.status.text.options.openai.ready = false;
+  h.state.status.text.options.openai.error = "synthetic-secret-provider-payload";
   const before = structuredClone(h.state.status);
   const result = await h.run("status hybrid");
   assert.match(result, /text: selected local/);
   assert.match(result, /openai: configured=true; ready=false/);
   assert.match(result, /video direct\/openai: This route is not capable/);
   assert.match(result, /ComfyUI Cloud.*executable verified workflow adapter is not available/);
+  assert.doesNotMatch(result, /synthetic-secret-provider-payload/);
   assert.deepEqual(h.state.status, before);
   assert.equal(h.state.posts.length, 0);
 });
@@ -71,7 +77,10 @@ test("#3000 route selection uses exact owner and verifies current state", async 
 test("#3000 unverified Join saves configuration only; unsupported pair never submits", async () => {
   const h = harness();
   h.state.status.text.options.ollama.ready = false;
-  assert.match(await h.run("join writing direct ollama"), /Will save Join only/);
+  h.state.status.text.options.ollama.error = "synthetic-secret-join-payload";
+  const preview = await h.run("join writing direct ollama");
+  assert.match(preview, /Will save Join only/);
+  assert.doesNotMatch(preview, /synthetic-secret-join-payload/);
   await h.run(`confirm ${TOKEN}`);
   assert.equal(h.state.status.text.selected, "local");
   assert.equal(h.state.status.joins.text.provider, "ollama");

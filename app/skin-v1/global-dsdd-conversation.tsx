@@ -1238,7 +1238,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               </div>
             ) : null}
             {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
-            {commandWorking ? <p className={styles.working} role="status">Running the bounded local OpenPencil command…</p> : null}
+            {commandWorking ? <p className={styles.working} role="status">Running the requested Command operation…</p> : null}
             {piDrafting ? <p className={styles.working} role="status">Pi is inspecting the repository read-only and drafting developer guidance…</p> : null}
             {publishing ? <p className={styles.working} role="status">Publishing the approved developer brief as a GitHub Issue…</p> : null}
             {validatingFinding ? <p className={styles.working} role="status">Preserving Human validation and preparing the specification handoff…</p> : null}

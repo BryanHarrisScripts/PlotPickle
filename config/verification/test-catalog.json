@@ -4636,7 +4636,7 @@
       },
       {
         "target": "tests/issue-3000-connection-operations.test.mjs",
-        "targetDigest": "0e49188cbd652f70dff27244ef2cf071960ff4105ab3a368351b95a83bcc1ade",
+        "targetDigest": "6f60b8109a8c746c7763fe3972719eceecada74e117e10d2c99a9fd1a28d1ba4",
         "catalogueIds": [
           "experience.connection-command-3000"
         ],

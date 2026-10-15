@@ -16,18 +16,18 @@ export function parseConnectionCommand(input) {
   if (words.length === 1 && words[0] === "cancel") return { action: "cancel" };
   if (words[0] === "confirm" && /^[a-f0-9]{16}$/u.test(words[1] || "") && words.slice(2).every(word => ["charges", "share", "performance"].includes(word))) return { action: "confirm", token: words[1], charges: words.includes("charges"), share: words.includes("share"), performance: words.includes("performance") };
   const [action, category, target, provider] = words;
-  const capability = capabilities[category];
+  const capability = Object.hasOwn(capabilities, category) ? capabilities[category] : null;
   if (["test", "select"].includes(action) && words.length === 3 && capability && CAPABILITY_ROUTES[capability].includes(target)) return { action, capability, route: target };
   if (action === "join" && words.length === 4 && capability && ["direct", "comfy-local", "comfy-cloud"].includes(target) && CONNECTION_PROVIDERS[capability].some(item => item.id === provider)) return { action, capability, engine: target, provider };
   return { action: "invalid" };
 }
 
 function describeStatus(status, mode = "all") {
-  return ["CONNECTIONS Â· current-profile runtime status", ...Object.entries(CAPABILITY_ROUTES).flatMap(([capability]) => {
+  return ["CONNECTIONS - current-profile runtime status", ...Object.entries(CAPABILITY_ROUTES).flatMap(([capability]) => {
     const group = status[capability];
     const joined = status.joins?.[capability];
     return [`${capability}: selected ${group.selected}${joined ? `; Join ${joined.engine}/${joined.provider}: ${connectionProof(status, joined).state}` : "; not joined"}`,
-      ...Object.entries(group.options).filter(([, option]) => !["local", "cloud"].includes(mode) || option.locality === mode).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${option.model || "none"}; verified=${option.verifiedAt || "not tested"}${option.error ? `; blocker=${option.error}` : ""}`)];
+      ...Object.entries(group.options).filter(([, option]) => !["local", "cloud"].includes(mode) || option.locality === mode).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${option.model || "none"}; verified=${option.verifiedAt || "not tested"}${option.error ? "; blocker=Runtime error; inspect secure Setup for details" : ""}`)];
   }), mode === "hybrid" ? Object.entries(CONNECTION_PROVIDERS).flatMap(([capability, providers]) => providers.flatMap(provider => ["direct", "comfy-local", "comfy-cloud"].map(engine => {
     const resolved = resolveConnectionJoin(capability, engine, provider.id);
     return `${capability} ${engine}/${provider.id}: ${resolved.capable ? resolved.route : resolved.reason}`;
@@ -95,17 +95,17 @@ export function createConnectionCommandSession(services) {
       const route = resolved?.route || command.route;
       const option = status[command.capability]?.options?.[route];
       const execution = routeExecution(command.capability, route);
-      if (!option || option.supported === false || (option.disabled && !execution.disabled)) throw new ConnectionCommandBlocked(option?.error || "No supported runtime option exists.");
+      if (!option || option.supported === false || (option.disabled && !execution.disabled)) throw new ConnectionCommandBlocked("No supported runtime option exists. Inspect the existing Setup screen.");
       if (command.action === "select") {
         try { requireSelectedCapability(status, command.capability, route); }
         catch { throw new ConnectionCommandBlocked("The selected route needs setup and a successful capability test. No selection was submitted."); }
       }
       const request = command.action === "test" ? testRequest(command.capability, route) : null;
       const proof = resolved ? connectionProof(status, { ...resolved }) : null;
-      if (proof?.state === "NOT CAPABLE") throw new ConnectionCommandBlocked(proof.reason);
+      if (proof?.state === "NOT CAPABLE") throw new ConnectionCommandBlocked("This Join is not capable. Inspect the existing Setup screen.");
       const token = services.token();
       pending = { command, route, execution, request, profile, token, identity: identity(status, command.capability, route), expires: services.now() + 120_000 };
-      return `CONNECTION PREVIEW Â· ${command.action} ${command.capability}/${route}${resolved ? ` via ${command.engine}/${command.provider}; ${proof.state}${proof.reason ? `: ${proof.reason}` : ""}. ${proof.ready ? "Will select verified route." : "Will save Join only; active route stays unchanged."}` : ""}\nCurrently selected: ${status[command.capability].selected}. ${execution.paid ? "Provider requests may incur charges; existing saved provider consent is also required." : "Local compute; no per-request cloud charge."} ${execution.dataSharing ? "Video test prompt/reference may leave this computer." : ""} ${request?.performance ? "Native H3 can require substantial GPU memory; acknowledge performance impact." : ""}\nNo mutation or inference yet. Within two minutes send: PlotPickle connections confirm ${token}${execution.paid ? " charges" : ""}${execution.dataSharing ? " share" : ""}${request?.performance ? " performance" : ""}. Cancel with PlotPickle connections cancel. Never paste API keys into Command.`;
+      return `CONNECTION PREVIEW - ${command.action} ${command.capability}/${route}${resolved ? ` via ${command.engine}/${command.provider}; ${proof.state}; inspect secure Setup for any verification blocker. ${proof.ready ? "Will select verified route." : "Will save Join only; active route stays unchanged."}` : ""}\nCurrently selected: ${status[command.capability].selected}. ${execution.paid ? "Provider requests may incur charges; existing saved provider consent is also required." : "Local compute; no per-request cloud charge."} ${execution.dataSharing ? "Video test prompt/reference may leave this computer." : ""} ${request?.performance ? "Native H3 can require substantial GPU memory; acknowledge performance impact." : ""}\nNo mutation or inference yet. Within two minutes send: PlotPickle connections confirm ${token}${execution.paid ? " charges" : ""}${execution.dataSharing ? " share" : ""}${request?.performance ? " performance" : ""}. Cancel with PlotPickle connections cancel. Never paste API keys into Command.`;
     } catch (error) {
       if (error instanceof ConnectionCommandBlocked) { pending = null; return `BLOCKED: ${error.message}`; }
       // Provider failures can contain secrets or arbitrary payloads. Read safe runtime

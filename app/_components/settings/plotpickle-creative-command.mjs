@@ -68,6 +68,13 @@ export function parsePlotPickleCreativeCommand(input) {
       ? Object.freeze({ action: "assess-local", blockNumber })
       : Object.freeze({ action: "invalid", reason: "Story Architect Block must be 1–24. No inference ran." });
   }
+  const diagnostic = value.match(/^\/?plotpickle\s+diagnose\s+block\s+(\d{1,3})$/iu);
+  if (diagnostic) {
+    const blockNumber = Number(diagnostic[1]);
+    return blockNumber >= 1 && blockNumber <= 24
+      ? Object.freeze({ action: "diagnose", blockNumber })
+      : Object.freeze({ action: "invalid", reason: "Diagnostic Block must be 1–24. No task changed." });
+  }
   const status = value.match(/^\/?plotpickle\s+assessment\s+block\s+(\d{1,3})$/iu);
   if (status) {
     const blockNumber = Number(status[1]);
@@ -121,7 +128,7 @@ export function describePlotPickleCreativeCommand(command, { project = null, act
   if (command.action === "tools") {
     return [
       "PLOTPICKLE CREATIVE TOOLS · read-only discovery (not a provider readiness check)",
-      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first) | PlotPickle assess Block 01 local | PlotPickle assessment Block 01 | PlotPickle produce Block 01 local | PlotPickle production Block 01 | PlotPickle resume-production Block 01 | PlotPickle cancel-production Block 01",
+      "Commands: PlotPickle tools | PlotPickle library | PlotPickle status | PlotPickle plan Block 01 | PlotPickle open <saved story title> | PlotPickle inspect <project ID> | PlotPickle rename <project ID> to <new title> (preview first) | PlotPickle assess Block 01 local | PlotPickle assessment Block 01 | PlotPickle diagnose Block 01 | PlotPickle produce Block 01 local | PlotPickle production Block 01 | PlotPickle resume-production Block 01 | PlotPickle cancel-production Block 01",
       ...TOOL_ROUTES.map(({ tool, scope, state }) => tool + " — " + scope + " — " + state),
       "No creative action ran; no screenplay or PPF was changed; no cloud credits spent.",
       "For software defects, describe the observed and expected behavior, then use 01 Interpret → 02 Pi Draft → 03 Publish Brief."

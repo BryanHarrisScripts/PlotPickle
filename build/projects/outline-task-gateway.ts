@@ -11,6 +11,17 @@ import { managedPiDurableRoot, probeManagedPiDurable } from "../../scripts/pi-du
 import { importPiDurableModule } from "../../core/sidecars/pi-durable-adapter.mjs";
 import { registerAgentCheckpointTasks } from "../../core/sidecars/tasks/agent-checkpoint-task.mjs";
 
+/** Only host-constructed diagnostic categories, not arbitrary provider messages, reach the browser. */
+class OutlineSchedulerSafeError extends Error {}
+
+export function outlineGatewaySafeError(error: unknown): string {
+  if (error instanceof OutlineSchedulerSafeError) return error.message;
+  if (error instanceof Error && error.message === "Pi Durable is not ready. Wait for startup readiness before starting or resuming Story Architect.") {
+    return "Pi Durable is not ready. Wait for startup readiness before starting or resuming Story Architect.";
+  }
+  return "Story Architect stopped (UNCLASSIFIED_PRIVATE_FAILURE). Inspect the protected task checkpoint; model dispatch and root cause are unknown. Do not retry automatically.";
+}
+
 type Controller = ReturnType<typeof createOutlineTaskController>;
 type Input = Awaited<ReturnType<Controller["activate"]>>;
 export type OutlineScheduler = {
@@ -122,7 +133,7 @@ async function nativeScheduler(home: string, id: string, controller: Controller)
     async run(input) {
       const piId = await registration.admit(await harness.root(context), input, context);
       const result = await harness.waitForTask(piId, context);
-      if (result.state.outcome.status !== "completed") throw new Error(outlineSchedulerFailure(result.state.outcome));
+      if (result.state.outcome.status !== "completed") throw new OutlineSchedulerSafeError(outlineSchedulerFailure(result.state.outcome));
       return true;
     },
     close: () => harness.close(context),
@@ -171,12 +182,11 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
         scheduler = await (ports.openScheduler?.(id, controller) || nativeScheduler(runtime.home, id, controller));
         schedulers.set(id, { scheduler, profileId: auth.profileId });
         errors.delete(id);
-        if (!await scheduler.run(input)) throw new Error("The scheduler stopped before completing this review. Cancel this run and start a new review; saved findings remain available.");
+        if (!await scheduler.run(input)) throw new OutlineSchedulerSafeError("The scheduler stopped without a completed review (NOT_COMPLETED). Inspect the protected task checkpoint; do not automatically retry.");
         await controller.finish(auth, id);
       } catch (error) {
         // Never expose provider response bodies, prompts or credentials via polling.
-        errors.set(id, error instanceof Error && /^(Outline |Story Architect recovery|Pi Durable|The scheduler)/u.test(error.message)
-          ? error.message.slice(0, 500) : "Story Architect stopped. Check profile access, unchanged story material, configured compute and remaining budget before resuming.");
+        errors.set(id, outlineGatewaySafeError(error));
       } finally {
         controller.deactivate(id);
         await scheduler?.close().catch(() => {});

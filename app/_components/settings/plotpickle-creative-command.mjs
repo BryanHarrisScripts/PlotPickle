@@ -4,7 +4,7 @@ import { projectRuntimeGrid } from "../../../modules/write/model/selected-ppf-ru
 const CANONICAL = "4 Acts / 12 Sequences / 24 Blocks / 96 Mini-Blocks";
 const TOOL_ROUTES = Object.freeze([
   Object.freeze({ tool: "Library", scope: "selected PPF", state: "read-only selection inspection" }),
-  Object.freeze({ tool: "Story Architect", scope: "Outline assessment", state: "only the explicit local-only assess command starts a real task; results remain advisory" }),
+  Object.freeze({ tool: "Story Architect", scope: "Outline assessment and production", state: "explicit local assessment or configured writing production starts a real hosted task; cloud writing may incur provider charges; results remain advisory" }),
   Object.freeze({ tool: "Outline", scope: "Human-accepted Mini-Block Plan", state: "acceptance requires explicit Human review" }),
   Object.freeze({ tool: "Write", scope: "encrypted saved writing", state: "separate editor action, not executed" }),
   Object.freeze({ tool: "Storyboard", scope: "approved image candidates", state: "separate governed image generation, not executed" }),

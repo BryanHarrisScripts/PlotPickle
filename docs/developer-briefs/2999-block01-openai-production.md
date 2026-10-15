@@ -28,3 +28,8 @@ F. Synthetic regression/negative tests, governed test catalogue, UAT, build, ind
 ## Relationship to #3000
 
 The Human also requested equivalent Local, Cloud and Hybrid/Connections operations from CMD. Tracked separately as #3000; do not embed a parallel provider settings interface into this production repair.
+## October 15 follow-up — host execution status must be truthful (first bounded repair)
+
+Authenticated Windows CMD `PlotPickle assess Block 01 local` returned `UNCLASSIFIED_PRIVATE_FAILURE` with 0/1 accepted results. Outline Assessment History showed two stopped tasks with `run.state = working`, `running = false` and `resumeRequired = true`, both labelled `Story Architect · working`. This is a reproducible presentation error independent of the private root cause. Earlier cancelled tasks, source material and reservations must remain untouched.
+
+Implementation slice: share a pure runtime-vs-durable-state status projection via `modules/plan/assessments/outline-task-selection.ts`, read it from `app/skin-v1/story-card-foundation-board.tsx`; test stopped/faulted/paused/running/cancelled cases in the existing #2995 governed test suite with its test-catalogue digest and W8/W9 binding. `running` means host execution; persisted `working` by itself does not. Do not change resume/cancel authority, start an inference, or disclose raw fault text. Run exact-head CI including Windows product gate before merging. This repair only fixes a truthfully observable status label; #2999 remains open until private checkpoint fault diagnosis and actual saved assessment are independently proven. Full Command story-production follow-up is #3004.

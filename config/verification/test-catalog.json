@@ -4504,7 +4504,7 @@
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "dced34d9fc67a40620cdda085248a660e585fbd4baac7b48939312ef6ae61759",
+        "targetDigest": "f0b793bcd5e8376f131b2c2d909827e91ac130dddf1114b3127375133a622155",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4521,7 +4521,7 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic real Mastra dispatch and scheduler outcome diagnostics only; no live model, account-owned story or media acceptance.",
+        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories and CMD read-only reservation/recovery projection; no live Windows Pi checkpoint inspection, verified provider call, paid OpenAI request, account-owned story or movie acceptance.",
         "inputs": []
       }
     ]

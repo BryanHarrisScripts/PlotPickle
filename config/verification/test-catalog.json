@@ -2997,6 +2997,51 @@
         ]
       },
       "notes": "Existing authenticated Windows Settings Command product gate owns the executable browser proof; manual catalogue ownership provides approved-truth admission, not a duplicate automatic run. #3000 updates the Local connections locator to match the current GUI. No live cloud provider or screenplay generation is certified."
+    },
+    {
+      "id": "experience.connection-command-3000",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "experience-navigation",
+        "dsdd-human-review"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3000-connection-operations.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "Synthetic Command controller/parser evidence only; real provider, authenticated Windows and persisted gateway behavior require independent proof."
     }
   ],
   "truthGovernance": {
@@ -4587,6 +4632,36 @@
           "real-device"
         ],
         "limits": "Windows Playwright product proof of authenticated Settings Command, Local connections navigation, unchanged session and zero inference while navigating; does not prove real paid cloud AI, Hybrid joins, user installation credentials, or provider readiness.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3000-connection-operations.test.mjs",
+        "targetDigest": "0e49188cbd652f70dff27244ef2cf071960ff4105ab3a368351b95a83bcc1ade",
+        "catalogueIds": [
+          "experience.connection-command-3000"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "PP-COMP-002",
+            "obligationId": "T3"
+          },
+          {
+            "truthId": "PP-COMP-002",
+            "obligationId": "T4"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic parser/controller endpoint dispatch, fail-closed confirmation, unchanged selection on test, consent flags and secret suppression. Does not certify actual provider response, real authenticated gateway isolation, Windows product acceptance or cloud spend.",
         "inputs": []
       }
     ]

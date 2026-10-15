@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "issue": 3000,
+  "phase": "cmd-direct-connection-operations",
+  "brief": "docs/developer-briefs/3000-cmd-connection-operations.md",
+  "allowedChanges": [
+    "app/_components/settings/connection-command.mjs",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "tests/issue-3000-connection-operations.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3000-cmd-connection-operations.md",
+    "config/development-convergence/3000-connection-operations.json"
+  ],
+  "acceptance": [
+    {
+      "id": "READ-ONLY-STATUS",
+      "criterion": "Command projects exact runtime selected/configured/verified state and the existing Hybrid matrix without mutation.",
+      "evidence": [{ "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 read-only runtime status preserves selected/configured/verified distinctions and exact Hybrid blockers" }]
+    },
+    {
+      "id": "CONFIRMED-TEST",
+      "criterion": "A consumed confirmation submits the exact GUI test; tests request no route selection and cloud acknowledgements remain explicit.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 exact local Quality test requires preview then consumes confirmation without selecting" },
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 cloud tests require charge and video-sharing acknowledgement; job submission is not completion" }
+      ]
+    },
+    {
+      "id": "SELECT-JOIN",
+      "criterion": "Select and Join reuse their authenticated runtime owners; supported unverified Join does not imply activation and unsupported pairs fail closed.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 route selection uses exact owner and verifies current state" },
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 unverified Join saves configuration only; unsupported pair never submits" }
+      ]
+    },
+    {
+      "id": "PROFILE-SECRET-BOUNDARY",
+      "criterion": "Expired, cancelled or stale previews cannot mutate; credential-like inputs and raw provider errors stay out of the transcript.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 expiry, cancellation, changed profile and stale execution identity fail closed" },
+        { "type": "file-contains", "path": "tests/issue-3000-connection-operations.test.mjs", "contains": "#3000 raw request failures cannot disclose secrets or retry a submitted operation" }
+      ]
+    }
+  ]
+}

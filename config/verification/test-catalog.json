@@ -2955,6 +2955,51 @@
         ]
       },
       "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
+    },
+    {
+      "id": "experience.command-settings-win-proof-3000",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "settings",
+        "command",
+        "skin",
+        "surface",
+        "auth"
+      ],
+      "runner": {
+        "kind": "browser-uat",
+        "targets": [
+          "scripts/settings-command-product-proof.mjs"
+        ]
+      },
+      "cost": "medium",
+      "modes": [
+        "manual"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "requirements": {
+        "network": false,
+        "native": true,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "report",
+          "screenshot"
+        ],
+        "artifactPaths": [
+          ".artifacts/settings-command-2717/proof.json",
+          ".artifacts/settings-command-2717/command.png",
+          ".artifacts/settings-command-2717/failure.json"
+        ]
+      },
+      "notes": "Existing authenticated Windows Settings Command product gate owns the executable browser proof; manual catalogue ownership provides approved-truth admission, not a duplicate automatic run. #3000 updates the Local connections locator to match the current GUI. No live cloud provider or screenplay generation is certified."
     }
   ],
   "truthGovernance": {
@@ -4522,6 +4567,29 @@
           "unit-fixture"
         ],
         "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories and CMD read-only reservation/recovery projection; no live Windows Pi checkpoint inspection, verified provider call, paid OpenAI request, account-owned story or movie acceptance.",
+        "inputs": []
+      },
+      {
+        "target": "scripts/settings-command-product-proof.mjs",
+        "targetDigest": "4aa00cb98a82e6237b66ebebdec1b0ce41cecd914b294d80012fd5ad203e0c79",
+        "catalogueIds": [
+          "experience.command-settings-win-proof-3000"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "real-boundary",
+          "real-device"
+        ],
+        "limits": "Windows Playwright product proof of authenticated Settings Command, Local connections navigation, unchanged session and zero inference while navigating; does not prove real paid cloud AI, Hybrid joins, user installation credentials, or provider readiness.",
         "inputs": []
       }
     ]

@@ -608,13 +608,18 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
       return JSON.stringify(result.object);
     }
     if (!directConversationMode && input.agentId === "story-architect") {
-      const result = await agent.generate(prompt, {
-        ...executionOptions,
-        structuredOutput: {
-          schema: productionFidelity ? productionFidelityOutputSchema() : storyArchitectAssessmentSchema(),
-          jsonPromptInjection: false,
-        },
-      });
+      const result = productionFidelity
+        ? await agent.generate(prompt, {
+          ...executionOptions,
+          structuredOutput: { schema: productionFidelityOutputSchema(), jsonPromptInjection: false },
+        })
+        : await agent.generate(prompt, {
+          ...executionOptions,
+          structuredOutput: {
+            schema: storyArchitectAssessmentSchema(),
+            jsonPromptInjection: false,
+          },
+        });
       const usage = result.usage;
       if (input.onAssessmentUsage) {
         const count = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : undefined;

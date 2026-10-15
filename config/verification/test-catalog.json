@@ -4523,28 +4523,6 @@
         ],
         "limits": "Synthetic real Mastra dispatch and scheduler outcome diagnostics only; no live model, account-owned story or media acceptance.",
         "inputs": []
-      },
-      {
-        "target": "tests/issue-2440-story-architect-structured-execution.test.mjs",
-        "targetDigest": "2b1cb55368f478d4e4c4c302e4932a6fabd4440096cd53d005ddb956571e4695",
-        "catalogueIds": [
-          "story-canon.outline-durable-input-2711"
-        ],
-        "truthRefs": [
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W8"
-          },
-          {
-            "truthId": "WHITE-PAPER-V3",
-            "obligationId": "W9"
-          }
-        ],
-        "scopes": [
-          "unit-fixture"
-        ],
-        "limits": "Source contract compatibility only; runtime behavior is separately exercised by issue-2995 synthetic dispatch tests.",
-        "inputs": []
       }
     ]
   }

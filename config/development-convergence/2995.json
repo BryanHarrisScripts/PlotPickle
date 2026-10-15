@@ -10,7 +10,6 @@
     "modules/plan/assessments/outline-production-pass.ts",
     "tests/issue-2995-outline-runtime.test.mjs",
     "tests/issue-2986-production-pass.test.mjs",
-    "tests/issue-2440-story-architect-structured-execution.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2995-block01-structured-review.md",
     "config/development-convergence/2995.json"

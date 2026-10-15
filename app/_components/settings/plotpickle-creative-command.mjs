@@ -23,8 +23,8 @@ export function parsePlotPickleCreativeCommand(input) {
   const production = value.match(/^\/?plotpickle\s+(produce|production|resume-production|cancel-production)\s+block\s+(\d{1,3})(\s+local)?$/iu);
   if (production) {
     const blockNumber = Number(production[2]);
-    if (blockNumber < 1 || blockNumber > 24 || production[1].toLowerCase() === "produce" && !production[3]) return Object.freeze({ action: "invalid", reason: "Use PlotPickle produce Block 01 local for a bounded no-spend candidate pass." });
-    return Object.freeze({ action: production[1].toLowerCase(), blockNumber });
+    if (blockNumber < 1 || blockNumber > 24 || (production[3] && production[1].toLowerCase() !== "produce")) return Object.freeze({ action: "invalid", reason: "Use PlotPickle produce Block 01 for configured writing, or PlotPickle produce Block 01 local for no-spend inference." });
+    return Object.freeze({ action: production[1].toLowerCase(), blockNumber, ...(production[1].toLowerCase() === "produce" ? { localOnly: Boolean(production[3]) } : {}) });
   }
   if (/^\/?plotpickle\s+(?:library|list\s+projects)$/iu.test(value)) return Object.freeze({ action: "library" });
   const inspect = value.match(/^\/?plotpickle\s+inspect\s+([A-Za-z0-9_.:-]{1,180})$/iu);

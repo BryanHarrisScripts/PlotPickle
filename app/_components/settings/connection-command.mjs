@@ -97,8 +97,8 @@ export function createConnectionCommandSession(services) {
       const execution = routeExecution(command.capability, route);
       if (!option || option.supported === false || (option.disabled && !execution.disabled)) throw new ConnectionCommandBlocked("No supported runtime option exists. Inspect the existing Setup screen.");
       if (command.action === "select") {
-        try { requireSelectedCapability(status, command.capability, route); }
-        catch (error) { throw new ConnectionCommandBlocked("The selected route needs setup and a successful capability test. No selection was submitted.", { cause: error }); }
+        if (!execution.disabled && !option.ready) throw new ConnectionCommandBlocked("The selected route needs setup and a successful capability test. No selection was submitted.");
+        requireSelectedCapability(status, command.capability, route);
       }
       const request = command.action === "test" ? testRequest(command.capability, route) : null;
       const proof = resolved ? connectionProof(status, { ...resolved }) : null;

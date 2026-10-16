@@ -12,6 +12,7 @@ import {
 } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { createConnectionCommandSession, parseConnectionCommand } from "../_components/settings/connection-command.mjs";
+import { splitConnectionConfirmationPreview } from "../_components/settings/connection-confirmation-presentation.mjs";
 import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../../core/agents/health/command.mjs";
 import { createCmdSourceProposalSession, parseCmdSourceProposal } from "../../core/contracts/imported-screenplay-evidence/cmd-source-proposal.mjs";
 import { buildStoryDevelopmentFields } from "../../modules/learn/model/story-development-fields";
@@ -1354,7 +1355,14 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
             {messages.map((message) => (
               <div className={message.role === "human" || message.role === "command" ? styles.humanMessage : styles.dsddMessage} key={message.id}>
                 <strong>{message.role === "human" || message.role === "command" ? "You" : message.role === "tool" ? "Tool" : "DSDD"}</strong>
-                <p>{message.text}</p>
+                <p>{splitConnectionConfirmationPreview(
+                  message.text,
+                  message.role === "tool" && message.id.startsWith("connections-result"),
+                ).map((segment, index) => segment.emphasis ? (
+                  <span key={index} className={styles.connectionConfirmation} data-cmd-confirmation="action">
+                    {segment.text}
+                  </span>
+                ) : <span key={index}>{segment.text}</span>)}</p>
                 {message.context ? <small>{message.context.surfaceLabel} · {message.context.route}</small> : null}
                 {message.role === "dsdd" && message.model ? (
                   <small>Intent model: {message.provider ? `${message.provider} · ` : ""}{message.model}</small>

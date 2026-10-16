@@ -46,9 +46,12 @@ function currentProject(): LibraryPPFProject | null {
   return id ? loadLibraryProjectSnapshot(id) : null;
 }
 
-function assertCurrentProject(projectId: string) {
+function assertCurrentProject(projectId: string, expectedRevision?: number) {
   if (!projectId || sessionActiveProjectId() !== projectId) {
     throw new Error("The active Library story changed. Reload ASSETS before saving.");
+  }
+  if (expectedRevision !== undefined && loadLibraryProjectSnapshot(projectId)?.revision !== expectedRevision) {
+    throw new Error("The saved Library story changed since this poster was prepared. Reload ASSETS before saving.");
   }
 }
 
@@ -76,12 +79,16 @@ export default function AssetsWorkspace({
   const [route, setRoute] = useState<ImageRouteStatus | null>(null);
   const [direction, setDirection] = useState("");
   const [billingAcknowledged, setBillingAcknowledged] = useState(false);
-  const [candidate, setCandidate] = useState<{ assetUrl: string; prompt: string; provider: string; model: string } | null>(null);
+  const [candidate, setCandidate] = useState<{ projectId: string; assetUrl: string; prompt: string; provider: string; model: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    const refresh = () => setProject(currentProject());
+    const refresh = () => {
+      setProject(currentProject());
+      setCandidate(null);
+      setBillingAcknowledged(false);
+    };
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
@@ -130,7 +137,7 @@ export default function AssetsWorkspace({
     setBusy(true);
     setNotice("Generating a poster candidate for the selected story. No story canon will change.");
     try {
-      assertCurrentProject(project.id);
+      assertCurrentProject(project.id, project.revision);
       const context = deriveMarketingContextV1(project);
       const basePrompt = buildFoundationsMarketingPosterPrompt(context);
       const humanDirection = direction.trim();
@@ -150,7 +157,7 @@ export default function AssetsWorkspace({
       await verifyPosterMedia(result.assetUrl);
       assertCurrentProject(project.id);
       setCandidate({
-        assetUrl: result.assetUrl, prompt: result.revisedPrompt?.trim() || prompt,
+        projectId: project.id, assetUrl: result.assetUrl, prompt: result.revisedPrompt?.trim() || prompt,
         provider: result.provider || routeId, model: result.model || routeOption?.model || "",
       });
       setNotice("Candidate ready. Save as a draft, then approve it for the Library poster.");
@@ -165,7 +172,10 @@ export default function AssetsWorkspace({
     if (!project || !candidate || busy) return;
     setBusy(true);
     try {
-      assertCurrentProject(project.id);
+      if (candidate.projectId !== project.id) {
+        throw new Error("This poster belongs to a different story. Generate a new candidate.");
+      }
+      assertCurrentProject(project.id, project.revision);
       await verifyPosterMedia(candidate.assetUrl);
       const now = new Date().toISOString();
       const artifact = createFirstMarketingReferenceArtifact({
@@ -188,7 +198,7 @@ export default function AssetsWorkspace({
     if (!project || busy) return;
     setBusy(true);
     try {
-      assertCurrentProject(project.id);
+      assertCurrentProject(project.id, project.revision);
       await verifyPosterMedia(artifact.assetUrl);
       const next = applyStoryCommand(project, {
         type: "foundations.visual.accept", artifactId: artifact.id, occurredAt: new Date().toISOString(),

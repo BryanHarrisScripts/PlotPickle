@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "issue": 3047,
+  "phase": "nested-developer-dependency-security",
+  "brief": "docs/developer-briefs/3047-nested-dependency-security.md",
+  "allowedChanges": [
+    ".pi/npm/package.json",
+    ".pi/npm/package-lock.json",
+    "tools/hunk-review/package.json",
+    "tools/hunk-review/package-lock.json",
+    "docs/developer-briefs/3047-nested-dependency-security.md",
+    "config/development-convergence/3047.json"
+  ],
+  "acceptance": [
+    {
+      "id": "PATCHED-HUNK-GRAPH",
+      "criterion": "Hunk Review selects the exact patched shell-quote release without upgrading hunkdiff.",
+      "evidence": [
+        {"type":"file-contains","path":"tools/hunk-review/package.json","contains":"\"overrides\": { \"shell-quote\": \"1.11.0\" }"},
+        {"type":"file-contains","path":"tools/hunk-review/package-lock.json","contains":"https://registry.npmjs.org/shell-quote/-/shell-quote-1.11.0.tgz"}
+      ]
+    },
+    {
+      "id": "PRESERVE-NATIVE-MCP",
+      "criterion": "Existing native MCP and dormant legacy rollback semantics stay protected by unchanged regression coverage.",
+      "evidence": [
+        {"type":"file-contains","path":"tests/issue-2591-pi-native-mcp.test.mjs","contains":"#2591 retires pi-mcp-adapter from every loaded project package path"},
+        {"type":"file-contains","path":"docs/developer-briefs/3047-nested-dependency-security.md","contains":"Remove that stale dependency"}
+      ]
+    }
+  ],
+  "constraints": ["No active Pi/runtime upgrades, PPF changes or provider calls.", "No security alert dismissal or unverified all-ecosystem safety claims."]
+}

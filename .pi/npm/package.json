@@ -5,7 +5,6 @@
     "@dietrichgebert/ponytail": "4.8.4",
     "pi-subagents": "0.35.1",
     "@ff-labs/pi-fff": "0.10.1",
-    "pi-mcp-adapter": "2.26.0",
     "pi-context-view": "0.4.2"
   },
   "devDependencies": {

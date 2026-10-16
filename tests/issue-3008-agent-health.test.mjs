@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { buildAgentHealthCensus } from "../core/agents/agent-health-census.mjs";
-import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../app/_components/settings/agent-health-command.mjs";
+import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../modules/agent-health/command.mjs";
 
 const root = new URL("../", import.meta.url);
 const json = async path => JSON.parse(await readFile(new URL(path, root), "utf8"));
@@ -158,7 +158,7 @@ test("#3008 wiring is native command + real owner endpoints and never fabricates
     readFile(new URL("app/skin-v1/global-dsdd-conversation.tsx",root),"utf8"),
     readFile(new URL("build/agent-compute-gateway.ts",root),"utf8"),
     readFile(new URL("scripts/production-supervisor-agent.mjs",root),"utf8"),
-    readFile(new URL("app/_components/settings/agent-health-command.mjs",root),"utf8"),
+    readFile(new URL("modules/agent-health/command.mjs",root),"utf8"),
   ]);
   assert.match(command, /if \(await runAgentHealthCommand\(submitted\)\) return;/);
   assert.match(command, /authenticatedProfileFetch\(apiPath/);

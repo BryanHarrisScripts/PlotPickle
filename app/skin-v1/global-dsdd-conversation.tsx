@@ -12,7 +12,7 @@ import {
 } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { createConnectionCommandSession, parseConnectionCommand } from "../_components/settings/connection-command.mjs";
-import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../_components/settings/agent-health-command.mjs";
+import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../../modules/agent-health/command.mjs";
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";

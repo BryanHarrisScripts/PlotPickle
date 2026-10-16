@@ -4779,7 +4779,7 @@
       },
       {
         "target": "tests/issue-3004-cmd-source-proposals.test.mjs",
-        "targetDigest": "8e59251713447403959e0dcd8c6805afb5d82f2aea4e5373cec8ee11de7ac319",
+        "targetDigest": "c2dae01f7c1704587975538e3e3b846ed5a2a4c81c91cae92e2217bc88b286b6",
         "catalogueIds": [
           "story-canon.cmd-screenplay-source-proposals-3004"
         ],

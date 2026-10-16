@@ -5068,7 +5068,7 @@
       },
       {
         "target": "tests/issue-3032-character-sheet-portrait.test.mjs",
-        "targetDigest": "cf94b155cbb23c1d5e186d1da75dcdc38caf3b5f35fc9059240a680160409f8e",
+        "targetDigest": "4dc86c669ae6db9ba65e1c8cbd15bd60bd81173e7da49e050dea9fc7135e59b7",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -5083,9 +5083,10 @@
           }
         ],
         "scopes": [
-          "static-source"
+          "static-source",
+          "unit-fixture"
         ],
-        "limits": "Static verification of source-bound character image generation, square route and shared PPF registry readback. No assertion of live Windows image quality, actual model provider output, cross-machine asset byte portability or end-user UAT.",
+        "limits": "Static verification of source-bound character image generation, square route and shared PPF registry readback; synthetic #3042 real ComfyUI workflow submission verifies square latent dimensions and preserves rectangular aspects without network dispatch or output files. No assertion of live Windows image quality, actual model provider output, cross-machine asset byte portability or end-user UAT.",
         "inputs": [
           {
             "path": "core/storage/library-project.ts",

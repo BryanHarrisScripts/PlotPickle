@@ -16,6 +16,7 @@ import {
 import { normalizeFoundationProject, PPF_FOUNDATION_VERSION, type PPFProject } from "../project/project";
 import { createEmptyWorldMapState, normalizeWorldMapState, type WorldMapState } from "../contracts/world-map";
 import { createEmptyDiscoveryState, normalizeDiscoveryState, type DiscoveryState } from "../contracts/discovery";
+import { createEmptyProjectAssetRegistry, normalizeProjectAssetRegistry, type ProjectAssetRegistry } from "../../lib/projects/persistence/project-assets";
 export const STORY_DEVELOPMENT_VERSION = 1 as const;
 export const MIND_MAP_NOTES_VERSION = 1 as const;
 
@@ -86,6 +87,8 @@ export type LibraryPPFProject = PPFProject & {
   readonly writing: BlockWritingState;
   readonly discovery: DiscoveryState;
   readonly worldMap: WorldMapState;
+  /** Shared project asset identity registry for PPF-deliverable references. Image bytes remain local. */
+  readonly assetRegistry: ProjectAssetRegistry;
   readonly storyDevelopment: StoryDevelopmentState;
   readonly mindMapNotes: MindMapNotesState;
   readonly storyIntent: LibraryStoryIntent | null;
@@ -206,7 +209,8 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
     ? createEmptyMindMapNotesState()
     : normalizeMindMapNotesState(source.mindMapNotes);
   const storyIntent = normalizeLibraryStoryIntent(source.storyIntent);
-  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent };
+  const assetRegistry = source.assetRegistry === undefined ? createEmptyProjectAssetRegistry() : normalizeProjectAssetRegistry(source.assetRegistry);
+  return { ...project, structure, sourceEvidence, writing, discovery, worldMap, assetRegistry, storyDevelopment, mindMapNotes, storyIntent };
 }
 
 export function libraryBackupFileName(title: string) {

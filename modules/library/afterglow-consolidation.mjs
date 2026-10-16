@@ -168,6 +168,10 @@ function restore(target,keys,value) {
     throw new Error("Cannot exclude unrecognized story path.");
   }
 }
+function writeOwnRecordValue(target,key,value) {
+  // Imported keys, including __proto__, are data rather than inherited setters.
+  Object.defineProperty(target,key,{value,writable:true,enumerable:true,configurable:true});
+}
 function apply(target,keys,value) {
   let node = target;
   for (let i=0;i<keys.length;i++) {
@@ -181,9 +185,9 @@ function apply(target,keys,value) {
       else node=node[index];
     } else {
       if (!isRecord(node)) throw new Error("Expected a project object at "+pathLabel(keys.slice(0,i)));
-      if (last) node[name]=copy(value);
+      if (last) writeOwnRecordValue(node,name,copy(value));
       else {
-        if(!Object.hasOwn(node,name)||node[name]===null)node[name]=keys[i+1].startsWith("@")?[]:{};
+        if(!Object.hasOwn(node,name)||node[name]===null)writeOwnRecordValue(node,name,keys[i+1].startsWith("@")?[]:{});
         node=node[name];
       }
     }

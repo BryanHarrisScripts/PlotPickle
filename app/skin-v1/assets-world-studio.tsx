@@ -9,9 +9,9 @@ import type { LibraryPPFProject } from "../../core/storage/library-project";
 import { loadLibraryProjectSnapshot, saveActiveLibraryProject, sessionActiveProjectId } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject, flushProfilePrivateWrites } from "../../core/storage/profile-private-browser";
 import { registerProjectAssetSource, normalizeProjectAssetRegistry, type ProjectAssetRegistry } from "../../lib/projects/persistence/project-assets";
+import { worldEnvironmentSources } from "../../modules/learn/model/world-environment-sources.mjs";
 import styles from "./assets-world-studio.module.css";
 
-type Source = { id: string; label: string; text: string; kind: "screenplay-location" | "world-brief" };
 type Candidate = {
   projectId: string; revision: number; sourceId: string; routeId: string;
   assetUrl: string; prompt: string; provider: string; model: string; bytes: number; hash: string;
@@ -22,26 +22,6 @@ const VIEWS = ["Establishing wide", "Street-level", "Aerial", "Interior", "Exter
 const LIGHTING = ["As written", "Daylight", "Evening", "Night", "Dawn", "Dusk"] as const;
 const MEDIA = /^\/api\/local-ai\/assets\/[a-z0-9-]+\.(?:webp|png|jpe?g)$/iu;
 
-function storyLocations(project:LibraryPPFProject):Source[] {
-  const headings=(project.sourceEvidence.screenplay?.passages||[])
-    .filter(p=>p.text.trim() && (p.type==="scene-heading" || p.type==="scene" ||
-      /^(?:INT\.|EXT\.|INT\/EXT\.|EXT\/INT\.)\s/iu.test(p.text.trim())))
-    .slice(0,120);
-  const seen=new Set<string>();
-  const results:Source[]=[];
-  for(const p of headings){
-    const normalized=p.text.replace(/\s+/gu," ").trim().slice(0,200);
-    const key=normalized.toLowerCase();
-    if(seen.has(key))continue;
-    seen.add(key);
-    results.push({id:p.id,label:normalized,text:p.text,kind:"screenplay-location"});
-  }
-  const brief=project.world.brief;
-  if(brief.savedAt && brief.content.trim()){
-    results.push({id:"saved-world-brief",label:"Saved World description",text:brief.content.slice(0,2400),kind:"world-brief"});
-  }
-  return results;
-}
 
 function guard(project:LibraryPPFProject){
   if(sessionActiveProjectId()!==project.id || loadLibraryProjectSnapshot(project.id)?.revision!==project.revision){
@@ -91,7 +71,7 @@ function registryForApproval(registry:ProjectAssetRegistry,artifactId:string,acc
 }
 
 export default function AssetsWorldStudio({project,routeId,routeReady,cloud,onSaved}:Props){
-  const sources=useMemo(()=>storyLocations(project),[project]);
+  const sources=useMemo(()=>worldEnvironmentSources(project),[project]);
   const [sourceId,setSourceId]=useState("");
   const [view,setView]=useState<string>(VIEWS[0]);
   const [lighting,setLighting]=useState<string>(LIGHTING[0]);

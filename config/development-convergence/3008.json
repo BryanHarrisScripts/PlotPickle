@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "issue": 3008,
+  "phase": "source-complete-agent-census-and-consented-quick-smoke",
+  "brief": "docs/developer-briefs/3008-cmd-agent-health-census-and-smoke.md",
+  "allowedChanges": [
+    "core/agents/agent-health-census.mjs",
+    "lib/agents/production-supervisor-workers.mjs",
+    "scripts/production-supervisor-agent.mjs",
+    "build/agent-compute-gateway.ts",
+    "app/_components/settings/agent-health-command.mjs",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "tests/issue-3008-agent-health.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3008-cmd-agent-health-census-and-smoke.md",
+    "config/development-convergence/3008.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ALL-SOURCE-REGISTRIES-ACCOUNTED",
+      "criterion": "Source census includes twenty profiles, sixteen Mastra roles without double counting, Community/Guildhall discrepancies, five supervisor workers, coordinator and two external developer workers.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 census reconciles all source owners and exposes mismatches without calling agents"
+        }
+      ]
+    },
+    {
+      "id": "TRUTH-REGISTRATION-NOT-PASS",
+      "criterion": "CMD never reports registration, BUZZ presence or provider readiness as a successful I/O call, and retains unknown external BUZZ peer coverage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 registration is not success; no inference for inventory or report"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-CHARGE-AND-OWNER-BOUNDARY",
+      "criterion": "One-use confirmation, protected Human profile, tested selected route, paid charge/data-share acknowledgments and finite requests all gate inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 live requests require human confirmation and prohibit paid cloud without charges and share"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 expired previews, changed owner and unsupported BUZZ action fail closed"
+        }
+      ]
+    },
+    {
+      "id": "ROLE-I-O-NOT-INVENTED",
+      "criterion": "Bounded synthetic Mastra role invocations validate actual structured and advisory output; all BUZZ, developer and sidecar roles explicitly blocked until their own reviewed adapters exist.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 quick uses every Mastra role with bounded calls and names every uncallable/BUZZ worker"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-OWNER-NO-HIDDEN-POST",
+      "criterion": "Existing Settings Command uses writing assistant and read-only BUZZ agent roster, never BUZZ publishing or new credential storage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3008-agent-health.test.mjs",
+          "contains": "#3008 wiring is native command + real owner endpoints and never fabricates BUZZ posting"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not call census/registry health a tested live agent.",
+    "Do not merge if truth admission or any selected Windows proof fails.",
+    "Paid cloud model calls always preview with explicit CHARGES SHARE, never from startup.",
+    "All external/community/native worker reports remain blocked until separately authenticated role-specific test contracts exist.",
+    "Do not close #3008 when a source-only census/limited Mastra probe has passed; live all-agent UAT is not proven."
+  ]
+}

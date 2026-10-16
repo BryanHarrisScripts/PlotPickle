@@ -117,7 +117,7 @@ test("#3008 live requests require human confirmation and prohibit paid cloud wit
   assert.match(await session.execute(command), /PREVIEW/);
   const result = await session.execute({ action: "confirm", token: "abcdef1234567890", charges: true, share: true });
   assert.match(result, /elowen-mapweaver: PASS \[structured-output\]/);
-  assert.match(result, /34/);
+  assert.match(result, /live PASS: 1/);
   assert.equal(ctx.calls.filter(x => x.path.endsWith("/chat")).length, 1);
   assert.ok(!result.includes("SYNTHETIC NONCANON FICTION"), "no synthetic prompt/response echoes");
   assert.match(await session.execute({ action: "confirm", token: "abcdef1234567890", charges: true, share: true }), /BLOCKED/);

@@ -139,7 +139,12 @@ export default function AssetsCharacters({ project, routeId, routeReady, cloud, 
       validateProject(project.id, project.revision);
       await verifyLocalImage(candidate.assetUrl);
       const freshPlan = mindMapCharacterVisualGenerationPlan(project, selected.id, new Date().toISOString());
-      if (freshPlan.versionId !== candidate.versionId) throw new Error("The editable character version has changed.");
+      // A brand-new version receives a generated timestamp; its ID need not match
+      // a second timestamp computed at Save. Existing partial sets must match.
+      if (!freshPlan.versionId || (freshPlan.existingReferences.length && freshPlan.versionId !== candidate.versionId)
+        || (versions.some((version) => version.id === candidate.versionId) && !freshPlan.existingReferences.length)) {
+        throw new Error("The editable character version has changed. Regenerate before saving.");
+      }
       const now = new Date().toISOString();
       const reference: WorldMapCharacterVisualReference = {
         id: globalThis.crypto.randomUUID(), versionId: candidate.versionId,

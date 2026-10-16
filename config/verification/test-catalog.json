@@ -119,7 +119,8 @@
           "tests/issue-3019-assets-characters.test.mjs",
           "tests/issue-3031-screenplay-character-roster.test.mjs",
           "tests/issue-3032-character-sheet-portrait.test.mjs",
-          "tests/issue-3033-assets-image-route-switch.test.mjs"
+          "tests/issue-3033-assets-image-route-switch.test.mjs",
+          "tests/issue-3035-assets-surface-polish.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4867,7 +4868,7 @@
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
+            "digest": "33fba394f9ed622b57efa010edfa266fbc0584f128821bc94929956131a80f29"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -4904,7 +4905,7 @@
       },
       {
         "target": "tests/issue-3019-assets-poster-library.test.mjs",
-        "targetDigest": "d2ef998575914ea4c4b77a1676e9c4183040331ba74a283532eb3a7d6abb6e96",
+        "targetDigest": "000eee12c6c0133fc0ff0a5733a7aadcefe5931565df0bb7867cf00aa10235fe",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -4921,11 +4922,11 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed.",
+        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed. #3035 preserves the folder-list and approved poster behavior using a shared keyboard-accessible selected-state folder renderer instead of individual literal buttons.",
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
+            "digest": "33fba394f9ed622b57efa010edfa266fbc0584f128821bc94929956131a80f29"
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
@@ -4965,7 +4966,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
+            "digest": "33fba394f9ed622b57efa010edfa266fbc0584f128821bc94929956131a80f29"
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
@@ -5135,7 +5136,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
+            "digest": "33fba394f9ed622b57efa010edfa266fbc0584f128821bc94929956131a80f29"
           },
           {
             "path": "app/skin-v1/assets-image-route-selector.tsx",
@@ -5144,6 +5145,37 @@
           {
             "path": "app/skin-v1/assets-image-route-selector.module.css",
             "digest": "26a04c47413fac1bd4fa01e25b094408880f8abc9267a2e081dbe38d69e7ac5a"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3035-assets-surface-polish.test.mjs",
+        "targetDigest": "6485c77085773770caf2b04181aa7e40bf661d2ba7306c1f77c079bb3d738eb4",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static Outline/Community-style layout and source preservation only. Not evidence of human-reviewed screenshot parity, live Windows asset rendering, valid local/cloud generation, all user-approved design details or portable media bytes.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "33fba394f9ed622b57efa010edfa266fbc0584f128821bc94929956131a80f29"
+          },
+          {
+            "path": "app/skin-v1/assets-workspace.module.css",
+            "digest": "57745518d2bb937b20783131b8e9e073242b0f27abc3d057f4d93b7606daf351"
           }
         ]
       }

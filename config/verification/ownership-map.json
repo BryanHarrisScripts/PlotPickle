@@ -2392,6 +2392,19 @@
         "native",
         "test-harness"
       ]
+    },
+    {
+      "id": "agent-health-command-3008",
+      "classification": "production",
+      "include": [
+        "modules/agent-health/**"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security",
+        "mcp"
+      ]
     }
   ]
 }

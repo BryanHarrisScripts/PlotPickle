@@ -2370,7 +2370,8 @@
       "id": "agent-health-census-3008",
       "classification": "production",
       "include": [
-        "core/agents/agent-health-census.mjs"
+        "core/agents/agent-health-census.mjs",
+        "core/agents/health/command.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -2391,19 +2392,6 @@
         "agent",
         "native",
         "test-harness"
-      ]
-    },
-    {
-      "id": "agent-health-command-3008",
-      "classification": "production",
-      "include": [
-        "modules/agent-health/**"
-      ],
-      "ownerLayer": "agent-runtime",
-      "riskTokens": [
-        "agent",
-        "security",
-        "mcp"
       ]
     }
   ]

@@ -11,7 +11,7 @@ const fixture = async () => {
     ...(await json("config/agent-profile-extensions/community.json")).profiles];
   const runtime = await readFile(new URL("build/mastra-agent-runtime.ts", root), "utf8");
   const rolesSection = runtime.split("export const PLOTPICKLE_AGENT_ROLES = {")[1].split("} as const")[0];
-  const roleIds = [...rolesSection.matchAll(/^\s*"([a-z0-9-]+)":/gmu)].map(x => x[1]);
+  const roleIds = [...rolesSection.matchAll(/^\s*(?:"([a-z0-9-]+)"|([a-z][a-z0-9-]+))\s*:/gmu)].map(x => x[1] || x[2]);
   const guildhallActorIds = [...(await json("config/buzz-guildhall.json")).actors,
     ...(await json("config/buzz-guildhall-community.json")).actors].map(x => x.id);
   const playhouseIds = (await json("plugins/plotpickle-playhouse/community.json")).agents.map(x => x.profileId);

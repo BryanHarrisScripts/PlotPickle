@@ -4591,7 +4591,7 @@
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "0637386762f6f02643233989557c455419cd034e23b3f4df8f25a66b3c5b544a",
+        "targetDigest": "ee8ffa4960f166fe74a39775b014a7d7e998c72b5e8b57febc05b0a0b0f00a2e",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4608,7 +4608,7 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD read-only reservation/recovery projection and host-aware Outline UI status projection; no live Windows Pi checkpoint inspection, verified provider call, paid OpenAI request, account-owned story or movie acceptance.",
+        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD recovery projection, authenticated-status UI, and Pi checkpoint admit-resume-wait stage proof with fail-closed admission. Native Pi and live Windows source task/paid provider results remain independently unproven; no real screenplay or account-owned provider was tested in this catalogue evidence.",
         "inputs": []
       },
       {

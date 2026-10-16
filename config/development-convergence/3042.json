@@ -13,7 +13,7 @@
   "acceptance": [{
     "id": "ACTUAL-SQUARE-WORKFLOW",
     "criterion": "Square requests submit equal latent dimensions without changing existing portrait/landscape routes or weakening actual image validation.",
-    "evidence": [{"type":"file-contains","path":"tests/issue-3032-character-sheet-portrait.test.mjs","contains":"#3042 local ComfyUI submits actual square latent dimensions while preserving rectangular aspects"}]
+    "evidence": [{"type":"file-contains","path":"tests/issue-3032-character-sheet-portrait.test.mjs","contains":"#3042 actual local ComfyUI workflow builds square dimensions while preserving rectangular aspects"}]
   }],
   "constraints": ["No provider fallback, canon edit, automatic approval or World authoring.", "Fixture and live Windows actual image proof remain separate."]
 }

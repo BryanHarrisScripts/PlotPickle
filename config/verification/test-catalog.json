@@ -5016,7 +5016,7 @@
       },
       {
         "target": "tests/issue-3031-screenplay-character-roster.test.mjs",
-        "targetDigest": "3265ad2bf14cec08d9e5868cf4d896db6d39d308f588ba37ab6522825273048c",
+        "targetDigest": "49eb93d06a3bc739e9f05ceded9035c674d224ff3179998601a1d609fa297fbb",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -5038,7 +5038,7 @@
         "inputs": [
           {
             "path": "modules/learn/model/screenplay-character-roster.ts",
-            "digest": "53dfe0a3e8cad7cf6c56ca83d5443ee62f29c3ad8a94d075c2006ebe2b7eb0e1"
+            "digest": "cc0a61df2c185e13fa4d2f05f723975d2974950aa4a95bbc59f27d24e0b4b3f0"
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
@@ -5047,6 +5047,14 @@
           {
             "path": "app/skin-v1/assets-characters.module.css",
             "digest": "3c8c2b65266c545f3057eb87d7505e0dcb6acf64d367780b9b8cd45813fc4c98"
+          },
+          {
+            "path": "modules/learn/model/screenplay-character-cues.mjs",
+            "digest": "2156d1230a7c4cad58c9c94e07be96346bc926803b6884ce4a5c8d3ed7578c3b"
+          },
+          {
+            "path": "modules/learn/model/screenplay-character-cues.d.mts",
+            "digest": "1f78402afb68a97330e4e66c7bbaa4909f29d9ae69a62e98a1283e5a5d4287a3"
           }
         ]
       }

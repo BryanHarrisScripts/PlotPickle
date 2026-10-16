@@ -5,6 +5,10 @@ import type { ViteDevServer } from "vite";
 import developerAgentStack from "../config/developer-agent-stack.json";
 import { AGENT_PROFILES, type AgentProfile } from "../lib/agents/agent-profiles";
 import { PLOTPICKLE_AGENT_ROLES } from "./mastra-agent-runtime";
+import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
+import playhouseDirectory from "../plugins/plotpickle-playhouse/community.json";
+import { PRODUCTION_SUPERVISOR_WORKERS } from "../lib/agents/production-supervisor-workers.mjs";
+import { buildAgentHealthCensus } from "../core/agents/agent-health-census.mjs";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 import { readSynchronizedAssistantStore, type TextProvider } from "./writing-assistant-store";
 
@@ -143,6 +147,16 @@ async function snapshot() {
     overrides: {},
     providers,
     agents: agentRoster(),
+    // The CMD health census includes role-only Mastra specialists, BUZZ directory
+    // mismatches and non-LLM workers. Presence and I/O are checked separately.
+    agentHealthCensus: buildAgentHealthCensus({
+      profiles: AGENT_PROFILES,
+      roleIds: Object.keys(PLOTPICKLE_AGENT_ROLES),
+      workers: PRODUCTION_SUPERVISOR_WORKERS,
+      developers: developerAgentStack.requiredAgents,
+      guildhallActorIds: BUZZ_GUILDHALL_ACTORS.map((actor) => actor.id),
+      playhouseIds: playhouseDirectory.agents.map((agent) => agent.profileId),
+    }),
   };
 }
 

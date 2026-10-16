@@ -685,6 +685,7 @@
         "build/ai/comfyui-ltx-local-gateway.ts",
         "build/ai/comfyui-ltx-local-provider.ts",
         "build/cloud-media-provider.ts",
+        "build/local-ai-gateway-base.ts",
         "build/media-provider-common.ts",
         "build/media-routing-gateway.ts",
         "build/media-routing-store.ts",

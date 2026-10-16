@@ -80,12 +80,33 @@ export function validateProductionFidelity(output: string, project: LibraryPPFPr
   });
 }
 
+/** Fixed diagnostic labels share the candidate predicate; never copy private finding reasons. */
+export function hasCompleteProductionReview(pass: OutlineProductionPass): boolean {
+  const findings = pass.review?.findings;
+  return Array.isArray(findings) && findings.length === PRODUCTION_FIDELITY_DIMENSIONS.length
+    && PRODUCTION_FIDELITY_DIMENSIONS.every(dimension => findings.filter(item => item?.dimension === dimension
+      && ["supported", "unresolved", "contradictory"].includes(item.state)).length === 1);
+}
+
+export function outlineProductionCandidateBlockers(assessment: OutlineAgentAssessment, pass: OutlineProductionPass): string[] {
+  const blockers: string[] = [];
+  if (!hasCompleteProductionReview(pass)) blockers.push("Separate semantic review is incomplete.");
+  for (const dimension of PRODUCTION_FIDELITY_DIMENSIONS) {
+    const finding = pass.review?.findings.find(item => item.dimension === dimension);
+    if (finding && finding.state !== "supported") blockers.push("Semantic " + dimension + (finding.state === "contradictory" ? ": contradictory." : ": unresolved."));
+  }
+  if (!["covered", "condensed-shared"].includes(assessment.structural.state)) blockers.push(assessment.structural.state === "gap-underdeveloped" ? "Structural assessment: gap-underdeveloped." : "Structural assessment: unresolved.");
+  if (assessment.characters.some(c => c.state === "unresolved-insufficient-evidence")) blockers.push("Character evidence: unresolved.");
+  for (const ordinal of [1, 2, 3, 4]) {
+    const mini = assessment.miniBlocks.find(item => item.ordinal === ordinal);
+    if (!mini || mini.state !== "supported" || !mini.storyboardCue.trim() || !mini.passageIds.length) blockers.push("Mini-Block " + ordinal + (mini?.state === "partial" ? ": partial." : ": source-supported proposal required."));
+  }
+  return blockers;
+}
+
 export function buildOutlineProductionCandidate(project: LibraryPPFProject, assessment: OutlineAgentAssessment, pass: OutlineProductionPass, assessmentRef: string, model: string, reviewedAt: string): OutlineProductionCandidate | null {
   const passages = productionPassSource(project, assessment.blockNumber);
-  if (!pass.review || pass.review.findings.some(f => f.state !== "supported")
-    || !["covered", "condensed-shared"].includes(assessment.structural.state)
-    || assessment.characters.some(c => c.state === "unresolved-insufficient-evidence")
-    || assessment.miniBlocks.some(m => m.state !== "supported" || !m.storyboardCue.trim() || !m.passageIds.length)) return null;
+  if (!pass.review || outlineProductionCandidateBlockers(assessment, pass).length) return null;
   return { version: 1, canonical: false, projectId: project.id, sourceReceipt: pass.grant.sourceReceipt,
     assessmentRef, reviewerModel: model, reviewedAt, findings: pass.review.findings,
     miniBlocks: assessment.miniBlocks.map(m => ({ ordinal: m.ordinal, visualQuestion: m.storyboardCue,

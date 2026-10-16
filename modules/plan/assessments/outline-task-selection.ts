@@ -16,8 +16,9 @@ const EXECUTING_STATES = new Set(["queued", "preparing-context", "working", "ver
 /** Project host execution separately from a durable state that may still say "working"
  * after the worker has stopped. This is display-only: no task lifecycle changes.
  */
-export function outlineTaskDisplayStatus(task: Pick<OutlineTaskView, "run" | "running" | "resumeRequired" | "error">): string {
+export function outlineTaskDisplayStatus(task: Pick<OutlineTaskView, "run" | "running" | "resumeRequired" | "error" | "reviewGate">): string {
   if (task.running && EXECUTING_STATES.has(task.run.state)) return "working";
+  if (task.reviewGate && !task.error) return "source review required - candidate withheld";
   if (task.resumeRequired) return task.error ? "blocked - recovery required" : "recovery required";
   if (EXECUTING_STATES.has(task.run.state)) return "not executing - inspect recovery";
   return task.run.state.replaceAll("-", " ");
@@ -76,7 +77,9 @@ export function describeOutlineTaskDiagnostic(task: OutlineTaskView): string {
       + ". This records stage, NOT provider call count or charge.",
     "Admitted source-bound assessments: " + task.proposals.length + "/" + task.steps.length
       + "; " + fidelity + "; " + candidate,
-    "Safe fault category: " + cause + "; protected checkpoint/private error cause: NOT INSPECTED",
+    task.reviewGate && !task.error
+      ? "Review gate: " + task.reviewGate.code + "; " + task.reviewGate.blockers.join(" ") + " Review saved findings against source; no automatic retry."
+      : "Safe fault category: " + cause + "; protected checkpoint/private error cause: NOT INSPECTED",
     "No resume, cancellation, new model request, creative acceptance or media generation was performed.",
   ].join("\n");
 }

@@ -13,13 +13,14 @@ import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plot
 const compiledRoot = await mkdtemp(path.resolve("node_modules/.production-pass-2986-"));
 await build({ stdin: { contents: `
 export { createOutlineTaskController } from "./build/projects/outline-task-controller.ts";
+export { outlineProductionReviewGate } from "./build/projects/outline-task-controller.ts";
 export { createOutlineTaskGateway } from "./build/projects/outline-task-gateway.ts";
 export { createOutlineTaskHttpHandlers } from "./build/projects/outline-task-http.ts";
 export { normalizeLibraryProject } from "./core/storage/library-project.ts";
 export { outlineAssessmentMaterialReceipt } from "./modules/plan/outline-agent-assessment.ts";
 export { validateProductionFidelity, PRODUCTION_FIDELITY_DIMENSIONS } from "./modules/plan/assessments/outline-production-pass.ts";
 `, resolveDir: process.cwd(), loader: "ts" }, bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(compiledRoot, "fixture.mjs"), logLevel: "silent" });
-const { createOutlineTaskController, createOutlineTaskGateway, createOutlineTaskHttpHandlers, normalizeLibraryProject, outlineAssessmentMaterialReceipt, PRODUCTION_FIDELITY_DIMENSIONS } = await import(pathToFileURL(path.join(compiledRoot, "fixture.mjs")).href);
+const { createOutlineTaskController, outlineProductionReviewGate, createOutlineTaskGateway, createOutlineTaskHttpHandlers, normalizeLibraryProject, outlineAssessmentMaterialReceipt, PRODUCTION_FIDELITY_DIMENSIONS } = await import(pathToFileURL(path.join(compiledRoot, "fixture.mjs")).href);
 test.after(() => rm(compiledRoot, { recursive: true, force: true }));
 const passages = [1,2,3,4].flatMap(n => [
   { id: `action-${n}`, type: "action", text: `The courier reaches door ${n}.`, blockNumber: 1, miniBlockNumber: n, sceneNumber: n },
@@ -120,6 +121,59 @@ test("#2986 unresolved or contradictory semantic evidence checkpoints findings b
     const saved = await f.controller.status(f.context, task.scope.runId);
     assert.equal(saved.productionPass.candidate, null); assert.equal(saved.productionPass.review.findings[0].state, state);
     await f.controller.executeStep(task.scope, task.steps[0]); assert.equal(f.calls, 2, "no inference repeats on findings replay");
+  });
+});
+
+test("#3017 saved semantic and structural blockers remain a read-only review gate across gateway reopen", async t => {
+  for (const variant of ["unresolved", "contradictory", "structural"]) await t.test(variant, async t => {
+    const f = await fixture(t);
+    if (variant === "structural") {
+      const first = structuredClone(assessment);
+      first.structural.state = "gap-underdeveloped";
+      first.miniBlocks[3].state = "partial";
+      f.first = first;
+    } else {
+      const second = fidelity();
+      second.findings.find(item => item.dimension === "audience-knowledge").state = variant;
+      f.second = second;
+    }
+    const runtime = { auth: f.auth, privateStorage: f.storage, home: f.root };
+    const ports = { resolveExecution: async () => f.execution,
+      openScheduler: async (_id, controller) => ({ async run(input) { await controller.executeStep(input.scope, input.steps[0]); return true; }, async close() {} }) };
+    let host = createOutlineTaskGateway(runtime, ports);
+    t.after(() => host.close());
+    const started = await host.startProduction(f.context, [1]);
+    let saved;
+    for (let i = 0; i < 100; i++) { saved = await host.status(f.context, started.scope.runId); if (!saved.running) break; await new Promise(resolve => setTimeout(resolve, 10)); }
+    assert.equal(saved.running, false);
+    assert.equal(saved.error, null, "An expected review gate must not become an unknown runtime failure.");
+    assert.equal(saved.reviewGate.code, "PRODUCTION_REVIEW_REQUIRED");
+    assert.match(saved.reviewGate.blockers.join(" "), variant === "structural" ? /structural.*gap-underdeveloped.*Mini-Block 4.*partial/iu : /audience-knowledge/iu);
+    assert.equal(saved.productionPass.candidate, null);
+    assert.equal(saved.productionPass.review.findings.length, 7);
+    assert.equal(saved.attempts.at(-1).checkpointStage, "semantic-review-saved");
+    assert.equal(f.calls, 2);
+    await host.close(); host = createOutlineTaskGateway(runtime, ports);
+    const reopened = await host.status(f.context, started.scope.runId);
+    assert.deepEqual(reopened.reviewGate, saved.reviewGate);
+    assert.deepEqual(reopened.productionPass, saved.productionPass);
+    assert.equal(reopened.error, null);
+    assert.equal(f.calls, 2, "Read-only gate discovery must not dispatch another model call.");
+    for (const mutate of [
+      task => { task.productionPass.review = null; },
+      task => { task.productionPass.review.findings.pop(); },
+      task => { task.productionPass.review.findings[1] = task.productionPass.review.findings[0]; },
+      task => { task.productionPass.review.findings[0].state = "unknown"; },
+      task => { task.proposals = []; },
+      task => { task.attempts.at(-1).checkpointStage = "usage-reported"; },
+      task => { task.attempts.at(-1).usage = null; },
+      task => { task.attempts[0].checkpointStage = "result-processing-entered"; },
+      task => { task.run.state = "cancelled"; },
+    ]) {
+      const incomplete = structuredClone(reopened); mutate(incomplete);
+      assert.equal(outlineProductionReviewGate(incomplete), null, "Missing completed evidence or cancellation is not a review gate.");
+    }
+    assert.deepEqual(await f.storage.loadActiveProject(f.context), f.project);
   });
 });
 

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "issue": 3017,
+  "phase": "completed-production-review-gate",
+  "brief": "docs/developer-briefs/3017-production-review-gate.md",
+  "allowedChanges": [
+    "modules/plan/assessments/outline-production-pass.ts",
+    "build/projects/outline-task-controller.ts",
+    "build/projects/outline-task-gateway.ts",
+    "modules/plan/assessments/outline-task-browser.ts",
+    "modules/plan/assessments/outline-task-selection.ts",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "tests/issue-2986-production-pass.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3017-production-review-gate.md",
+    "config/development-convergence/3017.json"
+  ],
+  "acceptance": [{
+    "id": "EXPECTED-REVIEW-GATE",
+    "criterion": "Completed persisted assessment/review with ineligible candidate is explained as a source-review gate, survives reopen without inference, and does not mask missing evidence or genuine faults.",
+    "evidence": [
+      { "type": "file-contains", "path": "tests/issue-2986-production-pass.test.mjs", "contains": "#3017 saved semantic and structural blockers remain a read-only review gate across gateway reopen" },
+      { "type": "file-contains", "path": "app/skin-v1/global-dsdd-conversation.tsx", "contains": "SOURCE REVIEW REQUIRED — CANDIDATE WITHHELD" }
+    ]
+  }],
+  "constraints": [
+    "Keep candidate eligibility and semantic findings authoritative; no acceptance or canon edits.",
+    "Read-only status never resumes expired grants or dispatches inference.",
+    "Only fixed host labels in the new diagnostic projection; actual safe faults take precedence."
+  ]
+}

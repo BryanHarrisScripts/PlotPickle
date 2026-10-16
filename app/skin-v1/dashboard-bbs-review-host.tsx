@@ -14,6 +14,7 @@ import DashboardExplorationSurface, { isDashboardExplorationWorkspace, type Dash
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
+import AssetsWorkspace from "./assets-workspace";
 import { DASHBOARD_UNAVAILABLE_ITEM_IDS } from "./dashboard-menu-registry";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import MatrixStoryMapSurface from "./matrix-story-map-surface";
@@ -82,6 +83,7 @@ export default function DashboardBbsReviewHost({
   const [explorationOpen, setExplorationOpen] = useState<DashboardExplorationWorkspace | null>(null);
   const [screeningOpen, setScreeningOpen] = useState(false);
   const [soundOpen, setSoundOpen] = useState<ProductionSoundCueKind | null>(null);
+  const [assetsOpen, setAssetsOpen] = useState(false);
   const [discoveryOpen, setDiscoveryOpen] = useState(false);
   const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
   const [discoveryInitialTopic, setDiscoveryInitialTopic] = useState<LearnTopicSpineId>("foundations");
@@ -239,6 +241,7 @@ export default function DashboardBbsReviewHost({
   }
 
   function returnDashboard(itemId?: string) {
+    setAssetsOpen(false);
     setExplorationOpen(null);
     setWriteOpen(false);
     setDiscoveryOpen(false);
@@ -424,6 +427,12 @@ export default function DashboardBbsReviewHost({
       onSurfaceNameChange(item.label.toUpperCase());
       return;
     }
+    if (item.id === "assets") {
+      onActivate(index);
+      setAssetsOpen(true);
+      onSurfaceNameChange("ASSETS");
+      return;
+    }
     if (item.id === "screening") {
       onActivate(index);
       setScreeningOpen(true);
@@ -531,6 +540,30 @@ export default function DashboardBbsReviewHost({
         workspace={explorationOpen}
         onOpenLearn={() => { closeExploration(); const index = items.findIndex((item) => item.id === "learn"); if (index >= 0) activateItem(index); }}
         onOpenOutline={() => { closeExploration(); openOutline(reviewAddress); }}
+      />
+    </section>;
+  }
+
+  if (assetsOpen) {
+    return <section aria-label="Assets" data-dashboard-review-surface="assets" onKeyDown={(event) => {
+      if (event.key === "Escape") { event.preventDefault(); returnDashboard("assets"); }
+    }}>
+      <AssetsWorkspace
+        onBackDashboard={() => returnDashboard("assets")}
+        onOpenCharacters={() => {
+          setAssetsOpen(false);
+          setDiscoveryProject(loadActiveLibraryProject());
+          setDiscoveryInitialTopic("character");
+          setDiscoveryInitialFieldId(null);
+          setDiscoveryInitialAct(1);
+          setDiscoveryOpen(true);
+          onSurfaceNameChange("MindMap");
+        }}
+        onOpenSound={(kind) => {
+          setAssetsOpen(false);
+          setSoundOpen(kind);
+          onSurfaceNameChange(kind === "narration" ? "NARRATION" : kind === "music" ? "MUSIC" : "FOLEY");
+        }}
       />
     </section>;
   }

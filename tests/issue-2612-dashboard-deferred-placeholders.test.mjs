@@ -26,7 +26,7 @@ test("#2950 replaces the earlier gray deferral with enterable exploration while 
   const registry = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(menu)).toString("base64")}`);
   assert.deepEqual(
     [...registry.DASHBOARD_REVIEW_ITEM_IDS],
-    ["previs", "timeline", "production", ...EXPLORATION_DASHBOARD_IDS],
+    ["assets", "previs", "timeline", "production", ...EXPLORATION_DASHBOARD_IDS],
   );
   assert.deepEqual([...registry.DASHBOARD_EXPLORATION_ITEM_IDS], EXPLORATION_DASHBOARD_IDS);
   assert.deepEqual([...registry.DASHBOARD_UNAVAILABLE_ITEM_IDS], []);

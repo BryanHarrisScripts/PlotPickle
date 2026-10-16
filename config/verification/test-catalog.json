@@ -113,7 +113,9 @@
           "tests/issue-2310-surface-coverage-convergence.test.mjs",
           "tests/issue-2432-library-load-recovery-ui.test.mjs",
           "tests/issue-2487-story-to-screen-live-parity.test.mjs",
-          "tests/issue-2657-matrix-navigation-continuity.test.mjs"
+          "tests/issue-2657-matrix-navigation-continuity.test.mjs",
+          "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+          "tests/issue-3019-assets-poster-library.test.mjs"
         ]
       },
       "cost": "fast",
@@ -3357,7 +3359,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "abb71f4fa0f60789414772755cf57f6afdb55bea307a097da200f8118d2c854a"
+            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -3952,7 +3954,7 @@
       },
       {
         "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
-        "targetDigest": "8dd3677aa34a73ee352aad341a45cc343aaeee757e564901ccf8c68dfe890edb",
+        "targetDigest": "4ffe3a28f32d52f112bef7cdda14b2a1e8367992ca8d65e55313a4f19afba401",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3970,12 +3972,12 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": []
       },
       {
         "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-        "targetDigest": "77f09ae8cf66f2f7474f03cbf337ac1d75a63c333a2bdb5a7aa2ce1e9001c17d",
+        "targetDigest": "e09a22e8e89bb83a9565f96adb4bc7c246a3165a0f89874b9a7c68f4c7fd2fe5",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3993,7 +3995,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": []
       },
       {
@@ -4015,9 +4017,9 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": [],
-        "targetDigest": "f4b07479ec7b6751e3e52197c800698964a588f60a34ad323a4d7e6f50b7cc8b"
+        "targetDigest": "cdaee51904acbad5c6ee2adda078ef9aa5a0d7bbdd481b743cb1990888be3a1b"
       },
       {
         "target": "tests/issue-2469-webmcp-surface-maturity.test.mjs",
@@ -4523,7 +4525,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "36bdd848dbbe922d6504f202dfdf8ec86844021b4d6a22d96ed834e10371f312"
+            "digest": "a94138d1656379018489ea662a52968267c4f1c4474b137e8bb90abe495060d0"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -4800,6 +4802,134 @@
         ],
         "limits": "Synthetic PPF and injected save receipt verify source-identity, review-only provenance status, Human-grant negatives and immutable acceptance; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+        "targetDigest": "18fc71fecc7023b8be25591883b5994832db1d7937adaeb2e038137dba60d27d",
+        "catalogueIds": [
+          "experience.manual-uat-follow-up-2153"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static Dashboard contract tests for Human-approved ASSETS grouping; no live browser/Windows image creation or durable PPF proof.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+        "targetDigest": "80501118a7ca29a5a52919eff5a8b01b50c0cd64b7f79b4de2c546184c4fe4dc",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static nested Sounds owner and first project-bound ASSETS workflow; does not verify Human provider output, local media bytes after restart or paid route.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          },
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "c32d6a4538d2efbb87538514c424cb4289703042f4b105bedf18986dd09fa97f"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+          }
+        ]
+      },
+      {
+        "target": "tests/layer1-navigation-continuity.test.mjs",
+        "targetDigest": "a895acb5968770cf3ad95d598c4bc6b8c734155c9c0db6f6b477b243ffda436c",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Frozen primary Matrix Dashboard tuple/order assertions; no live navigation capture or Human Windows UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3019-assets-poster-library.test.mjs",
+        "targetDigest": "d2ef998575914ea4c4b77a1676e9c4183040331ba74a283532eb3a7d6abb6e96",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "c32d6a4538d2efbb87538514c424cb4289703042f4b105bedf18986dd09fa97f"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "a94138d1656379018489ea662a52968267c4f1c4474b137e8bb90abe495060d0"
+          },
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+          }
+        ]
       }
     ]
   }

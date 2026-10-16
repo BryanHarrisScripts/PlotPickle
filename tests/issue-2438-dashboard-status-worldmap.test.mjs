@@ -25,7 +25,7 @@ test("#2950 preserves locked and review semantics while admitting orange explora
   );
   assert.deepEqual(
     [...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]),
-    ["previs", "timeline", "production"],
+    ["assets", "previs", "timeline", "production"],
   );
 
   const disabled = menu.slice(

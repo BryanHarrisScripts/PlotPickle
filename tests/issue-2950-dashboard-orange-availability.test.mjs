@@ -15,7 +15,7 @@ test("#2950 all thirteen requested destinations are available for orange explora
     assert.ok(registry.DASHBOARD_REVIEW_ITEM_IDS.has(id), `${id} must remain in review`);
     assert.equal(registry.DASHBOARD_UNAVAILABLE_ITEM_IDS.has(id), false, `${id} must be enterable`);
     assert.equal(registry.matrixPrimaryNavigationMode(id), "in-shell");
-    assert.ok(registry.DASHBOARD_STARTUP_CHOICES.some(item => item.id === id));
+    assert.ok(registry.DASHBOARD_STARTUP_CHOICES.some(item => item.id === id) || id.startsWith("sound-"), `${id} must be accessible from Dashboard or nested Sounds`);
   }
 });
 

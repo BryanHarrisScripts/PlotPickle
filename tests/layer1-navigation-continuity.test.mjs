@@ -26,9 +26,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "C", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
-    ["sound-foley", "F", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
-    ["sound-narration", "N", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
-    ["sound-music", "A", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["assets", "A", "Assets", "Sounds, Characters, Collectibles, Posters and World for the Loaded Story", "ASSETS"],
     ["pitch-deck", "K", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["pitch-package", "G", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["feedback", "B", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
@@ -45,7 +43,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
   const shortcuts = rows.map(([, shortcut]) => shortcut);
   assert.equal(new Set(shortcuts).size, shortcuts.length);
   assert.deepEqual([...new Set(rows.map((row) => row[4]))], [
-    "EXPLORE", "DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY", "SYSTEM",
+    "EXPLORE", "DEVELOP", "VISUALIZE", "ASSETS", "PITCH", "PLAY", "SYSTEM",
   ]);
 
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));

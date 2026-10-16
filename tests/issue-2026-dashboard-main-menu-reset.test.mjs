@@ -25,9 +25,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Huma
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
     ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
     ["production", "C", "Rough Cut", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
-    ["sound-foley", "F", "Foley", "Develop Foley, Room Tone and Environmental Sound", "SOUND"],
-    ["sound-narration", "N", "Narration", "Develop Narration, Voice-Over and Spoken Story", "SOUND"],
-    ["sound-music", "A", "Music", "Develop Score, Music and Ambient Cues", "SOUND"],
+    ["assets", "A", "Assets", "Sounds, Characters, Collectibles, Posters and World for the Loaded Story", "ASSETS"],
     ["pitch-deck", "K", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["pitch-package", "G", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["feedback", "B", "Feedback", "Gather Reader Notes and Reactions", "PITCH"],
@@ -55,7 +53,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Huma
   assert.deepEqual(ordered.filter((row) => row[4] === "EXPLORE").map((row) => row[1]), ["1", "2", "3", "4", "5"]);
   assert.deepEqual(ordered.filter((row) => row[4] === "SYSTEM").map((row) => row[1]), ["6", "7", "8", "9", "0"]);
   assert.equal(
-    ordered.filter((row) => ["DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY"].includes(row[4])).every((row) => !/^\d$/u.test(row[1])),
+    ordered.filter((row) => ["DEVELOP", "VISUALIZE", "ASSETS", "PITCH", "PLAY"].includes(row[4])).every((row) => !/^\d$/u.test(row[1])),
     true,
     "Creative Dashboard groups must use letter shortcuts so digits remain reserved for Explore/System",
   );
@@ -66,7 +64,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Huma
     ["EXPLORE", 5],
     ["DEVELOP", 5],
     ["VISUALIZE", 5],
-    ["SOUND", 3],
+    ["ASSETS", 1],
     ["PITCH", 3],
     ["PLAY", 3],
     ["SYSTEM", 5],
@@ -83,9 +81,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302/#2612 locks the Huma
   const reviewSet = menu.slice(menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"), menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"));
   assert.doesNotMatch(reviewSet, /"discovery"|"story-bible"|"plan"|"storyboard"/u);
   const unavailableSet = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  for (const id of ["write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "screening", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"]) {
-    assert.match(unavailableSet, new RegExp(`"${id}"`, "u"));
-  }
+  assert.match(unavailableSet, /new Set<string>\(\)/u, "Available exploration and ASSETS must not be silently disabled");
   assert.match(menu, /!DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)/u);
 });
 

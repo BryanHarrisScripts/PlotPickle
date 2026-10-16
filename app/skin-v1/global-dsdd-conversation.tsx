@@ -13,6 +13,10 @@ import {
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { createConnectionCommandSession, parseConnectionCommand } from "../_components/settings/connection-command.mjs";
 import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../../core/agents/health/command.mjs";
+import { createCmdSourceProposalSession, parseCmdSourceProposal } from "../../core/contracts/imported-screenplay-evidence/cmd-source-proposal.mjs";
+import { buildStoryDevelopmentFields } from "../../modules/learn/model/story-development-fields";
+import { writeStoryDevelopmentFieldProposal } from "../../core/project/story-development";
+import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
@@ -751,6 +755,61 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return true;
   }
 
+  const sourceProposalSession = useRef<ReturnType<typeof createCmdSourceProposalSession> | null>(null);
+  async function runCmdSourceProposal(submitted: string) {
+    if (!embedded) return false;
+    const cmd = parseCmdSourceProposal(submitted);
+    if (!cmd) return false;
+    if (!sourceProposalSession.current) {
+      sourceProposalSession.current = createCmdSourceProposalSession({
+        snapshot: async () => {
+          const profileId = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+          if (!profileId || !profilePrivateBrowserReadyFor(profileId)) return null;
+          const activeProjectId = sessionActiveProjectId();
+          return { profileId, activeProjectId, project: activeProjectId ? loadActiveLibraryProject() : null };
+        },
+        fields: async () => buildStoryDevelopmentFields(plotPickleCurriculum),
+        token: () => crypto.randomUUID().replaceAll("-", "").slice(0, 16),
+        now: () => Date.now(),
+        save: async ({ project, field, proposal, passageId, expectedRevision, profileId, projectId }: {
+          project: Parameters<typeof writeStoryDevelopmentFieldProposal>[0]["project"];
+          field: Parameters<typeof writeStoryDevelopmentFieldProposal>[0]["field"];
+          proposal: string; passageId: string; expectedRevision: number; profileId: string; projectId: string;
+        }) => {
+          if (window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
+            || !profilePrivateBrowserReadyFor(profileId)
+            || sessionActiveProjectId() !== projectId) throw new Error("Human authority changed.");
+          const current = loadActiveLibraryProject();
+          if (current.id !== projectId || current.revision !== expectedRevision
+            || current.sourceEvidence?.screenplay?.passages.find(p => p.id === passageId)?.text
+              !== project.sourceEvidence?.screenplay?.passages.find(p => p.id === passageId)?.text)
+            throw new Error("Project or imported source changed.");
+          const candidate = writeStoryDevelopmentFieldProposal({
+            project: current, field, proposal, sourceRef: passageId,
+          });
+          await saveFoundationProjectDurably(candidate, expectedRevision);
+          if (window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) !== profileId
+            || sessionActiveProjectId() !== projectId) throw new Error("Human or project changed during save.");
+          return loadActiveLibraryProject();
+        },
+      });
+    }
+    const snapshot = currentSurfaceContext(pathname);
+    setMessages(current => [...current, { id: messageId("source-proposal-human"), role: "command",
+      text: submitted, context: snapshot, inputMode: draftHasVoice ? "voice" : "typed" }].slice(-MAX_MESSAGES));
+    setDraft(""); setDraftHasVoice(false); setError(""); setContext(snapshot); setCommandWorking(true);
+    try {
+      const answer = await sourceProposalSession.current.execute(cmd);
+      setMessages(current => [...current, { id: messageId("source-proposal-result"), role: "tool",
+        text: answer, context: snapshot }].slice(-MAX_MESSAGES));
+    } catch {
+      setMessages(current => [...current, { id: messageId("source-proposal-blocked"), role: "tool",
+        text: "BLOCKED: Source proposal result could not be verified. Inspect the existing PPF field before retrying.",
+        context: snapshot }].slice(-MAX_MESSAGES));
+    } finally { setCommandWorking(false); }
+    return true;
+  }
+
   const agentHealthSession = useRef<ReturnType<typeof createAgentHealthCommandSession> | null>(null);
   async function runAgentHealthCommand(submitted: string) {
     if (!embedded) return false;
@@ -1014,6 +1073,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runCmdSourceProposal(submitted)) return;
     if (await runAgentHealthCommand(submitted)) return;
     if (await runDirectConnectionsCommand(submitted)) return;
     if (await runCreativeAssessmentCommand(submitted)) return;

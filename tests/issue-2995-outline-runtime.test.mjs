@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { build } from "esbuild";
+import { createServer } from "node:http";
 import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plotpickle-creative-command.mjs";
 import { driveAdmittedOutlineCheckpoint } from "../core/sidecars/tasks/outline-checkpoint-driver.mjs";
 
@@ -15,6 +16,60 @@ await build({ entryPoints: ["build/mastra-agent-runtime.ts"], bundle: true, plat
 const runtime = await import(pathToFileURL(path.join(root, "runtime.mjs")).href);
 test.after(() => rm(root, { recursive: true, force: true }));
 const profile = { provider: "local", runtime: "openai-compatible", baseUrl: "http://127.0.0.1:1234/v1", textModel: "synthetic", apiKey: "" };
+
+test("#2999 configured OpenAI uses native Responses settings at the real Mastra HTTP boundary", async () => {
+  const compiled = path.join(root, "real-runtime.mjs");
+  await build({ entryPoints: ["build/mastra-agent-runtime.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: compiled, logLevel: "silent" });
+  const real = await import(pathToFileURL(compiled).href);
+  const requests = [];
+  const assessment = { structural: { state: "unresolved", reason: "Synthetic fixture cannot establish the whole story.", passageIds: ["synthetic-01"] }, characters: [], miniBlocks: [1,2,3,4].map(ordinal => ({ ordinal, state: "unsupported", reason: "Synthetic source does not establish this Mini-Block.", passageIds: ["synthetic-01"], storyboardCue: "" })) };
+  let responseOutput = assessment;
+  const server = createServer(async (request, response) => {
+    let body = "";
+    for await (const chunk of request) body += chunk;
+    const input = JSON.parse(body);
+    requests.push({ path: request.url, input });
+    response.setHeader("Content-Type", "application/json");
+    if (request.url !== "/v1/responses" || input.max_tokens !== undefined || input.temperature !== undefined) {
+      response.statusCode = 400;
+      response.end(JSON.stringify({ error: { message: "SYNTHETIC_UNSUPPORTED_OPENAI_SETTINGS", type: "invalid_request_error", param: "max_tokens", code: "unsupported_parameter" } }));
+      return;
+    }
+    response.end(JSON.stringify({ id: "resp_synthetic", object: "response", created_at: 1, model: input.model, status: "completed", output: [{ id: "msg_synthetic", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: typeof responseOutput === "string" ? responseOutput : JSON.stringify(responseOutput), annotations: [] }] }], usage: { input_tokens: 37, output_tokens: 53, total_tokens: 90 } }));
+  });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  try {
+    let usage;
+    const output = await real.askPlotPickleAgent({ profile: { ...profile, provider: "openai", baseUrl: `http://127.0.0.1:${server.address().port}/v1`, textModel: "gpt-5.6", apiKey: "synthetic-not-a-secret" }, agentId: "story-architect", tone: "direct", message: "Assess synthetic-01 only; no private story.", onAssessmentUsage: async value => { usage = value; } });
+    assert.deepEqual(JSON.parse(output), assessment);
+    assert.equal(requests.length, 1, "No retry is needed for an accepted native request.");
+    assert.equal(requests[0].path, "/v1/responses");
+    assert.equal(requests[0].input.max_output_tokens, 1800);
+    assert.equal(requests[0].input.text.format.type, "json_schema");
+    assert.ok(requests[0].input.text.format.schema.properties.structural);
+    assert.deepEqual(usage, { inputTokens: 37, outputTokens: 53, totalTokens: 90 });
+    const fixtures = [
+      ["curriculum-guide", "A synthetic compass changes hands; clear choices establish consequences."],
+      ["foundations-planner", { values: { "output-1": "A borrowed compass creates a synthetic trust conflict." } }],
+      ["discovery-mapper", { act: 1, lane: "scene", reason: "A synthetic opening choice creates conflict.", evidenceRefs: ["synthetic-01"] }],
+      ["wyrmwood-rival-director", { oakenOpening: "A synthetic choice begins.", pickle: { title: "Compass", situation: "A compass changes hands.", goal: "Establish ownership", constraints: ["No new facts"], establishedElements: ["Compass", "Table"], failurePressure: "Time" }, rivals: Object.fromEntries(["aiden-glowhart", "damien-darkmore", "barnaby-barnacle", "master-spirit-talker", "sienna-silvertongue"].map(id => [id, { action: "Ask", complication: "Time passes" }])) }],
+      ["wyrmwood-curriculum-evaluator", { dimensions: { storyLogic: 10, lessonApplication: 10, establishedElements: 10, consequences: 10, rivalCounter: 8, clarity: 7 }, whatWorked: ["A choice"], whatNeedsWork: ["Consent"], conceptUsed: "Consequence", teachingDebrief: "Check ownership." }],
+    ];
+    for (const [agentId, expected] of fixtures) {
+      responseOutput = expected;
+      const result = await real.askPlotPickleAgent({ profile: { ...profile, provider: "openai", baseUrl: `http://127.0.0.1:${server.address().port}/v1`, textModel: "gpt-5.6", apiKey: "synthetic-not-a-secret" }, agentId, tone: "direct", message: "Discuss synthetic-01 compass choices only.", ...(agentId === "foundations-planner" ? { foundationFieldIds: ["output-1"] } : {}) });
+      assert.deepEqual(typeof expected === "string" ? result : JSON.parse(result), expected, agentId);
+      const sent = requests.at(-1);
+      assert.equal(sent.path, "/v1/responses", agentId);
+      assert.equal(sent.input.max_tokens, undefined, agentId);
+      assert.equal(sent.input.temperature, undefined, agentId);
+      assert.ok(sent.input.max_output_tokens > 0, agentId);
+      if (agentId !== "curriculum-guide") assert.equal(sent.input.text.format.type, "json_schema", agentId);
+    }
+    assert.equal(requests.length, 6, "Exactly one synthetic request for each formerly failed role.");
+    assert.equal(real.mastraModelConfig(profile).api, undefined, "Other configured providers retain their existing adapter.");
+  } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+});
 
 test("#2995 real Mastra dispatch gives structured review its own bounded deadline and fidelity schema", async () => {
   const originalTimeout = AbortSignal.timeout;

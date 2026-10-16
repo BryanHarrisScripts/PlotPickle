@@ -455,6 +455,9 @@ export function mastraModelConfig(profile: ProviderProfile) {
     modelId: profile.textModel,
     url: providerUrl(profile),
     apiKey: profile.apiKey || "plotpickle-local",
+    // The native OpenAI adapter handles reasoning-model parameters and schemas.
+    // Generic Chat Completions serializes max_tokens/temperature unchanged.
+    ...(profile.provider === "openai" ? { api: "responses" as const } : {}),
   } as const;
 }
 

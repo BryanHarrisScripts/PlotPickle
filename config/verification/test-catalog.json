@@ -4678,7 +4678,7 @@
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "7015c60830ec4c15a7d1625b83e10142885922eee3d6e6a3ff0840b8d800cbfc",
+        "targetDigest": "a37f84517ab0888e6e8a21a657ca513bea78dea085afe839f124d3b61abb5659",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4693,9 +4693,10 @@
           }
         ],
         "scopes": [
-          "unit-fixture"
+          "unit-fixture",
+          "real-boundary"
         ],
-        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD recovery projection, authenticated-status UI, and Pi checkpoint admit-resume-wait stage proof with fail-closed admission. Native Pi and live Windows source task/paid provider results remain independently unproven; no real screenplay or account-owned provider was tested in this catalogue evidence. October 16 #2999: synthetic encrypted host worker-stage persistence and non-timeout diagnostic classification; legacy stage missing is unknown. No real provider dispatch or paid billing proven.",
+        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD recovery projection, authenticated-status UI, and Pi checkpoint admit-resume-wait stage proof with fail-closed admission. Native Pi and live Windows source task/paid provider results remain independently unproven; no real screenplay or account-owned provider was tested in this catalogue evidence. October 16 #2999: synthetic encrypted host worker-stage persistence and non-timeout diagnostic classification; legacy stage missing is unknown. No real provider dispatch or paid billing proven. Six-role native Mastra Responses HTTP fixture verifies request parameters, structured output and usage; the provider is synthetic loopback, not a real configured account.",
         "inputs": []
       },
       {

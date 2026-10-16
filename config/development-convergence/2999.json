@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2999,
-  "phase": "story-architect-durable-execution-stage-receipts",
+  "phase": "openai-native-responses-boundary",
   "brief": "docs/developer-briefs/2999-block01-openai-production.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -18,7 +18,8 @@
     "config/development-convergence/2999.json",
     "app/skin-v1/story-card-foundation-board.tsx",
     "modules/plan/assessments/outline-task-selection.ts",
-    "core/sidecars/tasks/outline-checkpoint-driver.mjs"
+    "core/sidecars/tasks/outline-checkpoint-driver.mjs",
+    "build/mastra-agent-runtime.ts"
   ],
   "acceptance": [
     {
@@ -121,6 +122,22 @@
           "type": "file-contains",
           "path": "tests/issue-2995-outline-runtime.test.mjs",
           "contains": "#2999 CMD distinguishes safe non-timeout host fault from a genuine timeout"
+        }
+      ]
+    },
+    {
+      "id": "OPENAI-NATIVE-HTTP-BOUNDARY",
+      "criterion": "The six affected roles use native OpenAI Responses serialization while preserving structured schemas, token bounds, usage and the existing non-OpenAI adapter.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 configured OpenAI uses native Responses settings at the real Mastra HTTP boundary"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/mastra-agent-runtime.ts",
+          "contains": "api: \"responses\""
         }
       ]
     }

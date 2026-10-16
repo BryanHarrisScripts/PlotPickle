@@ -1,5 +1,6 @@
 {
   "name": "plotpickle-hunk-review-proof",
   "private": true,
-  "dependencies": { "hunkdiff": "0.23.0" }
+  "dependencies": { "hunkdiff": "0.23.0" },
+  "overrides": { "shell-quote": "1.11.0" }
 }

@@ -118,7 +118,8 @@
           "tests/issue-3019-assets-poster-library.test.mjs",
           "tests/issue-3019-assets-characters.test.mjs",
           "tests/issue-3031-screenplay-character-roster.test.mjs",
-          "tests/issue-3032-character-sheet-portrait.test.mjs"
+          "tests/issue-3032-character-sheet-portrait.test.mjs",
+          "tests/issue-3033-assets-image-route-switch.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4866,7 +4867,7 @@
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
+            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -4924,7 +4925,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
+            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
@@ -4964,7 +4965,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
+            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
@@ -5108,6 +5109,41 @@
           {
             "path": "build/cloud-media-provider.ts",
             "digest": "a9a0900c846cdaa793b00d18c52b3ba0ef39ba38599ce8630a120a0fb738629f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3033-assets-image-route-switch.test.mjs",
+        "targetDigest": "b2c905a8abdec9f930a2fc95ebeec50491fe13b0dacebb41f1b15747337089c0",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source contract verifies explicit preview, current verified status, auth test/select and nonimplicit cloud consent; does not prove real on-device successful OpenAI API test, provider billing, Windows UAT or nonexistent Hybrid cross-locality adapter.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "dd97dc322e1d934020abbf93ddf97b87f7a5b91f7c635021da06ce3dd2693c65"
+          },
+          {
+            "path": "app/skin-v1/assets-image-route-selector.tsx",
+            "digest": "5efddbe97be1743dbcabff1815d741dbaeecc5e65844c6b2926e36342f466fcd"
+          },
+          {
+            "path": "app/skin-v1/assets-image-route-selector.module.css",
+            "digest": "26a04c47413fac1bd4fa01e25b094408880f8abc9267a2e081dbe38d69e7ac5a"
           }
         ]
       }

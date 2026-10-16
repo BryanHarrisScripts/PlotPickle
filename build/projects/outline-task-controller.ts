@@ -29,7 +29,15 @@ export type OutlineExecution = {
   cloudCostUpperBoundUsd: number | null;
   execute(input: (ReturnType<typeof buildOutlineAgentAssessmentRequest> | ReturnType<typeof buildProductionFidelityRequest>) & { signal: AbortSignal; onAssessmentUsage(usage: Usage): Promise<void> }): Promise<string>;
 };
-type Attempt = { id: string; stepId: string; tokens: number; cloudCostUsd: number; usage: Usage | null; status: "reserved" | "reported" };
+/** Host-owned, persisted milestones. "callback-entered" is not proof of HTTP dispatch. */
+export type OutlineAttemptCheckpointStage =
+  | "reservation-persisted"
+  | "worker-callback-entered"
+  | "usage-reported"
+  | "result-processing-entered"
+  | "assessment-saved"
+  | "semantic-review-saved";
+type Attempt = { id: string; stepId: string; tokens: number; cloudCostUsd: number; usage: Usage | null; status: "reserved" | "reported"; checkpointStage?: OutlineAttemptCheckpointStage };
 type Proposal = { stepId: string; artifactRef: string; assessment: OutlineAgentAssessment };
 export type OutlineTaskRecord = {
   version: 1;
@@ -302,14 +310,25 @@ export function createOutlineTaskController(options: {
           if (record.run.state === "queued") record.run = prepareResponsibilityRun(record.run, payload.message.length, now());
           record.run = beginResponsibilityAttempt(record.run, now());
           if (record.run.state !== "working") throw new Error("Outline attempt was denied by the host budget.");
-          const attempt: Attempt = { id: record.run.attemptId, stepId: step.id, tokens: execution.tokenUpperBound, cloudCostUsd: execution.cloudCostUpperBoundUsd, usage: null, status: "reserved" };
+          const attempt: Attempt = { id: record.run.attemptId, stepId: step.id, tokens: execution.tokenUpperBound, cloudCostUsd: execution.cloudCostUpperBoundUsd, usage: null, status: "reserved", checkpointStage: "reservation-persisted" };
           record.attempts.push(attempt);
           record.run.usage = { ...record.run.usage, tokens: used.tokens + attempt.tokens, cloudCostUsd: used.cost + attempt.cloudCostUsd, contextCharacters: Math.max(record.run.usage.contextCharacters, payload.message.length) };
           await write(lease.auth, record); // Crash-safe reservation BEFORE any worker/provider call.
           return { project, execution, payload, attemptId: attempt.id, reviewingProduction: Boolean(committed && record.productionPass) };
         });
         if (prepared.committed) return { artifactRef: prepared.committed.artifactRef };
-        // Do not hold the task mutex across inference: cancellation must remain responsive.
+        // This durable checkpoint proves host callback entry only, NOT actual
+        // provider HTTP dispatch, token consumption or a billed operation.
+        // Do not hold the mutex across the provider call: cancel stays responsive.
+        signal.throwIfAborted();
+        await locked(scope.runId, async () => {
+          const record = await read(lease.auth, scope.runId);
+          const attempt = record.attempts.find(item => item.id === prepared.attemptId);
+          if (!attempt || attempt.status !== "reserved") throw new Error("Outline attempt reservation changed before callback.");
+          signal.throwIfAborted();
+          attempt.checkpointStage = "worker-callback-entered";
+          await write(lease.auth, record);
+        });
         signal.throwIfAborted();
         const output = await prepared.execution!.execute({ ...prepared.payload!, signal, onAssessmentUsage: async (usage) => {
           await locked(scope.runId, async () => {
@@ -321,6 +340,7 @@ export function createOutlineTaskController(options: {
             if (usage.totalTokens !== undefined && (usage.totalTokens > attempt.tokens || (usage.inputTokens !== undefined && usage.outputTokens !== undefined && usage.totalTokens !== usage.inputTokens + usage.outputTokens))) throw new Error("Outline usage exceeds or contradicts the host quote.");
             attempt.usage = usage;
             attempt.status = "reported";
+            attempt.checkpointStage = "usage-reported";
             // Retain the reservation: unknown/retry/cloud billing is not silently treated as free.
             await write(lease.auth, record);
           });
@@ -330,6 +350,10 @@ export function createOutlineTaskController(options: {
           const record = await read(lease.auth, scope.runId);
           const attempt = record.attempts.find((item) => item.id === prepared.attemptId);
           if (attempt?.status !== "reported") throw new Error("Outline worker did not persist usage before result admission.");
+          // The receipt is written BEFORE result validation so a thrown schema
+          // error is distinguishable from provider-callback and usage stages.
+          attempt.checkpointStage = "result-processing-entered";
+          await write(lease.auth, record);
           const { project } = await fresh(lease.auth, record);
           budget(record, true);
           const prior = record.proposals.find(proposal => proposal.stepId === step.id);
@@ -337,6 +361,7 @@ export function createOutlineTaskController(options: {
             if (record.productionPass.review) throw new Error("Concurrent Outline semantic result denied.");
             record.productionPass.review = { findings: validateProductionFidelity(output, project, prior.assessment), reviewedAt: now() };
             record.productionPass.candidate = buildOutlineProductionCandidate(project, prior.assessment, record.productionPass, prior.artifactRef, scope.model, now());
+            attempt.checkpointStage = "semantic-review-saved";
             await write(lease.auth, record);
             return { artifactRef: prior.artifactRef };
           }
@@ -345,6 +370,7 @@ export function createOutlineTaskController(options: {
           const artifactRef = `responsibility-artifact:${scope.runId}:${step.id}`;
           record.proposals.push({ stepId: step.id, artifactRef, assessment });
           record.run = addResponsibilityArtifact(record.run, { id: step.id, kind: "proposal", ref: artifactRef, producedAt: now() });
+          attempt.checkpointStage = "assessment-saved";
           await write(lease.auth, record);
           continueProduction = Boolean(record.productionPass);
           return { artifactRef };

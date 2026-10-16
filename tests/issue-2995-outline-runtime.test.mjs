@@ -102,6 +102,32 @@ test("#2999 production status reports reservation separately from model usage an
 });
 await build({ entryPoints: ["modules/plan/assessments/outline-task-selection.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "task-selection.mjs"), logLevel: "silent" });
 const { selectCurrentOutlineTask, outlineTaskDisplayStatus, describeOutlineTaskDiagnostic } = await import(pathToFileURL(path.join(root, "task-selection.mjs")).href);
+test("#2999 CMD distinguishes safe non-timeout host fault from a genuine timeout", () => {
+  const task = {
+    scope: { runId: "synthetic-fault", provider: "openai", model: "synthetic-model" },
+    run: { state: "working" }, steps: [{ id: "block-1" }],
+    proposals: [], productionPass: null, running: false, resumeRequired: true,
+    attempts: [{ id: "attempt-fixture", status: "reserved", usage: null, checkpointStage: "worker-callback-entered" }],
+    error: "The scheduler faulted (USAGE_NOT_RECORDED). No completed review was reported;",
+  };
+  const known = describeOutlineTaskDiagnostic(task);
+  assert.match(known, /Safe fault category: USAGE_NOT_RECORDED/u);
+  assert.doesNotMatch(known, /Safe fault category: HOST_TIMEOUT/u);
+  assert.match(known, /Last durable host checkpoint: worker-callback-entered/u);
+  assert.match(known, /provider HTTP dispatch and cost UNKNOWN/u);
+  assert.match(known, /Attempts reserved: 1; usage-reported: 0/u);
+  assert.doesNotMatch(known, /API credential|private screenplay/u);
+  const unclassified = describeOutlineTaskDiagnostic({ ...task,
+    error: "Story Architect stopped (UNCLASSIFIED_PRIVATE_FAILURE). Inspect the protected task checkpoint;" });
+  assert.match(unclassified, /Safe fault category: UNCLASSIFIED/u);
+  const timeout = describeOutlineTaskDiagnostic({ ...task,
+    error: "The scheduler review timed out at the 180-second response limit. Cancel this run" });
+  assert.match(timeout, /Safe fault category: HOST_TIMEOUT/u);
+  const legacy = describeOutlineTaskDiagnostic({ ...task, attempts: [{ id: "old", status: "reserved", usage: null }] });
+  assert.match(legacy, /Last durable host checkpoint: NOT_CAPTURED_LEGACY/u);
+  assert.doesNotMatch(legacy, /worker callback entered; provider HTTP dispatch/u);
+});
+
 const scope = { projectId: "brotherly-love", contextReceipt: "saved-source-v1", blockNumber: 1, production: true, profileId: "human-1" };
 function productionTask(runId, state, createdAt, overrides = {}) {
   return {

@@ -4656,7 +4656,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "e0c83057f625e0e16dececbb52311fc81654b7953fce656b80141780e902e9d7",
+        "targetDigest": "90ba55b62ab2d05af3c0268fb2ddfef5832daa1ba26a3c26133e0db01d217c5d",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4673,12 +4673,12 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Governed synthetic actual authenticated Outline controller/gateway, four-Mini-Block candidate and OpenAI paid-capable vs local-only admission, model usage reservations, source/stale budget and CSRF negatives; not live external OpenAI cost nor Human Windows proof.",
+        "limits": "Governed synthetic actual authenticated Outline controller/gateway, four-Mini-Block candidate and OpenAI paid-capable vs local-only admission, model usage reservations, source/stale budget and CSRF negatives; not live external OpenAI cost nor Human Windows proof. October 16 #2999: synthetic encrypted host worker-stage persistence and non-timeout diagnostic classification; legacy stage missing is unknown. No real provider dispatch or paid billing proven.",
         "inputs": []
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "ee8ffa4960f166fe74a39775b014a7d7e998c72b5e8b57febc05b0a0b0f00a2e",
+        "targetDigest": "7015c60830ec4c15a7d1625b83e10142885922eee3d6e6a3ff0840b8d800cbfc",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],
@@ -4695,7 +4695,7 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD recovery projection, authenticated-status UI, and Pi checkpoint admit-resume-wait stage proof with fail-closed admission. Native Pi and live Windows source task/paid provider results remain independently unproven; no real screenplay or account-owned provider was tested in this catalogue evidence.",
+        "limits": "Synthetic real Mastra structured dispatch, safe scheduler fault categories, CMD recovery projection, authenticated-status UI, and Pi checkpoint admit-resume-wait stage proof with fail-closed admission. Native Pi and live Windows source task/paid provider results remain independently unproven; no real screenplay or account-owned provider was tested in this catalogue evidence. October 16 #2999: synthetic encrypted host worker-stage persistence and non-timeout diagnostic classification; legacy stage missing is unknown. No real provider dispatch or paid billing proven.",
         "inputs": []
       },
       {

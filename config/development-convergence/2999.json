@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 2999,
-  "phase": "block01-governed-openai-writing-and-scheduler-diagnostics",
+  "phase": "story-architect-durable-execution-stage-receipts",
   "brief": "docs/developer-briefs/2999-block01-openai-production.md",
   "allowedChanges": [
     "app/_components/settings/plotpickle-creative-command.mjs",
@@ -96,12 +96,40 @@
           "contains": "#2999 failed Pi admission never resumes or duplicates inference"
         }
       ]
+    },
+    {
+      "id": "DURABLE-WORKER-STAGES-NO-DISPATCH-CLAIM",
+      "criterion": "Host writes privacy-safe stage receipts before and after the permitted worker callback; returned CMD diagnostics identify the last persisted stage without inventing API dispatch/billing or leaking private exception messages. Legacy absent-stage remains explicitly unknown.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2986-production-pass.test.mjs",
+          "contains": "#2999 durable worker callback stage survives private failure without proving OpenAI dispatch"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2986-production-pass.test.mjs",
+          "contains": "#2999 durable result-processing stage isolates invalid schema after usage from model readiness"
+        }
+      ]
+    },
+    {
+      "id": "FAULT-CODE-NOT-TIMEOUT",
+      "criterion": "CMD distinguishes the exact allowlisted fault category from a real scheduler timeout; rejects unknown codes and stage values.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 CMD distinguishes safe non-timeout host fault from a genuine timeout"
+        }
+      ]
     }
   ],
   "constraints": [
     "Preserve previous production grants and encrypted task history.",
     "Do not claim live Brotherly Love acceptance from synthetic regression.",
     "OpenAI text-only authority never grants paid MiniMax video or Human Plan acceptance.",
-    "Pi resume activation is not proof of a successful live Windows OpenAI completion; preserve existing failed checkpoints and compare with authenticated Windows read-back after merge."
+    "Pi resume activation is not proof of a successful live Windows OpenAI completion; preserve existing failed checkpoints and compare with authenticated Windows read-back after merge.",
+    "Historical #2999 Windows failures contain no new checkpointStage; show NOT_CAPTURED_LEGACY. New receipts are produced only on future human-authorized runs; never resume expired tasks automatically."
   ]
 }

@@ -165,12 +165,13 @@ export async function probeComfyUI(baseUrl: string, workflow: ComfyWorkflow | nu
 
 function imageWorkflow(prompt: string, checkpoint: string, input: ImageGenerationInput) {
   const landscape = input.aspect === "landscape";
+  const square = input.aspect === "square";
   const low = input.quality === "low";
   return {
     "1": { class_type: "CheckpointLoaderSimple", inputs: { ckpt_name: checkpoint } },
     "2": { class_type: "CLIPTextEncode", inputs: { text: prompt, clip: ["1", 1] } },
     "3": { class_type: "CLIPTextEncode", inputs: { text: "text, watermark, logo, distorted anatomy, duplicate subject", clip: ["1", 1] } },
-    "4": { class_type: "EmptyLatentImage", inputs: { width: landscape ? 768 : 576, height: landscape ? 576 : 768, batch_size: 1 } },
+    "4": { class_type: "EmptyLatentImage", inputs: { width: square ? 704 : landscape ? 768 : 576, height: square ? 704 : landscape ? 576 : 768, batch_size: 1 } },
     "5": {
       class_type: "KSampler",
       inputs: {

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "issue": 3042,
+  "phase": "local-square-portrait",
+  "brief": "docs/developer-briefs/3042-comfyui-square-portrait.md",
+  "allowedChanges": [
+    "build/ai/comfyui-media-provider.ts",
+    "tests/issue-3032-character-sheet-portrait.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3042-comfyui-square-portrait.md",
+    "config/development-convergence/3042.json"
+  ],
+  "acceptance": [{
+    "id": "ACTUAL-SQUARE-WORKFLOW",
+    "criterion": "Square requests submit equal latent dimensions without changing existing portrait/landscape routes or weakening actual image validation.",
+    "evidence": [{"type":"file-contains","path":"tests/issue-3032-character-sheet-portrait.test.mjs","contains":"#3042 actual local ComfyUI workflow builds square dimensions while preserving rectangular aspects"}]
+  }],
+  "constraints": ["No provider fallback, canon edit, automatic approval or World authoring.", "Fixture and live Windows actual image proof remain separate."]
+}

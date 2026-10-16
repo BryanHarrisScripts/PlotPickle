@@ -3,7 +3,7 @@ import path from "node:path";
 import { createHash, scrypt } from "node:crypto";
 import type { AuthContext } from "../../core/auth/plotpickle-auth";
 import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
-import { createOutlineTaskController, type OutlineExecution } from "./outline-task-controller";
+import { createOutlineTaskController, OutlineProductionReviewRequiredError, outlineProductionReviewGate, type OutlineExecution } from "./outline-task-controller";
 import { resolveStoryArchitectExecutionProfile } from "../writing-assistant-gateway";
 import { askPlotPickleAgent, storyArchitectTokenUpperBound } from "../mastra-agent-runtime";
 import { resolveAgentProfileCapabilities } from "../../lib/agents/agent-profiles";
@@ -166,7 +166,9 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
     const record = await controller.status(auth, id);
     const project = await runtime.privateStorage.loadActiveProject(auth) as { id?: string } | null;
     if (project?.id !== record.scope.projectId) throw new Error("Outline task requires its approved active project.");
-    return { ...record, running: running.has(id), error: errors.get(id) || null };
+    const error = errors.get(id) || null;
+    return { ...record, running: running.has(id), error,
+      reviewGate: !running.has(id) && !error ? outlineProductionReviewGate(record) : null };
   }
   async function activate(auth: AuthContext, id: string) {
     if (closed) throw new Error("Outline task gateway is closed.");
@@ -188,7 +190,7 @@ export function createOutlineTaskGateway(runtime: Runtime, ports: {
         await controller.finish(auth, id);
       } catch (error) {
         // Never expose provider response bodies, prompts or credentials via polling.
-        errors.set(id, outlineGatewaySafeError(error));
+        if (!(error instanceof OutlineProductionReviewRequiredError)) errors.set(id, outlineGatewaySafeError(error));
       } finally {
         controller.deactivate(id);
         await scheduler?.close().catch(() => {});

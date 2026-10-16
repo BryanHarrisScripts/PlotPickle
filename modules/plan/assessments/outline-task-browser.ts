@@ -1,10 +1,10 @@
-import type { OutlineTaskRecord } from "../../../build/projects/outline-task-controller";
+import type { OutlineTaskRecord, outlineProductionReviewGate } from "../../../build/projects/outline-task-controller";
 import type { LibraryPPFProject } from "../../../core/storage/library-project";
 import type { OutlineAssessmentRunReceipt } from "../../../core/contracts/imported-screenplay-evidence/outline-agent-assessment";
 import { normalizeProjectSourceEvidence } from "../../../core/contracts/imported-screenplay-evidence";
 import { outlineAssessmentMaterialReceipt, outlineAssessmentFingerprint, validateOutlineAgentAssessment } from "../outline-agent-assessment";
 
-export type OutlineTaskView = OutlineTaskRecord & { resumeRequired: boolean; running: boolean; error: string | null };
+export type OutlineTaskView = OutlineTaskRecord & { resumeRequired: boolean; running: boolean; error: string | null; reviewGate?: ReturnType<typeof outlineProductionReviewGate> };
 
 export async function readOutlineTasks(signal?: AbortSignal): Promise<OutlineTaskView[]> {
   const response = await fetch("/api/outline/tasks", { credentials: "same-origin", cache: "no-store", signal });

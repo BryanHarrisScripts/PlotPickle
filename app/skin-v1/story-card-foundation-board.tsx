@@ -563,9 +563,10 @@ export default function StoryCardFoundationBoard({
           <article className="pp-skin-v1-story-card-structural-review" key={task.scope.runId} data-outline-recovery-task={task.scope.runId}>
             <strong>Story Architect · {outlineTaskDisplayStatus(task)}</strong>
             <p>{task.proposals.length} of {task.steps.length} Blocks assessed · {task.steps.length - task.proposals.length} remaining.</p>
-            <small>{task.running ? "Review running" : task.resumeRequired ? "Explicit resume required" : "Review stopped or awaiting the writer"} · {task.run.usage.attempts} attempts used. No accepted story content changed.</small>
+            <small>{task.running ? "Review running" : task.reviewGate && !task.error ? "Saved findings require source review; no inference retry needed" : task.resumeRequired ? "Explicit resume required" : "Review stopped or awaiting the writer"} · {task.run.usage.attempts} attempts used. No accepted story content changed.</small>
             {task.error ? <p role="status">{task.error}</p> : null}
-            {task.resumeRequired && !task.running ? <button type="button" disabled={taskAction} onClick={() => void recoveryAction("resume", { taskId: task.scope.runId })}>Resume Story Architect review</button> : null}
+            {task.reviewGate && !task.error ? <p role="status">{task.reviewGate.blockers.join(" ")} Review the saved findings against the original screenplay.</p> : null}
+            {task.resumeRequired && !task.running && !task.reviewGate ? <button type="button" disabled={taskAction} onClick={() => void recoveryAction("resume", { taskId: task.scope.runId })}>Resume Story Architect review</button> : null}
             {["queued", "preparing-context", "working", "verifying", "revising"].includes(task.run.state) ? <button type="button" disabled={taskAction} onClick={() => void recoveryAction("cancel", { taskId: task.scope.runId })}>Cancel Story Architect review</button> : null}
           </article>
         ))}

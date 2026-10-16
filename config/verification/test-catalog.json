@@ -4656,7 +4656,7 @@
       },
       {
         "target": "tests/issue-2986-production-pass.test.mjs",
-        "targetDigest": "90ba55b62ab2d05af3c0268fb2ddfef5832daa1ba26a3c26133e0db01d217c5d",
+        "targetDigest": "a979f6a5f8f5dc9dd6f91d28b4c23fabd0866f7992c731ea1436393bf9cd8443",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],

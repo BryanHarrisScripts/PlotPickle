@@ -7,7 +7,7 @@ import { normalizeAgentTaskScope as normalizeScope } from "../../core/sidecars/t
 import { buildOutlineAgentAssessmentRequest, outlineAssessmentMaterialReceipt, validateOutlineAgentAssessment } from "../../modules/plan/outline-agent-assessment";
 import { RESPONSIBILITY_RUN_STATES, addResponsibilityArtifact, beginResponsibilityAttempt, cancelResponsibilityRun, createCreativeResponsibilityRun, prepareResponsibilityRun, requestWriterApproval } from "../../lib/agents/responsibility/responsibility-runs";
 import type { ResponsibilityRun, ResponsibilityRunLimits } from "../../lib/agents/responsibility/responsibility-runs";
-import { productionPassSource, buildProductionFidelityRequest, validateProductionFidelity, buildOutlineProductionCandidate, type OutlineProductionPass } from "../../modules/plan/assessments/outline-production-pass";
+import { productionPassSource, buildProductionFidelityRequest, validateProductionFidelity, buildOutlineProductionCandidate, hasCompleteProductionReview, outlineProductionCandidateBlockers, type OutlineProductionPass } from "../../modules/plan/assessments/outline-production-pass";
 
 type Usage = { inputTokens?: number; outputTokens?: number; totalTokens?: number };
 type Scope = Readonly<{
@@ -49,6 +49,24 @@ export type OutlineTaskRecord = {
   proposals: Proposal[];
   productionPass?: OutlineProductionPass;
 };
+
+export class OutlineProductionReviewRequiredError extends Error {
+  constructor() { super("Outline production handoff blocked by unresolved semantic or structural findings. Review the saved findings; no candidate-ready claim was made."); }
+}
+
+/** Reconstruct expected review gates from protected, completed checkpoints, including legacy runs. */
+export function outlineProductionReviewGate(record: OutlineTaskRecord) {
+  const pass = record.productionPass;
+  const proposal = record.proposals[0];
+  const latest = record.attempts.at(-1);
+  if (!pass || !hasCompleteProductionReview(pass) || pass.candidate || record.steps.length !== 1 || record.proposals.length !== 1
+    || proposal.stepId !== record.steps[0].id || latest?.stepId !== proposal.stepId
+    || latest.status !== "reported" || latest.usage == null || latest.checkpointStage !== "semantic-review-saved"
+    || !record.attempts.some(attempt => attempt.stepId === proposal.stepId && attempt.status === "reported" && attempt.usage != null && attempt.checkpointStage === "assessment-saved")
+    || record.run.state !== "working") return null;
+  const blockers = outlineProductionCandidateBlockers(proposal.assessment, pass);
+  return blockers.length ? { code: "PRODUCTION_REVIEW_REQUIRED" as const, blockers } : null;
+}
 
 const GRANTS = ["project-context-read", "proposal-draft"];
 const ACTIVE = new Set(["queued", "preparing-context", "working", "verifying", "revising"]);
@@ -387,7 +405,8 @@ export function createOutlineTaskController(options: {
         await fresh(candidate, record);
         budget(record, true);
         if (record.proposals.length !== record.steps.length) throw new Error("Outline task still has remaining Blocks.");
-        if (record.productionPass && !record.productionPass.candidate) throw new Error("Outline production handoff blocked by unresolved semantic or structural findings. Review the saved findings; no candidate-ready claim was made.");
+        if (outlineProductionReviewGate(record)) throw new OutlineProductionReviewRequiredError();
+        if (record.productionPass && !record.productionPass.candidate) throw new Error("Outline production candidate is not available; inspect the protected checkpoint.");
         record.run = requestWriterApproval(record.run, now());
         await write(candidate, record);
         leases.delete(id);

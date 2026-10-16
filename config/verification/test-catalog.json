@@ -4708,7 +4708,7 @@
       },
       {
         "target": "tests/issue-3008-agent-health.test.mjs",
-        "targetDigest": "bde56dbbffc1bee1e045f921df632882e4332d684d520b142e99fbc5b163c93e",
+        "targetDigest": "a223318897a9eddca78893a96e0d93ca45b28560a9393098ed8e3103adb07ce0",
         "catalogueIds": [
           "agent.source-census-and-cmd-smoke-3008"
         ],

@@ -17,7 +17,7 @@ export function parseCmdSourceProposal(input) {
   const fields = rest.match(/^fields\s+([a-z-]+)$/iu);
   if (fields && area === "mind-map" && TOPICS.has(fields[1].toLowerCase()))
     return { action: "fields", area, topic: fields[1].toLowerCase() };
-  const source = rest.match(/^source\s+block\s+(\d{1,2})\s+mini\s+(\d)$/iu);
+  const source = rest.match(/^source\s+block\s+(\d{1,2})\s+mini\s+(\d{1,2})$/iu);
   if (source) {
     const block = Number(source[1]), mini = Number(source[2]);
     return block >= 1 && block <= 24 && mini >= 1 && mini <= 4

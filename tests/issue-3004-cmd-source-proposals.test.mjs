@@ -182,7 +182,7 @@ test("#3004 Phase 3 review refuses false provenance for saved edits and never tr
   const missing = await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review world:setting:output-1"));
   assert.match(missing, /NO SAVED UNACCEPTED PROPOSAL/);
   assert.match(await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review character:engine:output-1")), /BLOCKED/);
-  h.changeProfile();
+  h.changeActiveProject();
   assert.match(await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review world:existing:output-1")), /BLOCKED/);
   assert.deepEqual(h.project(), before);
   assert.equal(h.saves(), 0);

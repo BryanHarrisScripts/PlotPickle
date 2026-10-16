@@ -41,7 +41,8 @@ async function readVerified(source: string, square: boolean) {
   }
   const bytes = await response.arrayBuffer();
   if (!bytes.byteLength) throw new Error("The image has no bytes.");
-  if (square && typeof createImageBitmap === "function") {
+  if (square && typeof createImageBitmap !== "function") throw new Error("Cannot verify a 1:1 portrait on this device.");
+  if (square) {
     const bitmap = await createImageBitmap(new Blob([bytes], { type: response.headers.get("content-type") || "image/webp" }));
     const valid = bitmap.width === bitmap.height;
     bitmap.close();

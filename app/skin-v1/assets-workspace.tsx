@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { authenticatedComputeFetch } from "../../core/auth/profile-request-browser";
 import AssetsCharacters from "./assets-characters";
 import AssetsImageRouteSelector from "./assets-image-route-selector";
+import AssetsWorldStudio from "./assets-world-studio";
 import styles from "./assets-workspace.module.css";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import {
@@ -293,7 +294,7 @@ export default function AssetsWorkspace({
             <div className={styles.empty} role="status">Collectibles authoring is planned. No creation route is active yet; no objects will be invented or saved automatically.</div>
           </section> : null}
           {folder === "world" ? <section className={styles.panel} aria-label="World visual assets" data-assets-folder="world">
-            <div className={styles.sectionHeading}><h2>World — {project.title}</h2><p>Reference environments saved from story-world development. New world-view generation is a later #3019 gate.</p></div>
+            <div className={styles.sectionHeading}><h2>World — {project.title}</h2><p>Reference environments saved from story-world development. Generate source-bound environment concepts below; accepted world story decisions remain canonical.</p></div>
             {selectedWorld ? <div className={styles.viewer}>
               <figure className={styles.focusImage}><img src={selectedWorld.assetUrl} alt={selectedWorld.narrativeIntention || "Saved world reference"} /><figcaption>{selectedWorld.narrativeIntention || "Story world image"}</figcaption></figure>
               <div className={styles.focusDetails}><span className={styles.eyebrow}>SELECTED WORLD IMAGE</span><strong>{selectedWorld.reviewState === "accepted" ? "Approved" : "Draft / review"}</strong>
@@ -303,6 +304,8 @@ export default function AssetsWorkspace({
               aria-pressed={selectedWorld?.id === image.id} onClick={() => setSelectedWorldId(image.id)}>
               <img src={image.assetUrl} alt={image.narrativeIntention || "World reference thumbnail"} />
               <span>{image.reviewState === "accepted" ? "Approved" : "Draft"}</span></button>)}</div> : null}
+            <AssetsWorldStudio project={project} routeId={routeId} routeReady={routeReady}
+              cloud={cloud} onSaved={setProject} />
           </section> : null}
           {folder === "posters" ? <section className={styles.panel} aria-label="Posters for current screenplay" data-assets-folder="posters">
             <div className={styles.sectionHeading}><h2>Posters — {project.title}</h2><p>Production artwork derived from this screenplay and accepted Foundations material, never automatic story canon.</p></div>

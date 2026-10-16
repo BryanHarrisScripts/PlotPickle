@@ -67,6 +67,10 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-warning-line: #746a24;
   --pp-skin-warning: #d8c85d;
   --pp-skin-warning-ink: #fff0a6;
+  /* Orange denotes an explicit but not-yet-submitted connection confirmation. */
+  --pp-skin-confirmation-surface: #2a190a;
+  --pp-skin-confirmation-line: #d98438;
+  --pp-skin-confirmation-ink: #ffb46a;
   --pp-skin-danger-surface: #1a0b0b;
   --pp-skin-danger-line: #743737;
   --pp-skin-danger: #d98c8c;

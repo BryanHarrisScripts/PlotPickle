@@ -36,6 +36,12 @@ export function screenplayCastCandidates(project: LibraryPPFProject): readonly S
   const screenplay = project.sourceEvidence.screenplay;
   if (!screenplay) return [];
   const canon = mindMapCharacterRoster(project);
+  const canonicalIds = new Map(canon.map(item => [key(item.name), item.id] as const));
+  for (const claim of project.sourceEvidence.characterTruth?.claims ?? []) {
+    if (claim.kind !== "identity" || claim.reviewState === "rejected"
+        || claim.handling !== "writer-reference" || !claim.characterIds[0]) continue;
+    canonicalIds.set(key(claim.summary), claim.characterIds[0]);
+  }
   const named = new Map<string, {
     name: string; passageIds: string[]; sceneNumbers: number[]; canonicalCharacterId: string | null;
   }>();
@@ -44,7 +50,7 @@ export function screenplayCastCandidates(project: LibraryPPFProject): readonly S
     const name = cueName(passage.text);
     if (!name) continue;
     const normalizedName = key(name);
-    const matched = canon.find(item => key(item.name) === normalizedName);
+    const matched = canonicalIds.get(normalizedName) ?? null;
     const current = named.get(normalizedName);
     if (current) {
       current.passageIds.push(passage.id);
@@ -52,7 +58,7 @@ export function screenplayCastCandidates(project: LibraryPPFProject): readonly S
     } else {
       named.set(normalizedName, {
         name, passageIds: [passage.id], sceneNumbers: [passage.sceneNumber],
-        canonicalCharacterId: matched?.id ?? null,
+        canonicalCharacterId: matched,
       });
     }
   }

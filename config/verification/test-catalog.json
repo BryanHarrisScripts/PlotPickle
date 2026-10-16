@@ -3128,7 +3128,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#3004 Phase 2 CMD source-quoted unaccepted Mind Map/World Map field draft with exact project/profile/source preview bound to existing PPF write owner. Synthetic fixture and source-wiring only: does not prove actual user Brotherly Love drafts, model inference, media production or approval."
+      "notes": "#3004 Phase 2/3 CMD source-quoted unaccepted Mind Map/World Map field draft and read-only saved-proposal review with exact project/profile/source preview bound to existing PPF write owner. Synthetic fixture and source-wiring only: does not prove actual user Brotherly Love drafts, model inference, media production or approval."
     }
   ],
   "truthGovernance": {
@@ -4779,7 +4779,7 @@
       },
       {
         "target": "tests/issue-3004-cmd-source-proposals.test.mjs",
-        "targetDigest": "8cb0f1d71644a2ae37fa9e28ea40b7a9865bc40c7674dc8fb21b44fdc90c5633",
+        "targetDigest": "8e59251713447403959e0dcd8c6805afb5d82f2aea4e5373cec8ee11de7ac319",
         "catalogueIds": [
           "story-canon.cmd-screenplay-source-proposals-3004"
         ],
@@ -4797,7 +4797,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic PPF and injected save receipt verify source-identity and Human-grant negatives; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
+        "limits": "Synthetic PPF and injected save receipt verify source-identity, review-only provenance status, Human-grant negatives and immutable acceptance; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
         "inputs": []
       }
     ]

@@ -35,16 +35,41 @@ function schemaValid(role, text) {
   if (response.length < 18 || response.length > 40_000) return false;
   let obj;
   try { obj = JSON.parse(response); } catch { obj = null; }
-  if (role === "story-architect")
-    return Boolean(obj?.structural?.state && Array.isArray(obj?.characters)
-      && Array.isArray(obj?.miniBlocks) && obj.miniBlocks.length === 4
-      && obj.miniBlocks.every((b, i) => b.ordinal === i + 1 && Array.isArray(b.passageIds)));
-  if (role === "foundations-planner") return typeof obj?.values?.["output-1"] === "string" && obj.values["output-1"].length > 3;
-  if (role === "discovery-mapper") return [1, 2, 3, 4].includes(obj?.act) && typeof obj?.lane === "string" && Array.isArray(obj?.evidenceRefs);
-  if (role === "wyrmwood-rival-director") return Boolean(obj?.pickle?.goal && obj.rivals && Object.keys(obj.rivals).length === 5);
-  if (role === "wyrmwood-curriculum-evaluator") return Boolean(obj?.dimensions?.storyLogic !== undefined && obj?.whatWorked?.length && obj?.teachingDebrief);
-  // A freeform advisory smoke does not certify a story/canon or BUZZ side effect.
-  return response.length >= 24 && response.toLowerCase() !== syntheticPrompt(role).toLowerCase();
+  if (role === "story-architect") return Boolean(
+    ["covered", "condensed-shared", "gap-underdeveloped", "unresolved"].includes(obj?.structural?.state)
+    && obj.structural?.passageIds?.includes("synthetic-01")
+    && Array.isArray(obj?.characters)
+    && Array.isArray(obj?.miniBlocks) && obj.miniBlocks.length === 4
+    && obj.miniBlocks.every((b, i) => b.ordinal === i + 1
+      && ["supported", "partial", "unsupported"].includes(b.state)
+      && b.passageIds?.includes("synthetic-01") && typeof b.reason === "string" && b.reason.length >= 18)
+  );
+  if (role === "foundations-planner") {
+    const value = obj?.values?.["output-1"];
+    return typeof value === "string" && value.length >= 18 && /compass|nia|taro|trust|conflict/iu.test(value);
+  }
+  if (role === "discovery-mapper") return [1, 2, 3, 4].includes(obj?.act)
+    && typeof obj?.lane === "string" && typeof obj.reason === "string"
+    && obj.evidenceRefs?.includes("synthetic-01");
+  if (role === "wyrmwood-rival-director") {
+    const ids = ["aiden-glowhart", "damien-darkmore", "barnaby-barnacle", "master-spirit-talker", "sienna-silvertongue"];
+    return Boolean(obj?.pickle?.title && obj.pickle.situation && obj.pickle.goal
+      && Array.isArray(obj.pickle.constraints) && obj.pickle.constraints.length >= 1
+      && Array.isArray(obj.pickle.establishedElements) && obj.pickle.establishedElements.length >= 2
+      && obj.pickle.failurePressure && obj.oakenOpening
+      && ids.every(id => obj.rivals?.[id]?.action && obj.rivals?.[id]?.complication));
+  }
+  if (role === "wyrmwood-curriculum-evaluator") return Boolean(
+    ["storyLogic", "lessonApplication", "establishedElements", "consequences", "rivalCounter", "clarity"]
+      .every(key => typeof obj?.dimensions?.[key] === "number")
+    && obj.whatWorked?.length && obj.whatNeedsWork?.length && obj.conceptUsed && obj.teachingDebrief
+  );
+  // Freeform advisories: no JSON requirement, but a generic greeting is not
+  // a meaningful role-specific response to the synthetic source.
+  const relevant = role === "workflow-change"
+    ? /workflow|checkpoint|review|change|verification/iu.test(response)
+    : /compass|nia|taro|trust|ownership|object|scene|character|choice|consequence|narrat|cinema|shot|plot|story|visual|continuity/iu.test(response);
+  return response.length >= 24 && relevant && response.toLowerCase() !== syntheticPrompt(role).toLowerCase();
 }
 function syntheticPrompt(role) {
   const story = "SYNTHETIC NONCANON FICTION: Nia leaves a brass compass on a table. Later, Taro takes it before Nia returns. No real writer, private PPF, location, memory, or character is involved.";
@@ -155,7 +180,7 @@ export function createAgentHealthCommandSession(services) {
         const cloud = CLOUD.has(provider);
         return "AGENT HEALTH LIVE TEST PREVIEW — " + targets.length + " Mastra roles; " + census.entries.length + " source entries accounted for."
           + "\nProvider=" + provider + "; model=" + (option.model || "unknown")
-          + "; up to " + targets.length + " inference requests, one per role, no retries, one-at-a-time, at most 120 seconds total."
+          + "; up to " + targets.length + " role invocations (Mastra maxRetries=1 may make up to " + (targets.length * 2) + " provider requests); no Command-level retry, one-at-a-time, at most 120 seconds total."
           + "\n" + (cloud ? "PAID CLOUD REQUESTS: exact usage/charge quote unavailable; actual provider charges may apply. Synthetic fiction is sent externally." : "Local execution requested; no automatic cloud fallback. Local model/GPU work may occur.")
           + "\nBUZZ-managed agents, external peers and production sidecars remain BLOCKED without their own signed/job proof; NO BUZZ POST, PPF mutation or GitHub write."
           + "\nWITHIN TWO MINUTES SEND:\nPlotPickle agents confirm " + token + (cloud ? " CHARGES SHARE" : "")

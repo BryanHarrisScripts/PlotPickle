@@ -8,6 +8,15 @@ const readJson = (relative) => JSON.parse(readFileSync(path.join(root, relative)
 const readText = (relative) => readFileSync(path.join(root, relative), "utf8");
 const exists = (relative) => existsSync(path.join(root, relative));
 
+// npm file dependencies keep their metadata at the lockfile's linked target.
+// Resolve only recorded package entries; missing targets retain empty metadata.
+function resolveLockedPackage(packageLock, location) {
+  const record = packageLock.packages?.[location];
+  return record?.link === true
+    ? packageLock.packages?.[record.resolved]
+    : record;
+}
+
 function walkFiles(relativeRoot) {
   const absoluteRoot = path.join(root, relativeRoot);
   if (!existsSync(absoluteRoot)) return [];
@@ -74,7 +83,7 @@ export function auditThirdPartyOss() {
 
   const directRecords = [];
   for (const [name, requested] of Object.entries(direct)) {
-    const locked = packageLock.packages?.[`node_modules/${name}`];
+    const locked = resolveLockedPackage(packageLock, `node_modules/${name}`);
     if (!locked) {
       failures.push(`Direct dependency is missing from package-lock.json: ${name}`);
       continue;
@@ -210,7 +219,8 @@ export function auditThirdPartyOss() {
     .filter(([name]) => name && name.startsWith("node_modules/"));
   const licenseCounts = new Map();
   const missingTransitive = [];
-  for (const [location, record] of packageEntries) {
+  for (const [location] of packageEntries) {
+    const record = resolveLockedPackage(packageLock, location);
     const license = typeof record?.license === "string" ? record.license.trim() : "";
     if (!license) {
       missingTransitive.push({ location, version: record?.version ?? "" });

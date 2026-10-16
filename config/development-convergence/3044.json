@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "issue": 3044,
+  "phase": "oss-audit-prerequisite",
+  "brief": "docs/developer-briefs/3044-oss-audit-lockfile-links.md",
+  "allowedChanges": [
+    "scripts/third-party-oss-audit.mjs",
+    "config/third-party-oss.json",
+    ".agents/skills/color-expert/NOTICE.md",
+    "README.md",
+    "docs/developer-briefs/3044-oss-audit-lockfile-links.md",
+    "config/development-convergence/3044.json"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCKFILE-LINK-METADATA",
+      "criterion": "Direct and transitive inventory resolve metadata from a recorded linked target without modifying dependency pins.",
+      "evidence": [
+        {"type":"file-contains","path":"scripts/third-party-oss-audit.mjs","contains":"const locked = resolveLockedPackage(packageLock, `node_modules/${name}`);"},
+        {"type":"file-contains","path":"scripts/third-party-oss-audit.mjs","contains":"const record = resolveLockedPackage(packageLock, location);"},
+        {"type":"file-contains","path":"tests/issue-1892-oss-third-party-registry.test.mjs","contains":"assert.deepEqual(result.failures, [], result.failures.join"}
+      ]
+    },
+    {
+      "id": "ATTRIBUTION-DRIFT",
+      "criterion": "Registered contributors have discoverable attribution and README acknowledgement.",
+      "evidence": [
+        {"type":"file-contains","path":".agents/skills/color-expert/NOTICE.md","contains":"<!-- PLOTPICKLE:OSS-INFLUENCE:color-expert-skill -->"},
+        {"type":"file-contains","path":"config/third-party-oss.json","contains":"\".agents/skills/color-expert\""},
+        {"type":"file-contains","path":"README.md","contains":"| Pi Durable |"}
+      ]
+    }
+  ],
+  "constraints": ["No package upgrades, PPF mutation, provider calls or upstream corpus copying.", "Existing regression sources and expectations remain unchanged; no new truth claims."]
+}

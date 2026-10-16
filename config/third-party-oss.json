@@ -18,7 +18,8 @@
   "influencePolicy": {
     "markerPrefix": "PLOTPICKLE:OSS-INFLUENCE:",
     "scanRoots": [
-      "docs/architecture"
+      "docs/architecture",
+      ".agents/skills/color-expert"
     ],
     "definition": "A reference-only marker means the named OSS project materially informed current PlotPickle architecture, methodology, or an adapted workflow. Evaluation-only, future, standards-only, and ordinary external links are not contributors until adopted."
   },

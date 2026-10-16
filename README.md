@@ -248,6 +248,7 @@ The canonical machine-readable inventory is [`config/third-party-oss.json`](conf
 | Lazy Frames | Optional reviewed local animatic tool | MIT |
 | Portless | Developer endpoint/runtime tooling | Apache-2.0 |
 | Pi coding agent | Optional external developer/repair worker | MIT |
+| Pi Durable | Managed durable execution and recovery adapter; DSDD and host authority remain authoritative | MIT |
 | Cline | Optional external developer/repair worker | Apache-2.0 |
 
 ### Open-source ideas and workflows we adapted

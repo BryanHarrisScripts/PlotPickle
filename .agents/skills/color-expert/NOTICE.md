@@ -1,5 +1,7 @@
 # Color Expert provenance
 
+<!-- PLOTPICKLE:OSS-INFLUENCE:color-expert-skill -->
+
 PlotPickle's Color Expert Skill is a PlotPickle-authored adapter procedure.
 
 Reviewed upstream knowledge source:

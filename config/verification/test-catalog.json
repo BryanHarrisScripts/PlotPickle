@@ -3084,6 +3084,51 @@
         ]
       },
       "notes": "#3008 source-complete static census, no inference for registry view, one-use paywall and safe synthetic mock live I/O. Mocks do not prove actual installed user agents, BUZZ messaging or Windows provider billing."
+    },
+    {
+      "id": "story-canon.cmd-screenplay-source-proposals-3004",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "surface",
+        "agent"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3004-cmd-source-proposals.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#3004 Phase 2 CMD source-quoted unaccepted Mind Map/World Map field draft with exact project/profile/source preview bound to existing PPF write owner. Synthetic fixture and source-wiring only: does not prove actual user Brotherly Love drafts, model inference, media production or approval."
     }
   ],
   "truthGovernance": {
@@ -4730,6 +4775,29 @@
           "unit-fixture"
         ],
         "limits": "Node fixtures prove registry reconciliation and CLI authorization semantics. No actual provider inference, signed BUZZ message, external developer coding worker, sidecar process or Windows consumer device is claimed; real environment remains separate.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3004-cmd-source-proposals.test.mjs",
+        "targetDigest": "8cb0f1d71644a2ae37fa9e28ea40b7a9865bc40c7674dc8fb21b44fdc90c5633",
+        "catalogueIds": [
+          "story-canon.cmd-screenplay-source-proposals-3004"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic PPF and injected save receipt verify source-identity and Human-grant negatives; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
         "inputs": []
       }
     ]

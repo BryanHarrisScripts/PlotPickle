@@ -990,7 +990,8 @@
         "data/afterglow-screenplay.ts",
         "data/afterglow-reconciliation.ts",
         "core/contracts/imported-screenplay-evidence/index.ts",
-        "core/project/story-bible-projection.ts"
+        "core/project/story-bible-projection.ts",
+        "core/contracts/imported-screenplay-evidence/cmd-source-proposal.mjs"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

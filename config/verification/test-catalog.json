@@ -4727,9 +4727,7 @@
           }
         ],
         "scopes": [
-          "synthetic",
-          "negative",
-          "real-boundary"
+          "unit-fixture"
         ],
         "limits": "Node fixtures prove registry reconciliation and CLI authorization semantics. No actual provider inference, signed BUZZ message, external developer coding worker, sidecar process or Windows consumer device is claimed; real environment remains separate.",
         "inputs": []

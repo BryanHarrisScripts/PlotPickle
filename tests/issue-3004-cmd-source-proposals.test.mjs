@@ -66,6 +66,8 @@ test("#3004 grammar uses only bounded Mind Map / World Map source operations", (
   assert.deepEqual(parseCmdSourceProposal("PlotPickle mind-map source Block 01 Mini 01"), { action: "source", area: "mind-map", block: 1, mini: 1 });
   assert.deepEqual(parseCmdSourceProposal("PlotPickle mind-map propose foundations:logline:output-1 from source-b"), { action: "propose", area: "mind-map", fieldId: "foundations:logline:output-1", passageId: "source-b" });
   assert.deepEqual(parseCmdSourceProposal("PlotPickle world-map confirm 0123456789abcdef"), { action: "confirm", area: "world-map", token: "0123456789abcdef" });
+  assert.deepEqual(parseCmdSourceProposal("PlotPickle mind-map review foundations:logline:output-1"), { action: "review", area: "mind-map", fieldId: "foundations:logline:output-1" });
+  assert.equal(parseCmdSourceProposal("PlotPickle world-map review INVALID=KEY").action, "invalid");
   assert.equal(parseCmdSourceProposal("PlotPickle world-map source Block 25 Mini 01").action, "invalid");
   assert.equal(parseCmdSourceProposal("PlotPickle mind-map source Block 01 Mini 05").action, "invalid");
   assert.equal(parseCmdSourceProposal("PlotPickle mind-map propose KEY=SECRET from source-a").action, "invalid");
@@ -152,4 +154,36 @@ test("#3004 source proposal CMD uses durable canonical PPF writer and is dispatc
   assert.match(s,/profilePrivateBrowserReadyFor\(profileId\)/u);
   assert.match(owner,/proposalSourceRef: input.sourceRef/u);
   assert.doesNotMatch(s.slice(s.indexOf("async function runCmdSourceProposal"),s.indexOf("const agentHealthSession")),/\/api\/local-ai\/generate/);
+});
+
+test("#3004 Phase 3 review reads persisted source-linked proposal without promoting accepted source, changing revision or calling inference", async () => {
+  const h = harness();
+  await h.session.execute(parseCmdSourceProposal("PlotPickle mind-map propose foundations:logline:output-1 from source-b"));
+  await h.session.execute(parseCmdSourceProposal("PlotPickle mind-map confirm 0123456789abcdef"));
+  const before = structuredClone(h.project()), saves = h.saves();
+  const readback = await h.session.execute(parseCmdSourceProposal("PlotPickle mind-map review foundations:logline:output-1"));
+  assert.match(readback, /READ-ONLY.*NOT HUMAN-APPROVED/);
+  assert.match(readback, /Direct imported-passage quote: VERIFIED/);
+  assert.match(readback, /source-b/);
+  assert.match(readback, /Existing accepted authority: human/);
+  assert.match(readback, /Nia: I borrowed the compass/);
+  assert.deepEqual(h.project(), before);
+  assert.equal(h.saves(), saves);
+  assert.equal(h.inference(), 0);
+});
+
+test("#3004 Phase 3 review refuses false provenance for saved edits and never treats quote as accepted canon", async () => {
+  const h = harness(), before = structuredClone(h.project());
+  const edited = await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review world:existing:output-1"));
+  assert.match(edited, /NOT VERIFIED/);
+  assert.match(edited, /A previous saved proposal/);
+  assert.match(edited, /NOT HUMAN-APPROVED/);
+  assert.doesNotMatch(edited, /Direct imported-passage quote: VERIFIED/);
+  const missing = await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review world:setting:output-1"));
+  assert.match(missing, /NO SAVED UNACCEPTED PROPOSAL/);
+  assert.match(await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review character:engine:output-1")), /BLOCKED/);
+  h.changeProfile();
+  assert.match(await h.session.execute(parseCmdSourceProposal("PlotPickle world-map review world:existing:output-1")), /BLOCKED/);
+  assert.deepEqual(h.project(), before);
+  assert.equal(h.saves(), 0);
 });

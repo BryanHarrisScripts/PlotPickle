@@ -3953,7 +3953,7 @@
       },
       {
         "target": "tests/issue-2438-dashboard-status-worldmap.test.mjs",
-        "targetDigest": "8dd3677aa34a73ee352aad341a45cc343aaeee757e564901ccf8c68dfe890edb",
+        "targetDigest": "4ffe3a28f32d52f112bef7cdda14b2a1e8367992ca8d65e55313a4f19afba401",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3971,12 +3971,12 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": []
       },
       {
         "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-        "targetDigest": "77f09ae8cf66f2f7474f03cbf337ac1d75a63c333a2bdb5a7aa2ce1e9001c17d",
+        "targetDigest": "e09a22e8e89bb83a9565f96adb4bc7c246a3165a0f89874b9a7c68f4c7fd2fe5",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -3994,7 +3994,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": []
       },
       {
@@ -4016,9 +4016,9 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie.",
+        "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": [],
-        "targetDigest": "f4b07479ec7b6751e3e52197c800698964a588f60a34ad323a4d7e6f50b7cc8b"
+        "targetDigest": "cdaee51904acbad5c6ee2adda078ef9aa5a0d7bbdd481b743cb1990888be3a1b"
       },
       {
         "target": "tests/issue-2469-webmcp-surface-maturity.test.mjs",

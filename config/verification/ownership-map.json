@@ -2365,6 +2365,34 @@
         "canon",
         "storage"
       ]
+    },
+    {
+      "id": "agent-health-census-3008",
+      "classification": "production",
+      "include": [
+        "core/agents/agent-health-census.mjs",
+        "core/agents/health/command.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ]
+    },
+    {
+      "id": "production-supervisor-agent-workers-3008",
+      "classification": "production",
+      "include": [
+        "lib/agents/production-supervisor-workers.mjs",
+        "scripts/production-supervisor-agent.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "agent",
+        "native",
+        "test-harness"
+      ]
     }
   ]
 }

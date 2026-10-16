@@ -12,6 +12,7 @@ import {
 } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { createConnectionCommandSession, parseConnectionCommand } from "../_components/settings/connection-command.mjs";
+import { createAgentHealthCommandSession, parseAgentHealthCommand } from "../../core/agents/health/command.mjs";
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
@@ -750,6 +751,52 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     return true;
   }
 
+  const agentHealthSession = useRef<ReturnType<typeof createAgentHealthCommandSession> | null>(null);
+  async function runAgentHealthCommand(submitted: string) {
+    if (!embedded) return false;
+    const parsed = parseAgentHealthCommand(submitted);
+    if (!parsed) return false;
+    if (!agentHealthSession.current) agentHealthSession.current = createAgentHealthCommandSession({
+      profile: async () => {
+        const response = await authenticatedProfileFetch("/api/auth/profile", { cache: "no-store" });
+        const data = await response.json();
+        const id = window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || "";
+        return response.ok && data.authenticated === true && data.profile?.profileId === id
+          && profilePrivateBrowserReadyFor(id) ? id : "";
+      },
+      request: async (apiPath: string, body?: object, timeoutMs?: number) => {
+        const response = await authenticatedProfileFetch(apiPath, {
+          cache: "no-store",
+          ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}),
+          ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
+        });
+        const value = await response.json();
+        if (!response.ok || value.ok === false) throw new Error("Agent Health runtime denied or could not complete the request.");
+        return value;
+      },
+      now: () => Date.now(),
+      token: () => crypto.randomUUID().replaceAll("-", "").slice(0, 16),
+      progress: (row: string) => {
+        setMessages(current => [...current, { id: messageId("agent-health-progress"), role: "tool",
+          text: "Agent Health: " + row, context: currentSurfaceContext(pathname) }].slice(-MAX_MESSAGES));
+      },
+    });
+    const snapshot = currentSurfaceContext(pathname);
+    const safeText = parsed.action === "invalid" ? "[Unrecognized agent input withheld]" : submitted;
+    setMessages(current => [...current, { id: messageId("agent-health-human"), role: "command",
+      text: safeText, context: snapshot, inputMode: draftHasVoice ? "voice" : "typed" }].slice(-MAX_MESSAGES));
+    setDraft(""); setDraftHasVoice(false); setError(""); setCommandWorking(true); setContext(snapshot);
+    try {
+      const outcome = await agentHealthSession.current.execute(parsed);
+      setMessages(current => [...current, { id: messageId("agent-health-result"), role: "tool",
+        text: outcome, context: snapshot }].slice(-MAX_MESSAGES));
+    } catch {
+      setMessages(current => [...current, { id: messageId("agent-health-blocked"), role: "tool",
+        text: "Agent Health could not complete. See secure diagnostics; do not assume inference or retry.", context: snapshot }].slice(-MAX_MESSAGES));
+    } finally { setCommandWorking(false); }
+    return true;
+  }
+
   const connectionSession = useRef<ReturnType<typeof createConnectionCommandSession> | null>(null);
   async function runDirectConnectionsCommand(submitted: string) {
     if (!embedded) return false;
@@ -967,6 +1014,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (await runAgentHealthCommand(submitted)) return;
     if (await runDirectConnectionsCommand(submitted)) return;
     if (await runCreativeAssessmentCommand(submitted)) return;
     if (await runCreativeLibraryCommand(submitted)) return;

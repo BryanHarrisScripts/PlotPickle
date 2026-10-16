@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "issue": 3004,
+  "phase": "phase-3a-read-only-saved-proposal-review",
+  "brief": "docs/developer-briefs/3004-cmd-review-saved-source-drafts.md",
+  "allowedChanges": [
+    "core/contracts/imported-screenplay-evidence/cmd-source-proposal.mjs",
+    "tests/issue-3004-cmd-source-proposals.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3004-cmd-review-saved-source-drafts.md",
+    "config/development-convergence/3004-phase3a.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CMD-CANONICAL-DRAFT-READBACK",
+      "criterion": "Current selected PPF's canonical unaccepted story field proposal, accepted status and source citation are visible without mutation or inference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 Phase 3 review reads persisted source-linked proposal"
+        }
+      ]
+    },
+    {
+      "id": "NO-FALSE-SOURCE-OR-CANON-PROMOTION",
+      "criterion": "Exact import quote verified only against source; altered or missing drafts cannot be represented as Human-approved canon; profile and field scope negatives block.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 Phase 3 review refuses false provenance"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Read-only review; existing Human Mind Map / World Map controls retain field acceptance authority.",
+    "No protected task resume, Story Architect inference, provider call, image, video, screenplay rewrite or guessed runtime.",
+    "Synthetic tests are not authenticated Windows Brotherly Love or playable Rough Cut proof.",
+    "Exact-head seven-layer and impact-selected Windows gates must pass before SHA-guarded merge.",
+    "Issue #3004 stays open for live production chain."
+  ]
+}

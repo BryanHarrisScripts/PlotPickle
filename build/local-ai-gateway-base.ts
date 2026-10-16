@@ -362,7 +362,7 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
   }
   if (!connection.imageModel) throw new Error("Choose an image model in Settings.");
   const quality = input.quality === "low" || input.quality === "medium" || input.quality === "high" ? input.quality : "medium";
-  const size = input.aspect === "landscape" ? "1536x1024" : "1024x1536";
+  const size = input.aspect === "square" ? "1024x1024" : input.aspect === "landscape" ? "1536x1024" : "1024x1536";
   const references = connection.provider === "openai" || connection.provider === "minimax" ? await referenceImages(input) : [];
   let value: Record<string, unknown>;
   let base64 = "";
@@ -374,7 +374,7 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
     value = await providerJson(`${normalizedUrl(connection.baseUrl)}/v1/image_generation`, connection, {
       model: connection.imageModel,
       prompt: prompt.slice(0, 1500),
-      aspect_ratio: input.aspect === "landscape" ? "16:9" : "9:16",
+      aspect_ratio: input.aspect === "square" ? "1:1" : input.aspect === "landscape" ? "16:9" : "9:16",
       response_format: "base64",
       n: 1,
       ...(references[0] ? { subject_reference: [{ type: "character", image_file: references[0].bytes.toString("base64") }] } : {}),

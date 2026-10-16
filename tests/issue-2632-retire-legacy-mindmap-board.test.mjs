@@ -34,7 +34,8 @@ test("#2632 historical discovery cards remain in the Library project contract an
 
   assert.match(library, /readonly discovery: DiscoveryState/u);
   assert.match(library, /const discovery = source\.discovery === undefined[\s\S]*createEmptyDiscoveryState\(\)[\s\S]*normalizeDiscoveryState\(source\.discovery\)/u);
-  assert.match(library, /return \{ \.\.\.project, structure, sourceEvidence, writing, discovery, worldMap, storyDevelopment, mindMapNotes, storyIntent \}/u);
+  assert.match(library, /return \{ \.\.\.project, structure, sourceEvidence, writing, discovery, worldMap, assetRegistry, storyDevelopment, mindMapNotes, storyIntent \}/u);
+  assert.match(library, /assetRegistry = source\.assetRegistry === undefined[\s\S]*createEmptyProjectAssetRegistry\(\)[\s\S]*normalizeProjectAssetRegistry\(source\.assetRegistry\)/u);
   assert.match(library, /serializeLibraryBackup\(project: LibraryPPFProject\)[\s\S]*JSON\.stringify\(project/u);
 
   assert.match(contract, /export type DiscoveryState = \{[\s\S]*readonly cards: readonly DiscoveryCard\[\]/u);

@@ -3042,6 +3042,48 @@
         ]
       },
       "notes": "Synthetic Command controller/parser evidence only; real provider, authenticated Windows and persisted gateway behavior require independent proof."
+    },
+    {
+      "id": "agent.source-census-and-cmd-smoke-3008",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3008-agent-health.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#3008 source-complete static census, no inference for registry view, one-use paywall and safe synthetic mock live I/O. Mocks do not prove actual installed user agents, BUZZ messaging or Windows provider billing."
     }
   ],
   "truthGovernance": {
@@ -4662,6 +4704,34 @@
           "unit-fixture"
         ],
         "limits": "Synthetic parser/controller endpoint dispatch, fail-closed confirmation, unchanged selection on test, consent flags and secret suppression. Does not certify actual provider response, real authenticated gateway isolation, Windows product acceptance or cloud spend.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3008-agent-health.test.mjs",
+        "targetDigest": "efc7841d14ccbce50f5bfead294fa208824f736a523cd6870804b2bd95d8bce1",
+        "catalogueIds": [
+          "agent.source-census-and-cmd-smoke-3008"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W11"
+          }
+        ],
+        "scopes": [
+          "synthetic",
+          "negative",
+          "real-boundary"
+        ],
+        "limits": "Node fixtures prove registry reconciliation and CLI authorization semantics. No actual provider inference, signed BUZZ message, external developer coding worker, sidecar process or Windows consumer device is claimed; real environment remains separate.",
         "inputs": []
       }
     ]

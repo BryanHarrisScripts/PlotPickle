@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { build } from "esbuild";
 import { parsePlotPickleCreativeCommand } from "../app/_components/settings/plotpickle-creative-command.mjs";
+import { driveAdmittedOutlineCheckpoint } from "../core/sidecars/tasks/outline-checkpoint-driver.mjs";
 
 const root = await mkdtemp(path.resolve("node_modules/.outline-runtime-2995-"));
 await build({ entryPoints: ["build/mastra-agent-runtime.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: path.join(root, "runtime.mjs"), logLevel: "silent", plugins: [{ name: "synthetic-model", setup(b) {
@@ -190,4 +191,61 @@ test("#2999 Command read-only diagnosis shows reservations, host state and UNKNO
   assert.match(src, /production \? \["local", "ollama", "openai"\] : \["local", "ollama"\]/u,
     "Production status must allow previously authorized OpenAI text tasks");
   assert.match(src, /const tasks = await readOutlineTasks\(\)/u);
+});
+
+test("#2999 native Pi Durable scheduler must resume after admission before waiting", async () => {
+  const stages = [];
+  const input = { scope: { runId: "synthetic-only" }, steps: [{ id: "block-1" }] };
+  const context = { boundary: "synthetic" };
+  const scheduler = {
+    async root(seenContext) {
+      assert.equal(seenContext, context);
+      stages.push("root");
+      return { owner: "synthetic-task" };
+    },
+    resume() { stages.push("resume"); },
+    async waitForTask(taskId, seenContext) {
+      assert.equal(taskId, "pi-synthetic-task");
+      assert.equal(seenContext, context);
+      assert.deepEqual(stages, ["root", "admit", "resume"],
+        "Pi waitForTask observes completion; it cannot substitute for harness.resume");
+      stages.push("wait");
+      return { state: { outcome: { status: "completed" } } };
+    },
+  };
+  const registration = {
+    async admit(root, seenInput, seenContext) {
+      assert.deepEqual(root, { owner: "synthetic-task" });
+      assert.equal(seenInput, input);
+      assert.equal(seenContext, context);
+      stages.push("admit");
+      return "pi-synthetic-task";
+    },
+  };
+  const result = await driveAdmittedOutlineCheckpoint({ harness: scheduler, registration, input, context });
+  assert.equal(result.state.outcome.status, "completed");
+  assert.deepEqual(stages, ["root", "admit", "resume", "wait"]);
+  const gatewaySource = await (await import("node:fs/promises")).readFile(
+    new URL("../build/projects/outline-task-gateway.ts", import.meta.url), "utf8");
+  assert.match(gatewaySource, /driveAdmittedOutlineCheckpoint\(\{ harness, registration, input, context \}\)/u,
+    "real production gateway must use the tested admit-resume-wait driver");
+  assert.doesNotMatch(gatewaySource, /const piId = await registration\.admit\(await harness\.root/u,
+    "do not regress to the prior admitted-but-not-driven production path");
+});
+
+test("#2999 failed Pi admission never resumes or duplicates inference", async () => {
+  const stages = [];
+  const harness = {
+    async root() { stages.push("root"); return {}; },
+    resume() { stages.push("resume"); },
+    async waitForTask() { stages.push("wait"); return null; },
+  };
+  const registration = {
+    async admit() { stages.push("admit-rejected"); throw new Error("SYNTHETIC_ADMISSION_DENIED"); },
+  };
+  await assert.rejects(
+    driveAdmittedOutlineCheckpoint({ harness, registration, input: {}, context: {} }),
+    /SYNTHETIC_ADMISSION_DENIED/u,
+  );
+  assert.deepEqual(stages, ["root", "admit-rejected"]);
 });

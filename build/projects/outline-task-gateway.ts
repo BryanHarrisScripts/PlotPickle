@@ -10,6 +10,7 @@ import { resolveAgentProfileCapabilities } from "../../lib/agents/agent-profiles
 import { managedPiDurableRoot, probeManagedPiDurable } from "../../scripts/pi-durable-managed-install.mjs";
 import { importPiDurableModule } from "../../core/sidecars/pi-durable-adapter.mjs";
 import { registerAgentCheckpointTasks } from "../../core/sidecars/tasks/agent-checkpoint-task.mjs";
+import { driveAdmittedOutlineCheckpoint } from "../../core/sidecars/tasks/outline-checkpoint-driver.mjs";
 
 /** Only host-constructed diagnostic categories, not arbitrary provider messages, reach the browser. */
 class OutlineSchedulerSafeError extends Error {}
@@ -131,8 +132,9 @@ async function nativeScheduler(home: string, id: string, controller: Controller)
   const harness = await durable.Harness.open(storage, { models: ai.createModels(), registry }, context);
   return {
     async run(input) {
-      const piId = await registration.admit(await harness.root(context), input, context);
-      const result = await harness.waitForTask(piId, context);
+      // Admission alone does not execute a Pi Durable task. Explicitly start the
+      // isolated harness before waiting, matching the native checkpoint proof.
+      const result = await driveAdmittedOutlineCheckpoint({ harness, registration, input, context });
       if (result.state.outcome.status !== "completed") throw new OutlineSchedulerSafeError(outlineSchedulerFailure(result.state.outcome));
       return true;
     },

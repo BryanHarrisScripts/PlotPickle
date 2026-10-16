@@ -1885,6 +1885,7 @@
         "core/contracts/world-plan/index.ts",
         "modules/learn/model/relevant-project-context.ts",
         "modules/learn/model/mind-map-character-roster.ts",
+        "modules/learn/model/screenplay-character-roster.ts",
         "config/mind-map-field-scope-audit.json"
       ],
       "ownerLayer": "story-canon",

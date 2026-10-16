@@ -17,7 +17,8 @@
     "docs/developer-briefs/2999-block01-openai-production.md",
     "config/development-convergence/2999.json",
     "app/skin-v1/story-card-foundation-board.tsx",
-    "modules/plan/assessments/outline-task-selection.ts"
+    "modules/plan/assessments/outline-task-selection.ts",
+    "core/sidecars/tasks/outline-checkpoint-driver.mjs"
   ],
   "acceptance": [
     {
@@ -79,11 +80,28 @@
           "contains": "#2999 private provider errors cannot use a host-looking prefix to leak into CMD"
         }
       ]
+    },
+    {
+      "id": "DRIVE-ADMITTED-PI-TASK",
+      "criterion": "After bounded host authorization and Pi admission, the isolated production checkpoint scheduler explicitly resumes before waitForTask. A rejected admission cannot resume, dispatch a model, or implicitly retry.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 native Pi Durable scheduler must resume after admission before waiting"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2995-outline-runtime.test.mjs",
+          "contains": "#2999 failed Pi admission never resumes or duplicates inference"
+        }
+      ]
     }
   ],
   "constraints": [
     "Preserve previous production grants and encrypted task history.",
     "Do not claim live Brotherly Love acceptance from synthetic regression.",
-    "OpenAI text-only authority never grants paid MiniMax video or Human Plan acceptance."
+    "OpenAI text-only authority never grants paid MiniMax video or Human Plan acceptance.",
+    "Pi resume activation is not proof of a successful live Windows OpenAI completion; preserve existing failed checkpoints and compare with authenticated Windows read-back after merge."
   ]
 }

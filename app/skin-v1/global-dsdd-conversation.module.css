@@ -237,6 +237,24 @@
   font-size: var(--pp-skin-font-xs, 9px);
 }
 
+/* A one-time preview confirmation is actionable text, never an implicit submission.
+ * Orange separates it from green Human messages and ordinary Tool output. */
+.connectionConfirmation {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--pp-skin-space-2, 8px) 0;
+  padding: var(--pp-skin-space-2, 8px) var(--pp-skin-space-3, 12px);
+  border: var(--pp-skin-border-thin, 1px) solid var(--pp-skin-confirmation-line, #d98438);
+  border-left: 4px solid var(--pp-skin-confirmation-ink, #ffb46a);
+  background: var(--pp-skin-confirmation-surface, #2a190a);
+  color: var(--pp-skin-confirmation-ink, #ffb46a);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  user-select: text;
+  font-variant-ligatures: none;
+}
+
 .working {
   color: var(--pp-skin-ink-muted, #888);
   font-size: var(--pp-skin-font-meta, 11px);

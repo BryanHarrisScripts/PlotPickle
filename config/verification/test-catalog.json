@@ -3018,7 +3018,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3000-connection-operations.test.mjs"
+          "tests/issue-3000-connection-operations.test.mjs",
+          "tests/issue-3034-command-orange-confirmation.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4965,6 +4966,50 @@
           {
             "path": "app/skin-v1/assets-characters.module.css",
             "digest": "39ccdf0f8ce37bf15b06587dfde7725c164144794fc1f6efac71ade8c555c54c"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3034-command-orange-confirmation.test.mjs",
+        "targetDigest": "c767f2813d878343086ca64789ee23d99c28444363a8a05cfe0bded59abd8f3b",
+        "catalogueIds": [
+          "experience.connection-command-3000"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic recognition of real CMD preview shape with tokens invented in test; source/CSS only. No real Human token, local Windows rendered screenshot, provider change, paid request or actual successful cloud selection asserted.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.tsx",
+            "digest": "83dc9e2049df5366afac18c2c7eb8d851cc1605fbc528c811a2d11e1421bd868"
+          },
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.module.css",
+            "digest": "8b8ffdd15d7c8a63ad26606f21d0178e8abee2d4730c1fcbe0f88e537065277e"
+          },
+          {
+            "path": "app/skin-v1-definition.css",
+            "digest": "0249f0ae5466fedcbefc0e5ab58b8ed3741ca46c02ccf68907c942c98a90d3bd"
+          },
+          {
+            "path": "app/_components/settings/connection-confirmation-presentation.mjs",
+            "digest": "91f366116649d3e7c286fcf0ef98cca99c2837f97706427853aa71b88281f12e"
+          },
+          {
+            "path": "app/_components/settings/connection-confirmation-presentation.d.mts",
+            "digest": "857d5e15c21e80dbca8ff736e70653f497b1fe583c283a239dd9d795ef8dcc30"
           }
         ]
       }

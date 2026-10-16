@@ -116,7 +116,8 @@
           "tests/issue-2657-matrix-navigation-continuity.test.mjs",
           "tests/issue-2446-dashboard-sound-selectable.test.mjs",
           "tests/issue-3019-assets-poster-library.test.mjs",
-          "tests/issue-3019-assets-characters.test.mjs"
+          "tests/issue-3019-assets-characters.test.mjs",
+          "tests/issue-3031-screenplay-character-roster.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4961,11 +4962,11 @@
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
-            "digest": "8b8236e272d3ed730a6b0d6c48b8f4a07eeb941511f47fc3e9d9e6e7c3538ada"
+            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
           },
           {
             "path": "app/skin-v1/assets-characters.module.css",
-            "digest": "39ccdf0f8ce37bf15b06587dfde7725c164144794fc1f6efac71ade8c555c54c"
+            "digest": "3c8c2b65266c545f3057eb87d7505e0dcb6acf64d367780b9b8cd45813fc4c98"
           }
         ]
       },
@@ -5010,6 +5011,42 @@
           {
             "path": "app/_components/settings/connection-confirmation-presentation.d.mts",
             "digest": "857d5e15c21e80dbca8ff736e70653f497b1fe583c283a239dd9d795ef8dcc30"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3031-screenplay-character-roster.test.mjs",
+        "targetDigest": "3265ad2bf14cec08d9e5868cf4d896db6d39d308f588ba37ab6522825273048c",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic selected screenplay cue→candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
+        "inputs": [
+          {
+            "path": "modules/learn/model/screenplay-character-roster.ts",
+            "digest": "53dfe0a3e8cad7cf6c56ca83d5443ee62f29c3ad8a94d075c2006ebe2b7eb0e1"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.tsx",
+            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.module.css",
+            "digest": "3c8c2b65266c545f3057eb87d7505e0dcb6acf64d367780b9b8cd45813fc4c98"
           }
         ]
       }

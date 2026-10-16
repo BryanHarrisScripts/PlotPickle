@@ -82,7 +82,9 @@ export function describeOutlineTaskDiagnostic(task: OutlineTaskView): string {
 }
 
 function createdAt(task: OutlineTaskView): number {
-  const timestamp = Date.parse(task.run.createdAt);
+  // Responsibility Runs persist creation as an event, not a createdAt field.
+  const timestamp = Date.parse(task.run.events?.find(event => event.type === "run.created")?.at
+    ?? task.run.context?.receiptGeneratedAt ?? "");
   return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
 }
 

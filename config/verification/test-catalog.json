@@ -4678,7 +4678,7 @@
       },
       {
         "target": "tests/issue-2995-outline-runtime.test.mjs",
-        "targetDigest": "2894826b9d434f6a3f32f68aa8e01762fb8acdc496829ed447c1ae68467bbedb",
+        "targetDigest": "8e5aac0f363b4297518d7baf729376aafc0aa763d054591dd4096ccb71316056",
         "catalogueIds": [
           "story-canon.outline-durable-input-2711"
         ],

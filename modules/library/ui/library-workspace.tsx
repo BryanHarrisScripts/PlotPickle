@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
-import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW } from "../../../core/contracts/build-progress";
+import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW, lockedMarketingReference } from "../../../core/contracts/build-progress";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
 import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
@@ -353,6 +353,12 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
   const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
   const snapshot = loadLibraryProjectSnapshot(item.id);
+  const approvedPoster = snapshot
+    ? lockedMarketingReference(snapshot.build.foundations.visualArtifacts, snapshot.build.foundations.acceptedVisualArtifactIds)
+    : null;
+  const posterUrl = approvedPoster?.assetUrl.startsWith("/api/local-ai/assets/") || approvedPoster?.assetUrl.startsWith("/assets/")
+    ? approvedPoster.assetUrl
+    : null;
   const resumeDetails = savedStoryResumeDetails(snapshot);
   const intendedRuntime = snapshot?.storyIntent?.targetMinutes ?? null;
 
@@ -374,6 +380,17 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
         onClick={onOpen}
         type="button"
       >
+        {posterUrl ? (
+          <div className={styles.loadPosterFrame} data-library-story-poster={item.id}>
+            <Image
+              src={posterUrl}
+              alt={`${item.title} approved project poster`}
+              fill
+              sizes="(max-width: 760px) 100vw, 25vw"
+              unoptimized={posterUrl.startsWith("/api/local-ai/assets/")}
+            />
+          </div>
+        ) : null}
         <div className={styles.savedStoryResumeHeader}>
           <span>Resume your story</span>
           <small>{displayDate(item.updatedAt)}</small>

@@ -4905,7 +4905,7 @@
       },
       {
         "target": "tests/issue-3019-assets-poster-library.test.mjs",
-        "targetDigest": "d2ef998575914ea4c4b77a1676e9c4183040331ba74a283532eb3a7d6abb6e96",
+        "targetDigest": "000eee12c6c0133fc0ff0a5733a7aadcefe5931565df0bb7867cf00aa10235fe",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -4922,7 +4922,7 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed.",
+        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed. #3035 preserves the folder-list and approved poster behavior using a shared keyboard-accessible selected-state folder renderer instead of individual literal buttons.",
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",

@@ -35,8 +35,8 @@ function services(census, { route = "local", now = 200_000, changedProfile = fal
       characters: [], miniBlocks: [1, 2, 3, 4].map(ordinal => ({ ordinal, state: "unsupported", reason: "Synthetic source cannot prove this section", passageIds: ["synthetic-01"], storyboardCue: "" })) });
     if (role === "foundations-planner") return JSON.stringify({ values: { "output-1": "Provisional — a compass changes hands and prompts a trust dispute." } });
     if (role === "discovery-mapper") return JSON.stringify({ act: 1, lane: "scene", reason: "An opening situation.", evidenceRefs: ["synthetic-01"] });
-    if (role === "wyrmwood-rival-director") return JSON.stringify({ pickle: { goal: "Decide" }, rivals: Object.fromEntries(["a","b","c","d","e"].map(x => [x, {}])) });
-    if (role === "wyrmwood-curriculum-evaluator") return JSON.stringify({ dimensions: { storyLogic: 10 }, whatWorked: ["A decision"], teachingDebrief: "Check a choice." });
+    if (role === "wyrmwood-rival-director") return JSON.stringify({ oakenOpening: "A story challenge begins", pickle: { title: "Trust", situation: "One choice", goal: "Decide", constraints: ["No violence"], establishedElements: ["Compass","Table"], failurePressure: "Time" }, rivals: Object.fromEntries(["aiden-glowhart","damien-darkmore","barnaby-barnacle","master-spirit-talker","sienna-silvertongue"].map(x => [x, { action: "Choose", complication: "Time" }])) });
+    if (role === "wyrmwood-curriculum-evaluator") return JSON.stringify({ dimensions: { storyLogic: 10, lessonApplication: 10, establishedElements: 10, consequences: 10, rivalCounter: 8, clarity: 7 }, whatWorked: ["A decision"], whatNeedsWork: ["Consent"], conceptUsed: "Choice", teachingDebrief: "Check a choice." });
     return "The synthetic compass changes hands before the original owner comes back; this could create a trust conflict.";
   };
   return {

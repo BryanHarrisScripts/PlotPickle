@@ -4801,6 +4801,95 @@
         ],
         "limits": "Synthetic PPF and injected save receipt verify source-identity, review-only provenance status, Human-grant negatives and immutable acceptance; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+        "targetDigest": "18fc71fecc7023b8be25591883b5994832db1d7937adaeb2e038137dba60d27d",
+        "catalogueIds": [
+          "experience.manual-uat-follow-up-2153"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static Dashboard contract tests for Human-approved ASSETS grouping; no live browser/Windows image creation or durable PPF proof.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+        "targetDigest": "80501118a7ca29a5a52919eff5a8b01b50c0cd64b7f79b4de2c546184c4fe4dc",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static nested Sounds owner and first project-bound ASSETS workflow; does not verify Human provider output, local media bytes after restart or paid route.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          },
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "0901b581d8f52567146d8777bc522a97f570d943c014db6400c8545c047ab496"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+          }
+        ]
+      },
+      {
+        "target": "tests/layer1-navigation-continuity.test.mjs",
+        "targetDigest": "a895acb5968770cf3ad95d598c4bc6b8c734155c9c0db6f6b477b243ffda436c",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Frozen primary Matrix Dashboard tuple/order assertions; no live navigation capture or Human Windows UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          }
+        ]
       }
     ]
   }

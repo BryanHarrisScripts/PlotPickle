@@ -46,12 +46,14 @@ function isLocalRequest(request: IncomingMessage) {
   if (!isLoopback(request.socket.remoteAddress)) return false;
   const host = request.headers.host;
   if (!host) return false;
-  let hostUrl: URL;
-  try { hostUrl = new URL(`http://${host}`); } catch { return false; }
+  const candidateHost = `http://${host}`;
+  if (!URL.canParse(candidateHost)) return false;
+  const hostUrl = new URL(candidateHost);
   if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
   const origin = request.headers.origin;
   if (!origin) return true;
-  try { return new URL(origin).host === hostUrl.host; } catch { return false; }
+  if (!URL.canParse(origin)) return false;
+  return new URL(origin).host === hostUrl.host;
 }
 
 function sendJson(response: ServerResponse, status: number, body: Record<string, unknown>) {

@@ -29,18 +29,51 @@ export function outlineTaskDisplayStatus(task: Pick<OutlineTaskView, "run" | "ru
 export function describeOutlineTaskDiagnostic(task: OutlineTaskView): string {
   const reservations = Array.isArray(task.attempts) ? task.attempts : [];
   const reported = reservations.filter(attempt => attempt.status === "reported" && attempt.usage != null).length;
-  const cause = typeof task.error === "string"
-    ? (/The scheduler faulted \(([A-Z_]+)\)\./u.exec(task.error)?.[1]
-      || (/The scheduler review timed out at the (25|180)-second response limit\./u.exec(task.error)?.[1] ? "HOST_TIMEOUT" : "UNCLASSIFIED"))
-    : "NOT_RECORDED_OR_UNAVAILABLE";
+  // Explicit conditional order matters. The old `faultMatch || timeout ?`
+  // expression incorrectly classified any matching non-timeout fault as HOST_TIMEOUT.
+  const faultCode = typeof task.error === "string"
+    ? /^The scheduler faulted \(([A-Z_]+)\)\./u.exec(task.error)?.[1] : undefined;
+  const timedOut = typeof task.error === "string"
+    && /^The scheduler review timed out at the (25|180)-second response limit\./u.test(task.error);
+  const knownFaultCodes = new Set([
+    "SOURCE_CONTEXT_LIMIT", "USAGE_NOT_RECORDED", "TASK_BUDGET_EXHAUSTED",
+    "HOST_QUOTE_UNAVAILABLE", "FIDELITY_SCHEMA_INVALID", "FIDELITY_EVIDENCE_INVALID",
+    "FIDELITY_COVERAGE_MISSING", "UNCLASSIFIED_PRIVATE_FAILURE",
+  ]);
+  const cause = faultCode && knownFaultCodes.has(faultCode) ? faultCode
+    : timedOut ? "HOST_TIMEOUT" : typeof task.error === "string" ? "UNCLASSIFIED" : "NOT_RECORDED_OR_UNAVAILABLE";
   const candidate = task.productionPass?.candidate ? "saved candidate" : "no candidate";
   const fidelity = task.productionPass?.review ? "saved semantic review" : "no semantic review";
   const stage = task.running ? "executing" : task.proposals.length ? "partial or completed assessment saved" : "no admitted assessment";
+  // Never interpret a reservation or callback entry as a confirmed HTTP request.
+  // Older tasks lack checkpointStage; report that distinction rather than infer
+  // stages retroactively from the persisted "working" run state.
+  const stages = new Set([
+    "reservation-persisted", "worker-callback-entered", "usage-reported",
+    "result-processing-entered", "assessment-saved", "semantic-review-saved",
+  ]);
+  const latest = reservations.at(-1);
+  const lastStage = stages.has(latest?.checkpointStage || "") ? latest.checkpointStage : "NOT_CAPTURED_LEGACY";
+  const stagesText = lastStage === "worker-callback-entered"
+    ? "worker callback entered; provider HTTP dispatch and cost UNKNOWN"
+    : lastStage === "reservation-persisted"
+      ? "reservation saved only; worker callback not proven"
+      : lastStage === "usage-reported"
+        ? "usage callback persisted; result validation not proven"
+        : lastStage === "result-processing-entered"
+          ? "worker output processing began; validated artifact not proven"
+          : lastStage === "assessment-saved"
+            ? "assessment artifact persisted; independent review not implied"
+            : lastStage === "semantic-review-saved"
+              ? "assessment and semantic review persisted; Human approval not implied"
+              : "legacy or unrecognized stage; checkpoint not captured";
   return [
     "Protected task: " + task.scope.runId,
     "Provider: " + task.scope.provider + "; model: " + task.scope.model,
     "Execution: " + outlineTaskDisplayStatus(task) + "; durable run state: " + task.run.state + "; stage: " + stage,
     "Attempts reserved: " + reservations.length + "; usage-reported: " + reported + "; model dispatch: UNKNOWN unless independently observed",
+    "Last durable host checkpoint: " + lastStage + " — " + stagesText
+      + ". This records stage, NOT provider call count or charge.",
     "Admitted source-bound assessments: " + task.proposals.length + "/" + task.steps.length
       + "; " + fidelity + "; " + candidate,
     "Safe fault category: " + cause + "; protected checkpoint/private error cause: NOT INSPECTED",

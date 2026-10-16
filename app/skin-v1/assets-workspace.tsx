@@ -139,11 +139,21 @@ export default function AssetsWorkspace({
     try {
       assertCurrentProject(project.id, project.revision);
       const context = deriveMarketingContextV1(project);
+      const passages = (project.sourceEvidence.screenplay?.passages ?? [])
+        .filter((passage) => Boolean(passage.text?.trim()))
+        .slice(0, 24)
+        .map((passage) => passage.id + ": " + passage.text.trim().slice(0, 450));
+      if (!context.foundationsBrief && !context.decisions.length && !passages.length) {
+        throw new Error("The selected story has no saved screenplay or accepted Foundations material to ground a poster.");
+      }
       const basePrompt = buildFoundationsMarketingPosterPrompt(context);
+      const screenplayContext = passages.length
+        ? "\n\nActual selected screenplay excerpts (source reference only; do not invent additional canon):\n" + passages.join("\n")
+        : "";
       const humanDirection = direction.trim();
-      const prompt = humanDirection
-        ? basePrompt + "\n\nHuman poster direction (creative request, not accepted story canon): " + humanDirection.slice(0, 1500)
-        : basePrompt;
+      const prompt = basePrompt + screenplayContext + (humanDirection
+        ? "\n\nHuman poster direction (creative request, not accepted story canon): " + humanDirection.slice(0, 1500)
+        : "");
       const response = await authenticatedComputeFetch("/api/local-ai/generate/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -252,7 +262,7 @@ export default function AssetsWorkspace({
           {folder === "posters" ? (
             <section aria-label="Posters for current screenplay" data-assets-folder="posters">
               <h2>Posters — {project.title}</h2>
-              <p>Marketing artwork only. Creating a candidate does not change approved story or character canon.</p>
+              <p>Marketing artwork only. Uses the selected screenplay excerpts and saved Foundations decisions where present. Creating a candidate does not change story or character canon.</p>
               {featured ? <p>Current Library poster: <img src={featured.assetUrl} alt={project.title + " approved poster"} style={{maxWidth: 220, display: "block"}} /></p> : <p>No approved Library poster yet.</p>}
               {posters.map((poster) => (
                 <article key={poster.id} data-assets-poster={poster.id}>

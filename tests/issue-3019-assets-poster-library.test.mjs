@@ -48,11 +48,14 @@ test("#3019 current ASSETS category boundaries keep deferred media honest", asyn
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
   assert.match(menu, /id: "assets", shortcut: "A", label: "Assets"/u);
-  for (const folder of ["Sounds", "Characters", "Collectibles", "Posters", "World"]) {
-    assert.match(workspace, new RegExp(`>${folder}</button>`, "u"));
+  // The five native buttons now share one accessible, selected-state folder renderer.
+  for (const folder of ["sounds", "characters", "collectibles", "posters", "world"]) {
+    assert.match(workspace, new RegExp(`"${folder}"`, "u"));
   }
+  assert.match(workspace, /aria-label="ASSETS folders"/u);
+  assert.match(workspace, /data-selected=\{folder === id \? "true" : "false"\}/u);
   assert.match(workspace, /Collectibles authoring is planned/u);
-  assert.match(workspace, /Creating new world views will be part of the next ASSETS implementation/u);
+  assert.match(workspace, /New world-view generation is a later #3019 gate/u);
   assert.match(host, /<AssetsWorkspace/u);
   assert.match(host, /setDiscoveryInitialTopic\("character"\)/u);
   assert.match(host, /setSoundOpen\(kind\)/u);

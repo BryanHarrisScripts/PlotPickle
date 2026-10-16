@@ -26,6 +26,7 @@ import {
   mindMapCharacterVisualPrompt,
 } from "../../modules/learn/model/mind-map-character-roster";
 import { screenplayCastCandidates } from "../../modules/learn/model/screenplay-character-roster";
+import AssetsCharacterDeliverables from "./assets-character-deliverables";
 import styles from "./assets-characters.module.css";
 
 type ImageResult = { ok?: boolean; assetUrl?: string; revisedPrompt?: string; provider?: string; model?: string; message?: string };
@@ -350,6 +351,16 @@ export default function AssetsCharacters({ project, routeId, routeReady, cloud, 
                 </div>
               </div>) : <div className={styles.empty}>No saved views yet. Start with Front full-body and develop a consistent set.</div>}
             </section>
+            <AssetsCharacterDeliverables
+              key={project.id + ":" + selected.id}
+              project={project}
+              characterId={selected.id}
+              characterName={selected.name}
+              routeId={routeId}
+              routeReady={routeReady}
+              cloud={cloud}
+              onSaved={onSaved}
+            />
             <section className={styles.panel} aria-label="Generate character reference">
               <div className={styles.panelHeading}><div><span className={styles.eyebrow}>IMAGE STUDIO</span><h3>Create a reference view</h3><p>Grounded in the selected character’s permitted truth. New images remain drafts until explicitly saved and locked.</p></div></div>
               <div className={styles.controls}>

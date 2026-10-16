@@ -234,3 +234,56 @@ test("#2995 two bounded structured calls fit the production grant without extend
   f.clock = completed.productionPass.grant.expiresAt;
   await assert.rejects(f.controller.activate(f.context, task.scope.runId), /expired/);
 });
+
+test("#2999 durable worker callback stage survives private failure without proving OpenAI dispatch", async t => {
+  const f = await fixture(t);
+  const task = await f.start();
+  f.intercept = async () => { throw new Error("PRIVATE synthetic provider payload and API credential"); };
+  await assert.rejects(f.controller.executeStep(task.scope, task.steps[0]), /PRIVATE synthetic provider/u);
+  assert.equal(f.calls, 1, "synthetic callback entered; no actual network provider request");
+  let saved = await f.controller.status(f.context, task.scope.runId);
+  assert.equal(saved.attempts.length, 1);
+  assert.equal(saved.attempts[0].status, "reserved");
+  assert.equal(saved.attempts[0].usage, null);
+  assert.equal(saved.attempts[0].checkpointStage, "worker-callback-entered");
+  assert.equal(saved.proposals.length, 0);
+  f.reopen();
+  saved = await f.controller.status(f.context, task.scope.runId);
+  assert.equal(saved.attempts[0].checkpointStage, "worker-callback-entered",
+    "last verified host milestone is encrypted and durable, no silent retry");
+  assert.equal(f.calls, 1);
+});
+
+test("#2999 durable result-processing stage isolates invalid schema after usage from model readiness", async t => {
+  const f = await fixture(t);
+  const task = await f.start();
+  f.first = "{malformed synthetic output}";
+  await assert.rejects(f.controller.executeStep(task.scope, task.steps[0]));
+  assert.equal(f.calls, 1);
+  let saved = await f.controller.status(f.context, task.scope.runId);
+  assert.equal(saved.attempts[0].status, "reported");
+  assert.equal(saved.attempts[0].usage.totalTokens, 100);
+  assert.equal(saved.attempts[0].checkpointStage, "result-processing-entered");
+  assert.equal(saved.proposals.length, 0);
+  f.reopen();
+  saved = await f.controller.status(f.context, task.scope.runId);
+  assert.equal(saved.attempts[0].checkpointStage, "result-processing-entered");
+  assert.equal(f.calls, 1, "no automatic re-inference");
+});
+
+test("#2999 two independently saved source-bound production artifacts have explicit durable stages", async t => {
+  const f = await fixture(t);
+  const task = await f.start();
+  await f.controller.executeStep(task.scope, task.steps[0]);
+  let saved = await f.controller.status(f.context, task.scope.runId);
+  assert.deepEqual(saved.attempts.map(a => a.checkpointStage),
+    ["assessment-saved", "semantic-review-saved"]);
+  assert.equal(saved.attempts.filter(a => a.status === "reported").length, 2);
+  assert.equal(saved.proposals.length, 1);
+  assert.ok(saved.productionPass.review);
+  assert.ok(saved.productionPass.candidate);
+  f.reopen();
+  saved = await f.controller.status(f.context, task.scope.runId);
+  assert.deepEqual(saved.attempts.map(a => a.checkpointStage),
+    ["assessment-saved", "semantic-review-saved"]);
+});

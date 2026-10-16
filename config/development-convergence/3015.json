@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "issue": 3015,
+  "phase": "persisted-production-task-readback",
+  "brief": "docs/developer-briefs/3015-production-task-readback.md",
+  "allowedChanges": [
+    "modules/plan/assessments/outline-task-selection.ts",
+    "tests/issue-2995-outline-runtime.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3015-production-task-readback.md",
+    "config/development-convergence/3015.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CANONICAL-CREATION-TIMESTAMP",
+      "criterion": "Unpinned status orders actual persisted creation metadata rather than nonexistent createdAt or update time, while pinned selection retains exact identity.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2995-outline-runtime.test.mjs", "contains": "#3015 persisted run-created events select the new reviewed task over lexical historical IDs" },
+        { "type": "file-contains", "path": "modules/plan/assessments/outline-task-selection.ts", "contains": "event.type === \"run.created\"" }
+      ]
+    }
+  ],
+  "constraints": [
+    "Read-only selection; do not mutate historical tasks or invoke inference.",
+    "Preserve exact profile/project/material/Block/production matching and pinned no-fallback.",
+    "Unresolved semantic findings remain unresolved; no candidate or Human approval is fabricated."
+  ]
+}

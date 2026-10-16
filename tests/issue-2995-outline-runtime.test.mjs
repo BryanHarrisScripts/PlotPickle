@@ -191,7 +191,7 @@ function productionTask(runId, state, createdAt, overrides = {}) {
     scope: { runId, projectId: scope.projectId, contextReceipt: scope.contextReceipt, humanProfileId: scope.profileId, ...(overrides.scope || {}) },
     steps: overrides.steps || [{ id: "block-1" }],
     productionPass: overrides.productionPass === undefined ? { grant: { blockNumber: 1, sourceReceipt: scope.contextReceipt } } : overrides.productionPass,
-    run: { state, createdAt },
+    run: { state, context: { receiptGeneratedAt: createdAt }, events: [{ type: "run.created", at: createdAt }] },
   };
 }
 
@@ -216,6 +216,18 @@ test("#2997 settled history selects newest creation, not last list position or l
   const a = productionTask("tie-a", "cancelled", "2026-10-15T09:00:00Z");
   const b = productionTask("tie-b", "cancelled", "2026-10-15T09:00:00Z");
   assert.equal(selectCurrentOutlineTask([a, b], scope)?.scope.runId, selectCurrentOutlineTask([b, a], scope)?.scope.runId);
+});
+
+test("#3015 persisted run-created events select the new reviewed task over lexical historical IDs", () => {
+  const old = productionTask("z-old-local", "working", "2026-10-15T10:00:00Z");
+  const current = productionTask("a-new-openai", "working", "2026-10-16T13:17:31Z");
+  old.run.updatedAt = "2026-10-16T15:00:00Z";
+  current.run.updatedAt = "2026-10-16T13:18:20Z";
+  assert.equal(current.run.createdAt, undefined, "The real persistence shape has no createdAt field.");
+  for (const tasks of [[old, current], [current, old]]) {
+    assert.equal(selectCurrentOutlineTask(tasks, scope)?.scope.runId, "a-new-openai");
+    assert.equal(selectCurrentOutlineTask(tasks, { ...scope, pinnedRunId: "z-old-local" })?.scope.runId, "z-old-local");
+  }
 });
 
 test("#2997 exact authenticated project, material, profile, Block and production scope cannot cross-select", () => {

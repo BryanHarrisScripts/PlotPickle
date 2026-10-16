@@ -14,6 +14,17 @@ It combines writing education, story planning, visual development, screenplay wo
 
 **The Human remains the author.** AI can explain, suggest, draft, visualize and test ideas, but generated material does not silently become story canon.
 
+## Core principle
+
+> PlotPickle **product truth**:
+>
+> **Build a story or game through conversation.**\
+> **Develop it by playing or watching it.**
+>
+> PlotPickle lets storytellers build through conversation. Agents translate approved intent into story structures, rules, and assets. The story and game engines bring that work into experiences people can play or watch, test, and revise through conversation.
+>
+> So the work ahead is to make that truth observable in the product.
+
 ## Current availability
 
 PlotPickle is in active pre-release development. A public Windows installer is not currently available; release and download instructions will be added when there is a real build for users to install.

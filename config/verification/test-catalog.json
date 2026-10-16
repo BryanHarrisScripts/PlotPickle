@@ -116,7 +116,8 @@
           "tests/issue-2657-matrix-navigation-continuity.test.mjs",
           "tests/issue-2446-dashboard-sound-selectable.test.mjs",
           "tests/issue-3019-assets-poster-library.test.mjs",
-          "tests/issue-3019-assets-characters.test.mjs"
+          "tests/issue-3019-assets-characters.test.mjs",
+          "tests/issue-3031-screenplay-character-roster.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4961,11 +4962,99 @@
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
-            "digest": "8b8236e272d3ed730a6b0d6c48b8f4a07eeb941511f47fc3e9d9e6e7c3538ada"
+            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
           },
           {
             "path": "app/skin-v1/assets-characters.module.css",
-            "digest": "39ccdf0f8ce37bf15b06587dfde7725c164144794fc1f6efac71ade8c555c54c"
+            "digest": "3c8c2b65266c545f3057eb87d7505e0dcb6acf64d367780b9b8cd45813fc4c98"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3034-command-orange-confirmation.test.mjs",
+        "targetDigest": "c767f2813d878343086ca64789ee23d99c28444363a8a05cfe0bded59abd8f3b",
+        "catalogueIds": [
+          "experience.connection-command-3000"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic recognition of real CMD preview shape with tokens invented in test; source/CSS only. No real Human token, local Windows rendered screenshot, provider change, paid request or actual successful cloud selection asserted.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.tsx",
+            "digest": "83dc9e2049df5366afac18c2c7eb8d851cc1605fbc528c811a2d11e1421bd868"
+          },
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.module.css",
+            "digest": "8b8ffdd15d7c8a63ad26606f21d0178e8abee2d4730c1fcbe0f88e537065277e"
+          },
+          {
+            "path": "app/skin-v1-definition.css",
+            "digest": "0249f0ae5466fedcbefc0e5ab58b8ed3741ca46c02ccf68907c942c98a90d3bd"
+          },
+          {
+            "path": "app/_components/settings/connection-confirmation-presentation.mjs",
+            "digest": "91f366116649d3e7c286fcf0ef98cca99c2837f97706427853aa71b88281f12e"
+          },
+          {
+            "path": "app/_components/settings/connection-confirmation-presentation.d.mts",
+            "digest": "857d5e15c21e80dbca8ff736e70653f497b1fe583c283a239dd9d795ef8dcc30"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3031-screenplay-character-roster.test.mjs",
+        "targetDigest": "49eb93d06a3bc739e9f05ceded9035c674d224ff3179998601a1d609fa297fbb",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic selected screenplay cue→candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
+        "inputs": [
+          {
+            "path": "modules/learn/model/screenplay-character-roster.ts",
+            "digest": "cc0a61df2c185e13fa4d2f05f723975d2974950aa4a95bbc59f27d24e0b4b3f0"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.tsx",
+            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.module.css",
+            "digest": "3c8c2b65266c545f3057eb87d7505e0dcb6acf64d367780b9b8cd45813fc4c98"
+          },
+          {
+            "path": "modules/learn/model/screenplay-character-cues.mjs",
+            "digest": "2156d1230a7c4cad58c9c94e07be96346bc926803b6884ce4a5c8d3ed7578c3b"
+          },
+          {
+            "path": "modules/learn/model/screenplay-character-cues.d.mts",
+            "digest": "1f78402afb68a97330e4e66c7bbaa4909f29d9ae69a62e98a1283e5a5d4287a3"
           }
         ]
       },

@@ -15,6 +15,7 @@ import {
   type WorldMapCharacterVisualReference,
 } from "../../core/contracts/world-map";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
+import { createCanonicalCharacterTruth } from "../../core/contracts/character-truth-evidence";
 import {
   loadLibraryProjectSnapshot, saveActiveLibraryProject, sessionActiveProjectId,
 } from "../../core/storage/project-library-browser";
@@ -24,6 +25,7 @@ import {
   mindMapCharacterVisualGenerationPlan,
   mindMapCharacterVisualPrompt,
 } from "../../modules/learn/model/mind-map-character-roster";
+import { screenplayCastCandidates } from "../../modules/learn/model/screenplay-character-roster";
 import styles from "./assets-characters.module.css";
 
 type ImageResult = { ok?: boolean; assetUrl?: string; revisedPrompt?: string; provider?: string; model?: string; message?: string };
@@ -73,6 +75,9 @@ async function durableSave(previous: LibraryPPFProject, next: LibraryPPFProject,
 
 export default function AssetsCharacters({ project, routeId, routeReady, cloud, onSaved, onManageCharacterTruth }: Props) {
   const roster = useMemo(() => mindMapCharacterRoster(project), [project]);
+  const screenplayCast = useMemo(() => screenplayCastCandidates(project), [project]);
+  const toReview = screenplayCast.filter(item => !item.canonicalCharacterId);
+  const [reviewName, setReviewName] = useState("");
   const [characterId, setCharacterId] = useState("");
   const [selectedView, setSelectedView] = useState<WorldMapCharacterView>("front-full-body");
   const [direction, setDirection] = useState("");
@@ -85,12 +90,67 @@ export default function AssetsCharacters({ project, routeId, routeReady, cloud, 
     if (roster.length && !roster.some((item) => item.id === characterId)) setCharacterId(roster[0].id);
     if (!roster.length) setCharacterId("");
   }, [characterId, roster]);
-  useEffect(() => { setCandidate(null); setPaidConsent(false); setStatus(""); }, [project.id]);
+  useEffect(() => { setCandidate(null); setPaidConsent(false); setReviewName(""); setStatus(""); }, [project.id]);
+  useEffect(() => {
+    if (!roster.length && toReview.length && !toReview.some(item => item.normalizedName === reviewName)) {
+      setReviewName(toReview[0].normalizedName);
+    }
+  }, [roster.length, reviewName, toReview]);
   const selected = roster.find((item) => item.id === characterId) ?? null;
+  const pendingReview = toReview.find(item => item.normalizedName === reviewName) ?? null;
   const versions = selected ? worldMapCharacterVisualVersions(project.worldMap, selected.id) : [];
   const lockedId = selected ? worldMapCharacterVisualPackage(project.worldMap, selected.id)?.lockedVersionId : null;
   const plan = selected ? mindMapCharacterVisualGenerationPlan(project, selected.id, new Date().toISOString()) : null;
   const selectedViewInfo = WORLD_MAP_CHARACTER_VIEWS.find((view) => view.id === selectedView);
+
+  async function acceptScreenplayName() {
+    if (!pendingReview || saving) return;
+    setSaving(true);
+    try {
+      validateProject(project.id, project.revision);
+      const evidence = project.sourceEvidence.screenplay;
+      const firstId = pendingReview.passageIds[0];
+      if (!evidence || !firstId || !evidence.passages.some(p => p.id === firstId && p.type.trim().toLowerCase() === "character")) {
+        throw new Error("Screenplay character source is missing. Reload the selected PPF.");
+      }
+      if (mindMapCharacterRoster(project).some(item => item.name.trim().toLocaleLowerCase("en-US") === pendingReview.name.trim().toLocaleLowerCase("en-US"))) {
+        throw new Error("This screenplay name already has Character Truth; select its existing character card.");
+      }
+      if ((project.sourceEvidence.characterTruth?.principalCharacterIds.length ?? 0) >= 24) {
+        throw new Error("The PPF Character Truth roster is at its supported limit of 24 principal IDs. Review aliases in Mind Map.");
+      }
+      const now = new Date().toISOString();
+      const created = createCanonicalCharacterTruth(project.sourceEvidence.characterTruth ?? null, {
+        projectId: project.id, characterName: pendingReview.name, occurredAt: now,
+      });
+      if (!created) throw new Error("The selected screenplay name cannot be admitted.");
+      const sourceRef = `screenplay-passage:${evidence.sourceFileName}:${firstId}`;
+      const characterTruth = {
+        ...created.evidence,
+        claims: created.evidence.claims.map(claim => claim.id === `human-identity-${created.characterId}`
+          ? { ...claim, sourceId: `screenplay-project:${project.id}`, sourceRef,
+              sourceVersion: evidence.importedAt,
+              note: "Human accepted the exact imported screenplay character cue. No traits or alias decisions were inferred." }
+          : claim),
+      };
+      const next: LibraryPPFProject = {
+        ...project, revision: project.revision + 1, updatedAt: now,
+        sourceEvidence: { ...project.sourceEvidence, characterTruth },
+      };
+      const saved = await durableSave(project, next, readback => Boolean(
+        readback.sourceEvidence.characterTruth?.claims.some(claim =>
+          claim.characterIds.includes(created.characterId) && claim.kind === "identity"
+          && claim.sourceRef === sourceRef && claim.reviewState === "human-approved"),
+      ));
+      onSaved(saved);
+      setReviewName("");
+      setCharacterId(created.characterId);
+      setCandidate(null);
+      setStatus(`${pendingReview.name} accepted from screenplay cue as Character Truth. Select an image view to begin.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The screenplay identity could not be admitted.");
+    } finally { setSaving(false); }
+  }
 
   async function generate() {
     if (!selected || !plan?.versionId || !routeReady || saving || (cloud && !paidConsent)) return;
@@ -209,11 +269,12 @@ export default function AssetsCharacters({ project, routeId, routeReady, cloud, 
           <p>Choose a story character, develop production-reference views, save drafts and lock an eight-view identity for Storyboard reuse.</p>
         </div>
         <div className={styles.summary}>
-          <strong>{roster.length}</strong><span>Story characters</span>
+          <strong>{roster.length}</strong><span>Canonical characters</span>
+          <strong>{toReview.length}</strong><span>From screenplay · review</span>
           <strong>{roster.filter((item) => item.lockedVersionId).length}</strong><span>Locked identities</span>
         </div>
       </header>
-      {!roster.length ? <section className={styles.empty} role="status">
+      {!roster.length && !toReview.length ? <section className={styles.empty} role="status">
         <h3>No character roster found</h3>
         <p>Character visuals require a saved Character Truth roster for the loaded screenplay. Create or review the roster in Mind Map before generating; no identities will be guessed.</p>
         <button type="button" onClick={onManageCharacterTruth}>Open Mind Map · Characters</button>
@@ -224,14 +285,43 @@ export default function AssetsCharacters({ project, routeId, routeReady, cloud, 
             {roster.map((item) => (
               <button className={styles.person} type="button" key={item.id}
                 aria-pressed={selected?.id === item.id}
-                onClick={() => { setCharacterId(item.id); setCandidate(null); setPaidConsent(false); setStatus(""); }}>
+                onClick={() => { setCharacterId(item.id); setReviewName(""); setCandidate(null); setPaidConsent(false); setStatus(""); }}>
                 {item.previewUrl ? <img src={item.previewUrl} alt="" /> : <span className={styles.noPortrait}>—</span>}
                 <span><strong>{item.name}</strong><small>{item.references.length} views · {item.visualVersions.length} versions</small></span>
                 <em>{item.lockedVersionId ? "LOCKED" : "DRAFT"}</em>
               </button>
             ))}
+            {toReview.length ? <section className={styles.discoveries} aria-label="Discovered screenplay characters">
+              <h4>From screenplay · Needs review</h4>
+              <p>These are real imported dialogue cues, not yet approved Character Truth. Click a name to inspect its source evidence.</p>
+              {toReview.map(item => <button type="button" className={styles.person}
+                data-screenplay-cast-candidate={item.normalizedName} key={item.normalizedName}
+                aria-pressed={pendingReview?.normalizedName === item.normalizedName}
+                onClick={() => { setReviewName(item.normalizedName); setCandidate(null); setPaidConsent(false); setStatus(""); }}>
+                <span className={styles.noPortrait}>?</span>
+                <span><strong>{item.name}</strong><small>{item.occurrenceCount} cues · Scene {item.sceneNumbers[0] ?? "unknown"}</small></span>
+                <em>REVIEW</em>
+              </button>)}
+            </section> : null}
           </aside>
-          {selected ? <div className={styles.detail}>
+          {pendingReview ? <div className={styles.detail}>
+            <section className={styles.panel} aria-label="Review screenplay character name">
+              <div className={styles.panelHeading}>
+                <div><span className={styles.eyebrow}>SCREENPLAY CHARACTER · NOT CANONICAL</span><h3>{pendingReview.name}</h3>
+                  <p>Found in {pendingReview.occurrenceCount} retained screenplay character cues across {pendingReview.sceneNumbers.length} scenes. No character traits or aliases have been inferred.</p>
+                </div>
+                <span className={styles.state} data-state="draft">Source discovered</span>
+              </div>
+              <div className={styles.versionRow}><span>First passage: {pendingReview.passageIds[0]}</span><span>Scene {pendingReview.sceneNumbers[0]}</span></div>
+              <div className={styles.actions}>
+                <button type="button" disabled={saving} onClick={() => void acceptScreenplayName()}>
+                  {saving ? "Saving…" : "Review & Add to Character Truth"}
+                </button>
+                <span>Only this name is accepted after your click; the screenplay and other candidates remain unchanged.</span>
+              </div>
+              {status ? <p role="status" aria-live="polite" className={styles.message}>{status}</p> : null}
+            </section>
+          </div> : selected ? <div className={styles.detail}>
             <section className={styles.panel}>
               <div className={styles.panelHeading}>
                 <div><span className={styles.eyebrow}>SELECTED CHARACTER</span><h3>{selected.name}</h3><p>{selected.claims.filter((claim) => claim.reviewState === "human-approved").slice(0, 3).map((claim) => claim.summary).join(" · ") || "No Human-approved description; generation will preserve identity without assuming details."}</p></div>

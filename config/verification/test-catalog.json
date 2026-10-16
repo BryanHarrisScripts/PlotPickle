@@ -4387,7 +4387,7 @@
       },
       {
         "target": "tests/issue-2632-retire-legacy-mindmap-board.test.mjs",
-        "targetDigest": "58a977b2b541653682c6e5264ba00412d9589acbad7cbe57858bfc15cced8068",
+        "targetDigest": "5ef7a53f6a286c624c61b820f9109dcb3bc13bee87e0e8d2d48c44744c2552f3",
         "catalogueIds": [
           "experience.skin-surface-contract",
           "story-canon.learn-program-map",
@@ -4406,8 +4406,13 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection.",
-        "inputs": []
+        "limits": "Historical Mind Map notes/discovery assertions retain the same original behavior and are updated only to allow the additive nullable storyIntent field on the canonical PPF. Static source contract; does not prove real Windows data recovery or film runtime selection. The additive project-owned assetRegistry is normalized without deleting historical discovery cards.",
+        "inputs": [
+          {
+            "path": "core/storage/library-project.ts",
+            "digest": "554738fa94b805fe2847c0c56d2ff832239b5d7bf64425cc4cae23509b8f784d"
+          }
+        ]
       },
       {
         "target": "tests/issue-2980-pi-basename-grounding.test.mjs",

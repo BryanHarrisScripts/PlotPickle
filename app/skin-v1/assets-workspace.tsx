@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { authenticatedComputeFetch } from "../../core/auth/profile-request-browser";
+import AssetsCharacters from "./assets-characters";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import {
   lockedMarketingReference,
@@ -233,7 +234,7 @@ export default function AssetsWorkspace({
         <>
           <nav aria-label="ASSETS folders">
             <button type="button" onClick={() => { setFolder("sounds"); setNotice(""); }}>Sounds</button>{" "}
-            <button type="button" onClick={onOpenCharacters}>Characters</button>{" "}
+            <button type="button" onClick={() => { setFolder("characters"); setNotice(""); }}>Characters</button>{" "}
             <button type="button" onClick={() => { setFolder("collectibles"); setNotice(""); }}>Collectibles</button>{" "}
             <button type="button" onClick={() => { setFolder("posters"); setNotice(""); }}>Posters</button>{" "}
             <button type="button" onClick={() => { setFolder("world"); setNotice(""); }}>World</button>
@@ -246,6 +247,14 @@ export default function AssetsWorkspace({
               <button type="button" onClick={() => onOpenSound("music")}>Music</button>
             </section>
           ) : null}
+          {folder === "characters" ? <AssetsCharacters
+            project={project}
+            routeId={routeId}
+            routeReady={routeReady}
+            cloud={cloud}
+            onSaved={(saved) => setProject(saved)}
+            onManageCharacterTruth={onOpenCharacters}
+          /> : null}
           {folder === "collectibles" ? <p>Collectibles authoring is planned. No creation route is active yet.</p> : null}
           {folder === "world" ? (
             <section aria-label="World visual assets" data-assets-folder="world">

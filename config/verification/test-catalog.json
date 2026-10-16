@@ -115,7 +115,8 @@
           "tests/issue-2487-story-to-screen-live-parity.test.mjs",
           "tests/issue-2657-matrix-navigation-continuity.test.mjs",
           "tests/issue-2446-dashboard-sound-selectable.test.mjs",
-          "tests/issue-3019-assets-poster-library.test.mjs"
+          "tests/issue-3019-assets-poster-library.test.mjs",
+          "tests/issue-3019-assets-characters.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4857,7 +4858,7 @@
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "c32d6a4538d2efbb87538514c424cb4289703042f4b105bedf18986dd09fa97f"
+            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -4915,7 +4916,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/assets-workspace.tsx",
-            "digest": "c32d6a4538d2efbb87538514c424cb4289703042f4b105bedf18986dd09fa97f"
+            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
@@ -4928,6 +4929,42 @@
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
             "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3019-assets-characters.test.mjs",
+        "targetDigest": "a01bb17ee94eb39c562fe52c0e856ef7a815fc8832f095cea4ca0f4f60e4dc82",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Pure synthetic eight-view contract plus static creation and interface wiring only. Does not prove actual Human-private character images, paid provider output, installed Windows process restart, cross-machine PPF media bytes or final art quality.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "56902769802cba4cc494b4a5e5ef7befdcbf68a84efb0b3d569d949890e49ad5"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.tsx",
+            "digest": "8b8236e272d3ed730a6b0d6c48b8f4a07eeb941511f47fc3e9d9e6e7c3538ada"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.module.css",
+            "digest": "39ccdf0f8ce37bf15b06587dfde7725c164144794fc1f6efac71ade8c555c54c"
           }
         ]
       }

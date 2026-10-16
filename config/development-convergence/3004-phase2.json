@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 3004,
+  "phase": "phase-2-source-grounded-durable-mind-world-unaccepted-proposal",
+  "brief": "docs/developer-briefs/3004-cmd-mind-world-source-proposal.md",
+  "allowedChanges": [
+    "core/contracts/imported-screenplay-evidence/cmd-source-proposal.mjs",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "tests/issue-3004-cmd-source-proposals.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/3004-cmd-mind-world-source-proposal.md",
+    "config/development-convergence/3004-phase2.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CMD-SOURCE-SELECTOR",
+      "criterion": "Current authenticated selected PPF provides source IDs, canonical fields and exact source passage for one unaccepted draft; no fabricated story fields.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 source inspection and canonical fields are read-only"
+        }
+      ]
+    },
+    {
+      "id": "UNACCEPTED-PPF-DURABILITY",
+      "criterion": "Preview-confirm uses existing PPF writer, sourceRef, revision-safe encrypted persist and read-back without accepting story canon or World Map media.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 explicit preview and one-use confirmation save ONLY unaccepted proposal"
+        }
+      ]
+    },
+    {
+      "id": "HUMAN-SCOPE-AND-SOURCE-NEGATIVES",
+      "criterion": "Expired token, wrong topic, duplicate or truncated passage, existing draft, stale revision, changed source, profile or selected project all prevent saving.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 expired preview, changing source revision, profile and selected story"
+        }
+      ]
+    },
+    {
+      "id": "CMD-REUSED-OWNERS-NO-MODEL",
+      "criterion": "CMD dispatches before DSDD with existing source and Mind Map proposal writers; no inferred approved state, paid provider or media side effect.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3004-cmd-source-proposals.test.mjs",
+          "contains": "#3004 source proposal CMD uses durable canonical PPF writer"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Human must confirm one-use draft within two minutes; no accepted canon promoted.",
+    "Only synthetic fixture tests; no real Brotherly Love on-device proof claimed.",
+    "Full production issue #3004 stays open until actual Motion/Rough Cut evidence.",
+    "No provider inference, media generation or protected Story Architect retry.",
+    "Merge only after exact-head seven-layer and selected Windows gates green."
+  ]
+}

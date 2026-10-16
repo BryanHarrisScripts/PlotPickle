@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { build } from "esbuild";
+import { discoverScreenplayCastCandidates } from "../modules/learn/model/screenplay-character-cues.mjs";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-const path = fileURLToPath(new URL("../modules/learn/model/screenplay-character-roster.ts", import.meta.url));
-const bundle = await build({ entryPoints: [path], bundle: true, write: false, platform: "node", format: "esm", target: "node24" });
-const { screenplayCastCandidates } = await import("data:text/javascript;base64," + Buffer.from(bundle.outputFiles[0].contents).toString("base64"));
 
 const cue = (id, type, text, sceneNumber = 1) => Object.freeze({ id, type, text, sceneNumber });
 const fake = (passages, characterTruth = null) => ({
@@ -24,7 +20,7 @@ const characterTruth = Object.freeze({
 });
 
 test("#3031 exact typed screenplay cues auto-populate cast without character-name entry", () => {
-  const rows = screenplayCastCandidates(fake([
+  const rows = discoverScreenplayCastCandidates([
     cue("p1", "character", "ATHAN"),
     cue("p2", "dialogue", "AMBROSE runs away"),
     cue("p3", "Character", "ATHAN (V.O.)", 2),
@@ -32,7 +28,7 @@ test("#3031 exact typed screenplay cues auto-populate cast without character-nam
     cue("p5", "character", "Ambrose", 3),
     cue("p6", "action", "MOTHER", 3),
     cue("p7", "character", "CUT TO", 3),
-  ]));
+  ], new Map());
   assert.deepEqual(rows.map(row => ({name:row.name,count:row.occurrenceCount,scenes:row.sceneNumbers,ids:row.passageIds})),[
     {name:"ATHAN",count:2,scenes:[1,2],ids:["p1","p3"]},
     {name:"AMBROSE",count:2,scenes:[2,3],ids:["p4","p5"]},
@@ -44,7 +40,7 @@ test("#3031 existing canonical IDs remain the same and source candidate does not
   const passages = Object.freeze([cue("first","character","ATHAN"),cue("second","character","MOTHER")]);
   const project = fake(passages, characterTruth);
   const snapshot = JSON.stringify(project);
-  const cast = screenplayCastCandidates(project);
+  const cast = discoverScreenplayCastCandidates(project.sourceEvidence.screenplay.passages, new Map([["athan", "character:athan"]]));
   assert.equal(cast[0].canonicalCharacterId, "character:athan");
   assert.equal(cast[1].canonicalCharacterId, null);
   assert.equal(JSON.stringify(project), snapshot);
@@ -61,7 +57,10 @@ test("#3031 UI shows discovered candidates but requires explicit Human acceptanc
     "sourceRef", "await durableSave(project, next", "claim.reviewState === \"human-approved\"",
     "setCharacterId(created.characterId)", "setCandidate(null)", "validateProject(project.id, project.revision)",
   ]) assert.ok(ui.includes(token), `Missing source-to-PPF review gate: ${token}`);
-  assert.match(helper, /passage\.type\.trim\(\)\.toLowerCase\(\) !== "character"/u);
+  assert.match(helper, /discoverScreenplayCastCandidates\(screenplay\.passages, canonicalIds\)/u);
+  assert.match(helper, /mindMapCharacterRoster\(project\)/u);
+  const pure = await read("modules/learn/model/screenplay-character-cues.mjs");
+  assert.match(pure, /passage\.type\.trim\(\)\.toLowerCase\(\) !== "character"/u);
   assert.doesNotMatch(ui, /window\.confirm\([^)]*API|localStorage\.setItem/u);
 });
 

@@ -82,7 +82,6 @@ export const DASHBOARD_EXPLORATION_ITEM_IDS = new Set<string>([
   "write",
   "edit",
   "refine",
-  "assets",
   "sound-foley",
   "sound-narration",
   "sound-music",
@@ -94,6 +93,7 @@ export const DASHBOARD_EXPLORATION_ITEM_IDS = new Set<string>([
 ]);
 
 export const DASHBOARD_REVIEW_ITEM_IDS = new Set([
+  "assets",
   "previs",
   "timeline",
   "production",

@@ -58,7 +58,7 @@ export async function generateCloudImage(profile: MediaProfile, input: ImageGene
   if (!profile.imageModel) throw new Error(`Choose an image model for ${profile.provider} in Settings.`);
   const quality = input.quality === "low" || input.quality === "medium" || input.quality === "high" ? input.quality : "medium";
   const jobClass = resolveImageStoryJobClass(input);
-  const size = input.aspect === "landscape" ? "1536x1024" : "1024x1536";
+  const size = input.aspect === "square" ? "1024x1024" : input.aspect === "landscape" ? "1536x1024" : "1024x1536";
   const references = await referenceImages(input);
   let base64 = "";
   let outputUrl = "";
@@ -70,7 +70,7 @@ export async function generateCloudImage(profile: MediaProfile, input: ImageGene
     const value = await providerJson(`${normalizedUrl(profile.baseUrl)}/v1/image_generation`, profile, {
       model: profile.imageModel,
       prompt: prompt.slice(0, 1500),
-      aspect_ratio: input.aspect === "landscape" ? "16:9" : "9:16",
+      aspect_ratio: input.aspect === "square" ? "1:1" : input.aspect === "landscape" ? "16:9" : "9:16",
       response_format: "base64",
       n: 1,
       ...(references[0] ? { subject_reference: [{ type: "character", image_file: references[0].bytes.toString("base64") }] } : {}),

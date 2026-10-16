@@ -5,7 +5,7 @@ const TOPICS = new Set(["foundations", "world", "character", "theme", "structure
 const TOKEN = /^[a-f0-9]{16}$/u;
 const ID = /^[a-z0-9_.:-]{1,240}$/iu;
 const MAX_SOURCE_ROWS = 24;
-const HELP = "PlotPickle mind-map fields <foundations|world|character|theme|structure> | PlotPickle world-map fields | PlotPickle mind-map source Block 01 Mini 01 | PlotPickle world-map source Block 01 Mini 01 | PlotPickle mind-map propose <canonical-field-id> from <passage-id> | PlotPickle world-map propose <canonical-field-id> from <passage-id> | PlotPickle mind-map confirm <one-use-token> | PlotPickle world-map confirm <one-use-token> | PlotPickle mind-map cancel.";
+const HELP = "PlotPickle mind-map fields <foundations|world|character|theme|structure> | PlotPickle world-map fields | PlotPickle mind-map source Block 01 Mini 01 | PlotPickle world-map source Block 01 Mini 01 | PlotPickle mind-map propose <canonical-field-id> from <passage-id> | PlotPickle world-map propose <canonical-field-id> from <passage-id> | PlotPickle mind-map confirm <one-use-token> | PlotPickle world-map confirm <one-use-token> | PlotPickle mind-map review <canonical-field-id> | PlotPickle world-map review <canonical-field-id> | PlotPickle mind-map cancel.";
 export function parseCmdSourceProposal(input) {
   const str = String(input ?? "").trim();
   const match = str.match(PREFIX);
@@ -17,6 +17,8 @@ export function parseCmdSourceProposal(input) {
   const fields = rest.match(/^fields\s+([a-z-]+)$/iu);
   if (fields && area === "mind-map" && TOPICS.has(fields[1].toLowerCase()))
     return { action: "fields", area, topic: fields[1].toLowerCase() };
+  const review = rest.match(/^review\s+(\S+)$/iu);
+  if (review && ID.test(review[1])) return { action: "review", area, fieldId: review[1] };
   const source = rest.match(/^source\s+block\s+(\d{1,2})\s+mini\s+(\d{1,2})$/iu);
   if (source) {
     const block = Number(source[1]), mini = Number(source[2]);
@@ -101,6 +103,26 @@ export function createCmdSourceProposalSession(services) {
           ...rows.map(p => p.id + " | " + (p.type || "unknown") + " | scene " + p.sceneNumber
             + " | SOURCE-ONLY (not accepted story-development canon)"),
           "IDs above can be used in a source-linked unaccepted proposal. No content or project state changed."].join("\n");
+      }
+      if (command.action === "review") {
+        const field = fields.find(f => f.canonicalId === command.fieldId && fieldAllowed(command.area, f));
+        if (!field) return blocked("Unknown or out-of-scope canonical field ID; inspect fields first.");
+        const state = project.storyDevelopment?.fields?.[field.canonicalId];
+        if (!state?.proposal?.trim())
+          return "NO SAVED UNACCEPTED PROPOSAL: " + field.canonicalId + " in PPF " + project.id + " revision " + project.revision
+            + ". Existing Human-approved value, if any, is unchanged. No project mutation.";
+        const passage = evidence.rows.find(p => p.id === state.proposalSourceRef);
+        const exactSourceQuote = Boolean(passage && candidateText(passage) === state.proposal);
+        return ["SAVED FIELD DRAFT REVIEW · READ-ONLY · NOT HUMAN-APPROVED",
+          "PPF " + project.id + " revision " + project.revision + "; field " + field.canonicalId,
+          "Existing accepted authority: " + (state.acceptedSource || "none") + " (unchanged).",
+          "Saved sourceRef: " + (state.proposalSourceRef || "NONE"),
+          "Direct imported-passage quote: " + (exactSourceQuote
+            ? "VERIFIED against retained screenplay passage " + passage.id
+            : "NOT VERIFIED. This may be edited, agent-created, unreferenced or stale; no observed-canon claim is made."),
+          "SAVED UNACCEPTED DRAFT CONTENT:\n" + state.proposal,
+          "Next: review, revise and accept using the existing Mind Map / World Map Human controls. The Command cannot silently promote this draft.",
+          "No PPF write, creative approval, agent call, media request or provider charge occurred."].join("\n");
       }
       if (command.action === "propose") {
         pending = null;

@@ -455,6 +455,9 @@ export function mastraModelConfig(profile: ProviderProfile) {
     modelId: profile.textModel,
     url: providerUrl(profile),
     apiKey: profile.apiKey || "plotpickle-local",
+    // The native OpenAI adapter handles reasoning-model parameters and schemas.
+    // Generic Chat Completions serializes max_tokens/temperature unchanged.
+    ...(profile.provider === "openai" ? { api: "responses" as const } : {}),
   } as const;
 }
 
@@ -564,6 +567,7 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
     const productionFidelity = input.outputFormat?.kind === "production-fidelity";
     const executionOptions = {
       abortSignal,
+      ...(input.profile.provider === "openai" ? { providerOptions: { openai: { store: false } } } : {}),
       ...(storyCouncilMode || input.agentId === "story-architect" || input.outputFormat?.kind === "storyboard-narration" || input.outputFormat?.kind === "storyboard-shot-brief" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
         modelSettings: storyCouncilMode
           ? storyCouncilModelSettings

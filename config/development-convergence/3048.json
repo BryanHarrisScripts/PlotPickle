@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "issue": 3048,
+  "phase": "codeql-record-and-fixture-safety",
+  "brief": "docs/developer-briefs/3048-codeql-record-and-fixture-safety.md",
+  "allowedChanges": [
+    "modules/library/afterglow-consolidation.mjs",
+    "tests/issue-2863-afterglow-consolidation.test.mjs",
+    "tests/issue-2937-verifier-receipts.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3048-codeql-record-and-fixture-safety.md",
+    "config/development-convergence/3048.json"
+  ],
+  "acceptance": [
+    {
+      "id": "OWN-RECORD-PRESERVATION",
+      "criterion": "Imported keys are preserved as own data with unchanged object prototypes and source records.",
+      "evidence": [
+        {"type":"file-contains","path":"tests/issue-2863-afterglow-consolidation.test.mjs","contains":"#3048 imported record keys remain own data without changing object prototypes"},
+        {"type":"file-contains","path":"modules/library/afterglow-consolidation.mjs","contains":"Object.defineProperty(target,key,{value,writable:true,enumerable:true,configurable:true});"}
+      ]
+    },
+    {
+      "id": "STATIC-LOADER-FIXTURE",
+      "criterion": "Runtime verifier fixture values travel through the loader data channel while real HTTP assertions remain.",
+      "evidence": [
+        {"type":"file-contains","path":"tests/issue-2937-verifier-receipts.test.mjs","contains":"{ data: { gatewayUrl, stubs: [...stubs] } }"},
+        {"type":"file-contains","path":"tests/issue-2937-verifier-receipts.test.mjs","contains":"assert.equal((await post([\"contradiction\"])).status, \"FAIL\");"}
+      ]
+    }
+  ],
+  "constraints": ["No real project mutation, canon acceptance, credentials or provider calls.", "Fixture security proof is not authenticated Windows consolidation proof."]
+}

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions, describeAfterglowConsolidationConflict, AFTERGLOW_DURABLE_FIELDS } from "../modules/library/afterglow-consolidation.mjs";
+import { planAfterglowConsolidation, reviewAfterglowConsolidationDecisions, describeAfterglowConsolidationConflict, AFTERGLOW_DURABLE_FIELDS, readAfterglowRecordPath, writeAfterglowRecordPath } from "../modules/library/afterglow-consolidation.mjs";
 
 const baseline = () => ({
   format:"2.0-foundation", id:"packaged", title:"Afterglow",
@@ -23,6 +23,20 @@ const working = (base,id,time,edit) => {
   return {project:p};
 };
 const oct5="2026-10-05T10:00:00Z", oct8="2026-10-08T22:29:42Z";
+test("#3048 imported record keys remain own data without changing object prototypes", () => {
+  for (const path of ["/__proto__", "/world/__proto__/fact", "/world/constructor/prototype/fact"]) {
+    const project = { world: {} };
+    const record = { present: true, value: { text: "retained source fact" } };
+    const original = structuredClone(record);
+    writeAfterglowRecordPath(project, path, record);
+    assert.equal(Object.getPrototypeOf(project), Object.prototype, path);
+    assert.equal(Object.getPrototypeOf(project.world), Object.prototype, path);
+    assert.deepEqual(readAfterglowRecordPath(project, path), record, path);
+    assert.deepEqual(record, original, "source record must remain unchanged");
+    writeAfterglowRecordPath(project, path, { present: false });
+    assert.deepEqual(readAfterglowRecordPath(project, path), { present: false });
+  }
+});
 test("#2863 all durable roots are declared and the package path includes Mind Map fields", async () => {
   for(const field of ["title","learning","foundations","world","build","production","structure","writing","discovery",
     "worldMap","storyDevelopment","mindMapNotes","sourceEvidence"]) {

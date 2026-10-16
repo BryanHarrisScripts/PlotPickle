@@ -175,15 +175,15 @@ test("#2937 real gateway HTTP intake retains contradictions and revalidates stor
   const stored = { schemaVersion: 1, sessionId: subject.sessionId, conversation: [], intents: [{ version: 1,
     handoffPacket: { intentDigest }, requirements: [{ id: "R1", text: subject.promise, status: "UNPROVEN", evidence: [] }] }] };
   let session = structuredClone(stored);
-  const contextKey = `__ppReceiptContext${Date.now()}`;
-  globalThis[contextKey] = { profileId: subject.profileId, authContext: {}, privateStorage: {
+  const contextKey = Symbol.for("plotpickle.verifier.receipt.fixture");
+  globalThis[contextKey] = { root: f.root, context: { profileId: subject.profileId, authContext: {}, privateStorage: {
     readPrivateJson: async () => structuredClone(session),
     writePrivateJson: async (_auth, input) => { session = structuredClone(input.value); },
-  } };
+  } } };
   t.after(() => { delete globalThis[contextKey]; });
   const stubs = new Map([
-    ["../auth/profile-request-context", `export const currentProfileRequestContext=()=>globalThis[${JSON.stringify(contextKey)}];`],
-    ["../local-credentials", `export const persistentHome=()=>${JSON.stringify(f.root)};`],
+    ["../auth/profile-request-context", 'export const currentProfileRequestContext=()=>globalThis[Symbol.for("plotpickle.verifier.receipt.fixture")].context;'],
+    ["../local-credentials", 'export const persistentHome=()=>globalThis[Symbol.for("plotpickle.verifier.receipt.fixture")].root;'],
     ["./dsdd-github-brief", "export const publishDsddBrief=()=>{};"],
     ["./dsdd-pi-brief", "export const runDsddPiBrief=()=>{};"],
     ["./dsdd-pi-session", "export const runDsddPiAction=async()=>({});"],
@@ -195,8 +195,11 @@ test("#2937 real gateway HTTP intake retains contradictions and revalidates stor
   const loader = `
     import { stripTypeScriptTypes } from "node:module";
     import { readFile } from "node:fs/promises";
-    const gatewayUrl = ${JSON.stringify(gatewayUrl)};
-    const stubs = new Map(${JSON.stringify([...stubs])});
+    let gatewayUrl, stubs;
+    export function initialize(data) {
+      gatewayUrl = data.gatewayUrl;
+      stubs = new Map(data.stubs);
+    }
     export async function resolve(specifier, context, nextResolve) {
       if (context.parentURL === gatewayUrl && stubs.has(specifier)) {
         return { url: "data:text/javascript," + encodeURIComponent(stubs.get(specifier)), shortCircuit: true };
@@ -208,7 +211,7 @@ test("#2937 real gateway HTTP intake retains contradictions and revalidates stor
       return nextLoad(url, context);
     }
   `;
-  register(`data:text/javascript,${encodeURIComponent(loader)}`, import.meta.url);
+  register(`data:text/javascript,${encodeURIComponent(loader)}`, import.meta.url, { data: { gatewayUrl, stubs: [...stubs] } });
   const gateway = await import(gatewayUrl);
   const env = { PLOTPICKLE_SOURCE_SHA: testedCommit, PLOTPICKLE_OBSERVATION_RECEIPT_ROOT: f.root,
     PLOTPICKLE_OBSERVATION_PUBLIC_KEY: publicKey, PLOTPICKLE_OBSERVATION_VERIFIER: f.authority.source,

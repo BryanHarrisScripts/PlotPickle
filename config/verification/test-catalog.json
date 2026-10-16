@@ -3627,7 +3627,7 @@
       },
       {
         "target": "tests/issue-2937-verifier-receipts.test.mjs",
-        "targetDigest": "1e88d6d5dfaffcb0f6e0a2409601bc76ee24e709a3ef69e1e59f07dc286978d0",
+        "targetDigest": "501c8fee4c47148b87739b34f2e1b225725d476384fe512139b3a93d7c7b8f9b",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -5179,6 +5179,29 @@
             "digest": "57745518d2bb937b20783131b8e9e073242b0f27abc3d057f4d93b7606daf351"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2863-afterglow-consolidation.test.mjs",
+        "targetDigest": "c37a8aaf72851b8320ac4fb90ea55dc0179bb69493ce77a4be29dcb5df817b4e",
+        "catalogueIds": [
+          "story-canon.save-session-continuity-2821"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic read-only Afterglow consolidation and explicit record-write fixtures preserve retained source records and own-key semantics, including prototype-like keys. Static owner guards and source preservation are not authenticated Windows Save, actual Human story reconciliation, external provider or creative acceptance proof.",
+        "inputs": []
       }
     ]
   }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { authenticatedComputeFetch } from "../../core/auth/profile-request-browser";
 import AssetsCharacters from "./assets-characters";
 import AssetsImageRouteSelector from "./assets-image-route-selector";
+import styles from "./assets-workspace.module.css";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import {
   lockedMarketingReference,
@@ -79,6 +80,8 @@ export default function AssetsWorkspace({
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [folder, setFolder] = useState<Folder | null>(null);
   const [route, setRoute] = useState<ImageRouteStatus | null>(null);
+  const [selectedPosterId, setSelectedPosterId] = useState("");
+  const [selectedWorldId, setSelectedWorldId] = useState("");
   const [direction, setDirection] = useState("");
   const [billingAcknowledged, setBillingAcknowledged] = useState(false);
   const [candidate, setCandidate] = useState<{ projectId: string; assetUrl: string; prompt: string; provider: string; model: string } | null>(null);
@@ -113,6 +116,10 @@ export default function AssetsWorkspace({
   const featured = project
     ? lockedMarketingReference(project.build.foundations.visualArtifacts, project.build.foundations.acceptedVisualArtifactIds)
     : null;
+
+  const selectedPoster = posters.find((item) => item.id === selectedPosterId) || featured || posters[0] || null;
+  const worlds = project?.build.world.visualArtifacts ?? [];
+  const selectedWorld = worlds.find((item) => item.id === selectedWorldId) || worlds[0] || null;
 
   async function persist(next: LibraryPPFProject, artifact: FoundationsVisualArtifact, approve = false) {
     assertCurrentProject(next.id);
@@ -225,30 +232,54 @@ export default function AssetsWorkspace({
   }
 
   return (
-    <section aria-label="ASSETS project workspace" data-asset-workspace="true">
-      <div className="pp-skin-v1-bbs-banner">
-        <h1>ASSETS</h1>
+    <section className={styles.shell} aria-label="ASSETS project workspace" data-asset-workspace="true">
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>PLOTPICKLE / PROJECT LIBRARY</p>
+          <h1>ASSETS</h1>
+          <p className={styles.subhead}>Create and manage the saved visuals and sounds that belong to your story.</p>
+        </div>
         <button type="button" className="pp-skin-v1-return" onClick={onBackDashboard}>Back to Dashboard</button>
-      </div>
-      <p>Current story: <strong>{project?.title || "No Library project loaded"}</strong></p>
-      {!project ? <p role="status">Load Brotherly Love or another saved story from Library to create project assets.</p> : (
+      </header>
+      <section className={styles.projectStrip} aria-label="Selected story authority">
+        <span>CURRENT STORY</span>
+        <strong>{project?.title || "No Library project loaded"}</strong>
+        <small>{project ? "Assets belong to this Library PPF" : "Load a story from Library before saving assets"}</small>
+      </section>
+      {!project ? <p className={styles.empty} role="status">Load Brotherly Love or another saved story from Library to create project assets.</p> : (
         <>
-          <AssetsImageRouteSelector status={route} onChanged={setRoute} />
-          <nav aria-label="ASSETS folders">
-            <button type="button" onClick={() => { setFolder("sounds"); setNotice(""); }}>Sounds</button>{" "}
-            <button type="button" onClick={() => { setFolder("characters"); setNotice(""); }}>Characters</button>{" "}
-            <button type="button" onClick={() => { setFolder("collectibles"); setNotice(""); }}>Collectibles</button>{" "}
-            <button type="button" onClick={() => { setFolder("posters"); setNotice(""); }}>Posters</button>{" "}
-            <button type="button" onClick={() => { setFolder("world"); setNotice(""); }}>World</button>
+          <nav className={styles.tabs} aria-label="ASSETS folders">
+            {(["sounds","characters","collectibles","posters","world"] as const).map((id) => (
+              <button type="button" key={id} aria-current={folder === id ? "page" : undefined}
+                data-selected={folder === id ? "true" : "false"}
+                onClick={() => { setFolder(id); setNotice(""); }}>
+                {id === "sounds" ? "Sounds" : id === "characters" ? "Characters" : id === "collectibles" ? "Collectibles" : id === "posters" ? "Posters" : "World"}
+              </button>
+            ))}
           </nav>
-          {folder === "sounds" ? (
-            <section aria-label="Sounds folder">
-              <h2>Sounds</h2>
-              <button type="button" onClick={() => onOpenSound("foley")}>Foley</button>{" "}
-              <button type="button" onClick={() => onOpenSound("narration")}>Narration</button>{" "}
-              <button type="button" onClick={() => onOpenSound("music")}>Music</button>
-            </section>
-          ) : null}
+          <details className={styles.routing}>
+            <summary>IMAGE ROUTE · {routeId || "Unavailable"} · {routeReady ? "Verified" : "Needs setup / test"} <span>Change provider</span></summary>
+            <AssetsImageRouteSelector status={route} onChanged={setRoute} />
+          </details>
+          {!folder ? <div className={styles.overview} aria-label="ASSETS project overview">
+            <h2>Choose an asset folder</h2>
+            <p>Your approved images remain in the same saved project after returning to Library.</p>
+            <div className={styles.overviewGrid}>
+              <button type="button" onClick={() => setFolder("posters")}><strong>Posters</strong><span>{posters.length} saved versions · {featured ? "Library artwork approved" : "No featured poster yet"}</span></button>
+              <button type="button" onClick={() => setFolder("characters")}><strong>Characters</strong><span>Character Truth, eight reference views, sheets and portraits</span></button>
+              <button type="button" onClick={() => setFolder("world")}><strong>World</strong><span>{worlds.length} retained environment references</span></button>
+              <button type="button" onClick={() => setFolder("sounds")}><strong>Sounds</strong><span>Foley, Narration and Music</span></button>
+              <button type="button" onClick={() => setFolder("collectibles")}><strong>Collectibles</strong><span>Creation workspace pending</span></button>
+            </div>
+          </div> : null}
+          {folder === "sounds" ? <section className={styles.panel} aria-label="Sounds folder">
+            <div className={styles.sectionHeading}><h2>Sounds</h2><p>Build the soundscape for {project.title}.</p></div>
+            <div className={styles.overviewGrid}>
+              <button type="button" onClick={() => onOpenSound("foley")}><strong>Foley</strong><span>Room tone, actions and environmental sound</span></button>
+              <button type="button" onClick={() => onOpenSound("narration")}><strong>Narration</strong><span>Voice-over and spoken story</span></button>
+              <button type="button" onClick={() => onOpenSound("music")}><strong>Music</strong><span>Score, music and ambient cues</span></button>
+            </div>
+          </section> : null}
           {folder === "characters" ? <AssetsCharacters
             project={project}
             routeId={routeId}
@@ -257,48 +288,60 @@ export default function AssetsWorkspace({
             onSaved={(saved) => setProject(saved)}
             onManageCharacterTruth={onOpenCharacters}
           /> : null}
-          {folder === "collectibles" ? <p>Collectibles authoring is planned. No creation route is active yet.</p> : null}
-          {folder === "world" ? (
-            <section aria-label="World visual assets" data-assets-folder="world">
-              <h2>World — {project.title}</h2>
-              <p>Previously saved project world images are shown here. Creating new world views will be part of the next ASSETS implementation.</p>
-              {project.build.world.visualArtifacts.length ? project.build.world.visualArtifacts.map((image) => (
-                <article key={image.id}>
-                  <img src={image.assetUrl} alt={image.narrativeIntention || "Saved world reference"} style={{maxWidth: 220, display: "block"}} />
-                  <p>{image.reviewState === "accepted" ? "Approved" : "Draft"} · {image.provider} · {image.model}</p>
-                </article>
-              )) : <p>No world images have been saved for this project yet.</p>}
-            </section>
-          ) : null}
-          {folder === "posters" ? (
-            <section aria-label="Posters for current screenplay" data-assets-folder="posters">
-              <h2>Posters — {project.title}</h2>
-              <p>Marketing artwork only. Uses the selected screenplay excerpts and saved Foundations decisions where present. Creating a candidate does not change story or character canon.</p>
-              {featured ? <p>Current Library poster: <img src={featured.assetUrl} alt={project.title + " approved poster"} style={{maxWidth: 220, display: "block"}} /></p> : <p>No approved Library poster yet.</p>}
-              {posters.map((poster) => (
-                <article key={poster.id} data-assets-poster={poster.id}>
-                  <img src={poster.assetUrl} alt={project.title + " poster candidate"} style={{maxWidth: 180, display: "block"}} />
-                  <p>{poster.reviewState === "accepted" || project.build.foundations.acceptedVisualArtifactIds.includes(poster.id) ? "Approved" : "Draft"} · {poster.provider} · {poster.model}</p>
-                  {!project.build.foundations.acceptedVisualArtifactIds.includes(poster.id) ? (
-                    <button type="button" disabled={busy} onClick={() => void approvePoster(poster)}>Approve for Library</button>
-                  ) : null}
-                </article>
-              ))}
+          {folder === "collectibles" ? <section className={styles.panel} aria-label="Collectibles folder">
+            <div className={styles.sectionHeading}><h2>Collectibles</h2><p>Reusable story and game objects, bound to the loaded project.</p></div>
+            <div className={styles.empty} role="status">Collectibles authoring is planned. No creation route is active yet; no objects will be invented or saved automatically.</div>
+          </section> : null}
+          {folder === "world" ? <section className={styles.panel} aria-label="World visual assets" data-assets-folder="world">
+            <div className={styles.sectionHeading}><h2>World — {project.title}</h2><p>Reference environments saved from story-world development. New world-view generation is a later #3019 gate.</p></div>
+            {selectedWorld ? <div className={styles.viewer}>
+              <figure className={styles.focusImage}><img src={selectedWorld.assetUrl} alt={selectedWorld.narrativeIntention || "Saved world reference"} /><figcaption>{selectedWorld.narrativeIntention || "Story world image"}</figcaption></figure>
+              <div className={styles.focusDetails}><span className={styles.eyebrow}>SELECTED WORLD IMAGE</span><strong>{selectedWorld.reviewState === "accepted" ? "Approved" : "Draft / review"}</strong>
+                <p>{selectedWorld.provider} · {selectedWorld.model}</p><small>World Map continues to own approved story facts; ASSETS shows its retained images.</small></div>
+            </div> : <p className={styles.empty}>No world images have been saved for this project yet.</p>}
+            {worlds.length ? <div className={styles.gallery} aria-label="Saved world image gallery">{worlds.map(image => <button type="button" className={styles.thumb} key={image.id}
+              aria-pressed={selectedWorld?.id === image.id} onClick={() => setSelectedWorldId(image.id)}>
+              <img src={image.assetUrl} alt={image.narrativeIntention || "World reference thumbnail"} />
+              <span>{image.reviewState === "accepted" ? "Approved" : "Draft"}</span></button>)}</div> : null}
+          </section> : null}
+          {folder === "posters" ? <section className={styles.panel} aria-label="Posters for current screenplay" data-assets-folder="posters">
+            <div className={styles.sectionHeading}><h2>Posters — {project.title}</h2><p>Production artwork derived from this screenplay and accepted Foundations material, never automatic story canon.</p></div>
+            {selectedPoster ? <div className={styles.viewer} data-selected-poster={selectedPoster.id}>
+              <figure className={styles.focusImage}><img src={selectedPoster.assetUrl} alt={project.title + " selected poster"} /><figcaption>{project.title} · {selectedPoster.provider}</figcaption></figure>
+              <div className={styles.focusDetails}>
+                <span className={styles.eyebrow}>SELECTED POSTER</span>
+                <strong>{project.build.foundations.acceptedVisualArtifactIds.includes(selectedPoster.id) ? "Approved for Library" : "Saved draft"}</strong>
+                <p>{selectedPoster.provider} · {selectedPoster.model}</p>
+                {!project.build.foundations.acceptedVisualArtifactIds.includes(selectedPoster.id) ? <button type="button" disabled={busy} onClick={() => void approvePoster(selectedPoster)}>Approve for Library</button> : <p>Current Library poster: this approved image is available on the story card.</p>}
+              </div>
+            </div> : <p className={styles.empty}>No approved Library poster yet. Create a candidate below.</p>}
+            {posters.length ? <div className={styles.gallery} aria-label="Saved poster variations">{posters.map(poster =>
+              <button type="button" className={styles.thumb} key={poster.id} data-assets-poster={poster.id}
+                aria-pressed={selectedPoster?.id === poster.id} onClick={() => setSelectedPosterId(poster.id)}>
+                <img src={poster.assetUrl} alt={project.title + " poster candidate"} />
+                <span>{project.build.foundations.acceptedVisualArtifactIds.includes(poster.id) ? "Approved" : "Draft"}</span>
+              </button>
+            )}</div> : null}
+            <section className={styles.creation} aria-label="Poster creation studio">
+              <div className={styles.sectionHeading}><h3>Create a poster</h3><p>Generate, review, Save as draft, then Approve for Library.</p></div>
               <label htmlFor="assets-poster-direction">Poster art direction</label>
-              <textarea id="assets-poster-direction" value={direction} onChange={(event) => setDirection(event.currentTarget.value)} maxLength={1500} rows={3} placeholder="Describe the look you want. Existing saved Foundations decisions provide the source context." />
-              <p>Image route: {routeId || "unavailable"} · {routeReady ? (cloud ? "Paid cloud" : "Local") : routeOption?.error || "not verified"}</p>
-              {cloud ? <label><input type="checkbox" checked={billingAcknowledged} onChange={(event) => setBillingAcknowledged(event.currentTarget.checked)} /> I authorize one paid poster generation request.</label> : null}
-              <button type="button" disabled={busy || !routeReady || (cloud && !billingAcknowledged)} onClick={() => void generatePoster()}>Generate 1 poster</button>
-              {candidate ? <div>
-                <img src={candidate.assetUrl} alt="Unsaved poster candidate" style={{maxWidth: 220, display: "block"}} />
-                <p>Unsaved candidate. Save before navigating away.</p>
-                <button type="button" disabled={busy} onClick={() => void saveCandidate()}>Save poster draft</button>
+              <textarea id="assets-poster-direction" value={direction} onChange={(event) => setDirection(event.currentTarget.value)}
+                maxLength={1500} rows={3} placeholder="Describe the poster composition, typography or mood. Saved screenplay decisions remain the source." />
+              <p>Image route: {routeId || "unavailable"} · {routeReady ? cloud ? "Cloud (paid consent)" : "Verified Local" : routeOption?.error || "Needs provider verification"}</p>
+              {cloud ? <label className={styles.consent}><input type="checkbox" checked={billingAcknowledged}
+                onChange={(event) => setBillingAcknowledged(event.currentTarget.checked)} /> I authorize one paid poster generation request.</label> : null}
+              <button type="button" disabled={busy || !routeReady || (cloud && !billingAcknowledged)} onClick={() => void generatePoster()}>
+                {busy ? "Generating…" : "Generate 1 poster"}</button>
+              {candidate ? <div className={styles.viewer}>
+                <figure className={styles.focusImage}><img src={candidate.assetUrl} alt="Unsaved poster candidate" /><figcaption>Unsaved candidate</figcaption></figure>
+                <div className={styles.focusDetails}><span className={styles.eyebrow}>UNSAVED CANDIDATE</span><strong>Review before saving</strong><p>Generated art never becomes approved automatically.</p>
+                  <button type="button" disabled={busy} onClick={() => void saveCandidate()}>Save poster draft</button></div>
               </div> : null}
             </section>
-          ) : null}
+          </section> : null}
         </>
       )}
-      {notice ? <p role="status" aria-live="polite">{notice}</p> : null}
+      {notice ? <p className={styles.notice} role="status" aria-live="polite">{notice}</p> : null}
     </section>
   );
 }

@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { authenticatedComputeFetch } from "../../core/auth/profile-request-browser";
 import AssetsCharacters from "./assets-characters";
+import AssetsImageRouteSelector from "./assets-image-route-selector";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import {
   lockedMarketingReference,
@@ -232,6 +233,7 @@ export default function AssetsWorkspace({
       <p>Current story: <strong>{project?.title || "No Library project loaded"}</strong></p>
       {!project ? <p role="status">Load Brotherly Love or another saved story from Library to create project assets.</p> : (
         <>
+          <AssetsImageRouteSelector status={route} onChanged={setRoute} />
           <nav aria-label="ASSETS folders">
             <button type="button" onClick={() => { setFolder("sounds"); setNotice(""); }}>Sounds</button>{" "}
             <button type="button" onClick={() => { setFolder("characters"); setNotice(""); }}>Characters</button>{" "}

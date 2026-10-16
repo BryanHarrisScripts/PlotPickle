@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- ASSETS displays local project-owned media. */
+
 import { useEffect, useState } from "react";
 import { authenticatedComputeFetch } from "../../core/auth/profile-request-browser";
 import { applyStoryCommand } from "../../core/project/apply-command";
@@ -63,11 +65,10 @@ async function verifyPosterMedia(assetUrl: string) {
 
 /** Existing Library PPF Marketing Reference is the poster authority. No second asset store. */
 export default function AssetsWorkspace({
-  onBackDashboard, onOpenCharacters, onOpenWorld, onOpenSound,
+  onBackDashboard, onOpenCharacters, onOpenSound,
 }: {
   readonly onBackDashboard: () => void;
   readonly onOpenCharacters: () => void;
-  readonly onOpenWorld: () => void;
   readonly onOpenSound: (kind: "foley" | "narration" | "music") => void;
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
@@ -215,7 +216,7 @@ export default function AssetsWorkspace({
             <button type="button" onClick={onOpenCharacters}>Characters</button>{" "}
             <button type="button" onClick={() => { setFolder("collectibles"); setNotice(""); }}>Collectibles</button>{" "}
             <button type="button" onClick={() => { setFolder("posters"); setNotice(""); }}>Posters</button>{" "}
-            <button type="button" onClick={onOpenWorld}>World</button>
+            <button type="button" onClick={() => { setFolder("world"); setNotice(""); }}>World</button>
           </nav>
           {folder === "sounds" ? (
             <section aria-label="Sounds folder">
@@ -226,6 +227,18 @@ export default function AssetsWorkspace({
             </section>
           ) : null}
           {folder === "collectibles" ? <p>Collectibles authoring is planned. No creation route is active yet.</p> : null}
+          {folder === "world" ? (
+            <section aria-label="World visual assets" data-assets-folder="world">
+              <h2>World — {project.title}</h2>
+              <p>Previously saved project world images are shown here. Creating new world views will be part of the next ASSETS implementation.</p>
+              {project.build.world.visualArtifacts.length ? project.build.world.visualArtifacts.map((image) => (
+                <article key={image.id}>
+                  <img src={image.assetUrl} alt={image.narrativeIntention || "Saved world reference"} style={{maxWidth: 220, display: "block"}} />
+                  <p>{image.reviewState === "accepted" ? "Approved" : "Draft"} · {image.provider} · {image.model}</p>
+                </article>
+              )) : <p>No world images have been saved for this project yet.</p>}
+            </section>
+          ) : null}
           {folder === "posters" ? (
             <section aria-label="Posters for current screenplay" data-assets-folder="posters">
               <h2>Posters — {project.title}</h2>

@@ -25,9 +25,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "timeline", shortcut: "T", label: "Timeline", description: "Synchronize Script, Shots, Timing and Audio", group: "VISUALIZE" },
   { id: "production", shortcut: "C", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
-  { id: "sound-foley", shortcut: "F", label: "Foley", description: "Develop Foley, Room Tone and Environmental Sound", group: "SOUND" },
-  { id: "sound-narration", shortcut: "N", label: "Narration", description: "Develop Narration, Voice-Over and Spoken Story", group: "SOUND" },
-  { id: "sound-music", shortcut: "A", label: "Music", description: "Develop Score, Music and Ambient Cues", group: "SOUND" },
+  { id: "assets", shortcut: "A", label: "Assets", description: "Sounds, Characters, Collectibles, Posters and World for the Loaded Story", group: "ASSETS" },
 
   { id: "pitch-deck", shortcut: "K", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
   { id: "pitch-package", shortcut: "G", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
@@ -48,6 +46,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "community",
   "screening",
   "reports",
+  "assets",
   "sound-narration",
   "sound-music",
   "sound-foley",
@@ -83,6 +82,7 @@ export const DASHBOARD_EXPLORATION_ITEM_IDS = new Set<string>([
   "write",
   "edit",
   "refine",
+  "assets",
   "sound-foley",
   "sound-narration",
   "sound-music",

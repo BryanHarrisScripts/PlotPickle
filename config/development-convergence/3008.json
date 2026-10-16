@@ -8,13 +8,13 @@
     "lib/agents/production-supervisor-workers.mjs",
     "scripts/production-supervisor-agent.mjs",
     "build/agent-compute-gateway.ts",
-    "app/_components/settings/agent-health-command.mjs",
     "app/skin-v1/global-dsdd-conversation.tsx",
     "tests/issue-3008-agent-health.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3008-cmd-agent-health-census-and-smoke.md",
     "config/development-convergence/3008.json",
-    "config/verification/ownership-map.json"
+    "config/verification/ownership-map.json",
+    "modules/agent-health/command.mjs"
   ],
   "acceptance": [
     {

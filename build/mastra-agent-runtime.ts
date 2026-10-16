@@ -567,6 +567,7 @@ export async function askPlotPickleAgent(input: PlotPickleAgentRequest) {
     const productionFidelity = input.outputFormat?.kind === "production-fidelity";
     const executionOptions = {
       abortSignal,
+      ...(input.profile.provider === "openai" ? { providerOptions: { openai: { store: false } } } : {}),
       ...(storyCouncilMode || input.agentId === "story-architect" || input.outputFormat?.kind === "storyboard-narration" || input.outputFormat?.kind === "storyboard-shot-brief" || ["curriculum-guide", "foundations-planner", "discovery-mapper", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
         modelSettings: storyCouncilMode
           ? storyCouncilModelSettings

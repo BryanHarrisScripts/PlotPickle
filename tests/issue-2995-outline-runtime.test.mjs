@@ -44,6 +44,7 @@ test("#2999 configured OpenAI uses native Responses settings at the real Mastra 
     assert.deepEqual(JSON.parse(output), assessment);
     assert.equal(requests.length, 1, "No retry is needed for an accepted native request.");
     assert.equal(requests[0].path, "/v1/responses");
+    assert.equal(requests[0].input.store, false, "Changing transport must not enable provider response storage.");
     assert.equal(requests[0].input.max_output_tokens, 1800);
     assert.equal(requests[0].input.text.format.type, "json_schema");
     assert.ok(requests[0].input.text.format.schema.properties.structural);
@@ -61,6 +62,7 @@ test("#2999 configured OpenAI uses native Responses settings at the real Mastra 
       assert.deepEqual(typeof expected === "string" ? result : JSON.parse(result), expected, agentId);
       const sent = requests.at(-1);
       assert.equal(sent.path, "/v1/responses", agentId);
+      assert.equal(sent.input.store, false, agentId);
       assert.equal(sent.input.max_tokens, undefined, agentId);
       assert.equal(sent.input.temperature, undefined, agentId);
       assert.ok(sent.input.max_output_tokens > 0, agentId);

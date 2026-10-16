@@ -559,15 +559,6 @@ export default function DashboardBbsReviewHost({
           setDiscoveryOpen(true);
           onSurfaceNameChange("MindMap");
         }}
-        onOpenWorld={() => {
-          setAssetsOpen(false);
-          setDiscoveryProject(loadActiveLibraryProject());
-          setDiscoveryInitialTopic("world");
-          setDiscoveryInitialFieldId(null);
-          setDiscoveryInitialAct(1);
-          setDiscoveryOpen(true);
-          onSurfaceNameChange("MindMap");
-        }}
         onOpenSound={(kind) => {
           setAssetsOpen(false);
           setSoundOpen(kind);

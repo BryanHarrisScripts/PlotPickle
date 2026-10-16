@@ -4,81 +4,50 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2446/#2458/#2612 keeps Sound between Visualize and Pitch while deferring its three destinations", async () => {
-  const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
-  const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
-    .map((match) => ({ id: match[1], shortcut: match[2], label: match[3], description: match[4], group: match[5] }));
-
-  assert.deepEqual(
-    rows.filter((row) => row.group === "SOUND").map((row) => [row.id, row.shortcut, row.label]),
-    [
-      ["sound-foley", "F", "Foley"],
-      ["sound-narration", "N", "Narration"],
-      ["sound-music", "A", "Music"],
-    ],
-  );
-  assert.deepEqual(
-    [...new Set(rows.map((row) => row.group))],
-    ["EXPLORE", "DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY", "SYSTEM"],
-  );
-  assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
-
-  const connected = menu.slice(
-    menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"),
-    menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
-  );
-  for (const id of ["sound-narration", "sound-music", "sound-foley"]) assert.match(connected, new RegExp(`"${id}"`, "u"));
-
-  const unavailable = menu.slice(
-    menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
-    menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
-  );
-  for (const id of ["screening", "sound-narration", "sound-music", "sound-foley"]) assert.match(unavailable, new RegExp(`"${id}"`, "u"));
-  assert.doesNotMatch(unavailable, /"pitch-package"|"pitch-deck"/u);
-});
-
-test("#2446/#2458/#2612 keeps deferred Sound rows selectable but inert before legacy review branches", async () => {
-  const [panel, host, client] = await Promise.all([
-    read("app/skin-v1/dashboard-bbs-panel.tsx"),
-    read("app/skin-v1/dashboard-bbs-review-host.tsx"),
-    read("app/skin-v1/skin-v1-client.tsx"),
-  ]);
-
-  assert.match(panel, /const selected = index === selectedIndex/u);
-  assert.match(panel, /selected \? " is-selected" : ""/u);
-  assert.match(panel, /const unavailable = DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)/u);
-  assert.match(panel, /const locked = connected && !inReview && !unavailable/u);
-  assert.match(panel, /data-dashboard-surface-state=\{unavailable \? "unavailable"/u);
-  assert.match(panel, /data-dashboard-status=\{unavailable \? "inactive"/u);
-  assert.doesNotMatch(panel, /if \(!item \|\| DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) return/u);
-
-  assert.match(
-    host,
-    /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\) \{[\s\S]*onActivate\(index\);[\s\S]*onSurfaceNameChange\("DASHBOARD"\);[\s\S]*return;/u,
-  );
-  assert.match(client, /function activateDashboardItem\(index: number\) \{[\s\S]*setDashboardSelection\(index\)/u);
-
-  assert.match(host, /item\.id === "sound-narration" \|\| item\.id === "sound-music" \|\| item\.id === "sound-foley"/u);
-  assert.match(host, /setSoundOpen\(kind\)/u);
-  assert.match(host, /<SkinV1SoundReviewSurface/u);
-  assert.ok(
-    host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf('item.id === "sound-narration"'),
-    "Unavailable guard must run before the retained Sound review branch",
-  );
-});
-
-test("#2446 brief remains historical while #2458 supplies the Sound surfaces", async () => {
-  const [menu, host, brief] = await Promise.all([
+test("#2446/#2458/#3019 moves Sound under ASSETS while preserving its three owning surfaces", async () => {
+  const [menu, workspace, host] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
+    read("app/skin-v1/assets-workspace.tsx"),
+    read("app/skin-v1/dashboard-bbs-review-host.tsx"),
+  ]);
+  const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
+    .map((match) => ({ id: match[1], shortcut: match[2], label: match[3], group: match[5] }));
+  assert.deepEqual(rows.filter((row) => row.group === "ASSETS"), [
+    { id: "assets", shortcut: "A", label: "Assets", group: "ASSETS" },
+  ]);
+  assert.equal(rows.some((row) => row.group === "SOUND"), false);
+  assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
+  for (const kind of ["foley", "narration", "music"]) {
+    assert.match(workspace, new RegExp(`onOpenSound\\("${kind}"\\)`, "u"));
+    assert.match(host, new RegExp(`"sound-${kind}"`, "u"));
+  }
+  assert.match(workspace, /aria-label="Sounds folder"/u);
+  assert.match(host, /<SkinV1SoundReviewSurface/u);
+  assert.match(host, /if \(item\.id === "assets"\)/u);
+});
+
+test("#3019 ASSETS enters the canonical Matrix host without creating an alternative SOUND store", async () => {
+  const [menu, workspace] = await Promise.all([
+    read("app/skin-v1/dashboard-menu-registry.ts"),
+    read("app/skin-v1/assets-workspace.tsx"),
+  ]);
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
+  assert.match(connected, /"assets"/u);
+  assert.match(menu, /"assets"[\s\S]*"previs"/u);
+  for (const id of ["sound-foley", "sound-narration", "sound-music"]) assert.match(connected, new RegExp(`"${id}"`, "u"));
+  assert.match(workspace, /sessionActiveProjectId/u);
+  assert.match(workspace, /loadLibraryProjectSnapshot/u);
+  assert.match(workspace, /persistActiveProfileProject/u);
+  assert.match(workspace, /flushProfilePrivateWrites/u);
+  assert.match(workspace, /assertCurrentProject/u);
+  assert.doesNotMatch(workspace, /localStorage\.setItem|sessionStorage\.setItem/u);
+});
+
+test("#2446 original Sound proposal remains historical, not deleted", async () => {
+  const [host, brief] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("docs/developer-briefs/2446-dashboard-sound-selectable.md"),
   ]);
-
-  assert.match(menu, /label: "Narration"/u);
-  assert.match(menu, /label: "Music"/u);
-  assert.match(menu, /label: "Foley"/u);
-  assert.match(host, /<SkinV1SoundReviewSurface/u);
-  assert.match(brief, /opening\/beginning music/u);
+  assert.match(host, /setSoundOpen\(kind\)/u);
   assert.match(brief, /room tone/u);
-  assert.match(brief, /Do not implement these menus now/u);
 });

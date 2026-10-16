@@ -117,7 +117,8 @@
           "tests/issue-2446-dashboard-sound-selectable.test.mjs",
           "tests/issue-3019-assets-poster-library.test.mjs",
           "tests/issue-3019-assets-characters.test.mjs",
-          "tests/issue-3031-screenplay-character-roster.test.mjs"
+          "tests/issue-3031-screenplay-character-roster.test.mjs",
+          "tests/issue-3032-character-sheet-portrait.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4532,7 +4533,7 @@
           },
           {
             "path": "core/storage/library-project.ts",
-            "digest": "b850c4943ff16951931e2beec93401f2bb3e64bd12e77b14c161ed908090c75b"
+            "digest": "554738fa94b805fe2847c0c56d2ff832239b5d7bf64425cc4cae23509b8f784d"
           },
           {
             "path": "core/storage/project-library-core.mjs",
@@ -4962,7 +4963,7 @@
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
-            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
+            "digest": "2e1d036c0a9a0c4fce8958eb090552f5dbeeeba3e0da90baaaae0c112167667a"
           },
           {
             "path": "app/skin-v1/assets-characters.module.css",
@@ -5042,7 +5043,7 @@
           },
           {
             "path": "app/skin-v1/assets-characters.tsx",
-            "digest": "4318d96046f19aa9de14c0022c72f76642fe09a390c39c3ba7a762a6b8546cdc"
+            "digest": "2e1d036c0a9a0c4fce8958eb090552f5dbeeeba3e0da90baaaae0c112167667a"
           },
           {
             "path": "app/skin-v1/assets-characters.module.css",
@@ -5099,6 +5100,53 @@
           {
             "path": "app/_components/settings/connection-confirmation-presentation.d.mts",
             "digest": "857d5e15c21e80dbca8ff736e70653f497b1fe583c283a239dd9d795ef8dcc30"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3032-character-sheet-portrait.test.mjs",
+        "targetDigest": "cf94b155cbb23c1d5e186d1da75dcdc38caf3b5f35fc9059240a680160409f8e",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static verification of source-bound character image generation, square route and shared PPF registry readback. No assertion of live Windows image quality, actual model provider output, cross-machine asset byte portability or end-user UAT.",
+        "inputs": [
+          {
+            "path": "core/storage/library-project.ts",
+            "digest": "554738fa94b805fe2847c0c56d2ff832239b5d7bf64425cc4cae23509b8f784d"
+          },
+          {
+            "path": "app/skin-v1/assets-characters.tsx",
+            "digest": "2e1d036c0a9a0c4fce8958eb090552f5dbeeeba3e0da90baaaae0c112167667a"
+          },
+          {
+            "path": "app/skin-v1/assets-character-deliverables.tsx",
+            "digest": "995d6e04d33a3f4f330fcb6d3e3b83a43849f21393f11882da7f1842c0d6fee7"
+          },
+          {
+            "path": "app/skin-v1/assets-character-deliverables.module.css",
+            "digest": "cfa80282dcef657ec1f198da73781a43bc70bae8edc17434681faa58c88358c0"
+          },
+          {
+            "path": "build/local-ai-gateway-base.ts",
+            "digest": "0f4f186fa3aa00ecd011459127bbffb4ba3c087b80c6635c69d4feac744065d5"
+          },
+          {
+            "path": "build/cloud-media-provider.ts",
+            "digest": "a9a0900c846cdaa793b00d18c52b3ba0ef39ba38599ce8630a120a0fb738629f"
           }
         ]
       }

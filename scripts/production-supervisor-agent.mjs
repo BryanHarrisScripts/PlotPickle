@@ -22,7 +22,15 @@ if (server.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(server.h
 const registry = PRODUCTION_SUPERVISOR_WORKERS;
 
 async function exists(relativePath) {
-  try { await access(path.join(repoRoot, relativePath)); return true; } catch { return false; }
+  return access(path.join(repoRoot, relativePath)).then(
+    () => true,
+    (error) => {
+      // An absent optional worker is an honest readiness result. Permission,
+      // disk and other filesystem faults must not be misreported as "missing".
+      if (error?.code === "ENOENT") return false;
+      throw error;
+    },
+  );
 }
 
 async function discoverAgents() {

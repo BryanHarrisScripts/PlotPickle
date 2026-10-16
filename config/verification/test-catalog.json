@@ -114,7 +114,8 @@
           "tests/issue-2432-library-load-recovery-ui.test.mjs",
           "tests/issue-2487-story-to-screen-live-parity.test.mjs",
           "tests/issue-2657-matrix-navigation-continuity.test.mjs",
-          "tests/issue-2446-dashboard-sound-selectable.test.mjs"
+          "tests/issue-2446-dashboard-sound-selectable.test.mjs",
+          "tests/issue-3019-assets-poster-library.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4888,6 +4889,45 @@
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
             "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3019-assets-poster-library.test.mjs",
+        "targetDigest": "d2ef998575914ea4c4b77a1676e9c4183040331ba74a283532eb3a7d6abb6e96",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Synthetic static wiring/source guards only. No live selected Human Brotherly Love poster generation, media-blob durability, paid provider, cold-start Windows or user-approved creative quality is claimed.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/assets-workspace.tsx",
+            "digest": "c32d6a4538d2efbb87538514c424cb4289703042f4b105bedf18986dd09fa97f"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "a94138d1656379018489ea662a52968267c4f1c4474b137e8bb90abe495060d0"
+          },
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
           }
         ]
       }

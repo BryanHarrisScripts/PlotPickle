@@ -5506,7 +5506,7 @@
       },
       {
         "target": "tests/issue-620-buzz-startup-updater.test.mjs",
-        "targetDigest": "3572feecba86884d5e4be8a8618a778715f8d36e1c1581543b0050b4a626f749",
+        "targetDigest": "9598fd5c7bb2f218b31537cebc52a384fe6a7dc05b99b5795c7f96c4252cd8b0",
         "catalogueIds": [
           "production.buzz-desktop-update-contract-3051"
         ],
@@ -5524,7 +5524,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Current checked-in BUZZ 0.5.26 metadata, official URL/pinned digest, and static installer/companion contracts; not proof of latest upstream release, actual downloaded bytes, Windows installation, running BUZZ processes or future upgrade compatibility.",
+        "limits": "Pinned BUZZ Desktop 0.5.28 official release/tag Windows digest and static updater/relay-isolation source contracts. Does not establish a downloaded installer, an installed Windows desktop, a signed Community session, relay runtime or Human desktop approval.",
         "inputs": []
       },
       {

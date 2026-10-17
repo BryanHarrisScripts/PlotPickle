@@ -2336,6 +2336,7 @@
           "tests/issue-2832-profile-save-work.test.mjs",
           "tests/issue-2835-startup-account-afterglow.test.mjs",
           "tests/issue-2863-afterglow-consolidation.test.mjs",
+          "tests/issue-3055-afterglow-registry-evolution.test.mjs",
           "tests/issue-2863-current-master-image-recovery.test.mjs",
           "tests/issue-2863-afterglow-evidence-reconcile.test.mjs",
           "tests/issue-2863-afterglow-question-provenance.test.mjs",
@@ -5265,6 +5266,29 @@
           "static-source"
         ],
         "limits": "Current checked-in BUZZ 0.5.26 metadata, official URL/pinned digest, and static installer/companion contracts; not proof of latest upstream release, actual downloaded bytes, Windows installation, running BUZZ processes or future upgrade compatibility.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3055-afterglow-registry-evolution.test.mjs",
+        "targetDigest": "9f138b7bb7019c9366b49bfff2877b8e5b12b7060d1d22c675e30e81168c25c3",
+        "catalogueIds": [
+          "story-canon.save-session-continuity-2821"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Real Afterglow planner on synthetic PPF snapshots. Equal canonical registries load; changed media identity stays blocked for Human review; input source remains immutable. No live profile, provider, saved-media bytes/approval, or durable master proof.",
         "inputs": []
       }
     ]

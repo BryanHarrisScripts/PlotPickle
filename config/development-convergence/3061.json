@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "issue": 3061,
+  "phase": "explicit-production-harness-fixtures",
+  "brief": "docs/developer-briefs/3061-explicit-typescript-fixtures.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "scripts/verification/typescript-fixture-transform.mjs",
+    "tests/issue-3061-node26-fixture-transform.test.mjs",
+    "tests/issue-2064-phase-0-director-spec-core.test.mjs",
+    "tests/issue-2064-phase-2-provider-instruction-compiler.test.mjs",
+    "tests/issue-2064-phase-3-provider-adapters.test.mjs",
+    "docs/developer-briefs/3061-explicit-typescript-fixtures.md",
+    "config/development-convergence/3061.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-COMPILER",
+      "criterion": "Exact existing compiler preserves emitted TypeScript semantics and caller-owned isolation without changing native APIs.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification/typescript-fixture-transform.mjs",
+          "contains": "export function transpileTypeScriptFixture"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3061-node26-fixture-transform.test.mjs",
+          "contains": "#3061 importing the helper leaves native stripping and removed transform-mode errors intact"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3061-node26-fixture-transform.test.mjs",
+          "contains": "#3061 caller-owned import isolation remains explicit and executable"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3061-node26-fixture-transform.test.mjs",
+          "contains": "#3061 malformed fixture syntax fails with its source filename and diagnostic"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WAVE",
+      "criterion": "Three previously passing historical suites use native Node26 stripping with unchanged behavioral assertions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2064-phase-0-director-spec-core.test.mjs",
+          "contains": "const compiled = stripTypeScriptTypes(typeScript);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2064-phase-2-provider-instruction-compiler.test.mjs",
+          "contains": "const compiled = stripTypeScriptTypes(typeScript);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2064-phase-3-provider-adapters.test.mjs",
+          "contains": "const compiled = stripTypeScriptTypes(typeScript);"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No global preload, built-in mutation or production code change.",
+    "Historical unconverted/stale suites remain tracked in3061; independently green3060 installer proof is not rerun for test-only code."
+  ]
+}

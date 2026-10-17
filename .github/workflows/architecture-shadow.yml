@@ -79,8 +79,6 @@ jobs:
         run: node --test tests/issue-3061-node26-fixture-transform.test.mjs
 
       - name: Run architecture verification
-        env:
-          NODE_OPTIONS: --import=./scripts/verification/node26-fixture-transform-bridge.mjs
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"

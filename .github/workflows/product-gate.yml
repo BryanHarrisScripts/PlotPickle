@@ -308,6 +308,9 @@ jobs:
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Prove actual Node 26.12 executable, native Temporal, and installer version contract
+        shell: pwsh
+        run: node --test tests/issue-3058-node26-runtime.test.mjs tests/issue-1892-oss-third-party-registry.test.mjs
       - name: Validate braces security provenance and runtime transport
         shell: pwsh
         run: node --test tests/issue-2706-security-closeout.test.mjs tests/issue-2789-windows-runtime-transport.test.mjs

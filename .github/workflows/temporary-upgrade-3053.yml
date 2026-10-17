@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '24.19.0'
       - name: Resolve latest stable web runtime packages and full lockfile
-        run: npm install --ignore-scripts --include=dev --no-audit --no-fund --save-exact vinext@latest next@latest eslint-config-next@latest
+        run: npm install --ignore-scripts --include=dev --no-audit --no-fund --save-exact vinext@latest next@latest eslint-config-next@latest react@latest react-dom@latest @types/react@latest @types/react-dom@latest
       - name: Prove lockfile installability
         run: npm ci --ignore-scripts --include=dev --no-audit --no-fund
       - name: Show actual package versions

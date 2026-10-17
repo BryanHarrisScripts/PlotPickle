@@ -257,7 +257,7 @@ export function publicOpenPencilGuiError(error) {
   if (code === "OPENPENCIL_SURFACE_OUTSIDE_WORKSPACE") return "The OpenPencil surface target must stay inside designs\\openpencil.";
   if (code === "OPENPENCIL_DESIGN_FILE_MISSING") return "The registered OpenPencil design file is missing.";
   if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_MISSING") return "The registered OpenPencil design is missing and its repository bootstrap seed is unavailable.";
-  if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_FAILED") return "PlotPickle could not materialize the registered OpenPencil design from its repository bootstrap seed.";
+  if (code === "OPENPENCIL_DESIGN_BOOTSTRAP_FAILED") return "OpenPencil CLI could not convert the registered design seed into an editable FIG. Check the installed OpenPencil CLI 0.16.0 and try again; no existing FIG was overwritten.";
   if (code === "OPENPENCIL_DESIGN_SNAPSHOT_UNEXPECTED") return "A rendered design snapshot is only accepted for the registered live Timeline design.";
   if (code === "OPENPENCIL_DESIGN_SNAPSHOT_INVALID") return "The rendered Timeline design snapshot was invalid or exceeded its bounded capture contract.";
   if (code === "OPENPENCIL_DESIGN_SNAPSHOT_IMPORT_FAILED") return "OpenPencil did not produce an editable Timeline design from the rendered PlotPickle snapshot.";
@@ -265,7 +265,8 @@ export function publicOpenPencilGuiError(error) {
   if (code === "OPENPENCIL_DESKTOP_MISSING") return "OpenPencil Desktop is not installed yet. PlotPickle prepares the reviewed desktop app after core startup; retry Check status or restart PlotPickle.";
   if (code === "OPENPENCIL_CLI_MISSING") return "The reviewed OpenPencil CLI helper is not ready yet. PlotPickle prepares it after core startup.";
   if (code === "OPENPENCIL_GUI_ACTIVATION_TIMEOUT") return "OpenPencil Desktop opened the design, but PlotPickle could not confirm the requested page before the local timeout.";
-  if (code === "OPENPENCIL_PAGES_INVALID") return "OpenPencil could not read the registered design pages.";
+  if (code === "OPENPENCIL_PAGES_INVALID") return "OpenPencil CLI could not read pages from the design FIG. Verify the file in designs/openpencil and the OpenPencil CLI 0.16.0; PlotPickle did not overwrite your design.";
+  if (code === "OPENPENCIL_DESKTOP_LAUNCH_FAILED") return "OpenPencil Desktop could not be started. Verify the installed 0.16.0 desktop app or its permissions; no existing design was overwritten.";
   return "OpenPencil GUI could not open the requested design surface.";
 }
 
@@ -293,19 +294,31 @@ export function createOpenPencilGuiController(overrides = {}) {
         if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
           throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
         }
-        await runCli(
-          cli,
-          ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
-          dependencies,
-          target.workspaceRoot,
-        );
+        try {
+          await runCli(
+            cli,
+            ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
+            dependencies,
+            target.workspaceRoot,
+          );
+        } catch {
+          // CLI stderr may contain private file names and environment data.
+          // Fail with a stable, actionable public error rather than its raw exception.
+          throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
+        }
         if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
         bootstrapState = "materialized";
       }
     }
 
-    const pagesResult = await runCli(cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot);
-    const pages = parseJson(pagesResult.stdout, "OPENPENCIL_PAGES_INVALID");
+    let pages;
+    try {
+      const pagesResult = await runCli(cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot);
+      pages = parseJson(pagesResult.stdout, "OPENPENCIL_PAGES_INVALID");
+    } catch {
+      // A corrupt or incompatible FIG may fail before JSON parsing. Leave it intact.
+      throw new Error("OPENPENCIL_PAGES_INVALID");
+    }
     const page = Array.isArray(pages)
       ? pages.find((candidate) => canonicalKey(candidate?.name) === canonicalKey(target.page))
       : null;
@@ -320,17 +333,27 @@ export function createOpenPencilGuiController(overrides = {}) {
       }
     }
 
-    const launched = dependencies.spawnProcess(desktop.executable, [target.designFile], {
-      cwd: target.workspaceRoot,
-      env: dependencies.env,
-      detached: true,
-      stdio: "ignore",
-      windowsHide: false,
-      shell: false,
-    });
-    launched.unref?.();
+    let launchFailed = false;
+    let launched;
+    try {
+      launched = dependencies.spawnProcess(desktop.executable, [target.designFile], {
+        cwd: target.workspaceRoot,
+        env: dependencies.env,
+        detached: true,
+        stdio: "ignore",
+        windowsHide: false,
+        shell: false,
+      });
+      // Detached Windows process errors are emitted asynchronously. Do not
+      // let a failed launch crash the server or leak private OS process paths.
+      launched.once?.("error", () => { launchFailed = true; });
+      launched.unref?.();
+    } catch {
+      throw new Error("OPENPENCIL_DESKTOP_LAUNCH_FAILED");
+    }
 
     for (let attempt = 0; attempt < 30; attempt += 1) {
+      if (launchFailed) throw new Error("OPENPENCIL_DESKTOP_LAUNCH_FAILED");
       try {
         const listResult = await runCli(cli, ["documents", "list", "--json"], dependencies, target.workspaceRoot);
         const documents = parseJson(listResult.stdout, "OPENPENCIL_GUI_ACTIVATION_TIMEOUT");
@@ -358,6 +381,7 @@ export function createOpenPencilGuiController(overrides = {}) {
       } catch {}
       await dependencies.wait(250);
     }
+    if (launchFailed) throw new Error("OPENPENCIL_DESKTOP_LAUNCH_FAILED");
     throw new Error("OPENPENCIL_GUI_ACTIVATION_TIMEOUT");
   }
 

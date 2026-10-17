@@ -7,10 +7,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
 const PINNED_PI_PACKAGES = [
-  "npm:@dietrichgebert/ponytail@4.8.4",
-  "npm:pi-subagents@0.35.1",
-  "npm:@ff-labs/pi-fff@0.10.1",
-  "npm:pi-context-view@0.4.2",
+  "npm:@dietrichgebert/ponytail@5.3.2",
+  "npm:pi-subagents@0.79.0",
+  "npm:@ff-labs/pi-fff@0.11.0",
+  "npm:pi-context-view@0.7.1",
 ];
 
 function collectKeys(value, output = []) {

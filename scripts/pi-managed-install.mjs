@@ -13,7 +13,7 @@ import {
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
-export const PLOTPICKLE_MANAGED_PI_VERSION = "1.0.1";
+export const PLOTPICKLE_MANAGED_PI_VERSION = "1.3.0";
 export const PLOTPICKLE_MANAGED_PI_PACKAGE = `${PI_CODING_AGENT_PACKAGE}@${PLOTPICKLE_MANAGED_PI_VERSION}`;
 
 function normalizedPiVersion(value) {

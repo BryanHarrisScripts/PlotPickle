@@ -79,10 +79,10 @@ if (-not $VerifyOnly) {
 
   Write-Step "Installing pinned Pi project extensions"
   $packages = @(
-    "npm:@dietrichgebert/ponytail@4.8.4",
-    "npm:pi-subagents@0.35.1",
-    "npm:@ff-labs/pi-fff@0.10.1",
-    "npm:pi-context-view@0.4.2"
+    "npm:@dietrichgebert/ponytail@5.3.2",
+    "npm:pi-subagents@0.79.0",
+    "npm:@ff-labs/pi-fff@0.11.0",
+    "npm:pi-context-view@0.7.1"
   )
   foreach ($package in $packages) {
     & $piCommand install $package -l

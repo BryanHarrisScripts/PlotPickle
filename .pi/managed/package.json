@@ -2,6 +2,6 @@
   "name": "plotpickle-managed-pi",
   "private": true,
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "1.0.1"
+    "@earendil-works/pi-coding-agent": "1.3.0"
   }
 }

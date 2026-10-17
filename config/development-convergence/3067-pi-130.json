@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "issue": 3067,
+  "phase": "managed-pi-130-and-extensions",
+  "brief": "docs/developer-briefs/3067-pi-130-upgrade.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    ".pi/managed/package-lock.json",
+    ".pi/managed/package.json",
+    ".pi/npm/package-lock.json",
+    ".pi/npm/package.json",
+    ".pi/settings.json",
+    "build/dsdd/dsdd-pi-session.ts",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "config/developer-agent-stack.json",
+    "config/third-party-oss.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "scripts/dsdd-pi-session.mjs",
+    "scripts/evaluate-pi-099-compatibility.mjs",
+    "scripts/pi-managed-install.mjs",
+    "scripts/settings-command-product-proof.mjs",
+    "scripts/setup-developer-agent-stack.ps1",
+    "tests/issue-1185-pi-managed-install.test.mjs",
+    "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+    "tests/issue-2590-pi-099-compatibility.test.mjs",
+    "tests/issue-2591-pi-native-mcp.test.mjs",
+    "tests/issue-2717-settings-command.test.mjs",
+    "tests/issue-641-developer-agent-stack.test.mjs",
+    "config/pi-130-compatibility.json",
+    "docs/developer-briefs/3067-pi-130-upgrade.md",
+    "config/development-convergence/3067-pi-130.json"
+  ],
+  "acceptance": [
+    {
+      "id": "COORDINATED-PINS",
+      "criterion": "Managed runtime and extension family are exact-pinned and consumed by locked private install.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi-managed-install.mjs",
+          "contains": "PLOTPICKLE_MANAGED_PI_VERSION = \"1.3.0\""
+        },
+        {
+          "type": "file-contains",
+          "path": ".pi/settings.json",
+          "contains": "npm:pi-subagents@0.79.0"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-130-compatibility.json"
+        }
+      ]
+    },
+    {
+      "id": "SESSION-AUTHORITY-BOUNDARIES",
+      "criterion": "Candidate SDK probes preserve context provenance, restored tools and explicit allowlist/no-extensions restrictions without provider calls.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-099-compatibility.mjs",
+          "contains": "async function runSessionToolBoundaryProbe"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-099-compatibility.mjs",
+          "contains": "assert.deepEqual(await active([]), []);"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-099-compatibility.mjs",
+          "contains": "const useReviewedLock = contract.lockedInstallDirectory === \".pi/npm\""
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve historical candidate contracts and retired MCP adapter; no existing story/task mutation, provider calls or signed messages.",
+    "Require actual Windows private install/SDK/RPC/extension proof plus current-head PR/Product gates before merge."
+  ]
+}

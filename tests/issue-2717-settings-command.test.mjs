@@ -89,7 +89,7 @@ test("managed Pi refuses a mismatched reviewed lock before npm execution", async
   let runs = 0, writes = 0;
   await assert.rejects(ensureManagedPiInstalled({ nodeVersion: "24.19.0", root: "synthetic-private-pi", existsSync: () => false,
     npmCommand: "npm", mkdir: async () => {}, writeFile: async () => { writes++; },
-    readFile: async url => JSON.stringify(url.pathname.endsWith("package-lock.json") ? { packages: { "node_modules/@earendil-works/pi-coding-agent": { version: "0.99.1" } } } : { dependencies: { "@earendil-works/pi-coding-agent": "1.0.1" } }),
+    readFile: async url => JSON.stringify(url.pathname.endsWith("package-lock.json") ? { packages: { "node_modules/@earendil-works/pi-coding-agent": { version: "0.99.1" } } } : { dependencies: { "@earendil-works/pi-coding-agent": "1.3.0" } }),
     runPortableCommand: async () => { runs++; },
   }), /lock must match exactly/);
   assert.equal(runs, 0); assert.equal(writes, 0);

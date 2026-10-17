@@ -3566,7 +3566,7 @@
           },
           {
             "path": "scripts/verification-shadow.mjs",
-            "digest": "b8c785902dbac9150abd195a254581c20de686df23871115c8fb377e5476ad52"
+            "digest": "c1bfb90de636f6cf208d69053a511084fc4ac1414c0a90145ac0df81f899190b"
           },
           {
             "path": "scripts/verification-core.mjs",

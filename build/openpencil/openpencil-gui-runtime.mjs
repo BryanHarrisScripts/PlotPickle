@@ -294,31 +294,25 @@ export function createOpenPencilGuiController(overrides = {}) {
         if (!target.bootstrapFile || !dependencies.exists(target.bootstrapFile)) {
           throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_MISSING");
         }
-        try {
-          await runCli(
-            cli,
-            ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
-            dependencies,
-            target.workspaceRoot,
-          );
-        } catch {
-          // CLI stderr may contain private file names and environment data.
-          // Fail with a stable, actionable public error rather than its raw exception.
-          throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
-        }
+        await runCli(
+          cli,
+          ["convert", target.bootstrapFile, "--output", target.designFile, "--format", "fig"],
+          dependencies,
+          target.workspaceRoot,
+        ).then(undefined, (cause) => Promise.reject(
+          new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED", { cause }),
+        ));
         if (!dependencies.exists(target.designFile)) throw new Error("OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
         bootstrapState = "materialized";
       }
     }
 
-    let pages;
-    try {
-      const pagesResult = await runCli(cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot);
-      pages = parseJson(pagesResult.stdout, "OPENPENCIL_PAGES_INVALID");
-    } catch {
-      // A corrupt or incompatible FIG may fail before JSON parsing. Leave it intact.
-      throw new Error("OPENPENCIL_PAGES_INVALID");
-    }
+    const pages = await runCli(
+      cli, ["pages", target.designFile, "--json"], dependencies, target.workspaceRoot,
+    ).then((result) => parseJson(result.stdout, "OPENPENCIL_PAGES_INVALID"))
+      .then(undefined, (cause) => Promise.reject(
+        new Error("OPENPENCIL_PAGES_INVALID", { cause }),
+      ));
     const page = Array.isArray(pages)
       ? pages.find((candidate) => canonicalKey(candidate?.name) === canonicalKey(target.page))
       : null;
@@ -348,8 +342,8 @@ export function createOpenPencilGuiController(overrides = {}) {
       // let a failed launch crash the server or leak private OS process paths.
       launched.once?.("error", () => { launchFailed = true; });
       launched.unref?.();
-    } catch {
-      throw new Error("OPENPENCIL_DESKTOP_LAUNCH_FAILED");
+    } catch (cause) {
+      throw new Error("OPENPENCIL_DESKTOP_LAUNCH_FAILED", { cause });
     }
 
     for (let attempt = 0; attempt < 30; attempt += 1) {

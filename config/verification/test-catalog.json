@@ -7077,7 +7077,7 @@
           },
           {
             "path": "build/openpencil/openpencil-gui-runtime.mjs",
-            "digest": "568eac9a1c27d5faac0bf75b5761b027f3defd6fdaecefa2b669dd718e0d8586"
+            "digest": "512c8d781d8f4b8f2d2ec4c898866f72d3f16fb9549c1628c6b6ed4cbd159241"
           },
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",

@@ -3449,9 +3449,7 @@
       "triggerTokens": [
         "native",
         "security",
-        "windows",
-        "runtime",
-        "portless"
+        "windows"
       ],
       "runner": {
         "kind": "node-test",

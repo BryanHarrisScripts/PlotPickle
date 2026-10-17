@@ -1715,6 +1715,19 @@
       ]
     },
     {
+      "id": "node26-test-fixture-bridge",
+      "classification": "production",
+      "include": [
+        "scripts/verification/node26-fixture-transform-bridge.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "test-harness",
+        "native",
+        "security"
+      ]
+    },
+    {
       "id": "verification-docs",
       "classification": "docs",
       "include": [

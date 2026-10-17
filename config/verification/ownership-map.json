@@ -563,6 +563,23 @@
       ]
     },
     {
+      "id": "windows-installer-release-proof",
+      "classification": "production",
+      "include": [
+        "scripts/windows-installer/**",
+        "windows/installer/**",
+        "windows/launcher/**",
+        ".github/workflows/windows-installer.yml"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "windows",
+        "release",
+        "security"
+      ]
+    },
+    {
       "id": "root-vite-runtime-config",
       "classification": "production",
       "include": [

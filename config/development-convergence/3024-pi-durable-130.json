@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 3024,
+  "phase": "pi-durable-130",
+  "brief": "docs/developer-briefs/3024-pi-durable-130.md",
+  "allowedChanges": [
+    "config/pi-durable-adapter.json",
+    "config/third-party-oss.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "core/sidecars/pi-durable-adapter.mjs",
+    "scripts/pi-durable-managed-install.mjs",
+    "scripts/evaluate-pi-durable-adapter.mjs",
+    "tests/issue-2672-pi-durable-adapter.test.mjs",
+    "tests/issue-2696-pi-durable-active-default.test.mjs",
+    "docs/developer-briefs/3024-pi-durable-130.md",
+    "config/development-convergence/3024-pi-durable-130.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CURRENT-PIN",
+      "criterion": "Private install and adapter agree on Pi Durable1.3 with existing active-default authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi-durable-managed-install.mjs",
+          "contains": "PLOTPICKLE_PI_DURABLE_VERSION = \"1.3.0\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/pi-durable-adapter.mjs",
+          "contains": "PI_DURABLE_RUNTIME_VERSION = \"1.3.0\""
+        }
+      ]
+    },
+    {
+      "id": "JSONL-UPGRADE-PROOF",
+      "criterion": "The existing Windows evaluator preserves previous-version root and completed task, then executes new work without provider calls.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-durable-adapter.mjs",
+          "contains": "Pi Durable upgrade did not preserve the previous JSONL root and completed task."
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/evaluate-pi-durable-adapter.mjs",
+          "contains": "contract.migrationFromVersion && !runtime.upgrade?.passed"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No private project/task mutations, provider calls, signed messages or authority change.",
+    "Previous-version compatibility uses synthetic state and a fresh package; no universal historical/downgrade claim."
+  ]
+}

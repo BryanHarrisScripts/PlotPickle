@@ -8,7 +8,7 @@ import process from "node:process";
 import { versionAtLeast } from "./pi-version.mjs";
 import { PI_MINIMUM_NODE_VERSION, resolveActiveNpmCommand, runPortableCommand } from "./pi-worker-runtime.mjs";
 
-export const PLOTPICKLE_PI_DURABLE_VERSION = "1.0.0";
+export const PLOTPICKLE_PI_DURABLE_VERSION = "1.3.0";
 export const PLOTPICKLE_PI_DURABLE_PACKAGE = `@earendil-works/pi-durable@${PLOTPICKLE_PI_DURABLE_VERSION}`;
 
 export function managedPiDurableRoot({ home, platform = process.platform, env = process.env } = {}) {

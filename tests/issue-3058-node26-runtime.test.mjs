@@ -39,11 +39,12 @@ test("#3058 all active distribution and product verification lanes pin the same 
   assert.match(installer,/manifest\.bundledNode = /);
 });
 
-test("#3058 architecture Node 22 test oracle is separately identified from Node 26 product runtime",async()=>{
+test("#3058 architecture fixture oracle and Windows product both use native Node 26",async()=>{
   const architecture=await source(".github/workflows/architecture-shadow.yml");
-  assert.match(architecture,/node-version: '22[.]13[.]0'/);
   assert.match(architecture,/node-version: '26[.]12[.]0'/);
-  assert.match(architecture,/legacy TypeScript transform fixtures/);
+  assert.doesNotMatch(architecture,/node-version: '22[.]13[.]0'/);
+  assert.match(architecture,/node26-fixture-transform-bridge[.]mjs/);
+  assert.match(architecture,/tests[/]issue-3061-node26-fixture-transform[.]test[.]mjs/);
 });
 
 test("#3058 source-of-truth registry identifies shipped Node and licensed distribution",async()=>{

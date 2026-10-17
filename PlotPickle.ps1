@@ -11,7 +11,7 @@ $launcher = Join-Path $PSScriptRoot "Start-PlotPickle.bat"
 
 $explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent, $DeveloperSession.IsPresent) | Where-Object { $_ }
 if ($explicitModes.Count -gt 1) {
-  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT, or -DeveloperSession."
+  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, -ConversationalUAT, or -DeveloperSession."
 }
 
 if (-not (Test-Path -LiteralPath $launcher)) {

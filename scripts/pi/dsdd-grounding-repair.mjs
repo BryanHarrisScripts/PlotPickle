@@ -84,12 +84,12 @@ export function canonicalizePiBareFilenameClaims(markdown, repoRoot, { trackedLi
 export function verifiedAlternativesForMissingClaims(missing, repoRoot, { trackedListing } = {}) {
   const root = path.resolve(repoRoot);
   const listing = trackedListingAt(root, trackedListing);
-  const tracked = [...new Set(listing.split("\\0").map((name) => validTrackedFile(root, name)).filter(Boolean))];
+  const tracked = [...new Set(listing.split("\0").map((name) => validTrackedFile(root, name)).filter(Boolean))];
   const alternatives = [];
-  const stripExtension = name => name.replace(/\\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u, "");
+  const stripExtension = name => name.replace(/\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u, "");
   for (const raw of Array.isArray(missing) ? missing.slice(0, 16) : []) {
-    const claim = String(raw || "").replaceAll("\\\\", "/");
-    if (!/^[A-Za-z0-9_./-]+\\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u.test(claim)
+    const claim = String(raw || "").replaceAll("\\", "/");
+    if (!/^[A-Za-z0-9_./-]+\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u.test(claim)
       || claim.startsWith("/") || claim.includes("..") || claim.includes("//")) continue;
     const expectedStem = stripExtension(path.posix.basename(claim));
     const qualified = claim.includes("/");

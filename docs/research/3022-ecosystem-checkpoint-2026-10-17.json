@@ -1,0 +1,3301 @@
+{
+  "schemaVersion": 1,
+  "kind": "partial-ecosystem-audit-checkpoint",
+  "issues": [
+    3022,
+    3023,
+    3024
+  ],
+  "sourceCommit": "0ea6e41c71da8a40d893fa6f123e1dbb2052c7e8",
+  "checkedAt": "2026-10-17T12:03:16.839Z",
+  "status": "PARTIAL",
+  "limits": [
+    "Original 28-row Human matrix is referenced by issue3022 but not present in this checkout; exact attachment crosswalk remains UNPROVEN.",
+    "Registry metadata and lockfile records are not proof every binary is installed, callable or licensed for every intended use.",
+    "No models, providers, story files, credential values or private BUZZ state were read. No daemon/agent jobs, paid inference or external messages were started.",
+    "Upstream package tags and selected release channels were checked; no all-ecosystem latest claim."
+  ],
+  "sourceDigests": [
+    {
+      "path": "config/third-party-oss.json",
+      "sha256Lf": "d64f664b428f0378650f077def2733ac50573b2fbb469144023652686185b113"
+    },
+    {
+      "path": "package.json",
+      "sha256Lf": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256Lf": "05298020c48ed59c50bff2428c080746bad0b64bdd958831c89055a8ff7735de"
+    },
+    {
+      "path": ".pi/npm/package-lock.json",
+      "sha256Lf": "38fabc0213d75c27a8bd5e718c1babae60947c0490235054db5d2b76f38dc451"
+    },
+    {
+      "path": "tools/hunk-review/package-lock.json",
+      "sha256Lf": "b48690ec883662db509f452138510c05da66365180b248e33690b7535b69d1fa"
+    },
+    {
+      "path": "config/developer-agent-stack.json",
+      "sha256Lf": "1c06ff77358a6f6766a3809023f534814f4387f8924b4cca13f6beca1b8dd303"
+    },
+    {
+      "path": ".pi/settings.json",
+      "sha256Lf": "deb3b7a2e11cea5250e97103a186280bf7782e70b70f2b7721d79a52f5f71acb"
+    },
+    {
+      "path": "config/pi-durable-adapter.json",
+      "sha256Lf": "f7c26a581a25d6f6e10fb2417874425b3b3e7bc34ebcf7d6484e3b9d82b499d4"
+    },
+    {
+      "path": "config/openpencil-adapter.json",
+      "sha256Lf": "3f6a9f34e53cae9a51f558c519bf3c81a460c2d589ca270c8250595ae73000ae"
+    },
+    {
+      "path": "config/portless-runtime.json",
+      "sha256Lf": "2b7922211efadff647a299aacc01eea3c8bafde1fab09b082bd46828fb65e51b"
+    },
+    {
+      "path": "config/buzz-desktop.json",
+      "sha256Lf": "a39a912af019c56b222674b406f98c4b06818dd9930e12224ac20e52120c125a"
+    },
+    {
+      "path": "runtime/buzz/manifest.json",
+      "sha256Lf": "c7159dce2b397551fc9cb2bb0b3f41f11dd756d4d4c6a577b4545dc90d65f3fc"
+    },
+    {
+      "path": "config/agent-profiles.json",
+      "sha256Lf": "13856573f489e64ffeaa25a7cfd85061b19c52dee4529d0285dc5df398b35478"
+    },
+    {
+      "path": "config/agent-profile-extensions/community.json",
+      "sha256Lf": "031f4ddb5922d281492909d66931c51b301eaa990b0f731fa21a0cd9e1767602"
+    },
+    {
+      "path": "config/agent-profile-extensions/public.json",
+      "sha256Lf": "e0e538f2251d8eae9bb208e85c341765a3c753d0fcd3aecf9a2867321b2620d0"
+    },
+    {
+      "path": "config/agent-skills.json",
+      "sha256Lf": "2ad158538dbf5d5ed9e47c113b943a45ebbcd3d655a1600825f7a134b0b7a00a"
+    },
+    {
+      "path": "config/runtime-sidecars.json",
+      "sha256Lf": "3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8"
+    },
+    {
+      "path": "plugins/plotpickle-playhouse/community.json",
+      "sha256Lf": "94ff35d6e297ffc6c37ed71fa5f7619e237f6630026f9091bbc4eb26b98997c4"
+    },
+    {
+      "path": "config/buzz-guildhall.json",
+      "sha256Lf": "b7697051d7a194af8cbdb93b29e58042fed4cf9a7e9b2abc621ccad0ad52b502"
+    },
+    {
+      "path": "config/buzz-guildhall-community.json",
+      "sha256Lf": "b0b0aa6be165d0401e48353e56727f252960d6191ca379294f3dbce5e2da7ed5"
+    },
+    {
+      "path": "build/mastra-agent-runtime.ts",
+      "sha256Lf": "af5b315a0b901e9c5e6d7287fa19387da870dd295e2acbde130ff577b6a639f6"
+    },
+    {
+      "path": "lib/agents/agent-profiles.ts",
+      "sha256Lf": "39609c35d44d43611924c5a4ebe1ec19efb088b365fa593436de63fdf04f5116"
+    },
+    {
+      "path": "lib/agents/production-supervisor-workers.mjs",
+      "sha256Lf": "2f8a39ab1732e38b6a7fd46317f01b4c8abfe4e4a66c7686daa1d09ea8c37472"
+    },
+    {
+      "path": "scripts/pi-managed-install.mjs",
+      "sha256Lf": "95031f99a3785bd8c4b8b56985f08677777eed9d70b825c22d75a53948aa4dac"
+    },
+    {
+      "path": "scripts/pi-durable-managed-install.mjs",
+      "sha256Lf": "f799dc3399ec3ce7ee8a1c24d84494759eedca22e22509a532809ffd99206d6f"
+    },
+    {
+      "path": "scripts/ensure-openpencil-mcp.ps1",
+      "sha256Lf": "71424c4b151757d5fa78bb14316f929111d10897e52e4790e4a5e1322a0c88a4"
+    }
+  ],
+  "ossAudit": {
+    "ok": true,
+    "failures": [],
+    "warnings": [],
+    "summary": {
+      "registrySchemaVersion": 1,
+      "registeredSystems": 30,
+      "registeredReferenceOnlySystems": 7,
+      "declaredReferenceInfluences": 7,
+      "registeredThirdPartyAssets": 2,
+      "explicitlyNonOssConnections": 2,
+      "directNpmDependencies": 24,
+      "installedPackageRecords": 778,
+      "npmLicenseExpressions": {
+        "(AFL-2.1 OR BSD-3-Clause)": 1,
+        "0BSD": 2,
+        "Apache-2.0": 61,
+        "Apache-2.0 AND LGPL-3.0-or-later": 3,
+        "Apache-2.0 AND LGPL-3.0-or-later AND MIT": 1,
+        "BlueOak-1.0.0": 3,
+        "BSD-2-Clause": 8,
+        "BSD-3-Clause": 4,
+        "CC-BY-4.0": 1,
+        "CC0-1.0": 2,
+        "ISC": 23,
+        "LGPL-3.0-or-later": 10,
+        "MIT": 626,
+        "MIT OR Apache-2.0": 4,
+        "MPL-2.0": 28,
+        "Python-2.0": 1
+      },
+      "missingTransitiveLicenseRecords": [],
+      "referenceOnly": [
+        {
+          "id": "reelbench-skills",
+          "name": "ReelBench Skills",
+          "evidencePaths": [
+            "docs/architecture/sequence-evidence-24-96-2400.md"
+          ]
+        },
+        {
+          "id": "berd",
+          "name": "BERD",
+          "evidencePaths": [
+            "docs/architecture/MANAGED-DESKTOP-HARNESS.md"
+          ]
+        },
+        {
+          "id": "github-spec-kit",
+          "name": "GitHub Spec Kit",
+          "evidencePaths": [
+            "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md"
+          ]
+        },
+        {
+          "id": "lightricks-comfyui-ltx-workflow",
+          "name": "Lightricks ComfyUI-LTXVideo pinned workflow",
+          "evidencePaths": [
+            "docs/architecture/ltx-default-workflow.md",
+            "build/ai/comfyui-ltx-default.ts"
+          ]
+        },
+        {
+          "id": "comfyui-ltx-workflow-template",
+          "name": "ComfyUI LTX-Video workflow template",
+          "evidencePaths": [
+            "docs/architecture/ltx-default-workflow.md"
+          ]
+        },
+        {
+          "id": "sideshow",
+          "name": "Sideshow",
+          "evidencePaths": [
+            "docs/architecture/REVIEW-STAGE.md"
+          ]
+        },
+        {
+          "id": "color-expert-skill",
+          "name": "Color Expert Agent Skill",
+          "evidencePaths": [
+            ".agents/skills/color-expert/SKILL.md",
+            ".agents/skills/color-expert/NOTICE.md"
+          ]
+        }
+      ],
+      "directNpm": [
+        {
+          "name": "@cloudflare/vite-plugin",
+          "requested": "1.64.0",
+          "version": "1.64.0",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "@mastra/core",
+          "requested": "1.78.0",
+          "version": "1.78.0",
+          "license": "Apache-2.0",
+          "scope": "runtime"
+        },
+        {
+          "name": "@tailwindcss/postcss",
+          "requested": "4.3.3",
+          "version": "4.3.3",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "@types/node",
+          "requested": "26.6.5",
+          "version": "26.6.5",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "@types/react",
+          "requested": "19.3.0",
+          "version": "19.3.0",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "@types/react-dom",
+          "requested": "19.3.0",
+          "version": "19.3.0",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "requested": "6.1.2",
+          "version": "6.1.2",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "@vitejs/plugin-rsc",
+          "requested": "0.5.38",
+          "version": "0.5.38",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "ai",
+          "requested": "7.0.143",
+          "version": "7.0.143",
+          "license": "Apache-2.0",
+          "scope": "runtime"
+        },
+        {
+          "name": "braces",
+          "requested": "file:./vendor/braces-3.0.3-depth-guard",
+          "version": "3.0.3",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "drizzle-kit",
+          "requested": "0.31.11",
+          "version": "0.31.11",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "drizzle-orm",
+          "requested": "0.45.4",
+          "version": "0.45.4",
+          "license": "Apache-2.0",
+          "scope": "runtime"
+        },
+        {
+          "name": "eslint",
+          "requested": "10.12.0",
+          "version": "10.12.0",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "eslint-config-next",
+          "requested": "16.4.2",
+          "version": "16.4.2",
+          "license": "MIT",
+          "scope": "development"
+        },
+        {
+          "name": "libsodium-wrappers-sumo",
+          "requested": "0.8.4",
+          "version": "0.8.4",
+          "license": "ISC",
+          "scope": "runtime"
+        },
+        {
+          "name": "next",
+          "requested": "16.4.2",
+          "version": "16.4.2",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "react",
+          "requested": "19.3.1",
+          "version": "19.3.1",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "react-dom",
+          "requested": "19.3.1",
+          "version": "19.3.1",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "sharp",
+          "requested": "0.35.5",
+          "version": "0.35.5",
+          "license": "Apache-2.0",
+          "scope": "runtime"
+        },
+        {
+          "name": "tailwindcss",
+          "requested": "4.3.3",
+          "version": "4.3.3",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "typescript",
+          "requested": "6.0.3",
+          "version": "6.0.3",
+          "license": "Apache-2.0",
+          "scope": "development"
+        },
+        {
+          "name": "vinext",
+          "requested": "1.2.1",
+          "version": "1.2.1",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "vite",
+          "requested": "8.3.4",
+          "version": "8.3.4",
+          "license": "MIT",
+          "scope": "runtime"
+        },
+        {
+          "name": "wrangler",
+          "requested": "4.151.1",
+          "version": "4.151.1",
+          "license": "MIT OR Apache-2.0",
+          "scope": "runtime"
+        }
+      ]
+    }
+  },
+  "security": {
+    "scans": [
+      {
+        "graph": "root",
+        "command": "npm audit --package-lock-only --ignore-scripts --json",
+        "result": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 0,
+            "critical": 0,
+            "total": 0
+          },
+          "dependencies": {
+            "prod": 299,
+            "dev": 359,
+            "optional": 201,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 779
+          }
+        },
+        "scope": "Lockfile advisory query only; no clean install or full nested-graph census in this checkpoint."
+      },
+      {
+        "graph": "hunk",
+        "command": "npm audit --package-lock-only --ignore-scripts --json",
+        "result": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 0,
+            "critical": 0,
+            "total": 0
+          },
+          "dependencies": {
+            "prod": 12,
+            "dev": 0,
+            "optional": 13,
+            "peer": 23,
+            "peerOptional": 0,
+            "total": 39
+          }
+        },
+        "scope": "Lockfile advisory query only; no clean install or full nested-graph census in this checkpoint."
+      },
+      {
+        "graph": "pi",
+        "command": "npm audit --package-lock-only --ignore-scripts --json",
+        "result": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 0,
+            "critical": 0,
+            "total": 0
+          },
+          "dependencies": {
+            "prod": 142,
+            "dev": 0,
+            "optional": 46,
+            "peer": 1,
+            "peerOptional": 0,
+            "total": 188
+          }
+        },
+        "scope": "Lockfile advisory query only; no clean install or full nested-graph census in this checkpoint."
+      }
+    ],
+    "openDependabot": [
+      {
+        "firstPatched": null,
+        "ghsa": "GHSA-vfj7-8cjw-p6xm",
+        "manifest": "package-lock.json",
+        "number": 52,
+        "package": "braces",
+        "range": "<= 3.0.3",
+        "severity": "high",
+        "state": "open"
+      }
+    ],
+    "openCodeql": [],
+    "note": "GitHub braces alert52 remains open despite zero npm audit reports. Existing vendor mitigation is distinct from official patched-release/advisory closure."
+  },
+  "systems": [
+    {
+      "id": "nodejs",
+      "name": "Node.js",
+      "useClass": "bundled",
+      "declaredOrLockedVersion": "26.12.0",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/nodejs/node",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/nodejs/node/blob/v26.12.0/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "19.3.1",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/facebook/react",
+      "license": "MIT",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "19.3.1",
+        "checkedAt": "2026-10-17T12:01:08.586Z",
+        "source": "https://registry.npmjs.org/react",
+        "publishedAt": "2026-10-14T16:47:15.290Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "8.3.4",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/vitejs/vite",
+      "license": "MIT",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "8.3.4",
+        "checkedAt": "2026-10-17T12:01:09.789Z",
+        "source": "https://registry.npmjs.org/vite",
+        "publishedAt": "2026-10-08T12:07:04.441Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "vinext",
+      "name": "Vinext",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "1.2.1",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/cloudflare/vinext",
+      "license": "MIT",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "1.2.1",
+        "checkedAt": "2026-10-17T12:01:07.668Z",
+        "source": "https://registry.npmjs.org/vinext",
+        "publishedAt": "2026-10-15T17:04:51.565Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "mastra",
+      "name": "Mastra",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "1.78.0",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/mastra-ai/mastra",
+      "license": "Apache-2.0",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "1.78.0",
+        "checkedAt": "2026-10-17T12:01:08.399Z",
+        "source": "https://registry.npmjs.org/%40mastra%2Fcore",
+        "publishedAt": "2026-10-15T22:37:38.661Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "vercel-ai-sdk",
+      "name": "Vercel AI SDK",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "7.0.143",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/vercel/ai",
+      "license": "Apache-2.0",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "7.0.143",
+        "checkedAt": "2026-10-17T12:01:08.483Z",
+        "source": "https://registry.npmjs.org/ai",
+        "publishedAt": "2026-10-16T20:10:34.495Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "drizzle-orm",
+      "name": "Drizzle ORM",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "0.45.4",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/drizzle-team/drizzle-orm",
+      "license": "Apache-2.0",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "0.45.4",
+        "checkedAt": "2026-10-17T12:01:12.504Z",
+        "source": "https://registry.npmjs.org/drizzle-orm",
+        "publishedAt": "2026-10-08T10:50:41.953Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "libsodium",
+      "name": "libsodium / libsodium-wrappers-sumo",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "0.8.4",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/jedisct1/libsodium.js",
+      "license": "ISC",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "0.8.4",
+        "checkedAt": "2026-10-17T12:01:07.755Z",
+        "source": "https://registry.npmjs.org/libsodium-wrappers-sumo",
+        "publishedAt": "2026-04-19T11:26:24.792Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "tailwindcss",
+      "name": "Tailwind CSS",
+      "useClass": "npm-runtime",
+      "declaredOrLockedVersion": "4.3.3",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/tailwindlabs/tailwindcss",
+      "license": "MIT",
+      "licenseEvidence": "package-lock.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "4.3.3",
+        "checkedAt": "2026-10-17T12:01:08.542Z",
+        "source": "https://registry.npmjs.org/tailwindcss",
+        "publishedAt": "2026-07-16T12:03:35.267Z"
+      },
+      "disposition": "KEEP_CHECKED_VERSION",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "buzz",
+      "name": "BUZZ",
+      "useClass": "managed-download",
+      "declaredOrLockedVersion": "0.4.26",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/block/buzz",
+      "license": "Apache-2.0",
+      "licenseEvidence": "runtime/buzz/LICENSE.buzz.txt",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "useClass": "connect-only",
+      "declaredOrLockedVersion": "user-managed",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/ollama/ollama",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/ollama/ollama/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3025
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "useClass": "connect-only",
+      "declaredOrLockedVersion": "user-managed",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/ggml-org/llama.cpp/blob/master/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3025
+    },
+    {
+      "id": "whisper-cpp",
+      "name": "whisper.cpp",
+      "useClass": "managed-download",
+      "declaredOrLockedVersion": "b5130",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/ggml-org/whisper.cpp",
+      "license": "MIT",
+      "licenseEvidence": "runtime/whisper/LICENSE.whisper.cpp.txt",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "comfyui",
+      "name": "ComfyUI",
+      "useClass": "connect-only",
+      "declaredOrLockedVersion": "user-managed",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/Comfy-Org/ComfyUI",
+      "license": "GPL-3.0",
+      "licenseEvidence": "https://github.com/Comfy-Org/ComfyUI/blob/master/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg / ffprobe",
+      "useClass": "connect-only",
+      "declaredOrLockedVersion": "user-managed",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://ffmpeg.org/",
+      "license": "LGPL-2.1-or-later by default; GPL-2.0-or-later when GPL components/options are enabled",
+      "licenseEvidence": "https://ffmpeg.org/legal.html",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "lazy-frames",
+      "name": "Lazy Frames",
+      "useClass": "managed-download",
+      "declaredOrLockedVersion": "0.6.3",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/cosmicstack-labs/lazy-frames",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/cosmicstack-labs/lazy-frames/blob/main/package.json",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "portless",
+      "name": "Portless",
+      "useClass": "developer-tool",
+      "declaredOrLockedVersion": "0.15.5",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/vercel-labs/portless",
+      "license": "Apache-2.0",
+      "licenseEvidence": "config/portless-runtime.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "0.15.8",
+        "checkedAt": "2026-10-17T12:00:14.2045442Z",
+        "source": "https://registry.npmjs.org/portless",
+        "publishedAt": "2026-10-13T19:53:21.545Z"
+      },
+      "disposition": "UPDATE_CANDIDATE",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "pi-coding-agent",
+      "name": "Pi coding agent",
+      "useClass": "developer-tool",
+      "declaredOrLockedVersion": "1.0.1",
+      "installed": {
+        "status": "OBSERVED_VERSION",
+        "version": "1.0.1",
+        "scope": "Existing managed CLI --version only; no inference or extension health proof."
+      },
+      "source": "https://www.npmjs.com/package/@earendil-works/pi-coding-agent",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/earendil-works/pi/blob/v1.0.1/packages/coding-agent/package.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "1.3.0",
+        "checkedAt": "2026-10-17T12:00:13.2396864Z",
+        "source": "https://registry.npmjs.org/%40earendil-works%2Fpi-coding-agent",
+        "publishedAt": "2026-10-15T19:13:30.662Z"
+      },
+      "disposition": "UPDATE_CANDIDATE",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "cline",
+      "name": "Cline",
+      "useClass": "developer-tool",
+      "declaredOrLockedVersion": "user-managed",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/cline/cline",
+      "license": "Apache-2.0",
+      "licenseEvidence": "https://github.com/cline/cline/blob/main/LICENSE",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "3.0.73",
+        "checkedAt": "2026-10-17T12:00:13.7701993Z",
+        "source": "https://registry.npmjs.org/cline",
+        "publishedAt": "2026-10-17T03:59:46.162Z"
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "reelbench-skills",
+      "name": "ReelBench Skills",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/eternityspring/reelbench-skills",
+      "license": "Apache-2.0",
+      "licenseEvidence": "https://github.com/eternityspring/reelbench-skills/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "berd",
+      "name": "BERD",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/block/berd",
+      "license": "Apache-2.0",
+      "licenseEvidence": "https://github.com/block/berd/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "github-spec-kit",
+      "name": "GitHub Spec Kit",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/github/spec-kit",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/github/spec-kit/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "lightricks-comfyui-ltx-workflow",
+      "name": "Lightricks ComfyUI-LTXVideo pinned workflow",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/Lightricks/ComfyUI-LTXVideo",
+      "license": "Apache-2.0",
+      "licenseEvidence": "https://github.com/Lightricks/ComfyUI-LTXVideo/blob/36fdaf500b3cd6f7fa8b2dfec36e984746e630a2/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "comfyui-ltx-workflow-template",
+      "name": "ComfyUI LTX-Video workflow template",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/Comfy-Org/workflow_templates",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/Comfy-Org/workflow_templates/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "sideshow",
+      "name": "Sideshow",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/modem-dev/sideshow",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/modem-dev/sideshow/blob/main/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "jetbrains-mono",
+      "name": "JetBrains Mono",
+      "useClass": "bundled",
+      "declaredOrLockedVersion": "2.304",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/JetBrains/JetBrainsMono/tree/v2.304",
+      "license": "OFL-1.1",
+      "licenseEvidence": "public/fonts/jetbrains-mono/OFL.txt",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "color-expert-skill",
+      "name": "Color Expert Agent Skill",
+      "useClass": "reference-only",
+      "declaredOrLockedVersion": null,
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/meodai/skill.color-expert",
+      "license": "CC BY 4.0 for upstream original project materials; third-party/source-derived references retain original rights/licenses",
+      "licenseEvidence": "https://github.com/meodai/skill.color-expert/blob/28e49f7457d7aa92010688e69975c16d2ffe4b01/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REFERENCE",
+      "ownerIssue": 3023
+    },
+    {
+      "id": "pi-durable",
+      "name": "Pi Durable",
+      "useClass": "managed-active-default-adapter",
+      "declaredOrLockedVersion": "1.0.0",
+      "installed": {
+        "status": "MANIFEST_PRESENT",
+        "version": "1.0.0",
+        "scope": "Default managed package manifest only; no sidecar or restart proof."
+      },
+      "source": "https://www.npmjs.com/package/@earendil-works/pi-durable",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/earendil-works/pi/blob/v1.0.0/packages/durable/package.json",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "1.3.0",
+        "checkedAt": "2026-10-17T12:00:13.4487955Z",
+        "source": "https://registry.npmjs.org/%40earendil-works%2Fpi-durable",
+        "publishedAt": "2026-10-15T19:13:35.556Z"
+      },
+      "disposition": "UPDATE_CANDIDATE",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "openpencil",
+      "name": "OpenPencil",
+      "useClass": "managed-optional-adapter",
+      "declaredOrLockedVersion": "0.15.1",
+      "installed": {
+        "status": "MANIFEST_PRESENT",
+        "version": "0.15.1",
+        "scope": "Managed CLI and MCP package manifests only; no application launched."
+      },
+      "source": "https://github.com/open-pencil/open-pencil",
+      "license": "MIT",
+      "licenseEvidence": "https://github.com/open-pencil/open-pencil/blob/master/LICENSE",
+      "upstream": {
+        "status": "CHECKED_NPM_TAG",
+        "version": "0.16.0",
+        "checkedAt": "2026-10-17T12:00:14.0236108Z",
+        "source": "https://registry.npmjs.org/%40open-pencil%2Fcli",
+        "publishedAt": "2026-10-14T12:35:29.866Z"
+      },
+      "disposition": "UPDATE_CANDIDATE",
+      "ownerIssue": 3024
+    },
+    {
+      "id": "lru-014-security-backport",
+      "name": "lru 0.14.0 security backport",
+      "useClass": "vendored-security-backport",
+      "declaredOrLockedVersion": "0.14.0",
+      "installed": {
+        "status": "UNKNOWN",
+        "version": null,
+        "scope": "No local installation/route probe in this checkpoint."
+      },
+      "source": "https://github.com/jeromefroe/lru-rs",
+      "license": "MIT",
+      "licenseEvidence": "tools/fframes-bridge/vendor/lru-0.14.0-patched/LICENSE",
+      "upstream": {
+        "status": "NOT_CHECKED_IN_THIS_CHECKPOINT",
+        "version": null
+      },
+      "disposition": "REQUIRES_STREAM_REVIEW",
+      "ownerIssue": 3023
+    }
+  ],
+  "thirdPartyAssets": [
+    {
+      "id": "sdxl-base-1",
+      "useClass": "managed-download",
+      "license": "OpenRAIL++",
+      "evidencePath": "build/ai/comfyui-sdxl-starter-gateway.ts",
+      "installed": "UNKNOWN",
+      "ownerIssue": 3026
+    },
+    {
+      "id": "whisper-base-en",
+      "useClass": "managed-download",
+      "license": "MIT",
+      "evidencePath": "config/local-voice-input.json",
+      "installed": "UNKNOWN",
+      "ownerIssue": 3026
+    }
+  ],
+  "nonOssConnections": [
+    {
+      "id": "lm-studio",
+      "name": "LM Studio",
+      "usage": "connect-only",
+      "reason": "Supported as an optional user-managed compatible endpoint, but not represented by PlotPickle as an open-source dependency and therefore excluded from OSS acknowledgements."
+    },
+    {
+      "id": "cloud-byok",
+      "name": "Configured cloud/BYOK providers",
+      "usage": "connect-only",
+      "reason": "External service/provider connections are not automatically OSS dependencies. Their own terms apply and they are excluded from the OSS acknowledgement unless a specific open-source component is separately registered."
+    }
+  ],
+  "directNpm": [
+    {
+      "name": "@cloudflare/vite-plugin",
+      "source": "https://registry.npmjs.org/%40cloudflare%2Fvite-plugin",
+      "checkedAt": "2026-10-17T12:01:08.027Z",
+      "latest": "1.64.0",
+      "publishedAt": "2026-10-14T05:55:09.618Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "latest": "1.64.0",
+        "beta": "2.0.0-beta.v.1"
+      },
+      "repository": {
+        "url": "git+https://github.com/cloudflare/workers-sdk.git",
+        "type": "git",
+        "directory": "packages/vite-plugin-cloudflare"
+      },
+      "integrity": "sha512-h7Tunx9Ou5fUoao8O9jYTH0ParfrtNZzZVPA0IS19O7AoWA1SpYjwzDA6pZC78qzuV8sQSEOpYCN/yTShmd+gg==",
+      "declared": "1.64.0",
+      "lockedVersion": "1.64.0",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@mastra/core",
+      "source": "https://registry.npmjs.org/%40mastra%2Fcore",
+      "checkedAt": "2026-10-17T12:01:08.399Z",
+      "latest": "1.78.0",
+      "publishedAt": "2026-10-15T22:37:38.661Z",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=22.13.0"
+      },
+      "distTags": {
+        "storage": "0.0.0-storage-20250225005900",
+        "mastra-2973-fast-mcp-removal": "0.0.0-mastra-2973-fast-mcp-removal-20250409163028",
+        "fix-memory-xxhash": "0.0.0-fix-memory-xxhash-20250409202110",
+        "default-storage-virtual-file": "0.0.0-default-storage-virtual-file-20250410035748",
+        "commonjs": "0.0.0-commonjs-20250414101718",
+        "afterToolExecute": "0.0.0-afterToolExecute-20250415041527",
+        "message-ordering": "0.0.0-message-ordering-20250415215612",
+        "remove-tiktoken": "0.0.0-remove-tiktoken-20250415231938",
+        "llamaindex-extract": "0.0.0-llamaindex-extract-20250416163822",
+        "revert-schema": "0.0.0-revert-schema-20250416221206",
+        "extend-clickhouse": "0.0.0-extend-clickhouse-20250418135620",
+        "mastra-3123-mcp-server": "0.0.0-mastra-3123-mcp-server-20250419180157",
+        "mcp-server-update": "0.0.0-mcp-server-update-20250421162713",
+        "mcp-server-update-parse": "0.0.0-mcp-server-update-parse-20250421171139",
+        "a2a": "0.0.0-a2a-20250421213654",
+        "vnextWorkflows": "0.0.0-vnextWorkflows-20250422142014",
+        "mastra-3171-llamaindex-pin": "0.0.0-mastra-3171-llamaindex-pin-20250423175211",
+        "bundle-dynamic-imports": "0.0.0-bundle-dynamic-imports-20250424001248",
+        "llamaindex-switch-core": "0.0.0-llamaindex-switch-core-20250424001624",
+        "switch-to-core": "0.0.0-switch-to-core-20250424015131",
+        "remove-cloud-span-transform": "0.0.0-remove-cloud-span-transform-20250425214156",
+        "pg-pool-options": "0.0.0-pg-pool-options-20250428183821",
+        "mcp-schema-serializer": "0.0.0-mcp-schema-serializer-20250430202337",
+        "separate-trace-data-from-component": "0.0.0-separate-trace-data-from-component-20250501141108",
+        "agui": "0.0.0-agui-20250501191909",
+        "expose-more-playground-ui": "0.0.0-expose-more-playground-ui-20250502141824",
+        "fix-message-embedding": "0.0.0-fix-message-embedding-20250506021742",
+        "trigger-playground-ui-package": "0.0.0-trigger-playground-ui-package-20250506151043",
+        "mcp-server-deploy": "0.0.0-mcp-server-deploy-20250507160341",
+        "mastra-3338-mastra-memory-pinecone": "0.0.0-mastra-3338-mastra-memory-pinecone-20250507174328",
+        "mastra-2452-core-tracing-sentry": "0.0.0-mastra-2452-core-tracing-sentry-20250507205331",
+        "vnext-inngest": "0.0.0-vnext-inngest-20250508131921",
+        "redis-cloud-transporter": "0.0.0-redis-cloud-transporter-20250508203756",
+        "generate-message-id": "0.0.0-generate-message-id-20250512171942",
+        "cloud-transporter": "0.0.0-cloud-transporter-20250513033346",
+        "vector-query-sources": "0.0.0-vector-query-sources-20250516172905",
+        "vector-sources": "0.0.0-vector-sources-20250516175436",
+        "add-runtime-context-to-openai-realtime": "0.0.0-add-runtime-context-to-openai-realtime-20250516201052",
+        "course": "0.0.0-course-20250527170450",
+        "inject-middleware": "0.0.0-inject-middleware-20250528222017",
+        "pass-headers-for-create-mastra-client": "0.0.0-pass-headers-for-create-mastra-client-20250530010057",
+        "taofeeqInngest": "0.0.0-taofeeqInngest-20250603090617",
+        "cli-debug": "0.0.0-cli-debug-20250611094457",
+        "cli-debug-2": "0.0.0-cli-debug-2-20250611100354",
+        "workflow-deno": "0.0.0-workflow-deno-20250616132510",
+        "vnextAgentNetwork": "0.0.0-vnextAgentNetwork-20250616162946",
+        "fix-generate-title": "0.0.0-fix-generate-title-20250616171351",
+        "working-memory-per-user": "0.0.0-working-memory-per-user-20250620163010",
+        "fix-fetch-workflow-runs": "0.0.0-fix-fetch-workflow-runs-20250624231457",
+        "fix-fetching-workflow-snapshots": "0.0.0-fix-fetching-workflow-snapshots-20250625000954",
+        "tool-call-parts": "0.0.0-tool-call-parts-20250630193309",
+        "support-d1-client": "0.0.0-support-d1-client-20250701191943",
+        "http-transporter": "0.0.0-http-transporter-20250702160118",
+        "tsconfig-compile": "0.0.0-tsconfig-compile-20250703214351",
+        "mcp-changeset": "0.0.0-mcp-changeset-20250707162621",
+        "custom-instrumentation": "0.0.0-custom-instrumentation-20250708222033",
+        "cloudflare-deployer-dont-install-deps": "0.0.0-cloudflare-deployer-dont-install-deps-20250714111754",
+        "message-list-update": "0.0.0-message-list-update-20250715150321",
+        "fix-traces-pagination-plus-share-for-cloud": "0.0.0-fix-traces-pagination-plus-share-for-cloud-20250717084908",
+        "fix-shareable-traces": "0.0.0-fix-shareable-traces-20250717112558",
+        "fix-message-list-merge": "0.0.0-fix-message-list-merge-20250718043058",
+        "share-agent-metadata-with-cloud": "0.0.0-share-agent-metadata-with-cloud-20250718123411",
+        "declaration-maps": "0.0.0-declaration-maps-20250730185206",
+        "transpile-packages": "0.0.0-transpile-packages-20250731152758",
+        "fix-tool-call-history": "0.0.0-fix-tool-call-history-20250731222019",
+        "feat-tool-input-validation": "0.0.0-feat-tool-input-validation-20250731232758",
+        "new-scorer-api": "0.0.0-new-scorer-api-20250801075530",
+        "update-scorers-api": "0.0.0-update-scorers-api-20250801170445",
+        "scorers-api-v2": "0.0.0-scorers-api-v2-20250801171841",
+        "mssql-store": "0.0.0-mssql-store-20250804200341",
+        "fix-tool-call-history-3": "0.0.0-fix-tool-call-history-3-20250806004225",
+        "taofeeq-fix-tool-call-showing-after-message": "0.0.0-taofeeq-fix-tool-call-showing-after-message-20250806184630",
+        "fix-message-list-args-missing": "0.0.0-fix-message-list-args-missing-20250807205055",
+        "feat-support-ai-sdk-5-again": "0.0.0-feat-support-ai-sdk-5-again-20250813225910",
+        "memory-system-message-error": "0.0.0-memory-system-message-error-20250813233316",
+        "ai-v5": "0.0.0-ai-v5-20250813235735",
+        "experimental-agent-builder": "0.0.0-experimental-agent-builder-20250815195917",
+        "zod-v4-compat-part-2": "0.0.0-zod-v4-compat-part-2-20250822105954",
+        "zod-v4-stuff": "0.0.0-zod-v4-stuff-20250825154219",
+        "vector-query-tool-provider-options": "0.0.0-vector-query-tool-provider-options-20250828222356",
+        "consolidate-changesets": "0.0.0-consolidate-changesets-20250904042643",
+        "message-file-url-handling-fix": "0.0.0-message-file-url-handling-fix-20250904234524",
+        "pgvector-index-fix": "0.0.0-pgvector-index-fix-20250905222058",
+        "issue-7498": "0.0.0-issue-7498-20250905233741",
+        "ai-telementry-ui": "0.0.0-ai-telementry-ui-20250908102126",
+        "stream-vnext-usage": "0.0.0-stream-vnext-usage-20250908171242",
+        "remove-unused-import": "0.0.0-remove-unused-import-20250909212718",
+        "issue-7087": "0.0.0-issue-7087-20250910004053",
+        "tool-list-type": "0.0.0-tool-list-type-20250910154522",
+        "add-libsql-changeset": "0.0.0-add-libsql-changeset-20250910154739",
+        "interpolate-reporter-url": "0.0.0-interpolate-reporter-url-20250910180021",
+        "fix-zod-to-json-schema-ref-strategy": "0.0.0-fix-zod-to-json-schema-ref-strategy-20250910193441",
+        "add-save-score-validation-on-stores": "0.0.0-add-save-score-validation-on-stores-20250911031242",
+        "fix-bundle-cleanup": "0.0.0-fix-bundle-cleanup-20250911062914",
+        "iterate-traces-ui-again": "0.0.0-iterate-traces-ui-again-20250912091900",
+        "scorers-ui-refactored": "0.0.0-scorers-ui-refactored-20250916094952",
+        "gl-test": "0.0.0-gl-test-20250917080133",
+        "toolOptionTypes": "0.0.0-toolOptionTypes-20250917085558",
+        "configure-project-root-for-private-packages": "0.0.0-configure-project-root-for-private-packages-20250919100548",
+        "vector-extension-schema": "0.0.0-vector-extension-schema-20250922130418",
+        "fix-cloud-peer-deps": "0.0.0-fix-cloud-peer-deps-20250923194656",
+        "scorer-agentnames-conditional": "0.0.0-scorer-agentnames-conditional-20250926065249",
+        "createToolOptions": "0.0.0-createToolOptions-20250926094418",
+        "roamin-openaivoice-speak-options-passing": "0.0.0-roamin-openaivoice-speak-options-passing-20250926163614",
+        "rag-chunk-extract-llm-option": "0.0.0-rag-chunk-extract-llm-option-20250926183645",
+        "fix-cloud-peer-deps-20250929": "0.0.0-fix-cloud-peer-deps-20250929-20250929175756",
+        "fix-cloud-peer-deps-libsql": "0.0.0-fix-cloud-peer-deps-libsql-20250929202200",
+        "fix-cloud-peer-deps-loggers": "0.0.0-fix-cloud-peer-deps-loggers-20250929204101",
+        "suspendRuntimeContextTypeFix": "0.0.0-suspendRuntimeContextTypeFix-20250930142630",
+        "fix-network-silence": "0.0.0-fix-network-silence-20250930164151",
+        "cloud-deployer-for-core-0.19.1": "0.0.0-cloud-deployer-for-core-0.19.1-20251001164939",
+        "break-rename-vnext-legacy": "0.0.0-break-rename-vnext-legacy-20251002212351",
+        "cor235": "0.0.0-cor235-20251008190353",
+        "cor235-2": "0.0.0-cor235-2-20251008193754",
+        "fix-maxSteps-modelsetting-playground": "0.0.0-fix-maxSteps-modelsetting-playground-20251008194458",
+        "fix-runtimeContext-passing-chatRoute": "0.0.0-fix-runtimeContext-passing-chatRoute-20251008220150",
+        "fix-read-json-esm": "0.0.0-fix-read-json-esm-20251009172143",
+        "chore-core-swap-aiv5-ai-package-naming": "0.0.0-chore-core-swap-aiv5-ai-package-naming-20251009203931",
+        "unified-sidebar": "0.0.0-unified-sidebar-20251010130811",
+        "ai-sdk-workflow-route": "0.0.0-ai-sdk-workflow-route-20251010135341",
+        "dynamic-model-router": "0.0.0-dynamic-model-router-20251010230835",
+        "monorepo-binary": "0.0.0-monorepo-binary-20251013210052",
+        "just-snapshot": "0.0.0-just-snapshot-20251014192224",
+        "fix-core-reasoning-parts": "0.0.0-fix-core-reasoning-parts-20251015155834",
+        "usechat-duplicate": "0.0.0-usechat-duplicate-20251016110554",
+        "ai-sdk-network-text-delta": "0.0.0-ai-sdk-network-text-delta-20251017172601",
+        "model-router-unknown-provider": "0.0.0-model-router-unknown-provider-20251017212006",
+        "error-handler-fix": "0.0.0-error-handler-fix-20251020202607",
+        "fix-model-router-machine-cache": "0.0.0-fix-model-router-machine-cache-20251021232825",
+        "fix-writer-workflow-resumestream": "0.0.0-fix-writer-workflow-resumestream-20251022161252",
+        "agent-error-handling": "0.0.0-agent-error-handling-20251023180025",
+        "extract-tool-ui-inp-playground-ui": "0.0.0-extract-tool-ui-inp-playground-ui-20251024041825",
+        "fix-memory-search-fetch": "0.0.0-fix-memory-search-fetch-20251027160505",
+        "fix-multi-modal-for-cloud": "0.0.0-fix-multi-modal-for-cloud-20251028082043",
+        "add-crumb-action": "0.0.0-add-crumb-action-20251028111500",
+        "sidebar-window-undefined-fix": "0.0.0-sidebar-window-undefined-fix-20251029233656",
+        "bundle-recursion": "0.0.0-bundle-recursion-20251030002519",
+        "remove-unused-model-providers-api": "0.0.0-remove-unused-model-providers-api-20251030210744",
+        "playground-studio-cloud": "0.0.0-playground-studio-cloud-20251031080052",
+        "fix-persist-session-cache-option-mcp-server": "0.0.0-fix-persist-session-cache-option-mcp-server-20251031182703",
+        "fix-9244-clickhouse-metadata": "0.0.0-fix-9244-clickhouse-metadata-20251105010900",
+        "main-test": "0.0.0-main-test-20251105183450",
+        "fix-thread-list": "0.0.0-fix-thread-list-20251105222841",
+        "allow-to-pass-a-mastra-url-instance": "0.0.0-allow-to-pass-a-mastra-url-instance-20251105224938",
+        "main-test-05-11-2025-2": "0.0.0-main-test-05-11-2025-2-20251106053353",
+        "1.x-tester": "0.0.0-1.x-tester-20251106141102",
+        "cloud-storage-adapter": "0.0.0-cloud-storage-adapter-20251106204059",
+        "add-stepgraph-to-run-exec-result": "0.0.0-add-stepgraph-to-run-exec-result-20251112113541",
+        "refactor-agent-information-for-recomposable-ui": "0.0.0-refactor-agent-information-for-recomposable-ui-20251112151814",
+        "export-agent-memory-from-local-studio": "0.0.0-export-agent-memory-from-local-studio-20251112153946",
+        "playground-studio-again": "0.0.0-playground-studio-again-20251114102707",
+        "client-js-listmessages-agentid-fix": "0.0.0-client-js-listmessages-agentid-fix-20251119175531",
+        "trace-timeline-update": "0.0.0-trace-timeline-update-20251121114225",
+        "fix-ai-sdk-dependency": "0.0.0-fix-ai-sdk-dependency-20251124104209",
+        "span-scorring-test": "0.0.0-span-scorring-test-20251124132129",
+        "fix-issue-10434-concurrent-write-corruption": "0.0.0-fix-issue-10434-concurrent-write-corruption-20251124213939",
+        "netlify-no-bundle": "0.0.0-netlify-no-bundle-20251127120354",
+        "main-test-2": "0.0.0-main-test-2-20251127211532",
+        "fix-backport-setserver": "0.0.0-fix-backport-setserver-20251201151948",
+        "fix-8762-10172-link-langfuse-prompts": "0.0.0-fix-8762-10172-link-langfuse-prompts-20251201220119",
+        "fix-10386-preserve-tool-calls-in-convert-aisdk": "0.0.0-fix-10386-preserve-tool-calls-in-convert-aisdk-20251201220429",
+        "partial-response-backport": "0.0.0-partial-response-backport-20251204204441",
+        "safe-stringify-telemetry": "0.0.0-safe-stringify-telemetry-20251205024938",
+        "feat-improve-processors": "0.0.0-feat-improve-processors-20251205191721",
+        "scorers-logs": "0.0.0-scorers-logs-20251208123838",
+        "fix-request-context-as-query-key": "0.0.0-fix-request-context-as-query-key-20251209130646",
+        "feat-add-query-option-to-playground": "0.0.0-feat-add-query-option-to-playground-20251209160219",
+        "fix-prompt-enhance-route": "0.0.0-fix-prompt-enhance-route-20251210210827",
+        "top-level-fix": "0.0.0-top-level-fix-20251211111608",
+        "fix-zod4-schema-validation": "0.0.0-fix-zod4-schema-validation-20251212180638",
+        "cloud-604-map-nested-flow-details-to-side-panel": "0.0.0-cloud-604-map-nested-flow-details-to-side-panel-20251212192149",
+        "new-button-export": "0.0.0-new-button-export-20251219133013",
+        "elated-armadillo-be37a1": "0.0.0-elated-armadillo-be37a1-20251219210627",
+        "elated-armadillo-be37a1-2": "0.0.0-elated-armadillo-be37a1-2-20251219213629",
+        "bundle-studio-cloud": "0.0.0-bundle-studio-cloud-20251222034739",
+        "fix-11329-windows-path": "0.0.0-fix-11329-windows-path-20251222155941",
+        "fix-local-pkg-cwd": "0.0.0-fix-local-pkg-cwd-20251226155239",
+        "feat-8782-cf-bindings": "0.0.0-feat-8782-cf-bindings-20260102164434",
+        "jail-fs": "0.0.0-jail-fs-20260105160110",
+        "remove-ai-peer-dep-from-evals": "0.0.0-remove-ai-peer-dep-from-evals-20260105220639",
+        "fix-11640-persist-workflow-events-to-memory": "0.0.0-fix-11640-persist-workflow-events-to-memory-20260106220027",
+        "feat-mcp-embedded-docs-tools-clean": "0.0.0-feat-mcp-embedded-docs-tools-clean-20260108143611",
+        "mastra-auto-detect-server": "0.0.0-mastra-auto-detect-server-20260108233416",
+        "testing-cloud-studios": "0.0.0-testing-cloud-studios-20260114234039",
+        "test-cloud-studio": "0.0.0-test-cloud-studio-20260115001806",
+        "alternative-angelfish-f7665c": "0.0.0-alternative-angelfish-f7665c-20260119184917",
+        "fix-agent-network-schema-test-2": "0.0.0-fix-agent-network-schema-test-2-20260119190919",
+        "fix-agent-network-coderabbit": "0.0.0-fix-agent-network-coderabbit-20260119210110",
+        "fix-agent-network-schema": "0.0.0-fix-agent-network-schema-20260119213029",
+        "type-testing": "0.0.0-type-testing-20260120105120",
+        "ci-trigger-cloud-tests-on-stable-release": "0.0.0-ci-trigger-cloud-tests-on-stable-release-20260120235652",
+        "bundle-version": "0.0.0-bundle-version-20260121132824",
+        "salesman": "0.0.0-salesman-20260127182805",
+        "unified-workspace-snapshot": "0.0.0-unified-workspace-snapshot-20260128233410",
+        "beta": "1.1.0-alpha.2",
+        "fix-12500-lance-search": "0.0.0-fix-12500-lance-search-20260130204823",
+        "cloudflare-file-url-lazy": "0.0.0-cloudflare-file-url-lazy-20260130204903",
+        "feat-cli-skills-installation": "0.0.0-feat-cli-skills-installation-20260202141803",
+        "om-core": "0.0.0-om-core-20260203041801",
+        "auth-and-authz": "0.0.0-auth-and-authz-20260203062537",
+        "om-ui": "0.0.0-om-ui-20260203185649",
+        "om": "0.0.0-om-20260204032032",
+        "oma": "0.0.0-oma-20260208093055",
+        "om-pg-fix": "0.0.0-om-pg-fix-20260211231820",
+        "fix-improve-processor-error-messages": "0.0.0-fix-improve-processor-error-messages-20260212003648",
+        "om-pg-fix-2": "0.0.0-om-pg-fix-2-20260212005300",
+        "feat-change-lifecycle": "0.0.0-feat-change-lifecycle-20260212014650",
+        "working-memory-undefined": "0.0.0-working-memory-undefined-20260212204651",
+        "parallel-workflow": "0.0.0-parallel-workflow-20260212235652",
+        "auth-rbac-cms": "0.0.0-auth-rbac-cms-20260213083418",
+        "test-oc-plugin": "0.0.0-test-oc-plugin-20260214000218",
+        "local-fs-allowedpaths": "0.0.0-local-fs-allowedpaths-20260214000244",
+        "om-tracking": "0.0.0-om-tracking-20260214064228",
+        "to-model-output": "0.0.0-to-model-output-20260217220843",
+        "provider-metadata-cache": "0.0.0-provider-metadata-cache-20260218172243",
+        "workflow-timeout-issue": "0.0.0-workflow-timeout-issue-20260220185702",
+        "om-oom": "0.0.0-om-oom-20260223222312",
+        "sandbox-process-manager": "0.0.0-sandbox-process-manager-20260223224846",
+        "om-locking": "0.0.0-om-locking-20260223230740",
+        "core-setters": "0.0.0-core-setters-20260226001619",
+        "openai-reasoning": "0.0.0-openai-reasoning-20260226184314",
+        "codex-om": "0.0.0-codex-om-20260226233706",
+        "key-fix": "0.0.0-key-fix-20260227010020",
+        "open-ai-websocket-in-responses": "0.0.0-open-ai-websocket-in-responses-20260227094419",
+        "vercel-studio": "0.0.0-vercel-studio-20260227110350",
+        "mcp-tool-output": "0.0.0-mcp-tool-output-20260227175751",
+        "fix-cloudflare-rest-api": "0.0.0-fix-cloudflare-rest-api-20260227192337",
+        "harness-token-count": "0.0.0-harness-token-count-20260228173428",
+        "mc-workspace-lsp": "0.0.0-mc-workspace-lsp-20260302174254",
+        "structured-output-issue": "0.0.0-structured-output-issue-20260302184919",
+        "standalone-studio-base-path": "0.0.0-standalone-studio-base-path-20260302212555",
+        "auth-combined-test-all": "0.0.0-auth-combined-test-all-20260303004752",
+        "execa-dynamic-import": "0.0.0-execa-dynamic-import-20260304221256",
+        "dataset-demo": "0.0.0-dataset-demo-20260305035339",
+        "om-gateway-api": "0.0.0-om-gateway-api-20260305133211",
+        "agent-chat-ui": "0.0.0-agent-chat-ui-20260305212602",
+        "fix-windows-shell": "0.0.0-fix-windows-shell-20260306014721",
+        "standard-schema2": "0.0.0-standard-schema2-20260306110923",
+        "fix-crp-combined": "0.0.0-fix-crp-combined-20260306234242",
+        "standard-schema": "0.0.0-standard-schema-20260309155201",
+        "fix-get-public-origin": "0.0.0-fix-get-public-origin-20260309162301",
+        "om-tokenx": "0.0.0-om-tokenx-20260311200257",
+        "ten-fragrance": "0.0.0-ten-fragrance-20260317150728",
+        "obs-server": "0.0.0-obs-server-20260317161348",
+        "mastra-ai-sdk-v6": "0.0.0-mastra-ai-sdk-v6-20260318060129",
+        "tracing-hotfix": "0.0.0-tracing-hotfix-20260319165043",
+        "server-deploy": "0.0.0-server-deploy-20260320203954",
+        "standalone-om": "0.0.0-standalone-om-20260323052404",
+        "refactor-om": "0.0.0-refactor-om-20260324202715",
+        "satisfying-prince": "0.0.0-satisfying-prince-20260325135444",
+        "diligent-sun": "0.0.0-diligent-sun-20260326101831",
+        "impossible-find": "0.0.0-impossible-find-20260326145947",
+        "register-exporter-remote-read-obs": "0.0.0-register-exporter-remote-read-obs-20260326165517",
+        "test-gw": "0.0.0-test-gw-20260326233404",
+        "apricot-manager": "0.0.0-apricot-manager-20260327095430",
+        "satin-jumpsuit": "0.0.0-satin-jumpsuit-20260327151201",
+        "circular-json-tool-results": "0.0.0-circular-json-tool-results-20260330235654",
+        "everlasting-joggers": "0.0.0-everlasting-joggers-20260331153923",
+        "channels": "0.0.0-channels-20260402232821",
+        "nettle-television": "0.0.0-nettle-television-20260403073140",
+        "checker-apparel": "0.0.0-checker-apparel-20260403114233",
+        "om-race-fix": "0.0.0-om-race-fix-20260403160819",
+        "equatorial-gazelle": "0.0.0-equatorial-gazelle-20260403171544",
+        "studio-deploy": "0.0.0-studio-deploy-20260404184540",
+        "mysterious-auroraceratops": "0.0.0-mysterious-auroraceratops-20260404195627",
+        "om-token-usage": "0.0.0-om-token-usage-20260405051405",
+        "async-hooks-fix": "0.0.0-async-hooks-fix-20260405155845",
+        "routes-manifest": "0.0.0-routes-manifest-20260407220745",
+        "fix-openai-reasoning-summaries": "0.0.0-fix-openai-reasoning-summaries-20260409175618",
+        "structured-output-errors": "0.0.0-structured-output-errors-20260409185629",
+        "structured-output-custom-gateway": "0.0.0-structured-output-custom-gateway-20260409211226",
+        "data-structured-output": "0.0.0-data-structured-output-20260409231045",
+        "fix-deploy-cmd": "0.0.0-fix-deploy-cmd-20260410180830",
+        "datadog-bridge-alpha-1": "0.0.0-datadog-bridge-alpha-1-20260413203917",
+        "structured-output-agent": "0.0.0-structured-output-agent-20260413221909",
+        "datadog-bridge-alpha-2": "0.0.0-datadog-bridge-alpha-2-20260414145159",
+        "tool-strict-mode": "0.0.0-tool-strict-mode-20260414145952",
+        "strict-tools-indeed-2": "0.0.0-strict-tools-indeed-2-20260415164635",
+        "structured-output-agent-2": "0.0.0-structured-output-agent-2-20260415234442",
+        "graysonhicks-oom-stream-debug": "0.0.0-graysonhicks-oom-stream-debug-20260416124609",
+        "refactor-playground-ui-ds-polish": "0.0.0-refactor-playground-ui-ds-polish-20260416135902",
+        "graysonhicks-tool-strict-passthrough": "0.0.0-graysonhicks-tool-strict-passthrough-20260416194824",
+        "graysonhicks-langfuse-oom-fix": "0.0.0-graysonhicks-langfuse-oom-fix-20260416200726",
+        "structured-output-agent-3": "0.0.0-structured-output-agent-3-20260416235704",
+        "snapshot-docker-sandbox": "0.0.0-snapshot-docker-sandbox-20260417075053",
+        "use-agent-structured-output-3": "0.0.0-use-agent-structured-output-3-20260420191925",
+        "use-agent-structured-output-4": "0.0.0-use-agent-structured-output-4-20260420203516",
+        "use-agent-structured-output-5": "0.0.0-use-agent-structured-output-5-20260420235457",
+        "fix-observability-traces-loading-heavy": "0.0.0-fix-observability-traces-loading-heavy-20260421094911",
+        "clickhouse-init-failure": "0.0.0-clickhouse-init-failure-20260421173907",
+        "playground-ui-domains-logs": "0.0.0-playground-ui-domains-logs-20260423114902",
+        "datadog-bridge-alpha-3": "0.0.0-datadog-bridge-alpha-3-20260424112321",
+        "a2a-vnext": "0.0.0-a2a-vnext-20260424123427",
+        "logs-to-playground-ui": "0.0.0-logs-to-playground-ui-20260424140321",
+        "toolcall-hooks-channels": "0.0.0-toolcall-hooks-channels-20260424195815",
+        "temporal": "0.0.0-temporal-20260427105254",
+        "transparent-server-side-refresh": "0.0.0-transparent-server-side-refresh-20260427210959",
+        "bristle-rule": "0.0.0-bristle-rule-20260428071048",
+        "feat-fga": "0.0.0-feat-fga-20260429175809",
+        "tsgo": "0.0.0-tsgo-20260430191301",
+        "studio-cli": "0.0.0-studio-cli-20260504022012",
+        "explore-new-metrics-update": "0.0.0-explore-new-metrics-update-20260507090602",
+        "fix-buildmessagesfromchunks-message-part-ordering": "0.0.0-fix-buildmessagesfromchunks-message-part-ordering-20260507134311",
+        "feat-a2a-agent-class": "0.0.0-feat-a2a-agent-class-20260511141748",
+        "observe": "0.0.0-observe-20260511170229",
+        "observability-branches": "0.0.0-observability-branches-20260512165357",
+        "branches-as-default": "0.0.0-branches-as-default-20260512170712",
+        "wardpeet-acp": "0.0.0-wardpeet-acp-20260513090758",
+        "switch-to-traces-mode-as-default": "0.0.0-switch-to-traces-mode-as-default-20260514090630",
+        "builder-demo": "0.0.0-builder-demo-20260515002221",
+        "traces-subtraces": "0.0.0-traces-subtraces-20260515133158",
+        "ag-example": "0.0.0-ag-example-20260516005230",
+        "level-icon-moved": "0.0.0-level-icon-moved-20260518094006",
+        "feat-ds-slider-base-ui": "0.0.0-feat-ds-slider-base-ui-20260519180421",
+        "auto-provider-attachment": "0.0.0-auto-provider-attachment-20260522010929",
+        "vnext": "0.0.0-vnext-20260522131221",
+        "posthog-env-respect": "0.0.0-posthog-env-respect-20260526194440",
+        "a-b-demo": "0.0.0-a-b-demo-20260526202724",
+        "fix-playground-ui-context-menu-z-index": "0.0.0-fix-playground-ui-context-menu-z-index-20260527122415",
+        "workflow-graph-crash": "0.0.0-workflow-graph-crash-20260527191009",
+        "fix-workflow-graph-part-2": "0.0.0-fix-workflow-graph-part-2-20260527233847",
+        "graph-crash-v3": "0.0.0-graph-crash-v3-20260528202217",
+        "feat-playground-ui-input-button-groups": "0.0.0-feat-playground-ui-input-button-groups-20260529070627",
+        "fix-create-observability-org-selection": "0.0.0-fix-create-observability-org-selection-20260529112852",
+        "deploy-alex-2": "0.0.0-deploy-alex-2-20260602122535",
+        "declined-tool-result-fix": "0.0.0-declined-tool-result-fix-20260602220958",
+        "wardpeet-auth-rework": "0.0.0-wardpeet-auth-rework-20260604074715",
+        "yj-ab-demo": "0.0.0-yj-ab-demo-20260604080218",
+        "channels-owner-stream": "0.0.0-channels-owner-stream-20260605033931",
+        "signals-pubsub-reserve": "0.0.0-signals-pubsub-reserve-20260605182857",
+        "channels-output-processor": "0.0.0-channels-output-processor-20260605211340",
+        "channels-on-lease": "0.0.0-channels-on-lease-20260612211814",
+        "graysonhicks-google-workspace-auth-provider": "0.0.0-graysonhicks-google-workspace-auth-provider-20260618171002",
+        "graysonhicks-google-workspace-auth-provider-code": "0.0.0-graysonhicks-google-workspace-auth-provider-code-20260618180212",
+        "feat-dataset-tenancy": "0.0.0-feat-dataset-tenancy-20260622154040",
+        "caleb-channels-on-lease": "0.0.0-caleb-channels-on-lease-20260623021557",
+        "livekit-alpha-v1": "0.0.0-livekit-alpha-v1-20260624034109",
+        "livekit-alpha-v2": "0.0.0-livekit-alpha-v2-20260626063843",
+        "livekit-alpha-v3": "0.0.0-livekit-alpha-v3-20260629032431",
+        "unified-deploy": "0.0.0-unified-deploy-20260630185855",
+        "fix-decline-tool-call": "0.0.0-fix-decline-tool-call-20260630190928",
+        "agent-learning-fetch-again": "0.0.0-agent-learning-fetch-again-20260701195212",
+        "yj-multitenant-scores": "0.0.0-yj-multitenant-scores-20260701201442",
+        "livekit-alpha-3.5": "0.0.0-livekit-alpha-3.5-20260702153513",
+        "fix-signals-client-api-learning-contract": "0.0.0-fix-signals-client-api-learning-contract-20260702194528",
+        "mastracode-cloud": "0.0.0-mastracode-cloud-20260706153555",
+        "livekit-beta-v1": "0.0.0-livekit-beta-v1-20260707053345",
+        "livekit-beta-v2": "0.0.0-livekit-beta-v2-20260708044444",
+        "livekit-beta-v3": "0.0.0-livekit-beta-v3-20260709031728",
+        "fix-workflow-step-timing-and-parallel-status": "0.0.0-fix-workflow-step-timing-and-parallel-status-20260715180716",
+        "goal-mode-ci": "0.0.0-goal-mode-ci-20260716044112",
+        "fix-persisted-approval-run-id": "0.0.0-fix-persisted-approval-run-id-20260720142927",
+        "monorepo-flexibility": "0.0.0-monorepo-flexibility-20260722142608",
+        "fix-thread-subscription-multi-instance-redis-streams": "0.0.0-fix-thread-subscription-multi-instance-redis-streams-20260730204150",
+        "feat-move-slack-integration-to-factory": "0.0.0-feat-move-slack-integration-to-factory-20260804181842",
+        "sandbox-private-exec": "0.0.0-sandbox-private-exec-20260804211430",
+        "esbuild-bundle-worker": "0.0.0-esbuild-bundle-worker-20260807182016",
+        "platform-sandbox-sidecar-probe": "0.0.0-platform-sandbox-sidecar-probe-20260809163846",
+        "openai-schema-compat-issue": "0.0.0-openai-schema-compat-issue-20260810211758",
+        "factory-sessions-first-meaningful-exec-at": "0.0.0-factory-sessions-first-meaningful-exec-at-20260810230411",
+        "platform-turn-end-wiring": "0.0.0-platform-turn-end-wiring-20260811044905",
+        "perf-factory-sandbox-lifecycle": "0.0.0-perf-factory-sandbox-lifecycle-20260814171817",
+        "feat-factory-session-visibility": "0.0.0-feat-factory-session-visibility-20260818171447",
+        "fix-session-visibility-review-nits": "0.0.0-fix-session-visibility-review-nits-20260818175628",
+        "fix-agent-controller-lazy-workspace": "0.0.0-fix-agent-controller-lazy-workspace-20260819202711",
+        "fix-platform-sandbox-readiness": "0.0.0-fix-platform-sandbox-readiness-20260820163514",
+        "buttoned-spandex": "0.0.0-buttoned-spandex-20260824090603",
+        "om-continuation-hints": "0.0.0-om-continuation-hints-20260824180431",
+        "relic-pressure": "0.0.0-relic-pressure-20260828160621",
+        "knowledgev2": "0.0.0-knowledgev2-20260828164436",
+        "subconscious-alpha": "0.0.0-subconscious-alpha-20260901173138",
+        "knowledge-org-scope": "0.0.0-knowledge-org-scope-20260902233451",
+        "workshop-yj": "0.0.0-workshop-yj-20260903030708",
+        "fix-knowledge-inspector-org-scope": "0.0.0-fix-knowledge-inspector-org-scope-20260903151927",
+        "feat-subconscious-tool-guidance": "0.0.0-feat-subconscious-tool-guidance-20260904012318",
+        "tags-preview-alpha": "0.0.0-tags-preview-alpha-20260906184827",
+        "om-langfuse-session": "0.0.0-om-langfuse-session-20260910192355",
+        "client-tool-results": "0.0.0-client-tool-results-20260912062135",
+        "feat-durable-agent-evented-engine": "0.0.0-feat-durable-agent-evented-engine-20260918205958",
+        "fix-durable-evented-local-only": "0.0.0-fix-durable-evented-local-only-20260919001610",
+        "livekit-v4-beta": "0.0.0-livekit-v4-beta-20260922141955",
+        "drop-factory-ui": "0.0.0-drop-factory-ui-20260922202841",
+        "marvin-deploy": "0.0.0-marvin-deploy-20260928142745",
+        "marvin-deploy-traces": "0.0.0-marvin-deploy-traces-20260929142102",
+        "marvin-deploy-traces-a": "0.0.0-marvin-deploy-traces-a-20260930070026",
+        "fix-studio-trace-thread-hide-om": "0.0.0-fix-studio-trace-thread-hide-om-20260930091934",
+        "marvin-deploy-trace-b": "0.0.0-marvin-deploy-trace-b-20260930122039",
+        "feat-mcp-typegen": "0.0.0-feat-mcp-typegen-20260930124658",
+        "marvin-deploy-trace-c": "0.0.0-marvin-deploy-trace-c-20261001065356",
+        "marvin-deploy-trace-d": "0.0.0-marvin-deploy-trace-d-20261001094745",
+        "marvin-deploy-trace-e": "0.0.0-marvin-deploy-trace-e-20261002114957",
+        "polyester-catcher": "0.0.0-polyester-catcher-20261002131924",
+        "feat-charts-polish": "0.0.0-feat-charts-polish-20261005132302",
+        "react-sdk": "0.0.0-react-sdk-20261005160725",
+        "playground-snapshot-20261006-095009": "0.0.0-playground-snapshot-20261006-095009-20261006075314",
+        "stove-pageantic": "0.0.0-stove-pageantic-20261006161243",
+        "om-budget-isolated": "0.0.0-om-budget-isolated-20261007043742",
+        "charts-polish": "0.0.0-charts-polish-20261007113117",
+        "playground-snapshot-20261007": "0.0.0-playground-snapshot-20261007-20261007145206",
+        "knowledge-w2": "0.0.0-knowledge-w2-20261008040304",
+        "metrics-usageId": "0.0.0-metrics-usageId-20261008200434",
+        "fix-set-cookie": "0.0.0-fix-set-cookie-20261008222303",
+        "knowledge-w1": "0.0.0-knowledge-w1-20261009054256",
+        "knowledge-w2-demo": "0.0.0-knowledge-w2-demo-20261009074925",
+        "metrics-y-axis": "0.0.0-metrics-y-axis-20261009082604",
+        "disclosure-chevron": "0.0.0-disclosure-chevron-20261009130749",
+        "om-lifecycle": "0.0.0-om-lifecycle-20261010194955",
+        "playground-main-20261013": "0.0.0-playground-main-20261013-20261013064257",
+        "factory-auth": "0.0.0-factory-auth-20261013175540",
+        "aggregate-trace": "0.0.0-aggregate-trace-20261015182851",
+        "playground-main": "0.0.0-playground-main-20261015184815",
+        "latest": "1.78.0",
+        "obs-666-group-by": "0.0.0-obs-666-group-by-20261016174001",
+        "alpha": "1.79.0-alpha.3"
+      },
+      "repository": {
+        "url": "git+https://github.com/mastra-ai/mastra.git",
+        "type": "git",
+        "directory": "packages/core"
+      },
+      "integrity": "sha512-E3NL+fZMQbulnJnah0hDsBkhjf42UnD9kQ7/HiHfnrmSe2rq8d3UHb9kM8zNbDVIPSQ9qhr2Ie9GS0rhm7si8Q==",
+      "declared": "1.78.0",
+      "lockedVersion": "1.78.0",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "source": "https://registry.npmjs.org/%40tailwindcss%2Fpostcss",
+      "checkedAt": "2026-10-17T12:01:08.118Z",
+      "latest": "4.3.3",
+      "publishedAt": "2026-07-16T12:03:56.054Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "internal": "0.0.0-internal.b2586d4e",
+        "next": "4.0.0",
+        "latest": "4.3.3",
+        "insiders": "0.0.0-insiders.f7f47f8"
+      },
+      "repository": {
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "type": "git",
+        "directory": "packages/@tailwindcss-postcss"
+      },
+      "integrity": "sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==",
+      "declared": "4.3.3",
+      "lockedVersion": "4.3.3",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@vitejs/plugin-react",
+      "source": "https://registry.npmjs.org/%40vitejs%2Fplugin-react",
+      "checkedAt": "2026-10-17T12:01:07.716Z",
+      "latest": "6.1.2",
+      "publishedAt": "2026-10-05T10:08:27.143Z",
+      "license": "MIT",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "distTags": {
+        "alpha": "3.0.0-alpha.2",
+        "beta": "6.0.0-beta.0",
+        "latest": "6.1.2"
+      },
+      "repository": {
+        "url": "git+https://github.com/vitejs/vite-plugin-react.git",
+        "type": "git",
+        "directory": "packages/plugin-react"
+      },
+      "integrity": "sha512-fhJNGUdscQa4HkI0xFxwonWyhnVReCPDbXI7FH7jmzpnVCrFQI7PRrhWecO263610vOrs9tr2Y4xcf8uAdFxbw==",
+      "declared": "6.1.2",
+      "lockedVersion": "6.1.2",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@vitejs/plugin-rsc",
+      "source": "https://registry.npmjs.org/%40vitejs%2Fplugin-rsc",
+      "checkedAt": "2026-10-17T12:01:08.095Z",
+      "latest": "0.5.38",
+      "publishedAt": "2026-10-15T02:02:18.001Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "alpha": "0.4.10-alpha.1",
+        "latest": "0.5.38"
+      },
+      "repository": {
+        "url": "git+https://github.com/vitejs/vite-plugin-react.git",
+        "type": "git",
+        "directory": "packages/plugin-rsc"
+      },
+      "integrity": "sha512-SoiRBJBVd3Qg6Frnvdk6LwugJYlQKgee+uqySxKz5T/KsCZUgdw529Klzg4IDJuP/EOfsIJ2YiOKAFY8tnr1kg==",
+      "declared": "0.5.38",
+      "lockedVersion": "0.5.38",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "ai",
+      "source": "https://registry.npmjs.org/ai",
+      "checkedAt": "2026-10-17T12:01:08.483Z",
+      "latest": "7.0.143",
+      "publishedAt": "2026-10-16T20:10:34.495Z",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=22"
+      },
+      "distTags": {
+        "alpha": "5.0.0-alpha.15",
+        "canary": "7.0.0-canary.176",
+        "beta": "7.0.0-beta.187",
+        "snapshot": "0.0.0-f1630544-20260811180950",
+        "ai-v5": "5.0.277",
+        "latest": "7.0.143",
+        "ai-v6": "6.0.309"
+      },
+      "repository": {
+        "url": "https://github.com/vercel/ai",
+        "type": "git",
+        "directory": "packages/ai"
+      },
+      "integrity": "sha512-y9QNgCK9QRHRCcHEUNoU2vemJ+q2zFX5M9T7xHCMZutfcWCqZPckkAfDbp+KHwqZDiJs5AqoKazj64cb20m5PA==",
+      "declared": "7.0.143",
+      "lockedVersion": "7.0.143",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "braces",
+      "source": "https://registry.npmjs.org/braces",
+      "checkedAt": "2026-10-17T12:01:07.662Z",
+      "latest": "3.0.3",
+      "publishedAt": "2024-05-21T08:59:11.390Z",
+      "license": "MIT",
+      "engines": {
+        "node": ">=8"
+      },
+      "distTags": {
+        "latest": "3.0.3"
+      },
+      "repository": {
+        "url": "git+https://github.com/micromatch/braces.git",
+        "type": "git"
+      },
+      "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+      "declared": "file:./vendor/braces-3.0.3-depth-guard",
+      "lockedVersion": "3.0.3",
+      "scope": "Lockfile resolution, not a live application/runtime probe. Linked vendor depth-guard package retains upstream version3.0.3; this is not an official fixed release.",
+      "linkTarget": "vendor/braces-3.0.3-depth-guard"
+    },
+    {
+      "name": "drizzle-orm",
+      "source": "https://registry.npmjs.org/drizzle-orm",
+      "checkedAt": "2026-10-17T12:01:12.504Z",
+      "latest": "0.45.4",
+      "publishedAt": "2026-10-08T10:50:41.953Z",
+      "license": "Apache-2.0",
+      "engines": null,
+      "distTags": {
+        "numeric-modes": "1.0.0-beta.1-867d080",
+        "rqb-v1-schema-fix": "1.0.0-beta.1-b96a4f8",
+        "rqb-typeperf": "1.0.0-beta.1-69a2ca0",
+        "effect": "1.0.0-beta.1-cdf226f",
+        "workflows": "1.0.0-beta.1-37e2608",
+        "sqlite-cloud-studio": "1.0.0-beta.1-bc61bbe",
+        "beta-next-pack": "1.0.0-beta.1-140e6cc",
+        "alternation-engine": "1.0.0-beta.2-6565b14",
+        "kit-cli-wrong-config-hints": "1.0.0-beta.2-a1a6b39",
+        "studio-benchmark": "1.0.0-beta.2-01787d6",
+        "rqb-perf-patch": "1.0.0-beta.2-f9236e3",
+        "kit-duckdb": "1.0.0-beta.3-d4ff358",
+        "mysql-blob-rqb-v2-fix": "1.0.0-beta.5-e0482ac",
+        "beta-fixes": "1.0.0-beta.6-7419dcb",
+        "beelink": "1.0.0-beta.9-c26fd2f",
+        "effect3": "1.0.0-beta.9-635dfc2",
+        "effect-fixes": "1.0.0-beta.10-9f1399e",
+        "bun-timestampstring-patch": "1.0.0-beta.10-4a698ad",
+        "drizzle-seed/bug-fixes": "1.0.0-beta.10-7f0f68a",
+        "issues": "1.0.0-beta.11-165921d",
+        "effect-cache-fix": "1.0.0-beta.11-88ca292",
+        "data-migrator": "1.0.0-beta.11-c3fb442",
+        "update/migrator-strategy": "1.0.0-beta.12-5845444",
+        "drizzle-effect": "1.0.0-beta.13-f16bdca",
+        "pg-prepare-nameless": "1.0.0-beta.13-4ef3fca",
+        "kit-introspect": "1.0.0-beta.13-ba3365d",
+        "effect-validator": "1.0.0-beta.14-56118cc",
+        "sql-explicit-origin": "1.0.0-beta.15-90d1d1a",
+        "beta.16": "1.0.0-beta.16-2ffd1a5",
+        "node-sqlite": "1.0.0-beta.16-c2458b2",
+        "sqlite-indexes": "1.0.0-beta.16-501e9b2",
+        "beta.17": "1.0.0-beta.17-160831b",
+        "kit/node-sqlite": "1.0.0-beta.17-8a36f93",
+        "fix-duckdb": "1.0.0-beta.17-c09bdc5",
+        "fix-jiti-tsconfig-paths": "1.0.0-beta.18-905b79a",
+        "query-comments": "1.0.0-beta.19-dca1773",
+        "conditions-wrap": "1.0.0-beta.19-c49995f",
+        "beta21": "1.0.0-beta.21-b0c345d",
+        "casing-rework": "1.0.0-beta.21-3269112",
+        "issues2": "1.0.0-beta.22-17a476d",
+        "beta": "1.0.0-beta.22",
+        "netlify-constructor": "1.0.0-beta.22-d23690d",
+        "revert-netlify": "1.0.0-beta.23-c10d10c",
+        "codecs": "1.0.0-beta.23-5d05836",
+        "pg-introspect": "1.0.0-rc.1-929a083",
+        "rc1-fixes": "1.0.0-rc.2-8feace6",
+        "turso-sls": "1.0.0-rc.2-640c81e",
+        "jiti-import-fix": "1.0.0-rc.2-67a3509",
+        "mysql-update": "1.0.0-rc.2-2be6d1e",
+        "rc4": "1.0.0-rc.4-5d5b77c",
+        "ai": "1.0.0-rc.3-e9dfa4b",
+        "rc": "1.0.0-rc.4",
+        "postgres": "1.0.0-rc.4-fb12281",
+        "rc5": "1.0.0-rc.5-5935859",
+        "latest": "0.45.4"
+      },
+      "repository": {
+        "url": "git+https://github.com/drizzle-team/drizzle-orm.git",
+        "type": "git"
+      },
+      "integrity": "sha512-NiM1YZpJ2UxyeE67DpDDZ+Tsw4YLX3trSlkNT7Tm9eKoUNb1LvaAaQzXgYQsWs+AQ9TUmmwMmBOCXuqqxUWKKQ==",
+      "declared": "0.45.4",
+      "lockedVersion": "0.45.4",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "libsodium-wrappers-sumo",
+      "source": "https://registry.npmjs.org/libsodium-wrappers-sumo",
+      "checkedAt": "2026-10-17T12:01:07.755Z",
+      "latest": "0.8.4",
+      "publishedAt": "2026-04-19T11:26:24.792Z",
+      "license": "ISC",
+      "engines": null,
+      "distTags": {
+        "latest": "0.8.4"
+      },
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jedisct1/libsodium.js.git"
+      },
+      "integrity": "sha512-ql7hcgulKZ3ekfa2DGAogcCKsWU0diA/0nArz1CFzh93WQdb46/Kj18ka/Hifq6uA3Ush34Pc6vU/6HXeRwUkg==",
+      "declared": "0.8.4",
+      "lockedVersion": "0.8.4",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "next",
+      "source": "https://registry.npmjs.org/next",
+      "checkedAt": "2026-10-17T12:01:09.202Z",
+      "latest": "16.4.2",
+      "publishedAt": "2026-10-15T20:57:24.007Z",
+      "license": "MIT",
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "distTags": {
+        "next-11": "11.1.4",
+        "next-12-2-6": "12.2.6",
+        "next-14-1": "14.1.1",
+        "rc": "15.0.0-rc.1",
+        "next-13": "13.5.11",
+        "next-12-3-2": "12.3.7",
+        "beta": "16.0.0-beta.0",
+        "next-14": "14.2.35",
+        "next-15-3": "15.3.9",
+        "next-15-2": "15.2.9",
+        "next-15-0": "15.1.12",
+        "next-15-0-0": "15.0.8",
+        "preview": "16.3.0-preview.10",
+        "backport": "15.5.28",
+        "latest": "16.4.2",
+        "canary": "16.5.0-canary.16"
+      },
+      "repository": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "type": "git"
+      },
+      "integrity": "sha512-r+oBJojfefUjOiWkBhXgLS+igxX/7BWyK59uHnyOyplMSLtBZ+QLP3okrdYTbrfrbrmNTVWLBPaHDX9KRaIt3w==",
+      "declared": "16.4.2",
+      "lockedVersion": "16.4.2",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "react",
+      "source": "https://registry.npmjs.org/react",
+      "checkedAt": "2026-10-17T12:01:08.586Z",
+      "latest": "19.3.1",
+      "publishedAt": "2026-10-14T16:47:15.290Z",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.10.0"
+      },
+      "distTags": {
+        "beta": "19.0.0-beta-26f2496093-20240514",
+        "rc": "19.0.0-rc.1",
+        "next": "19.3.0-canary-d5736f09-20260507",
+        "latest": "19.3.1",
+        "backport": "19.1.10",
+        "experimental": "0.0.0-experimental-098d2e87-20261015",
+        "canary": "19.3.0-canary-098d2e87-20261015"
+      },
+      "repository": {
+        "url": "git+https://github.com/react/react.git",
+        "type": "git",
+        "directory": "packages/react"
+      },
+      "integrity": "sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==",
+      "declared": "19.3.1",
+      "lockedVersion": "19.3.1",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "react-dom",
+      "source": "https://registry.npmjs.org/react-dom",
+      "checkedAt": "2026-10-17T12:01:08.763Z",
+      "latest": "19.3.1",
+      "publishedAt": "2026-10-14T16:49:10.081Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "beta": "19.0.0-beta-26f2496093-20240514",
+        "rc": "19.0.0-rc.1",
+        "next": "19.3.0-canary-d5736f09-20260507",
+        "latest": "19.3.1",
+        "backport": "19.1.10",
+        "experimental": "0.0.0-experimental-098d2e87-20261015",
+        "canary": "19.3.0-canary-098d2e87-20261015"
+      },
+      "repository": {
+        "url": "git+https://github.com/react/react.git",
+        "type": "git",
+        "directory": "packages/react-dom"
+      },
+      "integrity": "sha512-Y0bARz53lhEC1NMCASs0/j+faB/zqt3R8hpvg1e8+61ZVJ4UL0UdC4cBbXfZMcIuhrfgeILTLe+ZeBCavQPtKQ==",
+      "declared": "19.3.1",
+      "lockedVersion": "19.3.1",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "sharp",
+      "source": "https://registry.npmjs.org/sharp",
+      "checkedAt": "2026-10-17T12:01:07.853Z",
+      "latest": "0.35.5",
+      "publishedAt": "2026-09-27T13:46:24.509Z",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "distTags": {
+        "latest": "0.35.5",
+        "next": "0.35.5-rc.1"
+      },
+      "repository": {
+        "url": "git+https://github.com/lovell/sharp.git",
+        "type": "git"
+      },
+      "integrity": "sha512-Ywn4OnzGukp7CDMrp08RQ50YKmuwG47brZgIVPTvBaaAfQlRlygrRqSrxdCiL9M+LlzLBiJ68IR1QqvzHyjC7g==",
+      "declared": "0.35.5",
+      "lockedVersion": "0.35.5",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "tailwindcss",
+      "source": "https://registry.npmjs.org/tailwindcss",
+      "checkedAt": "2026-10-17T12:01:08.542Z",
+      "latest": "4.3.3",
+      "publishedAt": "2026-07-16T12:03:35.267Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "next": "4.0.0",
+        "v3-lts": "3.4.19",
+        "latest": "4.3.3",
+        "insiders": "0.0.0-insiders.f7f47f8"
+      },
+      "repository": {
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "type": "git",
+        "directory": "packages/tailwindcss"
+      },
+      "integrity": "sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==",
+      "declared": "4.3.3",
+      "lockedVersion": "4.3.3",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "vinext",
+      "source": "https://registry.npmjs.org/vinext",
+      "checkedAt": "2026-10-17T12:01:07.668Z",
+      "latest": "1.2.1",
+      "publishedAt": "2026-10-15T17:04:51.565Z",
+      "license": "MIT",
+      "engines": {
+        "node": ">=22"
+      },
+      "distTags": {
+        "beta": "1.0.0-beta.0",
+        "latest": "1.2.1"
+      },
+      "repository": {
+        "url": "git+https://github.com/cloudflare/vinext.git",
+        "type": "git"
+      },
+      "integrity": "sha512-cB8ViQ4JuxoM2jcsvEB2kdVNSm4zWfNgpYU8Bx6781mRuArlgDsI0Y4w5EqQwkK8e3BzMMHeOreiUbMc8xLLiA==",
+      "declared": "1.2.1",
+      "lockedVersion": "1.2.1",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "vite",
+      "source": "https://registry.npmjs.org/vite",
+      "checkedAt": "2026-10-17T12:01:09.789Z",
+      "latest": "8.3.4",
+      "publishedAt": "2026-10-08T12:07:04.441Z",
+      "license": "MIT",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "distTags": {
+        "alpha": "6.0.0-alpha.24",
+        "beta": "8.3.0-beta.1",
+        "latest": "8.3.4",
+        "previous": "6.4.4"
+      },
+      "repository": {
+        "url": "git+https://github.com/vitejs/vite.git",
+        "type": "git",
+        "directory": "packages/vite"
+      },
+      "integrity": "sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==",
+      "declared": "8.3.4",
+      "lockedVersion": "8.3.4",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "wrangler",
+      "source": "https://registry.npmjs.org/wrangler",
+      "checkedAt": "2026-10-17T12:01:09.420Z",
+      "latest": "4.151.1",
+      "publishedAt": "2026-10-16T09:55:24.246Z",
+      "license": "MIT OR Apache-2.0",
+      "engines": {
+        "node": ">=22.0.0"
+      },
+      "distTags": {
+        "wrangler@2.2.4": "2.2.4",
+        "legacy": "3.114.17",
+        "latest": "4.151.1"
+      },
+      "repository": {
+        "url": "git+https://github.com/cloudflare/workers-sdk.git",
+        "type": "git",
+        "directory": "packages/wrangler"
+      },
+      "integrity": "sha512-OAsa9UAHZshM6mq2PXcVoyxXgWThAanZMBc/IirtqEWd/BauRtmUKzAniOu/pU0pd3pxKuMZ2vsbF4eo6RiNDA==",
+      "declared": "4.151.1",
+      "lockedVersion": "4.151.1",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@types/node",
+      "source": "https://registry.npmjs.org/%40types%2Fnode",
+      "checkedAt": "2026-10-17T12:01:08.822Z",
+      "latest": "26.6.5",
+      "publishedAt": "2026-10-09T18:46:47.657Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "ts2.6": "12.12.6",
+        "ts2.0": "12.12.6",
+        "ts2.7": "12.12.6",
+        "ts2.1": "12.12.6",
+        "ts2.5": "12.12.6",
+        "ts2.2": "12.12.6",
+        "ts2.4": "12.12.6",
+        "ts2.3": "12.12.6",
+        "ts2.8": "13.13.4",
+        "ts2.9": "14.0.1",
+        "ts3.0": "14.6.0",
+        "ts3.1": "14.10.1",
+        "ts3.2": "14.14.9",
+        "ts3.3": "14.14.20",
+        "ts3.4": "14.14.31",
+        "ts3.5": "15.6.1",
+        "ts3.6": "16.6.2",
+        "ts3.7": "16.11.7",
+        "ts3.8": "17.0.21",
+        "ts3.9": "17.0.41",
+        "ts4.0": "18.7.14",
+        "ts4.1": "18.11.9",
+        "ts4.2": "18.15.3",
+        "ts4.4": "20.6.0",
+        "ts4.3": "20.6.0",
+        "ts4.5": "20.10.0",
+        "ts4.6": "20.11.25",
+        "ts4.7": "20.14.8",
+        "ts4.8": "22.9.0",
+        "ts4.9": "22.9.3",
+        "ts5.0": "22.13.14",
+        "ts5.1": "24.1.0",
+        "ts5.2": "25.5.0",
+        "ts5.3": "25.9.3",
+        "ts5.5": "25.9.3",
+        "ts5.4": "25.9.3",
+        "ts5.8": "26.6.5",
+        "ts6.0": "26.6.5",
+        "ts5.6": "26.6.5",
+        "ts7.0": "26.6.5",
+        "ts7.1": "26.6.5",
+        "latest": "26.6.5",
+        "ts5.9": "26.6.5",
+        "ts5.7": "26.6.5",
+        "old-version": "24.19.2"
+      },
+      "repository": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/node"
+      },
+      "integrity": "sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==",
+      "declared": "26.6.5",
+      "lockedVersion": "26.6.5",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@types/react",
+      "source": "https://registry.npmjs.org/%40types%2Freact",
+      "checkedAt": "2026-10-17T12:01:07.980Z",
+      "latest": "19.3.0",
+      "publishedAt": "2026-09-09T18:08:49.750Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "ts2.0": "15.0.1",
+        "ts2.1": "15.0.20",
+        "ts2.2": "15.0.30",
+        "ts2.4": "16.0.36",
+        "ts2.3": "16.0.36",
+        "ts2.5": "16.0.36",
+        "ts2.7": "16.4.7",
+        "ts2.6": "16.4.7",
+        "ts2.8": "16.9.34",
+        "ts2.9": "16.9.35",
+        "ts3.0": "16.9.46",
+        "ts3.1": "16.9.49",
+        "ts3.2": "16.9.56",
+        "ts3.3": "17.0.0",
+        "ts3.4": "17.0.2",
+        "ts3.5": "17.0.8",
+        "ts3.6": "17.0.19",
+        "ts3.7": "17.0.35",
+        "ts3.8": "17.0.39",
+        "ts3.9": "18.0.12",
+        "ts4.0": "18.0.18",
+        "ts4.1": "18.0.25",
+        "ts4.2": "18.0.28",
+        "ts4.3": "18.2.21",
+        "ts4.4": "18.2.21",
+        "ts4.5": "18.2.39",
+        "ts4.6": "18.2.64",
+        "ts4.7": "18.3.3",
+        "ts4.9": "18.3.12",
+        "ts4.8": "18.3.12",
+        "ts5.0": "19.0.12",
+        "ts5.1": "19.1.9",
+        "ts5.2": "19.2.14",
+        "ts5.4": "19.2.17",
+        "ts5.3": "19.2.17",
+        "ts5.5": "19.2.17",
+        "ts5.9": "19.3.0",
+        "ts5.6": "19.3.0",
+        "ts5.8": "19.3.0",
+        "ts7.0": "19.3.0",
+        "ts5.7": "19.3.0",
+        "ts6.0": "19.3.0",
+        "latest": "19.3.0",
+        "ts7.1": "19.3.0"
+      },
+      "repository": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/react"
+      },
+      "integrity": "sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==",
+      "declared": "19.3.0",
+      "lockedVersion": "19.3.0",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "@types/react-dom",
+      "source": "https://registry.npmjs.org/%40types%2Freact-dom",
+      "checkedAt": "2026-10-17T12:01:07.725Z",
+      "latest": "19.3.0",
+      "publishedAt": "2026-09-09T18:07:51.886Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "ts2.0": "0.14.20",
+        "ts2.1": "15.5.0",
+        "ts2.2": "15.5.0",
+        "ts2.5": "16.0.3",
+        "ts2.3": "16.0.3",
+        "ts2.4": "16.0.3",
+        "ts2.7": "16.0.6",
+        "ts2.6": "16.0.6",
+        "ts2.8": "16.9.7",
+        "ts3.0": "16.9.8",
+        "ts2.9": "16.9.8",
+        "ts3.1": "16.9.8",
+        "ts3.2": "16.9.9",
+        "ts3.3": "17.0.0",
+        "ts3.4": "17.0.1",
+        "ts3.5": "17.0.5",
+        "ts3.6": "17.0.9",
+        "ts3.8": "17.0.11",
+        "ts3.7": "17.0.11",
+        "ts3.9": "18.0.5",
+        "ts4.0": "18.0.6",
+        "ts4.1": "18.0.9",
+        "ts4.2": "18.0.11",
+        "ts4.4": "18.2.7",
+        "ts4.3": "18.2.7",
+        "ts4.5": "18.2.17",
+        "ts4.6": "18.2.21",
+        "ts4.7": "18.3.0",
+        "ts4.8": "18.3.1",
+        "ts4.9": "18.3.1",
+        "ts5.0": "19.0.4",
+        "ts5.1": "19.1.7",
+        "ts5.2": "19.2.3",
+        "ts5.5": "19.2.3",
+        "ts5.3": "19.2.3",
+        "ts5.4": "19.2.3",
+        "ts5.8": "19.3.0",
+        "ts5.7": "19.3.0",
+        "ts6.0": "19.3.0",
+        "ts5.9": "19.3.0",
+        "ts7.0": "19.3.0",
+        "ts5.6": "19.3.0",
+        "latest": "19.3.0",
+        "ts7.1": "19.3.0"
+      },
+      "repository": {
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "type": "git",
+        "directory": "types/react-dom"
+      },
+      "integrity": "sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==",
+      "declared": "19.3.0",
+      "lockedVersion": "19.3.0",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "drizzle-kit",
+      "source": "https://registry.npmjs.org/drizzle-kit",
+      "checkedAt": "2026-10-17T12:01:07.868Z",
+      "latest": "0.31.11",
+      "publishedAt": "2026-09-21T10:06:58.727Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "numeric-modes": "1.0.0-beta.1-867d080",
+        "rqb-v1-schema-fix": "1.0.0-beta.1-b96a4f8",
+        "rqb-typeperf": "1.0.0-beta.1-69a2ca0",
+        "effect": "1.0.0-beta.1-cdf226f",
+        "workflows": "1.0.0-beta.1-37e2608",
+        "sqlite-cloud-studio": "1.0.0-beta.1-bc61bbe",
+        "beta-next-pack": "1.0.0-beta.1-140e6cc",
+        "alternation-engine": "1.0.0-beta.2-6565b14",
+        "kit-cli-wrong-config-hints": "1.0.0-beta.2-a1a6b39",
+        "studio-benchmark": "1.0.0-beta.2-01787d6",
+        "rqb-perf-patch": "1.0.0-beta.2-f9236e3",
+        "kit-duckdb": "1.0.0-beta.3-d4ff358",
+        "mysql-blob-rqb-v2-fix": "1.0.0-beta.5-e0482ac",
+        "beta-fixes": "1.0.0-beta.6-7419dcb",
+        "beelink": "1.0.0-beta.9-c26fd2f",
+        "effect3": "1.0.0-beta.9-635dfc2",
+        "effect-fixes": "1.0.0-beta.10-9f1399e",
+        "bun-timestampstring-patch": "1.0.0-beta.10-4a698ad",
+        "drizzle-seed/bug-fixes": "1.0.0-beta.10-7f0f68a",
+        "issues": "1.0.0-beta.11-165921d",
+        "effect-cache-fix": "1.0.0-beta.11-88ca292",
+        "data-migrator": "1.0.0-beta.11-c3fb442",
+        "update/migrator-strategy": "1.0.0-beta.12-5845444",
+        "drizzle-effect": "1.0.0-beta.13-f16bdca",
+        "pg-prepare-nameless": "1.0.0-beta.13-4ef3fca",
+        "kit-introspect": "1.0.0-beta.13-ba3365d",
+        "effect-validator": "1.0.0-beta.14-56118cc",
+        "sql-explicit-origin": "1.0.0-beta.15-90d1d1a",
+        "beta.16": "1.0.0-beta.16-2ffd1a5",
+        "node-sqlite": "1.0.0-beta.16-c2458b2",
+        "sqlite-indexes": "1.0.0-beta.16-501e9b2",
+        "beta.17": "1.0.0-beta.17-160831b",
+        "kit/node-sqlite": "1.0.0-beta.17-8a36f93",
+        "fix-duckdb": "1.0.0-beta.17-c09bdc5",
+        "latest": "0.31.11",
+        "fix-jiti-tsconfig-paths": "1.0.0-beta.18-905b79a",
+        "query-comments": "1.0.0-beta.19-dca1773",
+        "conditions-wrap": "1.0.0-beta.19-c49995f",
+        "beta21": "1.0.0-beta.21-b0c345d",
+        "casing-rework": "1.0.0-beta.21-3269112",
+        "issues2": "1.0.0-beta.22-17a476d",
+        "beta": "1.0.0-beta.22",
+        "netlify-constructor": "1.0.0-beta.22-d23690d",
+        "revert-netlify": "1.0.0-beta.23-c10d10c",
+        "codecs": "1.0.0-beta.23-5d05836",
+        "pg-introspect": "1.0.0-rc.1-929a083",
+        "rc1-fixes": "1.0.0-rc.2-8feace6",
+        "turso-sls": "1.0.0-rc.2-640c81e",
+        "jiti-import-fix": "1.0.0-rc.2-67a3509",
+        "mysql-update": "1.0.0-rc.2-2be6d1e",
+        "rc4": "1.0.0-rc.4-5d5b77c",
+        "ai": "1.0.0-rc.3-abc2ef6",
+        "sqlite-update": "1.0.0-rc.4-ca0f029",
+        "rc": "1.0.0-rc.4",
+        "rc5": "1.0.0-rc.5-5935859"
+      },
+      "repository": {
+        "url": "git+https://github.com/drizzle-team/drizzle-orm.git",
+        "type": "git"
+      },
+      "integrity": "sha512-YCYqxTLIB2OCqf6w9/Vef13baBVbwQIPcbT4Y56AfO6B9ajZhDhD8Jkveg/hJvT/iuMloKD/IYYkyMMNhr7Kqg==",
+      "declared": "0.31.11",
+      "lockedVersion": "0.31.11",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "eslint",
+      "source": "https://registry.npmjs.org/eslint",
+      "checkedAt": "2026-10-17T12:01:07.794Z",
+      "latest": "10.13.0",
+      "publishedAt": "2026-10-16T14:24:10.765Z",
+      "license": "MIT",
+      "engines": {
+        "node": "^20.19.0 || ^22.13.0 || >=24"
+      },
+      "distTags": {
+        "es6jsx": "0.11.0-alpha.0",
+        "next": "10.0.0-rc.2",
+        "maintenance": "9.39.5",
+        "latest": "10.13.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/eslint/eslint.git",
+        "type": "git"
+      },
+      "integrity": "sha512-UohDjD4zSzEwhf58M3O7vc/ycc8O1I7dNlhtD0WxE8Px8EHNJKtUwzBqrzeGhisRuv2ag4sAYswszCJRgKXYUg==",
+      "declared": "10.12.0",
+      "lockedVersion": "10.12.0",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "eslint-config-next",
+      "source": "https://registry.npmjs.org/eslint-config-next",
+      "checkedAt": "2026-10-17T12:01:08.160Z",
+      "latest": "16.4.2",
+      "publishedAt": "2026-10-15T20:46:42.598Z",
+      "license": "MIT",
+      "engines": null,
+      "distTags": {
+        "next-11": "11.1.4",
+        "next-12-2-6": "12.2.6",
+        "next-14-1": "14.1.1",
+        "rc": "15.0.0-rc.1",
+        "next-13": "13.5.11",
+        "next-12-3-2": "12.3.7",
+        "beta": "16.0.0-beta.0",
+        "next-14": "14.2.35",
+        "next-15-3": "15.3.9",
+        "next-15-2": "15.2.9",
+        "next-15-0": "15.1.12",
+        "next-15-0-0": "15.0.8",
+        "preview": "16.3.0-preview.10",
+        "backport": "15.5.28",
+        "latest": "16.4.2",
+        "canary": "16.5.0-canary.16"
+      },
+      "repository": {
+        "url": "git+https://github.com/vercel/next.js.git",
+        "directory": "packages/eslint-config-next"
+      },
+      "integrity": "sha512-P33vjcETMXc+qBjpF77TeJHZLzk6cPcTy8KjpxLucYB3mCIFIORMcZ+cBXcAiIYjE5RM7jyknEEOwMNdnx/ADQ==",
+      "declared": "16.4.2",
+      "lockedVersion": "16.4.2",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    },
+    {
+      "name": "typescript",
+      "source": "https://registry.npmjs.org/typescript",
+      "checkedAt": "2026-10-17T12:01:08.682Z",
+      "latest": "7.0.2",
+      "publishedAt": "2026-07-08T15:55:18.431Z",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "distTags": {
+        "dev": "3.9.4",
+        "tag-for-publishing-older-releases": "4.1.6",
+        "insiders": "4.6.2-insiders.20220225",
+        "beta": "6.0.0-beta",
+        "rc": "7.0.1-rc",
+        "latest": "7.0.2",
+        "next": "7.1.0-dev.20261017.1"
+      },
+      "repository": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "declared": "6.0.3",
+      "lockedVersion": "6.0.3",
+      "scope": "Lockfile resolution, not a live application/runtime probe."
+    }
+  ],
+  "agentUpstream": [
+    {
+      "name": "@earendil-works/pi-coding-agent",
+      "checkedAt": "2026-10-17T12:00:13.2396864Z",
+      "source": "https://registry.npmjs.org/%40earendil-works%2Fpi-coding-agent",
+      "latestStableTag": "1.3.0",
+      "publishedAt": "2026-10-15T19:13:30.662Z",
+      "distTags": {
+        "legacy-node20": "0.74.2",
+        "latest": "1.3.0"
+      },
+      "license": "MIT",
+      "engines": {
+        "node": ">=22.19.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/earendil-works/pi.git",
+        "type": "git",
+        "directory": "packages/coding-agent"
+      },
+      "integrity": "sha512-V/WoCjA2hQSe3QLWIUB24cTRdtEdeLiIzkDqU5RMXV6VWuD+KGZnzVBMhglwdnQTySkehZsjt8a3g6Jd2g4nnw=="
+    },
+    {
+      "name": "@earendil-works/pi-durable",
+      "checkedAt": "2026-10-17T12:00:13.4487955Z",
+      "source": "https://registry.npmjs.org/%40earendil-works%2Fpi-durable",
+      "latestStableTag": "1.3.0",
+      "publishedAt": "2026-10-15T19:13:35.556Z",
+      "distTags": {
+        "latest": "1.3.0"
+      },
+      "license": "MIT",
+      "engines": {
+        "node": ">=22.19.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/earendil-works/pi.git",
+        "type": "git",
+        "directory": "packages/durable"
+      },
+      "integrity": "sha512-2aD0xead1LH0BBwUBxex28in/PpUJEwyaEiW/nLoTFUcZ/lDYEl6LHX6mGZKJG8tUHzERwJyysDgy0ruidt84w=="
+    },
+    {
+      "name": "cline",
+      "checkedAt": "2026-10-17T12:00:13.7701993Z",
+      "source": "https://registry.npmjs.org/cline",
+      "latestStableTag": "3.0.73",
+      "publishedAt": "2026-10-17T03:59:46.162Z",
+      "distTags": {
+        "latest": "3.0.73",
+        "nightly": "3.0.72-nightly.1792153337"
+      },
+      "license": "Apache-2.0",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/cline/cline.git",
+        "type": "git",
+        "directory": "apps/cli"
+      },
+      "integrity": "sha512-4lx7qC8X2neX7k3RIshwkFw0zuzSFQ7Tua+8v/6MgLDcAI/hjUWiR7GVUmbyFtH1oOazaoAD/xR1GQeX1f2NNQ=="
+    },
+    {
+      "name": "@open-pencil/cli",
+      "checkedAt": "2026-10-17T12:00:14.0236108Z",
+      "source": "https://registry.npmjs.org/%40open-pencil%2Fcli",
+      "latestStableTag": "0.16.0",
+      "publishedAt": "2026-10-14T12:35:29.866Z",
+      "distTags": {
+        "latest": "0.16.0",
+        "next": "0.16.0-beta.3"
+      },
+      "license": "MIT",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/open-pencil/open-pencil.git",
+        "type": "git",
+        "directory": "packages/cli"
+      },
+      "integrity": "sha512-UkmJZCtv/dEX0Y3uNVlWu/zyWOM2RVnHrEP93Kx2q53HjZsIJitnezfsidSqNbiiB0REC0hLgcoN+Iz+urj+tA=="
+    },
+    {
+      "name": "portless",
+      "checkedAt": "2026-10-17T12:00:14.2045442Z",
+      "source": "https://registry.npmjs.org/portless",
+      "latestStableTag": "0.15.8",
+      "publishedAt": "2026-10-13T19:53:21.545Z",
+      "distTags": {
+        "latest": "0.15.8"
+      },
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=24"
+      },
+      "repository": {
+        "url": "git+https://github.com/vercel-labs/portless.git",
+        "type": "git"
+      },
+      "integrity": "sha512-kzGoG4xLsEytczl7O/COZaBwSAOKsWsZDxHv7/iFHKIC0X71OonpgbsQw58CGO29RklIHIx6yLM31TJMnTtPEw=="
+    },
+    {
+      "name": "@dietrichgebert/ponytail",
+      "checkedAt": "2026-10-17T12:00:14.4712303Z",
+      "source": "https://registry.npmjs.org/%40dietrichgebert%2Fponytail",
+      "latestStableTag": "5.3.2",
+      "publishedAt": "2026-10-16T23:06:18.715Z",
+      "distTags": {
+        "latest": "5.3.2"
+      },
+      "license": "MIT",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/DietrichGebert/ponytail.git",
+        "type": "git"
+      },
+      "integrity": "sha512-AjJnMi54AXO55kXi0ISNPacLuTjb7e9V4lV2oidyxBOnVoPih8CIAmnfHgwX2VyPsDqwQhJthJ9bNu30MaHuOg=="
+    },
+    {
+      "name": "pi-subagents",
+      "checkedAt": "2026-10-17T12:00:14.6680484Z",
+      "source": "https://registry.npmjs.org/pi-subagents",
+      "latestStableTag": "0.79.0",
+      "publishedAt": "2026-10-17T08:19:00.631Z",
+      "distTags": {
+        "latest": "0.79.0"
+      },
+      "license": "MIT",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/nicobailon/pi-subagents.git",
+        "type": "git"
+      },
+      "integrity": "sha512-9FVPNxqYEKvimSGmQF3BqdofGTrrbY33DAS9rgtlnuvdGOvhjbhZeL2bwKYi1VOaSJcV033UpcVGLbNL4H4OOA=="
+    },
+    {
+      "name": "@ff-labs/pi-fff",
+      "checkedAt": "2026-10-17T12:00:15.0361021Z",
+      "source": "https://registry.npmjs.org/%40ff-labs%2Fpi-fff",
+      "latestStableTag": "0.11.0",
+      "publishedAt": "2026-09-21T05:10:57.587Z",
+      "distTags": {
+        "dev": "0.10.5-dev.2a477d2",
+        "latest": "0.11.0",
+        "nightly": "0.11.1-nightly.df98973"
+      },
+      "license": "MIT",
+      "engines": null,
+      "repository": {
+        "url": "git+https://github.com/dmtrKovalenko/fff.git",
+        "type": "git",
+        "directory": "packages/pi-fff"
+      },
+      "integrity": "sha512-RNYBSnmRaGxYF9/R5KO4Uq0q1Prtbe6CmltK7i3efD0+JEwR2h69sL+p6UIXNDrVANSXEWM8ehagQefbskoGwg=="
+    },
+    {
+      "name": "pi-context-view",
+      "checkedAt": "2026-10-17T12:00:15.1736175Z",
+      "source": "https://registry.npmjs.org/pi-context-view",
+      "latestStableTag": "0.7.1",
+      "publishedAt": "2026-10-13T19:49:16.877Z",
+      "distTags": {
+        "latest": "0.7.1"
+      },
+      "license": "MIT",
+      "engines": {
+        "node": ">=22.19.0"
+      },
+      "repository": {
+        "url": "git+https://github.com/dimk90/pi-context-view.git",
+        "type": "git"
+      },
+      "integrity": "sha512-74bg+Tb5SOVdjeUSW70I/yieDtAKcNeEETPj5zU3UFWlYnE3NCjGgA/fLCi6vsO9vmwbRcFmCINJBaoksxH1aw=="
+    }
+  ],
+  "releaseChannels": [
+    {
+      "repository": "earendil-works/pi",
+      "source": "https://api.github.com/repos/earendil-works/pi/releases?per_page=8",
+      "checkedAt": "2026-10-17T12:00:39.8227286Z",
+      "releases": [
+        {
+          "tag": "v1.3.0",
+          "publishedAt": "2026-10-15T19:17:33Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.3.0"
+        },
+        {
+          "tag": "v1.2.0",
+          "publishedAt": "2026-10-12T23:03:53Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.2.0"
+        },
+        {
+          "tag": "v1.1.0",
+          "publishedAt": "2026-10-07T22:26:31Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.1.0"
+        },
+        {
+          "tag": "v1.0.4",
+          "publishedAt": "2026-10-05T22:03:50Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.0.4"
+        },
+        {
+          "tag": "v1.0.3",
+          "publishedAt": "2026-10-05T08:38:23Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.0.3"
+        },
+        {
+          "tag": "v1.0.2",
+          "publishedAt": "2026-10-04T00:56:36Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.0.2"
+        },
+        {
+          "tag": "v1.0.1",
+          "publishedAt": "2026-10-03T16:14:00Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.0.1"
+        },
+        {
+          "tag": "v1.0.0",
+          "publishedAt": "2026-10-01T19:20:55Z",
+          "prerelease": false,
+          "url": "https://github.com/earendil-works/pi/releases/tag/v1.0.0"
+        }
+      ]
+    },
+    {
+      "repository": "cline/cline",
+      "source": "https://api.github.com/repos/cline/cline/releases?per_page=8",
+      "checkedAt": "2026-10-17T12:00:40.5760916Z",
+      "releases": [
+        {
+          "tag": "sdk/sdk/v0.0.95",
+          "publishedAt": "2026-10-17T03:00:13Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/sdk/sdk/v0.0.95"
+        },
+        {
+          "tag": "desktop-v0.0.48",
+          "publishedAt": "2026-10-17T04:34:20Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/desktop-v0.0.48"
+        },
+        {
+          "tag": "cli-v3.0.73",
+          "publishedAt": "2026-10-17T03:59:11Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/cli-v3.0.73"
+        },
+        {
+          "tag": "v4.1.25",
+          "publishedAt": "2026-10-16T06:39:24Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/v4.1.25"
+        },
+        {
+          "tag": "sdk/sdk/v0.0.94",
+          "publishedAt": "2026-10-16T03:51:13Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/sdk/sdk/v0.0.94"
+        },
+        {
+          "tag": "desktop-v0.0.47",
+          "publishedAt": "2026-10-16T06:51:13Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/desktop-v0.0.47"
+        },
+        {
+          "tag": "cli-v3.0.72",
+          "publishedAt": "2026-10-16T05:35:42Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/cli-v3.0.72"
+        },
+        {
+          "tag": "v4.1.24",
+          "publishedAt": "2026-10-13T15:02:27Z",
+          "prerelease": false,
+          "url": "https://github.com/cline/cline/releases/tag/v4.1.24"
+        }
+      ]
+    },
+    {
+      "repository": "open-pencil/open-pencil",
+      "source": "https://api.github.com/repos/open-pencil/open-pencil/releases?per_page=8",
+      "checkedAt": "2026-10-17T12:00:41.4369922Z",
+      "releases": [
+        {
+          "tag": "v0.16.0",
+          "publishedAt": "2026-10-14T12:37:16Z",
+          "prerelease": false,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.16.0"
+        },
+        {
+          "tag": "v0.16.0-beta.3",
+          "publishedAt": "2026-10-13T17:46:27Z",
+          "prerelease": true,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.16.0-beta.3"
+        },
+        {
+          "tag": "v0.16.0-beta.2",
+          "publishedAt": "2026-10-12T13:29:34Z",
+          "prerelease": true,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.16.0-beta.2"
+        },
+        {
+          "tag": "v0.16.0-beta.1",
+          "publishedAt": "2026-10-11T19:19:10Z",
+          "prerelease": true,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.16.0-beta.1"
+        },
+        {
+          "tag": "v0.15.1",
+          "publishedAt": "2026-09-18T15:40:46Z",
+          "prerelease": false,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.15.1"
+        },
+        {
+          "tag": "v0.15.0",
+          "publishedAt": "2026-09-16T19:33:27Z",
+          "prerelease": false,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.15.0"
+        },
+        {
+          "tag": "v0.14.0",
+          "publishedAt": "2026-08-11T13:04:11Z",
+          "prerelease": false,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.14.0"
+        },
+        {
+          "tag": "v0.13.2",
+          "publishedAt": "2026-05-30T18:21:01Z",
+          "prerelease": false,
+          "url": "https://github.com/open-pencil/open-pencil/releases/tag/v0.13.2"
+        }
+      ]
+    },
+    {
+      "repository": "block/buzz",
+      "source": "https://api.github.com/repos/block/buzz/releases?per_page=8",
+      "checkedAt": "2026-10-17T12:00:42.2290134Z",
+      "releases": [
+        {
+          "tag": "desktop-v0.5.28",
+          "publishedAt": "2026-10-09T20:52:44Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.28"
+        },
+        {
+          "tag": "desktop-v0.5.27",
+          "publishedAt": "2026-10-06T18:29:29Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.27"
+        },
+        {
+          "tag": "desktop-v0.5.26",
+          "publishedAt": "2026-09-29T23:14:47Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.26"
+        },
+        {
+          "tag": "desktop-v0.5.25",
+          "publishedAt": "2026-09-24T19:38:08Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.25"
+        },
+        {
+          "tag": "desktop-v0.5.24",
+          "publishedAt": "2026-09-23T02:39:07Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.24"
+        },
+        {
+          "tag": "desktop-v0.5.23",
+          "publishedAt": "2026-09-05T18:40:15Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.23"
+        },
+        {
+          "tag": "desktop-v0.5.22",
+          "publishedAt": "2026-09-04T14:38:43Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.22"
+        },
+        {
+          "tag": "desktop-v0.5.20",
+          "publishedAt": "2026-08-26T00:23:37Z",
+          "prerelease": false,
+          "url": "https://github.com/block/buzz/releases/tag/desktop-v0.5.20"
+        }
+      ]
+    },
+    {
+      "repository": "vercel-labs/portless",
+      "source": "https://api.github.com/repos/vercel-labs/portless/releases?per_page=8",
+      "checkedAt": "2026-10-17T12:00:42.9411526Z",
+      "releases": [
+        {
+          "tag": "v0.15.8",
+          "publishedAt": "2026-10-13T19:52:36Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.8"
+        },
+        {
+          "tag": "v0.15.7",
+          "publishedAt": "2026-10-02T06:14:27Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.7"
+        },
+        {
+          "tag": "v0.15.6",
+          "publishedAt": "2026-08-24T16:40:13Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.6"
+        },
+        {
+          "tag": "v0.15.5",
+          "publishedAt": "2026-07-30T05:09:19Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.5"
+        },
+        {
+          "tag": "v0.15.4",
+          "publishedAt": "2026-07-16T19:29:35Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.4"
+        },
+        {
+          "tag": "v0.15.3",
+          "publishedAt": "2026-07-14T14:05:33Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.3"
+        },
+        {
+          "tag": "v0.15.2",
+          "publishedAt": "2026-07-14T00:52:32Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.2"
+        },
+        {
+          "tag": "v0.15.1",
+          "publishedAt": "2026-06-30T16:17:58Z",
+          "prerelease": false,
+          "url": "https://github.com/vercel-labs/portless/releases/tag/v0.15.1"
+        }
+      ]
+    }
+  ],
+  "agents": {
+    "scope": "STATIC_REGISTRATION_ONLY",
+    "profiles": [
+      {
+        "id": "knot-pickle",
+        "kind": "buzz-managed",
+        "role": "story-momentum-guide",
+        "actor": "knot-pickle",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "thread-pickle",
+        "kind": "buzz-managed",
+        "role": "continuity-repair-guide",
+        "actor": "thread-pickle",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "heart-pickle",
+        "kind": "buzz-managed",
+        "role": "character-emotion-guide",
+        "actor": "heart-pickle",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "sage-brinewick",
+        "kind": "embedded-mastra",
+        "role": "curriculum-guide",
+        "actor": "sage-brinewick",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "tamsin-hearthquill",
+        "kind": "embedded-mastra",
+        "role": "foundations-planner",
+        "actor": "tamsin-hearthquill",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "master-oaken-vague",
+        "kind": "embedded-mastra",
+        "role": "wyrmwood-rival-director",
+        "actor": "master-oaken-vague",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "rowan-scalequill",
+        "kind": "embedded-mastra",
+        "role": "wyrmwood-curriculum-evaluator",
+        "actor": "rowan-scalequill",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "quillan-reedcloak",
+        "kind": "embedded-mastra",
+        "role": "creative-director",
+        "actor": "quillan-reedcloak",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "elowen-mapweaver",
+        "kind": "embedded-mastra",
+        "role": "story-architect",
+        "actor": "elowen-mapweaver",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "mira-threadmere",
+        "kind": "embedded-mastra",
+        "role": "continuity",
+        "actor": "mira-threadmere",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "marquee-director",
+        "kind": "embedded-mastra",
+        "role": "visual-director",
+        "actor": "marquee-director",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "critics-circle",
+        "kind": "embedded-mastra",
+        "role": "critic",
+        "actor": "critics-circle",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "avery-north",
+        "kind": "plotpickle-uat",
+        "role": "writer-in-residence",
+        "actor": "avery-north",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "luma-glassfern",
+        "kind": "deterministic-observer",
+        "role": "visual-qa",
+        "actor": "luma-glassfern",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "bram-gatewick",
+        "kind": "deterministic-gate",
+        "role": "deterministic-uat",
+        "actor": "bram-gatewick",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "rook-ironquill",
+        "kind": "repository-handoff",
+        "role": "repair-coordinator",
+        "actor": "rook-ironquill",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "ben",
+        "kind": "deterministic-observer",
+        "role": "code-quality-review",
+        "actor": "ben",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "orin-ledgerbark",
+        "kind": "buzz-managed",
+        "role": "guildhall-archivist",
+        "actor": "orin-ledgerbark",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "fen-copperwind",
+        "kind": "buzz-managed",
+        "role": "github-herald",
+        "actor": "fen-copperwind",
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "merrin-bellwarden",
+        "kind": "buzz-managed",
+        "role": "community-moderator",
+        "actor": "merrin-bellwarden",
+        "health": "UNPROVEN"
+      }
+    ],
+    "mastraRoles": [
+      "curriculum-guide",
+      "foundations-planner",
+      "discovery-mapper",
+      "wyrmwood-rival-director",
+      "wyrmwood-curriculum-evaluator",
+      "creative-director",
+      "story-architect",
+      "character",
+      "world",
+      "continuity",
+      "visual-director",
+      "screenwriter",
+      "graphic-novel",
+      "production",
+      "critic",
+      "workflow-change"
+    ],
+    "roleOnly": [
+      "discovery-mapper",
+      "character",
+      "world",
+      "screenwriter",
+      "graphic-novel",
+      "production",
+      "workflow-change"
+    ],
+    "guildhallActors": [
+      "sage-brinewick",
+      "tamsin-hearthquill",
+      "master-oaken-vague",
+      "rowan-scalequill",
+      "avery-north",
+      "quillan-reedcloak",
+      "elowen-mapweaver",
+      "mira-threadmere",
+      "marquee-director",
+      "critics-circle",
+      "luma-glassfern",
+      "bram-gatewick",
+      "rook-ironquill",
+      "orin-ledgerbark",
+      "fen-copperwind",
+      "merrin-bellwarden"
+    ],
+    "publicDirectory": [
+      "knot-pickle",
+      "thread-pickle",
+      "heart-pickle",
+      "sage-brinewick",
+      "tamsin-hearthquill",
+      "master-oaken-vague",
+      "rowan-scalequill",
+      "quillan-reedcloak",
+      "elowen-mapweaver",
+      "mira-threadmere",
+      "marquee-director",
+      "critics-circle",
+      "merrin-bellwarden",
+      "orin-ledgerbark",
+      "fen-copperwind"
+    ],
+    "directoryNotInGuildhall": [
+      "knot-pickle",
+      "thread-pickle",
+      "heart-pickle"
+    ],
+    "supervisorWorkers": [
+      {
+        "agentId": "full-story-builder",
+        "capability": "story-build",
+        "script": "scripts/full-story-builder-agent.mjs",
+        "acceptedJobTypes": [
+          "story-build",
+          "follow-up"
+        ],
+        "health": "UNPROVEN"
+      },
+      {
+        "agentId": "visual-production",
+        "capability": "poster-and-image-production",
+        "script": "scripts/visual-production-agent.mjs",
+        "acceptedJobTypes": [
+          "image",
+          "follow-up"
+        ],
+        "health": "UNPROVEN"
+      },
+      {
+        "agentId": "video-production",
+        "capability": "video-and-animatic-production",
+        "script": "scripts/video-production-agent.mjs",
+        "acceptedJobTypes": [
+          "video",
+          "follow-up"
+        ],
+        "health": "UNPROVEN"
+      },
+      {
+        "agentId": "ui-continuity",
+        "capability": "ui-continuity",
+        "script": "scripts/ui-continuity-agent.mjs",
+        "acceptedJobTypes": [
+          "ui-continuity",
+          "follow-up"
+        ],
+        "health": "UNPROVEN"
+      },
+      {
+        "agentId": "creative-writer-uat",
+        "capability": "uat",
+        "script": "scripts/run-creative-writer-uat.ps1",
+        "acceptedJobTypes": [
+          "uat",
+          "follow-up"
+        ],
+        "health": "UNPROVEN"
+      }
+    ],
+    "supervisor": {
+      "id": "production-supervisor",
+      "source": "scripts/production-supervisor-agent.mjs",
+      "health": "UNPROVEN"
+    },
+    "developerWorkers": [
+      {
+        "id": "pi",
+        "health": "VERSION_ONLY"
+      },
+      {
+        "id": "cline",
+        "health": "UNPROVEN"
+      }
+    ],
+    "registeredSkills": [
+      "uat-repair",
+      "ben-code-quality",
+      "engineering-discipline",
+      "diagnosis",
+      "plotpickle-architecture-review",
+      "sage-brinewick",
+      "plan-foundations",
+      "discovery-mapper",
+      "writer-in-residence",
+      "color-expert",
+      "visual-qa",
+      "visual-contract",
+      "character-visual-development",
+      "buzz-guildhall-reporting",
+      "marquee-director",
+      "lazy-frames-animatic",
+      "critics-circle",
+      "sequence-director",
+      "storyboard-frame-director",
+      "story-development-craft",
+      "story-revision-review",
+      "narration-storytelling"
+    ],
+    "runtimeSidecars": [
+      {
+        "id": "dsdd",
+        "entrypoint": "scripts/sidecars/dsdd-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "browser-verification",
+        "entrypoint": "scripts/sidecars/browser-verification-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "pi-durable",
+        "entrypoint": "scripts/sidecars/pi-durable-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "craft-runtime",
+        "entrypoint": "scripts/sidecars/craft-runtime-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "media-runtime",
+        "entrypoint": "scripts/sidecars/media-runtime-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      },
+      {
+        "id": "chatgpt-mcp-gateway",
+        "entrypoint": "scripts/sidecars/chatgpt-mcp-gateway-service.mjs",
+        "defaultEnabled": true,
+        "health": "UNPROVEN"
+      }
+    ],
+    "localProbes": {
+      "pi": {
+        "ready": true,
+        "version": "1.0.1",
+        "expectedVersion": "1.0.1",
+        "state": "ready"
+      },
+      "piDurable": {
+        "ready": true,
+        "version": "1.0.0",
+        "expectedVersion": "1.0.0",
+        "state": "ready",
+        "scope": "Default managed package manifest only; no sidecar started."
+      },
+      "openpencil": [
+        {
+          "package": "@open-pencil/cli",
+          "version": "0.15.1",
+          "state": "manifest-present",
+          "scope": "Metadata only; no process started"
+        },
+        {
+          "package": "@open-pencil/mcp",
+          "version": "0.15.1",
+          "state": "manifest-present",
+          "scope": "Metadata only; no process started"
+        }
+      ]
+    },
+    "dynamicPeers": "NOT_DISCOVERED; authenticated owner consent and transport proof remain separate."
+  },
+  "nextQueue": [
+    {
+      "priority": 1,
+      "ownerIssue": 3024,
+      "task": "Pi1.3.0 plus coordinated extension compatibility; genuine nested lock, SDK/stdio/native-MCP/codemode and Windows proofs before promotion."
+    },
+    {
+      "priority": 2,
+      "ownerIssue": 3024,
+      "task": "Pi Durable1.3.0 with isolated JSONL reopen/replay-safety/authority checks; preserve existing state and rollback."
+    },
+    {
+      "priority": 3,
+      "ownerIssue": 3024,
+      "task": "OpenPencil0.16.0 CLI/MCP/desktop assets, integrity, scoped read/write and explicit-connect Windows proof."
+    },
+    {
+      "priority": 4,
+      "ownerIssue": 3024,
+      "task": "BUZZ desktop0.5.28 versus fallback0.5.26; independently verify relay/image tag before any relay pin change; signed identity and room consent stay separate."
+    },
+    {
+      "priority": 5,
+      "ownerIssue": 3024,
+      "task": "Cline CLI3.0.73 candidate (distinct extension4.1.25 and desktop0.0.48), Portless0.15.8; bounded independent waves."
+    },
+    {
+      "priority": 6,
+      "ownerIssue": 3023,
+      "task": "ESLint10.13.0 and TypeScript7.0.2 latest tags require separate compatibility waves, especially exactTS6.0.3 fixture compiler; do not blindly update."
+    },
+    {
+      "priority": 7,
+      "ownerIssue": 3023,
+      "task": "Complete all lock graphs, installed/runtime rows, upstream/licence/model provenance and original attachment crosswalk; keep braces52 visible."
+    }
+  ],
+  "originalIssueStatus": [
+    {
+      "issue": 3022,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "parent"
+    },
+    {
+      "issue": 3023,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "baseline-security"
+    },
+    {
+      "issue": 3024,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "agents"
+    },
+    {
+      "issue": 3025,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    },
+    {
+      "issue": 3026,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    },
+    {
+      "issue": 3027,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    },
+    {
+      "issue": 3028,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    },
+    {
+      "issue": 3029,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    },
+    {
+      "issue": 3030,
+      "state": "OPEN",
+      "auditComplete": false,
+      "scope": "other-stream-not-certified"
+    }
+  ]
+}

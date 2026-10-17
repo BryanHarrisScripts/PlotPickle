@@ -569,7 +569,8 @@
         "scripts/windows-installer/**",
         "windows/installer/**",
         "windows/launcher/**",
-        ".github/workflows/windows-installer.yml"
+        ".github/workflows/windows-installer.yml",
+        "scripts/package-platform.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

@@ -8,7 +8,7 @@ const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function invitationContract() {
   const raw = (await source("lib/projects/collaboration/collaboration-invitations.ts")).replace(/\r\n?/g, "\n");
-  const compiled = stripTypeScriptTypes(raw, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(raw);
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
@@ -58,10 +58,11 @@ test("issue #156 rejects expired, revoked, wrong-project and credential-bearing 
   const invitation = contract.createPlotPickleInvitation(invitationInput());
   const policy = contract.createCollaborationPolicy("story-156", "Project Lead");
 
+  assert.equal(contract.validateInvitationUse({ invitation, now: "2026-08-01T00:00:00.000Z" }).invitationId, invitation.invitationId);
   assert.throws(() => contract.validateInvitationUse({ invitation, now: "2026-09-01T00:00:00.000Z" }), /expired/i);
-  assert.throws(() => contract.validateInvitationUse({ invitation, projectId: "another-story" }), /different project/i);
-  assert.throws(() => contract.validateInvitationUse({ invitation, owner: "SomeoneElse" }), /does not match/i);
-  assert.throws(() => contract.validateInvitationUse({ invitation, policy: { ...policy, revokedInvitationIds: [invitation.invitationId] } }), /revoked/i);
+  assert.throws(() => contract.validateInvitationUse({ invitation, now: "2026-08-01T00:00:00.000Z", projectId: "another-story" }), /different project/i);
+  assert.throws(() => contract.validateInvitationUse({ invitation, now: "2026-08-01T00:00:00.000Z", owner: "SomeoneElse" }), /does not match/i);
+  assert.throws(() => contract.validateInvitationUse({ invitation, now: "2026-08-01T00:00:00.000Z", policy: { ...policy, revokedInvitationIds: [invitation.invitationId] } }), /revoked/i);
 
   const unsafe = JSON.parse(contract.serializePlotPickleInvitation(invitation));
   unsafe.repository.accessToken = "not-allowed";
@@ -155,6 +156,10 @@ test("issue #156 exposes role-first onboarding and Project Lead-only decisions",
 
 test("issue #156 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-156-collaboration-invitations\.test\.mjs/);
+  const catalogue = JSON.parse(await source("config/verification/test-catalog.json"));
+  const entry = catalogue.entries.find((item) => item.id === "story-canon.repository-invitation-fixtures-3061");
+  assert.equal(entry?.ownerLayer, "story-canon");
+  assert.equal(entry?.runner.kind, "node-test");
+  assert.ok(entry.runner.targets.includes("tests/issue-156-collaboration-invitations.test.mjs"));
   assert.equal(packageJson.scripts["test:collaboration-invitations"], "node --test tests/issue-156-collaboration-invitations.test.mjs");
 });

@@ -2433,6 +2433,22 @@
         "native",
         "test-harness"
       ]
+    },
+    {
+      "id": "repository-invitation-fixtures-3061",
+      "classification": "production",
+      "include": [
+        "tests/support/story-project-repository-fixture.mjs",
+        "tests/issue-148-automatic-story-project-setup.test.mjs",
+        "tests/issue-296-repository-name-collisions.test.mjs",
+        "tests/issue-156-collaboration-invitations.test.mjs"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "security",
+        "test-harness"
+      ]
     }
   ]
 }

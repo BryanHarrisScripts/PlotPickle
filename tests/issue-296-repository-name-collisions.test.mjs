@@ -1,16 +1,12 @@
 // Regression coverage for clean GitHub repository names and deterministic collision numbering.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { stripTypeScriptTypes } from "node:module";
+import { loadStoryProjectRepositoryFixture as repositoryContract } from "./support/story-project-repository-fixture.mjs";
 import test from "node:test";
 
 const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
-async function repositoryContract() {
-  const compiled = stripTypeScriptTypes(await source("lib/projects/persistence/story-project-repository.ts"), { mode: "transform" });
-  return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
-}
 
 test("issue #296 extracts clean repository names from GitHub URLs", async () => {
   const contract = await repositoryContract();
@@ -54,6 +50,10 @@ test("issue #296 checks availability on the server immediately before creation",
 
 test("issue #296 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-296-repository-name-collisions\.test\.mjs/);
+  const catalogue = JSON.parse(await source("config/verification/test-catalog.json"));
+  const entry = catalogue.entries.find((item) => item.id === "story-canon.repository-invitation-fixtures-3061");
+  assert.equal(entry?.ownerLayer, "story-canon");
+  assert.equal(entry?.runner.kind, "node-test");
+  assert.ok(entry.runner.targets.includes("tests/issue-296-repository-name-collisions.test.mjs"));
   assert.equal(packageJson.scripts["test:repository-name-collisions"], "node --test tests/issue-296-repository-name-collisions.test.mjs");
 });

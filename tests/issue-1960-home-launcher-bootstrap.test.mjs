@@ -24,11 +24,11 @@ test("#1960 home bootstrap changes into the repo and pulls before delegating to 
   const delegateIndex = bootstrap.indexOf("& $repoLauncher @launchArgs");
   assert.ok(cdIndex >= 0 && pullIndex > cdIndex && delegateIndex > pullIndex);
 
-  assert.match(repoLauncher, /Choose how PlotPickle should start\./u);
-  assert.match(repoLauncher, /"1" = @\{[\s\S]*Mode = "normal"/u);
-  assert.match(repoLauncher, /"2" = @\{[\s\S]*Mode = "webmcp"/u);
-  assert.match(repoLauncher, /"3" = @\{[\s\S]*Mode = "conversational-uat"/u);
-  assert.match(repoLauncher, /AddSeconds\(5\)/u);
+  assert.match(repoLauncher, /\[switch\]\$DeveloperSession/u);
+  assert.match(repoLauncher, /else \{\s+"normal"\s+\}/u);
+  assert.match(repoLauncher, /& \$launcher --normal/u);
+  assert.match(repoLauncher, /& \$launcher --developer-session/u);
+  assert.doesNotMatch(repoLauncher, /AddSeconds|Read-Host|startupOptions/u);
   assert.doesNotMatch(repoLauncher, /Read-Host/u);
   assert.doesNotMatch(repoLauncher, /Run autonomous WebMCP Testing\? \[Y\/N\]/u);
 });
@@ -42,7 +42,8 @@ test("#1960 bootstrap fails closed on update errors and preserves explicit mode 
   assert.match(bootstrap, /\$launchArgs\.WebMCPTesting = \$true/u);
   assert.match(bootstrap, /\$launchArgs\.HumanTesting = \$true/u);
   assert.match(bootstrap, /\$launchArgs\.ConversationalUAT = \$true/u);
-  assert.match(bootstrap, /Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT\./u);
+  assert.match(bootstrap, /\$launchArgs\.DeveloperSession = \$true/u);
+  assert.match(bootstrap, /Choose only one startup mode: -WebMCPTesting, -HumanTesting, -ConversationalUAT, or -DeveloperSession\./u);
 });
 
 test("#1960 home bootstrap is governed by Experience Skins verification", async () => {

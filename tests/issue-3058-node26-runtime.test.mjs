@@ -41,8 +41,8 @@ test("#3058 all active distribution and product verification lanes pin the same 
 
 test("#3058 architecture Node 22 test oracle is separately identified from Node 26 product runtime",async()=>{
   const architecture=await source(".github/workflows/architecture-shadow.yml");
-  assert.match(architecture,/node-version: '22\\.13\\.0'/);
-  assert.match(architecture,/node-version: '26\\.12\\.0'/);
+  assert.match(architecture,/node-version: '22[.]13[.]0'/);
+  assert.match(architecture,/node-version: '26[.]12[.]0'/);
   assert.match(architecture,/legacy TypeScript transform fixtures/);
 });
 

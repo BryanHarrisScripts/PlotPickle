@@ -1414,7 +1414,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               ref={narrationRef}
               data-voice-input="false"
               id="plotpickle-dsdd-narration"
-              aria-label="DSDD narration"
+              aria-label={embedded ? "PlotPickle Command input" : "DSDD narration"}
               data-purpose="natural-language developer uat narration"
               disabled={busy}
               role={embedded ? "combobox" : undefined}
@@ -1425,7 +1425,7 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               onChange={(event) => {
                 const next = event.currentTarget.value;
                 setDraft(next);
-                setSlashOpen(embedded && next.trimStart().startsWith("/") && !next.includes("\\n"));
+                setSlashOpen(embedded && next.trimStart().startsWith("/") && !next.includes("\n"));
                 setSlashSelection(0);
                 if (!next.trim()) setDraftHasVoice(false);
               }}

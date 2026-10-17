@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "issue": 3022,
+  "phase": "audit-reconciliation",
+  "brief": "docs/developer-briefs/3022-audit-reconciliation.md",
+  "allowedChanges": [
+    "docs/research/3022-ecosystem-checkpoint-2026-10-17.md",
+    "docs/research/3022-ecosystem-checkpoint-2026-10-17.json",
+    "docs/developer-briefs/3022-audit-reconciliation.md",
+    "config/development-convergence/3022-audit-reconciliation.json"
+  ],
+  "acceptance": [
+    {
+      "id": "PARTIAL-SOURCE-BOUND-CHECKPOINT",
+      "criterion": "The dated machine receipt and report preserve partial audit and evidence boundaries and identify the bounded agent upgrade queue.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/research/3022-ecosystem-checkpoint-2026-10-17.json",
+          "contains": "\"kind\": \"partial-ecosystem-audit-checkpoint\""
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/research/3022-ecosystem-checkpoint-2026-10-17.md",
+          "contains": "Every agent's input/output health remains UNPROVEN in this checkpoint."
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/research/3022-ecosystem-checkpoint-2026-10-17.md",
+          "contains": "upgrade Pi plus loaded extensions together"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Reporting only; no runtime, dependency, test, approved truth, private data or provider changes.",
+    "Keep original audit issues open and distinguish historical product proof from this source/metadata checkpoint."
+  ]
+}

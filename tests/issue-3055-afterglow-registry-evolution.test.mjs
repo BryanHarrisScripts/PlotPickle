@@ -26,6 +26,16 @@ test("#3055 equal canonical empty registries are valid Afterglow fields, not unk
   assert.deepEqual(input,before,"review is read-only");
 });
 
+test("#3055 legacy PPF with no registry can reopen alongside normalized empty registry",()=>{
+  const base=baseline();
+  delete base.assetRegistry;
+  const input=saved({...base,assetRegistry:registry()},"working");
+  const plan=planAfterglowConsolidation({baseline:base,sources:[input]});
+  assert.equal(plan.needsReview.some(x=>x.path==="/assetRegistry"),false);
+  assert.equal(plan.conflicts.some(x=>x.path==="/assetRegistry"),false);
+  assert.equal(plan.readyForHumanCommit,false,"no synthetic fixture grants save authority");
+});
+
 test("#3055 different registry with real project-owned media identity requires review before any merge",()=>{
   const base=baseline();
   const draft=saved(base,"working",p=>{

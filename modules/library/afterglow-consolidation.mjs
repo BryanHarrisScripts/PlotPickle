@@ -8,7 +8,7 @@ import { reconcileAfterglowAcceptedVisuals } from "./afterglow-evidence-reconcil
 export const AFTERGLOW_DURABLE_FIELDS = Object.freeze([
   "title", "learning", "foundations", "world", "build", "production",
   "structure", "sourceEvidence", "writing", "discovery", "worldMap",
-  "storyDevelopment", "mindMapNotes", "storyIntent",
+  "assetRegistry", "storyDevelopment", "mindMapNotes", "storyIntent",
 ]);
 // Only profile/session and storage metadata are excluded. New durable project
 // roots must be reviewed explicitly, not silently omitted from consolidation.
@@ -330,6 +330,19 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
         ? null : Object.hasOwn(baseline,root) ? baseline[root] : ABSENT;
       const newValue = root === "storyIntent" && !Object.hasOwn(p,root)
         ? null : Object.hasOwn(p,root) ? p[root] : ABSENT;
+      // A project-owned registry may carry locked media and exact byte identities.
+      // Until source-bound asset reconciliation exists, keep changed registries
+      // in their original snapshots and require review rather than splicing
+      // approvals or treating a missing local image as a merged master.
+      if(root === "assetRegistry") {
+        // Pre-ASSETS PPFs omit the registry. The normalized empty registry
+        // is equivalent to absence, not new creative media or an approval.
+        const empty={version:"1.0.0",assets:[],extensions:{}};
+        const previous=oldValue===ABSENT?empty:oldValue;
+        const current=newValue===ABSENT?empty:newValue;
+        if(!equal(previous,current))needsReview.push({path:"/assetRegistry",reason:"asset-registry-requires-media-review",sourceProjectId:key});
+        continue;
+      }
       collect(oldValue,newValue,[root],edits,reviews);
     }
     for(const x of reviews)needsReview.push({...x,sourceProjectId:key});

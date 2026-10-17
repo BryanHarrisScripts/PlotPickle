@@ -30,6 +30,7 @@ const PROJECT_KEYS = [
   "writing",
   "discovery",
   "worldMap",
+  "assetRegistry",
   "storyDevelopment",
   "mindMapNotes",
   "storyIntent",

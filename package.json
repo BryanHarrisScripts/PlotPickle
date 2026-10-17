@@ -150,11 +150,11 @@
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "1.63.1",
-    "@mastra/core": "1.76.0",
+    "@mastra/core": "1.78.0",
     "@tailwindcss/postcss": "4.3.3",
     "@vitejs/plugin-react": "6.1.2",
     "@vitejs/plugin-rsc": "0.5.38",
-    "ai": "7.0.137",
+    "ai": "7.0.143",
     "braces": "file:./vendor/braces-3.0.3-depth-guard",
     "drizzle-orm": "0.45.4",
     "libsodium-wrappers-sumo": "0.8.4",

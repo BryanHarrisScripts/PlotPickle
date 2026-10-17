@@ -49,7 +49,7 @@ test("#1892 canonical OSS registry covers current direct npm graph and named run
 
   const node = registry.systems.find((item) => item.id === "nodejs");
   assert.equal(node.usage, "bundled");
-  assert.equal(node.version, "24.19.0");
+  assert.equal(node.version, "26.12.0");
 
   const nonOss = new Set(registry.nonOssConnections.map((item) => item.id));
   assert.ok(nonOss.has("lm-studio"));

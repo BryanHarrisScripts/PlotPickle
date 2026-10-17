@@ -5359,7 +5359,7 @@
       },
       {
         "target": "tests/issue-1456-windows-installer.test.mjs",
-        "targetDigest": "ad9422b91c12a32f2ab2e92a6c4ce295f5f92268c56162ae1571309256994d6c",
+        "targetDigest": "e9c73b3242e4bab20ea9a5df1ac2033e09ecd4cc4b2e038a76921d1484203adf",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],
@@ -5378,7 +5378,20 @@
           "static-source"
         ],
         "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
-        "inputs": []
+        "inputs": [
+          {
+            "path": "scripts/package-platform.mjs",
+            "digest": "7e4be7ea1c00fd4a59ce75eaa929a6dc051b9818f3ded391ab3dc436290d0d64"
+          },
+          {
+            "path": "scripts/package-smoke.mjs",
+            "digest": "dc8fad01d184760c1e95bd787a9a84098501dd7389c7d2e054d55f125cdb67ea"
+          },
+          {
+            "path": "lib/public-site/blog.ts",
+            "digest": "7dfa0dbe3000f31a50e9df6fdaf309a9056645d47e90ff9e3feb48fc4afc4e91"
+          }
+        ]
       },
       {
         "target": "tests/issue-3058-node26-runtime.test.mjs",

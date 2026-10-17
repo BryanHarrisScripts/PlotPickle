@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, rm, symlink, unlink, writeFile } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { canonicalizePiBareFilenameClaims, draftWithVerifiedGrounding } from "../scripts/pi/dsdd-grounding-repair.mjs";
+import { canonicalizePiBareFilenameClaims, draftWithVerifiedGrounding, verifiedAlternativesForMissingClaims } from "../scripts/pi/dsdd-grounding-repair.mjs";
 import { assessPiDraftGrounding } from "../scripts/dsdd-integrity.mjs";
 
 const tick = String.fromCharCode(96);
@@ -118,4 +118,46 @@ test("#2980 Windows separators in git listing canonicalize only indexed present 
     trackedListing:actual.replaceAll("/","\\")+"\0",
   });
   assert.equal(x.text,"Reference "+quote(actual));
+});
+
+
+test("#2980 observed OpenPencil .tsx hallucination gets only a verified .ts correction hint", async t => {
+  const root = await fixture(t);
+  const actual = "app/_components/settings/openpencil-command.ts";
+  await mkdir(path.dirname(path.join(root,actual)),{recursive:true});
+  await writeFile(path.join(root,actual),"// actual typed command parser");
+  execFileSync("git",["add","--",actual],{cwd:root});
+  const miss = ["app/_components/settings/openpencil-command.tsx","openpencil-command.tsx",
+    "app/_components/settings/nonexistent-command.tsx","../out-of-repo.ts"];
+  const hints = verifiedAlternativesForMissingClaims(miss,root);
+  assert.deepEqual(hints,[
+    {claim:miss[0],verified:actual},
+    {claim:miss[1],verified:actual},
+  ]);
+  let calls=0, repairPrompt="";
+  const result=await draftWithVerifiedGrounding({
+    repoRoot:root,lockedPrompt:"LOCKED: Inspect OpenPencil ASSETS without source edits.",
+    intentText:"OpenPencil ASSETS",runDraft:async p=>{
+      calls++;
+      if(calls===1)return {stdout:"Inspect "+quote(miss[0])+" and "+quote(miss[1])};
+      repairPrompt=p;
+      return {stdout:"Inspect "+quote(actual)+" for the existing command."};
+    },
+  });
+  assert.equal(result.attempts,2);
+  assert.equal(calls,2);
+  assert.match(repairPrompt,/Verified same-stem alternatives from the read-only Git index/u);
+  assert.match(repairPrompt,/app\/_components\/settings\/openpencil-command\.ts/u);
+  assert.equal(result.grounding.ok,true);
+  assert.ok(result.text.includes(quote(actual)));
+});
+
+test("#2980 extension hints remain unverified if multiple indexed sibling sources share a stem",async t=>{
+  const root=await fixture(t);
+  for(const rel of ["app/a/parser.ts","app/b/parser.mjs"]){
+    await mkdir(path.dirname(path.join(root,rel)),{recursive:true});
+    await writeFile(path.join(root,rel),"// real");
+    execFileSync("git",["add","--",rel],{cwd:root});
+  }
+  assert.deepEqual(verifiedAlternativesForMissingClaims(["parser.tsx","../parser.tsx"],root),[]);
 });

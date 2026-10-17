@@ -58,10 +58,10 @@ jobs:
       - name: Restore main reference for legacy convergence checks
         run: git update-ref refs/heads/main refs/remotes/origin/main
 
-      - name: Use Node.js 22.13 (legacy TypeScript transform fixtures)
+      - name: Use Node.js 26.12 (native application and governed fixture runtime)
         uses: actions/setup-node@v4
         with:
-          node-version: '22.13.0'
+          node-version: '26.12.0'
 
       - name: Run BEN deterministic AI-slop/code-quality delta
         if: matrix.id == 'verification'
@@ -69,11 +69,18 @@ jobs:
           node scripts/run-ben-code-quality.mjs
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
 
-      - name: Install executable Story Canon and Agent contract dependencies
-        if: matrix.id == 'experience-contract' || matrix.id == 'story-canon' || matrix.id == 'agent-runtime' || matrix.id == 'provider-runtime'
+      - name: Install pinned test compiler and executable architecture dependencies
         run: npm ci --ignore-scripts --include=dev --no-audit --no-fund
 
+      - name: Prove scoped Node 26 TypeScript fixture compilation
+        if: matrix.id == 'verification'
+        env:
+          NODE_OPTIONS: --import=./scripts/verification/node26-fixture-transform-bridge.mjs
+        run: node --test tests/issue-3061-node26-fixture-transform.test.mjs
+
       - name: Run architecture verification
+        env:
+          NODE_OPTIONS: --import=./scripts/verification/node26-fixture-transform-bridge.mjs
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"

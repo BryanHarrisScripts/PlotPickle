@@ -21,9 +21,9 @@ import {
 } from "../scripts/sidecars/pi-durable-service.mjs";
 
 test("#2696 Pi Durable is pinned and enabled for supported hosts", async () => {
-  assert.equal(PLOTPICKLE_PI_DURABLE_PACKAGE, "@earendil-works/pi-durable@1.0.0");
-  assert.equal(PLOTPICKLE_PI_DURABLE_VERSION, "1.0.0");
-  assert.equal(PI_DURABLE_RUNTIME_VERSION, "1.0.0");
+  assert.equal(PLOTPICKLE_PI_DURABLE_PACKAGE, "@earendil-works/pi-durable@1.3.0");
+  assert.equal(PLOTPICKLE_PI_DURABLE_VERSION, "1.3.0");
+  assert.equal(PI_DURABLE_RUNTIME_VERSION, "1.3.0");
   assert.equal(PI_DURABLE_MINIMUM_NODE, "22.19.0");
 
   const config = JSON.parse(await readFile(new URL("../config/pi-durable-adapter.json", import.meta.url), "utf8"));
@@ -45,18 +45,18 @@ test("#2696 reviewed managed installer places exact Pi Durable in PlotPickle-own
         invoked = { command, args };
         const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
         await mkdir(folder, { recursive: true });
-        await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.0.0" }), "utf8");
+        await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.3.0" }), "utf8");
         return { stdout: "", stderr: "" };
       },
     });
     assert.equal(installed.ready, true);
-    assert.equal(installed.version, "1.0.0");
+    assert.equal(installed.version, "1.3.0");
     assert.equal(installed.root, root);
     assert.equal(invoked.command, "npm");
     assert.ok(invoked.args.includes("--ignore-scripts"));
-    assert.ok(invoked.args.includes("@earendil-works/pi-durable@1.0.0"));
+    assert.ok(invoked.args.includes("@earendil-works/pi-durable@1.3.0"));
     const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
-    assert.equal(packageJson.dependencies["@earendil-works/pi-durable"], "1.0.0");
+    assert.equal(packageJson.dependencies["@earendil-works/pi-durable"], "1.3.0");
   } finally {
     await rm(home, { recursive: true, force: true });
   }
@@ -68,7 +68,7 @@ test("#2696 existing exact managed runtime is reused without reinstall", async (
     const root = managedPiDurableRoot({ home });
     const folder = path.join(root, "node_modules", "@earendil-works", "pi-durable");
     await mkdir(folder, { recursive: true });
-    await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.0.0" }), "utf8");
+    await writeFile(path.join(folder, "package.json"), JSON.stringify({ version: "1.3.0" }), "utf8");
     assert.equal((await probeManagedPiDurable({ home, root })).ready, true);
     let installs = 0;
     const result = await ensureManagedPiDurableInstalled({
@@ -88,10 +88,10 @@ test("#2696 existing exact managed runtime is reused without reinstall", async (
 
 test("#2696 live sidecar initializes persistent readiness without a model/provider request", async () => {
   const descriptor = await initializePiDurableRuntime("C:/PlotPickle-Test", {
-    ensure: async () => ({ root: "C:/PlotPickle-Test/runtimes/pi-durable-1.0.0", version: "1.0.0" }),
+    ensure: async () => ({ root: "C:/PlotPickle-Test/runtimes/pi-durable-1.3.0", version: "1.3.0" }),
     probe: async () => ({
       runtime: "pi-durable",
-      version: "1.0.0",
+      version: "1.3.0",
       state: "ready",
       storage: "jsonl",
       rootId: "root-2696",

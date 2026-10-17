@@ -71,7 +71,7 @@ async function loadPiDurableModules(moduleRoot) {
 
 export async function probePiDurableRuntime({ moduleRoot, storageRoot } = {}) {
   if (!nodeMeetsMinimum()) {
-    throw new Error("@earendil-works/pi-durable@1.0.0 requires Node >=22.19.0; this host is below the supported runtime.");
+    throw new Error("@earendil-works/pi-durable@1.3.0 requires Node >=22.19.0; this host is below the supported runtime.");
   }
   if (!moduleRoot || !storageRoot) throw new Error("Pi Durable readiness requires managed module and storage roots.");
 
@@ -165,7 +165,7 @@ export async function createNativePiDurableDriver({
   resolveTool = (name) => name,
 } = {}) {
   if (!nodeMeetsMinimum()) {
-    throw new Error("@earendil-works/pi-durable@1.0.0 requires Node >=22.19.0; this host is below the supported runtime.");
+    throw new Error("@earendil-works/pi-durable@1.3.0 requires Node >=22.19.0; this host is below the supported runtime.");
   }
   if (!storageRoot || !models || !registry || !context || !agent?.model) {
     throw new Error("Pi Durable driver requires host-owned storage, models, registry, context and host-selected model.");
@@ -307,4 +307,4 @@ export class DisabledDurableAdapter extends DurableExecutionAdapter {
 }
 
 export const PI_DURABLE_MINIMUM_NODE = "22.19.0";
-export const PI_DURABLE_RUNTIME_VERSION = "1.0.0";
+export const PI_DURABLE_RUNTIME_VERSION = "1.3.0";

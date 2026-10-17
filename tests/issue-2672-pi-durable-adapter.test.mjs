@@ -67,7 +67,7 @@ test("#2672 baseline fallback works with Pi Durable absent", async () => {
 });
 
 test("#2672 prototype pins upstream runtime facts behind adapter seam", () => {
-  assert.equal(PI_DURABLE_RUNTIME_VERSION,"1.0.0");
+  assert.equal(PI_DURABLE_RUNTIME_VERSION,"1.3.0");
   assert.equal(PI_DURABLE_MINIMUM_NODE,"22.19.0");
   assert.deepEqual(normalizeDurableTask(task("bounded")).tools,["read"]);
 });

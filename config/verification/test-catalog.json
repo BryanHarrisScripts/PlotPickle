@@ -3395,6 +3395,48 @@
         ]
       },
       "notes": "#3067 managed Pi/extension exact-pin and fail-closed private-install contracts; fixtures/static checks, not real Windows install or provider inference."
+    },
+    {
+      "id": "agent.pi-durable-contract-3024",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2672-pi-durable-adapter.test.mjs",
+          "tests/issue-2696-pi-durable-active-default.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "3024 existing Pi Durable replay/authority/private-install/default-activation fixtures. Real package restart and old-state compatibility require separate Windows evidence."
     }
   ],
   "truthGovernance": {
@@ -6391,7 +6433,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "6564270fa230bc9c2a4a6cecf2a51703ae57a272307ef1225a25bc153efa8f8b"
+            "digest": "030ffa6d85d90646b941f1a18d2ae19d8d715405298bc6a715e0228b2805c1c9"
           },
           {
             "path": "docs/developer-briefs/2338-dsdd-pi-087-persistent-session.md",
@@ -6507,7 +6549,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "6564270fa230bc9c2a4a6cecf2a51703ae57a272307ef1225a25bc153efa8f8b"
+            "digest": "030ffa6d85d90646b941f1a18d2ae19d8d715405298bc6a715e0228b2805c1c9"
           },
           {
             "path": ".github/workflows/product-gate.yml",
@@ -6784,6 +6826,110 @@
           {
             "path": "config/uat-autopilot-registry.json",
             "digest": "9f229d10cf475a5ce4e02a5af8746e8b00af812f3a50eb1c36212f706237461c"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2672-pi-durable-adapter.test.mjs",
+        "targetDigest": "bf90cdfa378ffb20961af415d9743ad6ce0b38501b7edf1077ec57ed98c59272",
+        "catalogueIds": [
+          "agent.pi-durable-contract-3024"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing durable authority, replay rejection, task isolation, managed-install and active-default fixtures with current1.3 package pin. Not actual old-state migration, provider execution or live sidecar acceptance; separate Windows runtime proof required.",
+        "inputs": [
+          {
+            "path": "core/sidecars/pi-durable-adapter.mjs",
+            "digest": "c4014f612763e6a8d29e9173ca7f5c8c69a59e875e6d62e61151e7c3425bbe48"
+          },
+          {
+            "path": "core/sidecars/durable-execution-contract.mjs",
+            "digest": "75fa1c25ba80c16c08ae0ef685080fa3632c9b2982df06e8775233e2db7854a1"
+          },
+          {
+            "path": "scripts/pi-durable-managed-install.mjs",
+            "digest": "f7c2777806bdd841d671d0773104499bd47c06d2612c7f52fa82a56594ce99d6"
+          },
+          {
+            "path": "scripts/sidecars/pi-durable-service.mjs",
+            "digest": "1a76e83578530ea2a3bcff1f55ca3c10ea234a06328c619a6e60ecb06a9d884f"
+          },
+          {
+            "path": "scripts/evaluate-pi-durable-adapter.mjs",
+            "digest": "5394d709df8a718a41aaa8646fd6046793b0387e0532ffcc38fcf3d4105947cf"
+          },
+          {
+            "path": "config/pi-durable-adapter.json",
+            "digest": "39acc62b86df5ceefb70994aca8eba1e9a72d426e00a3a2d3dca073a87ab6df0"
+          },
+          {
+            "path": "config/runtime-sidecars.json",
+            "digest": "3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2696-pi-durable-active-default.test.mjs",
+        "targetDigest": "eb0519bbbed260183a2361e06f822186f6a584adb211c2710615631857234174",
+        "catalogueIds": [
+          "agent.pi-durable-contract-3024"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing durable authority, replay rejection, task isolation, managed-install and active-default fixtures with current1.3 package pin. Not actual old-state migration, provider execution or live sidecar acceptance; separate Windows runtime proof required.",
+        "inputs": [
+          {
+            "path": "core/sidecars/pi-durable-adapter.mjs",
+            "digest": "c4014f612763e6a8d29e9173ca7f5c8c69a59e875e6d62e61151e7c3425bbe48"
+          },
+          {
+            "path": "core/sidecars/durable-execution-contract.mjs",
+            "digest": "75fa1c25ba80c16c08ae0ef685080fa3632c9b2982df06e8775233e2db7854a1"
+          },
+          {
+            "path": "scripts/pi-durable-managed-install.mjs",
+            "digest": "f7c2777806bdd841d671d0773104499bd47c06d2612c7f52fa82a56594ce99d6"
+          },
+          {
+            "path": "scripts/sidecars/pi-durable-service.mjs",
+            "digest": "1a76e83578530ea2a3bcff1f55ca3c10ea234a06328c619a6e60ecb06a9d884f"
+          },
+          {
+            "path": "scripts/evaluate-pi-durable-adapter.mjs",
+            "digest": "5394d709df8a718a41aaa8646fd6046793b0387e0532ffcc38fcf3d4105947cf"
+          },
+          {
+            "path": "config/pi-durable-adapter.json",
+            "digest": "39acc62b86df5ceefb70994aca8eba1e9a72d426e00a3a2d3dca073a87ab6df0"
+          },
+          {
+            "path": "config/runtime-sidecars.json",
+            "digest": "3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8"
           }
         ]
       }

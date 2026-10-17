@@ -1,0 +1,13 @@
+# Pi Durable 1.3 runtime update
+
+Human direction: finish software updates in the existing backlog, reducing open issues without opening duplicate trackers. This wave belongs to #3024/#3053/#3022 and follows merged Pi upgrade #3068 at4bf7817f75e085c9c61ca6acdac31f8b25327e0a.
+
+The checked stable @earendil-works/pi-durable package is1.3.0 (MIT, Node>=22.19). Move the current private-install pin, adapter version/errors, active-default config, OSS attribution and focused assertions together. Keep the existing versioned private runtime directories, JSONL storage ownership, DSDD/Human authority and degraded startup behavior. No runtime is installed into the user's active home during development.
+
+Impact map: core/sidecars owns durable execution/authority contracts; scripts/pi-durable-managed-install.mjs owns private package provision; scripts/sidecars/pi-durable-service.mjs initializes readiness and governed recovery. The existing candidate evaluator and selected Windows Pi Product Gate own real package/restart/isolation proof. The adapter/sidecar may not select models, override failed checks, accept canon or gain merge authority. Existing safe versus non-replayable task guards stay unchanged.
+
+Preserve all eleven fixture cases and rejection meanings. Register and bind the previously uncatalogued suites to approved WHITE-PAPER-V3 W8/W9 before counting results. The new migration proof provisions a fresh isolated1.0.0 package, writes a completed synthetic task/root to JSONL, reopens that state with1.3.0, checks preserved root/task outcome, and executes new synthetic work. It is not a reconstruction of every historical transitive graph or a test of private user sessions. Runtime fetch is denied; package installation uses public registry metadata only.
+
+Acceptance: version pins align; admitted fixtures pass with no skips; actual Windows Node26 candidate proves interrupted task resume and conversation isolation, old-version JSONL read/new write, no provider calls and unchanged authority envelope; focused UAT/build, OSS audit, convergence, independent review and exact-head architecture/BEN/CodeQL/Windows Product gates pass. Do not change the active default to hide failure or skip the real package proof.
+
+Rollback: restore the previous pin/config/adapter version from merged main and retain its separate1.0.0 runtime directory. The synthetic forward-compatibility probe does not establish arbitrary downgrade compatibility after user writes; do not auto-downgrade or rewrite existing storage. Existing protected Brotherly Love tasks remain untouched and cannot be retried by this update.

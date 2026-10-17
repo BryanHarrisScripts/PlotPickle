@@ -2467,6 +2467,19 @@
         "security",
         "test-harness"
       ]
+    },
+    {
+      "id": "pi-durable-contract-tests-3024",
+      "classification": "production",
+      "include": [
+        "tests/issue-2672-pi-durable-adapter.test.mjs",
+        "tests/issue-2696-pi-durable-active-default.test.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security"
+      ]
     }
   ]
 }

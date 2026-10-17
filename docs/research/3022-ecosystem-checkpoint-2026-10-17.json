@@ -1716,8 +1716,9 @@
       },
       "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
       "declared": "file:./vendor/braces-3.0.3-depth-guard",
-      "lockedVersion": null,
-      "scope": "Lockfile resolution, not a live application/runtime probe."
+      "lockedVersion": "3.0.3",
+      "scope": "Lockfile resolution, not a live application/runtime probe. Linked vendor depth-guard package retains upstream version3.0.3; this is not an official fixed release.",
+      "linkTarget": "vendor/braces-3.0.3-depth-guard"
     },
     {
       "name": "drizzle-orm",

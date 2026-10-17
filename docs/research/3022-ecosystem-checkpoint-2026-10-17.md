@@ -117,7 +117,7 @@ These are the exact lockfile versions and checked npm tags; release-time recheck
 | @vitejs/plugin-react | 6.1.2 | 6.1.2 | matches checked latest tag |
 | @vitejs/plugin-rsc | 0.5.38 | 0.5.38 | matches checked latest tag |
 | ai | 7.0.143 | 7.0.143 | matches checked latest tag |
-| braces | null | 3.0.3 | reviewed vendor backport; do not replace blindly |
+| braces | 3.0.3 (vendor depth guard) | 3.0.3 | reviewed vendor backport; do not replace blindly |
 | drizzle-orm | 0.45.4 | 0.45.4 | matches checked latest tag |
 | libsodium-wrappers-sumo | 0.8.4 | 0.8.4 | matches checked latest tag |
 | next | 16.4.2 | 16.4.2 | matches checked latest tag |

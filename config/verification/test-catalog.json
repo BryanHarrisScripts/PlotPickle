@@ -7050,7 +7050,7 @@
       },
       {
         "target": "tests/issue-2787-openpencil-gui-review.test.mjs",
-        "targetDigest": "c8711eae85655621d6533703b16c00c8c0e24372c90f890a4e756e045569e4a7",
+        "targetDigest": "8997c3ed18a467a7ea1c5d46ffe33ce2a7f44e336ae83b775d2f84c28cc5a0eb",
         "catalogueIds": [
           "production.openpencil-command-mcp-2780"
         ],

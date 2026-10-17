@@ -40,7 +40,7 @@ test("#2787 repository registry covers the explicit PlotPickle surface names wit
     "Outline", "Storyboard", "Previs", "Timeline", "Rough Cut",
     "Deck", "Package", "Feedback",
     "Identity", "Wyrmwood", "Unwritten",
-    "Foley", "Narration", "Music", "Settings", "Command",
+    "Foley", "Narration", "Music", "ASSETS", "Settings", "Command",
   ];
   assert.deepEqual(registry.surfaces.map((surface) => surface.name), expected);
   const designFiles = new Set();
@@ -84,6 +84,14 @@ test("#2787 surface resolution is explicit, case-insensitive, multi-word, and wo
   const mindMap = await resolveOpenPencilSurface("Mind   Map", dependencies);
   assert.equal(mindMap.name, "Mind Map");
   assert.equal(mindMap.page, "Mind Map");
+  const assets = await resolveOpenPencilSurface("ASSETS", dependencies);
+  assert.equal(assets.name, "ASSETS");
+  assert.equal(assets.page, "ASSETS");
+  assert.equal(assets.designFile, "C:\\Repo\\designs\\openpencil\\assets.fig");
+  assert.equal(assets.bootstrapFile, "C:\\Repo\\designs\\openpencil\\bootstrap\\assets.pen");
+  const mixedCase = await resolveOpenPencilSurface("assets", dependencies);
+  assert.equal(mixedCase.name, "ASSETS");
+
 
   await assert.rejects(
     resolveOpenPencilSurface("Current Page", dependencies),

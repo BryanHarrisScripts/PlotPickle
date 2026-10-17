@@ -30,7 +30,7 @@ OpenPencil connection remains explicit, but the reviewed MCP helper is startup-m
 
 PlotPickle:
 
-- prepares pinned `@open-pencil/mcp@0.15.1` after the core app is already ready;
+- prepares pinned `@open-pencil/mcp@0.16.0` after the core app is already ready;
 - installs it only in user-owned local app data at `%LOCALAPPDATA%\PlotPickle\tools\openpencil`;
 - treats preparation failure as a warning that cannot block core PlotPickle;
 - does not launch `openpencil-mcp-http` during startup;
@@ -94,7 +94,7 @@ The Human entrypoint is **Settings → Command**. Command exposes a visible Open
 
 Operational OpenPencil commands do not enter the DSDD interpretation/Pi Draft/Publish Brief path. They use separate command/tool message roles so checking or changing local connection state cannot silently rewrite a locked development intent.
 
-Connection remains explicit. PlotPickle first resolves its managed `@open-pencil/mcp@0.15.1` entrypoint, with an existing user/global installation retained as a fallback, and launches `openpencil-mcp-http` only after the Human supplies an existing absolute workspace. Settings prefills the repository `designs/openpencil` workspace when available. The child receives `OPENPENCIL_MCP_ROOT` equal to that workspace and serves the documented local MCP endpoint at `http://127.0.0.1:7600/mcp`.
+Connection remains explicit. PlotPickle first resolves its managed `@open-pencil/mcp@0.16.0` entrypoint, with an existing user/global installation retained as a fallback, and launches `openpencil-mcp-http` only after the Human supplies an existing absolute workspace. Settings prefills the repository `designs/openpencil` workspace when available. The child receives `OPENPENCIL_MCP_ROOT` equal to that workspace and serves the documented local MCP endpoint at `http://127.0.0.1:7600/mcp`.
 
 On Windows, PlotPickle does not execute an arbitrary `.cmd` wrapper. It resolves the reviewed npm global JavaScript entrypoint and launches it directly with Node using `shell: false`.
 
@@ -111,7 +111,7 @@ OpenPencil preparation is deliberately split from OpenPencil connection:
 
 1. Core PlotPickle reaches ready state first.
 2. Deferred maintenance ensures `designs/openpencil` exists in the repository checkout.
-3. Deferred maintenance prepares pinned `@open-pencil/mcp@0.15.1` in PlotPickle local app data when needed.
+3. Deferred maintenance prepares pinned `@open-pencil/mcp@0.16.0` in PlotPickle local app data when needed.
 4. Any preparation failure is a warning; core PlotPickle remains usable.
 5. No MCP process or port 7600 is started during preparation.
 6. The Human explicitly selects **Connect OpenPencil** to launch the local MCP child.
@@ -152,7 +152,7 @@ The OpenPencil phase stops at the published GitHub issue. It does not create an 
 
 ### GUI/runtime split
 
-Three reviewed OpenPencil 0.15.1 capabilities have separate responsibilities:
+Three reviewed OpenPencil 0.16.0 capabilities have separate responsibilities:
 
 - `@open-pencil/mcp` remains the scoped automation/agent bridge.
 - `@open-pencil/cli` supplies deterministic app-control commands such as document listing and page activation.
@@ -160,7 +160,7 @@ Three reviewed OpenPencil 0.15.1 capabilities have separate responsibilities:
 
 All preparation remains deferred until PlotPickle core readiness. Preparation failure is non-blocking. No MCP server or desktop GUI launches during normal startup.
 
-On Windows, when the desktop application is absent, PlotPickle may prepare the pinned upstream OpenPencil 0.15.1 x64 installer after core readiness. The installer identity is verified by SHA-256 before execution. The GUI still launches only after an explicit `OpenPencil open <surface>` command.
+On Windows, when the desktop application is absent, PlotPickle may prepare the pinned upstream OpenPencil 0.16.0 x64 installer after core readiness. The installer identity is verified by SHA-256 before execution. The GUI still launches only after an explicit `OpenPencil open <surface>` command.
 
 ### Opening a surface
 
@@ -191,7 +191,7 @@ This explicit-name requirement is deliberate. Context-aware/current-surface infe
 
 Issue #2791 closes the first-run gap in Phase 4. The explicit surface registry previously targeted a shared `design.fig` that was not present in a clean repository checkout, so a correct `OpenPencil open Timeline` command failed before the GUI could launch.
 
-The exact pinned OpenPencil 0.15.1 release reads `.pen` and provides the headless `convert` command, while normal GUI save authority remains the editable `.fig` format. PlotPickle therefore keeps a small repository-owned `.pen` seed for each named surface and an explicit editable `.fig` target in `surfaces.json`.
+The exact pinned OpenPencil 0.16.0 release reads `.pen` and provides the headless `convert` command, while normal GUI save authority remains the editable `.fig` format. PlotPickle therefore keeps a small repository-owned `.pen` seed for each named surface and an explicit editable `.fig` target in `surfaces.json`.
 
 On first open only, when the target `.fig` does not exist, PlotPickle resolves and confines the target and seed to `designs/openpencil`, converts the seed to the editable target with the reviewed CLI, verifies the registered page, then launches OpenPencil Desktop and activates that exact page. Once an editable `.fig` exists, the seed is never allowed to overwrite it. `OpenPencil review <surface>` continues to gather Git evidence from the editable `.fig`.
 
@@ -202,7 +202,7 @@ Issue #2793 makes Timeline the first proof that OpenPencil can begin from the ac
 
 The Human's authenticated browser remains the only source allowed to capture private current-story UI. Command raises a bounded local design-capture event; the dashboard host reveals Timeline; the browser waits for the governed Timeline ready selector and serializes only the Timeline review subtree with rendered geometry and selected computed styles. Script/style/runtime tags are excluded and the payload is size/node bounded by `config/openpencil-design-snapshot.json`.
 
-The existing authenticated OpenPencil gateway accepts that bounded Timeline snapshot and the pinned OpenPencil 0.15.1 CLI imports the HTML/CSS into `timeline-live.fig`. The previous `timeline.fig` scaffold is not overwritten. Once the live FIG exists, later opens preserve Human edits and do not regenerate it.
+The existing authenticated OpenPencil gateway accepts that bounded Timeline snapshot and the pinned OpenPencil 0.16.0 CLI imports the HTML/CSS into `timeline-live.fig`. The previous `timeline.fig` scaffold is not overwritten. Once the live FIG exists, later opens preserve Human edits and do not regenerate it.
 
 WebMCP does not inherit the Human browser session. Its synthetic profile remains the independent verification observer for navigation, readiness, computed-style/geometry inspection and screenshot evidence. This keeps the privacy boundary deterministic while reusing the same rendered-surface concepts for QA.
 

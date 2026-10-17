@@ -92,7 +92,7 @@ test("#2787 surface resolution is explicit, case-insensitive, multi-word, and wo
 });
 
 test("#2787 managed CLI and reviewed Desktop executable resolve without a shell", () => {
-  assert.equal(OPENPENCIL_DESKTOP_VERSION, "0.15.1");
+  assert.equal(OPENPENCIL_DESKTOP_VERSION, "0.16.0");
   const cli = "C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\cli\\bin\\openpencil.js";
   const desktop = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\OpenPencil\\OpenPencil.exe";
   const found = new Set([cli, desktop]);
@@ -249,10 +249,16 @@ test("#2787 startup prepares the pinned CLI/Desktop but never launches the GUI",
   const setup = await read("scripts/ensure-openpencil-mcp.ps1");
   assert.match(setup, /@open-pencil\/mcp@\$Version/u);
   assert.match(setup, /@open-pencil\/cli@\$Version/u);
-  assert.match(setup, /OpenPencil_0\.15\.1_x64-setup\.exe/u);
-  assert.match(setup, /5e06bc1b58afc80e16c7a5828fced68c3b3aa656b32c20f4fe9c651feab6f5f9/u);
+  assert.match(setup, /OpenPencil_0\.16\.0_x64-setup\.exe/u);
+  assert.match(setup, /1b851ac488ce9be437f8b321cadb87ee169f9a1d11968d8e8be87742c9d4df4b/u);
   assert.match(setup, /Start-Process -FilePath \$installer -ArgumentList "\/S" -Wait -PassThru/u);
   assert.match(setup, /\$env:CI -ne "true"/u);
+  assert.match(setup, /function Get-DesktopVersion/u);
+  assert.match(setup, /\$desktopVersion -ne \$Version/u);
+  assert.match(setup, /Get-Process -Name "OpenPencil"/u);
+  assert.match(setup, /A version update is deferred until it is closed/u);
+  assert.match(setup, /An external OpenPencil Desktop override is configured/u);
+  assert.match(setup, /only the reviewed 0\.16\.0 release/u);
   assert.match(setup, /OpenPencil is not launched or connected during startup/u);
   assert.doesNotMatch(setup, /Start-Process -FilePath \$desktop/u);
 });

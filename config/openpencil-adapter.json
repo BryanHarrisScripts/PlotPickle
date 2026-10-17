@@ -35,7 +35,7 @@
       "export"
     ],
     "managedPackage": "@open-pencil/cli",
-    "managedVersion": "0.15.1",
+    "managedVersion": "0.16.0",
     "appControl": [
       "documents list",
       "documents open",
@@ -114,7 +114,7 @@
     "issue": 2782,
     "normalStartupLaunch": false,
     "packageInstall": "plotpickle-managed-after-core-ready",
-    "pinnedVersion": "0.15.1",
+    "pinnedVersion": "0.16.0",
     "windowsShell": false,
     "endpointHost": "127.0.0.1",
     "endpointPort": 7600,
@@ -122,16 +122,16 @@
   },
   "managedPackage": {
     "name": "@open-pencil/mcp",
-    "version": "0.15.1",
+    "version": "0.16.0",
     "installTiming": "after-core-ready",
     "installRoot": "%LOCALAPPDATA%\\PlotPickle\\tools\\openpencil",
     "failurePolicy": "warn-and-continue",
     "launchesServer": false,
     "companionCli": "@open-pencil/cli",
-    "companionCliVersion": "0.15.1"
+    "companionCliVersion": "0.16.0"
   },
   "gui": {
-    "version": "0.15.1",
+    "version": "0.16.0",
     "platform": "windows",
     "explicitSurfaceRequired": true,
     "surfaceRegistry": "designs/openpencil/surfaces.json",
@@ -140,8 +140,8 @@
     "desktopExecutable": "OpenPencil.exe",
     "approvedOverride": "PLOTPICKLE_OPENPENCIL_DESKTOP_EXE",
     "installer": {
-      "url": "https://github.com/open-pencil/open-pencil/releases/download/v0.15.1/OpenPencil_0.15.1_x64-setup.exe",
-      "sha256": "5e06bc1b58afc80e16c7a5828fced68c3b3aa656b32c20f4fe9c651feab6f5f9",
+      "url": "https://github.com/open-pencil/open-pencil/releases/download/v0.16.0/OpenPencil_0.16.0_x64-setup.exe",
+      "sha256": "1b851ac488ce9be437f8b321cadb87ee169f9a1d11968d8e8be87742c9d4df4b",
       "timing": "after-core-ready",
       "failurePolicy": "warn-and-continue",
       "silentArgument": "/S"

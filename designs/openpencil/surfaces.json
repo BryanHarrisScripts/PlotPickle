@@ -172,6 +172,13 @@
       "bootstrap": "bootstrap/music.pen"
     },
     {
+      "name": "ASSETS",
+      "file": "assets.fig",
+      "page": "ASSETS",
+      "aliases": [],
+      "bootstrap": "bootstrap/assets.pen"
+    },
+    {
       "name": "Settings",
       "file": "settings.fig",
       "page": "Settings",

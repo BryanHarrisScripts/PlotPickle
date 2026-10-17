@@ -1,0 +1,85 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "assets-surface",
+      "name": "ASSETS",
+      "width": 1440,
+      "height": 900,
+      "fill": "#080b09",
+      "children": [
+        {
+          "type": "text",
+          "id": "assets-title",
+          "name": "Surface title",
+          "x": 64,
+          "y": 60,
+          "content": "PLOTPICKLE · ASSETS",
+          "fontSize": 40,
+          "fontWeight": 700,
+          "fill": "#7DFF8A"
+        },
+        {
+          "type": "text",
+          "id": "assets-subtitle",
+          "name": "Asset workspace scope",
+          "x": 64,
+          "y": 125,
+          "width": 1280,
+          "content": "Posters  /  Characters  /  Collectibles  /  World  /  Sounds",
+          "fontSize": 24,
+          "fontWeight": 600,
+          "fill": "#E8EEE9"
+        },
+        {
+          "type": "text",
+          "id": "assets-overview",
+          "name": "Human review",
+          "x": 64,
+          "y": 210,
+          "width": 1240,
+          "content": "This is a local editable design seed for the ASSETS workspace, not a live snapshot or approved production asset. Preserve existing project files, approved images, and authoring decisions.",
+          "fontSize": 18,
+          "fontWeight": 400,
+          "fill": "#B4C3B8"
+        },
+        {
+          "type": "frame",
+          "id": "assets-design-panel",
+          "name": "ASSETS design panel",
+          "x": 64,
+          "y": 300,
+          "width": 1312,
+          "height": 400,
+          "fill": "#14251B",
+          "children": [
+            {
+              "type": "text",
+              "id": "assets-panel-heading",
+              "name": "Design workspace",
+              "x": 36,
+              "y": 36,
+              "content": "ASSETS  /  DESIGN REVIEW",
+              "fontSize": 28,
+              "fontWeight": 700,
+              "fill": "#7DFF8A"
+            },
+            {
+              "type": "text",
+              "id": "assets-panel-note",
+              "name": "Design review instructions",
+              "x": 36,
+              "y": 104,
+              "width": 1220,
+              "content": "Open in OpenPencil, edit and Save, then return to PlotPickle and run OpenPencil review ASSETS. Actual asset generation and approval remain in PlotPickle.",
+              "fontSize": 18,
+              "fontWeight": 400,
+              "fill": "#E8EEE9"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

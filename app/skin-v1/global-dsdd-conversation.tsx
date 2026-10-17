@@ -21,6 +21,7 @@ import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog"
 import { isPublicWebPath } from "../public-web-route";
 import VoiceInputControl from "../_components/voice-input-control";
 import { OPENPENCIL_COMMAND_HELP, parseOpenPencilCommand } from "../_components/settings/openpencil-command";
+import { findCmdSlashSuggestions } from "../_components/settings/cmd-slash-commands.mjs";
 import { parsePlotPickleCreativeCommand, describePlotPickleCreativeCommand, executePlotPickleLibraryOpen, executePlotPickleLibraryRename, inspectPlotPickleLibraryProject } from "../_components/settings/plotpickle-creative-command.mjs";
 import { loadActiveLibraryProject, sessionActiveProjectId, listHumanLibraryProjects, listPersistableLibraryProjects, loadLibraryProjectSnapshot, switchActiveLibraryProject, saveActiveLibraryProject, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject, flushProfilePrivateWrites, profilePrivateBrowserReadyFor } from "../../core/storage/profile-private-browser";
@@ -249,6 +250,8 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const [context, setContext] = useState<DsddContext | null>(null);
   const [messages, setMessages] = useState<DsddMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashSelection, setSlashSelection] = useState(0);
   const [draftHasVoice, setDraftHasVoice] = useState(false);
   const [activeInputMode, setActiveInputMode] = useState<DsddInputMode>("typed");
   const [working, setWorking] = useState(false);
@@ -267,6 +270,17 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
   const previousJourneyRef = useRef<DsddContext | null>(null);
   const openPencilDesignSessionRef = useRef<OpenPencilPendingDesignSession | null>(null);
   const busy = clearing || working || commandWorking || piDrafting || publishing || validatingFinding;
+  const slashSuggestions = useMemo(() => embedded && slashOpen ? findCmdSlashSuggestions(draft) : [], [embedded, slashOpen, draft]);
+  const activeSlashIndex = Math.min(slashSelection, Math.max(0, slashSuggestions.length - 1));
+
+  function chooseSlashCommand(command: string) {
+    setDraft(`/${command}`);
+    setDraftHasVoice(false);
+    setSlashOpen(false);
+    setSlashSelection(0);
+    setError("");
+    narrationRef.current?.focus();
+  }
   const latestHumanIndex = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
       if (messages[index].role === "human") return index;
@@ -1077,6 +1091,11 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
     event.preventDefault();
     const submitted = draft.trim();
     if (!submitted || busy) return;
+    if (embedded && submitted.startsWith("/") && (submitted === "/" || (slashOpen && slashSuggestions.length === 0))) {
+      setError("Choose a recognized command from the slash menu or type a supported command. Nothing was executed.");
+      return;
+    }
+    setSlashOpen(false);
     if (await runCmdSourceProposal(submitted)) return;
     if (await runAgentHealthCommand(submitted)) return;
     if (await runDirectConnectionsCommand(submitted)) return;
@@ -1395,18 +1414,63 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
               ref={narrationRef}
               data-voice-input="false"
               id="plotpickle-dsdd-narration"
-              aria-label="DSDD narration"
+              aria-label={embedded ? "PlotPickle Command input" : "DSDD narration"}
               data-purpose="natural-language developer uat narration"
               disabled={busy}
+              role={embedded ? "combobox" : undefined}
+              aria-autocomplete={embedded ? "list" : undefined}
+              aria-expanded={embedded ? slashOpen : undefined}
+              aria-controls={embedded ? "plotpickle-cmd-slash-menu" : undefined}
+              aria-activedescendant={embedded && slashOpen && slashSuggestions.length ? `plotpickle-cmd-slash-option-${activeSlashIndex}` : undefined}
               onChange={(event) => {
                 const next = event.currentTarget.value;
                 setDraft(next);
+                setSlashOpen(embedded && next.trimStart().startsWith("/") && !next.includes("\n"));
+                setSlashSelection(0);
                 if (!next.trim()) setDraftHasVoice(false);
               }}
-              placeholder={embedded ? "Example: PlotPickle plan Block 01 · OpenPencil open Timeline" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
+              onKeyDown={(event) => {
+                if (!embedded || !slashOpen) return;
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setSlashOpen(false);
+                } else if (event.key === "ArrowDown" && slashSuggestions.length) {
+                  event.preventDefault();
+                  setSlashSelection((index) => (index + 1) % slashSuggestions.length);
+                } else if (event.key === "ArrowUp" && slashSuggestions.length) {
+                  event.preventDefault();
+                  setSlashSelection((index) => (index + slashSuggestions.length - 1) % slashSuggestions.length);
+                } else if (event.key === "Enter" && !event.shiftKey && slashSuggestions.length) {
+                  event.preventDefault();
+                  chooseSlashCommand(slashSuggestions[activeSlashIndex].command);
+                }
+              }}
+              placeholder={embedded ? "Type / to browse commands · or describe a problem" : "Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."}
               rows={4}
               value={draft}
             />
+            {embedded && slashOpen ? (
+              <div id="plotpickle-cmd-slash-menu" className={styles.slashMenu} role="listbox" aria-label="Available PlotPickle commands" data-cmd-slash-menu="true">
+                <div className={styles.slashMenuHeading}>Available commands · ↑ ↓ to browse · Enter to insert · Esc to close</div>
+                {slashSuggestions.length ? slashSuggestions.map((item, index) => (
+                  <button
+                    key={item.command}
+                    id={`plotpickle-cmd-slash-option-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeSlashIndex}
+                    className={styles.slashMenuOption}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => chooseSlashCommand(item.command)}
+                  >
+                    <span className={styles.slashMenuCategory}>{item.category}</span>
+                    <strong>/{item.command}</strong>
+                    <small>{item.description}</small>
+                  </button>
+                )) : <p className={styles.slashMenuEmpty}>No matching command. Edit the search after / to see registered operations.</p>}
+                <small className={styles.slashMenuSafety}>Selecting inserts a command only. Review or complete placeholders before submitting.</small>
+              </div>
+            ) : null}
             <div className={styles.composerFooter}>
               <span>1 Interpret your intent. 2 Pi prepares the technical developer draft. 3 Publish the approved brief.</span>
               <VoiceInputControl

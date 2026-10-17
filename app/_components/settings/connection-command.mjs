@@ -28,12 +28,23 @@ export function parseConnectionCommand(input) {
   return { action: "invalid" };
 }
 
+// Human-configured model names are untrusted metadata. Do not echo credentials,
+// arbitrary multiline data, or suspicious tokens to the durable CMD transcript.
+function publicModel(value) {
+  if (!value) return "none";
+  if (typeof value !== "string" || value.length > 120
+    || !/^[a-zA-Z0-9][a-zA-Z0-9._:/+-]*$/u.test(value)
+    || /(?:sk[-_]|api[-_]?key|bearer|secret|password|token|credential|private[-_]?key)/iu.test(value))
+    return "[withheld; inspect secure Setup]";
+  return value;
+}
+
 function describeStatus(status, mode = "all") {
   return ["CONNECTIONS - current-profile runtime status", ...Object.entries(CAPABILITY_ROUTES).flatMap(([capability]) => {
     const group = status[capability];
     const joined = status.joins?.[capability];
-    return [`${capability}: selected ${group.selected}${joined ? `; Join ${joined.engine}/${joined.provider}: ${connectionProof(status, joined).state}` : "; not joined"}`,
-      ...Object.entries(group.options).filter(([, option]) => !["local", "cloud"].includes(mode) || option.locality === mode).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${option.model || "none"}; verified=${option.verifiedAt || "not tested"}${option.error ? "; blocker=Runtime error; inspect secure Setup for details" : ""}`)];
+    return [`${capability}: selected ${CAPABILITY_ROUTES[capability].includes(group.selected) ? group.selected : "unverified"}${joined ? (resolveConnectionJoin(capability, joined.engine, joined.provider).capable && resolveConnectionJoin(capability, joined.engine, joined.provider).route === joined.route) ? `; Join ${joined.engine}/${joined.provider}: ${connectionProof(status, joined).state}` : "; Join NOT CAPABLE (inspect secure Settings)" : "; not joined"}`,
+      ...Object.entries(group.options || {}).filter(([route, option]) => CAPABILITY_ROUTES[capability].includes(route) && (!["local", "cloud"].includes(mode) || option.locality === mode)).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${publicModel(option.model)}; verified=${typeof option.verifiedAt === "string" && /^\d{4}-\d\d-\d\dT[\d:.]+Z$/u.test(option.verifiedAt) ? option.verifiedAt : option.verifiedAt === "synthetic" ? "synthetic" : "not tested"}${option.error ? "; blocker=Runtime error; inspect secure Setup for details" : ""}`)];
   }), mode === "hybrid" ? Object.entries(CONNECTION_PROVIDERS).flatMap(([capability, providers]) => providers.flatMap(provider => ["direct", "comfy-local", "comfy-cloud"].map(engine => {
     const resolved = resolveConnectionJoin(capability, engine, provider.id);
     return `${capability} ${engine}/${provider.id}: ${resolved.capable ? resolved.route : resolved.reason}`;

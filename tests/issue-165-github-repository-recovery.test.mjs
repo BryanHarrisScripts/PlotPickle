@@ -11,7 +11,7 @@ const source = (file) => readFile(new URL(file, root), "utf8");
 
 async function contract(file) {
   const raw = (await source(file)).replace(/\r\n?/g, "\n").replace(/^import type[^;]+;\n/gm, "");
-  return import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(raw, { mode: "transform" })).toString("base64")}`);
+  return import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(raw)).toString("base64")}`);
 }
 
 function invoke(handler, url, method = "GET", body, remoteAddress = "127.0.0.1") {
@@ -38,9 +38,9 @@ async function runtimeGateway() {
   const recovery = (await source("lib/integrations/github/github-repository-recovery.ts")).replace(/\r\n?/g, "\n").replace('from "./github-command-outbox"', 'from "./github-command-outbox.mjs"');
   const outbox = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
   await Promise.all([
-    writeFile(path.join(directory, "gateway.mjs"), stripTypeScriptTypes(gateway, { mode: "transform" })),
-    writeFile(path.join(directory, "github-repository-recovery.mjs"), stripTypeScriptTypes(recovery, { mode: "transform" })),
-    writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(outbox, { mode: "transform" })),
+    writeFile(path.join(directory, "gateway.mjs"), stripTypeScriptTypes(gateway)),
+    writeFile(path.join(directory, "github-repository-recovery.mjs"), stripTypeScriptTypes(recovery)),
+    writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(outbox)),
     writeFile(path.join(directory, "collaboration-invitations.mjs"), 'export const createCollaborationPolicy=(projectId,updatedBy)=>({projectId,updatedBy}); export const parseCollaborationPolicy=(value)=>value;'),
     writeFile(path.join(directory, "story-project-repository.mjs"), 'export const STORY_PROJECT_MANIFEST_PATH="plotpickle-project.json"; export const inspectStoryProjectManifest=(value)=>({manifest:{...value,canonicalProject:{root:"project"}}});'),
     writeFile(path.join(directory, "github-command-service.mjs"), 'export async function readGitHubCommandOutbox(){return {entries:globalThis.__OUTBOX||[]};}'),

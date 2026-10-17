@@ -12,7 +12,7 @@ const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 async function contractModule(filePath) {
   const raw = (await source(filePath)).replace(/\r\n?/g, "\n");
   const withoutTypeImports = raw.replace(/^import type[^;]+;\n/gm, "");
-  const compiled = stripTypeScriptTypes(withoutTypeImports, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(withoutTypeImports);
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
@@ -42,10 +42,10 @@ async function gatewayContract(home) {
     .replace('from "../lib/integrations/github/github-recovery-status";', 'from "./github-recovery-status.mjs";')
     .replace('from "./local-credentials";', 'from "./local-credentials.mjs";');
   await Promise.all([
-    writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(outboxRaw, { mode: "transform" }), "utf8"),
-    writeFile(path.join(directory, "github-recovery-status.mjs"), stripTypeScriptTypes(statusRaw, { mode: "transform" }), "utf8"),
-    writeFile(path.join(directory, "github-command-service.mjs"), stripTypeScriptTypes(serviceRaw, { mode: "transform" }), "utf8"),
-    writeFile(path.join(directory, "github-command-gateway.mjs"), stripTypeScriptTypes(gatewayRaw, { mode: "transform" }), "utf8"),
+    writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(outboxRaw), "utf8"),
+    writeFile(path.join(directory, "github-recovery-status.mjs"), stripTypeScriptTypes(statusRaw), "utf8"),
+    writeFile(path.join(directory, "github-command-service.mjs"), stripTypeScriptTypes(serviceRaw), "utf8"),
+    writeFile(path.join(directory, "github-command-gateway.mjs"), stripTypeScriptTypes(gatewayRaw), "utf8"),
     writeFile(path.join(directory, "local-credentials.mjs"), [
       'export const persistentHome = () => process.env.PLOTPICKLE_HOME || "";',
       'export const readCredentialJson = async () => JSON.parse(process.env.PLOTPICKLE_TEST_GITHUB_CONNECTION || "null");',

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "issue": 3061,
+  "phase": "github-recovery-fixtures",
+  "brief": "docs/developer-briefs/3061-github-recovery-fixtures.md",
+  "allowedChanges": [
+    "tests/issue-161-github-command-outbox.test.mjs",
+    "tests/issue-163-github-recovery-centre.test.mjs",
+    "tests/issue-165-github-repository-recovery.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/3061-github-recovery-fixtures.md",
+    "config/development-convergence/3061-github-recovery.json"
+  ],
+  "acceptance": [
+    {
+      "id": "GOVERNED-RECOVERY-REGISTRATION",
+      "criterion": "The three existing outbox/recovery suites are registered under production-harness without changing their expected outcomes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "production.github-recovery-fixtures-3061"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-161-github-command-outbox.test.mjs",
+          "contains": "stripTypeScriptTypes(raw)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-163-github-recovery-centre.test.mjs",
+          "contains": "stripTypeScriptTypes(withoutTypeImports)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-165-github-repository-recovery.test.mjs",
+          "contains": "stripTypeScriptTypes(raw)"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Only native stripping options and governed catalogue metadata change; preserve all existing assertions and fixture isolation seams.",
+    "No real account, credentials, GitHub writes, production behavior or dependencies change; issue 3061 remains open."
+  ]
+}

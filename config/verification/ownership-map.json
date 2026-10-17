@@ -2449,6 +2449,20 @@
         "security",
         "test-harness"
       ]
+    },
+    {
+      "id": "github-recovery-fixtures-3061",
+      "classification": "production",
+      "include": [
+        "tests/issue-161-github-command-outbox.test.mjs",
+        "tests/issue-163-github-recovery-centre.test.mjs",
+        "tests/issue-165-github-repository-recovery.test.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "security",
+        "test-harness"
+      ]
     }
   ]
 }

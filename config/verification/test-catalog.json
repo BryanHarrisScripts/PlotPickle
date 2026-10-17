@@ -5382,7 +5382,7 @@
       },
       {
         "target": "tests/issue-3058-node26-runtime.test.mjs",
-        "targetDigest": "5dde060a32cbfbcd121025f7dec050dda40c54849166d274f3735fa66ef23bec",
+        "targetDigest": "f8f92b035a8892e8accc4e39d2206b1576ea0d29b21fe7a1597e5668c899b244",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],

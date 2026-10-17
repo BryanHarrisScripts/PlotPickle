@@ -186,7 +186,11 @@ test("#3000 CMD setup navigation and GUI route operations use shared product own
   assert.match(dashboard, /plotpickle:open-story-mode/u);
   assert.match(hybrid, /fetch\("\/api\/ai-routing\/status"/u);
   assert.match(hybrid, /fetch\("\/api\/ai-routing\/join"/u);
-  for (const route of ["status", "select", "join"]) assert.ok(gateway.includes('"' + "/api/ai-routing".slice(0, 15) + '"') || gateway.includes("/api/ai-routing"));
+  assert.match(gateway, /const STATUS_PATH = /u);
+  assert.match(gateway, /const SELECT_PATH = /u);
+  assert.match(gateway, /const JOIN_PATH = /u);
+  assert.match(gateway, /await selectRoute\(body\)/u);
+  assert.match(gateway, /await joinConnection\(body\)/u);
   assert.match(host, /authenticatedComputeFetch as fetch/u);
   assert.match(host, /profilePrivateBrowserReadyFor\(profile\)/u);
 });

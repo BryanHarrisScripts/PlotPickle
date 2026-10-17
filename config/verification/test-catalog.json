@@ -7358,7 +7358,7 @@
         "inputs": [
           {
             "path": "build/openpencil/openpencil-windows-canvaskit-compat.mjs",
-            "digest": "9b53a9d8664b88d67b13f45a0090d34e04a3c9f12084431451b5cb26805dbec1"
+            "digest": "3ad95199b90b99ad92563849aa74f4bc6e7d47c4064af90ba7981cd2057869c3"
           },
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",

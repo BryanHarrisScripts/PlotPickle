@@ -3,14 +3,15 @@ param(
   [switch]$WebMCPTesting,
   [switch]$HumanTesting,
   [switch]$ConversationalUAT,
+  [switch]$DeveloperSession,
   [string]$RepositoryPath = (Join-Path $HOME "PlotPickle")
 )
 
 $ErrorActionPreference = "Stop"
 
-$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent) | Where-Object { $_ }
+$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent, $DeveloperSession.IsPresent) | Where-Object { $_ }
 if ($explicitModes.Count -gt 1) {
-  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT."
+  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, -ConversationalUAT, or -DeveloperSession."
 }
 
 $git = Get-Command git -ErrorAction SilentlyContinue
@@ -51,6 +52,8 @@ if ($WebMCPTesting) {
   $launchArgs.WebMCPTesting = $true
 } elseif ($ConversationalUAT) {
   $launchArgs.ConversationalUAT = $true
+} elseif ($DeveloperSession) {
+  $launchArgs.DeveloperSession = $true
 } elseif ($HumanTesting) {
   # Legacy compatibility alias: HumanTesting now means normal/pristine product mode.
   $launchArgs.HumanTesting = $true

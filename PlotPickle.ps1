@@ -2,15 +2,16 @@
 param(
   [switch]$WebMCPTesting,
   [switch]$HumanTesting,
-  [switch]$ConversationalUAT
+  [switch]$ConversationalUAT,
+  [switch]$DeveloperSession
 )
 
 $ErrorActionPreference = "Stop"
 $launcher = Join-Path $PSScriptRoot "Start-PlotPickle.bat"
 
-$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent) | Where-Object { $_ }
+$explicitModes = @($WebMCPTesting.IsPresent, $HumanTesting.IsPresent, $ConversationalUAT.IsPresent, $DeveloperSession.IsPresent) | Where-Object { $_ }
 if ($explicitModes.Count -gt 1) {
-  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, or -ConversationalUAT."
+  throw "Choose only one startup mode: -WebMCPTesting, -HumanTesting, -ConversationalUAT, or -DeveloperSession."
 }
 
 if (-not (Test-Path -LiteralPath $launcher)) {
@@ -20,6 +21,8 @@ if (-not (Test-Path -LiteralPath $launcher)) {
 $mode = if ($WebMCPTesting) {
   "webmcp"
 } elseif ($ConversationalUAT) {
+  "conversational-uat"
+} elseif ($DeveloperSession) {
   "conversational-uat"
 } elseif ($HumanTesting) {
   "normal"
@@ -32,9 +35,14 @@ if ($mode -eq "webmcp") {
   & $launcher --webmcp-testing
 } elseif ($mode -eq "conversational-uat") {
   Write-Host "[READY] Conversational UAT selected. Opening the governed Human development session with DSDD enabled."
-  & $launcher --conversational-uat
+  if ($DeveloperSession) {
+    Write-Host "[MODE] Explicit developer session requested; this is not automatic ChatGPT Work/Codex detection."
+    & $launcher --developer-session
+  } else {
+    & $launcher --conversational-uat
+  }
 } else {
-  Write-Host "[READY] Normal PlotPickle selected. Opening the pristine current product."
+  Write-Host "[READY] Normal PlotPickle selected. Opening the normal product UI; the launcher reports the actual server runtime separately."
   & $launcher --normal
 }
 

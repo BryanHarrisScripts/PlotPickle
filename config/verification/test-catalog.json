@@ -348,7 +348,9 @@
         "targets": [
           "tests/issue-1960-home-launcher-bootstrap.test.mjs",
           "tests/issue-2464-numbered-launcher-menu.test.mjs",
-          "tests/issue-2468-three-runtime-modes.test.mjs"
+          "tests/issue-2468-three-runtime-modes.test.mjs",
+          "tests/issue-3070-launch-intent.test.mjs",
+          "tests/issue-1793-startup-webmcp-uat.test.mjs"
         ]
       },
       "cost": "fast",
@@ -373,7 +375,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1960 Windows home-folder bootstrap plus #2464 numbered startup selection. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, preserves explicit WebMCP/Human mode pass-through, and keeps the interactive numbered menu with a five-second normal-start default. #2291 retains this launcher verification as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites. #2468 establishes normal, WebMCP and Conversational UAT runtime separation with a pristine five-second normal default."
+      "notes": "Home-folder Git wrapper updates before delegating; normal local PowerShell defaults without a startup menu. Explicit Human, WebMCP, Conversational UAT and DeveloperSession switches are mutually exclusive and carried to the batch launcher. #3070 verifies honest Vite source runtime reporting, launch-intent provenance, source-restart inheritance and refusal to attach to unlike existing sessions. A production-built loopback server is not yet verified and must not be represented as delivered."
     },
     {
       "id": "experience.community-conversation-1963",
@@ -6489,7 +6491,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "e6f7b71439faf8fa2ed6e4db3f4a718677d58f3fd647e4d9453caf9944eeb82d"
+            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6597,7 +6599,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "e6f7b71439faf8fa2ed6e4db3f4a718677d58f3fd647e4d9453caf9944eeb82d"
+            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7194,6 +7196,140 @@
           {
             "path": "designs/openpencil/surfaces.json",
             "digest": "61600782b30846a6766e19edf71a56f3a0e5bccb071149c3dee053263c2a68ab"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1960-home-launcher-bootstrap.test.mjs",
+        "targetDigest": "eb03294cf370558990b213b7f0cad35495b40405fecb423ddcb5b7864d513737",
+        "catalogueIds": [
+          "experience.home-launcher-1960"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Existing home Git bootstrap; source inspection and no-live-Git fixture only; startup from real user home and real source migration remain unverified.",
+        "inputs": [
+          {
+            "path": "PlotPickle.ps1",
+            "digest": "10e4626e3abdda673d95e47a3dc3eb989fd4704b6f0ad7f05853f66e34de9c80"
+          },
+          {
+            "path": "GIT-PlotPickle.ps1",
+            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2468-three-runtime-modes.test.mjs",
+        "targetDigest": "e4e45382dce14aa906e1d1809ae9796c09d36eab1f0c032610a91ce6413d024c",
+        "catalogueIds": [
+          "experience.home-launcher-1960",
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Mode mapping and DSDD ownership inspected statically. Does not certify real process collision, Edge, node install or auth profile.",
+        "inputs": [
+          {
+            "path": "PlotPickle.ps1",
+            "digest": "10e4626e3abdda673d95e47a3dc3eb989fd4704b6f0ad7f05853f66e34de9c80"
+          },
+          {
+            "path": "GIT-PlotPickle.ps1",
+            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+          },
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1793-startup-webmcp-uat.test.mjs",
+        "targetDigest": "0e6c0ccf2796dc0455d780fc2f9a7d418ac2fc46814c5bffefeb80471cd526f2",
+        "catalogueIds": [
+          "experience.home-launcher-1960"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "WebMCP launch source contracts and related independent fixture checks; no live WebMCP Human browser acceptance for this exact launch.",
+        "inputs": [
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3070-launch-intent.test.mjs",
+        "targetDigest": "823c4dba4090e710650cff369e879becab9f20f32972ff1df23a4275da187d32",
+        "catalogueIds": [
+          "experience.home-launcher-1960"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Source markers and bounded Windows PowerShell-to-inert-batch delegation. Real Vite/SSR/RSC, production-built startup, profile isolation, port conflict, full cold restart and Human local runtime remain unproven.",
+        "inputs": [
+          {
+            "path": "PlotPickle.ps1",
+            "digest": "10e4626e3abdda673d95e47a3dc3eb989fd4704b6f0ad7f05853f66e34de9c80"
+          },
+          {
+            "path": "GIT-PlotPickle.ps1",
+            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+          },
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
           }
         ]
       }

@@ -10,8 +10,8 @@ const read = (path) => readFile(new URL(path, root), "utf8");
 test("startup defaults to normal and retains explicit diagnostics before readiness work", async () => {
   const launcher = await read("Start-PlotPickle.bat");
   assert.doesNotMatch(launcher, /Choose startup mode/u);
-  assert.match(launcher, /--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"/u);
-  assert.match(launcher, /--conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"/u);
+  assert.match(launcher, /--webmcp-testing" \([\s\S]*?PLOTPICKLE_STARTUP_TESTING_MODE=webmcp/u);
+  assert.match(launcher, /--conversational-uat" \([\s\S]*?PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat/u);
   assert.match(launcher, /if \/I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal"[^\n]*set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"/u);
 });
 

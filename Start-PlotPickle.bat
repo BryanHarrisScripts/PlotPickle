@@ -45,11 +45,24 @@ set "SETUP_FAILURE_REASON="
 set "READY_TIMEOUT_SECONDS=240"
 set "READY_REQUEST_TIMEOUT_SECONDS=30"
 set "BROWSER_FAILURE_GRACE_SECONDS=12"
+rem Explicit launcher intent, never inferred from credits, Git or NODE_ENV.
+if /I not "%~1"=="--source-current" set "PLOTPICKLE_LAUNCH_INTENT=local-human"
 if /I "%~1"=="--normal" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
 if /I "%~1"=="--human-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
-if /I "%~1"=="--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
-if /I "%~1"=="--conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
+if /I "%~1"=="--webmcp-testing" (
+  set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
+  set "PLOTPICKLE_LAUNCH_INTENT=explicit-webmcp"
+)
+if /I "%~1"=="--conversational-uat" (
+  set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
+  set "PLOTPICKLE_LAUNCH_INTENT=explicit-uat"
+)
+if /I "%~1"=="--developer-session" (
+  set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"
+  set "PLOTPICKLE_LAUNCH_INTENT=explicit-developer"
+)
 if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
+if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_LAUNCH_INTENT=local-benchmark"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
 set "NODE_ENV=development"
@@ -115,6 +128,7 @@ echo.
 
 if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="normal" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"
 set "PLOTPICKLE_STARTUP_MARKER=!PLOTPICKLE_STARTUP_MARKER!-!PLOTPICKLE_STARTUP_TESTING_MODE!"
+set "PLOTPICKLE_STARTUP_MARKER=!PLOTPICKLE_STARTUP_MARKER!-!PLOTPICKLE_LAUNCH_INTENT!-vite-source"
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   if not defined PLOTPICKLE_WEBMCP_QA_PROFILE (
     echo.
@@ -145,10 +159,14 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   )
   echo !READY! Conversational UAT selected. DSDD and Human-validation development tools will be enabled after readiness.
 ) else (
-  echo !READY! Normal PlotPickle selected. The pristine current product will open without developer UAT controls.
+  echo !READY! Normal PlotPickle UI selected. Developer UAT controls are disabled; this is still a source-on-machine runtime.
 )
 echo.
 
+echo [MODE] intent=!PLOTPICKLE_LAUNCH_INTENT! ^| product=!PLOTPICKLE_STARTUP_TESTING_MODE!
+echo [RUNTIME] Vite source development server ^| NODE_ENV=!NODE_ENV! ^| bind=127.0.0.1:4173
+echo [RUNTIME] Production-built server: NOT VERIFIED for this launcher. ChatGPT Work/Chat and credit use are not detected.
+echo.
 echo !CYAN![CHECK]!RESET! Looking for an existing PlotPickle session...
 call :probe_existing
 set "PROBE_RESULT=!ERRORLEVEL!"
@@ -172,6 +190,7 @@ if "!PROBE_RESULT!"=="3" (
   echo.
   echo !WARNING! A PlotPickle page is already using port %PLOTPICKLE_PORT%, but it is stale, unverified, or running a different startup mode.
   echo Close the older PlotPickle command window with Ctrl+C, then run Start-PlotPickle.bat again.
+  echo [MODE] Launcher refuses sessions with a different intent, mode, version, or runtime.
   echo The launcher will not open it or replace dependencies underneath a running server.
   echo.
   pause
@@ -205,6 +224,7 @@ if errorlevel 1 (
 )
 
 for /f %%V in ('node -p "process.versions.node"') do set "NODE_VERSION=%%V"
+echo [RUNTIME] Node.js on PATH: !NODE_VERSION! ^| managed executable runtime is independently checked below.
 node -e "const [major, minor] = process.versions.node.split('.').map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)"
 if errorlevel 1 (
   echo !ERROR_TAG! Node.js !NODE_VERSION! is installed, but PlotPickle requires Node.js 22.13 or newer.

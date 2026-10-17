@@ -101,6 +101,8 @@ A Pi recommendation therefore becomes a candidate engineering improvement, not a
 
 ## Cline project profile
 
+The reviewed Windows CLI is Cline 3.0.73 (Apache-2.0), installed by the setup script with lifecycle scripts disabled. `-VerifyOnly` rejects a failed version probe or a version different from the registry pin. This CLI version is separate from the VS Code extension and Desktop releases. Cline remains user-managed and optional outside developer setup; no startup or product dependency is added.
+
 `.cline/rules/00-plotpickle.md` points Cline back to `AGENTS.md`, and `.cline/mcp.json` exposes the same `plotpickle-dev` MCP server. Cline's native checkpoints, tools, subagents and worktree capabilities remain available, but the shared PlotPickle completion contract remains authoritative.
 
 ## Windows setup

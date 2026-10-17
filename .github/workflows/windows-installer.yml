@@ -38,10 +38,10 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Use Node.js 24.19
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: "24.19.0"
+          node-version: "26.12.0"
 
       - name: Use .NET 8
         uses: actions/setup-dotnet@v6

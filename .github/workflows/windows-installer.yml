@@ -2,6 +2,12 @@ name: Windows Installer
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-installer.yml"
+      - "scripts/windows-installer/**"
+      - "windows/installer/**"
+      - "windows/launcher/**"
   workflow_call:
     inputs:
       exact_head:
@@ -52,9 +58,9 @@ jobs:
         shell: pwsh
         run: npm ci --include=dev
 
-      - name: Validate installer source contracts
+      - name: Prove native Node 26 executable and installer source contracts
         shell: pwsh
-        run: node --test tests/issue-1456-windows-installer.test.mjs
+        run: node --test tests/issue-3058-node26-runtime.test.mjs tests/issue-1456-windows-installer.test.mjs
 
       - name: Install Inno Setup compiler
         shell: pwsh

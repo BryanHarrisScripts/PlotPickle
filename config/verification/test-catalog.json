@@ -2285,7 +2285,8 @@
           "tests/issue-2782-openpencil-profile-startup.test.mjs",
           "tests/issue-2787-openpencil-gui-review.test.mjs",
           "tests/issue-2800-openpencil-auto-design-review.test.mjs",
-          "tests/issue-3074-command-slash-menu.test.mjs"
+          "tests/issue-3074-command-slash-menu.test.mjs",
+          "tests/issue-3078-openpencil-windows-canvaskit.test.mjs"
         ]
       },
       "cost": "fast",
@@ -6492,7 +6493,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
+            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6600,7 +6601,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
+            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7044,7 +7045,7 @@
           },
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",
-            "digest": "43a404a6893858584b2f052a4805a74a5129f2cb8dd2b7a69d65a50db447028f"
+            "digest": "c5779874e64004dda553a30ec8a85e8fc0fffb786951e1272215bca73da7b67f"
           },
           {
             "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
@@ -7084,7 +7085,7 @@
           },
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",
-            "digest": "43a404a6893858584b2f052a4805a74a5129f2cb8dd2b7a69d65a50db447028f"
+            "digest": "c5779874e64004dda553a30ec8a85e8fc0fffb786951e1272215bca73da7b67f"
           },
           {
             "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
@@ -7331,6 +7332,38 @@
           {
             "path": "Start-PlotPickle.bat",
             "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3078-openpencil-windows-canvaskit.test.mjs",
+        "targetDigest": "c02f6d884c632041220d01d2b384329be3d9c7b974663f49c029f977fcf745d0",
+        "catalogueIds": [
+          "production.openpencil-command-mcp-2780"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Windows-path and scoped private-package correction is exercised against synthetic installed-module fixtures; the separate Windows product gate must actually install @open-pencil/cli@0.16.0, convert ASSETS to temporary FIG and read its page. Neither test proves Human PC Desktop edits or saved/reopened PPF.",
+        "inputs": [
+          {
+            "path": "build/openpencil/openpencil-windows-canvaskit-compat.mjs",
+            "digest": "3ad95199b90b99ad92563849aa74f4bc6e7d47c4064af90ba7981cd2057869c3"
+          },
+          {
+            "path": "scripts/ensure-openpencil-mcp.ps1",
+            "digest": "c5779874e64004dda553a30ec8a85e8fc0fffb786951e1272215bca73da7b67f"
           }
         ]
       },

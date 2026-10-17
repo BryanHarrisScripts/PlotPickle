@@ -7235,7 +7235,8 @@
         "target": "tests/issue-2468-three-runtime-modes.test.mjs",
         "targetDigest": "e4e45382dce14aa906e1d1809ae9796c09d36eab1f0c032610a91ce6413d024c",
         "catalogueIds": [
-          "experience.home-launcher-1960"
+          "experience.home-launcher-1960",
+          "agent.dsdd-intent-pi-contract-2350"
         ],
         "truthRefs": [
           {

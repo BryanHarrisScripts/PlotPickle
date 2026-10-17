@@ -75,6 +75,34 @@ export function canonicalizePiBareFilenameClaims(markdown, repoRoot, { trackedLi
   return { text, replacements, ambiguous: [...new Set(ambiguous)] };
 }
 
+/**
+ * Suggest existing, uniquely indexed sibling paths when Pi gets an extension
+ * wrong (for example openpencil-command.tsx vs openpencil-command.ts).
+ * These are advisory hints for Pi's one allowed correction, NEVER automatic
+ * edits of the model's original claims or exemptions from final grounding.
+ */
+export function verifiedAlternativesForMissingClaims(missing, repoRoot, { trackedListing } = {}) {
+  const root = path.resolve(repoRoot);
+  const listing = trackedListingAt(root, trackedListing);
+  const tracked = [...new Set(listing.split("\0").map((name) => validTrackedFile(root, name)).filter(Boolean))];
+  const alternatives = [];
+  const stripExtension = name => name.replace(/\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u, "");
+  for (const raw of Array.isArray(missing) ? missing.slice(0, 16) : []) {
+    const claim = String(raw || "").replaceAll("\\", "/");
+    if (!/^[A-Za-z0-9_./-]+\.(?:tsx?|jsx?|mjs|cjs|json|md|css|ya?ml)$/u.test(claim)
+      || claim.startsWith("/") || claim.includes("..") || claim.includes("//")) continue;
+    const expectedStem = stripExtension(path.posix.basename(claim));
+    const qualified = claim.includes("/");
+    const parent = path.posix.dirname(claim);
+    const matches = tracked.filter(name =>
+      stripExtension(path.posix.basename(name)) === expectedStem
+      && name !== claim
+      && (!qualified || path.posix.dirname(name) === parent));
+    if (matches.length === 1) alternatives.push({ claim, verified: matches[0] });
+  }
+  return alternatives.slice(0, 8);
+}
+
 // Read-only git index consultation. No worktree edits, package install or shell expansion.
 export function verifiedRepoPaths(repoRoot, intentText, { trackedListing } = {}) {
   const root = path.resolve(repoRoot);
@@ -129,9 +157,15 @@ export async function draftWithVerifiedGrounding({ lockedPrompt, intentText, rep
 
   // Exactly one correction. The original locked intent is byte-for-byte unchanged.
   const invalid = firstGrounding.missing.join(", ").slice(0, MAX_MISSING_CHARS);
+  const alternatives = verifiedAlternativesForMissingClaims(firstGrounding.missing, repoRoot, { trackedListing: listing });
   const correction = [
     "ONE BOUNDED CORRECTION: the preceding response claimed nonexistent repository paths.",
     `Ungrounded paths: ${invalid}`,
+    ...(alternatives.length ? [
+      "Verified same-stem alternatives from the read-only Git index (not automatic substitutions):",
+      ...alternatives.map(({ claim, verified }) => `- Unverified ${claim} ; existing indexed file: ${verified}`),
+      "Only cite one of these alternatives when it matches the actual implementation; otherwise mark Unknown / requires inspection.",
+    ] : []),
     "Produce the same requested developer brief for the unchanged locked intent above.",
     "When citing an existing file, use the exact full repo-relative path from the tracked index, never only its basename.",
     "If a named file or proposed component does not exist, write Unknown / requires inspection WITHOUT a backticked filename.",

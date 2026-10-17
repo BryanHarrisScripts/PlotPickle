@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   createOpenPencilGuiController,
+  publicOpenPencilGuiError,
   OPENPENCIL_DESKTOP_VERSION,
   resolveOpenPencilCliLaunch,
   resolveOpenPencilDesktopLaunch,
@@ -285,4 +286,75 @@ test("#2787 GUI gateway remains inside the authenticated OpenPencil profile boun
   assert.match(architecture, /Context-aware\/current-surface inference is outside the Phase 4 contract/u);
   assert.match(architecture, /GitHub issue/u);
   assert.match(architecture, /does not create an implementation pull request/u);
+});
+
+test("#3074 ASSETS registered seed converts and opens through explicit GUI controller",async()=>{
+  const registry=await read("designs/openpencil/surfaces.json");
+  const fig="C:\\Repo\\designs\\openpencil\\assets.fig";
+  const seed="C:\\Repo\\designs\\openpencil\\bootstrap\\assets.pen";
+  const cli="C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\cli\\bin\\openpencil.js";
+  const desktop="C:\\Users\\Bryan\\AppData\\Local\\Programs\\OpenPencil\\OpenPencil.exe";
+  const found=new Set([seed,cli,desktop]);const calls=[];const spawned=[];
+  const controller=createOpenPencilGuiController({
+    platform:"win32",repositoryRoot:"C:\\Repo",
+    env:{LOCALAPPDATA:"C:\\Users\\Bryan\\AppData\\Local",PATH:""},
+    nodeExecutable:"C:\\node.exe",exists:p=>found.has(p),
+    readText:async()=>registry,wait:async()=>{},designReviewPublisher:{
+      begin:async()=>({id:"synthetic-design-session"}),finalize:async()=>({state:"unchanged"}),
+    },
+    spawnProcess:(exe,args)=>{spawned.push({exe,args});return {unref(){}};},
+    runProcess:async(exe,args)=>{
+      calls.push(args);
+      if(args.includes("convert")){assert.ok(args.includes(seed));assert.ok(args.includes(fig));found.add(fig);return {stdout:"",code:0};}
+      if(args.includes("pages"))return {stdout:JSON.stringify([{id:"page-1",name:"ASSETS"}]),code:0};
+      if(args.includes("list"))return {stdout:JSON.stringify([{id:"doc-1",path:fig}]),code:0};
+      if(args.includes("activate"))return {stdout:JSON.stringify({ok:true}),code:0};
+      throw new Error("unexpected bounded CLI command");
+    },
+  });
+  const result=await controller.openSurface("assets");
+  assert.equal(result.state,"ready");
+  assert.equal(result.surface,"ASSETS");
+  assert.equal(result.page,"ASSETS");
+  assert.equal(result.bootstrapState,"materialized");
+  assert.deepEqual(spawned,[{exe:desktop,args:[fig]}]);
+  assert.ok(calls.some(x=>x.includes("convert")));
+  assert.ok(calls.some(x=>x.includes("activate")&&x.includes("page-1")));
+});
+
+test("#3074 ASSETS GUI exposes safe distinct conversion, FIG-read and desktop launch blockers",async()=>{
+  const registry=await read("designs/openpencil/surfaces.json");
+  const fig="C:\\Repo\\designs\\openpencil\\assets.fig";
+  const seed="C:\\Repo\\designs\\openpencil\\bootstrap\\assets.pen";
+  const cli="C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\cli\\bin\\openpencil.js";
+  const desktop="C:\\Users\\Bryan\\AppData\\Local\\Programs\\OpenPencil\\OpenPencil.exe";
+  const base={
+    platform:"win32",repositoryRoot:"C:\\Repo",
+    env:{LOCALAPPDATA:"C:\\Users\\Bryan\\AppData\\Local",PATH:""},
+    nodeExecutable:"C:\\node.exe",readText:async()=>registry,wait:async()=>{},
+    designReviewPublisher:{begin:async()=>null,finalize:async()=>null},
+  };
+  const failure=async(options,code)=>{
+    const controller=createOpenPencilGuiController({...base,...options});
+    await assert.rejects(controller.openSurface("ASSETS"),err=>{
+      assert.equal(err.message,code);
+      const userMessage=publicOpenPencilGuiError(err);
+      assert.match(userMessage,/OpenPencil/);
+      assert.doesNotMatch(userMessage,/secret-key|C:\\\\Users\\\\Bryan/u);
+      return true;
+    });
+  };
+  await failure({
+    exists:p=>new Set([seed,cli,desktop]).has(p),
+    runProcess:async()=>{throw new Error("secret-key from private CLI stderr");},
+  },"OPENPENCIL_DESIGN_BOOTSTRAP_FAILED");
+  await failure({
+    exists:p=>new Set([fig,cli,desktop]).has(p),
+    runProcess:async()=>{throw new Error("secret-key from corrupt FIG");},
+  },"OPENPENCIL_PAGES_INVALID");
+  await failure({
+    exists:p=>new Set([fig,cli,desktop]).has(p),
+    runProcess:async(_exe,args)=>args.includes("pages")?{stdout:JSON.stringify([{id:"p",name:"ASSETS"}]),code:0}:{stdout:"[]",code:0},
+    spawnProcess:()=>{throw new Error("secret-key from private desktop error");},
+  },"OPENPENCIL_DESKTOP_LAUNCH_FAILED");
 });

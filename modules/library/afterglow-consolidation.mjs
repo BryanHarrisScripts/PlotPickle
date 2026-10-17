@@ -334,8 +334,13 @@ export function planAfterglowConsolidation({baseline,sources,questions}) {
       // Until source-bound asset reconciliation exists, keep changed registries
       // in their original snapshots and require review rather than splicing
       // approvals or treating a missing local image as a merged master.
-      if(root === "assetRegistry" && !equal(oldValue,newValue)) {
-        needsReview.push({path:"/assetRegistry",reason:"asset-registry-requires-media-review",sourceProjectId:key});
+      if(root === "assetRegistry") {
+        // Pre-ASSETS PPFs omit the registry. The normalized empty registry
+        // is equivalent to absence, not new creative media or an approval.
+        const empty={version:"1.0.0",assets:[],extensions:{}};
+        const previous=oldValue===ABSENT?empty:oldValue;
+        const current=newValue===ABSENT?empty:newValue;
+        if(!equal(previous,current))needsReview.push({path:"/assetRegistry",reason:"asset-registry-requires-media-review",sourceProjectId:key});
         continue;
       }
       collect(oldValue,newValue,[root],edits,reviews);

@@ -5,7 +5,7 @@ import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-d
 
 const read = (path) => readFile(path, "utf8");
 
-test("#1960 home bootstrap changes into the repo and pulls before delegating to the numbered repo launcher", async () => {
+test("#1960 home bootstrap pulls before delegating to the explicit Normal-first launcher", async () => {
   const [bootstrap, repoLauncher] = await Promise.all([
     read("GIT-PlotPickle.ps1"),
     read("PlotPickle.ps1"),
@@ -65,6 +65,9 @@ test("#1960 home bootstrap is governed by Experience Skins verification", async 
   assert.deepEqual(entry.runner.targets, [
     "tests/issue-1960-home-launcher-bootstrap.test.mjs",
     "tests/issue-2464-numbered-launcher-menu.test.mjs",
+    "tests/issue-2468-three-runtime-modes.test.mjs",
+    "tests/issue-3070-launch-intent.test.mjs",
+    "tests/issue-1793-startup-webmcp-uat.test.mjs",
   ]);
   assert.ok(entry.triggerTokens.includes("windows"));
   assert.ok(entry.triggerTokens.includes("native"));

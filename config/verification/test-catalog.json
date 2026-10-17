@@ -3179,6 +3179,49 @@
         ]
       },
       "notes": "#3051 tracks the reviewed BUZZ Desktop fallback URL identity, installer integrity and no-downgrade release lookup. Static source/fixture only, not a live Windows install."
+    },
+    {
+      "id": "production.node26-runtime-migration-3058",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "native",
+        "security",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-1892-oss-third-party-registry.test.mjs",
+          "tests/issue-1456-windows-installer.test.mjs",
+          "tests/issue-3058-node26-runtime.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "Issue #3058: exact active runtime and installer pins, canonical OSS inventory, Temporal capability on Node 26, preserving historic 24.x ratified proofs. Does not assert local Windows installer was installed or binary signature verified."
     }
   ],
   "truthGovernance": {
@@ -5289,6 +5332,75 @@
           "static-source"
         ],
         "limits": "Real Afterglow planner on synthetic PPF snapshots. Equal canonical registries load; changed media identity stays blocked for Human review; input source remains immutable. No live profile, provider, saved-media bytes/approval, or durable master proof.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-1892-oss-third-party-registry.test.mjs",
+        "targetDigest": "a4c12b7ab65db9726e7c8882cd5c71bde70ebc73ad5b08218da564fd1337283c",
+        "catalogueIds": [
+          "production.node26-runtime-migration-3058"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-1456-windows-installer.test.mjs",
+        "targetDigest": "ad9422b91c12a32f2ab2e92a6c4ce295f5f92268c56162ae1571309256994d6c",
+        "catalogueIds": [
+          "production.node26-runtime-migration-3058"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3058-node26-runtime.test.mjs",
+        "targetDigest": "5dde060a32cbfbcd121025f7dec050dda40c54849166d274f3735fa66ef23bec",
+        "catalogueIds": [
+          "production.node26-runtime-migration-3058"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
         "inputs": []
       }
     ]

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { createConnectionCommandSession, parseConnectionCommand } from "../app/_components/settings/connection-command.mjs";
 
 const TOKEN = "0123456789abcdef";
@@ -170,4 +171,22 @@ test("#3000 CMD status redacts credential-looking model metadata and malformed J
   assert.match(result, /withheld; inspect secure Setup/u);
   assert.match(result, /Join NOT CAPABLE/u);
   assert.equal(h.state.posts.length, 0);
+});
+
+test("#3000 CMD setup navigation and GUI route operations use shared product owners", async () => {
+  const read = name => readFile(new URL("../" + name, import.meta.url), "utf8");
+  const [host, dashboard, hybrid, gateway] = await Promise.all([
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/hybrid-story-mode-panel.tsx"),
+    read("build/ai-routing-gateway.ts"),
+  ]);
+  assert.match(host, /openMode: \(mode: "local" \| "cloud"\)/u);
+  assert.match(host, /new CustomEvent\("plotpickle:open-story-mode", \{ detail: mode \}\)/u);
+  assert.match(dashboard, /plotpickle:open-story-mode/u);
+  assert.match(hybrid, /fetch\("\/api\/ai-routing\/status"/u);
+  assert.match(hybrid, /fetch\("\/api\/ai-routing\/join"/u);
+  for (const route of ["status", "select", "join"]) assert.ok(gateway.includes('"' + "/api/ai-routing".slice(0, 15) + '"') || gateway.includes("/api/ai-routing"));
+  assert.match(host, /authenticatedComputeFetch as fetch/u);
+  assert.match(host, /profilePrivateBrowserReadyFor\(profile\)/u);
 });

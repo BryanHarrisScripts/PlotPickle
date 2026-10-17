@@ -5359,7 +5359,7 @@
       },
       {
         "target": "tests/issue-1456-windows-installer.test.mjs",
-        "targetDigest": "e9c73b3242e4bab20ea9a5df1ac2033e09ecd4cc4b2e038a76921d1484203adf",
+        "targetDigest": "2eaeb3cc2f2bc5e55be4825f86362be91c60e5738bb47458e8373777af9fac1b",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],

@@ -16,16 +16,15 @@
   "distribution": "not-a-PlotPickle-product-dependency",
   "adoptionDecision": "ADOPT WITH LIMITS",
   "windowsAcceptance": {
-    "version": "0.15.8",
-    "status": "PR-CI-required",
-    "workflow": ".github/workflows/portless-adapter-proof.yml"
-  },
-  "historicalWindowsAcceptance": {
-    "version": "0.15.5",
     "status": "passed",
     "nodeVersion": "24.19.0",
     "workflowRunId": 32437045317,
     "artifactId": 9431151950,
     "testedHead": "8cc93adb18240596023fee7e601af2e9e42dd24f"
+  },
+  "candidateWindowsAcceptance": {
+    "version": "0.15.8",
+    "status": "PR-CI-required",
+    "workflow": ".github/workflows/portless-adapter-proof.yml"
   }
 }

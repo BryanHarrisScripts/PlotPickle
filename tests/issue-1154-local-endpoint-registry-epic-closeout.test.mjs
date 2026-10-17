@@ -15,15 +15,14 @@ test("#1154 final Portless pin records measured Windows evidence and ADOPT WITH 
   assert.equal(pin.nodeEngine, ">=24");
   assert.equal(pin.plotpickleNodeStrategy, "isolated-developer-tool-runtime");
   assert.equal(pin.adoptionDecision, "ADOPT WITH LIMITS");
-  assert.deepEqual(pin.historicalWindowsAcceptance, {
-    version: "0.15.5",
+  assert.deepEqual(pin.windowsAcceptance, {
     status: "passed",
     nodeVersion: "24.19.0",
     workflowRunId: 32437045317,
     artifactId: 9431151950,
     testedHead: "8cc93adb18240596023fee7e601af2e9e42dd24f",
   });
-  assert.deepEqual(pin.windowsAcceptance, {
+  assert.deepEqual(pin.candidateWindowsAcceptance, {
     version: "0.15.8",
     status: "PR-CI-required",
     workflow: ".github/workflows/portless-adapter-proof.yml",

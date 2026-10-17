@@ -4762,7 +4762,7 @@
       },
       {
         "target": "tests/issue-2980-pi-basename-grounding.test.mjs",
-        "targetDigest": "c7102de19adac6f14315896c7e1b2e9b1df04d410bbb68b2c799998f382a127c",
+        "targetDigest": "b611dab569f6f7912deb836956ae15934bbf8abbb11ddf7414d8f55f3db44d82",
         "catalogueIds": [
           "agent.pi-unique-basename-grounding-2980"
         ],
@@ -7051,7 +7051,7 @@
       },
       {
         "target": "tests/issue-2787-openpencil-gui-review.test.mjs",
-        "targetDigest": "8997c3ed18a467a7ea1c5d46ffe33ce2a7f44e336ae83b775d2f84c28cc5a0eb",
+        "targetDigest": "d3129d6f1220b187e80876bd31b1cdbbcaa49fdddd9198104278ba999f35c1b9",
         "catalogueIds": [
           "production.openpencil-command-mcp-2780"
         ],
@@ -7077,7 +7077,7 @@
           },
           {
             "path": "build/openpencil/openpencil-gui-runtime.mjs",
-            "digest": "d57f69b52f9da91c60cac9766c6a8f6480762fd37d9dd434df70a1e116765cd0"
+            "digest": "568eac9a1c27d5faac0bf75b5761b027f3defd6fdaecefa2b669dd718e0d8586"
           },
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",

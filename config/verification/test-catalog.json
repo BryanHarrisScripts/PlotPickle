@@ -5081,7 +5081,7 @@
       },
       {
         "target": "tests/issue-3000-connection-operations.test.mjs",
-        "targetDigest": "6f60b8109a8c746c7763fe3972719eceecada74e117e10d2c99a9fd1a28d1ba4",
+        "targetDigest": "4358b5d1db8bafe5228623dcc7ae1cdc6d98c6db3e286ddb23e0078c0dcdce11",
         "catalogueIds": [
           "experience.connection-command-3000"
         ],
@@ -5346,7 +5346,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/global-dsdd-conversation.tsx",
-            "digest": "b1bba5c96bf324da663123d31bbd4198e58f2b5910d4eeabba04c88c7b755764"
+            "digest": "16ed0eabed69a866d803f4ff19554a659488712479b874b0f59a6a146b2b2131"
           },
           {
             "path": "app/skin-v1/global-dsdd-conversation.module.css",
@@ -6501,7 +6501,7 @@
           },
           {
             "path": "app/skin-v1/global-dsdd-conversation.tsx",
-            "digest": "b1bba5c96bf324da663123d31bbd4198e58f2b5910d4eeabba04c88c7b755764"
+            "digest": "16ed0eabed69a866d803f4ff19554a659488712479b874b0f59a6a146b2b2131"
           },
           {
             "path": "build/auth/profile-request-context.ts",
@@ -7163,7 +7163,7 @@
       },
       {
         "target": "tests/issue-3074-command-slash-menu.test.mjs",
-        "targetDigest": "7fddb1606bc0c5cc398876505b8d2ec98a52df81955efa980f5a0f8c546b43c0",
+        "targetDigest": "c14f584f4cc1b3fa432ad6e938f9188e4d61218b07416bd47d32f683cd3cc5b6",
         "catalogueIds": [
           "production.openpencil-command-mcp-2780"
         ],
@@ -7185,11 +7185,11 @@
         "inputs": [
           {
             "path": "app/_components/settings/cmd-slash-commands.mjs",
-            "digest": "0f965faa25b475e827af6f40b487114b98b9f32691bed8935ba1bf76e91a4593"
+            "digest": "eb2e821f417ca31d9c4aacd4ebf4481447a8bd5db4ac4d704d863f9038cd8935"
           },
           {
             "path": "app/skin-v1/global-dsdd-conversation.tsx",
-            "digest": "b1bba5c96bf324da663123d31bbd4198e58f2b5910d4eeabba04c88c7b755764"
+            "digest": "16ed0eabed69a866d803f4ff19554a659488712479b874b0f59a6a146b2b2131"
           },
           {
             "path": "designs/openpencil/surfaces.json",

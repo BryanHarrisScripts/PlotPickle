@@ -896,6 +896,10 @@ export default function GlobalDsddConversation({ embedded = false }: { readonly 
         return result;
       },
       now: () => Date.now(), token: () => crypto.randomUUID().replaceAll("-", "").slice(0, 16),
+      openMode: (mode: "local" | "cloud") => {
+        // Exact Settings host already owns Local/Cloud secure provider UI.
+        window.dispatchEvent(new CustomEvent("plotpickle:open-story-mode", { detail: mode }));
+      },
       changed: () => {
         window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
         window.dispatchEvent(new CustomEvent("plotpickle:connection-status-refresh"));

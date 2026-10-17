@@ -4,7 +4,11 @@ import { CONNECTION_PROVIDERS, resolveConnectionJoin, connectionProof } from "..
 class ConnectionCommandBlocked extends Error {}
 
 const capabilities = { writing: "text", text: "text", images: "image", image: "image", video: "video" };
-const HELP = "PlotPickle connections status [local|cloud|hybrid]; connections test <writing|images|video> <route>; connections select <capability> <route>; connections join <capability> <direct|comfy-local|comfy-cloud> <provider>. Tests and changes require a fresh preview and confirmation. Never paste API keys into Command; use the secure provider Setup screen.";
+const SETUP_MODES = Object.freeze({
+  ollama: "local", comfyui: "local", "ltx-video": "local", "native-h3": "local",
+  openai: "cloud", gemini: "cloud", minimax: "cloud", "comfy-cloud": "cloud",
+});
+const HELP = "PlotPickle connections setup <provider> (opens existing secure Local/Cloud Settings; allowed: ollama, comfyui, ltx-video, native-h3, openai, gemini, minimax, comfy-cloud); PlotPickle connections status [local|cloud|hybrid]; connections test <writing|images|video> <route>; connections select <capability> <route>; connections join <capability> <direct|comfy-local|comfy-cloud> <provider>. Tests and changes require a fresh preview and confirmation. Never paste API keys into Command; use the secure provider Setup screen.";
 
 /** Parse bounded connection operations before any user text enters the transcript. */
 export function parseConnectionCommand(input) {
@@ -14,6 +18,8 @@ export function parseConnectionCommand(input) {
   const words = value.replace(/^\/?plotpickle\s+connections\s*/u, "").split(/\s+/u).filter(Boolean);
   if (!words.length || (words[0] === "status" && words.length <= 2 && (!words[1] || ["local", "cloud", "hybrid"].includes(words[1])))) return { action: "status", mode: words[1] || "all" };
   if (words.length === 1 && words[0] === "cancel") return { action: "cancel" };
+  if (words[0] === "setup" && words.length === 2 && Object.hasOwn(SETUP_MODES, words[1]))
+    return { action: "setup", provider: words[1], mode: SETUP_MODES[words[1]] };
   if (words[0] === "confirm" && /^[a-f0-9]{16}$/u.test(words[1] || "") && words.slice(2).every(word => ["charges", "share", "performance"].includes(word))) return { action: "confirm", token: words[1], charges: words.includes("charges"), share: words.includes("share"), performance: words.includes("performance") };
   const [action, category, target, provider] = words;
   const capability = Object.hasOwn(capabilities, category) ? capabilities[category] : null;
@@ -22,12 +28,23 @@ export function parseConnectionCommand(input) {
   return { action: "invalid" };
 }
 
+// Human-configured model names are untrusted metadata. Do not echo credentials,
+// arbitrary multiline data, or suspicious tokens to the durable CMD transcript.
+function publicModel(value) {
+  if (!value) return "none";
+  if (typeof value !== "string" || value.length > 120
+    || !/^[a-zA-Z0-9][a-zA-Z0-9._:/+-]*$/u.test(value)
+    || /(?:sk[-_]|api[-_]?key|bearer|secret|password|token|credential|private[-_]?key)/iu.test(value))
+    return "[withheld; inspect secure Setup]";
+  return value;
+}
+
 function describeStatus(status, mode = "all") {
   return ["CONNECTIONS - current-profile runtime status", ...Object.entries(CAPABILITY_ROUTES).flatMap(([capability]) => {
     const group = status[capability];
     const joined = status.joins?.[capability];
-    return [`${capability}: selected ${group.selected}${joined ? `; Join ${joined.engine}/${joined.provider}: ${connectionProof(status, joined).state}` : "; not joined"}`,
-      ...Object.entries(group.options).filter(([, option]) => !["local", "cloud"].includes(mode) || option.locality === mode).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${option.model || "none"}; verified=${option.verifiedAt || "not tested"}${option.error ? "; blocker=Runtime error; inspect secure Setup for details" : ""}`)];
+    return [`${capability}: selected ${CAPABILITY_ROUTES[capability].includes(group.selected) ? group.selected : "unverified"}${joined ? (resolveConnectionJoin(capability, joined.engine, joined.provider).capable && resolveConnectionJoin(capability, joined.engine, joined.provider).route === joined.route) ? `; Join ${joined.engine}/${joined.provider}: ${connectionProof(status, joined).state}` : "; Join NOT CAPABLE (inspect secure Settings)" : "; not joined"}`,
+      ...Object.entries(group.options || {}).filter(([route, option]) => CAPABILITY_ROUTES[capability].includes(route) && (!["local", "cloud"].includes(mode) || option.locality === mode)).map(([route, option]) => `  ${route}: configured=${Boolean(option.configured)}; ready=${Boolean(option.ready)}; model=${publicModel(option.model)}; verified=${typeof option.verifiedAt === "string" && /^\d{4}-\d\d-\d\dT[\d:.]+Z$/u.test(option.verifiedAt) ? option.verifiedAt : option.verifiedAt === "synthetic" ? "synthetic" : "not tested"}${option.error ? "; blocker=Runtime error; inspect secure Setup for details" : ""}`)];
   }), mode === "hybrid" ? Object.entries(CONNECTION_PROVIDERS).flatMap(([capability, providers]) => providers.flatMap(provider => ["direct", "comfy-local", "comfy-cloud"].map(engine => {
     const resolved = resolveConnectionJoin(capability, engine, provider.id);
     return `${capability} ${engine}/${provider.id}: ${resolved.capable ? resolved.route : resolved.reason}`;
@@ -60,6 +77,12 @@ export function createConnectionCommandSession(services) {
       if (command.action === "invalid") { pending = null; return `BLOCKED: Unrecognized connection command. Input withheld from transcript. ${HELP}`; }
       const profile = await services.profile();
       if (!profile) throw new ConnectionCommandBlocked("Unlock the current Human profile first.");
+      if (command.action === "setup") {
+        pending = null; // Opening secure GUI consumes any previously issued preview.
+        if (typeof services.openMode !== "function") throw new ConnectionCommandBlocked("Secure Settings navigation is unavailable.");
+        await services.openMode(command.mode);
+        return `SETUP NAVIGATION: Opened existing ${command.mode.toUpperCase()} Settings for ${command.provider}. Choose its secure Setup control there; no credential was read, tested or saved, and no provider was verified or selected by this command.`;
+      }
       const status = await services.request("/api/ai-routing/status");
       if (command.action === "status") { pending = null; return describeStatus(status, command.mode); }
       if (command.action === "confirm") {

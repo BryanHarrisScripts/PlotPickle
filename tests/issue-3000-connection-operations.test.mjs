@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { createConnectionCommandSession, parseConnectionCommand } from "../app/_components/settings/connection-command.mjs";
 
 const TOKEN = "0123456789abcdef";
 function harness() {
   const option = (locality, extra = {}) => ({ configured: true, ready: true, model: "synthetic", verifiedAt: "synthetic", locality, ...extra });
-  const state = { profile: "synthetic-a", now: 0, posts: [], changed: 0, status: {
+  const state = { profile: "synthetic-a", now: 0, posts: [], opened: [], changed: 0, status: {
     text: { selected: "local", options: { local: option("local"), ollama: option("local"), openai: option("cloud"), gemini: option("cloud"), minimax: option("cloud"), off: option("off", { ready: false, disabled: true }) } },
     image: { selected: "manual", options: { comfyui: option("local", { imageProfile: "sdxl-1.0" }), "ollama-comfyui": option("local"), openai: option("cloud"), manual: option("manual", { ready: false, disabled: true }) } },
     video: { selected: "off", options: { minimax: option("cloud"), "minimax-comfyui": option("cloud"), "ltx-video": option("local"), "comfyui-native": option("local"), openai: option("cloud", { supported: false }), off: option("off", { ready: false, disabled: true }) } }, joins: {},
@@ -13,6 +14,7 @@ function harness() {
   const session = createConnectionCommandSession({
     profile: async () => state.profile, now: () => state.now, token: () => TOKEN,
     changed: () => { state.changed++; },
+    openMode: async mode => { state.opened.push(mode); },
     request: async (path, body) => {
       if (!body) return structuredClone(state.status);
       state.posts.push({ path, body });
@@ -119,4 +121,76 @@ test("#3000 raw request failures cannot disclose secrets or retry a submitted op
   assert.match(result, /BLOCKED/); assert.doesNotMatch(result, /secret-api-key/);
   await session.execute({ action: "confirm", token: TOKEN });
   assert.equal(posts, 1);
+});
+
+test("#3000 provider Setup navigates through existing Local/Cloud host without accepting secrets", async () => {
+  const h = harness();
+  assert.deepEqual(parseConnectionCommand("/PlotPickle connections setup openai"), { action: "setup", provider: "openai", mode: "cloud" });
+  assert.deepEqual(parseConnectionCommand("PlotPickle connections setup comfyui"), { action: "setup", provider: "comfyui", mode: "local" });
+  assert.deepEqual(parseConnectionCommand("PlotPickle connections setup openai key=secret"), { action: "invalid" });
+  assert.deepEqual(parseConnectionCommand("PlotPickle connections setup __proto__"), { action: "invalid" });
+  const original = JSON.stringify(h.state.status);
+  assert.match(await h.run("setup openai"), /existing CLOUD Settings/);
+  assert.match(await h.run("setup ollama"), /existing LOCAL Settings/);
+  assert.deepEqual(h.state.opened, ["cloud", "local"]);
+  assert.deepEqual(h.state.posts, []);
+  assert.equal(h.state.changed, 0);
+  assert.equal(JSON.stringify(h.state.status), original);
+  await h.run("test writing local");
+  await h.run("setup gemini");
+  assert.match(await h.run(`confirm ${TOKEN}`), /BLOCKED/);
+  assert.deepEqual(h.state.posts, []);
+  h.state.profile = "";
+  assert.match(await h.run("setup minimax"), /BLOCKED/);
+  assert.deepEqual(h.state.opened, ["cloud", "local", "cloud"]);
+});
+
+test("#3000 selected route reads back identically in a fresh controller as in the GUI-owned status", async () => {
+  const h = harness();
+  await h.run("select writing openai");
+  assert.match(await h.run(`confirm ${TOKEN} charges`), /text: selected openai/);
+  assert.equal(h.state.posts.at(-1).path, "/api/ai-routing/select");
+  const fresh = createConnectionCommandSession({
+    profile: async () => h.state.profile,
+    now: () => h.state.now,
+    token: () => TOKEN,
+    changed: () => {},
+    request: async () => structuredClone(h.state.status),
+  });
+  assert.match(await fresh.execute(parseConnectionCommand("PlotPickle connections status hybrid")), /text: selected openai/);
+  assert.equal(h.state.status.text.selected, "openai");
+});
+
+test("#3000 CMD status redacts credential-looking model metadata and malformed Join identities", async () => {
+  const h = harness();
+  h.state.status.text.options.openai.model = "sk-proj-example-secret";
+  h.state.status.image.options.comfyui.model = "line1\\nprivate-token";
+  h.state.status.joins.text = { engine: "secret-provider-key", provider: "openai", route: "openai" };
+  const result = await h.run("status hybrid");
+  assert.doesNotMatch(result, /sk-proj-example-secret|line1|private-token|secret-provider-key/u);
+  assert.match(result, /withheld; inspect secure Setup/u);
+  assert.match(result, /Join NOT CAPABLE/u);
+  assert.equal(h.state.posts.length, 0);
+});
+
+test("#3000 CMD setup navigation and GUI route operations use shared product owners", async () => {
+  const read = name => readFile(new URL("../" + name, import.meta.url), "utf8");
+  const [host, dashboard, hybrid, gateway] = await Promise.all([
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/hybrid-story-mode-panel.tsx"),
+    read("build/ai-routing-gateway.ts"),
+  ]);
+  assert.match(host, /openMode: \(mode: "local" \| "cloud"\)/u);
+  assert.match(host, /new CustomEvent\("plotpickle:open-story-mode", \{ detail: mode \}\)/u);
+  assert.match(dashboard, /plotpickle:open-story-mode/u);
+  assert.match(hybrid, /fetch\("\/api\/ai-routing\/status"/u);
+  assert.match(hybrid, /fetch\("\/api\/ai-routing\/join"/u);
+  assert.match(gateway, /const STATUS_PATH = /u);
+  assert.match(gateway, /const SELECT_PATH = /u);
+  assert.match(gateway, /const JOIN_PATH = /u);
+  assert.match(gateway, /await selectRoute\(body\)/u);
+  assert.match(gateway, /await joinConnection\(body\)/u);
+  assert.match(host, /authenticatedComputeFetch as fetch/u);
+  assert.match(host, /profilePrivateBrowserReadyFor\(profile\)/u);
 });

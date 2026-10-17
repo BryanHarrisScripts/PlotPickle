@@ -48,10 +48,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Use Node.js 24.19
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
           cache: npm
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
@@ -100,10 +100,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Use Node.js 24.19
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
           cache: npm
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
@@ -155,10 +155,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Use Node.js 24.19
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
           cache: npm
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
@@ -217,7 +217,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
           cache: npm
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
@@ -276,7 +276,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
         run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
@@ -297,10 +297,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Use Node.js 24.19
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
           cache: npm
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh

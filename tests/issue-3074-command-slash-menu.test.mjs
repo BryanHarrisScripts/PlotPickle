@@ -72,7 +72,7 @@ test("Slash menu is composer-only, accessible, and never auto-runs an operation"
   assert.match(source, /event\.key === "Escape"/u);
   assert.match(source, /chooseSlashCommand\(slashSuggestions\[activeSlashIndex\]\.command\)/u);
   const select = source.slice(source.indexOf("  function chooseSlashCommand("), source.indexOf("  const latestHumanIndex"));
-  assert.match(select, /setDraft\(\`\/\$\{command\}\`\)/u);
+  assert.ok(select.includes('setDraft(`/${command}`)'));
   assert.doesNotMatch(select, /fetch\(|submit\(|runOpenPencilCommand|runCreative|publishBrief/u);
   assert.match(styles, /\.slashMenuOption\[aria-selected="true"\]/u);
   assert.match(parser, /const surfaceName = cleanRoot/u);

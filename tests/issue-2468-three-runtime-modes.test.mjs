@@ -20,13 +20,14 @@ test("#2468 propagates normal, webmcp and conversational-uat across both launche
 
   assert.match(batch, /--normal" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"/u);
   assert.match(batch, /--human-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"/u);
-  assert.match(batch, /--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"/u);
-  assert.match(batch, /--conversational-uat" set "PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat"/u);
+  assert.match(batch, /--webmcp-testing" \([\s\S]*?PLOTPICKLE_STARTUP_TESTING_MODE=webmcp/u);
+  assert.match(batch, /--conversational-uat" \([\s\S]*?PLOTPICKLE_STARTUP_TESTING_MODE=conversational-uat/u);
   assert.match(batch, /PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_STARTUP_TESTING_MODE=normal"/u);
   assert.doesNotMatch(batch, /PLOTPICKLE_STARTUP_TESTING_MODE=human/u);
 
   assert.match(bootstrap, /\[switch\]\$ConversationalUAT/u);
   assert.match(bootstrap, /\$launchArgs\.ConversationalUAT = \$true/u);
+  assert.match(bootstrap, /\$launchArgs\.DeveloperSession = \$true/u);
 });
 
 test("#2468 starts normally without a menu or countdown and preserves selected mode across source restart", async () => {

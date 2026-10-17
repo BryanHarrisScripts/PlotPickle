@@ -3309,6 +3309,49 @@
         ]
       },
       "notes": "3061 repository/invitation historical fixture migration: pure manifest, naming and invitation policy fixtures on native Node26; explicit synthetic version isolation and fixed clocks. Not actual GitHub, profile storage or project acceptance evidence."
+    },
+    {
+      "id": "production.github-recovery-fixtures-3061",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-161-github-command-outbox.test.mjs",
+          "tests/issue-163-github-recovery-centre.test.mjs",
+          "tests/issue-165-github-repository-recovery.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#3061 native Node26 migration of existing GitHub outbox/recovery fixtures. Uses temporary outbox files, synthetic credentials, injected execution and mocked fetch. No real accounts, encrypted credential vault, actual GitHub writes or supported Windows recovery journey proof."
     }
   ],
   "truthGovernance": {
@@ -5897,6 +5940,174 @@
           {
             "path": "package.json",
             "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-161-github-command-outbox.test.mjs",
+        "targetDigest": "c0bb75192c96fb3f62e6bb33e06dee9a6c2cd17df3c007ac33bb5554a031b84c",
+        "catalogueIds": [
+          "production.github-recovery-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing outbox state machine and temporary-file service checks; synthetic gateway requests, credential/home seams and mocked GitHub responses. Preserves existing rejection/public-metadata/idempotency/recovery expectations. Not real GitHub, encrypted credential storage, process restart or Windows product recovery proof. Historical phase-F source is inspected for registration only, not executed or certified.",
+        "inputs": [
+          {
+            "path": "lib/integrations/github/github-command-outbox.ts",
+            "digest": "5516218b2dcdbc0f23d93c15e3b7fb20207b567a02716295f5e322b207230cba"
+          },
+          {
+            "path": "build/github-command-service.ts",
+            "digest": "f557f47fe4215da4f8ae1252323dde19a1012647d3ede572d8a37862cac57c99"
+          },
+          {
+            "path": "docs/issue-161-github-command-outbox.md",
+            "digest": "5771f9ae4cbf295aeaa2e61b20b641252e45356673838528d8742bfac1fbe4c5"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-163-github-recovery-centre.test.mjs",
+        "targetDigest": "030983c46ab8dec1d2b6eec18d9ee5721c09f908766d64c3ad8070c4f5f8db5a",
+        "catalogueIds": [
+          "production.github-recovery-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing outbox state machine and temporary-file service checks; synthetic gateway requests, credential/home seams and mocked GitHub responses. Preserves existing rejection/public-metadata/idempotency/recovery expectations. Not real GitHub, encrypted credential storage, process restart or Windows product recovery proof. Historical phase-F source is inspected for registration only, not executed or certified.",
+        "inputs": [
+          {
+            "path": "lib/integrations/github/github-command-outbox.ts",
+            "digest": "5516218b2dcdbc0f23d93c15e3b7fb20207b567a02716295f5e322b207230cba"
+          },
+          {
+            "path": "lib/integrations/github/github-recovery-status.ts",
+            "digest": "ad33e3c3e5ff445be5745dec29957e70e41f4a9fa58ee8b4cd428d88e5481a41"
+          },
+          {
+            "path": "build/github-command-service.ts",
+            "digest": "f557f47fe4215da4f8ae1252323dde19a1012647d3ede572d8a37862cac57c99"
+          },
+          {
+            "path": "build/github-command-gateway.ts",
+            "digest": "1f17d37e928813b3c2bd47d3a01d18bd1fb843d39458d239f817adfffaf8652c"
+          },
+          {
+            "path": "app/github-recovery-centre.tsx",
+            "digest": "8f58047e8be4e26be32587ea84bdfab808748f8cdbb3f9b7a8720bb6d53d3c1f"
+          },
+          {
+            "path": "app/github-recovery-centre.module.css",
+            "digest": "b3889340f665b8aa73f5a3d0c1a4dbb15530e6ff513249590ab200193cdcbc67"
+          },
+          {
+            "path": "app/github-collaboration.tsx",
+            "digest": "319cfa496114ce5f8472bd49e3cf799477abeb1c977381a7badf274ddea73b56"
+          },
+          {
+            "path": "vite.config.ts",
+            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+          },
+          {
+            "path": "docs/issue-163-github-recovery-centre.md",
+            "digest": "e8c145a7a7aa332c5a381576200384452ecb565adf894c8ce4ea04d9c85efc80"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          },
+          {
+            "path": "tests/phase-f-collaboration-release.test.mjs",
+            "digest": "39f86710c70e996f61853d8aca82b270924ed6d55b5c17a02fc9ad985e9f79e1"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-165-github-repository-recovery.test.mjs",
+        "targetDigest": "3b62f55f33e313aea6292bdf4588c9129797fbc259469a76a3c3d53886900b5a",
+        "catalogueIds": [
+          "production.github-recovery-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing outbox state machine and temporary-file service checks; synthetic gateway requests, credential/home seams and mocked GitHub responses. Preserves existing rejection/public-metadata/idempotency/recovery expectations. Not real GitHub, encrypted credential storage, process restart or Windows product recovery proof. Historical phase-F source is inspected for registration only, not executed or certified.",
+        "inputs": [
+          {
+            "path": "lib/integrations/github/github-repository-recovery.ts",
+            "digest": "ab2eb1b171c6201e5a8b222c80d3a819418054844388ae5f560fdc5ed4350476"
+          },
+          {
+            "path": "lib/integrations/github/github-command-outbox.ts",
+            "digest": "5516218b2dcdbc0f23d93c15e3b7fb20207b567a02716295f5e322b207230cba"
+          },
+          {
+            "path": "build/github-repository-recovery-gateway.ts",
+            "digest": "6cc3c3070bdde90fa350a8f7567e0cc7cfab131f5d36591eac08a975b7f9b80a"
+          },
+          {
+            "path": "app/github-recovery-centre.tsx",
+            "digest": "8f58047e8be4e26be32587ea84bdfab808748f8cdbb3f9b7a8720bb6d53d3c1f"
+          },
+          {
+            "path": "app/github-repository-recovery.tsx",
+            "digest": "817f0bf3ba847157a64ca16b224f9483e6a559d8a0850b902ddb0c5f2cdc7f06"
+          },
+          {
+            "path": "app/github-recovery-centre.module.css",
+            "digest": "b3889340f665b8aa73f5a3d0c1a4dbb15530e6ff513249590ab200193cdcbc67"
+          },
+          {
+            "path": "vite.config.ts",
+            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+          },
+          {
+            "path": "docs/issue-165-github-repository-recovery.md",
+            "digest": "0c0b93c1a304f98e57144478d2fb0acfefbe5ac71c125cb2b59f0cf9f1088a3e"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          },
+          {
+            "path": "tests/phase-f-collaboration-release.test.mjs",
+            "digest": "39f86710c70e996f61853d8aca82b270924ed6d55b5c17a02fc9ad985e9f79e1"
           }
         ]
       }

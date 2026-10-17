@@ -11,7 +11,7 @@ const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function outboxContract() {
   const raw = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
-  const compiled = stripTypeScriptTypes(raw, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(raw);
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
@@ -21,8 +21,8 @@ async function serviceContract(home) {
   const serviceRaw = (await source("build/github-command-service.ts")).replace(/\r\n?/g, "\n")
     .replace('from "../lib/integrations/github/github-command-outbox";', 'from "./github-command-outbox.mjs";')
     .replace('import { persistentHome } from "./local-credentials";', 'const persistentHome = () => process.env.PLOTPICKLE_HOME || "";');
-  await writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(libRaw, { mode: "transform" }), "utf8");
-  await writeFile(path.join(directory, "github-command-service.mjs"), stripTypeScriptTypes(serviceRaw, { mode: "transform" }), "utf8");
+  await writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(libRaw), "utf8");
+  await writeFile(path.join(directory, "github-command-service.mjs"), stripTypeScriptTypes(serviceRaw), "utf8");
   process.env.PLOTPICKLE_HOME = home;
   const service = await import(`${pathToFileURL(path.join(directory, "github-command-service.mjs")).href}?v=${Date.now()}`);
   return { service, directory };

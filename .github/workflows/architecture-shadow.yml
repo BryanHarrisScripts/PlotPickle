@@ -58,7 +58,7 @@ jobs:
       - name: Restore main reference for legacy convergence checks
         run: git update-ref refs/heads/main refs/remotes/origin/main
 
-      - name: Use Node.js 22.13
+      - name: Use Node.js 22.13 (legacy TypeScript transform fixtures)
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
@@ -254,7 +254,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.19.0'
+          node-version: '26.12.0'
       - name: Admit tests against approved truth before Windows execution
         shell: pwsh
         run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"

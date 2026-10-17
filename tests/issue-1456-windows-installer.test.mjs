@@ -140,7 +140,7 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
   ]);
   for (const contract of [
     "windows-latest",
-    'node-version: "24.19.0"',
+    'node-version: "26.12.0"',
     "dotnet-version: \"8.0.x\"",
     "npm ci --include=dev",
     "issue-1456-windows-installer.test.mjs",

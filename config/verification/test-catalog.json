@@ -5399,7 +5399,7 @@
       },
       {
         "target": "tests/issue-3058-node26-runtime.test.mjs",
-        "targetDigest": "68eece6daf3df37a4adf113cddcccd98f35ab6a03e5bebd9839c75f4d89c939c",
+        "targetDigest": "f2e3471aa796792fb0069b998d42be440c9d2f77853bc8ebf3c78b4dd6e80c9f",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],
@@ -5418,7 +5418,76 @@
           "static-source"
         ],
         "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
-        "inputs": []
+        "inputs": [
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "1e6d7561c1ba97dfd8e53d1b83149e2f3af97bb8563688f8f84b9cc107d8847d"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2035-creative-transaction-provider.test.mjs",
+        "targetDigest": "a1b76d22b03b676ff4bf5b5251691388bad535879d2fcb286ded38a708eee254",
+        "catalogueIds": [
+          "production.creative-transaction-provider"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing synthetic provider lifecycle, fingerprint, review and recovery assertions, now executed using native Node 26 type stripping. No actual external provider, Human account, durable PPF admission or paid inference proof.",
+        "inputs": [
+          {
+            "path": "lib/creative-transactions/creative-transaction-contract.ts",
+            "digest": "36c27d741368a91c85bfa994da6c8a93ae9b548c03be33d91f59da31c833b516"
+          },
+          {
+            "path": "lib/creative-transactions/local-creative-transaction-provider.ts",
+            "digest": "2541c6d0b6acf22ad02e2ad822b0968c4848a715678b26f1c05351ef476d3bbf"
+          },
+          {
+            "path": "lib/creative-transactions/github-creative-transaction-provider.ts",
+            "digest": "fbdf70849683f2b94f72749af241344eb90cd08c7b9127779891f0fd94b363a4"
+          },
+          {
+            "path": "lib/creative-transactions/versioned-object-creative-transaction-provider.ts",
+            "digest": "819d7fb5d67e7cfb65b3ea5795457d2cbc27371d9c1a79e30c8e354d33518c05"
+          },
+          {
+            "path": "build/creative-transaction-local-store.ts",
+            "digest": "3036c08d2a3de4c7b275115f2bdd06395b8d328f33ea48dcfbcc7c15ba08cd5a"
+          },
+          {
+            "path": "lib/creative-transactions/creative-transaction-project-bridge.ts",
+            "digest": "c9364e93b43400d0f098f1c9693853fb5f55d393eabfd3a5028a15f0c607c1f5"
+          },
+          {
+            "path": "lib/agents/responsibility/responsibility-runs.ts",
+            "digest": "7648b5d465513648567d45db23388632670bd26752e4427e2b15f233e6e7ad72"
+          },
+          {
+            "path": "lib/projects/persistence/project-revisions.ts",
+            "digest": "f8fb227e2c6cdc8d5f10bdbc09d8247d6476a1a5bb0bed468093c91e92950e55"
+          },
+          {
+            "path": "build/github-creative-transaction-bridge.ts",
+            "digest": "405a4db6d3d19da0cdaf88ef06572f44f4c73a2c5e9c65120fc3637fb92472f9"
+          },
+          {
+            "path": "build/github-review-gateway.ts",
+            "digest": "e8818361f56b35f61f9486430262643f6de5b70318ec5b83b761eb20cb756030"
+          }
+        ]
       }
     ]
   }

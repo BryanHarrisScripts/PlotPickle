@@ -3227,7 +3227,7 @@
       "id": "verification.node26-fixture-transform-bridge-3061",
       "ownerLayer": "verification",
       "architectureComponents": [
-        "validation-operations"
+        "verification-core"
       ],
       "triggerTokens": [
         "test-harness",

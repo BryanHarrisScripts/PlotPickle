@@ -2278,6 +2278,7 @@
       "runner": {
         "kind": "node-test",
         "targets": [
+          "tests/issue-2778-openpencil-design-tool.test.mjs",
           "tests/issue-2780-openpencil-command-mcp.test.mjs",
           "tests/issue-2782-openpencil-profile-startup.test.mjs",
           "tests/issue-2787-openpencil-gui-review.test.mjs",
@@ -6433,7 +6434,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "030ffa6d85d90646b941f1a18d2ae19d8d715405298bc6a715e0228b2805c1c9"
+            "digest": "f5b01d3108cddac4e2f1b9e9315cc0071e63b2ec41d67cb7233e10ff55d46926"
           },
           {
             "path": "docs/developer-briefs/2338-dsdd-pi-087-persistent-session.md",
@@ -6549,7 +6550,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "030ffa6d85d90646b941f1a18d2ae19d8d715405298bc6a715e0228b2805c1c9"
+            "digest": "f5b01d3108cddac4e2f1b9e9315cc0071e63b2ec41d67cb7233e10ff55d46926"
           },
           {
             "path": ".github/workflows/product-gate.yml",
@@ -6930,6 +6931,118 @@
           {
             "path": "config/runtime-sidecars.json",
             "digest": "3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2778-openpencil-design-tool.test.mjs",
+        "targetDigest": "000145cb646cde58d05d60238fcb50ca29a3d81f00359c1ffc9091edbf0f34f1",
+        "catalogueIds": [
+          "production.openpencil-command-mcp-2780"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "OpenPencil 0.16.0 source contracts and synthetic Windows path/process tests for explicit-connect, versioned optional tooling; no live Windows desktop installation, Human design session, provider, PPF or runtime convergence demonstrated.",
+        "inputs": [
+          {
+            "path": "config/openpencil-adapter.json",
+            "digest": "ec33531f346e98c1efc5cf7ef41f583ea8d0930801c6c6ef8537bd6656790d20"
+          },
+          {
+            "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+            "digest": "a3154e818bad440f260d13a2fd87c56e1490c20fff6f82f7a8aab848f3048040"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2782-openpencil-profile-startup.test.mjs",
+        "targetDigest": "f9c794020080e7fce8239da504a0da80fb920af94d151987634221c908357f2f",
+        "catalogueIds": [
+          "production.openpencil-command-mcp-2780"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "OpenPencil 0.16.0 source contracts and synthetic Windows path/process tests for explicit-connect, versioned optional tooling; no live Windows desktop installation, Human design session, provider, PPF or runtime convergence demonstrated.",
+        "inputs": [
+          {
+            "path": "config/openpencil-adapter.json",
+            "digest": "ec33531f346e98c1efc5cf7ef41f583ea8d0930801c6c6ef8537bd6656790d20"
+          },
+          {
+            "path": "build/openpencil/openpencil-mcp-runtime.mjs",
+            "digest": "8904f522059cce4c69e598110406cf788159060846d06a688e65302bfa17ef88"
+          },
+          {
+            "path": "scripts/ensure-openpencil-mcp.ps1",
+            "digest": "43a404a6893858584b2f052a4805a74a5129f2cb8dd2b7a69d65a50db447028f"
+          },
+          {
+            "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+            "digest": "a3154e818bad440f260d13a2fd87c56e1490c20fff6f82f7a8aab848f3048040"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2787-openpencil-gui-review.test.mjs",
+        "targetDigest": "c8711eae85655621d6533703b16c00c8c0e24372c90f890a4e756e045569e4a7",
+        "catalogueIds": [
+          "production.openpencil-command-mcp-2780"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "OpenPencil 0.16.0 source contracts and synthetic Windows path/process tests for explicit-connect, versioned optional tooling; no live Windows desktop installation, Human design session, provider, PPF or runtime convergence demonstrated.",
+        "inputs": [
+          {
+            "path": "config/openpencil-adapter.json",
+            "digest": "ec33531f346e98c1efc5cf7ef41f583ea8d0930801c6c6ef8537bd6656790d20"
+          },
+          {
+            "path": "build/openpencil/openpencil-gui-runtime.mjs",
+            "digest": "d57f69b52f9da91c60cac9766c6a8f6480762fd37d9dd434df70a1e116765cd0"
+          },
+          {
+            "path": "scripts/ensure-openpencil-mcp.ps1",
+            "digest": "43a404a6893858584b2f052a4805a74a5129f2cb8dd2b7a69d65a50db447028f"
+          },
+          {
+            "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
+            "digest": "a3154e818bad440f260d13a2fd87c56e1490c20fff6f82f7a8aab848f3048040"
           }
         ]
       }

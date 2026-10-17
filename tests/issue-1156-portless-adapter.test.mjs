@@ -94,7 +94,7 @@ test("#1156 keeps Portless pinned outside the PlotPickle product dependency grap
   assert.equal(pkg.engines.node, ">=22.13.0");
   assert.equal(pkg.dependencies?.portless, undefined);
   assert.equal(pkg.devDependencies?.portless, undefined);
-  assert.equal(pin.version, "0.15.5");
+  assert.equal(pin.version, "0.15.8");
   assert.equal(pin.license, "Apache-2.0");
   assert.equal(pin.nodeEngine, ">=24");
   assert.equal(pin.plotpickleNodeStrategy, "isolated-developer-tool-runtime");
@@ -146,7 +146,7 @@ test("#1156 managed environment hard-rejects LAN, tunnel, wildcard and custom-TL
 
 test("#1156 safe environment disables hosts mutation, LAN, tunnels and TLS for routine HTTP", () => {
   const env = safePortlessEnvironment({ PATH: "synthetic-long-path" }, {
-    stateDir: "/tmp/PlotPickle/node/runtime/portless/0.15.5",
+    stateDir: "/tmp/PlotPickle/node/runtime/portless/0.15.8",
     proxyPort: 43157,
   });
   assert.equal(env.PATH, "synthetic-long-path");
@@ -167,11 +167,11 @@ test("#1156 runtime probe enforces Node 24 and exact managed Portless version", 
     cliPath: "/opt/portless/cli.js",
     execFileImpl: async (_command, args) => args.length === 1
       ? { stdout: "v24.19.0\n", stderr: "" }
-      : { stdout: "portless 0.15.5\n", stderr: "" },
+      : { stdout: "portless 0.15.8\n", stderr: "" },
   });
   assert.equal(good.available, true);
   assert.equal(good.state, "managed-pinned");
-  assert.equal(good.version, "0.15.5");
+  assert.equal(good.version, "0.15.8");
 
   const oldNode = await probePortlessRuntime({
     sourceMode: "managed-pinned",
@@ -191,7 +191,7 @@ test("#1156 runtime probe enforces Node 24 and exact managed Portless version", 
       : { stdout: "portless 0.15.4\n", stderr: "" },
   });
   assert.equal(wrongVersion.state, "incompatible");
-  assert.match(wrongVersion.detail, /exactly 0\.15\.5/);
+  assert.match(wrongVersion.detail, /exactly 0\.15\.8/);
 });
 
 test("#1156 Windows listener proof rejects wildcard bind and accepts loopback-only listeners", async () => {

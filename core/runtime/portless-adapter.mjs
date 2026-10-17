@@ -14,7 +14,7 @@ import {
 } from "./local-endpoint-registry.mjs";
 
 const exec = promisify(execFile);
-export const PORTLESS_PINNED_VERSION = "0.15.5";
+export const PORTLESS_PINNED_VERSION = "0.15.8";
 export const PORTLESS_SOURCE_STATES = new Set([
   "managed-pinned",
   "installed-compatible",

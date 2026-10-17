@@ -3438,6 +3438,50 @@
         ]
       },
       "notes": "3024 existing Pi Durable replay/authority/private-install/default-activation fixtures. Real package restart and old-state compatibility require separate Windows evidence."
+    },
+    {
+      "id": "production.portless-0158-upgrade-3053",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "native",
+        "security",
+        "windows",
+        "runtime",
+        "portless"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs",
+          "tests/issue-1156-portless-adapter.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#3053 reviewed isolated Portless 0.15.8 distribution metadata, compatibility guard and exact-instance/loopback/cleanup static contracts; real Windows proof is separately required."
     }
   ],
   "truthGovernance": {
@@ -6434,7 +6478,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "f5b01d3108cddac4e2f1b9e9315cc0071e63b2ec41d67cb7233e10ff55d46926"
+            "digest": "e89fab0be7957f750df122c98c9a1de7fb66a6a2666a7280f9d7d1946fb34401"
           },
           {
             "path": "docs/developer-briefs/2338-dsdd-pi-087-persistent-session.md",
@@ -6550,7 +6594,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "f5b01d3108cddac4e2f1b9e9315cc0071e63b2ec41d67cb7233e10ff55d46926"
+            "digest": "e89fab0be7957f750df122c98c9a1de7fb66a6a2666a7280f9d7d1946fb34401"
           },
           {
             "path": ".github/workflows/product-gate.yml",
@@ -7043,6 +7087,78 @@
           {
             "path": "docs/architecture/OPENPENCIL-DESIGN-BRIDGE.md",
             "digest": "a3154e818bad440f260d13a2fd87c56e1490c20fff6f82f7a8aab848f3048040"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs",
+        "targetDigest": "ea01e2489741345cebbbc019f913e5d4dfa02af44c24edd7aa22abb2223f8bd1",
+        "catalogueIds": [
+          "production.portless-0158-upgrade-3053"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Reviewed Portless version/integrity and synthetic route boundaries. Historical 0.15.5 Windows evidence remains version-scoped. Not proof of installed 0.15.8 Windows adapter or of Human device connectivity.",
+        "inputs": [
+          {
+            "path": "config/portless-runtime.json",
+            "digest": "59fddf19176b39f60f5b848a4d05bd7f30e482b657f36e760237128d617e975a"
+          },
+          {
+            "path": "core/runtime/portless-adapter.mjs",
+            "digest": "ce50c432cb1ef687f3ff9e3f6203d70ff185ec4a34c5b445a9409810be294251"
+          },
+          {
+            "path": "docs/architecture/PLOTPICKLE-PORTLESS-ADAPTER.md",
+            "digest": "fcbdf942ebda25234a825a12c88acfedf5dc19fd2dc676e3ae99f0b4c65bdb4f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1156-portless-adapter.test.mjs",
+        "targetDigest": "8deebae66677ce735be827913c2485b9133a75d6a431dcdf38bcd4dae8cf8e33",
+        "catalogueIds": [
+          "production.portless-0158-upgrade-3053"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Reviewed Portless version/integrity and synthetic route boundaries. Historical 0.15.5 Windows evidence remains version-scoped. Not proof of installed 0.15.8 Windows adapter or of Human device connectivity.",
+        "inputs": [
+          {
+            "path": "config/portless-runtime.json",
+            "digest": "59fddf19176b39f60f5b848a4d05bd7f30e482b657f36e760237128d617e975a"
+          },
+          {
+            "path": "core/runtime/portless-adapter.mjs",
+            "digest": "ce50c432cb1ef687f3ff9e3f6203d70ff185ec4a34c5b445a9409810be294251"
+          },
+          {
+            "path": "docs/architecture/PLOTPICKLE-PORTLESS-ADAPTER.md",
+            "digest": "fcbdf942ebda25234a825a12c88acfedf5dc19fd2dc676e3ae99f0b4c65bdb4f"
           }
         ]
       }

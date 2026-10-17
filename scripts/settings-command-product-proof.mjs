@@ -34,7 +34,7 @@ async function waitFor(check, label, timeout = 180_000) {
 }
 try {
   const managed = await ensureManagedPiInstalled({ root: path.join(temporary, "managed-pi") });
-  assert.equal(managed.version, "1.0.1");
+  assert.equal(managed.version, "1.3.0");
   const { SessionManager } = await import(pathToFileURL(path.join(managed.root, "node_modules/@earendil-works/pi-coding-agent/dist/index.js")).href);
   const audit = SessionManager.create(process.cwd(), path.join(temporary, "clear-session"));
   const humanId = audit.appendMessage({ role: "user", content: "Synthetic old narration", timestamp: Date.now() });

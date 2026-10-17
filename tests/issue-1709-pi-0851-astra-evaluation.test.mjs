@@ -15,9 +15,16 @@ test("#1709 remains historical after a later managed Pi promotion", async () => 
   assert.equal(evaluation.currentManagedVersion, "0.84.4");
   assert.equal(evaluation.candidateVersion, "0.85.1");
   assert.equal(evaluation.decision, "candidate-probe");
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.0\.1"/u);
-  assert.equal(stack.piRuntime.managedVersion, "1.0.1");
-  assert.deepEqual(evaluation.requiredExtensions.filter(spec => !spec.includes("pi-mcp-adapter")), stack.piPackages);
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.3\.0"/u);
+  assert.equal(stack.piRuntime.managedVersion, "1.3.0");
+  const historical = evaluation.requiredExtensions.filter(spec => !spec.includes("pi-mcp-adapter"));
+  assert.deepEqual(historical, [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-context-view@0.4.2",
+  ]);
+  assert.deepEqual(historical.map(spec => spec.slice(0, spec.lastIndexOf("@"))), stack.piPackages.map(spec => spec.slice(0, spec.lastIndexOf("@"))));
   assert.equal(stack.piPackages.some(spec => spec.includes("pi-mcp-adapter")), false);
   assert.match(evaluation.promotionPolicy, /only after the isolated Windows candidate probe/u);
 });

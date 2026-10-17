@@ -17,11 +17,11 @@ test("#2590 retains the Pi 0.99.1 evaluation while the managed runtime advances 
   assert.equal(contract.issue, 2590);
   assert.equal(contract.currentManagedVersion, "0.87.1");
   assert.equal(contract.candidateVersion, "0.99.1");
-  assert.equal(stack.piRuntime.managedVersion, "1.0.1");
-  assert.match(installer, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.0\.1"/u);
-  assert.match(bridge, /managed\.version !== "1\.0\.1"/u);
-  assert.match(gateway, /piVersion: "1\.0\.1"/u);
-  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "1.0.1");
+  assert.equal(stack.piRuntime.managedVersion, "1.3.0");
+  assert.match(installer, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.3\.0"/u);
+  assert.match(bridge, /managed\.version !== "1\.3\.0"/u);
+  assert.match(gateway, /piVersion: "1\.3\.0"/u);
+  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "1.3.0");
   assert.equal(stack.piRuntime.localOnly, true);
   assert.equal(stack.piRuntime.cloudFallback, false);
 });

@@ -120,7 +120,7 @@ jobs:
       - name: Evaluate managed Pi compatibility
         shell: pwsh
         env:
-          PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-101-compatibility.json
+          PLOTPICKLE_PI_COMPATIBILITY_CONTRACT: config/pi-130-compatibility.json
         run: node scripts/evaluate-pi-099-compatibility.mjs
       - name: Evaluate optional Pi Durable adapter
         shell: pwsh

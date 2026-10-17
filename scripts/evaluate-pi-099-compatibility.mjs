@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { resolveActiveNpmCommand, runPortableCommand } from "./pi-worker-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const contractPath = path.resolve(repoRoot, process.env.PLOTPICKLE_PI_COMPATIBILITY_CONTRACT || "config/pi-099-compatibility.json");
+const contractPath = path.resolve(repoRoot, process.env.PLOTPICKLE_PI_COMPATIBILITY_CONTRACT || "config/pi-130-compatibility.json");
 const evaluationContract = JSON.parse(await readFile(contractPath, "utf8"));
 const artifactDir = path.join(repoRoot, ".artifacts", `pi-${evaluationContract.issue}`);
 const artifactPath = path.join(artifactDir, "evaluation.json");
@@ -174,6 +174,47 @@ process.stdout.write(JSON.stringify({
   return JSON.parse(result.stdout);
 }
 
+async function runSessionToolBoundaryProbe(candidateRoot) {
+  const probePath = path.join(candidateRoot, "plotpickle-session-tool-boundary-probe.mjs");
+  await writeFile(probePath, `
+import assert from "node:assert/strict";
+import path from "node:path";
+import { createAgentSession, DefaultResourceLoader, ModelRuntime, SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
+
+globalThis.fetch = async () => { throw new Error("Pi compatibility probe must not access network providers."); };
+const cwd = process.cwd(), agentDir = path.join(cwd, "isolated-tool-home");
+const common = { cwd, agentDir, settingsManager: SettingsManager.inMemory({}), noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true };
+const builtin = { name: "plotpickle-boundary-control", builtin: true, factory(pi) { pi.registerCommand("boundary_control", { description: "Synthetic compatibility control", handler: async () => {} }); } };
+async function loaded(noExtensions, explicit = false) {
+  const loader = new DefaultResourceLoader({ ...common, noExtensions, extensionFactories: [builtin], additionalExtensionPaths: explicit ? ["builtin:plotpickle-boundary-control"] : [] });
+  await loader.reload();
+  const extensions = loader.getExtensions();
+  assert.deepEqual(extensions.errors, []);
+  return extensions.extensions.some(item => item.commands.has("boundary_control"));
+}
+assert.equal(await loaded(false), true);
+assert.equal(await loaded(true), false);
+assert.equal(await loaded(true, true), true);
+const modelRuntime = await ModelRuntime.create({ authPath: path.join(agentDir, "auth.json"), modelsPath: null, modelsStorePath: path.join(agentDir, "models-store.json"), allowModelNetwork: false, refreshOnCreate: false });
+const loader = new DefaultResourceLoader({ ...common, noExtensions: true });
+await loader.reload();
+async function active(tools) {
+  const manager = SessionManager.inMemory(cwd);
+  manager.appendMessage({ role: "system", content: "Synthetic compatibility context", toolsAdded: [{ name: "grep", description: "Restored tool", parameters: { type: "object", properties: {} } }], timestamp: Date.now() });
+  manager.appendMessage({ role: "user", content: "Synthetic history; never sent to a model", timestamp: Date.now() });
+  const { session } = await createAgentSession({ cwd, agentDir, modelRuntime, resourceLoader: loader, sessionManager: manager, settingsManager: SettingsManager.inMemory({ defaultTools: ["read"] }), ...(tools === undefined ? {} : { tools }) });
+  try { return session.getActiveToolNames().sort(); } finally { session.dispose(); }
+}
+assert.deepEqual(await active(), ["grep"]);
+assert.deepEqual(await active(["+ls"]), ["grep", "ls"]);
+assert.deepEqual(await active(["read"]), ["read"]);
+assert.deepEqual(await active([]), []);
+process.stdout.write(JSON.stringify({ noExtensionsDisablesBuiltins: true, explicitBuiltinAllowed: true, restoredToolsPreserved: true, modifiersPreserveRestoredTools: true, explicitAllowlistWins: true, emptyAllowlistDeniesAll: true, providerCalls: 0 }));
+`, "utf8");
+  const result = await runPortableCommand(process.execPath, [probePath], { cwd: candidateRoot, timeout: 60_000 });
+  return JSON.parse(result.stdout);
+}
+
 async function runRpcProbe(candidateRoot) {
   const manifestPath = path.join(
     candidateRoot,
@@ -285,14 +326,15 @@ async function main() {
       "utf8",
     );
 
-    if (contract.candidateVersion === "1.0.1") {
+    const useReviewedLock = contract.lockedInstallDirectory === ".pi/npm" || contract.candidateVersion === "1.0.1";
+    if (useReviewedLock) {
       for (const file of ["package.json", "package-lock.json"]) {
         await writeFile(path.join(candidateRoot, file), await readFile(path.join(repoRoot, ".pi/npm", file)));
       }
     }
     await runPortableCommand(
       resolveActiveNpmCommand(),
-      contract.candidateVersion === "1.0.1"
+      useReviewedLock
         ? ["ci", "--ignore-scripts", "--no-audit", "--no-fund"]
         : ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact"],
       { cwd: candidateRoot, timeout: 12 * 60_000 },
@@ -325,6 +367,9 @@ async function main() {
     report.checks.extensions = await runExtensionLoadProbe(candidateRoot, extensionRoots);
     report.checks.contextEdit = await runContextEditProbe(candidateRoot);
     report.checks.rpc = await runRpcProbe(candidateRoot);
+    if (contract.requiredCapabilities.sessionToolBoundaries) {
+      report.checks.sessionToolBoundaries = await runSessionToolBoundaryProbe(candidateRoot);
+    }
     report.checks.noExtensionsBuiltIns = {
       passed: true,
       behavior: contract.noExtensionsAudit?.behavior || "",

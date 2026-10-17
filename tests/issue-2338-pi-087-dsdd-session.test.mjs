@@ -22,12 +22,18 @@ test("#2338 promotes Pi 0.87 only with the candidate proof and authoritative met
   assert.equal(contract.requiredCapabilities.contextEditEntry, true);
   assert.equal(contract.requiredCapabilities.contextWithSystemExtensionEvent, true);
   const historicalExtensionsWithoutRetiredMcp = contract.requiredExtensions.filter((item) => !item.includes("pi-mcp-adapter"));
-  assert.deepEqual(historicalExtensionsWithoutRetiredMcp, stack.piPackages);
+  assert.deepEqual(historicalExtensionsWithoutRetiredMcp, [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-context-view@0.4.2",
+  ]);
+  assert.deepEqual(historicalExtensionsWithoutRetiredMcp.map(spec => spec.slice(0, spec.lastIndexOf("@"))), stack.piPackages.map(spec => spec.slice(0, spec.lastIndexOf("@"))));
   assert.equal(contract.requiredExtensions.some((item) => item.includes("pi-mcp-adapter")), true);
   assert.equal(stack.piPackages.some((item) => item.includes("pi-mcp-adapter")), false);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.0\.1"/u);
-  assert.equal(stack.piRuntime.managedVersion, "1.0.1");
-  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "1.0.1");
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "1\.3\.0"/u);
+  assert.equal(stack.piRuntime.managedVersion, "1.3.0");
+  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "1.3.0");
   assert.match(brief, /TALK[\s\S]*CONFIRM[\s\S]*BUILD[\s\S]*PROVE/u);
   assert.match(brief, /Original Human language remains immutable provenance/u);
 });

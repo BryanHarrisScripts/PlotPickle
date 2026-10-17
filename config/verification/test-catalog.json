@@ -3352,6 +3352,49 @@
         ]
       },
       "notes": "#3061 native Node26 migration of existing GitHub outbox/recovery fixtures. Uses temporary outbox files, synthetic credentials, injected execution and mocked fetch. No real accounts, encrypted credential vault, actual GitHub writes or supported Windows recovery journey proof."
+    },
+    {
+      "id": "agent.managed-pi-install-3067",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-1185-pi-managed-install.test.mjs",
+          "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+          "tests/issue-641-developer-agent-stack.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3067 managed Pi/extension exact-pin and fail-closed private-install contracts; fixtures/static checks, not real Windows install or provider inference."
     }
   ],
   "truthGovernance": {
@@ -3872,7 +3915,7 @@
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
-            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+            "digest": "2caf70edd7d7cee35050936968d4a6dca7d8a833780a703e0dec2e9ebedd4945"
           },
           {
             "path": "scripts/casebook-evidence.mjs",
@@ -3912,7 +3955,7 @@
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
-            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+            "digest": "2caf70edd7d7cee35050936968d4a6dca7d8a833780a703e0dec2e9ebedd4945"
           },
           {
             "path": "scripts/casebook-evidence.mjs",
@@ -3952,7 +3995,7 @@
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
-            "digest": "7473f9c3bd1d733b4129390e6bd5b5ee86296196f90439267b5b088533cbd76c"
+            "digest": "2caf70edd7d7cee35050936968d4a6dca7d8a833780a703e0dec2e9ebedd4945"
           },
           {
             "path": "scripts/casebook-evidence.mjs",
@@ -4929,7 +4972,7 @@
       },
       {
         "target": "scripts/settings-command-product-proof.mjs",
-        "targetDigest": "4aa00cb98a82e6237b66ebebdec1b0ce41cecd914b294d80012fd5ad203e0c79",
+        "targetDigest": "01b4082956cbba51210d318e8ee0abc4969fb9230c91cad9cb0762ddaebb3427",
         "catalogueIds": [
           "agent.settings-command-win-proof-3000"
         ],
@@ -5551,7 +5594,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "690689a7665cf1322184316d4452d73dafeae693be1c31740a44eba095d05684"
+            "digest": "0fadf912d9d4a84fc13ce2a33ebacfa49db1cc81417cb9cf774c718b416fdfdb"
           }
         ]
       },
@@ -6108,6 +6151,639 @@
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
             "digest": "39f86710c70e996f61853d8aca82b270924ed6d55b5c17a02fc9ad985e9f79e1"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1185-pi-managed-install.test.mjs",
+        "targetDigest": "01f42002cf94d036234b6c334b105c371b9d9a57bfa971d36d46f92bfed3f564",
+        "catalogueIds": [
+          "agent.managed-pi-install-3067"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "build/uat-discovery-plugin.ts",
+            "digest": "8a28e9b2e6e1795059499f38d0b0d7aba2cf3d977876169b6d1be8a5d1f7ae74"
+          },
+          {
+            "path": "scripts/ensure-pi-repair-stack.mjs",
+            "digest": "f205c1a26b369263cd0f2539fe0797620f885300a76a60ea84711e780506d529"
+          },
+          {
+            "path": "scripts/windows-batch-command.mjs",
+            "digest": "620b6e47a00c9476bb592620becec170d552fa2102e008301e2fbf0ffbe75bde"
+          },
+          {
+            "path": "scripts/full-verification-graph.mjs",
+            "digest": "3303faf578fe4dea529a4d16c131e7f30ca29e255c2b372c1e49a7be6cbaf3ad"
+          },
+          {
+            "path": "scripts/full-verification-process.mjs",
+            "digest": "837f1e7f1af9f4483286ef9da0a987820845f95bedc14256d7c1678968627d84"
+          },
+          {
+            "path": "scripts/verify-pi-repair-worker.mjs",
+            "digest": "8e4cd21ca4299da02978b654fc371dee5deee9d1eab1863b001b2646eef2734f"
+          },
+          {
+            "path": "scripts/run-pi-code-quality-review.mjs",
+            "digest": "de1d4153f8d260b30c6fcdb59a090da893adb1908abd7c152cc879a27287f137"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+        "targetDigest": "43a14d7a00415e4aae530583879f44a6298ce4fd37f484b7da52cce07a84ee42",
+        "catalogueIds": [
+          "agent.managed-pi-install-3067"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "config/pi-managed-upgrade-evaluation.json",
+            "digest": "682f61397dcff9212c70ecaed670068e3141fc185b7c021df618cc9c8394472f"
+          },
+          {
+            "path": "scripts/evaluate-pi-managed-upgrade.mjs",
+            "digest": "5ed34bc078a3c7f169436a57c534854dcc39cb1e3d47f1c778f1b6b87b7902ac"
+          },
+          {
+            "path": "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs",
+            "digest": "aab328e55cbda5a1943b8769fbd3942351eb5d66ba260ff5910db752522ce272"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+        "targetDigest": "61227847dc3b7d491343b3d36a7f1967bdc89c7b388fb462722563af34511c76",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350",
+          "agent.dsdd-brief-handoff-2354"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "config/pi-087-dsdd-session-evaluation.json",
+            "digest": "2910ec0bfc97a4f065aacded0a4c96159d2b1ce9878a1eb13a697117460495b1"
+          },
+          {
+            "path": "config/third-party-oss.json",
+            "digest": "6564270fa230bc9c2a4a6cecf2a51703ae57a272307ef1225a25bc153efa8f8b"
+          },
+          {
+            "path": "docs/developer-briefs/2338-dsdd-pi-087-persistent-session.md",
+            "digest": "93bf701c27595a7a09b177237084fc610d71c560b4b533c543b3d74d67e96139"
+          },
+          {
+            "path": "scripts/evaluate-pi-087-dsdd-session.mjs",
+            "digest": "36439af569473c41716c34ddd0bd1cf0a794d60f54133476662cb1f0ede81e70"
+          },
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "e6f7b71439faf8fa2ed6e4db3f4a718677d58f3fd647e4d9453caf9944eeb82d"
+          },
+          {
+            "path": "build/dsdd/dsdd-session-gateway.ts",
+            "digest": "2caf70edd7d7cee35050936968d4a6dca7d8a833780a703e0dec2e9ebedd4945"
+          },
+          {
+            "path": "scripts/dsdd-pi-session.mjs",
+            "digest": "86c4da760d8cac52b171521d6a5b4ace2df7f3131798e552837868c1cfd39965"
+          },
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.tsx",
+            "digest": "83dc9e2049df5366afac18c2c7eb8d851cc1605fbc528c811a2d11e1421bd868"
+          },
+          {
+            "path": "build/auth/profile-request-context.ts",
+            "digest": "ee9e2b41e05bc4e6801026eee8388732db0f625303c474379f1a4426cfd8bd18"
+          },
+          {
+            "path": "scripts/dsdd-pi-draft.mjs",
+            "digest": "d325e6872cca61dd3703c7cd1b140c880f30ba2358e1d01da1ca6803fd2e9768"
+          },
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "0fadf912d9d4a84fc13ce2a33ebacfa49db1cc81417cb9cf774c718b416fdfdb"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2590-pi-099-compatibility.test.mjs",
+        "targetDigest": "834cc03b6943f8599198d1b84583dac5cd48e7f2cc248530ff6ea448c9709734",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "config/pi-099-compatibility.json",
+            "digest": "e09a5492953e5fe3ea02b66fda940ac4ab07ab437935e3606ffb248f2ee3d087"
+          },
+          {
+            "path": "scripts/dsdd-pi-session.mjs",
+            "digest": "86c4da760d8cac52b171521d6a5b4ace2df7f3131798e552837868c1cfd39965"
+          },
+          {
+            "path": "build/dsdd/dsdd-session-gateway.ts",
+            "digest": "2caf70edd7d7cee35050936968d4a6dca7d8a833780a703e0dec2e9ebedd4945"
+          },
+          {
+            "path": "config/third-party-oss.json",
+            "digest": "6564270fa230bc9c2a4a6cecf2a51703ae57a272307ef1225a25bc153efa8f8b"
+          },
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "e6f7b71439faf8fa2ed6e4db3f4a718677d58f3fd647e4d9453caf9944eeb82d"
+          },
+          {
+            "path": "config/pi-087-dsdd-session-evaluation.json",
+            "digest": "2910ec0bfc97a4f065aacded0a4c96159d2b1ce9878a1eb13a697117460495b1"
+          },
+          {
+            "path": "config/pi-managed-upgrade-evaluation.json",
+            "digest": "682f61397dcff9212c70ecaed670068e3141fc185b7c021df618cc9c8394472f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2591-pi-native-mcp.test.mjs",
+        "targetDigest": "7664d2d5bdb5ab822c909fbf29f7c199a02e73cf4ffcd0d2d3e107fcd9b6d7c0",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": ".mcp.json",
+            "digest": "dd6bc4bc82f732c3a32c66169bf8ef117cd3b0ec152a9dd2b83bf2ad156a9122"
+          },
+          {
+            "path": ".cline/mcp.json",
+            "digest": "dd6bc4bc82f732c3a32c66169bf8ef117cd3b0ec152a9dd2b83bf2ad156a9122"
+          },
+          {
+            "path": "config/pi-tool-exposure-policy.json",
+            "digest": "434963fe53777314f5aba6450d4b7b4abaed91c666eca13b0e8cf1a355e610a7"
+          },
+          {
+            "path": "scripts/developer-agent-mcp.mjs",
+            "digest": "cba5cdba21bb249f86467c430db7e6e7adfc1fe1f06f6525e99a71be3bad92c8"
+          },
+          {
+            "path": "scripts/setup-developer-agent-stack.ps1",
+            "digest": "db25fd13a6767882a7f5065e0945e55b866c90edd53296dbcbd7c81ec025fdc1"
+          },
+          {
+            "path": "config/pi-099-compatibility.json",
+            "digest": "e09a5492953e5fe3ea02b66fda940ac4ab07ab437935e3606ffb248f2ee3d087"
+          },
+          {
+            "path": "lib/agents/developer-tool-authorization.mjs",
+            "digest": "699a376509a4a09b9b4313144fe5bc44b3e6e06d5bbbb4fd5a13cb99bcd78dba"
+          },
+          {
+            "path": ".pi/extensions/plotpickle-native-mcp.mjs",
+            "digest": "3916f4b0b8c758fc5b7eaaf8153109321460df47fe214eaa3b7cf75815c6291b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2717-settings-command.test.mjs",
+        "targetDigest": "495f7e1d1dd7e7d48dccafe1c23a47ef629c6dc0da77b3aead92fff54e148926",
+        "catalogueIds": [
+          "agent.dsdd-intent-pi-contract-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "build/dsdd/hunk-review-controller.mjs",
+            "digest": "31f0db5c92dc187db2bc1083e2da5aadd7767c226e9e3cd64b19f671cadb17ab"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-641-developer-agent-stack.test.mjs",
+        "targetDigest": "9f90a17afd830c4d55b4e789740c44d3db058d7a3a142cce816df86c958ff23c",
+        "catalogueIds": [
+          "agent.managed-pi-install-3067"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "inputs": [
+          {
+            "path": "scripts/pi-managed-install.mjs",
+            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+          },
+          {
+            "path": "scripts/pi-worker-runtime.mjs",
+            "digest": "e3b14e6fcb08b163077d93c09014dadde6dcdcbbee9664164f14b485a822b81d"
+          },
+          {
+            "path": ".pi/managed/package.json",
+            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+          },
+          {
+            "path": ".pi/managed/package-lock.json",
+            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+          },
+          {
+            "path": ".pi/npm/package.json",
+            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+          },
+          {
+            "path": ".pi/npm/package-lock.json",
+            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+          },
+          {
+            "path": ".pi/settings.json",
+            "digest": "746210aea07bcdea9ebb12413febe15a3372c3221e57ba4315a06d3ae7d53609"
+          },
+          {
+            "path": "config/developer-agent-stack.json",
+            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+          },
+          {
+            "path": "config/pi-130-compatibility.json",
+            "digest": "df0cf602d18fabeea9ddc44865cf8fbaec9a1fddd5b6dbdca5ad909c7af01aed"
+          },
+          {
+            "path": "scripts/evaluate-pi-099-compatibility.mjs",
+            "digest": "c6c86cd0907c2bd84dd2eb738eb83c699574faa8454593e1a3baab3fe9922163"
+          },
+          {
+            "path": "AGENTS.md",
+            "digest": "f6473b652b9f2e2917356b500bc416a5c6e70a682f10b961b3862fc163847a3f"
+          },
+          {
+            "path": ".mcp.json",
+            "digest": "dd6bc4bc82f732c3a32c66169bf8ef117cd3b0ec152a9dd2b83bf2ad156a9122"
+          },
+          {
+            "path": ".cline/mcp.json",
+            "digest": "dd6bc4bc82f732c3a32c66169bf8ef117cd3b0ec152a9dd2b83bf2ad156a9122"
+          },
+          {
+            "path": ".cline/rules/00-plotpickle.md",
+            "digest": "8189fe808b9392ed98c01d7d9c3902568f8c900ae5fdca9cf207272c6fa60385"
+          },
+          {
+            "path": "scripts/developer-agent-mcp.mjs",
+            "digest": "cba5cdba21bb249f86467c430db7e6e7adfc1fe1f06f6525e99a71be3bad92c8"
+          },
+          {
+            "path": "scripts/setup-developer-agent-stack.ps1",
+            "digest": "db25fd13a6767882a7f5065e0945e55b866c90edd53296dbcbd7c81ec025fdc1"
+          },
+          {
+            "path": "config/agent-bench/tasks.json",
+            "digest": "d9e087b314407b4ed1bcb2f5ea5493f8b9e7766e868dd8a8509eea3ed599d2dc"
+          },
+          {
+            "path": "scripts/run-agent-bench.mjs",
+            "digest": "4b7288f3288726c3ea91391fca8b37bf6583746db7eb97495411c51ceeade9c0"
+          },
+          {
+            "path": "config/uat-autopilot-registry.json",
+            "digest": "9f229d10cf475a5ce4e02a5af8746e8b00af812f3a50eb1c36212f706237461c"
           }
         ]
       }

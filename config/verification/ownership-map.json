@@ -429,7 +429,11 @@
         "scripts/pi/hunk-review-terminal.ps1",
         "scripts/settings-command-product-proof.mjs",
         "tools/hunk-review/**",
-        "scripts/ensure-pi-cli.mjs"
+        "scripts/ensure-pi-cli.mjs",
+        "config/pi-130-compatibility.json",
+        "tests/issue-1185-pi-managed-install.test.mjs",
+        "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
+        "tests/issue-641-developer-agent-stack.test.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

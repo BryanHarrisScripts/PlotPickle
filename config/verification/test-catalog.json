@@ -2282,7 +2282,8 @@
           "tests/issue-2780-openpencil-command-mcp.test.mjs",
           "tests/issue-2782-openpencil-profile-startup.test.mjs",
           "tests/issue-2787-openpencil-gui-review.test.mjs",
-          "tests/issue-2800-openpencil-auto-design-review.test.mjs"
+          "tests/issue-2800-openpencil-auto-design-review.test.mjs",
+          "tests/issue-3074-command-slash-menu.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7157,6 +7158,42 @@
           {
             "path": "docs/architecture/PLOTPICKLE-PORTLESS-ADAPTER.md",
             "digest": "9b916b8bcee42e5e6298510cd95e61317c6c044ab9354922a3bbeb5751fb8bf8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3074-command-slash-menu.test.mjs",
+        "targetDigest": "7fddb1606bc0c5cc398876505b8d2ec98a52df81955efa980f5a0f8c546b43c0",
+        "catalogueIds": [
+          "production.openpencil-command-mcp-2780"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Slash palette only inserts known parsed commands in an unlocked authenticated CMD composer; explicit Enter/submit still owns execution. Searchable source fixture and UI intent asserts do not establish browser keyboard focus, Windows desktop state, paid provider operation, direct Portless connection or OpenPencil Human GUI readiness.",
+        "inputs": [
+          {
+            "path": "app/_components/settings/cmd-slash-commands.mjs",
+            "digest": "0f965faa25b475e827af6f40b487114b98b9f32691bed8935ba1bf76e91a4593"
+          },
+          {
+            "path": "app/skin-v1/global-dsdd-conversation.tsx",
+            "digest": "b1bba5c96bf324da663123d31bbd4198e58f2b5910d4eeabba04c88c7b755764"
+          },
+          {
+            "path": "designs/openpencil/surfaces.json",
+            "digest": "61600782b30846a6766e19edf71a56f3a0e5bccb071149c3dee053263c2a68ab"
           }
         ]
       }

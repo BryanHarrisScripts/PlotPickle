@@ -5270,7 +5270,7 @@
       },
       {
         "target": "tests/issue-3055-afterglow-registry-evolution.test.mjs",
-        "targetDigest": "9f138b7bb7019c9366b49bfff2877b8e5b12b7060d1d22c675e30e81168c25c3",
+        "targetDigest": "61957a0368c75209d5eb312516ad4a51e185b2d01606b53451ecafdf55f9ddd3",
         "catalogueIds": [
           "story-canon.save-session-continuity-2821"
         ],

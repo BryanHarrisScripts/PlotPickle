@@ -282,3 +282,29 @@ jobs:
           path: .artifacts/runtime-2698/*.json
           if-no-files-found: warn
           retention-days: 7
+
+  portless-upgrade-proof-scope:
+    name: Detect Portless upgrade Windows proof scope
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.scope.outputs.required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(config/portless-runtime\.json$|core/runtime/portless-adapter\.mjs$|scripts/run-portless-windows-acceptance\.mjs$|tests/issue-115[46]-.*\.test\.mjs$|\.github/workflows/portless-adapter-proof\.yml$)'; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'required=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  portless-upgrade-windows-proof:
+    name: Impact-selected Portless Windows and direct build proof
+    needs: portless-upgrade-proof-scope
+    if: needs.portless-upgrade-proof-scope.outputs.required == 'true'
+    uses: ./.github/workflows/portless-adapter-proof.yml

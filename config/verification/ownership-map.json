@@ -2480,6 +2480,21 @@
         "agent",
         "security"
       ]
+    },
+    {
+      "id": "portless-isolated-developer-transport-3053",
+      "classification": "production",
+      "include": [
+        "config/portless-runtime.json",
+        "core/runtime/portless-adapter.mjs",
+        "scripts/run-portless-windows-acceptance.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "security",
+        "windows"
+      ]
     }
   ]
 }

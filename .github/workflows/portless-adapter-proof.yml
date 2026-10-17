@@ -2,33 +2,51 @@ name: Portless Adapter Proof
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
 
 jobs:
+  candidate-npm-metadata:
+    name: Portless 0.15.8 npm provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+      - name: Capture published npm metadata for review before repinning
+        shell: bash
+        run: |
+          npm view portless@0.15.8 version dist.integrity dist.tarball engines license --json | tee "$RUNNER_TEMP/portless-candidate-metadata.json"
+          node -e 'const fs=require("fs"); const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(p.version!=="0.15.8" || !/^sha512-[A-Za-z0-9+/]+={0,2}$/.test(p["dist.integrity"] || p.dist?.integrity || "")) process.exit(1);' "$RUNNER_TEMP/portless-candidate-metadata.json"
+
   direct-node22:
     name: ${{ matrix.name }} direct fallback and build
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: Linux x64 Node 22
+          - name: Linux x64 Node 26
             os: ubuntu-latest
             package: ""
-          - name: Windows x64 Node 22
+          - name: Windows x64 Node 26
             os: windows-latest
             package: package:windows
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     steps:
-      - name: Checkout
+      - name: Checkout exact PR head
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use PlotPickle Node.js 22.19
         uses: actions/setup-node@v4
         with:
-          node-version: 22.19.0
+          node-version: 26.12.0
           cache: npm
 
       - name: Install PlotPickle dependencies without Portless
@@ -52,31 +70,38 @@ jobs:
         run: npm run ${{ matrix.package }}
 
   real-windows-portless:
-    name: Windows Node 24 pinned Portless static-alias acceptance
+    name: Windows Node 26 pinned Portless static-alias acceptance
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout exact PR head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use isolated developer-tool Node.js 24.19
         uses: actions/setup-node@v4
         with:
-          node-version: 24.19.0
+          node-version: 26.12.0
 
       - name: Capture exact published Portless package metadata
         shell: pwsh
         run: |
-          $metadata = npm view portless@0.15.5 version dist.integrity dist.tarball engines license --json
-          $metadata | Tee-Object -FilePath "$env:RUNNER_TEMP\portless-0.15.5-metadata.json"
+          $metadata = npm view portless@0.15.8 version dist.integrity dist.tarball engines license --json
+          $metadata | Tee-Object -FilePath "$env:RUNNER_TEMP\portless-0.15.8-metadata.json"
+          $published = $metadata | ConvertFrom-Json
+          $pin = Get-Content -LiteralPath "config/portless-runtime.json" -Raw | ConvertFrom-Json
+          if ($pin.version -ne [string]$published.version -or $pin.npmIntegrity -ne [string]$published.'dist.integrity') {
+            throw "The Portless manifest must match the exact published npm version and SHA-512 integrity."
+          }
+          if ($pin.sourceTag -ne "v0.15.8") { throw "Reviewed upstream release tag drift." }
 
       - name: Provision pinned Portless outside PlotPickle dependency tree
         shell: pwsh
         run: |
-          $toolRoot = Join-Path $env:RUNNER_TEMP "plotpickle-portless-0.15.5"
-          npm install --prefix $toolRoot --no-save --package-lock=false --ignore-scripts portless@0.15.5
+          $toolRoot = Join-Path $env:RUNNER_TEMP "plotpickle-portless-0.15.8"
+          npm install --prefix $toolRoot --no-save --package-lock=false --ignore-scripts portless@0.15.8
           $cli = Join-Path $toolRoot "node_modules\portless\dist\cli.js"
           if (-not (Test-Path $cli)) { throw "Pinned Portless CLI was not installed at the reviewed path." }
           "PLOTPICKLE_PORTLESS_CLI=$cli" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -98,6 +123,6 @@ jobs:
           name: portless-1156-windows-${{ github.run_id }}
           path: |
             .artifacts/portless/windows-acceptance.json
-            ${{ runner.temp }}/portless-0.15.5-metadata.json
+            ${{ runner.temp }}/portless-0.15.8-metadata.json
           if-no-files-found: error
           retention-days: 5

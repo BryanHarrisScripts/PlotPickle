@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "authority": "plotpickle-portless-runtime-pin",
   "package": "portless",
-  "version": "0.15.5",
-  "npmPackage": "portless@0.15.5",
-  "npmIntegrity": "sha512-zmJu4Q8/fY54oVUT/5NnmF4Ih8wTdCvCf6JCN783dRYl9mXkJBzXSckX2lztGCLIbM70varDjCudAbGKT73XPg==",
+  "version": "0.15.8",
+  "npmPackage": "portless@0.15.8",
+  "npmIntegrity": "sha512-kzGoG4xLsEytczl7O/COZaBwSAOKsWsZDxHv7/iFHKIC0X71OonpgbsQw58CGO29RklIHIx6yLM31TJMnTtPEw==",
   "sourceRepository": "https://github.com/vercel-labs/portless",
-  "sourceTag": "v0.15.5",
-  "sourceCommit": "d42c741",
+  "sourceTag": "v0.15.8",
+  "sourceCommit": "27598545f08f8055cb3b9fb410f8d250f054f46d",
   "license": "Apache-2.0",
   "nodeEngine": ">=24",
   "plotpickleNodeStrategy": "isolated-developer-tool-runtime",
@@ -21,5 +21,10 @@
     "workflowRunId": 32437045317,
     "artifactId": 9431151950,
     "testedHead": "8cc93adb18240596023fee7e601af2e9e42dd24f"
+  },
+  "candidateWindowsAcceptance": {
+    "version": "0.15.8",
+    "status": "PR-CI-required",
+    "workflow": ".github/workflows/portless-adapter-proof.yml"
   }
 }

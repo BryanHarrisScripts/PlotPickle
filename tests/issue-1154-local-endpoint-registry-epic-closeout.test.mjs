@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const EXPECTED_INTEGRITY = "sha512-zmJu4Q8/fY54oVUT/5NnmF4Ih8wTdCvCf6JCN783dRYl9mXkJBzXSckX2lztGCLIbM70varDjCudAbGKT73XPg==";
+const EXPECTED_INTEGRITY = "sha512-kzGoG4xLsEytczl7O/COZaBwSAOKsWsZDxHv7/iFHKIC0X71OonpgbsQw58CGO29RklIHIx6yLM31TJMnTtPEw==";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 test("#1154 final Portless pin records measured Windows evidence and ADOPT WITH LIMITS", async () => {
   const pin = JSON.parse(await read("config/portless-runtime.json"));
-  assert.equal(pin.version, "0.15.5");
-  assert.equal(pin.npmPackage, "portless@0.15.5");
+  assert.equal(pin.version, "0.15.8");
+  assert.equal(pin.npmPackage, "portless@0.15.8");
   assert.equal(pin.npmIntegrity, EXPECTED_INTEGRITY);
   assert.equal(pin.license, "Apache-2.0");
   assert.equal(pin.nodeEngine, ">=24");
@@ -21,6 +21,11 @@ test("#1154 final Portless pin records measured Windows evidence and ADOPT WITH 
     workflowRunId: 32437045317,
     artifactId: 9431151950,
     testedHead: "8cc93adb18240596023fee7e601af2e9e42dd24f",
+  });
+  assert.deepEqual(pin.candidateWindowsAcceptance, {
+    version: "0.15.8",
+    status: "PR-CI-required",
+    workflow: ".github/workflows/portless-adapter-proof.yml",
   });
 });
 

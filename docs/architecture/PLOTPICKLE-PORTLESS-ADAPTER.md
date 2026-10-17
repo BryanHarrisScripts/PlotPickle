@@ -1,3 +1,11 @@
+## Portless 0.15.8 modernization (17 October 2026)
+
+Current **reviewed candidate**: `portless@0.15.8`, upstream verified tag `v0.15.8`, commit `27598545f08f8055cb3b9fb410f8d250f054f46d`, released 2026-10-13. npm registry returned the exact distribution SHA-512 `sha512-kzGoG4xLsEytczl7O/COZaBwSAOKsWsZDxHv7/iFHKIC0X71OonpgbsQw58CGO29RklIHIx6yLM31TJMnTtPEw==` in GitHub job 117486092382 (PR #3073). This metadata is a source-integrity fact, not a live working proxy result.
+
+The new upstream cleanup fixes aim to stop residual child-process groups after terminal close, session crashes and Windows forced command termination. PlotPickle deliberately uses only explicit static-alias and foreground-proxy operations; it never hands app spawning or task shutdown over to `portless run` or installs an OS-level Portless service. Existing product readiness, loopback listener verification, exact-instance proof, direct fallback, profile isolation and no-automatic-CA-trust contracts remain controlling.
+
+The active pin moves to 0.15.8 under isolated Node 26.12 with a fresh GitHub PR-triggered real Windows acceptance job. Previous 0.15.5 Windows evidence below is historical and cannot certify the upgraded runtime. `candidateWindowsAcceptance.status` is `PR-CI-required` until the specific exact-head Windows job succeeds; source metadata/fixture tests alone cannot establish success. No local Human launch or production deployment is altered.
+
 # PlotPickle optional Portless adapter
 
 Status: #1155 and #1156 implementation complete; Windows acceptance passed. Parent #1154 closeout decision: **ADOPT WITH LIMITS**.

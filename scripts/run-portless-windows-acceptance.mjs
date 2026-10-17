@@ -182,7 +182,7 @@ async function scanStateForCanaries(root) {
 
 async function main() {
   if (process.platform !== "win32") throw new Error("#1156 real acceptance must run on Windows.");
-  if (!cliPath || cliPath === path.resolve("")) throw new Error("--cli must point to the isolated Portless 0.15.5 CLI entrypoint.");
+  if (!cliPath || cliPath === path.resolve("")) throw new Error("--cli must point to the isolated Portless 0.15.8 CLI entrypoint.");
   await rm(stateDir, { recursive: true, force: true });
   await mkdir(stateDir, { recursive: true });
   await mkdir(path.dirname(artifactPath), { recursive: true });

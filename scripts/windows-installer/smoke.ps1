@@ -53,6 +53,24 @@ function Assert-InstalledPayload {
     if (-not (Test-Path $candidate)) { throw "Installed payload is missing $required" }
   }
   Assert-DeveloperDependenciesExcluded (Join-Path $installRoot "node_modules")
+
+  # The executable shipped in PlotPickleSetup.exe, rather than the CI runner's
+  # ambient node, is the release authority. Assert it after both first install
+  # and same-version upgrade before launching the desktop application.
+  $bundledNode = Join-Path $installRoot "runtime\\node\\node.exe"
+  $actualNodeVersion = (& $bundledNode --version | Out-String).Trim()
+  if ($LASTEXITCODE -ne 0 -or $actualNodeVersion -ne "v26.12.0") {
+    throw "Installed PlotPickle bundles $actualNodeVersion; expected Node v26.12.0."
+  }
+  $installerManifest = Get-Content (Join-Path $installRoot "installer-manifest.json") -Raw | ConvertFrom-Json
+  if ($installerManifest.bundledNodeVersion -ne "26.12.0") {
+    throw "Installer manifest bundled Node version differs from installed executable."
+  }
+  $releaseManifest = Get-Content (Join-Path $installRoot "release-manifest.json") -Raw | ConvertFrom-Json
+  if ($releaseManifest.bundledNode.version -ne "26.12.0") {
+    throw "Release manifest bundled Node version differs from installed executable."
+  }
+  Write-Host "Verified installed Node $actualNodeVersion from PlotPickleSetup.exe."
 }
 
 function Assert-DeveloperDependenciesExcluded {

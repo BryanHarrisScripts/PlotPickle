@@ -35,6 +35,7 @@ const runtimeDirectories = [
   "build",
   "components",
   "config",
+  "content",
   "core",
   "data",
   "db",
@@ -48,6 +49,7 @@ const runtimeDirectories = [
   "schema",
   "scripts",
   "Utilities",
+  "vendor",
   "worker",
 ];
 

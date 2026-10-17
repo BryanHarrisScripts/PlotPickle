@@ -52,9 +52,9 @@ jobs:
         shell: pwsh
         run: npm ci --include=dev
 
-      - name: Validate installer source contracts
+      - name: Prove native Node 26 executable and installer source contracts
         shell: pwsh
-        run: node --test tests/issue-1456-windows-installer.test.mjs
+        run: node --test tests/issue-3058-node26-runtime.test.mjs tests/issue-1456-windows-installer.test.mjs
 
       - name: Install Inno Setup compiler
         shell: pwsh
@@ -69,6 +69,13 @@ jobs:
         env:
           PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "360000"
         run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
+
+      # Normal first launch verifies/provisions local dictation before server readiness.
+      # Prove the reviewed runtime separately so model download time is not charged
+      # to the installed application's three-minute startup deadline.
+      - name: Prepare and prove reviewed local dictation
+        shell: pwsh
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
 
       - name: Run install and uninstall smoke
         shell: pwsh

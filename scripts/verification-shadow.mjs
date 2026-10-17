@@ -92,11 +92,7 @@ function safeTypedRunners() {
   return {
     "node-test": async ({ entry }) => {
       const started = Date.now();
-      // Load the Node26/TS6 compatibility adapter only in governed node-test
-      // processes. Never leak it via NODE_OPTIONS to child build validators,
-      // native smoke tests or unrelated production scripts.
-      const fixtureBridge = path.join(root, "scripts", "verification", "node26-fixture-transform-bridge.mjs");
-      const result = spawnChecked(process.execPath, ["--import", fixtureBridge, "--experimental-strip-types", "--test", ...entry.runner.targets]);
+      const result = spawnChecked(process.execPath, ["--experimental-strip-types", "--test", ...entry.runner.targets]);
       return { result, durationMs: Date.now() - started, artifacts: [], security: {} };
     },
     "node-script": runEach(process.execPath),

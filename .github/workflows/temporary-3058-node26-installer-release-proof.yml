@@ -1,0 +1,18 @@
+# One-off bounded Node 26 Windows installer migration proof.
+# Branch-only, deliberately not part of the ordinary PR verification gate.
+# Remove this launcher after collecting the dedicated release artifact.
+name: Node 26 Installer Migration Proof
+
+on:
+  push:
+    branches:
+      - upgrade/3058-full-node26-installer-proof
+
+permissions:
+  contents: read
+
+jobs:
+  full-installer-release-proof:
+    uses: ./.github/workflows/windows-installer.yml
+    with:
+      exact_head: ${{ github.sha }}

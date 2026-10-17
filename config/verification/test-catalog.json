@@ -3222,6 +3222,47 @@
         ]
       },
       "notes": "Issue #3058: exact active runtime and installer pins, canonical OSS inventory, Temporal capability on Node 26, preserving historic 24.x ratified proofs. Does not assert local Windows installer was installed or binary signature verified."
+    },
+    {
+      "id": "verification.node26-fixture-transform-bridge-3061",
+      "ownerLayer": "verification",
+      "architectureComponents": [
+        "validation-operations"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "native",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3061-node26-fixture-transform.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/verification.json"
+        ]
+      },
+      "notes": "Issue #3061: Node26 CI-only TypeScript 6 transformer preserving executable enum/constructor semantics with fail-closed diagnostics. Does not alter real PPF authority or production imports."
     }
   ],
   "truthGovernance": {
@@ -5382,7 +5423,7 @@
       },
       {
         "target": "tests/issue-3058-node26-runtime.test.mjs",
-        "targetDigest": "68eece6daf3df37a4adf113cddcccd98f35ab6a03e5bebd9839c75f4d89c939c",
+        "targetDigest": "d401a86688d23112ae89c85c8ca6caf9ee1ea8e5dd8aeed37cf46db7c879f21b",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],
@@ -5401,6 +5442,29 @@
           "static-source"
         ],
         "limits": "Node 26 process proof and CI/installer source contract, pinned OSS record, and unchanged historic proofs. Independent Windows launcher, signed artifacts, installed user runtime and real account proof remain separately required.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3061-node26-fixture-transform.test.mjs",
+        "targetDigest": "9ddc30a344c9a5c6b9a5f3db5b4b3c3fc162610204fa26e2094a92395b4265d8",
+        "catalogueIds": [
+          "verification.node26-fixture-transform-bridge-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Test-only Node26 process and TS6 compiler with fake data:URL modules. Does not prove Windows installed binaries, real user projects or paid provider execution.",
         "inputs": []
       }
     ]

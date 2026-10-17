@@ -22,7 +22,7 @@ test("OpenPencil remains optional while its reviewed MCP helper is managed after
   assert.equal(adapter.launchOnPlotPickleStartup, false);
   assert.equal(adapter.requiredForPlotPickleStartup, false);
   assert.equal(adapter.managedPackage.name, "@open-pencil/mcp");
-  assert.equal(adapter.managedPackage.version, "0.15.1");
+  assert.equal(adapter.managedPackage.version, "0.16.0");
   assert.equal(adapter.managedPackage.installTiming, "after-core-ready");
   assert.equal(adapter.managedPackage.failurePolicy, "warn-and-continue");
   assert.equal(adapter.managedPackage.launchesServer, false);

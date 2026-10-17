@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { createOpenPencilDesignReviewPublisher } from "./openpencil-design-review-publisher.mjs";
 
-export const OPENPENCIL_DESKTOP_VERSION = "0.15.1";
+export const OPENPENCIL_DESKTOP_VERSION = "0.16.0";
 export const OPENPENCIL_SURFACE_REGISTRY = "designs/openpencil/surfaces.json";
 
 function platformPath(platform) {

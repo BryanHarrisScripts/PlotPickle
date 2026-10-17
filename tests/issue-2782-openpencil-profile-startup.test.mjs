@@ -19,7 +19,7 @@ test("#2782 OpenPencil API receives canonical authenticated Human profile scope"
 });
 
 test("#2782 PlotPickle-managed OpenPencil entrypoint wins before global npm fallback", () => {
-  assert.equal(OPENPENCIL_MCP_VERSION, "0.15.1");
+  assert.equal(OPENPENCIL_MCP_VERSION, "0.16.0");
   const managed = "C:\\Users\\Bryan\\AppData\\Local\\PlotPickle\\tools\\openpencil\\node_modules\\@open-pencil\\mcp\\dist\\index.mjs";
   const globalShim = "C:\\Users\\Bryan\\AppData\\Roaming\\npm\\openpencil-mcp-http.cmd";
   const globalEntry = "C:\\Users\\Bryan\\AppData\\Roaming\\npm\\node_modules\\@open-pencil\\mcp\\dist\\index.mjs";
@@ -50,9 +50,11 @@ test("#2782 deferred startup preparation is pinned, user-writable, and never lau
     read("Start-PlotPickle.bat"),
   ]);
 
-  assert.match(setup, /\[string\]\$Version = "0\.15\.1"/u);
+  assert.match(setup, /\[string\]\$Version = "0\.16\.0"/u);
   assert.match(setup, /LOCALAPPDATA/u);
   assert.match(setup, /PlotPickle\\tools\\openpencil/u);
+  assert.match(setup, /Get-DesktopVersion/u);
+  assert.match(setup, /\$needsDesktopUpgrade/u);
   assert.match(setup, /@open-pencil\/mcp@\$Version/u);
   assert.match(setup, /designs\\openpencil/u);
   assert.match(setup, /OpenPencil is not launched or connected during startup/u);
@@ -91,7 +93,7 @@ test("#2782 managed preparation stays outside normal PlotPickle dependency graph
   const dependencies = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 
   assert.equal(Object.keys(dependencies).some(name => name.startsWith("@open-pencil/")), false);
-  assert.equal(adapter.managedPackage.version, "0.15.1");
+  assert.equal(adapter.managedPackage.version, "0.16.0");
   assert.equal(adapter.managedPackage.installTiming, "after-core-ready");
   assert.equal(adapter.managedPackage.launchesServer, false);
   assert.equal(adapter.mcp.explicitConnectRequired, true);

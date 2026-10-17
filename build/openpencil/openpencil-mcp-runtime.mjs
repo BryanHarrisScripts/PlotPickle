@@ -8,7 +8,7 @@ import process from "node:process";
 export const OPENPENCIL_MCP_HOST = "127.0.0.1";
 export const OPENPENCIL_MCP_PORT = 7600;
 export const OPENPENCIL_MCP_ENDPOINT = `http://${OPENPENCIL_MCP_HOST}:${OPENPENCIL_MCP_PORT}/mcp`;
-export const OPENPENCIL_MCP_VERSION = "0.15.1";
+export const OPENPENCIL_MCP_VERSION = "0.16.0";
 
 function defaultDependencies(overrides = {}) {
   return {

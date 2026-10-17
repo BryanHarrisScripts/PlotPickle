@@ -13,12 +13,13 @@ const MAIN_NEW = "__plotpickleFileURLToPath(new URL(file, ckPath))";
 const RASTER_NEW = '__plotpickleFileURLToPath(new URL(".", ckPath))';
 
 async function regularFile(file) {
-  try {
-    const info = await lstat(file);
-    return info.isFile() && !info.isSymbolicLink();
-  } catch {
-    return false;
-  }
+  return lstat(file).then(
+    (info) => info.isFile() && !info.isSymbolicLink(),
+    (error) => {
+      if (error?.code === "ENOENT") return false;
+      throw error;
+    },
+  );
 }
 
 async function jsFiles(root, limit = 3000) {
@@ -91,8 +92,16 @@ export async function repairOpenPencilCanvasKitWindows(toolRoot, options = {}) {
       written.push(change);
     }
   } catch (error) {
+    const rollbackErrors = [];
     for (const change of written.reverse()) {
-      try { await writeFile(change.file, change.original, "utf8"); } catch {}
+      try {
+        await writeFile(change.file, change.original, "utf8");
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    if (rollbackErrors.length) {
+      throw new AggregateError([error, ...rollbackErrors], "OPENPENCIL_COMPAT_ROLLBACK_FAILED");
     }
     throw error;
   }

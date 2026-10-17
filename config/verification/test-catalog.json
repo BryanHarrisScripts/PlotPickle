@@ -3222,6 +3222,49 @@
         ]
       },
       "notes": "Issue #3058: exact active runtime and installer pins, canonical OSS inventory, Temporal capability on Node 26, preserving historic 24.x ratified proofs. Does not assert local Windows installer was installed or binary signature verified."
+    },
+    {
+      "id": "production.node26-explicit-fixtures-3061",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "native"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3061-node26-fixture-transform.test.mjs",
+          "tests/issue-2064-phase-0-director-spec-core.test.mjs",
+          "tests/issue-2064-phase-2-provider-instruction-compiler.test.mjs",
+          "tests/issue-2064-phase-3-provider-adapters.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "Issue3061 first production-harness wave: explicit TS6.0.3 fixture compiler semantics and three unchanged Director Specification/provider fixture suites on native Node26. No production imports, provider execution or complete historical-suite certification."
     }
   ],
   "truthGovernance": {
@@ -5421,7 +5464,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "1e6d7561c1ba97dfd8e53d1b83149e2f3af97bb8563688f8f84b9cc107d8847d"
+            "digest": "690689a7665cf1322184316d4452d73dafeae693be1c31740a44eba095d05684"
           }
         ]
       },
@@ -5486,6 +5529,150 @@
           {
             "path": "build/github-review-gateway.ts",
             "digest": "e8818361f56b35f61f9486430262643f6de5b70318ec5b83b761eb20cb756030"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3061-node26-fixture-transform.test.mjs",
+        "targetDigest": "9ff2af028d1e42b851cf2dc823bad2b565eefdf8f72f8280479976350965c4bb",
+        "catalogueIds": [
+          "production.node26-explicit-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Explicit compiler syntax/emission semantics or unchanged synthetic Director Specification/provider assertions only. No semantic type-check certification, live provider output, Human project mutation or complete historical-suite migration.",
+        "inputs": [
+          {
+            "path": "scripts/verification/typescript-fixture-transform.mjs",
+            "digest": "f2df631ccb309beb7fc218db8c623b4b2718b4621cc32bc80394f7129c9fbf7d"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          },
+          {
+            "path": "package-lock.json",
+            "digest": "05298020c48ed59c50bff2428c080746bad0b64bdd958831c89055a8ff7735de"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2064-phase-0-director-spec-core.test.mjs",
+        "targetDigest": "f0849730711ca584cf4eb466c9566a9d5daa5467a452afaf32a7f8b342a69a68",
+        "catalogueIds": [
+          "production.node26-explicit-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Explicit compiler syntax/emission semantics or unchanged synthetic Director Specification/provider assertions only. No semantic type-check certification, live provider output, Human project mutation or complete historical-suite migration.",
+        "inputs": [
+          {
+            "path": "lib/preproduction/director-specification.ts",
+            "digest": "b181715b1221f599ab37c5fdee440fe2ecfac1fddb11d0f7fc9d64d962ec3c71"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2064-phase-2-provider-instruction-compiler.test.mjs",
+        "targetDigest": "941cd25f28537575ba6b1f2dd6734910a7ed6bccbc07ceb5e303ff9abf386530",
+        "catalogueIds": [
+          "production.node26-explicit-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Explicit compiler syntax/emission semantics or unchanged synthetic Director Specification/provider assertions only. No semantic type-check certification, live provider output, Human project mutation or complete historical-suite migration.",
+        "inputs": [
+          {
+            "path": "lib/preproduction/provider-instruction-compiler.ts",
+            "digest": "aa3889c959a5578323358e67a363d6ed18cb45e86be3d6965989693d88aa8e06"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2064-phase-3-provider-adapters.test.mjs",
+        "targetDigest": "e535f0ce686929146cb46695d153e220d89fa09bbe99fca9bc4f6a4739a0ebde",
+        "catalogueIds": [
+          "production.node26-explicit-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Explicit compiler syntax/emission semantics or unchanged synthetic Director Specification/provider assertions only. No semantic type-check certification, live provider output, Human project mutation or complete historical-suite migration.",
+        "inputs": [
+          {
+            "path": "lib/preproduction/provider-capability-contract.ts",
+            "digest": "35d495b886a251f132b0705053fd4e7d96c87d48812ca95e7d3cbf839b717037"
+          },
+          {
+            "path": "lib/preproduction/provider-instruction-compiler.ts",
+            "digest": "aa3889c959a5578323358e67a363d6ed18cb45e86be3d6965989693d88aa8e06"
+          },
+          {
+            "path": "lib/preproduction/provider-instruction-adapters.ts",
+            "digest": "142e72363ed3c601bed95ad53a8cf6e4b63977686227e31d6319cd93577c3a7a"
+          },
+          {
+            "path": "config/ai-source-registry.json",
+            "digest": "da9b6940d16c946e30c8efb29a35af85de58b68532d6098cd4fec732d37c24d7"
+          },
+          {
+            "path": "build/ai/comfyui-ltx-default.ts",
+            "digest": "05e3a728f13d81ffd3bd2af48f3347bd1be7766cdbe90bab709f80d7f309c423"
+          },
+          {
+            "path": "build/ai-routing-gateway.ts",
+            "digest": "2c9733cc6e84eeefe52512e6d4189bff83b954e5a3a4eadabab9d495b43e2fef"
+          },
+          {
+            "path": "lib/preproduction/director-specification.ts",
+            "digest": "b181715b1221f599ab37c5fdee440fe2ecfac1fddb11d0f7fc9d64d962ec3c71"
           }
         ]
       }

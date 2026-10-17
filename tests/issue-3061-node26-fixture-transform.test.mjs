@@ -1,34 +1,44 @@
 import assert from "node:assert/strict";
+import module, { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
-import { stripTypeScriptTypes } from "node:module";
+import ts from "typescript";
 
-test("#3061 Node 26 fixture bridge uses a real pinned TypeScript compiler only for tests", () => {
-  const proof = globalThis.__plotpickleNode26LegacyFixtureBridge;
-  assert.equal(Number(process.versions.node.split(".")[0]), 26);
-  assert.equal(proof?.node, process.versions.node);
-  assert.equal(proof?.scope, "test-fixtures-only");
-  assert.match(proof.compiler, /^6[.]/);
+const nativeStrip = module.stripTypeScriptTypes;
+const { transpileTypeScriptFixture } = await import("../scripts/verification/typescript-fixture-transform.mjs");
+const load = (source) => import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+
+test("#3061 uses exact TypeScript 6.0.3 on the native Node 26.12 fixture runtime", () => {
+  assert.equal(process.versions.node, "26.12.0");
+  assert.equal(ts.version, "6.0.3");
 });
 
-test("#3061 TypeScript enum and constructor property produce executable JavaScript", async () => {
-  const code = `export enum Workflow { Draft, Approved }
-export class Receipt {
-  constructor(public readonly status: Workflow) {}
-}
-export function createReceipt() { return new Receipt(Workflow.Approved); }`;
-  const compiled = stripTypeScriptTypes(code, { mode: "transform" });
-  const mod = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
-  assert.equal(mod.createReceipt().status, mod.Workflow.Approved);
-  assert.equal(mod.Workflow.Approved, 1);
+test("#3061 explicit compilation executes enum and constructor parameter-property semantics", async () => {
+  const compiled = transpileTypeScriptFixture(`export enum Workflow { Draft, Approved }
+export class Receipt { constructor(public readonly status: Workflow) {} }
+export function createReceipt() { return new Receipt(Workflow.Approved); }`);
+  const fixture = await load(compiled);
+  assert.equal(fixture.createReceipt().status, fixture.Workflow.Approved);
+  assert.equal(fixture.Workflow.Approved, 1);
 });
 
-test("#3061 invalid TypeScript fixture compilation fails closed", () => {
-  assert.throws(() => stripTypeScriptTypes("export enum { =", { mode: "transform" }),
-    /fixture TypeScript compilation failed/);
+test("#3061 caller-owned import isolation remains explicit and executable", async () => {
+  const compiled = transpileTypeScriptFixture('import { value } from "./fixture-dependency"; export const result: number = value + 1;');
+  assert.match(compiled, /from "\.\/fixture-dependency"/);
+  const isolated = compiled.replace('import { value } from "./fixture-dependency";', "const value = 40;");
+  assert.notEqual(isolated, compiled);
+  assert.equal((await load(isolated)).result, 41);
 });
 
-test("#3061 native strip mode still delegates to Node's built-in implementation", () => {
-  const compiled = stripTypeScriptTypes("export const text: string = 'safe';");
-  assert.match(compiled, /export const text/);
-  assert.doesNotMatch(compiled, /: string/);
+test("#3061 malformed fixture syntax fails with its source filename and diagnostic", () => {
+  assert.throws(() => transpileTypeScriptFixture("export enum { =", { fileName: "broken-fixture.ts" }),
+    (error) => /TypeScript fixture compilation failed/.test(error.message)
+      && /broken-fixture\.ts/.test(error.message) && /TS\d+/.test(error.message));
+  assert.throws(() => transpileTypeScriptFixture(null), /TypeScript fixture source must be a string/);
+});
+
+test("#3061 importing the helper leaves native stripping and removed transform-mode errors intact", () => {
+  assert.equal(module.stripTypeScriptTypes, nativeStrip);
+  assert.equal(stripTypeScriptTypes, nativeStrip);
+  assert.match(stripTypeScriptTypes("export const text: string = 'safe';"), /export const text/);
+  assert.throws(() => stripTypeScriptTypes("enum Kind { A }", { mode: "transform" }), { code: "ERR_INVALID_ARG_VALUE" });
 });

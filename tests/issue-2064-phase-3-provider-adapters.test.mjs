@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 async function loadTypeScript(path, tag) {
   const typeScript = await source(path);
-  const compiled = stripTypeScriptTypes(typeScript, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(typeScript);
   return import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}#${tag}-${Date.now()}-${Math.random()}`);
 }
 

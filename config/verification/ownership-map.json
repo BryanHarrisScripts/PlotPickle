@@ -1733,10 +1733,14 @@
       ]
     },
     {
-      "id": "node26-test-fixture-bridge",
+      "id": "explicit-typescript-fixtures-3061",
       "classification": "production",
       "include": [
-        "scripts/verification/node26-fixture-transform-bridge.mjs"
+        "scripts/verification/typescript-fixture-transform.mjs",
+        "tests/issue-3061-node26-fixture-transform.test.mjs",
+        "tests/issue-2064-phase-0-director-spec-core.test.mjs",
+        "tests/issue-2064-phase-2-provider-instruction-compiler.test.mjs",
+        "tests/issue-2064-phase-3-provider-adapters.test.mjs"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

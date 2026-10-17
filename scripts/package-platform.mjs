@@ -49,6 +49,7 @@ const runtimeDirectories = [
   "schema",
   "scripts",
   "Utilities",
+  "vendor",
   "worker",
 ];
 

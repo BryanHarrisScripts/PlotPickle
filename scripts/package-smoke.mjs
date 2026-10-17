@@ -8,6 +8,16 @@ const manifest = JSON.parse(readFileSync(path.join(folder, "release-manifest.jso
 assert.equal(manifest.product, "PlotPickle");
 assert.equal(manifest.projectFormat, ".ppf");
 assert.equal(manifest.localOnly, true);
+const packageJson = JSON.parse(readFileSync(path.join(folder, "package.json"), "utf8"));
+for (const [name, contract] of Object.entries(packageJson.plotpickleVendoredPackages ?? {})) {
+  const vendorRoot = path.join(folder, contract.path);
+  const provenancePath = path.join(vendorRoot, "SECURITY-PROVENANCE.json");
+  assert.ok(existsSync(provenancePath), `Missing packaged vendored provenance: ${name}`);
+  const provenance = JSON.parse(readFileSync(provenancePath, "utf8"));
+  for (const file of ["package.json", ...Object.keys(provenance.files)]) {
+    assert.ok(existsSync(path.join(vendorRoot, file)), `Missing packaged vendored file: ${name}/${file}`);
+  }
+}
 if (manifest.distribution === "windows-installer") {
   assert.equal(manifest.dependencyProfile, "production");
   assert.equal(manifest.developerDependenciesBundled, false);

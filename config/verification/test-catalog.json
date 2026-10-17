@@ -5359,7 +5359,7 @@
       },
       {
         "target": "tests/issue-1456-windows-installer.test.mjs",
-        "targetDigest": "2eaeb3cc2f2bc5e55be4825f86362be91c60e5738bb47458e8373777af9fac1b",
+        "targetDigest": "3164254a5916567580e65430043651d7482d3e3da03bac80d05545ad49ec47d6",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],
@@ -5381,11 +5381,11 @@
         "inputs": [
           {
             "path": "scripts/package-platform.mjs",
-            "digest": "7e4be7ea1c00fd4a59ce75eaa929a6dc051b9818f3ded391ab3dc436290d0d64"
+            "digest": "2bf2cd86610642fa39f687274f1af518471ea63e75c53f3e3eca022554f54ea9"
           },
           {
             "path": "scripts/package-smoke.mjs",
-            "digest": "dc8fad01d184760c1e95bd787a9a84098501dd7389c7d2e054d55f125cdb67ea"
+            "digest": "899419a5c53c5de9af9f9378ebf5a641f6bf8ad0b671dc7ae1f98b44197c5f3c"
           },
           {
             "path": "lib/public-site/blog.ts",

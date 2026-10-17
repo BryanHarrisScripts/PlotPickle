@@ -51,6 +51,10 @@ test("#1456 release package includes root-level UI, community and imported Blog 
   assert.match(packagePlatform, /"components"/);
   assert.match(packagePlatform, /"plugins"/);
   assert.match(packagePlatform, /"content"/, "A runnable release must include Blog content consumed at startup.");
+  assert.ok(packagePlatform.includes('"vendor"'), "A runnable release must include the vendored sources verified during runtime preparation.");
+  assert.ok(packageSmoke.includes("packageJson.plotpickleVendoredPackages"), "Package smoke must inspect each declared vendored package.");
+  assert.ok(packageSmoke.includes("SECURITY-PROVENANCE.json"), "Package smoke must reject missing vendored provenance before installation.");
+  assert.ok(packageSmoke.includes("Object.keys(provenance.files)"), "Package smoke must reject missing provenance-bound source files.");
   assert.ok(packageSmoke.includes('"content/blog/posts.json"'), "Package smoke must reject a missing public Blog corpus.");
   assert.ok(blog.includes('import corpus from "@/content/blog/posts.json"'), "Blog runtime must import the packaged corpus.");
 });

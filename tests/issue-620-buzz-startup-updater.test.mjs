@@ -18,7 +18,11 @@ test("PlotPickle keeps Buzz Desktop 0.5.26 as a verified reviewed fallback", () 
   assert.equal(parsedConfig.sourceCommit, "2b4b138dc5cf2d9cc1a0ceb21d9063ff56fe8bf4");
   assert.equal(parsedConfig.windows.asset, "Buzz_0.5.26_x64-setup_alpha-unsigned.exe");
   assert.equal(parsedConfig.windows.sha256, "df0b5412a786678f0dc76d8949c40569b3707ff10340b186b254388dac08f101");
-  assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.25\//);
+  assert.equal(
+    parsedConfig.windows.downloadUrl,
+    `https://github.com/block/buzz/releases/download/${parsedConfig.releaseTag}/${parsedConfig.windows.asset}`,
+    "reviewed BUZZ Desktop URL must match the pinned release and asset on official GitHub",
+  );
 });
 
 test("startup maintenance checks block/buzz releases and selects the newest compatible Windows desktop asset", () => {

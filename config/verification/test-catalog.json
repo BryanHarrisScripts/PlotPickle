@@ -3137,6 +3137,47 @@
         ]
       },
       "notes": "#3004 Phase 2/3 CMD source-quoted unaccepted Mind Map/World Map field draft and read-only saved-proposal review with exact project/profile/source preview bound to existing PPF write owner. Synthetic fixture and source-wiring only: does not prove actual user Brotherly Love drafts, model inference, media production or approval."
+    },
+    {
+      "id": "production.buzz-desktop-update-contract-3051",
+      "ownerLayer": "production-harness",
+      "architectureComponents": [
+        "production-runtime"
+      ],
+      "triggerTokens": [
+        "native",
+        "security",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-620-buzz-startup-updater.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json"
+        ]
+      },
+      "notes": "#3051 tracks the reviewed BUZZ Desktop fallback URL identity, installer integrity and no-downgrade release lookup. Static source/fixture only, not a live Windows install."
     }
   ],
   "truthGovernance": {
@@ -5201,6 +5242,29 @@
           "static-source"
         ],
         "limits": "Synthetic read-only Afterglow consolidation and explicit record-write fixtures preserve retained source records and own-key semantics, including prototype-like keys. Static owner guards and source preservation are not authenticated Windows Save, actual Human story reconciliation, external provider or creative acceptance proof.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-620-buzz-startup-updater.test.mjs",
+        "targetDigest": "3572feecba86884d5e4be8a8618a778715f8d36e1c1581543b0050b4a626f749",
+        "catalogueIds": [
+          "production.buzz-desktop-update-contract-3051"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Current checked-in BUZZ 0.5.26 metadata, official URL/pinned digest, and static installer/companion contracts; not proof of latest upstream release, actual downloaded bytes, Windows installation, running BUZZ processes or future upgrade compatibility.",
         "inputs": []
       }
     ]

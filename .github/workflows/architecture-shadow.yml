@@ -58,10 +58,10 @@ jobs:
       - name: Restore main reference for legacy convergence checks
         run: git update-ref refs/heads/main refs/remotes/origin/main
 
-      - name: Use Node.js 22.13 (legacy TypeScript transform fixtures)
+      - name: Use Node.js 26.12
         uses: actions/setup-node@v4
         with:
-          node-version: '22.13.0'
+          node-version: '26.12.0'
 
       - name: Run BEN deterministic AI-slop/code-quality delta
         if: matrix.id == 'verification'

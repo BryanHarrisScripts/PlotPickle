@@ -5393,7 +5393,7 @@
           },
           {
             "path": ".github/workflows/windows-installer.yml",
-            "digest": "68979a91f44199588584b38877fa9ca45ce75c6f83910a2938e04edab36fc2a3"
+            "digest": "47d01d6e4840d126fcab955f841327e2f27734c67d1b1feac81c457432e27390"
           }
         ]
       },

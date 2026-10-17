@@ -75,7 +75,7 @@ jobs:
       # to the installed application's three-minute startup deadline.
       - name: Prepare and prove reviewed local dictation
         shell: pwsh
-        run: ./scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
 
       - name: Run install and uninstall smoke
         shell: pwsh

@@ -8,14 +8,14 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 async function contractModule() {
   const typescript = await source("lib/creative-transactions/creative-transaction-contract.ts");
-  const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(typescript);
   return import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}#contract-${Date.now()}-${Math.random()}`);
 }
 
 async function providerModule(path, tag) {
   const contract = await contractModule();
   const typescript = await source(path);
-  const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
+  const compiled = stripTypeScriptTypes(typescript);
   const runnable = compiled.replace(
     /import\s*\{[\s\S]*?\}\s*from\s*["']\.\/creative-transaction-contract["'];?/,
     "const { CREATIVE_TRANSACTION_CONTRACT_VERSION, LOCAL_CREATIVE_TRANSACTION_PROVIDER, creativeChangeSetFingerprint, creativeTransactionVerificationComplete, providerSupportsCapabilities } = globalThis.__plotpickleCreativeTransactionContract;",

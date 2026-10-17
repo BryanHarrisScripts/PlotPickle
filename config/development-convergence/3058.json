@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 3058,
+  "phase": "node26-architecture-fixtures",
+  "brief": "docs/developer-briefs/3058-node26-architecture-fixtures.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "tests/issue-2035-creative-transaction-provider.test.mjs",
+    "tests/issue-3058-node26-runtime.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3058-node26-architecture-fixtures.md",
+    "config/development-convergence/3058.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NATIVE-STRIP",
+      "criterion": "Active provider fixture uses native type stripping with all behavioral assertions preserved.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2035-creative-transaction-provider.test.mjs",
+          "contains": "const compiled = stripTypeScriptTypes(typescript);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2035-creative-transaction-provider.test.mjs",
+          "contains": "#2035 Local provider performs the full offline stage"
+        }
+      ]
+    },
+    {
+      "id": "UNIFIED-RUNTIME",
+      "criterion": "Architecture uses Node 26 and the runtime regression rejects the legacy runner without skipping Temporal proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "node-version: '26.12.0'"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3058-node26-runtime.test.mjs",
+          "contains": "assert.equal(process.versions.node,version);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3058-node26-runtime.test.mjs",
+          "contains": "#3058 architecture and product verification use the same Node 26 executable"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No historical uncatalogued fixture rewrite or dependency changes.",
+    "Full installer lifecycle evidence remains separately required in PR #3060."
+  ]
+}

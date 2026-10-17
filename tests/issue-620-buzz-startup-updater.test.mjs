@@ -12,17 +12,25 @@ const [installer, config, companion, ownership] = await Promise.all([
 const parsedConfig = JSON.parse(config);
 const parsedOwnership = JSON.parse(ownership);
 
-test("PlotPickle keeps Buzz Desktop 0.5.26 as a verified reviewed fallback", () => {
-  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.26");
-  assert.equal(parsedConfig.version, "0.5.26");
-  assert.equal(parsedConfig.sourceCommit, "2b4b138dc5cf2d9cc1a0ceb21d9063ff56fe8bf4");
-  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.26_x64-setup_alpha-unsigned.exe");
-  assert.equal(parsedConfig.windows.sha256, "df0b5412a786678f0dc76d8949c40569b3707ff10340b186b254388dac08f101");
+test("PlotPickle keeps Buzz Desktop 0.5.28 as a verified reviewed fallback", () => {
+  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.28");
+  assert.equal(parsedConfig.version, "0.5.28");
+  assert.equal(parsedConfig.sourceCommit, "f87c10895ea35a9a2cea629fef1d7532a3fecbc5");
+  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.28_x64-setup_alpha-unsigned.exe");
+  assert.equal(parsedConfig.windows.sha256, "dfecae208e81f6606efeacfb476e9947c9c14dfc6ba992742c57bb469d594b5d");
   assert.equal(
     parsedConfig.windows.downloadUrl,
     `https://github.com/block/buzz/releases/download/${parsedConfig.releaseTag}/${parsedConfig.windows.asset}`,
     "reviewed BUZZ Desktop URL must match the pinned release and asset on official GitHub",
   );
+});
+
+test("BUZZ Desktop fallback remains independent of the managed BUZZ relay", async () => {
+  const relay = JSON.parse(await readFile(new URL("../runtime/buzz/manifest.json", import.meta.url), "utf8"));
+  assert.equal(relay.deploymentKind, "docker-compose");
+  assert.equal(relay.sourceTag, "v0.4.26");
+  assert.equal(relay.relayImage, "ghcr.io/block/buzz:v0.4.26");
+  assert.notEqual(parsedConfig.releaseTag, relay.sourceTag);
 });
 
 test("startup maintenance checks block/buzz releases and selects the newest compatible Windows desktop asset", () => {

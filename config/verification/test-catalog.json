@@ -3147,9 +3147,7 @@
       "triggerTokens": [
         "native",
         "security",
-        "windows",
-        "runtime",
-        "buzz"
+        "windows"
       ],
       "runner": {
         "kind": "node-test",

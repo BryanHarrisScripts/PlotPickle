@@ -86,6 +86,22 @@ if (-not ($mcpReady -and $cliReady)) {
   exit 10
 }
 
+# A matching package version alone is not a functional Windows CLI.
+# open-pencil/open-pencil#1168 constructs C:\C:\... WASM paths in 0.16.0.
+# This bounded shim only repairs the reviewed PlotPickle-managed package;
+# it does not mutate global installations or any existing design/PPF file.
+$compat = Join-Path $repoRoot "build\openpencil\openpencil-windows-canvaskit-compat.mjs"
+$node = Get-Command "node.exe" -ErrorAction SilentlyContinue
+if (-not $node -or -not (Test-Path -LiteralPath $compat -PathType Leaf)) {
+  Write-Host "[WARNING] OpenPencil Windows CanvasKit compatibility helper is unavailable; GUI conversion readiness is not verified." -ForegroundColor Yellow
+  exit 10
+}
+& $node.Source $compat $toolRoot
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "[WARNING] OpenPencil 0.16.0 CanvasKit compatibility verification failed; the CLI cannot be marked conversion-ready. PlotPickle remains available." -ForegroundColor Yellow
+  exit 10
+}
+
 function Get-DesktopVersion([string]$Executable) {
   if (-not $Executable -or -not (Test-Path -LiteralPath $Executable -PathType Leaf)) { return "" }
   try {

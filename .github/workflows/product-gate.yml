@@ -72,9 +72,29 @@ jobs:
         run: |
           node --test tests/issue-2717-settings-command.test.mjs tests/issue-2717-command-gateway.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node --test tests/issue-2780-openpencil-command-mcp.test.mjs tests/issue-2782-openpencil-profile-startup.test.mjs tests/issue-2787-openpencil-gui-review.test.mjs tests/issue-2793-openpencil-timeline-snapshot.test.mjs tests/issue-2800-openpencil-auto-design-review.test.mjs
+          node --test tests/issue-2780-openpencil-command-mcp.test.mjs tests/issue-2782-openpencil-profile-startup.test.mjs tests/issue-2787-openpencil-gui-review.test.mjs tests/issue-3078-openpencil-windows-canvaskit.test.mjs tests/issue-2793-openpencil-timeline-snapshot.test.mjs tests/issue-2800-openpencil-auto-design-review.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/settings-command-product-proof.mjs
+      - name: Prove real OpenPencil 0.16.0 ASSETS conversion on Windows without Desktop or saved FIG writes
+        shell: pwsh
+        run: |
+          $managed = Join-Path $env:LOCALAPPDATA 'PlotPickle\tools\openpencil'
+          & npm.cmd install --prefix $managed --no-save --omit=dev --no-audit --no-fund --progress=false --loglevel=warn '@open-pencil/cli@0.16.0' '@open-pencil/mcp@0.16.0'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node build/openpencil/openpencil-windows-canvaskit-compat.mjs $managed
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $cli = Join-Path $managed 'node_modules\@open-pencil\cli\bin\openpencil.js'
+          $seed = Join-Path $env:GITHUB_WORKSPACE 'designs\openpencil\bootstrap\assets.pen'
+          $output = Join-Path $env:RUNNER_TEMP ("assets-3078-" + [guid]::NewGuid().ToString('N') + '.fig')
+          node $cli convert $seed --output $output --format fig
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $output -PathType Leaf)) { throw 'OpenPencil did not convert the temporary ASSETS FIG.' }
+          $pagesJson = & node $cli pages $output --json
+          if ($LASTEXITCODE -ne 0) { throw 'OpenPencil cannot read converted ASSETS FIG pages.' }
+          $pages = $pagesJson | Out-String | ConvertFrom-Json
+          if (-not @($pages | Where-Object { $_.name -eq 'ASSETS' -and $_.id }).Count) { throw 'Converted FIG does not have the ASSETS page.' }
+          Write-Host '[PROOF] OpenPencil 0.16.0 converted ASSETS .pen to a temporary .fig and read its ASSETS page on Windows.'
+          Remove-Item -LiteralPath $output -Force
+
       - name: Upload Settings Command evidence
         if: always()
         uses: actions/upload-artifact@v4

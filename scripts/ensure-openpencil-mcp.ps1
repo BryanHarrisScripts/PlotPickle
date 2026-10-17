@@ -91,7 +91,20 @@ function Get-DesktopVersion([string]$Executable) {
   try {
     $info = (Get-Item -LiteralPath $Executable -ErrorAction Stop).VersionInfo
     foreach ($candidate in @([string]$info.ProductVersion, [string]$info.FileVersion)) {
-      if ($candidate -match '^(\d+\.\d+\.\d+)(?:\..*)?
+      if ($candidate -match '^(\d+\.\d+\.\d+)(?:\..*)?$') { return $Matches[1] }
+    }
+  } catch {}
+  return ""
+}
+
+$desktop = Find-OpenPencilDesktop
+$desktopOverride = -not [string]::IsNullOrWhiteSpace([string]$env:PLOTPICKLE_OPENPENCIL_DESKTOP_EXE)
+$desktopVersion = Get-DesktopVersion $desktop
+$needsDesktopUpgrade = -not $desktop -or (-not $desktopOverride -and $desktopVersion -ne $Version)
+$desktopIsRunning = @(Get-Process -Name "OpenPencil" -ErrorAction SilentlyContinue).Count -gt 0
+if ($needsDesktopUpgrade -and $desktopIsRunning) {
+  Write-Host "[WARNING] OpenPencil Desktop is running. A version update is deferred until it is closed; no active design session will be interrupted." -ForegroundColor Yellow
+} elseif ($needsDesktopUpgrade -and $env:CI -ne "true") {
   $downloadRoot = Join-Path $toolRoot "downloads"
   $installer = Join-Path $downloadRoot "OpenPencil_0.16.0_x64-setup.exe"
   New-Item -ItemType Directory -Force -Path $downloadRoot | Out-Null
@@ -126,52 +139,6 @@ if ($desktop) {
   } else {
     Write-Host "[WARNING] OpenPencil Desktop remains unverified or older than $Version (detected: $desktopVersion). The MCP/CLI upgrade does not certify GUI compatibility yet." -ForegroundColor Yellow
   }
-} else {
-  Write-Host "[WARNING] OpenPencil Desktop is not currently detectable; GUI commands will report that truthfully." -ForegroundColor Yellow
-}
-Write-Host "[INFO] OpenPencil is not launched or connected during startup." -ForegroundColor Cyan
-Write-Host "[INFO] Use Settings > Command > OpenPencil open Timeline (or another explicit surface name) to launch a design session." -ForegroundColor Cyan
-exit 0
-) { return $Matches[1] }
-    }
-  } catch {}
-  return ""
-}
-
-$desktop = Find-OpenPencilDesktop
-$desktopOverride = -not [string]::IsNullOrWhiteSpace([string]$env:PLOTPICKLE_OPENPENCIL_DESKTOP_EXE)
-$desktopVersion = Get-DesktopVersion $desktop
-$needsDesktopUpgrade = -not $desktop -or (-not $desktopOverride -and $desktopVersion -ne $Version)
-$desktopIsRunning = @(Get-Process -Name "OpenPencil" -ErrorAction SilentlyContinue).Count -gt 0
-if ($needsDesktopUpgrade -and $desktopIsRunning) {
-  Write-Host "[WARNING] OpenPencil Desktop is running. A version update is deferred until it is closed; no active design session will be interrupted." -ForegroundColor Yellow
-} elseif ($needsDesktopUpgrade -and $env:CI -ne "true") {
-  $downloadRoot = Join-Path $toolRoot "downloads"
-  $installer = Join-Path $downloadRoot "OpenPencil_0.16.0_x64-setup.exe"
-  New-Item -ItemType Directory -Force -Path $downloadRoot | Out-Null
-  Write-Host "[INFO] Preparing reviewed OpenPencil Desktop $Version for explicit GUI design sessions." -ForegroundColor Cyan
-  Write-Host "[INFO] The desktop app will not be launched during startup." -ForegroundColor Cyan
-  try {
-    if (-not (Test-Path -LiteralPath $installer -PathType Leaf) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $DesktopSetupSha256) {
-      Invoke-WebRequest $DesktopSetupUrl -OutFile $installer
-    }
-    if ((Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $DesktopSetupSha256) {
-      throw "OpenPencil Desktop installer identity changed."
-    }
-    $install = Start-Process -FilePath $installer -ArgumentList "/S" -Wait -PassThru
-    if ($install.ExitCode -ne 0) { throw "OpenPencil Desktop installer exited with code $($install.ExitCode)." }
-    $desktop = Find-OpenPencilDesktop
-  } catch {
-    Write-Host "[WARNING] OpenPencil Desktop preparation failed: $($_.Exception.Message). Core PlotPickle remains available." -ForegroundColor Yellow
-  }
-} elseif (-not $desktop) {
-  Write-Host "[INFO] CI does not install the optional OpenPencil desktop GUI. Source-contract tests prove the pinned installer boundary." -ForegroundColor Cyan
-}
-
-Write-Host "[READY] OpenPencil MCP + CLI $Version are prepared in PlotPickle local app data." -ForegroundColor Green
-Write-Host "[READY] Repository design workspace: $workspaceRoot" -ForegroundColor Green
-if ($desktop) {
-  Write-Host "[READY] OpenPencil Desktop: $desktop" -ForegroundColor Green
 } else {
   Write-Host "[WARNING] OpenPencil Desktop is not currently detectable; GUI commands will report that truthfully." -ForegroundColor Yellow
 }

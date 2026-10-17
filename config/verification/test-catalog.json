@@ -3265,6 +3265,50 @@
         ]
       },
       "notes": "Issue3061 first production-harness wave: explicit TS6.0.3 fixture compiler semantics and three unchanged Director Specification/provider fixture suites on native Node26. No production imports, provider execution or complete historical-suite certification."
+    },
+    {
+      "id": "story-canon.repository-invitation-fixtures-3061",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-148-automatic-story-project-setup.test.mjs",
+          "tests/issue-296-repository-name-collisions.test.mjs",
+          "tests/issue-156-collaboration-invitations.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json"
+        ]
+      },
+      "notes": "3061 repository/invitation historical fixture migration: pure manifest, naming and invitation policy fixtures on native Node26; explicit synthetic version isolation and fixed clocks. Not actual GitHub, profile storage or project acceptance evidence."
     }
   ],
   "truthGovernance": {
@@ -5673,6 +5717,186 @@
           {
             "path": "lib/preproduction/director-specification.ts",
             "digest": "b181715b1221f599ab37c5fdee440fe2ecfac1fddb11d0f7fc9d64d962ec3c71"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-148-automatic-story-project-setup.test.mjs",
+        "targetDigest": "ca3a58d81b6f6488cf39cdf50a868ff741120d7aae4a1ecb0a0efc6b2a55c742",
+        "catalogueIds": [
+          "story-canon.repository-invitation-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Pure repository manifest/naming or synthetic invitation policy fixtures and inspected source. Version module is explicitly stubbed; time is fixed. Catalogue routing checked as governance metadata. No real account/network, credential storage, filesystem persistence or complete historical-suite proof.",
+        "inputs": [
+          {
+            "path": "lib/projects/persistence/story-project-repository.ts",
+            "digest": "c73ba7eb9d7237847940697087e41276c9cd4f3b90989dc790d3dcde21af086b"
+          },
+          {
+            "path": "build/github-app-gateway.ts",
+            "digest": "363094d637a228988657e69939c64d94898455532cf38e4a93f7a4bc7dbe6e58"
+          },
+          {
+            "path": "app/github-app-connection.tsx",
+            "digest": "15d7b4d419779bfd83d3491caf93d97c6d275e84281b5838c409e69c1c7174f8"
+          },
+          {
+            "path": "schema/github-story-project-manifest.schema.json",
+            "digest": "8d77f2d6521e08582a72ded44b9fc5484c735b30da3aa2276a23356b3d20a014"
+          },
+          {
+            "path": "templates/github-story-project/plotpickle-project.json",
+            "digest": "bb4572c614d22554724c68d977f5c1f82647c0ae0985c3195d90f2f5c37795aa"
+          },
+          {
+            "path": "templates/github-story-project/README.md",
+            "digest": "f8698c2e9600ded29bbf0527e01396e3f205512aacfedf9d7e06b49752aab219"
+          },
+          {
+            "path": "templates/github-story-project/.github/pull_request_template.md",
+            "digest": "0bec73af9a4cddff955871c9393219609fc4d7279eeb58a51ae10f80bfb03b26"
+          },
+          {
+            "path": "docs/issue-148-automatic-story-project-setup.md",
+            "digest": "09dc5c9824d780d7471d742a8873af025bbc16688e182d50c234dca04dd2df10"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          },
+          {
+            "path": "tests/support/story-project-repository-fixture.mjs",
+            "digest": "af8a9f7764208444fd234dabcf63fc91d8332bc8f42ab0a10820583467a51947"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-296-repository-name-collisions.test.mjs",
+        "targetDigest": "d7670ce31a9a2ae517e4f1ab2c5d90c6d5bbecbf333a671b80cbb443b6d22e92",
+        "catalogueIds": [
+          "story-canon.repository-invitation-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Pure repository manifest/naming or synthetic invitation policy fixtures and inspected source. Version module is explicitly stubbed; time is fixed. Catalogue routing checked as governance metadata. No real account/network, credential storage, filesystem persistence or complete historical-suite proof.",
+        "inputs": [
+          {
+            "path": "build/github-app-gateway.ts",
+            "digest": "363094d637a228988657e69939c64d94898455532cf38e4a93f7a4bc7dbe6e58"
+          },
+          {
+            "path": "app/github-app-connection.tsx",
+            "digest": "15d7b4d419779bfd83d3491caf93d97c6d275e84281b5838c409e69c1c7174f8"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+          },
+          {
+            "path": "tests/support/story-project-repository-fixture.mjs",
+            "digest": "af8a9f7764208444fd234dabcf63fc91d8332bc8f42ab0a10820583467a51947"
+          },
+          {
+            "path": "lib/projects/persistence/story-project-repository.ts",
+            "digest": "c73ba7eb9d7237847940697087e41276c9cd4f3b90989dc790d3dcde21af086b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-156-collaboration-invitations.test.mjs",
+        "targetDigest": "c903927a4e55b1fbd51641e2ec37a3e8c6e74073682874d38660c474fa9d894b",
+        "catalogueIds": [
+          "story-canon.repository-invitation-fixtures-3061"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Pure repository manifest/naming or synthetic invitation policy fixtures and inspected source. Version module is explicitly stubbed; time is fixed. Catalogue routing checked as governance metadata. No real account/network, credential storage, filesystem persistence or complete historical-suite proof.",
+        "inputs": [
+          {
+            "path": "lib/projects/collaboration/collaboration-invitations.ts",
+            "digest": "2565c2f39741438c38b8917425805e001b594ebb0a6748677a87d7f95eea7e4d"
+          },
+          {
+            "path": "build/collaboration-access-guard.ts",
+            "digest": "1a0a901b1e5093af4de5a6173e50b54d568af5743aeed9e3120a45100b7032a1"
+          },
+          {
+            "path": "build/collaboration-invitation-gateway.ts",
+            "digest": "f8dbf14bc9ed8e77a1f6d1287a26faf7216c15d26a64ebf196c3c42e0d9bb8a0"
+          },
+          {
+            "path": "vite.config.ts",
+            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+          },
+          {
+            "path": "app/collaboration-invitations.tsx",
+            "digest": "8e23624122a9dacb9bae3947b98cc3577b6f170e12044240632bbfff66d4a2e8"
+          },
+          {
+            "path": "app/story-proposals.tsx",
+            "digest": "a77975cc56d15542ad6f0b57ff4d737353f25676a66b2800ab950cbad45374cb"
+          },
+          {
+            "path": "app/collaboration-invitations.module.css",
+            "digest": "c41acf19d59bcc7a74a517b57d0092fa7215793188e87032b503551aec7a0bcb"
+          },
+          {
+            "path": "docs/issue-156-collaboration-invitations.md",
+            "digest": "f5486b0dd8a5e0bb27fd4e4a4eb053a5c73318155cc4bdb281e0caddf4be52a6"
+          },
+          {
+            "path": "app/collaboration-workspace-router.tsx",
+            "digest": "7efc5172d5f6d1da06b398c29ec254c48ed37b4a7008c79e9829ad49406a1674"
+          },
+          {
+            "path": "app/application-shell-header.tsx",
+            "digest": "6c5ef5d5bc67a20e27807eda15d7e32498908e7a585f57d0b7c32d0d103ba064"
+          },
+          {
+            "path": "app/layout.tsx",
+            "digest": "8436f7e894388622d0423dd6a7007822ddce48227b46527bed549ce28591e387"
+          },
+          {
+            "path": "package.json",
+            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
           }
         ]
       }

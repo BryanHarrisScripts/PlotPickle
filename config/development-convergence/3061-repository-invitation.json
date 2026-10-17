@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 3061,
+  "phase": "repository-invitation-fixtures",
+  "brief": "docs/developer-briefs/3061-repository-invitation-fixtures.md",
+  "allowedChanges": [
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "tests/support/story-project-repository-fixture.mjs",
+    "tests/issue-148-automatic-story-project-setup.test.mjs",
+    "tests/issue-296-repository-name-collisions.test.mjs",
+    "tests/issue-156-collaboration-invitations.test.mjs",
+    "docs/developer-briefs/3061-repository-invitation-fixtures.md",
+    "config/development-convergence/3061-repository-invitation.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-VERSION-ISOLATION",
+      "criterion": "Shared native repository fixture normalizes platform line endings and rejects import drift without loading real application version.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/support/story-project-repository-fixture.mjs",
+          "contains": "export async function loadStoryProjectRepositoryFixture"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-148-automatic-story-project-setup.test.mjs",
+          "contains": "#3061 repository fixtures isolate the version import with LF, CRLF and lone CR"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-148-automatic-story-project-setup.test.mjs",
+          "contains": "#3061 repository fixture import drift fails closed before data-URL execution"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDED-REJECTIONS",
+      "criterion": "Invitation expiry, wrong-project, owner and revocation cases keep their rejection meanings with explicit time.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-156-collaboration-invitations.test.mjs",
+          "contains": "now: \"2026-09-01T00:00:00.000Z\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-156-collaboration-invitations.test.mjs",
+          "contains": "now: \"2026-08-01T00:00:00.000Z\""
+        }
+      ]
+    },
+    {
+      "id": "GOVERNED-REGISTRATION",
+      "criterion": "All three suites verify actual story-canon node-test routing and retain focused npm commands.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-148-automatic-story-project-setup.test.mjs",
+          "contains": "assert.equal(entry?.runner.kind, \"node-test\");"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-296-repository-name-collisions.test.mjs",
+          "contains": "assert.equal(entry?.runner.kind, \"node-test\");"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-156-collaboration-invitations.test.mjs",
+          "contains": "assert.equal(entry?.runner.kind, \"node-test\");"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No production implementation, real GitHub account, provider or data mutation.",
+    "Pure version stub is not real version-module proof; issue3061 remains open for other historical callers."
+  ]
+}

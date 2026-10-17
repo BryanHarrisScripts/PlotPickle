@@ -1,17 +1,31 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { stripTypeScriptTypes } from "node:module";
+import { loadStoryProjectRepositoryFixture as repositoryContract } from "./support/story-project-repository-fixture.mjs";
 import test from "node:test";
 
 const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
-async function repositoryContract() {
+test("#3061 repository fixtures isolate the version import with LF, CRLF and lone CR", async () => {
+  const raw = (await source("lib/projects/persistence/story-project-repository.ts")).replace(/\r\n?/gu, "\n");
+  for (const newline of ["\n", "\r\n", "\r"]) {
+    const contract = await repositoryContract(raw.replace(/\n/gu, newline));
+    const manifest = contract.createStoryProjectManifest({
+      projectId: "fixture-project", title: "Fixture Story", owner: "FixtureOwner", repository: "Fixture-Story",
+      createdAt: "2026-07-27T00:00:00.000Z",
+    });
+    assert.equal(manifest.createdWith, "PlotPickle fixture-application-version");
+    assert.equal(contract.normalizeRepositoryName("Fixture: Story"), "Fixture-Story");
+  }
+});
+
+test("#3061 repository fixture import drift fails closed before data-URL execution", async () => {
+  await assert.rejects(repositoryContract("export const unrelated = true;"), /Story project repository fixture version import was not isolated/);
   const raw = await source("lib/projects/persistence/story-project-repository.ts");
-  const isolated = raw.replace(/import \{ PLOTPICKLE_VERSION \} from "\.\.\/\.\.\/runtime\/application-version";\n/, 'const PLOTPICKLE_VERSION = "test-current-version";\n');
-  const compiled = stripTypeScriptTypes(isolated, { mode: "transform" });
-  return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
-}
+  await assert.rejects(repositoryContract(raw.replace("../../runtime/application-version", "../../runtime/unknown-version")),
+    /Story project repository fixture version import was not isolated/);
+});
+
 
 test("issue #148 creates a versioned repository manifest and deterministic bootstrap", async () => {
   const contract = await repositoryContract();
@@ -168,6 +182,10 @@ test("issue #148 retains the schema, template source and implementation guide", 
 
 test("issue #148 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-148-automatic-story-project-setup\.test\.mjs/);
+  const catalogue = JSON.parse(await source("config/verification/test-catalog.json"));
+  const entry = catalogue.entries.find((item) => item.id === "story-canon.repository-invitation-fixtures-3061");
+  assert.equal(entry?.ownerLayer, "story-canon");
+  assert.equal(entry?.runner.kind, "node-test");
+  assert.ok(entry.runner.targets.includes("tests/issue-148-automatic-story-project-setup.test.mjs"));
   assert.equal(packageJson.scripts["test:automatic-story-project"], "node --test tests/issue-148-automatic-story-project-setup.test.mjs");
 });

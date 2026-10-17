@@ -5359,7 +5359,7 @@
       },
       {
         "target": "tests/issue-1456-windows-installer.test.mjs",
-        "targetDigest": "3164254a5916567580e65430043651d7482d3e3da03bac80d05545ad49ec47d6",
+        "targetDigest": "41cb7c022390b280fec957a77e8e316e8e8f72beee30eb364d7cb3584c0c613e",
         "catalogueIds": [
           "production.node26-runtime-migration-3058"
         ],
@@ -5390,6 +5390,10 @@
           {
             "path": "lib/public-site/blog.ts",
             "digest": "7dfa0dbe3000f31a50e9df6fdaf309a9056645d47e90ff9e3feb48fc4afc4e91"
+          },
+          {
+            "path": ".github/workflows/windows-installer.yml",
+            "digest": "68979a91f44199588584b38877fa9ca45ce75c6f83910a2938e04edab36fc2a3"
           }
         ]
       },

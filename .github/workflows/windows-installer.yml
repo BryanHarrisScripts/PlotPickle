@@ -70,6 +70,13 @@ jobs:
           PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "360000"
         run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
 
+      # Normal first launch verifies/provisions local dictation before server readiness.
+      # Prove the reviewed runtime separately so model download time is not charged
+      # to the installed application's three-minute startup deadline.
+      - name: Prepare and prove reviewed local dictation
+        shell: pwsh
+        run: ./scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
+
       - name: Run install and uninstall smoke
         shell: pwsh
         run: ./scripts/windows-installer/smoke.ps1 -SetupPath releases/windows-installer/PlotPickleSetup.exe

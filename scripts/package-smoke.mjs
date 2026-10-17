@@ -29,6 +29,7 @@ for (const file of [
   "build/google-desktop-oauth.ts",
   "components/agent-portrait.tsx",
   "components/agent-portrait.module.css",
+  "content/blog/posts.json",
   "config/github-app.json",
   "config/google-oauth.json",
   "config/buzz-desktop.json",

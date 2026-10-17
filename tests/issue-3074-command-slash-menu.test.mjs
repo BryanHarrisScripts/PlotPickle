@@ -16,7 +16,7 @@ test("CMD typing / exposes actual accepted commands, including the ASSETS OpenPe
   assert.ok(entries.length >= 20);
   for (const name of ["OpenPencil open ASSETS", "OpenPencil review ASSETS", "OpenPencil open Timeline",
     "PlotPickle status", "PlotPickle library", "PlotPickle agents inventory",
-    "PlotPickle connections status", "PlotPickle mind-map fields foundations"]) {
+    "PlotPickle connections status", "PlotPickle connections setup openai", "PlotPickle mind-map fields foundations"]) {
     assert.ok(names.includes(name), name);
   }
   const registry = JSON.parse(await read("designs/openpencil/surfaces.json"));

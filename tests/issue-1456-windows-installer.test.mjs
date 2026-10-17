@@ -51,8 +51,8 @@ test("#1456 release package includes root-level UI, community and imported Blog 
   assert.match(packagePlatform, /"components"/);
   assert.match(packagePlatform, /"plugins"/);
   assert.match(packagePlatform, /"content"/, "A runnable release must include Blog content consumed at startup.");
-  assert.match(packageSmoke, /"content\\/blog\\/posts[.]json"/, "Package smoke must reject a missing public Blog corpus.");
-  assert.match(blog, /@\\/content\\/blog\\/posts[.]json"/, "Blog runtime must import the packaged corpus.");
+  assert.ok(packageSmoke.includes('"content/blog/posts.json"'), "Package smoke must reject a missing public Blog corpus.");
+  assert.ok(blog.includes('import corpus from "@/content/blog/posts.json"'), "Blog runtime must import the packaged corpus.");
 });
 
 test("#1456 installer is per-user, creates normal shortcuts and leaves user data outside the app directory", async () => {

@@ -44,10 +44,15 @@ test("#1456 installer stage bundles Node and dependencies instead of requiring d
   ]) assert.ok(stage.includes(contract), `Missing installer staging contract: ${contract}`);
 });
 
-test("#1456 release package includes root-level UI and community dependencies", async () => {
+test("#1456 release package includes root-level UI, community and imported Blog dependencies", async () => {
   const packagePlatform = await source("scripts/package-platform.mjs");
+  const packageSmoke = await source("scripts/package-smoke.mjs");
+  const blog = await source("lib/public-site/blog.ts");
   assert.match(packagePlatform, /"components"/);
   assert.match(packagePlatform, /"plugins"/);
+  assert.match(packagePlatform, /"content"/, "A runnable release must include Blog content consumed at startup.");
+  assert.match(packageSmoke, /"content\\/blog\\/posts[.]json"/, "Package smoke must reject a missing public Blog corpus.");
+  assert.match(blog, /@\\/content\\/blog\\/posts[.]json"/, "Blog runtime must import the packaged corpus.");
 });
 
 test("#1456 installer is per-user, creates normal shortcuts and leaves user data outside the app directory", async () => {

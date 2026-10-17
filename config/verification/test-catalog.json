@@ -6492,7 +6492,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
+            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6600,7 +6600,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "54981a56985bc233feb8ae7719ecdd17a5dd1adc8322f8a2e7974ea7a59bb6e6"
+            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",

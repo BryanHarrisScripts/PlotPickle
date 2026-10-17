@@ -44,10 +44,19 @@ test("#1456 installer stage bundles Node and dependencies instead of requiring d
   ]) assert.ok(stage.includes(contract), `Missing installer staging contract: ${contract}`);
 });
 
-test("#1456 release package includes root-level UI and community dependencies", async () => {
+test("#1456 release package includes root-level UI, community and imported Blog dependencies", async () => {
   const packagePlatform = await source("scripts/package-platform.mjs");
+  const packageSmoke = await source("scripts/package-smoke.mjs");
+  const blog = await source("lib/public-site/blog.ts");
   assert.match(packagePlatform, /"components"/);
   assert.match(packagePlatform, /"plugins"/);
+  assert.match(packagePlatform, /"content"/, "A runnable release must include Blog content consumed at startup.");
+  assert.ok(packagePlatform.includes('"vendor"'), "A runnable release must include the vendored sources verified during runtime preparation.");
+  assert.ok(packageSmoke.includes("packageJson.plotpickleVendoredPackages"), "Package smoke must inspect each declared vendored package.");
+  assert.ok(packageSmoke.includes("SECURITY-PROVENANCE.json"), "Package smoke must reject missing vendored provenance before installation.");
+  assert.ok(packageSmoke.includes("Object.keys(provenance.files)"), "Package smoke must reject missing provenance-bound source files.");
+  assert.ok(packageSmoke.includes('"content/blog/posts.json"'), "Package smoke must reject a missing public Blog corpus.");
+  assert.ok(blog.includes('import corpus from "@/content/blog/posts.json"'), "Blog runtime must import the packaged corpus.");
 });
 
 test("#1456 installer is per-user, creates normal shortcuts and leaves user data outside the app directory", async () => {
@@ -147,6 +156,7 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
     "choco install innosetup",
     "scripts/windows-installer/build.ps1",
     "windows-interaction-smoke.mjs",
+    "scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved",
     "scripts/windows-installer/smoke.ps1",
     "PlotPickleSetup.exe",
     "actions/upload-artifact@v4",

@@ -3736,6 +3736,48 @@
         ]
       },
       "notes": "#3100 status reads private simulated receipts and emits unpublishable GitHub drafts; synthetic evidence only, no live GUI scheduler/remote Github/modeled provider proof."
+    },
+    {
+      "id": "agent.experimental-engineering-team-durable-3098",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3098-engineering-durable-checkpoint.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3098 synthetic native scheduler callback fixture, write-once role barriers, cancelled/stale route and CLI replay denial. Real managed Pi Durable native JSONL proof is a separate explicit on-device command; does not run in CI."
     }
   ],
   "truthGovernance": {
@@ -8009,7 +8051,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a64106c1b24cb17653a8bad37a0ef9bfff2ba2781959b6afd91e6362e5b905ea"
+            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
           }
         ]
       },
@@ -8037,7 +8079,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a64106c1b24cb17653a8bad37a0ef9bfff2ba2781959b6afd91e6362e5b905ea"
+            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8070,6 +8112,42 @@
           {
             "path": "scripts/engineering-team/operator-reporting.mjs",
             "digest": "edd3866966f63b323a108c64e0ffddad6baffed200eb19eda1641b1904663e88"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
+        "targetDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-durable-3098"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic callbacks and filesystem barriers prove no silent re-invocation. Native managed Pi Durable JSONL restart, Windows process kill and real provider I/O not established by this CI fixture.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          {
+            "path": "scripts/engineering-team/durable-checkpoint.mjs",
+            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          {
+            "path": "scripts/pi/durable/engineering-team-proof.mjs",
+            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
           }
         ]
       }

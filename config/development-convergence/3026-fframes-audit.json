@@ -125,6 +125,27 @@
           "contains": "prerelease native compilation remains distinct"
         }
       ]
+    },
+    {
+      "id": "3090-NATIVE-CANDIDATE-VIDEO-PROOF",
+      "criterion": "Execute actual isolated FFrames1.2.1-rc.45 binary to encode a three-colour MPEG-4 MP4 and independently decode every one of 36 frames, rejecting wrong frame counts, order or last frame, with no production promotion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/media/fframes-candidate-resolution.mjs",
+          "contains": "ACTUAL_RC45_BINARY_IN_TEMP_WORKSPACE"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_RENDER"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "isolated FFrames release candidate verifies real decoded frame order"
+        }
+      ]
     }
   ],
   "constraints": [

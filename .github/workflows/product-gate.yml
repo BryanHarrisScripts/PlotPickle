@@ -393,7 +393,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || inputs.media
     name: FFrames prerelease Cargo graph (nonpromoting)
     runs-on: windows-latest
-    timeout-minutes: 16
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -419,10 +419,11 @@ jobs:
           "FFMPEG_DIR=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "$ffmpeg\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Compile FFrames candidate in throwaway sandbox and classify compatibility
+      - name: Render FFrames candidate video and independently verify all 36 decoded frames
         shell: pwsh
         env:
           PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE: '1'
+          PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_RENDER: '1'
         run: node scripts/media/fframes-candidate-resolution.mjs
       - name: Upload nonpromoting candidate graph observation
         if: always()

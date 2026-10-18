@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
-import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation } from "../scripts/media/fframes-candidate-resolution.mjs";
+import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation, verifyCandidateFrames } from "../scripts/media/fframes-candidate-resolution.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -158,4 +158,33 @@ test("#3089 prerelease native compilation remains distinct from actual codec and
   assert.match(candidate, /PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE: '1'/u);
   assert.match(candidate, /FFmpeg candidate fixture hash mismatch/u);
   assert.match(candidate, /1\.99\.0/u);
+});
+
+test("#3090 isolated FFrames release candidate verifies real decoded frame order, count, final frame and refusal to promote", async () => {
+  const probe = { streams: [{ codec_type: "video", codec_name: "mpeg4",
+    width: 1280, height: 720, avg_frame_rate: "24/1", nb_read_frames: "36" }],
+    format: { duration: "1.500000" } };
+  const pixels = Buffer.alloc(36 * 3);
+  for (let frame = 0; frame < 36; frame++) pixels[frame * 3 + Math.floor(frame / 12)] = 245;
+  assert.deepEqual(verifyCandidateFrames(probe, pixels), {
+    status: "PASS", codec: "mpeg4", frameRate: 24, width: 1280, height: 720,
+    decodedFrames: 36, everyFrameColorAndOrder: "PASS", finalFrame: "PASS",
+    durationSeconds: 1.5
+  });
+  const corrupted = Buffer.from(pixels);
+  corrupted[35 * 3 + 2] = 0;
+  assert.throws(() => verifyCandidateFrames(probe, corrupted), /frame 35/u);
+  assert.throws(() => verifyCandidateFrames(probe, pixels.subarray(0, -3)), /pixel count/u);
+  assert.throws(() => verifyCandidateFrames({ ...probe, streams: [{ ...probe.streams[0],
+    nb_read_frames: "35" }] }, pixels), /36-frame/u);
+  assert.throws(() => verifyCandidateFrames({ ...probe, streams: [{ ...probe.streams[0],
+    avg_frame_rate: "25/1" }] }, pixels), /24fps/u);
+  const source = await read("scripts/media/fframes-candidate-resolution.mjs");
+  assert.match(source, /"render", "--output", "render\.mp4"/u);
+  assert.match(source, /source: "ACTUAL_RC45_BINARY_IN_TEMP_WORKSPACE"/u);
+  assert.match(source, /licenseAndRollback: "NOT_PROVEN", promoted: false/u);
+  const workflow = await read(".github/workflows/product-gate.yml");
+  const candidate = workflow.slice(workflow.indexOf("  fframes-candidate-windows:"));
+  assert.match(candidate, /PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_RENDER: '1'/u);
+  assert.match(candidate, /independently verify all 36 decoded frames/u);
 });

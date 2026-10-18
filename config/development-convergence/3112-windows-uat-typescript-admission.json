@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 3112,
-  "phase": "windows-uat-pinned-dev-toolchain-admission",
+  "phase": "windows-uat-ts6-wrapper-compiler-version-contract",
   "brief": "docs/developer-briefs/3112-windows-uat-typescript-admission.md",
   "allowedChanges": [
     "scripts/windows-uat-control.mjs",
@@ -59,12 +59,34 @@
           "contains": "does not run UAT"
         }
       ]
+    },
+    {
+      "id": "TS6-ALIAS-COMPILER-LOCK-IDENTITIES",
+      "criterion": "Doctor distinguishes exact installed @typescript/typescript6 wrapper 6.0.2 from the @typescript/old compiler 6.0.3 and verifies both separately against package-lock, while rejecting any swapped versions or identity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "TYPESCRIPT_LOCK_MISMATCH"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "expectedCompilerVersion"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
+          "contains": "repo-pinned 6.0.2 wrapper reexports separately lock-pinned 6.0.3 compiler API"
+        }
+      ]
     }
   ],
   "constraints": [
     "Preserve first real Windows UAT failed artifact and original uncertain Pi/Cline attempt, never replay old scope.",
     "No automatic npm dependency installation or unauthorized dev model provider dispatch.",
     "Native Windows real UAT/pass not inferred from synthetic CI.",
-    "Do not turn missing prerequisites into fabricated product failure or bypass source assertions."
+    "Do not turn missing prerequisites into fabricated product failure or bypass source assertions.",
+    "Do not compare the wrapper's package version with its reexported compiler API; use separate exact locked wrapper and compiler identities."
   ]
 }

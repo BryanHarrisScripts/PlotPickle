@@ -8351,7 +8351,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "bd597af2444cff822e21ef93b4a992b22b1c70ca89ed528075b2b550d8e7dc22",
+        "targetDigest": "50e7e48bbb5f40c8a34d92e12b57b6c0a514cdc6f327ed18673d516f03872059",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -8372,8 +8372,8 @@
         "limits": "Synthetic temporary private filesystem and stubbed child process tests, not a native Windows runner or authorized remote software-factory control loop.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/windows-uat-control.mjs",
-            "digest": "32b5d23f46abf07b39859f563cb237b3d28fc326f99bcce1dc93e976aa22b0b8"
+            "path": "scripts/windows-uat-control.mjs",
+            "digest": "f4db7a5e1b087a169385e1846f3bc89c68a92593c7d757c67f485572471935ca"
           }
         ]
       }

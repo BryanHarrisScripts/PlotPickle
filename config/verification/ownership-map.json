@@ -2510,7 +2510,8 @@
       "include": [
         "scripts/engineering-team/**",
         "scripts/engineering-diagnostics.mjs",
-        "scripts/windows-uat-control.mjs"
+        "scripts/windows-uat-control.mjs",
+        "scripts/windows-stop-proof.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

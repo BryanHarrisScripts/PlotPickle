@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "issue": 3098,
+  "phase": "windows-blocked-attempt-diagnostics",
+  "brief": "docs/developer-briefs/3098-engineering-local-failure-diagnostics.md",
+  "allowedChanges": [
+    "scripts/engineering-team/run-local.mjs",
+    "scripts/engineering-team/durable-checkpoint.mjs",
+    "scripts/engineering-diagnostics.mjs",
+    "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3098-engineering-failure-diagnostics.json",
+    "docs/developer-briefs/3098-engineering-local-failure-diagnostics.md",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "FAILURE-STAGE-TRUTH",
+      "criterion": "An actual role or Pi Durable error records only an authorized diagnostic code, current bounded phase and role with no private exception or model text.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "classifyEngineeringFailure"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/durable-checkpoint.mjs",
+          "contains": "onStage?.(\"role-dispatch\", role)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+          "contains": "failed live step persists sanitized phase"
+        }
+      ]
+    },
+    {
+      "id": "READ-ONLY-LEGACY-RECOVERY",
+      "criterion": "Failed reservation without receipt remains diagnosable without provider invocation, credential capture, automatic retry, fabricated model-response proof or modifying existing evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-diagnostics.mjs",
+          "contains": "LEGACY_FAILURE_NOT_CLASSIFIED"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-diagnostics.mjs",
+          "contains": "modelInferenceExecuted: \"unknown\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+          "contains": "historical generic failure as UNKNOWN"
+        }
+      ]
+    },
+    {
+      "id": "UNCERTAIN-REPLAY-BLOCK",
+      "criterion": "Saved/started role marker counts never infer successful provider I/O or authorize retry. Exact committed work is unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-diagnostics.mjs",
+          "contains": "uncertainCount"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+          "contains": "uncommitted role marker is uncertain"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-AGENT-OWNER",
+      "criterion": "Read-only operator diagnostic CLI is an explicitly owned agent-runtime production file, not unmapped new architecture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "scripts/engineering-diagnostics.mjs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No automated inference or paid/provider request during diagnostic read.",
+    "Original failed reserved attempt and Pi Durable JSONL remain untouched.",
+    "Windows live role execution and root cause of old generic stderr remain unproven.",
+    "Only a future explicitly admitted run can generate stage-enriched failure telemetry."
+  ]
+}

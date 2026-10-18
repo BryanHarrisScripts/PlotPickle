@@ -26,6 +26,39 @@ const ROLES = new Set(["scout", "tester", "challenger"]);
 const keys = new Set(["--head", "--base", "--task", "--mode", "--roles", "--attempt", "--challenger"]);
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
+
+const SAFE_FAILURE_STAGES = new Set([
+  "adapter-selection", "native-runtime-open", "native-task-admit",
+  "native-task-resume", "native-task-wait", "native-receipt-check",
+  "role-started", "role-dispatch", "role-saved", "local-buzz",
+]);
+const SAFE_ROLES = new Set(["scout", "tester", "challenger"]);
+
+export function classifyEngineeringFailure(error, phase = "unknown") {
+  // Do not persist arbitrary exception text: subprocess stderr can contain
+  // API keys, model prompts, private source or account-specific paths.
+  const message = String(error?.message || "");
+  let code = "EXECUTION_FAILED_UNKNOWN";
+  if (/Pi Durable .*unavailable|managed Pi Durable .*not installed|not-installed/.test(message)) code = "PI_DURABLE_UNAVAILABLE";
+  else if (/required read-only role adapter is unavailable/.test(message)) code = "REVIEW_ADAPTER_UNAVAILABLE";
+  else if (/Cline managed CLI version|reviewed pin/.test(message)) code = "CLINE_VERSION_MISMATCH";
+  else if (/Cline did not complete a usable/.test(message)) code = "CLINE_RESULT_UNAVAILABLE";
+  else if (/Cline found no bounded ordinary source/.test(message)) code = "CLINE_NO_REVIEWABLE_SOURCE";
+  else if (/checkpoint failed integrity|scope\/route validation|scope changed|stale/.test(message)) code = "CHECKPOINT_OR_SCOPE_INVALID";
+  else if (error?.code === "EEXIST") code = "UNCERTAIN_STEP_REPLAY_DENIED";
+  else if (/cancelled|aborted/i.test(message)) code = "CANCELLED";
+  else if (/head changed|head differs/.test(message)) code = "STALE_HEAD";
+  else if (/did not finish with a completed checkpoint/.test(message)) code = "NATIVE_TASK_NOT_COMPLETED";
+  return Object.freeze({
+    code,
+    stage: SAFE_FAILURE_STAGES.has(phase) ? phase : "unknown",
+    reasonClass: "safe-operational-code-only",
+    modelRequestState: "unknown",
+    replayAuthorized: false,
+    mergeEligible: false,
+  });
+}
+
 export function parseEngineeringCommand(args) {
   if (!Array.isArray(args) || !args.includes("--run")) {
     throw new Error("Explicit --run is required; no agent or QA executes from startup or a status probe.");
@@ -171,26 +204,40 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
   });
   let result;
   let localBuzz = null;
+  let phase = "adapter-selection";
+  let currentRole = "";
+  const onStage = (nextPhase, role = "") => {
+    phase = SAFE_FAILURE_STAGES.has(nextPhase) ? nextPhase : "unknown";
+    currentRole = SAFE_ROLES.has(role) ? role : "";
+  };
   try {
     const adapters = await buildAdapters({ campaign, checkout, repoRoot, artifactRoot });
     const execution = {
       getExactHead: options.getExactHead || (async () => (await inspect()).head),
-      adapters, signal: options.signal,
+      adapters, signal: options.signal, onStage,
     };
     result = config.durable
       ? await (options.driveDurable || driveEngineeringDurableCheckpoint)(campaign, { ...execution, runDir })
       : await executeEngineeringTeam(campaign, execution);
     if (config.buzzLocal && result.status === "observed") {
+      onStage("local-buzz");
       localBuzz = await recordEngineeringLocalHandoffs(campaign, result, {
         localRoot: path.join(root, "buzz-local-backbone"),
       });
     }
-  } catch {
-    await writeFile(path.join(runDir, config.resume ? "resume-failure.json" : "failure.json"), JSON.stringify({
-      campaignId: campaign.campaignId, state: "blocked", reason: "execution-or-evidence-failure",
-      sourceMutationAllowed: false, mergeEligible: false,
-    }) + "\n", { flag: "wx", mode: 0o600 });
-    throw new Error("Engineering Team run was blocked; the reserved attempt cannot automatically replay.");
+  } catch (error) {
+    const classified = classifyEngineeringFailure(error, phase);
+    const privateRecord = {
+      schemaVersion: 2, campaignId: campaign.campaignId,
+      exactSha: campaign.exactSha, scopeHash: campaign.scopeHash,
+      state: "blocked", ...classified,
+      role: currentRole || null, sourceMutationAllowed: false,
+    };
+    await writeFile(path.join(runDir, config.resume ? "resume-failure.json" : "failure.json"),
+      JSON.stringify(privateRecord) + "\n", { flag: config.resume ? "w" : "wx", mode: 0o600 });
+    throw new Error("Engineering Team blocked [" + classified.code + "] at "
+      + classified.stage + (currentRole ? " (" + currentRole + ")" : "")
+      + ". Read-only inspect: node scripts/engineering-diagnostics.mjs --latest.");
   }
   const receipt = {
     ...result,

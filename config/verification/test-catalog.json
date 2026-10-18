@@ -3576,12 +3576,8 @@
         "verification-harness"
       ],
       "triggerTokens": [
-        "engineering-team",
-        "autonomous-qa",
         "agent",
-        "review",
-        "buzz",
-        "governance"
+        "security"
       ],
       "runner": {
         "kind": "node-test",

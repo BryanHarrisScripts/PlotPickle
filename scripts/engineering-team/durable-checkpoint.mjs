@@ -40,7 +40,7 @@ async function readStep(file) {
 
 export function createEngineeringCheckpointCallbacks(campaign, options) {
   validateInput(campaign, options);
-  const { runDir, getExactHead, adapters, signal } = options;
+  const { runDir, getExactHead, adapters, signal, onStage } = options;
   const stepFolder = path.join(runDir, "durable-role-artifacts");
   const steps = Object.freeze(campaign.roles.map((role) => Object.freeze({
     id: "engineering-" + role, kind: "review", replayPolicy: "safe",
@@ -125,9 +125,11 @@ export function createEngineeringCheckpointCallbacks(campaign, options) {
       scopeHash: campaign.scopeHash, exactSha: campaign.exactSha,
       role, routeReceipt, state: "started-uncertain-on-crash",
     }) + "\n", { encoding: "utf8", flag: "wx", mode: 0o600 });
+    onStage?.("role-started", role);
     const prior = index > 0 ? await loadObservation(index - 1) : null;
     if (index > 0 && !prior) throw new Error("Engineering Durable predecessor receipt is missing.");
     const handoff = prior ? engineeringHandoff(campaign, prior, role) : null;
+    onStage?.("role-dispatch", role);
     const raw = await adapter.run(Object.freeze({
       role, exactSha: campaign.exactSha,
       taskRef: campaign.taskRef, scopeHash: campaign.scopeHash,
@@ -153,6 +155,7 @@ export function createEngineeringCheckpointCallbacks(campaign, options) {
     await writeFile(path.join(stepFolder, stepName(index)), json, {
       encoding: "utf8", flag: "wx", mode: 0o600,
     });
+    onStage?.("role-saved", role);
     return { artifactRef };
   }
 
@@ -211,15 +214,20 @@ export async function driveEngineeringDurableCheckpoint(campaign, options) {
     const harness = await durable.Harness.open(storage, { models: ai.createModels(), registry }, context);
     return { harness, registration, context };
   });
+  options.onStage?.("native-runtime-open");
   const { harness, registration, context } = await openRuntime(callbacks);
   try {
     await callbacks.checkHead();
+    options.onStage?.("native-task-admit");
     const taskId = await registration.admit(await harness.root(context), callbacks.input, context);
+    options.onStage?.("native-task-resume");
     await harness.resume();
+    options.onStage?.("native-task-wait");
     const result = await harness.waitForTask(taskId, context);
     if (result?.state?.outcome?.status !== "completed") {
       throw new Error("Engineering Durable task did not finish with a completed checkpoint.");
     }
+    options.onStage?.("native-receipt-check");
     const collected = await callbacks.collect();
     if (collected.status !== "observed") {
       throw new Error("Engineering Durable completed checkpoint lacks all admitted role receipts.");

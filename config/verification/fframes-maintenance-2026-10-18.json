@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": 3026,
+  "observedAtUtc": "2026-10-18",
+  "sourceCommit": "c9f95e7524583b1a40ccd1fb2d54775386956d8e",
+  "cargoManifestPath": "tools/fframes-bridge/Cargo.toml",
+  "cargoLockPath": "tools/fframes-bridge/Cargo.lock",
+  "cargoManifestSha256Lf": "e8f61e09196271d7e059980a2692ea9bb729749cad029d2b9137e0b18c47b134",
+  "cargoLockSha256Lf": "a97466741c48d23152ab940fa3a12eb567e363571cc9d7ea63e70a36029d9737",
+  "rootPackage": "plotpickle-fframes-bridge@0.1.0",
+  "packageCount": 281,
+  "stableFframes": "1.2.0",
+  "patchedLru": "0.14.0",
+  "evidenceScope": "Tracked Cargo manifest and lock only. Advisory categorization from dated RustSec; no native Windows install, mitigation, new upstream binary, runtime scan or license clearance.",
+  "notices": [
+    {
+      "id": "RUSTSEC-2020-0077",
+      "name": "memmap",
+      "version": "0.7.0",
+      "alternative": "memmap2",
+      "advisory": "https://rustsec.org/advisories/RUSTSEC-2020-0077.html"
+    },
+    {
+      "id": "RUSTSEC-2024-0436",
+      "name": "paste",
+      "version": "1.0.15",
+      "alternative": "pastey",
+      "advisory": "https://rustsec.org/advisories/RUSTSEC-2024-0436.html"
+    },
+    {
+      "id": "RUSTSEC-2026-0206",
+      "name": "rustybuzz",
+      "version": "0.12.1",
+      "alternative": "harfrust",
+      "advisory": "https://rustsec.org/advisories/RUSTSEC-2026-0206.html"
+    },
+    {
+      "id": "RUSTSEC-2026-0192",
+      "name": "ttf-parser",
+      "version": "0.20.0",
+      "alternative": "skrifa",
+      "advisory": "https://rustsec.org/advisories/RUSTSEC-2026-0192.html"
+    },
+    {
+      "id": "RUSTSEC-2026-0192",
+      "name": "ttf-parser",
+      "version": "0.25.1",
+      "alternative": "skrifa",
+      "advisory": "https://rustsec.org/advisories/RUSTSEC-2026-0192.html"
+    }
+  ]
+}

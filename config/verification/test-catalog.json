@@ -3526,6 +3526,47 @@
         ]
       },
       "notes": "#3023 deterministic tracked npm/Cargo/Python graph coverage,unresolved-license/range disclosure,malformed-source and repository-boundary controls. No live advisory query or installed-runtime proof."
+    },
+    {
+      "id": "verification.fframes-rust-maintenance-3026",
+      "ownerLayer": "verification",
+      "architectureComponents": [
+        "verification"
+      ],
+      "triggerTokens": [
+        "security",
+        "test-harness",
+        "native"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3026-fframes-rust-maintenance.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/verification.json"
+        ]
+      },
+      "notes": "#3026 source-bound FFrames Rust unmaintained-crate graph and local lru patch provenance. Baseline drift fails admission until a reviewed Cargo-generated lock and native proof."
     }
   ],
   "truthGovernance": {
@@ -7582,7 +7623,7 @@
       },
       {
         "target": "tests/issue-1938-verification-core.test.mjs",
-        "targetDigest": "ef74ab074136541cc8aa7cddc7377f1f3490be6700be0d9fa945438985b29dff",
+        "targetDigest": "3209e038b33724e354db51c2ed0864e87de43ee5627b4e9640b620b49f0db9bc",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -7628,6 +7669,46 @@
           {
             "path": "build/timeline-72-frame-clip.mjs",
             "digest": "5d9d8000a968b73cda386587e98b05ce0b1ec11a0bc11b446924bf8605458eb1"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+        "targetDigest": "5caa318cee2941bcda1cc944b12604021692f34ffd8fa062bcefcbea5aa49c65",
+        "catalogueIds": [
+          "verification.fframes-rust-maintenance-3026"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation.",
+        "inputs": [
+          {
+            "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
+            "digest": "e0cd10c07930d5ab2b7b6c9a49cf73afd01f116d63a5f619586e126838d56f4d"
+          },
+          {
+            "path": "config/verification/fframes-maintenance-2026-10-18.json",
+            "digest": "621b2e80a110affb305d7e9d4774386b9dca9391b460af4aba965c73758a3d3e"
+          },
+          {
+            "path": "tools/fframes-bridge/Cargo.toml",
+            "digest": "e8f61e09196271d7e059980a2692ea9bb729749cad029d2b9137e0b18c47b134"
+          },
+          {
+            "path": "tools/fframes-bridge/Cargo.lock",
+            "digest": "a97466741c48d23152ab940fa3a12eb567e363571cc9d7ea63e70a36029d9737"
           }
         ]
       }

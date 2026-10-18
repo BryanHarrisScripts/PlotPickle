@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "issue": 3088,
+  "observedAtUtc": "2026-10-18",
+  "production": "1.2.0",
+  "candidate": "1.2.1-rc.45",
+  "promoted": false,
+  "source": "https://docs.rs/crate/fframes/latest",
+  "alternatives": [
+    {
+      "current": "memmap@0.7.0",
+      "candidate": "memmap2@0.9.11",
+      "owner": "fframes",
+      "status": "UPSTREAM_CHANGE_REQUIRED"
+    },
+    {
+      "current": "paste@1.0.15",
+      "candidate": "pastey@0.2.3",
+      "owner": "image/exr/pulp",
+      "status": "UPSTREAM_CHANGE_REQUIRED"
+    },
+    {
+      "current": "rustybuzz@0.12.1",
+      "candidate": "harfrust@0.14.0",
+      "owner": "usvgr",
+      "status": "UPSTREAM_CHANGE_REQUIRED"
+    },
+    {
+      "current": "ttf-parser@0.20.0",
+      "candidate": "skrifa@0.48.0",
+      "owner": "fontdb",
+      "status": "UPSTREAM_CHANGE_REQUIRED"
+    },
+    {
+      "current": "ttf-parser@0.25.1",
+      "candidate": "skrifa@0.48.0",
+      "owner": "fframes",
+      "status": "UPSTREAM_CHANGE_REQUIRED"
+    },
+    {
+      "current": "lru@0.14.0-patched",
+      "candidate": "lru@0.18.5",
+      "owner": "fframes/usvgr",
+      "status": "LOCAL_REVIEWED_BACKPORT_RETAINED"
+    }
+  ]
+}

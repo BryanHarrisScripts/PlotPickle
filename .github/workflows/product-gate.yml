@@ -388,3 +388,34 @@ jobs:
             .artifacts/2841-capability-settings/*.png
           if-no-files-found: warn
           retention-days: 5
+
+  fframes-candidate-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.media
+    name: FFrames prerelease Cargo graph (nonpromoting)
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+      - name: Admit deterministic verification sources
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
+      - name: Prepare pinned Rust candidate toolchain
+        shell: pwsh
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Resolve candidate with Cargo in throwaway sandbox
+        shell: pwsh
+        run: node scripts/media/fframes-candidate-resolution.mjs
+      - name: Upload nonpromoting candidate graph observation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fframes-candidate-${{ github.run_id }}
+          path: .artifacts/fframes-candidate-3088/resolution.json
+          if-no-files-found: warn
+          retention-days: 7

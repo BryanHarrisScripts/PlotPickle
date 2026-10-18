@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
+import { candidateManifest, analyzeCandidateGraph } from "../scripts/media/fframes-candidate-resolution.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -103,4 +104,40 @@ test("#3026 Rust maintenance evidence selects real FFrames Windows build and cod
   assert.match(media, /cargo \+1\.99\.0 test/u);
   assert.match(media, /node scripts\/fframes-product-proof\.mjs/u);
   assert.match(media, /name: Media \/ FFrames Windows proof/u);
+});
+
+test("#3088 exact prerelease candidate cannot mutate stable FFrames manifest", async () => {
+  const manifest = await read("tools/fframes-bridge/Cargo.toml");
+  const policy = JSON.parse(await read("config/verification/fframes-upgrade-candidates-2026-10-18.json"));
+  assert.equal(policy.promoted, false);
+  assert.equal(policy.alternatives.length, 6);
+  assert.match(candidateManifest(manifest, policy.production, policy.candidate), /fframes = \{ version = "=1\.2\.1-rc\.45"/u);
+  assert.match(manifest, /fframes = \{ version = "=1\.2\.0"/u);
+  assert.throws(() => candidateManifest(manifest, "1.2.0", "*"), /explicit release candidate/u);
+  assert.throws(() => candidateManifest(manifest, "9.0.0", "1.2.1-rc.45"), /pin is absent/u);
+});
+
+test("#3088 resolved candidate graph retains unmaintained nodes and disallows promotion", () => {
+  const graph = { resolve: { root: "root", nodes: [
+    { id: "root", deps: [{ pkg: "ff" }] },
+    { id: "ff", deps: [{ pkg: "mm" }] },
+    { id: "mm", deps: [] }
+  ] }, packages: [
+    { id: "root", name: "plotpickle-fframes-bridge", version: "0.1.0" },
+    { id: "ff", name: "fframes", version: "1.2.1-rc.45" },
+    { id: "mm", name: "memmap", version: "0.7.0" }
+  ] };
+  const withDebt = analyzeCandidateGraph(graph, "1.2.1-rc.45");
+  assert.equal(withDebt.status, "LEGACY_DEPENDENCIES_REMAIN");
+  assert.equal(withDebt.promoted, false);
+  assert.deepEqual(withDebt.findings[0].path, [
+    "plotpickle-fframes-bridge@0.1.0", "fframes@1.2.1-rc.45", "memmap@0.7.0"
+  ]);
+  graph.resolve.nodes[1].deps = [];
+  const withoutDebt = analyzeCandidateGraph(graph, "1.2.1-rc.45");
+  assert.equal(withoutDebt.status, "GRAPH_ONLY_NATIVE_PROOF_REQUIRED");
+  assert.equal(withoutDebt.promoted, false);
+  assert.throws(() => analyzeCandidateGraph(graph, "1.2.0"), /exact requested/u);
+  graph.resolve.nodes[1].deps = [{ pkg: "absent" }];
+  assert.throws(() => analyzeCandidateGraph(graph, "1.2.1-rc.45"), /Unresolved Cargo/u);
 });

@@ -5766,7 +5766,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
+            "digest": "8e8e283791d8f1abaad2295dab2e1efaa879baad0c1d3296c242dc58d961fbd9"
           }
         ]
       },
@@ -6576,7 +6576,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
+            "digest": "c8c2cff0e39eb6aca615b61b14f94230f406b27eee28a388da0a16fa89d83abb"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6600,7 +6600,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
+            "digest": "8e8e283791d8f1abaad2295dab2e1efaa879baad0c1d3296c242dc58d961fbd9"
           }
         ]
       },
@@ -6684,7 +6684,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
+            "digest": "c8c2cff0e39eb6aca615b61b14f94230f406b27eee28a388da0a16fa89d83abb"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7545,7 +7545,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
+            "digest": "c8c2cff0e39eb6aca615b61b14f94230f406b27eee28a388da0a16fa89d83abb"
           },
           {
             "path": "config/third-party-oss.json",
@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "035fa9b7eec40a2c724cba41af12fc41b2f94cf95fff50320d9b546205e3746b",
+        "targetDigest": "662781c88a38427833d6bc1a1245ac8eaa9e006967707fa67bc3b2f4d3d2ae33",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],
@@ -7692,7 +7692,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation.",
+        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration.",
         "inputs": [
           {
             "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
@@ -7709,6 +7709,14 @@
           {
             "path": "tools/fframes-bridge/Cargo.lock",
             "digest": "a97466741c48d23152ab940fa3a12eb567e363571cc9d7ea63e70a36029d9737"
+          },
+          {
+            "path": "scripts/media/fframes-candidate-resolution.mjs",
+            "digest": "6d609ff7f06e50f225805a9105616fae27efb10b67912b4bdc17ce3ae3efe912"
+          },
+          {
+            "path": "config/verification/fframes-upgrade-candidates-2026-10-18.json",
+            "digest": "935c82e234ae30daf5e104bf8878ef9feefa3891f70750749488aa900b479e96"
           }
         ]
       }

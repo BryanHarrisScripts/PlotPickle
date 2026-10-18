@@ -14,7 +14,10 @@
     "config/verification/ownership-map.json",
     "tests/issue-1938-verification-core.test.mjs",
     ".github/workflows/architecture-shadow.yml",
-    ".github/workflows/product-gate.yml"
+    ".github/workflows/product-gate.yml",
+    "scripts/media/fframes-candidate-resolution.mjs",
+    "config/verification/fframes-upgrade-candidates-2026-10-18.json",
+    "docs/research/3026-fframes-upgrade-queue-2026-10-18.md"
   ],
   "acceptance": [
     {
@@ -78,6 +81,27 @@
           "type": "file-contains",
           "path": ".github/workflows/product-gate.yml",
           "contains": "00ab3bc8fe02554bd0fffac9968bba498d1ab7e899a4871b85fbba828a50bfcc"
+        }
+      ]
+    },
+    {
+      "id": "3088-ISOLATED-RELEASE-CANDIDATE",
+      "criterion": "Resolve explicit FFrames prerelease only in a throwaway Cargo workspace while preserving the authoritative 1.2.0 lock and a nonpromotion outcome.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/media/fframes-candidate-resolution.mjs",
+          "contains": "TEMPORARY_CARGO_METADATA_ONLY"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "resolved candidate graph retains unmaintained nodes"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "fframes-candidate-windows:"
         }
       ]
     }

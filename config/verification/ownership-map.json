@@ -1881,7 +1881,9 @@
         "tests/issue-3023-oss-dependency-inventory.test.mjs",
         "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
         "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "config/verification/fframes-maintenance-2026-10-18.json"
+        "config/verification/fframes-maintenance-2026-10-18.json",
+        "scripts/media/fframes-candidate-resolution.mjs",
+        "config/verification/fframes-upgrade-candidates-2026-10-18.json"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

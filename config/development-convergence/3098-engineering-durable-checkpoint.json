@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 3098,
+  "phase": "engineering-team-durable-checkpoint",
+  "brief": "docs/developer-briefs/3098-engineering-durable-checkpoint.md",
+  "allowedChanges": [
+    "scripts/engineering-team/durable-checkpoint.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "scripts/pi/durable/engineering-team-proof.mjs",
+    "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3098-engineering-durable-checkpoint.json",
+    "docs/developer-briefs/3098-engineering-durable-checkpoint.md"
+  ],
+  "acceptance": [
+    {
+      "id": "NATIVE-CHECKPOINT-BRIDGE",
+      "criterion": "Explicit --durable routes actual read-only engineering roles through the registered Pi Durable checkpoint and existing managed JSONL runtime, no automatic install.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/durable-checkpoint.mjs",
+          "contains": "registerAgentCheckpointTasks"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/durable-checkpoint.mjs",
+          "contains": "jsonl.openNodeJsonlStorage"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "driveEngineeringDurableCheckpoint"
+        }
+      ]
+    },
+    {
+      "id": "SAFE-REOPEN",
+      "criterion": "Completed step evidence skips repeated AI calls, ambiguous started step refuses replay, stale scope or route blocks.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/durable-checkpoint.mjs",
+          "contains": "flag: \"wx\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
+          "contains": "unknown first provider outcome cannot silently replay"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-PROOF-SEPARATED",
+      "criterion": "Opt-in native JSONL proof reports controlled close/reopen separately from real Windows provider and process-kill proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/pi/durable/engineering-team-proof.mjs",
+          "contains": "killedProcessRestartProven: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/pi/durable/engineering-team-proof.mjs",
+          "contains": "importPiDurableModule"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Synthetic CI tests do not prove managed Pi Durable installed or a real Windows-provider run.",
+    "No provider auto-install, no automatic interrupted replay, no public BUZZ messages, no GitHub mutation or agent merge/approval authority.",
+    "Real process death/restart, profile-bound permission receipts, and Pi/Cline independence remain unverified."
+  ]
+}

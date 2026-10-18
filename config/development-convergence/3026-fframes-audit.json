@@ -11,7 +11,8 @@
     "docs/developer-briefs/3026-fframes-rust-audit.md",
     "config/development-convergence/3026-fframes-audit.json",
     "config/verification/test-catalog.json",
-    "config/verification/ownership-map.json"
+    "config/verification/ownership-map.json",
+    "tests/issue-1938-verification-core.test.mjs"
   ],
   "acceptance": [
     {

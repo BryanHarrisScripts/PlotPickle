@@ -7623,7 +7623,7 @@
       },
       {
         "target": "tests/issue-1938-verification-core.test.mjs",
-        "targetDigest": "ef74ab074136541cc8aa7cddc7377f1f3490be6700be0d9fa945438985b29dff",
+        "targetDigest": "3209e038b33724e354db51c2ed0864e87de43ee5627b4e9640b620b49f0db9bc",
         "catalogueIds": [
           "verification.phase2-core"
         ],

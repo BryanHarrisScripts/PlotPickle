@@ -3609,6 +3609,49 @@
         ]
       },
       "notes": "#3096 deterministic admission, lossy handoff, exact-head runner and independent adjudication fixture. No real Pi/Cline, BUZZ signer, scheduler, GitHub publication or Windows E2E proof."
+    },
+    {
+      "id": "agent.experimental-engineering-team-local-3098",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3098-engineering-team-live-adapters.test.mjs",
+          "tests/issue-3098-engineering-team-command.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3098 explicit local frozen-head adapter/command negative tests; mocked process and provider responses only. No proven Windows managed Pi or provider I/O, Pi Durable recovery, BUZZ external signature or automatic campaign."
     }
   ],
   "truthGovernance": {
@@ -7823,6 +7866,66 @@
           {
             "path": "scripts/engineering-team/execution.mjs",
             "digest": "cbfc41bd8733bb6095331d4f033a925899e44b7856b42dfef7f672b7840d5f40"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3098-engineering-team-live-adapters.test.mjs",
+        "targetDigest": "b8229f2b11324a6bc4b6234589da867f577da249c67385aa088f0b5ac6bea62d",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-local-3098"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic callbacks and temporary local files demonstrate fail-closed admission, bounded routing and receipts only. Does not prove local Windows Pi inference, external signed BUZZ, GitHub publication or Pi Durable recovery.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/local-adapters.mjs",
+            "digest": "a2b6865d9ca428740534576349fd1dcb0f16fa7cced0b133c17f52a841123272"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3098-engineering-team-command.test.mjs",
+        "targetDigest": "528f79d52d9a9aa3b05f5f4fff1cfbe5e97f4ca1ef77cd07f482908583a9a691",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-local-3098"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic callbacks and temporary local files demonstrate fail-closed admission, bounded routing and receipts only. Does not prove local Windows Pi inference, external signed BUZZ, GitHub publication or Pi Durable recovery.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/local-adapters.mjs",
+            "digest": "a2b6865d9ca428740534576349fd1dcb0f16fa7cced0b133c17f52a841123272"
+          },
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "f26a2fbc8870a80b5ca5301e77edf540e8036ea6d9268c0fbe6b2be2b8583465"
           }
         ]
       }

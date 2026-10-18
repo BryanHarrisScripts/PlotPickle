@@ -7464,7 +7464,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
+            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
           },
           {
             "path": "config/third-party-oss.json",

@@ -3946,6 +3946,90 @@
         ]
       },
       "notes": "#3112 synthetic TypeScript dev-toolchain preflight and no-duplicate attempt guard; user Windows package readiness and actual contracts-only PASS remain unproven."
+    },
+    {
+      "id": "agent.windows-stop-owned-process-tree-3115",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3115-windows-process-stop-proof.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3115 synthetic no-PID-native-STOP proof test; native Windows taskkill /T, descendant exit, independent sentinel are UNPROVEN until owner Windows acceptance after merge."
+    },
+    {
+      "id": "agent.windows-owned-tree-stop-proof-3115",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3115-windows-owned-tree-stop.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3115 fixture-only PID ownership and cancellation evidence; native Windows process tree and sentinel actual stop NOT proven by synthetic CI; no production UAT stop/remote Chat bridge."
     }
   ],
   "truthGovernance": {
@@ -8452,6 +8536,62 @@
           {
             "path": "package-lock.json",
             "digest": "c88d0101fdfd158d29c1e6bf384465114965a26207caa6dd66d79e2e901ffc1e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3115-windows-process-stop-proof.test.mjs",
+        "targetDigest": "ec86dd6899f079d0a414b4bd6e15cb40b61bf8e4202eb4c76b18418a5b473f4b",
+        "catalogueIds": [
+          "agent.windows-stop-owned-process-tree-3115"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Contract-level status and CLI restrictions only. Cannot be used as a native Windows process-tree termination or production UAT receipt.",
+        "inputs": [
+          {
+            "path": "scripts/windows-stop-proof.mjs",
+            "digest": "386af9569aadf43b62a492e99d21c603d2dd7a6c538971f5ef63ecb77cd7277e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3115-windows-owned-tree-stop.test.mjs",
+        "targetDigest": "5f241f7cdd6b5e2365f2b9e9ffbee346e202be6ef50c83813774822a1680fd6c",
+        "catalogueIds": [
+          "agent.windows-owned-tree-stop-proof-3115"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic parser, ownership and result evaluator checks only; actual Windows native process-tree stop must be user-observed and never inferred from CI.",
+        "inputs": [
+          {
+            "path": "scripts/windows-stop-proof.mjs",
+            "digest": "386af9569aadf43b62a492e99d21c603d2dd7a6c538971f5ef63ecb77cd7277e"
           }
         ]
       }

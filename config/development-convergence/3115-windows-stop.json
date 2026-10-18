@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 3115,
+  "phase": "local-owned-windows-process-tree-stop-fixture",
+  "brief": "docs/developer-briefs/3115-windows-owned-tree-stop.md",
+  "allowedChanges": [
+    "scripts/windows-stop-proof.mjs",
+    "tests/issue-3115-windows-owned-tree-stop.test.mjs",
+    "docs/developer-briefs/3115-windows-owned-tree-stop.md",
+    "config/development-convergence/3115-windows-stop.json",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "tests/issue-3115-windows-process-stop-proof.test.mjs",
+    "docs/developer-briefs/3115-windows-stop-owned-fixture.md",
+    "config/development-convergence/3115-windows-stop-owned-fixture.json"
+  ],
+  "acceptance": [
+    {
+      "id": "OWNED-PARENT-TREE-ONLY",
+      "criterion": "Only a fixture started and held in live memory can be passed to Windows taskkill /T; no public --pid and no process-name match.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "spawnedHandles.has(handle)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3115-windows-owned-tree-stop.test.mjs",
+          "contains": "external PID/name/kill/remote commands rejected"
+        }
+      ]
+    },
+    {
+      "id": "REAL-PARENT-DESCENDANT-SENTINEL",
+      "criterion": "The fixture records live parent/descendant/sentinel before stop, only verifies success after parent exit and descendant absence while unrelated sentinel stays live.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "descendantGoneAfterStop"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3115-windows-owned-tree-stop.test.mjs",
+          "contains": "sentinel survival"
+        }
+      ]
+    },
+    {
+      "id": "FIXTURE-IS-NOT-PRODUCTION-UAT",
+      "criterion": "A positive fixture receipt never reports production UAT PID safety, browser UAT, independent verification or merge eligibility.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "productionUatTreeTerminationProven: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3115-windows-owned-tree-stop.md",
+          "contains": "cannot certify descendant closure"
+        }
+      ]
+    },
+    {
+      "id": "OWNER-WINDOWS-ACCEPTANCE-REQUIRED",
+      "criterion": "Synthetic CI can be green, but Windows native start-stop tree proof must be executed by the owner on actual Windows before this Issue's operational acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3115-windows-owned-tree-stop.md",
+          "contains": "actual owner Windows STOP evidence"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No production changes to scripts/windows-uat-control.mjs; keep native stop as isolated proof fixture only.",
+    "Never target an external PID, unmatched stale PID, Windows service, or arbitrary process.",
+    "No user credentials, auth sessions, model dispatch, browser UAT or project assets are accessed.",
+    "Initial observed-fail, observed-pass and started-uncertain original private scopes remain preserved.",
+    "Linux CI green alone cannot claim Windows process-tree STOP proven; independently run once on the operator's Windows machine."
+  ]
+}

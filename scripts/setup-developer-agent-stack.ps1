@@ -69,7 +69,7 @@ if (-not $VerifyOnly) {
   # is delivered through platform optional dependencies, and PlotPickle verifies
   # the installed command immediately below, so do not execute unreviewed global
   # lifecycle scripts merely to silence that warning.
-  & npm install -g cline --ignore-scripts
+  & npm install -g cline@3.0.73 --ignore-scripts
   if ($LASTEXITCODE -ne 0) { throw "Cline installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing Pi coding agent"
@@ -100,7 +100,14 @@ if (-not $managed.ready -or -not $piCommand) { throw "Managed Pi CLI is unavaila
 if (-not $cline) { throw "Cline CLI is not available on PATH." }
 
 $piVersion = (& $piCommand --version 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) { throw "Pi version verification failed with exit code $LASTEXITCODE." }
 $clineVersion = (& cline version 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) { throw "Cline version verification failed with exit code $LASTEXITCODE." }
+$stack = Get-Content (Join-Path $RepoRoot "config/developer-agent-stack.json") -Raw | ConvertFrom-Json
+$reviewedClineVersion = ($stack.requiredAgents | Where-Object { $_.id -eq "cline" }).reviewedVersion
+if (-not $reviewedClineVersion -or $clineVersion -ne $reviewedClineVersion) {
+  throw "Cline version mismatch: expected reviewed $reviewedClineVersion; found $clineVersion. Rerun setup without -VerifyOnly."
+}
 Write-Host "Pi ................................ $piVersion"
 Write-Host "Cline ............................. $clineVersion"
 

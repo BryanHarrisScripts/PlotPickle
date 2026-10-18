@@ -46,6 +46,9 @@ test("the canonical developer stack contains only Pi and Cline as required codin
   assert.equal(stack.platform, "windows-native");
   assert.equal(stack.sharedRules, "AGENTS.md");
   assert.deepEqual(stack.requiredAgents.map((agent) => agent.id), ["pi", "cline"]);
+  const cline = stack.requiredAgents.find((agent) => agent.id === "cline");
+  assert.equal(cline.reviewedVersion, "3.0.73");
+  assert.equal(cline.installCommand, "npm install -g cline@3.0.73 --ignore-scripts");
   assert.deepEqual(stack.excludedRequiredTools, ["OpenHands", "Herdr"]);
   assert.deepEqual(stack.piPackages, PINNED_PI_PACKAGES);
   assert.equal(stack.mcp.sharedConfig, ".mcp.json");
@@ -174,7 +177,9 @@ test("plotpickle_hooks returns only the safe deterministic harness projection", 
 test("the Windows setup installs only the two chosen agents and the pinned Pi packages", async () => {
   const setup = await read("scripts/setup-developer-agent-stack.ps1");
 
-  assert.match(setup, /npm install -g cline/);
+  assert.match(setup, /npm install -g cline@3\.0\.73 --ignore-scripts/);
+  assert.match(setup, /Cline version verification failed/);
+  assert.match(setup, /\$clineVersion -ne \$reviewedClineVersion/);
   assert.match(setup, /node scripts\/ensure-pi-cli\.mjs/);
   assert.match(setup, /\$piCommand install \$package -l/);
   for (const packageName of PINNED_PI_PACKAGES) assert.match(setup, new RegExp(packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -184,6 +189,34 @@ test("the Windows setup installs only the two chosen agents and the pinned Pi pa
   assert.match(setup, /if \(-not \$VerifyOnly\)/);
   assert.match(setup, /developer-agent-mcp\.mjs --self-test/);
   assert.doesNotMatch(setup, /(?:npm|pip|winget|choco).*install.*(?:openhands|herdr)/i);
+});
+
+test("Windows Cline verification accepts only the reviewed executable version", { skip: process.platform !== "win32" }, async () => {
+  const setup = await read("scripts/setup-developer-agent-stack.ps1");
+  const start = setup.indexOf("$clineVersion =");
+  const end = setup.indexOf('Write-Host "Pi ', start);
+  assert.ok(start >= 0 && end > start);
+  const verification = setup.slice(start, end);
+  for (const scenario of [
+    { version: "3.0.73", code: 0, success: true },
+    { version: "3.0.55", code: 0, message: "Cline version mismatch" },
+    { version: "3.0.73", code: 1, message: "Cline version verification failed" },
+  ]) {
+    const script = [
+      '$ErrorActionPreference = "Stop"',
+      "$RepoRoot = (Get-Location).Path",
+      `function cline { $global:LASTEXITCODE = ${scenario.code}; '${scenario.version}' }`,
+      verification,
+    ].join("\n");
+    const result = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
+      cwd: new URL("..", import.meta.url), encoding: "utf8", timeout: 30_000, windowsHide: true,
+    });
+    if (scenario.success) assert.equal(result.status, 0, result.stderr || result.stdout);
+    else {
+      assert.notEqual(result.status, 0);
+      assert.ok(result.stderr.includes(scenario.message), result.stderr);
+    }
+  }
 });
 
 test("Agent Bench compares Pi and Cline on frozen PlotPickle repairs in isolated worktrees", async () => {

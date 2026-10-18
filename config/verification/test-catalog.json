@@ -3374,7 +3374,8 @@
         "targets": [
           "tests/issue-1185-pi-managed-install.test.mjs",
           "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
-          "tests/issue-641-developer-agent-stack.test.mjs"
+          "tests/issue-641-developer-agent-stack.test.mjs",
+          "tests/issue-667-669-agent-output-quality.test.mjs"
         ]
       },
       "cost": "fast",
@@ -6295,7 +6296,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6387,7 +6388,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6464,7 +6465,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6572,7 +6573,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6664,7 +6665,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6692,7 +6693,7 @@
           },
           {
             "path": "scripts/setup-developer-agent-stack.ps1",
-            "digest": "db25fd13a6767882a7f5065e0945e55b866c90edd53296dbcbd7c81ec025fdc1"
+            "digest": "7865d20e87ac35f0b125dcaf14c52b4a8899b532173c0eb94950601f9f97cd50"
           },
           {
             "path": "config/pi-099-compatibility.json",
@@ -6760,7 +6761,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6778,7 +6779,7 @@
       },
       {
         "target": "tests/issue-641-developer-agent-stack.test.mjs",
-        "targetDigest": "9f90a17afd830c4d55b4e789740c44d3db058d7a3a142cce816df86c958ff23c",
+        "targetDigest": "322512166dc21a78b5baa7990ef4bfe58d8c08677309cacbdb8042c2b5f24a4b",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -6796,7 +6797,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. Cline 3.0.73 exact setup pin and failed/mismatched version rejection are static contracts only; Windows CLI smoke is separate. Extracted Windows PowerShell verification covers successful current version, stale version and failed executable probe using a stub command; does not claim a complete developer-stack install.",
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
@@ -6828,7 +6829,7 @@
           },
           {
             "path": "config/developer-agent-stack.json",
-            "digest": "efafaaf351d82bb926a608c4f71dceac0f6c038956638ff421f7284802e4df85"
+            "digest": "32bdcbcb678160bc3569662f2de885ef73f0e55399dca706372b66447decbee5"
           },
           {
             "path": "config/pi-130-compatibility.json",
@@ -6860,7 +6861,7 @@
           },
           {
             "path": "scripts/setup-developer-agent-stack.ps1",
-            "digest": "db25fd13a6767882a7f5065e0945e55b866c90edd53296dbcbd7c81ec025fdc1"
+            "digest": "7865d20e87ac35f0b125dcaf14c52b4a8899b532173c0eb94950601f9f97cd50"
           },
           {
             "path": "config/agent-bench/tasks.json",
@@ -7363,6 +7364,33 @@
           {
             "path": "scripts/ensure-openpencil-mcp.ps1",
             "digest": "c5779874e64004dda553a30ec8a85e8fc0fffb786951e1272215bca73da7b67f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-667-669-agent-output-quality.test.mjs",
+        "targetDigest": "995dad20ac2dd8cd4e202fb1aba8f9535a5c1bddb395edde85560c1273a884a5",
+        "catalogueIds": [
+          "agent.managed-pi-install-3067"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Existing agent-output safety assertions retained; Cline install expectation now requires reviewed 3.0.73 and preserves lifecycle-script suppression. Source contracts only, no real provider or complete installation proof.",
+        "inputs": [
+          {
+            "path": "scripts/setup-developer-agent-stack.ps1",
+            "digest": "7865d20e87ac35f0b125dcaf14c52b4a8899b532173c0eb94950601f9f97cd50"
           }
         ]
       }

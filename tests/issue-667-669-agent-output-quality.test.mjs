@@ -62,7 +62,7 @@ test("#669 Wyrmwood evaluator rejects weak text and falls back to a readable det
 
 test("#648 Windows Cline install skips unreviewed global lifecycle scripts and still verifies the CLI", async () => {
   const setup = await read("scripts/setup-developer-agent-stack.ps1");
-  assert.match(setup, /npm install -g cline --ignore-scripts/);
+  assert.match(setup, /npm install -g cline@3\.0\.73 --ignore-scripts/);
   assert.match(setup, /cline version/);
   assert.match(setup, /approve-scripts cannot manage global installs/);
   assert.doesNotMatch(setup, /dangerously-allow-all-scripts/);

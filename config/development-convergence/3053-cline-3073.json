@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "issue": 3053,
+  "phase": "cline-cli-3073",
+  "brief": "docs/developer-briefs/3053-cline-3073.md",
+  "allowedChanges": [
+    "config/developer-agent-stack.json",
+    "scripts/setup-developer-agent-stack.ps1",
+    "tests/issue-641-developer-agent-stack.test.mjs",
+    "tests/issue-667-669-agent-output-quality.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/architecture/developer-agent-stack.md",
+    "docs/developer-briefs/3053-cline-3073.md",
+    "config/development-convergence/3053-cline-3073.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXACT-SETUP-PIN",
+      "criterion": "Existing developer setup installs the reviewed CLI with lifecycle scripts disabled.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/setup-developer-agent-stack.ps1", "contains": "npm install -g cline@3.0.73 --ignore-scripts" },
+        { "type": "file-contains", "path": "config/developer-agent-stack.json", "contains": "\"reviewedVersion\": \"3.0.73\"" }
+      ]
+    },
+    {
+      "id": "FAIL-CLOSED-VERSION",
+      "criterion": "Actual setup version verification covers current, stale and failed executable output.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-641-developer-agent-stack.test.mjs", "contains": "Windows Cline verification accepts only the reviewed executable version" },
+        { "type": "file-contains", "path": "scripts/setup-developer-agent-stack.ps1", "contains": "Cline version verification failed" }
+      ]
+    }
+  ],
+  "constraints": [
+    "No inference, credential access, product startup dependency or session mutation.",
+    "Static convergence does not certify installed CLI, full setup, tests or exact-head CI."
+  ]
+}

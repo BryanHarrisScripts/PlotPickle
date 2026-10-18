@@ -21,7 +21,8 @@
       "id": "cline",
       "label": "Cline",
       "role": "primary-or-reviewer",
-      "installCommand": "npm install -g cline",
+      "installCommand": "npm install -g cline@3.0.73 --ignore-scripts",
+      "reviewedVersion": "3.0.73",
       "projectSettings": ".cline"
     }
   ],

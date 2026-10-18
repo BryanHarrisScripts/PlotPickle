@@ -205,12 +205,12 @@ async function prove(head) {
       await poll(() => sentinel.state.exited, EXIT_TIMEOUT_MS);
     }
   }
+  // An exact-head switch during the running test invalidates this proof.
+  facts.sourceHeadMatched = facts.sourceHeadMatched && (await currentHead()).toLowerCase() === head;
   const result = assessWindowsStopFixture(facts);
-  const evidence = {
-    ...result, head, proofId: id, evidenceSha256: digest({
-      head, id, facts: result.checks, completedAt: Date.now(), reservedAt,
-    }), createdAt: reservedAt, completedAt: Date.now(),
-  };
+  const completedAt = Date.now();
+  const core = { ...result, head, proofId: id, createdAt: reservedAt, completedAt };
+  const evidence = { ...core, evidenceSha256: digest(core) };
   // Omit token, PIDs, paths and process command lines from output or report.
   await writeFile(path.join(folder, "result.json"), JSON.stringify(evidence, null, 2)+"\n",
     { flag: "wx", mode: 0o600 });

@@ -118,11 +118,12 @@ export async function runLruTransitionProbe({ projectRoot = root, execute = spaw
             baseline.productionLockDigest !== lockHash || baseline.promoted !== false) {
           throw Error("Upstream lru comparison baseline identity mismatch.");
         }
-        result.baselineComparison = compareLruNativeProof(baseline.candidateRenderProof, result.nativeProof);
+        const comparison = compareLruNativeProof(baseline.candidateRenderProof, result.nativeProof);
         const artifactRoot = path.join(projectRoot, ".artifacts/fframes-candidate-3088");
         await mkdir(artifactRoot, { recursive: true });
         await cp(path.join(scratch, "synthetic-proof/render.mp4"), path.join(artifactRoot, "upstream-lru-render.mp4"));
         await cp(path.join(scratch, "Cargo.lock"), path.join(artifactRoot, "upstream-lru-Cargo.lock"));
+        result.baselineComparison = comparison;
       }
     }
   } catch (error) {
@@ -143,7 +144,8 @@ export async function runLruTransitionProbe({ projectRoot = root, execute = spaw
     production: policy.production, productionLockSha256Lf: lockHash,
     upstreamSourceReference: "dmtrKovalenko/fframes main fframes/Cargo.toml at 03df1209227bc13cbc733ab567362142d5a43163",
     nativeCandidateWithUpstreamLru: "NOT_PROVEN",
-    ...(result.baselineComparison?.status === "PASS" ? { nativeCandidateWithUpstreamLru: "PASS_SYNTHETIC_36_FRAMES" } : {}),
+    ...(result.status === "UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF" &&
+      result.baselineComparison?.status === "PASS" ? { nativeCandidateWithUpstreamLru: "PASS_SYNTHETIC_36_FRAMES" } : {}),
     distributionRights: "NOT_PROVEN", productionPromoted: false };
   const out = path.join(projectRoot, ".artifacts", "fframes-candidate-3088", "lru-transition.json");
   await mkdir(path.dirname(out), { recursive: true });

@@ -177,7 +177,7 @@
         {
           "type": "file-contains",
           "path": "scripts/media/fframes-lru-transition-probe.mjs",
-          "contains": "compareLruNativeProof(baseline.candidateRenderProof, result.nativeProof)"
+          "contains": "result.baselineComparison = comparison"
         },
         {
           "type": "file-contains",

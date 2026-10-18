@@ -12,7 +12,8 @@
     "config/development-convergence/3026-fframes-audit.json",
     "config/verification/test-catalog.json",
     "config/verification/ownership-map.json",
-    "tests/issue-1938-verification-core.test.mjs"
+    "tests/issue-1938-verification-core.test.mjs",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {
@@ -44,6 +45,22 @@
           "type": "file-contains",
           "path": "tools/fframes-bridge/Cargo.toml",
           "contains": "fframes = { version = \"=1.2.0\""
+        }
+      ]
+    },
+    {
+      "id": "FFRAMES-NATIVE-PROOF-ROUTING",
+      "criterion": "Changes to reviewed FFrames graph and native media proof are routed to exact-head Windows Rust compilation and physical frame proof; unrelated verification changes do not run the native lane.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "config/verification/fframes-maintenance-"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "Rust maintenance evidence selects real FFrames Windows build"
         }
       ]
     }

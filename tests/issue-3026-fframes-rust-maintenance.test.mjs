@@ -70,3 +70,37 @@ test("#3026 FFrames runtime stays stable and retained lru backport remains separ
   assert.match(bridge, /preferred_encoder: Some\("mpeg4"\)/u);
   assert.match(bridge, /const FPS: usize = 24/u);
 });
+
+test("#3026 Rust maintenance evidence selects real FFrames Windows build and codec proof", async () => {
+  const workflow = await read(".github/workflows/architecture-shadow.yml");
+  const productGate = await read(".github/workflows/product-gate.yml");
+  const scope = workflow.slice(workflow.indexOf("  windows-product-scope:"), workflow.indexOf("  windows-product-proof:"));
+  const row = scope.split("\n").find((line) => line.includes("then media=true; fi"));
+  assert.ok(row, "media must have an impact-based scope selector");
+  const match = /grep -Eq '([^']+)'/u.exec(row);
+  assert.ok(match, "media selection must use the explicit existing grep pattern");
+  const pattern = new RegExp(match[1], "u");
+  for (const selected of [
+    "tools/fframes-bridge/Cargo.toml",
+    "tools/fframes-bridge/Cargo.lock",
+    "tools/fframes-bridge/vendor/lru-0.14.0-patched/src/lib.rs",
+    "core/media/fframes-local-media-engine.ts",
+    "scripts/fframes-product-proof.mjs",
+    "config/verification/fframes-maintenance-2026-10-18.json",
+    "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
+    "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+  ]) {
+    assert.ok(pattern.test(selected), selected + " must require the native media lane");
+  }
+  for (const unrelated of [
+    "docs/developer-briefs/3026-fframes-rust-audit.md",
+    "tests/issue-2733-ci-windows-lanes.test.mjs",
+    "lib/verification/oss-radar/github-summary.mjs",
+    "app/skin-v1-definition.css",
+  ]) assert.equal(pattern.test(unrelated), false, unrelated + " must not trigger costly native media");
+  const media = productGate.slice(productGate.indexOf("  media-windows:"), productGate.indexOf("  local-voice-windows:"));
+  assert.match(media, /cargo \+1\.99\.0 build --release --locked/u);
+  assert.match(media, /cargo \+1\.99\.0 test/u);
+  assert.match(media, /node scripts\/fframes-product-proof\.mjs/u);
+  assert.match(media, /name: Media \/ FFrames Windows proof/u);
+});

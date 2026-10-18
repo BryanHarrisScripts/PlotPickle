@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "5caa318cee2941bcda1cc944b12604021692f34ffd8fa062bcefcbea5aa49c65",
+        "targetDigest": "035fa9b7eec40a2c724cba41af12fc41b2f94cf95fff50320d9b546205e3746b",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],

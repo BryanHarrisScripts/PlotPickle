@@ -200,3 +200,19 @@ test("no reviewable source remains BLOCKED before any local model inference", as
     assert.equal(calls, 0);
   });
 });
+
+test("deleted files remain truthful omissions instead of suppressing valid source review", async () => {
+  await withFixture(async ({ repoRoot, privateRoot }) => {
+    const adapter = makeAdapter({
+      repoRoot, privateRoot,
+      changedPaths: ["scripts/deleted.mjs", "scripts/source.mjs"],
+      invoke: async (_command, args) => args[0] === "version" ? { stdout: "Cline 3.0.73" }
+        : args.includes("auth") ? { stdout: "configured" } : { stdout: fakeResult },
+    });
+    const result = await adapter.run(request());
+    const manifest = JSON.parse(await readFile(path.join(privateRoot, "source-bundle", "manifest.json"), "utf8"));
+    assert.equal(manifest.selectedCount, 1);
+    assert.deepEqual(manifest.omitted, [{ path: "scripts/deleted.mjs", reason: "absent-at-head" }]);
+    assert.match(result.summary, /reviewed 1\/2 bounded changed files/);
+  });
+});

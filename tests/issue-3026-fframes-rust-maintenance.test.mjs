@@ -151,7 +151,7 @@ test("#3089 prerelease native compilation remains distinct from actual codec and
   assert.equal(classifyCandidateCompilation({ error: new Error("FFmpeg bindgen unavailable") }).status, "BLOCKED");
   const source = await read("scripts/media/fframes-candidate-resolution.mjs");
   assert.match(source, /"build", "--release", "--locked"/u);
-  assert.match(source, /candidateNativeEncode: "NOT_PROVEN"/u);
+  assert.match(source, /candidateNativeEncode: result\.candidateRenderProof\?\.status === "PASS"/u);
   assert.match(source, /Production Cargo\.lock was modified/u);
   const workflow = await read(".github/workflows/product-gate.yml");
   const candidate = workflow.slice(workflow.indexOf("  fframes-candidate-windows:"));

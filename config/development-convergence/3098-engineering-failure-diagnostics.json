@@ -6,7 +6,7 @@
   "allowedChanges": [
     "scripts/engineering-team/run-local.mjs",
     "scripts/engineering-team/durable-checkpoint.mjs",
-    "scripts/engineering-team/diagnose-local.mjs",
+    "scripts/engineering-diagnostics.mjs",
     "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
     "config/verification/test-catalog.json",
     "config/development-convergence/3098-engineering-failure-diagnostics.json",
@@ -40,12 +40,12 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/diagnose-local.mjs",
+          "path": "scripts/engineering-diagnostics.mjs",
           "contains": "LEGACY_FAILURE_NOT_CLASSIFIED"
         },
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/diagnose-local.mjs",
+          "path": "scripts/engineering-diagnostics.mjs",
           "contains": "modelInferenceExecuted: \"unknown\""
         },
         {
@@ -61,7 +61,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/diagnose-local.mjs",
+          "path": "scripts/engineering-diagnostics.mjs",
           "contains": "uncertainCount"
         },
         {

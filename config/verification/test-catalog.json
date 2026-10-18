@@ -8415,13 +8415,13 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "f895ac906d6ac5a22f83358e2b1906727afb76b1d73c7df683da2f90c5d82e49"
+            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
           }
         ]
       },
       {
         "target": "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
-        "targetDigest": "0a5b61489beda9fb14ea52c95995e6868bf208164fcfde46d487c7de5f2bcc4a",
+        "targetDigest": "7fa44cd77f956f18aedbb9a4bb24b2e8736f716b2bd2852869fdd8568bf576ea",
         "catalogueIds": [
           "agent.windows-uat-toolchain-preflight-3112"
         ],
@@ -8443,7 +8443,15 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "f895ac906d6ac5a22f83358e2b1906727afb76b1d73c7df683da2f90c5d82e49"
+            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
+          },
+          {
+            "path": "package.json",
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+          },
+          {
+            "path": "package-lock.json",
+            "digest": "c88d0101fdfd158d29c1e6bf384465114965a26207caa6dd66d79e2e901ffc1e"
           }
         ]
       }

@@ -8591,7 +8591,7 @@
         "inputs": [
           {
             "path": "scripts/windows-stop-proof.mjs",
-            "digest": "eadab5e6a589a261596fcf602a774a9e3398c7667b239484590c150ed70d917e"
+            "digest": "386af9569aadf43b62a492e99d21c603d2dd7a6c538971f5ef63ecb77cd7277e"
           }
         ]
       }

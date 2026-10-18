@@ -8019,7 +8019,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/local-adapters.mjs",
-            "digest": "a2b6865d9ca428740534576349fd1dcb0f16fa7cced0b133c17f52a841123272"
+            "digest": "76876d315295cfb5881f23a0f46e787ddbbb9bb3096ba09bef6f84c87cc61884"
           }
         ]
       },
@@ -8047,7 +8047,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/local-adapters.mjs",
-            "digest": "a2b6865d9ca428740534576349fd1dcb0f16fa7cced0b133c17f52a841123272"
+            "digest": "76876d315295cfb5881f23a0f46e787ddbbb9bb3096ba09bef6f84c87cc61884"
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
@@ -8117,7 +8117,7 @@
       },
       {
         "target": "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
-        "targetDigest": "0bdeb2d20d631525631db7fcc9d1fb679c7356bd5f4ee504dc68b817f94f01e0",
+        "targetDigest": "4b85830d91f89bbb72344b947fc00c4664640166634f291352b6e247f62901ab",
         "catalogueIds": [
           "agent.experimental-engineering-team-durable-3098"
         ],
@@ -8148,6 +8148,10 @@
           {
             "path": "scripts/pi/durable/engineering-team-proof.mjs",
             "digest": "8333dd0619c5e53a2451dc24a69e0d582299ad5a357a5ddd7bb8b369090fab4a"
+          },
+          {
+            "path": "scripts/engineering-team/local-adapters.mjs",
+            "digest": "76876d315295cfb5881f23a0f46e787ddbbb9bb3096ba09bef6f84c87cc61884"
           }
         ]
       }

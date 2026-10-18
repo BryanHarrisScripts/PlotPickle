@@ -10,7 +10,8 @@
     "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
     "config/verification/test-catalog.json",
     "config/development-convergence/3098-engineering-durable-checkpoint.json",
-    "docs/developer-briefs/3098-engineering-durable-checkpoint.md"
+    "docs/developer-briefs/3098-engineering-durable-checkpoint.md",
+    "scripts/engineering-team/local-adapters.mjs"
   ],
   "acceptance": [
     {
@@ -63,6 +64,22 @@
           "type": "file-contains",
           "path": "scripts/pi/durable/engineering-team-proof.mjs",
           "contains": "importPiDurableModule"
+        }
+      ]
+    },
+    {
+      "id": "ROUTE-IDENTITY-PINNED",
+      "criterion": "Managed Pi read-only actor route hash includes exact local selected model, endpoint, executable and role; changing it blocks checkpoint reuse.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/local-adapters.mjs",
+          "contains": "model: runtime.model, baseUrl: runtime.baseUrl"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
+          "contains": "real adapter route receipt changes"
         }
       ]
     }

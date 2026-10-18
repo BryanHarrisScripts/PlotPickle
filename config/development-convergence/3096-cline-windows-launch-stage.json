@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 3096,
+  "phase": "windows-cline-explicit-launcher-and-auth-stage",
+  "brief": "docs/developer-briefs/3096-cline-windows-launch-stage.md",
+  "allowedChanges": [
+    "scripts/engineering-team/cline-plan-adapter.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "tests/issue-3098-cline-independent-reviewer.test.mjs",
+    "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+    "docs/developer-briefs/3096-cline-windows-launch-stage.md",
+    "config/development-convergence/3096-cline-windows-launch-stage.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "WINDOWS-CLINE-RESOLUTION",
+      "criterion": "Bare Cline must resolve to an explicit valid Windows .exe/.cmd/.bat launcher before admitting durable role and route receipt.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "resolveClineReviewExecutable"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "const clineCommand = await resolveClineReviewExecutable"
+        }
+      ]
+    },
+    {
+      "id": "STAGED-INITIALIZATION",
+      "criterion": "Cline version/auth/review boundaries recorded with only safe codes and no raw provider error; a failed auth cannot start model review.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "onStage?.(\"cline-auth\", role)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+          "contains": "Cline initialization stage is reported"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+          "contains": "Cline Windows subprocess phases"
+        }
+      ]
+    },
+    {
+      "id": "NO-AUTO-REPLAY",
+      "criterion": "Original uncertain role evidence remains untouched and no automatic retry, cloud route, code mutation, or public BUZZ/GitHub actions are admitted.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3096-cline-windows-launch-stage.md",
+          "contains": "Original failed attempt is immutable"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "replayAuthorized: false"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "CI Node mocks do not prove actual Windows Cline authentication or network inference.",
+    "The original legacy error cannot be inferred or recovered solely from later source fixes.",
+    "No changes to remote posting, user profile grants or GitHub merge authority."
+  ]
+}

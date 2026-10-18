@@ -8051,7 +8051,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
           }
         ]
       },
@@ -8079,7 +8079,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8117,7 +8117,7 @@
       },
       {
         "target": "tests/issue-3098-engineering-durable-checkpoint.test.mjs",
-        "targetDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "targetDigest": "0bdeb2d20d631525631db7fcc9d1fb679c7356bd5f4ee504dc68b817f94f01e0",
         "catalogueIds": [
           "agent.experimental-engineering-team-durable-3098"
         ],
@@ -8139,15 +8139,15 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
-            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            "digest": "8d02dae13f9f04eb6b9c3388aa68e53b24d18719b29d8b0699c145c99f5b7860"
           },
           {
             "path": "scripts/pi/durable/engineering-team-proof.mjs",
-            "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            "digest": "8333dd0619c5e53a2451dc24a69e0d582299ad5a357a5ddd7bb8b369090fab4a"
           }
         ]
       }

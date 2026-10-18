@@ -10,7 +10,8 @@
     "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
     "config/verification/test-catalog.json",
     "config/development-convergence/3098-engineering-failure-diagnostics.json",
-    "docs/developer-briefs/3098-engineering-local-failure-diagnostics.md"
+    "docs/developer-briefs/3098-engineering-local-failure-diagnostics.md",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {
@@ -68,6 +69,17 @@
           "type": "file-contains",
           "path": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
           "contains": "uncommitted role marker is uncertain"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-AGENT-OWNER",
+      "criterion": "Read-only operator diagnostic CLI is an explicitly owned agent-runtime production file, not unmapped new architecture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "scripts/engineering-diagnostics.mjs"
         }
       ]
     }

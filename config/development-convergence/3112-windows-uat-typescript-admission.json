@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 3112,
+  "phase": "windows-uat-pinned-dev-toolchain-admission",
+  "brief": "docs/developer-briefs/3112-windows-uat-typescript-admission.md",
+  "allowedChanges": [
+    "scripts/windows-uat-control.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs",
+    "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3112-windows-uat-typescript-admission.json",
+    "docs/developer-briefs/3112-windows-uat-typescript-admission.md"
+  ],
+  "acceptance": [
+    {
+      "id": "MISSING-TOOLCHAIN-PREFLIGHT",
+      "criterion": "Check repo-pinned TypeScript toolchain before UAT; missing/wrong dependency BLOCKED, never product FAIL.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "TYPESCRIPT_NOT_INSTALLED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
+          "contains": "missing preflight prevents any reservation"
+        }
+      ]
+    },
+    {
+      "id": "NO-SILENT-AUTOREPLAY",
+      "criterion": "Preflight refusal prevents reservation/child; changed toolchain after admission blocks before subprocess.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "const readiness = await preflight();"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
+          "contains": "worker reconfirms preflight"
+        }
+      ]
+    },
+    {
+      "id": "DOCTOR-NO-INFERENCE",
+      "criterion": "Doctor is local-read-only and does not install, run UAT, touch stories or authorize a model.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "mode === \"doctor\""
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3112-windows-uat-typescript-admission.md",
+          "contains": "does not run UAT"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve first real Windows UAT failed artifact and original uncertain Pi/Cline attempt, never replay old scope.",
+    "No automatic npm dependency installation or unauthorized dev model provider dispatch.",
+    "Native Windows real UAT/pass not inferred from synthetic CI.",
+    "Do not turn missing prerequisites into fabricated product failure or bypass source assertions."
+  ]
+}

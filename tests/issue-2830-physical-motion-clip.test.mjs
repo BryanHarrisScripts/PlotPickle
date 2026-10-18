@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, symlink, utimes, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -104,6 +104,40 @@ test("#2830 physical 3s MP4: immutable provider source, bounded local output and
   assert.ok(files.includes(filename));
   assert.ok(files.includes(first.outputAssetUrl.split("/").at(-1)));
   assert.ok(!files.some(x => x.includes(".tmp.")), "no transient MP4 is retained");
+});
+
+test("#3026 content-bound Timeline cache: same filename, size and mtime with changed bytes renders a new 72-frame clip", async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-72f-content-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const source = path.join(root, "provider.mp4");
+  const fixedTime = new Date("2020-01-01T00:00:00.000Z");
+  await writeFile(source, mp4);
+  await utimes(source, fixedTime, fixedTime);
+  let renders = 0;
+  const runTool = async (binary, args) => {
+    if (binary === "ffmpeg") {
+      renders += 1;
+      await writeFile(args.at(-1), mp4);
+      return "";
+    }
+    assert.equal(binary, "ffprobe");
+    return JSON.stringify(verifiedProbe);
+  };
+  const request = { sourceAssetUrl: "/api/local-ai/assets/provider.mp4", directory: root };
+  const first = await renderTimelineThreeSecondClip(request, { runTool });
+  assert.equal(renders, 1);
+  const changed = Buffer.from(mp4);
+  changed[changed.length - 1] ^= 1;
+  await writeFile(source, changed);
+  await utimes(source, fixedTime, fixedTime);
+  const second = await renderTimelineThreeSecondClip(request, { runTool });
+  assert.notEqual(second.outputAssetUrl, first.outputAssetUrl, "a different source hash must never reuse the former clip");
+  assert.equal(renders, 2, "same-sized restored files with the same mtime require an actual re-render");
+  assert.deepEqual(await readFile(source), changed, "both renders retain the provider source exactly");
+  assert.equal(second.frameCount, 72);
+  assert.equal(second.fps, 24);
+  assert.deepEqual(await renderTimelineThreeSecondClip(request, { runTool }), second);
+  assert.equal(renders, 2, "identical source bytes continue to reuse an already verified clip");
 });
 
 test("#2830 physical 3s MP4: unverified output fails closed and no false playable asset remains", async t => {

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "issue": 3026,
+  "phase": "timeline-72f-content-identity",
+  "brief": "docs/developer-briefs/3026/timeline-content-cache.md",
+  "allowedChanges": [
+    "build/timeline-72-frame-clip.mjs",
+    "tests/issue-2830-physical-motion-clip.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3026/timeline-content-cache.md",
+    "config/development-convergence/3026/timeline-content-cache.json"
+  ],
+  "acceptance": [
+    {
+      "id": "CONTENT-CACHE",
+      "criterion": "A saved provider media cache key is bound to source bytes, not just filename, timestamp or size.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/timeline-72-frame-clip.mjs",
+          "contains": "for await (const chunk of createReadStream(sourceReal)) sourceDigest.update(chunk)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2830-physical-motion-clip.test.mjs",
+          "contains": "same filename, size and mtime with changed bytes renders a new 72-frame clip"
+        }
+      ]
+    },
+    {
+      "id": "APPROVED-TRUTH",
+      "criterion": "The revised deterministic fixture is admitted against existing W8/W9 and retains explicit scope limits.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2830-physical-motion-clip.test.mjs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No new dependencies or automatic provider calls; no silent FFmpeg install.",
+    "No modification to real PPF or provider source video; cache outputs must still satisfy 72f / 24fps validation."
+  ]
+}

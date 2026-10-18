@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
+import { createReadStream } from "node:fs";
 import { lstat, mkdir, open, realpath, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
@@ -123,9 +124,13 @@ export async function renderTimelineThreeSecondClip({ sourceAssetUrl, directory 
   const rootReal = await realpath(root);
   const sourceReal = await realpath(source);
   if (path.dirname(sourceReal) !== rootReal) throw new Error("Video source resolved outside the approved local assets directory.");
-  const inputStat = await validMediaFile(sourceReal);
-  const key = createHash("sha256").update(name).update(":").update(String(inputStat.size))
-    .update(":").update(String(inputStat.mtimeMs)).update(":72-24").digest("hex").slice(0, 24);
+  await validMediaFile(sourceReal);
+  // Name/size/mtime alone cannot identify bytes after restore or replacement.
+  // Stream the bounded source to avoid buffering up to 150 MiB in memory.
+  const sourceDigest = createHash("sha256");
+  for await (const chunk of createReadStream(sourceReal)) sourceDigest.update(chunk);
+  const key = createHash("sha256").update(name).update(":").update(sourceDigest.digest("hex"))
+    .update(":72-24").digest("hex").slice(0, 24);
   const outputName = `timeline-72f-${key}.mp4`;
   const output = path.join(root, outputName);
   const response = (verified) => ({

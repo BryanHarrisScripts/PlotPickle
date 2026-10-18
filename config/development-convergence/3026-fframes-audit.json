@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "issue": 3026,
+  "phase": "fframes-maintenance-source-truth",
+  "brief": "docs/developer-briefs/3026-fframes-rust-audit.md",
+  "allowedChanges": [
+    "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
+    "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+    "config/verification/fframes-maintenance-2026-10-18.json",
+    "docs/research/3026-fframes-rust-review-2026-10-18.md",
+    "docs/developer-briefs/3026-fframes-rust-audit.md",
+    "config/development-convergence/3026-fframes-audit.json",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCKED-RUST-ADVISORIES",
+      "criterion": "Five locked affected packages and four advisories are retained with exact reachable dependency paths and explicit review-only status.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/fframes-maintenance-2026-10-18.json",
+          "contains": "RUSTSEC-2026-0206"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
+          "contains": "status: \"REVIEW_REQUIRED\""
+        }
+      ]
+    },
+    {
+      "id": "NO-SILENT-CRATE-UPGRADE",
+      "criterion": "Bridge remains on reviewed stable release and local lru backport; source mutation requires fresh bound review.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "source changes cannot silently clear"
+        },
+        {
+          "type": "file-contains",
+          "path": "tools/fframes-bridge/Cargo.toml",
+          "contains": "fframes = { version = \"=1.2.0\""
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No manual Cargo.lock editing, automatic install, new provider bills or real PPF changes.",
+    "Green test is inventory/counterexample evidence, not an upgrade or native codec acceptance."
+  ]
+}

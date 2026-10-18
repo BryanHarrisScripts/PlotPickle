@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 3115,
+  "phase": "native-windows-owned-process-tree-stop-proof-only",
+  "brief": "docs/developer-briefs/3115-windows-stop-owned-fixture.md",
+  "allowedChanges": [
+    "scripts/windows-stop-proof.mjs",
+    "tests/issue-3115-windows-process-stop-proof.test.mjs",
+    "docs/developer-briefs/3115-windows-stop-owned-fixture.md",
+    "config/development-convergence/3115-windows-stop-owned-fixture.json",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "OWNER-PID-ONLY",
+      "criterion": "No arbitrary externally supplied PID can be killed. Only fresh in-memory spawned fixture handle is admissible; unknown stopped status fails closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "spawnedHandles.has(handle)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3115-windows-process-stop-proof.test.mjs",
+          "contains": "no spoofed, saved or arbitrary PID"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-TREE-AND-SIBLING",
+      "criterion": "Fixture requires real Windows parent and leaf exit, unrelated sentinel alive, exact head and idempotent repeat STOP before reporting observed fixture verification.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "descendantGoneAfterStop"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3115-windows-process-stop-proof.test.mjs",
+          "contains": "proof pass requires actual descendant termination"
+        }
+      ]
+    },
+    {
+      "id": "SEPARATE-TRUTH",
+      "criterion": "Native fixture verification never becomes real UAT/browser/pass/merge authority from static CI or model claim.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-stop-proof.mjs",
+          "contains": "productionUatTreeTerminationProven: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3115-windows-stop-owned-fixture.md",
+          "contains": "It does not change how the actual UAT worker cancels jobs"
+        }
+      ]
+    },
+    {
+      "id": "ARCHITECTURE-OWNERSHIP",
+      "criterion": "Fixture lives under mapped agent-runtime top-level entrypoint and has W8/W9 exact SHA digests.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "scripts/windows-stop-proof.mjs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No remote Chat/Work connection, model inference, test rerun, browser UAT, task process PID input, app write, automatic merge or startup service.",
+    "Original failed and passing Windows UAT and started-uncertain Pi/Cline campaign remain immutable.",
+    "Actual native Windows acceptance must be observed after merge; Linux CI fixture proof alone is not sufficient."
+  ]
+}

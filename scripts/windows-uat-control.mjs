@@ -2,6 +2,8 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -30,7 +32,7 @@ function controlDir(appRoot) {
 }
 export function parseWindowsUatCommand(args) {
   if (!Array.isArray(args)) throw new Error("Windows UAT command requires explicit arguments.");
-  const modes = ["--start", "--status", "--stop", "--worker"].filter((flag) => args.includes(flag));
+  const modes = ["--start", "--status", "--stop", "--worker", "--doctor"].filter((flag) => args.includes(flag));
   if (modes.length !== 1) throw new Error("Windows UAT requires exactly one explicit start/status/stop operation.");
   const values = {};
   const keys = new Set(["--head", "--base", "--task", "--attempt", "--scope"]);
@@ -42,6 +44,10 @@ export function parseWindowsUatCommand(args) {
   }
   const mode = modes[0].slice(2);
   if (args.filter((item) => item === modes[0]).length !== 1) throw new Error("Windows UAT duplicate operation.");
+  if (mode === "doctor") {
+    if (Object.keys(values).length) throw new Error("Windows UAT doctor takes no additional arguments.");
+    return Object.freeze({ mode });
+  }
   if (mode === "start") {
     if (values["--scope"] !== undefined || !SHA.test(values["--head"] || "")
       || !SHA.test(values["--base"] || "") || values["--head"] === values["--base"]
@@ -84,14 +90,54 @@ export function windowsUatScope({ head, base, task, attempt }) {
   return hash(JSON.stringify({ schemaVersion: 1, head, base, task, attempt, mode: "contracts-only" }));
 }
 
+/** Non-installing dev toolchain probe. No provider dispatch, UAT or reservation. */
+export function checkWindowsUatToolchain({ repoRoot = REPO, loadTypeScript } = {}) {
+  if (!path.isAbsolute(repoRoot)) throw new Error("Windows UAT toolchain requires an absolute repository root.");
+  let manifest;
+  try {
+    manifest = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+  } catch {
+    return Object.freeze({ ready: false, code: "PACKAGE_MANIFEST_UNAVAILABLE" });
+  }
+  const pinned = /^npm:@typescript\/typescript6@(\d+\.\d+\.\d+)$/.exec(
+    String(manifest.devDependencies?.typescript || ""),
+  );
+  if (!pinned) return Object.freeze({ ready: false, code: "TYPESCRIPT_PIN_UNVERIFIED" });
+  const expectedVersion = pinned[1];
+  let ts;
+  try {
+    ts = loadTypeScript ? loadTypeScript() : createRequire(path.join(repoRoot, "package.json"))("typescript");
+  } catch (error) {
+    const missing = error?.code === "MODULE_NOT_FOUND" || error?.code === "ERR_MODULE_NOT_FOUND";
+    return Object.freeze({ ready: false, code: missing ? "TYPESCRIPT_NOT_INSTALLED" : "TYPESCRIPT_UNUSABLE",
+      expectedVersion });
+  }
+  if (!ts || typeof ts.transpileModule !== "function") {
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_UNUSABLE", expectedVersion });
+  }
+  if (ts.version !== expectedVersion) {
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_VERSION_MISMATCH",
+      expectedVersion, observedVersion: typeof ts.version === "string" ? ts.version.slice(0, 40) : "unknown" });
+  }
+  return Object.freeze({ ready: true, code: "READY", expectedVersion, observedVersion: ts.version,
+    source: "locally-installed-dev-toolchain", inferenceStarted: false, installationPerformed: false });
+}
+
 /** This local-only launcher never accepts GitHub comments or remote instructions. */
 export async function startWindowsUat(config, {
   appRoot = privateAppRoot(), repoRoot = REPO, inspect = () => inspectEngineeringCheckout({repoRoot,base:config.base}),
   launch = (args, opts) => spawn(process.execPath, args, opts),
+  preflight = () => checkWindowsUatToolchain({ repoRoot }),
 } = {}) {
   if (config.mode !== "start") throw new Error("Explicit local start operation required.");
   const checkout = await inspect();
   if (checkout.head !== config.head) throw new Error("Windows UAT checkout differs from exact authorized head.");
+  // Fail before allocating an irreversible attempt or starting a child.
+  const readiness = await preflight();
+  if (readiness?.ready !== true) {
+    throw new Error("Windows UAT toolchain blocked: " + String(readiness?.code || "TOOLCHAIN_UNKNOWN")
+      + "; use --doctor before authorizing an attempt.");
+  }
   const scope = windowsUatScope(config);
   const root = controlDir(appRoot);
   await mkdir(root, { recursive: true, mode: 0o700 });
@@ -164,7 +210,8 @@ export async function requestStopWindowsUat(scope, { appRoot = privateAppRoot(),
 /** Worker owns the only UAT child it can cancel; status alone never kills a PID. */
 export async function driveWindowsUat(scope, {
   appRoot = privateAppRoot(), repoRoot = REPO, now = Date.now,
-  inspect, launch, maxDurationMs = MAX_DURATION_MS, pollMs = POLL_MS,
+  inspect, launch, preflight = () => checkWindowsUatToolchain({ repoRoot }),
+  maxDurationMs = MAX_DURATION_MS, pollMs = POLL_MS,
 } = {}) {
   const folder = await privateScope(appRoot, scope);
   const reservation = await safeJson(path.join(folder,"reservation.json"));
@@ -188,6 +235,8 @@ export async function driveWindowsUat(scope, {
     const checked = await (inspect || (() => inspectEngineeringCheckout({ repoRoot, base:reservation.base })))();
     if (checked.head !== reservation.head) return finish("stale","STALE_CHECKOUT");
     if (await safeJson(path.join(folder,"stop-request.json"))) return finish("cancelled-child-exited","CANCELLED_BEFORE_CHILD");
+    const readiness = await preflight();
+    if (readiness?.ready !== true) return finish("blocked", readiness?.code || "TOOLCHAIN_UNKNOWN");
     const artifactRoot = path.join(folder,"focused-uat");
     await mkdir(artifactRoot,{recursive:true,mode:0o700});
     const spawnChild = launch || ((args,opts) => spawn(process.execPath,args,opts));
@@ -238,10 +287,12 @@ export async function driveWindowsUat(scope, {
 async function main() {
   const config = parseWindowsUatCommand(process.argv.slice(2));
   const result = config.mode === "start" ? await startWindowsUat(config)
+    : config.mode === "doctor" ? checkWindowsUatToolchain()
     : config.mode === "status" ? await statusWindowsUat(config.scope)
     : config.mode === "stop" ? await requestStopWindowsUat(config.scope)
     : await driveWindowsUat(config.scope);
   process.stdout.write(JSON.stringify(result,null,2)+"\n");
+  if (config.mode === "doctor" && !result.ready) process.exitCode = 2;
   if (config.mode === "worker" && !["observed-pass","observed-fail","cancelled-child-exited"].includes(result.state))
     process.exitCode = 2;
 }

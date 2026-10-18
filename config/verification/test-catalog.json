@@ -3862,6 +3862,48 @@
         ]
       },
       "notes": "Read-only private reservation diagnostics on Windows, legacy unknown error, role marker uncertainty, no provider model inference. Actual live Windows failure root cause remains unproven."
+    },
+    {
+      "id": "agent.windows-uat-local-control-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-windows-uat-control.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 synthetic only: local exact-SHA contracts-only UAT reservation/stop/report truth; no Chat-to-Windows transport, native Windows process-tree proof, real app UAT, AI provider dispatch, remote stop or autonomous merge."
     }
   ],
   "truthGovernance": {
@@ -8304,6 +8346,34 @@
           {
             "path": "scripts/engineering-diagnostics.mjs",
             "digest": "8feb96a32c93ba602c0f93134c7bafcd7ae194c76caa8da0fb597f4e72110ee2"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-windows-uat-control.test.mjs",
+        "targetDigest": "50e7e48bbb5f40c8a34d92e12b57b6c0a514cdc6f327ed18673d516f03872059",
+        "catalogueIds": [
+          "agent.windows-uat-local-control-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic temporary private filesystem and stubbed child process tests, not a native Windows runner or authorized remote software-factory control loop.",
+        "inputs": [
+          {
+            "path": "scripts/windows-uat-control.mjs",
+            "digest": "f4db7a5e1b087a169385e1846f3bc89c68a92593c7d757c67f485572471935ca"
           }
         ]
       }

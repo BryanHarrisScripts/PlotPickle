@@ -7,6 +7,7 @@
     "lib/verification/oss-radar/dependency-graphs/inventory.mjs",
     "scripts/third-party-oss-audit.mjs",
     "tests/issue-3023-oss-dependency-inventory.test.mjs",
+    "tests/issue-1938-verification-core.test.mjs",
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "docs/research/3023-3024-ecosystem-audit-2026-10-18.json",

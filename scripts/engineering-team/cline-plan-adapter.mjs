@@ -24,12 +24,9 @@ export async function resolveClineReviewExecutable(command = "cline", {
   platform = process.platform, locate = windowsLocate,
 } = {}) {
   if (platform !== "win32" || command !== "cline") return command;
-  let output;
-  try {
-    output = await locate();
-  } catch {
-    throw new Error("Cline Windows launcher could not be located for read-only review.");
-  }
+  // Preserve the native locator error for the host's existing safe
+  // classifier; do not add another generic error-obscuring catch here.
+  const output = await locate();
   const candidates = String(output || "").split(/\r?\n/)
     .map((value) => value.trim()).filter((value) => WINDOW_CLINE_COMMAND.test(value));
   // Prefer a native executable over npm's .cmd wrapper if both appear.

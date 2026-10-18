@@ -46,7 +46,9 @@ async function listMarkers(directory) {
 }
 
 /** Read-only: no model probes, host task resume, CLI subprocess or filesystem changes. */
-export async function diagnoseEngineeringLocalAttempt({ appRoot = defaultAppRoot(), exactSha } = {}) {
+export async function diagnoseEngineeringLocalAttempt({ appRoot = defaultAppRoot(), exactSha,
+  probePi = probeManagedPi, probeDurable = probeManagedPiDurable,
+} = {}) {
   if (!path.isAbsolute(appRoot) || (exactSha && !HEAD.test(exactSha))) {
     throw new Error("Engineering diagnostic requires a private absolute app root and optional exact SHA.");
   }
@@ -69,10 +71,10 @@ export async function diagnoseEngineeringLocalAttempt({ appRoot = defaultAppRoot
   }
   choices.sort((a, b) => b.modified - a.modified);
   const selected = choices[0];
-  const piDurable = await probeManagedPiDurable().then((v) => ({
+  const piDurable = await probeDurable().then((v) => ({
     installed: v.ready === true, state: v.state || "unknown", version: v.version || null,
   }), () => ({ installed: false, state: "unproven", version: null }));
-  const managedPi = await probeManagedPi().then((v) => ({
+  const managedPi = await probePi().then((v) => ({
     ready: v.ready === true, state: v.ready === true ? "ready" : "unavailable",
   }), () => ({ ready: false, state: "unproven" }));
   const nativeReadiness = Object.freeze({ managedPi, managedPiDurable: piDurable, clineCli: "not-probed", localModel: "not-probed" });
@@ -131,6 +133,7 @@ async function main() {
   }
   const headIndex = args.indexOf("--head");
   const exactSha = headIndex < 0 ? undefined : args[headIndex + 1];
+  if (headIndex !== -1 && !HEAD.test(exactSha || "")) throw new Error("Invalid exact head argument.");
   const output = await diagnoseEngineeringLocalAttempt({ exactSha });
   process.stdout.write(JSON.stringify(output, null, 2) + "\n");
 }

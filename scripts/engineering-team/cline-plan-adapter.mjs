@@ -50,29 +50,55 @@ export function createClineEngineeringPlanAdapter({
     const root = await realpath(repoRoot);
     let bytes = 0;
     const manifest = [];
-    for (const [index, relative] of changedPaths.entries()) {
+    const omitted = [];
+    // Prioritize executable code, then tests and remaining configuration.
+    // A large generated catalog must not hide all reviewable source changes.
+    const prioritized = [...changedPaths].sort((a, b) => {
+      const rank = (value) => /\.(?:mjs|js|ts|tsx)$/.test(value) ? 0 : 1;
+      return rank(a) - rank(b);
+    });
+    for (const relative of prioritized) {
       const source = path.resolve(repoRoot, relative);
-      const actual = await realpath(source);
+      let actual;
+      try {
+        actual = await realpath(source);
+      } catch (error) {
+        if (error?.code !== "ENOENT") throw error;
+        omitted.push({ path: relative, reason: "absent-at-head" });
+        continue;
+      }
       if (!actual.startsWith(root + path.sep)) throw new Error("Cline source would escape admitted repository.");
       const stat = await lstat(source);
-      if (!stat.isFile() || stat.isSymbolicLink() || stat.size > MAX_SOURCE) {
-        throw new Error("Cline source must be a small ordinary file.");
+      if (!stat.isFile() || stat.isSymbolicLink()) {
+        throw new Error("Cline source must be an ordinary file.");
+      }
+      if (stat.size > MAX_SOURCE || bytes + stat.size > MAX_TOTAL) {
+        omitted.push({ path: relative, reason: "size-budget" });
+        continue;
       }
       const content = await readFile(source);
-      if (content.includes(0) || content.byteLength > MAX_SOURCE) {
-        throw new Error("Cline binary or oversized source files cannot enter advisory bundle.");
+      if (content.includes(0)) {
+        omitted.push({ path: relative, reason: "binary-source" });
+        continue;
+      }
+      if (content.byteLength > MAX_SOURCE || bytes + content.byteLength > MAX_TOTAL) {
+        omitted.push({ path: relative, reason: "size-budget" });
+        continue;
       }
       bytes += content.byteLength;
-      if (bytes > MAX_TOTAL) throw new Error("Cline source bundle exceeds size budget.");
-      const name = "source-" + String(index + 1).padStart(2, "0") + ".txt";
+      const name = "source-" + String(manifest.length + 1).padStart(2, "0") + ".txt";
       await writeFile(path.join(bundle, name), content, { flag: "wx", mode: 0o600 });
       manifest.push({ path: relative, file: name, sourceSha256: hash(content) });
+    }
+    if (!manifest.length) {
+      throw new Error("Cline found no bounded ordinary source files to review; no model inference dispatched.");
     }
     await writeFile(path.join(bundle, "manifest.json"), JSON.stringify({
       schemaVersion: 1, sourceCommit: request.exactSha,
       scopeHash: request.scopeHash, role, files: manifest,
+      omitted, selectedCount: manifest.length, requestedCount: changedPaths.length,
     }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
-    return { bundle, manifest };
+    return { bundle, manifest, omitted };
   }
 
   async function assertBundleIntact(bundle, manifest) {
@@ -95,7 +121,7 @@ export function createClineEngineeringPlanAdapter({
         || request.permissions?.sourceMutationAllowed === true) {
         throw new Error("Cline challenger role, exact commit, scope or permissions invalid.");
       }
-      const { bundle, manifest } = await collectSourceBundle(request);
+      const { bundle, manifest, omitted } = await collectSourceBundle(request);
       const dataDir = path.join(privateRoot, "cline-state");
       const hooksDir = path.join(privateRoot, "empty-hooks");
       await mkdir(dataDir, { recursive: true, mode: 0o700 });
@@ -142,9 +168,12 @@ export function createClineEngineeringPlanAdapter({
         observationId: "cline-plan:" + request.exactSha.slice(0, 16),
         state: "candidate",
         findingRef: "engineering:" + request.exactSha.slice(0, 16),
-        summary: response.replace(/[\u0000-\u001f]/g, " ").slice(0, 780),
+        summary: ("Cline Plan reviewed " + manifest.length + "/" + changedPaths.length
+          + " bounded changed files; omitted " + (changedPaths.length - manifest.length)
+          + " large/binary sources. Advisory only. "
+          + response.replace(/[\u0000-\u001f]/g, " ")).slice(0, 780),
         evidenceRefs: Object.freeze(["cline-output-sha256:" + hash(output.stdout),
-          "cline-source-manifest-sha256:" + hash(JSON.stringify(manifest))]),
+          "cline-source-manifest-sha256:" + hash(JSON.stringify({ manifest, omitted, requested: changedPaths }))]),
       });
     },
   });

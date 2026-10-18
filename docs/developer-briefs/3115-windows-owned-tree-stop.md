@@ -22,7 +22,7 @@ alive. It then uses the native \`taskkill.exe /PID <parent> /T /F\` tree kill
 **only on its own actively tracked parent handle**. It verifies that the
 direct parent emitted an exit event, the known descendant ceased to exist,
 the unrelated sentinel remained alive, and a repeat STOP was a no-op.
-It cleans up the sentinel, writes a bounded proof outcome and digest.
+It cleans up the sentinel and, if the native operation completes without throwing, writes a bounded proof outcome and digest. A native `taskkill` error propagates as BLOCKED/nonzero rather than hiding its failure as a boolean; the private reservation remains and no positive proof is written.
 The fixture's leaf processes time out independently after 35 seconds; an
 interrupted run remains unconfirmed, never auto-replayed.
 

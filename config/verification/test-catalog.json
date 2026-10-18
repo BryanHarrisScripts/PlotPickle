@@ -8241,7 +8241,7 @@
       },
       {
         "target": "tests/issue-3098-cline-independent-reviewer.test.mjs",
-        "targetDigest": "cd2b0a5c59c6aded5c724f9ac47dcf7dff10dd44697aa92bfb80245ac10cc2e6",
+        "targetDigest": "2f94b7ec35a09deee24eab59766aeae771f95405262d12ccd5ba96969001d4c9",
         "catalogueIds": [
           "agent.experimental-engineering-team-cline-3098"
         ],
@@ -8263,7 +8263,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/cline-plan-adapter.mjs",
-            "digest": "c6265c4cc933b15b5ee135e1b2250f4b9fc385b553a2034dd950b1ea14c59563"
+            "digest": "4c3a82b332b924abf118e09f75e6145561974c13d2a1c82b843b21d873481951"
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",

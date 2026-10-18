@@ -5766,7 +5766,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b309380d2d84dc2448338e5d1f8ad65b3088d07aff270cd55bd845c56cfa881e"
+            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
           }
         ]
       },
@@ -6600,7 +6600,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b309380d2d84dc2448338e5d1f8ad65b3088d07aff270cd55bd845c56cfa881e"
+            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
           }
         ]
       },

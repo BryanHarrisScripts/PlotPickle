@@ -129,3 +129,19 @@ test("failed live step persists sanitized phase and never replays reserved attem
   assert.equal(failure.replayAuthorized, false);
   await assert.rejects(runExplicitEngineeringCampaign(argv, opts), /EEXIST/);
 }));
+
+test("Cline Windows subprocess phases and launcher failures are safe for operator receipts", () => {
+  const launcher = classifyEngineeringFailure(
+    new Error("Cline Windows launcher could not be located for read-only review."),
+    "adapter-selection");
+  assert.equal(launcher.code, "CLINE_LAUNCHER_UNAVAILABLE");
+  assert.equal(launcher.stage, "adapter-selection");
+  assert.equal(launcher.modelRequestState, "unknown");
+  for (const phase of ["cline-version", "cline-auth", "cline-review"]) {
+    const output = classifyEngineeringFailure(
+      new Error("private local provider details never printed"), phase);
+    assert.equal(output.stage, phase);
+    assert.equal(output.replayAuthorized, false);
+    assert.equal("message" in output, false);
+  }
+});

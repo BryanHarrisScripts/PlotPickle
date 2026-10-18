@@ -7696,7 +7696,7 @@
         "inputs": [
           {
             "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
-            "digest": "b883206eefc2fdcc92e2e961808661bb0fbb93e35e3441da9cef69cc61816937"
+            "digest": "e0cd10c07930d5ab2b7b6c9a49cf73afd01f116d63a5f619586e126838d56f4d"
           },
           {
             "path": "config/verification/fframes-maintenance-2026-10-18.json",

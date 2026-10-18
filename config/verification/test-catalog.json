@@ -3904,6 +3904,48 @@
         ]
       },
       "notes": "#3110 synthetic only: local exact-SHA contracts-only UAT reservation/stop/report truth; no Chat-to-Windows transport, native Windows process-tree proof, real app UAT, AI provider dispatch, remote stop or autonomous merge."
+    },
+    {
+      "id": "agent.windows-uat-toolchain-preflight-3112",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "test-harness",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3112 synthetic TypeScript dev-toolchain preflight and no-duplicate attempt guard; user Windows package readiness and actual contracts-only PASS remain unproven."
     }
   ],
   "truthGovernance": {
@@ -8351,7 +8393,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "50e7e48bbb5f40c8a34d92e12b57b6c0a514cdc6f327ed18673d516f03872059",
+        "targetDigest": "d1649034d62c8bb10dc8ccb2ef32300bf9769e6fbae5b485907f3be717527162",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -8373,7 +8415,35 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "f4db7a5e1b087a169385e1846f3bc89c68a92593c7d757c67f485572471935ca"
+            "digest": "f895ac906d6ac5a22f83358e2b1906727afb76b1d73c7df683da2f90c5d82e49"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3112-windows-uat-toolchain-preflight.test.mjs",
+        "targetDigest": "0a5b61489beda9fb14ea52c95995e6868bf208164fcfde46d487c7de5f2bcc4a",
+        "catalogueIds": [
+          "agent.windows-uat-toolchain-preflight-3112"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic TypeScript loader and private temporary filesystem. Real owner device dependency installation and UAT PASS cannot be inferred.",
+        "inputs": [
+          {
+            "path": "scripts/windows-uat-control.mjs",
+            "digest": "f895ac906d6ac5a22f83358e2b1906727afb76b1d73c7df683da2f90c5d82e49"
           }
         ]
       }

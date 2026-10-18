@@ -26,35 +26,92 @@ test("non-mutating --doctor is an explicit no-argument mode and never becomes re
     ["--doctor","--task","issue-3112"], ["--doctor","--doctor"],
   ]) assert.throws(() => parseWindowsUatCommand(args));
 });
-test("dev preflight records exact pinned package version without exposing private filesystem paths", () => {
-  const result = checkWindowsUatToolchain({ loadTypeScript: () => ({
-    version:"6.0.2", transpileModule() {},
-  })});
+const pin = "npm:@typescript/typescript6@6.0.2";
+const fixtures = {
+  "package.json": { devDependencies: { typescript: pin } },
+  "package-lock.json": {
+    lockfileVersion: 3,
+    packages: {
+      "": { devDependencies: { typescript: pin } },
+      "node_modules/typescript": {
+        name: "@typescript/typescript6", version: "6.0.2",
+        integrity: "sha512-AABBCC==",
+        dependencies: { "@typescript/old": "npm:typescript@^6" },
+      },
+      "node_modules/@typescript/old": {
+        name: "typescript", version: "6.0.3", integrity: "sha512-AABBCC==",
+      },
+    },
+  },
+  "node_modules/typescript/package.json": {
+    name: "@typescript/typescript6", version: "6.0.2",
+    dependencies: { "@typescript/old": "npm:typescript@^6" },
+  },
+  "node_modules/@typescript/old/package.json": { name: "typescript", version: "6.0.3" },
+};
+function simulatedToolchain(changes = {}, loadTypeScript = () => ({
+  version: "6.0.3", transpileModule() {},
+})) {
+  return checkWindowsUatToolchain({
+    readJson: (name) => {
+      const result = Object.hasOwn(changes, name) ? changes[name] : fixtures[name];
+      if (result instanceof Error) throw result;
+      return result;
+    },
+    loadTypeScript,
+  });
+}
+test("repo-pinned 6.0.2 wrapper reexports separately lock-pinned 6.0.3 compiler API", () => {
+  const result = simulatedToolchain();
   assert.deepEqual(result, {
-    ready: true, code: "READY", expectedVersion: "6.0.2", observedVersion:"6.0.2",
-    source:"locally-installed-dev-toolchain", inferenceStarted:false, installationPerformed:false,
+    ready: true, code: "READY", expectedVersion: "6.0.2",
+    expectedCompilerVersion: "6.0.3", observedVersion: "6.0.3",
+    wrapperPackage: "@typescript/typescript6", compilerPackage: "@typescript/old",
+    source: "lockfile-and-installed-dev-toolchain",
+    inferenceStarted: false, installationPerformed: false,
   });
   assert.doesNotMatch(JSON.stringify(result), /Users\\|C:\\|token|private/i);
 });
-test("missing, invalid and wrong-version TypeScript remain explicitly BLOCKED, never UAT FAIL", () => {
-  const unavailable = checkWindowsUatToolchain({ loadTypeScript: () => {
-    const error = new Error("Cannot find module 'typescript' from C:\\private\\path");
-    error.code = "MODULE_NOT_FOUND";
-    throw error;
-  }});
-  assert.deepEqual(unavailable, {
-    ready: false, code: "TYPESCRIPT_NOT_INSTALLED", expectedVersion:"6.0.2",
+test("toolchain rejects wrong lock, uninstalled wrapper, and replaced real compiler", () => {
+  const badLock = simulatedToolchain({
+    "package-lock.json": { ...fixtures["package-lock.json"], lockfileVersion: 2 },
   });
-  assert.deepEqual(checkWindowsUatToolchain({ loadTypeScript:()=>({version:"6.0.2"}) }), {
-    ready:false,code:"TYPESCRIPT_UNUSABLE",expectedVersion:"6.0.2",
+  assert.equal(badLock.code, "TYPESCRIPT_LOCK_MISMATCH");
+  const noLock = Object.assign(new Error("C:\\Secret\\token"), { code: "ENOENT" });
+  assert.equal(simulatedToolchain({ "package-lock.json": noLock }).code, "TYPESCRIPT_LOCK_UNAVAILABLE");
+  assert.equal(simulatedToolchain({
+    "node_modules/typescript/package.json": noLock,
+  }).code, "TYPESCRIPT_NOT_INSTALLED");
+  assert.equal(simulatedToolchain({
+    "node_modules/@typescript/old/package.json": noLock,
+  }).code, "TYPESCRIPT_NOT_INSTALLED");
+  assert.equal(simulatedToolchain({
+    "node_modules/@typescript/old/package.json": { name: "typescript", version: "6.0.4" },
+  }).code, "TYPESCRIPT_VERSION_MISMATCH");
+  assert.equal(simulatedToolchain({
+    "node_modules/typescript/package.json": { name: "typescript", version: "6.0.2" },
+  }).code, "TYPESCRIPT_PACKAGE_MISMATCH");
+  assert.equal(simulatedToolchain({
+    "package.json": { devDependencies: { typescript: "typescript@6" } },
+  }).code, "TYPESCRIPT_PIN_UNVERIFIED");
+});
+test("wrong runtime API version or unusable transpiler blocks rather than silently widening compatibility", () => {
+  assert.equal(simulatedToolchain({}, () => ({
+    version: "6.0.2", transpileModule() {},
+  })).code, "TYPESCRIPT_VERSION_MISMATCH");
+  assert.equal(simulatedToolchain({}, () => ({
+    version: "6.0.4", transpileModule() {},
+  })).code, "TYPESCRIPT_VERSION_MISMATCH");
+  assert.equal(simulatedToolchain({}, () => ({
+    version: "6.0.3",
+  })).code, "TYPESCRIPT_UNUSABLE");
+  const missing = Object.assign(new Error("Cannot find module 'typescript' from C:\\Secret"), {
+    code: "MODULE_NOT_FOUND",
   });
-  assert.deepEqual(checkWindowsUatToolchain({ loadTypeScript:()=>({version:"5.9.3",transpileModule(){}}) }), {
-    ready:false,code:"TYPESCRIPT_VERSION_MISMATCH",
-    expectedVersion:"6.0.2",observedVersion:"5.9.3",
-  });
-  const bad = checkWindowsUatToolchain({ loadTypeScript:()=>{throw Error("credential sk-SECRET");} });
-  assert.equal(bad.code,"TYPESCRIPT_UNUSABLE");
-  assert.doesNotMatch(JSON.stringify(bad), /SECRET|credential|private/i);
+  assert.equal(simulatedToolchain({}, () => { throw missing; }).code, "TYPESCRIPT_NOT_INSTALLED");
+  const failed = simulatedToolchain({}, () => { throw new Error("credential sk-SECRET"); });
+  assert.equal(failed.code, "TYPESCRIPT_UNUSABLE");
+  assert.doesNotMatch(JSON.stringify(failed), /SECRET|credential|private/i);
 });
 test("missing preflight prevents any reservation or launch; failure does not consume next attempt",()=>fixture(async appRoot=>{
   let called=0;

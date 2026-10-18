@@ -90,37 +90,78 @@ export function windowsUatScope({ head, base, task, attempt }) {
   return hash(JSON.stringify({ schemaVersion: 1, head, base, task, attempt, mode: "contracts-only" }));
 }
 
-/** Non-installing dev toolchain probe. No provider dispatch, UAT or reservation. */
-export function checkWindowsUatToolchain({ repoRoot = REPO, loadTypeScript } = {}) {
+/** Non-installing dev toolchain probe. A TypeScript6 wrapper version is NOT the API version. */
+export function checkWindowsUatToolchain({ repoRoot = REPO, loadTypeScript, readJson } = {}) {
   if (!path.isAbsolute(repoRoot)) throw new Error("Windows UAT toolchain requires an absolute repository root.");
+  const read = readJson || ((relative) => JSON.parse(readFileSync(path.join(repoRoot, relative), "utf8")));
   let manifest;
-  try {
-    manifest = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
-  } catch {
-    return Object.freeze({ ready: false, code: "PACKAGE_MANIFEST_UNAVAILABLE" });
-  }
-  const pinned = /^npm:@typescript\/typescript6@(\d+\.\d+\.\d+)$/.exec(
-    String(manifest.devDependencies?.typescript || ""),
-  );
+  try { manifest = read("package.json"); }
+  catch { return Object.freeze({ ready: false, code: "PACKAGE_MANIFEST_UNAVAILABLE" }); }
+  const spec = String(manifest?.devDependencies?.typescript || "");
+  const pinned = /^npm:@typescript\/typescript6@(\d+\.\d+\.\d+)$/.exec(spec);
   if (!pinned) return Object.freeze({ ready: false, code: "TYPESCRIPT_PIN_UNVERIFIED" });
   const expectedVersion = pinned[1];
-  let ts;
+  let lock;
+  try { lock = read("package-lock.json"); }
+  catch { return Object.freeze({ ready: false, code: "TYPESCRIPT_LOCK_UNAVAILABLE", expectedVersion }); }
+  const wrapperLock = lock?.packages?.["node_modules/typescript"];
+  const compilerLock = lock?.packages?.["node_modules/@typescript/old"];
+  if (lock?.lockfileVersion !== 3
+    || lock?.packages?.[""]?.devDependencies?.typescript !== spec
+    || wrapperLock?.name !== "@typescript/typescript6"
+    || wrapperLock?.version !== expectedVersion
+    || wrapperLock?.dependencies?.["@typescript/old"] !== "npm:typescript@^6"
+    || !/^sha512-[a-zA-Z0-9+/]+=*$/.test(wrapperLock?.integrity || "")
+    || compilerLock?.name !== "typescript"
+    || !/^6\.\d+\.\d+$/.test(compilerLock?.version || "")
+    || !/^sha512-[a-zA-Z0-9+/]+=*$/.test(compilerLock?.integrity || "")) {
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_LOCK_MISMATCH", expectedVersion });
+  }
+  const expectedCompilerVersion = compilerLock.version;
+  let wrapper, compiler;
   try {
-    ts = loadTypeScript ? loadTypeScript() : createRequire(path.join(repoRoot, "package.json"))("typescript");
+    wrapper = read("node_modules/typescript/package.json");
+    compiler = read("node_modules/@typescript/old/package.json");
   } catch (error) {
-    const missing = error?.code === "MODULE_NOT_FOUND" || error?.code === "ERR_MODULE_NOT_FOUND";
-    return Object.freeze({ ready: false, code: missing ? "TYPESCRIPT_NOT_INSTALLED" : "TYPESCRIPT_UNUSABLE",
-      expectedVersion });
+    return Object.freeze({ ready: false,
+      code: error?.code === "ENOENT" || error?.code === "MODULE_NOT_FOUND"
+        ? "TYPESCRIPT_NOT_INSTALLED" : "TYPESCRIPT_UNUSABLE",
+      expectedVersion, expectedCompilerVersion });
+  }
+  if (wrapper?.name !== "@typescript/typescript6"
+    || wrapper?.dependencies?.["@typescript/old"] !== "npm:typescript@^6"
+    || compiler?.name !== "typescript") {
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_PACKAGE_MISMATCH",
+      expectedVersion, expectedCompilerVersion });
+  }
+  if (wrapper.version !== expectedVersion || compiler.version !== expectedCompilerVersion) {
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_VERSION_MISMATCH",
+      expectedVersion, expectedCompilerVersion,
+      observedWrapperVersion: typeof wrapper.version === "string" ? wrapper.version.slice(0, 40) : "unknown",
+      observedCompilerVersion: typeof compiler.version === "string" ? compiler.version.slice(0, 40) : "unknown" });
+  }
+  let ts;
+  try { ts = loadTypeScript ? loadTypeScript() : createRequire(path.join(repoRoot, "package.json"))("typescript"); }
+  catch (error) {
+    return Object.freeze({ ready: false,
+      code: error?.code === "MODULE_NOT_FOUND" || error?.code === "ERR_MODULE_NOT_FOUND"
+        ? "TYPESCRIPT_NOT_INSTALLED" : "TYPESCRIPT_UNUSABLE",
+      expectedVersion, expectedCompilerVersion });
   }
   if (!ts || typeof ts.transpileModule !== "function") {
-    return Object.freeze({ ready: false, code: "TYPESCRIPT_UNUSABLE", expectedVersion });
+    return Object.freeze({ ready: false, code: "TYPESCRIPT_UNUSABLE",
+      expectedVersion, expectedCompilerVersion });
   }
-  if (ts.version !== expectedVersion) {
+  if (ts.version !== expectedCompilerVersion) {
     return Object.freeze({ ready: false, code: "TYPESCRIPT_VERSION_MISMATCH",
-      expectedVersion, observedVersion: typeof ts.version === "string" ? ts.version.slice(0, 40) : "unknown" });
+      expectedVersion, expectedCompilerVersion,
+      observedVersion: typeof ts.version === "string" ? ts.version.slice(0, 40) : "unknown" });
   }
-  return Object.freeze({ ready: true, code: "READY", expectedVersion, observedVersion: ts.version,
-    source: "locally-installed-dev-toolchain", inferenceStarted: false, installationPerformed: false });
+  return Object.freeze({ ready: true, code: "READY",
+    expectedVersion, expectedCompilerVersion, observedVersion: ts.version,
+    wrapperPackage: "@typescript/typescript6", compilerPackage: "@typescript/old",
+    source: "lockfile-and-installed-dev-toolchain",
+    inferenceStarted: false, installationPerformed: false });
 }
 
 /** This local-only launcher never accepts GitHub comments or remote instructions. */

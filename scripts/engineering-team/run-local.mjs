@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -13,6 +13,7 @@ import { createFocusedUatEngineeringAdapter, createPiEngineeringReadOnlyAdapter 
 import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
 import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
+import { driveEngineeringDurableCheckpoint } from "./durable-checkpoint.mjs";
 
 const exec = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -31,7 +32,7 @@ export function parseEngineeringCommand(args) {
   const values = {};
   for (let i = 0; i < args.length; i++) {
     const token = args[i];
-    if (token === "--run" || token === "--buzz-local") continue;
+    if (token === "--run" || token === "--buzz-local" || token === "--durable" || token === "--resume") continue;
     if (!keys.has(token) || values[token] !== undefined || !args[i + 1] || args[i + 1].startsWith("--")) {
       throw new Error("Engineering Team command contains unsupported, repeated or missing arguments.");
     }
@@ -54,7 +55,12 @@ export function parseEngineeringCommand(args) {
   }
   const attempt = Number(values["--attempt"] ?? 1);
   if (!Number.isInteger(attempt) || attempt < 1 || attempt > 9) throw new Error("Engineering Team attempt must be 1-9.");
-  return Object.freeze({ head, base, task, mode, roles, attempt, buzzLocal: args.includes("--buzz-local") });
+  if (args.includes("--resume") && !args.includes("--durable")) throw new Error("Engineering Team explicit resume requires --durable.");
+  for (const flag of ["--run", "--buzz-local", "--durable", "--resume"]) {
+    if (args.filter((arg) => arg === flag).length > 1) throw new Error("Engineering Team repeat flag not allowed.");
+  }
+  return Object.freeze({ head, base, task, mode, roles, attempt,
+    buzzLocal: args.includes("--buzz-local"), durable: args.includes("--durable"), resume: args.includes("--resume") });
 }
 
 export async function inspectEngineeringCheckout({ repoRoot = REPO, base, runGit = async (args) =>
@@ -104,16 +110,30 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
   const root = options.appRoot || localAppRoot();
   const runDir = path.join(root, "engineering-team", "runs", campaign.scopeHash);
   await mkdir(runDir, { recursive: true, mode: 0o700 });
-  // Exclusive reservation: after a crash an existing run is never silently
-  // replayed (including local Pi prompts). Host-owned Pi Durable recovery is
-  // a distinct, not-yet-implemented phase of #3098.
-  await writeFile(path.join(runDir, "reservation.json"), JSON.stringify({
-    schemaVersion: 1,
-    campaignId: campaign.campaignId,
-    exactSha: campaign.exactSha,
-    scopeHash: campaign.scopeHash,
-    state: "reserved",
-  }) + "\n", { flag: "wx", mode: 0o600 });
+  // Existing attempts never automatically replay. Durable recovery requires
+  // explicit --resume, the same base/head/scope and an incomplete prior result.
+  const reservationPath = path.join(runDir, "reservation.json");
+  if (config.resume) {
+    const previous = JSON.parse(await readFile(reservationPath, "utf8"));
+    if (previous.campaignId !== campaign.campaignId || previous.scopeHash !== campaign.scopeHash
+      || previous.exactSha !== campaign.exactSha || previous.baseSha !== config.base
+      || previous.executionMode !== "durable" || previous.state !== "reserved") {
+      throw new Error("Engineering Team durable recovery reservation is stale or mismatched.");
+    }
+    try {
+      await readFile(path.join(runDir, "receipt.json"), "utf8");
+      throw new Error("Engineering Team completed attempt cannot be resumed.");
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  } else {
+    await writeFile(reservationPath, JSON.stringify({
+      schemaVersion: 1, campaignId: campaign.campaignId, exactSha: campaign.exactSha,
+      baseSha: config.base, scopeHash: campaign.scopeHash,
+      executionMode: config.durable ? "durable" : "direct",
+      state: "reserved",
+    }) + "\n", { flag: config.resume ? "w" : "wx", mode: 0o600 });
+  }
   const artifactRoot = path.join(runDir, "focused-uat");
   const buildAdapters = options.buildAdapters || (async () => {
     const adapters = { tester: createFocusedUatEngineeringAdapter({ repoRoot, artifactRoot }) };
@@ -141,18 +161,20 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
   let localBuzz = null;
   try {
     const adapters = await buildAdapters({ campaign, checkout, repoRoot, artifactRoot });
-    result = await executeEngineeringTeam(campaign, {
+    const execution = {
       getExactHead: options.getExactHead || (async () => (await inspect()).head),
-      adapters,
-      signal: options.signal,
-    });
+      adapters, signal: options.signal,
+    };
+    result = config.durable
+      ? await (options.driveDurable || driveEngineeringDurableCheckpoint)(campaign, { ...execution, runDir })
+      : await executeEngineeringTeam(campaign, execution);
     if (config.buzzLocal && result.status === "observed") {
       localBuzz = await recordEngineeringLocalHandoffs(campaign, result, {
         localRoot: path.join(root, "buzz-local-backbone"),
       });
     }
   } catch {
-    await writeFile(path.join(runDir, "failure.json"), JSON.stringify({
+    await writeFile(path.join(runDir, config.resume ? "resume-failure.json" : "failure.json"), JSON.stringify({
       campaignId: campaign.campaignId, state: "blocked", reason: "execution-or-evidence-failure",
       sourceMutationAllowed: false, mergeEligible: false,
     }) + "\n", { flag: "wx", mode: 0o600 });
@@ -162,6 +184,7 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
     ...result,
     evidenceClass: "on-demand-local-execution",
     durableRecoveryProven: false,
+    durableCheckpointAdmitted: result.durableCheckpointAdmitted === true,
     independentlyVerified: false,
     signedExternalBuzzProven: false,
     localBuzz,

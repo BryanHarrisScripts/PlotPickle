@@ -3694,6 +3694,48 @@
         ]
       },
       "notes": "#3099 local-only BUZZ journal synthetic role exchanges, same-work message-size comparisons and negative no-signer proof; no real model, BUZZ remote signature or verified defect-rate study."
+    },
+    {
+      "id": "agent.experimental-engineering-team-operator-3100",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3100-engineering-team-operator-reporting.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3100 status reads private simulated receipts and emits unpublishable GitHub drafts; synthetic evidence only, no live GUI scheduler/remote Github/modeled provider proof."
     }
   ],
   "truthGovernance": {
@@ -8000,6 +8042,34 @@
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
             "digest": "3864595d2558d5c1c51f090f2fe078defae1d4362e5826b4d13941fab5648b0f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3100-engineering-team-operator-reporting.test.mjs",
+        "targetDigest": "42b386a42c6beaec945045c00d3b545c43b9eb07837b261b6b6b0866d73a6301",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-operator-3100"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Tests synthetic private local file receipts and in-memory candidate guards. No actual Windows provider I/O, GitHub publication, BUZZ signer or scheduling is proven.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/operator-reporting.mjs",
+            "digest": "edd3866966f63b323a108c64e0ffddad6baffed200eb19eda1641b1904663e88"
           }
         ]
       }

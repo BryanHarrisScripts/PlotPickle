@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "issue": 3100,
+  "phase": "engineering-team-readonly-operator-reporter",
+  "brief": "docs/developer-briefs/3100-engineering-team-operator-reporting.md",
+  "allowedChanges": [
+    "scripts/engineering-team/operator-reporting.mjs",
+    "tests/issue-3100-engineering-team-operator-reporting.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3100-engineering-team-operator-reporting.json",
+    "docs/developer-briefs/3100-engineering-team-operator-reporting.md"
+  ],
+  "acceptance": [
+    {
+      "id": "NO-STARTUP-INFERENCE",
+      "criterion": "Read-only status reads actual private receipts; does not start models or infer readiness.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/operator-reporting.mjs",
+          "contains": "providerReadiness: \"not-probed\""
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/operator-reporting.mjs",
+          "contains": "continuousScheduler: \"not-enabled\""
+        }
+      ]
+    },
+    {
+      "id": "NO-UNAUTHORIZED-PUBLISH",
+      "criterion": "Exact SHA independently reproduced findings yield only deduplicated local candidate drafts.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/operator-reporting.mjs",
+          "contains": "authorizedToPublish: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/operator-reporting.mjs",
+          "contains": "githubPublished: false"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No remote GitHub issue creation or PR comment, no BUZZ external signer, no scheduler/agent mutations, no asserted live Windows proof.",
+    "Synthetic unit tests cannot certify operational engineering team."
+  ]
+}

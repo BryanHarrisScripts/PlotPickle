@@ -7871,7 +7871,7 @@
       },
       {
         "target": "tests/issue-3098-engineering-team-live-adapters.test.mjs",
-        "targetDigest": "6561285571593c40338c12df9d2e5dd02a3d15d0182f9f9248d2ee9af6f2b77e",
+        "targetDigest": "b8229f2b11324a6bc4b6234589da867f577da249c67385aa088f0b5ac6bea62d",
         "catalogueIds": [
           "agent.experimental-engineering-team-local-3098"
         ],
@@ -7925,7 +7925,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "efb6d14638917a732cd7691d23cd0129d70f133858acdd4fd9ab50a59bbd8c45"
+            "digest": "f26a2fbc8870a80b5ca5301e77edf540e8036ea6d9268c0fbe6b2be2b8583465"
           }
         ]
       }

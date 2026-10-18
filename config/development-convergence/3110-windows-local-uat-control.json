@@ -8,7 +8,8 @@
     "tests/issue-3110-windows-uat-control.test.mjs",
     "docs/developer-briefs/3110-windows-local-uat-control.md",
     "config/development-convergence/3110-windows-local-uat-control.json",
-    "config/verification/test-catalog.json"
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {
@@ -72,6 +73,17 @@
           "type": "file-contains",
           "path": "scripts/windows-uat-control.mjs",
           "contains": "remoteControlConnected: false"
+        }
+      ]
+    },
+    {
+      "id": "OPERATOR-OWNERSHIP",
+      "criterion": "Local UAT operator entrypoint is explicitly assigned to existing agent-runtime architecture owner instead of unmapped production.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "scripts/windows-uat-control.mjs"
         }
       ]
     }

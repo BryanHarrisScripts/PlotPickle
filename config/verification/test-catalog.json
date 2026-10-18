@@ -3652,6 +3652,48 @@
         ]
       },
       "notes": "#3098 explicit local frozen-head adapter/command negative tests; mocked process and provider responses only. No proven Windows managed Pi or provider I/O, Pi Durable recovery, BUZZ external signature or automatic campaign."
+    },
+    {
+      "id": "agent.experimental-engineering-team-buzz-3099",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3099-engineering-team-buzz-experiment.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3099 local-only BUZZ journal synthetic role exchanges, same-work message-size comparisons and negative no-signer proof; no real model, BUZZ remote signature or verified defect-rate study."
     }
   ],
   "truthGovernance": {
@@ -7925,7 +7967,39 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "f26a2fbc8870a80b5ca5301e77edf540e8036ea6d9268c0fbe6b2be2b8583465"
+            "digest": "a64106c1b24cb17653a8bad37a0ef9bfff2ba2781959b6afd91e6362e5b905ea"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3099-engineering-team-buzz-experiment.test.mjs",
+        "targetDigest": "e912eee4d762ef0b260a3f770692d0c17b839e653fa8b852a690abd9b1fb2fd0",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-buzz-3099"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Source-only synthetic role responses and local filesystem journal receipts. No real independent Pi/Cline, remote BUZZ signer or controlled defect-rate comparison is proven.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "a64106c1b24cb17653a8bad37a0ef9bfff2ba2781959b6afd91e6362e5b905ea"
+          },
+          {
+            "path": "scripts/engineering-team/buzz-experiment.mjs",
+            "digest": "3864595d2558d5c1c51f090f2fe078defae1d4362e5826b4d13941fab5648b0f"
           }
         ]
       }

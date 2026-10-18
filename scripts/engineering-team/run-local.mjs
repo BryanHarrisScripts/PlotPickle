@@ -128,9 +128,10 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
             });
           }
         }
-      } catch {
-        // No local model or private Pi install means role BLOCKED, never a
-        // silent cloud fallback or a registry-only synthetic success.
+      } catch (error) {
+        // A provider or private-install error cannot be promoted to role READY.
+        // Surface a typed blocked condition; never copy credential-bearing errors.
+        options.onAdapterBlocked?.("managed-pi-or-local-model-unavailable");
       }
     }
     return adapters;

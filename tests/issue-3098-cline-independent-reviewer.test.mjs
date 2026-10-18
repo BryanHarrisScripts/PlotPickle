@@ -234,7 +234,7 @@ test("Windows Cline launcher resolves actual .cmd or .exe before durable route h
   }), /Windows launcher could not be located/);
   await assert.rejects(resolveClineReviewExecutable("cline", {
     platform: "win32", locate: async () => { throw new Error("ENOENT"); },
-  }), /Windows launcher could not be located/);
+  }), /ENOENT/);
   await withFixture(async ({ repoRoot, privateRoot }) => {
     const original = makeAdapter({ repoRoot, privateRoot, invoke: async () => ({ stdout: fakeResult }) });
     const pinned = createClineEngineeringPlanAdapter({

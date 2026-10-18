@@ -147,7 +147,7 @@ test("matched experimental arms compare measured outputs without deciding succes
   const comparison = compareEngineeringArms(structured, lossy, metrics);
   assert.equal(comparison.superiorityProven, false);
   assert.equal(comparison.lossy.messageBytes, 180);
-  assert.throws(() => compareEngineeringArms(structured, admitEngineeringCampaign({ ...input("lossy"), taskRef: "other" }), metrics), /same exact work/);
+  assert.throws(() => compareEngineeringArms(structured, admitEngineeringCampaign({ ...input("lossy"), taskRef: "other" }), metrics), /share exact work/);
   assert.throws(() => compareEngineeringArms(structured, lossy, {
     ...metrics, lossy: { ...metrics.lossy, verifiedFindings: -1 },
   }), /independently measured/);

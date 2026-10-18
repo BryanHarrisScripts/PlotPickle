@@ -39,6 +39,7 @@ export function createFocusedUatEngineeringAdapter({
   }
   return Object.freeze({
     executorId: "focused-uat-contract-runner",
+    routeReceipt: sha256(JSON.stringify({ worker: "focused-uat-contracts-v1", repoRoot })),
     async run(request) {
       if (!SAFE_HEAD.test(request.exactSha) || request.role !== "tester") {
         throw new Error("Engineering Team UAT input is not the admitted Tester role.");
@@ -99,6 +100,7 @@ export function createPiEngineeringReadOnlyAdapter({
   return Object.freeze({
     // Separate sessions, not proof that Pi uses distinct underlying models.
     executorId: "managed-pi-readonly-" + role,
+    routeReceipt: sha256(JSON.stringify({ worker: "managed-pi-readonly-v1", role, command, model: runtime.model, baseUrl: runtime.baseUrl, repoRoot })),
     async run(request) {
       if (!SAFE_HEAD.test(request.exactSha) || request.role !== role) throw new Error("Engineering Team Pi role/commit mismatch.");
       const handoff = request.handoff;

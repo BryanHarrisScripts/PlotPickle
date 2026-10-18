@@ -5766,7 +5766,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "8e8e283791d8f1abaad2295dab2e1efaa879baad0c1d3296c242dc58d961fbd9"
+            "digest": "34fbf95cad8c9f54a084f4d6423488aa171bcef6ae5704e8f547461d2a4c3da5"
           }
         ]
       },
@@ -6576,7 +6576,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
+            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6600,7 +6600,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "8e8e283791d8f1abaad2295dab2e1efaa879baad0c1d3296c242dc58d961fbd9"
+            "digest": "34fbf95cad8c9f54a084f4d6423488aa171bcef6ae5704e8f547461d2a4c3da5"
           }
         ]
       },
@@ -6684,7 +6684,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
+            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7545,7 +7545,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
+            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
           },
           {
             "path": "config/third-party-oss.json",
@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "5af180574725dc24673a46e2c74843eedd030fc3c028d4359e71ca824dcfd19b",
+        "targetDigest": "b815ea27d3c8b260f6b0924cf5b7cb5cb2c74167bf12970d34fc9c55e5c6834a",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],
@@ -7692,7 +7692,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof. #3090 isolated candidate synthetic MPEG-4 frame-order and final-frame proof is an RC-only comparison, not upstream RustSec removal, distribution clearance, or a production dependency migration.",
+        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof. #3090 isolated candidate synthetic MPEG-4 frame-order and final-frame proof is an RC-only comparison, not upstream RustSec removal, distribution clearance, or a production dependency migration. #3089 upstream lru0.18.5 metadata-only reachability and revoked-local-override counterexample do not establish upgraded binaries or remediation.",
         "inputs": [
           {
             "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
@@ -7717,6 +7717,10 @@
           {
             "path": "config/verification/fframes-upgrade-candidates-2026-10-18.json",
             "digest": "935c82e234ae30daf5e104bf8878ef9feefa3891f70750749488aa900b479e96"
+          },
+          {
+            "path": "scripts/media/fframes-lru-transition-probe.mjs",
+            "digest": "a4f08d0f6a10cca08ece7afe940fa4b25e457b1beb7cfd54fa7f680939012849"
           }
         ]
       }

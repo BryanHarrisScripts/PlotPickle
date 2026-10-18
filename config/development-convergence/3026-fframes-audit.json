@@ -17,7 +17,8 @@
     ".github/workflows/product-gate.yml",
     "scripts/media/fframes-candidate-resolution.mjs",
     "config/verification/fframes-upgrade-candidates-2026-10-18.json",
-    "docs/research/3026-fframes-upgrade-queue-2026-10-18.md"
+    "docs/research/3026-fframes-upgrade-queue-2026-10-18.md",
+    "scripts/media/fframes-lru-transition-probe.mjs"
   ],
   "acceptance": [
     {
@@ -144,6 +145,27 @@
           "type": "file-contains",
           "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
           "contains": "isolated FFrames release candidate verifies real decoded frame order"
+        }
+      ]
+    },
+    {
+      "id": "3089-LOCAL-LRU-BACKPORT-UPSTREAM-RESOLUTION",
+      "criterion": "Isolated rc.45 Cargo resolution without PlotPickle's reviewed lru source patch identifies whether registry lru0.14 is still required; never classify source-only evidence as tested native replacement or mutate production Cargo.lock.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/media/fframes-lru-transition-probe.mjs",
+          "contains": "BLOCKED_UPSTREAM_LRU_014_REQUIRED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "candidate unpatched lru graph reports incompatible registry"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "fframes-lru-transition-probe.mjs"
         }
       ]
     }

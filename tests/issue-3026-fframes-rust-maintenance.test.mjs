@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
 import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation, verifyCandidateFrames } from "../scripts/media/fframes-candidate-resolution.mjs";
+import { withoutReviewedLruPatch, classifyLruCandidateGraph } from "../scripts/media/fframes-lru-transition-probe.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -187,4 +188,43 @@ test("#3090 isolated FFrames release candidate verifies real decoded frame order
   const candidate = workflow.slice(workflow.indexOf("  fframes-candidate-windows:"));
   assert.match(candidate, /PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_RENDER: '1'/u);
   assert.match(candidate, /independently verify all 36 decoded frames/u);
+});
+
+test("#3089 local lru backport removal is trial-only and must be source reviewed", async () => {
+  const manifest = await read("tools/fframes-bridge/Cargo.toml");
+  const trial = withoutReviewedLruPatch(manifest, "1.2.0", "1.2.1-rc.45");
+  assert.match(trial, /fframes = \{ version = "=1\.2\.1-rc\.45"/u);
+  assert.doesNotMatch(trial, /\[patch\.crates-io\]/u);
+  assert.match(manifest, /\[patch\.crates-io\][\s\S]*lru/u, "production patch must remain");
+  assert.throws(() => withoutReviewedLruPatch(manifest.replace("vendor/lru-0.14.0-patched", "vendor/unknown"),
+    "1.2.0", "1.2.1-rc.45"), /requires explicit source inspection/u);
+});
+
+test("#3089 candidate unpatched lru graph reports incompatible registry 0.14, not remediation", () => {
+  const graph = {
+    resolve: { root: "root", nodes: [
+      { id: "root", deps: [{ pkg: "ff" }] }, { id: "ff", deps: [{ pkg: "old" }, { pkg: "new" }] },
+      { id: "old", deps: [] }, { id: "new", deps: [] }
+    ] },
+    packages: [
+      { id: "root", name: "plotpickle-fframes-bridge", version: "0.1.0" },
+      { id: "ff", name: "fframes", version: "1.2.1-rc.45" },
+      { id: "old", name: "lru", version: "0.14.0", source: "registry+https://github.com/rust-lang/crates.io-index" },
+      { id: "new", name: "lru", version: "0.18.5", source: "registry+https://github.com/rust-lang/crates.io-index" }
+    ]
+  };
+  const incompatible = classifyLruCandidateGraph(graph, "1.2.1-rc.45");
+  assert.equal(incompatible.status, "BLOCKED_UPSTREAM_LRU_014_REQUIRED");
+  assert.equal(incompatible.promotion, false);
+  graph.resolve.nodes[1].deps = [{ pkg: "new" }];
+  const eligible = classifyLruCandidateGraph(graph, "1.2.1-rc.45");
+  assert.equal(eligible.status, "UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF");
+  assert.equal(eligible.upstreamGraphOnly, true);
+  graph.packages[3].source = null;
+  assert.equal(classifyLruCandidateGraph(graph, "1.2.1-rc.45").status,
+    "BLOCKED_LOCAL_LRU_STILL_PRESENT");
+  assert.throws(() => classifyLruCandidateGraph(graph, "1.2.0"), /exact requested/u);
+  const script = await read("scripts/media/fframes-lru-transition-probe.mjs");
+  assert.match(script, /Production Cargo\.lock was modified by upstream lru experiment/u);
+  assert.match(script, /nativeCandidateWithUpstreamLru: "NOT_PROVEN"/u);
 });

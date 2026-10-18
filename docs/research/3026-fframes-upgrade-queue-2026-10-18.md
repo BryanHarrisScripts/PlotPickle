@@ -20,3 +20,7 @@ Evidence: GitHub native baseline PR #3087 (merged), FFrames docs.rs release list
 ## Candidate native compilation (issue #3089)
 
 An isolated Windows Rust 1.99.0 release build of FFrames 1.2.1-rc.45 is required in the candidate CI lane. Read `.artifacts/fframes-candidate-3088/resolution.json` for the `candidateCompilation.status` value, distinct from Cargo metadata status. An unsuccessful native build is recorded as a source-backed blocker. Successful compilation is not proof of MPEG-4 encoding/decoding, upgrade licence clearance, or deployability; production FFrames 1.2.0/Cargo.lock stay untouched.
+
+## Local lru 0.14 security-backport retirement gate — issue #3089
+
+Current production: locally patched lru 0.14.0 remains mandatory. Upstream *main source* declares 0.18.5, but published rc.45 compatibility is unproven until a separate Windows Cargo experiment strips only the local override in a temp manifest and checks all reachable lru versions and registry sources. The proof is written to `.artifacts/fframes-candidate-3088/lru-transition.json`: `BLOCKED_UPSTREAM_LRU_014_REQUIRED` means 0.14 remains in the graph; `UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF` means metadata alone is eligible, not a shipped library. Neither state alters the original reviewed lru patch or clears advisory obligations. Upstream source reference: `dmtrKovalenko/fframes/fframes/Cargo.toml` SHA `03df1209227bc13cbc733ab567362142d5a43163`.

@@ -57,9 +57,16 @@ export function createClineEngineeringPlanAdapter({
       const rank = (value) => /\.(?:mjs|js|ts|tsx)$/.test(value) ? 0 : 1;
       return rank(a) - rank(b);
     });
-    for (const [index, relative] of prioritized.entries()) {
+    for (const relative of prioritized) {
       const source = path.resolve(repoRoot, relative);
-      const actual = await realpath(source);
+      let actual;
+      try {
+        actual = await realpath(source);
+      } catch (error) {
+        if (error?.code !== "ENOENT") throw error;
+        omitted.push({ path: relative, reason: "absent-at-head" });
+        continue;
+      }
       if (!actual.startsWith(root + path.sep)) throw new Error("Cline source would escape admitted repository.");
       const stat = await lstat(source);
       if (!stat.isFile() || stat.isSymbolicLink()) {
@@ -166,7 +173,7 @@ export function createClineEngineeringPlanAdapter({
           + " large/binary sources. Advisory only. "
           + response.replace(/[\u0000-\u001f]/g, " ")).slice(0, 780),
         evidenceRefs: Object.freeze(["cline-output-sha256:" + hash(output.stdout),
-          "cline-source-manifest-sha256:" + hash(JSON.stringify(manifest))]),
+          "cline-source-manifest-sha256:" + hash(JSON.stringify({ manifest, omitted, requested: changedPaths }))]),
       });
     },
   });

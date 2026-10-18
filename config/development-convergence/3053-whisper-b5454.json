@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "issue": 3053,
+  "phase": "whisper-windows-cpu-b5454",
+  "brief": "docs/developer-briefs/3053-whisper-b5454.md",
+  "allowedChanges": [
+    "config/local-voice-input.json",
+    "config/third-party-oss.json",
+    "tests/issue-1910-local-voice-input.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3053-whisper-b5454.md",
+    "config/development-convergence/3053-whisper-b5454.json"
+  ],
+  "acceptance": [
+    {
+      "id": "REVIEWED-CPU-PIN",
+      "criterion": "The existing managed download selects the exact reviewed Windows CPU release and digest.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "\"releaseTag\": \"b5454\"" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "6ba69e3482d7826214f90a6a9c84ca07782aec1e1d0c6a7c30c994fd5d816ccb" },
+        { "type": "file-contains", "path": "tests/issue-1910-local-voice-input.test.mjs", "contains": "8928640" }
+      ]
+    },
+    {
+      "id": "MODEL-AND-VOICE-BOUNDARIES",
+      "criterion": "The unchanged model and no-cloud policy remain explicit and the existing Windows managed smoke remains required.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "\"cloudFallback\": false" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "Validate local whisper.cpp dictation fixture" }
+      ]
+    }
+  ],
+  "constraints": [
+    "No model,provider,microphone permission or story mutation.",
+    "Static convergence and direct candidate transcription cannot replace real managed-install Windows proof."
+  ]
+}

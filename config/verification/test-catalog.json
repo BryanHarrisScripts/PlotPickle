@@ -1080,7 +1080,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
-          "tests/issue-2352-local-voice-manifest-bom.test.mjs"
+          "tests/issue-2352-local-voice-manifest-bom.test.mjs",
+          "tests/issue-1910-local-voice-input.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1105,7 +1106,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6 with dependency-free source contracts. #2352 adds Windows PowerShell UTF-8 BOM compatibility for installed.json while preserving exact provenance/hash verification. The broader #1910 regression remains available in legacy/manual gates, while exact Windows fixture transcription remains a separate impact-selected native proof."
+      "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6 with dependency-free source contracts. #2352 adds Windows PowerShell UTF-8 BOM compatibility for installed.json while preserving exact provenance/hash verification. The broader #1910 regression remains available in legacy/manual gates, while exact Windows fixture transcription remains a separate impact-selected native proof. #3053 admits the existing1910 suite for the b5454 CPU runtime pin while preserving unchanged model/permissions/input constraints."
     },
     {
       "id": "experience.dsdd-brief-handoff-2354",
@@ -6482,7 +6483,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "e89fab0be7957f750df122c98c9a1de7fb66a6a2666a7280f9d7d1946fb34401"
+            "digest": "e4a26e946917b6d7db0bbbd06ef1b9051c2cacbf73c4a466258afaa4ea7b1bb4"
           },
           {
             "path": "docs/developer-briefs/2338-dsdd-pi-087-persistent-session.md",
@@ -6598,7 +6599,7 @@
           },
           {
             "path": "config/third-party-oss.json",
-            "digest": "e89fab0be7957f750df122c98c9a1de7fb66a6a2666a7280f9d7d1946fb34401"
+            "digest": "e4a26e946917b6d7db0bbbd06ef1b9051c2cacbf73c4a466258afaa4ea7b1bb4"
           },
           {
             "path": ".github/workflows/product-gate.yml",
@@ -7392,6 +7393,118 @@
           {
             "path": "scripts/setup-developer-agent-stack.ps1",
             "digest": "7865d20e87ac35f0b125dcaf14c52b4a8899b532173c0eb94950601f9f97cd50"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1910-local-voice-input.test.mjs",
+        "targetDigest": "b16235fb2ce29568f7923f4ea0531fada626732ef17f0b1c10c980ca64f4e274",
+        "catalogueIds": [
+          "provider.local-voice-runtime-2350"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Retains existing eligibility,insertion,microphone,hash/provenance and source-boundary checks while updating reviewed CPU runtime pin to b5454. Windows PowerShell hash controls use synthetic bytes. Actual new-runtime transcription and managed installation require separate Windows product observations; no Human microphone or story use is proved.",
+        "inputs": [
+          {
+            "path": "scripts/install-whisper-cpp.ps1",
+            "digest": "59c30eb2b330cbc8335000dc1ff67da0bdf5debb81cd7ffd88dc889262ac5e4f"
+          },
+          {
+            "path": "lib/voice-input.ts",
+            "digest": "6231fdcd6fac7258ce5cd73e761695b8bc2bbfe3b58e7532860f6f4540e6accf"
+          },
+          {
+            "path": "config/local-voice-input.json",
+            "digest": "fdec2006eab2dc1bb1e1f2bd8ed56766b3216041608c9c8e88a6184425a80cb3"
+          },
+          {
+            "path": "app/_components/voice-input-control.tsx",
+            "digest": "5435a3480206549a69cbaf7ba9c9d1213fcd503250ac7961e28c94994e9048d3"
+          },
+          {
+            "path": "app/_components/universal-voice-input-layer.tsx",
+            "digest": "6c800794dcc52de16b426ff2e475e32e9bb46d34581d6e732474e040a647b2eb"
+          },
+          {
+            "path": "app/layout.tsx",
+            "digest": "8436f7e894388622d0423dd6a7007822ddce48227b46527bed549ce28591e387"
+          },
+          {
+            "path": "build/voice/local-voice-runtime.ts",
+            "digest": "322cee6c886e61231e77e9acf267399d67802f6127067eab0698c182ac27c528"
+          },
+          {
+            "path": "build/voice/local-voice-gateway.ts",
+            "digest": "baf3f01783ef0a448867f5c87d366c63b161103734f6919d43f577abc71a1f31"
+          },
+          {
+            "path": "app/sage-settings-workspace.tsx",
+            "digest": "206e791087002500caece14bcf9c62ae2ce7a7885377b7e60aa3496ec4c48fa3"
+          },
+          {
+            "path": "app/local-voice-settings.tsx",
+            "digest": "fb97edd520516f751bcba735c7deb42a59902f855316b7673550e9a445bf0427"
+          },
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+          },
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
+          },
+          {
+            "path": "config/third-party-oss.json",
+            "digest": "e4a26e946917b6d7db0bbbd06ef1b9051c2cacbf73c4a466258afaa4ea7b1bb4"
+          },
+          {
+            "path": "runtime/whisper/LICENSE.whisper.cpp.txt",
+            "digest": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+          },
+          {
+            "path": "runtime/whisper/MODEL-PROVENANCE.md",
+            "digest": "2d0c741221cf228b2f8fb8fe666250669d3a61f0717686017b98a7951879ec10"
+          },
+          {
+            "path": ".github/workflows/pr-gate.yml",
+            "digest": "50b5e4a033af432e07187a83882ea13d1c5c17803d59003b6f7f4b13e5bd4dca"
+          },
+          {
+            "path": "build/local-ai-gateway.ts",
+            "digest": "7cf56f8781b3913823d509f54032ff2df5abadfff9f2fa8376ca3e0614dbe45e"
+          },
+          {
+            "path": "docs/developer-briefs/1910-local-voice-input.md",
+            "digest": "ecc97684e98208a39ee1d11a84ecf9fbacbd6ddadaefde0fb3c4b49a8395d993"
+          },
+          {
+            "path": "app/_components/agent-shortcut-picker.tsx",
+            "digest": "3bc3c695127fedcaac637875b1e21255c9db916180038adf3b47913b4b48ec86"
+          },
+          {
+            "path": "app/writing-assistant-console.tsx",
+            "digest": "2068a734ffdb07489115a81f96d4a927e55460c6746acfebb1c52ada96671df0"
+          },
+          {
+            "path": "build/writing-assistant-gateway.ts",
+            "digest": "9f21505df7640e9732da17038f96e710a3bafa38a3d2ec418eff253f1634ae1b"
+          },
+          {
+            "path": "build/mastra-agent-runtime.ts",
+            "digest": "af5b315a0b901e9c5e6d7287fa19387da870dd295e2acbde130ff577b6a639f6"
           }
         ]
       }

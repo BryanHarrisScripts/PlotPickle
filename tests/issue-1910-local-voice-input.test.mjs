@@ -43,11 +43,11 @@ test("#1910 pins one reviewed whisper.cpp Windows CPU runtime and immutable base
   const manifest = await json("config/local-voice-input.json");
   assert.equal(manifest.provider, "whisper.cpp");
   assert.equal(manifest.platform, "windows-x64-cpu");
-  assert.equal(manifest.runtime.releaseTag, "b5130");
-  assert.equal(manifest.runtime.sourceCommit, "927cfce34f31707e17f2bff35c349632fb9e2c3a");
+  assert.equal(manifest.runtime.releaseTag, "b5454");
+  assert.equal(manifest.runtime.sourceCommit, "d1be6fde11ac6e0407606b4e42fe72d34add8037");
   assert.equal(manifest.runtime.assetName, "whisper-bin-x64.zip");
-  assert.equal(manifest.runtime.sizeBytes, 8573270);
-  assert.equal(manifest.runtime.sha256, "f9ec6c52a2e949b62ab51fa21d0d497958f9e41c3010c157c4e42932d5316f3c");
+  assert.equal(manifest.runtime.sizeBytes, 8928640);
+  assert.equal(manifest.runtime.sha256, "6ba69e3482d7826214f90a6a9c84ca07782aec1e1d0c6a7c30c994fd5d816ccb");
   assert.equal(manifest.model.id, "base.en");
   assert.equal(manifest.model.revision, "80da2d8bfee42b0e836fc3a9890373e5defc00a6");
   assert.equal(manifest.model.sizeBytes, 147964211);

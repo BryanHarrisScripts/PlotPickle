@@ -21,7 +21,7 @@ recommend a new \`--attempt\` from a missing diagnostic alone.
 
 This fix adds read-only command:
 
-    node scripts/engineering-team/diagnose-local.mjs --latest --json
+    node scripts/engineering-diagnostics.mjs --latest --json
 
 Optional \`--head <40hex>\` selects a matching checkout history. It reports
 only validated private reservation metadata, sanitized new failure code and
@@ -51,7 +51,7 @@ without overriding the original failure.
 First inspect the original attempt without dispatch:
 
     git rev-parse HEAD
-    node scripts/engineering-team/diagnose-local.mjs --latest --head (git rev-parse HEAD)
+    node scripts/engineering-diagnostics.mjs --latest --head (git rev-parse HEAD)
 
 On PowerShell use \`$head = git rev-parse HEAD\` and
 \`--head $head\` instead of POSIX shell substitution.

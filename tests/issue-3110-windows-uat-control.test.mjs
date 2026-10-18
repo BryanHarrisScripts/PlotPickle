@@ -22,7 +22,7 @@ async function sandbox(fn) {
 }
 const workerStub = () => ({ pid: 1234, unref() {} });
 async function reserve(root, cfg=config()) {
-  const start = await startWindowsUat(cfg,{appRoot:root,inspect:checkout,launch:workerStub});
+  const start = await startWindowsUat(cfg,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:workerStub});
   return start.scope;
 }
 function childFixture(callback) {
@@ -53,7 +53,7 @@ test("local task command only allows explicit exact-head scoped start/status/sto
 test("start accepts local checkout only and reserves before creating a child; duplicate never replays",()=>sandbox(async root=>{
   const cfg=config(), launched=[];
   const fakeLaunch=(args,options)=>{launched.push({args,options});return workerStub()};
-  const first=await startWindowsUat(cfg,{appRoot:root,inspect:checkout,launch:fakeLaunch});
+  const first=await startWindowsUat(cfg,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:fakeLaunch});
   assert.equal(first.status,"dispatched-unconfirmed");
   assert.equal(first.remoteDispatchAuthorized,false);
   assert.equal(first.mergeEligible,false);
@@ -64,7 +64,7 @@ test("start accepts local checkout only and reserves before creating a child; du
   assert.equal(launched.length,1);
   assert.equal(launched[0].args[0].endsWith("windows-uat-control.mjs"),true);
   assert.equal(launched[0].options.shell,undefined);
-  await assert.rejects(startWindowsUat(cfg,{appRoot:root,inspect:checkout,launch:fakeLaunch}),/EEXIST/);
+  await assert.rejects(startWindowsUat(cfg,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:fakeLaunch}),/EEXIST/);
   assert.equal(launched.length,1);
   assert.equal((await statusWindowsUat(first.scope,{appRoot:root})).state,"unconfirmed");
   await assert.rejects(startWindowsUat(config(2),{appRoot:root,
@@ -79,7 +79,7 @@ test("stop is idempotent and never fabricates a terminated worker acknowledgemen
   const duplicate=await requestStopWindowsUat(scope,{appRoot:root});
   assert.equal(duplicate.state,"stop-requested");
   assert.equal((await statusWindowsUat(scope,{appRoot:root})).mergeEligible,false);
-  const result=await driveWindowsUat(scope,{appRoot:root,inspect:checkout,launch:()=>{throw Error("No UAT should launch")}});
+  const result=await driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:()=>{throw Error("No UAT should launch")}});
   assert.equal(result.state,"cancelled-child-exited");
   assert.equal(result.cancellationAcknowledged,true);
   assert.equal(result.childExitObserved,false);
@@ -90,7 +90,7 @@ test("a fresh actual contracts-only report with matching subprocess exit becomes
   const scope=await reserve(root);
   let emitted=0;
   const result=await driveWindowsUat(scope,{
-    appRoot:root,inspect:checkout,pollMs:5,
+    appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:5,
     launch:(args,opts)=>childFixture(async emitter=>{
       assert.ok(args.includes("--contracts-only"));
       assert.equal(opts.shell,false);
@@ -115,7 +115,7 @@ test("a fresh actual contracts-only report with matching subprocess exit becomes
 }));
 test("spoofed success without fresh report fails closed, and an interrupted worker cannot replay",()=>sandbox(async root=>{
   const scope=await reserve(root);
-  const result=await driveWindowsUat(scope,{appRoot:root,inspect:checkout,pollMs:5,
+  const result=await driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:5,
     launch:()=>childFixture(emitter=>emitter.emit("exit",0))});
   assert.equal(result.state,"blocked");
   assert.equal(result.evidenceSha256,null);
@@ -125,7 +125,7 @@ test("spoofed success without fresh report fails closed, and an interrupted work
 test("live stop kills only launched UAT child, then observes child exit before confirming cancellation",()=>sandbox(async root=>{
   const scope=await reserve(root);
   let killed=false;
-  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,pollMs:5,
+  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:5,
     launch:()=>childFixture(emitter=>{
       emitter.kill=()=>{killed=true;setImmediate(()=>emitter.emit("exit",null));return true};
     }),
@@ -146,7 +146,7 @@ test("scope symlinks and stale SHA remain blocked; no production project files t
   await mkdir(parent,{recursive:true});
   const outside=path.join(root,"outside");await mkdir(outside);
   await symlink(outside,path.join(parent,scope),"dir");
-  await assert.rejects(startWindowsUat(config(),{appRoot:root,inspect:checkout,launch:workerStub}),
+  await assert.rejects(startWindowsUat(config(),{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:workerStub}),
     /private ordinary directory/);
   await assert.rejects(statusWindowsUat(scope,{appRoot:root}),/private ordinary directory/);
 }));

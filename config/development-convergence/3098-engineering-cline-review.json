@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 3098,
+  "phase": "independent-cline-plan-review",
+  "brief": "docs/developer-briefs/3098-engineering-cline-independent.md",
+  "allowedChanges": [
+    "scripts/engineering-team/cline-plan-adapter.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "tests/issue-3098-cline-independent-reviewer.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3098-engineering-cline-review.json",
+    "docs/developer-briefs/3098-engineering-cline-independent.md"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-SECOND-ENGINE",
+      "criterion": "Only an explicit durable command can select Cline challenger; no automatic provider install, cloud route or second adapter claim from Pi.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "challenger === \"cline\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+          "contains": "Cline is explicit"
+        }
+      ]
+    },
+    {
+      "id": "APPROVAL-DENIAL",
+      "criterion": "Independent CLI uses plan mode, denies auto-approval, shell commands, normal data/config/hooks reuse and keeps original checkout outside cwd.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "\"--auto-approve\", \"false\""
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "CLINE_COMMAND_PERMISSIONS"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-BOUND",
+      "criterion": "Bounded private source manifest rejects symlink/secret paths, detects modifications and verifies model/route identity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "assertBundleIntact"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "routeReceipt"
+        }
+      ]
+    },
+    {
+      "id": "EVIDENCE-SCOPE",
+      "criterion": "A Cline model observation remains advisory and does not certify Windows real I/O, independent model weights, OS sandbox, GitHub merge, signed BUZZ or third verifier.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3098-engineering-cline-independent.md",
+          "contains": "not a proven kernel/OS"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+          "contains": "res.state, \"candidate\""
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No unattended code mutation or public network publication granted.",
+    "Node CI synthetic process fixture is not live Cline model execution.",
+    "Cline Plan/permission denial does not constitute a formal OS sandbox."
+  ]
+}

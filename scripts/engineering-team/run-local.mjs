@@ -14,6 +14,7 @@ import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
 import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
 import { driveEngineeringDurableCheckpoint } from "./durable-checkpoint.mjs";
+import { createClineEngineeringPlanAdapter } from "./cline-plan-adapter.mjs";
 
 const exec = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -22,7 +23,7 @@ const SHA = /^[a-f0-9]{40}$/i;
 const TASK = /^[a-z0-9][a-z0-9._:/-]{1,119}$/i;
 const MODES = new Set(["structured", "lossy"]);
 const ROLES = new Set(["scout", "tester", "challenger"]);
-const keys = new Set(["--head", "--base", "--task", "--mode", "--roles", "--attempt"]);
+const keys = new Set(["--head", "--base", "--task", "--mode", "--roles", "--attempt", "--challenger"]);
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
 export function parseEngineeringCommand(args) {
@@ -53,6 +54,9 @@ export function parseEngineeringCommand(args) {
   if (!roles.includes("tester") || !roles.includes("challenger") || roles.includes("repairer")) {
     throw new Error("Engineering Team live run requires independent Tester and Challenger; repair has separate authority.");
   }
+  const challenger = String(values["--challenger"] ?? "pi");
+  if (!["pi", "cline"].includes(challenger)) throw new Error("Engineering Team challenger must be pi or cline.");
+  if (challenger === "cline" && !args.includes("--durable")) throw new Error("Independent Cline reviewer requires --durable admission.");
   const attempt = Number(values["--attempt"] ?? 1);
   if (!Number.isInteger(attempt) || attempt < 1 || attempt > 9) throw new Error("Engineering Team attempt must be 1-9.");
   if (args.includes("--resume") && !args.includes("--durable")) throw new Error("Engineering Team explicit resume requires --durable.");
@@ -60,7 +64,7 @@ export function parseEngineeringCommand(args) {
     if (args.filter((arg) => arg === flag).length > 1) throw new Error("Engineering Team repeat flag not allowed.");
   }
   return Object.freeze({ head, base, task, mode, roles, attempt,
-    buzzLocal: args.includes("--buzz-local"), durable: args.includes("--durable"), resume: args.includes("--resume") });
+    buzzLocal: args.includes("--buzz-local"), durable: args.includes("--durable"), resume: args.includes("--resume"), challenger });
 }
 
 export async function inspectEngineeringCheckout({ repoRoot = REPO, base, runGit = async (args) =>
@@ -93,7 +97,7 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
   if (!SHA.test(config.base || "") || config.base === config.head) throw new Error("Engineering Team requires a distinct exact base SHA.");
   const campaign = admitEngineeringCampaign({
     campaignId: "eng-" + config.head.slice(0, 12) + "-" + sha256(config.task).slice(0, 12)
-      + "-" + config.mode + "-" + config.attempt,
+      + "-" + config.mode + "-" + config.attempt + (config.challenger === "cline" ? "-cline" : ""),
     taskRef: config.task,
     exactSha: config.head,
     repository: "BryanHarrisScripts/PlotPickle",
@@ -139,20 +143,28 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
     const adapters = { tester: createFocusedUatEngineeringAdapter({ repoRoot, artifactRoot }) };
     if (campaign.roles.includes("scout") || campaign.roles.includes("challenger")) {
       try {
-        const pi = await probeManagedPi();
-        if (pi.ready) {
-          const runtime = await resolvePiLocalRuntime();
-          for (const role of ["scout", "challenger"]) {
-            if (!campaign.roles.includes(role)) continue;
-            adapters[role] = createPiEngineeringReadOnlyAdapter({
-              role, repoRoot, command: pi.command, runtime, changedPaths: checkout.changedPaths,
-            });
+        const runtime = await resolvePiLocalRuntime();
+        const needsPi = campaign.roles.includes("scout") || (campaign.roles.includes("challenger") && config.challenger !== "cline");
+        if (needsPi) {
+          const pi = await probeManagedPi();
+          if (pi.ready) {
+            for (const role of ["scout", "challenger"]) {
+              if (!campaign.roles.includes(role) || (role === "challenger" && config.challenger === "cline")) continue;
+              adapters[role] = createPiEngineeringReadOnlyAdapter({
+                role, repoRoot, command: pi.command, runtime, changedPaths: checkout.changedPaths,
+              });
+            }
           }
         }
-      } catch (error) {
-        // A provider or private-install error cannot be promoted to role READY.
-        // Surface a typed blocked condition; never copy credential-bearing errors.
-        options.onAdapterBlocked?.("managed-pi-or-local-model-unavailable");
+        if (campaign.roles.includes("challenger") && config.challenger === "cline") {
+          adapters.challenger = createClineEngineeringPlanAdapter({
+            role: "challenger", repoRoot, privateRoot: path.join(runDir, "cline-challenger"),
+            runtime, changedPaths: checkout.changedPaths,
+          });
+        }
+      } catch {
+        // Provider resolution, path or CLI errors are not evidence of an available reviewer.
+        options.onAdapterBlocked?.("independent-reviewer-or-local-model-unavailable");
       }
     }
     return adapters;

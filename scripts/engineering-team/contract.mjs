@@ -53,8 +53,7 @@ function budget(value) {
     maxCloudCostUsd: cloud,
   });
 }
-function canonical(value) { return JSON.stringify(value); }
-function digest(value) { return createHash("sha256").update(canonical(value)).digest("hex"); }
+function digest(value) { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
 
 export function admitEngineeringCampaign(input) {
   if (!input || typeof input !== "object") throw new Error("Engineering Team campaign input required.");
@@ -183,7 +182,7 @@ export function compareEngineeringArms(structured, lossy, measured) {
   if (structured.exactSha !== lossy.exactSha || structured.repository !== lossy.repository || structured.taskRef !== lossy.taskRef) {
     throw new Error("Engineering Team experimental arms must share exact work and commit.");
   }
-  if (canonical(structured.roles) !== canonical(lossy.roles) || canonical(structured.budget) !== canonical(lossy.budget)) {
+  if (JSON.stringify(structured.roles) !== JSON.stringify(lossy.roles) || JSON.stringify(structured.budget) !== JSON.stringify(lossy.budget)) {
     throw new Error("Engineering Team arms must match role roster and budgets.");
   }
   if (!measured || !["structured", "lossy"].every((arm) =>

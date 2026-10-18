@@ -7,14 +7,14 @@ import path from "node:path";
 import {
   parseWindowsUatCommand, windowsUatScope, startWindowsUat, statusWindowsUat,
   requestStopWindowsUat, driveWindowsUat,
-} from "../scripts/engineering-team/windows-uat-control.mjs";
+} from "../scripts/windows-uat-control.mjs";
 
 const HEAD = "a".repeat(40);
 const BASE = "b".repeat(40);
 const config = (attempt=1) => parseWindowsUatCommand([
   "--start", "--head", HEAD, "--base", BASE, "--task", "issue-3110", "--attempt", String(attempt),
 ]);
-const checkout = async () => ({ head: HEAD, changedPaths: ["scripts/engineering-team/windows-uat-control.mjs"] });
+const checkout = async () => ({ head: HEAD, changedPaths: ["scripts/windows-uat-control.mjs"] });
 const controlFolder = (root, scope) => path.join(root,"engineering-team","windows-uat-control",scope);
 async function sandbox(fn) {
   const root = await mkdtemp(path.join(os.tmpdir(),"plotpickle-3110-local-"));

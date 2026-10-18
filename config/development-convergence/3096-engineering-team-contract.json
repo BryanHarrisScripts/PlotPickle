@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 3096,
+  "phase": "engineering-team-contract",
+  "brief": "docs/developer-briefs/3096-experimental-engineering-team.md",
+  "allowedChanges": [
+    "scripts/engineering-team/contract.mjs",
+    "scripts/engineering-team/execution.mjs",
+    "tests/issue-3096-engineering-team-contract.test.mjs",
+    "tests/issue-3096-engineering-team-execution.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3096-engineering-team-contract.json",
+    "docs/developer-briefs/3096-experimental-engineering-team.md",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "READONLY-EXACT-HEAD",
+      "criterion": "Every admitted campaign is tied to one immutable exact commit and readonly permissions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/contract.mjs",
+          "contains": "sourceMutationAllowed: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/execution.mjs",
+          "contains": "getExactHead"
+        }
+      ]
+    },
+    {
+      "id": "NO-SELF-VERIFICATION",
+      "criterion": "A finding requires independent test, challenge and exact-head deterministic corroboration; a role result is not merge authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/contract.mjs",
+          "contains": "deterministicCorroboration: verifiedGate"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/execution.mjs",
+          "contains": "mergeEligible: false"
+        }
+      ]
+    },
+    {
+      "id": "LOSSY-EXPERIMENT",
+      "criterion": "Lossy handoff omits copied references but never deletes original observation receipts.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/contract.mjs",
+          "contains": "evidenceReceiptCount: observation.evidenceRefs.length"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3096-engineering-team-contract.test.mjs",
+          "contains": "lossy handoffs omit source refs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No live agent/provider, GitHub write, paid request, signer, daemon, source mutation or PR merge from this synthetic foundation.",
+    "Contract tests prove only synthetic negative paths, not operational software-factory completion."
+  ]
+}

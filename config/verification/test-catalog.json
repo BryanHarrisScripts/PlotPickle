@@ -3567,6 +3567,48 @@
         ]
       },
       "notes": "#3026 source-bound FFrames Rust unmaintained-crate graph and local lru patch provenance. Baseline drift fails admission until a reviewed Cargo-generated lock and native proof."
+    },
+    {
+      "id": "agent.experimental-engineering-team-3096",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3096-engineering-team-contract.test.mjs",
+          "tests/issue-3096-engineering-team-execution.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3096 deterministic admission, lossy handoff, exact-head runner and independent adjudication fixture. No real Pi/Cline, BUZZ signer, scheduler, GitHub publication or Windows E2E proof."
     }
   ],
   "truthGovernance": {
@@ -7721,6 +7763,66 @@
           {
             "path": "scripts/media/fframes-lru-transition-probe.mjs",
             "digest": "7d12bd73d459f6ee4703de8fc4841c1b407efe7e6bfb1c03d954504e7685c239"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3096-engineering-team-contract.test.mjs",
+        "targetDigest": "a50e2561b49fa233f96f284550e7093dd862dea83c2b3f560dcabc207934490a",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-3096"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Source-only synthetic contract coverage. No live agents, Windows runtime, provider dispatch, BUZZ signed delivery, GitHub PR publication, Pi Durable recovery or autonomous campaign acceptance is established.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/contract.mjs",
+            "digest": "fa0cbdf57ef12acaf29c6376aa1b656a35d3171347dfb312984d3d7edb05de5e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3096-engineering-team-execution.test.mjs",
+        "targetDigest": "44d65765ac52101717b875e7d8b0b9bf080f5876165c78638a76351a807b4931",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-3096"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Source-only synthetic contract coverage. No live agents, Windows runtime, provider dispatch, BUZZ signed delivery, GitHub PR publication, Pi Durable recovery or autonomous campaign acceptance is established.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/contract.mjs",
+            "digest": "fa0cbdf57ef12acaf29c6376aa1b656a35d3171347dfb312984d3d7edb05de5e"
+          },
+          {
+            "path": "scripts/engineering-team/execution.mjs",
+            "digest": "cbfc41bd8733bb6095331d4f033a925899e44b7856b42dfef7f672b7840d5f40"
           }
         ]
       }

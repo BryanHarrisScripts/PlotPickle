@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "dd23949e5d344a0174bb7df6459f276608a4e7a82023d0431fcf31bd3fbfdb35",
+        "targetDigest": "ebb5c1c6e7f981c5a5e1939d7528895be6c8847c26dd7d1b2a0820371c5dfc04",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],
@@ -7720,7 +7720,7 @@
           },
           {
             "path": "scripts/media/fframes-lru-transition-probe.mjs",
-            "digest": "a4f08d0f6a10cca08ece7afe940fa4b25e457b1beb7cfd54fa7f680939012849"
+            "digest": "16eefd76103d09246afddca6abdc8ceb275b5825779923efc90826c55a95c95e"
           }
         ]
       }

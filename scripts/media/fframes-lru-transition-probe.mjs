@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const digest = (text) => createHash("sha256").update(text.replace(/\r\n/gu, "\n")).digest("hex");
 
 export function withoutReviewedLruPatch(manifest, current, candidate) {
-  const original = candidateManifest(manifest, current, candidate);
+  const original = candidateManifest(manifest.replace(/\r\n/gu, "\n"), current, candidate);
   const marker = "\n[patch.crates-io]\n";
   if (original.split(marker).length !== 2) throw Error("Reviewed lru patch stanza absent or ambiguous.");
   const tail = original.split(marker)[1];

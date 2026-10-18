@@ -195,6 +195,7 @@ test("#3089 local lru backport removal is trial-only and must be source reviewed
   const trial = withoutReviewedLruPatch(manifest, "1.2.0", "1.2.1-rc.45");
   assert.match(trial, /fframes = \{ version = "=1\.2\.1-rc\.45"/u);
   assert.doesNotMatch(trial, /\[patch\.crates-io\]/u);
+  assert.equal(withoutReviewedLruPatch(manifest.replace(/\n/gu, "\r\n"), "1.2.0", "1.2.1-rc.45"), trial, "Windows CRLF and Linux LF must produce identical isolated trial");
   assert.match(manifest, /\[patch\.crates-io\][\s\S]*lru/u, "production patch must remain");
   assert.throws(() => withoutReviewedLruPatch(manifest.replace("vendor/lru-0.14.0-patched", "vendor/unknown"),
     "1.2.0", "1.2.1-rc.45"), /requires explicit source inspection/u);

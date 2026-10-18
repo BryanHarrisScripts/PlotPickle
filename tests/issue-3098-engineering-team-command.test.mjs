@@ -10,9 +10,10 @@ import {
 } from "../scripts/engineering-team/run-local.mjs";
 
 const HEAD = "d".repeat(40);
+const BASE = "b".repeat(40);
 const OTHER = "f".repeat(40);
 const config = () => parseEngineeringCommand([
-  "--run", "--head", HEAD, "--task", "pr-3098",
+  "--run", "--head", HEAD, "--base", BASE, "--task", "pr-3098",
   "--roles", "tester,challenger", "--mode", "lossy",
 ]);
 const source = () => ({ head: HEAD, changedPaths: ["scripts/engineering-team/run-local.mjs"] });
@@ -29,26 +30,27 @@ function adapters(calls) {
   };
 }
 test("CLI requires explicit opt-in, exact head, supported roles and no write role", () => {
-  assert.throws(() => parseEngineeringCommand(["--head", HEAD, "--task", "pr-3098"]), /Explicit --run/);
+  assert.throws(() => parseEngineeringCommand(["--head", HEAD, "--base", BASE, "--task", "pr-3098"]), /Explicit --run/);
   assert.throws(() => parseEngineeringCommand(["--run", "--head", "main", "--task", "pr-3098"]), /exact --head SHA/);
-  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--task", "pr-3098", "--roles", "scout,tester"]), /Tester and Challenger/);
-  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--task", "pr-3098", "--roles", "tester,challenger,repairer"]), /Scout, Tester/);
-  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--task", "pr-3098", "--unexpected", "1"]), /unsupported/);
+  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--base", BASE, "--task", "pr-3098", "--roles", "scout,tester"]), /Tester and Challenger/);
+  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--base", BASE, "--task", "pr-3098", "--roles", "tester,challenger,repairer"]), /Scout, Tester/);
+  assert.throws(() => parseEngineeringCommand(["--run", "--head", HEAD, "--base", BASE, "--task", "pr-3098", "--unexpected", "1"]), /unsupported/);
   assert.equal(config().mode, "lossy");
   assert.deepEqual(config().roles, ["tester", "challenger"]);
 });
 test("checkout inspection requires immutable head and clean tracked source", async () => {
-  const good = await inspectEngineeringCheckout({
+  const good = await inspectEngineeringCheckout({ base: BASE,
     runGit: async ([cmd]) => {
       if (cmd === "rev-parse") return HEAD + "\n";
       if (cmd === "status") return "\n";
+      if (cmd === "merge-base") return BASE + "\n";
       return "scripts/engineering-team/run-local.mjs\n";
     },
   });
   assert.equal(good.head, HEAD);
   assert.deepEqual(good.changedPaths, ["scripts/engineering-team/run-local.mjs"]);
-  await assert.rejects(inspectEngineeringCheckout({ runGit: async ([cmd]) => cmd === "rev-parse" ? HEAD : cmd === "status" ? " M package.json" : "" }), /clean tracked/);
-  await assert.rejects(inspectEngineeringCheckout({ runGit: async () => "main" }), /no exact Git commit/);
+  await assert.rejects(inspectEngineeringCheckout({ base: BASE, runGit: async ([cmd]) => cmd === "rev-parse" ? HEAD : cmd === "status" ? " M package.json" : "" }), /clean tracked/);
+  await assert.rejects(inspectEngineeringCheckout({ base: BASE, runGit: async () => "main" }), /no exact Git commit/);
 });
 test("explicit execution records role evidence, protects the same attempt from replay and cannot verify itself", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-engineering-"));
@@ -98,7 +100,7 @@ test("moved head and missing reviewer stay blocked, never silently PASS", async 
     assert.equal(result.receipt.roleResults.at(-1).status, "blocked");
     assert.equal(result.receipt.independentlyVerified, false);
     const moved = await runExplicitEngineeringCampaign(
-      parseEngineeringCommand(["--run", "--head", HEAD, "--task", "pr-3098", "--attempt", "2", "--roles", "tester,challenger"]),
+      parseEngineeringCommand(["--run", "--head", HEAD, "--base", BASE, "--task", "pr-3098", "--attempt", "2", "--roles", "tester,challenger"]),
       { inspect: source, getExactHead: async () => OTHER, appRoot: root,
         buildAdapters: async () => adapters([]) },
     );

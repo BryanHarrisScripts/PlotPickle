@@ -12,6 +12,7 @@ import { executeEngineeringTeam } from "./execution.mjs";
 import { createFocusedUatEngineeringAdapter, createPiEngineeringReadOnlyAdapter } from "./local-adapters.mjs";
 import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
+import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
 
 const exec = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -30,7 +31,7 @@ export function parseEngineeringCommand(args) {
   const values = {};
   for (let i = 0; i < args.length; i++) {
     const token = args[i];
-    if (token === "--run") continue;
+    if (token === "--run" || token === "--buzz-local") continue;
     if (!keys.has(token) || values[token] !== undefined || !args[i + 1] || args[i + 1].startsWith("--")) {
       throw new Error("Engineering Team command contains unsupported, repeated or missing arguments.");
     }
@@ -53,7 +54,7 @@ export function parseEngineeringCommand(args) {
   }
   const attempt = Number(values["--attempt"] ?? 1);
   if (!Number.isInteger(attempt) || attempt < 1 || attempt > 9) throw new Error("Engineering Team attempt must be 1-9.");
-  return Object.freeze({ head, base, task, mode, roles, attempt });
+  return Object.freeze({ head, base, task, mode, roles, attempt, buzzLocal: args.includes("--buzz-local") });
 }
 
 export async function inspectEngineeringCheckout({ repoRoot = REPO, base, runGit = async (args) =>
@@ -137,6 +138,7 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
     return adapters;
   });
   let result;
+  let localBuzz = null;
   try {
     const adapters = await buildAdapters({ campaign, checkout, repoRoot, artifactRoot });
     result = await executeEngineeringTeam(campaign, {
@@ -144,6 +146,11 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
       adapters,
       signal: options.signal,
     });
+    if (config.buzzLocal && result.status === "observed") {
+      localBuzz = await recordEngineeringLocalHandoffs(campaign, result, {
+        localRoot: path.join(root, "buzz-local-backbone"),
+      });
+    }
   } catch {
     await writeFile(path.join(runDir, "failure.json"), JSON.stringify({
       campaignId: campaign.campaignId, state: "blocked", reason: "execution-or-evidence-failure",
@@ -157,6 +164,7 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
     durableRecoveryProven: false,
     independentlyVerified: false,
     signedExternalBuzzProven: false,
+    localBuzz,
   };
   const temporary = path.join(runDir, "receipt.tmp");
   await writeFile(temporary, JSON.stringify(receipt, null, 2) + "\n", { flag: "wx", mode: 0o600 });

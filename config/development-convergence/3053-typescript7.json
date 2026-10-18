@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "issue": 3053,
+  "phase": "typescript7-native-with-api-compatibility",
+  "brief": "docs/developer-briefs/3053-typescript7.md",
+  "allowedChanges": [
+    "package.json",
+    "package-lock.json",
+    "tests/issue-3061-node26-fixture-transform.test.mjs",
+    ".github/workflows/product-gate.yml",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3053-typescript7.md",
+    "config/development-convergence/3053-typescript7.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NATIVE-AND-API-PINS",
+      "criterion": "Official native compiler and API compatibility package are independently exact-pinned.",
+      "evidence": [
+        { "type": "file-contains", "path": "package.json", "contains": "\"@typescript/native\": \"npm:typescript@7.0.2\"" },
+        { "type": "file-contains", "path": "package.json", "contains": "\"typescript\": \"npm:@typescript/typescript6@6.0.2\"" }
+      ]
+    },
+    {
+      "id": "NATIVE-VALID-AND-ERROR-CONTROLS",
+      "criterion": "Native valid/invalid compilation and retained fixture semantics are executable on Linux and Windows.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-3061-node26-fixture-transform.test.mjs", "contains": "native TypeScript 7 checks valid and invalid input" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "Prove native TypeScript 7 and retained TypeScript 6 API on Windows" }
+      ]
+    }
+  ],
+  "constraints": [
+    "Retain exact6.0.3 API fixture semantics and all existing negative controls.",
+    "Controlled compiler proof does not certify all product source types or close historical fixture debt."
+  ]
+}

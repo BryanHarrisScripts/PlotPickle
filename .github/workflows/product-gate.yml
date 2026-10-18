@@ -328,6 +328,9 @@ jobs:
       - name: Install PlotPickle dependencies
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Prove native TypeScript 7 and retained TypeScript 6 API on Windows
+        run: node --test tests/issue-3061-node26-fixture-transform.test.mjs
+
       - name: Prove normal and explicit developer launch from real Windows PowerShell
         shell: pwsh
         run: node --test tests/issue-3070-launch-intent.test.mjs tests/issue-2468-three-runtime-modes.test.mjs tests/issue-1960-home-launcher-bootstrap.test.mjs

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import module, { stripTypeScriptTypes } from "node:module";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
 const nativeStrip = module.stripTypeScriptTypes;
@@ -19,6 +24,38 @@ export function createReceipt() { return new Receipt(Workflow.Approved); }`);
   const fixture = await load(compiled);
   assert.equal(fixture.createReceipt().status, fixture.Workflow.Approved);
   assert.equal(fixture.Workflow.Approved, 1);
+});
+
+test("#3053 native TypeScript 7 checks valid and invalid input beside the exact TypeScript 6 fixture API", async () => {
+  const compiler = fileURLToPath(new URL("../node_modules/@typescript/native/bin/tsc", import.meta.url));
+  const run = (args) => spawnSync(process.execPath, [compiler, ...args], {
+    encoding: "utf8", timeout: 30_000, windowsHide: true,
+  });
+  const version = run(["--version"]);
+  assert.equal(version.status, 0, version.stderr || version.stdout);
+  assert.equal(version.stdout.trim(), "Version 7.0.2");
+  assert.equal(ts.version, "6.0.3");
+  assert.equal(typeof ts.transpileModule, "function");
+
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-typescript7-"));
+  try {
+    const project = path.join(root, "tsconfig.json");
+    const source = path.join(root, "compiler-fixture.ts");
+    await writeFile(project, JSON.stringify({
+      compilerOptions: { strict: true, noEmit: true, types: [], target: "ES2022", module: "ESNext" },
+      files: ["compiler-fixture.ts"],
+    }));
+    await writeFile(source, "export const total: number = 41;\n");
+    const valid = run(["--project", project, "--pretty", "false"]);
+    assert.equal(valid.status, 0, valid.stderr || valid.stdout);
+
+    await writeFile(source, 'export const total: number = "invalid";\n');
+    const invalid = run(["--project", project, "--pretty", "false"]);
+    assert.notEqual(invalid.status, 0);
+    assert.match(invalid.stdout + invalid.stderr, /compiler-fixture\.ts.*TS2322/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("#3061 caller-owned import isolation remains explicit and executable", async () => {

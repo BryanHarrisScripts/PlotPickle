@@ -5754,7 +5754,7 @@
       },
       {
         "target": "tests/issue-3061-node26-fixture-transform.test.mjs",
-        "targetDigest": "9ff2af028d1e42b851cf2dc823bad2b565eefdf8f72f8280479976350965c4bb",
+        "targetDigest": "df55e871162b35bf8ea3a7455f01ab2cc699d6b990841d058f15ba204f418822",
         "catalogueIds": [
           "production.node26-explicit-fixtures-3061"
         ],
@@ -5770,9 +5770,10 @@
         ],
         "scopes": [
           "unit-fixture",
-          "static-source"
+          "static-source",
+          "real-boundary"
         ],
-        "limits": "Explicit compiler syntax/emission semantics or unchanged synthetic Director Specification/provider assertions only. No semantic type-check certification, live provider output, Human project mutation or complete historical-suite migration.",
+        "limits": "Native7.0.2 compiler accepts/rejects controlled typed source with version/TS2322/filename checks; retained6.0.3 API preserves enum,parameter-property,syntax and native Node26 controls. Not whole-project semantic typing,live provider or historical-suite migration proof.",
         "inputs": [
           {
             "path": "scripts/verification/typescript-fixture-transform.mjs",
@@ -5780,11 +5781,11 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           },
           {
             "path": "package-lock.json",
-            "digest": "d20b7b79cc90c6db517a74223d1ac4255838b5fe25620440ea06536d3e902ac7"
+            "digest": "c88d0101fdfd158d29c1e6bf384465114965a26207caa6dd66d79e2e901ffc1e"
           }
         ]
       },
@@ -5952,7 +5953,7 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -5992,7 +5993,7 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -6072,7 +6073,7 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           }
         ]
       },
@@ -6172,7 +6173,7 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -6236,7 +6237,7 @@
           },
           {
             "path": "package.json",
-            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -6493,7 +6494,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
+            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6601,7 +6602,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "34e371022aba7c68621f3a5c1b233ad52d11d2e2b636fca1087a885507438376"
+            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",

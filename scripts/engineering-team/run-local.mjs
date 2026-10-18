@@ -237,7 +237,7 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
       JSON.stringify(privateRecord) + "\n", { flag: config.resume ? "w" : "wx", mode: 0o600 });
     throw new Error("Engineering Team blocked [" + classified.code + "] at "
       + classified.stage + (currentRole ? " (" + currentRole + ")" : "")
-      + ". Read-only inspect: node scripts/engineering-team/diagnose-local.mjs --latest.");
+      + ". Read-only inspect: node scripts/engineering-diagnostics.mjs --latest.");
   }
   const receipt = {
     ...result,

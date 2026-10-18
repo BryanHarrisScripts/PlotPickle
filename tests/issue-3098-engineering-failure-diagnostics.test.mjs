@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   diagnoseEngineeringLocalAttempt,
-} from "../scripts/engineering-team/diagnose-local.mjs";
+} from "../scripts/engineering-diagnostics.mjs";
 import {
   classifyEngineeringFailure,
   parseEngineeringCommand,

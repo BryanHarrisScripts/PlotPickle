@@ -19,7 +19,7 @@ test("#3023 includes hidden nested locks and keeps missing licence and unresolve
       "vendor/linked": { name: "linked", version: "1.0.0", license: "MIT" },
     } }));
     await writeFile(path.join(root, ".pi/npm/package-lock.json"), JSON.stringify({ packages: {
-      "node_modules/@fixture/package": { version: "2.0.0", integrity: "sha512-fixture" },
+      "node_modules/@fixture/package": { version: "2.0.0", integrity: "sha512-fixture", resolved: "https://fixture:private@example.invalid/package.tgz?token=private#private" },
     } }));
     await writeFile(path.join(root, "Cargo.lock"), 'version = 4\n[[package]]\nname = "fixture"\nversion = "3.0.0"\nchecksum = "fixture-digest"\n');
     await writeFile(path.join(root, "requirements.txt"), "numpy>=2,<3\nexact==1.0.0\n");
@@ -29,6 +29,7 @@ test("#3023 includes hidden nested locks and keeps missing licence and unresolve
     assert.equal(nested.records[0].name, "@fixture/package");
     assert.equal(nested.records[0].license, null);
     assert.equal(nested.records[0].disposition, "REVIEW_MISSING_LICENSE");
+    assert.equal(nested.records[0].packageSource, "https://example.invalid/package.tgz");
     const linked = result.graphs.find((graph) => graph.source === "package-lock.json").records.find((record) => record.location === "node_modules/linked");
     assert.equal(linked.version, "1.0.0");
     assert.equal(linked.license, "MIT");
@@ -49,6 +50,11 @@ test("#3023 malformed or unsupported graphs fail instead of claiming complete co
       ["package-lock.json", '{"packages":{"node_modules/broken":null}}'],
       ["Cargo.lock", '[[package]]\nname = "missing-version"\n'],
       ["requirements.txt", "-r untracked-private-file.txt\n"],
+      ["requirements.txt", "numpy this is not a requirement\n"],
+      ["requirements.txt", "numpy==\n"],
+      ["requirements.txt", "numpy=>2\n"],
+      ["requirements.txt", "numpy>=2,wat\n"],
+      ["requirements.txt", 'numpy==2; python_version>="3.10"\n'],
     ]) {
       await writeFile(path.join(root, source), text);
       assert.throws(() => inventoryRepositoryDependencyGraphs(root, [source]), /OSS dependency inventory/);

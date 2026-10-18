@@ -7550,7 +7550,7 @@
       },
       {
         "target": "tests/issue-3023-oss-dependency-inventory.test.mjs",
-        "targetDigest": "2a24da76ec8bb0240c9bf0f6bc23f7eed23bc04cfc1dc8f47665ac8af745c140",
+        "targetDigest": "a9d0674beff9ff7fade16d5b6591f0234216225ad9fc043bb0d71099546a5b47",
         "catalogueIds": [
           "verification.oss-dependency-inventory-3023"
         ],
@@ -7572,7 +7572,7 @@
         "inputs": [
           {
             "path": "lib/verification/oss-dependency-inventory.mjs",
-            "digest": "5cd04b2e1003950d3495d1f9501542676eae5e12a190f4ec1bdfa3da06c6f8f1"
+            "digest": "89aed1cb2c22d8fef956191136f1d2328d3b5e3ce88b421dc1ed3ec9841ee4fe"
           },
           {
             "path": "scripts/third-party-oss-audit.mjs",

@@ -1,14 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
+import os from "node:os";
 import {
   createFocusedUatEngineeringAdapter,
   createPiEngineeringReadOnlyAdapter,
 } from "../scripts/engineering-team/local-adapters.mjs";
 
 const SHA = "e".repeat(40);
-const root = path.resolve("/plotpickle/unit-test");
-const out = path.resolve("/plotpickle/private-test");
+const root = path.join(os.tmpdir(), "plotpickle-engineering-adapter-test", "repo");
+const out = path.join(os.tmpdir(), "plotpickle-engineering-adapter-test", "evidence");
 function request(role) {
   return { role, exactSha: SHA, taskRef: "pr-3098", scopeHash: "f".repeat(64), handoff: null };
 }

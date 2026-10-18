@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createClineEngineeringPlanAdapter } from "../scripts/engineering-team/cline-plan-adapter.mjs";
+import { createClineEngineeringPlanAdapter, resolveClineReviewExecutable } from "../scripts/engineering-team/cline-plan-adapter.mjs";
 import { parseEngineeringCommand, runExplicitEngineeringCampaign } from "../scripts/engineering-team/run-local.mjs";
 
 const HEAD = "c".repeat(40);
@@ -214,5 +214,57 @@ test("deleted files remain truthful omissions instead of suppressing valid sourc
     assert.equal(manifest.selectedCount, 1);
     assert.deepEqual(manifest.omitted, [{ path: "scripts/deleted.mjs", reason: "absent-at-head" }]);
     assert.match(result.summary, /reviewed 1\/2 bounded changed files/);
+  });
+});
+
+test("Windows Cline launcher resolves actual .cmd or .exe before durable route hashing", async () => {
+  const npmShim = "C:\\Users\\developer\\AppData\\Roaming\\npm\\cline.cmd";
+  const native = "C:\\Apps\\Cline\\cline.exe";
+  assert.equal(await resolveClineReviewExecutable("cline", {
+    platform: "win32", locate: async () => "C:\\Other\\cline\n" + npmShim + "\n",
+  }), npmShim);
+  assert.equal(await resolveClineReviewExecutable("cline", {
+    platform: "win32", locate: async () => npmShim + "\n" + native + "\n",
+  }), native);
+  assert.equal(await resolveClineReviewExecutable("cline", {
+    platform: "linux", locate: async () => { throw new Error("should not call where.exe"); },
+  }), "cline");
+  await assert.rejects(resolveClineReviewExecutable("cline", {
+    platform: "win32", locate: async () => "C:\\Bad\\cline.ps1\n",
+  }), /Windows launcher could not be located/);
+  await assert.rejects(resolveClineReviewExecutable("cline", {
+    platform: "win32", locate: async () => { throw new Error("ENOENT"); },
+  }), /Windows launcher could not be located/);
+  await withFixture(async ({ repoRoot, privateRoot }) => {
+    const original = makeAdapter({ repoRoot, privateRoot, invoke: async () => ({ stdout: fakeResult }) });
+    const pinned = createClineEngineeringPlanAdapter({
+      role: "challenger", repoRoot, privateRoot, command: npmShim, runtime,
+      changedPaths: ["scripts/source.mjs"],
+    });
+    assert.notEqual(original.routeReceipt, pinned.routeReceipt,
+      "the resolved installed Windows CLI must be part of the persisted durable route");
+  });
+});
+test("Cline initialization stage is reported without raw stdout, private auth or duplicate model call", async () => {
+  await withFixture(async ({ repoRoot, privateRoot }) => {
+    const phases = [], calls = [];
+    const adapter = createClineEngineeringPlanAdapter({
+      role: "challenger", repoRoot, privateRoot, runtime,
+      changedPaths: ["scripts/source.mjs"],
+      onStage: (phase, role) => phases.push([phase, role]),
+      invoke: async (_command, args) => {
+        calls.push(args);
+        if (args[0] === "version") return { stdout: "3.0.73" };
+        if (args.includes("auth")) throw new Error("private Cline CLI auth error, must not be emitted");
+        throw new Error("Inference must not start after local configuration failed");
+      },
+    });
+    await assert.rejects(adapter.run(request()), /private Cline CLI auth error/);
+    assert.deepEqual(phases, [
+      ["cline-version", "challenger"], ["cline-auth", "challenger"],
+    ]);
+    assert.equal(calls.length, 2);
+    const { existsSync } = await import("node:fs");
+    assert.equal(existsSync(path.join(privateRoot, "source-bundle", "handoff.txt")), false);
   });
 });

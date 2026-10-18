@@ -9,7 +9,10 @@
     "docs/developer-briefs/3115-windows-owned-tree-stop.md",
     "config/development-convergence/3115-windows-stop.json",
     "config/verification/test-catalog.json",
-    "config/verification/ownership-map.json"
+    "config/verification/ownership-map.json",
+    "tests/issue-3115-windows-process-stop-proof.test.mjs",
+    "docs/developer-briefs/3115-windows-stop-owned-fixture.md",
+    "config/development-convergence/3115-windows-stop-owned-fixture.json"
   ],
   "acceptance": [
     {
@@ -56,7 +59,7 @@
         {
           "type": "file-contains",
           "path": "docs/developer-briefs/3115-windows-owned-tree-stop.md",
-          "contains": "does not make"
+          "contains": "cannot certify descendant closure"
         }
       ]
     },

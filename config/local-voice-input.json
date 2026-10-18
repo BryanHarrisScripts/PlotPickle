@@ -4,12 +4,12 @@
   "provider": "whisper.cpp",
   "platform": "windows-x64-cpu",
   "runtime": {
-    "releaseTag": "b5130",
-    "sourceCommit": "927cfce34f31707e17f2bff35c349632fb9e2c3a",
+    "releaseTag": "b5454",
+    "sourceCommit": "d1be6fde11ac6e0407606b4e42fe72d34add8037",
     "assetName": "whisper-bin-x64.zip",
-    "downloadUrl": "https://github.com/ggml-org/whisper.cpp/releases/download/b5130/whisper-bin-x64.zip",
-    "sizeBytes": 8573270,
-    "sha256": "f9ec6c52a2e949b62ab51fa21d0d497958f9e41c3010c157c4e42932d5316f3c",
+    "downloadUrl": "https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-x64.zip",
+    "sizeBytes": 8928640,
+    "sha256": "6ba69e3482d7826214f90a6a9c84ca07782aec1e1d0c6a7c30c994fd5d816ccb",
     "executable": "whisper-cli.exe",
     "license": "MIT",
     "licensePath": "runtime/whisper/LICENSE.whisper.cpp.txt"

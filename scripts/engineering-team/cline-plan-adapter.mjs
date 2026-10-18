@@ -98,7 +98,7 @@ export function createClineEngineeringPlanAdapter({
       scopeHash: request.scopeHash, role, files: manifest,
       omitted, selectedCount: manifest.length, requestedCount: changedPaths.length,
     }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
-    return { bundle, manifest };
+    return { bundle, manifest, omitted };
   }
 
   async function assertBundleIntact(bundle, manifest) {
@@ -121,7 +121,7 @@ export function createClineEngineeringPlanAdapter({
         || request.permissions?.sourceMutationAllowed === true) {
         throw new Error("Cline challenger role, exact commit, scope or permissions invalid.");
       }
-      const { bundle, manifest } = await collectSourceBundle(request);
+      const { bundle, manifest, omitted } = await collectSourceBundle(request);
       const dataDir = path.join(privateRoot, "cline-state");
       const hooksDir = path.join(privateRoot, "empty-hooks");
       await mkdir(dataDir, { recursive: true, mode: 0o700 });

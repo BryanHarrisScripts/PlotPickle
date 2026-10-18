@@ -127,12 +127,12 @@ function trackedFixture(args) {
   return handle;
 }
 async function taskkillTree(pid) {
-  try {
-    await exec("taskkill.exe", ["/PID", String(pid), "/T", "/F"], {
-      windowsHide: true, shell: false, timeout: 5_000, maxBuffer: 16_384,
-    });
-    return true;
-  } catch { return false; }
+  // Native failure must propagate; neither a failed command nor a missing
+  // descendant check may be silently reported as successful STOP.
+  await exec("taskkill.exe", ["/PID", String(pid), "/T", "/F"], {
+    windowsHide: true, shell: false, timeout: 5_000, maxBuffer: 16_384,
+  });
+  return true;
 }
 export async function stopOwnedFixture(handle, killTree = taskkillTree) {
   // Only an in-memory live ChildProcess created by this exact operation.
@@ -196,13 +196,17 @@ async function prove(head) {
       facts.repeatStopWasNoop = !again.attempted && again.reason === "NOT_ACTIVE";
     }
   } finally {
-    // Fixture-only cleanup: direct handles, not a saved/CLI-supplied PID.
-    if (parent && !parent.state.exited && Number.isSafeInteger(parent.child.pid)) {
-      await stopOwnedFixture(parent);
-    }
-    if (sentinel && !sentinel.state.exited) {
-      sentinel.child.kill("SIGTERM");
-      await poll(() => sentinel.state.exited, EXIT_TIMEOUT_MS);
+    // Cleanup a fixture-owned handle only. Even when taskkill fails, still
+    // stop the unrelated sentinel; preserve and propagate the original error.
+    try {
+      if (parent && !parent.state.exited && Number.isSafeInteger(parent.child.pid)) {
+        await stopOwnedFixture(parent);
+      }
+    } finally {
+      if (sentinel && !sentinel.state.exited) {
+        sentinel.child.kill("SIGTERM");
+        await poll(() => sentinel.state.exited, EXIT_TIMEOUT_MS);
+      }
     }
   }
   // An exact-head switch during the running test invalidates this proof.

@@ -393,7 +393,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || inputs.media
     name: FFrames prerelease Cargo graph (nonpromoting)
     runs-on: windows-latest
-    timeout-minutes: 5
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
         with:
@@ -408,8 +408,21 @@ jobs:
       - name: Prepare pinned Rust candidate toolchain
         shell: pwsh
         run: rustup toolchain install 1.99.0 --profile minimal
-      - name: Resolve candidate with Cargo in throwaway sandbox
+      - name: Prepare checksum-verified LGPL FFmpeg for candidate compile only
         shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'ffmpeg-rc-compile.zip'
+          Invoke-WebRequest 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-17-20-51/ffmpeg-n9.0.2-28-g669f5ab083-win64-lgpl-shared-9.0.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '00ab3bc8fe02554bd0fffac9968bba498d1ab7e899a4871b85fbba828a50bfcc') { throw 'FFmpeg candidate fixture hash mismatch.' }
+          Expand-Archive $archive -DestinationPath (Join-Path $env:RUNNER_TEMP 'ffmpeg-rc-compile')
+          $ffmpeg = Join-Path $env:RUNNER_TEMP 'ffmpeg-rc-compile\ffmpeg-n9.0.2-28-g669f5ab083-win64-lgpl-shared-9.0'
+          "FFMPEG_DIR=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "$ffmpeg\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Compile FFrames candidate in throwaway sandbox and classify compatibility
+        shell: pwsh
+        env:
+          PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE: '1'
         run: node scripts/media/fframes-candidate-resolution.mjs
       - name: Upload nonpromoting candidate graph observation
         if: always()

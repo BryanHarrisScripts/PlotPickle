@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
-import { candidateManifest, analyzeCandidateGraph } from "../scripts/media/fframes-candidate-resolution.mjs";
+import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation } from "../scripts/media/fframes-candidate-resolution.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -140,4 +140,22 @@ test("#3088 resolved candidate graph retains unmaintained nodes and disallows pr
   assert.throws(() => analyzeCandidateGraph(graph, "1.2.0"), /exact requested/u);
   graph.resolve.nodes[1].deps = [{ pkg: "absent" }];
   assert.throws(() => analyzeCandidateGraph(graph, "1.2.1-rc.45"), /Unresolved Cargo/u);
+});
+
+test("#3089 prerelease native compilation remains distinct from actual codec and production approval", async () => {
+  assert.deepEqual(classifyCandidateCompilation({ status: 0 }), { status: "COMPILED_NOT_RENDER_VERIFIED" });
+  const failed = classifyCandidateCompilation({ status: 101, stderr: "error[E0599]: candidate API mismatch" });
+  assert.equal(failed.status, "BLOCKED");
+  assert.equal(failed.exitCode, 101);
+  assert.match(failed.diagnostic, /candidate API mismatch/u);
+  assert.equal(classifyCandidateCompilation({ error: new Error("FFmpeg bindgen unavailable") }).status, "BLOCKED");
+  const source = await read("scripts/media/fframes-candidate-resolution.mjs");
+  assert.match(source, /"build", "--release", "--locked"/u);
+  assert.match(source, /candidateNativeEncode: "NOT_PROVEN"/u);
+  assert.match(source, /Production Cargo\.lock was modified/u);
+  const workflow = await read(".github/workflows/product-gate.yml");
+  const candidate = workflow.slice(workflow.indexOf("  fframes-candidate-windows:"));
+  assert.match(candidate, /PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE: '1'/u);
+  assert.match(candidate, /FFmpeg candidate fixture hash mismatch/u);
+  assert.match(candidate, /1\.99\.0/u);
 });

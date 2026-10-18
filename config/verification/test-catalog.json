@@ -3778,6 +3778,48 @@
         ]
       },
       "notes": "#3098 synthetic native scheduler callback fixture, write-once role barriers, cancelled/stale route and CLI replay denial. Real managed Pi Durable native JSONL proof is a separate explicit on-device command; does not run in CI."
+    },
+    {
+      "id": "agent.experimental-engineering-team-cline-3098",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3098-cline-independent-reviewer.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3098 Cline Plan engine source bundle, tool denial, pinned version and CLI explicit selection synthetic fixtures. Not actual Windows Cline model I/O."
     }
   ],
   "truthGovernance": {
@@ -8051,7 +8093,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
+            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
           }
         ]
       },
@@ -8079,7 +8121,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
+            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8139,7 +8181,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "df5bc6eeae95012871641ec00307094399c17716a9d2d937b57cade93040404a"
+            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8152,6 +8194,38 @@
           {
             "path": "scripts/engineering-team/local-adapters.mjs",
             "digest": "76876d315295cfb5881f23a0f46e787ddbbb9bb3096ba09bef6f84c87cc61884"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+        "targetDigest": "f06178276aa951521262777b463a3ca81a14a3f8c1d2b410d7ebfe56ee86cbdb",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-cline-3098"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic fake Cline executable tests arguments, safe source copies and strict advisory output only; no live Cline, Windows filesystem sandbox or independent model/defect proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+            "digest": "22951008fc2104cfeb2c10ff7303775070720d125eefe92f5606ead9cbc7070e"
+          },
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
           }
         ]
       }

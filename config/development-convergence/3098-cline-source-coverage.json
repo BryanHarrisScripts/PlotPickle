@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "issue": 3098,
+  "phase": "cline-safe-file-coverage",
+  "brief": "docs/developer-briefs/3098-cline-source-coverage.md",
+  "allowedChanges": [
+    "scripts/engineering-team/cline-plan-adapter.mjs",
+    "tests/issue-3098-cline-independent-reviewer.test.mjs",
+    "docs/developer-briefs/3098-cline-source-coverage.md",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3098-cline-source-coverage.json"
+  ],
+  "acceptance": [
+    {
+      "id": "BOUNDED-SOURCE-SELECTION",
+      "criterion": "Oversized generated verification files and deleted paths are reported as omitted; changed ordinary code can still be reviewed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "reason: \"size-budget\""
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "reason: \"absent-at-head\""
+        }
+      ]
+    },
+    {
+      "id": "COVERAGE-NOT-OVERCLAIMED",
+      "criterion": "Private manifest and advisory output preserve inspected/requested counts, omissions and evidence digest; zero source blocks before provider.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/cline-plan-adapter.mjs",
+          "contains": "reviewed \" + manifest.length"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+          "contains": "no reviewable source remains BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "SENSITIVE-PATHS-STILL-DENIED",
+      "criterion": "Existing security/symlink/Plan mode/no auto-approval regressions remain intact.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-cline-independent-reviewer.test.mjs",
+          "contains": "Cline cannot promote modified input evidence or unsafe source paths"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No cloud/model inference in CI; current live Windows Cline I/O remains unverified.",
+    "No real OS sandbox certification, reviewer finding verification or merge authority granted."
+  ]
+}

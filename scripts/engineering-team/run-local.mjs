@@ -14,7 +14,7 @@ import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
 import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
 import { driveEngineeringDurableCheckpoint } from "./durable-checkpoint.mjs";
-import { createClineEngineeringPlanAdapter } from "./cline-plan-adapter.mjs";
+import { createClineEngineeringPlanAdapter, resolveClineReviewExecutable } from "./cline-plan-adapter.mjs";
 
 const exec = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -31,6 +31,7 @@ const SAFE_FAILURE_STAGES = new Set([
   "adapter-selection", "native-runtime-open", "native-task-admit",
   "native-task-resume", "native-task-wait", "native-receipt-check",
   "role-started", "role-dispatch", "role-saved", "local-buzz",
+  "cline-version", "cline-auth", "cline-review",
 ]);
 const SAFE_ROLES = new Set(["scout", "tester", "challenger"]);
 
@@ -41,6 +42,7 @@ export function classifyEngineeringFailure(error, phase = "unknown") {
   let code = "EXECUTION_FAILED_UNKNOWN";
   if (/Pi Durable .*unavailable|managed Pi Durable .*not installed|not-installed/.test(message)) code = "PI_DURABLE_UNAVAILABLE";
   else if (/required read-only role adapter is unavailable/.test(message)) code = "REVIEW_ADAPTER_UNAVAILABLE";
+  else if (/Cline Windows launcher could not be located/.test(message)) code = "CLINE_LAUNCHER_UNAVAILABLE";
   else if (/Cline managed CLI version|reviewed pin/.test(message)) code = "CLINE_VERSION_MISMATCH";
   else if (/Cline did not complete a usable/.test(message)) code = "CLINE_RESULT_UNAVAILABLE";
   else if (/Cline found no bounded ordinary source/.test(message)) code = "CLINE_NO_REVIEWABLE_SOURCE";
@@ -190,13 +192,18 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
           }
         }
         if (campaign.roles.includes("challenger") && config.challenger === "cline") {
+          const clineCommand = await resolveClineReviewExecutable("cline");
           adapters.challenger = createClineEngineeringPlanAdapter({
             role: "challenger", repoRoot, privateRoot: path.join(runDir, "cline-challenger"),
-            runtime, changedPaths: checkout.changedPaths,
+            command: clineCommand, runtime, changedPaths: checkout.changedPaths,
+            onStage,
           });
         }
-      } catch {
-        // Provider resolution, path or CLI errors are not evidence of an available reviewer.
+      } catch (error) {
+        // Keep a typed launcher failure; never place underlying private
+        // subprocess stderr or local endpoint details in a GitHub receipt.
+        if (config.challenger === "cline"
+          && /Cline Windows launcher could not be located/.test(String(error?.message || ""))) throw error;
         options.onAdapterBlocked?.("independent-reviewer-or-local-model-unavailable");
       }
     }

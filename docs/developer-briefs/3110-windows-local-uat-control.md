@@ -7,7 +7,7 @@ human-governed Software Factory**. This is only the first local Software
 Factory execution primitive, not the story pipeline or remotely connected
 Chat/Work automation.
 
-The Windows command at scripts/engineering-team/windows-uat-control.mjs
+The Windows command at scripts/windows-uat-control.mjs
 implements local, opt-in, exact-head, bounded **contracts-only** UAT
 with a private immutable reservation. It does not:
 - connect Chat or Work to Windows, listen on a port or poll GitHub;
@@ -21,14 +21,14 @@ with a private immutable reservation. It does not:
     cd C:\Users\bryan\plotpickle
     $head = git rev-parse HEAD
     $base = git rev-parse HEAD~1
-    node scripts/engineering-team/windows-uat-control.mjs --start --head $head --base $base --task issue-3110
+    node scripts/windows-uat-control.mjs --start --head $head --base $base --task issue-3110
 
 The result is **dispatched-unconfirmed** until the launched Windows worker
 writes a fresh heartbeat; do not represent dispatch as a started or passed test.
 The command prints a 64-character private scope. For exactly that scope:
 
-    node scripts/engineering-team/windows-uat-control.mjs --status --scope <scope>
-    node scripts/engineering-team/windows-uat-control.mjs --stop --scope <scope>
+    node scripts/windows-uat-control.mjs --status --scope <scope>
+    node scripts/windows-uat-control.mjs --stop --scope <scope>
 
 Status is read-only and requires no model or browser access. Stop writes an
 idempotent local operator request. An isolated worker only attempts to

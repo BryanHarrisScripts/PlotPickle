@@ -15,6 +15,39 @@ The repo declares a pinned devDependency
 This is a missing local toolchain dependency, not verified failure of
 LEARN/PLAN product behavior. The original scope remains immutable.
 
+## Post-install Windows proof: wrapper/API semver are deliberately different
+
+A fresh owner-authorized `npm.cmd ci --include=dev` successfully installed 591
+packages, then the original #3112 doctor reported a **false** version mismatch:
+expected `6.0.2`, observed API `6.0.3`.
+
+The trusted repository `package-lock.json` declares two separate exact
+installations:
+- `node_modules/typescript`: `@typescript/typescript6@6.0.2`, pinned
+  npm alias and thin TypeScript 6 compatibility wrapper.
+- `node_modules/@typescript/old`: real `typescript@6.0.3`, selected
+  by wrapper dependency `npm:typescript@^6`.
+
+The wrapper re-exports the `@typescript/old` compiler API, so
+`require("typescript").version === "6.0.3"` **is correct**, not evidence
+of installed alias version drift. Microsoft TypeScript issue #63866 and
+a separate npm comparison under oven-sh/bun#33834 document this layout.
+
+The corrected doctor separately checks manifest, package-lock schema/root,
+locked wrapper identity/version/integrity/dependency, locked compiler identity/
+version/integrity, installed wrapper metadata, installed compiler metadata,
+`transpileModule` export and **runtime compiler API equality to the exact
+lock's compiler version**. No arbitrary `6.x` bypass is authorized.
+Conflicting, missing, swapped, or unusable packages fail closed with a
+non-sensitive code. No npm installations or user data reads are performed.
+
+Peer dependency warnings for ESLint 10 vs ESLint 9 peer ranges, and
+npm install-script blocks for esbuild, unrs-resolver and workerd were
+recorded in the same user log. They are **separate unproven readiness
+risks** and should not be "fixed" by blindly approving install scripts
+or changing the lockfile. TypeScript toolchain `READY` only permits
+contracts-only admission; it proves neither browser UAT nor normal build.
+
 ## Change
 
 `node scripts/windows-uat-control.mjs --doctor` is a read-only local

@@ -6,7 +6,7 @@ Issues: #3023 and #3024 under #3022. The Human authorized build, test, repair an
 
 The existing canonical OSS audit covers root npm metadata but does not enumerate hidden nested npm locks, the Rust bridge lock or optional Python requirements. The earlier ecosystem checkpoint explicitly left the original Human matrix and agent permissions/health unresolved. The original matrix is now available locally; publish derived labels and dispositions with its LF digest, without redistributing the private attachment.
 
-Owning domain is verification. The existing public command `scripts/third-party-oss-audit.mjs` stays the sole entry point; focused parsing belongs in `lib/verification/oss-radar/dependency-inventory.mjs`. Consumers are the OSS CLI and deterministic verification catalogue. There is no application startup, UI, PPF, provider, signer or persisted project migration. Git is already a developer checkout prerequisite; this audit now requires tracked-file discovery and fails explicitly outside that context. It does not become an installed application dependency.
+Owning domain is verification. The existing public command `scripts/third-party-oss-audit.mjs` stays the sole entry point; focused parsing belongs in `lib/verification/oss-radar/dependency-graphs/inventory.mjs`. Consumers are the OSS CLI and deterministic verification catalogue. There is no application startup, UI, PPF, provider, signer or persisted project migration. Git is already a developer checkout prerequisite; this audit now requires tracked-file discovery and fails explicitly outside that context. It does not become an installed application dependency.
 
 ## Acceptance
 
@@ -19,3 +19,5 @@ Owning domain is verification. The existing public command `scripts/third-party-
 ## Boundaries and rollback
 
 No new package dependency, model download, paid provider call, public/DM message, signer use or real story operation. Current profiles and startup policy remain untouched. Security advisories and unknown licences must stay visible, not be converted into success to close an issue. Revert this verification/report wave to roll back; no user state is migrated.
+
+Verification note: The dated machine inventory remains an immutable observation of source commit `f4ee06908e3c8528be4c75f656df21f9e0830962` and its original source path. The exact same inventory code was subsequently relocated under `dependency-graphs/` to resolve a BEN structure-only fan-out finding. The current truth catalogue and source imports refer to the relocated path; the historic receipt does not claim to describe a later checkout.

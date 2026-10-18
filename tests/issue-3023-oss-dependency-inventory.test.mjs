@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { inventoryRepositoryDependencyGraphs } from "../lib/verification/oss-radar/dependency-inventory.mjs";
+import { inventoryRepositoryDependencyGraphs } from "../lib/verification/oss-radar/dependency-graphs/inventory.mjs";
 
 async function withRepository(run) {
   const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-oss-inventory-"));

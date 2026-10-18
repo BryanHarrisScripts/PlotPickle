@@ -7550,7 +7550,7 @@
       },
       {
         "target": "tests/issue-3023-oss-dependency-inventory.test.mjs",
-        "targetDigest": "99a35ea1ceba0ad9647b42aec568e74c168e7f2f8f3cbc1645564d981e641b10",
+        "targetDigest": "1ee9d0bf024c38cda36bcfc5515ddaa41bc8efc14266f14d83d65142ccf8e86d",
         "catalogueIds": [
           "verification.oss-dependency-inventory-3023"
         ],
@@ -7571,12 +7571,12 @@
         "limits": "Synthetic public lock/requirements fixtures test complete supplied tracked-path coverage,missing metadata disclosure,LF/CRLF evidence equivalence,unsupported input failure and filesystem escape rejection. No installation,upstream vulnerability or licence clearance is proved.",
         "inputs": [
           {
-            "path": "lib/verification/oss-radar/dependency-inventory.mjs",
+            "path": "lib/verification/oss-radar/dependency-graphs/inventory.mjs",
             "digest": "89aed1cb2c22d8fef956191136f1d2328d3b5e3ce88b421dc1ed3ec9841ee4fe"
           },
           {
             "path": "scripts/third-party-oss-audit.mjs",
-            "digest": "b97858f19386f77f1e747dfe75012e624318226f7fa8b7831628bfcc61ec43ac"
+            "digest": "057352370d2d4a10af3845ab5fa868f5e36781a62d1644a70ac9f9ab76763589"
           }
         ]
       }

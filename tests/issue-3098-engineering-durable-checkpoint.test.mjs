@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { admitEngineeringCampaign } from "../scripts/engineering-team/contract.mjs";
+import { createPiEngineeringReadOnlyAdapter, createFocusedUatEngineeringAdapter } from "../scripts/engineering-team/local-adapters.mjs";
 import {
   createEngineeringCheckpointCallbacks,
   driveEngineeringDurableCheckpoint,
@@ -195,3 +196,26 @@ test("explicit --durable/--resume reuse same attempt only after prior reservatio
   await assert.rejects(runExplicitEngineeringCampaign(resumable, base), /completed attempt cannot be resumed/);
   assert.equal(calls.filter((x) => x.step === "admitted").length, 1);
 }));
+
+test("real adapter route receipt changes with local Pi model, endpoint or executable", () => {
+  const root = path.join(os.tmpdir(), "engineering-adapter-identity-repo");
+  const base = {
+    role: "scout", repoRoot: root, command: "managed-pi.exe",
+    runtime: { model: "model-one", baseUrl: "http://127.0.0.1:11434/v1" },
+    invoke: async () => ({ stdout: "Source grounded advisory finding, no verification claim." }),
+  };
+  const original = createPiEngineeringReadOnlyAdapter(base);
+  assert.match(original.routeReceipt, /^[a-f0-9]{64}$/);
+  const model = createPiEngineeringReadOnlyAdapter({ ...base, runtime: { ...base.runtime, model: "model-two" } });
+  const endpoint = createPiEngineeringReadOnlyAdapter({ ...base, runtime: { ...base.runtime, baseUrl: "http://localhost:8080/v1" } });
+  const executable = createPiEngineeringReadOnlyAdapter({ ...base, command: "another-pi.exe" });
+  assert.notEqual(original.routeReceipt, model.routeReceipt);
+  assert.notEqual(original.routeReceipt, endpoint.routeReceipt);
+  assert.notEqual(original.routeReceipt, executable.routeReceipt);
+  const uat = createFocusedUatEngineeringAdapter({
+    repoRoot: root, artifactRoot: path.join(os.tmpdir(), "engineering-adapter-identity-artifact"),
+    execute: async () => ({ exitCode: 0 }),
+  });
+  assert.match(uat.routeReceipt, /^[a-f0-9]{64}$/);
+  assert.notEqual(uat.routeReceipt, original.routeReceipt);
+});

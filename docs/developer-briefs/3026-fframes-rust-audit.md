@@ -31,3 +31,9 @@ Run exact FFrames 1.2.1-rc.45 candidate compiled from a disposable Rust 1.99.0 C
 The production FFrames 1.2.0 native proof runs independently in the existing Windows lane. Both environments are isolated and do not operate on a Human PPF, saved Storyboard, external provider, or application settings. The candidate executable and media data are discarded on cleanup, and its output is represented by a CI proof report (including a SHA-256 digest) rather than a production artifact.
 
 Passing this proof is an experimental RC render/readback compatibility milestone. It does not address the four remaining unmaintained Rust dependencies, the licences and software distribution obligations, 25-shot Mini-Block scale, candidate downgrade/rollback, or production migration. Keep issues #3089 and #3090 open and Cargo.toml/Cargo.lock stable.
+
+## #3089 — upstream lru 0.18.5 compatibility counterexample (Oct 18, 2026)
+
+The upstream FFrames main-branch `fframes/Cargo.toml` (Git blob `03df1209227bc13cbc733ab567362142d5a43163`) declares lru 0.18.5, but that is not a published rc.45 lock graph or proof of compatibility. The Windows candidate gate now resolves the *exact* rc.45 manifest without the local lru patch in an isolated metadata-only sandbox. Its outcome distinguishes registry lru 0.14 still required, upstream registry 0.18.5 graph eligible, unresolved Cargo, and an unexpected local-path source. Each state explicitly preserves the reviewed original lru 0.14 security backport and retains nonpromotion, so CI cannot interpret an unused direct dependency or partial version bump as remediation. When graph-eligible, a future separate native compile/frame proof is required before considering replacement.
+
+External source: https://github.com/dmtrKovalenko/fframes/blob/main/fframes/Cargo.toml . No third-party source, user PPF, installed binary or production Cargo.lock was edited.

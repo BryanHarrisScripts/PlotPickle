@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
 import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation, verifyCandidateFrames } from "../scripts/media/fframes-candidate-resolution.mjs";
-import { withoutReviewedLruPatch, classifyLruCandidateGraph } from "../scripts/media/fframes-lru-transition-probe.mjs";
+import { withoutReviewedLruPatch, classifyLruCandidateGraph, compareLruNativeProof, runLruTransitionProbe } from "../scripts/media/fframes-lru-transition-probe.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -195,7 +195,7 @@ test("#3089 local lru backport removal is trial-only and must be source reviewed
   const trial = withoutReviewedLruPatch(manifest, "1.2.0", "1.2.1-rc.45");
   assert.match(trial, /fframes = \{ version = "=1\.2\.1-rc\.45"/u);
   assert.doesNotMatch(trial, /\[patch\.crates-io\]/u);
-  assert.equal(withoutReviewedLruPatch(manifest.replace(/\n/gu, "\r\n"), "1.2.0", "1.2.1-rc.45"), trial, "Windows CRLF and Linux LF must produce identical isolated trial");
+  assert.equal(withoutReviewedLruPatch(manifest.replace(/\r\n/gu, "\n").replace(/\n/gu, "\r\n"), "1.2.0", "1.2.1-rc.45"), trial, "Windows CRLF and Linux LF must produce identical isolated trial");
   assert.match(manifest, /\[patch\.crates-io\][\s\S]*lru/u, "production patch must remain");
   assert.throws(() => withoutReviewedLruPatch(manifest.replace("vendor/lru-0.14.0-patched", "vendor/unknown"),
     "1.2.0", "1.2.1-rc.45"), /requires explicit source inspection/u);
@@ -228,4 +228,39 @@ test("#3089 candidate unpatched lru graph reports incompatible registry 0.14, no
   const script = await read("scripts/media/fframes-lru-transition-probe.mjs");
   assert.match(script, /Production Cargo\.lock was modified by upstream lru experiment/u);
   assert.match(script, /nativeCandidateWithUpstreamLru: "NOT_PROVEN"/u);
+});
+
+test("#3089 upstream lru native comparison rejects missing, failed or different measured baseline", async () => {
+  const baseline = { status: "PASS", codec: "mpeg4", frameRate: 24, width: 1280, height: 720,
+    decodedFrames: 36, everyFrameColorAndOrder: "PASS", finalFrame: "PASS", durationSeconds: 1.5,
+    artifactSha256: "a".repeat(64) };
+  assert.equal(compareLruNativeProof(baseline, { ...baseline, artifactSha256: "b".repeat(64) }).status, "PASS");
+  assert.equal(compareLruNativeProof(baseline, baseline).byteIdentical, true);
+  for (const changed of [{ decodedFrames: 35 }, { finalFrame: "FAIL" }, { frameRate: 25 },
+    { status: "FAIL" }, { durationSeconds: 2 }, { codec: "h264" }]) {
+    assert.throws(() => compareLruNativeProof(baseline, { ...baseline, ...changed }), /differs from tested/u);
+  }
+  assert.throws(() => compareLruNativeProof(null, baseline), /differs from tested/u);
+  assert.throws(() => compareLruNativeProof({ status: "PASS" }, { status: "PASS" }), /differs from tested/u);
+  const workflow = await read(".github/workflows/product-gate.yml");
+  assert.match(workflow, /PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER: '1'/u);
+  const script = await read("scripts/media/fframes-lru-transition-probe.mjs");
+  assert.match(script, /"build", "--release", "--locked"/u);
+  assert.match(script, /tools\/fframes-bridge\/src\/main.rs/u);
+});
+
+test("#3089 native lru job fails closed when Cargo resolution fails and preserves diagnostic report", async () => {
+  const previous = process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+  process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = "1";
+  try {
+    await assert.rejects(runLruTransitionProbe({ execute: () => ({ status: 101, stderr: "synthetic resolution failure" }) }),
+      /native proof required but not completed: BLOCKED_CARGO_RESOLUTION/u);
+    const report = JSON.parse(await read(".artifacts/fframes-candidate-3088/lru-transition.json"));
+    assert.equal(report.nativeCandidateWithUpstreamLru, "NOT_PROVEN");
+    assert.equal(report.productionPromoted, false);
+    assert.match(report.errorTail, /synthetic resolution failure/u);
+  } finally {
+    if (previous === undefined) delete process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+    else process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = previous;
+  }
 });

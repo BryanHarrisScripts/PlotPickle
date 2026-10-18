@@ -6576,7 +6576,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
+            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6684,7 +6684,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
+            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7545,7 +7545,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "69de1ae11f969921d3d298cd1d4cae3487673bae654cf4133404bf9556afb051"
+            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
           },
           {
             "path": "config/third-party-oss.json",
@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "ebb5c1c6e7f981c5a5e1939d7528895be6c8847c26dd7d1b2a0820371c5dfc04",
+        "targetDigest": "7edf46fb031533253aedeba0f276d09fdb3e10b7f218530f4dde79759323a8c2",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],
@@ -7692,7 +7692,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof. #3090 isolated candidate synthetic MPEG-4 frame-order and final-frame proof is an RC-only comparison, not upstream RustSec removal, distribution clearance, or a production dependency migration. #3089 upstream lru0.18.5 metadata-only reachability and revoked-local-override counterexample do not establish upgraded binaries or remediation.",
+        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof. #3090 isolated candidate synthetic MPEG-4 frame-order and final-frame proof is an RC-only comparison, not upstream RustSec removal, distribution clearance, or a production dependency migration. #3089 upstream lru0.18.5 metadata-only reachability and revoked-local-override counterexample do not establish upgraded binaries or remediation. Native upstream lru comparison fixtures check measured contract equality and rejection; actual Windows render observations remain separate CI evidence. Byte identity is reported, not required for codec equivalence.",
         "inputs": [
           {
             "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
@@ -7712,7 +7712,7 @@
           },
           {
             "path": "scripts/media/fframes-candidate-resolution.mjs",
-            "digest": "c193fa344103ea0fb19b1d5e523bb178115ad5659473f6b4c6d499b4693584f8"
+            "digest": "7bc9c3c23f41ff501ac7bb95cfd9659835186d74d66a06cd7c4be5673e52956d"
           },
           {
             "path": "config/verification/fframes-upgrade-candidates-2026-10-18.json",
@@ -7720,7 +7720,7 @@
           },
           {
             "path": "scripts/media/fframes-lru-transition-probe.mjs",
-            "digest": "16eefd76103d09246afddca6abdc8ceb275b5825779923efc90826c55a95c95e"
+            "digest": "52ef591d6a5e4e0de5fb5839857bd6c923910c42480face025ff4cfbbeb2763a"
           }
         ]
       }

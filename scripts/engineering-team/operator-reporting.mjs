@@ -11,7 +11,6 @@ const EXACT_SHA = /^[0-9a-f]{40}$/;
 const ALLOWED = new Set(["observed", "blocked", "stale", "cancelled"]);
 const MAX_RECORD = 512 * 1024;
 const MAX_RUNS = 100;
-const dirname = path.dirname(fileURLToPath(import.meta.url));
 function defaultAppRoot() {
   const root = process.env.LOCALAPPDATA || (process.platform === "win32"
     ? path.join(os.homedir(), "AppData", "Local")
@@ -127,5 +126,23 @@ export function draftEngineeringGithubCandidate(campaign, findingRef, observatio
     }),
     githubPublished: false,
     mergeEligible: false,
+  });
+}
+
+
+async function main() {
+  const args = process.argv.slice(2);
+  if (args.length < 1 || args.length > 2 || !args.includes("--status")
+    || args.some((value) => value !== "--status" && value !== "--json")) {
+    throw new Error("Use --status [--json] for read-only Engineering Team operator evidence.");
+  }
+  const result = await readEngineeringOperatorStatus();
+  process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    process.stderr.write("Engineering Team status UNKNOWN: " + String(error?.message || "read failed").slice(0, 240) + "\n");
+    process.exitCode = 1;
   });
 }

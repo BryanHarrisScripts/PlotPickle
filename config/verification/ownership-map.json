@@ -2503,6 +2503,19 @@
         "security",
         "windows"
       ]
+    },
+    {
+      "id": "engineering-team-3096",
+      "classification": "production",
+      "include": [
+        "scripts/engineering-team/**"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ]
     }
   ]
 }

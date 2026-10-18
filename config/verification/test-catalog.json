@@ -3486,6 +3486,46 @@
         ]
       },
       "notes": "#3053 reviewed isolated Portless 0.15.8 distribution metadata, compatibility guard and exact-instance/loopback/cleanup static contracts; real Windows proof is separately required."
+    },
+    {
+      "id": "verification.oss-dependency-inventory-3023",
+      "ownerLayer": "verification",
+      "architectureComponents": [
+        "verification"
+      ],
+      "triggerTokens": [
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3023-oss-dependency-inventory.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/verification.json"
+        ]
+      },
+      "notes": "#3023 deterministic tracked npm/Cargo/Python graph coverage,unresolved-license/range disclosure,malformed-source and repository-boundary controls. No live advisory query or installed-runtime proof."
     }
   ],
   "truthGovernance": {
@@ -7505,6 +7545,38 @@
           {
             "path": "build/mastra-agent-runtime.ts",
             "digest": "af5b315a0b901e9c5e6d7287fa19387da870dd295e2acbde130ff577b6a639f6"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3023-oss-dependency-inventory.test.mjs",
+        "targetDigest": "2a24da76ec8bb0240c9bf0f6bc23f7eed23bc04cfc1dc8f47665ac8af745c140",
+        "catalogueIds": [
+          "verification.oss-dependency-inventory-3023"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic public lock/requirements fixtures test complete supplied tracked-path coverage,missing metadata disclosure,LF/CRLF evidence equivalence,unsupported input failure and filesystem escape rejection. No installation,upstream vulnerability or licence clearance is proved.",
+        "inputs": [
+          {
+            "path": "lib/verification/oss-dependency-inventory.mjs",
+            "digest": "5cd04b2e1003950d3495d1f9501542676eae5e12a190f4ec1bdfa3da06c6f8f1"
+          },
+          {
+            "path": "scripts/third-party-oss-audit.mjs",
+            "digest": "026c6e1e4ce329d3526f980df4fb8e1bdf9c75660f21a42117cc769758cdae1a"
           }
         ]
       }

@@ -1876,7 +1876,9 @@
       "id": "oss-third-party-verification",
       "classification": "verification",
       "include": [
-        "scripts/third-party-oss-audit.mjs"
+        "scripts/third-party-oss-audit.mjs",
+        "lib/verification/oss-dependency-inventory.mjs",
+        "tests/issue-3023-oss-dependency-inventory.test.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

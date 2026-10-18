@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 3110,
+  "phase": "local-explicit-windows-uat-start-status-stop",
+  "brief": "docs/developer-briefs/3110-windows-local-uat-control.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows-uat-control.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs",
+    "docs/developer-briefs/3110-windows-local-uat-control.md",
+    "config/development-convergence/3110-windows-local-uat-control.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXACT-SCOPE-AND-NO-REPLAY",
+      "criterion": "Admitted exact base/head and task reserve private attempt before local UAT child start; duplicate and stale source fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "contains": "windowsUatScope"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "duplicate never replays"
+        }
+      ]
+    },
+    {
+      "id": "HONEST-STOP-AND-OFFLINE",
+      "criterion": "Stop is local idempotent request; no status reports a terminated UAT child without actual worker acknowledgment; no arbitrary Windows PID termination.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "contains": "cancelled-child-exited"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "stop is idempotent"
+        }
+      ]
+    },
+    {
+      "id": "REPORT-SCOPE-TRUTH",
+      "criterion": "Actual contracts-only subprocess with fresh matching JSON/exit is observed, never browser UAT, independently verified or merge eligible.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "contains": "browserUatProven: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "actual contracts-only report"
+        }
+      ]
+    },
+    {
+      "id": "NO-UNAUTHORIZED-REMOTE-CONTROL",
+      "criterion": "No Chat/Work remote device pairing, cloud AI, model dispatch, code mutation, story asset writes, GitHub publication or merge introduced.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3110-windows-local-uat-control.md",
+          "contains": "not an OS sandbox"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "contains": "remoteControlConnected: false"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Local command deliberately requires manual invocation; no auto startup/remote listener.",
+    "Native Windows process-tree kill semantics and live browser UAT are unproven.",
+    "Legacy uncertain Challenger/Pi Durable source is preserved, not resumed.",
+    "Actual authenticated Chat/Work control transport is a later independently verified stage."
+  ]
+}

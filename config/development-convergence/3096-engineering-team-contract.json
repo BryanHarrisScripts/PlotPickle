@@ -10,7 +10,8 @@
     "tests/issue-3096-engineering-team-execution.test.mjs",
     "config/verification/test-catalog.json",
     "config/development-convergence/3096-engineering-team-contract.json",
-    "docs/developer-briefs/3096-experimental-engineering-team.md"
+    "docs/developer-briefs/3096-experimental-engineering-team.md",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {

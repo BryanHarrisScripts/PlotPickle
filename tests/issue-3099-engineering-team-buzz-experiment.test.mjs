@@ -6,6 +6,7 @@ import path from "node:path";
 import { admitEngineeringCampaign } from "../scripts/engineering-team/contract.mjs";
 import { executeEngineeringTeam } from "../scripts/engineering-team/execution.mjs";
 import { readLocalBuzzActivity } from "../scripts/buzz-live-activity.mjs";
+import { parseEngineeringCommand, runExplicitEngineeringCampaign } from "../scripts/engineering-team/run-local.mjs";
 import {
   recordEngineeringLocalHandoffs,
   measureEngineeringCommunicationArms,
@@ -104,4 +105,42 @@ test("badly formed lossy copied evidence is rejected without local write", async
     record: async () => { called = true; return { ok: true }; },
   }), /privilege-raising/);
   assert.equal(called, false);
+});
+
+test("explicit command --buzz-local appends local BUZZ handoffs without signed transport", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-engineering-buzz-cmd-"));
+  try {
+    const params = parseEngineeringCommand([
+      "--run", "--head", SHA, "--base", "1".repeat(40),
+      "--task", "pr-3099", "--roles", "tester,challenger",
+      "--mode", "lossy", "--buzz-local",
+    ]);
+    assert.equal(params.buzzLocal, true);
+    const receipt = await runExplicitEngineeringCampaign(params, {
+      appRoot: root,
+      inspect: async () => ({ head: SHA, changedPaths: [] }),
+      getExactHead: async () => SHA,
+      buildAdapters: async () => ({
+        tester: { executorId: "uat", run: async () => ({
+          observationId: "uat-one", findingRef: "finding-one", state: "candidate",
+          summary: "Deterministic contract observation without defect proof",
+          evidenceRefs: ["test:observed"],
+        }) },
+        challenger: { executorId: "pi-review", run: async () => ({
+          observationId: "pi-two", findingRef: "finding-one", state: "candidate",
+          summary: "Independent read-only review remains advisory",
+          evidenceRefs: ["pi:observed"],
+        }) },
+      }),
+    });
+    assert.equal(receipt.receipt.status, "observed");
+    assert.equal(receipt.receipt.localBuzz.localRecorded, 1);
+    assert.equal(receipt.receipt.localBuzz.remoteBuzzDelivered, false);
+    assert.equal(receipt.receipt.signedExternalBuzzProven, false);
+    const records = await readLocalBuzzActivity({ localRoot: path.join(root, "buzz-local-backbone") });
+    assert.equal(records.length, 1);
+    assert.equal(records[0].verified, false);
+    assert.equal(records[0].actionable, false);
+    assert.doesNotMatch(records[0].summary, /Independent read-only review remains advisory/);
+  } finally { await rm(root, { recursive: true, force: true }); }
 });

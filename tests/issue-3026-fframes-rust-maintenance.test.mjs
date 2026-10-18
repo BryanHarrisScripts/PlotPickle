@@ -200,7 +200,7 @@ test("#3089 local lru backport removal is trial-only and must be source reviewed
     "1.2.0", "1.2.1-rc.45"), /requires explicit source inspection/u);
 });
 
-test("#3089 candidate unpatched lru graph reports incompatible registry 0.14, not remediation", () => {
+test("#3089 candidate unpatched lru graph reports incompatible registry 0.14, not remediation", async () => {
   const graph = {
     resolve: { root: "root", nodes: [
       { id: "root", deps: [{ pkg: "ff" }] }, { id: "ff", deps: [{ pkg: "old" }, { pkg: "new" }] },

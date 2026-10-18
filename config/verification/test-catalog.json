@@ -8135,7 +8135,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
+            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
           }
         ]
       },
@@ -8163,7 +8163,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
+            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8223,7 +8223,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
+            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8241,7 +8241,7 @@
       },
       {
         "target": "tests/issue-3098-cline-independent-reviewer.test.mjs",
-        "targetDigest": "99b99c33aadee8ac8be7e8a926c0b06162b6ac24640f9cfb0e1c44768e17c92f",
+        "targetDigest": "cd2b0a5c59c6aded5c724f9ac47dcf7dff10dd44697aa92bfb80245ac10cc2e6",
         "catalogueIds": [
           "agent.experimental-engineering-team-cline-3098"
         ],
@@ -8263,17 +8263,17 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/cline-plan-adapter.mjs",
-            "digest": "3d9d104f64157f2ed2fdf9f7c7ac2650ac2c9bbf5354e024a2cbbcfc298c1176"
+            "digest": "c6265c4cc933b15b5ee135e1b2250f4b9fc385b553a2034dd950b1ea14c59563"
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
+            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
           }
         ]
       },
       {
         "target": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
-        "targetDigest": "7a4118c90d7a4282cc69425cac0fbc53adda7ae30810dd6d687ace99cb68821c",
+        "targetDigest": "40db3129f9db78bfec47d4239b5073381837559f4f37479916579968ccaa0383",
         "catalogueIds": [
           "agent.experimental-engineering-team-failure-diagnostic-3098"
         ],
@@ -8295,7 +8295,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
+            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",

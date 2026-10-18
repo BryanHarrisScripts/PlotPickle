@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 3098,
+  "phase": "engineering-team-readonly-adapters",
+  "brief": "docs/developer-briefs/3098-engineering-team-local.md",
+  "allowedChanges": [
+    "scripts/engineering-team/local-adapters.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "tests/issue-3098-engineering-team-live-adapters.test.mjs",
+    "tests/issue-3098-engineering-team-command.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3098-engineering-team-local.json",
+    "docs/developer-briefs/3098-engineering-team-local.md"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCAL-FROZEN-COMMIT",
+      "criterion": "Explicit operator command uses the complete ancestor-to-exact-head change range; rejects dirty checkout.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "base SHA is not an ancestor"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "Explicit --run is required"
+        }
+      ]
+    },
+    {
+      "id": "REAL-ADAPTER-SCOPE",
+      "criterion": "Use existing managed Pi local read-only worker and fresh deterministic focused UAT report only.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/local-adapters.mjs",
+          "contains": "runPiReadOnly"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/local-adapters.mjs",
+          "contains": "Synthetic contracts-only execution"
+        }
+      ]
+    },
+    {
+      "id": "NO-AUTONOMOUS-APPROVAL",
+      "criterion": "Run receipt never becomes independent defect proof, signed BUZZ or merge authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "independentlyVerified: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3098-engineering-team-command.test.mjs",
+          "contains": "duplicate attempt must not re-dispatch"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "This partial delivery does not establish Pi Durable recovery, second independent model type or real Windows product availability.",
+    "No external network/social/GitHub writes, paid provider requests, installs, approval or merge authority from agent observations.",
+    "Local contract tests do not certify a fully operating 24/7 engineering team."
+  ]
+}

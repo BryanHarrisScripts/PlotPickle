@@ -7768,7 +7768,7 @@
       },
       {
         "target": "tests/issue-3096-engineering-team-contract.test.mjs",
-        "targetDigest": "5a4a1575f28c3031cf0452e2d1ba1fce9f28ac5bd206eb3ac944c800e48f7509",
+        "targetDigest": "a50e2561b49fa233f96f284550e7093dd862dea83c2b3f560dcabc207934490a",
         "catalogueIds": [
           "agent.experimental-engineering-team-3096"
         ],
@@ -7790,7 +7790,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/contract.mjs",
-            "digest": "76498f226901ddf9e4b5702fb77a110f3368ae6e2574796075cd43a21696f9f0"
+            "digest": "fa0cbdf57ef12acaf29c6376aa1b656a35d3171347dfb312984d3d7edb05de5e"
           }
         ]
       },
@@ -7818,7 +7818,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/contract.mjs",
-            "digest": "76498f226901ddf9e4b5702fb77a110f3368ae6e2574796075cd43a21696f9f0"
+            "digest": "fa0cbdf57ef12acaf29c6376aa1b656a35d3171347dfb312984d3d7edb05de5e"
           },
           {
             "path": "scripts/engineering-team/execution.mjs",

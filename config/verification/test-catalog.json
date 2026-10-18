@@ -5780,11 +5780,11 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           },
           {
             "path": "package-lock.json",
-            "digest": "05298020c48ed59c50bff2428c080746bad0b64bdd958831c89055a8ff7735de"
+            "digest": "d20b7b79cc90c6db517a74223d1ac4255838b5fe25620440ea06536d3e902ac7"
           }
         ]
       },
@@ -5952,7 +5952,7 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -5992,7 +5992,7 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -6072,7 +6072,7 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           }
         ]
       },
@@ -6172,7 +6172,7 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -6236,7 +6236,7 @@
           },
           {
             "path": "package.json",
-            "digest": "40d887dd8741cdd99f7a5465cae87ca3b843e57c4a39c490e3582c6331d34595"
+            "digest": "08f1c153d55911c847d4b27cd9572eb3ef63929e958e5ca3e00ac36fd8811d80"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",

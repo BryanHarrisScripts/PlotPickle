@@ -251,10 +251,10 @@ jobs:
         shell: pwsh
         run: |
           $archive = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof.zip'
-          Invoke-WebRequest 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-03-18-14/ffmpeg-n9.0.2-22-g46d8f462ee-win64-lgpl-shared-9.0.zip' -OutFile $archive
-          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'dcd3a8ec5a45cfbf59dfc9336f5ebcb26db28b572c17c77d048bcebf9354add7') { throw 'FFmpeg proof archive identity changed.' }
+          Invoke-WebRequest 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-17-20-51/ffmpeg-n9.0.2-28-g669f5ab083-win64-lgpl-shared-9.0.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '00ab3bc8fe02554bd0fffac9968bba498d1ab7e899a4871b85fbba828a50bfcc') { throw 'FFmpeg proof archive identity changed.' }
           Expand-Archive $archive -DestinationPath (Join-Path $env:RUNNER_TEMP 'ffmpeg-proof')
-          $ffmpeg = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof\ffmpeg-n9.0.2-22-g46d8f462ee-win64-lgpl-shared-9.0'
+          $ffmpeg = Join-Path $env:RUNNER_TEMP 'ffmpeg-proof\ffmpeg-n9.0.2-28-g669f5ab083-win64-lgpl-shared-9.0'
           "FFMPEG_DIR=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "$ffmpeg\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

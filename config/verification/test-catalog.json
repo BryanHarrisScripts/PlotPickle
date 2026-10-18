@@ -5766,7 +5766,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b309380d2d84dc2448338e5d1f8ad65b3088d07aff270cd55bd845c56cfa881e"
+            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
           }
         ]
       },
@@ -6576,7 +6576,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
+            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6600,7 +6600,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b309380d2d84dc2448338e5d1f8ad65b3088d07aff270cd55bd845c56cfa881e"
+            "digest": "aeb185a1b0703192779e894270a3fe371ae27d93e409963d011593950edcc68c"
           }
         ]
       },
@@ -6684,7 +6684,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
+            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7545,7 +7545,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "a4d7287d0966773a7302248520ffc08d3350d7392022185455e64ec98ab304e3"
+            "digest": "b0edffba43a259b349cfbca6e47cf3aea8ad9eee2616a91a40e762145f641762"
           },
           {
             "path": "config/third-party-oss.json",
@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "5caa318cee2941bcda1cc944b12604021692f34ffd8fa062bcefcbea5aa49c65",
+        "targetDigest": "035fa9b7eec40a2c724cba41af12fc41b2f94cf95fff50320d9b546205e3746b",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],

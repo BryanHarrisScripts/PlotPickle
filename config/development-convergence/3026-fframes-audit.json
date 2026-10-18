@@ -12,7 +12,9 @@
     "config/development-convergence/3026-fframes-audit.json",
     "config/verification/test-catalog.json",
     "config/verification/ownership-map.json",
-    "tests/issue-1938-verification-core.test.mjs"
+    "tests/issue-1938-verification-core.test.mjs",
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml"
   ],
   "acceptance": [
     {
@@ -44,6 +46,38 @@
           "type": "file-contains",
           "path": "tools/fframes-bridge/Cargo.toml",
           "contains": "fframes = { version = \"=1.2.0\""
+        }
+      ]
+    },
+    {
+      "id": "FFRAMES-NATIVE-PROOF-ROUTING",
+      "criterion": "Changes to reviewed FFrames graph and native media proof are routed to exact-head Windows Rust compilation and physical frame proof; unrelated verification changes do not run the native lane.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "config/verification/fframes-maintenance-"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "Rust maintenance evidence selects real FFrames Windows build"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-FFMPEG-PIN",
+      "criterion": "Native media proof archive remains an exact immutable release asset and its published SHA-256 is checked before extraction.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "autobuild-2026-10-17-20-51/ffmpeg-n9.0.2-28-g669f5ab083-win64-lgpl-shared-9.0.zip"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "00ab3bc8fe02554bd0fffac9968bba498d1ab7e899a4871b85fbba828a50bfcc"
         }
       ]
     }

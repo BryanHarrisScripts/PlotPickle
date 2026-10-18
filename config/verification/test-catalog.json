@@ -3820,6 +3820,48 @@
         ]
       },
       "notes": "#3098 Cline Plan engine source bundle, tool denial, pinned version and CLI explicit selection synthetic fixtures. Not actual Windows Cline model I/O."
+    },
+    {
+      "id": "agent.experimental-engineering-team-failure-diagnostic-3098",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3098-engineering-failure-diagnostics.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "Read-only private reservation diagnostics on Windows, legacy unknown error, role marker uncertainty, no provider model inference. Actual live Windows failure root cause remains unproven."
     }
   ],
   "truthGovernance": {
@@ -8093,7 +8135,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
+            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
           }
         ]
       },
@@ -8121,7 +8163,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
+            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8181,11 +8223,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
+            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
-            "digest": "8d02dae13f9f04eb6b9c3388aa68e53b24d18719b29d8b0699c145c99f5b7860"
+            "digest": "d278d1558c506815864ada53f9ab1645b69813bef4feaa4f1f521b45379a95a4"
           },
           {
             "path": "scripts/pi/durable/engineering-team-proof.mjs",
@@ -8225,7 +8267,43 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "462a5e4815a6b97286a7c998b707db53b28c6cfdd6e2d22a74422bf8368997bf"
+            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
+        "targetDigest": "af4490472e728d10b0e6b84332b5c2185a6c13aaee74751440899b3f3faf7c7d",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-failure-diagnostic-3098"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic private-folder and stage callbacks are not a managed Pi Durable runtime, live Windows provider request, model response proof or successful retry of the first reserved attempt.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+          },
+          {
+            "path": "scripts/engineering-team/durable-checkpoint.mjs",
+            "digest": "d278d1558c506815864ada53f9ab1645b69813bef4feaa4f1f521b45379a95a4"
+          },
+          {
+            "path": "scripts/engineering-team/diagnose-local.mjs",
+            "digest": "9bded6df428b807703c79ada1c07678abed9c0c0e8853b15e5df307842b94c18"
           }
         ]
       }

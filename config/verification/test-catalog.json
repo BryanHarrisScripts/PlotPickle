@@ -7579,6 +7579,29 @@
             "digest": "057352370d2d4a10af3845ab5fa868f5e36781a62d1644a70ac9f9ab76763589"
           }
         ]
+      },
+      {
+        "target": "tests/issue-1938-verification-core.test.mjs",
+        "targetDigest": "ef74ab074136541cc8aa7cddc7377f1f3490be6700be0d9fa945438985b29dff",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Deterministic ownership mapping and test-selection fixtures confirm that a newly registered OSS verification test is included in the verification-layer plan. This is selection and coverage evidence, not execution on a Human device or proof of agent, dependency, or provider behavior.",
+        "inputs": []
       }
     ]
   }

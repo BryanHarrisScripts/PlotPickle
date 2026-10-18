@@ -8135,7 +8135,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
           }
         ]
       },
@@ -8163,7 +8163,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8223,7 +8223,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8267,13 +8267,13 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
           }
         ]
       },
       {
         "target": "tests/issue-3098-engineering-failure-diagnostics.test.mjs",
-        "targetDigest": "af4490472e728d10b0e6b84332b5c2185a6c13aaee74751440899b3f3faf7c7d",
+        "targetDigest": "7a4118c90d7a4282cc69425cac0fbc53adda7ae30810dd6d687ace99cb68821c",
         "catalogueIds": [
           "agent.experimental-engineering-team-failure-diagnostic-3098"
         ],
@@ -8295,15 +8295,15 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "d42de844ccf480bc59766aa7c9fe8a5ddb032b6d47bd76d5a6b63551fd9fde0b"
+            "digest": "978d3e007d7e224f28a85e859e58a9724e2a084b146db947347ed3919cba4a45"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
             "digest": "d278d1558c506815864ada53f9ab1645b69813bef4feaa4f1f521b45379a95a4"
           },
           {
-            "path": "scripts/engineering-team/diagnose-local.mjs",
-            "digest": "9bded6df428b807703c79ada1c07678abed9c0c0e8853b15e5df307842b94c18"
+            "path": "scripts/engineering-diagnostics.mjs",
+            "digest": "8feb96a32c93ba602c0f93134c7bafcd7ae194c76caa8da0fb597f4e72110ee2"
           }
         ]
       }

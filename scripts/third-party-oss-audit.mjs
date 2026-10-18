@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { inventoryRepositoryDependencyGraphs } from "../lib/verification/oss-dependency-inventory.mjs";
+import { inventoryRepositoryDependencyGraphs } from "../lib/verification/oss-radar/dependency-inventory.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(root, "config", "third-party-oss.json");

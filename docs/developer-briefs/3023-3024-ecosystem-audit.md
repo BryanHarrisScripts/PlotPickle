@@ -6,7 +6,7 @@ Issues: #3023 and #3024 under #3022. The Human authorized build, test, repair an
 
 The existing canonical OSS audit covers root npm metadata but does not enumerate hidden nested npm locks, the Rust bridge lock or optional Python requirements. The earlier ecosystem checkpoint explicitly left the original Human matrix and agent permissions/health unresolved. The original matrix is now available locally; publish derived labels and dispositions with its LF digest, without redistributing the private attachment.
 
-Owning domain is verification. The existing public command `scripts/third-party-oss-audit.mjs` stays the sole entry point; focused parsing belongs in `lib/verification/oss-dependency-inventory.mjs`. Consumers are the OSS CLI and deterministic verification catalogue. There is no application startup, UI, PPF, provider, signer or persisted project migration. Git is already a developer checkout prerequisite; this audit now requires tracked-file discovery and fails explicitly outside that context. It does not become an installed application dependency.
+Owning domain is verification. The existing public command `scripts/third-party-oss-audit.mjs` stays the sole entry point; focused parsing belongs in `lib/verification/oss-radar/dependency-inventory.mjs`. Consumers are the OSS CLI and deterministic verification catalogue. There is no application startup, UI, PPF, provider, signer or persisted project migration. Git is already a developer checkout prerequisite; this audit now requires tracked-file discovery and fails explicitly outside that context. It does not become an installed application dependency.
 
 ## Acceptance
 

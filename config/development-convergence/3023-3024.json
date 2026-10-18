@@ -4,7 +4,7 @@
   "phase": "oss-and-agent-evidence-inventory",
   "brief": "docs/developer-briefs/3023-3024-ecosystem-audit.md",
   "allowedChanges": [
-    "lib/verification/oss-dependency-inventory.mjs",
+    "lib/verification/oss-radar/dependency-inventory.mjs",
     "scripts/third-party-oss-audit.mjs",
     "tests/issue-3023-oss-dependency-inventory.test.mjs",
     "config/verification/ownership-map.json",
@@ -20,7 +20,7 @@
       "criterion": "Canonical audit inventories every tracked supported dependency graph and discloses evidence limits.",
       "evidence": [
         { "type": "file-contains", "path": "scripts/third-party-oss-audit.mjs", "contains": "inventoryRepositoryDependencyGraphs(root, tracked)" },
-        { "type": "file-contains", "path": "lib/verification/oss-dependency-inventory.mjs", "contains": "ALL_TRACKED_NPM_CARGO_AND_PYTHON_REQUIREMENTS" }
+        { "type": "file-contains", "path": "lib/verification/oss-radar/dependency-inventory.mjs", "contains": "ALL_TRACKED_NPM_CARGO_AND_PYTHON_REQUIREMENTS" }
       ]
     },
     {

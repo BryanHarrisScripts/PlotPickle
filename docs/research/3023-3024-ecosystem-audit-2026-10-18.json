@@ -5,8 +5,8 @@
     3023,
     3024
   ],
-  "sourceCommit": "b8a89d4b81d0d98b49ea6dd2f29555c8dbf22f54",
-  "checkedAt": "2026-10-18T01:16:32.877Z",
+  "sourceCommit": "f4ee06908e3c8528be4c75f656df21f9e0830962",
+  "checkedAt": "2026-10-18T01:18:16.685Z",
   "originalMatrix": {
     "rowCount": 28,
     "sha256Lf": "4680568bd79331d40ae78e197ab75c912e771f09b905d56a2480bbb4f89f4c45",
@@ -123,15 +123,15 @@
     },
     {
       "path": "config/verification/ownership-map.json",
-      "sha256Lf": "31d81008837f6ec981607bc2e2f95a83423eb4887c7e4466bdc405eed821b67a"
+      "sha256Lf": "4db358ec87ee913973e3b5f7245f5a2f3fbd383eba5f07783520886e6338f859"
     },
     {
-      "path": "lib/verification/oss-dependency-inventory.mjs",
+      "path": "lib/verification/oss-radar/dependency-inventory.mjs",
       "sha256Lf": "89aed1cb2c22d8fef956191136f1d2328d3b5e3ce88b421dc1ed3ec9841ee4fe"
     },
     {
       "path": "scripts/third-party-oss-audit.mjs",
-      "sha256Lf": "026c6e1e4ce329d3526f980df4fb8e1bdf9c75660f21a42117cc769758cdae1a"
+      "sha256Lf": "b97858f19386f77f1e747dfe75012e624318226f7fa8b7831628bfcc61ec43ac"
     },
     {
       "path": "LICENSES.md",
@@ -19583,7 +19583,7 @@
           "total": 801
         },
         "scope": "OFFICIAL_NPM_LOCKFILE_ONLY",
-        "checkedAt": "2026-10-18T01:16:32.884Z"
+        "checkedAt": "2026-10-18T01:18:16.691Z"
       },
       {
         "id": "pi-managed",
@@ -19604,7 +19604,7 @@
           "total": 118
         },
         "scope": "OFFICIAL_NPM_LOCKFILE_ONLY",
-        "checkedAt": "2026-10-18T01:16:32.884Z"
+        "checkedAt": "2026-10-18T01:18:16.692Z"
       },
       {
         "id": "pi-extensions",
@@ -19625,7 +19625,7 @@
           "total": 150
         },
         "scope": "OFFICIAL_NPM_LOCKFILE_ONLY",
-        "checkedAt": "2026-10-18T01:16:32.884Z"
+        "checkedAt": "2026-10-18T01:18:16.692Z"
       },
       {
         "id": "hunk-review",
@@ -19646,7 +19646,7 @@
           "total": 39
         },
         "scope": "OFFICIAL_NPM_LOCKFILE_ONLY",
-        "checkedAt": "2026-10-18T01:16:32.885Z"
+        "checkedAt": "2026-10-18T01:18:16.692Z"
       }
     ],
     "cargoQuery": {

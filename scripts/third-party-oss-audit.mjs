@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { inventoryRepositoryDependencyGraphs } from "../lib/verification/oss-radar/dependency-graphs/inventory.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(root, "config", "third-party-oss.json");
@@ -248,6 +250,13 @@ export function auditThirdPartyOss() {
   }
 
   const referenceOnlySystems = systems.filter((item) => item.usage === "reference-only");
+  let dependencyGraphs = null;
+  try {
+    const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8", windowsHide: true }).split("\0").filter(Boolean);
+    dependencyGraphs = inventoryRepositoryDependencyGraphs(root, tracked);
+  } catch (error) {
+    failures.push(`OSS dependency graph inventory failed: ${error.message}`);
+  }
   const summary = {
     registrySchemaVersion: registry.schemaVersion,
     registeredSystems: systems.length,
@@ -261,6 +270,7 @@ export function auditThirdPartyOss() {
     missingTransitiveLicenseRecords: missingTransitive,
     referenceOnly: referenceOnlySystems.map((item) => ({ id: item.id, name: item.name, evidencePaths: item.evidencePaths })),
     directNpm: directRecords.sort((a, b) => a.name.localeCompare(b.name)),
+    dependencyGraphs,
   };
 
   return { ok: failures.length === 0, failures, warnings, summary };
@@ -272,7 +282,8 @@ function main() {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } else {
     if (result.summary) {
-      console.log(`Third-party OSS audit: ${result.summary.registeredSystems} registered systems; ${result.summary.registeredReferenceOnlySystems} reference-only influences; ${result.summary.directNpmDependencies} direct npm dependencies; ${result.summary.installedPackageRecords} installed package records.`);
+      console.log(`Third-party OSS audit: ${result.summary.registeredSystems} registered systems; ${result.summary.registeredReferenceOnlySystems} reference-only influences; ${result.summary.directNpmDependencies} direct npm dependencies; ${result.summary.installedPackageRecords} lockfile package records.`);
+      console.log(`Dependency graph inventory: ${result.summary.dependencyGraphs?.graphCount ?? 0} tracked graphs; metadata is not installation or licence-clearance proof.`);
       console.log(`Declared OSS influence markers: ${result.summary.declaredReferenceInfluences}.`);
       console.log(`npm licence expressions: ${Object.entries(result.summary.npmLicenseExpressions).map(([license, count]) => `${license}=${count}`).join(", ") || "none"}`);
     }

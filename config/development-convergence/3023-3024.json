@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "issue": 3023,
+  "phase": "oss-and-agent-evidence-inventory",
+  "brief": "docs/developer-briefs/3023-3024-ecosystem-audit.md",
+  "allowedChanges": [
+    "lib/verification/oss-radar/dependency-graphs/inventory.mjs",
+    "scripts/third-party-oss-audit.mjs",
+    "tests/issue-3023-oss-dependency-inventory.test.mjs",
+    "tests/issue-1938-verification-core.test.mjs",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/research/3023-3024-ecosystem-audit-2026-10-18.json",
+    "docs/research/3023-3024-ecosystem-audit-2026-10-18.md",
+    "docs/developer-briefs/3023-3024-ecosystem-audit.md",
+    "config/development-convergence/3023-3024.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ALL-TRACKED-GRAPHS",
+      "criterion": "Canonical audit inventories every tracked supported dependency graph and discloses evidence limits.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/third-party-oss-audit.mjs", "contains": "inventoryRepositoryDependencyGraphs(root, tracked)" },
+        { "type": "file-contains", "path": "lib/verification/oss-radar/dependency-graphs/inventory.mjs", "contains": "ALL_TRACKED_NPM_CARGO_AND_PYTHON_REQUIREMENTS" }
+      ]
+    },
+    {
+      "id": "AUDIT-AND-OWNED-DISPOSITIONS",
+      "criterion": "Dated source-bound receipt covers the original matrix and separates agent declarations from observed protocol health.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/research/3023-3024-ecosystem-audit-2026-10-18.json", "contains": "\"rowCount\": 28" },
+        { "type": "file-contains", "path": "docs/research/3023-3024-ecosystem-audit-2026-10-18.json", "contains": "READ_ONLY_INITIALIZE_LIST_STATUS_HOOKS" },
+        { "type": "file-contains", "path": "docs/research/3023-3024-ecosystem-audit-2026-10-18.md", "contains": "INFO Unmaintained" }
+      ]
+    }
+  ],
+  "constraints": [
+    "No provider/model/signer/story operations; source inventories and explicit unknowns are not blanket health or legal clearance.",
+    "Keep remaining runtime/media/live-agent risks under existing owners; parent3022 remains open."
+  ]
+}

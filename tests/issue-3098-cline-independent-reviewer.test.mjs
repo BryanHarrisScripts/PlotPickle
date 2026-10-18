@@ -166,3 +166,37 @@ test("selected Cline adapter is independently dispatched by the explicit host, n
     assert.equal(observed.receipt.independentlyVerified, false);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("large generated catalog is omitted while changed executable code remains reviewable and coverage disclosed", async () => {
+  await withFixture(async ({ repoRoot, privateRoot }) => {
+    await mkdir(path.join(repoRoot, "config", "verification"), { recursive: true });
+    await writeFile(path.join(repoRoot, "config", "verification", "test-catalog.json"), " ".repeat(25_000));
+    const adapter = makeAdapter({
+      repoRoot, privateRoot,
+      changedPaths: ["config/verification/test-catalog.json", "scripts/source.mjs"],
+      invoke: async (_command, args) => args[0] === "version" ? { stdout: "Cline 3.0.73" }
+        : args.includes("auth") ? { stdout: "configured" } : { stdout: fakeResult },
+    });
+    const result = await adapter.run(request());
+    assert.match(result.summary, /reviewed 1\/2 bounded changed files; omitted 1/);
+    const manifest = JSON.parse(await readFile(path.join(privateRoot, "source-bundle", "manifest.json"), "utf8"));
+    assert.equal(manifest.selectedCount, 1);
+    assert.equal(manifest.requestedCount, 2);
+    assert.deepEqual(manifest.files.map((file) => file.path), ["scripts/source.mjs"]);
+    assert.deepEqual(manifest.omitted, [{ path: "config/verification/test-catalog.json", reason: "size-budget" }]);
+    assert.equal(result.state, "candidate");
+    assert.equal(result.verified, undefined);
+  });
+});
+test("no reviewable source remains BLOCKED before any local model inference", async () => {
+  await withFixture(async ({ repoRoot, privateRoot }) => {
+    await writeFile(path.join(repoRoot, "scripts", "source.mjs"), "x".repeat(25_000));
+    let calls = 0;
+    const adapter = makeAdapter({
+      repoRoot, privateRoot,
+      invoke: async () => { calls++; throw new Error("must not run"); },
+    });
+    await assert.rejects(adapter.run(request()), /no bounded ordinary source files/);
+    assert.equal(calls, 0);
+  });
+});

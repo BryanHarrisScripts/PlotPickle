@@ -49,6 +49,13 @@ export function analyzeCandidateGraph(metadata, candidate) {
   };
 }
 
+export function classifyCandidateCompilation(result) {
+  if (result?.status === 0 && !result.error) return { status: "COMPILED_NOT_RENDER_VERIFIED" };
+  return { status: "BLOCKED", exitCode: result?.status ?? null,
+    diagnostic: String(result?.error?.message || result?.stderr || "compiler did not complete")
+      .trim().slice(-600) };
+}
+
 export async function runCandidateResolution({ projectRoot = root, execute = spawnSync } = {}) {
   const read = (relative) => readFile(path.join(projectRoot, relative), "utf8");
   const base = "tools/fframes-bridge";
@@ -74,10 +81,21 @@ export async function runCandidateResolution({ projectRoot = root, execute = spa
     });
     if (processResult.error) throw Error("Cargo invocation failed: " + processResult.error.message);
     if (processResult.status !== 0) {
-      result = { status: "CANDIDATE_RESOLUTION_BLOCKED", exitCode: processResult.status,
+      result = { status: "CANDIDATE_RESOLUTION_BLOCKED", candidateCompilation: { status: "NOT_ATTEMPTED_GRAPH_BLOCKED" }, exitCode: processResult.status,
         errorTail: String(processResult.stderr || "").trim().slice(-400), promoted: false };
     } else {
       result = analyzeCandidateGraph(JSON.parse(processResult.stdout), policy.candidate);
+      if (process.env.PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE === "1") {
+        const buildResult = execute("cargo", ["+1.99.0", "build", "--release", "--locked",
+          "--manifest-path", path.join(scratch, "Cargo.toml")], {
+          cwd: scratch, encoding: "utf8", timeout: 480000, maxBuffer: 16 * 1024 * 1024,
+          windowsHide: true, env: { ...process.env, CARGO_TARGET_DIR: path.join(scratch, "target"),
+            CARGO_BUILD_JOBS: "2" }
+        });
+        result.candidateCompilation = classifyCandidateCompilation(buildResult);
+      } else {
+        result.candidateCompilation = { status: "NOT_REQUESTED" };
+      }
     }
   } finally {
     await rm(scratch, { recursive: true, force: true });
@@ -85,7 +103,7 @@ export async function runCandidateResolution({ projectRoot = root, execute = spa
   if (digest(await read(base + "/Cargo.lock")) !== stableLockDigest) throw Error("Production Cargo.lock was modified.");
   const report = { ...result, issue: 3088, production: policy.production, candidate: policy.candidate,
     productionLockDigest: stableLockDigest, scope: "TEMPORARY_CARGO_METADATA_ONLY",
-    candidateNativeEncode: "NOT_PROVEN", licenseAndRollback: "NOT_PROVEN", promoted: false };
+    candidateNativeEncode: "NOT_PROVEN", candidateNativeDecode: "NOT_PROVEN", licenseAndRollback: "NOT_PROVEN", promoted: false };
   const out = path.join(projectRoot, ".artifacts", "fframes-candidate-3088", "resolution.json");
   await mkdir(path.dirname(out), { recursive: true });
   await writeFile(out, JSON.stringify(report, null, 2) + "\n");

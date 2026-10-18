@@ -104,6 +104,27 @@
           "contains": "fframes-candidate-windows:"
         }
       ]
+    },
+    {
+      "id": "3089-CANDIDATE-NATIVE-COMPILE",
+      "criterion": "Windows Cargo builds the resolved experimental FFrames version in a disposable workspace, records compiler incompatibility without promoting a prerelease or clearing advisory, and leaves native encode/decode explicitly unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/media/fframes-candidate-resolution.mjs",
+          "contains": "COMPILED_NOT_RENDER_VERIFIED"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "prerelease native compilation remains distinct"
+        }
+      ]
     }
   ],
   "constraints": [

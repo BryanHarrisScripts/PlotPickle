@@ -16,3 +16,7 @@ Production remains on FFrames 1.2.0 with the reviewed local security backport fo
 Sequence: #3088 isolated Cargo metadata probe, never changes production Cargo.lock; #3089 consumer-owned API/feature/MSRV/license compatibility; #3090 genuine generated lockfile, Windows Rust compile, 36/72-frame and 25-shot proof, rights and rollback. Parent #3026 and broader modernization #3053 remain open.
 
 Evidence: GitHub native baseline PR #3087 (merged), FFrames docs.rs release list https://docs.rs/crate/fframes/latest . All replacement versions are proposals, not installed versions. A resolved Cargo dependency graph does not certify upgraded native video execution. Do not auto-install or bill providers.
+
+## Candidate native compilation (issue #3089)
+
+An isolated Windows Rust 1.99.0 release build of FFrames 1.2.1-rc.45 is required in the candidate CI lane. Read `.artifacts/fframes-candidate-3088/resolution.json` for the `candidateCompilation.status` value, distinct from Cargo metadata status. An unsuccessful native build is recorded as a source-backed blocker. Successful compilation is not proof of MPEG-4 encoding/decoding, upgrade licence clearance, or deployability; production FFrames 1.2.0/Cargo.lock stay untouched.

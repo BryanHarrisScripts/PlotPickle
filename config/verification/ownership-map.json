@@ -2508,7 +2508,8 @@
       "id": "engineering-team-3096",
       "classification": "production",
       "include": [
-        "scripts/engineering-team/**"
+        "scripts/engineering-team/**",
+        "scripts/engineering-diagnostics.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

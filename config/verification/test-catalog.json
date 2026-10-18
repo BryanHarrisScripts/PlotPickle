@@ -6576,7 +6576,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "10b85e703ccbd0bd989d5f2291c2f18aca379e19ce1daa89f3d3d7875d24c582"
+            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -6684,7 +6684,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "10b85e703ccbd0bd989d5f2291c2f18aca379e19ce1daa89f3d3d7875d24c582"
+            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -7545,7 +7545,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "10b85e703ccbd0bd989d5f2291c2f18aca379e19ce1daa89f3d3d7875d24c582"
+            "digest": "b2a1d204cc28f23f9479daec9fc361c26a3f949372ab8dd143023b6383a0d699"
           },
           {
             "path": "config/third-party-oss.json",
@@ -7674,7 +7674,7 @@
       },
       {
         "target": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
-        "targetDigest": "efdaa5ba9140bd437814030b1220144a5f253eb7adcebfd9f3536d10ca9cb587",
+        "targetDigest": "5af180574725dc24673a46e2c74843eedd030fc3c028d4359e71ca824dcfd19b",
         "catalogueIds": [
           "verification.fframes-rust-maintenance-3026"
         ],
@@ -7692,7 +7692,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof.",
+        "limits": "Exact tracked-source Cargo graph reachability and advisory-provenance assertions, including negative malformed/drift cases. The test does not run a native Rust build or perform an advisory network scan, and its green state is not remediation. #3088 nonpromoting candidate graph fixtures and a separate Windows Cargo metadata observation do not prove native candidate rendering, licences or migration. The optional #3089 native candidate compilation classifier is not a physical rendered codec, security replacement, or production upgrade proof. #3090 isolated candidate synthetic MPEG-4 frame-order and final-frame proof is an RC-only comparison, not upstream RustSec removal, distribution clearance, or a production dependency migration.",
         "inputs": [
           {
             "path": "lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs",
@@ -7712,7 +7712,7 @@
           },
           {
             "path": "scripts/media/fframes-candidate-resolution.mjs",
-            "digest": "dde713b075718821775197267869ae83c831c2dd55deb89bfae1750b9d42f411"
+            "digest": "c193fa344103ea0fb19b1d5e523bb178115ad5659473f6b4c6d499b4693584f8"
           },
           {
             "path": "config/verification/fframes-upgrade-candidates-2026-10-18.json",

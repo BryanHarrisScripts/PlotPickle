@@ -23,3 +23,11 @@ This phase runs the exact FFrames 1.2.1-rc.45 prerelease under Rust 1.99.0 using
 ## #3089 bounded phase B compatibility build
 
 Native Windows Rust 1.99.0 compiles the exact FFrames 1.2.1-rc.45 candidate after Cargo resolves a *temporary copy* of the reviewed bridge. Its compile result is recorded separately from the 277-package resolution and the existing stable FFrames native codec test. The same checksum-verified LGPL shared FFmpeg fixture is temporarily provisioned for linking; no media generation, user PPF, provider calls or end-user installation occurs on the candidate. Failure is reported as a build blocker without treating the PR as a production dependency migration. Even a successful compile remains COMPILED_NOT_RENDER_VERIFIED until physical synthetic decode, licensing and rollback pass under #3090. A failed compile never clears memmap, paste, rustybuzz or ttf-parser maintenance concerns. See #3089 and #3090.
+
+## #3090 preliminary candidate native video acceptance — follow-up to #3092
+
+Run exact FFrames 1.2.1-rc.45 candidate compiled from a disposable Rust 1.99.0 Cargo graph, with the unchanged checksum-verified LGPL/shared FFmpeg fixture. The candidate binary directly receives a temporary three-colour, 500ms-per-position media request, generates a real MP4, and is independently inspected through FFprobe and FFmpeg. Every decoded frame, final frame, frame rate, codec, duration and dimensions must agree with the canonical 36-frame/24fps/1280x720 synthetic proof. Unexpected output rejects the exact-head PR rather than merely reporting a failed result in a green run.
+
+The production FFrames 1.2.0 native proof runs independently in the existing Windows lane. Both environments are isolated and do not operate on a Human PPF, saved Storyboard, external provider, or application settings. The candidate executable and media data are discarded on cleanup, and its output is represented by a CI proof report (including a SHA-256 digest) rather than a production artifact.
+
+Passing this proof is an experimental RC render/readback compatibility milestone. It does not address the four remaining unmaintained Rust dependencies, the licences and software distribution obligations, 25-shot Mini-Block scale, candidate downgrade/rollback, or production migration. Keep issues #3089 and #3090 open and Cargo.toml/Cargo.lock stable.

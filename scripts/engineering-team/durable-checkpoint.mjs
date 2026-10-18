@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { importPiDurableModule } from "../../core/sidecars/pi-durable-adapter.mjs";
-import { registerAgentCheckpointTasks } from "../../core/sidecars/tasks/agent-checkpoint-task.mjs";
+import { registerAgentCheckpointTasks, normalizeAgentTaskScope } from "../../core/sidecars/tasks/agent-checkpoint-task.mjs";
 import { managedPiDurableRoot, probeManagedPiDurable } from "../pi-durable-managed-install.mjs";
 import { engineeringObservation, engineeringHandoff } from "./contract.mjs";
 
@@ -51,7 +51,7 @@ export function createEngineeringCheckpointCallbacks(campaign, options) {
     routeReceipt: adapters?.[role]?.routeReceipt || "unproven-route",
   }))));
   const profileReceipt = hash(os.userInfo().username + ":" + process.platform).slice(0, 24);
-  const scope = Object.freeze({
+  const scope = normalizeAgentTaskScope({
     humanProfileId: "local-os-" + profileReceipt,
     projectId: "engineering-" + hash(campaign.repository).slice(0, 24),
     projectRevision: campaign.exactSha,

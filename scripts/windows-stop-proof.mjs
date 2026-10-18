@@ -25,6 +25,7 @@ const READY_TIMEOUT_MS = 8_000;
 const EXIT_TIMEOUT_MS = 6_000;
 const FIXTURE_LIFETIME_MS = 35_000;
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+const spawnedHandles = new WeakSet();
 const digest = (v) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 
 function privateRoot() {
@@ -121,7 +122,9 @@ function trackedFixture(args) {
   const state = { exited: false, errored: false };
   child.once("exit", () => { state.exited = true; });
   child.once("error", () => { state.errored = true; });
-  return { child, state };
+  const handle = { child, state };
+  spawnedHandles.add(handle);
+  return handle;
 }
 async function taskkillTree(pid) {
   try {
@@ -134,7 +137,7 @@ async function taskkillTree(pid) {
 export async function stopOwnedFixture(handle, killTree = taskkillTree) {
   // Only an in-memory live ChildProcess created by this exact operation.
   // No externally supplied PID, saved arbitrary PID or process-name matching.
-  if (!handle || !Number.isSafeInteger(handle.child?.pid) || !handle.state
+  if (!handle || !spawnedHandles.has(handle) || !Number.isSafeInteger(handle.child?.pid) || !handle.state
     || handle.state.exited || handle.state.errored) {
     return Object.freeze({ attempted: false, stopped: false, reason: "NOT_ACTIVE" });
   }
@@ -153,6 +156,7 @@ async function prove(head) {
   if ((await currentHead()).toLowerCase() !== head) throw new Error("Exact checkout SHA mismatch.");
   const id = randomUUID(), token = randomBytes(32).toString("hex");
   const folder = folderFor(id);
+  await mkdir(privateRoot(), { recursive: true, mode: 0o700 });
   await mkdir(folder, { recursive: false, mode: 0o700 });
   const reservedAt = Date.now();
   await writeFile(path.join(folder, "reservation.json"), JSON.stringify({

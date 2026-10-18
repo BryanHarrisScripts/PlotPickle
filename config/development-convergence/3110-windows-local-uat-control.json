@@ -4,7 +4,7 @@
   "phase": "local-explicit-windows-uat-start-status-stop",
   "brief": "docs/developer-briefs/3110-windows-local-uat-control.md",
   "allowedChanges": [
-    "scripts/engineering-team/windows-uat-control.mjs",
+    "scripts/windows-uat-control.mjs",
     "tests/issue-3110-windows-uat-control.test.mjs",
     "docs/developer-briefs/3110-windows-local-uat-control.md",
     "config/development-convergence/3110-windows-local-uat-control.json",
@@ -17,7 +17,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "path": "scripts/windows-uat-control.mjs",
           "contains": "windowsUatScope"
         },
         {
@@ -33,7 +33,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "path": "scripts/windows-uat-control.mjs",
           "contains": "cancelled-child-exited"
         },
         {
@@ -49,7 +49,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "path": "scripts/windows-uat-control.mjs",
           "contains": "browserUatProven: false"
         },
         {
@@ -70,7 +70,7 @@
         },
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/windows-uat-control.mjs",
+          "path": "scripts/windows-uat-control.mjs",
           "contains": "remoteControlConnected: false"
         }
       ]

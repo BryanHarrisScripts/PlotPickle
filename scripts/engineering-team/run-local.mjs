@@ -20,7 +20,7 @@ const SHA = /^[a-f0-9]{40}$/i;
 const TASK = /^[a-z0-9][a-z0-9._:/-]{1,119}$/i;
 const MODES = new Set(["structured", "lossy"]);
 const ROLES = new Set(["scout", "tester", "challenger"]);
-const keys = new Set(["--head", "--task", "--mode", "--roles", "--attempt"]);
+const keys = new Set(["--head", "--base", "--task", "--mode", "--roles", "--attempt"]);
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
 export function parseEngineeringCommand(args) {
@@ -38,6 +38,8 @@ export function parseEngineeringCommand(args) {
   }
   const head = String(values["--head"] ?? "").toLowerCase();
   if (!SHA.test(head)) throw new Error("Engineering Team command requires the 40-character exact --head SHA.");
+  const base = String(values["--base"] ?? "").toLowerCase();
+  if (!SHA.test(base) || base === head) throw new Error("Engineering Team requires a different exact --base SHA for full change scope.");
   const task = String(values["--task"] ?? "");
   if (!TASK.test(task)) throw new Error("Engineering Team command requires a bounded --task issue/PR reference.");
   const mode = String(values["--mode"] ?? "structured");
@@ -51,17 +53,20 @@ export function parseEngineeringCommand(args) {
   }
   const attempt = Number(values["--attempt"] ?? 1);
   if (!Number.isInteger(attempt) || attempt < 1 || attempt > 9) throw new Error("Engineering Team attempt must be 1-9.");
-  return Object.freeze({ head, task, mode, roles, attempt });
+  return Object.freeze({ head, base, task, mode, roles, attempt });
 }
 
-export async function inspectEngineeringCheckout({ repoRoot = REPO, runGit = async (args) =>
+export async function inspectEngineeringCheckout({ repoRoot = REPO, base, runGit = async (args) =>
   (await exec("git", args, { cwd: repoRoot, timeout: 30_000, maxBuffer: 512_000, windowsHide: true })).stdout
 }) {
   const head = String(await runGit(["rev-parse", "HEAD"])).trim().toLowerCase();
   if (!SHA.test(head)) throw new Error("Engineering Team checkout has no exact Git commit.");
   const dirty = String(await runGit(["status", "--porcelain", "--untracked-files=no"])).trim();
   if (dirty) throw new Error("Engineering Team requires a clean tracked source checkout or an isolated worktree.");
-  const changed = String(await runGit(["diff", "--name-only", "HEAD~1", "HEAD"])).trim();
+  if (!SHA.test(base || "") || base.toLowerCase() === head) throw new Error("Engineering Team checkout requires an exact prior base SHA.");
+  const common = String(await runGit(["merge-base", base, head])).trim().toLowerCase();
+  if (common !== base.toLowerCase()) throw new Error("Engineering Team base SHA is not an ancestor of the tested head.");
+  const changed = String(await runGit(["diff", "--name-only", base, head])).trim();
   const paths = [...new Set(changed.split(/\r?\n/).map((s) => s.trim().replaceAll("\\", "/")).filter((s) => /^[\w./-]{1,240}$/.test(s)))].slice(0, 20);
   return Object.freeze({ head, changedPaths: Object.freeze(paths) });
 }
@@ -75,9 +80,10 @@ function localAppRoot() {
 
 export async function runExplicitEngineeringCampaign(config, options = {}) {
   const repoRoot = options.repoRoot || REPO;
-  const inspect = options.inspect || (() => inspectEngineeringCheckout({ repoRoot }));
+  const inspect = options.inspect || (() => inspectEngineeringCheckout({ repoRoot, base: config.base }));
   const checkout = await inspect();
   if (checkout.head !== config.head) throw new Error("Engineering Team checkout head differs from explicitly selected commit.");
+  if (!SHA.test(config.base || "") || config.base === config.head) throw new Error("Engineering Team requires a distinct exact base SHA.");
   const campaign = admitEngineeringCampaign({
     campaignId: "eng-" + config.head.slice(0, 12) + "-" + sha256(config.task).slice(0, 12)
       + "-" + config.mode + "-" + config.attempt,

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "issue": 3099,
+  "phase": "engineering-team-buzz-local-study",
+  "brief": "docs/developer-briefs/3099-engineering-team-buzz-study.md",
+  "allowedChanges": [
+    "scripts/engineering-team/buzz-experiment.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "tests/issue-3099-engineering-team-buzz-experiment.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/3099-engineering-team-buzz-local.json",
+    "docs/developer-briefs/3099-engineering-team-buzz-study.md"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCAL-ONLY",
+      "criterion": "Local BUZZ event handoffs use the journal recorder, never the Human-signed remote transport.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/buzz-experiment.mjs",
+          "contains": "recordLocalBuzzActivity"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/buzz-experiment.mjs",
+          "contains": "remoteBuzzDelivered: false"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-OPT-IN",
+      "criterion": "The on-demand command may journal locally only after explicit BUZZ option and admitted observation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "args.includes(\"--buzz-local\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "result.status === \"observed\""
+        }
+      ]
+    },
+    {
+      "id": "NO-FABRICATED-WINNER",
+      "criterion": "Comparison measures handoff bytes but never invents independent defect-rate results.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/buzz-experiment.mjs",
+          "contains": "conclusion: \"not-established\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3099-engineering-team-buzz-experiment.test.mjs",
+          "contains": "defectDetectionEffect, null"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No remote signer or BUZZ relay proof, no provider/model runs in synthetic test callbacks, no automated issue/PR posting, no independent statistical comparison claim."
+  ]
+}

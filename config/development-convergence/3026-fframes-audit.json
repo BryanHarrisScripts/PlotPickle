@@ -18,7 +18,8 @@
     "scripts/media/fframes-candidate-resolution.mjs",
     "config/verification/fframes-upgrade-candidates-2026-10-18.json",
     "docs/research/3026-fframes-upgrade-queue-2026-10-18.md",
-    "scripts/media/fframes-lru-transition-probe.mjs"
+    "scripts/media/fframes-lru-transition-probe.mjs",
+    "docs/developer-briefs/3089-native-lru-validation.md"
   ],
   "acceptance": [
     {
@@ -166,6 +167,27 @@
           "type": "file-contains",
           "path": ".github/workflows/product-gate.yml",
           "contains": "fframes-lru-transition-probe.mjs"
+        }
+      ]
+    },
+    {
+      "id": "3089-NATIVE-UPSTREAM-LRU-COMPARISON",
+      "criterion": "Compile the actual unpatched candidate bridge and compare independently verified 36-frame video against the patched baseline, retaining media and experimental lock without production promotion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/media/fframes-lru-transition-probe.mjs",
+          "contains": "result.baselineComparison = comparison"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER: '1'"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3026-fframes-rust-maintenance.test.mjs",
+          "contains": "upstream lru native comparison rejects missing"
         }
       ]
     }

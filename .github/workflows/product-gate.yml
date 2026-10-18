@@ -425,8 +425,10 @@ jobs:
           PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_COMPILE: '1'
           PLOTPICKLE_FFRAMES_CANDIDATE_NATIVE_RENDER: '1'
         run: node scripts/media/fframes-candidate-resolution.mjs
-      - name: Compare upstream lru 0.18.5 graph without touching production patch
+      - name: Render upstream lru 0.18.5 and compare with tested patched candidate
         shell: pwsh
+        env:
+          PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER: '1'
         run: node scripts/media/fframes-lru-transition-probe.mjs
       - name: Upload nonpromoting candidate graph observation
         if: always()
@@ -436,5 +438,8 @@ jobs:
           path: |
             .artifacts/fframes-candidate-3088/resolution.json
             .artifacts/fframes-candidate-3088/lru-transition.json
+            .artifacts/fframes-candidate-3088/patched-candidate-render.mp4
+            .artifacts/fframes-candidate-3088/upstream-lru-render.mp4
+            .artifacts/fframes-candidate-3088/upstream-lru-Cargo.lock
           if-no-files-found: warn
           retention-days: 7

@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import { parseFframesCargoLock, reviewFframesRustMaintenance } from "../lib/verification/oss-radar/dependency-graphs/fframes-maintenance.mjs";
 import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation, verifyCandidateFrames } from "../scripts/media/fframes-candidate-resolution.mjs";
-import { withoutReviewedLruPatch, classifyLruCandidateGraph } from "../scripts/media/fframes-lru-transition-probe.mjs";
+import { withoutReviewedLruPatch, classifyLruCandidateGraph, compareLruNativeProof, runLruTransitionProbe } from "../scripts/media/fframes-lru-transition-probe.mjs";
 
 const read = (relative) => readFile(new URL("../" + relative, import.meta.url), "utf8");
 const sha = (value) => createHash("sha256").update(value.replace(/\r\n/gu, "\n")).digest("hex");
@@ -195,7 +198,7 @@ test("#3089 local lru backport removal is trial-only and must be source reviewed
   const trial = withoutReviewedLruPatch(manifest, "1.2.0", "1.2.1-rc.45");
   assert.match(trial, /fframes = \{ version = "=1\.2\.1-rc\.45"/u);
   assert.doesNotMatch(trial, /\[patch\.crates-io\]/u);
-  assert.equal(withoutReviewedLruPatch(manifest.replace(/\n/gu, "\r\n"), "1.2.0", "1.2.1-rc.45"), trial, "Windows CRLF and Linux LF must produce identical isolated trial");
+  assert.equal(withoutReviewedLruPatch(manifest.replace(/\r\n/gu, "\n").replace(/\n/gu, "\r\n"), "1.2.0", "1.2.1-rc.45"), trial, "Windows CRLF and Linux LF must produce identical isolated trial");
   assert.match(manifest, /\[patch\.crates-io\][\s\S]*lru/u, "production patch must remain");
   assert.throws(() => withoutReviewedLruPatch(manifest.replace("vendor/lru-0.14.0-patched", "vendor/unknown"),
     "1.2.0", "1.2.1-rc.45"), /requires explicit source inspection/u);
@@ -228,4 +231,90 @@ test("#3089 candidate unpatched lru graph reports incompatible registry 0.14, no
   const script = await read("scripts/media/fframes-lru-transition-probe.mjs");
   assert.match(script, /Production Cargo\.lock was modified by upstream lru experiment/u);
   assert.match(script, /nativeCandidateWithUpstreamLru: "NOT_PROVEN"/u);
+});
+
+test("#3089 upstream lru native comparison rejects missing, failed or different measured baseline", async () => {
+  const baseline = { status: "PASS", codec: "mpeg4", frameRate: 24, width: 1280, height: 720,
+    decodedFrames: 36, everyFrameColorAndOrder: "PASS", finalFrame: "PASS", durationSeconds: 1.5,
+    artifactSha256: "a".repeat(64) };
+  assert.equal(compareLruNativeProof(baseline, { ...baseline, artifactSha256: "b".repeat(64) }).status, "PASS");
+  assert.equal(compareLruNativeProof(baseline, baseline).byteIdentical, true);
+  for (const changed of [{ decodedFrames: 35 }, { finalFrame: "FAIL" }, { frameRate: 25 },
+    { status: "FAIL" }, { durationSeconds: 2 }, { codec: "h264" }]) {
+    assert.throws(() => compareLruNativeProof(baseline, { ...baseline, ...changed }), /differs from tested/u);
+  }
+  assert.throws(() => compareLruNativeProof(null, baseline), /differs from tested/u);
+  assert.throws(() => compareLruNativeProof({ status: "PASS" }, { status: "PASS" }), /differs from tested/u);
+  const workflow = await read(".github/workflows/product-gate.yml");
+  assert.match(workflow, /PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER: '1'/u);
+  const script = await read("scripts/media/fframes-lru-transition-probe.mjs");
+  assert.match(script, /"build", "--release", "--locked"/u);
+  assert.match(script, /tools\/fframes-bridge\/src\/main.rs/u);
+});
+
+test("#3089 native lru job fails closed when Cargo resolution fails and preserves diagnostic report", async () => {
+  const previous = process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+  process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = "1";
+  try {
+    await assert.rejects(runLruTransitionProbe({ execute: () => ({ status: 101, stderr: "synthetic resolution failure" }) }),
+      /native proof required but not completed: BLOCKED_CARGO_RESOLUTION/u);
+    const report = JSON.parse(await read(".artifacts/fframes-candidate-3088/lru-transition.json"));
+    assert.equal(report.nativeCandidateWithUpstreamLru, "NOT_PROVEN");
+    assert.equal(report.productionPromoted, false);
+    assert.match(report.errorTail, /synthetic resolution failure/u);
+  } finally {
+    if (previous === undefined) delete process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+    else process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = previous;
+  }
+});
+
+test("#3089 artifact retention failure after successful comparison cannot pass native gate", async () => {
+  const projectRoot = await mkdtemp(path.join(os.tmpdir(), "plotpickle-lru-retention-test-"));
+  const previous = process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+  process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = "1";
+  try {
+    const base = "tools/fframes-bridge";
+    await mkdir(path.join(projectRoot, base, "src"), { recursive: true });
+    for (const file of ["Cargo.toml", "Cargo.lock", "src/main.rs"]) {
+      await cp(new URL("../" + base + "/" + file, import.meta.url), path.join(projectRoot, base, file));
+    }
+    await mkdir(path.join(projectRoot, "config/verification"), { recursive: true });
+    await writeFile(path.join(projectRoot, "config/verification/fframes-upgrade-candidates-2026-10-18.json"),
+      await read("config/verification/fframes-upgrade-candidates-2026-10-18.json"));
+    const out = path.join(projectRoot, ".artifacts/fframes-candidate-3088");
+    await mkdir(path.join(out, "upstream-lru-render.mp4"), { recursive: true });
+    const proof = { status: "PASS", codec: "mpeg4", frameRate: 24, width: 1280, height: 720,
+      decodedFrames: 36, everyFrameColorAndOrder: "PASS", finalFrame: "PASS", durationSeconds: 1.5,
+      artifactSha256: "a".repeat(64) };
+    await writeFile(path.join(out, "resolution.json"), JSON.stringify({ production: "1.2.0",
+      candidate: "1.2.1-rc.45", promoted: false, productionLockDigest: sha(await read(base + "/Cargo.lock")),
+      candidateRenderProof: proof }));
+    const graph = { resolve: { root: "root", nodes: [{ id: "root", deps: [{ pkg: "ff" }] },
+      { id: "ff", deps: [{ pkg: "lru" }] }, { id: "lru", deps: [], features: [] }] }, packages: [
+      { id: "root", name: "plotpickle-fframes-bridge", version: "0.1.0" },
+      { id: "ff", name: "fframes", version: "1.2.1-rc.45" },
+      { id: "lru", name: "lru", version: "0.18.5", source: "registry+https://github.com/rust-lang/crates.io-index", license: "MIT" }] };
+    const execute = (command, args, options) => {
+      if (args.includes("metadata")) return { status: 0, stdout: JSON.stringify(graph) };
+      if (args[0] === "render") writeFileSync(path.join(options.cwd, "render.mp4"), "synthetic media fixture");
+      if (args.includes("-show_streams")) return { status: 0, stdout: JSON.stringify({ streams: [{
+        codec_type: "video", codec_name: "mpeg4", width: 1280, height: 720,
+        avg_frame_rate: "24/1", nb_read_frames: "36" }], format: { duration: "1.5" } }) };
+      if (args.includes("pipe:1")) {
+        const pixels = Buffer.alloc(108);
+        for (let frame = 0; frame < 36; frame++) pixels[frame * 3 + Math.floor(frame / 12)] = 245;
+        return { status: 0, stdout: pixels };
+      }
+      return { status: 0, stdout: "" };
+    };
+    await assert.rejects(runLruTransitionProbe({ projectRoot, execute }), /not completed: BLOCKED_NATIVE_PROOF/u);
+    const report = JSON.parse(await readFile(path.join(out, "lru-transition.json"), "utf8"));
+    assert.equal(report.nativeProof.status, "PASS", "failure occurs after successful decode");
+    assert.equal(report.nativeCandidateWithUpstreamLru, "NOT_PROVEN");
+    assert.equal(report.productionPromoted, false);
+  } finally {
+    if (previous === undefined) delete process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER;
+    else process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER = previous;
+    await rm(projectRoot, { recursive: true, force: true });
+  }
 });

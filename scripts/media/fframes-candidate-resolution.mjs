@@ -174,6 +174,9 @@ export async function runCandidateResolution({ projectRoot = root, execute = spa
             throw Error("Candidate video proof cannot run without a successful isolated compile.");
           }
           result.candidateRenderProof = await proveCandidateNativeVideo({ scratch, execute });
+          const mediaRoot = path.join(projectRoot, ".artifacts", "fframes-candidate-3088");
+          await mkdir(mediaRoot, { recursive: true });
+          await cp(path.join(scratch, "synthetic-proof", "render.mp4"), path.join(mediaRoot, "patched-candidate-render.mp4"));
         }
       } else {
         result.candidateCompilation = { status: "NOT_REQUESTED" };

@@ -1,13 +1,27 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { candidateManifest, analyzeCandidateGraph } from "./fframes-candidate-resolution.mjs";
+import { candidateManifest, analyzeCandidateGraph, classifyCandidateCompilation, proveCandidateNativeVideo } from "./fframes-candidate-resolution.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const digest = (text) => createHash("sha256").update(text.replace(/\r\n/gu, "\n")).digest("hex");
+
+export function compareLruNativeProof(baseline, candidate) {
+  const fields = ["status", "codec", "frameRate", "width", "height", "decodedFrames",
+    "everyFrameColorAndOrder", "finalFrame", "durationSeconds"];
+  if (baseline?.status !== "PASS" || candidate?.status !== "PASS" ||
+      !/^[a-f0-9]{64}$/u.test(baseline.artifactSha256 || "") ||
+      !/^[a-f0-9]{64}$/u.test(candidate.artifactSha256 || "") ||
+      fields.some((field) => baseline[field] === undefined || baseline[field] !== candidate[field])) {
+    throw Error("Upstream lru native proof differs from tested patched candidate baseline.");
+  }
+  return { status: "PASS", measuredContract: "MATCH", byteIdentical:
+    baseline.artifactSha256 === candidate.artifactSha256,
+    baselineSha256: baseline.artifactSha256, candidateSha256: candidate.artifactSha256 };
+}
 
 export function withoutReviewedLruPatch(manifest, current, candidate) {
   const original = candidateManifest(manifest.replace(/\r\n/gu, "\n"), current, candidate);
@@ -44,7 +58,7 @@ export function classifyLruCandidateGraph(metadata, candidate) {
       promotion: false, upstreamGraphOnly: true, legacyCount: checked.findings.length };
   }
   const stale = rows.filter((r) => r.version.startsWith("0.14."));
-  const modern = rows.some((r) => r.version === "0.18.5");
+  const modern = rows.length === 1 && rows[0].version === "0.18.5";
   const status = stale.length ? "BLOCKED_UPSTREAM_LRU_014_REQUIRED"
     : modern ? "UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF"
       : "BLOCKED_REQUIRED_LRU_0185_MISSING";
@@ -65,7 +79,7 @@ export async function runLruTransitionProbe({ projectRoot = root, execute = spaw
   let result;
   try {
     await mkdir(path.join(scratch, "src"), { recursive: true });
-    await writeFile(path.join(scratch, "src", "main.rs"), "fn main() {}\n");
+    await cp(path.join(projectRoot, "tools/fframes-bridge/src/main.rs"), path.join(scratch, "src", "main.rs"));
     await writeFile(path.join(scratch, "Cargo.toml"),
       withoutReviewedLruPatch(manifest, policy.production, policy.candidate));
     await writeFile(path.join(scratch, "Cargo.lock"), lock);
@@ -79,10 +93,49 @@ export async function runLruTransitionProbe({ projectRoot = root, execute = spaw
         String(observed.error?.message || observed.stderr || "Cargo resolution failed").trim().slice(-450),
         promotion: false, upstreamGraphOnly: true };
     } else {
-      result = classifyLruCandidateGraph(JSON.parse(observed.stdout), policy.candidate);
+      const metadata = JSON.parse(observed.stdout);
+      result = classifyLruCandidateGraph(metadata, policy.candidate);
+      result.lruProvenance = metadata.packages.filter((pkg) => result.lruRows.some((row) =>
+        row.name === pkg.name && row.version === pkg.version && row.source === pkg.source))
+        .map((pkg) => ({ name: pkg.name, version: pkg.version, source: pkg.source,
+          license: pkg.license, features: metadata.resolve.nodes.find((node) => node.id === pkg.id)?.features }));
+      if (process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER === "1") {
+        if (result.status !== "UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF") {
+          throw Error("Upstream lru native proof requires the eligible registry graph.");
+        }
+        const compiled = execute("cargo", ["+1.99.0", "build", "--release", "--locked",
+          "--manifest-path", path.join(scratch, "Cargo.toml")], {
+          cwd: scratch, encoding: "utf8", timeout: 480_000, maxBuffer: 16 * 1024 * 1024,
+          windowsHide: true, env: { ...process.env, CARGO_TARGET_DIR: path.join(scratch, "target"), CARGO_BUILD_JOBS: "2" }
+        });
+        result.candidateCompilation = classifyCandidateCompilation(compiled);
+        if (result.candidateCompilation.status !== "COMPILED_NOT_RENDER_VERIFIED") {
+          throw Error("Upstream lru native compilation failed: " + result.candidateCompilation.diagnostic);
+        }
+        result.nativeProof = await proveCandidateNativeVideo({ scratch, execute });
+        const baseline = JSON.parse(await get(".artifacts/fframes-candidate-3088/resolution.json"));
+        if (baseline.production !== policy.production || baseline.candidate !== policy.candidate ||
+            baseline.productionLockDigest !== lockHash || baseline.promoted !== false) {
+          throw Error("Upstream lru comparison baseline identity mismatch.");
+        }
+        const comparison = compareLruNativeProof(baseline.candidateRenderProof, result.nativeProof);
+        const artifactRoot = path.join(projectRoot, ".artifacts/fframes-candidate-3088");
+        await mkdir(artifactRoot, { recursive: true });
+        await cp(path.join(scratch, "synthetic-proof/render.mp4"), path.join(artifactRoot, "upstream-lru-render.mp4"));
+        await cp(path.join(scratch, "Cargo.lock"), path.join(artifactRoot, "upstream-lru-Cargo.lock"));
+        result.baselineComparison = comparison;
+      }
     }
+  } catch (error) {
+    result = { ...result, status: "BLOCKED_NATIVE_PROOF", diagnostic: String(error.message).slice(-600) };
   } finally {
     await rm(scratch, { recursive: true, force: true });
+    if (digest(await get("tools/fframes-bridge/Cargo.toml")) !== digest(manifest)) {
+      throw Error("Production Cargo.toml was modified by upstream lru experiment.");
+    }
+    if (digest(await get("tools/fframes-bridge/Cargo.lock")) !== lockHash) {
+      throw Error("Production Cargo.lock was modified by upstream lru experiment.");
+    }
   }
   if (digest(await get("tools/fframes-bridge/Cargo.lock")) !== lockHash) {
     throw Error("Production Cargo.lock was modified by upstream lru experiment.");
@@ -91,11 +144,17 @@ export async function runLruTransitionProbe({ projectRoot = root, execute = spaw
     production: policy.production, productionLockSha256Lf: lockHash,
     upstreamSourceReference: "dmtrKovalenko/fframes main fframes/Cargo.toml at 03df1209227bc13cbc733ab567362142d5a43163",
     nativeCandidateWithUpstreamLru: "NOT_PROVEN",
+    ...(result.status === "UPSTREAM_LRU_0185_GRAPH_ELIGIBLE_REQUIRES_NATIVE_PROOF" &&
+      result.baselineComparison?.status === "PASS" ? { nativeCandidateWithUpstreamLru: "PASS_SYNTHETIC_36_FRAMES" } : {}),
     distributionRights: "NOT_PROVEN", productionPromoted: false };
   const out = path.join(projectRoot, ".artifacts", "fframes-candidate-3088", "lru-transition.json");
   await mkdir(path.dirname(out), { recursive: true });
   await writeFile(out, JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report));
+  if (process.env.PLOTPICKLE_FFRAMES_LRU_NATIVE_RENDER === "1" &&
+      report.nativeCandidateWithUpstreamLru !== "PASS_SYNTHETIC_36_FRAMES") {
+    throw Error("Upstream lru native proof required but not completed: " + report.status);
+  }
   return report;
 }
 

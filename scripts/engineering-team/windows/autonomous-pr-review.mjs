@@ -28,7 +28,8 @@ export function reviewDocsOnlyCandidate(pr,required,allowedIssues,exactBase){
   if(!Array.isArray(pr.files)||!pr.files.length||pr.files.length>80
     ||!pr.files.every(x=>BOLD_DOC.test(x.path||"")&&!String(x.path||"").includes("..")))
     return deny("PRODUCT_GATE_REQUIRED");
-  if(pr.mergeStateStatus!=="CLEAN")return deny("MERGE_STATE_NOT_CLEAN");
+  if(pr.mergeStateStatus!=="CLEAN" && !(pr.isDraft===true && pr.mergeStateStatus==="DRAFT"))
+    return deny("MERGE_STATE_NOT_CLEAN");
   const rollup=pr.statusCheckRollup;
   if(!Array.isArray(rollup)||!rollup.length)return deny("MISSING_INDEPENDENT_CI");
   for(const layer of LAYERS){
@@ -74,7 +75,12 @@ export async function reconcileApprovedDocsPRs({issueNumbers,exactBase,
    if(!admission.eligible)continue;
    // The local operator separately opted into docs-only merges. These are
    // reviewed deterministic SHA-bound GitHub checks, not model approval.
-   if(pr.isDraft)await call(["pr","ready",String(pr.number),"--repo",REPO]);
+   if(pr.isDraft){
+     // Making a draft ready may trigger new CI and change merge eligibility.
+     // Never merge using the pre-ready checks or stale mergeStateStatus.
+     await call(["pr","ready",String(pr.number),"--repo",REPO]);
+     return Object.freeze({state:"WAITING_FOR_PR_VERIFICATION",processed:0});
+   }
    await call(["pr","merge",String(pr.number),"--repo",REPO,
      "--squash","--match-head-commit",admission.head]);
    const after=JSON.parse(await call(["pr","view",String(pr.number),"--repo",REPO,

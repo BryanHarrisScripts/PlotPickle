@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { adjudicateEngineeringFinding } from "./contract.mjs";
-import { readEngineeringEvidenceState } from "./evidence-state.mjs";
+import { readEngineeringEvidenceState } from "./evidence/evidence-state.mjs";
 
 const SHA256 = /^[0-9a-f]{64}$/;
 const EXACT_SHA = /^[0-9a-f]{40}$/;

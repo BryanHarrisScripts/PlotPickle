@@ -4245,6 +4245,48 @@
         ]
       },
       "notes": "#3110 admission-only; native Windows persistent execution, independent source mutation, production UAT and autonomous PR/merge/continuation are not proven."
+    },
+    {
+      "id": "agent.unattended-factory-installer-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-factory-installer.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 static per-user Windows task installer. Real on-host registration and survival not proven; no authorization to execute code-writing agents."
     }
   ],
   "truthGovernance": {
@@ -9079,6 +9121,34 @@
           {
             "path": "scripts/engineering-team/windows/factory-worker.mjs",
             "digest": "0a6ef29912411326aaf3d7930166cf80bc228e16ae5f4e8735f7175dec7ee29c"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-factory-installer.test.mjs",
+        "targetDigest": "a6854130c9e694a1cc581a5c0af24203206d9600a32f246b45f9e9ad6960d5fb",
+        "catalogueIds": [
+          "agent.unattended-factory-installer-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Source-static installer tests only, not native Windows scheduled task registration, process-tree STOP, continuous operation or autonomous implementation.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/install-factory-worker.ps1",
+            "digest": "b13d75f4df609e12d9f291f800fa3a71098f84d57ed3cb08284176078e73766d"
           }
         ]
       }

@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   resolvePiExecutable, resolvePiLocalRuntime, configurePiLocalRuntime,
   piDeveloperRouteProjection, piDeveloperEnvironment, piDeveloperVirtualArgs,
-  runPortableCommand,
+  runPortableCommand, resolveActiveNpmCommand,
 } from "../../pi-worker-runtime.mjs";
 
 const REPO="BryanHarrisScripts/PlotPickle";
@@ -143,7 +143,8 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
   await command("git",["worktree","add","-b",branch,worktree,head]);
   let pushed=false;
   try{
-    await command("npm",["ci","--ignore-scripts","--no-audit","--no-fund"],{cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
+    await runPortableCommand(resolveActiveNpmCommand(),["ci","--ignore-scripts","--no-audit","--no-fund"],
+      {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
     const agent=await localAgent(worktree,issue,head);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes);
@@ -151,7 +152,8 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
     await command("git",["diff","--check"],{cwd:worktree});
     await command(process.execPath,["scripts/run-uat-autopilot.mjs","--contracts-only",
       "--artifact-root",".artifacts/autonomous-issue-"+issueNumber],{cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
-    await command("npm",["run","build"],{cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
+    await runPortableCommand(resolveActiveNpmCommand(),["run","build"],
+      {cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
     if((await sourceHead())!==head)return output("MAIN_HEAD_MOVED");
     await command("git",["add","--",...changes],{cwd:worktree});
     const staged=(await command("git",["diff","--cached","--name-only"],{cwd:worktree})).split(/\r?\n/).filter(Boolean);

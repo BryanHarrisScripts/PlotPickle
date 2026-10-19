@@ -9252,7 +9252,7 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "2195011eb9ba1939aa8d6dd51ae6e40450534eb32c66a227af3b7178b81f3942",
+        "targetDigest": "c18ec12f1e6465e0d043e795ffc0516e2897d1b947d0c4720e5d502777d9794d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

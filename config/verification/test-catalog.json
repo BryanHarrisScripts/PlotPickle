@@ -9059,7 +9059,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "0cf00380c9ea1051cf1ab0e111b308dcc360b154cd322f519df963e6647d528f",
+        "targetDigest": "e1fea7f464ce231fdd8b9f45ba5dfaccc703279c669fb07b8815b858c2555947",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9078,7 +9078,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-pr-review.mjs",
-            "digest": "db6c4624c7043c80d3ac76462a8eea188d42f6f5f1fccc77f308fa8dde5dcabd"
+            "digest": "29f3e94b9d7647b042145e46ea36ed5fabb62214ab05395ef0b14693d2ffb51e"
           },
           {
             "path": "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",

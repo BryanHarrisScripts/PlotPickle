@@ -2173,7 +2173,8 @@
       "classification": "production",
       "include": [
         "build/local-runtime-gateway.ts",
-        "build/ai/local-ai-readiness.ts"
+        "build/ai/local-ai-readiness.ts",
+        "scripts/start-comfyui-background.ps1"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

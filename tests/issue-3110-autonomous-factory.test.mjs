@@ -139,7 +139,7 @@ test("bounded coding adapter rejects arbitrary issue commands and protected file
  ])assert.throws(()=>parseCoderArgs(args));
  assert.equal(assessFactoryPaths(["app/skin-v1/page.ts","tests/issue-3135.test.mjs"]).allowed,true);
  for(const file of [".github/workflows/ci.yml","../secret","package.json","app/../.env",
-   "scripts/engineering-team/windows/paired-github-control.mjs","scripts/engineering-team/repair/policy.json",
+   "scripts/engineering-team/windows/paired-github-control.mjs","scripts/engineering-team/repair/policy.json","app/private/.env.local",
    "C:/Users/secrets.txt"]){
    assert.equal(assessFactoryPaths([file]).allowed,false,file);
  }
@@ -185,4 +185,16 @@ test("no local model does not consume an attempt; admitted queue can resume when
    publish:async()=>{},dispatch:async()=>({state:"BLOCKED",code:"CANDIDATE_REJECTED"})});
  assert.equal(ready.processed,1);
  assert.equal(ready.issueNumber,3135);
+}));
+
+test("more than two pending autonomous draft PRs blocks new issue work before provider use",()=>sandbox(async root=>{
+ await enableFactory({root,issues:[3135]});
+ let issued=false;
+ const state=await runFactoryCycle({root,preflight:async()=>{throw Error("no probe allowed");},
+   publish:async()=>{},github:{pendingFactoryPRs:async()=>2,
+   exactHead:async()=>{throw Error("no git work allowed");},issues:async()=>[first]},
+   dispatch:async()=>{issued=true;throw Error("no work allowed");}});
+ assert.equal(state.state,"WAITING_FOR_PR_VERIFICATION");
+ assert.equal(state.processed,0);
+ assert.equal(issued,false);
 }));

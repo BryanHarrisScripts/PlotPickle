@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "issue": 3121,
+  "phase": "webmcp-isolated-media-autostart-denial",
+  "brief": "docs/developer-briefs/3121-comfyui-acceptance-start-denial.md",
+  "allowedChanges": [
+    "scripts/start-comfyui-background.ps1",
+    "build/ai/comfyui-onboarding-gateway.ts",
+    "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3121-comfyui-acceptance-start-denial.md",
+    "config/development-convergence/3121-comfyui-acceptance-start-denial.json",
+    "config/verification/ownership-map.json"
+  ],
+  "acceptance": [
+    {
+      "id": "GATE-MANAGED-CLI-START",
+      "criterion": "The approved managed ComfyUI POST must deny read-only synthetic WebMCP acceptance before any CLI/managed engine launch.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/ai/comfyui-onboarding-gateway.ts",
+          "contains": "state: \"acceptance-read-only\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "managedStart > gatewayGuard"
+        }
+      ]
+    },
+    {
+      "id": "GATE-POWERSHELL-START",
+      "criterion": "The Windows optional ComfyUI launcher must refuse WebMCP read-only requests before opening redirected logs or spawning Python.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/start-comfyui-background.ps1",
+          "contains": "Write-Status \"acceptance-read-only\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "firstProcessStart > psGuard"
+        }
+      ]
+    },
+    {
+      "id": "EXACT-SYNTHETIC-ENV-ONLY",
+      "criterion": "The refusal is narrow to read-only WebMCP acceptance and must not override explicit normal Human media consent.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/ai/comfyui-onboarding-gateway.ts",
+          "contains": "process.env.PLOTPICKLE_ACCEPTANCE_MODE === \"1\""
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/start-comfyui-background.ps1",
+          "contains": "$env:PLOTPICKLE_ACCEPTANCE_MODE -eq \"1\""
+        }
+      ]
+    },
+    {
+      "id": "KEEP-BROWSER-AND-STOP-RED",
+      "criterion": "No failed Story Factory continuity assertion, synthetic-home retention or actual Windows stop proof is falsely marked PASS.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3121-comfyui-acceptance-start-denial.md",
+          "contains": "This does not prove already launched optional processes"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "SYNTHETIC_HOME_CLEANUP_FAILED"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-PRODUCTION-OWNERSHIP",
+      "criterion": "Windows managed ComfyUI startup script is explicitly classified as production provider-runtime code rather than unmapped or unverified.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"scripts/start-comfyui-background.ps1\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "localAiRule?.ownerLayer"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No paid provider generation, no auto-approval, no deleting personal Human project data.",
+    "Never kill guessed processes or claim native Windows owned descendant STOP solely from fixture tests.",
+    "Do not close #3121, #3118 or #3123 solely from this static guard."
+  ]
+}

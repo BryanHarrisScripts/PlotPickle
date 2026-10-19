@@ -318,6 +318,18 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
           sendJson(response, 400, { ok: false, message: "PlotPickle needs approval before starting the managed local ComfyUI service." });
           return;
         }
+        // A browser acceptance run is read-only. A simulated approval must not
+        // start comfy-cli, a managed Python service, or any optional media engine.
+        if (process.env.PLOTPICKLE_STARTUP_TESTING_MODE === "webmcp"
+          && process.env.PLOTPICKLE_ACCEPTANCE_MODE === "1") {
+          sendJson(response, 409, {
+            ok: false,
+            ready: false,
+            state: "acceptance-read-only",
+            message: "Isolated WebMCP acceptance cannot start optional ComfyUI media engines.",
+          });
+          return;
+        }
         const attempt = rememberStart(await startComfyUi());
         if (!attempt.ready) {
           sendJson(response, 409, { ok: false, ...attempt });

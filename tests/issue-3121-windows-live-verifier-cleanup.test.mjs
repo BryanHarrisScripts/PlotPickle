@@ -114,3 +114,32 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
   assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);
   assert.doesNotMatch(source, /server\.kill\("SIGTERM"\)/u);
 });
+
+test("#3121 read-only WebMCP acceptance blocks optional media engine spawning at both gateway and PowerShell launch", async () => {
+  const gateway = await readFile(new URL("../build/ai/comfyui-onboarding-gateway.ts", import.meta.url), "utf8");
+  const starter = await readFile(new URL("../scripts/start-comfyui-background.ps1", import.meta.url), "utf8");
+  const verifier = await readFile(new URL("../scripts/verification-webmcp-live.mjs", import.meta.url), "utf8");
+  const ownership = JSON.parse(await readFile(new URL("../config/verification/ownership-map.json", import.meta.url), "utf8"));
+  const localAiRule = ownership.rules.find((rule) => rule.id === "local-ai-readiness-runtime");
+  assert.equal(localAiRule?.ownerLayer, "provider-runtime");
+  assert.ok(localAiRule.include.includes("scripts/start-comfyui-background.ps1"));
+
+
+  assert.match(verifier, /PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp"/u);
+  assert.match(verifier, /PLOTPICKLE_ACCEPTANCE_MODE: "1"/u);
+  const approvalAt = gateway.indexOf("if (body.approved !== true)");
+  const gatewayGuard = gateway.indexOf('process.env.PLOTPICKLE_STARTUP_TESTING_MODE === "webmcp"');
+  const managedStart = gateway.indexOf("rememberStart(await startComfyUi())");
+  assert.ok(approvalAt >= 0 && gatewayGuard > approvalAt && managedStart > gatewayGuard);
+  assert.match(gateway.slice(gatewayGuard, managedStart), /sendJson\(response, 409/u);
+  assert.match(gateway.slice(gatewayGuard, managedStart), /state: "acceptance-read-only"/u);
+  assert.doesNotMatch(gateway.slice(gatewayGuard, managedStart), /startComfyUi\(\)|launchComfyWithManagedCli\(\)/u);
+
+  const statusFunction = starter.indexOf("function Write-Status(");
+  const psGuard = starter.indexOf('$env:PLOTPICKLE_STARTUP_TESTING_MODE -eq "webmcp"');
+  const firstProcessStart = starter.indexOf("Start-Process ");
+  assert.ok(statusFunction >= 0 && psGuard > statusFunction && firstProcessStart > psGuard);
+  assert.match(starter.slice(psGuard, firstProcessStart), /Write-Status "acceptance-read-only"/u);
+  assert.match(starter.slice(psGuard, firstProcessStart), /exit 0/u);
+  assert.match(starter.slice(psGuard, firstProcessStart), /PLOTPICKLE_ACCEPTANCE_MODE -eq "1"/u);
+});

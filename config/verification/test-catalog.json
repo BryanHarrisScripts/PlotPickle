@@ -4215,12 +4215,16 @@
         "agent",
         "security",
         "test-harness",
-        "windows"
+        "windows",
+        "mcp",
+        "chatgpt",
+        "plugin"
       ],
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3110-autonomous-factory.test.mjs"
+          "tests/issue-3110-autonomous-factory.test.mjs",
+          "tests/issue-3154-chatgpt-factory-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4245,7 +4249,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof."
+      "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof. #3154 adds a read-only local MCP protocol bridge with no direct ChatGPT session proxy, no Windows write tools, and a mandatory separate authenticated HTTPS/Tunnel proof before web connection."
     },
     {
       "id": "agent.unattended-queue-admission-3110",
@@ -9247,6 +9251,34 @@
           "static-source"
         ],
         "limits": "Injected in-memory Windows platform, private temporary filesystem, simulated pairing and GitHub poll. No real OS service, native STOP, actual hosted agent, protected GitHub PR or autonomous merge."
+      },
+      {
+        "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+        "targetDigest": "2195011eb9ba1939aa8d6dd51ae6e40450534eb32c66a227af3b7178b81f3942",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "f5ca0b0ede7e643dc76a7ef89e5ceb383e3891d068326fa077ae19ed49bde9ec"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic private Factory receipts and local MCP HTTP/stdio protocol tests only. No actual Plus web custom MCP entitlement, external HTTPS auth/tunnel, native Windows UAT or unattended Chat inference proof."
       }
     ]
   }

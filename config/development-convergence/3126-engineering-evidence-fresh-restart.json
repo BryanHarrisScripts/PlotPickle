@@ -4,7 +4,7 @@
   "phase": "engineering-factory-evidence-state-fresh-restart",
   "brief": "docs/developer-briefs/3126-engineering-evidence-fresh-restart.md",
   "allowedChanges": [
-    "scripts/engineering-team/evidence-state.mjs",
+    "scripts/engineering-team/evidence/evidence-state.mjs",
     "scripts/engineering-team/run-local.mjs",
     "scripts/engineering-team/operator-reporting.mjs",
     "tests/issue-3126-engineering-evidence-restart.test.mjs",
@@ -40,12 +40,12 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/evidence-state.mjs",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
           "contains": "startedUncertainMayReplay: false"
         },
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/evidence-state.mjs",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
           "contains": "modelDispatchAuthorized: false"
         },
         {
@@ -66,7 +66,7 @@
         },
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/evidence-state.mjs",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
           "contains": "isSymbolicLink()"
         },
         {
@@ -82,7 +82,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/evidence-state.mjs",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
           "contains": "independentProductVerification: \"unproven\""
         },
         {

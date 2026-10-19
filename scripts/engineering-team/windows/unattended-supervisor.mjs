@@ -23,8 +23,6 @@ const CONSENT = "ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR";
 const SHA = /^[a-f0-9]{40}$/;
 const INTERVAL_MS = 60_000;
 const MAX_RECORD_BYTES = 16_384;
-const rootDefault = () => path.join(process.env.LOCALAPPDATA ||
-  path.join(os.homedir(), "AppData", "Local"), "PlotPickle", "engineering-team", "supervisor");
 const hash = value => createHash("sha256").update(value).digest("hex");
 
 async function safeRead(file) {
@@ -72,6 +70,21 @@ export async function enableSupervisor({ appRoot = appRootDefault(), consent, pl
   return Object.freeze({ state: "ENABLED_NOT_RUNNING", exactSha: sha,
     sourceMutationAllowed: false, autonomousMergeAllowed: false });
 }
+
+export async function reenableSupervisor({ appRoot = appRootDefault(), consent, platform = process.platform,
+  head = exactHead, paired = readWindowsGitHubPairing } = {}) {
+  if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
+  const p = dirs(appRoot);
+  const enabled = await safeRead(p.enabled);
+  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
+  if (await safeRead(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
+  if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
+  const info = await paired({ appRoot });
+  if (!info.enabled || info.hostId !== enabled.hostId
+    || info.authorizedActor !== enabled.authorizedActor) throw Error("PAIRING_CHANGED_OR_DISABLED");
+  await rm(p.stop, { force: true });
+  return Object.freeze({ state: "ENABLED_NOT_RUNNING", exactSha: enabled.sourceHead });
+}
 export async function disableSupervisor({ appRoot = appRootDefault(), now = Date.now } = {}) {
   const p = dirs(appRoot);
   if (!await safeRead(p.enabled)) return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
@@ -91,7 +104,7 @@ export async function supervisorStatus({ appRoot = appRootDefault(), now = Date.
     || !Number.isSafeInteger(hb.at) || hb.at > now() + 5_000 || now() - hb.at > INTERVAL_MS * 3)
     return Object.freeze({ state: "OFFLINE", exactSha: enabled.sourceHead,
       reason: "NO_FRESH_OWNED_HEARTBEAT" });
-  return Object.freeze({ state: hb.state === "BLOCKED" ? "BLOCKED" : "RUNNING",
+  return Object.freeze({ state: ["RUNNING", "BLOCKED"].includes(hb.state) ? hb.state : "OFFLINE",
     exactSha: enabled.sourceHead, checkedAt: hb.at, reason: hb.reason || null,
     queueEligible: Number.isSafeInteger(hb.queueEligible) ? hb.queueEligible : null,
     remoteProcessed: Number.isSafeInteger(hb.remoteProcessed) ? hb.remoteProcessed : null,
@@ -159,6 +172,14 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
     }
     return Object.freeze({ state: "STOPPED", completedCycles: count });
   } finally {
+    const enabled = await safeRead(p.enabled);
+    if (enabled?.sourceHead) {
+      await writeFile(p.heartbeat, JSON.stringify({ schemaVersion: 1,
+        sourceHead: enabled.sourceHead, hostId: enabled.hostId, at: now(),
+        state: "STOPPED", reason: "SUPERVISOR_EXITED", queueEligible: 0,
+        remoteProcessed: 0, agentExecutionProven: false,
+        autonomousPrLifecycleProven: false }) + "\n", { mode: 0o600 }).catch(() => {});
+    }
     await handle.close().catch(() => {});
     // Only the currently active local owner can remove its lock.
     const saved = await safeRead(p.lock);
@@ -166,10 +187,10 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
   }
 }
 function parseCli(argv) {
-  const modes = ["--enable", "--serve", "--status", "--disable"].filter(x => argv.includes(x));
+  const modes = ["--enable", "--reenable", "--serve", "--status", "--disable"].filter(x => argv.includes(x));
   if (modes.length !== 1) throw Error("SUPERVISOR_ONE_MODE_REQUIRED");
   const consentIndex = argv.indexOf("--consent");
-  const allowed = modes[0] === "--enable" || modes[0] === "--serve";
+  const allowed = ["--enable", "--reenable", "--serve"].includes(modes[0]);
   if (allowed && (argv.length !== 3 || consentIndex !== 1
     || argv[2] !== CONSENT)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   if (!allowed && argv.length !== 1) throw Error("UNSUPPORTED_SUPERVISOR_ARGS");
@@ -178,6 +199,7 @@ function parseCli(argv) {
 async function main() {
   const mode = parseCli(process.argv.slice(2));
   const result = mode === "--enable" ? await enableSupervisor({ consent: CONSENT })
+    : mode === "--reenable" ? await reenableSupervisor({ consent: CONSENT })
     : mode === "--serve" ? await serveSupervisor({ consent: CONSENT })
     : mode === "--disable" ? await disableSupervisor() : await supervisorStatus();
   process.stdout.write(JSON.stringify(result) + "\n");

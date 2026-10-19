@@ -4246,6 +4246,91 @@
         ]
       },
       "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof."
+    },
+    {
+      "id": "agent.unattended-queue-admission-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-unattended-queue.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 strict opt-in private queue admission fixtures only. Does not demonstrate unattended Windows worker, agent execution, signed permissions, model dispatch, PR creation or autonomous merging."
+    },
+    {
+      "id": "agent.persistent-windows-supervisor-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-persistent-local-supervisor.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 synthetic explicit consent, local kill switch, paired control poll and heartbeat only. Native Windows service persistence, real pairing, agent code generation, PR/CI automation and independent merge remain unproven."
     }
   ],
   "truthGovernance": {
@@ -9098,6 +9183,66 @@
           "static-source"
         ],
         "limits": "Simulated private filesystem/GitHub client/dispatcher. No real Windows on-logon worker, on-device Pi source mutation, native termination, browser Product Gate, exact-head PR CI nor autonomous merge accepted."
+      },
+      {
+        "target": "tests/issue-3110-unattended-queue.test.mjs",
+        "targetDigest": "d234e1ee9aa278fdc089eca4548aa9cdaaad63cef32aabc7847c342950eb732f",
+        "catalogueIds": [
+          "agent.unattended-queue-admission-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/unattended-queue.mjs",
+            "digest": "17360a8ffe5457d6cec431ac51e5f81407ae602ce092baf44912ca74b053541c"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic local queue JSON and injected private reader only; no Windows service, independent grant source, unattended agent/PR lifecycle, native STOP or branch protection verification."
+      },
+      {
+        "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+        "targetDigest": "d9ab9f45db9f510da595f73d19a718939643e4a43cb1b6e6d165c8769e679217",
+        "catalogueIds": [
+          "agent.persistent-windows-supervisor-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "1b6629d41d32f932c90532ac28317291030c4981d46d48d61953f5024ebc376f"
+          },
+          {
+            "path": "scripts/engineering-team/queue/unattended-queue.mjs",
+            "digest": "17360a8ffe5457d6cec431ac51e5f81407ae602ce092baf44912ca74b053541c"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected in-memory Windows platform, private temporary filesystem, simulated pairing and GitHub poll. No real OS service, native STOP, actual hosted agent, protected GitHub PR or autonomous merge."
       }
     ]
   }

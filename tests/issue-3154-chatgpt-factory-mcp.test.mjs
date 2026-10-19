@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
+import http from "node:http";
 import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -167,9 +168,17 @@ test("loopback MCP HTTP transport completes actual JSON-RPC handshake, rejects e
     const evil=await post({jsonrpc:"2.0",id:4,method:"tools/list"},
       {origin:"https://attacker.invalid"});
     assert.equal(evil.status,403);
-    const bad=await post({jsonrpc:"2.0",id:4,method:"tools/list"},
-      {host:"attacker.invalid:123"});
-    assert.equal(bad.status,403);
+    // fetch normalizes Host from URL; use raw HTTP to actually test spoofed Host.
+    const bad=await new Promise((resolve,reject)=>{
+      const body=JSON.stringify({jsonrpc:"2.0",id:4,method:"tools/list"});
+      const req=http.request(url,{method:"POST",headers:{
+        ...headers,host:"attacker.invalid:123","content-length":Buffer.byteLength(body),
+      }},response=>{
+        response.resume();response.on("end",()=>resolve(response.statusCode));
+      });
+      req.on("error",reject);req.end(body);
+    });
+    assert.equal(bad,403);
     const huge=await fetch(url,{method:"POST",headers,body:JSON.stringify({
       jsonrpc:"2.0",id:5,method:"tools/list",padding:"a".repeat(70000)})});
     assert.equal(huge.status,413);

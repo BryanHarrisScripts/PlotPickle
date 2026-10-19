@@ -29,7 +29,8 @@ export function renderFactoryHeartbeat(value,now=Date.now()){
 - Active/last issue: ${issue?"#"+issue:"none"}
 - Exact source head: ${sha? "`"+sha+"`":"unknown"}
 - Local worker self-report: ${state} (not independently verified by GitHub)
-- Automatic merge: DISABLED
+- Automatic application/source-code merge: DISABLED
+- Documentation-only merge: requires separate local opt-in and exact independent green checks
 - Model route: approved local-only
 - Browser Product Gate: UNPROVEN
 - Independent on-device proof: UNPROVEN

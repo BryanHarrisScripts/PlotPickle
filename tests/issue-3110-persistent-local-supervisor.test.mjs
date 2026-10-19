@@ -6,7 +6,7 @@ import path from "node:path";
 import {
   validateSupervisorConsent, enableSupervisor, reenableSupervisor, disableSupervisor,
   supervisorStatus, supervisorCycle, serveSupervisor,
-} from "../scripts/engineering-team/windows/unattended-supervisor.mjs";
+} from "../scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs";
 
 const SHA = "a".repeat(40);
 const CONSENT = "ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR";

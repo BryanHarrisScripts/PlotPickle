@@ -27,6 +27,18 @@ const BLOCKED_PATHS=[/^\.git(?:\/|$)/,/^\.github(?:\/|$)/,/(?:^|\/)\.env/i,/\.pe
   /^scripts\/engineering-team\/repair\//,/^scripts\/engineering-team\/windows\//,
   /^config\/verification\/ownership-map\.json$/,/^package(?:-lock)?\.json$/];
 const MAX_DURATION_MS=28*60_000;
+const FAILURE_PHASES=new Set([
+  "INSTALL_DEPENDENCIES","RUN_LOCAL_PI","INSPECT_CANDIDATE_PATCH",
+  "CHECK_DIFF","RUN_CONTRACTS_UAT","RUN_PRODUCTION_BUILD",
+  "RECHECK_BASE_HEAD","STAGE_CANDIDATE","RECHECK_STAGED_PATHS",
+  "COMMIT_CANDIDATE","PUSH_CANDIDATE","CREATE_DRAFT_PR",
+]);
+/** Only fixed stage markers cross the process boundary; no stderr, prompts or paths. */
+export function factoryFailureReceipt(phase,{pushed=false}={}) {
+  return Object.freeze({state:"BLOCKED",
+    code:pushed===true?"PUSHED_UNCERTAIN":"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE",
+    phase:FAILURE_PHASES.has(phase)?phase:"UNKNOWN_STAGE"});
+}
 const ACCEPTANCE_3141_DOC="docs/developer-briefs/3141-autonomous-factory-native-acceptance.md";
 const clean=(s)=>String(s||"").trim();
 function isAllowedPath(file) {
@@ -147,23 +159,34 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
   try {await resolvePiLocalRuntime();} catch{return {state:"WAITING_FOR_PROVIDER",code:"APPROVED_LOCAL_MODEL_UNAVAILABLE"};}
   await command("git",["worktree","add","-b",branch,worktree,head]);
   let pushed=false;
+  let phase="INSTALL_DEPENDENCIES";
   try{
     await runPortableCommand(resolveActiveNpmCommand(),["ci","--ignore-scripts","--no-audit","--no-fund"],
       {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
+    phase="RUN_LOCAL_PI";
     const agent=await localAgent(worktree,issue,head);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
+    phase="INSPECT_CANDIDATE_PATCH";
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);
     if(!assessment.allowed)return output(assessment.code);
+    phase="CHECK_DIFF";
     await command("git",["diff","--check"],{cwd:worktree});
+    phase="RUN_CONTRACTS_UAT";
     await command(process.execPath,["scripts/run-uat-autopilot.mjs","--contracts-only",
       "--artifact-root",".artifacts/autonomous-issue-"+issueNumber],{cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
+    phase="RUN_PRODUCTION_BUILD";
     await runPortableCommand(resolveActiveNpmCommand(),["run","build"],
       {cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
+    phase="RECHECK_BASE_HEAD";
     if((await sourceHead())!==head)return output("MAIN_HEAD_MOVED");
+    phase="STAGE_CANDIDATE";
     await command("git",["add","--",...changes],{cwd:worktree});
+    phase="RECHECK_STAGED_PATHS";
     const staged=(await command("git",["diff","--cached","--name-only"],{cwd:worktree})).split(/\r?\n/).filter(Boolean);
     if(!assessFactoryPaths(staged,issueNumber).allowed)return output("STAGED_PATH_SCOPE_REJECTED");
+    phase="COMMIT_CANDIDATE";
     await command("git",["commit","-m","Factory candidate for issue #"+issueNumber],{cwd:worktree,timeout:120_000});
+    phase="PUSH_CANDIDATE";
     await command("git",["push","-u","origin",branch],{cwd:worktree,timeout:120_000});
     pushed=true;
     const body="Factory candidate for #"+issueNumber+"\n\nLocal Pi proposed a source patch in a clean isolated worktree. "+
@@ -172,12 +195,13 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
       "No cloud model, paid provider, story canon changes, self-approved oracle or autonomous merge authorized. "+
       "For optional human inspection on Windows, run node scripts/engineering-team/review/factory-hunk.mjs --pr <PR_NUMBER> using this PR number. "+
       "Hunk 0.23 review is advisory only, not a CI, Product Gate, or merge approval.";
+    phase="CREATE_DRAFT_PR";
     const url=await command("gh",["pr","create","--repo",REPO,"--base","main","--head",branch,
       "--draft","--title","factory: issue #"+issueNumber+" candidate","--body",body],{cwd:worktree,timeout:90_000});
     if(!/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(url))return output("PR_URL_UNCONFIRMED");
     return {state:"WAITING_FOR_PRODUCT_UAT",code:"DRAFT_PR_CREATED",prUrl:url};
   }catch{
-    return {state:"BLOCKED",code:pushed?"PUSHED_UNCERTAIN":"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE"};
+    return factoryFailureReceipt(phase,{pushed});
   }finally{
     // Do not force-delete a worktree containing unreviewed, unpublished work.
     // A human must be able to inspect uncertain attempts in private scope.

@@ -7,7 +7,7 @@ import {
   parseQueueCommand,eligibleIssue,pickNextIssue,enableFactory,disableFactory,
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
-import {parseCoderArgs,assessFactoryPaths} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
@@ -231,6 +231,38 @@ test("factory Hunk 0.23 bridge is opt-in, no extensions, fixed GitHub PR and adv
  await assert.rejects(factoryHunkReview(["--pr","3145"],{platform:"linux",controller,run}),/Windows/);
  await assert.rejects(factoryHunkReview(["--pr","3145"],{platform:"win32",controller,run:async()=>({stdout:"{}"})}),/ownership/);
 });
+
+test("coder stage failure receipts are bounded, truthful and do not replay an uncertain issue",()=>sandbox(async root=>{
+ for(const phase of ["INSTALL_DEPENDENCIES","RUN_LOCAL_PI","INSPECT_CANDIDATE_PATCH",
+   "CHECK_DIFF","RUN_CONTRACTS_UAT","RUN_PRODUCTION_BUILD","RECHECK_BASE_HEAD",
+   "STAGE_CANDIDATE","RECHECK_STAGED_PATHS","COMMIT_CANDIDATE",
+   "PUSH_CANDIDATE","CREATE_DRAFT_PR"]){
+   const receipt=factoryFailureReceipt(phase);
+   assert.deepEqual(receipt,{state:"BLOCKED",code:"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE",phase});
+   assert.equal(Object.isFrozen(receipt),true);
+ }
+ const secret="SECRET API TOKEN and private model output";
+ assert.equal(factoryFailureReceipt(secret).phase,"UNKNOWN_STAGE");
+ assert.equal(JSON.stringify(factoryFailureReceipt(secret)).includes(secret),false);
+ assert.deepEqual(factoryFailureReceipt("CREATE_DRAFT_PR",{pushed:true}),
+   {state:"BLOCKED",code:"PUSHED_UNCERTAIN",phase:"CREATE_DRAFT_PR"});
+ await enableFactory({root,issues:[3141],now:()=>1000});
+ const fakeGitHub={exactHead:async()=>HEAD,issues:async()=>[{number:3141,title:"Local docs acceptance",state:"OPEN",labels:[]}]};
+ let dispatched=0;
+ const once=()=>runFactoryCycle({root,github:fakeGitHub,preflight:async()=>({ready:true}),
+   publish:async()=>{},now:()=>2000,dispatch:async()=>{
+     dispatched++;return factoryFailureReceipt("RUN_LOCAL_PI");
+   }});
+ const first=await once();
+ assert.equal(first.state,"BLOCKED");
+ const saved=JSON.parse(await readFile(path.join(root,"jobs","result-3141.json"),"utf8"));
+ assert.equal(saved.code,"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE");
+ assert.equal(saved.phase,"RUN_LOCAL_PI");
+ assert.equal(saved.replayAuthorized,false);
+ const next=await once();
+ assert.equal(next.state,"WAITING_FOR_ELIGIBLE_ISSUE");
+ assert.equal(dispatched,1);
+}));
 
 test("GitHub telemetry edits one sanitized comment, rate-limited without private issue/model prose",()=>sandbox(async root=>{
  const calls=[];

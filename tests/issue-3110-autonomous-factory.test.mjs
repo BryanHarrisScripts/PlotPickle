@@ -225,7 +225,7 @@ test("optional docs-only merge reconciler requires exact head, gated CI and conf
  const head=HEAD,base="b".repeat(40),number=3135;
  const pr={number:4141,state:"OPEN",title:"factory: issue #3135 candidate",author:{login:"BryanHarrisScripts"},
   headRefName:"factory/issue-3135-"+head.slice(0,10),headRefOid:head,baseRefName:"main",
-  baseRefOid:base,mergeStateStatus:"CLEAN",isDraft:true,files:[{path:"docs/3135.md"}],
+  baseRefOid:base,mergeStateStatus:"CLEAN",isDraft:false,files:[{path:"docs/3135.md"}],
   statusCheckRollup:Array.from({length:7},(_,i)=>({name:"Layer "+(i+1)+" OK",
      status:"COMPLETED",conclusion:"SUCCESS"}))};
  const calls=[];
@@ -258,4 +258,26 @@ test("explicit docs merge consent is separate; service cannot quietly elevate it
    dispatch:async()=>{dispatches++;}});
  assert.equal(response.state,"MERGED");
  assert.equal(dispatches,0);
+}));
+
+test("a green draft PR is made ready first, then independently rechecked before any merge",async()=>{
+ const base="b".repeat(40),head=HEAD;
+ const pr={number:4141,state:"OPEN",title:"factory: issue #3135 candidate",
+   author:{login:"BryanHarrisScripts"},headRefName:"factory/issue-3135-"+head.slice(0,10),
+   headRefOid:head,baseRefName:"main",baseRefOid:base,mergeStateStatus:"DRAFT",
+   isDraft:true,files:[{path:"docs/3135.md"}],
+   statusCheckRollup:Array.from({length:7},(_,i)=>({name:"Layer "+(i+1)+" Green",
+     status:"COMPLETED",conclusion:"SUCCESS"}))};
+ const calls=[];
+ const send=async args=>{
+   calls.push(args);
+   if(args[1]==="list")return JSON.stringify([{number:4141,headRefName:pr.headRefName}]);
+   if(args[1]==="view")return JSON.stringify(pr);
+   if(args[1]==="checks")return JSON.stringify([{state:"SUCCESS",bucket:"pass"}]);
+   return "";
+ };
+ const outcome=await reconcileApprovedDocsPRs({issueNumbers:[3135],exactBase:base,send});
+ assert.equal(outcome.state,"WAITING_FOR_PR_VERIFICATION");
+ assert.equal(calls.some(x=>x[1]==="ready"),true);
+ assert.equal(calls.some(x=>x[1]==="merge"),false);
 }));

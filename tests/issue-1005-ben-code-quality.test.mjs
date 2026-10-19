@@ -116,6 +116,9 @@ test("BEN runner is pinned, rename-aware, architecture-ceiling-aware, produces m
   const source = await read("scripts/run-ben-code-quality.mjs");
   assert.match(source, /policy\.slopScan\.package/);
   assert.match(source, /policy\.slopScan\.version/);
+  assert.match(source, /windowsJavaScriptCliInvocation/);
+  assert.match(source, /synchronousInvocation/);
+  assert.doesNotMatch(source, /shell:\s*true/);
   assert.match(source, /repository-architecture-target\.json/);
   assert.match(source, /architecturePolicy/);
   assert.match(source, /ratifiedTargetDirectories/);

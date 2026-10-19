@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "campaigns": {
+    "issue-3123": {
+      "issueNumber": 3123,
+      "taskRef": "issue-3123",
+      "fingerprint": "story-factory-project-continuity-3123",
+      "journeyId": "story-factory-read-only-journey",
+      "reportMode": "exact-head",
+      "requiredAssertionCount": 55,
+      "requiredFailureIds": [
+        "outline-project-continuity",
+        "write-project-continuity",
+        "storyboard-project-continuity",
+        "previs-project-continuity",
+        "timeline-project-continuity",
+        "story-factory-project-stable"
+      ],
+      "evidenceRef": "artifact:story-factory-read-only-journey/exact-head.json",
+      "oracle": {
+        "path": "tests/issue-3123-story-factory-session-evidence.test.mjs",
+        "digest": "36a80e975218ddb1994334fe82c8cd186d3d2c069d6df0f0968b96488b348b65"
+      },
+      "allowedWorkers": [
+        "pi",
+        "cline"
+      ],
+      "allowedMutationRoots": [
+        "app/profile-access/**",
+        "app/skin-v1/**",
+        "core/storage/**",
+        "lib/projects/**",
+        "modules/library/**",
+        "modules/write/**",
+        "tests/**"
+      ],
+      "immutablePaths": [
+        "core/sidecars/webmcp-acceptance-sidecar.mjs",
+        "tests/issue-3123-story-factory-session-evidence.test.mjs",
+        "config/verification/test-catalog.json"
+      ],
+      "maxAttempts": 1,
+      "maxDurationMs": 1800000,
+      "maxCloudCostUsd": 0
+    }
+  }
+}

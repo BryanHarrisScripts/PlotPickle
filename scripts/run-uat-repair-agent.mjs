@@ -12,6 +12,11 @@ import { fileURLToPath } from "node:url";
 import { materializeAgentSkillRunManifest, readAgentSkillProcedure } from "./agent-skills.mjs";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
 import {
+  assertGovernedRepairChangedPaths,
+  governedRepairFinding,
+  readGovernedRepairEnvelope,
+} from "./engineering-team/repair/governed-repair.mjs";
+import {
   piDeveloperEnvironment,
   piDeveloperRouteProjection,
   piDeveloperVirtualArgs,
@@ -38,6 +43,7 @@ const explicitModel = argument("--model", process.env.PLOTPICKLE_REPAIR_MODEL ||
 const requestedWorker = argument("--worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi").toLowerCase();
 const dsddSessionFile = argument("--dsdd-session", "");
 const dsddBuildPacket = argument("--dsdd-packet", "");
+const governedEnvelopePath = argument("--governed-envelope", "");
 const keepWorktree = has("--keep-worktree");
 const dryRun = has("--dry-run");
 const preflightOnly = has("--preflight");
@@ -51,6 +57,7 @@ const REPAIR_WORKER_LABELS = {
   "mastra-qwen": "Mastra legacy Qwen",
 };
 let piResolution = null;
+let governedEnvelope = null;
 
 function piProvenance() {
   if (!piResolution) return {};
@@ -300,6 +307,7 @@ async function findIssueForFingerprint(fingerprint) {
 }
 
 async function loadFinding() {
+  if (governedEnvelope) return governedRepairFinding(governedEnvelope);
   if (requestedIssue && !requestedFingerprint) {
     const issue = await findIssueForFingerprint("");
     if (!issue) throw new Error(`GitHub issue #${requestedIssue} was not found.`);
@@ -329,18 +337,24 @@ function slug(value) {
   return String(value || "uat-repair").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "uat-repair";
 }
 
-async function prepareWorktree(finding) {
+async function prepareWorktree(finding, envelope = null) {
   const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
   const branch = `uat/repair-agent-${slug(finding.fingerprint)}-${stamp}`;
   const worktreeRoot = path.join(localRoot, "PlotPickle", "uat-repair-worktrees", `${slug(finding.fingerprint)}-${stamp}`);
   await mkdir(path.dirname(worktreeRoot), { recursive: true });
   await run("git", ["fetch", "origin", "main"]);
+  if (envelope) {
+    const remoteHead = (await run("git", ["rev-parse", "origin/main"])).stdout.toLowerCase();
+    if (remoteHead !== envelope.exactSha) {
+      throw new Error("Governed repair evidence is stale because origin/main changed after admission.");
+    }
+  }
   await run("git", ["worktree", "add", "-b", branch, worktreeRoot, "origin/main"]);
   return { branch, worktreeRoot };
 }
 
-function repairInstructions() {
-  return [
+function repairInstructions(envelope = null) {
+  const instructions = [
     "You are PlotPickle's UAT Repair Agent, a repository coding agent.",
     "Work only inside the isolated git worktree provided as your workspace.",
     "Your job is to turn one concrete UAT blocker into a tested code repair.",
@@ -353,13 +367,19 @@ function repairInstructions() {
     "Do not use network access except the local model endpoint already provided by the runtime.",
     "Do not merely describe a fix: use the workspace file and command tools to inspect, edit, and test the repository.",
     "Finish with a concise summary of root cause, files changed, regression added, and tests you ran.",
-  ].join("\n");
+  ];
+  if (envelope) instructions.push(
+    `Source mutation is limited to: ${envelope.sourceAllowance.allowedMutationRoots.join(", ")}.`,
+    `These original verification paths are immutable: ${envelope.sourceAllowance.immutablePaths.join(", ")}.`,
+    "The supplied failure IDs and opaque digests are the complete admitted evidence. Do not seek or import private project values or raw GitHub prose.",
+  );
+  return instructions.join("\n");
 }
 
-async function repairPrompt(finding) {
+async function repairPrompt(finding, envelope = null) {
   const skillProcedure = await readAgentSkillProcedure("uat-repair");
   return [
-    repairInstructions(),
+    repairInstructions(envelope),
     "",
     "Materialized PlotPickle Agent Skill procedure:",
     skillProcedure,
@@ -381,8 +401,8 @@ async function repairPrompt(finding) {
   ].join("\n");
 }
 
-async function runMastraAgent({ finding, runtime, worktreeRoot }) {
-  const prompt = await repairPrompt(finding);
+async function runMastraAgent({ finding, runtime, worktreeRoot, envelope }) {
+  const prompt = await repairPrompt(finding, envelope);
   const filesystem = new LocalFilesystem({
     basePath: worktreeRoot,
     instructions: "This is an isolated PlotPickle UAT repair worktree. Never read or write outside it.",
@@ -396,7 +416,7 @@ async function runMastraAgent({ finding, runtime, worktreeRoot }) {
     id: "uat-repair-agent",
     name: "PlotPickle UAT Repair Agent",
     description: "Repairs PlotPickle UAT blockers inside an isolated local repository worktree.",
-    instructions: repairInstructions(),
+    instructions: repairInstructions(envelope),
     model: {
       providerId: `plotpickle-${runtime.kind}`,
       modelId: runtime.model,
@@ -414,9 +434,9 @@ async function runMastraAgent({ finding, runtime, worktreeRoot }) {
   return String(result.text || "").trim();
 }
 
-async function writeExternalPrompt(finding, worktreeRoot) {
+async function writeExternalPrompt(finding, worktreeRoot, envelope) {
   const promptPath = path.join(worktreeRoot, ".plotpickle-uat-repair.md");
-  await writeFile(promptPath, `${await repairPrompt(finding)}\n`, "utf8");
+  await writeFile(promptPath, `${await repairPrompt(finding, envelope)}\n`, "utf8");
   return promptPath;
 }
 
@@ -447,6 +467,7 @@ async function configurePiRuntime(runtime) {
 }
 
 function codemodeTaskForRepair(finding) {
+  const admitted = governedEnvelope?.state === "ADMITTED";
   return {
     schemaVersion: 1,
     id: `uat-repair:${String(finding?.fingerprint || "unknown").slice(0, 160)}`,
@@ -464,10 +485,12 @@ function codemodeTaskForRepair(finding) {
       "plotpickle_focused_uat",
       "plotpickle_build",
       "plotpickle_validate",
+      ...(admitted ? ["write", "edit", "bash"] : []),
     ],
     requiredSkillIds: ["uat-repair"],
     readScopes: ["."],
-    mutationAuthorized: false,
+    writeScopes: admitted ? governedEnvelope.sourceAllowance.allowedMutationRoots : [],
+    mutationAuthorized: admitted,
     destructiveAuthorized: false,
     privacyPolicy: {
       localOnly: true,
@@ -476,8 +499,8 @@ function codemodeTaskForRepair(finding) {
   };
 }
 
-async function runPiAgent({ finding, runtime, worktreeRoot }) {
-  const promptPath = await writeExternalPrompt(finding, worktreeRoot);
+async function runPiAgent({ finding, runtime, worktreeRoot, envelope }) {
+  const promptPath = await writeExternalPrompt(finding, worktreeRoot, envelope);
   const agentDir = await configurePiRuntime(runtime);
   const routeProjection = piDeveloperRouteProjection(runtime, { localOnly: true });
   const resolution = piResolution?.ready ? piResolution : await resolvePiExecutable();
@@ -528,8 +551,8 @@ async function configureClineRuntime(runtime) {
   return dataDir;
 }
 
-async function runClineAgent({ finding, runtime, worktreeRoot }) {
-  const promptPath = await writeExternalPrompt(finding, worktreeRoot);
+async function runClineAgent({ finding, runtime, worktreeRoot, envelope }) {
+  const promptPath = await writeExternalPrompt(finding, worktreeRoot, envelope);
   const dataDir = await configureClineRuntime(runtime);
   try {
     const result = await runCli("cline", [
@@ -548,23 +571,33 @@ async function runClineAgent({ finding, runtime, worktreeRoot }) {
   }
 }
 
-async function runAgent({ finding, runtime, worktreeRoot, worker }) {
-  if (worker === "pi") return runPiAgent({ finding, runtime, worktreeRoot });
-  if (worker === "cline") return runClineAgent({ finding, runtime, worktreeRoot });
-  return runMastraAgent({ finding, runtime, worktreeRoot });
+async function runAgent({ finding, runtime, worktreeRoot, worker, envelope }) {
+  if (worker === "pi") return runPiAgent({ finding, runtime, worktreeRoot, envelope });
+  if (worker === "cline") return runClineAgent({ finding, runtime, worktreeRoot, envelope });
+  return runMastraAgent({ finding, runtime, worktreeRoot, envelope });
 }
 
-async function validateRepair(worktreeRoot) {
+async function changedRepairPaths(worktreeRoot) {
+  const [tracked, untracked] = await Promise.all([
+    run("git", ["diff", "--name-only"], { cwd: worktreeRoot }),
+    run("git", ["ls-files", "--others", "--exclude-standard"], { cwd: worktreeRoot }),
+  ]);
+  return [...new Set(`${tracked.stdout}\n${untracked.stdout}`.split(/\r?\n/u).map((item) => item.trim().replaceAll("\\", "/")).filter(Boolean))];
+}
+
+async function validateRepair(worktreeRoot, envelope = null) {
   await run("git", ["diff", "--check"], { cwd: worktreeRoot });
   const status = (await run("git", ["status", "--porcelain"], { cwd: worktreeRoot })).stdout;
   if (!status) throw new Error("The UAT Repair Agent completed without changing the worktree.");
+  const changedPaths = await changedRepairPaths(worktreeRoot);
+  if (envelope) assertGovernedRepairChangedPaths(envelope, changedPaths);
 
   await run(process.execPath, ["scripts/run-uat-autopilot.mjs", "--contracts-only", "--artifact-root", ".artifacts/uat-repair"], { cwd: worktreeRoot });
   await runCli("npm", ["run", "build"], { cwd: worktreeRoot });
-  return status;
+  return { status, changedPaths };
 }
 
-async function publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker }) {
+async function publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker, envelope }) {
   const issue = await findIssueForFingerprint(finding.fingerprint);
   await run("git", ["add", "-A"], { cwd: worktreeRoot });
   await run("git", ["commit", "-m", `Repair UAT finding ${finding.fingerprint}`], { cwd: worktreeRoot });
@@ -580,7 +613,9 @@ async function publishRepair({ finding, branch, worktreeRoot, summary, runtime, 
     `**Resolved local model:** \`${runtime.model}\``,
     "",
     "### Repair agent summary",
-    summary || "The local repair worker changed the worktree and the deterministic validation wrapper passed.",
+    envelope
+      ? "The admitted local repair worker changed only source-owned paths; the deterministic wrapper independently checked the diff, focused UAT contracts and production build. Full model prose is not published."
+      : summary || "The local repair worker changed the worktree and the deterministic validation wrapper passed.",
     "",
     "### Deterministic gates run before this PR",
     "- `git diff --check`",
@@ -621,7 +656,10 @@ async function writeRepairReport(payload) {
     branch: payload.branch,
     prUrl: payload.prUrl || "",
     issueNumber: payload.issue?.number || null,
-    agentSummary: payload.summary || "",
+    agentSummary: payload.envelope ? "" : payload.summary || "",
+    agentSummaryStored: payload.envelope ? false : Boolean(payload.summary),
+    governedCandidateId: payload.envelope?.candidateId || null,
+    governedEnvelopeDigest: payload.envelope?.digest || null,
     operationalMetadataOnly: true,
     hiddenReasoningStored: false,
   }, null, 2)}\n`, "utf8");
@@ -629,6 +667,17 @@ async function writeRepairReport(payload) {
 }
 
 async function main() {
+  if (governedEnvelopePath) {
+    governedEnvelope = await readGovernedRepairEnvelope(path.resolve(governedEnvelopePath));
+    if (governedEnvelope.state !== "ADMITTED") throw new Error("Governed repair dispatch requires an admitted envelope.");
+    if (governedEnvelope.route.worker !== requestedWorker
+      || governedEnvelope.issueNumber !== Number(requestedIssue)
+      || governedEnvelope.fingerprint !== requestedFingerprint
+      || governedEnvelope.route.endpoint !== normalizedEndpoint(explicitEndpoint)
+      || governedEnvelope.route.model !== explicitModel) {
+      throw new Error("Governed repair CLI route differs from the admitted envelope.");
+    }
+  }
   const preflight = await repairPreflight(requestedWorker);
   if (preflightOnly) {
     if (preflightJson) process.stdout.write(`${JSON.stringify(preflight)}\n`);
@@ -651,7 +700,7 @@ async function main() {
   process.stdout.write(`UAT finding ........................ READY  ${finding.fingerprint}\n`);
 
   await gh("auth", "status", "--hostname", "github.com");
-  const { branch, worktreeRoot } = await prepareWorktree(finding);
+  const { branch, worktreeRoot } = await prepareWorktree(finding, governedEnvelope);
   let summary = "";
   let published = null;
   try {
@@ -662,13 +711,13 @@ async function main() {
     }
 
     await runCli("npm", ["ci", "--include=dev", "--no-audit", "--no-fund"], { cwd: worktreeRoot });
-    summary = await runAgent({ finding, runtime, worktreeRoot, worker });
+    summary = await runAgent({ finding, runtime, worktreeRoot, worker, envelope: governedEnvelope });
     process.stdout.write("UAT Repair Agent ................... COMPLETE\n");
-    await validateRepair(worktreeRoot);
+    await validateRepair(worktreeRoot, governedEnvelope);
     process.stdout.write("Repair validation .................. PASS  focused UAT + production build\n");
-    published = await publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker });
+    published = await publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker, envelope: governedEnvelope });
     process.stdout.write(`Draft repair PR .................... CREATED  ${published.prUrl}\n`);
-    const report = await writeRepairReport({ finding, runtime, branch, summary, worker, ...published });
+    const report = await writeRepairReport({ finding, runtime, branch, summary, worker, envelope: governedEnvelope, ...published });
     process.stdout.write(`Repair evidence .................... SAVED  ${report}\n`);
   } finally {
     if (!keepWorktree) {

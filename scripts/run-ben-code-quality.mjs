@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { windowsJavaScriptCliInvocation } from "./spawn-command.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const policyPath = path.join(repoRoot, "config", "ben-code-quality.json");
@@ -18,13 +19,24 @@ const [policy, architecturePolicy] = await Promise.all([
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 
+function synchronousInvocation(command, args) {
+  if (process.platform !== "win32") return { executable: command, args };
+  const javaScriptCli = windowsJavaScriptCliInvocation(command, args);
+  if (javaScriptCli) return javaScriptCli;
+  if (/\.(?:cmd|bat)$/iu.test(command)) {
+    throw new Error(`Unsupported Windows batch wrapper: ${path.basename(String(command))}.`);
+  }
+  return { executable: command, args };
+}
+
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? String(process.argv[index + 1] || "").trim() : "";
 }
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  const invocation = synchronousInvocation(command, args);
+  const result = spawnSync(invocation.executable, invocation.args, {
     cwd: options.cwd || repoRoot,
     encoding: "utf8",
     maxBuffer: 32 * 1024 * 1024,
@@ -38,7 +50,8 @@ function run(command, args, options = {}) {
 export function captureBenScannerEvidence(command, args, evidencePath) {
   const descriptor = openSync(evidencePath, "w");
   try {
-    const result = spawnSync(command, args, {
+    const invocation = synchronousInvocation(command, args);
+    const result = spawnSync(invocation.executable, invocation.args, {
       cwd: repoRoot,
       encoding: "utf8",
       maxBuffer: 32 * 1024 * 1024,

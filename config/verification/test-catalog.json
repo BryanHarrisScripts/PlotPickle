@@ -4118,6 +4118,48 @@
         ]
       },
       "notes": "#3126 compact evidence-refs-only exact-head restart status, mock/private temp-storage tests; does not grant repair/provider/Windows/merge authority."
+    },
+    {
+      "id": "agent.software-factory-governed-repair-admission-3128",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3128-governed-repair-admission.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3128 mock/private admission, tamper, approval, route and source-allowance tests only. No provider call, code repair, Windows Product Gate, GitHub PR or merge is performed."
     }
   ],
   "truthGovernance": {
@@ -8751,7 +8793,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "055528a68eda9c23268dd4f5339ec1395baf4dd0cbbaa77f4e7cdf47843f8dba"
+            "digest": "075a227e12f7ed3e294b6e590d27fed1fb391df7a2919795bf8f80bbf310cf69"
           }
         ]
       },
@@ -8816,6 +8858,82 @@
           {
             "path": "scripts/engineering-team/operator-reporting.mjs",
             "digest": "f2bc11cff15ac35910a561a96d9cc0384f5a72b3ffcc8a159ccfcf3e3309a106"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-1005-ben-code-quality.test.mjs",
+        "targetDigest": "8f1ec819a71807b1f25311112ea710e22154b8eb6b811c5aa72157390cabb96d",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Static authority and policy checks plus synthetic scanner-process capture. The Windows launcher assertion proves only that the pinned BEN scanner resolves through the reviewed JavaScript CLI entry point without a dynamic shell; it does not prove product behavior, real provider execution, Windows browser acceptance or merge readiness.",
+        "inputs": [
+          {
+            "path": "scripts/run-ben-code-quality.mjs",
+            "digest": "d56c7e9120afd1ae8d323a13b5cd44bae8ef79cca087c5d9aa78e40af83db9c1"
+          },
+          {
+            "path": "scripts/spawn-command.mjs",
+            "digest": "381622edd7c36e74095b062b2352959ac56dbaba4ec97a3b39e72552548ca6be"
+          },
+          {
+            "path": "config/ben-code-quality.json",
+            "digest": "f4a4c3ea48bb550c3fa3c843e69b8e89f8a72f67a910386945738c6ecab134fe"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3128-governed-repair-admission.test.mjs",
+        "targetDigest": "bebb4408d431dedc7f06253e0ee679d5adf2a8e25402d7b9e4f5130202af6782",
+        "catalogueIds": [
+          "agent.software-factory-governed-repair-admission-3128"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mock/private exact-head admission and source-bound static checks only. Proves no authority or private prose is manufactured by the envelope and rejects stale, forged, false-green or out-of-scope candidates. Cannot prove a provider/model ran, a patch is correct, a Windows browser passes, a draft PR exists or a merge is authorized.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/repair/policy.json",
+            "digest": "a5c0e5329719391b77f5fb2e195a6ab4b3bee28db132606de576263525de6ee6"
+          },
+          {
+            "path": "scripts/engineering-team/repair/governed-repair.mjs",
+            "digest": "a7706dc7c9f36487b66d1975a489546159584e58ad67bb7f67db9002c27a4496"
+          },
+          {
+            "path": "scripts/run-uat-repair-agent.mjs",
+            "digest": "23f4e1fe4224fd666ddce55f4035c91aef208b6074172d138689b8a607516e6b"
+          },
+          {
+            "path": "scripts/run-semantic-uat-repair.mjs",
+            "digest": "95720947031ff3060dcc163f63f34027bcc7b2dff1f486bb473adac3e05622ed"
           }
         ]
       }

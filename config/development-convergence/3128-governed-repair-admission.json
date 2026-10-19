@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "issue": 3128,
+  "phase": "software-factory-governed-repair-admission",
+  "brief": "docs/developer-briefs/3128-governed-repair-admission.md",
+  "allowedChanges": [
+    "scripts/engineering-team/repair/policy.json",
+    "scripts/engineering-team/repair/governed-repair.mjs",
+    "scripts/run-uat-repair-agent.mjs",
+    "scripts/run-semantic-uat-repair.mjs",
+    "scripts/run-ben-code-quality.mjs",
+    "tests/issue-3128-governed-repair-admission.test.mjs",
+    "tests/issue-1005-ben-code-quality.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/3128-governed-repair-admission.md",
+    "config/development-convergence/3128-governed-repair-admission.json"
+  ],
+  "acceptance": [
+    {
+      "id": "DENIED-BY-DEFAULT",
+      "criterion": "Read-only evidence inspection cannot launch a worker or grant source, provider, tool, spend or merge authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/repair/governed-repair.mjs",
+          "contains": "state: denied.length ? \"DENIED\" : \"ADMITTED\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3128-governed-repair-admission.test.mjs",
+          "contains": "defaults to DENIED"
+        }
+      ]
+    },
+    {
+      "id": "EXACT-HEAD-PRIVATE-EVIDENCE",
+      "criterion": "Admission requires the same #3126 scope/head, independent exact-head red report, unchanged oracle and original six failure IDs without copying observed story values.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/repair/governed-repair.mjs",
+          "contains": "independent-windows-browser-verifier"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3128-governed-repair-admission.test.mjs",
+          "contains": "project only approved failure IDs"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDED-EXISTING-WORKER",
+      "criterion": "An explicitly admitted local Pi/Cline campaign reuses the existing semantic/UAT repair wrappers, one attempt and no automatic uncertain replay.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/repair/governed-repair.mjs",
+          "contains": "run-semantic-uat-repair.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/repair/governed-repair.mjs",
+          "contains": "startedUncertainMayReplay: false"
+        }
+      ]
+    },
+    {
+      "id": "INDEPENDENT-PRODUCT-AUTHORITY",
+      "criterion": "Worker output cannot change the immutable oracle, escape allowed source owners, claim Product Gate PASS or merge itself.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/run-uat-repair-agent.mjs",
+          "contains": "assertGovernedRepairChangedPaths"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3128-governed-repair-admission.test.mjs",
+          "contains": "immutable oracle and out-of-owner changes"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No provider/model call, git mutation, Windows UAT or GitHub publication occurs in deterministic tests.",
+    "No raw issue body, observed project ID, private story content, prompt or full model response enters the envelope.",
+    "The original #3123 oracle and six red project-continuity failures remain immutable.",
+    "A repair PR remains draft and unmerged until independent exact-head regression, build, Windows Product Gate and GitHub CI pass."
+  ]
+}

@@ -9059,22 +9059,22 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "c6cc918b4301396114c5f933150187e9968eefc2a3ba365b2c7a0c52850322c2",
+        "targetDigest": "51c3643b437b0deeca9973960ea38e0aa3b5ab6269f276540ffb4dd40a0f3be0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "0471b6a0e13c650a8577959837459d30c56378576e4b1ab5961b5912a22dd5f5"
+            "digest": "e871e4dd358234e160d99b87269da95b266b54fd1d892107b181cbf2a69dec8e"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "0fa4180b3d643bac8f9ed430da3111a7c99dcd6ead57e747a5262b7cdc628c71"
+            "digest": "4d2b282b797788e0c53a5188c4f6201ea8a4725e69a7eb718fbf9200a2e4204f"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
-            "digest": "3c2c23d0ec0ba72098aefeea86ce63a40897f05d2cb1ddbadebbbdafa52ff20f"
+            "digest": "c73693460552e81e8778e623415a3f5ba5a95e89fd661cc8f695d27de17c272d"
           },
           {
             "path": "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",

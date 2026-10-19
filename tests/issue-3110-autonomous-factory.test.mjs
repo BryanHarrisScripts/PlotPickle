@@ -26,7 +26,7 @@ test("queue is fully OFF by default; --status does not pair, poll GitHub, or lau
  }
  assert.deepEqual(parseQueueCommand(["--enable","--issues","3123,3135","--consent",
    "PLOTPICKLE_AUTONOMOUS_ENGINEERING"]).issues,[3123,3135]);
- const state=await runFactoryCycle({root,publish:async()=>{},dispatch:async()=>{throw Error("must not dispatch");}});
+ const state=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},dispatch:async()=>{throw Error("must not dispatch");}});
  assert.equal(state.state,"OFF");
  assert.equal(state.processed,0);
 }));
@@ -48,7 +48,7 @@ test("enabling needs reviewed finite issues; one attempt is irreversibly reserve
  const before=await readFactoryStatus({root,now:()=>2000});
  assert.equal(before.enabled,true);
  assert.equal(before.state,"OFFLINE");
- const one=await runFactoryCycle({root,publish:async()=>{},github:fakeGitHub,now:()=>2000,
+ const one=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github:fakeGitHub,now:()=>2000,
    dispatch:async({issueNumber,head})=>{
      runs++;assert.equal(issueNumber,3135);assert.equal(head,HEAD);
      const reservation=JSON.parse(await readFile(path.join(root,"jobs","issue-3135.json"),"utf8"));
@@ -60,10 +60,10 @@ test("enabling needs reviewed finite issues; one attempt is irreversibly reserve
    }});
  assert.equal(one.processed,1);assert.equal(runs,1);assert.equal(one.issueNumber,3135);
  assert.equal(one.state,"WAITING_FOR_PRODUCT_UAT");
- const two=await runFactoryCycle({root,publish:async()=>{},github:fakeGitHub,now:()=>3000,
+ const two=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github:fakeGitHub,now:()=>3000,
     dispatch:async({issueNumber})=>{assert.equal(issueNumber,3123);runs++;return {state:"BLOCKED",code:"NO_RUNTIME"};}});
  assert.equal(two.issueNumber,3123);assert.equal(runs,2);
- const three=await runFactoryCycle({root,publish:async()=>{},github:fakeGitHub,now:()=>4000,
+ const three=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github:fakeGitHub,now:()=>4000,
    dispatch:async()=>{throw Error("NEVER REPLAY");}});
  assert.equal(three.state,"WAITING_FOR_ELIGIBLE_ISSUE");
  assert.equal(three.processed,0);
@@ -77,7 +77,7 @@ test("enabling needs reviewed finite issues; one attempt is irreversibly reserve
 test("uncertain agent crashes are fail-closed and cannot automatically replay",()=>sandbox(async root=>{
  await enableFactory({root,issues:[3123],now:()=>1000});
  const github={exactHead:async()=>HEAD,issues:async()=>[second]};
- const result=await runFactoryCycle({root,publish:async()=>{},github,now:()=>1500,dispatch:async()=>{
+ const result=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github,now:()=>1500,dispatch:async()=>{
    throw new Error("possibly dispatched model, output and credentials must remain private");
  }});
  assert.equal(result.state,"BLOCKED");
@@ -85,16 +85,16 @@ test("uncertain agent crashes are fail-closed and cannot automatically replay",(
  assert.equal(ledger.code,"EXECUTION_UNCERTAIN");
  assert.equal(ledger.replayAuthorized,false);
  assert.equal(JSON.stringify(ledger).includes("credentials"),false);
- assert.equal((await runFactoryCycle({root,publish:async()=>{},github,dispatch:async()=>{throw Error("replay");}})).processed,0);
+ assert.equal((await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github,dispatch:async()=>{throw Error("replay");}})).processed,0);
 }));
 
 test("stale/main mismatch prevents attempts and locally disabled factory rejects new commands",()=>sandbox(async root=>{
  await enableFactory({root,issues:[3135]});
  const github={exactHead:async()=>null,issues:async()=>{throw Error("must not list");}};
- const notStarted=await runFactoryCycle({root,publish:async()=>{},github,dispatch:async()=>{throw Error("must not dispatch");}});
+ const notStarted=await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github,dispatch:async()=>{throw Error("must not dispatch");}});
  assert.equal(notStarted.state,"WAITING_FOR_EXACT_CLEAN_MAIN");
  assert.equal((await disableFactory({root})).state,"OFF");
- assert.equal((await runFactoryCycle({root,publish:async()=>{},github,dispatch:async()=>{throw Error("must not dispatch");}})).processed,0);
+ assert.equal((await runFactoryCycle({root,preflight:async()=>({ready:true}),publish:async()=>{},github,dispatch:async()=>{throw Error("must not dispatch");}})).processed,0);
  await assert.rejects(enableFactory({root,issues:[3135]}),/locally disabled/);
 }));
 
@@ -171,4 +171,18 @@ test("GitHub telemetry edits one sanitized comment, rate-limited without private
  assert.equal(bodies.some(b=>b.includes("never-publish")||b.includes("secret")),false);
  assert.match(bodies[0],/Browser Product Gate: UNPROVEN/);
  assert.match(renderFactoryHeartbeat({state:"not-really-running",issueNumber:3135}),/OFFLINE/);
+}));
+
+test("no local model does not consume an attempt; admitted queue can resume when provider appears",()=>sandbox(async root=>{
+ await enableFactory({root,issues:[3135]});
+ const github={exactHead:async()=>HEAD,issues:async()=>[first]};
+ const blocked=await runFactoryCycle({root,github,preflight:async()=>({ready:false,code:"PI_NOT_INSTALLED"}),
+   publish:async()=>{},dispatch:async()=>{throw Error("must not dispatch");}});
+ assert.equal(blocked.state,"WAITING_FOR_PROVIDER");
+ assert.equal(blocked.processed,0);
+ await assert.rejects(readFile(path.join(root,"jobs","issue-3135.json"),"utf8"),/ENOENT/);
+ const ready=await runFactoryCycle({root,github,preflight:async()=>({ready:true}),
+   publish:async()=>{},dispatch:async()=>({state:"BLOCKED",code:"CANDIDATE_REJECTED"})});
+ assert.equal(ready.processed,1);
+ assert.equal(ready.issueNumber,3135);
 }));

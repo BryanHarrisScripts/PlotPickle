@@ -166,6 +166,7 @@ test("#1938 docs-only and verification-only changes remain cheap and mapped", as
     "verification.phase2-core",
     "verification.phase7-merge-authority",
     "verification.public-site-publishing-2262",
+    "verification.story-factory-browser-journey-3118",
   ]);
   assert.equal(layer7.skippedTests.length, 0);
 });

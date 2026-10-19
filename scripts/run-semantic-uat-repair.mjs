@@ -8,6 +8,10 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 import {
+  governedRepairFinding,
+  readGovernedRepairEnvelope,
+} from "./engineering-team/repair/governed-repair.mjs";
+import {
   ENGINEERING_REPAIR_PHASE_PROFILE,
   beginSemanticAction,
   buildSemanticExperienceCandidate,
@@ -33,6 +37,7 @@ const worker = optionValues.get("--worker") || process.env.PLOTPICKLE_REPAIR_WOR
 const fingerprint = optionValues.get("--fingerprint") || "";
 const issue = optionValues.get("--issue") || "";
 const reportPath = optionValues.get("--report") || "";
+const governedEnvelopePath = optionValues.get("--governed-envelope") || "";
 const targetId = fingerprint || (issue ? `issue-${issue}` : "verified-uat-finding");
 const semanticTarget = `uat:${targetId}`;
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
@@ -56,6 +61,20 @@ function runRepairAgent() {
 }
 
 async function findingSummary() {
+  if (governedEnvelopePath) {
+    const envelope = await readGovernedRepairEnvelope(path.resolve(governedEnvelopePath));
+    if (envelope.state !== "ADMITTED" || envelope.route.worker !== worker
+      || envelope.issueNumber !== Number(issue) || envelope.fingerprint !== fingerprint) {
+      throw new Error("Semantic governed repair route differs from the admitted envelope.");
+    }
+    const finding = governedRepairFinding(envelope);
+    return {
+      summary: finding.message,
+      area: finding.area,
+      evidence: [{ kind: "governed-repair-envelope", ref: envelope.candidateId,
+        summary: `${envelope.verifier.failedIds.length} admitted exact-head failure IDs; report ${envelope.verifier.reportDigest.slice(0, 12)}.` }],
+    };
+  }
   if (!reportPath || !fingerprint) return { summary: `Verified UAT repair target ${targetId}.`, area: "uat", evidence: [] };
   try {
     const report = JSON.parse(await readFile(path.resolve(reportPath), "utf8"));

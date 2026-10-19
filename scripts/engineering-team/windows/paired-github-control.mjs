@@ -214,6 +214,13 @@ function publicResult(request, outcome, extra = {}) {
     cancellationAcknowledged: outcome?.cancellationAcknowledged === true,
     childExitObserved: outcome?.childExitObserved === true,
     evidenceSha256: SCOPE.test(outcome?.evidenceSha256 || "") ? outcome.evidenceSha256 : null,
+    stopDisposition: request.action === "stop"
+      ? (["ALREADY_TERMINAL_NOOP", "DIRECT_CHILD_CANCELLATION_OBSERVED",
+        "CANCELLED_BEFORE_CHILD", "TERMINAL_DURING_REQUEST_UNPROVEN",
+        "STOP_REQUESTED_UNCONFIRMED"].includes(outcome?.stopDisposition)
+        ? outcome.stopDisposition : "STOP_UNVERIFIED")
+      : null,
+    ownedDescendantsVerifiedGone: false,
     ...extra,
     pairedControlAuthenticated: true,
     browserUatProven: false,
@@ -270,6 +277,7 @@ function renderResultComment(result) {
     + `- Host: \`${result.hostId}\`\n- Scope: ${result.scope ? `\`${result.scope}\`` : "not assigned"}\n`
     + `- Exact head: ${result.exactSha ? `\`${result.exactSha}\`` : "not reported"}\n`
     + `- Cancellation acknowledged: ${result.cancellationAcknowledged}\n- Child exit observed: ${result.childExitObserved}\n`
+    + `- STOP disposition: ${result.stopDisposition || "not applicable"}\n- Owned descendants verified gone: false\n`
     + `- Browser UAT proven: false\n- Independent verification: false\n- Merge eligible: false\n\n`
     + "This receipt confirms only authenticated command admission and the bounded local runner response. Silence or an expired request is OFFLINE/UNKNOWN, never PASS.";
 }

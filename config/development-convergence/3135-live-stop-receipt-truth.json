@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "issue": 3135,
+  "phase": "honest-remote-stop-outcome-before-live-process-proof",
+  "brief": "docs/developer-briefs/3135-live-stop-receipt-truth.md",
+  "allowedChanges": [
+    "scripts/windows-uat-control.mjs",
+    "scripts/engineering-team/windows/paired-github-control.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs",
+    "tests/issue-3110-authenticated-windows-control.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3135-live-stop-receipt-truth.md",
+    "config/development-convergence/3135-live-stop-receipt-truth.json"
+  ],
+  "acceptance": [
+    {
+      "id": "POST-TERMINAL-STOP-NOOP",
+      "criterion": "A STOP against already completed UAT explicitly reports already-terminal-no-op rather than live cancellation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "ALREADY_TERMINAL_NOOP"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "stopAfterCompletion.stopDisposition"
+        }
+      ]
+    },
+    {
+      "id": "PENDING-STOP-UNPROVEN",
+      "criterion": "A STOP request against an unfinished worker remains unconfirmed until a worker observes cancellation; never self-confirms STOP or descendants.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "STOP_REQUESTED_UNCONFIRMED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "STOP_REQUESTED_UNCONFIRMED"
+        }
+      ]
+    },
+    {
+      "id": "AUTHENTICATED-PUBLIC-DISPOSITION",
+      "criterion": "Paired GitHub STOP receipts preserve a bounded source-derived disposition and independent descendants remain unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "ownedDescendantsVerifiedGone: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-authenticated-windows-control.test.mjs",
+          "contains": "completedStop.stopDisposition"
+        }
+      ]
+    },
+    {
+      "id": "NO-LIVE-PROOF-FROM-CI",
+      "criterion": "CI fixtures cannot certify actual Windows PID-tree termination or release a product/merge gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3135-live-stop-receipt-truth.md",
+          "contains": "remain OPEN"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "mergeEligible: false"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No generic PID-kill endpoint, shell command, fixture-mode remote execution, new paid provider or story mutation.",
+    "No automatic polling, permit expansion, automatic UAT slowing, or weakening W8/W9 original tests.",
+    "Native owned process tree and sentinel proof remain explicitly unproven until a separate Windows on-host fixture and real receipts."
+  ]
+}

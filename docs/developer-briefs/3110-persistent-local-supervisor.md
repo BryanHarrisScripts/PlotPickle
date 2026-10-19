@@ -1,6 +1,6 @@
 # #3110 — Persistent local Windows supervisor (controlled command transport only)
 
-This slice adds `scripts/engineering-team/windows/unattended-supervisor.mjs`, a **locally opted-in, foreground resident** supervisor. A Windows operator can explicitly install an OS-owned auto-start task **later**, but there is no installer or service auto-registration in this PR. It polls the **existing paired and host-bound GitHub start/status/stop envelope** and inspects a local approved queue. The queue is *advisory only*. A ticket's self-asserted JSON grants are **not** sufficient authority to dispatch Pi, Cline, edit code, create PRs or merge.
+This slice adds `scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs`, a **locally opted-in, foreground resident** supervisor. A Windows operator can explicitly install an OS-owned auto-start task **later**, but there is no installer or service auto-registration in this PR. It polls the **existing paired and host-bound GitHub start/status/stop envelope** and inspects a local approved queue. The queue is *advisory only*. A ticket's self-asserted JSON grants are **not** sufficient authority to dispatch Pi, Cline, edit code, create PRs or merge.
 
 ## Local operator commands after merge
 
@@ -8,9 +8,9 @@ This slice adds `scripts/engineering-team/windows/unattended-supervisor.mjs`, a 
 cd C:\Users\bryan\plotpickle
 git pull --ff-only
 node scripts/engineering-team/windows/paired-github-control.mjs --pairing-status
-node scripts/engineering-team/windows/unattended-supervisor.mjs --status
-node scripts/engineering-team/windows/unattended-supervisor.mjs --enable --consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR
-node scripts/engineering-team/windows/unattended-supervisor.mjs --serve --consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR
+node scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs --status
+node scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs --enable --consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR
+node scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs --serve --consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR
 ```
 
 The **serve command remains running in its own PowerShell window**. Closing ChatGPT or Work does not stop that process, but closing its PowerShell window or logging off may. This version does not yet start automatically on login or recover if the PC reboots; `--status` will show **OFFLINE** when the heartbeat expires. Do not call this a fully durable OS service.
@@ -18,8 +18,8 @@ The **serve command remains running in its own PowerShell window**. Closing Chat
 For local stop and revocation:
 
 ```powershell
-node scripts/engineering-team/windows/unattended-supervisor.mjs --disable
-node scripts/engineering-team/windows/unattended-supervisor.mjs --status
+node scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs --disable
+node scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs --status
 ```
 
 The running supervisor notices the private STOP marker before another poll and exits. After the worker exits, an intentional resume uses `--reenable --consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR`, then a fresh `--serve`. The operator can separately disable the paired GitHub route with `paired-github-control.mjs --disable` (one-way disable). Do not remove a stale lock without first confirming the old OS process is gone; the lock intentionally fails closed.

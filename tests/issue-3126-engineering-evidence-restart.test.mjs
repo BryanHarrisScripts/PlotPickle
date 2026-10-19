@@ -6,7 +6,7 @@ import test from "node:test";
 import { admitEngineeringCampaign, engineeringObservation } from "../scripts/engineering-team/contract.mjs";
 import {
   createEngineeringEvidenceState, readEngineeringEvidenceState, writeEngineeringEvidenceState,
-} from "../scripts/engineering-team/evidence-state.mjs";
+} from "../scripts/engineering-team/evidence/evidence-state.mjs";
 
 const HEAD = "a".repeat(40);
 const OTHER_HEAD = "b".repeat(40);

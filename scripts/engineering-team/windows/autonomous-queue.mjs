@@ -30,7 +30,7 @@ const POLL_MS = 60_000;
 const SHA256 = (value) => createHash("sha256").update(value).digest("hex");
 
 export function parseQueueCommand(argv) {
-  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest"];
+  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest", "--authorize-retry"];
   const selected = modes.filter(flag => argv.includes(flag));
   if (selected.length !== 1 || argv.filter(x => x === selected[0]).length !== 1) {
     throw new Error("Exactly one queue operation is required.");
@@ -43,21 +43,32 @@ export function parseQueueCommand(argv) {
       if(values[key]!==undefined)throw new Error("Duplicate merge policy.");
       values[key]=true;continue;
     }
-    if (!["--issues","--consent"].includes(key) || values[key] !== undefined || !argv[i+1] || argv[i+1].startsWith("--")) {
+    if (!["--issues","--consent","--issue","--base"].includes(key) || values[key] !== undefined || !argv[i+1] || argv[i+1].startsWith("--")) {
       throw new Error("Unknown, repeated or missing queue argument.");
     }
     values[key]=argv[++i];
   }
   const mode=selected[0].slice(2);
-  if (mode !== "enable" && Object.keys(values).length) throw new Error("Only --enable accepts extra options.");
-  if (mode === "enable" && values["--consent"] !== CONSENT) throw new Error("Explicit local autonomous engineering consent is required.");
+  if (mode !== "enable" && mode !== "authorize-retry" && Object.keys(values).length)
+    throw new Error("Only local authorization commands accept extra options.");
+  if (mode === "enable" && (values["--issue"] || values["--base"]))throw new Error("Unknown enable option.");
+  if (mode === "authorize-retry" &&
+    (Object.keys(values).length!==3 || values["--issue"]!=="3141" ||
+      !SHA.test(values["--base"]||"") || values["--consent"]!==CONSENT ||
+      values["--issues"] || values["--merge-docs"])) {
+    throw new Error("Retry requires explicit --issue 3141 --base SHA and local consent.");
+  }
+  if (mode === "enable" && values["--consent"] !== CONSENT)
+    throw new Error("Explicit local autonomous engineering consent is required.");
   const items = mode === "enable" ? String(values["--issues"] || "").split(",") : [];
   const issues=items.map(x=>Number(x));
   if (mode === "enable" && (!items.length || items.length > MAX_ISSUES || new Set(issues).size !== issues.length
     || issues.some((n,i)=> !/^\d{1,7}$/.test(items[i]) || !Number.isSafeInteger(n) || n < 1))) {
     throw new Error("A finite, unique CSV issue allowlist is required; max 80.");
   }
-  return Object.freeze({mode, issues,mergeDocsOnly:values["--merge-docs"]===true});
+  return Object.freeze({mode, issues,mergeDocsOnly:values["--merge-docs"]===true,
+    retryIssue:mode==="authorize-retry"?3141:null,
+    retryBase:mode==="authorize-retry"?values["--base"]:null});
 }
 
 async function ordinaryJson(file, max=32_768) {
@@ -187,7 +198,7 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
         "--json","headRefName,isDraft,number"]);
       const prs=JSON.parse(raw);
       if(!Array.isArray(prs))throw new Error("Factory PR list malformed.");
-      return prs.filter(p=>/^factory\/issue-\d+-[a-f0-9]{10}$/.test(p.headRefName||"")).length;
+      return prs.filter(p=>/^factory\/issue-\d+-[a-f0-9]{10}(?:-a2)?$/.test(p.headRefName||"")).length;
     }
   });
 }

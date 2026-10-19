@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { adjudicateEngineeringFinding } from "./contract.mjs";
+import { readEngineeringEvidenceState } from "./evidence/evidence-state.mjs";
 
 const SHA256 = /^[0-9a-f]{64}$/;
 const EXACT_SHA = /^[0-9a-f]{40}$/;
@@ -132,6 +133,20 @@ export function draftEngineeringGithubCandidate(campaign, findingRef, observatio
 
 async function main() {
   const args = process.argv.slice(2);
+  if (args[0] === "--fresh-restart") {
+    // An opaque, local private scope is the ONLY caller-supplied path component.
+    // Reading it never starts a worker, opens a provider or restores a process.
+    if (args.length !== 5 || args[1] !== "--scope" || !SHA256.test(args[2] || "")
+      || args[3] !== "--head" || !EXACT_SHA.test(args[4] || "")) {
+      throw new Error("Use --fresh-restart --scope 64hex --head 40hex for read-only evidence.");
+    }
+    const runDir = path.join(defaultAppRoot(), "engineering-team", "runs", args[2]);
+    const state = await readEngineeringEvidenceState(runDir, {
+      scopeHash: args[2], exactSha: args[4],
+    });
+    process.stdout.write(JSON.stringify(state, null, 2) + "\n");
+    return;
+  }
   if (args.length < 1 || args.length > 2 || !args.includes("--status")
     || args.some((value) => value !== "--status" && value !== "--json")) {
     throw new Error("Use --status [--json] for read-only Engineering Team operator evidence.");

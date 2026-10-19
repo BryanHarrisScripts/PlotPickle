@@ -4076,6 +4076,48 @@
         ]
       },
       "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven. #3121 additionally verifies deterministic owned-stop ordering, blocked cleanup retention and bounded retry using mocked handles; not native Windows production STOP proof. #3123 extra read-only profile-scoped session/registry disappearance probes; unit fixtures only; cannot claim Windows human browser PASS."
+    },
+    {
+      "id": "agent.experimental-engineering-team-evidence-state-3126",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3126-engineering-evidence-restart.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3126 compact evidence-refs-only exact-head restart status, mock/private temp-storage tests; does not grant repair/provider/Windows/merge authority."
     }
   ],
   "truthGovernance": {
@@ -8349,7 +8391,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           }
         ]
       },
@@ -8377,7 +8419,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8409,7 +8451,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/operator-reporting.mjs",
-            "digest": "edd3866966f63b323a108c64e0ffddad6baffed200eb19eda1641b1904663e88"
+            "digest": "f2bc11cff15ac35910a561a96d9cc0384f5a72b3ffcc8a159ccfcf3e3309a106"
           }
         ]
       },
@@ -8437,7 +8479,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8481,7 +8523,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           }
         ]
       },
@@ -8509,7 +8551,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "a1f79b5c65b1d95e9e32e3e2d066d336b3f491600a12655b920a6c2edb702656"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8738,6 +8780,42 @@
           {
             "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
             "digest": "64a10bbe820fb6146e21f3291035e52a8bf10336d664d7153224dc1d4ac80831"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3126-engineering-evidence-restart.test.mjs",
+        "targetDigest": "11c9a22acc3b8b3a1dba3597d62251d55329cb55e574c93f9aa95e90c7868482",
+        "catalogueIds": [
+          "agent.experimental-engineering-team-evidence-state-3126"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mock-only private filesystem and exact-head receipt check. Proves no prior model-prose copy and no automatic replay/authority; not real Windows pairing, agent-generated code repair, provider inference, production build or Story Factory browser PASS.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/evidence/evidence-state.mjs",
+            "digest": "9a1e6743a5ded3636a168dce138a97a12e2ee16e77fb1d46f196cddb090060c3"
+          },
+          {
+            "path": "scripts/engineering-team/run-local.mjs",
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
+          },
+          {
+            "path": "scripts/engineering-team/operator-reporting.mjs",
+            "digest": "f2bc11cff15ac35910a561a96d9cc0384f5a72b3ffcc8a159ccfcf3e3309a106"
           }
         ]
       }

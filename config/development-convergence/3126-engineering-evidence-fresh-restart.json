@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "issue": 3126,
+  "phase": "engineering-factory-evidence-state-fresh-restart",
+  "brief": "docs/developer-briefs/3126-engineering-evidence-fresh-restart.md",
+  "allowedChanges": [
+    "scripts/engineering-team/evidence/evidence-state.mjs",
+    "scripts/engineering-team/run-local.mjs",
+    "scripts/engineering-team/operator-reporting.mjs",
+    "tests/issue-3126-engineering-evidence-restart.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3126-engineering-evidence-fresh-restart.md",
+    "config/development-convergence/3126-engineering-evidence-fresh-restart.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXACT-HEAD-SAFE-STATE",
+      "criterion": "The established Engineering Team emits a bounded evidence-refs-only packet on terminal observed/blocked paths, with immutable current head and campaign scope.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "createEngineeringEvidenceState(campaign, { result })"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/run-local.mjs",
+          "contains": "createEngineeringEvidenceState(campaign, { failure: classified })"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3126-engineering-evidence-restart.test.mjs",
+          "contains": "exact-head restart packet"
+        }
+      ]
+    },
+    {
+      "id": "REPLAY-AND-AUTHORITY-DENIED",
+      "criterion": "Restart evidence explicitly cannot grant mutation, inference, spend, merge, original-test modifications or automatic started-uncertain replay.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
+          "contains": "startedUncertainMayReplay: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
+          "contains": "modelDispatchAuthorized: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3126-engineering-evidence-restart.test.mjs",
+          "contains": "interrupted agent invocation results in BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "PRIVATE-READ-ONLY-OPERATOR",
+      "criterion": "Only private scoped read-only evidence is exposed, not full model prose, raw exceptions or arbitrary filesystem paths.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/operator-reporting.mjs",
+          "contains": "--fresh-restart"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
+          "contains": "isSymbolicLink()"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3126-engineering-evidence-restart.test.mjs",
+          "contains": "no prior agent prose"
+        }
+      ]
+    },
+    {
+      "id": "NO-FAKE-PRODUCT-PASS",
+      "criterion": "An observed team receipt is not evidence that the real Windows Story Factory product passed independent UAT.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/evidence/evidence-state.mjs",
+          "contains": "independentProductVerification: \"unproven\""
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3126-engineering-evidence-fresh-restart.md",
+          "contains": "NOT the completed autonomous Software Factory"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No new worker automatically started, remote command transport, inference route or provider installation.",
+    "No Human story data, private prompts, raw model summaries or secret logs in evidence packet.",
+    "Do not weaken the six #3123 failures, UAT oracle or Pi Durable started-uncertain barrier.",
+    "No source edits/PR publishing/merge automatically authorized by this diagnostic-only factory infrastructure."
+  ]
+}

@@ -75,6 +75,19 @@ test("#3121 an interrupted shutdown still closes the log and retains private syn
   assert.equal(calls.includes("cleanup-home"), false);
 });
 
+test("#3121 refuses synthetic-home deletion when the server log cannot be closed", async () => {
+  const { calls, options } = fixture();
+  options.serverLogHandle.close = async () => {
+    calls.push("close-log");
+    throw new Error("synthetic log remains locked");
+  };
+  const result = await stopAndCleanupLiveVerifier(options);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.failureCodes.includes("SERVER_LOG_CLOSE_FAILED"));
+  assert.ok(result.failureCodes.includes("SYNTHETIC_HOME_RETAINED_UNTIL_LOG_CLOSED"));
+  assert.equal(calls.includes("cleanup-home"), false);
+});
+
 test("#3121 cleanup retries only within verified disposable scope and fails closed after bounded attempts", async () => {
   const recovered = fixture({ cleanupFailures: 2 });
   const ok = await stopAndCleanupLiveVerifier(recovered.options);

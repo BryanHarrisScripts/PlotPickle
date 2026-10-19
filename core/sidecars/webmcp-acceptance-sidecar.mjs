@@ -361,7 +361,6 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session, artifa
       ...(await observeStoryFactoryProjectSession(page, initialProject)),
     });
   };
-  await observe("outline", "before-open");
   const stages = [
     {
       id: "outline",
@@ -406,6 +405,7 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session, artifa
   ];
 
   for (const stage of stages) {
+    await observe(stage.id, "before-open");
     const observed = await openStoryFactorySurface({ page, ...stage });
     await observe(stage.id, "rendered");
     assertions.push(
@@ -419,7 +419,7 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session, artifa
       checkpoint: stage.checkpoint,
     });
     const dashboard = await returnToDashboard(page);
-    assertions.push(assertion(`${stage.id}-back-to-dashboard`, dashboard === "dashboard", "dashboard"));
+    assertions.push(assertion(`${stage.id}-back-to-dashboard`, dashboard === "dashboard", "dashboard", dashboard));
     await observe(stage.id, "after-dashboard");
   }
 

@@ -111,6 +111,48 @@ async function probeLocalNodeDependencies() {
   return results;
 }
 
+async function syntheticHumanMutationHeaders(storageStatePath) {
+  const state = JSON.parse(await readFile(storageStatePath, "utf8"));
+  const hostname = new URL(serverUrl).hostname;
+  const session = Array.isArray(state?.cookies)
+    ? state.cookies.find((cookie) => cookie?.name === "ppsid" && cookie?.domain === hostname && typeof cookie?.value === "string" && cookie.value)
+    : null;
+  if (!session) throw new Error("Live browser verification could not read its isolated synthetic Human session.");
+
+  const cookie = `ppsid=${session.value}`;
+  const profileResponse = await fetch(new URL("/api/auth/profile", serverUrl), {
+    headers: { Accept: "application/json", Cookie: cookie },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  const profile = await profileResponse.json().catch(() => ({}));
+  const csrf = typeof profile?.csrfToken === "string" ? profile.csrfToken.trim() : "";
+  if (!profileResponse.ok || profile?.authenticated !== true || !csrf) {
+    throw new Error(profile?.message || "Live browser verification could not authenticate its isolated synthetic Human session.");
+  }
+  return Object.freeze({
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Cookie: cookie,
+    Origin: new URL(serverUrl).origin,
+    "X-PlotPickle-CSRF": csrf,
+  });
+}
+
+async function forceLocalStoryMode(storageStatePath) {
+  const response = await fetch(new URL("/api/story-mode/policy", serverUrl), {
+    method: "POST",
+    headers: await syntheticHumanMutationHeaders(storageStatePath),
+    body: JSON.stringify({ mode: "local" }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body?.ok !== true || body?.mode !== "local") {
+    throw new Error(body?.message || "Live browser verification could not establish LOCAL Story Mode.");
+  }
+  return Object.freeze({ mode: "local", providerSpendAllowed: false });
+}
+
 async function readStartupFailure() {
   try {
     const evidence = JSON.parse(await readFile(startupEvidencePath, "utf8"));
@@ -186,6 +228,7 @@ async function writeSummary(status, details = {}) {
       ".artifacts/visual-readiness/dashboard-canonical.png",
       ".artifacts/visual-readiness/visual-director-report.json",
       ".artifacts/webmcp-acceptance/mind-map-world-map-shared-header/exact-head.json",
+      ".artifacts/webmcp-acceptance/story-factory-read-only-journey/exact-head.json",
     ],
     ...details,
   }, null, 2)}\n`, "utf8");
@@ -246,8 +289,9 @@ export async function runLiveWebMcpEvidence() {
     }
 
     coldMediaRetryUsed = await runAuditWithColdMediaRetry({ node, home, toolRoot, serverEnv, serverExited });
-    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
     const acceptanceStorageStatePath = path.join(home, "verification-browser", "storage-state.json");
+    const storyMode = await forceLocalStoryMode(acceptanceStorageStatePath);
+    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
     const mindWorldAcceptance = await runWebMcpAcceptanceJourney({
       request: {
         requestId: `architecture-${jobRef}-mind-world-shared-header`,
@@ -264,6 +308,22 @@ export async function runLiveWebMcpEvidence() {
     if (mindWorldAcceptance.status !== "PASS") {
       throw new Error(`Mind Map / World Map rendered acceptance failed: ${mindWorldAcceptance.reportPath}`);
     }
+    const storyFactoryAcceptance = await runWebMcpAcceptanceJourney({
+      request: {
+        requestId: `architecture-${jobRef}-story-factory-read-only`,
+        operation: "rendered-acceptance",
+        target: "story-factory-read-only-journey",
+        mode: "exact-head",
+        commitSha: process.env.GITHUB_SHA || "",
+      },
+      serverUrl,
+      toolRoot,
+      storageStatePath: acceptanceStorageStatePath,
+      artifactRoot: path.join(repoRoot, ".artifacts", "webmcp-acceptance"),
+    });
+    if (storyFactoryAcceptance.status !== "PASS") {
+      throw new Error(`Story Factory rendered acceptance failed: ${storyFactoryAcceptance.reportPath}`);
+    }
 
     await writeSummary("pass", {
       syntheticHomeAuthority: "full-verification-auth",
@@ -271,10 +331,18 @@ export async function runLiveWebMcpEvidence() {
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
       coldMediaRetryUsed,
       nodeDependencies,
+      storyMode,
       mindWorldAcceptance: {
         status: mindWorldAcceptance.status,
         report: mindWorldAcceptance.reportPath,
         journeyId: mindWorldAcceptance.journeyId,
+      },
+      storyFactoryAcceptance: {
+        status: storyFactoryAcceptance.status,
+        report: storyFactoryAcceptance.reportPath,
+        journeyId: storyFactoryAcceptance.journeyId,
+        mutationAuthority: false,
+        providerSpendAllowed: false,
       },
     });
     return 0;

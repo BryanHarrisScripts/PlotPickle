@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "issue": 3118,
+  "phase": "authenticated-local-read-only-story-factory-browser-journey",
+  "brief": "docs/developer-briefs/3118-story-factory-browser-journey.md",
+  "allowedChanges": [
+    "core/sidecars/webmcp-acceptance-sidecar.mjs",
+    "scripts/verification-webmcp-live.mjs",
+    "tests/issue-1938-verification-core.test.mjs",
+    "tests/issue-3118-story-factory-browser-journey.test.mjs",
+    "docs/developer-briefs/3118-story-factory-browser-journey.md",
+    "config/development-convergence/3118-story-factory-browser-journey.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NAMED-BOUNDED-REAL-BROWSER-JOURNEY",
+      "criterion": "One named WebMCP journey operates actual rendered Library, Mind Map, World Map, Outline, Write, Storyboard, Previs and Timeline surfaces in order.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "story-factory-read-only-journey"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3118-story-factory-browser-journey.test.mjs",
+          "contains": "traverses the required real surfaces in order"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL-ISOLATED-NO-SPEND",
+      "criterion": "Live verification explicitly selects LOCAL and retains the isolated synthetic-Human/no-provider-spend boundary.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "forceLocalStoryMode"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "providerSpendAllowed: false"
+        }
+      ]
+    },
+    {
+      "id": "PROJECT-CONTINUITY-NO-CANON-MUTATION",
+      "criterion": "The same synthetic selected-project identity survives every stage and the journey invokes no generation, save, lock, approval, unload or delete action.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "story-factory-project-stable"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3118-story-factory-browser-journey.test.mjs",
+          "contains": "has no generation or canon mutation action"
+        }
+      ]
+    },
+    {
+      "id": "MISSING-CHECKPOINT-REMAINS-FAIL",
+      "criterion": "A missing or contradicted rendered stage remains FAIL; browser verification cannot self-certify from partial navigation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3118-story-factory-browser-journey.test.mjs",
+          "contains": "missing rendered checkpoint remains FAIL"
+        }
+      ]
+    },
+    {
+      "id": "STOP-AND-REMOTE-CONTROL-NOT-CLAIMED",
+      "criterion": "This slice explicitly leaves actual browser-worker process-tree STOP, Human visual acceptance and Chat/Work remote control for separate proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3118-story-factory-browser-journey.md",
+          "contains": "production UAT worker's descendant termination"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No owner browser profile, private story, credentials, provider request, paid generation or canon approval.",
+    "No arbitrary browser command, shell command, public listener, GitHub-triggered execution or remote Chat/Work dispatch.",
+    "Do not report browser PASS from static tests; owner Windows live evidence is required after merge.",
+    "Do not close #3118 until the separate owned production browser-runner STOP proof also passes."
+  ]
+}

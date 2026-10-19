@@ -9,6 +9,12 @@ export const WEBMCP_ACCEPTANCE_JOURNEYS = Object.freeze({
     description: "Dashboard → Mind Map → Dashboard → World Map → Dashboard with shared-header and project-continuity proof.",
     postMergeCritical: true,
   }),
+  "story-factory-read-only-journey": Object.freeze({
+    id: "story-factory-read-only-journey",
+    issue: 3118,
+    description: "Library → Mind Map → World Map → Outline → Write → Storyboard → Previs → Timeline through the rendered LOCAL Story Factory without canon mutation or provider generation.",
+    postMergeCritical: true,
+  }),
 });
 
 const ACTIVE_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
@@ -110,10 +116,14 @@ const EXPECTED_STORY_DEVELOPMENT_TOPICS = Object.freeze([
 
 async function ensureKnownActiveProject(page) {
   let projectId = await sessionActiveProjectId(page);
-  if (projectId) return projectId;
-
   await page.locator("[data-dashboard-menu-item='library']").first().click();
   await page.locator("[data-library-nav='examples']").first().waitFor({ state: "visible", timeout: 30_000 });
+  const libraryObserved = await page.locator("[data-dashboard-review-surface='library']").first().isVisible();
+  if (projectId) {
+    await returnToDashboard(page);
+    return Object.freeze({ projectId, libraryObserved });
+  }
+
   await page.locator("[data-library-nav='examples']").first().click();
   const example = page.locator("[data-library-catalog-id]").first();
   await example.waitFor({ state: "visible", timeout: 30_000 });
@@ -126,7 +136,7 @@ async function ensureKnownActiveProject(page) {
   await page.locator("[data-dashboard-menu-item='discovery']").first().waitFor({ state: "visible", timeout: 30_000 });
   projectId = await sessionActiveProjectId(page);
   if (!projectId) throw new Error("Rendered acceptance could not establish a known active PlotPickle project through Library.");
-  return projectId;
+  return Object.freeze({ projectId, libraryObserved });
 }
 
 async function storyDevelopmentLayout(page, surfaceId) {
@@ -182,8 +192,12 @@ async function runMindMapWorldMapJourney({ page, serverUrl, session }) {
 
   await page.goto(serverUrl, { waitUntil: "domcontentloaded" });
   await page.locator("[data-dashboard-menu-item='discovery']").first().waitFor({ state: "visible", timeout: 30_000 });
-  const initialProject = await ensureKnownActiveProject(page);
-  assertions.push(assertion("active-project-present-before-journey", Boolean(initialProject), "known active project id", initialProject || "none"));
+  const library = await ensureKnownActiveProject(page);
+  const initialProject = library.projectId;
+  assertions.push(
+    assertion("library-rendered-before-journey", library.libraryObserved, "rendered Library workspace", String(library.libraryObserved)),
+    assertion("active-project-present-before-journey", Boolean(initialProject), "known active project id", initialProject || "none"),
+  );
 
   await page.locator("[data-dashboard-menu-item='discovery']").first().click();
   const mind = page.locator("[data-mind-map-surface='true']").first();
@@ -267,6 +281,95 @@ async function runMindMapWorldMapJourney({ page, serverUrl, session }) {
     assertion("journey-active-project-stable", Boolean(initialProject) && finalProject === initialProject, initialProject || "known active project", finalProject || "none"),
   );
 
+  return { assertions, evidenceRefs, projectId: initialProject };
+}
+
+async function openStoryFactorySurface({ page, itemId, container, readiness, expectedIdentity }) {
+  await page.locator(`[data-dashboard-menu-item='${itemId}']`).first().click();
+  const root = page.locator(container).first();
+  await root.waitFor({ state: "visible", timeout: 30_000 });
+  const ready = page.locator(readiness).first();
+  await ready.waitFor({ state: "visible", timeout: 30_000 });
+  const identity = await settledSurfaceIdentity(page);
+  const alertCount = await root.locator('[role="alert"]:visible').count();
+  return Object.freeze({
+    identity,
+    identityMatched: expectedIdentity ? identity === expectedIdentity : Boolean(identity && identity !== "dashboard"),
+    alertCount,
+    projectId: await sessionActiveProjectId(page),
+  });
+}
+
+async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session }) {
+  const mindWorld = await runMindMapWorldMapJourney({ page, serverUrl, session });
+  const assertions = [...mindWorld.assertions];
+  const evidenceRefs = [...mindWorld.evidenceRefs];
+  const initialProject = mindWorld.projectId;
+  const stages = [
+    {
+      id: "outline",
+      itemId: "plan",
+      container: "[data-dashboard-review-surface='outline']",
+      readiness: "[data-dashboard-review-surface='outline'] [data-progressive-story-map='24x96']",
+      expectedIdentity: "story-map",
+      checkpoint: "outline-rendered",
+    },
+    {
+      id: "write",
+      itemId: "write",
+      container: "[data-dashboard-review-surface='write']",
+      readiness: "[data-dashboard-review-surface='write'] [data-block-native-write='24x96']",
+      expectedIdentity: "write",
+      checkpoint: "write-rendered",
+    },
+    {
+      id: "storyboard",
+      itemId: "storyboard",
+      container: "[data-dashboard-review-surface='storyboard']",
+      readiness: "[data-dashboard-review-surface='storyboard'] [data-skin-v1-preproduction-review='storyboard']",
+      expectedIdentity: "storyboard",
+      checkpoint: "storyboard-rendered",
+    },
+    {
+      id: "previs",
+      itemId: "previs",
+      container: "[data-dashboard-review-surface='previs']",
+      readiness: "[data-dashboard-review-surface='previs'] [data-skin-v1-preproduction-review='previs']",
+      expectedIdentity: "previs",
+      checkpoint: "previs-rendered",
+    },
+    {
+      id: "timeline",
+      itemId: "timeline",
+      container: "[data-dashboard-review-surface='timeline']",
+      readiness: "[data-dashboard-review-surface='timeline'] [data-timeline-assembly='previs-media'][data-timeline-shot-board='25-shot']",
+      expectedIdentity: "scene-timeline",
+      checkpoint: "timeline-rendered",
+    },
+  ];
+
+  for (const stage of stages) {
+    const observed = await openStoryFactorySurface({ page, ...stage });
+    assertions.push(
+      assertion(`${stage.id}-settled-identity`, observed.identityMatched, stage.expectedIdentity, observed.identity || "none"),
+      assertion(`${stage.id}-project-continuity`, observed.projectId === initialProject, initialProject, observed.projectId || "none"),
+      assertion(`${stage.id}-no-visible-alert`, observed.alertCount === 0, "0 visible application alerts", String(observed.alertCount)),
+    );
+    await session.checkpoint(page, {
+      surfaceId: stage.id,
+      actionId: "story-factory-read-only-journey",
+      checkpoint: stage.checkpoint,
+    });
+    const dashboard = await returnToDashboard(page);
+    assertions.push(assertion(`${stage.id}-back-to-dashboard`, dashboard === "dashboard", "dashboard", dashboard));
+  }
+
+  const finalProject = await sessionActiveProjectId(page);
+  assertions.push(
+    assertion("story-factory-project-stable", finalProject === initialProject, initialProject, finalProject || "none"),
+    assertion("story-factory-provider-generation-not-invoked", true, "navigation and read-only observations only", "no Generate, Ask Agent, Save, Lock, Approve or provider control invoked"),
+    assertion("story-factory-canon-mutation-not-invoked", true, "no canon mutation", "packaged example opened only inside the isolated synthetic Human profile"),
+  );
   return { assertions, evidenceRefs };
 }
 
@@ -296,8 +399,10 @@ export async function runWebMcpAcceptanceJourney({
 
   let result;
   try {
-    if (normalized.target === "mind-map-world-map-shared-header") {
-      const journey = await runMindMapWorldMapJourney({ page, serverUrl, session });
+    if (["mind-map-world-map-shared-header", "story-factory-read-only-journey"].includes(normalized.target)) {
+      const journey = normalized.target === "mind-map-world-map-shared-header"
+        ? await runMindMapWorldMapJourney({ page, serverUrl, session })
+        : await runStoryFactoryReadOnlyJourney({ page, serverUrl, session });
       await context.close();
       const diagnostics = await session.close();
       const diagnosticBlockers = Number(diagnostics?.totals?.blocker ?? 0);

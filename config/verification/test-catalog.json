@@ -4203,6 +4203,49 @@
         ]
       },
       "notes": "#3128 mock/private admission, tamper, approval, route and source-allowance tests only. No provider call, code repair, Windows Product Gate, GitHub PR or merge is performed."
+    },
+    {
+      "id": "agent.autonomous-factory-queue-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-autonomous-factory.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof."
     }
   ],
   "truthGovernance": {
@@ -9011,6 +9054,50 @@
             "digest": "95720947031ff3060dcc163f63f34027bcc7b2dff1f486bb473adac3e05622ed"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3110-autonomous-factory.test.mjs",
+        "targetDigest": "04008d4fb4b7f12885edb735a127e36123487148169f9b4a5279f72896779e9d",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
+            "digest": "faaff0806d895c04d3937cf31024c9dd9bf5e6b1c17d80210d4dcdc02bb55638"
+          },
+          {
+            "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
+            "digest": "4d2b282b797788e0c53a5188c4f6201ea8a4725e69a7eb718fbf9200a2e4204f"
+          },
+          {
+            "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
+            "digest": "4d68e3d35474fbcb06f10b72e42cb85a70049f5c23acb2f264edc8053fc9474f"
+          },
+          {
+            "path": "scripts/engineering-team/windows/autonomous-pr-review.mjs",
+            "digest": "29f3e94b9d7647b042145e46ea36ed5fabb62214ab05395ef0b14693d2ffb51e"
+          },
+          {
+            "path": "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",
+            "digest": "f734345a144d0e40595073f84e3a0e9e22e57fb297dadaed1ba92bfbc3855da0"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Simulated private filesystem/GitHub client/dispatcher. No real Windows on-logon worker, on-device Pi source mutation, native termination, browser Product Gate, exact-head PR CI nor autonomous merge accepted."
       }
     ]
   }

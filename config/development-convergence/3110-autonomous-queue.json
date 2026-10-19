@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "issue": 3110,
+  "phase": "autonomous-issue-queue-and-local-draft-pr",
+  "brief": "docs/developer-briefs/3110-autonomous-queue.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/autonomous-queue.mjs",
+    "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
+    "scripts/engineering-team/windows/autonomous-telemetry.mjs",
+    "scripts/engineering-team/windows/autonomous-pr-review.mjs",
+    "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",
+    "tests/issue-3110-autonomous-factory.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3110-autonomous-queue.md",
+    "config/development-convergence/3110-autonomous-queue.json"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCAL-CONSENT-OFF-DEFAULT",
+      "criterion": "Unattended work is locally OFF until explicit finite issue allowlist and Human consent.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
+          "contains": "PLOTPICKLE_AUTONOMOUS_ENGINEERING"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-autonomous-factory.test.mjs",
+          "contains": "fully OFF by default"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE-NONREPLAY-ISSUE-STATE",
+      "criterion": "Queue reserves exactly one issue attempt before model dispatch and never auto-replays an uncertain attempt.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
+          "contains": "STARTED_UNCONFIRMED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-autonomous-factory.test.mjs",
+          "contains": "cannot automatically replay"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL-ONLY-WORKTREE-AND-DRAFT",
+      "criterion": "Agent route is bounded to local developer coding, source path allowlist, deterministic build/contract checks and draft PR only.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
+          "contains": "WAITING_FOR_PRODUCT_UAT"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-autonomous-factory.test.mjs",
+          "contains": "protected file edits"
+        }
+      ]
+    },
+    {
+      "id": "LOCAL-WINDOWS-STARTUP-AND-REVOKE",
+      "criterion": "Only explicit local owner installation registers a limited user startup task and local disable prevents new admissions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",
+          "contains": "Register-ScheduledTask"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
+          "contains": "LOCALLY_DISABLED"
+        }
+      ]
+    },
+    {
+      "id": "HONEST-HEARTBEAT",
+      "criterion": "GitHub receives bounded self-reported task state no more frequently than 15 minutes unless state changes; no model prompts or false UAT claims.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
+          "contains": "Browser Product Gate: UNPROVEN"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3110-autonomous-queue.md",
+          "contains": "This is a **candidate PR factory**"
+        }
+      ]
+    },
+    {
+      "id": "DOCS-ONLY-GREEN-MERGE",
+      "criterion": "Optional local docs-only auto merge requires exact candidate head/base, seven successful independent CI layers, required check proof, and GitHub-acknowledged squash merge; all application code remains unmergeable.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-pr-review.mjs",
+          "contains": "DOCS_ONLY_EXACT_HEAD_GREEN"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-autonomous-factory.test.mjs",
+          "contains": "only exact green seven-layer documentation PR"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "The hosted chat cannot itself install/start a Windows task or claim an unattended worker is running.",
+    "Model approval, native Windows Product Gate, independent CI, merge and owned production STOP are separate permissions; not completed by this increment.",
+    "No ChatGPT OAuth quota bypass, background provider spending, shell execution from GitHub prose, or story canon changes."
+  ]
+}

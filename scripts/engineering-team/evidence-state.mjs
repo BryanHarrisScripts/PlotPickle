@@ -107,6 +107,10 @@ export async function readEngineeringEvidenceState(runDir, { scopeHash, exactSha
   if (!path.isAbsolute(runDir) || !HASH.test(scopeHash || "") || !SHA.test(exactSha || "")) {
     throw new Error("Engineering restart read requires matching exact head and scope.");
   }
+  const folder = await lstat(runDir);
+  if (!folder.isDirectory() || folder.isSymbolicLink()) {
+    throw new Error("Engineering restart requires an ordinary private run directory.");
+  }
   const filename = path.join(runDir, resume ? "resume-evidence-state.json" : "evidence-state.json");
   const info = await lstat(filename);
   if (!info.isFile() || info.isSymbolicLink() || info.size > MAX_BYTES) {
@@ -119,6 +123,34 @@ export async function readEngineeringEvidenceState(runDir, { scopeHash, exactSha
     || state.sourceMutationAllowed !== false || state.modelDispatchAuthorized !== false
     || state.independentProductVerification !== "unproven" || state.mergeEligible !== false) {
     throw new Error("Engineering restart receipt is stale, untrusted or grants unapproved authority.");
+  }
+  const permitted = [
+    "schemaVersion", "campaignId", "exactSha", "scopeHash", "taskRef", "state",
+    "failure", "observations", "roleResults", "restartContext", "originalTestOracle",
+    "newWorkerMayRead", "startedUncertainMayReplay", "sourceMutationAllowed",
+    "modelDispatchAuthorized", "paidDispatchAuthorized", "independentProductVerification",
+    "mergeEligible", "digest",
+  ];
+  if (Object.keys(state).sort().join("|") !== [...permitted].sort().join("|")
+    || !REF.test(state.campaignId || "") || !REF.test(state.taskRef || "")
+    || !["blocked", "observed-unverified"].includes(state.state)
+    || state.restartContext !== "evidence-refs-only"
+    || state.originalTestOracle !== "unchanged" || state.newWorkerMayRead !== true
+    || state.paidDispatchAuthorized !== false
+    || !Array.isArray(state.observations) || state.observations.length > 16
+    || !Array.isArray(state.roleResults) || state.roleResults.length > 16
+    || state.observations.some((item) => Object.keys(item).sort().join("|")
+      !== ["role", "state", "observationId", "findingRef", "evidenceRefs", "verification"].sort().join("|")
+      || !ROLES.has(item.role) || !STATES.has(item.state)
+      || !REF.test(item.observationId || "") || !REF.test(item.findingRef || "")
+      || item.verification !== "unverified-observation" || !Array.isArray(item.evidenceRefs)
+      || item.evidenceRefs.length > 16 || item.evidenceRefs.some((ref) => !REF.test(ref)))
+    || state.roleResults.some((item) => Object.keys(item).sort().join("|") !== ["role", "status"].sort().join("|")
+      || !ROLES.has(item.role) || !["observed", "blocked"].includes(item.status))
+    || (state.failure !== null && (!state.failure || !FAILURE_CODE.test(state.failure.code || "")
+      || !/^[a-z][a-z-]{1,79}$/.test(state.failure.stage || "")
+      || Object.keys(state.failure).sort().join("|") !== "code|stage"))) {
+    throw new Error("Engineering restart receipt contains unapproved private or executable fields.");
   }
   const { digest, ...payload } = state;
   if (sha256(JSON.stringify(payload)) !== digest) throw new Error("Engineering restart receipt digest mismatch.");

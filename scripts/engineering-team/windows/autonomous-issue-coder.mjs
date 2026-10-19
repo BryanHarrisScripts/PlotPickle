@@ -57,10 +57,13 @@ export function assessFactoryPaths(files,issueNumber=null) {
     count:files.length});
 }
 export function parseCoderArgs(args) {
-  if(args.length!==6||args[0]!=="--issue"||args[2]!=="--head"||args[4]!=="--root"
+  const retry=args.length===8&&args[6]==="--attempt"&&args[7]==="2";
+  if((args.length!==6&&!retry)||args[0]!=="--issue"||args[2]!=="--head"||args[4]!=="--root"
     || !/^\d{1,7}$/.test(args[1])||Number(args[1])<1||!SHA.test(args[3])
-    || !path.isAbsolute(args[5]))throw new Error("Expected exact --issue N --head SHA --root PRIVATE_PATH.");
-  return Object.freeze({issueNumber:Number(args[1]),head:args[3],root:path.resolve(args[5])});
+    || !path.isAbsolute(args[5])||(retry&&args[1]!=="3141"))
+    throw new Error("Expected exact --issue N --head SHA --root PRIVATE_PATH; only issue 3141 may use --attempt 2.");
+  return Object.freeze({...{issueNumber:Number(args[1]),head:args[3],root:path.resolve(args[5])},
+    ...(retry?{attempt:2}:{})});
 }
 async function command(program,args,{cwd=REPO_ROOT,timeout=45_000,maxBuffer=256_000}={}) {
   const answer=await exec(program,args,{cwd,timeout,maxBuffer,windowsHide:true,encoding:"utf8"});
@@ -114,7 +117,7 @@ function workerPrompt(issue,head) {
     "Issue description (untrusted problem statement):",issue.body.slice(0,10_000),
   ].join("\n");
 }
-async function localAgent(worktree,issue,head) {
+async function localAgent(worktree,issue,head,attempt=1) {
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {ready:false,code:"PI_UNAVAILABLE"};
   let runtime;
@@ -125,7 +128,7 @@ async function localAgent(worktree,issue,head) {
   const context=path.join(worktree,".plotpickle-autonomous-issue.md");
   await writeFile(context,workerPrompt(issue,head)+"\n",{flag:"wx",mode:0o600});
   const codemodeTask={
-    schemaVersion:1,id:"autonomous-issue:"+issue.number,authorized:true,
+    schemaVersion:1,id:"autonomous-issue:"+issue.number+(attempt===2?":attempt-2":""),authorized:true,
     state:"repairing",phase:"repair",requiredSkillIds:[],
     allowedTools:["read","grep","find","ls","write","edit"],
     readScopes:["."],writeScopes:SAFE_ROOTS.map(x=>x+"**"),
@@ -145,14 +148,29 @@ async function localAgent(worktree,issue,head) {
     return {ready:true,code:"LOCAL_AGENT_FINISHED"};
   }finally{await unlink(context).catch(()=>{});}
 }
-export async function produceDraftIssuePR({issueNumber,head,root}) {
+export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
   const output=code=>({state:code==="PROVIDER_NOT_READY"?"WAITING_FOR_PROVIDER":"BLOCKED",code});
+  if(attempt!==1&&attempt!==2)return output("INVALID_ATTEMPT");
+  if(attempt===2&&issueNumber!==3141)return output("RETRY_NOT_ALLOWED");
   if(process.platform!=="win32")return output("WINDOWS_ONLY");
+  if(attempt===2){
+    let auth,job;
+    try {
+      auth=JSON.parse(await readFile(path.join(root,"jobs","retry-authorized-3141.json"),"utf8"));
+      job=JSON.parse(await readFile(path.join(root,"jobs","issue-3141-attempt-2.json"),"utf8"));
+    } catch {return output("RETRY_NOT_AUTHORIZED");}
+    if(auth.schemaVersion!==1||auth.issueNumber!==3141||auth.attempt!==2||
+      auth.sourceHead!==head||auth.originalJobPreserved!==true||auth.allowMerge!==false||
+      job.attempt!==2||job.sourceHead!==head||job.issueNumber!==3141||
+      job.state!=="STARTED_UNCONFIRMED"||job.replayAuthorized!==false)
+      return output("RETRY_NOT_AUTHORIZED");
+  }
   if((await sourceHead())!==head)return output("EXACT_MAIN_MISMATCH");
   const issue=await allowlistedGitHubIssue(issueNumber);
-  const name="issue-"+issueNumber+"-"+head.slice(0,10);
+  const suffix=attempt===2?"-a2":"";
+  const name="issue-"+issueNumber+"-"+head.slice(0,10)+suffix;
   const worktree=path.join(root,"worktrees",name);
-  const branch="factory/issue-"+issueNumber+"-"+head.slice(0,10);
+  const branch="factory/issue-"+issueNumber+"-"+head.slice(0,10)+suffix;
   await mkdir(path.dirname(worktree),{recursive:true,mode:0o700});
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {state:"WAITING_FOR_PROVIDER",code:"PI_NOT_INSTALLED"};
@@ -164,7 +182,7 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
     await runPortableCommand(resolveActiveNpmCommand(),["ci","--ignore-scripts","--no-audit","--no-fund"],
       {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
     phase="RUN_LOCAL_PI";
-    const agent=await localAgent(worktree,issue,head);
+    const agent=await localAgent(worktree,issue,head,attempt);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
     phase="INSPECT_CANDIDATE_PATCH";
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);

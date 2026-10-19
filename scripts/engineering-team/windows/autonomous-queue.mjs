@@ -30,7 +30,7 @@ const POLL_MS = 60_000;
 const SHA256 = (value) => createHash("sha256").update(value).digest("hex");
 
 export function parseQueueCommand(argv) {
-  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest"];
+  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest", "--authorize-retry"];
   const selected = modes.filter(flag => argv.includes(flag));
   if (selected.length !== 1 || argv.filter(x => x === selected[0]).length !== 1) {
     throw new Error("Exactly one queue operation is required.");
@@ -43,21 +43,32 @@ export function parseQueueCommand(argv) {
       if(values[key]!==undefined)throw new Error("Duplicate merge policy.");
       values[key]=true;continue;
     }
-    if (!["--issues","--consent"].includes(key) || values[key] !== undefined || !argv[i+1] || argv[i+1].startsWith("--")) {
+    if (!["--issues","--consent","--issue","--base"].includes(key) || values[key] !== undefined || !argv[i+1] || argv[i+1].startsWith("--")) {
       throw new Error("Unknown, repeated or missing queue argument.");
     }
     values[key]=argv[++i];
   }
   const mode=selected[0].slice(2);
-  if (mode !== "enable" && Object.keys(values).length) throw new Error("Only --enable accepts extra options.");
-  if (mode === "enable" && values["--consent"] !== CONSENT) throw new Error("Explicit local autonomous engineering consent is required.");
+  if (mode !== "enable" && mode !== "authorize-retry" && Object.keys(values).length)
+    throw new Error("Only local authorization commands accept extra options.");
+  if (mode === "enable" && (values["--issue"] || values["--base"]))throw new Error("Unknown enable option.");
+  if (mode === "authorize-retry" &&
+    (Object.keys(values).length!==3 || values["--issue"]!=="3141" ||
+      !SHA.test(values["--base"]||"") || values["--consent"]!==CONSENT ||
+      values["--issues"] || values["--merge-docs"])) {
+    throw new Error("Retry requires explicit --issue 3141 --base SHA and local consent.");
+  }
+  if (mode === "enable" && values["--consent"] !== CONSENT)
+    throw new Error("Explicit local autonomous engineering consent is required.");
   const items = mode === "enable" ? String(values["--issues"] || "").split(",") : [];
   const issues=items.map(x=>Number(x));
   if (mode === "enable" && (!items.length || items.length > MAX_ISSUES || new Set(issues).size !== issues.length
     || issues.some((n,i)=> !/^\d{1,7}$/.test(items[i]) || !Number.isSafeInteger(n) || n < 1))) {
     throw new Error("A finite, unique CSV issue allowlist is required; max 80.");
   }
-  return Object.freeze({mode, issues,mergeDocsOnly:values["--merge-docs"]===true});
+  return Object.freeze({mode, issues,mergeDocsOnly:values["--merge-docs"]===true,
+    retryIssue:mode==="authorize-retry"?3141:null,
+    retryBase:mode==="authorize-retry"?values["--base"]:null});
 }
 
 async function ordinaryJson(file, max=32_768) {
@@ -158,6 +169,84 @@ export async function disableFactory({root=ROOT,now=Date.now}={}) {
   return readFactoryStatus({root,now});
 }
 
+/**
+ * A recovered attempt is NEVER a replay. Inspection is source-/branch-bound
+ * and reads the original isolated worktree without changing/deleting it.
+ */
+async function inspectFailedFactoryWorktree({root,original}) {
+  const directory=path.join(root,"worktrees",
+    "issue-3141-"+original.sourceHead.slice(0,10));
+  const stat=await lstat(directory);
+  if(!stat.isDirectory()||stat.isSymbolicLink())
+    throw new Error("Original isolated worktree is not an ordinary directory.");
+  const options={cwd:REPO_ROOT,encoding:"utf8",windowsHide:true,maxBuffer:65536,timeout:30000};
+  const status=await runFile("git",["-C",directory,"status","--porcelain","--untracked-files=all"],options);
+  if(String(status.stdout||"").trim())
+    throw new Error("Original worktree contains unreviewed changes; retry denied.");
+  const oldBranch="factory/issue-3141-"+original.sourceHead.slice(0,10);
+  const remote=await runFile("git",["ls-remote","--heads","origin",oldBranch],options);
+  if(String(remote.stdout||"").trim())
+    throw new Error("An original attempt branch exists remotely; retry denied.");
+  const prs=await runFile("gh",["pr","list","--repo",REPOSITORY,
+    "--state","all","--head",oldBranch,"--json","number"],options);
+  if(JSON.parse(String(prs.stdout||"[]")).length)
+    throw new Error("An earlier factory PR is discoverable; retry denied.");
+  return true;
+}
+
+/** Authorize a distinct attempt #2, without replacing original job or STOP evidence. */
+export async function authorizeFactoryRetry({root=ROOT,issueNumber=3141,expectedHead,
+  github=createQueueGitHubClient(),inspect=inspectFailedFactoryWorktree,
+  now=Date.now}={}) {
+  if(issueNumber!==3141||!SHA.test(expectedHead||""))
+    throw new Error("Retry restricted to issue #3141 and an exact 40-character main head.");
+  if(existsSync(path.join(root,"disabled.json")))
+    throw new Error("A local STOP exists. No retry authorization permitted.");
+  const config=await ordinaryJson(path.join(root,"config.json"));
+  if(config?.schemaVersion!==1||config.repository!==REPOSITORY||config.enabled!==true ||
+    config.mergeDocsOnly===true||config.automaticMergeEnabled===true ||
+    config.issues?.length!==1||config.issues[0]!==3141)
+    throw new Error("Retry requires the original single-issue, no-auto-merge permission.");
+  const lock=await safeJson(path.join(root,"service.lock"));
+  if(lock){
+    if(!Number.isSafeInteger(lock.pid)||lock.pid<1)
+      throw new Error("Unverifiable service process lock; retry denied.");
+    let stillRunning=false;
+    try {process.kill(lock.pid,0);stillRunning=true;}
+    catch(error) {
+      if(error?.code!=="ESRCH")
+        throw new Error("Worker process ownership uncertain; retry denied.");
+    }
+    if(stillRunning)
+      throw new Error("Factory worker still alive; stop scheduled task before approval.");
+  }
+  const jobs=path.join(root,"jobs");
+  const original=await ordinaryJson(path.join(jobs,"issue-3141.json"));
+  const result=await ordinaryJson(path.join(jobs,"result-3141.json"));
+  if(original.issueNumber!==3141||original.attempt!==1||!SHA.test(original.sourceHead||"") ||
+    original.replayAuthorized!==false||result.issueNumber!==3141 ||
+    result.head!==original.sourceHead||result.state!=="BLOCKED" ||
+    result.code!=="SOURCE_OR_BUILD_OR_PROVIDER_FAILURE" ||
+    result.replayAuthorized!==false||result.prUrl!==null)
+    throw new Error("Original failed attempt has unverified or uncertain outcomes.");
+  if(original.sourceHead===expectedHead)
+    throw new Error("Retry must use a new independently checked main head.");
+  if(existsSync(path.join(jobs,"issue-3141-attempt-2.json")) ||
+    existsSync(path.join(jobs,"result-3141-attempt-2.json")))
+    throw new Error("Second attempt is already reserved or completed.");
+  await inspect({root,original,result});
+  const exact=await github.exactHead();
+  if(exact!==expectedHead)
+    throw new Error("Fresh clean main did not match approved retry head.");
+  const approval={schemaVersion:1,issueNumber:3141,attempt:2,
+    priorHead:original.sourceHead,sourceHead:expectedHead,
+    approvedAt:now(),originalJobPreserved:true,allowMerge:false,localOnly:true};
+  await record(jobs,"retry-authorized-3141.json",approval,"wx");
+  return Object.freeze({state:"RETRY_AUTHORIZED",issueNumber:3141,attempt:2,
+    priorHead:original.sourceHead,sourceHead:expectedHead,
+    workerStarted:false,originalJobPreserved:true,automaticMergeAuthorized:false});
+}
+
 export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   async function call(program,args,timeout=30_000) {
     const x=await exec(program,args,{cwd:repoRoot,encoding:"utf8",windowsHide:true,maxBuffer:512_000,timeout});
@@ -187,7 +276,7 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
         "--json","headRefName,isDraft,number"]);
       const prs=JSON.parse(raw);
       if(!Array.isArray(prs))throw new Error("Factory PR list malformed.");
-      return prs.filter(p=>/^factory\/issue-\d+-[a-f0-9]{10}$/.test(p.headRefName||"")).length;
+      return prs.filter(p=>/^factory\/issue-\d+-[a-f0-9]{10}(?:-a2)?$/.test(p.headRefName||"")).length;
     }
   });
 }
@@ -235,7 +324,32 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   for(const issueNumber of config.issues){
     if(existsSync(path.join(jobs,"issue-"+issueNumber+".json")))reserved.push(issueNumber);
   }
-  const issue=pickNextIssue(issues,config.issues,reserved);
+  let issue=pickNextIssue(issues,config.issues,reserved);
+  let attempt=1;
+  if(!issue && config.issues.length===1 && config.issues[0]===3141 &&
+    reserved.includes(3141)) {
+    const approval=await safeJson(path.join(jobs,"retry-authorized-3141.json"));
+    if(approval) {
+      const original=await ordinaryJson(path.join(jobs,"issue-3141.json"));
+      const result=await ordinaryJson(path.join(jobs,"result-3141.json"));
+      if(approval.schemaVersion!==1||approval.issueNumber!==3141||approval.attempt!==2 ||
+        approval.sourceHead!==head||approval.priorHead!==original.sourceHead ||
+        approval.originalJobPreserved!==true||approval.localOnly!==true ||
+        approval.allowMerge!==false||result.state!=="BLOCKED" ||
+        result.code!=="SOURCE_OR_BUILD_OR_PROVIDER_FAILURE" ||
+        result.replayAuthorized!==false||result.prUrl!==null) {
+        return Object.freeze({state:"WAITING_FOR_RETRY_HEAD_OR_REVIEW",processed:0});
+      }
+      if(!existsSync(path.join(jobs,"issue-3141-attempt-2.json")) &&
+        !existsSync(path.join(jobs,"result-3141-attempt-2.json"))) {
+        const candidate=issues.find(x=>Number(x.number)===3141);
+        if(eligibleIssue(candidate,config.issues)) {
+          issue=Object.freeze({number:3141,title:candidate.title});
+          attempt=2;
+        }
+      }
+    }
+  }
   if(!issue)return Object.freeze({state:"WAITING_FOR_ELIGIBLE_ISSUE",processed:0,
     reserved:reserved.length,approved:config.issues.length});
   // A missing provider must not consume the irreversible issue attempt.
@@ -245,10 +359,12 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
     state:"WAITING_FOR_PROVIDER",issueNumber:issue.number,processed:0,
     code:String(readiness?.code||"LOCAL_ROUTE_UNAVAILABLE").slice(0,80)});
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,
-    taskId:SHA256(REPOSITORY+":"+issue.number+":"+head),state:"STARTED_UNCONFIRMED",
-    reservedAt:now(),attempt:1,replayAuthorized:false,modelRoute:"local-only",
+    taskId:SHA256(REPOSITORY+":"+issue.number+":"+head+":"+attempt),state:"STARTED_UNCONFIRMED",
+    reservedAt:now(),attempt,replayAuthorized:false,modelRoute:"local-only",
     cloudCostAllowed:false,modelDispatchAuthorized:true,automaticMergeAuthorized:false};
-  await record(jobs,"issue-"+issue.number+".json",job,"wx");
+  const jobName=attempt===2?"issue-3141-attempt-2.json":"issue-"+issue.number+".json";
+  const resultName=attempt===2?"result-3141-attempt-2.json":"result-"+issue.number+".json";
+  await record(jobs,jobName,job,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:"RUNNING",issueNumber:issue.number,at:now()},"w");
   let result;
   const heartbeat=async()=>{
@@ -262,7 +378,7 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   ticker.unref?.();
   try{
     if(typeof dispatch!=="function")throw new Error("No approved engineering executor configured.");
-    result=await dispatch({issueNumber:issue.number,head,root,job});
+    result=await dispatch({issueNumber:issue.number,head,root,job,attempt});
     if(!["PR_OPEN","WAITING_FOR_PROVIDER","WAITING_FOR_PRODUCT_UAT","BLOCKED"].includes(result?.state)){
       throw new Error("Executor produced an unsupported result.");
     }
@@ -272,14 +388,14 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   }finally{
     clearInterval(ticker);
   }
-  const terminal={schemaVersion:1,issueNumber:issue.number,head,state:result.state,
+  const terminal={schemaVersion:1,issueNumber:issue.number,attempt,head,state:result.state,
     code:String(result.code||"").slice(0,80),
     // A fixed local stage enum, never raw stderr, model transcript or private path.
     phase:/^(?:INSTALL_DEPENDENCIES|RUN_LOCAL_PI|INSPECT_CANDIDATE_PATCH|CHECK_DIFF|RUN_CONTRACTS_UAT|RUN_PRODUCTION_BUILD|RECHECK_BASE_HEAD|STAGE_CANDIDATE|RECHECK_STAGED_PATHS|COMMIT_CANDIDATE|PUSH_CANDIDATE|CREATE_DRAFT_PR|UNKNOWN_STAGE)$/.test(result.phase||"")?result.phase:null,
     prUrl:/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(result.prUrl||"")?result.prUrl:null,
     reportedAt:now(),replayAuthorized:false,
     browserUatProven:false,independentVerification:false,mergeEligible:false};
-  await record(jobs,"result-"+issue.number+".json",terminal,"wx");
+  await record(jobs,resultName,terminal,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:terminal.state,
     issueNumber:issue.number,at:now()},"w");
   await publish({root,status:{state:terminal.state,issueNumber:issue.number,head},now})
@@ -326,11 +442,12 @@ export async function serveFactory({root=ROOT,cycle,publish=publishFactoryHeartb
   }finally{await unlink(lock).catch(()=>{});}
 }
 
-async function dispatchIssue({issueNumber,head,root}) {
+async function dispatchIssue({issueNumber,head,root,attempt=1}) {
   const {runPortableCommand}=await import("../../pi-worker-runtime.mjs");
   const result=await runPortableCommand(process.execPath,[
     path.join(path.dirname(THIS),"autonomous-issue-coder.mjs"),
-    "--issue",String(issueNumber),"--head",head,"--root",root
+    "--issue",String(issueNumber),"--head",head,"--root",root,
+    ...(attempt===2?["--attempt","2"]:[])
   ],{cwd:REPO_ROOT,timeout:45*60_000,maxBuffer:32768});
   const receipt=JSON.parse(String(result.stdout||"").trim());
   return receipt;
@@ -340,6 +457,8 @@ async function main() {
   const cmd=parseQueueCommand(process.argv.slice(2));
   let output;
   if(cmd.mode==="enable")output=await enableFactory({issues:cmd.issues,mergeDocsOnly:cmd.mergeDocsOnly});
+  else if(cmd.mode==="authorize-retry") output=await authorizeFactoryRetry({
+    issueNumber:cmd.retryIssue,expectedHead:cmd.retryBase});
   else if(cmd.mode==="disable")output=await disableFactory();
   else if(cmd.mode==="status")output=await readFactoryStatus();
   else if(cmd.mode==="once")output=await runFactoryCycle({dispatch:dispatchIssue});

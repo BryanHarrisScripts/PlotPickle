@@ -9142,18 +9142,18 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "7b367bc7f62bc5476328c39e907052425aa57f0d09babc409b3ec89106942eed",
+        "targetDigest": "cac4a489ec1f34f1123ff383f05b0fd875b456752dd293c504e44c897e0b585b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "920ab6e2e0b405ba1cb19b7e40974e80b51f5496d7acba7d65d15ce619847202"
+            "digest": "61abef8e53957e4443ed12d24e85ea3b6822b473c6c1aa9bbfde0a8f34f3b823"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "c09e3c1bf8f784d01f1cbe0df60df5632786c4e28e62d8ced5c419714d16292e"
+            "digest": "efab2705d428a0f9fc68171bb51916255b70cadcb3f2539dc76352ed2bdb4f8f"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",

@@ -9186,14 +9186,14 @@
       },
       {
         "target": "tests/issue-3110-unattended-queue.test.mjs",
-        "targetDigest": "434471336b46ba4f0ca32eb3407fbb5e1d838125578124e6865e4de802a3d55f",
+        "targetDigest": "d234e1ee9aa278fdc089eca4548aa9cdaaad63cef32aabc7847c342950eb732f",
         "catalogueIds": [
           "agent.unattended-queue-admission-3110"
         ],
         "inputs": [
           {
-            "path": "scripts/engineering-team/unattended-queue.mjs",
-            "digest": "c03ae98d35b17976ec88f53273c7f439fb3a24dee826770b32743d0ce11ae5e7"
+            "path": "scripts/engineering-team/queue/unattended-queue.mjs",
+            "digest": "17360a8ffe5457d6cec431ac51e5f81407ae602ce092baf44912ca74b053541c"
           }
         ],
         "truthRefs": [
@@ -9214,18 +9214,18 @@
       },
       {
         "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
-        "targetDigest": "9ce5faf1e8f9b878dcc18ab0015f3677e5fe4d25c8dec3401fe7117732b5d0b5",
+        "targetDigest": "d9ab9f45db9f510da595f73d19a718939643e4a43cb1b6e6d165c8769e679217",
         "catalogueIds": [
           "agent.persistent-windows-supervisor-3110"
         ],
         "inputs": [
           {
-            "path": "scripts/engineering-team/windows/unattended-supervisor.mjs",
-            "digest": "8872c3c8e0bf3c30652b8eaa9e059da9c2f8628338e3245328ce9b88b83c361e"
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "1b6629d41d32f932c90532ac28317291030c4981d46d48d61953f5024ebc376f"
           },
           {
-            "path": "scripts/engineering-team/unattended-queue.mjs",
-            "digest": "c03ae98d35b17976ec88f53273c7f439fb3a24dee826770b32743d0ce11ae5e7"
+            "path": "scripts/engineering-team/queue/unattended-queue.mjs",
+            "digest": "17360a8ffe5457d6cec431ac51e5f81407ae602ce092baf44912ca74b053541c"
           }
         ],
         "truthRefs": [

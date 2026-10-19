@@ -4030,6 +4030,50 @@
         ]
       },
       "notes": "#3115 fixture-only PID ownership and cancellation evidence; native Windows process tree and sentinel actual stop NOT proven by synthetic CI; no production UAT stop/remote Chat bridge."
+    },
+    {
+      "id": "verification.story-factory-browser-journey-3118",
+      "ownerLayer": "verification",
+      "architectureComponents": [
+        "webmcp-live-observer",
+        "experience-navigation",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3118-story-factory-browser-journey.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/verification.json"
+        ]
+      },
+      "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven."
     }
   ],
   "truthGovernance": {
@@ -8592,6 +8636,38 @@
           {
             "path": "scripts/windows-stop-proof.mjs",
             "digest": "386af9569aadf43b62a492e99d21c603d2dd7a6c538971f5ef63ecb77cd7277e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3118-story-factory-browser-journey.test.mjs",
+        "targetDigest": "6aec85db929f76bdfac7bc50e535248de0ee96208e4380e08d7384e52ff25fbe",
+        "catalogueIds": [
+          "verification.story-factory-browser-journey-3118"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Named journey, ordering, LOCAL policy and no-mutation static contracts only. The test cannot prove a rendered browser, Windows host, production process-tree STOP, Human acceptance, private project continuity or remote Chat/Work control.",
+        "inputs": [
+          {
+            "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+            "digest": "d6206d558f3eeb9a2ed75dbb1d0dbb948512a0a2b95a8efd184808dbbf9e1f84"
+          },
+          {
+            "path": "scripts/verification-webmcp-live.mjs",
+            "digest": "219a32e6e7eda51849650695763df2b124031a16fdd7df2f29ed299f569b7a00"
           }
         ]
       }

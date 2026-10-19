@@ -8,6 +8,7 @@ import {
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 
 const HEAD="a".repeat(40);
 const first={number:3135,title:"Prove Windows live STOP",state:"OPEN",labels:[]};
@@ -144,3 +145,30 @@ test("bounded coding adapter rejects arbitrary issue commands and protected file
  }
  assert.equal(assessFactoryPaths([]).allowed,false);
 });
+
+test("GitHub telemetry edits one sanitized comment, rate-limited without private issue/model prose",()=>sandbox(async root=>{
+ const calls=[];
+ const runner=async(program,args,options)=>{
+   calls.push({program,args,options});
+   return {stdout:JSON.stringify({id:6270000000})};
+ };
+ const state={state:"RUNNING",issueNumber:3135,head:HEAD,privateStory:"never-publish",
+   modelPrompt:"secret"};
+ const first=await publishFactoryHeartbeat({root,status:state,now:()=>1000000,run:runner});
+ assert.equal(first.state,"PUBLISHED");
+ assert.equal(first.commentId,6270000000);
+ const again=await publishFactoryHeartbeat({root,status:state,now:()=>1000200,run:runner});
+ assert.equal(again.state,"UNCHANGED");
+ assert.equal(calls.length,1);
+ const changed=await publishFactoryHeartbeat({root,status:{...state,state:"BLOCKED"},
+   now:()=>1000210,run:runner});
+ assert.equal(changed.state,"PUBLISHED");
+ assert.equal(calls.length,2);
+ assert.equal(calls[0].program,"gh");
+ assert.equal(calls[0].args.includes("--method"),true);
+ assert.equal(calls[1].args.includes("PATCH"),true);
+ const bodies=calls.map(x=>x.args.find(a=>a.startsWith("body=")));
+ assert.equal(bodies.some(b=>b.includes("never-publish")||b.includes("secret")),false);
+ assert.match(bodies[0],/Browser Product Gate: UNPROVEN/);
+ assert.match(renderFactoryHeartbeat({state:"not-really-running",issueNumber:3135}),/OFFLINE/);
+}));

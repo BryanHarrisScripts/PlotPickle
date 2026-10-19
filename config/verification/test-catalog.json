@@ -4203,6 +4203,48 @@
         ]
       },
       "notes": "#3128 mock/private admission, tamper, approval, route and source-allowance tests only. No provider call, code repair, Windows Product Gate, GitHub PR or merge is performed."
+    },
+    {
+      "id": "agent.unattended-factory-backlog-admission-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-factory-worker.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 admission-only; native Windows persistent execution, independent source mutation, production UAT and autonomous PR/merge/continuation are not proven."
     }
   ],
   "truthGovernance": {
@@ -9009,6 +9051,34 @@
           {
             "path": "scripts/run-semantic-uat-repair.mjs",
             "digest": "95720947031ff3060dcc163f63f34027bcc7b2dff1f486bb473adac3e05622ed"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-factory-worker.test.mjs",
+        "targetDigest": "d884276075bf35800cfa73f1d2063ea7dfc55e506708368e58bd61ec07f99e27",
+        "catalogueIds": [
+          "agent.unattended-factory-backlog-admission-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic issue queue selection, no GitHub network, native Windows service, model route, source mutation, build/test/product UAT, autonomous PR or merge proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/factory-worker.mjs",
+            "digest": "0a6ef29912411326aaf3d7930166cf80bc228e16ae5f4e8735f7175dec7ee29c"
           }
         ]
       }

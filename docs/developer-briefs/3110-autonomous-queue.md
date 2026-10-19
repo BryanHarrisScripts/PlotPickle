@@ -10,13 +10,14 @@ This increment delivers an opt-in **Windows logon worker** using existing PlotPi
 - `--disable`: create-once local refusal for future admission. It **does not certify termination** of an already-running child/descendant; that remains blocked on #3135's production ownership work.
 - `Install-PlotPickleSoftwareFactory.ps1 -Install`: explicitly registers a **limited interactive user** Windows Task Scheduler job at logon and starts it. `-Uninstall` removes only the named task. No SYSTEM privileges, passwords or unattended remote shell.
 - `autonomous-issue-coder.mjs`: bounded task from owner-authored GitHub issue number, fixed local-only PlotPickle Pi model, no `bash` agent tool, rejected protected source paths, isolated git worktree from pinned clean main, npm install, contracts-only deterministic UAT, production build, changed-path check, and **DRAFT PR** if checks pass.
+- An additional, separately opted-in `--merge-docs` policy can promote only pure Markdown documentation candidates after all seven independent architecture layers and required GitHub checks are green, exact PR head/base are verified and GitHub confirms a squash merge; source/product changes never inherit this permission.
 - Public GitHub telemetry is one updated sanitized comment under parent #3110, no log or model/story prose. An updated heartbeat is merely a self-report; exact PR/CI/Windows receipts remain the source of product truth.
 
 ## Required gates and limits
 
 First independent CI covers queue OFF default, explicit allowlist, hold skips, stale main/disabled stop, one durable reservation, uncertain crash no replay, approved issue scope, bounded path restrictions, isolated GitHub argv and private status. No operating-system integration tests imply the Windows logon task actually ran, or that Pi was configured, or that a real PR was produced.
 
-This is a **candidate PR factory**, not yet a green auto-merge factory: automatic merge stays false and draft PRs require independent exact-head checks, product/native browser UAT and explicit per-class merge governance. The code must not silently close #3110. The owner must install/enable and demonstrate that the approved local model route can produce one candidate while Chat and Work are closed, then the separate CI/UAT gate and merge-and-next stage can be enabled with independent proof.
+This is a **candidate PR factory** plus a separate docs-only green auto-merge path: general application/code auto-merge stays false and draft code PRs require independent exact-head checks, product/native browser UAT and explicit per-class merge governance. The code must not silently close #3110. The owner must install/enable and demonstrate that the approved local model route can produce one candidate while Chat and Work are closed, then the separate CI/UAT gate and merge-and-next stage can be enabled with independent proof.
 
 ## Windows acceptance (AFTER CI merge)
 

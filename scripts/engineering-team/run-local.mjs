@@ -14,6 +14,7 @@ import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
 import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
 import { driveEngineeringDurableCheckpoint } from "./durable-checkpoint.mjs";
+import { createEngineeringEvidenceState, writeEngineeringEvidenceState } from "./evidence-state.mjs";
 import { createClineEngineeringPlanAdapter, resolveClineReviewExecutable } from "./cline-plan-adapter.mjs";
 
 const exec = promisify(execFile);
@@ -242,10 +243,14 @@ export async function runExplicitEngineeringCampaign(config, options = {}) {
     };
     await writeFile(path.join(runDir, config.resume ? "resume-failure.json" : "failure.json"),
       JSON.stringify(privateRecord) + "\n", { flag: config.resume ? "w" : "wx", mode: 0o600 });
+    await writeEngineeringEvidenceState(runDir,
+      createEngineeringEvidenceState(campaign, { failure: classified }), { resume: config.resume });
     throw new Error("Engineering Team blocked [" + classified.code + "] at "
       + classified.stage + (currentRole ? " (" + currentRole + ")" : "")
       + ". Read-only inspect: node scripts/engineering-diagnostics.mjs --latest.");
   }
+  await writeEngineeringEvidenceState(runDir,
+    createEngineeringEvidenceState(campaign, { result }), { resume: config.resume });
   const receipt = {
     ...result,
     evidenceClass: "on-demand-local-execution",

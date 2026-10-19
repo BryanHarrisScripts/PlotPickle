@@ -8675,7 +8675,7 @@
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "47905d350c7465f80e336bc1c378ab99244a67e75dd5c2ce11c6038c78dba3f8",
+        "targetDigest": "1f6fdc7fc01b908ebed7daae093435d9742f26e1814f9d9ddf2f4fab4c878aef",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8693,11 +8693,19 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mocks only deterministic cleanup ordering, owned child-handle arguments, occupied-port refusal and bounded synthetic-home retry. Cannot prove native Windows process descendant termination, real port ownership, browser acceptance or Human project safety on device.",
+        "limits": "Mock-only owned child shutdown and source-scoped review of read-only WebMCP ComfyUI gateway/PowerShell denial before optional process launch. Cannot prove actual native Windows process-tree STOP, orphan media process lifetime, port ownership, Story Factory acceptance or Human project safety on device.",
         "inputs": [
           {
             "path": "scripts/verification-webmcp-live.mjs",
             "digest": "5b92e6360043ba0657c38495041e335d5e2c33665bf531a1b067340e5d5a1122"
+          },
+          {
+            "path": "build/ai/comfyui-onboarding-gateway.ts",
+            "digest": "0713de0f88510acfc541133d6161cdf8b0c484a563b1cf5c09e2a3d58fadc942"
+          },
+          {
+            "path": "scripts/start-comfyui-background.ps1",
+            "digest": "4bf41c403920f5a1ab460eca52f16787875dc61ea3536e49cb14212354f9519d"
           }
         ]
       },

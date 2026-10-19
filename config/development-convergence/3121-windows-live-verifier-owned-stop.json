@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "issue": 3121,
+  "phase": "windows-live-verifier-owned-stop-before-synthetic-cleanup",
+  "brief": "docs/developer-briefs/3121-windows-live-verifier-owned-stop.md",
+  "allowedChanges": [
+    "scripts/verification-webmcp-live.mjs",
+    "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3121-windows-live-verifier-owned-stop.md",
+    "config/development-convergence/3121-windows-live-verifier-owned-stop.json"
+  ],
+  "acceptance": [
+    {
+      "id": "OWNED-STOP-BEFORE-CLEANUP",
+      "criterion": "Existing known-child process-tree STOP must finish before listener verification and synthetic-home deletion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "await stopTree(server)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "before deleting synthetic profile"
+        }
+      ]
+    },
+    {
+      "id": "NO-UNOWNED-LISTENER-ATTACH",
+      "criterion": "Refuse preoccupied loopback listener, never kill a supplied PID or process name.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "Verification port 4173 is already occupied."
+        }
+      ]
+    },
+    {
+      "id": "RETAIN-UNVERIFIED-OWNERSHIP",
+      "criterion": "Unknown parent exit or occupied post-stop port blocks synthetic profile removal rather than converting failure to PASS.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "occupied loopback port remains blocked"
+        }
+      ]
+    },
+    {
+      "id": "PRESERVE-PRIMARY-FAILURE",
+      "criterion": "Cleanup failure preserves the original browser-failure evidence in the final red summary.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "await writeSummary(\"fail\", { ...prior, cleanup })"
+        }
+      ]
+    },
+    {
+      "id": "NO-PRODUCTION-PROOF-CLAIM",
+      "criterion": "Unit tests and CI never claim production Windows descendant STOP or browser UAT PASS.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-webmcp-live.mjs",
+          "contains": "productionUatTreeTerminationProven: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3121-windows-live-verifier-owned-stop.md",
+          "contains": "not a real on-device Windows process-tree/sentinel test"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not use unknown PIDs, port-based process kills, public listeners or external browser/credential control.",
+    "Preserve synthetic-Human LOCAL isolation, original browser FAIL, and owner-saved project data.",
+    "Do not claim actual Windows descendant STOP, independent visual UAT or Chat/Work dispatch until verified separately."
+  ]
+}

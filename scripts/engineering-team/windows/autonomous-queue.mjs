@@ -274,6 +274,8 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   }
   const terminal={schemaVersion:1,issueNumber:issue.number,head,state:result.state,
     code:String(result.code||"").slice(0,80),
+    // A fixed local stage enum, never raw stderr, model transcript or private path.
+    phase:/^(?:INSTALL_DEPENDENCIES|RUN_LOCAL_PI|INSPECT_CANDIDATE_PATCH|CHECK_DIFF|RUN_CONTRACTS_UAT|RUN_PRODUCTION_BUILD|RECHECK_BASE_HEAD|STAGE_CANDIDATE|RECHECK_STAGED_PATHS|COMMIT_CANDIDATE|PUSH_CANDIDATE|CREATE_DRAFT_PR|UNKNOWN_STAGE)$/.test(result.phase||"")?result.phase:null,
     prUrl:/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(result.prUrl||"")?result.prUrl:null,
     reportedAt:now(),replayAuthorized:false,
     browserUatProven:false,independentVerification:false,mergeEligible:false};

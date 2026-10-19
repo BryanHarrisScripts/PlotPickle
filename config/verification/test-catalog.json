@@ -8641,7 +8641,7 @@
       },
       {
         "target": "tests/issue-3118-story-factory-browser-journey.test.mjs",
-        "targetDigest": "6aec85db929f76bdfac7bc50e535248de0ee96208e4380e08d7384e52ff25fbe",
+        "targetDigest": "ae587d4eca58da939a067a0fc4c7011219b1bcc3ee195c0b5ad076ce32d1c6b6",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8667,7 +8667,7 @@
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "219a32e6e7eda51849650695763df2b124031a16fdd7df2f29ed299f569b7a00"
+            "digest": "57698e4a7d97e05409ca100706f192ae58c2e86dde607b1cfa4d74fafe73d710"
           }
         ]
       }

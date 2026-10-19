@@ -72,6 +72,9 @@ test("#3118 journey preserves project identity and has no generation or canon mu
 test("#3118 live browser verifier explicitly forces LOCAL and binds the new report", async () => {
   const source = await read("scripts/verification-webmcp-live.mjs");
   assert.match(source, /body: JSON\.stringify\(\{ mode: "local" \}\)/u);
+  assert.match(source, /forceLocalStoryMode\(acceptanceStorageStatePath\)/u);
+  assert.match(source, /cookie\?\.name === "ppsid"/u);
+  assert.match(source, /"X-PlotPickle-CSRF": csrf/u);
   assert.match(source, /target: "story-factory-read-only-journey"/u);
   assert.match(source, /Story Factory rendered acceptance failed/u);
   assert.match(source, /providerSpendAllowed: false/u);

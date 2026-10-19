@@ -111,10 +111,38 @@ async function probeLocalNodeDependencies() {
   return results;
 }
 
-async function forceLocalStoryMode() {
+async function syntheticHumanMutationHeaders(storageStatePath) {
+  const state = JSON.parse(await readFile(storageStatePath, "utf8"));
+  const hostname = new URL(serverUrl).hostname;
+  const session = Array.isArray(state?.cookies)
+    ? state.cookies.find((cookie) => cookie?.name === "ppsid" && cookie?.domain === hostname && typeof cookie?.value === "string" && cookie.value)
+    : null;
+  if (!session) throw new Error("Live browser verification could not read its isolated synthetic Human session.");
+
+  const cookie = `ppsid=${session.value}`;
+  const profileResponse = await fetch(new URL("/api/auth/profile", serverUrl), {
+    headers: { Accept: "application/json", Cookie: cookie },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  const profile = await profileResponse.json().catch(() => ({}));
+  const csrf = typeof profile?.csrfToken === "string" ? profile.csrfToken.trim() : "";
+  if (!profileResponse.ok || profile?.authenticated !== true || !csrf) {
+    throw new Error(profile?.message || "Live browser verification could not authenticate its isolated synthetic Human session.");
+  }
+  return Object.freeze({
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Cookie: cookie,
+    Origin: new URL(serverUrl).origin,
+    "X-PlotPickle-CSRF": csrf,
+  });
+}
+
+async function forceLocalStoryMode(storageStatePath) {
   const response = await fetch(new URL("/api/story-mode/policy", serverUrl), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await syntheticHumanMutationHeaders(storageStatePath),
     body: JSON.stringify({ mode: "local" }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -261,9 +289,9 @@ export async function runLiveWebMcpEvidence() {
     }
 
     coldMediaRetryUsed = await runAuditWithColdMediaRetry({ node, home, toolRoot, serverEnv, serverExited });
-    const storyMode = await forceLocalStoryMode();
-    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
     const acceptanceStorageStatePath = path.join(home, "verification-browser", "storage-state.json");
+    const storyMode = await forceLocalStoryMode(acceptanceStorageStatePath);
+    const { runWebMcpAcceptanceJourney } = await import("../core/sidecars/webmcp-acceptance-sidecar.mjs");
     const mindWorldAcceptance = await runWebMcpAcceptanceJourney({
       request: {
         requestId: `architecture-${jobRef}-mind-world-shared-header`,

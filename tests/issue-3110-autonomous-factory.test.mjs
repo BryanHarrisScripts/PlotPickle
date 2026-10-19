@@ -232,7 +232,7 @@ test("optional docs-only merge reconciler requires exact head, gated CI and conf
  const send=async args=>{
    calls.push(args);
    if(args[0]==="pr"&&args[1]==="list")return JSON.stringify([{number:4141,headRefName:pr.headRefName}]);
-   if(args[0]==="pr"&&args[1]==="view"&&args.includes("mergedAt"))return JSON.stringify({
+   if(args[0]==="pr"&&args[1]==="view"&&args.some(x=>String(x).includes("mergedAt")))return JSON.stringify({
      state:"MERGED",mergedAt:"2026-10-19T22:00:00Z",mergeCommit:{oid:"c".repeat(40)}});
    if(args[0]==="pr"&&args[1]==="view")return JSON.stringify(pr);
    if(args[0]==="pr"&&args[1]==="checks")return JSON.stringify([{name:"required",state:"SUCCESS",bucket:"pass"}]);

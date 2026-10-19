@@ -13,6 +13,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
 
 const runFile = promisify(execFile);
 const THIS = fileURLToPath(import.meta.url);
@@ -125,12 +126,17 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   }
   return Object.freeze({
     async exactHead() {
-      const [head,branch,dirty,remote]=await Promise.all([
+      const [before,branch,dirty]=await Promise.all([
         call("git",["rev-parse","HEAD"]),call("git",["branch","--show-current"]),
-        call("git",["status","--porcelain","--untracked-files=no"]),call("git",["rev-parse","origin/main"])
+        call("git",["status","--porcelain","--untracked-files=no"])
       ]);
-      if(!SHA.test(head)||branch!=="main"||dirty||head!==remote)return null;
-      return head;
+      if(!SHA.test(before)||branch!=="main"||dirty)return null;
+      // After an authorized merge, follow main automatically. Never reset or
+      // rewrite local work; a non-fast-forward becomes WAITING rather than a force.
+      await call("git",["fetch","origin","main"],45_000);
+      await call("git",["merge","--ff-only","origin/main"],45_000);
+      const head=await call("git",["rev-parse","HEAD"]);
+      return SHA.test(head)?head:null;
     },
     async issues() {
       const raw=await call("gh",["issue","list","--repo",REPOSITORY,"--state","open","--limit","100",
@@ -163,6 +169,15 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   await record(jobs,"issue-"+issue.number+".json",job,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:"RUNNING",issueNumber:issue.number,at:now()},"w");
   let result;
+  const heartbeat=async()=>{
+    if(existsSync(path.join(root,"disabled.json")))return;
+    await record(root,"heartbeat.json",{schemaVersion:1,state:"RUNNING",issueNumber:issue.number,at:now()},"w");
+    await publishFactoryHeartbeat({root,status:{state:"RUNNING",issueNumber:issue.number,head},now})
+      .catch(()=>{}); // Missing GitHub reporting is not evidence of worker failure.
+  };
+  await heartbeat();
+  const ticker=setInterval(()=>{void heartbeat().catch(()=>{});},15_000);
+  ticker.unref?.();
   try{
     if(typeof dispatch!=="function")throw new Error("No approved engineering executor configured.");
     result=await dispatch({issueNumber:issue.number,head,root,job});
@@ -172,6 +187,8 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   }catch(error){
     result={state:"BLOCKED",code:"EXECUTION_UNCERTAIN",detailStored:false,
       mayReplay:false};
+  }finally{
+    clearInterval(ticker);
   }
   const terminal={schemaVersion:1,issueNumber:issue.number,head,state:result.state,
     code:String(result.code||"").slice(0,80),
@@ -181,6 +198,8 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   await record(jobs,"result-"+issue.number+".json",terminal,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:terminal.state,
     issueNumber:issue.number,at:now()},"w");
+  await publishFactoryHeartbeat({root,status:{state:terminal.state,issueNumber:issue.number,head},now})
+    .catch(()=>{});
   return Object.freeze({state:terminal.state,processed:1,issueNumber:issue.number,prUrl:terminal.prUrl});
 }
 
@@ -194,9 +213,14 @@ export async function serveFactory({root=ROOT,cycle,now=Date.now,sleep=ms=>new P
       if(existsSync(path.join(root,"disabled.json")))return Object.freeze({state:"OFF",reason:"LOCALLY_DISABLED"});
       await record(root,"heartbeat.json",{schemaVersion:1,state:"IDLE",issueNumber:null,at:now()},"w");
       try{
-        await (cycle||(()=>runFactoryCycle({root,now,dispatch:dispatchIssue})) )();
-      }catch{await record(root,"heartbeat.json",{schemaVersion:1,state:"BLOCKED",
-          issueNumber:null,at:now()},"w");}
+        const outcome=await (cycle||(()=>runFactoryCycle({root,now,dispatch:dispatchIssue})))();
+        await publishFactoryHeartbeat({root,status:{state:outcome?.state||"OFFLINE",
+          issueNumber:outcome?.issueNumber||null,head:null},now}).catch(()=>{});
+      }catch{
+        await record(root,"heartbeat.json",{schemaVersion:1,state:"BLOCKED",
+          issueNumber:null,at:now()},"w");
+        await publishFactoryHeartbeat({root,status:{state:"BLOCKED",issueNumber:null,head:null},now}).catch(()=>{});
+      }
       await sleep(POLL_MS);
     }
   }finally{await unlink(lock).catch(()=>{});}

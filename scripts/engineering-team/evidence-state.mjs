@@ -45,7 +45,7 @@ export function createEngineeringEvidenceState(campaign, { result = null, failur
   }
   if (result && (result.campaignId !== campaign.campaignId
     || result.exactSha !== campaign.exactSha || result.scopeHash !== campaign.scopeHash
-    || !["observed", "blocked"].includes(result.status)
+    || !["observed", "blocked", "stale", "cancelled"].includes(result.status)
     || !Array.isArray(result.observations) || result.observations.length > 16
     || !Array.isArray(result.roleResults) || result.roleResults.length > 16)) {
     throw new Error("Engineering restart receipt scope is invalid.");
@@ -64,7 +64,7 @@ export function createEngineeringEvidenceState(campaign, { result = null, failur
   if (result?.status === "observed" && roleResults.some((item) => item.status !== "observed")) {
     throw new Error("Engineering restart refuses a false observed status.");
   }
-  const state = failure || result?.status === "blocked" ? "blocked" : "observed-unverified";
+  const state = failure || result?.status !== "observed" ? "blocked" : "observed-unverified";
   const payload = {
     schemaVersion: 1,
     campaignId: campaign.campaignId,
@@ -93,9 +93,9 @@ export async function writeEngineeringEvidenceState(runDir, state, { resume = fa
   if (!path.isAbsolute(runDir) || !state || !HASH.test(state.scopeHash || "")) {
     throw new Error("Engineering restart storage requires an absolute private run directory.");
   }
-  const { digest: suppliedDigest, ...payload } = state;
+  const { digest, ...payload } = state;
   const expected = sha256(JSON.stringify(payload));
-  if (state.digest !== expected) throw new Error("Engineering restart state integrity mismatch.");
+  if (digest !== expected) throw new Error("Engineering restart state integrity mismatch.");
   const name = resume ? "resume-evidence-state.json" : "evidence-state.json";
   const bytes = JSON.stringify(state) + "\n";
   if (Buffer.byteLength(bytes) > MAX_BYTES) throw new Error("Engineering restart evidence exceeds the storage limit.");

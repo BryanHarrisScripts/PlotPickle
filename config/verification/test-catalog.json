@@ -4215,9 +4215,7 @@
         "agent",
         "security",
         "test-harness",
-        "windows",
-        "github",
-        "autonomous"
+        "windows"
       ],
       "runner": {
         "kind": "node-test",

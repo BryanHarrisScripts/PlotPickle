@@ -147,6 +147,17 @@ test("bounded coding adapter rejects arbitrary issue commands and protected file
  assert.equal(assessFactoryPaths([]).allowed,false);
 });
 
+test("issue #3141 is restricted to its single approved documentation file",()=>{
+ const approved="docs/developer-briefs/3141-autonomous-factory-native-acceptance.md";
+ assert.equal(assessFactoryPaths([approved],3141).allowed,true);
+ assert.equal(assessFactoryPaths([approved],3141).code,"BOUNDED_SOURCE_ONLY");
+ assert.equal(assessFactoryPaths(["docs/developer-briefs/other.md"],3141).code,"ISSUE_SCOPE_VIOLATION");
+ assert.equal(assessFactoryPaths([approved,"tests/issue-3110-autonomous-factory.test.mjs"],3141).allowed,false);
+ assert.equal(assessFactoryPaths(["app/skin-v1/page.ts"],3141).allowed,false);
+ assert.equal(assessFactoryPaths(["package.json"],3141).code,"DISALLOWED_SOURCE_PATH");
+ assert.equal(assessFactoryPaths([approved],3135).allowed,true);
+});
+
 test("GitHub telemetry edits one sanitized comment, rate-limited without private issue/model prose",()=>sandbox(async root=>{
  const calls=[];
  const runner=async(program,args,options)=>{

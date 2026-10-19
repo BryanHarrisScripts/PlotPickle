@@ -93,7 +93,7 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
   assert.match(source, /terminateVerificationProcessTree/u);
   assert.match(source, /Verification port 4173 is already occupied/u);
   assert.match(source, /await stopAndCleanupLiveVerifier\(\{ server, serverLogHandle, home, node, serverEnv \}\)/u);
-  assert.match(source, /await writeSummary\("fail", \{ \.\.\.prior, cleanup \}\)/u);
+  assert.match(source, /await writeSummary\("fail", \{ \.\.\.recordedDetails, cleanup \}\)/u);
   assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);
   assert.doesNotMatch(source, /server\.kill\("SIGTERM"\)/u);
 });

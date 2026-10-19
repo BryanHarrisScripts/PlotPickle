@@ -27,6 +27,7 @@ const BLOCKED_PATHS=[/^\.git(?:\/|$)/,/^\.github(?:\/|$)/,/(?:^|\/)\.env/i,/\.pe
   /^scripts\/engineering-team\/repair\//,/^scripts\/engineering-team\/windows\//,
   /^config\/verification\/ownership-map\.json$/,/^package(?:-lock)?\.json$/];
 const MAX_DURATION_MS=28*60_000;
+const ACCEPTANCE_3141_DOC="docs/developer-briefs/3141-autonomous-factory-native-acceptance.md";
 const clean=(s)=>String(s||"").trim();
 function isAllowedPath(file) {
   const normalized=String(file||"").replaceAll("\\","/");
@@ -35,10 +36,12 @@ function isAllowedPath(file) {
     SAFE_ROOTS.some(prefix=>normalized.startsWith(prefix)) &&
     !BLOCKED_PATHS.some(re=>re.test(normalized));
 }
-export function assessFactoryPaths(files) {
+export function assessFactoryPaths(files,issueNumber=null) {
   if(!Array.isArray(files)||!files.length||files.length>180)return Object.freeze({allowed:false,code:"NO_BOUNDED_PATCH"});
-  const valid=files.every(isAllowedPath);
-  return Object.freeze({allowed:valid,code:valid?"BOUNDED_SOURCE_ONLY":"DISALLOWED_SOURCE_PATH",
+  const genericAllowed=files.every(isAllowedPath);
+  const issueAllowed=issueNumber!==3141 || files.every(file=>file===ACCEPTANCE_3141_DOC);
+  const valid=genericAllowed&&issueAllowed;
+  return Object.freeze({allowed:valid,code:valid?"BOUNDED_SOURCE_ONLY":!genericAllowed?"DISALLOWED_SOURCE_PATH":"ISSUE_SCOPE_VIOLATION",
     count:files.length});
 }
 export function parseCoderArgs(args) {
@@ -84,7 +87,9 @@ function workerPrompt(issue,head) {
     "Task issue: #"+issue.number,
     "Pinned approved base: "+head,
     "",
-    "Only change source code required to solve the issue inside this isolated worktree.",
+    issue.number===3141
+      ? "Only create or update docs/developer-briefs/3141-autonomous-factory-native-acceptance.md. No other source, test, config or documentation file may change."
+      : "Only change source code required to solve the issue inside this isolated worktree.",
     "Use the repository AGENTS.md, White Paper, existing test truth and architecture contracts.",
     "Never change GitHub workflows, credentials, package manifests, protected repair policy, or Windows control code.",
     "Never delete or weaken tests/oracles to make CI appear green. Add evidence-linked regression tests.",
@@ -147,7 +152,7 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
       {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
     const agent=await localAgent(worktree,issue,head);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
-    const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes);
+    const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);
     if(!assessment.allowed)return output(assessment.code);
     await command("git",["diff","--check"],{cwd:worktree});
     await command(process.execPath,["scripts/run-uat-autopilot.mjs","--contracts-only",
@@ -157,7 +162,7 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
     if((await sourceHead())!==head)return output("MAIN_HEAD_MOVED");
     await command("git",["add","--",...changes],{cwd:worktree});
     const staged=(await command("git",["diff","--cached","--name-only"],{cwd:worktree})).split(/\r?\n/).filter(Boolean);
-    if(!assessFactoryPaths(staged).allowed)return output("STAGED_PATH_SCOPE_REJECTED");
+    if(!assessFactoryPaths(staged,issueNumber).allowed)return output("STAGED_PATH_SCOPE_REJECTED");
     await command("git",["commit","-m","Factory candidate for issue #"+issueNumber],{cwd:worktree,timeout:120_000});
     await command("git",["push","-u","origin",branch],{cwd:worktree,timeout:120_000});
     pushed=true;

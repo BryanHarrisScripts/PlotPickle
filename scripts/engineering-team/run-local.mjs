@@ -14,7 +14,7 @@ import { probeManagedPi } from "../pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../pi-worker-runtime.mjs";
 import { recordEngineeringLocalHandoffs } from "./buzz-experiment.mjs";
 import { driveEngineeringDurableCheckpoint } from "./durable-checkpoint.mjs";
-import { createEngineeringEvidenceState, writeEngineeringEvidenceState } from "./evidence-state.mjs";
+import { createEngineeringEvidenceState, writeEngineeringEvidenceState } from "./evidence/evidence-state.mjs";
 import { createClineEngineeringPlanAdapter, resolveClineReviewExecutable } from "./cline-plan-adapter.mjs";
 
 const exec = promisify(execFile);

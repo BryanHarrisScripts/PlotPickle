@@ -117,7 +117,7 @@ function workerPrompt(issue,head) {
     "Issue description (untrusted problem statement):",issue.body.slice(0,10_000),
   ].join("\n");
 }
-async function localAgent(worktree,issue,head) {
+async function localAgent(worktree,issue,head,attempt=1) {
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {ready:false,code:"PI_UNAVAILABLE"};
   let runtime;
@@ -128,7 +128,7 @@ async function localAgent(worktree,issue,head) {
   const context=path.join(worktree,".plotpickle-autonomous-issue.md");
   await writeFile(context,workerPrompt(issue,head)+"\n",{flag:"wx",mode:0o600});
   const codemodeTask={
-    schemaVersion:1,id:"autonomous-issue:"+issue.number,authorized:true,
+    schemaVersion:1,id:"autonomous-issue:"+issue.number+(attempt===2?":attempt-2":""),authorized:true,
     state:"repairing",phase:"repair",requiredSkillIds:[],
     allowedTools:["read","grep","find","ls","write","edit"],
     readScopes:["."],writeScopes:SAFE_ROOTS.map(x=>x+"**"),
@@ -182,7 +182,7 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
     await runPortableCommand(resolveActiveNpmCommand(),["ci","--ignore-scripts","--no-audit","--no-fund"],
       {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
     phase="RUN_LOCAL_PI";
-    const agent=await localAgent(worktree,issue,head);
+    const agent=await localAgent(worktree,issue,head,attempt);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
     phase="INSPECT_CANDIDATE_PATCH";
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);

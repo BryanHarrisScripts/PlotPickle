@@ -280,4 +280,4 @@ test("a green draft PR is made ready first, then independently rechecked before 
  assert.equal(outcome.state,"WAITING_FOR_PR_VERIFICATION");
  assert.equal(calls.some(x=>x[1]==="ready"),true);
  assert.equal(calls.some(x=>x[1]==="merge"),false);
-}));
+});

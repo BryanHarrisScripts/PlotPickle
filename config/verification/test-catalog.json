@@ -9057,7 +9057,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "b806dbc06622bc5d7205a09afd24900e86dcc936b8a76fdd70b794f7ae0c9bea",
+        "targetDigest": "04008d4fb4b7f12885edb735a127e36123487148169f9b4a5279f72896779e9d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

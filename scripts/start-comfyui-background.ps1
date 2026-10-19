@@ -19,6 +19,14 @@ function Write-Status([string]$Status, [string]$Detail = "") {
   if ($Detail) { Write-Output "PLOTPICKLE_COMFYUI_DETAIL=$Detail" }
 }
 
+# Browser UAT is a strictly read-only synthetic Human: never create a managed
+# media-engine process whose redirected log handles outlive the verification home.
+# Normal user startup and explicit Human-approved ComfyUI actions are unchanged.
+if ($env:PLOTPICKLE_STARTUP_TESTING_MODE -eq "webmcp" -and $env:PLOTPICKLE_ACCEPTANCE_MODE -eq "1") {
+  Write-Status "acceptance-read-only" "WebMCP acceptance cannot launch optional managed ComfyUI engines."
+  exit 0
+}
+
 function Get-LoopbackEndpoint([string]$Value) {
   try { $uri = [Uri]$Value } catch { throw "Invalid ComfyUI URL: $Value" }
   $hostName = $uri.Host.ToLowerInvariant()

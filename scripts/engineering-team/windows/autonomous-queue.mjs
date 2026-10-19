@@ -7,7 +7,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile, lstat, unlink } from "node:fs/promises";
+import { mkdir, readFile, writeFile, lstat, unlink, rename } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -146,7 +146,8 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   });
 }
 
-export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,now=Date.now}={}) {
+export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,
+  publish=publishFactoryHeartbeat,now=Date.now}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
@@ -172,7 +173,7 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   const heartbeat=async()=>{
     if(existsSync(path.join(root,"disabled.json")))return;
     await record(root,"heartbeat.json",{schemaVersion:1,state:"RUNNING",issueNumber:issue.number,at:now()},"w");
-    await publishFactoryHeartbeat({root,status:{state:"RUNNING",issueNumber:issue.number,head},now})
+    await publish({root,status:{state:"RUNNING",issueNumber:issue.number,head},now})
       .catch(()=>{}); // Missing GitHub reporting is not evidence of worker failure.
   };
   await heartbeat();
@@ -198,28 +199,42 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   await record(jobs,"result-"+issue.number+".json",terminal,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:terminal.state,
     issueNumber:issue.number,at:now()},"w");
-  await publishFactoryHeartbeat({root,status:{state:terminal.state,issueNumber:issue.number,head},now})
+  await publish({root,status:{state:terminal.state,issueNumber:issue.number,head},now})
     .catch(()=>{});
   return Object.freeze({state:terminal.state,processed:1,issueNumber:issue.number,prUrl:terminal.prUrl});
 }
 
-export async function serveFactory({root=ROOT,cycle,now=Date.now,sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}) {
+export async function serveFactory({root=ROOT,cycle,publish=publishFactoryHeartbeat,
+  now=Date.now,sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)throw new Error("Factory is OFF; it cannot serve.");
   const lock=path.join(root,"service.lock");
-  await writeFile(lock,JSON.stringify({schemaVersion:1,pid:process.pid,at:now()})+"\n",{flag:"wx",mode:0o600});
+  const lockBody=()=>JSON.stringify({schemaVersion:1,pid:process.pid,at:now()})+"\n";
+  try{await writeFile(lock,lockBody(),{flag:"wx",mode:0o600});}
+  catch(error){
+    if(error?.code!=="EEXIST")throw error;
+    // A crash/reboot must not permanently stop the queue. Never disturb a
+    // living service; an old lock may be quarantined only if that PID is gone.
+    const old=await ordinaryJson(lock,8192);
+    if(!Number.isSafeInteger(old.pid)||old.pid<1)throw new Error("Invalid worker identity; manual review required.");
+    let gone=false;
+    try{process.kill(old.pid,0);}catch(e){if(e?.code==="ESRCH")gone=true;else throw e;}
+    if(!gone)throw new Error("Another factory worker may be active; refusing duplicate.");
+    await rename(lock,path.join(root,"service-stale-"+String(old.at||"unknown")+".json"));
+    await writeFile(lock,lockBody(),{flag:"wx",mode:0o600});
+  }
   try{
     for(;;){
       if(existsSync(path.join(root,"disabled.json")))return Object.freeze({state:"OFF",reason:"LOCALLY_DISABLED"});
       await record(root,"heartbeat.json",{schemaVersion:1,state:"IDLE",issueNumber:null,at:now()},"w");
       try{
         const outcome=await (cycle||(()=>runFactoryCycle({root,now,dispatch:dispatchIssue})))();
-        await publishFactoryHeartbeat({root,status:{state:outcome?.state||"OFFLINE",
+        await publish({root,status:{state:outcome?.state||"OFFLINE",
           issueNumber:outcome?.issueNumber||null,head:null},now}).catch(()=>{});
       }catch{
         await record(root,"heartbeat.json",{schemaVersion:1,state:"BLOCKED",
           issueNumber:null,at:now()},"w");
-        await publishFactoryHeartbeat({root,status:{state:"BLOCKED",issueNumber:null,head:null},now}).catch(()=>{});
+        await publish({root,status:{state:"BLOCKED",issueNumber:null,head:null},now}).catch(()=>{});
       }
       await sleep(POLL_MS);
     }

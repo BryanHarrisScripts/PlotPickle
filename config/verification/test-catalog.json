@@ -8391,7 +8391,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           }
         ]
       },
@@ -8419,7 +8419,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/buzz-experiment.mjs",
@@ -8451,7 +8451,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/operator-reporting.mjs",
-            "digest": "335638e0d016bd2462ebfa28cec54f847bdb48dd8580bfa723b1faf3093e6f21"
+            "digest": "f2bc11cff15ac35910a561a96d9cc0384f5a72b3ffcc8a159ccfcf3e3309a106"
           }
         ]
       },
@@ -8479,7 +8479,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8523,7 +8523,7 @@
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           }
         ]
       },
@@ -8551,7 +8551,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/durable-checkpoint.mjs",
@@ -8785,7 +8785,7 @@
       },
       {
         "target": "tests/issue-3126-engineering-evidence-restart.test.mjs",
-        "targetDigest": "adad8c39f37f099f4fa0d2eabea10a64864ecfafed27fd19fec6de25a21eb29e",
+        "targetDigest": "11c9a22acc3b8b3a1dba3597d62251d55329cb55e574c93f9aa95e90c7868482",
         "catalogueIds": [
           "agent.experimental-engineering-team-evidence-state-3126"
         ],
@@ -8806,16 +8806,16 @@
         "limits": "Mock-only private filesystem and exact-head receipt check. Proves no prior model-prose copy and no automatic replay/authority; not real Windows pairing, agent-generated code repair, provider inference, production build or Story Factory browser PASS.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/evidence-state.mjs",
+            "path": "scripts/engineering-team/evidence/evidence-state.mjs",
             "digest": "9a1e6743a5ded3636a168dce138a97a12e2ee16e77fb1d46f196cddb090060c3"
           },
           {
             "path": "scripts/engineering-team/run-local.mjs",
-            "digest": "1c80b989878df9deb65298c06523343c06ef73fa9dcc517e2bed961d1476cf39"
+            "digest": "25b22334a04e4b7d326393493e67de09483c24a4a1f581858f37048576eb56a3"
           },
           {
             "path": "scripts/engineering-team/operator-reporting.mjs",
-            "digest": "335638e0d016bd2462ebfa28cec54f847bdb48dd8580bfa723b1faf3093e6f21"
+            "digest": "f2bc11cff15ac35910a561a96d9cc0384f5a72b3ffcc8a159ccfcf3e3309a106"
           }
         ]
       }

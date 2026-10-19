@@ -190,13 +190,16 @@ test("no local model does not consume an attempt; admitted queue can resume when
 
 test("more than two pending autonomous draft PRs blocks new issue work before provider use",()=>sandbox(async root=>{
  await enableFactory({root,issues:[3135]});
- let issued=false;
- const state=await runFactoryCycle({root,preflight:async()=>{throw Error("no probe allowed");},
+ let issued=false,headChecks=0,issueReads=0;
+ const state=await runFactoryCycle({root,preflight:async()=>{throw Error("no provider use allowed");},
    publish:async()=>{},github:{pendingFactoryPRs:async()=>2,
-   exactHead:async()=>{throw Error("no git work allowed");},issues:async()=>[first]},
+   exactHead:async()=>{headChecks++;return HEAD;},
+   issues:async()=>{issueReads++;return [first];}},
    dispatch:async()=>{issued=true;throw Error("no work allowed");}});
  assert.equal(state.state,"WAITING_FOR_PR_VERIFICATION");
  assert.equal(state.processed,0);
+ assert.equal(headChecks,1);
+ assert.equal(issueReads,0);
  assert.equal(issued,false);
 }));
 

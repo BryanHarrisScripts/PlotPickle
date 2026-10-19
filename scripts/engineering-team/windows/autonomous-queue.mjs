@@ -142,6 +142,13 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
       const raw=await call("gh",["issue","list","--repo",REPOSITORY,"--state","open","--limit","100",
         "--json","number,title,labels,state"]);
       return JSON.parse(raw);
+    },
+    async pendingFactoryPRs() {
+      const raw=await call("gh",["pr","list","--repo",REPOSITORY,"--state","open","--limit","100",
+        "--json","headRefName,isDraft,number"]);
+      const prs=JSON.parse(raw);
+      if(!Array.isArray(prs))throw new Error("Factory PR list malformed.");
+      return prs.filter(p=>/^factory\/issue-\d+-[a-f0-9]{10}$/.test(p.headRefName||"")).length;
     }
   });
 }
@@ -162,6 +169,15 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
+  // Do not flood reviewers/CI with unlimited draft PRs while real Product
+  // Gate and native-owned STOP remain separately unproven.
+  if(typeof github.pendingFactoryPRs==="function"){
+    const pending=await github.pendingFactoryPRs();
+    if(!Number.isSafeInteger(pending)||pending<0)
+      throw new Error("Pending factory PR count not trustworthy.");
+    if(pending>=2)return Object.freeze({state:"WAITING_FOR_PR_VERIFICATION",
+      processed:0,pendingPRs:pending});
+  }
   const jobs=path.join(root,"jobs");await mkdir(jobs,{recursive:true,mode:0o700});
   const head=await github.exactHead();
   if(!head)return Object.freeze({state:"WAITING_FOR_EXACT_CLEAN_MAIN",processed:0});

@@ -267,7 +267,7 @@ export async function stopAndCleanupLiveVerifier({
     try { await serverLogHandle.close(); }
     catch { failureCodes.push("SERVER_LOG_CLOSE_FAILED"); }
   }
-  if (stopped) {
+  if (stopped && !failureCodes.includes("SERVER_LOG_CLOSE_FAILED")) {
     let cleaned = false;
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
@@ -280,7 +280,7 @@ export async function stopAndCleanupLiveVerifier({
     }
     if (!cleaned) failureCodes.push("SYNTHETIC_HOME_CLEANUP_FAILED");
   } else {
-    failureCodes.push("SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED");
+    failureCodes.push(stopped ? "SYNTHETIC_HOME_RETAINED_UNTIL_LOG_CLOSED" : "SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED");
   }
   return Object.freeze({
     status: failureCodes.length ? "blocked" : "pass",

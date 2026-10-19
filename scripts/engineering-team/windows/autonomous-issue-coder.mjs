@@ -169,7 +169,9 @@ export async function produceDraftIssuePR({issueNumber,head,root}) {
     const body="Factory candidate for #"+issueNumber+"\n\nLocal Pi proposed a source patch in a clean isolated worktree. "+
       "A separate wrapper verified path admission, git diff, contracts-only UAT and production build. "+
       "This PR is DRAFT and NOT independently browser-UAT/CI verified; merge is prohibited until required exact-head gates pass. "+
-      "No cloud model, paid provider, story canon changes, self-approved oracle or autonomous merge authorized.";
+      "No cloud model, paid provider, story canon changes, self-approved oracle or autonomous merge authorized. "+
+      "For optional human inspection on Windows, run node scripts/engineering-team/review/factory-hunk.mjs --pr <PR_NUMBER> using this PR number. "+
+      "Hunk 0.23 review is advisory only, not a CI, Product Gate, or merge approval.";
     const url=await command("gh",["pr","create","--repo",REPO,"--base","main","--head",branch,
       "--draft","--title","factory: issue #"+issueNumber+" candidate","--body",body],{cwd:worktree,timeout:90_000});
     if(!/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(url))return output("PR_URL_UNCONFIRMED");

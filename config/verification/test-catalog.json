@@ -4048,7 +4048,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3118-story-factory-browser-journey.test.mjs"
+          "tests/issue-3118-story-factory-browser-journey.test.mjs",
+          "tests/issue-3121-windows-live-verifier-cleanup.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4073,7 +4074,7 @@
           ".artifacts/verification-shadow/verification.json"
         ]
       },
-      "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven."
+      "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven. #3121 additionally verifies deterministic owned-stop ordering, blocked cleanup retention and bounded retry using mocked handles; not native Windows production STOP proof."
     }
   ],
   "truthGovernance": {
@@ -8667,7 +8668,35 @@
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "57698e4a7d97e05409ca100706f192ae58c2e86dde607b1cfa4d74fafe73d710"
+            "digest": "b51a35f07ea59379a3e5c9e0e8dcd2e816a552d9ef95480d05ff55be69721677"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+        "targetDigest": "a8ae84fc4c84b81367681ecac78e557d70d107526d5095d691181c2a96049c7c",
+        "catalogueIds": [
+          "verification.story-factory-browser-journey-3118"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mocks only deterministic cleanup ordering, owned child-handle arguments, occupied-port refusal and bounded synthetic-home retry. Cannot prove native Windows process descendant termination, real port ownership, browser acceptance or Human project safety on device.",
+        "inputs": [
+          {
+            "path": "scripts/verification-webmcp-live.mjs",
+            "digest": "b51a35f07ea59379a3e5c9e0e8dcd2e816a552d9ef95480d05ff55be69721677"
           }
         ]
       }

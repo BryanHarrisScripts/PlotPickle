@@ -8668,13 +8668,13 @@
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "ee628d84dd1ae5040502bd876c8dec68ac5c13f545680ddf4a2b431446c62408"
+            "digest": "46a293529f4c77d8e4e24d5b4b8c16e185aec5edf77dc457f290fccb1348b374"
           }
         ]
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "66c3ae2d18d35b702e9512f9584932860e110dea972c630b5fb849ad082150ec",
+        "targetDigest": "7acb9911dfa72421cfe96cb4a809ba142f208d65b767f4aa13d3d14b6eecc5bd",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8696,7 +8696,7 @@
         "inputs": [
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "ee628d84dd1ae5040502bd876c8dec68ac5c13f545680ddf4a2b431446c62408"
+            "digest": "46a293529f4c77d8e4e24d5b4b8c16e185aec5edf77dc457f290fccb1348b374"
           }
         ]
       }

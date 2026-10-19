@@ -4203,6 +4203,48 @@
         ]
       },
       "notes": "#3128 mock/private admission, tamper, approval, route and source-allowance tests only. No provider call, code repair, Windows Product Gate, GitHub PR or merge is performed."
+    },
+    {
+      "id": "agent.unattended-queue-admission-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-unattended-queue.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 strict opt-in private queue admission fixtures only. Does not demonstrate unattended Windows worker, agent execution, signed permissions, model dispatch, PR creation or autonomous merging."
     }
   ],
   "truthGovernance": {
@@ -9011,6 +9053,34 @@
             "digest": "95720947031ff3060dcc163f63f34027bcc7b2dff1f486bb473adac3e05622ed"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3110-unattended-queue.test.mjs",
+        "targetDigest": "434471336b46ba4f0ca32eb3407fbb5e1d838125578124e6865e4de802a3d55f",
+        "catalogueIds": [
+          "agent.unattended-queue-admission-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/unattended-queue.mjs",
+            "digest": "c03ae98d35b17976ec88f53273c7f439fb3a24dee826770b32743d0ce11ae5e7"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic local queue JSON and injected private reader only; no Windows service, independent grant source, unattended agent/PR lifecycle, native STOP or branch protection verification."
       }
     ]
   }

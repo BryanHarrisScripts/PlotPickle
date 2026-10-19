@@ -3906,6 +3906,49 @@
       "notes": "#3110 synthetic only: local exact-SHA contracts-only UAT reservation/stop/report truth; no Chat-to-Windows transport, native Windows process-tree proof, real app UAT, AI provider dispatch, remote stop or autonomous merge."
     },
     {
+      "id": "agent.windows-authenticated-github-control-3110",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3110-authenticated-windows-control.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3110 synthetic authenticated GitHub transport boundary: private pairing, exact actor/host/expiry/nonce admission, no-shell mapping and no-replay receipts. Not a live owner-device issue, always-on service, browser UAT, model dispatch, independent verification or merge proof."
+    },
+    {
       "id": "agent.windows-uat-toolchain-preflight-3112",
       "ownerLayer": "agent-runtime",
       "architectureComponents": [
@@ -8627,6 +8670,38 @@
         ],
         "limits": "Synthetic temporary private filesystem and stubbed child process tests, not a native Windows runner or authorized remote software-factory control loop.",
         "inputs": [
+          {
+            "path": "scripts/windows-uat-control.mjs",
+            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-authenticated-windows-control.test.mjs",
+        "targetDigest": "c5625b026a2a788d4bff897e0726c50d90c7663195de6a007f4191b1c2b68226",
+        "catalogueIds": [
+          "agent.windows-authenticated-github-control-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic private filesystem, injected runner functions and stubbed GitHub API. Does not prove a live paired Windows host, remote availability, native browser UAT, provider/model work, independent verification or merge eligibility.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+            "digest": "ce9f57c8be87a36b56568aaf460c9b70901e42406fdc4cbb80dccb077206e46e"
+          },
           {
             "path": "scripts/windows-uat-control.mjs",
             "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"

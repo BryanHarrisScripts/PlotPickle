@@ -26,7 +26,7 @@ export function reviewDocsOnlyCandidate(pr,required,allowedIssues,exactBase){
   if(!SHA.test(pr.headRefOid||"")||!SHA.test(pr.baseRefOid||"")||pr.baseRefOid!==exactBase)
     return deny("STALE_BASE_OR_HEAD");
   if(!Array.isArray(pr.files)||!pr.files.length||pr.files.length>80
-    ||!pr.files.every(x=>BOLD_DOC.test(x.path||"")))
+    ||!pr.files.every(x=>BOLD_DOC.test(x.path||"")&&!String(x.path||"").includes("..")))
     return deny("PRODUCT_GATE_REQUIRED");
   if(pr.mergeStateStatus!=="CLEAN")return deny("MERGE_STATE_NOT_CLEAN");
   const rollup=pr.statusCheckRollup;

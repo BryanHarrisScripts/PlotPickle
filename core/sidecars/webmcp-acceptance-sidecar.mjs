@@ -99,6 +99,54 @@ async function sessionActiveProjectId(page) {
   }, ACTIVE_PROJECT_KEY_PREFIX);
 }
 
+const ACTIVE_PROFILE_KEY = "plotpickle.human-profile.active.v1";
+
+/**
+ * Read-only, private-safe evidence. Never copy profile IDs, project IDs,
+ * story content, credentials or entire storage values into report artifacts.
+ * Do not recover or select a project here: missing state must remain FAIL.
+ */
+export async function observeStoryFactoryProjectSession(page, expectedProjectId) {
+  return page.evaluate(({ activeProfileKey, sessionPrefix, expected }) => {
+    const storage = window.sessionStorage;
+    const profile = storage.getItem(activeProfileKey)?.trim() || "";
+    const scopedKey = profile ? `${sessionPrefix}:${profile}` : "";
+    const scopedProject = scopedKey ? storage.getItem(scopedKey)?.trim() || "" : "";
+    const matchingKeys = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(`${sessionPrefix}:`) && storage.getItem(key)?.trim()) matchingKeys.push(key);
+    }
+    const registryKey = profile ? `plotpickle.library.profile.v1.${profile}.registry` : "";
+    const registryRaw = registryKey ? storage.getItem(registryKey) : null;
+    let registry = null;
+    let registryMalformed = false;
+    if (registryRaw) {
+      try {
+        const parsed = JSON.parse(registryRaw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) registry = parsed;
+        else registryMalformed = true;
+      } catch { registryMalformed = true; }
+    }
+    const entries = Array.isArray(registry?.projects) ? registry.projects : [];
+    return {
+      activeProfilePresent: Boolean(profile),
+      selectedProjectPresent: Boolean(scopedProject),
+      selectedProjectMatchesExpected: Boolean(scopedProject && scopedProject === expected),
+      nonemptySessionProjectKeyCount: matchingKeys.length,
+      foreignProfileSelectionCount: matchingKeys.filter((key) => key !== scopedKey).length,
+      registryPresent: Boolean(registryRaw),
+      registryMalformed,
+      registryActiveMatchesExpected: Boolean(registry?.activeProjectId === expected),
+      registryContainsExpected: entries.some((item) => item?.id === expected && !item?.archivedAt),
+    };
+  }, {
+    activeProfileKey: ACTIVE_PROFILE_KEY,
+    sessionPrefix: ACTIVE_PROJECT_KEY_PREFIX,
+    expected: expectedProjectId,
+  });
+}
+
 async function topicLabels(page, ariaLabel) {
   return page.locator(`nav[aria-label="${ariaLabel}"] button`).allTextContents()
     .then((values) => values.map((value) => value.trim()).filter(Boolean));
@@ -300,11 +348,20 @@ async function openStoryFactorySurface({ page, itemId, container, readiness, exp
   });
 }
 
-async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session }) {
+async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session, artifactRoot, mode }) {
   const mindWorld = await runMindMapWorldMapJourney({ page, serverUrl, session });
   const assertions = [...mindWorld.assertions];
   const evidenceRefs = [...mindWorld.evidenceRefs];
   const initialProject = mindWorld.projectId;
+  const sessionObservations = [];
+  const observe = async (stage, phase) => {
+    sessionObservations.push({
+      stage,
+      phase,
+      ...(await observeStoryFactoryProjectSession(page, initialProject)),
+    });
+  };
+  await observe("outline", "before-open");
   const stages = [
     {
       id: "outline",
@@ -350,6 +407,7 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session }) {
 
   for (const stage of stages) {
     const observed = await openStoryFactorySurface({ page, ...stage });
+    await observe(stage.id, "rendered");
     assertions.push(
       assertion(`${stage.id}-settled-identity`, observed.identityMatched, stage.expectedIdentity, observed.identity || "none"),
       assertion(`${stage.id}-project-continuity`, observed.projectId === initialProject, initialProject, observed.projectId || "none"),
@@ -361,7 +419,8 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session }) {
       checkpoint: stage.checkpoint,
     });
     const dashboard = await returnToDashboard(page);
-    assertions.push(assertion(`${stage.id}-back-to-dashboard`, dashboard === "dashboard", "dashboard", dashboard));
+    assertions.push(assertion(`${stage.id}-back-to-dashboard`, dashboard === "dashboard", "dashboard"));
+    await observe(stage.id, "after-dashboard");
   }
 
   const finalProject = await sessionActiveProjectId(page);
@@ -370,6 +429,15 @@ async function runStoryFactoryReadOnlyJourney({ page, serverUrl, session }) {
     assertion("story-factory-provider-generation-not-invoked", true, "navigation and read-only observations only", "no Generate, Ask Agent, Save, Lock, Approve or provider control invoked"),
     assertion("story-factory-canon-mutation-not-invoked", true, "no canon mutation", "packaged example opened only inside the isolated synthetic Human profile"),
   );
+  const sessionReportPath = path.join(artifactRoot, "story-factory-read-only-journey", `${mode}-project-session-evidence.json`);
+  await mkdir(path.dirname(sessionReportPath), { recursive: true });
+  await writeFile(sessionReportPath, `${JSON.stringify({
+    schemaVersion: 1,
+    privateSafe: true,
+    purpose: "read-only project-session disappearance classification, not project restore",
+    snapshots: sessionObservations,
+  }, null, 2)}\n`, "utf8");
+  evidenceRefs.push(sessionReportPath);
   return { assertions, evidenceRefs };
 }
 
@@ -402,7 +470,9 @@ export async function runWebMcpAcceptanceJourney({
     if (["mind-map-world-map-shared-header", "story-factory-read-only-journey"].includes(normalized.target)) {
       const journey = normalized.target === "mind-map-world-map-shared-header"
         ? await runMindMapWorldMapJourney({ page, serverUrl, session })
-        : await runStoryFactoryReadOnlyJourney({ page, serverUrl, session });
+        : await runStoryFactoryReadOnlyJourney({
+          page, serverUrl, session, artifactRoot, mode: normalized.mode,
+        });
       await context.close();
       const diagnostics = await session.close();
       const diagnosticBlockers = Number(diagnostics?.totals?.blocker ?? 0);

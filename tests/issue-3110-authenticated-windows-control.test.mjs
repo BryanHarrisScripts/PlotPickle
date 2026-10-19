@@ -188,6 +188,20 @@ test("status and stop preserve runner truth and do not invent cancellation ackno
   assert.equal(stopResult.state, "stop-requested");
   assert.equal(stopResult.cancellationAcknowledged, false);
   assert.equal(stopResult.childExitObserved, false);
+  assert.equal(stopResult.stopDisposition,"STOP_UNVERIFIED");
+  assert.equal(stopResult.ownedDescendantsVerifiedGone,false);
+  const completedStop = await executeWindowsGitHubControlIssue(issue(pairing, "stop", "a".repeat(32)), {
+    appRoot: root,
+    now: () => NOW,
+    stop: async scope => ({
+      state: "observed-pass", scope, exactSha: HEAD,
+      childExitObserved: true, cancellationAcknowledged: false,
+      stopDisposition: "ALREADY_TERMINAL_NOOP",
+    }),
+  });
+  assert.equal(completedStop.stopDisposition, "ALREADY_TERMINAL_NOOP");
+  assert.equal(completedStop.childExitObserved,true);
+  assert.equal(completedStop.ownedDescendantsVerifiedGone,false);
 }));
 
 test("one poll processes only the paired GitHub actor and publishes one bounded receipt", () => sandbox(async root => {

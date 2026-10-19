@@ -9142,7 +9142,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "b431f7062411350a3e37d637eccf27ec3c9d4de3d908bbaae017e28b041e3936",
+        "targetDigest": "8eff29571ac1c5f5eec5a6cc3b763c1a189267fe9dc7acd166641a026e610a85",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9153,7 +9153,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "f6b4b581c7b5150a0fdf644792c908663b774640e828f5df4e4eaac4bd7e30b9"
+            "digest": "55a622b9ca544ac95cc1a05846f7686ac75529dc2026a3f4ec0d33b858348cef"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
@@ -9166,6 +9166,10 @@
           {
             "path": "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",
             "digest": "f734345a144d0e40595073f84e3a0e9e22e57fb297dadaed1ba92bfbc3855da0"
+          },
+          {
+            "path": "scripts/engineering-team/review/factory-hunk.mjs",
+            "digest": "cf368c7f6ce10df8861869b716f3075df5dd660419dc995e55563f7d2d2d2b06"
           }
         ],
         "truthRefs": [

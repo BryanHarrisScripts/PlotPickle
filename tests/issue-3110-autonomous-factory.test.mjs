@@ -8,6 +8,7 @@ import {
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
 
@@ -156,6 +157,46 @@ test("issue #3141 is restricted to its single approved documentation file",()=>{
  assert.equal(assessFactoryPaths(["app/skin-v1/page.ts"],3141).allowed,false);
  assert.equal(assessFactoryPaths(["package.json"],3141).code,"DISALLOWED_SOURCE_PATH");
  assert.equal(assessFactoryPaths([approved],3135).allowed,true);
+});
+
+test("factory Hunk 0.23 bridge is opt-in, no extensions, fixed GitHub PR and advisory only",async()=>{
+ assert.deepEqual(parseFactoryHunkArgs(["--status"]),{mode:"status"});
+ assert.deepEqual(parseFactoryHunkArgs(["--pr","3145"]),{mode:"review",number:3145});
+ for(const argv of [[],["--pr","0"],["--pr","-1"],["--pr","1;whoami"],["--pr","https://github.com/evil/x"],["--pr","1","--repo","evil"],["--serve"],["--pr","99999999999"]]){
+   assert.throws(()=>parseFactoryHunkArgs(argv),"Rejected "+argv.join(" "));
+ }
+ assert.deepEqual(factoryHunkTarget(3145),{kind:"pull-request",number:3145});
+ assert.throws(()=>factoryHunkTarget(-1));
+ let invokes=0;
+ const controller={
+   capabilities:async()=>({state:"ready",message:"Reviewed Hunk 0.23.0"}),
+   command:async()=>"C:\\tools\\hunk.exe",
+ };
+ const run=async(program,args,options)=>{
+   invokes++;assert.equal(program,"powershell.exe");
+   assert.equal(args.includes("-NoProfile"),true);
+   assert.equal(args.includes("-File"),true);
+   assert.equal(args.includes("-HunkCommand"),true);
+   assert.equal(args.includes("C:\\tools\\hunk.exe"),true);
+   assert.equal(args[args.indexOf("-PullRequest")+1],"3145");
+   assert.equal(args.includes("--repo"),false);
+   assert.equal(options.timeout,15000);
+   return {stdout:JSON.stringify({pid:4567,startTicks:"123456789"})};
+ };
+ const status=await factoryHunkReview(["--status"],{platform:"win32",controller,run});
+ assert.equal(status.state,"HUNK_REVIEW_READY");
+ assert.equal(status.mergeAuthority,false);
+ assert.equal(invokes,0);
+ const launched=await factoryHunkReview(["--pr","3145"],{platform:"win32",controller,run,repositoryRoot:"C:\\repo",bridge:"C:\\bridge.ps1"});
+ assert.equal(invokes,1);
+ assert.equal(launched.state,"HUNK_ADVISORY_REVIEW_LAUNCHED");
+ assert.equal(launched.pullRequest,3145);
+ assert.equal(launched.sourceMutation,false);
+ assert.equal(launched.independentCiProof,false);
+ assert.equal(launched.windowsProductGateProof,false);
+ assert.equal(launched.unattendedReview,false);
+ await assert.rejects(factoryHunkReview(["--pr","3145"],{platform:"linux",controller,run}),/Windows/);
+ await assert.rejects(factoryHunkReview(["--pr","3145"],{platform:"win32",controller,run:async()=>({stdout:"{}"})}),/ownership/);
 });
 
 test("GitHub telemetry edits one sanitized comment, rate-limited without private issue/model prose",()=>sandbox(async root=>{

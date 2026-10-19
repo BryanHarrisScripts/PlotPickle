@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 import {
   parseQueueCommand,eligibleIssue,pickNextIssue,enableFactory,disableFactory,
-  readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,
+  readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,authorizeFactoryRetry,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
@@ -109,6 +109,65 @@ test("enabling needs reviewed finite issues; one attempt is irreversibly reserve
  assert.equal(status.automaticMergeEnabled,false);
 }));
 
+test("second #3141 attempt requires explicit consent and never overwrites first receipt",()=>sandbox(async root=>{
+ const old="a".repeat(40),head="b".repeat(40),jobs=path.join(root,"jobs");
+ await enableFactory({root,issues:[3141],now:()=>1000});
+ await mkdir(jobs,{recursive:true});
+ const firstJob={issueNumber:3141,sourceHead:old,attempt:1,replayAuthorized:false};
+ const firstResult={issueNumber:3141,head:old,state:"BLOCKED",
+   code:"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE",replayAuthorized:false,prUrl:null};
+ await writeFile(path.join(jobs,"issue-3141.json"),JSON.stringify(firstJob));
+ await writeFile(path.join(jobs,"result-3141.json"),JSON.stringify(firstResult));
+ const github={exactHead:async()=>head,issues:async()=>[{
+   number:3141,title:"Prove a docs pilot",state:"OPEN",labels:[]}]};
+ const inspect=async()=>true;
+ const args=["--authorize-retry","--issue","3141","--base",head,
+   "--consent","PLOTPICKLE_AUTONOMOUS_ENGINEERING"];
+ assert.equal(parseQueueCommand(args).retryBase,head);
+ for(const bad of [["--authorize-retry"],[...args.slice(0,-1),"no"],
+   ["--authorize-retry","--issue","3142","--base",head,"--consent",
+     "PLOTPICKLE_AUTONOMOUS_ENGINEERING"]])assert.throws(()=>parseQueueCommand(bad));
+ await assert.rejects(authorizeFactoryRetry({root,expectedHead:old,github,inspect}),/new independently/);
+ const approved=await authorizeFactoryRetry({root,expectedHead:head,github,inspect,now:()=>2000});
+ assert.equal(approved.state,"RETRY_AUTHORIZED");
+ assert.equal(approved.workerStarted,false);
+ assert.equal(approved.automaticMergeAuthorized,false);
+ await assert.rejects(authorizeFactoryRetry({root,expectedHead:head,github,inspect}),/EEXIST/);
+ let dispatched=0;
+ const cycle=()=>runFactoryCycle({root,github,publish:async()=>{},now:()=>3000,
+   preflight:async()=>({ready:true}),dispatch:async({attempt,issueNumber,head:pin})=>{
+     dispatched++;assert.equal(attempt,2);assert.equal(issueNumber,3141);
+     assert.equal(pin,head);
+     return factoryFailureReceipt("RUN_LOCAL_PI");
+   }});
+ assert.equal((await cycle()).state,"BLOCKED");
+ const secondJob=JSON.parse(await readFile(path.join(jobs,"issue-3141-attempt-2.json"),"utf8"));
+ const secondResult=JSON.parse(await readFile(path.join(jobs,"result-3141-attempt-2.json"),"utf8"));
+ assert.equal(secondJob.attempt,2);assert.equal(secondJob.sourceHead,head);
+ assert.equal(secondResult.phase,"RUN_LOCAL_PI");
+ assert.equal(secondResult.replayAuthorized,false);
+ assert.deepEqual(JSON.parse(await readFile(path.join(jobs,"issue-3141.json"),"utf8")),firstJob);
+ assert.deepEqual(JSON.parse(await readFile(path.join(jobs,"result-3141.json"),"utf8")),firstResult);
+ assert.equal((await cycle()).state,"WAITING_FOR_ELIGIBLE_ISSUE");
+ assert.equal(dispatched,1);
+}));
+
+test("retry denies uncertain original attempt and live factory service",()=>sandbox(async root=>{
+ const old="a".repeat(40),head="b".repeat(40),jobs=path.join(root,"jobs");
+ await enableFactory({root,issues:[3141]});await mkdir(jobs,{recursive:true});
+ await writeFile(path.join(jobs,"issue-3141.json"),JSON.stringify({
+   issueNumber:3141,sourceHead:old,attempt:1,replayAuthorized:false}));
+ const receipt=path.join(jobs,"result-3141.json");
+ await writeFile(receipt,JSON.stringify({issueNumber:3141,head:old,state:"BLOCKED",
+   code:"EXECUTION_UNCERTAIN",replayAuthorized:false,prUrl:null}));
+ const github={exactHead:async()=>head},inspect=async()=>true;
+ await assert.rejects(authorizeFactoryRetry({root,expectedHead:head,github,inspect}),/unverified/);
+ await writeFile(receipt,JSON.stringify({issueNumber:3141,head:old,state:"BLOCKED",
+   code:"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE",replayAuthorized:false,prUrl:null}));
+ await writeFile(path.join(root,"service.lock"),JSON.stringify({pid:process.pid,at:1}));
+ await assert.rejects(authorizeFactoryRetry({root,expectedHead:head,github,inspect}),/still alive/);
+}));
+
 test("uncertain agent crashes are fail-closed and cannot automatically replay",()=>sandbox(async root=>{
  await enableFactory({root,issues:[3123],now:()=>1000});
  const github={exactHead:async()=>HEAD,issues:async()=>[second]};
@@ -166,6 +225,10 @@ test("bounded coding adapter rejects arbitrary issue commands and protected file
  const r=path.resolve(os.tmpdir(),"plotpickle-test");
  assert.deepEqual(parseCoderArgs(["--issue","3135","--head",HEAD,"--root",r]),
    {issueNumber:3135,head:HEAD,root:r});
+ assert.deepEqual(parseCoderArgs(["--issue","3141","--head",HEAD,"--root",r,"--attempt","2"]),
+   {issueNumber:3141,head:HEAD,root:r,attempt:2});
+ assert.throws(()=>parseCoderArgs(["--issue","3135","--head",HEAD,"--root",r,"--attempt","2"]));
+ assert.throws(()=>parseCoderArgs(["--issue","3141","--head",HEAD,"--root",r,"--attempt","3"]));
  for(const args of [
    ["--issue","oops","--head",HEAD,"--root",r],
    ["--issue","3135","--head","main","--root",r],

@@ -238,14 +238,26 @@ export async function statusWindowsUat(scope, { appRoot = privateAppRoot(), now 
 }
 export async function requestStopWindowsUat(scope, { appRoot = privateAppRoot(), now = Date.now } = {}) {
   const current = await statusWindowsUat(scope, { appRoot, now });
-  if (["observed-pass","observed-fail","cancelled-child-exited","blocked","stale"].includes(current.state)) return current;
+  // A request made after the worker has finished is an idempotent NO-OP,
+  // not live cancellation. Keep this distinction in the private/public receipt.
+  if (["observed-pass","observed-fail","cancelled-child-exited","blocked","stale"].includes(current.state)) {
+    return Object.freeze({ ...current, stopDisposition: "ALREADY_TERMINAL_NOOP",
+      ownedDescendantsVerifiedGone: false });
+  }
   const folder = await privateScope(appRoot, scope);
   try {
     await writeFile(path.join(folder,"stop-request.json"), JSON.stringify({
       schemaVersion: 1, scope, requestedAt: now(), reason: "local-operator",
     }) + "\n", { flag: "wx", mode: 0o600 });
   } catch (error) { if (error?.code !== "EEXIST") throw error; }
-  return statusWindowsUat(scope, { appRoot, now });
+  const updated = await statusWindowsUat(scope, { appRoot, now });
+  // STOP_REQUESTED does not establish process exit. Direct-child exit is
+  // separately observed; owned descendants require independent native proof.
+  const stopDisposition = updated.state === "cancelled-child-exited"
+    ? (updated.childExitObserved ? "DIRECT_CHILD_CANCELLATION_OBSERVED" : "CANCELLED_BEFORE_CHILD")
+    : ["observed-pass","observed-fail","blocked","stale"].includes(updated.state)
+      ? "TERMINAL_DURING_REQUEST_UNPROVEN" : "STOP_REQUESTED_UNCONFIRMED";
+  return Object.freeze({ ...updated, stopDisposition, ownedDescendantsVerifiedGone: false });
 }
 
 /** Worker owns the only UAT child it can cancel; status alone never kills a PID. */

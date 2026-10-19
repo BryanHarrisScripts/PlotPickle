@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
-  validateSupervisorConsent, enableSupervisor, disableSupervisor,
+  validateSupervisorConsent, enableSupervisor, reenableSupervisor, disableSupervisor,
   supervisorStatus, supervisorCycle, serveSupervisor,
 } from "../scripts/engineering-team/windows/unattended-supervisor.mjs";
 
@@ -83,6 +83,11 @@ test("local STOP prevents further remote polls and service startup", () => sandb
   assert.equal(result.state, "STOPPED");
   assert.equal(called, false);
   await assert.rejects(serveSupervisor({ appRoot: root, platform: "win32", consent: CONSENT }), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+  await assert.rejects(reenableSupervisor({ appRoot: root, platform: "win32", consent: "yes", head, paired }),
+    /LOCAL_WINDOWS_CONSENT_REQUIRED/);
+  const resumed = await reenableSupervisor({ appRoot: root, platform: "win32", consent: CONSENT, head, paired });
+  assert.equal(resumed.state, "ENABLED_NOT_RUNNING");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "OFFLINE");
 }));
 test("service runs bounded injected cycles and releases lock, never claims code or PRs", () => sandbox(async root => {
   await enable(root);
@@ -94,4 +99,5 @@ test("service runs bounded injected cycles and releases lock, never claims code 
   assert.equal(cycles, 1);
   assert.equal((await loop()).state, "STOPPED");
   assert.equal(cycles, 2);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "OFFLINE");
 }));

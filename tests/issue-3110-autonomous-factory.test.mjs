@@ -9,6 +9,7 @@ import {
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
+import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
 
 const HEAD="a".repeat(40);
 const first={number:3135,title:"Prove Windows live STOP",state:"OPEN",labels:[]};
@@ -197,4 +198,64 @@ test("more than two pending autonomous draft PRs blocks new issue work before pr
  assert.equal(state.state,"WAITING_FOR_PR_VERIFICATION");
  assert.equal(state.processed,0);
  assert.equal(issued,false);
+}));
+
+test("only exact green seven-layer documentation PR can enter auto-merge path",()=>{
+ const pr={
+  number:4141,state:"OPEN",title:"factory: issue #3135 candidate",author:{login:"BryanHarrisScripts"},
+  headRefName:"factory/issue-3135-"+HEAD.slice(0,10),headRefOid:HEAD,
+  baseRefName:"main",baseRefOid:"b".repeat(40),mergeStateStatus:"CLEAN",
+  isDraft:true,files:[{path:"docs/developer-briefs/3135-report.md"}],
+  statusCheckRollup:Array.from({length:7},(_,i)=>({
+    name:"Layer "+(i+1)+" Verification",status:"COMPLETED",conclusion:"SUCCESS"}))
+ };
+ const required=[{name:"Architecture Verification",bucket:"pass",state:"SUCCESS"}];
+ const base="b".repeat(40);
+ assert.equal(reviewDocsOnlyCandidate(pr,required,[3135],base).eligible,true);
+ assert.equal(reviewDocsOnlyCandidate({...pr,files:[{path:"app/index.ts"}]},required,[3135],base).code,"PRODUCT_GATE_REQUIRED");
+ assert.equal(reviewDocsOnlyCandidate({...pr,baseRefOid:HEAD},required,[3135],base).code,"STALE_BASE_OR_HEAD");
+ assert.equal(reviewDocsOnlyCandidate({...pr,statusCheckRollup:pr.statusCheckRollup.slice(1)},required,[3135],base).code,
+   "SEVEN_LAYER_ARCHITECTURE_NOT_GREEN");
+ assert.equal(reviewDocsOnlyCandidate(pr,[{name:"Architecture",bucket:"pending",state:"IN_PROGRESS"}],[3135],base).eligible,false);
+ assert.equal(reviewDocsOnlyCandidate({...pr,author:{login:"Mallory"}},required,[3135],base).eligible,false);
+ assert.equal(reviewDocsOnlyCandidate({...pr,files:[{path:"docs/../private.md"}]},required,[3135],base).eligible,false);
+});
+
+test("optional docs-only merge reconciler requires exact head, gated CI and confirmed GitHub merge",async()=>{
+ const head=HEAD,base="b".repeat(40),number=3135;
+ const pr={number:4141,state:"OPEN",title:"factory: issue #3135 candidate",author:{login:"BryanHarrisScripts"},
+  headRefName:"factory/issue-3135-"+head.slice(0,10),headRefOid:head,baseRefName:"main",
+  baseRefOid:base,mergeStateStatus:"CLEAN",isDraft:true,files:[{path:"docs/3135.md"}],
+  statusCheckRollup:Array.from({length:7},(_,i)=>({name:"Layer "+(i+1)+" OK",
+     status:"COMPLETED",conclusion:"SUCCESS"}))};
+ const calls=[];
+ const send=async args=>{
+   calls.push(args);
+   if(args[0]==="pr"&&args[1]==="list")return JSON.stringify([{number:4141,headRefName:pr.headRefName}]);
+   if(args[0]==="pr"&&args[1]==="view"&&args.includes("mergedAt"))return JSON.stringify({
+     state:"MERGED",mergedAt:"2026-10-19T22:00:00Z",mergeCommit:{oid:"c".repeat(40)}});
+   if(args[0]==="pr"&&args[1]==="view")return JSON.stringify(pr);
+   if(args[0]==="pr"&&args[1]==="checks")return JSON.stringify([{name:"required",state:"SUCCESS",bucket:"pass"}]);
+   return "";
+ };
+ const accepted=await reconcileApprovedDocsPRs({issueNumbers:[number],exactBase:base,send});
+ assert.equal(accepted.state,"MERGED");
+ assert.equal(accepted.mergeSha,"c".repeat(40));
+ assert.equal(calls.some(args=>args[0]==="pr"&&args[1]==="merge"&&args.includes("--match-head-commit")&&args.includes(head)),true);
+});
+
+test("explicit docs merge consent is separate; service cannot quietly elevate it",()=>sandbox(async root=>{
+ const args=parseQueueCommand(["--enable","--issues","3135","--merge-docs","--consent",
+   "PLOTPICKLE_AUTONOMOUS_ENGINEERING"]);
+ assert.equal(args.mergeDocsOnly,true);
+ const state=await enableFactory({root,issues:args.issues,mergeDocsOnly:args.mergeDocsOnly});
+ assert.equal(state.documentationAutoMergeEnabled,true);
+ const github={exactHead:async()=>HEAD,issues:async()=>[first],pendingFactoryPRs:async()=>0};
+ let dispatches=0;
+ const response=await runFactoryCycle({root,github,
+   preflight:async()=>{throw Error("no provider expected");},publish:async()=>{},
+   reconcile:async()=>({state:"MERGED",issueNumber:3135,mergeSha:"c".repeat(40),prNumber:4141}),
+   dispatch:async()=>{dispatches++;}});
+ assert.equal(response.state,"MERGED");
+ assert.equal(dispatches,0);
 }));

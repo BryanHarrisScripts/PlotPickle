@@ -8130,7 +8130,7 @@
       },
       {
         "target": "tests/issue-1938-verification-core.test.mjs",
-        "targetDigest": "3209e038b33724e354db51c2ed0864e87de43ee5627b4e9640b620b49f0db9bc",
+        "targetDigest": "0791abd989241e8df388f76120e45fc43447cc212bef939dd41a869f4ad1acfe",
         "catalogueIds": [
           "verification.phase2-core"
         ],

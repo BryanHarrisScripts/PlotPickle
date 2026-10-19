@@ -337,6 +337,7 @@ export async function runLiveWebMcpEvidence() {
   let serverLogHandle = null;
   let nodeDependencies = [];
   let coldMediaRetryUsed = false;
+  let recordedDetails = {};
 
   await mkdir(artifactRoot, { recursive: true });
   try {
@@ -406,7 +407,7 @@ export async function runLiveWebMcpEvidence() {
       throw new Error(`Story Factory rendered acceptance failed: ${storyFactoryAcceptance.reportPath}`);
     }
 
-    await writeSummary("pass", {
+    recordedDetails = {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
@@ -425,27 +426,26 @@ export async function runLiveWebMcpEvidence() {
         mutationAuthority: false,
         providerSpendAllowed: false,
       },
-    });
+    };
+    await writeSummary("pass", recordedDetails);
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await writeSummary("fail", {
+    recordedDetails = {
       failure: message,
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
       coldMediaRetryUsed,
       nodeDependencies,
-    });
+    };
+    await writeSummary("fail", recordedDetails);
     console.error(`[FAIL] Live WebMCP verification: ${message}`);
     return 1;
   } finally {
     const cleanup = await stopAndCleanupLiveVerifier({ server, serverLogHandle, home, node, serverEnv });
     if (cleanup.status !== "pass") {
-      let prior = {};
-      try { prior = JSON.parse(await readFile(summaryPath, "utf8")); } catch {}
-      delete prior.status;
-      await writeSummary("fail", { ...prior, cleanup });
+      await writeSummary("fail", { ...recordedDetails, cleanup });
       console.error(`[FAIL] Live WebMCP cleanup blocked: ${cleanup.failureCodes.join(", ")}. Disposable test home retained if owned STOP is unverified.`);
       return 1;
     }

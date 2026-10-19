@@ -7,6 +7,7 @@
     "scripts/engineering-team/windows/autonomous-queue.mjs",
     "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
     "scripts/engineering-team/windows/autonomous-telemetry.mjs",
+    "scripts/engineering-team/windows/autonomous-pr-review.mjs",
     "scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1",
     "tests/issue-3110-autonomous-factory.test.mjs",
     "config/verification/test-catalog.json",
@@ -91,6 +92,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/3110-autonomous-queue.md",
           "contains": "This is a **candidate PR factory**"
+        }
+      ]
+    },
+    {
+      "id": "DOCS-ONLY-GREEN-MERGE",
+      "criterion": "Optional local docs-only auto merge requires exact candidate head/base, seven successful independent CI layers, required check proof, and GitHub-acknowledged squash merge; all application code remains unmergeable.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/autonomous-pr-review.mjs",
+          "contains": "DOCS_ONLY_EXACT_HEAD_GREEN"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-autonomous-factory.test.mjs",
+          "contains": "only exact green seven-layer documentation PR"
         }
       ]
     }

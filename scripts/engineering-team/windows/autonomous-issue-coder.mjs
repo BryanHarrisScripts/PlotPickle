@@ -23,7 +23,7 @@ const REPO_ROOT=path.resolve(HERE,"..","..","..");
 const SHA=/^[a-f0-9]{40}$/;
 const exec=promisify(execFile);
 const SAFE_ROOTS=["app/","core/","modules/","lib/","tests/","docs/","scripts/","config/"];
-const BLOCKED_PATHS=[/^\.git(?:\/|$)/,/^\.github(?:\/|$)/,/^\.env/,/\.pem$/i,/\.key$/i,
+const BLOCKED_PATHS=[/^\.git(?:\/|$)/,/^\.github(?:\/|$)/,/(?:^|\/)\.env/i,/\.pem$/i,/\.key$/i,
   /^scripts\/engineering-team\/repair\//,/^scripts\/engineering-team\/windows\//,
   /^config\/verification\/ownership-map\.json$/,/^package(?:-lock)?\.json$/];
 const MAX_DURATION_MS=28*60_000;

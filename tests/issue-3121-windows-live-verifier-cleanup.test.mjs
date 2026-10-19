@@ -105,6 +105,10 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
   const source = await readFile(new URL("../scripts/verification-webmcp-live.mjs", import.meta.url), "utf8");
   assert.match(source, /terminateVerificationProcessTree/u);
   assert.match(source, /Verification port 4173 is already occupied/u);
+  assert.match(source, /const viteCli = path\.join\(repoRoot, "node_modules", "vite", "bin", "vite\.js"\)/u);
+  assert.match(source, /spawnCommand\(node, \[viteCli, "--host", "127\.0\.0\.1", "--port", "4173", "--strictPort"\]/u);
+  assert.doesNotMatch(source, /spawnCommand\(npm, \["run", "dev:local"/u);
+
   assert.match(source, /await stopAndCleanupLiveVerifier\(\{ server, serverLogHandle, home, node, serverEnv \}\)/u);
   assert.match(source, /await writeSummary\("fail", \{ \.\.\.recordedDetails, cleanup \}\)/u);
   assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);

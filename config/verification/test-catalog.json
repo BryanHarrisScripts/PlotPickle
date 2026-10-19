@@ -9059,14 +9059,14 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "a49e2c4405568f5e15eedf3fd8d64da8b6a531b7a0eb049f52d079cc71f14fe2",
+        "targetDigest": "c6cc918b4301396114c5f933150187e9968eefc2a3ba365b2c7a0c52850322c2",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "c7e68f68dbd4a925e7da652b3983cb5411285eedeaf0509e4d00b28e5fb64f19"
+            "digest": "0471b6a0e13c650a8577959837459d30c56378576e4b1ab5961b5912a22dd5f5"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",

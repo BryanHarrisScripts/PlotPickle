@@ -61,7 +61,7 @@
         {
           "type": "file-contains",
           "path": "scripts/verification-webmcp-live.mjs",
-          "contains": "await writeSummary(\"fail\", { ...prior, cleanup })"
+          "contains": "await writeSummary(\"fail\", { ...recordedDetails, cleanup })"
         }
       ]
     },

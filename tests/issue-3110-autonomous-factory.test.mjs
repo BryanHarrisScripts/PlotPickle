@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 import {
   parseQueueCommand,eligibleIssue,pickNextIssue,enableFactory,disableFactory,
-  readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,
+  readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
@@ -41,6 +41,39 @@ test("only explicitly allowlisted open eligible issues run; HOLD and blocked nev
  assert.equal(eligibleIssue({...first,state:"CLOSED"},[3135]),false);
  assert.deepEqual(pickNextIssue([second,first],[3135,3123],[3135]),{number:3123,title:second.title});
  assert.equal(pickNextIssue([first],[3135],[3135]),null);
+});
+
+test("latest-first backlog planner is read-only, finite and excludes blocked issues",()=>{
+ assert.equal(parseQueueCommand(["--plan-latest"]).mode,"plan-latest");
+ for(const argv of [["--plan-latest","--issues","3148"],["--plan-latest","--consent","PLOTPICKLE_AUTONOMOUS_ENGINEERING"],["--plan-latest","--serve"]]){
+   assert.throws(()=>parseQueueCommand(argv));
+ }
+ const plan=planNewestFirst([
+   second,
+   {number:3148,title:"Newest authorized candidate",state:"OPEN",labels:[]},
+   {...first,title:"[HOLD] blocked task"},
+   {...second},
+   {number:3146,title:"Ready for review",state:"OPEN",labels:[{name:"factory:blocked"}]},
+   {number:3142,title:"Older eligible candidate",state:"OPEN",labels:[]},
+   {number:3147,title:"Closed issue",state:"CLOSED",labels:[]},
+ ]);
+ assert.deepEqual(plan.proposedIssues.map(x=>x.number),[3148,3142,3123]);
+ assert.equal(plan.state,"PLAN_ONLY");
+ assert.equal(plan.order,"NEWEST_ISSUE_NUMBER_FIRST");
+ assert.equal(plan.issuesCsv,"3148,3142,3123");
+ assert.equal(plan.queueModified,false);
+ assert.equal(plan.workerStarted,false);
+ assert.equal(plan.userApprovalRequired,true);
+ assert.ok(plan.excluded.some(x=>x.number===3123&&x.reason==="INVALID_OR_DUPLICATE"));
+ assert.ok(plan.excluded.some(x=>x.number===3135));
+ const limited=planNewestFirst([first,second],{maxIssues:1});
+ assert.equal(limited.exceedsSingleApproval,true);
+ assert.deepEqual(limited.proposedIssues.map(x=>x.number),[3135]);
+ assert.throws(()=>planNewestFirst(undefined));
+ assert.throws(()=>planNewestFirst([first],{maxIssues:81}));
+ const unknownCapacity=planNewestFirst(Array.from({length:100},(_,i)=>({number:1000+i,title:"An issue",state:"OPEN",labels:[]})));
+ assert.equal(unknownCapacity.truncatedAtGithubLimit,true);
+ assert.equal(unknownCapacity.exceedsSingleApproval,true);
 });
 
 test("enabling needs reviewed finite issues; one attempt is irreversibly reserved before agent dispatch",()=>sandbox(async root=>{

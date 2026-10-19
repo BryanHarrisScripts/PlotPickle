@@ -30,7 +30,7 @@ const POLL_MS = 60_000;
 const SHA256 = (value) => createHash("sha256").update(value).digest("hex");
 
 export function parseQueueCommand(argv) {
-  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview"];
+  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest"];
   const selected = modes.filter(flag => argv.includes(flag));
   if (selected.length !== 1 || argv.filter(x => x === selected[0]).length !== 1) {
     throw new Error("Exactly one queue operation is required.");
@@ -92,6 +92,38 @@ export function pickNextIssue(issues, allowed, reserved=[]) {
     if(eligibleIssue(issue,allowed))return Object.freeze({number,title:issue.title});
   }
   return null;
+}
+
+/** A public GitHub issue listing is a proposal, never an execution grant. */
+export function planNewestFirst(issues,{maxIssues=MAX_ISSUES}={}) {
+  if(!Array.isArray(issues)||!Number.isSafeInteger(maxIssues)||maxIssues<1||maxIssues>MAX_ISSUES)
+    throw new Error("Finite read-only issue list and capacity required.");
+  const seen=new Set(),eligible=[],excluded=[];
+  for(const issue of issues) {
+    const number=Number(issue?.number);
+    if(!Number.isSafeInteger(number)||number<1||seen.has(number)) {
+      excluded.push({number:Number.isSafeInteger(number)?number:null,reason:"INVALID_OR_DUPLICATE"});
+      continue;
+    }
+    seen.add(number);
+    if(!eligibleIssue(issue,[number])) {
+      excluded.push({number,reason:"CLOSED_HOLD_OR_BLOCKED"});
+      continue;
+    }
+    eligible.push({number,title:String(issue.title).slice(0,120)});
+  }
+  eligible.sort((a,b)=>b.number-a.number);
+  const selected=eligible.slice(0,maxIssues);
+  return Object.freeze({
+    state:"PLAN_ONLY",order:"NEWEST_ISSUE_NUMBER_FIRST",
+    listedIssues:issues.length,totalEligible:eligible.length,
+    proposedCount:selected.length,
+    truncatedAtGithubLimit:issues.length>=100,
+    exceedsSingleApproval:eligible.length>maxIssues,
+    proposedIssues:selected,excluded,
+    issuesCsv:selected.map(x=>x.number).join(","),
+    userApprovalRequired:true,queueModified:false,workerStarted:false,
+  });
 }
 
 export async function readFactoryStatus({root=ROOT,now=Date.now}={}) {
@@ -313,7 +345,8 @@ async function main() {
   else{
     const github=createQueueGitHubClient();
     const issues=await github.issues();
-    output={state:"PREVIEW_ONLY",openIssues:issues.length,eligible:issues
+    if(cmd.mode==="plan-latest") output=planNewestFirst(issues);
+    else output={state:"PREVIEW_ONLY",openIssues:issues.length,eligible:issues
       .filter(x=>!/^\[ON HOLD\]|^\[HOLD\]|^HOLD:/i.test(x.title||""))
       .map(x=>({number:x.number,title:String(x.title||"").slice(0,120)})).slice(0,100)};
   }

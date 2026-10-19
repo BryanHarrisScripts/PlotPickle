@@ -9142,14 +9142,14 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "8eff29571ac1c5f5eec5a6cc3b763c1a189267fe9dc7acd166641a026e610a85",
+        "targetDigest": "091ba2a49a5c0ce1bea0500bf891b7b109d0289bd005e45adf2bff56589b7614",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "faaff0806d895c04d3937cf31024c9dd9bf5e6b1c17d80210d4dcdc02bb55638"
+            "digest": "64e37fbce02ff8f71f519053f501239e322dacea142a2e82f53ecd620b9334e0"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",

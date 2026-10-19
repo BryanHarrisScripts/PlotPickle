@@ -211,12 +211,13 @@ export async function authorizeFactoryRetry({root=ROOT,issueNumber=3141,expected
   if(lock){
     if(!Number.isSafeInteger(lock.pid)||lock.pid<1)
       throw new Error("Unverifiable service process lock; retry denied.");
-    try {process.kill(lock.pid,0);}
+    let stillRunning=false;
+    try {process.kill(lock.pid,0);stillRunning=true;}
     catch(error) {
-      if(error?.code==="ESRCH") { /* exited worker; retain stale lock for owned recovery */ }
-      else throw new Error("Worker process ownership uncertain; retry denied.");
+      if(error?.code!=="ESRCH")
+        throw new Error("Worker process ownership uncertain; retry denied.");
     }
-    if((()=>{try{process.kill(lock.pid,0);return true;}catch(e){return e?.code!=="ESRCH";}})())
+    if(stillRunning)
       throw new Error("Factory worker still alive; stop scheduled task before approval.");
   }
   const jobs=path.join(root,"jobs");

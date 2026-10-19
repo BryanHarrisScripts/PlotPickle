@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { mkdir, open, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
+import { createServer } from "node:net";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { verificationSyntheticRuntime } from "./full-verification-auth.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
+import { terminateVerificationProcessTree } from "./full-verification-process.mjs";
 import { writeWebMcpFindingsReport } from "./run-webmcp-startup-uat.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {
@@ -211,6 +213,82 @@ async function runAuditWithColdMediaRetry(options) {
   }
 }
 
+function isLoopbackPortAvailable() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", (error) => {
+      if (error?.code === "EADDRINUSE") resolve(false);
+      else reject(error);
+    });
+    probe.listen({ host: "127.0.0.1", port: 4173, exclusive: true }, () => {
+      probe.close((error) => error ? reject(error) : resolve(true));
+    });
+  });
+}
+
+/**
+ * Only a child spawned by this verifier is eligible for process-tree STOP.
+ * A released loopback port is a safety condition, not production STOP proof.
+ * A blocked cleanup retains the disposable profile rather than guessing at PIDs.
+ */
+export async function stopAndCleanupLiveVerifier({
+  server = null,
+  serverLogHandle = null,
+  home,
+  node,
+  serverEnv,
+  stopTree = terminateVerificationProcessTree,
+  probePort = isLoopbackPortAvailable,
+  cleanupHome = ({ home: isolatedHome, node: executable, serverEnv: env }) =>
+    runCommand(executable, ["scripts/run-webmcp-startup-uat.mjs", "cleanup", "--home", isolatedHome], { env }),
+  wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  maxPortChecks = 25,
+} = {}) {
+  const failureCodes = [];
+  let stopped = !server;
+  if (server) {
+    try {
+      await stopTree(server);
+      if (server.exitCode === null && server.signalCode === null) {
+        failureCodes.push("OWNED_SERVER_PARENT_EXIT_UNCONFIRMED");
+      }
+      let available = false;
+      for (let check = 0; check < maxPortChecks; check += 1) {
+        if (await probePort()) { available = true; break; }
+        if (check + 1 < maxPortChecks) await wait(200);
+      }
+      if (!available) failureCodes.push("VERIFIER_PORT_STILL_OCCUPIED");
+      stopped = failureCodes.length === 0;
+    } catch {
+      failureCodes.push("OWNED_SERVER_STOP_UNVERIFIED");
+    }
+  }
+  if (serverLogHandle) {
+    try { await serverLogHandle.close(); }
+    catch { failureCodes.push("SERVER_LOG_CLOSE_FAILED"); }
+  }
+  if (stopped) {
+    let cleaned = false;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await cleanupHome({ home, node, serverEnv });
+        cleaned = true;
+        break;
+      } catch {
+        if (attempt < 2) await wait((attempt + 1) * 250);
+      }
+    }
+    if (!cleaned) failureCodes.push("SYNTHETIC_HOME_CLEANUP_FAILED");
+  } else {
+    failureCodes.push("SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED");
+  }
+  return Object.freeze({
+    status: failureCodes.length ? "blocked" : "pass",
+    failureCodes: Object.freeze(failureCodes),
+    productionUatTreeTerminationProven: false,
+  });
+}
+
 async function writeSummary(status, details = {}) {
   await mkdir(artifactRoot, { recursive: true });
   await writeFile(summaryPath, `${JSON.stringify({
@@ -267,6 +345,9 @@ export async function runLiveWebMcpEvidence() {
     await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "prepare", "--home", home]);
     await mkdir(nodeRuntimeDir, { recursive: true });
 
+    if (!(await isLoopbackPortAvailable())) {
+      throw new Error("Verification port 4173 is already occupied. Refusing to attach to an unowned listener.");
+    }
     serverLogHandle = await open(serverLogPath, "w");
     server = spawnCommand(npm, ["run", "dev:local", "--", "--host", "127.0.0.1", "--port", "4173"], {
       cwd: repoRoot,
@@ -359,9 +440,15 @@ export async function runLiveWebMcpEvidence() {
     console.error(`[FAIL] Live WebMCP verification: ${message}`);
     return 1;
   } finally {
-    if (server && !server.killed) server.kill("SIGTERM");
-    if (serverLogHandle) await serverLogHandle.close().catch(() => {});
-    await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "cleanup", "--home", home], { env: serverEnv }).catch(() => {});
+    const cleanup = await stopAndCleanupLiveVerifier({ server, serverLogHandle, home, node, serverEnv });
+    if (cleanup.status !== "pass") {
+      let prior = {};
+      try { prior = JSON.parse(await readFile(summaryPath, "utf8")); } catch {}
+      delete prior.status;
+      await writeSummary("fail", { ...prior, cleanup });
+      console.error(`[FAIL] Live WebMCP cleanup blocked: ${cleanup.failureCodes.join(", ")}. Disposable test home retained if owned STOP is unverified.`);
+      return 1;
+    }
   }
 }
 

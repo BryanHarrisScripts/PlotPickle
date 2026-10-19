@@ -4049,7 +4049,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3118-story-factory-browser-journey.test.mjs",
-          "tests/issue-3121-windows-live-verifier-cleanup.test.mjs"
+          "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "tests/issue-3123-story-factory-session-evidence.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4074,7 +4075,7 @@
           ".artifacts/verification-shadow/verification.json"
         ]
       },
-      "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven. #3121 additionally verifies deterministic owned-stop ordering, blocked cleanup retention and bounded retry using mocked handles; not native Windows production STOP proof."
+      "notes": "#3118 named-journey/static policy contract only. Actual rendered browser outcome comes from experience.webmcp-live-observer and owner Windows acceptance; production browser-runner tree STOP and Chat/Work remote control remain unproven. #3121 additionally verifies deterministic owned-stop ordering, blocked cleanup retention and bounded retry using mocked handles; not native Windows production STOP proof. #3123 extra read-only profile-scoped session/registry disappearance probes; unit fixtures only; cannot claim Windows human browser PASS."
     }
   ],
   "truthGovernance": {
@@ -8664,7 +8665,7 @@
         "inputs": [
           {
             "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
-            "digest": "d6206d558f3eeb9a2ed75dbb1d0dbb948512a0a2b95a8efd184808dbbf9e1f84"
+            "digest": "64a10bbe820fb6146e21f3291035e52a8bf10336d664d7153224dc1d4ac80831"
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
@@ -8697,6 +8698,34 @@
           {
             "path": "scripts/verification-webmcp-live.mjs",
             "digest": "5b92e6360043ba0657c38495041e335d5e2c33665bf531a1b067340e5d5a1122"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3123-story-factory-session-evidence.test.mjs",
+        "targetDigest": "36a80e975218ddb1994334fe82c8cd186d3d2c069d6df0f0968b96488b348b65",
+        "catalogueIds": [
+          "verification.story-factory-browser-journey-3118"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mock browser storage and source-scoped tests only. Can classify lost authenticated session key vs registry mismatch without copying project identifiers. Cannot prove actual Windows browser continuity or hydrated vault persistence.",
+        "inputs": [
+          {
+            "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+            "digest": "64a10bbe820fb6146e21f3291035e52a8bf10336d664d7153224dc1d4ac80831"
           }
         ]
       }

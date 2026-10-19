@@ -76,15 +76,21 @@ test("stop is idempotent and never fabricates a terminated worker acknowledgemen
   const request=await requestStopWindowsUat(scope,{appRoot:root});
   assert.equal(request.state,"stop-requested");
   assert.equal(request.cancellationAcknowledged,false);
+  assert.equal(request.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
+  assert.equal(request.ownedDescendantsVerifiedGone,false);
   const duplicate=await requestStopWindowsUat(scope,{appRoot:root});
   assert.equal(duplicate.state,"stop-requested");
+  assert.equal(duplicate.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
   assert.equal((await statusWindowsUat(scope,{appRoot:root})).mergeEligible,false);
   const result=await driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:()=>{throw Error("No UAT should launch")}});
   assert.equal(result.state,"cancelled-child-exited");
   assert.equal(result.cancellationAcknowledged,true);
   assert.equal(result.childExitObserved,false);
   await assert.rejects(driveWindowsUat(scope,{appRoot:root,inspect:checkout}),/EEXIST/);
-  assert.equal((await requestStopWindowsUat(scope,{appRoot:root})).state,"cancelled-child-exited");
+  const terminalStop=await requestStopWindowsUat(scope,{appRoot:root});
+  assert.equal(terminalStop.state,"cancelled-child-exited");
+  assert.equal(terminalStop.stopDisposition,"ALREADY_TERMINAL_NOOP");
+  assert.equal(terminalStop.ownedDescendantsVerifiedGone,false);
 }));
 test("a fresh actual contracts-only report with matching subprocess exit becomes observed but never full browser UAT",()=>sandbox(async root=>{
   const scope=await reserve(root);
@@ -112,6 +118,12 @@ test("a fresh actual contracts-only report with matching subprocess exit becomes
   assert.equal(result.independentVerification,false);
   assert.equal(result.mergeEligible,false);
   assert.equal((await statusWindowsUat(scope,{appRoot:root})).state,"observed-pass");
+  const stopAfterCompletion=await requestStopWindowsUat(scope,{appRoot:root});
+  assert.equal(stopAfterCompletion.state,"observed-pass");
+  assert.equal(stopAfterCompletion.childExitObserved,true);
+  assert.equal(stopAfterCompletion.cancellationAcknowledged,false);
+  assert.equal(stopAfterCompletion.stopDisposition,"ALREADY_TERMINAL_NOOP");
+  assert.equal(stopAfterCompletion.ownedDescendantsVerifiedGone,false);
 }));
 test("spoofed success without fresh report fails closed, and an interrupted worker cannot replay",()=>sandbox(async root=>{
   const scope=await reserve(root);
@@ -134,6 +146,7 @@ test("live stop kills only launched UAT child, then observes child exit before c
   const requested=await requestStopWindowsUat(scope,{appRoot:root});
   assert.equal(requested.state,"stop-requested");
   assert.equal(requested.cancellationAcknowledged,false);
+  assert.equal(requested.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
   const done=await running;
   assert.equal(killed,true);
   assert.equal(done.state,"cancelled-child-exited");

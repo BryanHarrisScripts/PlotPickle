@@ -94,9 +94,21 @@ test("invalid attempts, private symlinks, malicious phase/code and corrupt recor
     head:NEW,phase:"RUN_LOCAL_PI;cat ./secret",code:"PRIVATE_PASSWORD"},3141,2).phase,null);
   const file=path.join(jobs,"result-3141-attempt-2.json");
   await rm(file);
-  await symlink(path.join(jobs,"result-3141.json"),file);
-  assert.equal((await factoryEvidence({root,issueNumber:3141,attempt:2})).status,"RESERVED_NO_RESULT");
-  await rm(file);
+  // Unprivileged Windows accounts cannot always create file symlinks (EPERM).
+  // Preserve the symlink security assertion wherever the OS permits it;
+  // denial of symlink creation must not skip the other adversarial fixtures.
+  let linkCreated=false;
+  try {
+    await symlink(path.join(jobs,"result-3141.json"),file);
+    linkCreated=true;
+  } catch(error) {
+    if(process.platform!=="win32" ||
+       !["EPERM","EACCES","ENOTSUP"].includes(error?.code))throw error;
+  }
+  if(linkCreated) {
+    assert.equal((await factoryEvidence({root,issueNumber:3141,attempt:2})).status,"RESERVED_NO_RESULT");
+    await rm(file);
+  }
   await writeFile(file,"not json");
   assert.equal((await factoryEvidence({root,issueNumber:3141,attempt:2})).status,"RESERVED_NO_RESULT");
   const missing=await factoryStatus({root:path.join(root,"missing"),now:()=>4000});

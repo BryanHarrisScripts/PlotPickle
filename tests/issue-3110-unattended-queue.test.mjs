@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { admitQueueTicket, inspectQueue, runSupervisorOnce } from "../scripts/engineering-team/unattended-queue.mjs";
+import { admitQueueTicket, inspectQueue, runSupervisorOnce } from "../scripts/engineering-team/queue/unattended-queue.mjs";
 const head = "a".repeat(40);
 const grant = { issue: 3135, head, approved: true, sourceMutationGrant: true, providerGrant: true,
   localExecutionGrant: true, mergeGrant: true, grantRef: "approved-3135" };

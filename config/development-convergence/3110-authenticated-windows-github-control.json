@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 3110,
+  "phase": "authenticated-windows-github-start-status-stop",
+  "brief": "docs/developer-briefs/3110-authenticated-windows-github-control.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/paired-github-control.mjs",
+    "tests/issue-3110-authenticated-windows-control.test.mjs",
+    "docs/developer-briefs/3110-authenticated-windows-github-control.md",
+    "config/development-convergence/3110-authenticated-windows-github-control.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "LOCAL-PAIRING-AND-KILL-SWITCH",
+      "criterion": "Remote control is OFF by default and requires explicit local Human pairing of one repository, actor and opaque host; local disable cannot silently re-enable.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "AUTHENTICATED_WINDOWS_CONTROL"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-authenticated-windows-control.test.mjs",
+          "contains": "pairing requires exact local Human consent"
+        }
+      ]
+    },
+    {
+      "id": "AUTHENTICATED-BOUNDED-ENVELOPE",
+      "criterion": "Only an authenticated GitHub issue from the paired actor with exact label, host, title, parameters, nonce and short expiry maps to start/status/stop.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "parseWindowsGitHubControlIssue"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-authenticated-windows-control.test.mjs",
+          "contains": "ten-minute lifetime"
+        }
+      ]
+    },
+    {
+      "id": "NO-SHELL-AND-NO-REPLAY",
+      "criterion": "GitHub prose never becomes a shell command, and a private create-once reservation prevents duplicate or uncertain work from replaying.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "replayAuthorized: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-authenticated-windows-control.test.mjs",
+          "contains": "never treats issue prose as a shell command"
+        }
+      ]
+    },
+    {
+      "id": "HONEST-PUBLIC-RECEIPT",
+      "criterion": "Public results preserve runner state and cannot claim browser UAT, independent verification, model dispatch, cancellation acknowledgement or merge eligibility without matching evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/paired-github-control.mjs",
+          "contains": "mergeEligible: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3110-authenticated-windows-github-control.md",
+          "contains": "OFFLINE/UNKNOWN, never PASS"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "The authenticated GitHub CLI transport is exercised with deterministic stubs, not a live owner-device command issue.",
+    "Poll-once is explicit and bounded; automatic Windows service startup and remote offline heartbeat are not implemented.",
+    "Existing exact-head Windows UAT admission and local stop semantics remain authoritative.",
+    "Browser UAT, Pi/Cline repair dispatch, independent verification and merge remain outside this increment."
+  ]
+}

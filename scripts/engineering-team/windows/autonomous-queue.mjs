@@ -14,6 +14,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
+import { reconcileApprovedDocsPRs } from "./autonomous-pr-review.mjs";
 
 const runFile = promisify(execFile);
 const THIS = fileURLToPath(import.meta.url);
@@ -38,6 +39,10 @@ export function parseQueueCommand(argv) {
   for (let i=0;i<argv.length;i++) {
     if (selected.includes(argv[i])) continue;
     const key=argv[i];
+    if (key==="--merge-docs"){
+      if(values[key]!==undefined)throw new Error("Duplicate merge policy.");
+      values[key]=true;continue;
+    }
     if (!["--issues","--consent"].includes(key) || values[key] !== undefined || !argv[i+1] || argv[i+1].startsWith("--")) {
       throw new Error("Unknown, repeated or missing queue argument.");
     }
@@ -52,7 +57,7 @@ export function parseQueueCommand(argv) {
     || issues.some((n,i)=> !/^\d{1,7}$/.test(items[i]) || !Number.isSafeInteger(n) || n < 1))) {
     throw new Error("A finite, unique CSV issue allowlist is required; max 80.");
   }
-  return Object.freeze({mode, issues});
+  return Object.freeze({mode, issues,mergeDocsOnly:values["--merge-docs"]===true});
 }
 
 async function ordinaryJson(file, max=32_768) {
@@ -99,15 +104,17 @@ export async function readFactoryStatus({root=ROOT,now=Date.now}={}) {
   return Object.freeze({state:fresh?heartbeat.state:"OFFLINE",enabled:true,
     issueCount:config.issues.length,activeIssue:fresh?heartbeat.issueNumber||null:null,
     lastHeartbeat:heartbeat?.at||null,localAgentProven:false,productGateProven:false,
-    automaticMergeEnabled:false});
+    automaticMergeEnabled:false,
+    documentationAutoMergeEnabled:config.mergeDocsOnly===true});
 }
 
-export async function enableFactory({root=ROOT,issues,now=Date.now}={}) {
+export async function enableFactory({root=ROOT,issues,mergeDocsOnly=false,now=Date.now}={}) {
   if(!Array.isArray(issues)||issues.length<1||issues.length>MAX_ISSUES||new Set(issues).size!==issues.length
     ||issues.some(x=>!Number.isSafeInteger(x)||x<1))throw new Error("Valid local issue allowlist required.");
   if(existsSync(path.join(root,"disabled.json")))throw new Error("Factory has been locally disabled; resetting requires review.");
   await record(root,"config.json",{schemaVersion:1,enabled:true,repository:REPOSITORY,
-    issues,localOnly:true,maxCloudCostUsd:0,automaticMergeEnabled:false,createdAt:now()}, "wx");
+    issues,localOnly:true,maxCloudCostUsd:0,automaticMergeEnabled:false,
+    mergeDocsOnly:mergeDocsOnly===true,createdAt:now()}, "wx");
   return readFactoryStatus({root,now});
 }
 
@@ -165,10 +172,21 @@ export async function probeLocalCoderRoute() {
 }
 
 export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,
-  preflight=probeLocalCoderRoute,publish=publishFactoryHeartbeat,now=Date.now}={}) {
+  preflight=probeLocalCoderRoute,publish=publishFactoryHeartbeat,
+  reconcile=reconcileApprovedDocsPRs,now=Date.now}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
+  const head=await github.exactHead();
+  if(!head)return Object.freeze({state:"WAITING_FOR_EXACT_CLEAN_MAIN",processed:0});
+  // Merge is narrowly restricted to pure docs with individually proven exact
+  // GitHub CI and a second explicit local opt-in; code Product Gate stays red.
+  if(config.mergeDocsOnly===true){
+    const merged=await reconcile({issueNumbers:config.issues,exactBase:head,repoRoot:REPO_ROOT});
+    if(merged?.state==="MERGED")return Object.freeze({
+      state:"MERGED",processed:0,issueNumber:merged.issueNumber,
+      mergeSha:merged.mergeSha,prNumber:merged.prNumber});
+  }
   // Do not flood reviewers/CI with unlimited draft PRs while real Product
   // Gate and native-owned STOP remain separately unproven.
   if(typeof github.pendingFactoryPRs==="function"){
@@ -179,8 +197,6 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
       processed:0,pendingPRs:pending});
   }
   const jobs=path.join(root,"jobs");await mkdir(jobs,{recursive:true,mode:0o700});
-  const head=await github.exactHead();
-  if(!head)return Object.freeze({state:"WAITING_FOR_EXACT_CLEAN_MAIN",processed:0});
   const issues=await github.issues();
   if(!Array.isArray(issues))throw new Error("GitHub queue response malformed.");
   const reserved=[];
@@ -289,7 +305,7 @@ async function dispatchIssue({issueNumber,head,root}) {
 async function main() {
   const cmd=parseQueueCommand(process.argv.slice(2));
   let output;
-  if(cmd.mode==="enable")output=await enableFactory({issues:cmd.issues});
+  if(cmd.mode==="enable")output=await enableFactory({issues:cmd.issues,mergeDocsOnly:cmd.mergeDocsOnly});
   else if(cmd.mode==="disable")output=await disableFactory();
   else if(cmd.mode==="status")output=await readFactoryStatus();
   else if(cmd.mode==="once")output=await runFactoryCycle({dispatch:dispatchIssue});

@@ -119,6 +119,11 @@ test("#3121 read-only WebMCP acceptance blocks optional media engine spawning at
   const gateway = await readFile(new URL("../build/ai/comfyui-onboarding-gateway.ts", import.meta.url), "utf8");
   const starter = await readFile(new URL("../scripts/start-comfyui-background.ps1", import.meta.url), "utf8");
   const verifier = await readFile(new URL("../scripts/verification-webmcp-live.mjs", import.meta.url), "utf8");
+  const ownership = JSON.parse(await readFile(new URL("../config/verification/ownership-map.json", import.meta.url), "utf8"));
+  const localAiRule = ownership.rules.find((rule) => rule.id === "local-ai-readiness-runtime");
+  assert.equal(localAiRule?.ownerLayer, "provider-runtime");
+  assert.ok(localAiRule.include.includes("scripts/start-comfyui-background.ps1"));
+
 
   assert.match(verifier, /PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp"/u);
   assert.match(verifier, /PLOTPICKLE_ACCEPTANCE_MODE: "1"/u);

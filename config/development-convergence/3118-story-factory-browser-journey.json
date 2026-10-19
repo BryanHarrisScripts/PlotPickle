@@ -6,6 +6,7 @@
   "allowedChanges": [
     "core/sidecars/webmcp-acceptance-sidecar.mjs",
     "scripts/verification-webmcp-live.mjs",
+    "tests/issue-1938-verification-core.test.mjs",
     "tests/issue-3118-story-factory-browser-journey.test.mjs",
     "docs/developer-briefs/3118-story-factory-browser-journey.md",
     "config/development-convergence/3118-story-factory-browser-journey.json",

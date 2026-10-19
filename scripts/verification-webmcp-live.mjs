@@ -350,7 +350,9 @@ export async function runLiveWebMcpEvidence() {
       throw new Error("Verification port 4173 is already occupied. Refusing to attach to an unowned listener.");
     }
     serverLogHandle = await open(serverLogPath, "w");
-    server = spawnCommand(npm, ["run", "dev:local", "--", "--host", "127.0.0.1", "--port", "4173"], {
+    // Start Vite directly, rather than stopping an npm wrapper while its server child keeps the port.
+    const viteCli = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
+    server = spawnCommand(node, [viteCli, "--host", "127.0.0.1", "--port", "4173", "--strictPort"], {
       cwd: repoRoot,
       env: serverEnv,
       stdio: ["ignore", serverLogHandle.fd, serverLogHandle.fd],

@@ -146,8 +146,19 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   });
 }
 
+export async function probeLocalCoderRoute() {
+  if(process.platform!=="win32")return Object.freeze({ready:false,code:"WINDOWS_ONLY"});
+  try{
+    const {resolvePiExecutable,resolvePiLocalRuntime}=await import("../../pi-worker-runtime.mjs");
+    const pi=await resolvePiExecutable();
+    if(!pi.ready)return Object.freeze({ready:false,code:"PI_NOT_INSTALLED"});
+    await resolvePiLocalRuntime();
+    return Object.freeze({ready:true,code:"READY_LOCAL_ONLY"});
+  }catch{return Object.freeze({ready:false,code:"APPROVED_LOCAL_MODEL_UNAVAILABLE"});}
+}
+
 export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,
-  publish=publishFactoryHeartbeat,now=Date.now}={}) {
+  preflight=probeLocalCoderRoute,publish=publishFactoryHeartbeat,now=Date.now}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
@@ -163,6 +174,12 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   const issue=pickNextIssue(issues,config.issues,reserved);
   if(!issue)return Object.freeze({state:"WAITING_FOR_ELIGIBLE_ISSUE",processed:0,
     reserved:reserved.length,approved:config.issues.length});
+  // A missing provider must not consume the irreversible issue attempt.
+  // Preflight does not install a model, perform paid inference or mutate code.
+  const readiness=await preflight();
+  if(readiness?.ready!==true)return Object.freeze({
+    state:"WAITING_FOR_PROVIDER",issueNumber:issue.number,processed:0,
+    code:String(readiness?.code||"LOCAL_ROUTE_UNAVAILABLE").slice(0,80)});
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,
     taskId:SHA256(REPOSITORY+":"+issue.number+":"+head),state:"STARTED_UNCONFIRMED",
     reservedAt:now(),attempt:1,replayAuthorized:false,modelRoute:"local-only",
@@ -229,6 +246,8 @@ export async function serveFactory({root=ROOT,cycle,publish=publishFactoryHeartb
       await record(root,"heartbeat.json",{schemaVersion:1,state:"IDLE",issueNumber:null,at:now()},"w");
       try{
         const outcome=await (cycle||(()=>runFactoryCycle({root,now,dispatch:dispatchIssue})))();
+        await record(root,"heartbeat.json",{schemaVersion:1,state:outcome?.state||"OFFLINE",
+          issueNumber:outcome?.issueNumber||null,at:now()},"w");
         await publish({root,status:{state:outcome?.state||"OFFLINE",
           issueNumber:outcome?.issueNumber||null,head:null},now}).catch(()=>{});
       }catch{

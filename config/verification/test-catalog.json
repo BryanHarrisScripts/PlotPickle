@@ -8675,7 +8675,7 @@
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "1f6fdc7fc01b908ebed7daae093435d9742f26e1814f9d9ddf2f4fab4c878aef",
+        "targetDigest": "5efa04f23e413f8d6f9d2c4e35487c742ef5f65ad9ed93b4886c309306dda33d",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8706,6 +8706,10 @@
           {
             "path": "scripts/start-comfyui-background.ps1",
             "digest": "4bf41c403920f5a1ab460eca52f16787875dc61ea3536e49cb14212354f9519d"
+          },
+          {
+            "path": "config/verification/ownership-map.json",
+            "digest": "055528a68eda9c23268dd4f5339ec1395baf4dd0cbbaa77f4e7cdf47843f8dba"
           }
         ]
       },

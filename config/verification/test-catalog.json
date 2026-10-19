@@ -8650,7 +8650,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "d1649034d62c8bb10dc8ccb2ef32300bf9769e6fbae5b485907f3be717527162",
+        "targetDigest": "41a038b665003c416728ffe444e6e98debb33360816d747c0c9761534d5a3433",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -8672,13 +8672,13 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
+            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
           }
         ]
       },
       {
         "target": "tests/issue-3110-authenticated-windows-control.test.mjs",
-        "targetDigest": "c5625b026a2a788d4bff897e0726c50d90c7663195de6a007f4191b1c2b68226",
+        "targetDigest": "2cc10b57cf309c297ecdc784c564ba9b29f0e00fa26ee7cd15fafa79ae2fba46",
         "catalogueIds": [
           "agent.windows-authenticated-github-control-3110"
         ],
@@ -8700,11 +8700,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/paired-github-control.mjs",
-            "digest": "ce9f57c8be87a36b56568aaf460c9b70901e42406fdc4cbb80dccb077206e46e"
+            "digest": "c91900f3f87d9b09b9a630922b763c917f7b4823e195a62bfe63fe6fcaf5ca1c"
           },
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
+            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
           }
         ]
       },
@@ -8732,7 +8732,7 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "87a62b0e18f156eb078c59205ec373fb121c73a8e538a8cae6b45c18901be9f7"
+            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
           },
           {
             "path": "package.json",

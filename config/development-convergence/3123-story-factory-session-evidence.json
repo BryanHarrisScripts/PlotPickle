@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "issue": 3123,
+  "phase": "profile-scoped-read-only-browser-disappearance-evidence",
+  "brief": "docs/developer-briefs/3123-story-factory-session-evidence.md",
+  "allowedChanges": [
+    "core/sidecars/webmcp-acceptance-sidecar.mjs",
+    "tests/issue-3123-story-factory-session-evidence.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3123-story-factory-session-evidence.md",
+    "config/development-convergence/3123-story-factory-session-evidence.json"
+  ],
+  "acceptance": [
+    {
+      "id": "STAGE-SCOPED-OBSERVATIONS",
+      "criterion": "Record private-safe observations before each downstream stage, after rendering and on Dashboard return.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "await observe(stage.id, \"before-open\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "await observe(stage.id, \"rendered\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "await observe(stage.id, \"after-dashboard\")"
+        }
+      ]
+    },
+    {
+      "id": "NO-PRIVATE-DATA-DISCLOSURE",
+      "criterion": "Only Boolean/counter evidence may be exported; raw profile and project identities must never be written into the new diagnostic report.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "activeProfilePresent: Boolean(profile)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3123-story-factory-session-evidence.test.mjs",
+          "contains": "evidence cannot contain raw private identifiers"
+        }
+      ]
+    },
+    {
+      "id": "DO-NOT-MASK-CONTINUITY",
+      "criterion": "The same initial project must still match at each rendered stage and at the journey end; no synthetic project auto-restore.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "observed.projectId === initialProject"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "finalProject === initialProject"
+        }
+      ]
+    },
+    {
+      "id": "CLASSIFY-REGISTRY-DRIFT",
+      "criterion": "Profile-specific session and registry evidence must distinguish absent session keys, foreign-profile selection and registry mismatch without inferring project recovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
+          "contains": "registryContainsExpected:"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3123-story-factory-session-evidence.test.mjs",
+          "contains": "distinguishes a foreign-profile selection"
+        }
+      ]
+    },
+    {
+      "id": "LIMITS-ACKNOWLEDGED",
+      "criterion": "Diagnostic-only CI is not native Windows Browser PASS or application project continuity proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3123-story-factory-session-evidence.md",
+          "contains": "NOT a Windows Browser PASS"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No application project mutation, silent recovery, generated media or paid providers.",
+    "No raw private identifiers or storage values in new diagnostics.",
+    "Browser journey FAIL stays FAIL until original project continuity assertions pass on real Windows."
+  ]
+}

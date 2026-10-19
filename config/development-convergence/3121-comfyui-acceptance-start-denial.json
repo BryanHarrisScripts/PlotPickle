@@ -9,7 +9,8 @@
     "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3121-comfyui-acceptance-start-denial.md",
-    "config/development-convergence/3121-comfyui-acceptance-start-denial.json"
+    "config/development-convergence/3121-comfyui-acceptance-start-denial.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {
@@ -73,6 +74,22 @@
           "type": "file-contains",
           "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
           "contains": "SYNTHETIC_HOME_CLEANUP_FAILED"
+        }
+      ]
+    },
+    {
+      "id": "EXPLICIT-PRODUCTION-OWNERSHIP",
+      "criterion": "Windows managed ComfyUI startup script is explicitly classified as production provider-runtime code rather than unmapped or unverified.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"scripts/start-comfyui-background.ps1\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
+          "contains": "localAiRule?.ownerLayer"
         }
       ]
     }

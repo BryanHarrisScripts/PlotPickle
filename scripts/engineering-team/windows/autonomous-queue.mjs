@@ -323,7 +323,32 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   for(const issueNumber of config.issues){
     if(existsSync(path.join(jobs,"issue-"+issueNumber+".json")))reserved.push(issueNumber);
   }
-  const issue=pickNextIssue(issues,config.issues,reserved);
+  let issue=pickNextIssue(issues,config.issues,reserved);
+  let attempt=1;
+  if(!issue && config.issues.length===1 && config.issues[0]===3141 &&
+    reserved.includes(3141)) {
+    const approval=await safeJson(path.join(jobs,"retry-authorized-3141.json"));
+    if(approval) {
+      const original=await ordinaryJson(path.join(jobs,"issue-3141.json"));
+      const result=await ordinaryJson(path.join(jobs,"result-3141.json"));
+      if(approval.schemaVersion!==1||approval.issueNumber!==3141||approval.attempt!==2 ||
+        approval.sourceHead!==head||approval.priorHead!==original.sourceHead ||
+        approval.originalJobPreserved!==true||approval.localOnly!==true ||
+        approval.allowMerge!==false||result.state!=="BLOCKED" ||
+        result.code!=="SOURCE_OR_BUILD_OR_PROVIDER_FAILURE" ||
+        result.replayAuthorized!==false||result.prUrl!==null) {
+        return Object.freeze({state:"WAITING_FOR_RETRY_HEAD_OR_REVIEW",processed:0});
+      }
+      if(!existsSync(path.join(jobs,"issue-3141-attempt-2.json")) &&
+        !existsSync(path.join(jobs,"result-3141-attempt-2.json"))) {
+        const candidate=issues.find(x=>Number(x.number)===3141);
+        if(eligibleIssue(candidate,config.issues)) {
+          issue=Object.freeze({number:3141,title:candidate.title});
+          attempt=2;
+        }
+      }
+    }
+  }
   if(!issue)return Object.freeze({state:"WAITING_FOR_ELIGIBLE_ISSUE",processed:0,
     reserved:reserved.length,approved:config.issues.length});
   // A missing provider must not consume the irreversible issue attempt.
@@ -333,10 +358,12 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
     state:"WAITING_FOR_PROVIDER",issueNumber:issue.number,processed:0,
     code:String(readiness?.code||"LOCAL_ROUTE_UNAVAILABLE").slice(0,80)});
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,
-    taskId:SHA256(REPOSITORY+":"+issue.number+":"+head),state:"STARTED_UNCONFIRMED",
-    reservedAt:now(),attempt:1,replayAuthorized:false,modelRoute:"local-only",
+    taskId:SHA256(REPOSITORY+":"+issue.number+":"+head+":"+attempt),state:"STARTED_UNCONFIRMED",
+    reservedAt:now(),attempt,replayAuthorized:false,modelRoute:"local-only",
     cloudCostAllowed:false,modelDispatchAuthorized:true,automaticMergeAuthorized:false};
-  await record(jobs,"issue-"+issue.number+".json",job,"wx");
+  const jobName=attempt===2?"issue-3141-attempt-2.json":"issue-"+issue.number+".json";
+  const resultName=attempt===2?"result-3141-attempt-2.json":"result-"+issue.number+".json";
+  await record(jobs,jobName,job,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:"RUNNING",issueNumber:issue.number,at:now()},"w");
   let result;
   const heartbeat=async()=>{
@@ -350,7 +377,7 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   ticker.unref?.();
   try{
     if(typeof dispatch!=="function")throw new Error("No approved engineering executor configured.");
-    result=await dispatch({issueNumber:issue.number,head,root,job});
+    result=await dispatch({issueNumber:issue.number,head,root,job,attempt});
     if(!["PR_OPEN","WAITING_FOR_PROVIDER","WAITING_FOR_PRODUCT_UAT","BLOCKED"].includes(result?.state)){
       throw new Error("Executor produced an unsupported result.");
     }
@@ -360,14 +387,14 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   }finally{
     clearInterval(ticker);
   }
-  const terminal={schemaVersion:1,issueNumber:issue.number,head,state:result.state,
+  const terminal={schemaVersion:1,issueNumber:issue.number,attempt,head,state:result.state,
     code:String(result.code||"").slice(0,80),
     // A fixed local stage enum, never raw stderr, model transcript or private path.
     phase:/^(?:INSTALL_DEPENDENCIES|RUN_LOCAL_PI|INSPECT_CANDIDATE_PATCH|CHECK_DIFF|RUN_CONTRACTS_UAT|RUN_PRODUCTION_BUILD|RECHECK_BASE_HEAD|STAGE_CANDIDATE|RECHECK_STAGED_PATHS|COMMIT_CANDIDATE|PUSH_CANDIDATE|CREATE_DRAFT_PR|UNKNOWN_STAGE)$/.test(result.phase||"")?result.phase:null,
     prUrl:/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(result.prUrl||"")?result.prUrl:null,
     reportedAt:now(),replayAuthorized:false,
     browserUatProven:false,independentVerification:false,mergeEligible:false};
-  await record(jobs,"result-"+issue.number+".json",terminal,"wx");
+  await record(jobs,resultName,terminal,"wx");
   await record(root,"heartbeat.json",{schemaVersion:1,state:terminal.state,
     issueNumber:issue.number,at:now()},"w");
   await publish({root,status:{state:terminal.state,issueNumber:issue.number,head},now})
@@ -414,11 +441,12 @@ export async function serveFactory({root=ROOT,cycle,publish=publishFactoryHeartb
   }finally{await unlink(lock).catch(()=>{});}
 }
 
-async function dispatchIssue({issueNumber,head,root}) {
+async function dispatchIssue({issueNumber,head,root,attempt=1}) {
   const {runPortableCommand}=await import("../../pi-worker-runtime.mjs");
   const result=await runPortableCommand(process.execPath,[
     path.join(path.dirname(THIS),"autonomous-issue-coder.mjs"),
-    "--issue",String(issueNumber),"--head",head,"--root",root
+    "--issue",String(issueNumber),"--head",head,"--root",root,
+    ...(attempt===2?["--attempt","2"]:[])
   ],{cwd:REPO_ROOT,timeout:45*60_000,maxBuffer:32768});
   const receipt=JSON.parse(String(result.stdout||"").trim());
   return receipt;
@@ -428,6 +456,8 @@ async function main() {
   const cmd=parseQueueCommand(process.argv.slice(2));
   let output;
   if(cmd.mode==="enable")output=await enableFactory({issues:cmd.issues,mergeDocsOnly:cmd.mergeDocsOnly});
+  else if(cmd.mode==="authorize-retry") output=await authorizeFactoryRetry({
+    issueNumber:cmd.retryIssue,expectedHead:cmd.retryBase});
   else if(cmd.mode==="disable")output=await disableFactory();
   else if(cmd.mode==="status")output=await readFactoryStatus();
   else if(cmd.mode==="once")output=await runFactoryCycle({dispatch:dispatchIssue});

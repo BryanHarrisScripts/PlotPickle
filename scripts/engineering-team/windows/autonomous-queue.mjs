@@ -169,6 +169,83 @@ export async function disableFactory({root=ROOT,now=Date.now}={}) {
   return readFactoryStatus({root,now});
 }
 
+/**
+ * A recovered attempt is NEVER a replay. Inspection is source-/branch-bound
+ * and reads the original isolated worktree without changing/deleting it.
+ */
+async function inspectFailedFactoryWorktree({root,original}) {
+  const directory=path.join(root,"worktrees",
+    "issue-3141-"+original.sourceHead.slice(0,10));
+  const stat=await lstat(directory);
+  if(!stat.isDirectory()||stat.isSymbolicLink())
+    throw new Error("Original isolated worktree is not an ordinary directory.");
+  const options={cwd:REPO_ROOT,encoding:"utf8",windowsHide:true,maxBuffer:65536,timeout:30000};
+  const status=await runFile("git",["-C",directory,"status","--porcelain","--untracked-files=all"],options);
+  if(String(status.stdout||"").trim())
+    throw new Error("Original worktree contains unreviewed changes; retry denied.");
+  const oldBranch="factory/issue-3141-"+original.sourceHead.slice(0,10);
+  const remote=await runFile("git",["ls-remote","--heads","origin",oldBranch],options);
+  if(String(remote.stdout||"").trim())
+    throw new Error("An original attempt branch exists remotely; retry denied.");
+  const prs=await runFile("gh",["pr","list","--repo",REPOSITORY,
+    "--state","all","--head",oldBranch,"--json","number"],options);
+  if(JSON.parse(String(prs.stdout||"[]")).length)
+    throw new Error("An earlier factory PR is discoverable; retry denied.");
+  return true;
+}
+
+/** Authorize a distinct attempt #2, without replacing original job or STOP evidence. */
+export async function authorizeFactoryRetry({root=ROOT,issueNumber=3141,expectedHead,
+  github=createQueueGitHubClient(),inspect=inspectFailedFactoryWorktree,
+  now=Date.now}={}) {
+  if(issueNumber!==3141||!SHA.test(expectedHead||""))
+    throw new Error("Retry restricted to issue #3141 and an exact 40-character main head.");
+  if(existsSync(path.join(root,"disabled.json")))
+    throw new Error("A local STOP exists. No retry authorization permitted.");
+  const config=await ordinaryJson(path.join(root,"config.json"));
+  if(config?.schemaVersion!==1||config.repository!==REPOSITORY||config.enabled!==true ||
+    config.mergeDocsOnly===true||config.automaticMergeEnabled===true ||
+    config.issues?.length!==1||config.issues[0]!==3141)
+    throw new Error("Retry requires the original single-issue, no-auto-merge permission.");
+  const lock=await safeJson(path.join(root,"service.lock"));
+  if(lock){
+    if(!Number.isSafeInteger(lock.pid)||lock.pid<1)
+      throw new Error("Unverifiable service process lock; retry denied.");
+    try {process.kill(lock.pid,0);}
+    catch(error) {
+      if(error?.code==="ESRCH") { /* exited worker; retain stale lock for owned recovery */ }
+      else throw new Error("Worker process ownership uncertain; retry denied.");
+    }
+    if((()=>{try{process.kill(lock.pid,0);return true;}catch(e){return e?.code!=="ESRCH";}})())
+      throw new Error("Factory worker still alive; stop scheduled task before approval.");
+  }
+  const jobs=path.join(root,"jobs");
+  const original=await ordinaryJson(path.join(jobs,"issue-3141.json"));
+  const result=await ordinaryJson(path.join(jobs,"result-3141.json"));
+  if(original.issueNumber!==3141||original.attempt!==1||!SHA.test(original.sourceHead||"") ||
+    original.replayAuthorized!==false||result.issueNumber!==3141 ||
+    result.head!==original.sourceHead||result.state!=="BLOCKED" ||
+    result.code!=="SOURCE_OR_BUILD_OR_PROVIDER_FAILURE" ||
+    result.replayAuthorized!==false||result.prUrl!==null)
+    throw new Error("Original failed attempt has unverified or uncertain outcomes.");
+  if(original.sourceHead===expectedHead)
+    throw new Error("Retry must use a new independently checked main head.");
+  if(existsSync(path.join(jobs,"issue-3141-attempt-2.json")) ||
+    existsSync(path.join(jobs,"result-3141-attempt-2.json")))
+    throw new Error("Second attempt is already reserved or completed.");
+  await inspect({root,original,result});
+  const exact=await github.exactHead();
+  if(exact!==expectedHead)
+    throw new Error("Fresh clean main did not match approved retry head.");
+  const approval={schemaVersion:1,issueNumber:3141,attempt:2,
+    priorHead:original.sourceHead,sourceHead:expectedHead,
+    approvedAt:now(),originalJobPreserved:true,allowMerge:false,localOnly:true};
+  await record(jobs,"retry-authorized-3141.json",approval,"wx");
+  return Object.freeze({state:"RETRY_AUTHORIZED",issueNumber:3141,attempt:2,
+    priorHead:original.sourceHead,sourceHead:expectedHead,
+    workerStarted:false,originalJobPreserved:true,automaticMergeAuthorized:false});
+}
+
 export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   async function call(program,args,timeout=30_000) {
     const x=await exec(program,args,{cwd:repoRoot,encoding:"utf8",windowsHide:true,maxBuffer:512_000,timeout});

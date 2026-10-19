@@ -4216,9 +4216,7 @@
         "security",
         "test-harness",
         "windows",
-        "mcp",
-        "chatgpt",
-        "plugin"
+        "mcp"
       ],
       "runner": {
         "kind": "node-test",

@@ -93,7 +93,8 @@ export async function writeEngineeringEvidenceState(runDir, state, { resume = fa
   if (!path.isAbsolute(runDir) || !state || !HASH.test(state.scopeHash || "")) {
     throw new Error("Engineering restart storage requires an absolute private run directory.");
   }
-  const expected = sha256(JSON.stringify(({ digest, ...rest }) => rest)(state));
+  const { digest: suppliedDigest, ...payload } = state;
+  const expected = sha256(JSON.stringify(payload));
   if (state.digest !== expected) throw new Error("Engineering restart state integrity mismatch.");
   const name = resume ? "resume-evidence-state.json" : "evidence-state.json";
   const bytes = JSON.stringify(state) + "\n";

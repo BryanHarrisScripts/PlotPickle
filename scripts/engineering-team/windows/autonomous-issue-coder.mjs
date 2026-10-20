@@ -46,6 +46,7 @@ const BOUNDED_DOCUMENTS=Object.freeze({
   3141:"docs/developer-briefs/3141-autonomous-factory-native-acceptance.md",
   3158:"docs/developer-briefs/factory-native-worker-pilot-acceptance.md",
   3160:"docs/developer-briefs/3160-factory-native-write-smoke.md",
+  3164:"docs/developer-briefs/3164-factory-native-docs-smoke.md",
 });
 export function factoryBoundedDocument(issueNumber) {
   return Object.hasOwn(BOUNDED_DOCUMENTS,issueNumber)?BOUNDED_DOCUMENTS[issueNumber]:null;

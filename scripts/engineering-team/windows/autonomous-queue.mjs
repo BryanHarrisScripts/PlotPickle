@@ -16,7 +16,7 @@ import { promisify } from "node:util";
 import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
 import { versionAtLeast } from "../../pi-version.mjs";
 import { reconcileApprovedDocsPRs } from "./autonomous-pr-review.mjs";
-import { checkFactoryDependencyProof } from "./factory-dependency-preflight.mjs";
+import { checkFactoryDependencyProof } from "../queue/factory-dependency-preflight.mjs";
 
 const runFile = promisify(execFile);
 const THIS = fileURLToPath(import.meta.url);

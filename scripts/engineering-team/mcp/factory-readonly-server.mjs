@@ -22,7 +22,7 @@ const REPOSITORY = "BryanHarrisScripts/PlotPickle";
 const HEX_SHA = /^[a-f0-9]{40}$/;
 const MAX_BYTES = 65_536;
 const states = new Set(["OFF","OFFLINE","IDLE","RUNNING","BLOCKED","PR_OPEN",
-  "WAITING_FOR_PROVIDER","WAITING_FOR_PRODUCT_UAT","WAITING_FOR_PR_VERIFICATION",
+  "WAITING_FOR_PROVIDER","WAITING_FOR_DEPENDENCIES","WAITING_FOR_PRODUCT_UAT","WAITING_FOR_PR_VERIFICATION",
   "WAITING_FOR_ELIGIBLE_ISSUE","WAITING_FOR_EXACT_CLEAN_MAIN","WAITING_FOR_RETRY_HEAD_OR_REVIEW",
   "MERGED"]);
 const phases = new Set(["INSTALL_DEPENDENCIES","RUN_LOCAL_PI","INSPECT_CANDIDATE_PATCH",
@@ -35,6 +35,30 @@ const codes = new Set(["SOURCE_OR_BUILD_OR_PROVIDER_FAILURE","EXECUTION_UNCERTAI
   "ISSUE_SCOPE_VIOLATION","DISALLOWED_SOURCE_PATH","RETRY_NOT_AUTHORIZED"]);
 const safeText = (value, allowed) => allowed.has(value) ? value : null;
 const safeSha = value => HEX_SHA.test(value || "") ? value : null;
+const dependencyStates=new Set(["BLOCKED","INSTALL_PREFLIGHT_READY"]);
+const dependencyCodes=new Set([
+  "WINDOWS_ONLY","FACTORY_LOCALLY_DISABLED","STOP_FACTORY_FIRST",
+  "EXACT_CLEAN_MAIN_REQUIRED","PROBE_ALREADY_EXISTS",
+  "NPM_CI_VERIFIED","NPM_PREFLIGHT_VERIFIED",
+  "NPM_INSTALL_TIMEOUT","NPM_LOCKFILE_MISMATCH","NPM_WINDOWS_FILE_ACCESS",
+  "NPM_NETWORK_UNAVAILABLE","NPM_INTEGRITY_FAILURE","NPM_FILE_MISSING",
+  "NPM_INSTALL_UNCLASSIFIED","NPM_PREFLIGHT_UNAVAILABLE",
+]);
+export function sanitizeDependencyPreflight(record) {
+  if(record?.schemaVersion!==1||
+     !dependencyStates.has(record?.state)||
+     !dependencyCodes.has(record?.code)||
+     !Number.isSafeInteger(record?.observedAt)||
+     record.observedAt<0||
+     record?.modelInvoked!==false||
+     record?.issueReserved!==false)return null;
+  const sourceHead=record.sourceHead===null?null:safeSha(record.sourceHead);
+  if(record.sourceHead!==null&&!sourceHead)return null;
+  return Object.freeze({
+    state:record.state,code:record.code,sourceHead,
+    observedAt:record.observedAt,issueReserved:false,modelInvoked:false,
+  });
+}
 
 export function privateFactoryRoot(env=process.env, platform=process.platform, home=os.homedir()) {
   const base=env.LOCALAPPDATA || (platform==="win32"
@@ -120,6 +144,9 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now}={})
     agentVerified:false,productGateVerified:false,
     automaticMergeEnabled:false,documentationAutoMergeEnabled:raw.documentationAutoMergeEnabled===true,
   };
+  // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
+  result.dependencyPreflight=sanitizeDependencyPreflight(
+    await privateJson(path.join(root,"dependency-preflight-result.json"),2048));
   if(!raw.enabled) {result.reason=raw.reason==="LOCALLY_DISABLED"?"LOCALLY_DISABLED":"NOT_ENABLED";return result;}
   const config=await privateJson(path.join(root,"config.json"),32768);
   if(!config || !Array.isArray(config.issues)) {

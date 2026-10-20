@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import {
-  privateFactoryRoot, sanitizeReceipt, factoryStatus, factoryEvidence,
+  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, factoryStatus, factoryEvidence,
   factoryIssuePreview, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
@@ -207,4 +207,56 @@ test("stdio transport sends protocol JSON only, never startup chatter",()=>sandb
   const lines=text.trim().split("\n");
   assert.equal(lines.length,1);
   assert.equal(JSON.parse(lines[0]).result.tools.length,3);
+}));
+
+test("private dependency preflight evidence is sanitized and never grants Factory authority",()=>sandbox(async root=>{
+ await seed(root);
+ const file=path.join(root,"dependency-preflight-result.json");
+ const valid={schemaVersion:1,state:"BLOCKED",code:"NPM_NETWORK_UNAVAILABLE",
+   sourceHead:OLD,observedAt:2345,modelInvoked:false,issueReserved:false,
+   privatePath:"C:/Users/secret/.npmrc",stderr:"Bearer hidden-secret",token:"my-api-key"};
+ assert.equal((await factoryStatus({root,now:()=>4000})).dependencyPreflight,null);
+ await writeFile(file,JSON.stringify(valid));
+ let result=(await factoryStatus({root,now:()=>5000}));
+ assert.deepEqual(result.dependencyPreflight,{
+   state:"BLOCKED",code:"NPM_NETWORK_UNAVAILABLE",
+   sourceHead:OLD,observedAt:2345,issueReserved:false,modelInvoked:false,
+ });
+ assert.equal(JSON.stringify(result).includes("Bearer"),false);
+ assert.equal(JSON.stringify(result).includes("secret"),false);
+ assert.equal(JSON.stringify(result).includes(".npmrc"),false);
+ assert.deepEqual(sanitizeDependencyPreflight({...valid,state:"INSTALL_PREFLIGHT_READY",code:"NPM_CI_VERIFIED"}),{
+   state:"INSTALL_PREFLIGHT_READY",code:"NPM_CI_VERIFIED",sourceHead:OLD,
+   observedAt:2345,issueReserved:false,modelInvoked:false,
+ });
+ for(const patch of [
+   {code:"C:/Users/owner/private"},
+   {state:"RUNNING"},{sourceHead:"/private/story"},
+   {modelInvoked:true},{issueReserved:true},
+   {observedAt:-1},{schemaVersion:2},
+ ]){
+   await writeFile(file,JSON.stringify({...valid,...patch}));
+   assert.equal((await factoryStatus({root,now:()=>5000})).dependencyPreflight,null);
+ }
+ await writeFile(file,"\{INVALID JSON");
+ assert.equal((await factoryStatus({root})).dependencyPreflight,null);
+ await writeFile(file,"X".repeat(3000));
+ assert.equal((await factoryStatus({root})).dependencyPreflight,null);
+ await rm(file);
+ const shadow=path.join(root,"shadow-secret.json");
+ await writeFile(shadow,JSON.stringify(valid));
+ await symlink(shadow,file);
+ assert.equal((await factoryStatus({root})).dependencyPreflight,null);
+}));
+
+test("MCP recognizes blocked dependency wait as a real state, not a model-run success",()=>sandbox(async root=>{
+ await seed(root);
+ await writeFile(path.join(root,"heartbeat.json"),JSON.stringify({
+   schemaVersion:1,state:"WAITING_FOR_DEPENDENCIES",issueNumber:3164,at:3000,
+ }));
+ const status=await factoryStatus({root,now:()=>4000});
+ assert.equal(status.state,"WAITING_FOR_DEPENDENCIES");
+ assert.equal(status.agentVerified,false);
+ assert.equal(status.productGateVerified,false);
+ assert.equal(status.activeIssue,3164);
 }));

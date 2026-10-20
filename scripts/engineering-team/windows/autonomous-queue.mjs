@@ -16,6 +16,7 @@ import { promisify } from "node:util";
 import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
 import { versionAtLeast } from "../../pi-version.mjs";
 import { reconcileApprovedDocsPRs } from "./autonomous-pr-review.mjs";
+import { checkFactoryDependencyProof } from "../queue/factory-dependency-preflight.mjs";
 
 const runFile = promisify(execFile);
 const THIS = fileURLToPath(import.meta.url);
@@ -355,7 +356,8 @@ export async function probeLocalCoderRoute() {
 
 export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,
   preflight=probeLocalCoderRoute,publish=publishFactoryHeartbeat,
-  reconcile=reconcileApprovedDocsPRs,now=Date.now}={}) {
+  reconcile=reconcileApprovedDocsPRs,now=Date.now,
+  dependencyPreflight=process.platform==="win32"&&root===ROOT?checkFactoryDependencyProof:null}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
@@ -419,6 +421,16 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   if(readiness?.ready!==true)return Object.freeze({
     state:"WAITING_FOR_PROVIDER",issueNumber:issue.number,processed:0,
     code:String(readiness?.code||"LOCAL_ROUTE_UNAVAILABLE").slice(0,80)});
+  // Native scheduled worker only: prove npm ci in a detached diagnostic
+  // worktree BEFORE the irreversible issue job is reserved. Synthetic tests
+  // use private roots and cannot accidentally install real dependencies.
+  if(typeof dependencyPreflight==="function"){
+    const dependencies=await dependencyPreflight({root,repoRoot:REPO_ROOT});
+    if(!dependencies?.ready)return Object.freeze({
+      state:"WAITING_FOR_DEPENDENCIES",issueNumber:issue.number,processed:0,
+      code:String(dependencies?.code||"NPM_PREFLIGHT_UNAVAILABLE").slice(0,80),
+    });
+  }
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,
     taskId:SHA256(REPOSITORY+":"+issue.number+":"+head+":"+attempt),state:"STARTED_UNCONFIRMED",
     reservedAt:now(),attempt,replayAuthorized:false,modelRoute:"local-only",

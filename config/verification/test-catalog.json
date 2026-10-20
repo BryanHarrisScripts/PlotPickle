@@ -9144,18 +9144,18 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "e2b430de920df36281826baedaa369acdeb041cdc883b875fb3f62692b445d38",
+        "targetDigest": "a1f5f178eb7b49e4aafe0d723e57bb8feda6ca69701b384d26c4ab4db10ad516",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "de5f05b32a22183ba2d36d2645b90248e0851cce3004fc9f1c6ff355fc67628c"
+            "digest": "92b659bb8c415f280d5da0c9b3195a368f4df50b16a8c8aa88db6315d691ceea"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "59588704b216fecdb781312c4007a02d8867d8ccd60edb654ba65314aa3ed25f"
+            "digest": "f273a7d2aa82516ec9cfd3d8cd00e4d79592f2c1e312a2ae990143c281c59c58"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
@@ -9172,6 +9172,10 @@
           {
             "path": "scripts/engineering-team/review/factory-hunk.mjs",
             "digest": "cf368c7f6ce10df8861869b716f3075df5dd660419dc995e55563f7d2d2d2b06"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-dependency-preflight.mjs",
+            "digest": "4747e561848ce4f86d50b905561ebe6001cd0abd733a372bcd2966a442f65f3c"
           }
         ],
         "truthRefs": [

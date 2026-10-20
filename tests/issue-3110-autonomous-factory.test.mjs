@@ -609,6 +609,48 @@ test("factory dependency install uses private reusable npm cache and fail-closed
  assert.notEqual(factoryDependencyFingerprint(base),factoryDependencyFingerprint({...base,lockText:"changed"}));
 });
 
+test("Windows dependency preflight reports Git failures before npm or issue reservation without leaking paths",()=>sandbox(async root=>{
+ const repoRoot=path.join(root,"repo");
+ await mkdir(repoRoot,{recursive:true});
+ await writeFile(path.join(repoRoot,"package.json"),'{"name":"unit-fixture"}');
+ await writeFile(path.join(repoRoot,"package-lock.json"),'{"lockfileVersion":3}');
+ let installs=0;
+ const git=async args=>{
+   if(args[0]==="rev-parse")return HEAD;
+   if(args[0]==="branch")return "main";
+   if(args[0]==="status")return "";
+   if(args[0]==="worktree")throw Object.assign(new Error("C:/Users/private/path: denied"),
+     {stderr:"fatal: Unable to create 'C:/Users/private/path/index.lock'"});
+   throw Error("unrecognized mock git");
+ };
+ const opts={root,repoRoot,platform:"win32",nodeVersion:"v24.0.0",git,
+   install:async()=>{installs++;throw Error("must not install");}};
+ const before=await runFactoryDependencyPreflight({...opts,git:async()=>{
+   throw Error("C:/Users/private/path: git unavailable");
+ }});
+ assert.deepEqual(before,{state:"BLOCKED",code:"GIT_PROBE_FAILED"});
+ const locked=await runFactoryDependencyPreflight({...opts,now:()=>11});
+ assert.equal(locked.state,"BLOCKED");
+ assert.equal(locked.code,"WORKTREE_LOCKED");
+ assert.equal(locked.sourceHead,HEAD);
+ assert.equal(locked.issueReserved,false);
+ assert.equal(locked.probePreserved,false);
+ for(const [n,stderr,code] of [
+   [12,"filename too long at C:/Users/private","WORKTREE_PATH_BLOCKED"],
+   [13,"EPERM: C:/Users/private","WORKTREE_FILE_ACCESS"],
+   [14,"fatal: unknown internal Git failure at C:/Users/private","WORKTREE_ADD_FAILED"],
+ ]){
+   const result=await runFactoryDependencyPreflight({...opts,now:()=>n,
+     git:async args=>args[0]==="worktree"?Promise.reject({stderr}):git(args)});
+   assert.equal(result.code,code);
+   assert.equal(result.state,"BLOCKED");
+   assert.equal(JSON.stringify(result).includes("C:/Users"),false);
+ }
+ assert.equal(installs,0);
+ await assert.rejects(readFile(path.join(root,"dependency-preflight.json"),"utf8"),/ENOENT/);
+ await assert.rejects(readFile(path.join(root,"jobs","issue-3164.json"),"utf8"),/ENOENT/);
+}));
+
 test("isolated Windows npm preflight never reserves an issue, preserves failed probe and pins success to manifests",()=>sandbox(async root=>{
  const repoRoot=path.join(root,"repo");
  await mkdir(repoRoot,{recursive:true});

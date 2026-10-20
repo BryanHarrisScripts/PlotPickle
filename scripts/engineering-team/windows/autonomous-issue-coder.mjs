@@ -143,6 +143,27 @@ export function factoryWorkerPrompt(issue,head) {
   ].join("\n");
 }
 
+/** Only tool lifecycle types and success flags survive inspection; no Pi text,
+ * prompts, arguments, paths, tool outputs or hidden reasoning are persisted. */
+export function summarizeFactoryPiWriteEvents(stdout) {
+  const summary={writeStarted:0,writeSucceeded:0,writeFailed:0,settled:false,valid:true};
+  if(typeof stdout!=="string")return Object.freeze({...summary,valid:false});
+  for(const line of stdout.split("\n")){
+    if(!line.includes('"tool_execution_')&&!line.includes('"agent_settled"'))continue;
+    let event;
+    try{event=JSON.parse(line);}
+    catch{return Object.freeze({...summary,valid:false});}
+    if(event?.type==="agent_settled")summary.settled=true;
+    if(event?.toolName!=="write"&&event?.toolName!=="edit")continue;
+    if(event.type==="tool_execution_start")summary.writeStarted++;
+    if(event.type==="tool_execution_end"){
+      if(event.isError===true)summary.writeFailed++;
+      else if(event.isError===false)summary.writeSucceeded++;
+      else return Object.freeze({...summary,valid:false});
+    }
+  }
+  return Object.freeze(summary);
+}
 async function localAgent(worktree,issue,head,attempt=1) {
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {ready:false,code:"PI_UNAVAILABLE"};
@@ -162,7 +183,7 @@ async function localAgent(worktree,issue,head,attempt=1) {
     privacyPolicy:{localOnly:true,cloudAllowed:false}
   };
   try{
-    await runPortableCommand(pi.executable,[
+    const result=await runPortableCommand(pi.executable,[
       "--mode","json","-p","--no-session",
       "--tools","read,grep,find,ls,write,edit",
       ...piDeveloperVirtualArgs(worktree),
@@ -171,6 +192,12 @@ async function localAgent(worktree,issue,head,attempt=1) {
       env:{...piDeveloperEnvironment(configured.agentDir,projection),
         PLOTPICKLE_CODEMODE_TASK_JSON:JSON.stringify(codemodeTask),
         PLOTPICKLE_PI_ALLOW_CLOUD:"0",PLOTPICKLE_PI_ROUTE:"local"}});
+    const observed=summarizeFactoryPiWriteEvents(result.stdout);
+    if(!observed.valid||!observed.settled||
+       observed.writeStarted!==observed.writeSucceeded+observed.writeFailed)
+      return {ready:false,code:"PI_WRITE_EVENTS_UNVERIFIED"};
+    if(!observed.writeStarted)return {ready:false,code:"PI_WRITE_TOOL_NOT_OBSERVED"};
+    if(!observed.writeSucceeded)return {ready:false,code:"PI_WRITE_TOOL_FAILED"};
     return {ready:true,code:"LOCAL_AGENT_FINISHED"};
   }finally{await unlink(context).catch(()=>{});}
 }
@@ -208,7 +235,11 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
     await installFactoryDependencies({cwd:worktree,root});
     phase="RUN_LOCAL_PI";
     const agent=await localAgent(worktree,issue,head,attempt);
-    if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
+    if(!agent.ready){
+      if(["PI_UNAVAILABLE","LOCAL_MODEL_UNAVAILABLE"].includes(agent.code))
+        return {state:"WAITING_FOR_PROVIDER",code:agent.code};
+      return {state:"BLOCKED",code:agent.code,phase:"RUN_LOCAL_PI"};
+    }
     phase="INSPECT_CANDIDATE_PATCH";
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);
     if(!assessment.allowed)return factoryRejectedPatchReceipt(assessment);

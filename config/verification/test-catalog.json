@@ -4223,7 +4223,8 @@
         "targets": [
           "tests/issue-3110-autonomous-factory.test.mjs",
           "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-          "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs"
+          "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
+          "tests/issue-3110-factory-named-test-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9257,14 +9258,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "91df152a7a99fd41dc221432152b0b4e2296926a45b7f8810f9f3d2bcdced1b4",
+        "targetDigest": "3663ab4ea5764f538faaa7fc0ee6692b0ffee21e0d9f7e46ded0c6fa12c63c2c",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "0cdd24fb83256b8e8d7f84a7cf34a9793729f84e216c74aee971d3f2f0a93cf1"
+            "digest": "8dfcc71dd585756ed773ae3f52ad7b958d9656048f4928e913a63f65a0dd9cda"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9304,7 +9305,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "0cdd24fb83256b8e8d7f84a7cf34a9793729f84e216c74aee971d3f2f0a93cf1"
+            "digest": "8dfcc71dd585756ed773ae3f52ad7b958d9656048f4928e913a63f65a0dd9cda"
           }
         ],
         "truthRefs": [
@@ -9322,6 +9323,38 @@
           "static-source"
         ],
         "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation."
+      },
+      {
+        "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+        "targetDigest": "afad76e116934bca20b140aa5fb5327b9a2b4613171fa46f7593a8a9df2d34dc",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "09fe455c26ea13f32431f8e0206d7685a55d98d0606caf39e6e39571b8dfcec3"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "8dfcc71dd585756ed773ae3f52ad7b958d9656048f4928e913a63f65a0dd9cda"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Fixture-only authenticated MCP control, duplicate request, synthetic Windows Node test subprocess and Git dirty/stale HEAD checks. No real Windows native suite/Product Gate, scheduled ChatGPT MCP wakeup, isolated worktree source edit, autonomous merge or Normal release verified."
       }
     ]
   }

@@ -723,6 +723,31 @@ test("isolated Windows npm preflight never reserves an issue, preserves failed p
  const third=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
    git:fakeGit,now:()=>12347,install:async()=>{throw Error("must not reinstall verified digest");}});
  assert.equal(third.existing,true);
+ // A valid npm ci fingerprint for HEAD cannot be reused as proof that npm ci
+ // ran against a NEW source head, even when package manifests did not change.
+ const movedHead="b".repeat(40);
+ assert.equal((await checkFactoryDependencyProof({
+   root,repoRoot,nodeVersion,expectedHead:HEAD
+ })).ready,true);
+ assert.equal((await checkFactoryDependencyProof({
+   root,repoRoot,nodeVersion,expectedHead:movedHead
+ })).ready,false);
+ let movedInstalls=0;
+ const changedHeadGit=async args=>args[0]==="rev-parse"?movedHead:fakeGit(args);
+ const fourth=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
+   git:changedHeadGit,now:()=>12348,install:async()=>{movedInstalls++;}});
+ assert.equal(fourth.state,"INSTALL_PREFLIGHT_READY");
+ assert.equal(fourth.code,"NPM_CI_VERIFIED");
+ assert.equal(fourth.existing,undefined);
+ assert.equal(fourth.sourceHead,movedHead);
+ assert.equal(movedInstalls,1);
+ assert.equal(JSON.parse(await readFile(path.join(root,"dependency-preflight.json"),"utf8")).sourceHead,movedHead);
+ assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion,expectedHead:HEAD})).ready,false);
+ assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion,expectedHead:movedHead})).ready,true);
+ const fifth=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
+   git:changedHeadGit,now:()=>12349,
+   install:async()=>{throw Error("must not install same-head verified proof");}});
+ assert.equal(fifth.existing,true);
  await writeFile(path.join(repoRoot,"package-lock.json"),'{"lockfileVersion":3,"packages":{}}\n');
  assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion})).ready,false);
  const lock=path.join(root,"service.lock");
@@ -739,7 +764,10 @@ test("failed npm dependency readiness does not consume one-shot local Factory ad
  let agentDispatched=false;
  const blocked=await runFactoryCycle({root,github,now:()=>2468,
    preflight:async()=>({ready:true}),publish:async()=>{},
-   dependencyPreflight:async()=>({ready:false,code:"NPM_PREFLIGHT_REQUIRED"}),
+   dependencyPreflight:async({expectedHead})=>{
+     assert.equal(expectedHead,HEAD);
+     return {ready:false,code:"NPM_PREFLIGHT_REQUIRED"};
+   },
    dispatch:async()=>{agentDispatched=true;throw Error("must never dispatch");}});
  assert.equal(agentDispatched,false);
  assert.equal(blocked.state,"WAITING_FOR_DEPENDENCIES");

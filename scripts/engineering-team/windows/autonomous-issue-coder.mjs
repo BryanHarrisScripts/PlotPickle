@@ -149,15 +149,33 @@ export function factoryWorkerPrompt(issue,head) {
 export function summarizeFactoryPiWriteEvents(stdout) {
   const summary={writeStarted:0,writeSucceeded:0,writeFailed:0,settled:false,valid:true};
   if(typeof stdout!=="string")return Object.freeze({...summary,valid:false});
-  for(const line of stdout.split("\n")){
-    if(!line.includes('"tool_execution_')&&!line.includes('"agent_settled"'))continue;
+  // Pi's actual --mode json completion event is "agent_end", not
+  // "agent_settled". Keep event bodies, arguments, paths and output private.
+  const active=new Map(),completed=new Set();
+  for(const line of stdout.split(/\r?\n/)){
+    if(!line.includes('"tool_execution_')&&!line.includes('"agent_end"'))continue;
     let event;
     try{event=JSON.parse(line);}
     catch{return Object.freeze({...summary,valid:false});}
-    if(event?.type==="agent_settled")summary.settled=true;
+    if(event?.type==="agent_end"){
+      if(summary.settled||active.size)return Object.freeze({...summary,valid:false});
+      summary.settled=true;
+      continue;
+    }
     if(event?.toolName!=="write"&&event?.toolName!=="edit")continue;
-    if(event.type==="tool_execution_start")summary.writeStarted++;
-    if(event.type==="tool_execution_end"){
+    if(event.type!=="tool_execution_start"&&event.type!=="tool_execution_end")continue;
+    const id=event.toolCallId;
+    if(summary.settled||typeof id!=="string"||!id||id.length>128)
+      return Object.freeze({...summary,valid:false});
+    if(event.type==="tool_execution_start"){
+      if(active.has(id)||completed.has(id))return Object.freeze({...summary,valid:false});
+      active.set(id,event.toolName);
+      summary.writeStarted++;
+    }else{
+      if(active.get(id)!==event.toolName||completed.has(id))
+        return Object.freeze({...summary,valid:false});
+      active.delete(id);
+      completed.add(id);
       if(event.isError===true)summary.writeFailed++;
       else if(event.isError===false)summary.writeSucceeded++;
       else return Object.freeze({...summary,valid:false});

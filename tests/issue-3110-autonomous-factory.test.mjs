@@ -592,7 +592,7 @@ test("local Pi JSONL evidence distinguishes actual write tool executions without
  const privateText={type:"message_end",message:{role:"assistant",content:"PRIVATE MODEL OUTPUT"}};
  const start={type:"tool_execution_start",toolCallId:"1",toolName:"write",args:{path:"C:/PRIVATE"}};
  const complete={type:"tool_execution_end",toolCallId:"1",toolName:"write",result:{content:"PRIVATE RESULT"},isError:false};
- const settled={type:"agent_settled"};
+ const settled={type:"agent_end",messages:[]};
  const textOnly=summarizeFactoryPiWriteEvents(lines([privateText,settled]));
  assert.deepEqual(textOnly,{writeStarted:0,writeSucceeded:0,writeFailed:0,settled:true,valid:true});
  const written=summarizeFactoryPiWriteEvents(lines([privateText,start,complete,settled]));
@@ -606,6 +606,23 @@ test("local Pi JSONL evidence distinguishes actual write tool executions without
  assert.equal(summarizeFactoryPiWriteEvents(lines([start,complete])).settled,false);
  assert.equal(summarizeFactoryPiWriteEvents('{"type":"tool_execution_end",INVALID').valid,false);
  assert.equal(summarizeFactoryPiWriteEvents(null).valid,false);
+ // Real Pi emits agent_end; the invented agent_settled event is not a
+ // completion proof and cannot authorize a source mutation/PR.
+ assert.equal(summarizeFactoryPiWriteEvents(lines([{type:"agent_settled"}])).settled,false);
+ // Every observed write/edit must have a unique matched start/end event.
+ assert.equal(summarizeFactoryPiWriteEvents(lines([{...complete,toolCallId:"orphan"},settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,start,complete,settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,{...complete,toolCallId:"other"},settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,{...complete,toolName:"edit"},settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,complete,complete,settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,complete,settled,complete])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,complete,settled,settled])).valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,settled])).valid,false);
+ const editStart={...start,toolCallId:"edit-1",toolName:"edit"};
+ const editEnd={...complete,toolCallId:"edit-1",toolName:"edit"};
+ const mixed=summarizeFactoryPiWriteEvents(lines([start,editStart,editEnd,complete,settled]));
+ assert.deepEqual(mixed,{writeStarted:2,writeSucceeded:2,writeFailed:0,settled:true,valid:true});
+ assert.equal(JSON.stringify(mixed).includes("PRIVATE"),false);
 });
 
 test("Windows native dependency preflight chooses short PlotPickle-owned worktree path without changing injected roots",()=>{

@@ -32,6 +32,9 @@ const PREFLIGHT_CODES=new Set([
   "NPM_INSTALL_TIMEOUT","NPM_LOCKFILE_MISMATCH","NPM_WINDOWS_FILE_ACCESS",
   "NPM_NETWORK_UNAVAILABLE","NPM_INTEGRITY_FAILURE","NPM_FILE_MISSING",
   "NPM_INSTALL_UNCLASSIFIED","NPM_PREFLIGHT_UNAVAILABLE",
+  "GIT_PROBE_FAILED","MANIFEST_READ_FAILED","PROBE_DIRECTORY_UNAVAILABLE",
+  "WORKTREE_PATH_BLOCKED","WORKTREE_LOCKED","WORKTREE_FILE_ACCESS",
+  "WORKTREE_ADD_FAILED","PROOF_WRITE_FAILED",
 ]);
 /** The public read-only bridge can only see these fixed, path-free receipt fields. */
 export async function publishFactoryDependencyPreflightResult({
@@ -57,7 +60,7 @@ export function factoryNpmInstallArgs(root=ROOT) {
   return [...NPM_FLAGS,"--cache",factoryNpmCache(root)];
 }
 export function factoryNpmFailureCode(error) {
-  const message=String(error?.stderr||"")+"\n"+String(error?.message||"");
+    const message=String(error?.stderr||"")+" "+String(error?.message||"");
   if(error?.killed===true||error?.code==="ETIMEDOUT"||/timed out|timeout of \d+ms exceeded/i.test(message))
     return "NPM_INSTALL_TIMEOUT";
   if(/\b(?:EUSAGE|ELOCKVERIFY)\b|package\.json and package-lock\.json are not in sync/i.test(message))
@@ -126,24 +129,47 @@ export async function runFactoryDependencyPreflight({
     return Object.freeze({state:"BLOCKED",code:"FACTORY_LOCALLY_DISABLED"});
   if(existsSync(path.join(root,"service.lock")))
     return Object.freeze({state:"BLOCKED",code:"STOP_FACTORY_FIRST"});
-  const [head,origin,branch,dirty]=await Promise.all([
-    git(["rev-parse","HEAD"],{cwd:repoRoot}),
-    git(["rev-parse","origin/main"],{cwd:repoRoot}),
-    git(["branch","--show-current"],{cwd:repoRoot}),
-    git(["status","--porcelain","--untracked-files=no"],{cwd:repoRoot}),
-  ]);
+  // A failed read-only git probe must return a typed result, not orphan an
+  // MCP write-once request with no durable completion receipt.
+  let head,origin,branch,dirty;
+  try{
+    [head,origin,branch,dirty]=await Promise.all([
+      git(["rev-parse","HEAD"],{cwd:repoRoot}),
+      git(["rev-parse","origin/main"],{cwd:repoRoot}),
+      git(["branch","--show-current"],{cwd:repoRoot}),
+      git(["status","--porcelain","--untracked-files=no"],{cwd:repoRoot}),
+    ]);
+  }catch{
+    return Object.freeze({state:"BLOCKED",code:"GIT_PROBE_FAILED"});
+  }
   if(!SHA.test(head)||head!==origin||branch!=="main"||dirty)
     return Object.freeze({state:"BLOCKED",code:"EXACT_CLEAN_MAIN_REQUIRED"});
   const existing=await checkFactoryDependencyProof({root,repoRoot,nodeVersion});
   if(existing.ready)return Object.freeze({state:"INSTALL_PREFLIGHT_READY",
     code:"NPM_PREFLIGHT_VERIFIED",sourceHead:head,existing:true});
-  const key=await dependencyFingerprintForRepo(repoRoot,nodeVersion);
-  await mkdir(path.join(root,"dependency-probes"),{recursive:true,mode:0o700});
+  let key;
+  try{key=await dependencyFingerprintForRepo(repoRoot,nodeVersion);}
+  catch{return Object.freeze({state:"BLOCKED",code:"MANIFEST_READ_FAILED",sourceHead:head});}
+  try{await mkdir(path.join(root,"dependency-probes"),{recursive:true,mode:0o700});}
+  catch{return Object.freeze({state:"BLOCKED",code:"PROBE_DIRECTORY_UNAVAILABLE",sourceHead:head});}
   const probe=path.join(root,"dependency-probes",
     "head-"+head.slice(0,10)+"-"+String(now()));
   // An existing probe or a failed install remains untouched, never forced clean.
   if(existsSync(probe))return Object.freeze({state:"BLOCKED",code:"PROBE_ALREADY_EXISTS"});
-  await git(["worktree","add","--detach",probe,head],{cwd:repoRoot});
+  try{await git(["worktree","add","--detach",probe,head],{cwd:repoRoot});}
+  catch(error){
+    // git may have left a partial worktree; preserve it for owner review.
+    // Only the fixed category leaves this process. Never expose stderr/paths.
+    const message=String(error?.stderr||"")+"\\n"+String(error?.message||"");
+    const code=/filename too long|path too long|ENAMETOOLONG/i.test(message)
+      ?"WORKTREE_PATH_BLOCKED"
+      :/index[.]lock|worktree.*locked|unable to lock|cannot lock ref/i.test(message)
+        ?"WORKTREE_LOCKED"
+        :/(?:EPERM|EACCES|EACCESS)|access is denied|permission denied/i.test(message)
+          ?"WORKTREE_FILE_ACCESS":"WORKTREE_ADD_FAILED";
+    return Object.freeze({state:"BLOCKED",code,sourceHead:head,
+      probePreserved:existsSync(probe),issueReserved:false});
+  }
   try{await install({cwd:probe,root});}
   catch(error){
     return Object.freeze({state:"BLOCKED",code:factoryNpmFailureCode(error),
@@ -152,8 +178,13 @@ export async function runFactoryDependencyPreflight({
   const proof={schemaVersion:1,key,sourceHead:head,nodeVersion,
     npmCiVerified:true,verifiedAt:now(),modelInvoked:false,
     issueReserved:false,automaticMergeAuthorized:false};
-  await writeFile(path.join(root,"dependency-preflight.json"),
-    JSON.stringify(proof,null,2)+"\n",{flag:"w",mode:0o600});
+  try{
+    await writeFile(path.join(root,"dependency-preflight.json"),
+      JSON.stringify(proof,null,2)+String.fromCharCode(10),{flag:"w",mode:0o600});
+  }catch{
+    return Object.freeze({state:"BLOCKED",code:"PROOF_WRITE_FAILED",sourceHead:head,
+      probePreserved:true,issueReserved:false});
+  }
   return Object.freeze({state:"INSTALL_PREFLIGHT_READY",
     code:"NPM_CI_VERIFIED",sourceHead:head,probePreserved:true,
     issueReserved:false});

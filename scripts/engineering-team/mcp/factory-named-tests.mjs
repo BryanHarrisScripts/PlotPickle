@@ -46,19 +46,24 @@ export async function runFactoryNamedTest({
   const actual=await verifyHead({repoRoot});
   if(actual!==expectedHead)return Object.freeze({
     state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:actual&&SHA.test(actual)?actual:null});
+  let error=null;
   try {
     await run(process.execPath,["--test",TESTS[suite]],{
       cwd:repoRoot,windowsHide:true,encoding:"utf8",
       timeout:TEST_TIMEOUT_MS,maxBuffer:512_000,
       env:{...process.env,FORCE_COLOR:"0",NO_COLOR:"1"},
     });
-    return Object.freeze({state:"TEST_PASSED",code:"NODE_TEST_PASS",
-      sourceHead:actual,suite});
-  }catch(error){
-    // No raw stdout/stderr/environment leaks into MCP/issue telemetry.
-    const timeout=error?.killed===true||error?.code==="ETIMEDOUT";
-    return Object.freeze({state:"TEST_FAILED",
-      code:timeout?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
-      sourceHead:actual,suite});
-  }
+  }catch(failure){error=failure;}
+  // A test cannot certify its initial HEAD if another process changed it mid-run.
+  const after=await verifyHead({repoRoot});
+  if(after!==expectedHead)return Object.freeze({
+    state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",
+    sourceHead:SHA.test(after||"")?after:null,suite});
+  if(!error)return Object.freeze({state:"TEST_PASSED",code:"NODE_TEST_PASS",
+    sourceHead:actual,suite});
+  // No raw stdout/stderr/environment leaks into MCP/issue telemetry.
+  const timeout=error?.killed===true||error?.code==="ETIMEDOUT";
+  return Object.freeze({state:"TEST_FAILED",
+    code:timeout?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
+    sourceHead:actual,suite});
 }

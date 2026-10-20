@@ -203,7 +203,7 @@ export async function admitFactoryIssues({root=ROOT,issues,consent,github=create
   const next={...config,issues:[...config.issues,...issues],
     admissions:[...(config.admissions||[]),entry]};
   const temporary=path.join(root,"config-admission-"+process.pid+"-"+String(entry.at)+".tmp");
-  await writeFile(temporary,JSON.stringify(next,null,2)+"\\n",{flag:"wx",mode:0o600});
+  await writeFile(temporary,JSON.stringify(next,null,2)+"\n",{flag:"wx",mode:0o600});
   try{await rename(temporary,configFile);}
   finally{await unlink(temporary).catch(()=>{});}
   return Object.freeze({state:"ISSUES_ADMITTED",added:[...issues],
@@ -335,7 +335,7 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
 export function factoryPiVersionGate(pi) {
   if(pi?.ready!==true)return Object.freeze({ready:false,code:"PI_NOT_INSTALLED"});
   const version=String(pi.version||"").trim();
-  if(!/^\\d+\\.\\d+\\.\\d+(?:$|[-+])/u.test(version)||
+  if(!/^\d+\.\d+\.\d+(?:$|[-+])/u.test(version)||
      !versionAtLeast(version,MIN_FACTORY_PI_VERSION))
     return Object.freeze({ready:false,code:"PI_VERSION_UNSUPPORTED"});
   return Object.freeze({ready:true,code:"PI_VERSION_ACCEPTED"});

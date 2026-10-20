@@ -425,7 +425,7 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   // worktree BEFORE the irreversible issue job is reserved. Synthetic tests
   // use private roots and cannot accidentally install real dependencies.
   if(typeof dependencyPreflight==="function"){
-    const dependencies=await dependencyPreflight({root,repoRoot:REPO_ROOT});
+    const dependencies=await dependencyPreflight({root,repoRoot:REPO_ROOT,expectedHead:head});
     if(!dependencies?.ready)return Object.freeze({
       state:"WAITING_FOR_DEPENDENCIES",issueNumber:issue.number,processed:0,
       code:String(dependencies?.code||"NPM_PREFLIGHT_UNAVAILABLE").slice(0,80),

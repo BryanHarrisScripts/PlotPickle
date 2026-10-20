@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, factoryStatus, factoryEvidence,
-  factoryIssuePreview, executeMcpRequest, handleRpc, MCP_TOOLS,
+  factoryIssuePreview, factoryObserver, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
   MCP_CONTROL_TOOLS, factoryControlReceipt,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
@@ -52,7 +52,7 @@ async function seed(root) {
 }
 test("fixed private Factory root and read-only annotations",()=>{
   assert.equal(privateFactoryRoot({LOCALAPPDATA:"C:\\Temp"},"win32"),path.join("C:\\Temp","PlotPickle","engineering-team","autonomous-queue"));
-  assert.deepEqual(MCP_TOOLS.map(x=>x.name),["factory_status","factory_evidence","factory_issue_preview"]);
+  assert.deepEqual(MCP_TOOLS.map(x=>x.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
   assert.equal(MCP_TOOLS.every(x=>x.annotations.readOnlyHint===true &&
     x.annotations.destructiveHint===false),true);
   assert.equal(MCP_TOOLS.filter(x=>x.annotations.openWorldHint).length,1);
@@ -146,7 +146,7 @@ test("protocol initialization, tool schemas, denylist and malformed args fail cl
   assert.equal(init.result.serverInfo.name,"plotpickle-factory-readonly");
   assert.equal(init.result.capabilities.tools.listChanged,false);
   const listed=await executeMcpRequest({jsonrpc:"2.0",method:"tools/list",id:2});
-  assert.equal(listed.result.tools.length,3);
+  assert.equal(listed.result.tools.length,4);
   const request=(name,args)=>handleRpc({jsonrpc:"2.0",id:3,method:"tools/call",params:{name,arguments:args}},{root,now:()=>4000});
   assert.equal((await request("factory_status",{})).result.structuredContent.lastOutcome.phase,"RUN_LOCAL_PI");
   assert.equal((await request("factory_evidence",{issueNumber:3141,attempt:2})).result.structuredContent.record.attempt,2);
@@ -154,6 +154,7 @@ test("protocol initialization, tool schemas, denylist and malformed args fail cl
     {issueNumber:3141,attempt:2,root:"/etc/shadow"},{issueNumber:3142,attempt:2}]){
     assert.equal((await request("factory_evidence",args)).error.code,-32602);
   }
+  assert.equal((await request("factory_observer",{shell:"run"})).error.code,-32602);
   for(const op of ["factory_run_tests","factory_execute","factory_stop","factory_retry",
     "factory_merge","shell","queue_enable"]){
     assert.equal((await request(op,{})).error.code,-32601);
@@ -178,7 +179,7 @@ test("loopback MCP HTTP transport completes actual JSON-RPC handshake, rejects e
     assert.equal(init.status,200);
     assert.equal((await init.json()).result.protocolVersion,"2025-06-18");
     const tools=await post({jsonrpc:"2.0",id:2,method:"tools/list"});
-    assert.equal((await tools.json()).result.tools.length,3);
+    assert.equal((await tools.json()).result.tools.length,4);
     const status=await post({jsonrpc:"2.0",id:3,method:"tools/call",params:{
       name:"factory_status",arguments:{}}});
     assert.equal((await status.json()).result.structuredContent.state,"WAITING_FOR_ELIGIBLE_ISSUE");
@@ -214,7 +215,7 @@ test("stdio transport sends protocol JSON only, never startup chatter",()=>sandb
   input.end();await running;
   const lines=text.trim().split("\n");
   assert.equal(lines.length,1);
-  assert.equal(JSON.parse(lines[0]).result.tools.length,3);
+  assert.equal(JSON.parse(lines[0]).result.tools.length,4);
 }));
 
 test("private dependency preflight evidence is sanitized and never grants Factory authority",()=>sandbox(async root=>{
@@ -320,9 +321,9 @@ test("MCP write tools are hidden without paired authentication and reject replay
        body:JSON.stringify({jsonrpc:"2.0",id:++seq,method:"tools/list"})});
      return (await reply.json()).result.tools.map(x=>x.name);
    };
-   assert.equal((await list()).length,3);
-   assert.equal((await list(token)).length,6);
-   assert.equal((await list("invalid")).length,3);
+   assert.equal((await list()).length,4);
+   assert.equal((await list(token)).length,7);
+   assert.equal((await list("invalid")).length,4);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);
    assert.equal((await call("factory_run_dependency_preflight",preArgs,"invalid")).error.code,-32001);
@@ -379,4 +380,36 @@ test("MCP control denies stale head and held worker without consuming a request 
  assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"STARTED_UNCONFIRMED");
  const retry=await stale.factoryControlAction("factory_run_dependency_preflight",args,{root,github,ops});
  assert.equal(retry.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+}));
+
+test("Factory Observer reports queue evidence without invoking Pi or certifying ChatGPT",()=>sandbox(async root=>{
+  const jobs=await seed(root);
+  const original=await readFile(path.join(jobs,"result-3141.json"),"utf8");
+  const snapshot=await factoryObserver({root,now:()=>4000});
+  assert.equal(snapshot.schemaVersion,1);
+  assert.equal(snapshot.architecture,"NODE_JS_WINDOWS");
+  assert.equal(snapshot.state,"SNAPSHOT_ONLY");
+  assert.equal(snapshot.factory.online,true);
+  assert.equal(snapshot.factory.processOwnershipVerified,false);
+  assert.equal(snapshot.queue.approvedCount,1);
+  assert.equal(snapshot.queue.reservedCount,1);
+  assert.equal(snapshot.queue.blockedCount,1);
+  assert.equal(snapshot.queue.unknownCount,0);
+  assert.equal(snapshot.queue.jobs[0].issueNumber,3141);
+  assert.equal(snapshot.queue.jobs[0].state,"BLOCKED");
+  assert.equal(snapshot.queue.jobs[0].replayAuthorized,false);
+  assert.equal(snapshot.chatgptEngineering.nativeDispatcher,"PI_LEGACY");
+  assert.equal(snapshot.chatgptEngineering.ready,false);
+  assert.equal(snapshot.chatgptEngineering.admissionRecommended,false);
+  assert.equal(snapshot.assurance.backgroundChatgptTurnVerified,false);
+  assert.equal(snapshot.assurance.productGateVerified,false);
+  assert.equal(JSON.stringify(snapshot).includes("SECRET_PRIVATE"),false);
+  const read=await handleRpc({jsonrpc:"2.0",id:11,method:"tools/call",
+    params:{name:"factory_observer",arguments:{}}},{root,now:()=>4000});
+  assert.deepEqual(read.result.structuredContent,snapshot);
+  const offline=await factoryObserver({root,now:()=>999_999});
+  assert.equal(offline.factory.online,false);
+  assert.equal(offline.factory.stalled,true);
+  assert.equal(offline.chatgptEngineering.ready,false);
+  assert.equal(await readFile(path.join(jobs,"result-3141.json"),"utf8"),original);
 }));

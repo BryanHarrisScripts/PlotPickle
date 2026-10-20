@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 3110,
+  "phase": "synthetic-qa-factory-observer-handoff",
+  "brief": "docs/developer-briefs/3110-testing-to-factory-to-normal.md",
+  "allowedChanges": [
+    "config/development-convergence/3110-qa-factory-monitor.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3110-testing-to-factory-to-normal.md",
+    "scripts/engineering-team/queue/synthetic-qa-handoff.mjs",
+    "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "QA-CANDIDATES-NONEXECUTING",
+      "criterion": "Only bounded QA proposals with exact failing commit and fingerprint; no admission authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
+          "contains": "QA handoff selects <=5 unique validated advisory GitHub issues"
+        }
+      ]
+    },
+    {
+      "id": "MONITOR-ONLY",
+      "criterion": "Deterministic observer produces isolated read-only monitoring evidence without Pi or Windows mutation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
+          "contains": "mode:\"MONITOR_ONLY\""
+        }
+      ]
+    },
+    {
+      "id": "MCP-CONTINUITY",
+      "criterion": "Existing authenticated observer MCP tool exposes bounded sanitized monitor heartbeat, no extra tool discovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
+          "contains": "existing MCP Observer reports sanitized monitor heartbeat"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "This is the first read-only QA handoff slice, not proof of a deployed Windows service or a ChatGPT-only engineer.",
+    "Legacy Pi/Cline dispatch remains inactive. No untrusted GitHub issue can authorize model execution, Windows shell, merge, paid inference or creative approval.",
+    "Testing evidence, source edit, CI, native UAT and Normal release remain separate authorities."
+  ]
+}

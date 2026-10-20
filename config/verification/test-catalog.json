@@ -4222,7 +4222,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3110-autonomous-factory.test.mjs",
-          "tests/issue-3154-chatgpt-factory-mcp.test.mjs"
+          "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9263,7 +9264,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "0cb6795590036ea282b28a1bd2a51724c4773a132b1d0c06b5cd03b840e88973"
+            "digest": "0cdd24fb83256b8e8d7f84a7cf34a9793729f84e216c74aee971d3f2f0a93cf1"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9285,6 +9286,42 @@
           "static-source"
         ],
         "limits": "Synthetic private Factory receipts, deterministic observer snapshot, and local MCP HTTP/stdio protocol tests only. No native Windows task/process ownership, scheduled ChatGPT MCP access, source edit, Product UAT, or autonomous merge proof."
+      },
+      {
+        "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
+        "targetDigest": "09274048b133a1f45220e124ebe1631cd253bc173a647f6550ddc1bca039af00",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/synthetic-qa-handoff.mjs",
+            "digest": "ed13ec1122a1b7d64ecf8f4cc0568275cfcfc948eac3190735f5161daac13662"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
+            "digest": "3fd122f04eb950936f08da2e03fef6c5a27a38ca3f68c0eba0058f15e14b9610"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0cdd24fb83256b8e8d7f84a7cf34a9793729f84e216c74aee971d3f2f0a93cf1"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation."
       }
     ]
   }

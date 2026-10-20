@@ -173,6 +173,31 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now}={})
   return result;
 }
 
+/** Read a bounded monitor-only heartbeat, never infer process ownership. */
+export function sanitizeFactoryMonitor(record,now=Date.now()) {
+  if(record?.schemaVersion!==1||record?.mode!=="MONITOR_ONLY"||
+    !Number.isSafeInteger(record.observedAt)||record.observedAt<0||
+    record.modelInvoked!==false||record.sourceModified!==false||
+    record.queueModified!==false||record.issueAdmitted!==false||
+    record.legacyPiDispatched!==false||record.dispatcherReady!==false||
+    record.automaticMerge!==false||record.windowsUatVerified!==false||
+    !["PLAN_ONLY","GITHUB_UNAVAILABLE"].includes(record.qaState)||
+    !Number.isSafeInteger(record.qaCandidateCount)||record.qaCandidateCount<0||
+    record.qaCandidateCount>5||!Array.isArray(record.qaCandidates)||
+    record.qaCandidates.length!==record.qaCandidateCount||
+    record.qaCandidates.some(n=>!validIssue(n)))return null;
+  const age=now-record.observedAt;
+  return Object.freeze({
+    state:age>=0&&age<=120_000?"HEARTBEAT_OBSERVED":"STALE_OR_UNVERIFIED",
+    observedAt:record.observedAt,
+    heartbeatFresh:age>=0&&age<=120_000,
+    processOwnershipVerified:false,mode:"MONITOR_ONLY",
+    qaState:record.qaState,qaCandidateCount:record.qaCandidateCount,
+    qaCandidates:record.qaCandidates,
+    issueAdmitted:false,modelInvoked:false,windowsUatVerified:false,
+  });
+}
+
 /** Bounded local observer: zero model calls, shell commands, reservations or edits. */
 export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={}) {
   const status=await factoryStatus({root,now});
@@ -181,7 +206,12 @@ export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={
   const evidence=await Promise.all(approvedIssues.map(async issueNumber=>({
     issueNumber,...await factoryEvidence({root,issueNumber,attempt:1}),
   })));
-  return summarizeFactoryObserver({status,approvedIssues,evidence,now:now()});
+  const observedAt=now();
+  const monitorRecord=await privateJson(path.join(root,"observer-monitor.json"),4096);
+  const monitor=sanitizeFactoryMonitor(monitorRecord,observedAt)||
+    {state:"NOT_OBSERVED",heartbeatFresh:false,processOwnershipVerified:false,
+      mode:"MONITOR_ONLY",issueAdmitted:false,modelInvoked:false};
+  return Object.freeze({...summarizeFactoryObserver({status,approvedIssues,evidence,now:observedAt}),monitor});
 }
 
 export async function factoryIssuePreview({github=createQueueGitHubClient()}={}) {

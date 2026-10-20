@@ -230,6 +230,13 @@ test("private dependency preflight evidence is sanitized and never grants Factor
    state:"INSTALL_PREFLIGHT_READY",code:"NPM_CI_VERIFIED",sourceHead:OLD,
    observedAt:2345,issueReserved:false,modelInvoked:false,
  });
+ for(const code of ["GIT_PROBE_FAILED","MANIFEST_READ_FAILED","PROBE_DIRECTORY_UNAVAILABLE",
+   "WORKTREE_PATH_BLOCKED","WORKTREE_LOCKED","WORKTREE_FILE_ACCESS",
+   "WORKTREE_ADD_FAILED","PROOF_WRITE_FAILED"]){
+   const safe=sanitizeDependencyPreflight({...valid,code,stderr:"C:/Users/private"});
+   assert.equal(safe.code,code);
+   assert.equal(JSON.stringify(safe).includes("C:/Users"),false);
+ }
  for(const patch of [
    {code:"C:/Users/owner/private"},
    {state:"RUNNING"},{sourceHead:"/private/story"},

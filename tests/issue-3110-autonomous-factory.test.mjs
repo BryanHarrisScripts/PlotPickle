@@ -770,6 +770,23 @@ test("new #3164 acceptance is a uniquely bounded docs-only job; #3160 receipts c
  assert.ok(prompt.includes("EXACTLY ONE file: "+file));
 });
 
+test("fresh #3173 Pi write-event acceptance is distinct, docs-only, and cannot replay #3164",()=>{
+ const file="docs/developer-briefs/3173-native-pi-write-events-smoke.md";
+ const old="docs/developer-briefs/3164-factory-native-docs-smoke.md";
+ assert.equal(factoryBoundedDocument(3173),file);
+ assert.equal(factoryBoundedDocument(3164),old);
+ assert.equal(assessFactoryPaths([file],3173).allowed,true);
+ assert.equal(assessFactoryPaths([],3173).code,"NO_BOUNDED_PATCH");
+ assert.equal(assessFactoryPaths([file,old],3173).code,"ISSUE_SCOPE_VIOLATION");
+ assert.equal(assessFactoryPaths([old],3173).code,"ISSUE_SCOPE_VIOLATION");
+ assert.equal(assessFactoryPaths(["tests/fake.test.mjs"],3173).code,"ISSUE_SCOPE_VIOLATION");
+ assert.equal(assessFactoryPaths([file],3164).code,"ISSUE_SCOPE_VIOLATION");
+ const prompt=factoryWorkerPrompt({number:3173,title:"Local Pi write smoke",body:"Create only the named file."},HEAD);
+ assert.ok(prompt.includes("EXACTLY ONE file: "+file));
+ assert.match(prompt,/MUST make real filesystem changes/);
+ assert.match(prompt,/DO NOT add regression test files/);
+});
+
 test("preflight public status receipt is allowlisted and never contains sensitive failure detail",()=>sandbox(async root=>{
  const result=await publishFactoryDependencyPreflightResult({root,now:()=>77,
    result:{state:"BLOCKED",code:"NPM_WINDOWS_FILE_ACCESS",sourceHead:HEAD,

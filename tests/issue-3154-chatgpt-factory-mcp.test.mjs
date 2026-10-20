@@ -261,8 +261,20 @@ test("private dependency preflight evidence is sanitized and never grants Factor
  await rm(file);
  const shadow=path.join(root,"shadow-secret.json");
  await writeFile(shadow,JSON.stringify(valid));
- await symlink(shadow,file);
- assert.equal((await factoryStatus({root})).dependencyPreflight,null);
+ // Windows accounts without symlink privileges (e.g. Developer Mode disabled)
+ // must still exercise all non-symlink sanitization assertions above.
+ // Where creation is permitted, keep enforcing rejection of linked evidence.
+ let linkCreated=false;
+ try {
+   await symlink(shadow,file);
+   linkCreated=true;
+ } catch(error) {
+   if(process.platform!=="win32"||
+      !["EPERM","EACCES","ENOTSUP"].includes(error?.code))throw error;
+ }
+ if(linkCreated) {
+   assert.equal((await factoryStatus({root})).dependencyPreflight,null);
+ }
 }));
 
 test("MCP recognizes blocked dependency wait as a real state, not a model-run success",()=>sandbox(async root=>{

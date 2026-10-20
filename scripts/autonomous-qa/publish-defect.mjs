@@ -12,7 +12,13 @@ const SEVERITIES = new Set(["blocker", "critical", "major", "minor"]);
 function safeToken(value, label, allowEmpty = false) {
   const normalized = String(value || "").trim();
   if (allowEmpty && normalized === "") return "";
-  if (!SAFE_REF.test(normalized)) throw new Error(`Autonomous QA defect publication ${label} is missing or invalid.`);
+  // Public GitHub evidence references are symbolic IDs, never local paths.
+  const segments=normalized.split("/");
+  const privatePath=/^[a-z]:\/|^(?:users|home|tmp|private|appdata)\//i.test(normalized);
+  if (!SAFE_REF.test(normalized)||privatePath||
+      segments.some(part=>part==="."||part===".."||part==="")||
+      segments.some(part=>/^(?:users|appdata|secrets)$/i.test(part)))
+    throw new Error(`Autonomous QA defect publication ${label} is missing or invalid.`);
   return normalized;
 }
 
@@ -70,6 +76,29 @@ function repositoryName(value) {
 
 function marker(fingerprint) {
   return `<!-- plotpickle-autonomous-qa:${fingerprint} -->`;
+}
+
+/** Only GitHub-confirmed issue URLs for this exact repository are publishable.
+ * Unknown/ambiguous API responses are NOT success and must not be retried
+ * automatically: GitHub may already have committed the mutation. */
+function confirmedIssueUrl(value,repo,number=null) {
+  if(typeof value?.html_url!=="string")return null;
+  try{
+    const url=new URL(value.html_url);
+    const match=url.pathname.match(/^\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)\/issues\/([1-9][0-9]*)$/);
+    if(url.protocol!=="https:"||url.hostname!=="github.com"||
+       url.username||url.password||url.port||url.search||
+       !match||match[1]+"/"+match[2]!==repo)return null;
+    const parsed=Number(match[3]);
+    if(!Number.isSafeInteger(parsed)||number!==null&&parsed!==number||
+       value.number!==undefined&&value.number!==parsed)return null;
+    return url.href;
+  }catch{return null;}
+}
+
+function unknownPublication(fingerprint) {
+  return Object.freeze({disposition:"publish-unknown",fingerprint,
+    linkedIssue:"",commentUrl:"",replayAuthorized:false});
 }
 
 function evidenceBody(candidate, heading) {
@@ -130,16 +159,22 @@ export async function publishAutonomousQaDefect({ candidate: rawCandidate, repos
   const fingerprintMarker = marker(candidate.fingerprint);
   const existing = issues.find((issue) => !issue.pull_request && String(issue.body || "").includes(fingerprintMarker));
   if (existing) {
+    const verified=Number.isSafeInteger(existing.number)&&existing.number>0
+      ?confirmedIssueUrl(existing,repo,existing.number):null;
+    if(!verified)return unknownPublication(candidate.fingerprint);
     const result = await githubRequest(fetchImpl, token, `${apiRoot}/issues/${existing.number}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: evidenceBody(candidate, "Additional autonomous QA reproduction") }),
     });
+    const commentUrl=confirmedIssueUrl(result,repo,existing.number);
+    if(!commentUrl||!new URL(commentUrl).hash.startsWith("#issuecomment-"))
+      return unknownPublication(candidate.fingerprint);
     return Object.freeze({
       disposition: "append-existing",
       fingerprint: candidate.fingerprint,
-      linkedIssue: String(existing.html_url || ""),
-      commentUrl: String(result.html_url || ""),
+      linkedIssue: verified,
+      commentUrl,
     });
   }
   const titleSurface = candidate.routeId || candidate.assertionRef;
@@ -151,10 +186,12 @@ export async function publishAutonomousQaDefect({ candidate: rawCandidate, repos
       body: evidenceBody(candidate, "Reproducible autonomous QA defect"),
     }),
   });
+  const verified=confirmedIssueUrl(result,repo);
+  if(!verified||new URL(verified).hash)return unknownPublication(candidate.fingerprint);
   return Object.freeze({
     disposition: "create-new",
     fingerprint: candidate.fingerprint,
-    linkedIssue: String(result.html_url || ""),
+    linkedIssue: verified,
     commentUrl: "",
   });
 }
@@ -169,6 +206,7 @@ async function main() {
     token: process.env.GITHUB_TOKEN,
   });
   process.stdout.write(`${JSON.stringify(result)}\n`);
+  if(result.disposition==="publish-unknown")process.exitCode=1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

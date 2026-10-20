@@ -2511,6 +2511,7 @@
       "classification": "production",
       "include": [
         "scripts/engineering-team/**",
+        "scripts/autonomous-qa/publish-defect.mjs",
         "scripts/engineering-diagnostics.mjs",
         "scripts/windows-uat-control.mjs",
         "scripts/windows-stop-proof.mjs"

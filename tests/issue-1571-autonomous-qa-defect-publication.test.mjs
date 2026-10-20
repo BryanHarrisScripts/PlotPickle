@@ -115,3 +115,77 @@ test("#1571 publisher rejects model-invented severity labels", async () => {
     /severity is invalid/,
   );
 });
+
+
+test("#3143 unconfirmed create response never becomes a created issue", async () => {
+  for(const payload of [
+    {}, {html_url:"https://evil.example/issues/1600"},
+    {html_url:"https://github.com/another/repo/issues/1600"},
+    {html_url:"https://github.com/BryanHarrisScripts/PlotPickle/issues/not-a-number"},
+    {number:1601,html_url:"https://github.com/BryanHarrisScripts/PlotPickle/issues/1600"},
+    {html_url:"https://github.com/BryanHarrisScripts/PlotPickle/issues/1600?token=secret"},
+  ]) {
+    let writes=0;
+    const result=await publishAutonomousQaDefect({
+      candidate,repository:"BryanHarrisScripts/PlotPickle",token:"test-token",
+      fetchImpl:async(_url,init={})=>{
+        if((init.method||"GET")==="GET")return response(200,[]);
+        writes++;return response(201,payload);
+      },
+    });
+    assert.equal(writes,1);
+    assert.deepEqual(result,{
+      disposition:"publish-unknown",fingerprint:candidate.fingerprint,
+      linkedIssue:"",commentUrl:"",replayAuthorized:false,
+    });
+  }
+});
+
+test("#3143 unconfirmed duplicate linkage refuses extra issue creation or false append", async () => {
+  let mutations=0;
+  const marker="<!-- plotpickle-autonomous-qa:"+candidate.fingerprint+" -->";
+  const result=await publishAutonomousQaDefect({
+    candidate,repository:"BryanHarrisScripts/PlotPickle",token:"test-token",
+    fetchImpl:async(_url,init={})=>{
+      if((init.method||"GET")==="GET")return response(200,[{
+        number:1550,html_url:"https://github.com/untrusted/repo/issues/1550",
+        body:marker,
+      }]);
+      mutations++;return response(201,{});
+    }
+  });
+  assert.equal(mutations,0);
+  assert.equal(result.disposition,"publish-unknown");
+  assert.equal(result.linkedIssue,"");
+});
+
+test("#3143 known existing issue with uncertain GitHub comment stays unknown, no fake append", async () => {
+  let commentWrites=0;
+  const result=await publishAutonomousQaDefect({
+    candidate,repository:"BryanHarrisScripts/PlotPickle",token:"test-token",
+    fetchImpl:async(_url,init={})=>{
+      if((init.method||"GET")==="GET")return response(200,[{
+        number:1550,html_url:"https://github.com/BryanHarrisScripts/PlotPickle/issues/1550",
+        body:"<!-- plotpickle-autonomous-qa:"+candidate.fingerprint+" -->",
+      }]);
+      commentWrites++;return response(201,{html_url:"https://github.com/BryanHarrisScripts/PlotPickle/issues/1550"});
+    }
+  });
+  assert.equal(commentWrites,1);
+  assert.equal(result.disposition,"publish-unknown");
+  assert.equal(result.commentUrl,"");
+});
+
+test("#3143 path-bearing or traversal evidence never leaves the publisher", async () => {
+  const forbidden=["C:/Users/operator/AppData/Secrets","secrets/token","artifact/../credentials",
+    "/home/operator/private","users/operator/notes"];
+  for(const unsafe of forbidden) {
+    let network=false;
+    await assert.rejects(()=>publishAutonomousQaDefect({
+      candidate:{...candidate,evidenceRefs:[unsafe]},
+      repository:"BryanHarrisScripts/PlotPickle",token:"test-token",
+      fetchImpl:async()=>{network=true;throw Error("must not publish");}
+    }),/invalid/);
+    assert.equal(network,false);
+  }
+});

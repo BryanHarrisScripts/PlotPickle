@@ -8,7 +8,8 @@ import path from "node:path";
 import {
   privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, factoryStatus, factoryEvidence,
   factoryIssuePreview, executeMcpRequest, handleRpc, MCP_TOOLS,
-  createLocalMcpHttpServer, runStdio,
+  createLocalMcpHttpServer, runStdio, controlTokenMatches,
+  MCP_CONTROL_TOOLS, factoryControlReceipt,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const OLD="a".repeat(40),NEW="b".repeat(40);
@@ -259,4 +260,96 @@ test("MCP recognizes blocked dependency wait as a real state, not a model-run su
  assert.equal(status.agentVerified,false);
  assert.equal(status.productGateVerified,false);
  assert.equal(status.activeIssue,3164);
+}));
+
+test("MCP write tools are hidden without paired authentication and reject replay",()=>sandbox(async root=>{
+ await seed(root);
+ const token="T".repeat(64);
+ assert.equal(controlTokenMatches(token,token),true);
+ assert.equal(controlTokenMatches("wrong",token),false);
+ assert.equal(controlTokenMatches(token,"short"),false);
+ assert.equal(MCP_CONTROL_TOOLS.map(x=>x.name).join(","),
+   "factory_run_dependency_preflight,factory_admit_issues,factory_control_receipt");
+ let preflightCalls=0,admissionCalls=0,publishCalls=0;
+ const ops={
+   preflight:async()=>{preflightCalls++;return {state:"INSTALL_PREFLIGHT_READY",
+     code:"NPM_CI_VERIFIED",sourceHead:OLD};},
+   publish:async()=>{publishCalls++;},
+   proof:async()=>({ready:true,code:"NPM_PREFLIGHT_VERIFIED"}),
+   admit:async({issues,consent})=>{
+     assert.deepEqual(issues,[3164]);
+     assert.equal(consent,"PLOTPICKLE_AUTONOMOUS_ENGINEERING");
+     admissionCalls++;return {state:"ISSUES_ADMITTED",issueCount:2};
+   },
+ };
+ const server=createLocalMcpHttpServer({root,controlToken:token,controlOps:ops,
+   github:{exactHead:async()=>OLD},now:()=>100000});
+ await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+ try{
+   const url="http://127.0.0.1:"+server.address().port+"/mcp";
+   const headers={"content-type":"application/json","accept":"application/json, text/event-stream"};
+   let seq=0;
+   const call=async(name,args,headerToken)=>{
+     const body={jsonrpc:"2.0",id:++seq,method:"tools/call",
+       params:{name,arguments:args}};
+     const reply=await fetch(url,{method:"POST",headers:{
+       ...headers,...(headerToken?{"x-plotpickle-factory-control-token":headerToken}:{})},
+       body:JSON.stringify(body)});
+     return (await reply.json());
+   };
+   const list=async(headerToken)=>{
+     const reply=await fetch(url,{method:"POST",headers:{
+       ...headers,...(headerToken?{"x-plotpickle-factory-control-token":headerToken}:{})},
+       body:JSON.stringify({jsonrpc:"2.0",id:++seq,method:"tools/list"})});
+     return (await reply.json()).result.tools.map(x=>x.name);
+   };
+   assert.equal((await list()).length,3);
+   assert.equal((await list(token)).length,6);
+   assert.equal((await list("invalid")).length,3);
+   const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
+   assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);
+   assert.equal((await call("factory_run_dependency_preflight",preArgs,"invalid")).error.code,-32001);
+   assert.equal((await call("factory_run_dependency_preflight",
+     {...preArgs,shell:"powershell"},token)).error.code,-32602);
+   assert.equal(preflightCalls,0);
+   const performed=await call("factory_run_dependency_preflight",preArgs,token);
+   assert.equal(performed.result.structuredContent.state,"INSTALL_PREFLIGHT_READY");
+   assert.equal(preflightCalls,1);
+   assert.equal(publishCalls,1);
+   assert.equal((await call("factory_run_dependency_preflight",preArgs,token))
+     .result.structuredContent.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+   assert.equal(preflightCalls,1);
+   const adArgs={requestId:"2".repeat(32),expectedHead:OLD,issues:[3164]};
+   assert.equal((await call("factory_admit_issues",adArgs,token))
+     .result.structuredContent.state,"ISSUES_ADMITTED");
+   assert.equal(admissionCalls,1);
+   assert.equal((await call("factory_control_receipt",{requestId:adArgs.requestId},token))
+     .result.structuredContent.issueCount,2);
+   assert.equal((await call("factory_control_receipt",{requestId:preArgs.requestId},token))
+     .result.structuredContent.code,"NPM_CI_VERIFIED");
+   assert.equal((await call("factory_control_receipt",{requestId:"f".repeat(32)},token))
+     .result.structuredContent.state,"NO_REQUEST");
+   assert.equal((await call("factory_control_receipt",{requestId:adArgs.requestId})).error.code,-32001);
+   const controlFile=await readFile(path.join(root,"mcp-control-requests",preArgs.requestId+".json"),"utf8");
+   assert.equal(controlFile.includes(token),false);
+   assert.equal(controlFile.includes("issue-3141"),false);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+}));
+test("MCP control denies stale head and held worker without consuming a request ID",()=>sandbox(async root=>{
+ await seed(root);
+ let called=0;
+ const ops={preflight:async()=>{called++;throw Error("must never invoke");}};
+ const args={requestId:"3".repeat(32),expectedHead:OLD};
+ let github={exactHead:async()=>NEW};
+ const stale=await import("../scripts/engineering-team/mcp/factory-readonly-server.mjs");
+ let result=await stale.factoryControlAction("factory_run_dependency_preflight",args,{root,github,ops});
+ assert.equal(result.code,"EXACT_HEAD_MISMATCH");
+ assert.equal(called,0);
+ assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"NO_REQUEST");
+ await writeFile(path.join(root,"service.lock"),JSON.stringify({pid:1234}));
+ github={exactHead:async()=>OLD};
+ result=await stale.factoryControlAction("factory_run_dependency_preflight",args,{root,github,ops});
+ assert.equal(result.code,"STOP_FACTORY_FIRST");
+ assert.equal(called,0);
+ assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"NO_REQUEST");
 }));

@@ -18,6 +18,7 @@ import {
 } from "../windows/autonomous-queue.mjs";
 import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
+import { summarizeFactoryObserver } from "../windows/factory-observer.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -170,6 +171,17 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now}={})
   }
   result.lastOutcome=last;
   return result;
+}
+
+/** Bounded local observer: zero model calls, shell commands, reservations or edits. */
+export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={}) {
+  const status=await factoryStatus({root,now});
+  const config=await privateJson(path.join(root,"config.json"),32768);
+  const approvedIssues=Array.isArray(config?.issues)?config.issues.slice(0,80):[];
+  const evidence=await Promise.all(approvedIssues.map(async issueNumber=>({
+    issueNumber,...await factoryEvidence({root,issueNumber,attempt:1}),
+  })));
+  return summarizeFactoryObserver({status,approvedIssues,evidence,now:now()});
 }
 
 export async function factoryIssuePreview({github=createQueueGitHubClient()}={}) {
@@ -333,6 +345,9 @@ export const MCP_TOOLS=Object.freeze([
   {name:"factory_status",title:"Read PlotPickle Factory status",
     description:"Read the local Factory heartbeat, approved issue count and sanitized last outcome. Never treats heartbeat as verification.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
+  {name:"factory_observer",title:"Read deterministic Factory Observer snapshot",
+    description:"Read bounded Windows Factory queue, heartbeat and immutable issue receipts. Reports the Pi legacy dispatcher and ChatGPT-MCP engineering as NOT READY. Does not run, admit, modify or retry work.",
+    inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_evidence",title:"Read bounded issue attempt evidence",
     description:"Read one already-recorded attempt by numeric issue and attempt; never launches or retries the agent.",
     inputSchema:{type:"object",properties:{
@@ -373,6 +388,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         return {error:invalidParams()};
       let value;
       if(name==="factory_status")value=await factoryStatus({root,now});
+      else if(name==="factory_observer")value=await factoryObserver({root,now});
       else if(name==="factory_evidence"){
         if(keys.some(k=>!["issueNumber","attempt"].includes(k)) ||
            !validIssue(args.issueNumber) ||

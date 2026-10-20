@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { planSyntheticQaHandoff } from "../scripts/engineering-team/queue/synthetic-qa-handoff.mjs";
-import { runFactoryMonitorOnce, persistMonitorSnapshot } from "../scripts/engineering-team/windows/factory-monitor.mjs";
+import { runFactoryMonitorOnce, persistMonitorSnapshot } from "../scripts/engineering-team/windows/supervisor/factory-monitor.mjs";
 import { factoryObserver } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const HEAD="a".repeat(40);

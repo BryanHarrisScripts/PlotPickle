@@ -9263,10 +9263,10 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "8cfaa5dbc92865120ca4fc73db284d2693cc69a5eb6b734fe116cf17ae848593"
+            "digest": "0cb6795590036ea282b28a1bd2a51724c4773a132b1d0c06b5cd03b840e88973"
           },
           {
-            "path": "scripts/engineering-team/windows/factory-observer.mjs",
+            "path": "scripts/engineering-team/mcp/factory-observer.mjs",
             "digest": "b9fd7dbce5c4c7a4943854a6e09966f8308e56b7fbbcf6c62a8cd2664121f25a"
           }
         ],

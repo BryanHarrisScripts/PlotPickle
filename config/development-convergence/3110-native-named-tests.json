@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 3110,
+  "phase": "authenticated-factory-native-named-tests",
+  "brief": "docs/developer-briefs/3110-factory-native-named-tests.md",
+  "allowedChanges": [
+    "config/development-convergence/3110-native-named-tests.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3110-factory-native-named-tests.md",
+    "scripts/engineering-team/mcp/factory-named-tests.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3110-factory-named-test-mcp.test.mjs",
+    "tests/issue-3154-chatgpt-factory-mcp.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "ALLOWLIST-ONLY",
+      "criterion": "Only fixed Node test targets on exact source HEAD are executable; untrusted user-supplied paths and shell programs are rejected.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "contains": "named Factory suite is fixed, no arbitrary commands"
+        }
+      ]
+    },
+    {
+      "id": "AUTHENTICATED-WRITE-ONCE",
+      "criterion": "Existing owner-only MCP header plus private immutable control receipt and no duplicate native execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "contains": "authenticated MCP named test produces one immutable bounded receipt"
+        }
+      ]
+    },
+    {
+      "id": "TRUTH-BOUNDARY",
+      "criterion": "Native Node suite status does not self-certify Product UAT or automatic merge and never enables Pi dispatcher.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3110-factory-native-named-tests.md",
+          "contains": "does not prove compilation, Windows browser UAT"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Source authoring stays with ChatGPT via GitHub. This PR adds no generic Windows command executor, shell, arbitrary test runner, model fallback, issue admission or merge permission.",
+    "Live paired Windows MCP restart, exact-head run, test receipt, process ownership and end-to-end autonomous repair are separately unproven.",
+    "Retain seven Agent Domains, existing BUZZ/Mastra product agents and immutable five blocked Pi reservations."
+  ]
+}

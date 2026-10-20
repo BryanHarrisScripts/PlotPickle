@@ -7,7 +7,7 @@
 import http from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -19,6 +19,8 @@ import {
 import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
+import { allowedFactoryTestNames, readFactoryVerificationHead,
+  runFactoryNamedTest } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -240,7 +242,9 @@ const CONTROL_HEAD=/^[a-f0-9]{40}$/;
 const CONTROL_TOKEN=/^[A-Za-z0-9_-]{48,128}$/;
 const CONTROL_CODES=new Set([...dependencyCodes,
   "ISSUES_ADMITTED","DEPENDENCY_PREFLIGHT_REQUIRED",
-  "CONTROL_OPERATION_BLOCKED","EXACT_HEAD_MISMATCH"]);
+  "CONTROL_OPERATION_BLOCKED","EXACT_HEAD_MISMATCH",
+  "WINDOWS_ONLY","TEST_SELECTION_INVALID","TEST_LOCKED",
+  "NODE_TEST_PASS","NODE_TEST_FAILED","NODE_TEST_TIMEOUT"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -261,6 +265,13 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
+  {name:"factory_run_named_test",title:"Run one allowlisted native Factory test suite",
+    description:"Authenticated Windows-only fixed Node test target on a clean exact main SHA. No arbitrary commands, model calls or merge. Returns a durable bounded receipt; passing is NOT Windows Product UAT.",
+    inputSchema:{type:"object",properties:{
+      requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      suite:{type:"string",enum:allowedFactoryTestNames()}},
+      required:["requestId","expectedHead","suite"],additionalProperties:false}},
   {name:"factory_control_receipt",title:"Read durable Factory control request receipt",
     description:"Read the sanitized immutable outcome of an authenticated control request ID. Missing outcome is uncertain, never green and never retryable with the same ID.",
     inputSchema:{type:"object",properties:{
@@ -276,6 +287,8 @@ function validControlArgs(name,args) {
   if(!CONTROL_HEAD.test(args.expectedHead||""))return false;
   if(name==="factory_run_dependency_preflight")
     return keys.length===2;
+  if(name==="factory_run_named_test")
+    return keys.length===3 && allowedFactoryTestNames().includes(args.suite);
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
     new Set(args.issues).size===args.issues.length&&
@@ -283,11 +296,13 @@ function validControlArgs(name,args) {
 }
 function safeControlReceipt(raw,requestId) {
   if(raw?.requestId!==requestId)return null;
-  const state=["BLOCKED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED"].includes(raw.state)
+  const state=["BLOCKED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED",
+    "TEST_PASSED","TEST_FAILED"].includes(raw.state)
     ?raw.state:null;
   const code=safeText(raw.code,CONTROL_CODES);
   if(!state||!code)return null;
   return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
+    suite:allowedFactoryTestNames().includes(raw.suite)?raw.suite:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
       ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
     independentVerification:false};
@@ -306,6 +321,7 @@ export async function factoryControlAction(name,args,{
   ops={
     preflight:runFactoryDependencyPreflight,proof:checkFactoryDependencyProof,
     admit:admitFactoryIssues,publish:publishFactoryDependencyPreflightResult,
+    testHead:readFactoryVerificationHead,runTest:runFactoryNamedTest,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -316,7 +332,8 @@ export async function factoryControlAction(name,args,{
     return {state:"BLOCKED",code:"STOP_FACTORY_FIRST",requestId:args.requestId,
       replayAuthorized:false};
   let head;
-  try{head=await github.exactHead();}catch{return {
+  try{head=name==="factory_run_named_test"
+    ?await ops.testHead():await github.exactHead();}catch{return {
     state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",requestId:args.requestId,
     replayAuthorized:false};}
   if(head!==args.expectedHead)return {
@@ -333,7 +350,29 @@ export async function factoryControlAction(name,args,{
     replayAuthorized:false};}
   let outcome;
   try{
-    if(name==="factory_run_dependency_preflight"){
+    if(name==="factory_run_named_test"){
+      // A crash preserves a lock for manual review; no auto replay/unlock.
+      const lockFile=path.join(dir,"named-test-active.lock");
+      let locked=false;
+      try{
+        await writeFile(lockFile,JSON.stringify({requestId:args.requestId,
+          sourceHead:args.expectedHead})+"\\n",{flag:"wx",mode:0o600});
+        locked=true;
+      }catch{
+        outcome={state:"BLOCKED",code:"TEST_LOCKED",sourceHead:args.expectedHead,
+          suite:args.suite};
+      }
+      if(locked){
+        try{
+          const result=await ops.runTest({suite:args.suite,
+            expectedHead:args.expectedHead,verifyHead:ops.testHead});
+          outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
+            ?result.state:"BLOCKED",
+            code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
+            sourceHead:result.sourceHead,suite:args.suite};
+        }finally{await unlink(lockFile).catch(()=>{});}
+      }
+    }else if(name==="factory_run_dependency_preflight"){
       const raw=await ops.preflight({root});
       await ops.publish({root,result:raw,now});
       outcome={state:raw.state==="INSTALL_PREFLIGHT_READY"?"INSTALL_PREFLIGHT_READY":"BLOCKED",

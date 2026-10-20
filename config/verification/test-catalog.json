@@ -9144,7 +9144,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "eca2992ec20eb39188aba25067d3fc2e60b7cb048df9ddce2db54d5b0fc0e894",
+        "targetDigest": "e2b430de920df36281826baedaa369acdeb041cdc883b875fb3f62692b445d38",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9155,7 +9155,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "efab2705d428a0f9fc68171bb51916255b70cadcb3f2539dc76352ed2bdb4f8f"
+            "digest": "59588704b216fecdb781312c4007a02d8867d8ccd60edb654ba65314aa3ed25f"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",

@@ -9289,7 +9289,7 @@
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
-        "targetDigest": "93258811f1d9dd5f71012d661b1856944b5aa729d5cdd506bd1c060e4b70ae7e",
+        "targetDigest": "6b7a585145f6a3ee8dda1eb5ae9f4c1c45fc8ca7bf068d08b12390c9deac0d95",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9299,8 +9299,8 @@
             "digest": "ed13ec1122a1b7d64ecf8f4cc0568275cfcfc948eac3190735f5161daac13662"
           },
           {
-            "path": "scripts/engineering-team/windows/factory-monitor.mjs",
-            "digest": "424d1ad285c5f5f1c643e2070fc639d5df39835a8bcf70cda202e1d6b9f7cc5f"
+            "path": "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
+            "digest": "5c431350f41537596dd65ca3167d98a6af89009da90e9432958eea8693dce044"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

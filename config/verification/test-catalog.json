@@ -9144,14 +9144,14 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "5e1edefb70ae0dd1c3ecf73d41bd439fe574fce89882750118e79ef8bc56cfc2",
+        "targetDigest": "ea04a23f1283eefb27b5eb6948bb67d7ea5d4f29d12eb2e2371d5218779e0a4a",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "e0c13d083e9ec47685533854d1a463a27d229ada5c10808462936a9112a20e24"
+            "digest": "9b84e5f22a7bc50355d49ce8ff67c3788c9fa4765a540e469b5163d8c13d22c5"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",

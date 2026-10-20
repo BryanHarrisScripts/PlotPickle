@@ -36,7 +36,7 @@ The Factory must not treat an arbitrary issue title, body, marker or model claim
 
 ## 3. Observer and first implementation slice
 
-Run **a separate monitoring-only Node.js process** on the local Windows host, without starting `PlotPickleSoftwareFactory` or its Pi dispatcher. The command `node scripts/engineering-team/windows/factory-monitor.mjs --once` takes one snapshot; `--watch` repeats every 60 seconds while that process remains alive.
+Run **a separate monitoring-only Node.js process** on the local Windows host, without starting `PlotPickleSoftwareFactory` or its Pi dispatcher. The command `node scripts/engineering-team/windows/supervisor/factory-monitor.mjs --once` takes one snapshot; `--watch` repeats every 60 seconds while that process remains alive.
 
 - Reuse the existing authenticated `factory_observer` MCP snapshot and immutable reservations/results.
 - Read up to 100 current open issues through the existing `gh` CLI; choose up to five plausible `[Autonomous QA]` issues with fingerprint, exact failing head/build and reproduction references; mark every one `QA_CANDIDATE_UNVERIFIED`.

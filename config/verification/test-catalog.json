@@ -9256,14 +9256,18 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "dd5267bba29539d7a4c5caa98f18302b4e5c4f433654dc1d9599cb1b85171ceb",
+        "targetDigest": "91df152a7a99fd41dc221432152b0b4e2296926a45b7f8810f9f3d2bcdced1b4",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "323da228cfc17942520473164afd5126d260df30de999d974946c110528c7df0"
+            "digest": "8cfaa5dbc92865120ca4fc73db284d2693cc69a5eb6b734fe116cf17ae848593"
+          },
+          {
+            "path": "scripts/engineering-team/windows/factory-observer.mjs",
+            "digest": "b9fd7dbce5c4c7a4943854a6e09966f8308e56b7fbbcf6c62a8cd2664121f25a"
           }
         ],
         "truthRefs": [
@@ -9280,7 +9284,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts and local MCP HTTP/stdio protocol tests only. No actual Plus web custom MCP entitlement, external HTTPS auth/tunnel, native Windows UAT or unattended Chat inference proof."
+        "limits": "Synthetic private Factory receipts, deterministic observer snapshot, and local MCP HTTP/stdio protocol tests only. No native Windows task/process ownership, scheduled ChatGPT MCP access, source edit, Product UAT, or autonomous merge proof."
       }
     ]
   }

@@ -16,6 +16,7 @@ import { promisify } from "node:util";
 import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
 import { versionAtLeast } from "../../pi-version.mjs";
 import { reconcileApprovedDocsPRs } from "./autonomous-pr-review.mjs";
+import { checkFactoryDependencyProof } from "./factory-dependency-preflight.mjs";
 
 const runFile = promisify(execFile);
 const THIS = fileURLToPath(import.meta.url);
@@ -419,6 +420,16 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   if(readiness?.ready!==true)return Object.freeze({
     state:"WAITING_FOR_PROVIDER",issueNumber:issue.number,processed:0,
     code:String(readiness?.code||"LOCAL_ROUTE_UNAVAILABLE").slice(0,80)});
+  // Native scheduled worker only: prove npm ci in a detached diagnostic
+  // worktree BEFORE the irreversible issue job is reserved. Synthetic tests
+  // use private roots and cannot accidentally install real dependencies.
+  if(process.platform==="win32"&&root===ROOT){
+    const dependencies=await checkFactoryDependencyProof({root,repoRoot:REPO_ROOT});
+    if(!dependencies.ready)return Object.freeze({
+      state:"WAITING_FOR_DEPENDENCIES",issueNumber:issue.number,processed:0,
+      code:dependencies.code,
+    });
+  }
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,
     taskId:SHA256(REPOSITORY+":"+issue.number+":"+head+":"+attempt),state:"STARTED_UNCONFIRMED",
     reservedAt:now(),attempt,replayAuthorized:false,modelRoute:"local-only",

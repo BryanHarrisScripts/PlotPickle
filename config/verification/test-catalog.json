@@ -9144,7 +9144,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "a0c9485853fe9e5dde292ee9ce365e3435a169d760369dd1a496cb56f7264cce",
+        "targetDigest": "6394bbdbfe498edf1fd6bd7e942798e56c898ee7ebb110c15a9c658d7a5b9eed",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9155,7 +9155,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
-            "digest": "fb1f89c69db209d059211e4fc1523094c4b774726beacce11285c9cfb46911f4"
+            "digest": "b04d1c08ea9de1bbbedb6f449a19cbe57955c124fc2bbcc8bfaee64c0079ad63"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-telemetry.mjs",
@@ -9256,14 +9256,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "55cfde820f2e9e30a9ba19358103de8a091b8f4569715a153a60bb9a45464516",
+        "targetDigest": "ebd02853332748d55cb89cf35f8ca6bad2021226c38468edf23ab5c7b8d8a713",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "6caed13dd93d2cf99a92086214ac7dab34280e3a842df6b323367c1458e17427"
+            "digest": "3042a5fd5201421cc33a0961e69a4beafcc9c8cdf2e4fb29beef1a99473811d2"
           }
         ],
         "truthRefs": [

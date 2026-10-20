@@ -8,7 +8,7 @@
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3110-testing-to-factory-to-normal.md",
     "scripts/engineering-team/queue/synthetic-qa-handoff.mjs",
-    "scripts/engineering-team/windows/factory-monitor.mjs",
+    "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
     "scripts/engineering-team/mcp/factory-readonly-server.mjs",
     "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs"
   ],
@@ -30,7 +30,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "scripts/engineering-team/windows/factory-monitor.mjs",
+          "path": "scripts/engineering-team/windows/supervisor/factory-monitor.mjs",
           "contains": "mode:\"MONITOR_ONLY\""
         }
       ]

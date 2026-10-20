@@ -549,6 +549,7 @@ test("docs-only Windows pilot instructions require a physical write and prohibit
   [3141,"docs/developer-briefs/3141-autonomous-factory-native-acceptance.md"],
   [3158,"docs/developer-briefs/factory-native-worker-pilot-acceptance.md"],
   [3160,"docs/developer-briefs/3160-factory-native-write-smoke.md"],
+  [3164,"docs/developer-briefs/3164-factory-native-docs-smoke.md"],
  ];
  for(const [number,expected] of paths){
    assert.equal(factoryBoundedDocument(number),expected);
@@ -677,3 +678,15 @@ test("failed npm dependency readiness does not consume one-shot local Factory ad
  const saved=JSON.parse(await readFile(path.join(root,"jobs","issue-3160.json"),"utf8"));
  assert.equal(saved.replayAuthorized,false);
 }));
+
+test("new #3164 acceptance is a uniquely bounded docs-only job; #3160 receipts cannot authorize it",()=>{
+ const file="docs/developer-briefs/3164-factory-native-docs-smoke.md";
+ assert.equal(factoryBoundedDocument(3164),file);
+ assert.equal(assessFactoryPaths([file],3164).allowed,true);
+ assert.equal(assessFactoryPaths([file,"tests/fake.test.mjs"],3164).allowed,false);
+ assert.equal(assessFactoryPaths(["docs/developer-briefs/3160-factory-native-write-smoke.md"],3164).allowed,false);
+ const prompt=factoryWorkerPrompt({number:3164,title:"Local Pi docs smoke",body:"One file only."},HEAD);
+ assert.match(prompt,/write\/edit tools/);
+ assert.match(prompt,/DO NOT add regression test files/);
+ assert.ok(prompt.includes("EXACTLY ONE file: "+file));
+});

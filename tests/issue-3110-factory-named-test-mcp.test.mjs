@@ -60,6 +60,18 @@ test("exact-head native test refuses dirty main, wrong branch, changed or stale 
  assert.equal(stale.code,"EXACT_HEAD_MISMATCH");
  assert.equal(runCount,0);
 });
+test("native pass is rejected when source HEAD drifts during execution",async()=>{
+ let probes=0;
+ const result=await runFactoryNamedTest({
+   suite:"factory-mcp",expectedHead:HEAD,platform:"win32",
+   verifyHead:async()=>++probes===1?HEAD:OTHER,
+   run:async()=>({stdout:"all tests passed"}),
+ });
+ assert.equal(probes,2);
+ assert.equal(result.state,"BLOCKED");
+ assert.equal(result.code,"EXACT_HEAD_MISMATCH");
+ assert.equal(result.sourceHead,OTHER);
+});
 test("native failed or timed-out test is typed without leaking stderr",async()=>{
  for(const [reason,code] of [[Error("MY_PRIVATE_TOKEN"),"NODE_TEST_FAILED"],
    [Object.assign(Error("C:/users/private/.npmrc"),{killed:true}),"NODE_TEST_TIMEOUT"]]){

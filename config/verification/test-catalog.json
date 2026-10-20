@@ -9256,14 +9256,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "c912362855ea3389ac0b9af384c36d6cb11261dff8a67c95454ea4f3b0e2e8c3",
+        "targetDigest": "c783718f9708d8894bed207f9bec8e16cea21e6311e5db72d8e6c167efe6a36b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "1fc6cab2ac7e485498ad1380cb18fdc71b8dc5f2dfc2b8c63ea7919b490ac966"
+            "digest": "d3489bef36cacc3fbaef68da8c9fe1d2fe6a728335d8415440e3ff444b74c3c3"
           }
         ],
         "truthRefs": [

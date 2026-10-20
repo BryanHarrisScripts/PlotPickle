@@ -5,16 +5,19 @@
  * Loopback HTTP is for local protocol inspection, NEVER an unauthenticated tunnel.
  */
 import http from "node:http";
+import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
-import { lstat, readFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import readline from "node:readline";
 import { pathToFileURL } from "node:url";
 import {
-  readFactoryStatus, planNewestFirst, createQueueGitHubClient,
+  readFactoryStatus, planNewestFirst, createQueueGitHubClient, admitFactoryIssues,
 } from "../windows/autonomous-queue.mjs";
+import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
+  publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -179,6 +182,149 @@ export async function factoryIssuePreview({github=createQueueGitHubClient()}={})
   }
 }
 
+
+/**
+ * #3154: authenticated, opt-in CONTROL on the existing paired host and ledger.
+ * A secure tunnel must inject the owner-only HTTP header; the token is NEVER
+ * a model/tool argument or an issue/comment value. Without the header the
+ * original read-only MCP contract and all three tools remain unchanged.
+ */
+const REQUEST_ID=/^[a-f0-9]{32}$/;
+const CONTROL_HEAD=/^[a-f0-9]{40}$/;
+const CONTROL_TOKEN=/^[A-Za-z0-9_-]{48,128}$/;
+const CONTROL_CODES=new Set([...dependencyCodes,
+  "ISSUES_ADMITTED","DEPENDENCY_PREFLIGHT_REQUIRED",
+  "CONTROL_OPERATION_BLOCKED","EXACT_HEAD_MISMATCH"]);
+export function controlTokenMatches(presented,configured) {
+  if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
+     typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
+  const a=Buffer.from(presented),b=Buffer.from(configured);
+  return a.length===b.length&&timingSafeEqual(a,b);
+}
+export const MCP_CONTROL_TOOLS=Object.freeze([
+  {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
+    description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
+    inputSchema:{type:"object",properties:{
+      requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"}},
+      required:["requestId","expectedHead"],additionalProperties:false}},
+  {name:"factory_admit_issues",title:"Admit a bounded fresh Factory issue batch",
+    description:"After verified native dependency preflight, append one to five new eligible issues to the existing locally approved queue; never replay reservations, start a worker or grant merge rights.",
+    inputSchema:{type:"object",properties:{
+      requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
+      required:["requestId","expectedHead","issues"],additionalProperties:false}},
+  {name:"factory_control_receipt",title:"Read durable Factory control request receipt",
+    description:"Read the sanitized immutable outcome of an authenticated control request ID. Missing outcome is uncertain, never green and never retryable with the same ID.",
+    inputSchema:{type:"object",properties:{
+      requestId:{type:"string",pattern:"^[a-f0-9]{32}$"}},
+      required:["requestId"],additionalProperties:false}},
+].map(tool=>Object.freeze({...tool,annotations:{
+  readOnlyHint:tool.name==="factory_control_receipt",destructiveHint:false,openWorldHint:false,
+}})));
+function validControlArgs(name,args) {
+  const keys=Object.keys(args);
+  if(!REQUEST_ID.test(args.requestId||""))return false;
+  if(name==="factory_control_receipt")return keys.length===1;
+  if(!CONTROL_HEAD.test(args.expectedHead||""))return false;
+  if(name==="factory_run_dependency_preflight")
+    return keys.length===2;
+  return name==="factory_admit_issues"&&keys.length===3&&
+    Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
+    new Set(args.issues).size===args.issues.length&&
+    args.issues.every(n=>validIssue(n));
+}
+function safeControlReceipt(raw,requestId) {
+  if(raw?.requestId!==requestId)return null;
+  const state=["BLOCKED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED"].includes(raw.state)
+    ?raw.state:null;
+  const code=safeText(raw.code,CONTROL_CODES);
+  if(!state||!code)return null;
+  return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
+    issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
+      ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
+    independentVerification:false};
+}
+export async function factoryControlReceipt({root,requestId}){
+  const dir=path.join(root,"mcp-control-requests");
+  const reservation=await privateJson(path.join(dir,requestId+".json"),4096);
+  if(!reservation||reservation.requestId!==requestId)
+    return {state:"NO_REQUEST",requestId,replayAuthorized:false};
+  const result=await privateJson(path.join(dir,requestId+"-result.json"),4096);
+  const receipt=safeControlReceipt(result,requestId);
+  return receipt||{state:"STARTED_UNCONFIRMED",requestId,replayAuthorized:false};
+}
+export async function factoryControlAction(name,args,{
+  root=privateFactoryRoot(),github=createQueueGitHubClient(),now=Date.now,
+  ops={
+    preflight:runFactoryDependencyPreflight,proof:checkFactoryDependencyProof,
+    admit:admitFactoryIssues,publish:publishFactoryDependencyPreflightResult,
+  },
+}={}) {
+  if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
+  const dir=path.join(root,"mcp-control-requests");
+  // Never run an npm install or mutate an approval list while the scheduled
+  // worker holds a lock; local process-tree stop remains a separate acceptance.
+  if(existsSync(path.join(root,"service.lock")))
+    return {state:"BLOCKED",code:"STOP_FACTORY_FIRST",requestId:args.requestId,
+      replayAuthorized:false};
+  let head;
+  try{head=await github.exactHead();}catch{return {
+    state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",requestId:args.requestId,
+    replayAuthorized:false};}
+  if(head!==args.expectedHead)return {
+    state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",requestId:args.requestId,
+    replayAuthorized:false};
+  await mkdir(dir,{recursive:true,mode:0o700});
+  // Write-once reservation BEFORE any possibly irreversible npm or queue call.
+  try{
+    await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
+      schemaVersion:1,requestId:args.requestId,operation:name,
+      expectedHead:args.expectedHead,at:now(),replayAuthorized:false,
+    })+"\n",{flag:"wx",mode:0o600});
+  }catch{return {state:"DUPLICATE_OR_UNVERIFIABLE_REQUEST",requestId:args.requestId,
+    replayAuthorized:false};}
+  let outcome;
+  try{
+    if(name==="factory_run_dependency_preflight"){
+      const raw=await ops.preflight({root});
+      await ops.publish({root,result:raw,now});
+      outcome={state:raw.state==="INSTALL_PREFLIGHT_READY"?"INSTALL_PREFLIGHT_READY":"BLOCKED",
+        code:safeText(raw.code,dependencyCodes)||"NPM_PREFLIGHT_UNAVAILABLE",
+        sourceHead:raw.sourceHead||null};
+    }else{
+      const proof=await ops.proof({root});
+      const nativeProof=await privateJson(path.join(root,"dependency-preflight.json"),4096);
+      // A cache hit for an unchanged lockfile is not proof for another commit.
+      if(proof?.ready!==true||nativeProof?.npmCiVerified!==true||
+         nativeProof?.sourceHead!==args.expectedHead)
+        outcome={state:"BLOCKED",code:"DEPENDENCY_PREFLIGHT_REQUIRED"};
+      else{
+        const admitted=await ops.admit({root,issues:args.issues,
+          consent:"PLOTPICKLE_AUTONOMOUS_ENGINEERING",github,now});
+        outcome={state:admitted?.state==="ISSUES_ADMITTED"?"ISSUES_ADMITTED":"BLOCKED",
+          code:admitted?.state==="ISSUES_ADMITTED"?"ISSUES_ADMITTED":"CONTROL_OPERATION_BLOCKED",
+          issueCount:admitted?.issueCount};
+      }
+    }
+  }catch{
+    // A partial npm/install or queue mutation may have occurred before an error:
+    // preserve the original reservation, never write a misleading BLOCKED result.
+    return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
+  }
+  const record={requestId:args.requestId,...outcome,
+    modelInvoked:false,replayAuthorized:false,independentVerification:false};
+  try{
+    await writeFile(path.join(dir,args.requestId+"-result.json"),
+      JSON.stringify(record)+"\n",{flag:"wx",mode:0o600});
+  }catch{
+    // The original operation may have happened; do not replay or invent success.
+    return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
+  }
+  return safeControlReceipt(record,args.requestId);
+}
+
 export const MCP_TOOLS=Object.freeze([
   {name:"factory_status",title:"Read PlotPickle Factory status",
     description:"Read the local Factory heartbeat, approved issue count and sanitized last outcome. Never treats heartbeat as verification.",
@@ -199,23 +345,27 @@ export const MCP_TOOLS=Object.freeze([
 function invalidParams() {return {code:-32602,message:"Invalid tool arguments"};}
 
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
-  now=Date.now}={}) {
+  now=Date.now,controlAuthenticated=false,controlOps}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
     case "initialize":
       return {result:{protocolVersion:MCP_PROTOCOL,
         capabilities:{tools:{listChanged:false}},
-        serverInfo:{name:MCP_NAME,version:"0.1.0"},
-        instructions:"Read-only PlotPickle Factory status, receipts and GitHub queue preview. This bridge cannot authorize, start, stop, mutate, retry or merge anything. A heartbeat is never independent proof."}};
+        serverInfo:{name:MCP_NAME,version:controlAuthenticated?"0.2.0":"0.1.0"},
+        instructions:controlAuthenticated?"Authenticated native dependency preflight and bounded issue admission are available; no unattended Windows start/stop or autonomous merge is implied.":
+          "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
-    case "tools/list": return {result:{tools:MCP_TOOLS}};
+    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
       if(!args || typeof args!=="object" || Array.isArray(args))
         return {error:invalidParams()};
       const keys=Object.keys(args);
-      if(name!=="factory_evidence" && keys.length)
+      const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name);
+      if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
+      if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
+      if(!isControl&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
       if(name==="factory_status")value=await factoryStatus({root,now});
@@ -227,6 +377,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
       }else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
+      else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};
       return {result:{structuredContent:value,
         content:[{type:"text",text:JSON.stringify(value)}],isError:false}};
@@ -254,7 +405,8 @@ export async function handleRpc(payload,services) {
   }
 }
 
-export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=Date.now}={}) {
+export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=Date.now,
+  controlToken=process.env.PLOTPICKLE_FACTORY_MCP_CONTROL_TOKEN,controlOps}={}) {
   return http.createServer(async(req,res)=>{
     const target=req.url||"";
     const host=String(req.headers.host||"").toLowerCase();
@@ -289,7 +441,9 @@ export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=D
       let parsed;
       try {parsed=JSON.parse(Buffer.concat(chunks).toString("utf8"));}
       catch {res.writeHead(400);return res.end();}
-      const answer=await handleRpc(parsed,{root,github,now});
+      const controlAuthenticated=controlTokenMatches(
+        req.headers["x-plotpickle-factory-control-token"],controlToken);
+      const answer=await handleRpc(parsed,{root,github,now,controlAuthenticated,controlOps});
       if(answer===null){res.writeHead(202);return res.end();}
       res.writeHead(200,{"content-type":"application/json; charset=utf-8",
         "cache-control":"no-store","mcp-protocol-version":MCP_PROTOCOL});

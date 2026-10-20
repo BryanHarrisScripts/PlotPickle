@@ -8,7 +8,7 @@ import {
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,authorizeFactoryRetry,
   admitFactoryIssues,factoryPiVersionGate,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
-import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPrompt,factoryBoundedDocument,factoryRejectedPatchReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
@@ -538,3 +538,45 @@ test("owner can admit a new eligible issue without replaying blocked #3141",()=>
    dispatch:async()=>{throw Error("NEVER REPLAY");}})).processed,0);
 }));
 
+
+test("docs-only Windows pilot instructions require a physical write and prohibit conflicting test edits",()=>{
+ const head=HEAD;
+ const paths=[
+  [3141,"docs/developer-briefs/3141-autonomous-factory-native-acceptance.md"],
+  [3158,"docs/developer-briefs/factory-native-worker-pilot-acceptance.md"],
+  [3160,"docs/developer-briefs/3160-factory-native-write-smoke.md"],
+ ];
+ for(const [number,expected] of paths){
+   assert.equal(factoryBoundedDocument(number),expected);
+   const prompt=factoryWorkerPrompt({number,title:"Document worker smoke",body:"Create documentation only."},head);
+   assert.match(prompt,/MUST make real filesystem changes using your available write\/edit tools/);
+   assert.match(prompt,/chat response, proposed diff, or description of changes is NOT a patch/);
+   assert.match(prompt,/For documentation-only issues, DO NOT add regression test files/);
+   assert.ok(prompt.includes("EXACTLY ONE file: "+expected));
+   assert.equal(assessFactoryPaths([expected],number).allowed,true);
+   assert.equal(assessFactoryPaths(["tests/unrelated.test.mjs"],number).allowed,false);
+   assert.equal(assessFactoryPaths([expected,"docs/another.md"],number).allowed,false);
+ }
+ assert.equal(factoryBoundedDocument(123),null);
+ const ordinary=factoryWorkerPrompt({number:3123,title:"Fix source",body:"Please investigate."},head);
+ assert.match(ordinary,/MUST make real filesystem changes/);
+ assert.match(ordinary,/For code issues, implement a source-bound fix/);
+ assert.doesNotMatch(ordinary,/Documentation-only permission: create or edit EXACTLY ONE file/);
+});
+
+test("empty or denied source patches are terminal at the inspection phase and never claim a draft PR",()=>{
+ const outcomes=[
+   assessFactoryPaths([]),
+   assessFactoryPaths(["app/../secrets"]),
+   assessFactoryPaths(["docs/not-authorized.md"],3160),
+ ];
+ for(const assessment of outcomes){
+   assert.equal(assessment.allowed,false);
+   assert.deepEqual(factoryRejectedPatchReceipt(assessment),{
+     state:"BLOCKED",code:assessment.code,phase:"INSPECT_CANDIDATE_PATCH",
+   });
+   assert.equal("prUrl" in factoryRejectedPatchReceipt(assessment),false);
+ }
+ assert.equal(factoryRejectedPatchReceipt(assessFactoryPaths([])).code,"NO_BOUNDED_PATCH");
+ assert.throws(()=>factoryRejectedPatchReceipt(assessFactoryPaths(["docs/valid.md"])),/Only a failed/);
+});

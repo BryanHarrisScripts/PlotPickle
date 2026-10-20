@@ -289,7 +289,10 @@ test("MCP write tools are hidden without paired authentication and reject replay
    preflight:async()=>{preflightCalls++;return {state:"INSTALL_PREFLIGHT_READY",
      code:"NPM_CI_VERIFIED",sourceHead:OLD};},
    publish:async()=>{publishCalls++;},
-   proof:async()=>({ready:true,code:"NPM_PREFLIGHT_VERIFIED"}),
+   proof:async({expectedHead})=>{
+     assert.equal(expectedHead,OLD);
+     return {ready:true,code:"NPM_PREFLIGHT_VERIFIED"};
+   },
    admit:async({issues,consent})=>{
      assert.deepEqual(issues,[3164]);
      assert.equal(consent,"PLOTPICKLE_AUTONOMOUS_ENGINEERING");

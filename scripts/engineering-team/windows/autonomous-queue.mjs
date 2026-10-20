@@ -14,6 +14,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { publishFactoryHeartbeat } from "./autonomous-telemetry.mjs";
+import { versionAtLeast } from "../../pi-version.mjs";
 import { reconcileApprovedDocsPRs } from "./autonomous-pr-review.mjs";
 
 const runFile = promisify(execFile);
@@ -26,11 +27,13 @@ const REPOSITORY = "BryanHarrisScripts/PlotPickle";
 const CONSENT = "PLOTPICKLE_AUTONOMOUS_ENGINEERING";
 const SHA = /^[a-f0-9]{40}$/;
 const MAX_ISSUES = 80;
+const MAX_ADMISSION_BATCH = 5;
+const MIN_FACTORY_PI_VERSION = "1.3.0";
 const POLL_MS = 60_000;
 const SHA256 = (value) => createHash("sha256").update(value).digest("hex");
 
 export function parseQueueCommand(argv) {
-  const modes = ["--enable", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest", "--authorize-retry"];
+  const modes = ["--enable", "--admit", "--disable", "--status", "--once", "--serve", "--preview", "--plan-latest", "--authorize-retry"];
   const selected = modes.filter(flag => argv.includes(flag));
   if (selected.length !== 1 || argv.filter(x => x === selected[0]).length !== 1) {
     throw new Error("Exactly one queue operation is required.");
@@ -49,20 +52,21 @@ export function parseQueueCommand(argv) {
     values[key]=argv[++i];
   }
   const mode=selected[0].slice(2);
-  if (mode !== "enable" && mode !== "authorize-retry" && Object.keys(values).length)
+  if (mode !== "enable" && mode !== "admit" && mode !== "authorize-retry" && Object.keys(values).length)
     throw new Error("Only local authorization commands accept extra options.");
-  if (mode === "enable" && (values["--issue"] || values["--base"]))throw new Error("Unknown enable option.");
+  if ((mode === "enable" || mode === "admit") && (values["--issue"] || values["--base"]))throw new Error("Unknown issue authorization option.");
+  if (mode === "admit" && values["--merge-docs"]) throw new Error("Admitting issues cannot change merge authority.");
   if (mode === "authorize-retry" &&
     (Object.keys(values).length!==3 || values["--issue"]!=="3141" ||
       !SHA.test(values["--base"]||"") || values["--consent"]!==CONSENT ||
       values["--issues"] || values["--merge-docs"])) {
     throw new Error("Retry requires explicit --issue 3141 --base SHA and local consent.");
   }
-  if (mode === "enable" && values["--consent"] !== CONSENT)
+  if ((mode === "enable" || mode === "admit") && values["--consent"] !== CONSENT)
     throw new Error("Explicit local autonomous engineering consent is required.");
-  const items = mode === "enable" ? String(values["--issues"] || "").split(",") : [];
+  const items = mode === "enable" || mode === "admit" ? String(values["--issues"] || "").split(",") : [];
   const issues=items.map(x=>Number(x));
-  if (mode === "enable" && (!items.length || items.length > MAX_ISSUES || new Set(issues).size !== issues.length
+  if ((mode === "enable" || mode === "admit") && (!items.length || items.length > (mode === "admit" ? MAX_ADMISSION_BATCH : MAX_ISSUES) || new Set(issues).size !== issues.length
     || issues.some((n,i)=> !/^\d{1,7}$/.test(items[i]) || !Number.isSafeInteger(n) || n < 1))) {
     throw new Error("A finite, unique CSV issue allowlist is required; max 80.");
   }
@@ -159,6 +163,52 @@ export async function enableFactory({root=ROOT,issues,mergeDocsOnly=false,now=Da
     issues,localOnly:true,maxCloudCostUsd:0,automaticMergeEnabled:false,
     mergeDocsOnly:mergeDocsOnly===true,createdAt:now()}, "wx");
   return readFactoryStatus({root,now});
+}
+
+/**
+ * Append a finite, owner-approved batch without changing any existing job,
+ * retry ledger, merge authority or original allowlist order. Must run while
+ * the Windows worker is stopped. Never infer execution consent from issue text.
+ */
+export async function admitFactoryIssues({root=ROOT,issues,consent,github=createQueueGitHubClient(),now=Date.now}={}) {
+  if(consent!==CONSENT)throw new Error("Explicit local owner consent is required for each admission batch.");
+  if(!Array.isArray(issues)||!issues.length||issues.length>MAX_ADMISSION_BATCH||
+    new Set(issues).size!==issues.length||issues.some(n=>!Number.isSafeInteger(n)||n<1))
+    throw new Error("Admission requires 1-5 unique numeric issue IDs.");
+  if(existsSync(path.join(root,"disabled.json")))throw new Error("Local STOP is active; admission denied.");
+  if(existsSync(path.join(root,"service.lock")))
+    throw new Error("Stop the Windows Factory worker before admitting new issues.");
+  const configFile=path.join(root,"config.json");
+  const config=await ordinaryJson(configFile);
+  if(config.schemaVersion!==1||config.repository!==REPOSITORY||config.enabled!==true||
+    config.localOnly!==true||config.maxCloudCostUsd!==0||
+    config.automaticMergeEnabled!==false||config.mergeDocsOnly===true||
+    !Array.isArray(config.issues)||config.issues.length<1||
+    !config.issues.every(n=>Number.isSafeInteger(n)&&n>0)||
+    !Array.isArray(config.admissions||[]) || (config.admissions||[]).length>MAX_ISSUES)
+    throw new Error("Factory permission policy is unexpected; manual review required.");
+  if(config.issues.length+issues.length>MAX_ISSUES||
+    issues.some(n=>config.issues.includes(n)))
+    throw new Error("Issue already admitted or queue capacity exceeded.");
+  const jobs=path.join(root,"jobs");
+  for(const n of issues){
+    if(existsSync(path.join(jobs,"issue-"+n+".json"))||
+       existsSync(path.join(jobs,"result-"+n+".json")))
+      throw new Error("Existing job evidence cannot be replayed or overwritten.");
+  }
+  const live=await github.issues();
+  if(!Array.isArray(live)||issues.some(n=>!live.some(issue=>eligibleIssue(issue,[n]))))
+    throw new Error("Every admitted issue must be open, unblocked and independently listed by GitHub.");
+  const entry={at:now(),issues:[...issues],consent:"LOCAL_OWNER",mergingAuthorized:false};
+  const next={...config,issues:[...config.issues,...issues],
+    admissions:[...(config.admissions||[]),entry]};
+  const temporary=path.join(root,"config-admission-"+process.pid+"-"+String(entry.at)+".tmp");
+  await writeFile(temporary,JSON.stringify(next,null,2)+"\n",{flag:"wx",mode:0o600});
+  try{await rename(temporary,configFile);}
+  finally{await unlink(temporary).catch(()=>{});}
+  return Object.freeze({state:"ISSUES_ADMITTED",added:[...issues],
+    issueCount:next.issues.length,workerStarted:false,priorReceiptsPreserved:true,
+    automaticMergeEnabled:false,documentationAutoMergeEnabled:false});
 }
 
 export async function disableFactory({root=ROOT,now=Date.now}={}) {
@@ -281,12 +331,23 @@ export function createQueueGitHubClient({repoRoot=REPO_ROOT,exec=runFile}={}) {
   });
 }
 
+/** Guard the Pi virtual-model extension API before reserving an irreversible job. */
+export function factoryPiVersionGate(pi) {
+  if(pi?.ready!==true)return Object.freeze({ready:false,code:"PI_NOT_INSTALLED"});
+  const version=String(pi.version||"").trim();
+  if(!/^\d+\.\d+\.\d+(?:$|[-+])/u.test(version)||
+     !versionAtLeast(version,MIN_FACTORY_PI_VERSION))
+    return Object.freeze({ready:false,code:"PI_VERSION_UNSUPPORTED"});
+  return Object.freeze({ready:true,code:"PI_VERSION_ACCEPTED"});
+}
+
 export async function probeLocalCoderRoute() {
   if(process.platform!=="win32")return Object.freeze({ready:false,code:"WINDOWS_ONLY"});
   try{
     const {resolvePiExecutable,resolvePiLocalRuntime}=await import("../../pi-worker-runtime.mjs");
     const pi=await resolvePiExecutable();
-    if(!pi.ready)return Object.freeze({ready:false,code:"PI_NOT_INSTALLED"});
+    const versionGate=factoryPiVersionGate(pi);
+    if(!versionGate.ready)return versionGate;
     await resolvePiLocalRuntime();
     return Object.freeze({ready:true,code:"READY_LOCAL_ONLY"});
   }catch{return Object.freeze({ready:false,code:"APPROVED_LOCAL_MODEL_UNAVAILABLE"});}
@@ -457,6 +518,7 @@ async function main() {
   const cmd=parseQueueCommand(process.argv.slice(2));
   let output;
   if(cmd.mode==="enable")output=await enableFactory({issues:cmd.issues,mergeDocsOnly:cmd.mergeDocsOnly});
+  else if(cmd.mode==="admit")output=await admitFactoryIssues({issues:cmd.issues,consent:CONSENT});
   else if(cmd.mode==="authorize-retry") output=await authorizeFactoryRetry({
     issueNumber:cmd.retryIssue,expectedHead:cmd.retryBase});
   else if(cmd.mode==="disable")output=await disableFactory();

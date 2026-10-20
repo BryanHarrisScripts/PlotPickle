@@ -4223,6 +4223,7 @@
         "targets": [
           "tests/issue-3110-autonomous-factory.test.mjs",
           "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "tests/issue-1571-autonomous-qa-defect-publication.test.mjs",
           "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
           "tests/issue-3110-factory-named-test-mcp.test.mjs"
         ]
@@ -9143,6 +9144,34 @@
             "digest": "95720947031ff3060dcc163f63f34027bcc7b2dff1f486bb473adac3e05622ed"
           }
         ]
+      },
+      {
+        "target": "tests/issue-1571-autonomous-qa-defect-publication.test.mjs",
+        "targetDigest": "e5d1fedbd16d69e4b89fcfefac0767614da623a064206422c3b1b35bfa4a0df2",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/autonomous-qa/publish-defect.mjs",
+            "digest": "ef98cc6d14eadfb09a7a1e263675dfa30f67b591d8f73c817f955de84fefa58c"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected GitHub responses and symbolic evidence only; no real GitHub issue creation, authentication or UAT and no permission for issue intake to authorize the Factory queue."
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",

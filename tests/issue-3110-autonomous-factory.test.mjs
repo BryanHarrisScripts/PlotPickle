@@ -10,7 +10,7 @@ import {
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPrompt,factoryBoundedDocument,factoryRejectedPatchReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {
- factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,
+ factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,factoryDependencyProbeDirectory,
  factoryDependencyFingerprint,checkFactoryDependencyProof,runFactoryDependencyPreflight,
  publishFactoryDependencyPreflightResult,
 } from "../scripts/engineering-team/queue/factory-dependency-preflight.mjs";
@@ -585,6 +585,21 @@ test("empty or denied source patches are terminal at the inspection phase and ne
  }
  assert.equal(factoryRejectedPatchReceipt(assessFactoryPaths([])).code,"NO_BOUNDED_PATCH");
  assert.throws(()=>factoryRejectedPatchReceipt(assessFactoryPaths(["docs/valid.md"])),/Only a failed/);
+});
+
+test("Windows native dependency preflight chooses short PlotPickle-owned worktree path without changing injected roots",()=>{
+ const parent=path.resolve(os.tmpdir(),"factory-probe-path-test-root");
+ const root=path.join(parent,"PlotPickle","engineering-team","autonomous-queue");
+ const expected=path.join(parent,"PlotPickle","fp");
+ const short=factoryDependencyProbeDirectory({root,nativeRoot:root,platform:"win32"});
+ assert.equal(short,expected);
+ assert.ok(path.join(root,"dependency-probes","head-"+HEAD.slice(0,10)+"-12345").length-
+   path.join(short,"h-"+HEAD.slice(0,10)+"-12345").length>30);
+ assert.equal(factoryDependencyProbeDirectory({root,nativeRoot:root,platform:"linux"}),
+   path.join(root,"dependency-probes"));
+ const injected=path.join(parent,"fixture");
+ assert.equal(factoryDependencyProbeDirectory({root:injected,nativeRoot:root,platform:"win32"}),
+   path.join(injected,"dependency-probes"));
 });
 
 test("factory dependency install uses private reusable npm cache and fail-closed typed diagnostics",()=>{

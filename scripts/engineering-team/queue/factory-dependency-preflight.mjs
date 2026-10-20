@@ -60,7 +60,7 @@ export function factoryNpmInstallArgs(root=ROOT) {
   return [...NPM_FLAGS,"--cache",factoryNpmCache(root)];
 }
 export function factoryNpmFailureCode(error) {
-  const message=String(error?.stderr||"")+"\n"+String(error?.message||"");
+    const message=String(error?.stderr||"")+" "+String(error?.message||"");
   if(error?.killed===true||error?.code==="ETIMEDOUT"||/timed out|timeout of \d+ms exceeded/i.test(message))
     return "NPM_INSTALL_TIMEOUT";
   if(/\b(?:EUSAGE|ELOCKVERIFY)\b|package\.json and package-lock\.json are not in sync/i.test(message))
@@ -163,7 +163,7 @@ export async function runFactoryDependencyPreflight({
     const message=String(error?.stderr||"")+"\\n"+String(error?.message||"");
     const code=/filename too long|path too long|ENAMETOOLONG/i.test(message)
       ?"WORKTREE_PATH_BLOCKED"
-      :/index\\.lock|worktree.*locked|unable to lock|cannot lock ref/i.test(message)
+      :/index[.]lock|worktree.*locked|unable to lock|cannot lock ref/i.test(message)
         ?"WORKTREE_LOCKED"
         :/\\b(?:EPERM|EACCES|EACCESS)\\b|access is denied|permission denied/i.test(message)
           ?"WORKTREE_FILE_ACCESS":"WORKTREE_ADD_FAILED";
@@ -180,7 +180,7 @@ export async function runFactoryDependencyPreflight({
     issueReserved:false,automaticMergeAuthorized:false};
   try{
     await writeFile(path.join(root,"dependency-preflight.json"),
-      JSON.stringify(proof,null,2)+"\\n",{flag:"w",mode:0o600});
+      JSON.stringify(proof,null,2)+String.fromCharCode(10),{flag:"w",mode:0o600});
   }catch{
     return Object.freeze({state:"BLOCKED",code:"PROOF_WRITE_FAILED",sourceHead:head,
       probePreserved:true,issueReserved:false});

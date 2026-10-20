@@ -284,7 +284,7 @@ test("MCP write tools are hidden without paired authentication and reject replay
  assert.equal(controlTokenMatches("wrong",token),false);
  assert.equal(controlTokenMatches(token,"short"),false);
  assert.equal(MCP_CONTROL_TOOLS.map(x=>x.name).join(","),
-   "factory_run_dependency_preflight,factory_admit_issues,factory_control_receipt");
+   "factory_run_dependency_preflight,factory_admit_issues,factory_run_named_test,factory_control_receipt");
  let preflightCalls=0,admissionCalls=0,publishCalls=0;
  const ops={
    preflight:async()=>{preflightCalls++;return {state:"INSTALL_PREFLIGHT_READY",
@@ -322,7 +322,7 @@ test("MCP write tools are hidden without paired authentication and reject replay
      return (await reply.json()).result.tools.map(x=>x.name);
    };
    assert.equal((await list()).length,4);
-   assert.equal((await list(token)).length,7);
+   assert.equal((await list(token)).length,8);
    assert.equal((await list("invalid")).length,4);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);

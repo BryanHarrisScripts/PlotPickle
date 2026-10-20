@@ -12,6 +12,7 @@ import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPro
 import {
  factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,
  factoryDependencyFingerprint,checkFactoryDependencyProof,runFactoryDependencyPreflight,
+ publishFactoryDependencyPreflightResult,
 } from "../scripts/engineering-team/queue/factory-dependency-preflight.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
@@ -690,3 +691,22 @@ test("new #3164 acceptance is a uniquely bounded docs-only job; #3160 receipts c
  assert.match(prompt,/DO NOT add regression test files/);
  assert.ok(prompt.includes("EXACTLY ONE file: "+file));
 });
+
+test("preflight public status receipt is allowlisted and never contains sensitive failure detail",()=>sandbox(async root=>{
+ const result=await publishFactoryDependencyPreflightResult({root,now:()=>77,
+   result:{state:"BLOCKED",code:"NPM_WINDOWS_FILE_ACCESS",sourceHead:HEAD,
+     stderr:"secret: my-token",cache:"C:/Users/private/path",logs:"private"}});
+ assert.equal(result.state,"BLOCKED");
+ assert.equal(result.code,"NPM_WINDOWS_FILE_ACCESS");
+ assert.equal(result.issueReserved,false);
+ const raw=await readFile(path.join(root,"dependency-preflight-result.json"),"utf8");
+ assert.equal(raw.includes("secret"),false);
+ assert.equal(raw.includes("C:/Users"),false);
+ assert.equal(JSON.parse(raw).observedAt,77);
+ const unknown=await publishFactoryDependencyPreflightResult({root,now:()=>78,
+   result:{state:"RUNNING",code:"SECRET=abc",sourceHead:"C:/private"}});
+ assert.equal(unknown.state,"BLOCKED");
+ assert.equal(unknown.code,"NPM_PREFLIGHT_UNAVAILABLE");
+ assert.equal(unknown.sourceHead,null);
+ assert.equal(JSON.parse(await readFile(path.join(root,"dependency-preflight-result.json"),"utf8")).issueReserved,false);
+}));

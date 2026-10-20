@@ -298,7 +298,7 @@ export async function factoryControlAction(name,args,{
         code:safeText(raw.code,dependencyCodes)||"NPM_PREFLIGHT_UNAVAILABLE",
         sourceHead:raw.sourceHead||null};
     }else{
-      const proof=await ops.proof({root});
+      const proof=await ops.proof({root,expectedHead:args.expectedHead});
       const nativeProof=await privateJson(path.join(root,"dependency-preflight.json"),4096);
       // A cache hit for an unchanged lockfile is not proof for another commit.
       if(proof?.ready!==true||nativeProof?.npmCiVerified!==true||

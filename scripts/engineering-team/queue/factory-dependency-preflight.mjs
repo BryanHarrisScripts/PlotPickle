@@ -105,7 +105,7 @@ async function dependencyFingerprintForRepo(repoRoot,nodeVersion) {
   return factoryDependencyFingerprint({packageText,lockText,nodeVersion});
 }
 export async function checkFactoryDependencyProof({
-  root=ROOT,repoRoot=REPO_ROOT,nodeVersion=process.version,
+  root=ROOT,repoRoot=REPO_ROOT,nodeVersion=process.version,expectedHead=null,
 }={}) {
   let key;
   try{key=await dependencyFingerprintForRepo(repoRoot,nodeVersion);}
@@ -113,7 +113,9 @@ export async function checkFactoryDependencyProof({
   try{
     const proof=JSON.parse(await readFile(path.join(root,"dependency-preflight.json"),"utf8"));
     if(proof?.schemaVersion===1&&proof?.key===key&&proof?.npmCiVerified===true&&
-       proof?.nodeVersion===nodeVersion&&Number.isSafeInteger(proof.verifiedAt)&&proof.verifiedAt>0)
+       proof?.nodeVersion===nodeVersion&&
+       (expectedHead===null||(SHA.test(expectedHead)&&proof?.sourceHead===expectedHead))&&
+       Number.isSafeInteger(proof.verifiedAt)&&proof.verifiedAt>0)
       return Object.freeze({ready:true,code:"NPM_PREFLIGHT_VERIFIED"});
   }catch{
     return Object.freeze({ready:false,code:"NPM_PREFLIGHT_REQUIRED"});
@@ -157,7 +159,9 @@ export async function runFactoryDependencyPreflight({
   }
   if(!SHA.test(head)||head!==origin||branch!=="main"||dirty)
     return Object.freeze({state:"BLOCKED",code:"EXACT_CLEAN_MAIN_REQUIRED"});
-  const existing=await checkFactoryDependencyProof({root,repoRoot,nodeVersion});
+  // A matching dependency fingerprint is NOT a native proof for another commit.
+  // The admission control requires a real npm-ci proof pinned to exact HEAD.
+  const existing=await checkFactoryDependencyProof({root,repoRoot,nodeVersion,expectedHead:head});
   if(existing.ready)return Object.freeze({state:"INSTALL_PREFLIGHT_READY",
     code:"NPM_PREFLIGHT_VERIFIED",sourceHead:head,existing:true});
   let key;

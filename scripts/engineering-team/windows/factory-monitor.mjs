@@ -72,7 +72,7 @@ export async function runFactoryMonitorOnce({
     engineeringRoute:"CHATGPT_VIA_AUTHENTICATED_MCP",
     dispatcherReady:false,legacyPiDispatched:false,
     modelInvoked:false,sourceModified:false,queueModified:false,
-    issueAdmitted:false,automaticMerge:false,windowUatVerified:false,
+    issueAdmitted:false,automaticMerge:false,windowsUatVerified:false,
   });
   await persist({root,report});
   return report;

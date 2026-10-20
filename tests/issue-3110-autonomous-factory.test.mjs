@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import {
   parseQueueCommand,eligibleIssue,pickNextIssue,enableFactory,disableFactory,
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,authorizeFactoryRetry,
+  admitFactoryIssues,factoryPiVersionGate,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
@@ -464,3 +465,76 @@ test("a green draft PR is made ready first, then independently rechecked before 
  assert.equal(calls.some(x=>x[1]==="ready"),true);
  assert.equal(calls.some(x=>x[1]==="merge"),false);
 });
+
+test("Pi version gate rejects old virtual-model API before issue reservation",()=>{
+ assert.deepEqual(factoryPiVersionGate({ready:false,version:""}),{ready:false,code:"PI_NOT_INSTALLED"});
+ for(const version of ["0.73.1","1.2.9","unknown","v1.3.0"]){
+   assert.deepEqual(factoryPiVersionGate({ready:true,version}),
+     {ready:false,code:"PI_VERSION_UNSUPPORTED"});
+ }
+ for(const version of ["1.3.0","1.3.1","2.0.0"]){
+   assert.deepEqual(factoryPiVersionGate({ready:true,version}),
+     {ready:true,code:"PI_VERSION_ACCEPTED"});
+ }
+});
+
+test("explicit admission grammar is bounded and never grants docs merge",()=>{
+ const consent="PLOTPICKLE_AUTONOMOUS_ENGINEERING";
+ const parsed=parseQueueCommand(["--admit","--issues","3150,3142","--consent",consent]);
+ assert.equal(parsed.mode,"admit");
+ assert.deepEqual(parsed.issues,[3150,3142]);
+ assert.equal(parsed.mergeDocsOnly,false);
+ for(const flags of [
+  ["--admit"],["--admit","--issues","3150"],
+  ["--admit","--issues","3150,3150","--consent",consent],
+  ["--admit","--issues","1,2,3,4,5,6","--consent",consent],
+  ["--admit","--issues","3141","--merge-docs","--consent",consent],
+  ["--admit","--issues","3","--base",HEAD,"--consent",consent],
+  ["--admit","--issues","3","--issue","3","--consent",consent],
+ ])assert.throws(()=>parseQueueCommand(flags),flags.join(" "));
+});
+
+test("owner can admit a new eligible issue without replaying blocked #3141",()=>sandbox(async root=>{
+ const consent="PLOTPICKLE_AUTONOMOUS_ENGINEERING";
+ const jobs=path.join(root,"jobs");
+ await enableFactory({root,issues:[3141]});
+ await mkdir(jobs,{recursive:true});
+ const job=JSON.stringify({issueNumber:3141,attempt:1,state:"STARTED_UNCONFIRMED"});
+ const result=JSON.stringify({issueNumber:3141,state:"BLOCKED",code:"SOURCE_OR_BUILD_OR_PROVIDER_FAILURE"});
+ await writeFile(path.join(jobs,"issue-3141.json"),job);
+ await writeFile(path.join(jobs,"result-3141.json"),result);
+ const eligible=[{number:3150,title:"New diagnostic issue",state:"OPEN",labels:[]}];
+ const github={issues:async()=>eligible,exactHead:async()=>HEAD};
+ await assert.rejects(admitFactoryIssues({root,issues:[3150],consent:"yes",github}),/consent/);
+ await assert.rejects(admitFactoryIssues({root,issues:[3141],consent,github}),/already admitted/);
+ await assert.rejects(admitFactoryIssues({root,issues:[3153],consent,github}),/open, unblocked/);
+ await writeFile(path.join(root,"service.lock"),JSON.stringify({pid:process.pid}));
+ await assert.rejects(admitFactoryIssues({root,issues:[3150],consent,github}),/Stop the Windows Factory worker/);
+ await unlink(path.join(root,"service.lock"));
+ const admitted=await admitFactoryIssues({root,issues:[3150],consent,github,now:()=>2500});
+ assert.equal(admitted.state,"ISSUES_ADMITTED");
+ assert.equal(admitted.workerStarted,false);
+ assert.equal(admitted.automaticMergeEnabled,false);
+ assert.deepEqual(admitted.added,[3150]);
+ const config=JSON.parse(await readFile(path.join(root,"config.json"),"utf8"));
+ assert.deepEqual(config.issues,[3141,3150]);
+ assert.equal(config.mergeDocsOnly,false);
+ assert.equal(config.automaticMergeEnabled,false);
+ assert.equal(config.admissions[0].mergingAuthorized,false);
+ assert.deepEqual(JSON.parse(await readFile(path.join(jobs,"issue-3141.json"),"utf8")),JSON.parse(job));
+ assert.deepEqual(JSON.parse(await readFile(path.join(jobs,"result-3141.json"),"utf8")),JSON.parse(result));
+ await assert.rejects(admitFactoryIssues({root,issues:[3150],consent,github}),/already admitted/);
+ let dispatched=0;
+ const cycle=await runFactoryCycle({root,github,publish:async()=>{},preflight:async()=>({ready:true}),
+   dispatch:async({issueNumber,attempt})=>{
+     dispatched++;
+     assert.equal(issueNumber,3150);
+     assert.equal(attempt,1);
+     return {state:"BLOCKED",code:"TEST_NO_REAL_AGENT"};
+   }});
+ assert.equal(cycle.issueNumber,3150);
+ assert.equal(dispatched,1);
+ assert.equal((await runFactoryCycle({root,github,publish:async()=>{},preflight:async()=>({ready:true}),
+   dispatch:async()=>{throw Error("NEVER REPLAY");}})).processed,0);
+}));
+

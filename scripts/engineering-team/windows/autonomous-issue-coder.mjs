@@ -14,8 +14,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   resolvePiExecutable, resolvePiLocalRuntime, configurePiLocalRuntime,
   piDeveloperRouteProjection, piDeveloperEnvironment, piDeveloperVirtualArgs,
-  runPortableCommand, resolveActiveNpmCommand,
+  runPortableCommand,
 } from "../../pi-worker-runtime.mjs";
+import { installFactoryDependencies, factoryNpmFailureCode } from "./factory-dependency-preflight.mjs";
 
 const REPO="BryanHarrisScripts/PlotPickle";
 const HERE=path.dirname(fileURLToPath(import.meta.url));
@@ -203,8 +204,7 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
   let pushed=false;
   let phase="INSTALL_DEPENDENCIES";
   try{
-    await runPortableCommand(resolveActiveNpmCommand(),["ci","--ignore-scripts","--no-audit","--no-fund"],
-      {cwd:worktree,timeout:12*60_000,maxBuffer:512_000});
+    await installFactoryDependencies({cwd:worktree,root});
     phase="RUN_LOCAL_PI";
     const agent=await localAgent(worktree,issue,head,attempt);
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
@@ -242,7 +242,10 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
       "--draft","--title","factory: issue #"+issueNumber+" candidate","--body",body],{cwd:worktree,timeout:90_000});
     if(!/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(url))return output("PR_URL_UNCONFIRMED");
     return {state:"WAITING_FOR_PRODUCT_UAT",code:"DRAFT_PR_CREATED",prUrl:url};
-  }catch{
+  }catch(error){
+    if(phase==="INSTALL_DEPENDENCIES")return {
+      state:"BLOCKED",code:factoryNpmFailureCode(error),phase,
+    };
     return factoryFailureReceipt(phase,{pushed});
   }finally{
     // Do not force-delete a worktree containing unreviewed, unpublished work.

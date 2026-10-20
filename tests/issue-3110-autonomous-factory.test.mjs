@@ -12,7 +12,7 @@ import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPro
 import {
  factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,
  factoryDependencyFingerprint,checkFactoryDependencyProof,runFactoryDependencyPreflight,
-} from "../scripts/engineering-team/windows/factory-dependency-preflight.mjs";
+} from "../scripts/engineering-team/queue/factory-dependency-preflight.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";

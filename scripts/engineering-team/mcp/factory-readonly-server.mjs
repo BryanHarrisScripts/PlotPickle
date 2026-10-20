@@ -295,7 +295,11 @@ export async function factoryControlAction(name,args,{
         sourceHead:raw.sourceHead||null};
     }else{
       const proof=await ops.proof({root});
-      if(proof?.ready!==true)outcome={state:"BLOCKED",code:"DEPENDENCY_PREFLIGHT_REQUIRED"};
+      const nativeProof=await privateJson(path.join(root,"dependency-preflight.json"),4096);
+      // A cache hit for an unchanged lockfile is not proof for another commit.
+      if(proof?.ready!==true||nativeProof?.npmCiVerified!==true||
+         nativeProof?.sourceHead!==args.expectedHead)
+        outcome={state:"BLOCKED",code:"DEPENDENCY_PREFLIGHT_REQUIRED"};
       else{
         const admitted=await ops.admit({root,issues:args.issues,
           consent:"PLOTPICKLE_AUTONOMOUS_ENGINEERING",github,now});
@@ -304,7 +308,11 @@ export async function factoryControlAction(name,args,{
           issueCount:admitted?.issueCount};
       }
     }
-  }catch{outcome={state:"BLOCKED",code:"CONTROL_OPERATION_BLOCKED"};}
+  }catch{
+    // A partial npm/install or queue mutation may have occurred before an error:
+    // preserve the original reservation, never write a misleading BLOCKED result.
+    return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
+  }
   const record={requestId:args.requestId,...outcome,
     modelInvoked:false,replayAuthorized:false,independentVerification:false};
   try{

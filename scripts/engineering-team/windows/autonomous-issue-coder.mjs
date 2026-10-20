@@ -16,7 +16,7 @@ import {
   piDeveloperRouteProjection, piDeveloperEnvironment, piDeveloperVirtualArgs,
   runPortableCommand,
 } from "../../pi-worker-runtime.mjs";
-import { installFactoryDependencies, factoryNpmFailureCode } from "./factory-dependency-preflight.mjs";
+import { installFactoryDependencies, factoryNpmFailureCode } from "../queue/factory-dependency-preflight.mjs";
 
 const REPO="BryanHarrisScripts/PlotPickle";
 const HERE=path.dirname(fileURLToPath(import.meta.url));

@@ -25,6 +25,29 @@ const ROOT=path.join(process.env.LOCALAPPDATA||(process.platform==="win32"
 const SHA=/^[a-f0-9]{40}$/;
 const INSTALL_TIMEOUT_MS=12*60_000;
 const NPM_FLAGS=Object.freeze(["ci","--ignore-scripts","--no-audit","--no-fund","--prefer-offline"]);
+const PREFLIGHT_CODES=new Set([
+  "WINDOWS_ONLY","FACTORY_LOCALLY_DISABLED","STOP_FACTORY_FIRST",
+  "EXACT_CLEAN_MAIN_REQUIRED","PROBE_ALREADY_EXISTS",
+  "NPM_CI_VERIFIED","NPM_PREFLIGHT_VERIFIED",
+  "NPM_INSTALL_TIMEOUT","NPM_LOCKFILE_MISMATCH","NPM_WINDOWS_FILE_ACCESS",
+  "NPM_NETWORK_UNAVAILABLE","NPM_INTEGRITY_FAILURE","NPM_FILE_MISSING",
+  "NPM_INSTALL_UNCLASSIFIED","NPM_PREFLIGHT_UNAVAILABLE",
+]);
+/** The public read-only bridge can only see these fixed, path-free receipt fields. */
+export async function publishFactoryDependencyPreflightResult({
+  root=ROOT,result,now=Date.now,
+}={}) {
+  const state=result?.state==="INSTALL_PREFLIGHT_READY"?"INSTALL_PREFLIGHT_READY":"BLOCKED";
+  const code=PREFLIGHT_CODES.has(result?.code)?result.code:"NPM_PREFLIGHT_UNAVAILABLE";
+  const record={schemaVersion:1,state,code,
+    sourceHead:SHA.test(result?.sourceHead||"")?result.sourceHead:null,
+    observedAt:now(),modelInvoked:false,issueReserved:false};
+  await mkdir(root,{recursive:true,mode:0o700});
+  await writeFile(path.join(root,"dependency-preflight-result.json"),
+    JSON.stringify(record,null,2)+"\n",{flag:"w",mode:0o600});
+  return Object.freeze(record);
+}
+
 
 /** Only the private cache is shared; npm ci still verifies lockfile integrity. */
 export function factoryNpmCache(root=ROOT) {
@@ -137,7 +160,10 @@ export async function runFactoryDependencyPreflight({
 }
 async function main(){
   if(process.argv.length!==2)throw new Error("Dependency preflight takes no arguments.");
-  const result=await runFactoryDependencyPreflight();
+  let result;
+  try{result=await runFactoryDependencyPreflight();}
+  catch{result={state:"BLOCKED",code:"NPM_PREFLIGHT_UNAVAILABLE"};}
+  await publishFactoryDependencyPreflightResult({result});
   process.stdout.write(JSON.stringify(result,null,2)+"\n");
   if(result.state!=="INSTALL_PREFLIGHT_READY")process.exitCode=1;
 }

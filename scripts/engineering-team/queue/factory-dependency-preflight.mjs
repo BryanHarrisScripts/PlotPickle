@@ -56,6 +56,19 @@ export async function publishFactoryDependencyPreflightResult({
 export function factoryNpmCache(root=ROOT) {
   return path.join(path.resolve(root),"npm-cache");
 }
+/**
+ * Native Windows checkout needs a short private worktree path: a long path
+ * under engineering-team/autonomous-queue/dependency-probes can fail before
+ * npm starts. This remains inside the same user's PlotPickle LOCALAPPDATA.
+ * Injected test roots retain their ordinary contained diagnostic directory.
+ */
+export function factoryDependencyProbeDirectory({
+  root=ROOT,platform=process.platform,nativeRoot=ROOT,
+}={}) {
+  if(platform==="win32" && path.resolve(root)===path.resolve(nativeRoot))
+    return path.join(path.dirname(path.dirname(root)),"fp");
+  return path.join(root,"dependency-probes");
+}
 export function factoryNpmInstallArgs(root=ROOT) {
   return [...NPM_FLAGS,"--cache",factoryNpmCache(root)];
 }
@@ -150,10 +163,11 @@ export async function runFactoryDependencyPreflight({
   let key;
   try{key=await dependencyFingerprintForRepo(repoRoot,nodeVersion);}
   catch{return Object.freeze({state:"BLOCKED",code:"MANIFEST_READ_FAILED",sourceHead:head});}
-  try{await mkdir(path.join(root,"dependency-probes"),{recursive:true,mode:0o700});}
+  const probeDir=factoryDependencyProbeDirectory({root,platform});
+  try{await mkdir(probeDir,{recursive:true,mode:0o700});}
   catch{return Object.freeze({state:"BLOCKED",code:"PROBE_DIRECTORY_UNAVAILABLE",sourceHead:head});}
-  const probe=path.join(root,"dependency-probes",
-    "head-"+head.slice(0,10)+"-"+String(now()));
+  const probe=path.join(probeDir,
+    "h-"+head.slice(0,10)+"-"+String(now()));
   // An existing probe or a failed install remains untouched, never forced clean.
   if(existsSync(probe))return Object.freeze({state:"BLOCKED",code:"PROBE_ALREADY_EXISTS"});
   try{await git(["worktree","add","--detach",probe,head],{cwd:repoRoot});}

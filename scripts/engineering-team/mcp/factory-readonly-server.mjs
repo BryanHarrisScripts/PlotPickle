@@ -18,7 +18,7 @@ import {
 } from "../windows/autonomous-queue.mjs";
 import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
-import { summarizeFactoryObserver } from "../windows/factory-observer.mjs";
+import { summarizeFactoryObserver } from "./factory-observer.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";

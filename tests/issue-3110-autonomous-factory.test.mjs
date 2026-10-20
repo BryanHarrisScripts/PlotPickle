@@ -8,7 +8,7 @@ import {
   readFactoryStatus,runFactoryCycle,serveFactory,createQueueGitHubClient,planNewestFirst,authorizeFactoryRetry,
   admitFactoryIssues,factoryPiVersionGate,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
-import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPrompt,factoryBoundedDocument,factoryRejectedPatchReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPrompt,factoryBoundedDocument,factoryRejectedPatchReceipt,summarizeFactoryPiWriteEvents} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 import {
  factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,factoryDependencyProbeDirectory,
  factoryDependencyFingerprint,checkFactoryDependencyProof,runFactoryDependencyPreflight,
@@ -585,6 +585,27 @@ test("empty or denied source patches are terminal at the inspection phase and ne
  }
  assert.equal(factoryRejectedPatchReceipt(assessFactoryPaths([])).code,"NO_BOUNDED_PATCH");
  assert.throws(()=>factoryRejectedPatchReceipt(assessFactoryPaths(["docs/valid.md"])),/Only a failed/);
+});
+
+test("local Pi JSONL evidence distinguishes actual write tool executions without exposing model output",()=>{
+ const lines=items=>items.map(item=>JSON.stringify(item)).join("\n");
+ const privateText={type:"message_end",message:{role:"assistant",content:"PRIVATE MODEL OUTPUT"}};
+ const start={type:"tool_execution_start",toolCallId:"1",toolName:"write",args:{path:"C:/PRIVATE"}};
+ const complete={type:"tool_execution_end",toolCallId:"1",toolName:"write",result:{content:"PRIVATE RESULT"},isError:false};
+ const settled={type:"agent_settled"};
+ const textOnly=summarizeFactoryPiWriteEvents(lines([privateText,settled]));
+ assert.deepEqual(textOnly,{writeStarted:0,writeSucceeded:0,writeFailed:0,settled:true,valid:true});
+ const written=summarizeFactoryPiWriteEvents(lines([privateText,start,complete,settled]));
+ assert.deepEqual(written,{writeStarted:1,writeSucceeded:1,writeFailed:0,settled:true,valid:true});
+ assert.equal(JSON.stringify(written).includes("PRIVATE"),false);
+ const failed=summarizeFactoryPiWriteEvents(lines([start,{...complete,isError:true},settled]));
+ assert.equal(failed.writeFailed,1);
+ assert.equal(failed.writeSucceeded,0);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,settled])).writeStarted,1);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,settled])).writeSucceeded,0);
+ assert.equal(summarizeFactoryPiWriteEvents(lines([start,complete])).settled,false);
+ assert.equal(summarizeFactoryPiWriteEvents('{"type":"tool_execution_end",INVALID').valid,false);
+ assert.equal(summarizeFactoryPiWriteEvents(null).valid,false);
 });
 
 test("Windows native dependency preflight chooses short PlotPickle-owned worktree path without changing injected roots",()=>{

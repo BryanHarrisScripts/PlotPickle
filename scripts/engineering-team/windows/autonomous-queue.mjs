@@ -356,7 +356,8 @@ export async function probeLocalCoderRoute() {
 
 export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(),dispatch,
   preflight=probeLocalCoderRoute,publish=publishFactoryHeartbeat,
-  reconcile=reconcileApprovedDocsPRs,now=Date.now}={}) {
+  reconcile=reconcileApprovedDocsPRs,now=Date.now,
+  dependencyPreflight=process.platform==="win32"&&root===ROOT?checkFactoryDependencyProof:null}={}) {
   const state=await readFactoryStatus({root,now});
   if(!state.enabled)return Object.freeze({state:"OFF",processed:0});
   const config=await ordinaryJson(path.join(root,"config.json"));
@@ -423,11 +424,11 @@ export async function runFactoryCycle({root=ROOT,github=createQueueGitHubClient(
   // Native scheduled worker only: prove npm ci in a detached diagnostic
   // worktree BEFORE the irreversible issue job is reserved. Synthetic tests
   // use private roots and cannot accidentally install real dependencies.
-  if(process.platform==="win32"&&root===ROOT){
-    const dependencies=await checkFactoryDependencyProof({root,repoRoot:REPO_ROOT});
-    if(!dependencies.ready)return Object.freeze({
+  if(typeof dependencyPreflight==="function"){
+    const dependencies=await dependencyPreflight({root,repoRoot:REPO_ROOT});
+    if(!dependencies?.ready)return Object.freeze({
       state:"WAITING_FOR_DEPENDENCIES",issueNumber:issue.number,processed:0,
-      code:dependencies.code,
+      code:String(dependencies?.code||"NPM_PREFLIGHT_UNAVAILABLE").slice(0,80),
     });
   }
   const job={schemaVersion:1,issueNumber:issue.number,sourceHead:head,

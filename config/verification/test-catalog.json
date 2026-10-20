@@ -9326,14 +9326,14 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "afad76e116934bca20b140aa5fb5327b9a2b4613171fa46f7593a8a9df2d34dc",
+        "targetDigest": "412cf5d2ef7b986852c816c71651974a88acac0fcefc264d07c88f0f23e2f0c3",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "09fe455c26ea13f32431f8e0206d7685a55d98d0606caf39e6e39571b8dfcec3"
+            "digest": "68f6ebefe287ea29ee223168d385524c3f8c4349272285594c473aafea83b0d5"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

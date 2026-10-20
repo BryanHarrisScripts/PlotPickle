@@ -9144,7 +9144,7 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "df42658e504e36e56d71a19a48756a7e6a31eb26add0662fae338a3d54432bc3",
+        "targetDigest": "a0c9485853fe9e5dde292ee9ce365e3435a169d760369dd1a496cb56f7264cce",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9175,7 +9175,7 @@
           },
           {
             "path": "scripts/engineering-team/queue/factory-dependency-preflight.mjs",
-            "digest": "fcd7e83125ffa0b288aaa02bddccff46f308789217feb99d002c00e51803e608"
+            "digest": "513711f9ace0a22e846d890e358d613a43248afd8c953dc6fc80b6814b56b5de"
           }
         ],
         "truthRefs": [

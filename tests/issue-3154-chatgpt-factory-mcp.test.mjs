@@ -93,6 +93,13 @@ test("invalid attempts, private symlinks, malicious phase/code and corrupt recor
   assert.equal((await factoryEvidence({root,issueNumber:999,attempt:1})).status,"NO_RESERVATION");
   assert.equal(sanitizeReceipt({issueNumber:3141,attempt:2,state:"BLOCKED",
     head:NEW,phase:"RUN_LOCAL_PI;cat ./secret",code:"PRIVATE_PASSWORD"},3141,2).phase,null);
+  for(const code of ["PI_WRITE_TOOL_NOT_OBSERVED","PI_WRITE_TOOL_FAILED","PI_WRITE_EVENTS_UNVERIFIED"]){
+    const safe=sanitizeReceipt({issueNumber:3141,attempt:2,state:"BLOCKED",
+      head:NEW,phase:"RUN_LOCAL_PI",code,privateOutput:"PRIVATE PI JSONL CONTENT"},3141,2);
+    assert.equal(safe.code,code);
+    assert.equal(safe.phase,"RUN_LOCAL_PI");
+    assert.equal(JSON.stringify(safe).includes("PRIVATE"),false);
+  }
   const file=path.join(jobs,"result-3141-attempt-2.json");
   await rm(file);
   // Unprivileged Windows accounts cannot always create file symlinks (EPERM).

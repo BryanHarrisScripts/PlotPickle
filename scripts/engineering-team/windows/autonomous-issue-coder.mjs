@@ -66,6 +66,13 @@ export function assessFactoryPaths(files,issueNumber=null) {
   return Object.freeze({allowed:valid,code:valid?"BOUNDED_SOURCE_ONLY":!genericAllowed?"DISALLOWED_SOURCE_PATH":"ISSUE_SCOPE_VIOLATION",
     count:files.length});
 }
+/** A missing or rejected real patch is terminal, with a trustworthy phase. */
+export function factoryRejectedPatchReceipt(assessment) {
+  if(assessment?.allowed===true || typeof assessment?.code!=="string")
+    throw new Error("Only a failed patch assessment has a terminal receipt.");
+  return Object.freeze({state:"BLOCKED",code:assessment.code,
+    phase:"INSPECT_CANDIDATE_PATCH"});
+}
 export function parseCoderArgs(args) {
   const retry=args.length===8&&args[6]==="--attempt"&&args[7]==="2";
   if((args.length!==6&&!retry)||args[0]!=="--issue"||args[2]!=="--head"||args[4]!=="--root"
@@ -203,9 +210,7 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
     if(!agent.ready)return {state:"WAITING_FOR_PROVIDER",code:agent.code};
     phase="INSPECT_CANDIDATE_PATCH";
     const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);
-    if(!assessment.allowed)return {
-      state:"BLOCKED",code:assessment.code,phase:"INSPECT_CANDIDATE_PATCH",
-    };
+    if(!assessment.allowed)return factoryRejectedPatchReceipt(assessment);
     phase="CHECK_DIFF";
     await command("git",["diff","--check"],{cwd:worktree});
     phase="RUN_CONTRACTS_UAT";

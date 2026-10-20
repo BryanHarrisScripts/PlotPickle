@@ -559,7 +559,7 @@ test("docs-only Windows pilot instructions require a physical write and prohibit
  }
  assert.equal(factoryBoundedDocument(123),null);
  const ordinary=factoryWorkerPrompt({number:3123,title:"Fix source",body:"Please investigate."},head);
- assert.match(ordinary,/MAKE the authorized filesystem change/); // prose instruction within docs-only path is not required
+ assert.match(ordinary,/MUST make real filesystem changes/);
  assert.match(ordinary,/For code issues, implement a source-bound fix/);
  assert.doesNotMatch(ordinary,/Documentation-only permission: create or edit EXACTLY ONE file/);
 });

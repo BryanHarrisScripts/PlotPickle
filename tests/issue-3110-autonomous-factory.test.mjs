@@ -599,9 +599,9 @@ test("factory dependency install uses private reusable npm cache and fail-closed
  assert.equal(factoryNpmFailureCode({stderr:"npm ERR! code EINTEGRITY"}),"NPM_INTEGRITY_FAILURE");
  assert.equal(factoryNpmFailureCode({stderr:"ENOENT"}),"NPM_FILE_MISSING");
  assert.equal(factoryNpmFailureCode({stderr:"secret=must-not-leak"}),"NPM_INSTALL_UNCLASSIFIED");
- const base={packageText:'{"name":"x"}',lockText:'{"lockfileVersion":3}',nodeVersion:"v24.0.0"};
+ const base={packageText:'{"name":"x"}'+"\n",lockText:'{"lockfileVersion":3}',nodeVersion:"v24.0.0"};
  assert.equal(factoryDependencyFingerprint(base),factoryDependencyFingerprint({
-   ...base,packageText:'{"name":"x"}'.replaceAll("\\n","\\r\\n"),
+   ...base,packageText:'{"name":"x"}'+"\r\n",
  }));
  assert.notEqual(factoryDependencyFingerprint(base),factoryDependencyFingerprint({...base,nodeVersion:"v24.0.1"}));
  assert.notEqual(factoryDependencyFingerprint(base),factoryDependencyFingerprint({...base,lockText:"changed"}));
@@ -649,4 +649,31 @@ test("isolated Windows npm preflight never reserves an issue, preserves failed p
  await writeFile(lock,JSON.stringify({pid:123}));
  const blocked=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,git:fakeGit});
  assert.equal(blocked.code,"STOP_FACTORY_FIRST");
+}));
+
+test("failed npm dependency readiness does not consume one-shot local Factory admission",()=>sandbox(async root=>{
+ await enableFactory({root,issues:[3160]});
+ const github={exactHead:async()=>HEAD,
+   pendingFactoryPRs:async()=>0,
+   issues:async()=>[{number:3160,title:"Documentation pilot",state:"OPEN",labels:[]}]};
+ let agentDispatched=false;
+ const blocked=await runFactoryCycle({root,github,now:()=>2468,
+   preflight:async()=>({ready:true}),publish:async()=>{},
+   dependencyPreflight:async()=>({ready:false,code:"NPM_PREFLIGHT_REQUIRED"}),
+   dispatch:async()=>{agentDispatched=true;throw Error("must never dispatch");}});
+ assert.equal(agentDispatched,false);
+ assert.equal(blocked.state,"WAITING_FOR_DEPENDENCIES");
+ assert.equal(blocked.code,"NPM_PREFLIGHT_REQUIRED");
+ assert.equal(blocked.processed,0);
+ await assert.rejects(readFile(path.join(root,"jobs","issue-3160.json"),"utf8"),/ENOENT/);
+ assert.equal((await readFactoryStatus({root,now:()=>3000})).enabled,true);
+ const success=await runFactoryCycle({root,github,now:()=>4000,
+   preflight:async()=>({ready:true}),publish:async()=>{},
+   dependencyPreflight:async()=>({ready:true,code:"NPM_PREFLIGHT_VERIFIED"}),
+   dispatch:async()=>{agentDispatched=true;return {state:"BLOCKED",code:"UNIT_FIXTURE"};}});
+ assert.equal(success.processed,1);
+ assert.equal(success.issueNumber,3160);
+ assert.equal(agentDispatched,true);
+ const saved=JSON.parse(await readFile(path.join(root,"jobs","issue-3160.json"),"utf8"));
+ assert.equal(saved.replayAuthorized,false);
 }));

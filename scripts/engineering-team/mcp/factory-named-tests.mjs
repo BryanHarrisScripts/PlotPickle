@@ -18,16 +18,19 @@ const TESTS=Object.freeze({
 });
 const GIT_OPTIONS={windowsHide:true,encoding:"utf8",timeout:30_000,maxBuffer:32_768};
 const TEST_TIMEOUT_MS=120_000;
-function normalized(result){return String(result?.stdout||"").trim();}
+
 export function allowedFactoryTestNames(){return Object.keys(TESTS);}
 export async function readFactoryVerificationHead({
   repoRoot=ROOT,run=exec,
 }={}) {
   try {
-    const [[head],[origin],[branch],[status]]=await Promise.all([
+    const [head,origin,branch,status]=await Promise.all([
       ["rev-parse","HEAD"],["rev-parse","origin/main"],
       ["branch","--show-current"],["status","--porcelain","--untracked-files=no"],
-    ].map(async args=>[normalized(await run("git",args,{...GIT_OPTIONS,cwd:repoRoot}))]));
+    ].map(async args=>{
+      const result=await run("git",args,{...GIT_OPTIONS,cwd:repoRoot});
+      return String(result?.stdout||"").trim();
+    }));
     if(!SHA.test(head)||head!==origin||branch!=="main"||status!=="")return null;
     return head;
   }catch{return null;}

@@ -88,9 +88,6 @@ async function main(argv=process.argv.slice(2)) {
     await new Promise(resolve=>setTimeout(resolve,INTERVAL_MS));
   }while(true);
 }
-if(process.argv[1]&&import.meta.url===new URL("file:"+fileURLToPath(import.meta.url)).href) {
-  // See caller guard below: avoid accidental service launch on imported tests.
-}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   main().catch(error=>{
     process.stderr.write("MONITOR_BLOCKED: "+String(error?.message||"unknown").slice(0,180)+"\n");

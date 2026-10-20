@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { planSyntheticQaHandoff } from "../scripts/engineering-team/queue/synthetic-qa-handoff.mjs";
 import { runFactoryMonitorOnce, persistMonitorSnapshot } from "../scripts/engineering-team/windows/factory-monitor.mjs";
+import { factoryObserver } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const HEAD="a".repeat(40);
 const finger=n=>"qa-defect-"+String(n).padStart(32,"0");
@@ -113,5 +114,34 @@ test("Observer report writes only its own fixed file and refuses symlinked recei
     }catch(error) {
       if(process.platform!=="win32"||!["EPERM","EACCES","ENOTSUP"].includes(error.code))throw error;
     }
+  }finally{await rm(root,{recursive:true,force:true});}
+});
+
+test("existing MCP Observer reports sanitized monitor heartbeat and stale/untrusted truth",async()=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pp-mcp-monitor-"));
+  try {
+    const record={
+      schemaVersion:1,mode:"MONITOR_ONLY",observedAt:50_000,
+      qaState:"PLAN_ONLY",qaCandidateCount:1,qaCandidates:[5001],
+      modelInvoked:false,sourceModified:false,queueModified:false,
+      issueAdmitted:false,legacyPiDispatched:false,dispatcherReady:false,
+      automaticMerge:false,windowsUatVerified:false,
+      secret:"LOCAL_TOKEN_DO_NOT_REPORT",
+    };
+    await writeFile(path.join(root,"observer-monitor.json"),JSON.stringify(record));
+    const live=await factoryObserver({root,now:()=>60_000});
+    assert.equal(live.monitor.state,"HEARTBEAT_OBSERVED");
+    assert.equal(live.monitor.heartbeatFresh,true);
+    assert.equal(live.monitor.processOwnershipVerified,false);
+    assert.deepEqual(live.monitor.qaCandidates,[5001]);
+    assert.equal(live.monitor.issueAdmitted,false);
+    assert.equal(JSON.stringify(live.monitor).includes("LOCAL_TOKEN_DO_NOT_REPORT"),false);
+    const expired=await factoryObserver({root,now:()=>180_001});
+    assert.equal(expired.monitor.state,"STALE_OR_UNVERIFIED");
+    assert.equal(expired.monitor.heartbeatFresh,false);
+    await writeFile(path.join(root,"observer-monitor.json"),
+      JSON.stringify({...record,legacyPiDispatched:true}));
+    const unsafe=await factoryObserver({root,now:()=>60_000});
+    assert.equal(unsafe.monitor.state,"NOT_OBSERVED");
   }finally{await rm(root,{recursive:true,force:true});}
 });

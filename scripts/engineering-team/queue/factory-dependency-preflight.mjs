@@ -165,7 +165,7 @@ export async function runFactoryDependencyPreflight({
       ?"WORKTREE_PATH_BLOCKED"
       :/index[.]lock|worktree.*locked|unable to lock|cannot lock ref/i.test(message)
         ?"WORKTREE_LOCKED"
-        :/\\b(?:EPERM|EACCES|EACCESS)\\b|access is denied|permission denied/i.test(message)
+        :/(?:EPERM|EACCES|EACCESS)|access is denied|permission denied/i.test(message)
           ?"WORKTREE_FILE_ACCESS":"WORKTREE_ADD_FAILED";
     return Object.freeze({state:"BLOCKED",code,sourceHead:head,
       probePreserved:existsSync(probe),issueReserved:false});

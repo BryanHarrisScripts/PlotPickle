@@ -9,6 +9,10 @@ import {
   admitFactoryIssues,factoryPiVersionGate,
 } from "../scripts/engineering-team/windows/autonomous-queue.mjs";
 import {parseCoderArgs,assessFactoryPaths,factoryFailureReceipt,factoryWorkerPrompt,factoryBoundedDocument,factoryRejectedPatchReceipt} from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import {
+ factoryNpmCache,factoryNpmInstallArgs,factoryNpmFailureCode,
+ factoryDependencyFingerprint,checkFactoryDependencyProof,runFactoryDependencyPreflight,
+} from "../scripts/engineering-team/windows/factory-dependency-preflight.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
@@ -580,3 +584,69 @@ test("empty or denied source patches are terminal at the inspection phase and ne
  assert.equal(factoryRejectedPatchReceipt(assessFactoryPaths([])).code,"NO_BOUNDED_PATCH");
  assert.throws(()=>factoryRejectedPatchReceipt(assessFactoryPaths(["docs/valid.md"])),/Only a failed/);
 });
+
+test("factory dependency install uses private reusable npm cache and fail-closed typed diagnostics",()=>{
+ const root=path.resolve(os.tmpdir(),"factory-owned-test-root");
+ const cache=factoryNpmCache(root);
+ assert.equal(cache,path.join(root,"npm-cache"));
+ assert.deepEqual(factoryNpmInstallArgs(root),[
+   "ci","--ignore-scripts","--no-audit","--no-fund","--prefer-offline","--cache",cache,
+ ]);
+ assert.equal(factoryNpmFailureCode({killed:true}),"NPM_INSTALL_TIMEOUT");
+ assert.equal(factoryNpmFailureCode({stderr:"npm error code EUSAGE"}),"NPM_LOCKFILE_MISMATCH");
+ assert.equal(factoryNpmFailureCode({stderr:"npm ERR! code EPERM"}),"NPM_WINDOWS_FILE_ACCESS");
+ assert.equal(factoryNpmFailureCode({stderr:"npm error code ECONNRESET"}),"NPM_NETWORK_UNAVAILABLE");
+ assert.equal(factoryNpmFailureCode({stderr:"npm ERR! code EINTEGRITY"}),"NPM_INTEGRITY_FAILURE");
+ assert.equal(factoryNpmFailureCode({stderr:"ENOENT"}),"NPM_FILE_MISSING");
+ assert.equal(factoryNpmFailureCode({stderr:"secret=must-not-leak"}),"NPM_INSTALL_UNCLASSIFIED");
+ const base={packageText:'{"name":"x"}',lockText:'{"lockfileVersion":3}',nodeVersion:"v24.0.0"};
+ assert.equal(factoryDependencyFingerprint(base),factoryDependencyFingerprint({
+   ...base,packageText:'{"name":"x"}'.replaceAll("\\n","\\r\\n"),
+ }));
+ assert.notEqual(factoryDependencyFingerprint(base),factoryDependencyFingerprint({...base,nodeVersion:"v24.0.1"}));
+ assert.notEqual(factoryDependencyFingerprint(base),factoryDependencyFingerprint({...base,lockText:"changed"}));
+});
+
+test("isolated Windows npm preflight never reserves an issue, preserves failed probe and pins success to manifests",()=>sandbox(async root=>{
+ const repoRoot=path.join(root,"repo");
+ await mkdir(repoRoot,{recursive:true});
+ await writeFile(path.join(repoRoot,"package.json"),'{"name":"unit-fixture"}\n');
+ await writeFile(path.join(repoRoot,"package-lock.json"),'{"lockfileVersion":3}\n');
+ const nodeVersion="v24.0.0";
+ const invocations=[];
+ const fakeGit=async args=>{
+   invocations.push(args);
+   if(args[0]==="rev-parse")return HEAD;
+   if(args[0]==="branch")return "main";
+   if(args[0]==="status")return "";
+   if(args[0]==="worktree")return "";
+   throw Error("Unexpected git operation");
+ };
+ const first=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
+   git:fakeGit,now:()=>12345,
+   install:async()=>{throw Object.assign(new Error("registry timed out"),{killed:true});}});
+ assert.deepEqual(first,{
+   state:"BLOCKED",code:"NPM_INSTALL_TIMEOUT",
+   phase:"INSTALL_DEPENDENCIES",sourceHead:HEAD,probePreserved:true,
+ });
+ assert.equal(invocations.some(args=>args[0]==="worktree"),true);
+ assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion})).ready,false);
+ await assert.rejects(readFile(path.join(root,"dependency-preflight.json"),"utf8"),/ENOENT/);
+ await assert.rejects(readFile(path.join(root,"jobs","issue-3160.json"),"utf8"),/ENOENT/);
+ const installCall=[];
+ const second=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
+   git:fakeGit,now:()=>12346,install:async args=>installCall.push(args)});
+ assert.equal(second.state,"INSTALL_PREFLIGHT_READY");
+ assert.equal(second.issueReserved,false);
+ assert.equal(installCall[0].root,root);
+ assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion})).ready,true);
+ const third=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,
+   git:fakeGit,now:()=>12347,install:async()=>{throw Error("must not reinstall verified digest");}});
+ assert.equal(third.existing,true);
+ await writeFile(path.join(repoRoot,"package-lock.json"),'{"lockfileVersion":3,"packages":{}}\n');
+ assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion})).ready,false);
+ const lock=path.join(root,"service.lock");
+ await writeFile(lock,JSON.stringify({pid:123}));
+ const blocked=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,git:fakeGit});
+ assert.equal(blocked.code,"STOP_FACTORY_FIRST");
+}));

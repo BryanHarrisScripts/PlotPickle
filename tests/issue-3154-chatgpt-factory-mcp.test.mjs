@@ -319,6 +319,8 @@ test("MCP write tools are hidden without paired authentication and reject replay
    assert.equal((await call("factory_run_dependency_preflight",preArgs,token))
      .result.structuredContent.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
    assert.equal(preflightCalls,1);
+   await writeFile(path.join(root,"dependency-preflight.json"),
+     JSON.stringify({npmCiVerified:true,sourceHead:OLD}));
    const adArgs={requestId:"2".repeat(32),expectedHead:OLD,issues:[3164]};
    assert.equal((await call("factory_admit_issues",adArgs,token))
      .result.structuredContent.state,"ISSUES_ADMITTED");
@@ -352,4 +354,12 @@ test("MCP control denies stale head and held worker without consuming a request 
  assert.equal(result.code,"STOP_FACTORY_FIRST");
  assert.equal(called,0);
  assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"NO_REQUEST");
+ await rm(path.join(root,"service.lock"));
+ const uncertain=await stale.factoryControlAction("factory_run_dependency_preflight",args,{
+   root,github,ops:{preflight:async()=>{throw Error("unknown whether native install ran");}},
+ });
+ assert.equal(uncertain.state,"STARTED_UNCONFIRMED");
+ assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"STARTED_UNCONFIRMED");
+ const retry=await stale.factoryControlAction("factory_run_dependency_preflight",args,{root,github,ops});
+ assert.equal(retry.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
 }));

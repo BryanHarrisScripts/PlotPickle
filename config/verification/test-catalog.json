@@ -9258,7 +9258,7 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "3663ab4ea5764f538faaa7fc0ee6692b0ffee21e0d9f7e46ded0c6fa12c63c2c",
+        "targetDigest": "7329dd0b511b6293d8214bd6df6f78108dd5ec4775119c2502c948309776351b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9286,7 +9286,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts, deterministic observer snapshot, and local MCP HTTP/stdio protocol tests only. No native Windows task/process ownership, scheduled ChatGPT MCP access, source edit, Product UAT, or autonomous merge proof."
+        "limits": "Synthetic private Factory receipts, deterministic observer snapshot, and local MCP HTTP/stdio protocol tests only. Symlink evidence rejection is checked when fixture creation is permitted; restricted Windows accounts cannot exercise that negative control. No native Windows task/process ownership, scheduled ChatGPT MCP access, source edit, Product UAT, or autonomous merge proof."
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",

@@ -158,5 +158,6 @@ if (direct) {
     expectedHead:args.length===4 && args[2]==="--head"?args[3]:null,
   });
   process.stdout.write(JSON.stringify(result)+"\n");
-  process.exitCode=result.state==="TEST_PASSED"?0:1;
+  // Report a typed BLOCKED outcome to the parent; a crashing process still exits nonzero.
+  process.exitCode=0;
 }

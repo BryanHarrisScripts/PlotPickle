@@ -9343,7 +9343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "8dfcc71dd585756ed773ae3f52ad7b958d9656048f4928e913a63f65a0dd9cda"
+            "digest": "44962d10b690356bc1596af7c6dfcc88acaff4915457bd2d2df7b5544ff18cbd"
           }
         ],
         "truthRefs": [
@@ -9375,7 +9375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "8dfcc71dd585756ed773ae3f52ad7b958d9656048f4928e913a63f65a0dd9cda"
+            "digest": "44962d10b690356bc1596af7c6dfcc88acaff4915457bd2d2df7b5544ff18cbd"
           }
         ],
         "truthRefs": [

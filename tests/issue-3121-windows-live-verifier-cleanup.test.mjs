@@ -75,6 +75,18 @@ test("#3121 an interrupted shutdown still closes the log and retains private syn
   assert.equal(calls.includes("cleanup-home"), false);
 });
 
+test("#3121 a previously exited parent cannot certify orphaned descendant STOP, even with a free port", async () => {
+  const { child, calls, options } = fixture({ checks: [true] });
+  child.exitCode = 0;
+  const result = await stopAndCleanupLiveVerifier(options);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.failureCodes.includes("OWNED_SERVER_ALREADY_EXITED_BEFORE_STOP"));
+  assert.ok(result.failureCodes.includes("SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED"));
+  assert.equal(calls.includes("owned-stop"), false, "do not claim a STOP after the parent already exited");
+  assert.equal(calls.includes("cleanup-home"), false, "preserve possible orphan-held files");
+  assert.equal(calls.includes("close-log"), true);
+});
+
 test("#3121 refuses synthetic-home deletion when the server log cannot be closed", async () => {
   const { calls, options } = fixture();
   options.serverLogHandle.close = async () => {
@@ -111,6 +123,14 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
 
   assert.match(source, /await stopAndCleanupLiveVerifier\(\{ server, serverLogHandle, home, node, serverEnv \}\)/u);
   assert.match(source, /await writeSummary\("fail", \{ \.\.\.recordedDetails, cleanup \}\)/u);
+  assert.match(source, /OWNED_SERVER_ALREADY_EXITED_BEFORE_STOP/u);
+  assert.doesNotMatch(source, /await writeSummary\("pass", recordedDetails\)/u);
+  assert.match(source, /await writeSummary\("pass", \{ \.\.\.recordedDetails, cleanup \}\)/u);
+  assert.ok(
+    source.indexOf('await writeSummary("pass", { ...recordedDetails, cleanup })') >
+      source.indexOf("const cleanup = await stopAndCleanupLiveVerifier("),
+    "PASS must be committed only after owned STOP and cleanup",
+  );
   assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);
   assert.doesNotMatch(source, /server\.kill\("SIGTERM"\)/u);
 });

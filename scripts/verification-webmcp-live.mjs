@@ -248,7 +248,13 @@ export async function stopAndCleanupLiveVerifier({
   let stopped = !server;
   if (server) {
     try {
-      await stopTree(server);
+      // Once the parent has exited, its original process tree can no longer
+      // be attested through this handle. A free port is not orphan cleanup proof.
+      if (server.exitCode !== null || server.signalCode !== null) {
+        failureCodes.push("OWNED_SERVER_ALREADY_EXITED_BEFORE_STOP");
+      } else {
+        await stopTree(server);
+      }
       if (server.exitCode === null && server.signalCode === null) {
         failureCodes.push("OWNED_SERVER_PARENT_EXIT_UNCONFIRMED");
       }
@@ -436,7 +442,7 @@ export async function runLiveWebMcpEvidence() {
         providerSpendAllowed: false,
       },
     };
-    await writeSummary("pass", recordedDetails);
+    // Never publish PASS before owned shutdown and synthetic-home cleanup finish.
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -457,6 +463,9 @@ export async function runLiveWebMcpEvidence() {
       await writeSummary("fail", { ...recordedDetails, cleanup });
       console.error(`[FAIL] Live WebMCP cleanup blocked: ${cleanup.failureCodes.join(", ")}. Disposable test home retained if owned STOP is unverified.`);
       return 1;
+    }
+    if (recordedDetails.storyFactoryAcceptance?.status === "PASS") {
+      await writeSummary("pass", { ...recordedDetails, cleanup });
     }
   }
 }

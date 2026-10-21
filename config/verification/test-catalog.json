@@ -9292,14 +9292,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "54284a9d6ca884f19cecc48acb58a3dc4fef30072a112b69030d35ee6a3bb8df",
+        "targetDigest": "e0d3c0dc3564dd587243abbb2a6717dbb3230adf4e549c82f8647731e67daaf0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f45b064257c96f9d6ccedff8a1e5e98ba8ee05e78094b66387eacce47be47551"
+            "digest": "c9acac9fa73e858385dc0cc61266af45397e441cea4c9d59241e072f89c7d0da"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9343,7 +9343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f45b064257c96f9d6ccedff8a1e5e98ba8ee05e78094b66387eacce47be47551"
+            "digest": "c9acac9fa73e858385dc0cc61266af45397e441cea4c9d59241e072f89c7d0da"
           }
         ],
         "truthRefs": [
@@ -9375,7 +9375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f45b064257c96f9d6ccedff8a1e5e98ba8ee05e78094b66387eacce47be47551"
+            "digest": "c9acac9fa73e858385dc0cc61266af45397e441cea4c9d59241e072f89c7d0da"
           }
         ],
         "truthRefs": [

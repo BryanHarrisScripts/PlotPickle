@@ -9365,7 +9365,7 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "7581c459c90f7de73286339da52d946d42e4b8337e5259105e2bba64df65eb0a",
+        "targetDigest": "0df6249243f58997fa8a4153be8e0f817a13c88f8cb03d1944b5266cbe90ca0c",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

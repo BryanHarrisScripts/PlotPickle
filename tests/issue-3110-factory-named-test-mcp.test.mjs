@@ -808,6 +808,9 @@ test("separate browser verifier reads existing immutable 55-checkpoint artifacts
  const prefix=".artifacts/webmcp-acceptance/";
  const makeJourney=(id,count,project)=>{
    const names=["browser-runtime-diagnostics","active-project-present-before-journey"];
+   if(id==="mind-map-world-map-shared-header")
+     names.push("mind-map-project-continuity","world-map-project-continuity",
+       "journey-active-project-stable");
    if(id==="story-factory-read-only-journey") {
      for(const part of ["outline","write","storyboard","previs","timeline"])
        for(const suffix of ["settled-identity","project-continuity","no-visible-alert","back-to-dashboard"])

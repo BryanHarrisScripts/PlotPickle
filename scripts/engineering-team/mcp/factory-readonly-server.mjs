@@ -21,7 +21,7 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
-  runFactoryNamedTest,inspectFactoryCandidatePr } from "./factory-named-tests.mjs";
+  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -269,14 +269,18 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "NODE_TEST_PASS","NODE_TEST_FAILED","NODE_TEST_TIMEOUT",
   "CANDIDATE_HEAD_VERIFIED","CANDIDATE_SELECTION_INVALID",
   "CANDIDATE_NOT_OPEN","CANDIDATE_HEAD_MISMATCH",
-  "CANDIDATE_BASE_MISMATCH","GITHUB_PR_UNAVAILABLE"]);
+  "CANDIDATE_BASE_MISMATCH","GITHUB_PR_UNAVAILABLE",
+  "CANDIDATE_STATIC_STAGED","CANDIDATE_STAGE_UNVERIFIED",
+  "CANDIDATE_STAGE_PATH_BLOCKED","CANDIDATE_STAGE_EXISTS",
+  "CANDIDATE_FETCH_MISMATCH","CANDIDATE_STAGE_MISMATCH",
+  "CANDIDATE_DIFF_UNVERIFIED","CANDIDATE_CHANGED_DURING_STAGE"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
   const a=Buffer.from(presented),b=Buffer.from(configured);
   return a.length===b.length&&timingSafeEqual(a,b);
 }
-const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),"factory-pr-head"];
+const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),"factory-pr-head","factory-pr-stage"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -292,7 +296,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated Windows-only fixed Node suite OR metadata-only candidate PR identity attestation on a clean exact main SHA. No arbitrary commands, candidate code execution, model calls or merge. Neither proves Windows Product UAT.",
+    description:"Authenticated Windows-only fixed Node suite, candidate PR metadata check, or isolated static candidate staging. No arbitrary shell, candidate build/test execution, model calls or merge. Never proves Windows Product UAT.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -316,7 +320,7 @@ function validControlArgs(name,args) {
   if(name==="factory_run_dependency_preflight")
     return keys.length===2;
   if(name==="factory_run_named_test"){
-    if(args.suite==="factory-pr-head")return keys.length===5 &&
+    if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
     return keys.length===3 && allowedFactoryTestNames().includes(args.suite);
@@ -335,10 +339,15 @@ function safeControlReceipt(raw,requestId) {
   if(!state||!code)return null;
   return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
     suite:allowedFactoryControlSuites().includes(raw.suite)?raw.suite:null,
-    candidatePrNumber:raw.code==="CANDIDATE_HEAD_VERIFIED"&&raw.state==="TEST_PASSED"&&
-      validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
-    candidateHead:raw.code==="CANDIDATE_HEAD_VERIFIED"&&raw.state==="TEST_PASSED"
-      ?safeSha(raw.candidateHead):null,
+    candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(raw.code)&&
+      raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
+    candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(raw.code)&&
+      raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
+    stageId:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
+      REQUEST_ID.test(raw.stageId||"")?raw.stageId:null,
+    changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
+      Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
+      raw.changedFileCount<=500?raw.changedFileCount:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
       ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
     independentVerification:false};
@@ -358,7 +367,7 @@ export async function factoryControlAction(name,args,{
     preflight:runFactoryDependencyPreflight,proof:checkFactoryDependencyProof,
     admit:admitFactoryIssues,publish:publishFactoryDependencyPreflightResult,
     testHead:readFactoryVerificationHead,runTest:runFactoryNamedTest,
-    inspectPr:inspectFactoryCandidatePr,
+    inspectPr:inspectFactoryCandidatePr,stagePr:stageFactoryCandidatePr,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -383,8 +392,8 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:args.suite==="factory-pr-head"?args.candidatePrNumber:null,
-      candidateHead:args.suite==="factory-pr-head"?args.candidateHead:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidateHead:null,
       at:now(),replayAuthorized:false,
     })+"\n",{flag:"wx",mode:0o600});
   }catch{return {state:"DUPLICATE_OR_UNVERIFIABLE_REQUEST",requestId:args.requestId,
@@ -409,16 +418,23 @@ export async function factoryControlAction(name,args,{
             ?await ops.inspectPr({prNumber:args.candidatePrNumber,
               candidateHead:args.candidateHead,expectedHead:args.expectedHead,
               verifyHead:ops.testHead})
-            :await ops.runTest({suite:args.suite,
-              expectedHead:args.expectedHead,verifyHead:ops.testHead});
+            :args.suite==="factory-pr-stage"
+              ?await ops.stagePr({prNumber:args.candidatePrNumber,
+                candidateHead:args.candidateHead,expectedHead:args.expectedHead,
+                requestId:args.requestId,root,verifyHead:ops.testHead})
+              :await ops.runTest({suite:args.suite,
+                expectedHead:args.expectedHead,verifyHead:ops.testHead});
           outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,
-            candidatePrNumber:result.code==="CANDIDATE_HEAD_VERIFIED"
+            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(result.code)
               ?result.candidatePrNumber:null,
-            candidateHead:result.code==="CANDIDATE_HEAD_VERIFIED"
-              ?result.candidateHead:null};
+            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(result.code)
+              ?result.candidateHead:null,
+            stageId:result.code==="CANDIDATE_STATIC_STAGED"?result.stageId:null,
+            changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
+              ?result.changedFileCount:null};
         }finally{await unlink(lockFile).catch(()=>{});}
       }
     }else if(name==="factory_run_dependency_preflight"){

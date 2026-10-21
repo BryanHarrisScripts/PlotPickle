@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
-  runFactoryNamedTest,inspectFactoryCandidatePr } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -208,6 +208,122 @@ test("existing authenticated named-test tool accepts metadata-only PR check with
  assert.equal(JSON.parse(reservation).candidateHead,OTHER);
  assert.equal(JSON.parse(reservation).candidatePrNumber,3191);
  assert.equal(JSON.stringify([outcome,receipt]).includes("C:/private"),false);
+}));
+test("Chat candidate stage fetches a pinned PR SHA into a separate worktree without running candidate code",()=>privateRoot(async root=>{
+ const seen=[];
+ let metadataCalls=0;
+ const runner=async(program,args,opts)=>{
+   assert.ok(["git","gh"].includes(program));
+   assert.equal(opts.shell,undefined);
+   seen.push({program,args,cwd:opts.cwd});
+   if(program==="gh"){
+     metadataCalls++;
+     return {stdout:JSON.stringify({number:3192,state:"OPEN",
+       baseRefName:"main",baseRefOid:HEAD,headRefOid:OTHER})};
+   }
+   if(args[0]==="fetch"){
+     assert.equal(args[3],"https://github.com/BryanHarrisScripts/PlotPickle.git");
+     assert.equal(args[4],"refs/pull/3192/head");
+     return {stdout:""};
+   }
+   if(args[0]==="rev-parse"&&args[1]==="FETCH_HEAD")return {stdout:OTHER+"\n"};
+   if(args[0]==="-c"&&args[2]==="worktree"){
+     assert.ok(args[1].startsWith("core.hooksPath="));
+     assert.equal(args[3],"add");
+     assert.equal(args[4],"--detach");
+     assert.equal(args[6],OTHER);
+     return {stdout:""};
+   }
+   if(args[0]==="rev-parse"&&args[1]==="HEAD")return {stdout:OTHER+"\n"};
+   if(args[0]==="diff"&&args[1]==="--name-only")
+     return {stdout:"app/index.tsx\0tests/candidate.test.mjs\0"};
+   if(args[0]==="diff"&&args[1]==="--check")return {stdout:""};
+   throw Error("Unexpected git command");
+ };
+ const opts={prNumber:3192,candidateHead:OTHER,expectedHead:HEAD,
+   requestId:"8".repeat(32),root,platform:"win32",repoRoot:root,
+   verifyHead:async()=>HEAD,run:runner};
+ const result=await stageFactoryCandidatePr(opts);
+ assert.deepEqual(result,{
+   state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",sourceHead:HEAD,
+   candidateHead:OTHER,candidatePrNumber:3192,changedFileCount:2,
+   stageId:"8".repeat(32),sourceExecuted:false,modelInvoked:false,
+   issueReserved:false,windowsUatVerified:false,
+ });
+ assert.equal(metadataCalls,2);
+ assert.ok(seen.every(x=>x.program!=="node"&&x.program!=="npm"&&x.program!=="powershell"));
+ assert.equal(seen.filter(x=>x.program==="git"&&x.args[0]==="diff").length,2);
+ assert.equal((await stageFactoryCandidatePr({...opts,
+   fileOps:{mkdir:async()=>{},lstat:async()=>({isDirectory:()=>true,isSymbolicLink:()=>false})}})).code,
+   "CANDIDATE_STAGE_EXISTS");
+}));
+
+test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main and static-check failure",()=>privateRoot(async root=>{
+ const candidate={number:3193,state:"OPEN",baseRefName:"main",
+   baseRefOid:HEAD,headRefOid:OTHER};
+ const base={prNumber:3193,candidateHead:OTHER,expectedHead:HEAD,
+   requestId:"9".repeat(32),root,platform:"win32",repoRoot:root,
+   verifyHead:async()=>HEAD};
+ let activity=[];
+ const run=async(program,args)=>{
+   activity.push(program+" "+args.join(" "));
+   if(program==="gh")return {stdout:JSON.stringify(candidate)};
+   if(args[0]==="fetch")return {stdout:""};
+   if(args[1]==="FETCH_HEAD")return {stdout:HEAD};
+   throw Error("A worktree must not be staged with a different fetched commit");
+ };
+ assert.equal((await stageFactoryCandidatePr({...base,run})).code,"CANDIDATE_FETCH_MISMATCH");
+ assert.equal(activity.some(x=>x.includes("worktree")),false);
+ assert.equal((await stageFactoryCandidatePr({...base,platform:"linux",run})).code,"WINDOWS_ONLY");
+ assert.equal((await stageFactoryCandidatePr({...base,requestId:"../../private",run})).code,
+   "CANDIDATE_SELECTION_INVALID");
+ assert.equal((await stageFactoryCandidatePr({...base,verifyHead:async()=>null,run})).code,
+   "EXACT_HEAD_MISMATCH");
+ const errorRun=async(program,args)=>{
+   if(program==="gh")return {stdout:JSON.stringify(candidate)};
+   if(args[0]==="fetch")throw Error("PRIVATE_REMOTE_CREDENTIALS");
+   throw Error("must not execute");
+ };
+ const error=await stageFactoryCandidatePr({...base,requestId:"a".repeat(32),run:errorRun});
+ assert.equal(error.code,"CANDIDATE_STAGE_UNVERIFIED");
+ assert.equal(JSON.stringify(error).includes("PRIVATE"),false);
+}));
+
+test("authenticated existing tool writes one static-candidate-stage receipt and refuses replay",()=>privateRoot(async root=>{
+ let calls=0;
+ const args={requestId:"7".repeat(32),expectedHead:HEAD,suite:"factory-pr-stage",
+   candidatePrNumber:3192,candidateHead:OTHER};
+ const ops={testHead:async()=>HEAD,stagePr:async({prNumber,candidateHead,expectedHead,requestId,root:calledRoot})=>{
+   calls++;
+   assert.deepEqual([prNumber,candidateHead,expectedHead,requestId,calledRoot],
+     [3192,OTHER,HEAD,args.requestId,root]);
+   return {state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
+     sourceHead:HEAD,candidatePrNumber:3192,candidateHead:OTHER,
+     changedFileCount:3,stageId:args.requestId,
+     privatePath:"C:/SECRET_PRIVATE_PATH",windowsUatVerified:false};
+ }};
+ const invoke=(data,auth=true)=>handleRpc({jsonrpc:"2.0",id:15,
+   method:"tools/call",params:{name:"factory_run_named_test",arguments:data}},
+   {root,controlAuthenticated:auth,controlOps:ops});
+ assert.equal((await invoke(args,false)).error.code,-32001);
+ assert.equal((await invoke({...args,cmd:"ls"})).error.code,-32602);
+ assert.equal((await invoke({...args,suite:"factory-qa-handoff"})).error.code,-32602);
+ assert.equal(calls,0);
+ const response=(await invoke(args)).result.structuredContent;
+ assert.equal(response.code,"CANDIDATE_STATIC_STAGED");
+ assert.equal(response.candidatePrNumber,3192);
+ assert.equal(response.candidateHead,OTHER);
+ assert.equal(response.stageId,args.requestId);
+ assert.equal(response.changedFileCount,3);
+ assert.equal(response.independentVerification,false);
+ assert.equal(response.modelInvoked,false);
+ assert.equal(response.replayAuthorized,false);
+ assert.equal(calls,1);
+ assert.equal((await invoke(args)).result.structuredContent.state,
+   "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+ assert.equal(calls,1);
+ assert.deepEqual(await factoryControlReceipt({root,requestId:args.requestId}),response);
+ assert.equal(JSON.stringify(response).includes("SECRET"),false);
 }));
 test("native lock and stale source block execution; uncertain runs never silently replay",()=>privateRoot(async root=>{
  const args={requestId:"2".repeat(32),expectedHead:HEAD,suite:"factory-mcp"};

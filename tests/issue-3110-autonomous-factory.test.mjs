@@ -15,6 +15,7 @@ import {
  publishFactoryDependencyPreflightResult,
 } from "../scripts/engineering-team/queue/factory-dependency-preflight.mjs";
 import {parseFactoryHunkArgs,factoryHunkTarget,factoryHunkReview} from "../scripts/engineering-team/review/factory-hunk.mjs";
+import { inspectFactoryServiceLock } from "../scripts/engineering-team/queue/factory-service-lock.mjs";
 import {renderFactoryHeartbeat,publishFactoryHeartbeat} from "../scripts/engineering-team/windows/autonomous-telemetry.mjs";
 import {reviewDocsOnlyCandidate,reconcileApprovedDocsPRs} from "../scripts/engineering-team/windows/autonomous-pr-review.mjs";
 
@@ -768,9 +769,40 @@ test("isolated Windows npm preflight never reserves an issue, preserves failed p
  await writeFile(path.join(repoRoot,"package-lock.json"),'{"lockfileVersion":3,"packages":{}}\n');
  assert.equal((await checkFactoryDependencyProof({root,repoRoot,nodeVersion})).ready,false);
  const lock=path.join(root,"service.lock");
- await writeFile(lock,JSON.stringify({pid:123}));
+ await writeFile(lock,JSON.stringify({schemaVersion:1,pid:process.pid,at:1}));
  const blocked=await runFactoryDependencyPreflight({root,repoRoot,platform:"win32",nodeVersion,git:fakeGit});
  assert.equal(blocked.code,"STOP_FACTORY_FIRST");
+}));
+
+test("stale Windows Factory lock is archived only after exact PID absence; receipts survive",()=>sandbox(async root=>{
+ const filename=path.join(root,"service.lock");
+ const jobs=path.join(root,"jobs");
+ await mkdir(jobs);
+ const receipt=path.join(jobs,"result-3173.json");
+ await writeFile(receipt,'{"issueNumber":3173,"state":"BLOCKED"}\\n');
+ assert.deepEqual(await inspectFactoryServiceLock({root,platform:"win32"}),
+   {safeToProceed:true,state:"NO_LOCK"});
+ const original=JSON.stringify({schemaVersion:1,pid:9876543,at:34567});
+ await writeFile(filename,original);
+ let checkedPid;
+ const dead=()=>{const error=new Error("not alive");error.code="ESRCH";throw error;};
+ const live=pid=>{checkedPid=pid;};
+ assert.deepEqual(await inspectFactoryServiceLock({root,platform:"win32",probePid:live}),
+   {safeToProceed:false,state:"ACTIVE_OR_UNVERIFIED"});
+ assert.equal(checkedPid,9876543);
+ assert.equal(await readFile(filename,"utf8"),original);
+ const inaccessible=()=>{const error=new Error("permission");error.code="EPERM";throw error;};
+ assert.equal((await inspectFactoryServiceLock({root,platform:"win32",probePid:inaccessible})).safeToProceed,false);
+ assert.equal((await inspectFactoryServiceLock({root,platform:"linux",probePid:dead})).safeToProceed,false);
+ const archived=await inspectFactoryServiceLock({root,platform:"win32",probePid:dead,createId:()=>"fixture"});
+ assert.deepEqual(archived,{safeToProceed:true,state:"STALE_LOCK_ARCHIVED"});
+ await assert.rejects(readFile(filename,"utf8"),{code:"ENOENT"});
+ assert.equal(await readFile(path.join(root,"service-stale-inspected-34567-fixture.json"),"utf8"),original);
+ assert.equal(await readFile(receipt,"utf8"),'{"issueNumber":3173,"state":"BLOCKED"}\\n');
+ await writeFile(filename,JSON.stringify({pid:5,at:3}));
+ assert.equal((await inspectFactoryServiceLock({root,platform:"win32",probePid:dead})).state,"UNVERIFIED_LOCK");
+ await writeFile(filename,'{"schemaVersion":1,"pid":1,"at":1}');
+ assert.equal((await inspectFactoryServiceLock({root,platform:"win32",probePid:dead})).state,"STALE_LOCK_ARCHIVED");
 }));
 
 test("failed npm dependency readiness does not consume one-shot local Factory admission",()=>sandbox(async root=>{

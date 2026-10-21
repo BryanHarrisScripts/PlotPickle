@@ -9299,7 +9299,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f7bd62bc61c7ccba2d0fe9e2590ca9f9559c399dcfdbea2ba6961ac7372eea82"
+            "digest": "219247b087f334cfa3b0365a493ff6ad714e3ff170ac9cf4bf4093616350f274"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9343,7 +9343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f7bd62bc61c7ccba2d0fe9e2590ca9f9559c399dcfdbea2ba6961ac7372eea82"
+            "digest": "219247b087f334cfa3b0365a493ff6ad714e3ff170ac9cf4bf4093616350f274"
           }
         ],
         "truthRefs": [
@@ -9375,7 +9375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "f7bd62bc61c7ccba2d0fe9e2590ca9f9559c399dcfdbea2ba6961ac7372eea82"
+            "digest": "219247b087f334cfa3b0365a493ff6ad714e3ff170ac9cf4bf4093616350f274"
           }
         ],
         "truthRefs": [

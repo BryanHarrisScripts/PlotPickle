@@ -232,6 +232,7 @@ test("Chat candidate stage fetches a pinned PR SHA into a separate worktree with
      assert.equal(args[3],"add");
      assert.equal(args[4],"--detach");
      assert.equal(args[6],OTHER);
+     assert.equal(opts.timeout,120_000);
      return {stdout:""};
    }
    if(args[0]==="rev-parse"&&args[1]==="HEAD")return {stdout:OTHER+"\n"};
@@ -286,8 +287,21 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
    throw Error("must not execute");
  };
  const error=await stageFactoryCandidatePr({...base,requestId:"a".repeat(32),run:errorRun});
- assert.equal(error.code,"CANDIDATE_STAGE_UNVERIFIED");
+ assert.equal(error.code,"CANDIDATE_STAGE_FETCH_FAILED");
  assert.equal(JSON.stringify(error).includes("PRIVATE"),false);
+ const checkoutRun=async(program,args)=>{
+   if(program==="gh")return {stdout:JSON.stringify(candidate)};
+   if(args[0]==="fetch")return {stdout:""};
+   if(args[0]==="rev-parse"&&args[1]==="FETCH_HEAD")return {stdout:OTHER};
+   if(args[0]==="-c"&&args[2]==="worktree")
+     throw Object.assign(Error("PRIVATE_CHECKOUT_PATH"),{code:"EPERM"});
+   throw Error("Stage did not reach this command");
+ };
+ const checkoutError=await stageFactoryCandidatePr({...base,
+   requestId:"f".repeat(32),run:checkoutRun});
+ assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ADD_FAILED");
+ assert.equal(checkoutError.state,"BLOCKED");
+ assert.equal(JSON.stringify(checkoutError).includes("PRIVATE"),false);
 }));
 
 test("staged candidate must be clean before and after remote identity recheck",()=>privateRoot(async root=>{

@@ -20,7 +20,7 @@ import {
   piDeveloperVirtualArgs,
 } from "../scripts/pi-worker-runtime.mjs";
 import { summarizeFactoryPiWriteEvents } from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
-import { classifyNativePiWrite } from "../scripts/engineering-team/diagnostics/pi-native-write-probe.mjs";
+import { classifyNativePiWrite, classifyPiDualRoute, probeLocalModelToolApi } from "../scripts/engineering-team/diagnostics/pi-native-write-probe.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EXPECTED_CONTENT = "PLOTPICKLE_NATIVE_PI_WRITE_TOOL_VERIFIED\n";
@@ -147,6 +147,71 @@ test("physical local-model proof accepts only paired write events and exact file
     fileContents:"PLOTPICKLE_NATIVE_LOCAL_PI_WRITE_VERIFIED"});
   assert.equal(success.code, "PI_NATIVE_WRITE_VERIFIED");
   assert.equal(JSON.stringify(success).includes("PLOTPICKLE_NATIVE"),false);
+});
+
+test("native Pi classification distinguishes shared no-write from a genuine route difference", () => {
+  const failure = {code:"PI_WRITE_TOOL_NOT_OBSERVED"};
+  const success = {code:"PI_NATIVE_WRITE_VERIFIED"};
+  assert.deepEqual(classifyPiDualRoute(failure, failure),
+    {state:"TEST_FAILED",code:"PI_NATIVE_SHARED_NO_WRITE"});
+  assert.deepEqual(classifyPiDualRoute(success, failure),
+    {state:"TEST_FAILED",code:"PI_NATIVE_ROUTE_DIFFERENTIAL"});
+  assert.deepEqual(classifyPiDualRoute(success, success),
+    {state:"TEST_PASSED",code:"PI_NATIVE_DUAL_ROUTE_VERIFIED"});
+});
+
+test("physical local-model API probe verifies actual tool_calls but never executes returned tools", async () => {
+  const runtime = {model:"approved-local-coder",baseUrl:"http://127.0.0.1:12000/v1"};
+  let called=0;
+  const valid = async (url, init) => {
+    called++;
+    assert.equal(url,"http://127.0.0.1:12000/v1/chat/completions");
+    assert.equal(init.method,"POST");
+    assert.equal(init.redirect,"error");
+    assert.equal(init.headers.authorization,"Bearer plotpickle-local");
+    const body = JSON.parse(init.body);
+    assert.equal(body.model,runtime.model);
+    assert.equal(body.tools.length,1);
+    assert.equal(body.tools[0].function.name,"plotpickle_tool_capability_probe");
+    assert.equal(body.tool_choice.function.name,"plotpickle_tool_capability_probe");
+    return new Response(JSON.stringify({
+      choices:[{
+        finish_reason:"tool_calls",
+        message:{
+          tool_calls:[{
+            type:"function",
+            function:{
+              name:"plotpickle_tool_capability_probe",
+              arguments:JSON.stringify({marker:"PLOTPICKLE_TOOL_API_VERIFIED"}),
+            },
+          }],
+        },
+      }],
+    }),{status:200,headers:{"content-type":"application/json"}});
+  };
+  assert.deepEqual(await probeLocalModelToolApi({runtime,request:valid}),
+    {code:"LOCAL_MODEL_TOOL_API_VERIFIED",toolCallCount:1});
+  assert.equal(called,1);
+  const text = async () => new Response(JSON.stringify({
+    choices:[{finish_reason:"stop",message:{content:"I wrote it",role:"assistant"}}],
+  }),{status:200});
+  assert.deepEqual(await probeLocalModelToolApi({runtime,request:text}),
+    {code:"LOCAL_MODEL_RETURNED_NO_TOOL_CALL",finishReason:"stop"});
+  const declined = async () => new Response("unsupported tools",{status:400});
+  assert.deepEqual(await probeLocalModelToolApi({runtime,request:declined}),
+    {code:"LOCAL_TOOL_REQUEST_REJECTED",httpStatus:400});
+  const incorrect = async () => new Response(JSON.stringify({
+    choices:[{finish_reason:"tool_calls",message:{tool_calls:[{
+      type:"function",function:{name:"plotpickle_tool_capability_probe",
+        arguments:'{"marker":"INCORRECT"}'},
+    }]}}],
+  }),{status:200});
+  assert.deepEqual(await probeLocalModelToolApi({runtime,request:incorrect}),
+    {code:"LOCAL_MODEL_TOOL_ARGUMENTS_INVALID"});
+  const remote = {model:"approved-local-coder",baseUrl:"https://example.org/v1"};
+  assert.deepEqual(await probeLocalModelToolApi({runtime:remote,request:valid}),
+    {code:"LOCAL_MODEL_ROUTE_INVALID"});
+  assert.equal(called,1);
 });
 
 test("real managed Pi must execute a mock-model write tool rather than merely claim a fix", {

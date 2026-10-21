@@ -4,12 +4,13 @@
  * No shell, arbitrary path/argv, writing to source, Pi/Cline, or merge route.
  * A native Node test PASS does not certify the Windows Product Gate.
  */
-import { execFile } from "node:child_process";
-import { mkdir, lstat } from "node:fs/promises";
+import { execFile, spawn } from "node:child_process";
+import { mkdir, lstat, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import process from "node:process";
+import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 const exec=promisify(execFile);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..");
 const SHA=/^[a-f0-9]{40}$/;
@@ -295,6 +296,112 @@ export async function syncFactoryMain({
       sourceHead:SHA.test(final?.sourceHead||"")?final.sourceHead:null});
   return Object.freeze({state:"TEST_PASSED",code:"SOURCE_SYNCED",
     sourceHead:targetHead,modelInvoked:false,issueReserved:false});
+}
+
+
+/**
+ * #3118: execute the existing genuine browser Story Factory acceptance in an
+ * isolated synthetic-Human profile. Only fixed, reviewed source on exact clean
+ * main; never run candidate PR code, a user project or arbitrary arguments.
+ * The existing runner owns port and server/browser cleanup. On an outer timeout,
+ * terminate only the direct child and its owned tree, never any guessed port PID.
+ */
+export async function executeOwnedFactoryStoryUat({
+  repoRoot=ROOT,env,timeoutMs=25*60_000,launch=spawn,
+  stop=terminateVerificationProcessTree,
+}={}) {
+  let child;
+  try{
+    child=launch(process.execPath,["scripts/verification-webmcp-live.mjs"],{
+      cwd:repoRoot,env,windowsHide:true,shell:false,stdio:"ignore",
+    });
+  }catch{return {failed:true};}
+  return new Promise(resolve=>{
+    let done=false;
+    const settle=(value)=>{if(done)return;done=true;clearTimeout(timer);resolve(value);};
+    const timer=setTimeout(async()=>{
+      if(done)return;
+      // The timeout never certifies STOP merely from a signal/request.
+      try {await stop(child,{stderr:{write(){}}});}
+      catch { settle({timedOut:true,stopUnverified:true});return;}
+      settle({timedOut:true,stopUnverified:
+        child?.exitCode===null && child?.signalCode===null});
+    },timeoutMs);
+    child.once("error",()=>settle({failed:true}));
+    child.once("close",code=>settle({exitCode:code}));
+  });
+}
+
+/**
+ * Real Windows browser/UAT evidence, distinct from a contracts-only Node
+ * fixture PASS. The runner's exit 0 is necessary but not sufficient:
+ * correlated exact-head and LOCAL-mode Story Factory checkpoints must PASS.
+ * Even then, independentVerification remains a separate gate.
+ */
+export async function runFactoryStoryUat({
+  expectedHead,requestId,root,repoRoot=ROOT,
+  platform=process.platform,verifyHead=readFactoryVerificationHead,
+  execute=executeOwnedFactoryStoryUat,
+  read=readFile,stat=lstat,
+}={}) {
+  if(platform!=="win32")return Object.freeze({
+    state:"BLOCKED",code:"WINDOWS_ONLY",sourceHead:null});
+  if(!SHA.test(expectedHead||"")||!/^[a-f0-9]{32}$/.test(requestId||"")||
+     typeof root!=="string"||!path.isAbsolute(root))
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_SELECTION_INVALID",sourceHead:null});
+  const first=await verifyHead({repoRoot});
+  if(first!==expectedHead)return Object.freeze({state:"BLOCKED",
+    code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(first||"")?first:null});
+  const runnerTemp=path.join(root,"mcp-story-uat",requestId);
+  try {await mkdir(runnerTemp,{recursive:true,mode:0o700});}
+  catch{return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
+    sourceHead:expectedHead});}
+  let observed;
+  try{
+    observed=await execute({repoRoot,env:{
+      ...process.env,GITHUB_SHA:expectedHead,
+      RUNNER_TEMP:runnerTemp,PLOTPICKLE_FACTORY_UAT_REQUEST_ID:requestId,
+      PLOTPICKLE_PI_ALLOW_CLOUD:"0",PLOTPICKLE_PI_ROUTE:"local",
+    }});
+  }catch{observed={failed:true};}
+  const final=await verifyHead({repoRoot});
+  if(final!==expectedHead)return Object.freeze({state:"BLOCKED",
+    code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(final||"")?final:null});
+  if(observed?.stopUnverified)return Object.freeze({state:"BLOCKED",
+    code:"PRODUCT_UAT_STOP_UNVERIFIED",sourceHead:expectedHead});
+  if(observed?.timedOut)return Object.freeze({state:"TEST_FAILED",
+    code:"PRODUCT_UAT_TIMEOUT",sourceHead:expectedHead});
+  if(observed?.exitCode!==0)return Object.freeze({state:"TEST_FAILED",
+    code:"PRODUCT_UAT_FAILED",sourceHead:expectedHead});
+  const report=path.join(repoRoot,".artifacts","verification-live","webmcp-live.json");
+  let evidence;
+  try{
+    const info=await stat(report);
+    if(!info.isFile()||info.isSymbolicLink()||info.size<16||info.size>32768)
+      throw Error("Report not a bounded regular file");
+    evidence=JSON.parse(await read(report,"utf8"));
+  }catch{return Object.freeze({state:"BLOCKED",
+    code:"PRODUCT_UAT_EVIDENCE_UNVERIFIED",sourceHead:expectedHead});}
+  if(evidence?.schemaVersion!=="1.0"||
+     evidence.observer!=="webmcp-live"||
+     evidence.factoryUatRequestId!==requestId||
+     evidence.exactHead!==expectedHead||
+     evidence.status!=="pass"||
+     evidence.authority!=="read-only-observer"||
+     evidence.externalProviderCalls!==false||
+     evidence.secretsAccessed!==false||
+     evidence.storyMode?.mode!=="local"||
+     evidence.storyMode?.providerSpendAllowed!==false||
+     evidence.mindWorldAcceptance?.status!=="PASS"||
+     evidence.storyFactoryAcceptance?.status!=="PASS"||
+     evidence.storyFactoryAcceptance?.mutationAuthority!==false||
+     evidence.storyFactoryAcceptance?.providerSpendAllowed!==false)
+    return Object.freeze({state:"BLOCKED",
+      code:"PRODUCT_UAT_EVIDENCE_UNVERIFIED",sourceHead:expectedHead});
+  return Object.freeze({state:"TEST_PASSED",
+    code:"PRODUCT_UAT_OBSERVED_PASS",sourceHead:expectedHead,
+    modelInvoked:false,issueReserved:false,
+    independentVerification:false});
 }
 
 export async function runFactoryNamedTest({

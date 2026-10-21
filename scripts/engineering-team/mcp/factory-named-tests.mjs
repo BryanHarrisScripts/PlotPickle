@@ -35,6 +35,53 @@ export async function readFactoryVerificationHead({
     return head;
   }catch{return null;}
 }
+/**
+ * ChatGPT-authored candidate identity verification on the paired Windows host.
+ * Metadata-only: never fetch/checkout an untrusted PR or execute candidate code.
+ * The authenticated caller must supply the EXACT PR number, SHA and clean main.
+ * gh CLI is pinned to this repository and returns bounded parsed JSON only.
+ */
+export async function inspectFactoryCandidatePr({
+  prNumber,candidateHead,expectedHead,repoRoot=ROOT,
+  platform=process.platform,verifyHead=readFactoryVerificationHead,run=exec,
+}={}) {
+  if(platform!=="win32")return Object.freeze({
+    state:"BLOCKED",code:"WINDOWS_ONLY",sourceHead:null});
+  if(!Number.isSafeInteger(prNumber)||prNumber<1||prNumber>9999999||
+     !SHA.test(candidateHead||"")||!SHA.test(expectedHead||""))
+    return Object.freeze({state:"BLOCKED",code:"CANDIDATE_SELECTION_INVALID",sourceHead:null});
+  const initial=await verifyHead({repoRoot});
+  if(initial!==expectedHead)return Object.freeze({
+    state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(initial||"")?initial:null});
+  let metadata;
+  try {
+    const result=await run("gh",[
+      "pr","view",String(prNumber),"--repo","BryanHarrisScripts/PlotPickle",
+      "--json","number,state,baseRefName,baseRefOid,headRefOid",
+    ],{...GIT_OPTIONS,cwd:repoRoot});
+    if(Buffer.byteLength(String(result.stdout||""),"utf8")>GIT_OPTIONS.maxBuffer)
+      throw Error("Oversize GitHub metadata");
+    metadata=JSON.parse(String(result.stdout||""));
+  }catch {
+    return Object.freeze({state:"BLOCKED",code:"GITHUB_PR_UNAVAILABLE",sourceHead:initial});
+  }
+  // A remote PR may change while the request is running; reconfirm local main.
+  const after=await verifyHead({repoRoot});
+  if(after!==expectedHead)return Object.freeze({
+    state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(after||"")?after:null});
+  if(metadata?.number!==prNumber||metadata?.state!=="OPEN")
+    return Object.freeze({state:"BLOCKED",code:"CANDIDATE_NOT_OPEN",sourceHead:initial});
+  if(metadata.baseRefName!=="main"||metadata.baseRefOid!==expectedHead)
+    return Object.freeze({state:"BLOCKED",code:"CANDIDATE_BASE_MISMATCH",sourceHead:initial});
+  if(metadata.headRefOid!==candidateHead)
+    return Object.freeze({state:"BLOCKED",code:"CANDIDATE_HEAD_MISMATCH",sourceHead:initial});
+  return Object.freeze({
+    state:"TEST_PASSED",code:"CANDIDATE_HEAD_VERIFIED",
+    sourceHead:initial,candidatePrNumber:prNumber,candidateHead,
+    modelInvoked:false,issueReserved:false,windowsUatVerified:false,
+  });
+}
+
 export async function runFactoryNamedTest({
   suite,expectedHead,repoRoot=ROOT,platform=process.platform,
   verifyHead=readFactoryVerificationHead,run=exec,

@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
-  runFactoryNamedTest } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  runFactoryNamedTest,inspectFactoryCandidatePr } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -116,6 +116,98 @@ test("authenticated MCP named test produces one immutable bounded receipt; no du
  assert.equal(reservation.includes("SECRET"),false);
  assert.equal(JSON.stringify(first).includes("privatePath"),false);
  assert.equal(JSON.stringify(first).includes("SECRET"),false);
+}));
+test("Chat-authored candidate PR is attested by exact GitHub metadata without executing PR files",async()=>{
+ let index=0;
+ const expected={number:3191,state:"OPEN",baseRefName:"main",baseRefOid:HEAD,headRefOid:OTHER};
+ const run=async(program,args,opts)=>{
+   index++;
+   assert.equal(program,"gh");
+   assert.deepEqual(args,["pr","view","3191","--repo","BryanHarrisScripts/PlotPickle",
+     "--json","number,state,baseRefName,baseRefOid,headRefOid"]);
+   assert.equal(opts.shell,undefined);
+   assert.ok(opts.timeout<=30_000);
+   return {stdout:JSON.stringify(expected)};
+ };
+ const opts={prNumber:3191,candidateHead:OTHER,expectedHead:HEAD,
+   platform:"win32",verifyHead:async()=>HEAD,run};
+ const passed=await inspectFactoryCandidatePr(opts);
+ assert.deepEqual(passed,{
+   state:"TEST_PASSED",code:"CANDIDATE_HEAD_VERIFIED",sourceHead:HEAD,
+   candidatePrNumber:3191,candidateHead:OTHER,
+   modelInvoked:false,issueReserved:false,windowsUatVerified:false,
+ });
+ assert.equal(index,1);
+ const cases=[
+   [{...expected,state:"CLOSED"},"CANDIDATE_NOT_OPEN"],
+   [{...expected,number:3192},"CANDIDATE_NOT_OPEN"],
+   [{...expected,baseRefName:"release"},"CANDIDATE_BASE_MISMATCH"],
+   [{...expected,baseRefOid:OTHER},"CANDIDATE_BASE_MISMATCH"],
+   [{...expected,headRefOid:HEAD},"CANDIDATE_HEAD_MISMATCH"],
+ ];
+ for(const [response,code] of cases){
+   const result=await inspectFactoryCandidatePr({...opts,
+     run:async()=>({stdout:JSON.stringify(response)})});
+   assert.equal(result.code,code);
+   assert.equal(result.state,"BLOCKED");
+   assert.equal(JSON.stringify(result).includes("PRIVATE"),false);
+ }
+ assert.equal((await inspectFactoryCandidatePr({...opts,platform:"linux",run:async()=>{
+   throw Error("should never call gh");
+ }})).code,"WINDOWS_ONLY");
+ assert.equal((await inspectFactoryCandidatePr({...opts,prNumber:";rm -rf"})).code,
+   "CANDIDATE_SELECTION_INVALID");
+ assert.equal((await inspectFactoryCandidatePr({...opts,candidateHead:"PRIVATE"})).code,
+   "CANDIDATE_SELECTION_INVALID");
+ assert.equal((await inspectFactoryCandidatePr({...opts,verifyHead:async()=>null})).code,
+   "EXACT_HEAD_MISMATCH");
+ assert.equal((await inspectFactoryCandidatePr({...opts,run:async()=>{
+   throw Error("PRIVATE_TOKEN");
+ }})).code,"GITHUB_PR_UNAVAILABLE");
+ let count=0;
+ assert.equal((await inspectFactoryCandidatePr({...opts,verifyHead:async()=>
+   ++count===1?HEAD:OTHER})).code,"EXACT_HEAD_MISMATCH");
+ assert.equal(count,2);
+});
+
+test("existing authenticated named-test tool accepts metadata-only PR check with non-replayable receipt",()=>privateRoot(async root=>{
+ let inspected=0;
+ const args={requestId:"4".repeat(32),expectedHead:HEAD,suite:"factory-pr-head",
+   candidatePrNumber:3191,candidateHead:OTHER};
+ const ops={testHead:async()=>HEAD,inspectPr:async({prNumber,candidateHead,expectedHead})=>{
+   inspected++;
+   assert.deepEqual([prNumber,candidateHead,expectedHead],[3191,OTHER,HEAD]);
+   return {state:"TEST_PASSED",code:"CANDIDATE_HEAD_VERIFIED",
+     sourceHead:HEAD,candidatePrNumber:3191,candidateHead:OTHER};
+ }};
+ const send=(params,auth=true)=>handleRpc({jsonrpc:"2.0",id:11,
+   method:"tools/call",params:{name:"factory_run_named_test",arguments:params}},
+   {root,controlAuthenticated:auth,controlOps:ops});
+ assert.equal((await send(args,false)).error.code,-32001);
+ assert.equal((await send({...args,candidateHead:"BAD_SHA"})).error.code,-32602);
+ assert.equal((await send({...args,suite:"factory-mcp"})).error.code,-32602);
+ assert.equal((await send({...args,cmd:"powershell"})).error.code,-32602);
+ assert.equal((await send({...args,candidatePrNumber:0})).error.code,-32602);
+ assert.equal(inspected,0);
+ const outcome=(await send(args)).result.structuredContent;
+ assert.equal(outcome.state,"TEST_PASSED");
+ assert.equal(outcome.code,"CANDIDATE_HEAD_VERIFIED");
+ assert.equal(outcome.candidateHead,OTHER);
+ assert.equal(outcome.candidatePrNumber,3191);
+ assert.equal(outcome.independentVerification,false);
+ assert.equal(outcome.modelInvoked,false);
+ assert.equal(outcome.replayAuthorized,false);
+ assert.equal(inspected,1);
+ assert.equal((await send(args)).result.structuredContent.state,
+   "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+ assert.equal(inspected,1);
+ const receipt=await factoryControlReceipt({root,requestId:args.requestId});
+ assert.equal(receipt.candidateHead,OTHER);
+ assert.equal(receipt.candidatePrNumber,3191);
+ const reservation=await readFile(path.join(root,"mcp-control-requests",args.requestId+".json"),"utf8");
+ assert.equal(JSON.parse(reservation).candidateHead,OTHER);
+ assert.equal(JSON.parse(reservation).candidatePrNumber,3191);
+ assert.equal(JSON.stringify([outcome,receipt]).includes("C:/private"),false);
 }));
 test("native lock and stale source block execution; uncertain runs never silently replay",()=>privateRoot(async root=>{
  const args={requestId:"2".repeat(32),expectedHead:HEAD,suite:"factory-mcp"};

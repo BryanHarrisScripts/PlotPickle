@@ -75,6 +75,39 @@ candidate commit attestation, rather than declaring metadata inspection a
 product PASS. The plugin tool schema must expose the new suite/fields after
 the paired app/tunnel is refreshed; do not weaken launcher auth to make it fit.
 
+## Isolated candidate staging without candidate execution (2026-10-21)
+
+The same authenticated tool also accepts `suite=factory-pr-stage` using the existing typed
+`requestId`, `expectedHead`, `candidatePrNumber` and `candidateHead`. No ninth
+MCP tool, no arbitrary path, and no queue admission.
+
+Stage procedure:
+1. Verify exact clean owner Windows `main` and independently attest the OPEN GitHub
+   PR identity, base commit and candidate SHA.
+2. Fetch only fixed repository `refs/pull/<number>/head` and require the fetched
+   Git object to match `candidateHead` before proceeding.
+3. Create detached private worktree under `chat-candidate-stages/<requestId>`,
+   not the normal checkout. Disable Git checkout hooks and LFS smudge.
+4. Read back staged worktree HEAD; statically inspect 1–500 changed files
+   and run `git diff --check` against the pinned base.
+5. Reverify clean main and the remote PR metadata. Record `TEST_PASSED`
+   and `CANDIDATE_STATIC_STAGED` only for an exact unchanged candidate.
+
+All subprocesses are fixed `git`/`gh` invocations via `execFile` and finite
+timeouts. There is no npm install, candidate source Node test, build, GUI
+execution, model inference, queue reservation or merge in this stage.
+Git may use locally configured file filters during a checkout; the Factory
+does not deliberately run candidate scripts. A staged worktree is not a
+security sandbox for running arbitrary PR code. Subsequent candidate build
+or Product UAT therefore needs a separately governed isolated execution lane.
+
+On failure preserve the private worktree and artifacts for review; never
+silently retry with the same request ID. A static staging receipt records
+source SHA, candidate SHA, PR number, changed-file count and stage ID,
+but explicitly retains `independentVerification=false` and
+`windowsUatVerified=false`. It is not a Windows GUI Product UAT pass.
+The five earlier Pi issue reservations remain untouched.
+
 ## Next slice
 
 Add an authenticated scoped exact-head build/test/UAT runner operating on an isolated staging worktree with process stop, timeout, and durable evidence; then prove a ChatGPT-authored source repair PR, independent Windows Quality gate, governed merge and Normal targeted retest. Do not switch to Pi/Cline or silently grant automatic merge authority.

@@ -293,12 +293,13 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
 test("staged candidate must be clean before and after remote identity recheck",()=>privateRoot(async root=>{
   const info={number:3193,state:"OPEN",baseRefName:"main",
     baseRefOid:HEAD,headRefOid:OTHER};
-  const build=(requestId,statuses)=>{
-    let statusIndex=0,checkedDiff=0,prChecks=0;
+  const build=(requestId,statuses,stagedHeads=[OTHER,OTHER])=>{
+    let statusIndex=0,checkedDiff=0,prChecks=0,stageHeadIndex=0;
     const run=async(program,args)=>{
       if(program==="gh"){prChecks++;return {stdout:JSON.stringify(info)};}
       if(args[0]==="fetch"||args[0]==="-c")return {stdout:""};
-      if(args[0]==="rev-parse")return {stdout:OTHER};
+      if(args[0]==="rev-parse")return {stdout:args[1]==="HEAD"
+        ? (stagedHeads[stageHeadIndex++] ?? OTHER) : OTHER};
       if(args[0]==="status"){
         assert.deepEqual(args,["status","--porcelain","--untracked-files=normal",
           "--ignore-submodules=none"]);
@@ -327,7 +328,14 @@ test("staged candidate must be clean before and after remote identity recheck",(
   assert.equal(late.stats().statusIndex,2);
   assert.equal(late.stats().checkedDiff,2);
   assert.equal(late.stats().prChecks,2);
-  assert.equal(JSON.stringify([dirty,raced]).includes("src/repaired"),false);
+  // A clean reset after the first HEAD check must never attest a different commit.
+  const reset=build("e".repeat(32),["",""],[OTHER,HEAD]);
+  const changed=await stageFactoryCandidatePr({...base,...reset});
+  assert.equal(changed.state,"BLOCKED");
+  assert.equal(changed.code,"CANDIDATE_STAGE_MISMATCH");
+  assert.equal(reset.stats().statusIndex,2);
+  assert.equal(reset.stats().prChecks,2);
+  assert.equal(JSON.stringify([dirty,raced,changed]).includes("src/repaired"),false);
 }));
 
 test("authenticated existing tool writes one static-candidate-stage receipt and refuses replay",()=>privateRoot(async root=>{

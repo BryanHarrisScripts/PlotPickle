@@ -349,9 +349,9 @@ test("MCP write tools are hidden without paired authentication and reject replay
        body:JSON.stringify({jsonrpc:"2.0",id:++seq,method:"tools/list"})});
      return (await reply.json()).result.tools.map(x=>x.name);
    };
-   assert.equal((await list()).length,4);
-   assert.equal((await list(token)).length,8);
-   assert.equal((await list("invalid")).length,4);
+   assert.equal((await list()).length,5);
+   assert.equal((await list(token)).length,9);
+   assert.equal((await list("invalid")).length,5);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);
    assert.equal((await call("factory_run_dependency_preflight",preArgs,"invalid")).error.code,-32001);

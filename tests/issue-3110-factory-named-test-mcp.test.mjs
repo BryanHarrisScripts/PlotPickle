@@ -806,7 +806,7 @@ test("separate browser verifier reads existing immutable 55-checkpoint artifacts
    await writeFile(target,JSON.stringify(value));
  };
  const prefix=".artifacts/webmcp-acceptance/";
- const makeJourney=(id,count)=>{
+ const makeJourney=(id,count,project)=>{
    const names=["browser-runtime-diagnostics","active-project-present-before-journey"];
    if(id==="story-factory-read-only-journey") {
      for(const part of ["outline","write","storyboard","previs","timeline"])
@@ -816,13 +816,19 @@ test("separate browser verifier reads existing immutable 55-checkpoint artifacts
        "story-factory-canon-mutation-not-invoked");
    }
    while(names.length<count)names.push("safe-browser-check-"+names.length);
+   const continuity=new Set(id==="mind-map-world-map-shared-header"
+     ?["mind-map-project-continuity","world-map-project-continuity","journey-active-project-stable"]
+     :["story-factory-project-stable",...["outline","write","storyboard",
+       "previs","timeline"].map(stage=>stage+"-project-continuity")]);
    return {schemaVersion:1,journeyId:id,commitSha:HEAD,mode:"exact-head",
      status:"PASS",state:"ready",rendered:true,isolatedBrowserContext:true,
      blockerCount:0,assertions:names.map(name=>({id:name,status:"PASS",
-       observed:name==="active-project-present-before-journey"?"private-project-identity":"ok"}))};
+       expected:continuity.has(name)?project:"ok",
+       observed:continuity.has(name)||name==="active-project-present-before-journey"
+         ?project:"ok"}))};
  };
- const mind=makeJourney("mind-map-world-map-shared-header",30);
- const story=makeJourney("story-factory-read-only-journey",55);
+ const mind=makeJourney("mind-map-world-map-shared-header",30,"mind-context-project");
+ const story=makeJourney("story-factory-read-only-journey",55,"story-context-project");
  await write(".artifacts/verification-live/webmcp-live.json",summary);
  await write(prefix+"mind-map-world-map-shared-header/exact-head.json",mind);
  await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
@@ -854,6 +860,16 @@ test("separate browser verifier reads existing immutable 55-checkpoint artifacts
  await write(prefix+"story-factory-read-only-journey/exact-head.json",wrongProject);
  assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_PROJECT_MISMATCH");
  await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
+ const forgedPass={...story,assertions:story.assertions.map(x=>
+   x.id==="outline-project-continuity"?{...x,observed:"foreign-project"}:x)};
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",forgedPass);
+ assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_PROJECT_MISMATCH");
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
+ const wrongMind={...mind,assertions:mind.assertions.map(x=>
+   x.id==="world-map-project-continuity"?{...x,expected:"foreign-project"}:x)};
+ await write(prefix+"mind-map-world-map-shared-header/exact-head.json",wrongMind);
+ assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_PROJECT_MISMATCH");
+ await write(prefix+"mind-map-world-map-shared-header/exact-head.json",mind);
  await write(".artifacts/verification-live/webmcp-live.json",{
    ...summary,externalProviderCalls:true});
  assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");

@@ -4225,7 +4225,8 @@
           "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
           "tests/issue-1571-autonomous-qa-defect-publication.test.mjs",
           "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
-          "tests/issue-3110-factory-named-test-mcp.test.mjs"
+          "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "tests/issue-3159-pi-headless-inference.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4250,7 +4251,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof. #3154 adds a read-only local MCP protocol bridge with no direct ChatGPT session proxy, no Windows write tools, and a mandatory separate authenticated HTTPS/Tunnel proof before web connection."
+      "notes": "#3110 deterministic opt-in queue/heartbeat/local-only draft-PR adapter regression; no native Windows scheduled task proof, Pi model execution, real draft PR, browser UAT, independent Product Gate or unattended merge proof. #3154 adds a read-only local MCP protocol bridge with no direct ChatGPT session proxy, no Windows write tools, and a mandatory separate authenticated HTTPS/Tunnel proof before web connection. #3159 adds an opt-in hosted Windows real managed Pi CLI against a simulated loopback model: direct and Factory virtual routes must physically write an ephemeral file, while a text-only model response cannot pass. No actual owner-PC model choice, real Semantic UAT or autonomous merge proof."
     },
     {
       "id": "agent.unattended-queue-admission-3110",
@@ -9384,6 +9385,29 @@
           "static-source"
         ],
         "limits": "Fixture-only authenticated MCP control, duplicate request, synthetic Windows Node test subprocess and Git dirty/stale HEAD checks. No real Windows native suite/Product Gate, scheduled ChatGPT MCP wakeup, isolated worktree source edit, autonomous merge or Normal release verified."
+      },
+      {
+        "target": "tests/issue-3159-pi-headless-inference.test.mjs",
+        "targetDigest": "27a54551875636033764da8f2fb6781fb9fff6b6ac9ca4de39e43c7157164346",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "GitHub-hosted Windows real pinned Pi CLI with a deterministic local mock OpenAI-compatible server. Tests tool declaration, real write/edit execution, JSONL lifecycle and exact ephemeral file bytes. Does not exercise the owner machine or a physical coding model, Semantic UAT, PR creation, Product Gate, or merges."
       }
     ]
   }

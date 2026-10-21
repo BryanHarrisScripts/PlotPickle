@@ -721,6 +721,9 @@ test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode succes
    "PRODUCT_UAT_STAGE_UNVERIFIED");
  assert.equal((await runFactoryStoryUat({...opts,verifyStage:async()=>false})).code,
    "PRODUCT_UAT_SOURCE_CHANGED");
+ assert.equal((await runFactoryStoryUat({...opts,verifyStage:async()=>{
+   throw Error("PRIVATE_OWNER_PATH");
+ }})).code,"PRODUCT_UAT_SOURCE_CHANGED");
 }));
 
 test("authenticated Story Factory browser UAT refuses unauthenticated or replayed controls",()=>privateRoot(async root=>{

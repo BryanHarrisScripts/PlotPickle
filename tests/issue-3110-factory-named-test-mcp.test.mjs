@@ -215,6 +215,13 @@ test("Chat candidate stage fetches a pinned PR SHA into a separate worktree with
  const runner=async(program,args,opts)=>{
    assert.ok(["git","gh"].includes(program));
    assert.equal(opts.shell,undefined);
+   if(program==="git"){
+     assert.equal(opts.env.GIT_CONFIG_COUNT,"1");
+     assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+     assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+     assert.equal(opts.env.GIT_LFS_SKIP_SMUDGE,"1");
+     assert.equal(opts.env.GIT_TERMINAL_PROMPT,"0");
+   }
    seen.push({program,args,cwd:opts.cwd});
    if(program==="gh"){
      metadataCalls++;
@@ -232,6 +239,7 @@ test("Chat candidate stage fetches a pinned PR SHA into a separate worktree with
      assert.equal(args[3],"add");
      assert.equal(args[4],"--detach");
      assert.equal(args[6],OTHER);
+     assert.equal(opts.timeout,120_000);
      return {stdout:""};
    }
    if(args[0]==="rev-parse"&&args[1]==="HEAD")return {stdout:OTHER+"\n"};
@@ -286,19 +294,37 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
    throw Error("must not execute");
  };
  const error=await stageFactoryCandidatePr({...base,requestId:"a".repeat(32),run:errorRun});
- assert.equal(error.code,"CANDIDATE_STAGE_UNVERIFIED");
+ assert.equal(error.code,"CANDIDATE_STAGE_FETCH_FAILED");
  assert.equal(JSON.stringify(error).includes("PRIVATE"),false);
+ const checkoutRun=async(program,args,opts)=>{
+   if(program==="git"){
+     assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+     assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+   }
+   if(program==="gh")return {stdout:JSON.stringify(candidate)};
+   if(args[0]==="fetch")return {stdout:""};
+   if(args[0]==="rev-parse"&&args[1]==="FETCH_HEAD")return {stdout:OTHER};
+   if(args[0]==="-c"&&args[2]==="worktree")
+     throw Object.assign(Error("PRIVATE_CHECKOUT_PATH"),{code:"EPERM"});
+   throw Error("Stage did not reach this command");
+ };
+ const checkoutError=await stageFactoryCandidatePr({...base,
+   requestId:"f".repeat(32),run:checkoutRun});
+ assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ADD_FAILED");
+ assert.equal(checkoutError.state,"BLOCKED");
+ assert.equal(JSON.stringify(checkoutError).includes("PRIVATE"),false);
 }));
 
 test("staged candidate must be clean before and after remote identity recheck",()=>privateRoot(async root=>{
   const info={number:3193,state:"OPEN",baseRefName:"main",
     baseRefOid:HEAD,headRefOid:OTHER};
-  const build=(requestId,statuses)=>{
-    let statusIndex=0,checkedDiff=0,prChecks=0;
+  const build=(requestId,statuses,stagedHeads=[OTHER,OTHER])=>{
+    let statusIndex=0,checkedDiff=0,prChecks=0,stageHeadIndex=0;
     const run=async(program,args)=>{
       if(program==="gh"){prChecks++;return {stdout:JSON.stringify(info)};}
       if(args[0]==="fetch"||args[0]==="-c")return {stdout:""};
-      if(args[0]==="rev-parse")return {stdout:OTHER};
+      if(args[0]==="rev-parse")return {stdout:args[1]==="HEAD"
+        ? (stagedHeads[stageHeadIndex++] ?? OTHER) : OTHER};
       if(args[0]==="status"){
         assert.deepEqual(args,["status","--porcelain","--untracked-files=normal",
           "--ignore-submodules=none"]);
@@ -327,7 +353,14 @@ test("staged candidate must be clean before and after remote identity recheck",(
   assert.equal(late.stats().statusIndex,2);
   assert.equal(late.stats().checkedDiff,2);
   assert.equal(late.stats().prChecks,2);
-  assert.equal(JSON.stringify([dirty,raced]).includes("src/repaired"),false);
+  // A clean reset after the first HEAD check must never attest a different commit.
+  const reset=build("e".repeat(32),["",""],[OTHER,HEAD]);
+  const changed=await stageFactoryCandidatePr({...base,...reset});
+  assert.equal(changed.state,"BLOCKED");
+  assert.equal(changed.code,"CANDIDATE_STAGE_MISMATCH");
+  assert.equal(reset.stats().statusIndex,2);
+  assert.equal(reset.stats().prChecks,2);
+  assert.equal(JSON.stringify([dirty,raced,changed]).includes("src/repaired"),false);
 }));
 
 test("authenticated existing tool writes one static-candidate-stage receipt and refuses replay",()=>privateRoot(async root=>{

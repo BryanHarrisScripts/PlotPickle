@@ -88,6 +88,12 @@ Stage procedure:
    Git object to match `candidateHead` before proceeding.
 3. Create detached private worktree under `chat-candidate-stages/<requestId>`,
    not the normal checkout. Disable Git checkout hooks and LFS smudge.
+   Enable Git for Windows `core.longpaths=true` using *only* the child Git
+   process's `GIT_CONFIG_COUNT/KEY/VALUE` environment overrides for
+   fetch, checkout, status, and diff. Do not alter global/local Git config
+   or Windows registry. This is necessary on owner Windows: a real
+   diagnostic full checkout failed with `PATH_LENGTH` after 4.5 seconds,
+   whereas a `--no-checkout` registration passed for the same fetched SHA.
 4. Read back staged worktree HEAD; require staged `git status --porcelain` to
    be empty (including untracked files and submodule changes); statically
    inspect 1–500 changed files
@@ -106,7 +112,12 @@ security sandbox for running arbitrary PR code. Subsequent candidate build
 or Product UAT therefore needs a separately governed isolated execution lane.
 
 On failure preserve the private worktree and artifacts for review; never
-silently retry with the same request ID. A static staging receipt records
+silently retry with the same request ID. Fixed Git fetch failures and
+detached worktree-add failures are reported using bounded phase codes:
+`CANDIDATE_STAGE_FETCH_FAILED` and `CANDIDATE_STAGE_WORKTREE_ADD_FAILED`.
+These distinguish operations, not specific OS causes; private paths, stderr,
+and credentials remain withheld. The fixed worktree-add uses a finite
+120-second timeout instead of the 30-second Git metadata timeout. A static staging receipt records
 source SHA, candidate SHA, PR number, changed-file count and stage ID,
 but explicitly retains `independentVerification=false` and
 `windowsUatVerified=false`. It is not a Windows GUI Product UAT pass.

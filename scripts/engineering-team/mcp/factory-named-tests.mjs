@@ -124,10 +124,18 @@ export async function stageFactoryCandidatePr({
   }catch {
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_PATH_BLOCKED",sourceHead:expectedHead});
   }
-  const read=async(args,cwd=repoRoot)=>String((await run("git",args,{
-    ...GIT_OPTIONS,cwd,
-    env:{...process.env,GIT_LFS_SKIP_SMUDGE:"1",GIT_TERMINAL_PROMPT:"0"},
+  const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
+    ...GIT_OPTIONS,cwd,timeout,
+    env:{
+      ...process.env,GIT_LFS_SKIP_SMUDGE:"1",GIT_TERMINAL_PROMPT:"0",
+      // Command-scope Git for Windows long path support. It applies to
+      // checkout AND status/diff; never modify the user's local/global config.
+      GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
+      GIT_CONFIG_VALUE_0:"true",
+    },
   }))?.stdout||"").trim();
+  // Report only the bounded failing command class, never raw exceptions.
+  let failureCode="CANDIDATE_STAGE_FETCH_FAILED";
   try {
     // Pin the remote repository and PR ref: no caller-controlled URLs or argv.
     await read(["fetch","--no-tags","--no-recurse-submodules",
@@ -136,11 +144,15 @@ export async function stageFactoryCandidatePr({
     const fetched=await read(["rev-parse","FETCH_HEAD"]);
     if(fetched!==candidateHead)
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_FETCH_MISMATCH",sourceHead:expectedHead});
+    // Full Windows checkout may need longer than a metadata probe.
+    // Keep checkout bounded; no candidate scripts or npm are executed.
+    failureCode="CANDIDATE_STAGE_WORKTREE_ADD_FAILED";
     // Disable checkout hooks from either local .git or the fetched candidate.
     // The worktree is private; neither main nor the user's normal source tree
     // is checked out, reset or overwritten.
     await read(["-c","core.hooksPath="+path.join(base,"hooks-disabled"),
-      "worktree","add","--detach",stage,candidateHead]);
+      "worktree","add","--detach",stage,candidateHead],repoRoot,120_000);
+    failureCode="CANDIDATE_STAGE_UNVERIFIED";
     const checked=await read(["rev-parse","HEAD"],stage);
     if(checked!==candidateHead)
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_MISMATCH",sourceHead:expectedHead});
@@ -169,6 +181,11 @@ export async function stageFactoryCandidatePr({
       "--ignore-submodules=none"],stage);
     if(finalStageStatus!=="")
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_DIRTY",sourceHead:expectedHead});
+    // A reset can move a worktree to a different clean commit between checks.
+    // Reattest the exact staged commit at the final evidence boundary.
+    const finalStageHead=await read(["rev-parse","HEAD"],stage);
+    if(finalStageHead!==candidateHead)
+      return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_MISMATCH",sourceHead:expectedHead});
     return Object.freeze({
       state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
       sourceHead:expectedHead,candidateHead,candidatePrNumber:prNumber,
@@ -179,7 +196,7 @@ export async function stageFactoryCandidatePr({
   }catch {
     // Failure may follow a successful worktree checkout. Preserve its contents
     // and worktree registration for on-host review: no silent rollback/replay.
-    return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_UNVERIFIED",
+    return Object.freeze({state:"BLOCKED",code:failureCode,
       sourceHead:expectedHead});
   }
 }

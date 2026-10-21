@@ -338,10 +338,46 @@ export async function executeOwnedFactoryStoryUat({
  * correlated exact-head and LOCAL-mode Story Factory checkpoints must PASS.
  * Even then, independentVerification remains a separate gate.
  */
+
+/** Isolate dependency installation and live-browser artifacts from owner main. */
+export async function stageFactoryStorySource({
+  expectedHead,requestId,root,repoRoot=ROOT,run=exec,
+}={}) {
+  if(!SHA.test(expectedHead||"")||!/^[a-f0-9]{32}$/.test(requestId||"")||
+     typeof root!=="string"||!path.isAbsolute(root))return null;
+  const stage=path.join(root,"mcp-story-uat",requestId,"source");
+  const git=async(args,cwd=repoRoot,timeout=30_000)=>String((await run("git",args,{
+    ...GIT_OPTIONS,cwd,timeout,
+    env:{...process.env,GIT_TERMINAL_PROMPT:"0",GIT_LFS_SKIP_SMUDGE:"1",
+      GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
+      GIT_CONFIG_VALUE_0:"true"},
+  }))?.stdout||"").trim();
+  try{
+    await git(["-c","core.hooksPath="+path.join(root,"hooks-disabled"),
+      "worktree","add","--detach",stage,expectedHead],repoRoot,120_000);
+    if(await git(["rev-parse","HEAD"],stage)!==expectedHead)return null;
+    if(await git(["status","--porcelain","--untracked-files=no"],stage)!=="")return null;
+    return stage;
+  }catch{return null;} // No unverified cleanup or replay.
+}
+export async function verifyFactoryStorySource({stage,expectedHead,run=exec}={}) {
+  if(typeof stage!=="string"||!path.isAbsolute(stage)||!SHA.test(expectedHead||""))
+    return false;
+  const git=async args=>String((await run("git",args,{
+    ...GIT_OPTIONS,cwd:stage,env:{...process.env,
+      GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
+      GIT_CONFIG_VALUE_0:"true"},
+  }))?.stdout||"").trim();
+  try{return await git(["rev-parse","HEAD"])===expectedHead &&
+    await git(["status","--porcelain","--untracked-files=no"])==="";}
+  catch{return false;}
+}
+
 export async function runFactoryStoryUat({
   expectedHead,requestId,root,repoRoot=ROOT,
   platform=process.platform,verifyHead=readFactoryVerificationHead,
   execute=executeOwnedFactoryStoryUat,
+  stageMain=stageFactoryStorySource,verifyStage=verifyFactoryStorySource,
   read=readFile,stat=lstat,
 }={}) {
   if(platform!=="win32")return Object.freeze({
@@ -356,9 +392,17 @@ export async function runFactoryStoryUat({
   try {await mkdir(runnerTemp,{recursive:true,mode:0o700});}
   catch{return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
     sourceHead:expectedHead});}
+  // All npm, browser and artifact writes occur inside a PRIVATE detached
+  // checkout of the trusted installed exact main, never the owner's main.
+  let staged;
+  try{staged=await stageMain({expectedHead,requestId,root,repoRoot});}
+  catch{staged=null;}
+  if(typeof staged!=="string"||!path.isAbsolute(staged))
+    return Object.freeze({state:"BLOCKED",
+      code:"PRODUCT_UAT_STAGE_UNVERIFIED",sourceHead:expectedHead});
   let observed;
   try{
-    observed=await execute({repoRoot,env:{
+    observed=await execute({repoRoot:staged,env:{
       ...process.env,GITHUB_SHA:expectedHead,
       RUNNER_TEMP:runnerTemp,PLOTPICKLE_FACTORY_UAT_REQUEST_ID:requestId,
       PLOTPICKLE_PI_ALLOW_CLOUD:"0",PLOTPICKLE_PI_ROUTE:"local",
@@ -367,13 +411,15 @@ export async function runFactoryStoryUat({
   const final=await verifyHead({repoRoot});
   if(final!==expectedHead)return Object.freeze({state:"BLOCKED",
     code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(final||"")?final:null});
+  if(!(await verifyStage({stage:staged,expectedHead})))return Object.freeze({
+    state:"BLOCKED",code:"PRODUCT_UAT_SOURCE_CHANGED",sourceHead:expectedHead});
   if(observed?.stopUnverified)return Object.freeze({state:"BLOCKED",
     code:"PRODUCT_UAT_STOP_UNVERIFIED",sourceHead:expectedHead});
   if(observed?.timedOut)return Object.freeze({state:"TEST_FAILED",
     code:"PRODUCT_UAT_TIMEOUT",sourceHead:expectedHead});
   if(observed?.exitCode!==0)return Object.freeze({state:"TEST_FAILED",
     code:"PRODUCT_UAT_FAILED",sourceHead:expectedHead});
-  const report=path.join(repoRoot,".artifacts","verification-live","webmcp-live.json");
+  const report=path.join(staged,".artifacts","verification-live","webmcp-live.json");
   let evidence;
   try{
     const info=await stat(report);

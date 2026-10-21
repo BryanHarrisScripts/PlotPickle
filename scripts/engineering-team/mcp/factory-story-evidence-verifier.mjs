@@ -79,9 +79,12 @@ export async function attestStoryBrowserEvidence({
   const stage = path.join(privateRoot,"mcp-story-uat",sourceRequestId,"source");
   let stageReal;
   try {
+    // Resolve the parent first: do not spawn a rejecting promise before
+    // another awaited operand has entered Promise.all.
+    const requestsReal = await realpath(requests);
     const [reservation,receipt] = await Promise.all([
-      boundedJson(path.join(requests,sourceRequestId+".json"),await realpath(requests),4096),
-      boundedJson(path.join(requests,sourceRequestId+"-result.json"),await realpath(requests),4096),
+      boundedJson(path.join(requests,sourceRequestId+".json"),requestsReal,4096),
+      boundedJson(path.join(requests,sourceRequestId+"-result.json"),requestsReal,4096),
     ]);
     if (reservation.value.requestId!==sourceRequestId ||
         reservation.value.expectedHead!==expectedHead ||

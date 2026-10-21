@@ -6537,7 +6537,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "e8f2e17f33a73cd6db72af3c42fd2394ad697c98624ad2b87afdb1a26ac095cf"
+            "digest": "d517d4b0b517d1552a295df1a9e8040ca1a48634beb7520a829b79d536311936"
           }
         ]
       },
@@ -7371,7 +7371,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "e8f2e17f33a73cd6db72af3c42fd2394ad697c98624ad2b87afdb1a26ac095cf"
+            "digest": "d517d4b0b517d1552a295df1a9e8040ca1a48634beb7520a829b79d536311936"
           }
         ]
       },
@@ -8969,7 +8969,7 @@
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "3ebb7f7697418bbb87a9ad0c03a044fbd954a7c7a8307944c0a7a79b4a8d466b",
+        "targetDigest": "e134e30306bc7686bf24221f51c13ca32c6baa21e531d2cec5078bb83891f64a",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8987,7 +8987,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mock-only owned child shutdown and source-scoped review of read-only WebMCP ComfyUI gateway/PowerShell denial before optional process launch. Cannot prove actual native Windows process-tree STOP, orphan media process lifetime, port ownership, Story Factory acceptance or Human project safety on device.",
+        "limits": "Deterministic mock cleanup failures and opt-in native Windows disposable parent/listening-descendant/sentinel fixture on exact PR head, plus source review of read-only WebMCP ComfyUI denial. Native fixture can prove owned tree/listener STOP and unrelated sentinel survival on its Windows runner, but not real browser application STOP, owner-device UAT, orphaned media process lifetime, Story Factory acceptance or Human project safety on device.",
         "inputs": [
           {
             "path": "scripts/verification-webmcp-live.mjs",

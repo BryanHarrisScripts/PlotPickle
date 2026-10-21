@@ -44,6 +44,8 @@ test("only explicitly allowlisted open eligible issues run; HOLD and blocked nev
  assert.equal(eligibleIssue(first,[3135]),true);
  assert.equal(eligibleIssue(first,[3123]),false);
  assert.equal(eligibleIssue({...first,title:"[ON HOLD] owner task"},[3135]),false);
+ assert.equal(eligibleIssue({...first,title:"[BLOCKED] Chat-only dispatcher missing"},[3135]),false);
+ assert.equal(eligibleIssue({...first,title:"[blocked] manual blocked"},[3135]),false);
  assert.equal(eligibleIssue({...first,labels:[{name:"factory:blocked"}]},[3135]),false);
  assert.equal(eligibleIssue({...first,state:"CLOSED"},[3135]),false);
  assert.deepEqual(pickNextIssue([second,first],[3135,3123],[3135]),{number:3123,title:second.title});
@@ -61,6 +63,7 @@ test("latest-first backlog planner is read-only, finite and excludes blocked iss
    {...first,title:"[HOLD] blocked task"},
    {...second},
    {number:3146,title:"Ready for review",state:"OPEN",labels:[{name:"factory:blocked"}]},
+   {number:3153,title:"[BLOCKED] Chat-only worker unavailable",state:"OPEN",labels:[]},
    {number:3142,title:"Older eligible candidate",state:"OPEN",labels:[]},
    {number:3147,title:"Closed issue",state:"CLOSED",labels:[]},
  ]);
@@ -73,6 +76,7 @@ test("latest-first backlog planner is read-only, finite and excludes blocked iss
  assert.equal(plan.userApprovalRequired,true);
  assert.ok(plan.excluded.some(x=>x.number===3123&&x.reason==="INVALID_OR_DUPLICATE"));
  assert.ok(plan.excluded.some(x=>x.number===3135));
+ assert.ok(plan.excluded.some(x=>x.number===3153&&x.reason==="CLOSED_HOLD_OR_BLOCKED"));
  const limited=planNewestFirst([first,second],{maxIssues:1});
  assert.equal(limited.exceedsSingleApproval,true);
  assert.deepEqual(limited.proposedIssues.map(x=>x.number),[3135]);
@@ -82,6 +86,19 @@ test("latest-first backlog planner is read-only, finite and excludes blocked iss
  assert.equal(unknownCapacity.truncatedAtGithubLimit,true);
  assert.equal(unknownCapacity.exceedsSingleApproval,true);
 });
+
+test("blocked title cannot bypass preview via local Factory issue admission",()=>sandbox(async root=>{
+ await enableFactory({root,issues:[3141],now:()=>1000});
+ const configFile=path.join(root,"config.json");
+ const original=await readFile(configFile,"utf8");
+ const github={issues:async()=>[{number:3153,title:"[BLOCKED] Chat-only dispatcher not available",
+   state:"OPEN",labels:[]}]};
+ await assert.rejects(admitFactoryIssues({root,issues:[3153],
+   consent:"PLOTPICKLE_AUTONOMOUS_ENGINEERING",github}),
+   /open, unblocked/);
+ assert.equal(await readFile(configFile,"utf8"),original);
+ assert.equal((await readFactoryStatus({root})).issueCount,1);
+}));
 
 test("enabling needs reviewed finite issues; one attempt is irreversibly reserved before agent dispatch",()=>sandbox(async root=>{
  await enableFactory({root,issues:[3135,3123],now:()=>1000});

@@ -131,7 +131,7 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
       source.indexOf("const cleanup = await stopAndCleanupLiveVerifier("),
     "PASS must be committed only after owned STOP and cleanup",
   );
-  assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);
+  assert.match(source, /if \(cleanup\.status !== "pass"\)[\s\S]*?return 1;/u);
   assert.doesNotMatch(source, /server\.kill\("SIGTERM"\)/u);
 });
 

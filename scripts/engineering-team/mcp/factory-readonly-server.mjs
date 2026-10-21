@@ -18,6 +18,7 @@ import {
 } from "../windows/autonomous-queue.mjs";
 import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
+import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest } from "./factory-named-tests.mjs";
@@ -326,9 +327,10 @@ export async function factoryControlAction(name,args,{
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
   const dir=path.join(root,"mcp-control-requests");
-  // Never run an npm install or mutate an approval list while the scheduled
-  // worker holds a lock; local process-tree stop remains a separate acceptance.
-  if(existsSync(path.join(root,"service.lock")))
+  // Recover an orphaned lock only when the original Windows PID is proved
+  // absent. A running worker, invalid lock or uncertain ownership still blocks
+  // every control mutation. This does NOT stop/start the scheduled task.
+  if(!(await inspectFactoryServiceLock({root})).safeToProceed)
     return {state:"BLOCKED",code:"STOP_FACTORY_FIRST",requestId:args.requestId,
       replayAuthorized:false};
   let head;

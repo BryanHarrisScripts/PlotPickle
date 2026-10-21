@@ -15,6 +15,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { resolveActiveNpmCommand, runPortableCommand } from "../../pi-worker-runtime.mjs";
+import { inspectFactoryServiceLock } from "./factory-service-lock.mjs";
 
 const exec=promisify(execFile);
 const HERE=path.dirname(fileURLToPath(import.meta.url));
@@ -142,7 +143,10 @@ export async function runFactoryDependencyPreflight({
   if(platform!=="win32")return Object.freeze({state:"BLOCKED",code:"WINDOWS_ONLY"});
   if(existsSync(path.join(root,"disabled.json")))
     return Object.freeze({state:"BLOCKED",code:"FACTORY_LOCALLY_DISABLED"});
-  if(existsSync(path.join(root,"service.lock")))
+  // A stopped Windows worker can leave an old lock after a crash/reboot.
+  // Archive it only if the recorded PID is demonstrably absent; all uncertain
+  // or live ownership remains a hard stop. Never touch issue/STOP receipts.
+  if(!(await inspectFactoryServiceLock({root,platform})).safeToProceed)
     return Object.freeze({state:"BLOCKED",code:"STOP_FACTORY_FIRST"});
   // A failed read-only git probe must return a typed result, not orphan an
   // MCP write-once request with no durable completion receipt.

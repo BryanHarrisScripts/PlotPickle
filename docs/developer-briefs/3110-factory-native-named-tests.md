@@ -173,6 +173,15 @@ machine while the old worker is stopped, with a tracked-clean exact
 `node scripts/verification-webmcp-live.mjs`, never caller-controlled
 commands, paths, URLs or candidate PR source.
 
+The control first creates a detached exact-main Git worktree in the
+private per-request `mcp-story-uat/<requestId>/source` directory, with
+command-scoped Windows long-path support and disabled Git hooks. It checks
+the staged SHA and tracked cleanliness before execution, then checks them
+again after execution. Dependency installs, generated browser tooling and
+artifact files stay inside that private checkout rather than the user's
+normal source directory; uncertain or failed evidence is preserved, never
+reset, cleaned, stashed or silently replayed.
+
 The existing full live acceptance runner creates an isolated
 synthetic-Human browser/project profile, forces LOCAL Story Mode, checks
 the Mind Map/World Map and eight-stage read-only Story Factory journey,

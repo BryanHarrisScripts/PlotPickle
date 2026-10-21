@@ -135,13 +135,22 @@ test("read-only newest-first preview cannot enable queues or dispatch jobs",asyn
       {number:3100,state:"OPEN",title:"[HOLD] skip",labels:[]},
     ];
   }};
-  const proposed=await factoryIssuePreview({github});
-  assert.deepEqual(proposed.proposedIssues.map(x=>x.number),[3148,3142,3141]);
+  const proposed=await factoryIssuePreview({github,root});
+  assert.deepEqual(proposed.proposedIssues.map(x=>x.number),[3148,3142]);
+  assert.equal(proposed.alreadyApprovedCount,1);
   assert.equal(proposed.queueModified,false);
   assert.equal(proposed.workerStarted,false);
   assert.equal(proposed.approvalRequired,true);
   assert.equal(calls,1);
-  assert.equal((await factoryIssuePreview({github:{issues:async()=>{throw Error("API token leaked");}}})).state,"GITHUB_UNAVAILABLE");
+  const existing=await readFile(path.join(root,"config.json"),"utf8");
+  assert.ok(existing.includes('"issues":[3141]'));
+  assert.equal((await factoryIssuePreview({github:{
+    issues:async()=>{throw Error("API token leaked");}},root})).state,"GITHUB_UNAVAILABLE");
+  await writeFile(path.join(root,"config.json"),"{BROKEN");
+  const corrupt=await factoryIssuePreview({root,github});
+  assert.equal(corrupt.state,"QUEUE_UNVERIFIABLE");
+  assert.equal(corrupt.queueModified,false);
+  assert.equal(calls,1);
 });
 test("Chat-driven Factory host checkout reports exact clean main, never trusting heartbeat",async()=>{
  const exact=await factoryHostHead({verify:async()=>OLD});

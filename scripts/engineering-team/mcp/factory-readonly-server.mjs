@@ -335,9 +335,10 @@ function safeControlReceipt(raw,requestId) {
   if(!state||!code)return null;
   return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
     suite:allowedFactoryControlSuites().includes(raw.suite)?raw.suite:null,
-    candidatePrNumber:raw.code==="CANDIDATE_HEAD_VERIFIED"&&
+    candidatePrNumber:raw.code==="CANDIDATE_HEAD_VERIFIED"&&raw.state==="TEST_PASSED"&&
       validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
-    candidateHead:raw.code==="CANDIDATE_HEAD_VERIFIED"?safeSha(raw.candidateHead):null,
+    candidateHead:raw.code==="CANDIDATE_HEAD_VERIFIED"&&raw.state==="TEST_PASSED"
+      ?safeSha(raw.candidateHead):null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
       ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
     independentVerification:false};

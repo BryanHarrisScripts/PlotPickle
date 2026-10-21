@@ -222,14 +222,31 @@ export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={
   return Object.freeze({...summarizeFactoryObserver({status,approvedIssues,evidence,now:observedAt}),monitor});
 }
 
-export async function factoryIssuePreview({github=createQueueGitHubClient()}={}) {
+export async function factoryIssuePreview({root=privateFactoryRoot(),
+  github=createQueueGitHubClient()}={}) {
   try {
+    // Never propose existing local approvals, including permanently blocked
+    // write-once attempts. A preview is not new dispatch consent.
+    const configPath=path.join(root,"config.json");
+    const hasConfig=existsSync(configPath);
+    const config=hasConfig?await privateJson(configPath,32768):null;
+    if(hasConfig && (config?.schemaVersion!==1 ||
+        config.repository!==REPOSITORY ||
+        !Array.isArray(config.issues) || config.issues.length>80 ||
+        !config.issues.every(validIssue))) {
+      return {state:"QUEUE_UNVERIFIABLE",queueModified:false,
+        workerStarted:false,approvalRequired:true};
+    }
+    const approved=new Set(config?.issues||[]);
     const issues=await github.issues(); // gh issue list; read only
-    const preview=planNewestFirst(issues);
+    if(!Array.isArray(issues))throw Error("Unverified issue list");
+    const preview=planNewestFirst(issues.filter(x=>!approved.has(x?.number)),
+      {maxIssues:5});
     return {state:"PLAN_ONLY",repository:REPOSITORY,
-      listedIssues:preview.listedIssues,totalEligible:preview.totalEligible,
+      listedIssues:issues.length,totalEligible:preview.totalEligible,
+      alreadyApprovedCount:issues.filter(x=>approved.has(x?.number)).length,
       proposedIssues:preview.proposedIssues.map(x=>({number:x.number})),
-      truncatedAtGithubLimit:preview.truncatedAtGithubLimit,
+      truncatedAtGithubLimit:issues.length>=100,
       queueModified:false,workerStarted:false,approvalRequired:true};
   } catch {
     return {state:"GITHUB_UNAVAILABLE",queueModified:false,workerStarted:false,approvalRequired:true};

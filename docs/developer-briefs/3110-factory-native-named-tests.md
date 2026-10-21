@@ -123,6 +123,45 @@ but explicitly retains `independentVerification=false` and
 `windowsUatVerified=false`. It is not a Windows GUI Product UAT pass.
 The five earlier Pi issue reservations remain untouched.
 
+## Authenticated fixed Windows main synchronization (#3110)
+
+To avoid requiring the owner to manually run `git pull --ff-only` after each
+merge, the **existing** authenticated `factory_run_named_test` now accepts
+`suite=factory-sync-main` with the existing fields `requestId` (fresh
+32-character hex) and `expectedHead` (currently checked-out exact local SHA).
+This is still **four public and four authenticated MCP tools**, preserving
+the paired launcher's tool-count boundary. It does not add arbitrary command
+execution, unattended worker control, model usage, or merge authority.
+
+A request succeeds only on the owner Windows machine, with a stopped/verified
+Factory worker, on a tracked-clean `main` branch and a verified PlotPickle
+GitHub `origin`. Local untracked operator-owned files are left alone;
+no `clean`, `reset`, `stash`, or force-push is permitted. The adapter:
+
+1. Reads and pins current local `HEAD` to the caller's `expectedHead`.
+2. Fetches only `origin` `refs/heads/main:refs/remotes/origin/main`,
+   with no tags or submodules, after validating the canonical origin URL.
+3. Rechecks branch, origin and tracked cleanliness; validates the fetched
+   40-character SHA; explicitly verifies old HEAD is its ancestor.
+4. Runs `git merge --ff-only <pinned fetched SHA>` with Git hooks disabled
+   and process-scoped Git for Windows longpaths enabled; existing tracked
+   source changes, source drift, untracked filename collisions or divergent
+   histories block the operation without destructive cleanup.
+5. Rechecks exact final HEAD and tracked cleanliness, then records a
+   non-replayable immutable receipt. `TEST_PASSED/SOURCE_SYNCED` identifies
+   a verified fast-forward; `TEST_PASSED/SOURCE_ALREADY_CURRENT` means
+   no update was needed. Failures use bounded codes with no raw stderr or
+   private paths. An uncertain merge is **not** retried with the same ID.
+
+The operator will need one governed installation of the merged PR and a
+refresh/restart of the authenticated Node tunnel so it loads the updated tool
+schema. Merely fast-forwarding files on disk does not hot-reload the running
+MCP process. Afterwards ChatGPT Chat may invoke the fixed command from a
+live conversation without the owner copying PowerShell each time. This
+capability does **not** independently wake a future ChatGPT conversation or
+turn the legacy Pi queue into a Chat-only dispatcher. Five original blocked
+worker reservations and receipts remain preserved.
+
 ## Next slice
 
 Add an authenticated scoped exact-head build/test/UAT runner operating on an isolated staging worktree with process stop, timeout, and durable evidence; then prove a ChatGPT-authored source repair PR, independent Windows Quality gate, governed merge and Normal targeted retest. Do not switch to Pi/Cline or silently grant automatic merge authority.

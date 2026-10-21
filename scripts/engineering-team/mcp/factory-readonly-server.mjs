@@ -21,7 +21,8 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
-  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr } from "./factory-named-tests.mjs";
+  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
+  inspectFactorySyncSource,syncFactoryMain } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -291,14 +292,20 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "CANDIDATE_STAGE_PATH_BLOCKED","CANDIDATE_STAGE_EXISTS",
   "CANDIDATE_FETCH_MISMATCH","CANDIDATE_STAGE_MISMATCH","CANDIDATE_STAGE_DIRTY",
   "CANDIDATE_DIFF_UNVERIFIED","CANDIDATE_CHANGED_DURING_STAGE",
-  "CANDIDATE_STAGE_FETCH_FAILED","CANDIDATE_STAGE_WORKTREE_ADD_FAILED"]);
+  "CANDIDATE_STAGE_FETCH_FAILED","CANDIDATE_STAGE_WORKTREE_ADD_FAILED",
+  "SYNC_SOURCE_VERIFIED","SYNC_SELECTION_INVALID","SYNC_SOURCE_UNVERIFIED",
+  "SYNC_MAIN_NOT_CLEAN","SYNC_ORIGIN_UNVERIFIED","SYNC_FETCH_FAILED",
+  "SYNC_FETCH_UNVERIFIED","SYNC_SOURCE_CHANGED","SYNC_NOT_FAST_FORWARD",
+  "SYNC_MERGE_UNVERIFIED","SYNC_OUTCOME_UNVERIFIED",
+  "SOURCE_SYNCED","SOURCE_ALREADY_CURRENT"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
   const a=Buffer.from(presented),b=Buffer.from(configured);
   return a.length===b.length&&timingSafeEqual(a,b);
 }
-const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),"factory-pr-head","factory-pr-stage"];
+const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),
+  "factory-pr-head","factory-pr-stage","factory-sync-main"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -314,7 +321,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated Windows-only fixed Node suite, candidate PR metadata check, or isolated static candidate staging. No arbitrary shell, candidate build/test execution, model calls or merge. Never proves Windows Product UAT.",
+    description:"Authenticated Windows-only fixed Node suite, PR staging, or exact-main fast-forward sync. No arbitrary shell, candidate build/test execution, model calls or issue merge. Never proves Windows Product UAT.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -341,7 +348,8 @@ function validControlArgs(name,args) {
     if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
-    return keys.length===3 && allowedFactoryTestNames().includes(args.suite);
+    return keys.length===3 && (allowedFactoryTestNames().includes(args.suite) ||
+      args.suite==="factory-sync-main");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -386,6 +394,7 @@ export async function factoryControlAction(name,args,{
     admit:admitFactoryIssues,publish:publishFactoryDependencyPreflightResult,
     testHead:readFactoryVerificationHead,runTest:runFactoryNamedTest,
     inspectPr:inspectFactoryCandidatePr,stagePr:stageFactoryCandidatePr,
+    inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -397,8 +406,20 @@ export async function factoryControlAction(name,args,{
     return {state:"BLOCKED",code:"STOP_FACTORY_FIRST",requestId:args.requestId,
       replayAuthorized:false};
   let head;
-  try{head=name==="factory_run_named_test"
-    ?await ops.testHead():await github.exactHead();}catch{return {
+  const isSync=name==="factory_run_named_test"&&
+    args.suite==="factory-sync-main";
+  try{
+    if(isSync){
+      const source=await ops.inspectSyncSource();
+      if(source?.state!=="TEST_PASSED")return {state:"BLOCKED",
+        code:safeText(source?.code,CONTROL_CODES)||"SYNC_SOURCE_UNVERIFIED",
+        requestId:args.requestId,replayAuthorized:false};
+      head=source.sourceHead;
+    }else{
+      head=name==="factory_run_named_test"
+        ?await ops.testHead():await github.exactHead();
+    }
+  }catch{return {
     state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",requestId:args.requestId,
     replayAuthorized:false};}
   if(head!==args.expectedHead)return {
@@ -440,8 +461,11 @@ export async function factoryControlAction(name,args,{
               ?await ops.stagePr({prNumber:args.candidatePrNumber,
                 candidateHead:args.candidateHead,expectedHead:args.expectedHead,
                 requestId:args.requestId,root,verifyHead:ops.testHead})
-              :await ops.runTest({suite:args.suite,
-                expectedHead:args.expectedHead,verifyHead:ops.testHead});
+              :args.suite==="factory-sync-main"
+                ?await ops.syncMain({expectedHead:args.expectedHead,root,
+                  inspect:ops.inspectSyncSource})
+                :await ops.runTest({suite:args.suite,
+                  expectedHead:args.expectedHead,verifyHead:ops.testHead});
           outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",

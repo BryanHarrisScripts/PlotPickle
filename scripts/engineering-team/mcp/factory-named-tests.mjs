@@ -201,6 +201,102 @@ export async function stageFactoryCandidatePr({
   }
 }
 
+
+/**
+ * The only supported Windows checkout maintenance operation: advance an
+ * unchanged tracked-clean main using the canonical PlotPickle GitHub main.
+ * Locally owned untracked files are ignored, never cleaned/stashed/deleted.
+ * Do not use this for arbitrary shell commands, branches or PR checkout.
+ */
+const FACTORY_ORIGIN="https://github.com/BryanHarrisScripts/PlotPickle.git";
+const TRUSTED_ORIGINS=new Set([FACTORY_ORIGIN,
+  "https://github.com/BryanHarrisScripts/PlotPickle",
+  "git@github.com:BryanHarrisScripts/PlotPickle.git",
+  "git@github.com:BryanHarrisScripts/PlotPickle"]);
+export async function inspectFactorySyncSource({
+  repoRoot=ROOT,platform=process.platform,run=exec,
+}={}) {
+  if(platform!=="win32")return Object.freeze({state:"BLOCKED",
+    code:"WINDOWS_ONLY",sourceHead:null});
+  const git=async(args)=>String((await run("git",args,{
+    ...GIT_OPTIONS,cwd:repoRoot,
+  }))?.stdout||"").trim();
+  let head,branch,dirty,origin;
+  try{
+    [head,branch,dirty,origin]=await Promise.all([
+      git(["rev-parse","HEAD"]),git(["branch","--show-current"]),
+      git(["status","--porcelain","--untracked-files=no"]),
+      git(["remote","get-url","origin"]),
+    ]);
+  }catch{return Object.freeze({state:"BLOCKED",code:"SYNC_SOURCE_UNVERIFIED",
+    sourceHead:null});}
+  if(!SHA.test(head)||branch!=="main"||dirty!=="")
+    return Object.freeze({state:"BLOCKED",code:"SYNC_MAIN_NOT_CLEAN",
+      sourceHead:SHA.test(head)?head:null});
+  if(!TRUSTED_ORIGINS.has(origin))return Object.freeze({
+    state:"BLOCKED",code:"SYNC_ORIGIN_UNVERIFIED",sourceHead:head});
+  return Object.freeze({state:"TEST_PASSED",code:"SYNC_SOURCE_VERIFIED",
+    sourceHead:head});
+}
+export async function syncFactoryMain({
+  expectedHead,root,repoRoot=ROOT,platform=process.platform,
+  inspect=inspectFactorySyncSource,run=exec,
+}={}) {
+  if(platform!=="win32")return Object.freeze({state:"BLOCKED",
+    code:"WINDOWS_ONLY",sourceHead:null});
+  if(!SHA.test(expectedHead||"")||typeof root!=="string"||
+     !path.isAbsolute(root))return Object.freeze({state:"BLOCKED",
+      code:"SYNC_SELECTION_INVALID",sourceHead:null});
+  const initial=await inspect({repoRoot,platform,run});
+  if(initial?.state!=="TEST_PASSED")return initial;
+  if(initial.sourceHead!==expectedHead)return Object.freeze({state:"BLOCKED",
+    code:"EXACT_HEAD_MISMATCH",sourceHead:initial.sourceHead});
+  // No shell and no persistent git-config changes. Windows long paths are
+  // required for checkout and subsequent status; hooks cannot execute.
+  const git=async(args,timeout=60_000)=>String((await run("git",args,{
+    ...GIT_OPTIONS,cwd:repoRoot,timeout,
+    env:{...process.env,GIT_TERMINAL_PROMPT:"0",GIT_LFS_SKIP_SMUDGE:"1",
+      GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
+      GIT_CONFIG_VALUE_0:"true"},
+  }))?.stdout||"").trim();
+  let targetHead;
+  try{
+    await git(["fetch","--no-tags","--no-recurse-submodules",
+      "origin","refs/heads/main:refs/remotes/origin/main"]);
+    targetHead=await git(["rev-parse","FETCH_HEAD"]);
+  }catch{return Object.freeze({state:"BLOCKED",code:"SYNC_FETCH_FAILED",
+    sourceHead:expectedHead});}
+  if(!SHA.test(targetHead))return Object.freeze({state:"BLOCKED",
+    code:"SYNC_FETCH_UNVERIFIED",sourceHead:expectedHead});
+  const beforeMerge=await inspect({repoRoot,platform,run});
+  if(beforeMerge?.state!=="TEST_PASSED"||
+     beforeMerge.sourceHead!==expectedHead)
+    return Object.freeze({state:"BLOCKED",code:"SYNC_SOURCE_CHANGED",
+      sourceHead:SHA.test(beforeMerge?.sourceHead||"")?
+        beforeMerge.sourceHead:null});
+  if(targetHead===expectedHead)return Object.freeze({
+    state:"TEST_PASSED",code:"SOURCE_ALREADY_CURRENT",sourceHead:expectedHead,
+    modelInvoked:false,issueReserved:false});
+  try{await git(["merge-base","--is-ancestor",expectedHead,targetHead]);}
+  catch{return Object.freeze({state:"BLOCKED",code:"SYNC_NOT_FAST_FORWARD",
+    sourceHead:expectedHead});}
+  // Pin the fetched SHA itself; FETCH_HEAD can move in concurrent Git use.
+  try{
+    await git(["-c","core.hooksPath="+path.join(root,"hooks-disabled"),
+      "merge","--ff-only",targetHead],120_000);
+  }catch{
+    // An error may leave partial checkout state: do not auto replay/repair.
+    return Object.freeze({state:"BLOCKED",code:"SYNC_MERGE_UNVERIFIED",
+      sourceHead:expectedHead});
+  }
+  const final=await inspect({repoRoot,platform,run});
+  if(final?.state!=="TEST_PASSED"||final.sourceHead!==targetHead)
+    return Object.freeze({state:"BLOCKED",code:"SYNC_OUTCOME_UNVERIFIED",
+      sourceHead:SHA.test(final?.sourceHead||"")?final.sourceHead:null});
+  return Object.freeze({state:"TEST_PASSED",code:"SOURCE_SYNCED",
+    sourceHead:targetHead,modelInvoked:false,issueReserved:false});
+}
+
 export async function runFactoryNamedTest({
   suite,expectedHead,repoRoot=ROOT,platform=process.platform,
   verifyHead=readFactoryVerificationHead,run=exec,

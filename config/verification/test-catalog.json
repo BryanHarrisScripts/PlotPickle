@@ -8958,7 +8958,7 @@
         "inputs": [
           {
             "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
-            "digest": "64a10bbe820fb6146e21f3291035e52a8bf10336d664d7153224dc1d4ac80831"
+            "digest": "485bf0b1813076c7985d8abab677be492009f925a593364f8b1a69cf50b30c32"
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
@@ -9008,7 +9008,7 @@
       },
       {
         "target": "tests/issue-3123-story-factory-session-evidence.test.mjs",
-        "targetDigest": "36a80e975218ddb1994334fe82c8cd186d3d2c069d6df0f0968b96488b348b65",
+        "targetDigest": "d2b5843cf7380ec7406bdcfa3562abf6d8ee3d13ca16da4bc8887880cb132984",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -9030,7 +9030,7 @@
         "inputs": [
           {
             "path": "core/sidecars/webmcp-acceptance-sidecar.mjs",
-            "digest": "64a10bbe820fb6146e21f3291035e52a8bf10336d664d7153224dc1d4ac80831"
+            "digest": "485bf0b1813076c7985d8abab677be492009f925a593364f8b1a69cf50b30c32"
           }
         ]
       },

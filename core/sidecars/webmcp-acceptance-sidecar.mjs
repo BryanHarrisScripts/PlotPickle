@@ -87,19 +87,22 @@ async function settledSurfaceIdentity(page) {
   return clean(await root.getAttribute("data-skin-v1-active-surface"), 240);
 }
 
-async function sessionActiveProjectId(page) {
-  return page.evaluate((prefix) => {
-    for (let index = 0; index < sessionStorage.length; index += 1) {
-      const key = sessionStorage.key(index);
-      if (!key?.startsWith(prefix)) continue;
-      const value = sessionStorage.getItem(key)?.trim();
-      if (value) return value;
-    }
-    return null;
-  }, ACTIVE_PROJECT_KEY_PREFIX);
-}
-
 const ACTIVE_PROFILE_KEY = "plotpickle.human-profile.active.v1";
+
+/**
+ * Mirror the application's profile-scoped Library selection without restoring
+ * or mutating it. An unrelated profile's project must never count as continuity
+ * for the current Human profile, even if it appears earlier in sessionStorage.
+ * Absent/unknown active profile remains missing evidence rather than PASS.
+ */
+export async function sessionActiveProjectId(page) {
+  return page.evaluate(({ activeProfileKey, sessionPrefix }) => {
+    const storage = window.sessionStorage;
+    const profile = storage.getItem(activeProfileKey)?.trim();
+    if (!profile) return null;
+    return storage.getItem(`${sessionPrefix}:${profile}`)?.trim() || null;
+  }, { activeProfileKey: ACTIVE_PROFILE_KEY, sessionPrefix: ACTIVE_PROJECT_KEY_PREFIX });
+}
 
 /**
  * Read-only, private-safe evidence. Never copy profile IDs, project IDs,

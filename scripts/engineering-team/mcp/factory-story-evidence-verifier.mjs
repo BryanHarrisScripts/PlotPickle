@@ -132,17 +132,37 @@ export async function attestStoryBrowserEvidence({
       "story-factory-canon-mutation-not-invoked"]) {
       if (!ids.has(id)) return blocked("PRODUCT_UAT_CHECKPOINT_FAILED",expectedHead);
     }
-    const findId=(r,id)=>r.assertions.find(x=>x.id===id)?.observed;
-    const p1=findId(verified[0].value,"active-project-present-before-journey");
-    const p2=findId(story,"active-project-present-before-journey");
-    if (!p1 || p1==="none" || p1!==p2)
+    // Each journey starts in its own isolated browser context. Project IDs
+    // may differ between contexts, but must be stable within each journey.
+    const mind = verified[0].value;
+    const find = (report,id)=>report.assertions.find(x=>x.id===id);
+    const mindProject=find(mind,"active-project-present-before-journey")?.observed;
+    const storyProject=find(story,"active-project-present-before-journey")?.observed;
+    const validProject=p=>typeof p==="string"&&p.length>0&&p!=="none";
+    if (!validProject(mindProject)||!validProject(storyProject))
+      return blocked("PRODUCT_UAT_PROJECT_MISMATCH",expectedHead);
+    const sameProject=(report,id,project)=>{
+      const checkpoint=find(report,id);
+      return checkpoint?.status==="PASS" && checkpoint.expected===project &&
+        checkpoint.observed===project;
+    };
+    for (const id of ["mind-map-project-continuity",
+      "world-map-project-continuity","journey-active-project-stable"]) {
+      if (!sameProject(mind,id,mindProject))
+        return blocked("PRODUCT_UAT_PROJECT_MISMATCH",expectedHead);
+    }
+    for (const stageName of ["outline","write","storyboard","previs","timeline"]) {
+      if (!sameProject(story,stageName+"-project-continuity",storyProject))
+        return blocked("PRODUCT_UAT_PROJECT_MISMATCH",expectedHead);
+    }
+    if (!sameProject(story,"story-factory-project-stable",storyProject))
       return blocked("PRODUCT_UAT_PROJECT_MISMATCH",expectedHead);
     return Object.freeze({
       state:"TEST_PASSED",code:"PRODUCT_UAT_EVIDENCE_ATTESTED",sourceHead:expectedHead,
       sourceRequestId,checkpointCount:story.assertions.length,
       evidenceDigest:hash([sourceRequestId,expectedHead,original.digest,
         ...verified.map(x=>x.digest)].join(":")),
-      projectIdentityDigest:hash(p1),
+      projectIdentityDigest:hash(JSON.stringify({mindWorld:mindProject,storyFactory:storyProject})),
       independentVerification:false,productionStopVerified:false,
       modelInvoked:false,issueReserved:false,
     });

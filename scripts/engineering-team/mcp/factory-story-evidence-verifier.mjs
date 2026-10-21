@@ -68,9 +68,9 @@ function originalSafe(report, sourceRequestId, head) {
     report?.storyFactoryAcceptance?.providerSpendAllowed===false;
 }
 export async function attestStoryBrowserEvidence({
-  privateRoot,sourceRequestId,expectedHead,runGit=exec,
+  privateRoot,sourceRequestId,expectedHead,platform=process.platform,runGit=exec,
 }={}) {
-  if (process.platform!=="win32" && process.env.PLOTPICKLE_TEST_WINDOWS_FIXTURE!=="1")
+  if (platform!=="win32")
     return blocked("WINDOWS_ONLY",expectedHead);
   if (typeof privateRoot!=="string" || !path.isAbsolute(privateRoot) ||
       !ID.test(sourceRequestId||"") || !SHA.test(expectedHead||""))

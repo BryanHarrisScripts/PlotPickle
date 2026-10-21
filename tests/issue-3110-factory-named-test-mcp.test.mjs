@@ -7,7 +7,8 @@ import path from "node:path";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,
-  runFactoryStoryUat,executeOwnedFactoryStoryUat } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  runFactoryStoryUat,executeOwnedFactoryStoryUat,
+  stageFactoryStorySource,verifyFactoryStorySource } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -566,6 +567,43 @@ test("MCP sync reuses one authenticated tool and immutable receipt; no replay",(
 }));
 
 
+
+test("private browser main checkout uses exact pinned Git worktree, never owner's normal checkout",async()=>{
+ const calls=[];
+ const root=path.resolve(os.tmpdir(),"pp-uat-staging-fixture");
+ const requestId="e".repeat(32),expectedHead=HEAD;
+ const stage=path.join(root,"mcp-story-uat",requestId,"source");
+ const run=async(program,args,opts)=>{
+   assert.equal(program,"git");
+   calls.push({args,opts});
+   assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+   assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+   if(args[0]==="-c"){
+     assert.ok(args[1].startsWith("core.hooksPath="));
+     assert.deepEqual(args.slice(2),["worktree","add","--detach",stage,expectedHead]);
+     assert.equal(opts.timeout,120000);
+     return {stdout:""};
+   }
+   if(args[0]==="rev-parse")return {stdout:expectedHead};
+   if(args[0]==="status")return {stdout:""};
+   throw Error("unexpected git command");
+ };
+ const got=await stageFactoryStorySource({root,requestId,expectedHead,repoRoot:root,run});
+ assert.equal(got,stage);
+ assert.equal(calls[0].opts.cwd,root);
+ assert.equal(calls[1].opts.cwd,stage);
+ assert.equal(await verifyFactoryStorySource({stage,expectedHead,run}),true);
+ assert.ok(calls.every(x=>!x.args.includes("clean")&&!x.args.includes("reset")));
+ const dirty=async(program,args,opts)=>{
+   if(args[0]==="-c")return {stdout:""};
+   if(args[0]==="rev-parse")return {stdout:expectedHead};
+   if(args[0]==="status")return {stdout:" M app/foo.ts"};
+   throw Error("unexpected");
+ };
+ assert.equal(await stageFactoryStorySource({root,requestId,expectedHead,repoRoot:root,run:dirty}),null);
+ assert.equal(await verifyFactoryStorySource({stage,expectedHead,run:dirty}),false);
+});
+
 test("fixed Windows real browser UAT child cannot run arbitrary paths or a shell",async()=>{
  const args=[];
  const result=await executeOwnedFactoryStoryUat({
@@ -616,7 +654,8 @@ test("fixed Windows real browser UAT child cannot run arbitrary paths or a shell
 
 test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode success",()=>privateRoot(async root=>{
  const requestId="7".repeat(32);
- const report=path.join(root,".artifacts","verification-live","webmcp-live.json");
+ const stage=path.join(root,"mcp-story-uat",requestId,"source");
+ const report=path.join(stage,".artifacts","verification-live","webmcp-live.json");
  await mkdir(path.dirname(report),{recursive:true});
  const allowed={schemaVersion:"1.0",observer:"webmcp-live",
    status:"pass",factoryUatRequestId:requestId,exactHead:HEAD,
@@ -630,8 +669,18 @@ test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode succes
  const evidence=async(value=allowed)=>{await writeFile(report,JSON.stringify(value));};
  const opts={root,repoRoot:root,platform:"win32",requestId,expectedHead:HEAD,
    verifyHead:async()=>HEAD,
-   execute:async({repoRoot,env})=>{
+   stageMain:async({expectedHead,requestId:given,root:givenRoot,repoRoot})=>{
+     assert.equal(expectedHead,HEAD);
+     assert.equal(given,requestId);assert.equal(givenRoot,root);
      assert.equal(repoRoot,root);
+     return stage;
+   },
+   verifyStage:async({stage:observed,expectedHead})=>{
+     assert.equal(observed,stage);assert.equal(expectedHead,HEAD);
+     return true;
+   },
+   execute:async({repoRoot,env})=>{
+     assert.equal(repoRoot,stage);
      assert.equal(env.GITHUB_SHA,HEAD);
      assert.equal(env.PLOTPICKLE_FACTORY_UAT_REQUEST_ID,requestId);
      assert.ok(env.RUNNER_TEMP.endsWith(requestId));
@@ -668,6 +717,10 @@ test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode succes
  let checked=0;
  assert.equal((await runFactoryStoryUat({...opts,
    verifyHead:async()=>++checked===1?HEAD:OTHER})).code,"EXACT_HEAD_MISMATCH");
+ assert.equal((await runFactoryStoryUat({...opts,stageMain:async()=>null})).code,
+   "PRODUCT_UAT_STAGE_UNVERIFIED");
+ assert.equal((await runFactoryStoryUat({...opts,verifyStage:async()=>false})).code,
+   "PRODUCT_UAT_SOURCE_CHANGED");
 }));
 
 test("authenticated Story Factory browser UAT refuses unauthenticated or replayed controls",()=>privateRoot(async root=>{

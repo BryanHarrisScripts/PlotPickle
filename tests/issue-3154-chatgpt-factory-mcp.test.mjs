@@ -125,24 +125,35 @@ test("invalid attempts, private symlinks, malicious phase/code and corrupt recor
   const missing=await factoryStatus({root:path.join(root,"missing"),now:()=>4000});
   assert.equal(missing.state,"OFF");
 }));
-test("read-only newest-first preview cannot enable queues or dispatch jobs",async()=>{
+test("read-only newest-first preview cannot enable queues or dispatch jobs",()=>sandbox(async root=>{
+  await seed(root);
   let calls=0;
   const github={issues:async()=>{
     calls++;return [
       {number:3142,state:"OPEN",title:"C",labels:[]},
       {number:3148,state:"OPEN",title:"B",labels:[]},
+      {number:3153,state:"OPEN",title:"[BLOCKED] no Chat-only dispatcher",labels:[]},
       {number:3141,state:"OPEN",title:"A",labels:[]},
       {number:3100,state:"OPEN",title:"[HOLD] skip",labels:[]},
     ];
   }};
-  const proposed=await factoryIssuePreview({github});
-  assert.deepEqual(proposed.proposedIssues.map(x=>x.number),[3148,3142,3141]);
+  const proposed=await factoryIssuePreview({github,root});
+  assert.deepEqual(proposed.proposedIssues.map(x=>x.number),[3148,3142]);
+  assert.equal(proposed.alreadyApprovedCount,1);
   assert.equal(proposed.queueModified,false);
   assert.equal(proposed.workerStarted,false);
   assert.equal(proposed.approvalRequired,true);
   assert.equal(calls,1);
-  assert.equal((await factoryIssuePreview({github:{issues:async()=>{throw Error("API token leaked");}}})).state,"GITHUB_UNAVAILABLE");
-});
+  const existing=await readFile(path.join(root,"config.json"),"utf8");
+  assert.ok(existing.includes('"issues":[3141]'));
+  assert.equal((await factoryIssuePreview({github:{
+    issues:async()=>{throw Error("API token leaked");}},root})).state,"GITHUB_UNAVAILABLE");
+  await writeFile(path.join(root,"config.json"),"{BROKEN");
+  const corrupt=await factoryIssuePreview({root,github});
+  assert.equal(corrupt.state,"QUEUE_UNVERIFIABLE");
+  assert.equal(corrupt.queueModified,false);
+  assert.equal(calls,1);
+}));
 test("Chat-driven Factory host checkout reports exact clean main, never trusting heartbeat",async()=>{
  const exact=await factoryHostHead({verify:async()=>OLD});
  assert.deepEqual(exact,{state:"EXACT_CLEAN_MAIN",sourceHead:OLD,branch:"main",

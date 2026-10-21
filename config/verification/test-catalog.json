@@ -8963,13 +8963,13 @@
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "a4d4a290049d9f8366ed3f15e3ffc91167db1a03892e9b21aabf2c13f1d3757e"
+            "digest": "82b45e5903ac889bd50f794dcad4d189542a5efb8d655dd111dff851d466a7e4"
           }
         ]
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "5efa04f23e413f8d6f9d2c4e35487c742ef5f65ad9ed93b4886c309306dda33d",
+        "targetDigest": "b6a3e5e857b8213092705ef390930160610c75f597d27a848a515072c66f4b22",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],
@@ -8991,7 +8991,7 @@
         "inputs": [
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "a4d4a290049d9f8366ed3f15e3ffc91167db1a03892e9b21aabf2c13f1d3757e"
+            "digest": "82b45e5903ac889bd50f794dcad4d189542a5efb8d655dd111dff851d466a7e4"
           },
           {
             "path": "build/ai/comfyui-onboarding-gateway.ts",

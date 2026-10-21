@@ -8962,7 +8962,7 @@
           },
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "5b92e6360043ba0657c38495041e335d5e2c33665bf531a1b067340e5d5a1122"
+            "digest": "a4d4a290049d9f8366ed3f15e3ffc91167db1a03892e9b21aabf2c13f1d3757e"
           }
         ]
       },
@@ -8990,7 +8990,7 @@
         "inputs": [
           {
             "path": "scripts/verification-webmcp-live.mjs",
-            "digest": "5b92e6360043ba0657c38495041e335d5e2c33665bf531a1b067340e5d5a1122"
+            "digest": "a4d4a290049d9f8366ed3f15e3ffc91167db1a03892e9b21aabf2c13f1d3757e"
           },
           {
             "path": "build/ai/comfyui-onboarding-gateway.ts",
@@ -9299,7 +9299,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
+            "digest": "8ff2737cc9174925c4a451ce0c4c1dd088cbc37666d687f615667539377a7fb0"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9343,7 +9343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
+            "digest": "8ff2737cc9174925c4a451ce0c4c1dd088cbc37666d687f615667539377a7fb0"
           }
         ],
         "truthRefs": [
@@ -9364,18 +9364,18 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "81829345e89a9bc73181b647528d2193c317eec69ba8d47ca5e6e6dbcecf7da5",
+        "targetDigest": "47dbf209466f49a15c2eab43b58b1c898172be49b18ea901d2963c6ea0e3a022",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "e92cf8bb64ba1b1609bc2942fb45c15692552a4f9cc57dfbc14e509b440b70e5"
+            "digest": "9d6bf42ab3bad4f9d900f23a38204f73607c32de13051409b92c30965410d784"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
+            "digest": "8ff2737cc9174925c4a451ce0c4c1dd088cbc37666d687f615667539377a7fb0"
           }
         ],
         "truthRefs": [

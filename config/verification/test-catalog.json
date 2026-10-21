@@ -9176,14 +9176,14 @@
       },
       {
         "target": "tests/issue-3110-autonomous-factory.test.mjs",
-        "targetDigest": "1b0f35cdeac1256077166c7d5eb813ab442d8c997a6748fd69a3178aa5dc94ce",
+        "targetDigest": "899dce80e2cb54ae6722d6a398705b0512e5f1d9229018c9e92ecf875e23eb99",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/autonomous-queue.mjs",
-            "digest": "69d41972cc0488d802d3a0ce6da4a576ff86ce6a03a14e6b05e76f464af2c416"
+            "digest": "d46ff3970705b8b299159602a332b44dcc7204a5beb5b51c0e55085b53cb41e3"
           },
           {
             "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
@@ -9299,7 +9299,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "e718c2a496d5d17d514fab80a675793014ee55694b991fe18443a24a32d67b68"
+            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9343,7 +9343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "e718c2a496d5d17d514fab80a675793014ee55694b991fe18443a24a32d67b68"
+            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
           }
         ],
         "truthRefs": [
@@ -9375,7 +9375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "e718c2a496d5d17d514fab80a675793014ee55694b991fe18443a24a32d67b68"
+            "digest": "ac9365697e67f3697cf9a1725a8f717446a999b480e09314e67994539b0ede68"
           }
         ],
         "truthRefs": [

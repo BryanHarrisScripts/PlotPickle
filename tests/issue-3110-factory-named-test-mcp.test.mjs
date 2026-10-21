@@ -215,6 +215,13 @@ test("Chat candidate stage fetches a pinned PR SHA into a separate worktree with
  const runner=async(program,args,opts)=>{
    assert.ok(["git","gh"].includes(program));
    assert.equal(opts.shell,undefined);
+   if(program==="git"){
+     assert.equal(opts.env.GIT_CONFIG_COUNT,"1");
+     assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+     assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+     assert.equal(opts.env.GIT_LFS_SKIP_SMUDGE,"1");
+     assert.equal(opts.env.GIT_TERMINAL_PROMPT,"0");
+   }
    seen.push({program,args,cwd:opts.cwd});
    if(program==="gh"){
      metadataCalls++;
@@ -289,7 +296,11 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
  const error=await stageFactoryCandidatePr({...base,requestId:"a".repeat(32),run:errorRun});
  assert.equal(error.code,"CANDIDATE_STAGE_FETCH_FAILED");
  assert.equal(JSON.stringify(error).includes("PRIVATE"),false);
- const checkoutRun=async(program,args)=>{
+ const checkoutRun=async(program,args,opts)=>{
+   if(program==="git"){
+     assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+     assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+   }
    if(program==="gh")return {stdout:JSON.stringify(candidate)};
    if(args[0]==="fetch")return {stdout:""};
    if(args[0]==="rev-parse"&&args[1]==="FETCH_HEAD")return {stdout:OTHER};

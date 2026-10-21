@@ -4,7 +4,8 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
-  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
+  inspectFactorySyncSource,syncFactoryMain } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -399,6 +400,169 @@ test("authenticated existing tool writes one static-candidate-stage receipt and 
  assert.deepEqual(await factoryControlReceipt({root,requestId:args.requestId}),response);
  assert.equal(JSON.stringify(response).includes("SECRET"),false);
 }));
+
+test("source-bound Windows sync verifies origin, tracked-clean main and exact head",async()=>{
+ const calls=[];
+ const local={head:HEAD,branch:"main",dirty:"",origin:
+   "https://github.com/BryanHarrisScripts/PlotPickle.git",fetched:OTHER};
+ const run=async(program,args,opts)=>{
+   assert.equal(program,"git");
+   assert.equal(Object.hasOwn(opts,"shell"),false);
+   calls.push(args.join(" "));
+   switch(args.join(" ")){
+     case "rev-parse HEAD":return {stdout:local.head};
+     case "branch --show-current":return {stdout:local.branch};
+     case "status --porcelain --untracked-files=no":return {stdout:local.dirty};
+     case "remote get-url origin":return {stdout:local.origin};
+     default:throw Error("unexpected git probe");
+   }
+ };
+ const opts={run,platform:"win32"};
+ assert.equal((await inspectFactorySyncSource(opts)).code,"SYNC_SOURCE_VERIFIED");
+ assert.equal((await inspectFactorySyncSource({...opts,platform:"linux"})).code,"WINDOWS_ONLY");
+ local.branch="feature";
+ assert.equal((await inspectFactorySyncSource(opts)).code,"SYNC_MAIN_NOT_CLEAN");
+ local.branch="main";local.dirty=" M src/working.js";
+ assert.equal((await inspectFactorySyncSource(opts)).code,"SYNC_MAIN_NOT_CLEAN");
+ local.dirty="";local.origin="https://github.com/someone/other.git";
+ assert.equal((await inspectFactorySyncSource(opts)).code,"SYNC_ORIGIN_UNVERIFIED");
+ local.origin="https://github.com/BryanHarrisScripts/PlotPickle.git";
+ assert.equal((await inspectFactorySyncSource(opts)).state,"TEST_PASSED");
+ assert.ok(calls.every(x=>!x.includes("clean -fd")&&!x.includes("reset --hard")));
+});
+
+test("authenticated main sync fetches only checked origin/main, then pins fast-forward SHA",()=>privateRoot(async root=>{
+ const state={head:HEAD,remote:OTHER,dirty:"",origin:
+   "https://github.com/BryanHarrisScripts/PlotPickle.git",operations:[]};
+ const run=async(program,args,opts)=>{
+   assert.equal(program,"git");
+   assert.equal(Object.hasOwn(opts,"shell"),false);
+   state.operations.push({args,opts});
+   if(args[0]==="rev-parse")return {stdout:args[1]==="HEAD"?state.head:state.remote};
+   if(args[0]==="branch")return {stdout:"main"};
+   if(args[0]==="status")return {stdout:state.dirty};
+   if(args[0]==="remote")return {stdout:state.origin};
+   assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+   assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+   assert.equal(opts.env.GIT_TERMINAL_PROMPT,"0");
+   if(args[0]==="fetch"){
+     assert.deepEqual(args,["fetch","--no-tags","--no-recurse-submodules",
+       "origin","refs/heads/main:refs/remotes/origin/main"]);
+     return {stdout:""};
+   }
+   if(args[0]==="merge-base"){
+     assert.deepEqual(args,["merge-base","--is-ancestor",HEAD,OTHER]);
+     return {stdout:""};
+   }
+   if(args[0]==="-c"&&args[2]==="merge"){
+     assert.ok(args[1].startsWith("core.hooksPath="));
+     assert.deepEqual(args.slice(2),["merge","--ff-only",OTHER]);
+     assert.equal(opts.timeout,120000);
+     state.head=OTHER;
+     return {stdout:""};
+   }
+   throw Error("Unexpected Git invocation");
+ };
+ const opts={root,repoRoot:root,platform:"win32",expectedHead:HEAD,run};
+ assert.equal((await syncFactoryMain({...opts,platform:"linux"})).code,"WINDOWS_ONLY");
+ assert.equal((await syncFactoryMain({...opts,expectedHead:"bad"})).code,
+   "SYNC_SELECTION_INVALID");
+ const success=await syncFactoryMain(opts);
+ assert.equal(success.state,"TEST_PASSED");
+ assert.equal(success.code,"SOURCE_SYNCED");
+ assert.equal(success.sourceHead,OTHER);
+ assert.equal(success.issueReserved,false);
+ assert.equal(success.modelInvoked,false);
+ assert.equal(state.operations.filter(x=>x.args[0]==="fetch").length,1);
+ assert.equal(state.operations.filter(x=>x.args.includes("merge")).length,1);
+ assert.ok(state.operations.every(x=>!x.args.includes("--hard")&&
+   !x.args.includes("clean")&&!x.args.includes("stash")));
+ state.remote=OTHER;
+ assert.equal((await syncFactoryMain({...opts,expectedHead:OTHER})).code,
+   "SOURCE_ALREADY_CURRENT");
+ assert.equal(state.operations.filter(x=>x.args.includes("merge")).length,1);
+}));
+
+test("sync denies divergent, drifting and uncertain checkout without false PASS",()=>privateRoot(async root=>{
+ const base={root,repoRoot:root,platform:"win32",expectedHead:HEAD};
+ const build=(mode)=>{
+   let head=HEAD,remote=OTHER,merges=0;
+   const run=async(_program,args)=>{
+     if(args[0]==="rev-parse"&&args[1]==="HEAD")return {stdout:head};
+     if(args[0]==="rev-parse"&&args[1]==="FETCH_HEAD")return {stdout:remote};
+     if(args[0]==="branch")return {stdout:"main"};
+     if(args[0]==="status")return {stdout:mode==="final-dirty"&&head===OTHER?" M src/a.mjs":""};
+     if(args[0]==="remote")return {stdout:"https://github.com/BryanHarrisScripts/PlotPickle.git"};
+     if(args[0]==="fetch"){
+       if(mode==="fetch-fail")throw Error("PRIVATE_REMOTE_CREDENTIAL");
+       if(mode==="drift")head=OTHER;
+       return {stdout:""};
+     }
+     if(args[0]==="merge-base"){
+       if(mode==="diverged")throw Object.assign(Error("NON_FAST_FORWARD"),{code:1});
+       return {stdout:""};
+     }
+     if(args[0]==="-c"){
+       merges++;
+       if(mode==="merge-fail")throw Error("SECRET_CONFLICT_PATH");
+       head=OTHER;return {stdout:""};
+     }
+     throw Error("unsupported git command");
+   };
+   return {run,count:()=>merges};
+ };
+ for(const [mode,code,mergeCount] of [
+   ["fetch-fail","SYNC_FETCH_FAILED",0],
+   ["diverged","SYNC_NOT_FAST_FORWARD",0],
+   ["drift","SYNC_SOURCE_CHANGED",0],
+   ["merge-fail","SYNC_MERGE_UNVERIFIED",1],
+   ["final-dirty","SYNC_OUTCOME_UNVERIFIED",1],
+ ]){
+   const x=build(mode);
+   const result=await syncFactoryMain({...base,run:x.run});
+   assert.equal(result.state,"BLOCKED");
+   assert.equal(result.code,code);
+   assert.equal(x.count(),mergeCount);
+   assert.equal(JSON.stringify(result).includes("SECRET"),false);
+   assert.equal(JSON.stringify(result).includes("PRIVATE"),false);
+ }
+}));
+
+test("MCP sync reuses one authenticated tool and immutable receipt; no replay",()=>privateRoot(async root=>{
+ const args={requestId:"6".repeat(32),expectedHead:HEAD,suite:"factory-sync-main"};
+ let executed=0;
+ const ops={inspectSyncSource:async()=>({state:"TEST_PASSED",
+   code:"SYNC_SOURCE_VERIFIED",sourceHead:HEAD}),
+   syncMain:async({expectedHead,root:receivedRoot})=>{
+     executed++;assert.equal(expectedHead,HEAD);
+     assert.equal(receivedRoot,root);
+     return {state:"TEST_PASSED",code:"SOURCE_SYNCED",
+       sourceHead:OTHER,privatePath:"C:/SECRET"};
+   }};
+ const invoke=(body,authenticated=true)=>handleRpc({jsonrpc:"2.0",id:21,
+   method:"tools/call",params:{name:"factory_run_named_test",arguments:body}},
+   {root,controlAuthenticated:authenticated,controlOps:ops});
+ assert.equal((await invoke(args,false)).error.code,-32001);
+ assert.equal((await invoke({...args,command:"git pull"})).error.code,-32602);
+ assert.equal((await invoke({...args,suite:"factory-arbitrary"})).error.code,-32602);
+ assert.equal(executed,0);
+ const first=(await invoke(args)).result.structuredContent;
+ assert.equal(first.state,"TEST_PASSED");
+ assert.equal(first.code,"SOURCE_SYNCED");
+ assert.equal(first.suite,"factory-sync-main");
+ assert.equal(first.sourceHead,OTHER);
+ assert.equal(first.modelInvoked,false);
+ assert.equal(first.replayAuthorized,false);
+ assert.equal(executed,1);
+ assert.equal((await invoke(args)).result.structuredContent.state,
+   "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+ assert.deepEqual(await factoryControlReceipt({root,requestId:args.requestId}),first);
+ assert.equal(JSON.stringify(first).includes("SECRET"),false);
+ const stale=await invoke({...args,requestId:"5".repeat(32),expectedHead:OTHER});
+ assert.equal(stale.result.structuredContent.code,"EXACT_HEAD_MISMATCH");
+ assert.equal(executed,1);
+}));
+
 test("native lock and stale source block execution; uncertain runs never silently replay",()=>privateRoot(async root=>{
  const args={requestId:"2".repeat(32),expectedHead:HEAD,suite:"factory-mcp"};
  let executed=0;

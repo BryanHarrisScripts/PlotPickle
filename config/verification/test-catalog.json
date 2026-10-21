@@ -9365,7 +9365,7 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "5bf815b139f312f5ac46325c5d9e295c4264046aac1ce1c2e73cda9cd7a5306b",
+        "targetDigest": "1d24c52fa81312343d855190d74df4645e14cb23314bb417781fd6f1d1b05c09",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9376,7 +9376,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
-            "digest": "2c12383d5ce7b47edfcfbedbf2966314238d5188a904f142e0f97c4690ef6ab9"
+            "digest": "12d3c475ef27b28f71d03edf8e23d2b66247624bcfd6731f953f4b2c6a845c3b"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

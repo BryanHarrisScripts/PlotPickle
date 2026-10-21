@@ -368,9 +368,8 @@ export async function verifyFactoryStorySource({stage,expectedHead,run=exec}={})
       GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
       GIT_CONFIG_VALUE_0:"true"},
   }))?.stdout||"").trim();
-  try{return await git(["rev-parse","HEAD"])===expectedHead &&
-    await git(["status","--porcelain","--untracked-files=no"])==="";}
-  catch{return false;}
+  return await git(["rev-parse","HEAD"])===expectedHead &&
+    await git(["status","--porcelain","--untracked-files=no"])==="";
 }
 
 export async function runFactoryStoryUat({
@@ -411,8 +410,15 @@ export async function runFactoryStoryUat({
   const final=await verifyHead({repoRoot});
   if(final!==expectedHead)return Object.freeze({state:"BLOCKED",
     code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(final||"")?final:null});
-  if(!(await verifyStage({stage:staged,expectedHead})))return Object.freeze({
-    state:"BLOCKED",code:"PRODUCT_UAT_SOURCE_CHANGED",sourceHead:expectedHead});
+  try{
+    if(!(await verifyStage({stage:staged,expectedHead})))
+      return Object.freeze({state:"BLOCKED",
+        code:"PRODUCT_UAT_SOURCE_CHANGED",sourceHead:expectedHead});
+  }catch{
+    // Failed Git read is an independently classified unverified source, not a PASS.
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_SOURCE_CHANGED",
+      sourceHead:expectedHead});
+  }
   if(observed?.stopUnverified)return Object.freeze({state:"BLOCKED",
     code:"PRODUCT_UAT_STOP_UNVERIFIED",sourceHead:expectedHead});
   if(observed?.timedOut)return Object.freeze({state:"TEST_FAILED",

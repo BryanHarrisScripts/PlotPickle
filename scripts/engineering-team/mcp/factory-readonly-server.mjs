@@ -240,8 +240,8 @@ export async function factoryIssuePreview({root=privateFactoryRoot(),
     const approved=new Set(config?.issues||[]);
     const issues=await github.issues(); // gh issue list; read only
     if(!Array.isArray(issues))throw Error("Unverified issue list");
-    const preview=planNewestFirst(issues.filter(x=>!approved.has(x?.number)),
-      {maxIssues:5});
+    const preview=planNewestFirst(issues.filter(x=>!approved.has(x?.number) &&
+      !/^\[BLOCKED\]/i.test(String(x?.title||""))),{maxIssues:5});
     return {state:"PLAN_ONLY",repository:REPOSITORY,
       listedIssues:issues.length,totalEligible:preview.totalEligible,
       alreadyApprovedCount:issues.filter(x=>approved.has(x?.number)).length,

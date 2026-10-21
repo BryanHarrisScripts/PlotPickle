@@ -596,6 +596,22 @@ test("fixed Windows real browser UAT child cannot run arbitrary paths or a shell
  });
  assert.equal(timed.timedOut,true);
  assert.equal(timed.stopUnverified,false);
+ // The child can report a clean exit while the timeout STOP is in flight;
+ // the outer gate still must never report browser PASS.
+ let racedChild;
+ const raced=await executeOwnedFactoryStoryUat({
+   repoRoot:"C:/PlotPickle-fixture",env:{GITHUB_SHA:HEAD},timeoutMs:5,
+   launch:()=>{
+     racedChild=new EventEmitter();
+     racedChild.pid=99998;racedChild.exitCode=null;racedChild.signalCode=null;
+     return racedChild;
+   },
+   stop:async child=>{
+     child.exitCode=0;child.emit("close",0);
+   },
+ });
+ assert.equal(raced.timedOut,true);
+ assert.equal(raced.exitCode,undefined);
 });
 
 test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode success",()=>privateRoot(async root=>{

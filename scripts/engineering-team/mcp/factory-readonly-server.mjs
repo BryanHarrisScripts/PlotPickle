@@ -22,7 +22,8 @@ import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
-  inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat } from "./factory-named-tests.mjs";
+  inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat,
+  runFactoryStoryEvidenceVerify } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -301,7 +302,10 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
   "PRODUCT_UAT_STAGE_UNVERIFIED","PRODUCT_UAT_SOURCE_CHANGED",
   "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
-  "PRODUCT_UAT_EVIDENCE_UNVERIFIED","PRODUCT_UAT_OBSERVED_PASS"]);
+  "PRODUCT_UAT_EVIDENCE_UNVERIFIED","PRODUCT_UAT_OBSERVED_PASS",
+  "PRODUCT_UAT_ATTESTATION_INVALID","PRODUCT_UAT_ORIGINAL_NOT_PASSED",
+  "PRODUCT_UAT_CHECKPOINT_FAILED","PRODUCT_UAT_PROJECT_MISMATCH",
+  "PRODUCT_UAT_VERIFIER_UNAVAILABLE","PRODUCT_UAT_EVIDENCE_ATTESTED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -310,7 +314,7 @@ export function controlTokenMatches(presented,configured) {
 }
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),
   "factory-pr-head","factory-pr-stage","factory-sync-main",
-  "factory-story-uat"];
+  "factory-story-uat","factory-story-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -332,7 +336,8 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
       suite:{type:"string",enum:allowedFactoryControlSuites()},
       candidatePrNumber:{type:"integer",minimum:1,maximum:9999999},
-      candidateHead:{type:"string",pattern:"^[a-f0-9]{40}$"}},
+      candidateHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      sourceRequestId:{type:"string",pattern:"^[a-f0-9]{32}$"}},
       required:["requestId","expectedHead","suite"],additionalProperties:false}},
   {name:"factory_control_receipt",title:"Read durable Factory control request receipt",
     description:"Read the sanitized immutable outcome of an authenticated control request ID. Missing outcome is uncertain, never green and never retryable with the same ID.",
@@ -353,6 +358,8 @@ function validControlArgs(name,args) {
     if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
+    if(args.suite==="factory-story-verify")return keys.length===4 &&
+      REQUEST_ID.test(args.sourceRequestId||"") && args.sourceRequestId!==args.requestId;
     return keys.length===3 && (allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat");
   }
@@ -379,6 +386,15 @@ function safeControlReceipt(raw,requestId) {
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
       raw.changedFileCount<=500?raw.changedFileCount:null,
+    sourceRequestId:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+      REQUEST_ID.test(raw.sourceRequestId||"")?raw.sourceRequestId:null,
+    checkpointCount:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+      Number.isSafeInteger(raw.checkpointCount)&&raw.checkpointCount>=55&&
+      raw.checkpointCount<=250?raw.checkpointCount:null,
+    evidenceDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+      /^[a-f0-9]{64}$/.test(raw.evidenceDigest||"")?raw.evidenceDigest:null,
+    projectIdentityDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+      /^[a-f0-9]{64}$/.test(raw.projectIdentityDigest||"")?raw.projectIdentityDigest:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
       ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
     independentVerification:false};
@@ -400,7 +416,7 @@ export async function factoryControlAction(name,args,{
     testHead:readFactoryVerificationHead,runTest:runFactoryNamedTest,
     inspectPr:inspectFactoryCandidatePr,stagePr:stageFactoryCandidatePr,
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
-    storyUat:runFactoryStoryUat,
+    storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -439,6 +455,7 @@ export async function factoryControlAction(name,args,{
       expectedHead:args.expectedHead,
       candidatePrNumber:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidatePrNumber:null,
       candidateHead:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:args.suite==="factory-story-verify"?args.sourceRequestId:null,
       at:now(),replayAuthorized:false,
     })+"\n",{flag:"wx",mode:0o600});
   }catch{return {state:"DUPLICATE_OR_UNVERIFIABLE_REQUEST",requestId:args.requestId,
@@ -473,7 +490,10 @@ export async function factoryControlAction(name,args,{
                 :args.suite==="factory-story-uat"
                   ?await ops.storyUat({expectedHead:args.expectedHead,
                     requestId:args.requestId,root,verifyHead:ops.testHead})
-                  :await ops.runTest({suite:args.suite,
+                  :args.suite==="factory-story-verify"
+                    ?await ops.storyVerify({expectedHead:args.expectedHead,
+                      sourceRequestId:args.sourceRequestId,root,verifyHead:ops.testHead})
+                    :await ops.runTest({suite:args.suite,
                     expectedHead:args.expectedHead,verifyHead:ops.testHead});
           outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
             ?result.state:"BLOCKED",
@@ -485,7 +505,11 @@ export async function factoryControlAction(name,args,{
               ?result.candidateHead:null,
             stageId:result.code==="CANDIDATE_STATIC_STAGED"?result.stageId:null,
             changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
-              ?result.changedFileCount:null};
+              ?result.changedFileCount:null,
+            sourceRequestId:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.sourceRequestId:null,
+            checkpointCount:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.checkpointCount:null,
+            evidenceDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.evidenceDigest:null,
+            projectIdentityDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.projectIdentityDigest:null};
         }finally{await unlink(lockFile).catch(()=>{});}
       }
     }else if(name==="factory_run_dependency_preflight"){

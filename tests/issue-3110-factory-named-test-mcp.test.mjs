@@ -8,7 +8,9 @@ import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,
   runFactoryStoryUat,executeOwnedFactoryStoryUat,
-  stageFactoryStorySource,verifyFactoryStorySource } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  stageFactoryStorySource,verifyFactoryStorySource,
+  runFactoryStoryEvidenceVerify } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+import { attestStoryBrowserEvidence } from "../scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -781,4 +783,162 @@ test("native lock and stale source block execution; uncertain runs never silentl
  assert.equal((await factoryControlReceipt({root,requestId:unknownArgs.requestId})).state,"STARTED_UNCONFIRMED");
  assert.equal((await factoryControlAction("factory_run_named_test",unknownArgs,{root,ops})).state,
    "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+}));
+
+test("separate browser verifier reads existing immutable 55-checkpoint artifacts, never executes browser/model",()=>privateRoot(async root=>{
+ const sourceRequestId="a".repeat(32),stage=path.join(root,"mcp-story-uat",sourceRequestId,"source");
+ const control=path.join(root,"mcp-control-requests");
+ await mkdir(control,{recursive:true});await mkdir(stage,{recursive:true});
+ await writeFile(path.join(control,sourceRequestId+".json"),JSON.stringify({
+   requestId:sourceRequestId,expectedHead:HEAD,operation:"factory_run_named_test"}));
+ await writeFile(path.join(control,sourceRequestId+"-result.json"),JSON.stringify({
+   requestId:sourceRequestId,sourceHead:HEAD,suite:"factory-story-uat",
+   state:"TEST_PASSED",code:"PRODUCT_UAT_OBSERVED_PASS"}));
+ const summary={schemaVersion:"1.0",observer:"webmcp-live",
+   factoryUatRequestId:sourceRequestId,exactHead:HEAD,status:"pass",
+   authority:"read-only-observer",externalProviderCalls:false,
+   secretsAccessed:false,storyMode:{mode:"local",providerSpendAllowed:false},
+   mindWorldAcceptance:{status:"PASS",journeyId:"mind-map-world-map-shared-header"},
+   storyFactoryAcceptance:{status:"PASS",journeyId:"story-factory-read-only-journey",
+     mutationAuthority:false,providerSpendAllowed:false}};
+ const write=async(relative,value)=>{
+   const target=path.join(stage,relative);await mkdir(path.dirname(target),{recursive:true});
+   await writeFile(target,JSON.stringify(value));
+ };
+ const prefix=".artifacts/webmcp-acceptance/";
+ const makeJourney=(id,count)=>{
+   const names=["browser-runtime-diagnostics","active-project-present-before-journey"];
+   if(id==="story-factory-read-only-journey") {
+     for(const part of ["outline","write","storyboard","previs","timeline"])
+       for(const suffix of ["settled-identity","project-continuity","no-visible-alert","back-to-dashboard"])
+         names.push(part+"-"+suffix);
+     names.push("story-factory-project-stable","story-factory-provider-generation-not-invoked",
+       "story-factory-canon-mutation-not-invoked");
+   }
+   while(names.length<count)names.push("safe-browser-check-"+names.length);
+   return {schemaVersion:1,journeyId:id,commitSha:HEAD,mode:"exact-head",
+     status:"PASS",state:"ready",rendered:true,isolatedBrowserContext:true,
+     blockerCount:0,assertions:names.map(name=>({id:name,status:"PASS",
+       observed:name==="active-project-present-before-journey"?"private-project-identity":"ok"}))};
+ };
+ const mind=makeJourney("mind-map-world-map-shared-header",30);
+ const story=makeJourney("story-factory-read-only-journey",55);
+ await write(".artifacts/verification-live/webmcp-live.json",summary);
+ await write(prefix+"mind-map-world-map-shared-header/exact-head.json",mind);
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
+ const fakeGit=async(program,args)=>{
+   assert.equal(program,"git");
+   return {stdout:args[0]==="rev-parse"?HEAD:""};
+ };
+ const opts={privateRoot:root,sourceRequestId,expectedHead:HEAD,platform:"win32",runGit:fakeGit};
+ const passed=await attestStoryBrowserEvidence(opts);
+ assert.equal(passed.state,"TEST_PASSED");
+ assert.equal(passed.code,"PRODUCT_UAT_EVIDENCE_ATTESTED");
+ assert.equal(passed.checkpointCount,55);
+ assert.match(passed.projectIdentityDigest,/^[a-f0-9]{64}$/);
+ assert.match(passed.evidenceDigest,/^[a-f0-9]{64}$/);
+ assert.equal(passed.independentVerification,false);
+ assert.equal(passed.productionStopVerified,false);
+ assert.equal(JSON.stringify(passed).includes("private-project-identity"),false);
+ assert.equal((await attestStoryBrowserEvidence({...opts,platform:"linux"})).code,"WINDOWS_ONLY");
+ assert.equal((await attestStoryBrowserEvidence({...opts,expectedHead:OTHER})).code,
+   "PRODUCT_UAT_ORIGINAL_NOT_PASSED");
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",{
+   ...story,assertions:story.assertions.map(x=>x.id==="outline-project-continuity"
+     ?{...x,status:"FAIL"}:x),
+ });
+ assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_CHECKPOINT_FAILED");
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
+ const wrongProject={...story,assertions:story.assertions.map(x=>
+   x.id==="active-project-present-before-journey"?{...x,observed:"foreign-project"}:x)};
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",wrongProject);
+ assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_PROJECT_MISMATCH");
+ await write(prefix+"story-factory-read-only-journey/exact-head.json",story);
+ await write(".artifacts/verification-live/webmcp-live.json",{
+   ...summary,externalProviderCalls:true});
+ assert.equal((await attestStoryBrowserEvidence(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await write(".artifacts/verification-live/webmcp-live.json",summary);
+ const dirty=async(program,args)=>({stdout:args[0]==="status"?" M app/foo.ts":HEAD});
+ assert.equal((await attestStoryBrowserEvidence({...opts,runGit:dirty})).code,
+   "PRODUCT_UAT_SOURCE_CHANGED");
+ const failed=await attestStoryBrowserEvidence({...opts,sourceRequestId:"f".repeat(32)});
+ assert.equal(failed.state,"BLOCKED");
+ assert.equal(failed.independentVerification,false);
+}));
+
+test("fixed child-process verifier validates exact request and restricts output fields",async()=>{
+ const request="b".repeat(32);
+ let calls=0;
+ const privateRootPath=path.resolve(os.tmpdir(),"pp-factory-private-fixture");
+ const checkoutPath=path.resolve(os.tmpdir(),"pp-factory-main-fixture");
+ const args={expectedHead:HEAD,sourceRequestId:request,root:privateRootPath,
+   repoRoot:checkoutPath,platform:"win32",verifyHead:async()=>HEAD,
+   run:async(program,argv,options)=>{
+     calls++;
+     assert.equal(program,process.execPath);
+     assert.deepEqual(argv,["scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
+       "--source-request",request,"--head",HEAD]);
+     assert.equal(options.cwd,checkoutPath);
+     assert.equal(options.shell,false);
+     assert.equal(options.env.PLOTPICKLE_FACTORY_PRIVATE_ROOT,privateRootPath);
+     return {stdout:JSON.stringify({state:"TEST_PASSED",
+       code:"PRODUCT_UAT_EVIDENCE_ATTESTED",sourceHead:HEAD,
+       sourceRequestId:request,checkpointCount:55,
+       evidenceDigest:"a".repeat(64),projectIdentityDigest:"b".repeat(64),
+       independentVerification:false,productionStopVerified:false})};
+   }};
+ const pass=await runFactoryStoryEvidenceVerify(args);
+ assert.equal(pass.state,"TEST_PASSED");
+ assert.equal(pass.checkpointCount,55);
+ assert.equal(pass.productionStopVerified,false);
+ assert.equal(calls,1);
+ assert.equal((await runFactoryStoryEvidenceVerify({...args,platform:"linux"})).code,"WINDOWS_ONLY");
+ assert.equal((await runFactoryStoryEvidenceVerify({...args,sourceRequestId:"../../owner"})).code,
+   "PRODUCT_UAT_ATTESTATION_INVALID");
+ assert.equal(calls,1);
+ assert.equal((await runFactoryStoryEvidenceVerify({...args,
+   run:async()=>({stdout:"PRIVATE_SECRET"})})).code,"PRODUCT_UAT_VERIFIER_UNAVAILABLE");
+ assert.equal((await runFactoryStoryEvidenceVerify({...args,
+   run:async()=>({stdout:JSON.stringify({state:"TEST_PASSED",
+     code:"PRODUCT_UAT_EVIDENCE_ATTESTED",sourceHead:HEAD,
+     sourceRequestId:request,checkpointCount:55,
+     evidenceDigest:"a".repeat(64),projectIdentityDigest:"b".repeat(64),
+     independentVerification:true,productionStopVerified:false})})})).code,
+   "PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+});
+
+test("authenticated browser evidence verify is independently reserved and cannot replay",()=>privateRoot(async root=>{
+ const sourceRequestId="f".repeat(32),args={requestId:"e".repeat(32),expectedHead:HEAD,
+   suite:"factory-story-verify",sourceRequestId};
+ let runs=0;
+ const ops={testHead:async()=>HEAD,
+   storyVerify:async({sourceRequestId:source,expectedHead,root:ownerRoot})=>{
+     runs++;
+     assert.deepEqual([source,expectedHead,ownerRoot],[sourceRequestId,HEAD,root]);
+     return {state:"TEST_PASSED",code:"PRODUCT_UAT_EVIDENCE_ATTESTED",
+       sourceHead:HEAD,sourceRequestId,checkpointCount:55,
+       evidenceDigest:"a".repeat(64),projectIdentityDigest:"b".repeat(64),
+       privateSource:"C:/PRIVATE"};
+   }};
+ const send=(input,authenticated=true)=>handleRpc({jsonrpc:"2.0",id:90,
+   method:"tools/call",params:{name:"factory_run_named_test",arguments:input}},
+   {root,controlAuthenticated:authenticated,controlOps:ops});
+ assert.equal((await send(args,false)).error.code,-32001);
+ assert.equal((await send({...args,sourceRequestId:args.requestId})).error.code,-32602);
+ assert.equal((await send({...args,command:"powershell"})).error.code,-32602);
+ assert.equal((await send({...args,suite:"factory-story-uat"})).error.code,-32602);
+ assert.equal(runs,0);
+ const result=(await send(args)).result.structuredContent;
+ assert.equal(result.state,"TEST_PASSED");
+ assert.equal(result.code,"PRODUCT_UAT_EVIDENCE_ATTESTED");
+ assert.equal(result.checkpointCount,55);
+ assert.equal(result.sourceRequestId,sourceRequestId);
+ assert.equal(result.evidenceDigest,"a".repeat(64));
+ assert.equal(result.projectIdentityDigest,"b".repeat(64));
+ assert.equal(result.independentVerification,false);
+ assert.equal(JSON.stringify(result).includes("PRIVATE"),false);
+ assert.equal((await send(args)).result.structuredContent.state,
+   "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+ assert.equal(runs,1);
+ assert.deepEqual(await factoryControlReceipt({root,requestId:args.requestId}),result);
 }));

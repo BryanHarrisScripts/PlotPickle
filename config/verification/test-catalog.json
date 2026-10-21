@@ -9300,7 +9300,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "6e9116ccb85515ac40dc56a1be3c4f7e34f3817fbe3e516e0edc59ed6c6ad1a2"
+            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9344,7 +9344,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "6e9116ccb85515ac40dc56a1be3c4f7e34f3817fbe3e516e0edc59ed6c6ad1a2"
+            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
           }
         ],
         "truthRefs": [
@@ -9365,18 +9365,22 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "b5324e0fb4a4e68234412460c76085d5a0d70e70a6695a5c9f6156b39caa6f4e",
+        "targetDigest": "1d24c52fa81312343d855190d74df4645e14cb23314bb417781fd6f1d1b05c09",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "1d6fab978b6f25d178e0ea97fb82ae8f6ace8bd5affdb886621b1d9df8c28e2d"
+            "digest": "462ebece6e73f4fa9e65bf134a2df29e1c20f760edd5b1603854c90e69b7cec4"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
+            "digest": "12d3c475ef27b28f71d03edf8e23d2b66247624bcfd6731f953f4b2c6a845c3b"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "6e9116ccb85515ac40dc56a1be3c4f7e34f3817fbe3e516e0edc59ed6c6ad1a2"
+            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
           }
         ],
         "truthRefs": [

@@ -22,7 +22,7 @@ import {
 import { summarizeFactoryPiWriteEvents } from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const EXPECTED_CONTENT = "PLOTPICKLE_NATIVE_PI_WRITE_TOOL_VERIFIED\\n";
+const EXPECTED_CONTENT = "PLOTPICKLE_NATIVE_PI_WRITE_TOOL_VERIFIED\n";
 const FILE_NAME = "fixture.txt";
 const MODEL = "plotpickle-pi-ci-fixture";
 
@@ -34,7 +34,7 @@ function streamChunk(res, delta, finishReason = null) {
     model: MODEL,
     choices: [{ index: 0, delta, finish_reason: finishReason }],
   };
-  res.write(`data: ${JSON.stringify(payload)}\\n\\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
 function sendReply(res, { toolCall = false, stream = true }) {
@@ -80,7 +80,7 @@ function sendReply(res, { toolCall = false, stream = true }) {
     streamChunk(res, { role: "assistant", content: message.content });
   }
   streamChunk(res, {}, finishReason);
-  res.end("data: [DONE]\\n\\n");
+  res.end("data: [DONE]\n\n");
 }
 
 async function startMockModel() {

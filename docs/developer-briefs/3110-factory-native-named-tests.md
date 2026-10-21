@@ -162,6 +162,61 @@ capability does **not** independently wake a future ChatGPT conversation or
 turn the legacy Pi queue into a Chat-only dispatcher. Five original blocked
 worker reservations and receipts remain preserved.
 
+
+## Real owner-Windows browser UAT through the authenticated Factory control
+
+The same existing authenticated `factory_run_named_test` tool also accepts
+`suite=factory-story-uat` with a **new** 32-digit hexadecimal `requestId`
+and exact `expectedHead`. It must only execute on the owner's Windows
+machine while the old worker is stopped, with a tracked-clean exact
+`main == origin/main`. It invokes **one fixed reviewed program**:
+`node scripts/verification-webmcp-live.mjs`, never caller-controlled
+commands, paths, URLs or candidate PR source.
+
+The control first creates a detached exact-main Git worktree in the
+private per-request `mcp-story-uat/<requestId>/source` directory, with
+command-scoped Windows long-path support and disabled Git hooks. It checks
+the staged SHA and tracked cleanliness before execution, then checks them
+again after execution. Dependency installs, generated browser tooling and
+artifact files stay inside that private checkout rather than the user's
+normal source directory; uncertain or failed evidence is preserved, never
+reset, cleaned, stashed or silently replayed.
+
+The existing full live acceptance runner creates an isolated
+synthetic-Human browser/project profile, forces LOCAL Story Mode, checks
+the Mind Map/World Map and eight-stage read-only Story Factory journey,
+and attempts to clean its owned browser/server processes. It refuses
+to attach to an unowned port 4173. No paid provider, story Save/Lock,
+owner project mutation, or automatic issue merge is authorized.
+It may install pinned browser test dependencies via npm; network dependency
+downloads are not model-provider spending.
+
+A dedicated named-test-active lock and one-time reservation prevent
+concurrent MCP invocations and duplicate/replayed acceptance runs.
+An outer bounded timeout attempts owned-process-tree termination,
+does not signal arbitrary PIDs or kill an unknown port owner, and
+fails closed if STOP is uncertain.
+
+**Passing requires both process exit zero and immutable request-bound
+browser evidence**: `.artifacts/verification-live/webmcp-live.json` must
+be a bounded regular file with exactly matching `factoryUatRequestId`,
+`exactHead`, `status=pass`, read-only observer authority, `LOCAL`
+story mode, no provider spend, and `PASS` for both actual browser
+journeys. Any mismatched/stale, missing or unsafe report becomes
+`BLOCKED/PRODUCT_UAT_EVIDENCE_UNVERIFIED`. A genuine browser failure
+becomes `TEST_FAILED/PRODUCT_UAT_FAILED`, not an architecture PASS.
+No raw browser logs, local paths, project names or screenshots are
+returned over MCP. The readback receipt remains `independentVerification=false`;
+separately reviewed native evidence/STOP and exact-head independent
+CI remain necessary to close #3118 / #3110 or authorize merges.
+
+The currently known owner-Windows product defect #3123 (downstream project
+identity continuity) may still produce `TEST_FAILED`, and #3120
+resource constraints or #3121 cleanup issues may also surface.
+These are useful truthful failures and **must never be allowlisted
+as green**. Run only after explicitly authorizing this read-only
+isolated verification, not as an unattended recurrent job.
+
 ## Next slice
 
 Add an authenticated scoped exact-head build/test/UAT runner operating on an isolated staging worktree with process stop, timeout, and durable evidence; then prove a ChatGPT-authored source repair PR, independent Windows Quality gate, governed merge and Normal targeted retest. Do not switch to Pi/Cline or silently grant automatic merge authority.

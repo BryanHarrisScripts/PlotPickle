@@ -2,10 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
+import { EventEmitter } from "node:events";
 import path from "node:path";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
-  inspectFactorySyncSource,syncFactoryMain } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
+  inspectFactorySyncSource,syncFactoryMain,
+  runFactoryStoryUat,executeOwnedFactoryStoryUat,
+  stageFactoryStorySource,verifyFactoryStorySource } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 const HEAD="a".repeat(40),OTHER="b".repeat(40);
@@ -561,6 +564,196 @@ test("MCP sync reuses one authenticated tool and immutable receipt; no replay",(
  const stale=await invoke({...args,requestId:"5".repeat(32),expectedHead:OTHER});
  assert.equal(stale.result.structuredContent.code,"EXACT_HEAD_MISMATCH");
  assert.equal(executed,1);
+}));
+
+
+
+test("private browser main checkout uses exact pinned Git worktree, never owner's normal checkout",async()=>{
+ const calls=[];
+ const root=path.resolve(os.tmpdir(),"pp-uat-staging-fixture");
+ const requestId="e".repeat(32),expectedHead=HEAD;
+ const stage=path.join(root,"mcp-story-uat",requestId,"source");
+ const run=async(program,args,opts)=>{
+   assert.equal(program,"git");
+   calls.push({args,opts});
+   assert.equal(opts.env.GIT_CONFIG_KEY_0,"core.longpaths");
+   assert.equal(opts.env.GIT_CONFIG_VALUE_0,"true");
+   if(args[0]==="-c"){
+     assert.ok(args[1].startsWith("core.hooksPath="));
+     assert.deepEqual(args.slice(2),["worktree","add","--detach",stage,expectedHead]);
+     assert.equal(opts.timeout,120000);
+     return {stdout:""};
+   }
+   if(args[0]==="rev-parse")return {stdout:expectedHead};
+   if(args[0]==="status")return {stdout:""};
+   throw Error("unexpected git command");
+ };
+ const got=await stageFactoryStorySource({root,requestId,expectedHead,repoRoot:root,run});
+ assert.equal(got,stage);
+ assert.equal(calls[0].opts.cwd,root);
+ assert.equal(calls[1].opts.cwd,stage);
+ assert.equal(await verifyFactoryStorySource({stage,expectedHead,run}),true);
+ assert.ok(calls.every(x=>!x.args.includes("clean")&&!x.args.includes("reset")));
+ const dirty=async(program,args,opts)=>{
+   if(args[0]==="-c")return {stdout:""};
+   if(args[0]==="rev-parse")return {stdout:expectedHead};
+   if(args[0]==="status")return {stdout:" M app/foo.ts"};
+   throw Error("unexpected");
+ };
+ assert.equal(await stageFactoryStorySource({root,requestId,expectedHead,repoRoot:root,run:dirty}),null);
+ assert.equal(await verifyFactoryStorySource({stage,expectedHead,run:dirty}),false);
+});
+
+test("fixed Windows real browser UAT child cannot run arbitrary paths or a shell",async()=>{
+ const args=[];
+ const result=await executeOwnedFactoryStoryUat({
+   repoRoot:"C:/PlotPickle-fixture",env:{GITHUB_SHA:HEAD},
+   timeoutMs:200,launch:(program,argv,opts)=>{
+     args.push({program,argv,opts});
+     const child=new EventEmitter();
+     child.exitCode=null;child.signalCode=null;
+     queueMicrotask(()=>{child.exitCode=0;child.emit("close",0);});
+     return child;
+   },
+ });
+ assert.deepEqual(result,{exitCode:0});
+ assert.equal(args.length,1);
+ assert.equal(args[0].program,process.execPath);
+ assert.deepEqual(args[0].argv,["scripts/verification-webmcp-live.mjs"]);
+ assert.equal(args[0].opts.shell,false);
+ assert.equal(args[0].opts.cwd,"C:/PlotPickle-fixture");
+ assert.equal(args[0].opts.env.GITHUB_SHA,HEAD);
+ const timed=await executeOwnedFactoryStoryUat({
+   repoRoot:"C:/PlotPickle-fixture",env:{GITHUB_SHA:HEAD},timeoutMs:5,
+   launch:()=>{
+     const child=new EventEmitter();
+     child.pid=99999;child.exitCode=null;child.signalCode=null;
+     return child;
+   },
+   stop:async child=>{child.signalCode="SIGTERM";},
+ });
+ assert.equal(timed.timedOut,true);
+ assert.equal(timed.stopUnverified,false);
+ // The child can report a clean exit while the timeout STOP is in flight;
+ // the outer gate still must never report browser PASS.
+ let racedChild;
+ const raced=await executeOwnedFactoryStoryUat({
+   repoRoot:"C:/PlotPickle-fixture",env:{GITHUB_SHA:HEAD},timeoutMs:5,
+   launch:()=>{
+     racedChild=new EventEmitter();
+     racedChild.pid=99998;racedChild.exitCode=null;racedChild.signalCode=null;
+     return racedChild;
+   },
+   stop:async child=>{
+     child.exitCode=0;child.emit("close",0);
+   },
+ });
+ assert.equal(raced.timedOut,true);
+ assert.equal(raced.exitCode,undefined);
+});
+
+test("Story UAT receipt needs real-browser, request-correlated LOCAL-mode success",()=>privateRoot(async root=>{
+ const requestId="7".repeat(32);
+ const stage=path.join(root,"mcp-story-uat",requestId,"source");
+ const report=path.join(stage,".artifacts","verification-live","webmcp-live.json");
+ await mkdir(path.dirname(report),{recursive:true});
+ const allowed={schemaVersion:"1.0",observer:"webmcp-live",
+   status:"pass",factoryUatRequestId:requestId,exactHead:HEAD,
+   authority:"read-only-observer",externalProviderCalls:false,
+   secretsAccessed:false,
+   storyMode:{mode:"local",providerSpendAllowed:false},
+   mindWorldAcceptance:{status:"PASS"},
+   storyFactoryAcceptance:{status:"PASS",mutationAuthority:false,providerSpendAllowed:false},
+ };
+ let result={exitCode:0};
+ const evidence=async(value=allowed)=>{await writeFile(report,JSON.stringify(value));};
+ const opts={root,repoRoot:root,platform:"win32",requestId,expectedHead:HEAD,
+   verifyHead:async()=>HEAD,
+   stageMain:async({expectedHead,requestId:given,root:givenRoot,repoRoot})=>{
+     assert.equal(expectedHead,HEAD);
+     assert.equal(given,requestId);assert.equal(givenRoot,root);
+     assert.equal(repoRoot,root);
+     return stage;
+   },
+   verifyStage:async({stage:observed,expectedHead})=>{
+     assert.equal(observed,stage);assert.equal(expectedHead,HEAD);
+     return true;
+   },
+   execute:async({repoRoot,env})=>{
+     assert.equal(repoRoot,stage);
+     assert.equal(env.GITHUB_SHA,HEAD);
+     assert.equal(env.PLOTPICKLE_FACTORY_UAT_REQUEST_ID,requestId);
+     assert.ok(env.RUNNER_TEMP.endsWith(requestId));
+     assert.equal(env.PLOTPICKLE_PI_ALLOW_CLOUD,"0");
+     return result;
+   },
+ };
+ assert.equal((await runFactoryStoryUat({...opts,platform:"linux"})).code,"WINDOWS_ONLY");
+ assert.equal((await runFactoryStoryUat({...opts,requestId:"wrong"})).code,
+   "PRODUCT_UAT_SELECTION_INVALID");
+ assert.equal((await runFactoryStoryUat({...opts,verifyHead:async()=>OTHER})).code,
+   "EXACT_HEAD_MISMATCH");
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await evidence();
+ const pass=await runFactoryStoryUat(opts);
+ assert.deepEqual(pass,{state:"TEST_PASSED",code:"PRODUCT_UAT_OBSERVED_PASS",
+   sourceHead:HEAD,modelInvoked:false,issueReserved:false,
+   independentVerification:false});
+ await evidence({...allowed,factoryUatRequestId:"8".repeat(32)});
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await evidence({...allowed,storyMode:{mode:"cloud",providerSpendAllowed:true}});
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await evidence({...allowed,storyFactoryAcceptance:{status:"FAIL",mutationAuthority:false,providerSpendAllowed:false}});
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await evidence({...allowed,externalProviderCalls:true});
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_EVIDENCE_UNVERIFIED");
+ await evidence(allowed);
+ result={exitCode:1};
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_FAILED");
+ result={timedOut:true};
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_TIMEOUT");
+ result={timedOut:true,stopUnverified:true};
+ assert.equal((await runFactoryStoryUat(opts)).code,"PRODUCT_UAT_STOP_UNVERIFIED");
+ let checked=0;
+ assert.equal((await runFactoryStoryUat({...opts,
+   verifyHead:async()=>++checked===1?HEAD:OTHER})).code,"EXACT_HEAD_MISMATCH");
+ assert.equal((await runFactoryStoryUat({...opts,stageMain:async()=>null})).code,
+   "PRODUCT_UAT_STAGE_UNVERIFIED");
+ assert.equal((await runFactoryStoryUat({...opts,verifyStage:async()=>false})).code,
+   "PRODUCT_UAT_SOURCE_CHANGED");
+ assert.equal((await runFactoryStoryUat({...opts,verifyStage:async()=>{
+   throw Error("PRIVATE_OWNER_PATH");
+ }})).code,"PRODUCT_UAT_SOURCE_CHANGED");
+}));
+
+test("authenticated Story Factory browser UAT refuses unauthenticated or replayed controls",()=>privateRoot(async root=>{
+ const requestId="9".repeat(32);
+ const args={requestId,expectedHead:HEAD,suite:"factory-story-uat"};
+ let runs=0;
+ const controlOps={testHead:async()=>HEAD,
+   storyUat:async({expectedHead,root:owned,requestId:id})=>{
+     runs++;assert.equal(expectedHead,HEAD);
+     assert.equal(owned,root);assert.equal(id,requestId);
+     return {state:"TEST_FAILED",code:"PRODUCT_UAT_FAILED",sourceHead:HEAD};
+   }};
+ const rpc=(body,auth=true)=>handleRpc({jsonrpc:"2.0",id:62,
+   method:"tools/call",params:{name:"factory_run_named_test",arguments:body}},
+   {root,controlAuthenticated:auth,controlOps});
+ assert.equal((await rpc(args,false)).error.code,-32001);
+ assert.equal((await rpc({...args,arbitraryPath:"C:/owner"})).error.code,-32602);
+ assert.equal(runs,0);
+ const fail=(await rpc(args)).result.structuredContent;
+ assert.equal(fail.state,"TEST_FAILED");
+ assert.equal(fail.code,"PRODUCT_UAT_FAILED");
+ assert.equal(fail.suite,"factory-story-uat");
+ assert.equal(fail.independentVerification,false);
+ assert.equal(fail.modelInvoked,false);
+ assert.equal(fail.replayAuthorized,false);
+ assert.equal(runs,1);
+ assert.equal((await rpc(args)).result.structuredContent.state,
+   "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+ assert.deepEqual(await factoryControlReceipt({root,requestId}),fail);
+ assert.equal(runs,1);
 }));
 
 test("native lock and stale source block execution; uncertain runs never silently replay",()=>privateRoot(async root=>{

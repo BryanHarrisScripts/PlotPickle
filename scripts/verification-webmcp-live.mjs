@@ -294,6 +294,13 @@ async function writeSummary(status, details = {}) {
   await writeFile(summaryPath, `${JSON.stringify({
     schemaVersion: "1.0",
     observer: "webmcp-live",
+    // Authenticated Factory invocation binds this real-browser report to a
+    // unique private control receipt and exact checked-out commit. Ordinary
+    // CLI use leaves factoryUatRequestId null.
+    factoryUatRequestId: /^[a-f0-9]{32}$/.test(process.env.PLOTPICKLE_FACTORY_UAT_REQUEST_ID || "")
+      ? process.env.PLOTPICKLE_FACTORY_UAT_REQUEST_ID : null,
+    exactHead: /^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA || "")
+      ? process.env.GITHUB_SHA : null,
     status,
     server: serverUrl,
     authority: "read-only-observer",

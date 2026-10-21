@@ -136,6 +136,13 @@ test("physical local-model proof accepts only paired write events and exact file
   assert.equal(failed.code, "PI_WRITE_TOOL_FAILED");
   const mismatch = classifyNativePiWrite({stdout:stream([started,finished,settled]),fileContents:"Incorrect"});
   assert.equal(mismatch.code, "PI_WRITTEN_BYTES_MISMATCH");
+  const extra = classifyNativePiWrite({stdout:stream([
+    started,finished,
+    {...started,toolCallId:"two"},
+    {...finished,toolCallId:"two"},
+    settled,
+  ]),fileContents:"PLOTPICKLE_NATIVE_LOCAL_PI_WRITE_VERIFIED"});
+  assert.equal(extra.code, "PI_UNEXPECTED_WRITE_ACTIVITY");
   const success = classifyNativePiWrite({stdout:stream([started,finished,settled]),
     fileContents:"PLOTPICKLE_NATIVE_LOCAL_PI_WRITE_VERIFIED"});
   assert.equal(success.code, "PI_NATIVE_WRITE_VERIFIED");

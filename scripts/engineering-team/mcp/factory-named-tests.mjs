@@ -262,7 +262,7 @@ export async function syncFactoryMain({
   let targetHead;
   try{
     await git(["fetch","--no-tags","--no-recurse-submodules",
-      FACTORY_ORIGIN,"refs/heads/main"]);
+      "origin","refs/heads/main:refs/remotes/origin/main"]);
     targetHead=await git(["rev-parse","FETCH_HEAD"]);
   }catch{return Object.freeze({state:"BLOCKED",code:"SYNC_FETCH_FAILED",
     sourceHead:expectedHead});}

@@ -233,6 +233,22 @@ export async function factoryIssuePreview({github=createQueueGitHubClient()}={})
 
 
 /**
+ * Read-only, exact-head verification for Chat-led engineering. Separate from
+ * heartbeat; no candidate PR, queued attempt, process ownership or Windows
+ * Product UAT is established here.
+ */
+export async function factoryHostHead({verify=readFactoryVerificationHead}={}) {
+  let head=null;
+  try {head=safeSha(await verify());}catch{}
+  return Object.freeze({
+    state:head?"EXACT_CLEAN_MAIN":"NOT_VERIFIED",
+    sourceHead:head,branch:head?"main":null,
+    sourceMutationAuthorized:false,modelInvoked:false,
+    issueReserved:false,windowsUatVerified:false,
+  });
+}
+
+/**
  * #3154: authenticated, opt-in CONTROL on the existing paired host and ledger.
  * A secure tunnel must inject the owner-only HTTP header; the token is NEVER
  * a model/tool argument or an issue/comment value. Without the header the
@@ -425,6 +441,9 @@ export const MCP_TOOLS=Object.freeze([
       issueNumber:{type:"integer",minimum:1,maximum:9999999},
       attempt:{type:"integer",enum:[1,2],default:1}},
       required:["issueNumber"],additionalProperties:false}},
+  {name:"factory_host_head",title:"Verify Windows Factory checkout head",
+    description:"Read-only Git verification of a clean local main checkout at origin/main. Returns an exact SHA or NOT_VERIFIED; no source edit, Pi, queue mutation or UAT is implied.",
+    inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_issue_preview",title:"Preview eligible GitHub issues",
     description:"Read only; proposes newest-first open issues without enabling a queue or authorizing execution.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
@@ -467,7 +486,8 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
            ((args.attempt??1)===2 && args.issueNumber!==3141))
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
-      }else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
+      }else if(name==="factory_host_head")value=await factoryHostHead();
+      else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};
       return {result:{structuredContent:value,

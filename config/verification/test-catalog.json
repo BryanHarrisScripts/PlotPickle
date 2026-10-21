@@ -8969,7 +8969,7 @@
       },
       {
         "target": "tests/issue-3121-windows-live-verifier-cleanup.test.mjs",
-        "targetDigest": "b6a3e5e857b8213092705ef390930160610c75f597d27a848a515072c66f4b22",
+        "targetDigest": "3ebb7f7697418bbb87a9ad0c03a044fbd954a7c7a8307944c0a7a79b4a8d466b",
         "catalogueIds": [
           "verification.story-factory-browser-journey-3118"
         ],

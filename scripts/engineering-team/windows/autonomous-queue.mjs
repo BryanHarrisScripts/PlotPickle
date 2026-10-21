@@ -96,7 +96,7 @@ export function eligibleIssue(issue, allowed) {
   const n=Number(issue?.number);
   if(!Number.isSafeInteger(n) || !allowed.includes(n) || issue?.state !== "OPEN") return false;
   const title=String(issue?.title||"");
-  if(!title || title.length>240 || /^(?:\[ON HOLD\]|\[HOLD\]|HOLD:|\[OSS RADAR\])/i.test(title)) return false;
+  if(!title || title.length>240 || /^(?:\[ON HOLD\]|\[HOLD\]|\[BLOCKED\]|HOLD:|\[OSS RADAR\])/i.test(title)) return false;
   const labels=(issue?.labels||[]).map(l=>String(typeof l==="string"?l:l?.name||"").toLowerCase());
   return !labels.some(l=>l==="hold"||l==="on hold"||l==="factory:blocked");
 }

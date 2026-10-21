@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { observeStoryFactoryProjectSession } from "../core/sidecars/webmcp-acceptance-sidecar.mjs";
+import { observeStoryFactoryProjectSession, sessionActiveProjectId } from "../core/sidecars/webmcp-acceptance-sidecar.mjs";
 
 const ACTIVE = "plotpickle.human-profile.active.v1";
 const SESSION = "plotpickle.project-library.session-project";
@@ -37,6 +37,55 @@ async function observe(entries) {
     else globalThis.window = prior;
   }
 }
+
+async function selectedProject(entries) {
+  const data = new Map(Object.entries(entries));
+  let writes = 0;
+  const storage = {
+    getItem(key) { return data.get(key) ?? null; },
+    get length() { return data.size; },
+    key(index) { return [...data.keys()][index] ?? null; },
+    setItem() { writes += 1; throw new Error("Read-only project check cannot set values"); },
+    removeItem() { writes += 1; throw new Error("Read-only project check cannot remove values"); },
+  };
+  const original = globalThis.window;
+  globalThis.window = { sessionStorage: storage };
+  try {
+    const page = { evaluate: async (fn, args) => fn(args) };
+    const result = await sessionActiveProjectId(page);
+    assert.equal(writes, 0);
+    return result;
+  } finally {
+    if (original === undefined) delete globalThis.window;
+    else globalThis.window = original;
+  }
+}
+
+test("#3123 Story Factory journey reads only exact active-profile session key, never a foreign profile", async () => {
+  const foreign = `${SESSION}:profile_foreign_fixture`;
+  // The old prefix scan would return this first non-empty foreign selection.
+  assert.equal(await selectedProject({
+    [foreign]: EXPECTED,
+    [ACTIVE]: PROFILE,
+    [KEY]: "different-project",
+  }), "different-project");
+  assert.equal(await selectedProject({
+    [foreign]: EXPECTED,
+    [ACTIVE]: PROFILE,
+  }), null);
+  assert.equal(await selectedProject({
+    [KEY]: EXPECTED,
+  }), null);
+  assert.equal(await selectedProject({
+    [foreign]: "other-project",
+    [ACTIVE]: PROFILE,
+    [KEY]: EXPECTED,
+  }), EXPECTED);
+  assert.equal(await selectedProject({
+    [ACTIVE]: PROFILE,
+    [KEY]: "  " + EXPECTED + "  ",
+  }), EXPECTED);
+});
 
 test("#3123 confirms the actual profile-scoped current-session selection without reading private story bytes", async () => {
   const result = await observe({

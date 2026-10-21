@@ -9396,14 +9396,14 @@
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",
-        "targetDigest": "0ca4e3d61921117b4dd25a12c218a7e9d8a01e8ec8c34193c37fa93e7161d3a0",
+        "targetDigest": "000000000000000000000000000000006a6975e2bde408791f55a48d7834a12a",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/diagnostics/pi-native-write-probe.mjs",
-            "digest": "1d7f3c050e3f59b1eb49673b4645f76f24bf747ec5a535801a124dbe3bb0b764"
+            "digest": "000000000000000000000000000000009997fd1eee2a1de4491261007d94bd16"
           }
         ],
         "truthRefs": [

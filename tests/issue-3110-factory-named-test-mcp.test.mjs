@@ -235,6 +235,7 @@ test("Chat candidate stage fetches a pinned PR SHA into a separate worktree with
      return {stdout:""};
    }
    if(args[0]==="rev-parse"&&args[1]==="HEAD")return {stdout:OTHER+"\n"};
+   if(args[0]==="status"&&args[1]==="--porcelain")return {stdout:""};
    if(args[0]==="diff"&&args[1]==="--name-only")
      return {stdout:"app/index.tsx\0tests/candidate.test.mjs\0"};
    if(args[0]==="diff"&&args[1]==="--check")return {stdout:""};
@@ -287,6 +288,46 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
  const error=await stageFactoryCandidatePr({...base,requestId:"a".repeat(32),run:errorRun});
  assert.equal(error.code,"CANDIDATE_STAGE_UNVERIFIED");
  assert.equal(JSON.stringify(error).includes("PRIVATE"),false);
+}));
+
+test("staged candidate must be clean before and after remote identity recheck",()=>privateRoot(async root=>{
+  const info={number:3193,state:"OPEN",baseRefName:"main",
+    baseRefOid:HEAD,headRefOid:OTHER};
+  const build=(requestId,statuses)=>{
+    let statusIndex=0,checkedDiff=0,prChecks=0;
+    const run=async(program,args)=>{
+      if(program==="gh"){prChecks++;return {stdout:JSON.stringify(info)};}
+      if(args[0]==="fetch"||args[0]==="-c")return {stdout:""};
+      if(args[0]==="rev-parse")return {stdout:OTHER};
+      if(args[0]==="status"){
+        assert.deepEqual(args,["status","--porcelain","--untracked-files=normal",
+          "--ignore-submodules=none"]);
+        return {stdout:statuses[statusIndex++]||""};
+      }
+      if(args[0]==="diff"){
+        checkedDiff++;
+        return {stdout:args[1]==="--name-only"?"src/repaired.mjs\0":""};
+      }
+      throw Error("unexpected candidate staging command");
+    };
+    return {requestId,run,stats:()=>({statusIndex,checkedDiff,prChecks})};
+  };
+  const base={prNumber:3193,candidateHead:OTHER,expectedHead:HEAD,root,
+    platform:"win32",verifyHead:async()=>HEAD};
+  const first=build("c".repeat(32),[" M src/repaired.mjs"]);
+  const dirty=await stageFactoryCandidatePr({...base,...first});
+  assert.equal(dirty.code,"CANDIDATE_STAGE_DIRTY");
+  assert.equal(dirty.state,"BLOCKED");
+  assert.equal(first.stats().statusIndex,1);
+  assert.equal(first.stats().checkedDiff,0);
+  const late=build("d".repeat(32),["","?? new-untrusted-file.js"]);
+  const raced=await stageFactoryCandidatePr({...base,...late});
+  assert.equal(raced.code,"CANDIDATE_STAGE_DIRTY");
+  assert.equal(raced.state,"BLOCKED");
+  assert.equal(late.stats().statusIndex,2);
+  assert.equal(late.stats().checkedDiff,2);
+  assert.equal(late.stats().prChecks,2);
+  assert.equal(JSON.stringify([dirty,raced]).includes("src/repaired"),false);
 }));
 
 test("authenticated existing tool writes one static-candidate-stage receipt and refuses replay",()=>privateRoot(async root=>{

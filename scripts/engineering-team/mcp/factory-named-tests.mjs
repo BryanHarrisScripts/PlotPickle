@@ -126,7 +126,13 @@ export async function stageFactoryCandidatePr({
   }
   const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
     ...GIT_OPTIONS,cwd,timeout,
-    env:{...process.env,GIT_LFS_SKIP_SMUDGE:"1",GIT_TERMINAL_PROMPT:"0"},
+    env:{
+      ...process.env,GIT_LFS_SKIP_SMUDGE:"1",GIT_TERMINAL_PROMPT:"0",
+      // Command-scope Git for Windows long path support. It applies to
+      // checkout AND status/diff; never modify the user's local/global config.
+      GIT_CONFIG_COUNT:"1",GIT_CONFIG_KEY_0:"core.longpaths",
+      GIT_CONFIG_VALUE_0:"true",
+    },
   }))?.stdout||"").trim();
   // Report only the bounded failing command class, never raw exceptions.
   let failureCode="CANDIDATE_STAGE_FETCH_FAILED";

@@ -144,6 +144,12 @@ export async function stageFactoryCandidatePr({
     const checked=await read(["rev-parse","HEAD"],stage);
     if(checked!==candidateHead)
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_MISMATCH",sourceHead:expectedHead});
+    // The commit hash alone does not prove a clean staged worktree. Checkout
+    // filters or external processes may alter files without moving HEAD.
+    const stageStatus=await read(["status","--porcelain","--untracked-files=normal",
+      "--ignore-submodules=none"],stage);
+    if(stageStatus!=="")
+      return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_DIRTY",sourceHead:expectedHead});
     const diff=await read(["diff","--name-only","--no-renames","-z",
       expectedHead,candidateHead]);
     const fileCount=diff?diff.split("\0").filter(Boolean).length:0;
@@ -158,6 +164,11 @@ export async function stageFactoryCandidatePr({
     if(finalIdentity?.code!=="CANDIDATE_HEAD_VERIFIED"||
        finalIdentity?.state!=="TEST_PASSED")
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_CHANGED_DURING_STAGE",sourceHead:expectedHead});
+    // Prevent a race between the initial staged check and final attestation.
+    const finalStageStatus=await read(["status","--porcelain","--untracked-files=normal",
+      "--ignore-submodules=none"],stage);
+    if(finalStageStatus!=="")
+      return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_DIRTY",sourceHead:expectedHead});
     return Object.freeze({
       state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
       sourceHead:expectedHead,candidateHead,candidatePrNumber:prNumber,

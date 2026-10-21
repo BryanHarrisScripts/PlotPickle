@@ -169,6 +169,11 @@ export async function stageFactoryCandidatePr({
       "--ignore-submodules=none"],stage);
     if(finalStageStatus!=="")
       return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_DIRTY",sourceHead:expectedHead});
+    // A reset can move a worktree to a different clean commit between checks.
+    // Reattest the exact staged commit at the final evidence boundary.
+    const finalStageHead=await read(["rev-parse","HEAD"],stage);
+    if(finalStageHead!==candidateHead)
+      return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_MISMATCH",sourceHead:expectedHead});
     return Object.freeze({
       state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
       sourceHead:expectedHead,candidateHead,candidatePrNumber:prNumber,

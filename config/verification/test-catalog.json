@@ -9364,14 +9364,14 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "288bfae38e070457b95a1a10c954d54f1791fb3b929158c459667eb9bad241e4",
+        "targetDigest": "6ec18ac4cb34cbe91a8bf52bd87a1431a0b44ff348f34216ae872f6d7817f89b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "98115c40ec786d53f4c63bf6dff839db2afaca09df4e8b88bf2446d2465eafdc"
+            "digest": "87026936812a30c484af7cce31dfd6b412b346160e6eb0e82298c6aa734894eb"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

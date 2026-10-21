@@ -6536,7 +6536,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "34fbf95cad8c9f54a084f4d6423488aa171bcef6ae5704e8f547461d2a4c3da5"
+            "digest": "e8f2e17f33a73cd6db72af3c42fd2394ad697c98624ad2b87afdb1a26ac095cf"
           }
         ]
       },
@@ -7346,7 +7346,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
+            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -7370,7 +7370,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "34fbf95cad8c9f54a084f4d6423488aa171bcef6ae5704e8f547461d2a4c3da5"
+            "digest": "e8f2e17f33a73cd6db72af3c42fd2394ad697c98624ad2b87afdb1a26ac095cf"
           }
         ]
       },
@@ -7454,7 +7454,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
+            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -8315,7 +8315,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "b52d364951e9d2cbf3c68669b2db6dc54009a248097233fa93bd6da6ed2bc0b3"
+            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
           },
           {
             "path": "config/third-party-oss.json",

@@ -55,6 +55,8 @@ export function classifyNativePiWrite({ stdout, fileContents } = {}) {
     return Object.freeze({ code: "PI_WRITE_TOOL_NOT_OBSERVED", ...counts });
   if (!events.writeSucceeded)
     return Object.freeze({ code: "PI_WRITE_TOOL_FAILED", ...counts });
+  if (events.writeStarted !== 1 || events.writeSucceeded !== 1 || events.writeFailed !== 0)
+    return Object.freeze({ code: "PI_UNEXPECTED_WRITE_ACTIVITY", ...counts });
   if (fileContents !== EXPECTED)
     return Object.freeze({ code: "PI_WRITTEN_BYTES_MISMATCH", ...counts });
   return Object.freeze({ code: "PI_NATIVE_WRITE_VERIFIED", ...counts });
@@ -132,9 +134,9 @@ async function runPhysicalPiDiagnostic() {
       code: passed ? "PI_NATIVE_DUAL_ROUTE_VERIFIED" : "PI_NATIVE_ROUTE_DIFFERENTIAL",
       modelRoute: "LOOPBACK_ONLY", managedPiVersion: managed.version,
       factoryPiDiscovery: legacy.discoveryMethod,
-      factoryPiVersion: String(legacy.version || "").slice(0, 64),
+      factoryPiVersion: String(legacy.version || "").match(/\\b\\d+\\.\\d+\\.\\d+\\b/)?.[0] || "UNKNOWN",
       workbench: direct, factory,
-      modelInvoked: true, sourceModified: false,
+      modelInvoked: true, sourceMutationAuthorized: false,
       issueReserved: false, automaticMergeEnabled: false,
     });
   } finally {

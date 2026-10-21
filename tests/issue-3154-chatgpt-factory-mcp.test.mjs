@@ -131,6 +131,7 @@ test("read-only newest-first preview cannot enable queues or dispatch jobs",asyn
     calls++;return [
       {number:3142,state:"OPEN",title:"C",labels:[]},
       {number:3148,state:"OPEN",title:"B",labels:[]},
+      {number:3153,state:"OPEN",title:"[BLOCKED] no Chat-only dispatcher",labels:[]},
       {number:3141,state:"OPEN",title:"A",labels:[]},
       {number:3100,state:"OPEN",title:"[HOLD] skip",labels:[]},
     ];

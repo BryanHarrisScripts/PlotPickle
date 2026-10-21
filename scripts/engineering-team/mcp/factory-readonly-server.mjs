@@ -239,7 +239,7 @@ export async function factoryIssuePreview({github=createQueueGitHubClient()}={})
  */
 export async function factoryHostHead({verify=readFactoryVerificationHead}={}) {
   let head=null;
-  try {head=safeSha(await verify());}catch{}
+  try {head=safeSha(await verify());}catch{head=null;}
   return Object.freeze({
     state:head?"EXACT_CLEAN_MAIN":"NOT_VERIFIED",
     sourceHead:head,branch:head?"main":null,

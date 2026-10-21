@@ -869,16 +869,18 @@ test("separate browser verifier reads existing immutable 55-checkpoint artifacts
 test("fixed child-process verifier validates exact request and restricts output fields",async()=>{
  const request="b".repeat(32);
  let calls=0;
- const args={expectedHead:HEAD,sourceRequestId:request,root:"C:/private-factory",
-   repoRoot:"C:/PlotPickle",platform:"win32",verifyHead:async()=>HEAD,
+ const privateRootPath=path.resolve(os.tmpdir(),"pp-factory-private-fixture");
+ const checkoutPath=path.resolve(os.tmpdir(),"pp-factory-main-fixture");
+ const args={expectedHead:HEAD,sourceRequestId:request,root:privateRootPath,
+   repoRoot:checkoutPath,platform:"win32",verifyHead:async()=>HEAD,
    run:async(program,argv,options)=>{
      calls++;
      assert.equal(program,process.execPath);
      assert.deepEqual(argv,["scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
        "--source-request",request,"--head",HEAD]);
-     assert.equal(options.cwd,"C:/PlotPickle");
+     assert.equal(options.cwd,checkoutPath);
      assert.equal(options.shell,false);
-     assert.equal(options.env.PLOTPICKLE_FACTORY_PRIVATE_ROOT,"C:/private-factory");
+     assert.equal(options.env.PLOTPICKLE_FACTORY_PRIVATE_ROOT,privateRootPath);
      return {stdout:JSON.stringify({state:"TEST_PASSED",
        code:"PRODUCT_UAT_EVIDENCE_ATTESTED",sourceHead:HEAD,
        sourceRequestId:request,checkpointCount:55,

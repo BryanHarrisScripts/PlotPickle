@@ -52,7 +52,7 @@ async function seed(root) {
 }
 test("fixed private Factory root and read-only annotations",()=>{
   assert.equal(privateFactoryRoot({LOCALAPPDATA:"C:\\Temp"},"win32"),path.join("C:\\Temp","PlotPickle","engineering-team","autonomous-queue"));
-  assert.deepEqual(MCP_TOOLS.map(x=>x.name),["factory_status","factory_observer","factory_evidence","factory_host_head","factory_issue_preview"]);
+  assert.deepEqual(MCP_TOOLS.map(x=>x.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
   assert.equal(MCP_TOOLS.every(x=>x.annotations.readOnlyHint===true &&
     x.annotations.destructiveHint===false),true);
   assert.equal(MCP_TOOLS.filter(x=>x.annotations.openWorldHint).length,1);
@@ -72,6 +72,9 @@ test("private receipts are sanitized and earliest failed attempts stay intact",(
   assert.equal(status.lastOutcome.phase,"RUN_LOCAL_PI");
   assert.equal(status.lastOutcome.issueNumber,3141);
   assert.equal(status.lastOutcome.attempt,2);
+  assert.ok(["EXACT_CLEAN_MAIN","NOT_VERIFIED"].includes(status.hostRevision.state));
+  assert.equal(status.hostRevision.sourceMutationAuthorized,false);
+  assert.equal(status.hostRevision.issueReserved,false);
   const first=await factoryEvidence({root,issueNumber:3141,attempt:1});
   const second=await factoryEvidence({root,issueNumber:3141,attempt:2});
   assert.equal(first.record.sourceHead,OLD);
@@ -152,13 +155,25 @@ test("Chat-driven Factory host checkout reports exact clean main, never trusting
    assert.equal(JSON.stringify(denied).includes("PRIVATE"),false);
  }
 });
+test("factory status provides exact verified local Git SHA within stable launcher tool catalog",()=>sandbox(async root=>{
+  await seed(root);
+  const accepted=await factoryStatus({root,now:()=>4000,verifyHead:async()=>OLD});
+  assert.equal(accepted.hostRevision.state,"EXACT_CLEAN_MAIN");
+  assert.equal(accepted.hostRevision.sourceHead,OLD);
+  const uncertain=await factoryStatus({root,now:()=>4000,verifyHead:async()=>{throw Error("SECRET");}});
+  assert.equal(uncertain.hostRevision.state,"NOT_VERIFIED");
+  assert.equal(uncertain.hostRevision.sourceHead,null);
+  assert.equal(JSON.stringify(uncertain).includes("SECRET"),false);
+  assert.deepEqual(MCP_TOOLS.map(t=>t.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
+  assert.equal(MCP_CONTROL_TOOLS.length,4);
+}));
 test("protocol initialization, tool schemas, denylist and malformed args fail closed",()=>sandbox(async root=>{
   await seed(root);
   const init=await executeMcpRequest({jsonrpc:"2.0",method:"initialize",id:1});
   assert.equal(init.result.serverInfo.name,"plotpickle-factory-readonly");
   assert.equal(init.result.capabilities.tools.listChanged,false);
   const listed=await executeMcpRequest({jsonrpc:"2.0",method:"tools/list",id:2});
-  assert.equal(listed.result.tools.length,5);
+  assert.equal(listed.result.tools.length,4);
   const request=(name,args)=>handleRpc({jsonrpc:"2.0",id:3,method:"tools/call",params:{name,arguments:args}},{root,now:()=>4000});
   assert.equal((await request("factory_status",{})).result.structuredContent.lastOutcome.phase,"RUN_LOCAL_PI");
   assert.equal((await request("factory_evidence",{issueNumber:3141,attempt:2})).result.structuredContent.record.attempt,2);
@@ -173,8 +188,7 @@ test("protocol initialization, tool schemas, denylist and malformed args fail cl
   }
   assert.equal((await request("factory_host_head",{shell:"git reset --hard"})).error.code,-32602);
   const host=await request("factory_host_head",{});
-  assert.ok(["EXACT_CLEAN_MAIN","NOT_VERIFIED"].includes(host.result.structuredContent.state));
-  assert.equal(host.result.structuredContent.sourceMutationAuthorized,false);
+  assert.equal(host.error.code,-32601);
   assert.equal((await request("factory_status",{shell:"rm -rf"})).error.code,-32602);
   assert.equal(await handleRpc({jsonrpc:"2.0",method:"notifications/initialized"}),null);
   assert.equal(await handleRpc({jsonrpc:"2.0",method:"tools/call",params:{name:"factory_status"}}),null);
@@ -195,7 +209,7 @@ test("loopback MCP HTTP transport completes actual JSON-RPC handshake, rejects e
     assert.equal(init.status,200);
     assert.equal((await init.json()).result.protocolVersion,"2025-06-18");
     const tools=await post({jsonrpc:"2.0",id:2,method:"tools/list"});
-    assert.equal((await tools.json()).result.tools.length,5);
+    assert.equal((await tools.json()).result.tools.length,4);
     const status=await post({jsonrpc:"2.0",id:3,method:"tools/call",params:{
       name:"factory_status",arguments:{}}});
     assert.equal((await status.json()).result.structuredContent.state,"WAITING_FOR_ELIGIBLE_ISSUE");
@@ -231,7 +245,7 @@ test("stdio transport sends protocol JSON only, never startup chatter",()=>sandb
   input.end();await running;
   const lines=text.trim().split("\n");
   assert.equal(lines.length,1);
-  assert.equal(JSON.parse(lines[0]).result.tools.length,5);
+  assert.equal(JSON.parse(lines[0]).result.tools.length,4);
 }));
 
 test("private dependency preflight evidence is sanitized and never grants Factory authority",()=>sandbox(async root=>{
@@ -349,9 +363,9 @@ test("MCP write tools are hidden without paired authentication and reject replay
        body:JSON.stringify({jsonrpc:"2.0",id:++seq,method:"tools/list"})});
      return (await reply.json()).result.tools.map(x=>x.name);
    };
-   assert.equal((await list()).length,5);
-   assert.equal((await list(token)).length,9);
-   assert.equal((await list("invalid")).length,5);
+   assert.equal((await list()).length,4);
+   assert.equal((await list(token)).length,8);
+   assert.equal((await list("invalid")).length,4);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);
    assert.equal((await call("factory_run_dependency_preflight",preArgs,"invalid")).error.code,-32001);

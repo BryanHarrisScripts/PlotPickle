@@ -38,6 +38,43 @@ Existing `factory_admit_issues` still targets the Pi legacy queue and MUST NOT b
 4. Repeat using a **new** request ID and `suite=factory-qa-handoff`. Compare both with GitHub exact-head CI.
 5. Document the real Windows result on issue #3110. A skipped Windows Product Gate in GitHub must not be treated as a native PASS.
 
+## Candidate PR identity handoff (2026-10-21)
+
+**First Chat-only candidate stage — metadata attestation, not candidate execution.**
+The authenticated *existing* `factory_run_named_test` operation now also accepts
+`suite=factory-pr-head` with `candidatePrNumber` (bounded integer) and
+`candidateHead` (exact 40-hex SHA), alongside `requestId` and `expectedHead`.
+There is **no ninth authenticated tool** and no new read-only public tool: the
+local untracked 4-public/8-authenticated launcher contract remains intact.
+
+After validating a clean `main` HEAD exactly matching `expectedHead`, the
+Windows bridge executes a **fixed read-only** GitHub CLI command:
+
+```text
+gh pr view <candidatePrNumber> --repo BryanHarrisScripts/PlotPickle --json number,state,baseRefName,baseRefOid,headRefOid
+```
+
+The caller cannot supply command names, flags, shell expressions, paths, or a
+remote repository. A candidate returns `TEST_PASSED/CANDIDATE_HEAD_VERIFIED`
+**only** when the PR is open, its base is `main` at the exact expected SHA,
+its reported PR number matches, and its head SHA matches the user-specified
+candidate. GitHub and local state are checked independently at that point.
+Blocked/mismatch/unavailable outcomes are sanitized, written once, and are
+never replayed using the same request ID.
+
+`factory_control_receipt` returns the exact candidate PR number and head
+**only for the verified outcome**. It always reports
+`independentVerification=false` because this is *identity* attestation, not
+a test of code quality, GUI behavior, source patch content, or authorship.
+
+The candidate source is **never checked out, built, executed, merged, or copied**
+by this stage. No Pi/Codex/API inference, paid media providers, or story files
+are touched. Next separate implementation must add isolated candidate
+worktrees and explicitly reviewed, restricted Windows Product UAT with
+candidate commit attestation, rather than declaring metadata inspection a
+product PASS. The plugin tool schema must expose the new suite/fields after
+the paired app/tunnel is refreshed; do not weaken launcher auth to make it fit.
+
 ## Next slice
 
 Add an authenticated scoped exact-head build/test/UAT runner operating on an isolated staging worktree with process stop, timeout, and durable evidence; then prove a ChatGPT-authored source repair PR, independent Windows Quality gate, governed merge and Normal targeted retest. Do not switch to Pi/Cline or silently grant automatic merge authority.

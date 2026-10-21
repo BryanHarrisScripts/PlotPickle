@@ -88,6 +88,12 @@ Stage procedure:
    Git object to match `candidateHead` before proceeding.
 3. Create detached private worktree under `chat-candidate-stages/<requestId>`,
    not the normal checkout. Disable Git checkout hooks and LFS smudge.
+   Enable Git for Windows `core.longpaths=true` using *only* the child Git
+   process's `GIT_CONFIG_COUNT/KEY/VALUE` environment overrides for
+   fetch, checkout, status, and diff. Do not alter global/local Git config
+   or Windows registry. This is necessary on owner Windows: a real
+   diagnostic full checkout failed with `PATH_LENGTH` after 4.5 seconds,
+   whereas a `--no-checkout` registration passed for the same fetched SHA.
 4. Read back staged worktree HEAD; require staged `git status --porcelain` to
    be empty (including untracked files and submodule changes); statically
    inspect 1–500 changed files

@@ -20,6 +20,7 @@ import {
   piDeveloperVirtualArgs,
 } from "../scripts/pi-worker-runtime.mjs";
 import { summarizeFactoryPiWriteEvents } from "../scripts/engineering-team/windows/autonomous-issue-coder.mjs";
+import { classifyNativePiWrite } from "../scripts/engineering-team/diagnostics/pi-native-write-probe.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EXPECTED_CONTENT = "PLOTPICKLE_NATIVE_PI_WRITE_TOOL_VERIFIED\n";
@@ -121,6 +122,25 @@ async function startMockModel() {
     async close() { await new Promise(resolve => server.close(resolve)); },
   };
 }
+
+test("physical local-model proof accepts only paired write events and exact file bytes", () => {
+  const stream = events => events.map(event => JSON.stringify(event)).join("\n");
+  const settled = {type:"agent_end",messages:[]};
+  const started = {type:"tool_execution_start",toolCallId:"one",toolName:"write"};
+  const finished = {type:"tool_execution_end",toolCallId:"one",toolName:"write",isError:false};
+  const textOnly = classifyNativePiWrite({stdout:stream([settled]),fileContents:null});
+  assert.equal(textOnly.code, "PI_WRITE_TOOL_NOT_OBSERVED");
+  const noCompletion = classifyNativePiWrite({stdout:stream([started,finished])});
+  assert.equal(noCompletion.code, "PI_WRITE_EVENTS_UNVERIFIED");
+  const failed = classifyNativePiWrite({stdout:stream([started,{...finished,isError:true},settled])});
+  assert.equal(failed.code, "PI_WRITE_TOOL_FAILED");
+  const mismatch = classifyNativePiWrite({stdout:stream([started,finished,settled]),fileContents:"Incorrect"});
+  assert.equal(mismatch.code, "PI_WRITTEN_BYTES_MISMATCH");
+  const success = classifyNativePiWrite({stdout:stream([started,finished,settled]),
+    fileContents:"PLOTPICKLE_NATIVE_LOCAL_PI_WRITE_VERIFIED"});
+  assert.equal(success.code, "PI_NATIVE_WRITE_VERIFIED");
+  assert.equal(JSON.stringify(success).includes("PLOTPICKLE_NATIVE"),false);
+});
 
 test("real managed Pi must execute a mock-model write tool rather than merely claim a fix", {
   skip: process.env.PLOTPICKLE_PI_MOCK_E2E !== "1" && "requires explicit hosted Windows fixture opt-in",

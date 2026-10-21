@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, open, readFile, rm } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import os from "node:os";
+import path from "node:path";
+import { terminateVerificationProcessTree } from "../scripts/full-verification-process.mjs";
 import test from "node:test";
 import { stopAndCleanupLiveVerifier } from "../scripts/verification-webmcp-live.mjs";
 
@@ -75,6 +80,18 @@ test("#3121 an interrupted shutdown still closes the log and retains private syn
   assert.equal(calls.includes("cleanup-home"), false);
 });
 
+test("#3121 a previously exited parent cannot certify orphaned descendant STOP, even with a free port", async () => {
+  const { child, calls, options } = fixture({ checks: [true] });
+  child.exitCode = 0;
+  const result = await stopAndCleanupLiveVerifier(options);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.failureCodes.includes("OWNED_SERVER_ALREADY_EXITED_BEFORE_STOP"));
+  assert.ok(result.failureCodes.includes("SYNTHETIC_HOME_RETAINED_UNTIL_OWNERSHIP_VERIFIED"));
+  assert.equal(calls.includes("owned-stop"), false, "do not claim a STOP after the parent already exited");
+  assert.equal(calls.includes("cleanup-home"), false, "preserve possible orphan-held files");
+  assert.equal(calls.includes("close-log"), true);
+});
+
 test("#3121 refuses synthetic-home deletion when the server log cannot be closed", async () => {
   const { calls, options } = fixture();
   options.serverLogHandle.close = async () => {
@@ -111,7 +128,15 @@ test("#3121 existing verifier keeps independent browser failure and cleanup fail
 
   assert.match(source, /await stopAndCleanupLiveVerifier\(\{ server, serverLogHandle, home, node, serverEnv \}\)/u);
   assert.match(source, /await writeSummary\("fail", \{ \.\.\.recordedDetails, cleanup \}\)/u);
-  assert.match(source, /return 1;\s*\}\s*\}\s*\}/u);
+  assert.match(source, /OWNED_SERVER_ALREADY_EXITED_BEFORE_STOP/u);
+  assert.doesNotMatch(source, /await writeSummary\("pass", recordedDetails\)/u);
+  assert.match(source, /await writeSummary\("pass", \{ \.\.\.recordedDetails, cleanup \}\)/u);
+  assert.ok(
+    source.indexOf('await writeSummary("pass", { ...recordedDetails, cleanup })') >
+      source.indexOf("const cleanup = await stopAndCleanupLiveVerifier("),
+    "PASS must be committed only after owned STOP and cleanup",
+  );
+  assert.match(source, /if \(cleanup\.status !== "pass"\)[\s\S]*?return 1;/u);
   assert.doesNotMatch(source, /server\.kill\("SIGTERM"\)/u);
 });
 
@@ -142,4 +167,103 @@ test("#3121 read-only WebMCP acceptance blocks optional media engine spawning at
   assert.match(starter.slice(psGuard, firstProcessStart), /Write-Status "acceptance-read-only"/u);
   assert.match(starter.slice(psGuard, firstProcessStart), /exit 0/u);
   assert.match(starter.slice(psGuard, firstProcessStart), /PLOTPICKLE_ACCEPTANCE_MODE -eq "1"/u);
+});
+
+async function nativeFreePort() {
+  const probe = createServer();
+  await new Promise((resolve, reject) => {
+    probe.once("error", reject);
+    probe.listen({ host: "127.0.0.1", port: 0, exclusive: true }, resolve);
+  });
+  const port = probe.address().port;
+  await new Promise((resolve, reject) => probe.close((error) => error ? reject(error) : resolve()));
+  return port;
+}
+
+async function nativePortAvailable(port) {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", (error) => error.code === "EADDRINUSE" ? resolve(false) : reject(error));
+    probe.listen({ host: "127.0.0.1", port, exclusive: true }, () => {
+      probe.close((error) => error ? reject(error) : resolve(true));
+    });
+  });
+}
+
+function nativeWaitMarker(child, marker) {
+  return new Promise((resolve, reject) => {
+    let output = "";
+    const timer = setTimeout(() => finish(new Error("Owned Windows fixture failed readiness.")), 12_000);
+    const onData = (chunk) => {
+      output += String(chunk);
+      if (output.includes(marker)) finish();
+    };
+    const onExit = () => finish(new Error("Owned Windows fixture exited before readiness."));
+    const finish = (error) => {
+      clearTimeout(timer);
+      child.stdout.off("data", onData);
+      child.off("exit", onExit);
+      if (error) reject(error);
+      else resolve();
+    };
+    child.stdout.on("data", onData);
+    child.once("exit", onExit);
+  });
+}
+
+test("#3121 Windows-native owned parent and listening descendant STOP, with unrelated sentinel survival", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_STOP_FIXTURE !== "1",
+  timeout: 45_000,
+}, async () => {
+  const port = await nativeFreePort();
+  const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-3121-native-"));
+  const handle = await open(path.join(home, "fixture.log"), "w");
+  const descendantScript = [
+    'const net=require("node:net");',
+    'net.createServer().listen(' + port + ',"127.0.0.1",()=>process.stdout.write("PORT_READY\\n"));',
+    'setInterval(()=>{},1000);',
+  ].join("\n");
+  const parentScript = [
+    'const {spawn}=require("node:child_process");',
+    'const child=spawn(process.execPath,["-e",' + JSON.stringify(descendantScript) + '],{stdio:["ignore","pipe","ignore"],windowsHide:true});',
+    'child.stdout.on("data",chunk=>{if(String(chunk).includes("PORT_READY"))process.stdout.write("OWNED_READY\\n");});',
+    'setInterval(()=>{},1000);',
+  ].join("\n");
+  const sentinel = spawn(process.execPath, ["-e",
+    'process.stdout.write("SENTINEL_READY\\n");setInterval(()=>{},1000);'], {
+    stdio: ["ignore", "pipe", "ignore"], windowsHide: true,
+  });
+  let owned = null;
+  let logClosed = false;
+  try {
+    await nativeWaitMarker(sentinel, "SENTINEL_READY");
+    owned = spawn(process.execPath, ["-e", parentScript], {
+      stdio: ["ignore", "pipe", "ignore"], windowsHide: true,
+    });
+    await nativeWaitMarker(owned, "OWNED_READY");
+    assert.equal(await nativePortAvailable(port), false, "real descendant owns listener before STOP");
+    const outcome = await stopAndCleanupLiveVerifier({
+      server: owned,
+      serverLogHandle: { close: async () => { await handle.close(); logClosed = true; } },
+      home,
+      node: process.execPath,
+      serverEnv: {},
+      probePort: () => nativePortAvailable(port),
+      cleanupHome: async () => {
+        assert.equal(logClosed, true, "log must close before synthetic-home deletion");
+        await rm(home, { recursive: true, force: true });
+      },
+    });
+    assert.equal(outcome.status, "pass", outcome.failureCodes.join(", "));
+    assert.equal(await nativePortAvailable(port), true, "owned descendant listener released");
+    assert.equal(sentinel.exitCode, null, "unrelated sentinel remains alive");
+    assert.equal(sentinel.signalCode, null);
+    await terminateVerificationProcessTree(owned); // idempotent STOP after observed exit
+    assert.equal(sentinel.exitCode, null);
+  } finally {
+    if (owned) await terminateVerificationProcessTree(owned);
+    if (!logClosed) await handle.close().catch(() => {});
+    if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+    await rm(home, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 }).catch(() => {});
+  }
 });

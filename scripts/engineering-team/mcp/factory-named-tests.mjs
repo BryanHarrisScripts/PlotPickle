@@ -488,3 +488,64 @@ export async function runFactoryNamedTest({
     code:timeout?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
     sourceHead:actual,suite});
 }
+
+/**
+ * #3118 distinct-process challenge of the ORIGINAL immutable Windows browser UAT.
+ * Cannot start a browser or edit code; only trusted current main runs the
+ * fixed evidence checker against a 32-hex prior request under the private root.
+ */
+export async function runFactoryStoryEvidenceVerify({
+  expectedHead,sourceRequestId,root,repoRoot=ROOT,
+  platform=process.platform,verifyHead=readFactoryVerificationHead,run=exec,
+}={}) {
+  if(platform!=="win32")return Object.freeze({
+    state:"BLOCKED",code:"WINDOWS_ONLY",sourceHead:null});
+  if(!SHA.test(expectedHead||"")||!/^[a-f0-9]{32}$/.test(sourceRequestId||"")||
+     typeof root!=="string"||!path.isAbsolute(root))
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_ATTESTATION_INVALID",sourceHead:null});
+  if(await verifyHead({repoRoot})!==expectedHead)
+    return Object.freeze({state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:null});
+  let result;
+  try {
+    const child=await run(process.execPath,[
+      "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
+      "--source-request",sourceRequestId,"--head",expectedHead,
+    ],{cwd:repoRoot,shell:false,windowsHide:true,encoding:"utf8",
+      timeout:90_000,maxBuffer:4096,
+      env:{...process.env,PLOTPICKLE_FACTORY_PRIVATE_ROOT:root}});
+    if(Buffer.byteLength(String(child?.stdout||""),"utf8")>4096)
+      throw Error("oversized verifier response");
+    result=JSON.parse(String(child?.stdout||""));
+  }catch {
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_VERIFIER_UNAVAILABLE",
+      sourceHead:expectedHead});
+  }
+  if(await verifyHead({repoRoot})!==expectedHead)
+    return Object.freeze({state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:null});
+  const codes=new Set(["PRODUCT_UAT_ATTESTATION_INVALID",
+    "PRODUCT_UAT_ORIGINAL_NOT_PASSED","PRODUCT_UAT_EVIDENCE_UNVERIFIED",
+    "PRODUCT_UAT_CHECKPOINT_FAILED","PRODUCT_UAT_PROJECT_MISMATCH",
+    "PRODUCT_UAT_SOURCE_CHANGED","PRODUCT_UAT_EVIDENCE_ATTESTED"]);
+  if(!codes.has(result?.code)||result?.sourceHead!==expectedHead||
+     result?.independentVerification!==false||
+     result?.productionStopVerified!==false)
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_EVIDENCE_UNVERIFIED",
+      sourceHead:expectedHead});
+  if(result.code!=="PRODUCT_UAT_EVIDENCE_ATTESTED")
+    return Object.freeze({state:"BLOCKED",code:result.code,
+      sourceHead:expectedHead});
+  if(result.state!=="TEST_PASSED"||result.sourceRequestId!==sourceRequestId||
+     !/^[a-f0-9]{64}$/.test(result.evidenceDigest||"")||
+     !/^[a-f0-9]{64}$/.test(result.projectIdentityDigest||"")||
+     !Number.isSafeInteger(result.checkpointCount)||
+     result.checkpointCount<55||result.checkpointCount>250)
+    return Object.freeze({state:"BLOCKED",code:"PRODUCT_UAT_EVIDENCE_UNVERIFIED",
+      sourceHead:expectedHead});
+  return Object.freeze({state:"TEST_PASSED",
+    code:"PRODUCT_UAT_EVIDENCE_ATTESTED",sourceHead:expectedHead,
+    sourceRequestId,evidenceDigest:result.evidenceDigest,
+    projectIdentityDigest:result.projectIdentityDigest,
+    checkpointCount:result.checkpointCount,
+    independentVerification:false,productionStopVerified:false,
+    modelInvoked:false,issueReserved:false});
+}

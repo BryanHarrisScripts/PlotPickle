@@ -22,7 +22,7 @@ import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
-  inspectFactorySyncSource,syncFactoryMain } from "./factory-named-tests.mjs";
+  inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -297,7 +297,10 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "SYNC_MAIN_NOT_CLEAN","SYNC_ORIGIN_UNVERIFIED","SYNC_FETCH_FAILED",
   "SYNC_FETCH_UNVERIFIED","SYNC_SOURCE_CHANGED","SYNC_NOT_FAST_FORWARD",
   "SYNC_MERGE_UNVERIFIED","SYNC_OUTCOME_UNVERIFIED",
-  "SOURCE_SYNCED","SOURCE_ALREADY_CURRENT"]);
+  "SOURCE_SYNCED","SOURCE_ALREADY_CURRENT",
+  "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
+  "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
+  "PRODUCT_UAT_EVIDENCE_UNVERIFIED","PRODUCT_UAT_OBSERVED_PASS"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -305,7 +308,8 @@ export function controlTokenMatches(presented,configured) {
   return a.length===b.length&&timingSafeEqual(a,b);
 }
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),
-  "factory-pr-head","factory-pr-stage","factory-sync-main"];
+  "factory-pr-head","factory-pr-stage","factory-sync-main",
+  "factory-story-uat"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -321,7 +325,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated Windows-only fixed Node suite, PR staging, or exact-main fast-forward sync. No arbitrary shell, candidate build/test execution, model calls or issue merge. Never proves Windows Product UAT.",
+    description:"Authenticated owner-Windows fixed Node tests, PR staging, main sync or isolated LOCAL synthetic-profile browser Story Factory UAT. No arbitrary shell, candidate execution, models or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -349,7 +353,7 @@ function validControlArgs(name,args) {
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
     return keys.length===3 && (allowedFactoryTestNames().includes(args.suite) ||
-      args.suite==="factory-sync-main");
+      args.suite==="factory-sync-main"||args.suite==="factory-story-uat");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -395,6 +399,7 @@ export async function factoryControlAction(name,args,{
     testHead:readFactoryVerificationHead,runTest:runFactoryNamedTest,
     inspectPr:inspectFactoryCandidatePr,stagePr:stageFactoryCandidatePr,
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
+    storyUat:runFactoryStoryUat,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -464,8 +469,11 @@ export async function factoryControlAction(name,args,{
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
-                :await ops.runTest({suite:args.suite,
-                  expectedHead:args.expectedHead,verifyHead:ops.testHead});
+                :args.suite==="factory-story-uat"
+                  ?await ops.storyUat({expectedHead:args.expectedHead,
+                    requestId:args.requestId,root,verifyHead:ops.testHead})
+                  :await ops.runTest({suite:args.suite,
+                    expectedHead:args.expectedHead,verifyHead:ops.testHead});
           outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",

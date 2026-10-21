@@ -9396,11 +9396,16 @@
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",
-        "targetDigest": "27a54551875636033764da8f2fb6781fb9fff6b6ac9ca4de39e43c7157164346",
+        "targetDigest": "0ca4e3d61921117b4dd25a12c218a7e9d8a01e8ec8c34193c37fa93e7161d3a0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
-        "inputs": [],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/diagnostics/pi-native-write-probe.mjs",
+            "digest": "1d7f3c050e3f59b1eb49673b4645f76f24bf747ec5a535801a124dbe3bb0b764"
+          }
+        ],
         "truthRefs": [
           {
             "truthId": "WHITE-PAPER-V3",
@@ -9415,7 +9420,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "GitHub-hosted Windows real pinned Pi CLI with a deterministic local mock OpenAI-compatible server. Tests tool declaration, real write/edit execution, JSONL lifecycle and exact ephemeral file bytes. Does not exercise the owner machine or a physical coding model, Semantic UAT, PR creation, Product Gate, or merges."
+        "limits": "GitHub-hosted Windows real pinned Pi CLI with a deterministic local mock OpenAI-compatible server. Tests tool declaration, real write/edit execution, JSONL lifecycle and exact ephemeral file bytes. Does not exercise the owner machine or a physical coding model, Semantic UAT, PR creation, Product Gate, or merges. New opt-in real physical-model CLI diagnostic is NOT run in CI; it writes to a disposable owner-Windows temp directory and requires explicit --local-write-once plus locally available pinned Pi and loopback model. Mock test additionally checks output classification only."
       }
     ]
   }

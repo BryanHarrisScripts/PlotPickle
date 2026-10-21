@@ -125,7 +125,8 @@ test("invalid attempts, private symlinks, malicious phase/code and corrupt recor
   const missing=await factoryStatus({root:path.join(root,"missing"),now:()=>4000});
   assert.equal(missing.state,"OFF");
 }));
-test("read-only newest-first preview cannot enable queues or dispatch jobs",async()=>{
+test("read-only newest-first preview cannot enable queues or dispatch jobs",()=>sandbox(async root=>{
+  await seed(root);
   let calls=0;
   const github={issues:async()=>{
     calls++;return [
@@ -152,7 +153,7 @@ test("read-only newest-first preview cannot enable queues or dispatch jobs",asyn
   assert.equal(corrupt.state,"QUEUE_UNVERIFIABLE");
   assert.equal(corrupt.queueModified,false);
   assert.equal(calls,1);
-});
+}));
 test("Chat-driven Factory host checkout reports exact clean main, never trusting heartbeat",async()=>{
  const exact=await factoryHostHead({verify:async()=>OLD});
  assert.deepEqual(exact,{state:"EXACT_CLEAN_MAIN",sourceHead:OLD,branch:"main",

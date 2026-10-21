@@ -74,6 +74,137 @@ async function resultFor({ cwd, invoke }) {
   return classifyNativePiWrite({ stdout: output.stdout, fileContents });
 }
 
+
+/**
+ * Probe the SAME physical local model directly using the OpenAI-compatible
+ * chat/completions tools protocol. No returned tool call is EVER executed.
+ * No prompts, response text, model arguments or private endpoint URLs are logged.
+ */
+export async function probeLocalModelToolApi({
+  runtime, request = fetch,
+} = {}) {
+  let parsed;
+  try {
+    parsed = new URL(runtime.baseUrl);
+    const hostname = parsed.hostname.replace(/^\[/, "").replace(/\]$/, "").toLowerCase();
+    if (!["127.0.0.1", "localhost", "::1"].includes(hostname) ||
+        !["http:", "https:"].includes(parsed.protocol) ||
+        parsed.username || parsed.password ||
+        !runtime.model || typeof runtime.model !== "string")
+      return { code: "LOCAL_MODEL_ROUTE_INVALID" };
+  } catch {
+    return { code: "LOCAL_MODEL_ROUTE_INVALID" };
+  }
+  const marker = "PLOTPICKLE_TOOL_API_VERIFIED";
+  const name = "plotpickle_tool_capability_probe";
+  const body = {
+    model: runtime.model,
+    messages: [
+      { role: "system", content: "Invoke the supplied function exactly once. No text answer is needed." },
+      { role: "user", content: "Call plotpickle_tool_capability_probe with marker PLOTPICKLE_TOOL_API_VERIFIED." },
+    ],
+    tools: [{
+      type: "function",
+      function: {
+        name,
+        description: "Report a fixed marker only. This function is never executed.",
+        parameters: {
+          type: "object",
+          properties: { marker: { type: "string", enum: [marker] } },
+          required: ["marker"],
+          additionalProperties: false,
+        },
+      },
+    }],
+    tool_choice: { type: "function", function: { name } },
+    stream: false,
+    max_tokens: 128,
+  };
+  let response;
+  try {
+    response = await request(
+      parsed.toString().replace(/\/$/, "") + "/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer plotpickle-local",
+        },
+        body: JSON.stringify(body),
+        redirect: "error",
+        signal: AbortSignal.timeout(90_000),
+      },
+    );
+  } catch (error) {
+    return { code: error?.name === "TimeoutError"
+      ? "LOCAL_MODEL_API_TIMEOUT" : "LOCAL_MODEL_API_UNREACHABLE" };
+  }
+  if (!response?.ok) {
+    return {
+      code: "LOCAL_TOOL_REQUEST_REJECTED",
+      httpStatus: Number.isInteger(response?.status) ? response.status : null,
+    };
+  }
+  let payload;
+  try {
+    const declaredSize = Number(response.headers?.get?.("content-length") || 0);
+    if (declaredSize > 262144) return { code: "LOCAL_MODEL_API_UNVERIFIABLE" };
+    const text = await response.text();
+    if (text.length > 262144) return { code: "LOCAL_MODEL_API_UNVERIFIABLE" };
+    payload = JSON.parse(text);
+  } catch {
+    return { code: "LOCAL_MODEL_API_UNVERIFIABLE" };
+  }
+  const message = payload?.choices?.[0]?.message;
+  const finishReason = payload?.choices?.[0]?.finish_reason;
+  const calls = Array.isArray(message?.tool_calls) ? message.tool_calls : [];
+  if (calls.length === 0)
+    return { code: "LOCAL_MODEL_RETURNED_NO_TOOL_CALL",
+      finishReason: typeof finishReason === "string"
+        ? ["stop", "tool_calls", "length", "content_filter"].includes(finishReason)
+          ? finishReason : "OTHER"
+        : "UNKNOWN" };
+  if (calls.length !== 1 || calls[0]?.type !== "function" ||
+      calls[0]?.function?.name !== name)
+    return { code: "LOCAL_MODEL_TOOL_CALL_MISMATCH", toolCallCount: calls.length };
+  let args;
+  try { args = JSON.parse(calls[0].function.arguments); }
+  catch { return { code: "LOCAL_MODEL_TOOL_ARGUMENTS_INVALID" }; }
+  if (args?.marker !== marker)
+    return { code: "LOCAL_MODEL_TOOL_ARGUMENTS_INVALID" };
+  return { code: "LOCAL_MODEL_TOOL_API_VERIFIED", toolCallCount: 1 };
+}
+
+export function classifyPiDualRoute(workbench, factory) {
+  if (workbench?.code === "PI_NATIVE_WRITE_VERIFIED" &&
+      factory?.code === "PI_NATIVE_WRITE_VERIFIED")
+    return { state: "TEST_PASSED", code: "PI_NATIVE_DUAL_ROUTE_VERIFIED" };
+  if (workbench?.code === "PI_WRITE_TOOL_NOT_OBSERVED" &&
+      factory?.code === "PI_WRITE_TOOL_NOT_OBSERVED")
+    return { state: "TEST_FAILED", code: "PI_NATIVE_SHARED_NO_WRITE" };
+  if (workbench?.code === factory?.code)
+    return { state: "TEST_FAILED", code: "PI_NATIVE_SHARED_FAILURE" };
+  return { state: "TEST_FAILED", code: "PI_NATIVE_ROUTE_DIFFERENTIAL" };
+}
+
+async function runLocalToolApiDiagnostic() {
+  if (process.platform !== "win32") return { state: "BLOCKED", code: "WINDOWS_ONLY" };
+  if (existsSync(path.join(FACTORY_PRIVATE_ROOT, "service.lock")))
+    return { state: "BLOCKED", code: "STOP_FACTORY_FIRST" };
+  let runtime;
+  try { runtime = await resolvePiLocalRuntime(); }
+  catch { return { state: "BLOCKED", code: "LOCAL_MODEL_UNAVAILABLE" }; }
+  const api = await probeLocalModelToolApi({ runtime });
+  return {
+    state: api.code === "LOCAL_MODEL_TOOL_API_VERIFIED" ? "TEST_PASSED" : "TEST_FAILED",
+    selectedModel: /^[a-z0-9_./:@+-]{1,120}$/i.test(runtime.model)
+      ? runtime.model : "REDACTED",
+    runtimeKind: ["explicit", "ollama", "lm-studio", "llama-cpp", "openai-compatible"].includes(runtime.kind)
+      ? runtime.kind : "OTHER",
+    ...api, toolExecuted: false, issueReserved: false, sourceMutationAuthorized: false,
+  };
+}
+
 async function runPhysicalPiDiagnostic() {
   if (process.platform !== "win32")
     return { state: "BLOCKED", code: "WINDOWS_ONLY" };
@@ -127,14 +258,12 @@ async function runPhysicalPiDiagnostic() {
         },
       }),
     });
-    const passed = direct.code === "PI_NATIVE_WRITE_VERIFIED" &&
-      factory.code === "PI_NATIVE_WRITE_VERIFIED";
+    const outcome = classifyPiDualRoute(direct, factory);
     return Object.freeze({
-      state: passed ? "TEST_PASSED" : "TEST_FAILED",
-      code: passed ? "PI_NATIVE_DUAL_ROUTE_VERIFIED" : "PI_NATIVE_ROUTE_DIFFERENTIAL",
+      ...outcome,
       modelRoute: "LOOPBACK_ONLY", managedPiVersion: managed.version,
       factoryPiDiscovery: legacy.discoveryMethod,
-      factoryPiVersion: String(legacy.version || "").match(/\\b\\d+\\.\\d+\\.\\d+\\b/)?.[0] || "UNKNOWN",
+      factoryPiVersion: String(legacy.version || "").match(/\b\d+\.\d+\.\d+\b/)?.[0] || "UNKNOWN",
       workbench: direct, factory,
       modelInvoked: true, sourceMutationAuthorized: false,
       issueReserved: false, automaticMergeEnabled: false,
@@ -145,9 +274,11 @@ async function runPhysicalPiDiagnostic() {
 }
 
 async function main() {
-  if (process.argv.length !== 3 || process.argv[2] !== "--local-write-once")
-    throw new Error("Explicit opt-in required: --local-write-once");
-  const result = await runPhysicalPiDiagnostic();
+  if (process.argv.length !== 3 ||
+      !["--local-write-once", "--local-tool-api-once"].includes(process.argv[2]))
+    throw new Error("Explicit opt-in required.");
+  const result = process.argv[2] === "--local-tool-api-once"
+    ? await runLocalToolApiDiagnostic() : await runPhysicalPiDiagnostic();
   process.stdout.write(JSON.stringify(result, null, 2) + "\n");
   if (result.state !== "TEST_PASSED") process.exitCode = 1;
 }

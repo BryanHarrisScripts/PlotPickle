@@ -9,7 +9,12 @@
   --gold: #d0a45b;
   --warning: #f08a4b;
   display: flex;
-  min-height: 100dvh;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  height: 100%;
+  container-type: inline-size;
   flex-direction: column;
   overflow: hidden;
   background: radial-gradient(circle at 50% -20%, rgba(53, 201, 184, 0.12), transparent 36%), var(--bg);
@@ -105,7 +110,9 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(250px, 19%) minmax(500px, 56%) minmax(290px, 25%);
+  grid-template-columns: minmax(0, 19fr) minmax(0, 56fr) minmax(0, 25fr);
+  min-width: 0;
+  width: 100%;
   min-height: 0;
   flex: 1;
   overflow: hidden;
@@ -113,6 +120,7 @@
 
 .campaignRail,
 .debriefPanel {
+  min-width: 0;
   min-height: 0;
   overflow: auto;
   background: linear-gradient(180deg, var(--panel-raised), var(--panel));
@@ -241,6 +249,7 @@
 }
 
 .duelPanel {
+  min-width: 0;
   min-height: 0;
   overflow: auto;
   padding: 28px clamp(24px, 4vw, 54px) 60px;
@@ -413,9 +422,11 @@
   margin: 0 24px 28px;
 }
 
-@media (max-width: 1050px) {
+/* An 838px PlotPickle panel can sit inside a much wider desktop viewport.
+   Break on the Wyrmwood host panel, not on the browser window. */
+@container (max-width: 1050px) {
   .workspace {
-    grid-template-columns: 240px minmax(480px, 1fr);
+    grid-template-columns: minmax(190px, 30%) minmax(0, 1fr);
   }
 
   .debriefPanel {
@@ -423,14 +434,10 @@
   }
 }
 
-@media (max-width: 760px) {
-  .screen {
-    overflow: auto;
-  }
-
+@container (max-width: 760px) {
   .workspace {
     display: block;
-    overflow: visible;
+    overflow-y: auto;
   }
 
   .campaignRail,

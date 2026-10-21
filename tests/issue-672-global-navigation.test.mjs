@@ -77,3 +77,26 @@ test("legacy standalone Settings control remains detectable while the root shell
   assert.match(anchor, /data-plotpickle-global-nav="v2"/);
   assert.match(anchor, /data-ui-continuity-shell="v1"/);
 });
+
+
+test("#2955 Wyrmwood embedded game uses host-panel container sizing without viewport-width overflow", async () => {
+  const [gameCss, hostCss, page, game] = await Promise.all([
+    read("modules/wyrmwood/ui/wyrmwood-workspace.module.css"),
+    read("app/plotpickle-workspace-shell.module.css"),
+    read("app/page.tsx"),
+    read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
+  ]);
+  // Wyrmwood can be embedded in an 838px panel inside a >1050px window.
+  // Viewport-only media queries used to leave 1040px of minimum grid columns.
+  assert.match(gameCss, /\.screen \{[\s\S]*container-type: inline-size/);
+  assert.match(gameCss, /\.workspace \{[\s\S]*grid-template-columns: minmax\(0, 19fr\) minmax\(0, 56fr\) minmax\(0, 25fr\)/);
+  assert.match(gameCss, /@container \(max-width: 1050px\) \{[\s\S]*grid-template-columns: minmax\(190px, 30%\) minmax\(0, 1fr\)/);
+  assert.match(gameCss, /@container \(max-width: 760px\) \{[\s\S]*overflow-y: auto/);
+  assert.doesNotMatch(gameCss, /grid-template-columns: 240px minmax\(480px, 1fr\)/);
+  assert.doesNotMatch(gameCss, /minmax\(500px, 56%\)/);
+  // The Matrix host remains sole primary navigation. Existing return wiring
+  // is preserved, not replaced with a second game-specific host toolbar.
+  assert.match(hostCss, /\.workspaceFrame :global\(nav\[aria-label="PlotPickle workflow and plugins"\]\) \{[\s\S]*display: none !important/);
+  assert.match(page, /activeWorkspace="wyrmwood" onNavigate=\{navigateWorkspace\}/);
+  assert.match(game, /className=\{styles\.screen\}/);
+});

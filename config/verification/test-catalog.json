@@ -1417,7 +1417,8 @@
           "tests/issue-2285-five-stage-preproduction.test.mjs",
           "tests/issue-2287-discovery-living-board.test.mjs",
           "tests/issue-2289-library-return-continuity.test.mjs",
-          "tests/issue-2360-block-visual-journey.test.mjs"
+          "tests/issue-2360-block-visual-journey.test.mjs",
+          "tests/issue-672-global-navigation.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9002,7 +9003,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "1b72849ac4b9b13954f1d442a5b266ffdf8c9ae955e5233c81fea19f7ef5b760"
+            "digest": "8ae6232d1ee8433dc63ada346a32255b6be937f9fe174733d4b98e2e5b9fc195"
           }
         ]
       },
@@ -9421,6 +9422,45 @@
           "real-boundary"
         ],
         "limits": "GitHub-hosted Windows real pinned Pi CLI with a deterministic local mock OpenAI-compatible server. Tests tool declaration, real write/edit execution, JSONL lifecycle and exact ephemeral file bytes. Does not exercise the owner machine or a physical coding model, Semantic UAT, PR creation, Product Gate, or merges. New opt-in real physical-model CLI diagnostic is NOT run in CI; it writes to a disposable owner-Windows temp directory and requires explicit --local-write-once plus locally available pinned Pi and loopback model. Mock test additionally checks output classification only. API probe is offline by default in CI and never executes any tool returned by the physical local inference server; reports bounded status only."
+      },
+      {
+        "target": "tests/issue-672-global-navigation.test.mjs",
+        "targetDigest": "612c7cac0bdc030a3583432c4d85d23fd08033af37a4bcf64557ff47e7d0c79e",
+        "catalogueIds": [
+          "experience.navigation-continuity-2249"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Source-bound CSS/container-query, Matrix host-nav and mounted Wyrmwood wiring regressions only. No real 838px Windows viewport/browser geometry or Wyrmwood Back-to-Dashboard click has been observed; #2955 remains open for physical UAT.",
+        "inputs": [
+          {
+            "path": "modules/wyrmwood/ui/wyrmwood-workspace.module.css",
+            "digest": "bac60b79199c3755e89759441f6f5f03967ac6da35e2926306dec8fc320149d7"
+          },
+          {
+            "path": "app/plotpickle-workspace-shell.module.css",
+            "digest": "29078bf81f2cce5cce0981facb6c9ff983c6d54523b785d745c00800d4eaa3d4"
+          },
+          {
+            "path": "app/page.tsx",
+            "digest": "994df3ee750b24fa4d5a02088c5b844db8858e9e8ce98023bfe5d6702a412fb7"
+          },
+          {
+            "path": "modules/wyrmwood/ui/wyrmwood-workspace.tsx",
+            "digest": "746bd305125253612e195256a4842d7a339624a7d587967249a1cbe7c4c31e1e"
+          }
+        ]
       }
     ]
   }

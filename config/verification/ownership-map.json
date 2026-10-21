@@ -157,6 +157,20 @@
       ]
     },
     {
+      "id": "wyrmwood-embedded-game-skin",
+      "classification": "production",
+      "include": [
+        "modules/wyrmwood/ui/wyrmwood-workspace.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "visual"
+      ]
+    },
+    {
       "id": "library-ui-skin",
       "classification": "production",
       "include": [

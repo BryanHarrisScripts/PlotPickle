@@ -88,9 +88,13 @@ Stage procedure:
    Git object to match `candidateHead` before proceeding.
 3. Create detached private worktree under `chat-candidate-stages/<requestId>`,
    not the normal checkout. Disable Git checkout hooks and LFS smudge.
-4. Read back staged worktree HEAD; statically inspect 1–500 changed files
+4. Read back staged worktree HEAD; require staged `git status --porcelain` to
+   be empty (including untracked files and submodule changes); statically
+   inspect 1–500 changed files
    and run `git diff --check` against the pinned base.
-5. Reverify clean main and the remote PR metadata. Record `TEST_PASSED`
+5. Reverify clean main and remote PR metadata, then recheck the staged
+   worktree's cleanliness to reject modifications during verification.
+   Record `TEST_PASSED`
    and `CANDIDATE_STATIC_STAGED` only for an exact unchanged candidate.
 
 All subprocesses are fixed `git`/`gh` invocations via `execFile` and finite

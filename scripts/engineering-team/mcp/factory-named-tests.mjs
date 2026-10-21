@@ -317,18 +317,18 @@ export async function executeOwnedFactoryStoryUat({
     });
   }catch{return {failed:true};}
   return new Promise(resolve=>{
-    let done=false;
+    let done=false,timedOut=false;
     const settle=(value)=>{if(done)return;done=true;clearTimeout(timer);resolve(value);};
     const timer=setTimeout(async()=>{
       if(done)return;
-      // The timeout never certifies STOP merely from a signal/request.
+      timedOut=true; // child closure during STOP must never become a fake PASS
       try {await stop(child,{stderr:{write(){}}});}
       catch { settle({timedOut:true,stopUnverified:true});return;}
       settle({timedOut:true,stopUnverified:
         child?.exitCode===null && child?.signalCode===null});
     },timeoutMs);
-    child.once("error",()=>settle({failed:true}));
-    child.once("close",code=>settle({exitCode:code}));
+    child.once("error",()=>{if(!timedOut)settle({failed:true});});
+    child.once("close",code=>{if(!timedOut)settle({exitCode:code});});
   });
 }
 

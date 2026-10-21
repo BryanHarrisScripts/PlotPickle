@@ -139,7 +139,7 @@ export async function factoryEvidence({root=privateFactoryRoot(),issueNumber,att
   }};
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now}={}) {
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -155,6 +155,11 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now}={})
     agentVerified:false,productGateVerified:false,
     automaticMergeEnabled:false,documentationAutoMergeEnabled:raw.documentationAutoMergeEnabled===true,
   };
+  // Preserve the established 4 public / 8 authenticated MCP tool catalog:
+  // the owner's untracked authenticated launcher verifies that contract.
+  // Surface independently checked local Git truth in ordinary status instead
+  // of adding a fifth public tool that prevents paired tunnel startup.
+  result.hostRevision=await factoryHostHead({verify:verifyHead});
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
     await privateJson(path.join(root,"dependency-preflight-result.json"),2048));
@@ -441,9 +446,6 @@ export const MCP_TOOLS=Object.freeze([
       issueNumber:{type:"integer",minimum:1,maximum:9999999},
       attempt:{type:"integer",enum:[1,2],default:1}},
       required:["issueNumber"],additionalProperties:false}},
-  {name:"factory_host_head",title:"Verify Windows Factory checkout head",
-    description:"Read-only Git verification of a clean local main checkout at origin/main. Returns an exact SHA or NOT_VERIFIED; no source edit, Pi, queue mutation or UAT is implied.",
-    inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_issue_preview",title:"Preview eligible GitHub issues",
     description:"Read only; proposes newest-first open issues without enabling a queue or authorizing execution.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
@@ -486,8 +488,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
            ((args.attempt??1)===2 && args.issueNumber!==3141))
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
-      }else if(name==="factory_host_head")value=await factoryHostHead();
-      else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
+      }else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};
       return {result:{structuredContent:value,

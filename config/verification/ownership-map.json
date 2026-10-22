@@ -1994,6 +1994,19 @@
       ]
     },
     {
+      "id": "intent-read-only-project-observation-3203",
+      "classification": "production",
+      "include": [
+        "modules/intent/model/observe-project-status.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage"
+      ]
+    },
+    {
       "id": "fframes-local-media-engine",
       "classification": "production",
       "include": [

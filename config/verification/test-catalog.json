@@ -4338,6 +4338,49 @@
         ]
       },
       "notes": "#3110 synthetic explicit consent, local kill switch, paired control poll and heartbeat only. Native Windows service persistence, real pairing, agent code generation, PR/CI automation and independent merge remain unproven."
+    },
+    {
+      "id": "story-canon.intent-read-only-project-status-3203",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3203-read-only-project-observation.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#3203 first callable isolated read-only project observation. Runtime test bundles actual TS canonical project projection and readiness, refuses wrong profile/project/revision, source absent, CLOUD/HYBRID, invalid coordinate, noncanonical structure and privacy leakage. No GUI, real user, verified persistence, independent Windows acceptance or paid provider."
     }
   ],
   "truthGovernance": {
@@ -9003,7 +9046,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "8ae6232d1ee8433dc63ada346a32255b6be937f9fe174733d4b98e2e5b9fc195"
+            "digest": "7bc995cefc4b0ba176fc6de4ed61b220e1e2d74050dde0982197e8949386dd65"
           }
         ]
       },
@@ -9463,6 +9506,42 @@
           {
             "path": "modules/wyrmwood/ui/wyrmwood-workspace.tsx",
             "digest": "746bd305125253612e195256a4842d7a339624a7d587967249a1cbe7c4c31e1e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3203-read-only-project-observation.test.mjs",
+        "targetDigest": "739611ab892a0e0998c535e8cbf2c794b15244df1f43ba046841669dcdf1d241",
+        "catalogueIds": [
+          "story-canon.intent-read-only-project-status-3203"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Runtime esbuild bundle of actual canonical projection and readiness functions with isolated synthetic Library project. Does not attest persisted profile, Browser/GUI, real owner Windows, an authenticated user, agent/model invocation, approval or paid production.",
+        "inputs": [
+          {
+            "path": "modules/intent/model/observe-project-status.ts",
+            "digest": "7318d8c2e5c56082a7fdf89563e0aeae5319149c1cd5641c2eda66fe26ed4bb2"
+          },
+          {
+            "path": "modules/plan/projections/canonical-project-outline.ts",
+            "digest": "a90d6a43b8cb2161adf25e51a05a4fc098b3fd006db5e8edaad99d0c371a963e"
+          },
+          {
+            "path": "modules/plan/outline-readiness.ts",
+            "digest": "a2a87b929afe4fe3b07a8bc64a3ba3e0614f07adc7bc9a4204c14968ca4ee033"
           }
         ]
       }

@@ -9871,7 +9871,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
-            "digest": "865c1126c480ccb4ede13bc1d0922ea7d49728d80d1925a9c6b30984a5b35288"
+            "digest": "c205c33658dc25abb8f775627b6d62b9966f7e93579245a987de692e866eca60"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",

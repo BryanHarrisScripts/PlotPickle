@@ -9349,7 +9349,7 @@
       },
       {
         "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
-        "targetDigest": "7c4241ff04c4322372c98d484a8bc3aeb2927a4979ce1424d6d983075237cd97",
+        "targetDigest": "4031bac92b75928194e16d859348b117f4262e981e8b9d234ac2cd263bab9a76",
         "catalogueIds": [
           "agent.persistent-windows-supervisor-3110"
         ],

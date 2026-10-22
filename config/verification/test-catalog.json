@@ -5794,7 +5794,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "9934037838abb8a412b431eea85c743f63ac8036ccc55ad81555ece9a5fe5470",
+        "targetDigest": "7318f634008239f3333b31999c224009f2a330e75564d93b4398d0dbf287a6fe",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -9804,7 +9804,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "632e1514fb28952cc2fa12245e122514cdf74f93c15e315643ee5edc421c4974",
+        "targetDigest": "233b4cd6504ace1091aafa8fddf9c2047166a6e783ed178847e884dd0a1e9eb4",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -10028,7 +10028,7 @@
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
-        "targetDigest": "55952f8513e5326a6a346ed8de604fcba48b7ba42dfb06cc1691004f33b5b002",
+        "targetDigest": "5d63ccdecc6fc9bb17ff7a4906ebabf8d7cdf670282003549361538e825bd52e",
         "catalogueIds": [
           "experience.reports-current-route-legacy-contract-118"
         ],

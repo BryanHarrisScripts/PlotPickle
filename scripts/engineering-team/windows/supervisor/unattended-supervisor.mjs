@@ -8,7 +8,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createHash } from "node:crypto";
-import { mkdir, lstat, open, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, lstat, open, readFile, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -70,6 +70,96 @@ export async function enableSupervisor({ appRoot = appRootDefault(), consent, pl
   await writeFile(p.enabled, JSON.stringify(record) + "\n", { flag: "wx", mode: 0o600 });
   return Object.freeze({ state: "ENABLED_NOT_RUNNING", exactSha: sha,
     sourceMutationAllowed: false, autonomousMergeAllowed: false });
+}
+
+/** Check current on-device revision without changing source or invoking an agent. */
+async function cleanMigrationCheckout(fromHead) {
+  const opts = { cwd: REPO, windowsHide: true, timeout: 10_000, maxBuffer: 4096 };
+  const command = async args => String((await exec("git", args, opts)).stdout || "").trim();
+  const [sourceHead, branch, changed, origin] = await Promise.all([
+    command(["rev-parse", "HEAD"]), command(["branch", "--show-current"]),
+    command(["status", "--porcelain", "--untracked-files=no"]),
+    command(["remote", "get-url", "origin"]),
+  ]);
+  if (!SHA.test(sourceHead) || branch !== "main" || changed) return null;
+  if (!/^(?:https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle(?:\.git)?|git@github\.com:BryanHarrisScripts\/PlotPickle(?:\.git)?)$/u.test(origin)) return null;
+  try { await command(["merge-base", "--is-ancestor", fromHead, sourceHead]); }
+  catch { return null; }
+  return Object.freeze({ sourceHead, trackedClean: true, branch: "main",
+    originVerified: true, ancestorVerified: true });
+}
+
+/**
+ * #3142: Human-authorized, one-way exact-head migration AFTER a controlled
+ * local fast-forward. Does not unlock local STOP/PAUSE, start a worker, alter
+ * advisory queue/reservations or allow any source execution.
+ */
+export async function migrateSupervisorHead({
+  appRoot = appRootDefault(), consent, platform = process.platform, fromHead,
+  checkout = cleanMigrationCheckout, paired = readWindowsGitHubPairing,
+  now = Date.now,
+} = {}) {
+  if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
+  if (!SHA.test(fromHead || "")) throw Error("MIGRATION_OLD_HEAD_REQUIRED");
+  const p = dirs(appRoot);
+  // Presence checks intentionally reject malformed locks, stop or pause markers.
+  // An uncertain owner cannot be migrated merely because parsing failed.
+  if (await existsOrdinaryFile(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
+  if (await existsOrdinaryFile(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if (await existsOrdinaryFile(p.pause)) throw Error("PAUSE_REQUEST_REQUIRES_OPERATOR_REVIEW");
+  if (!await existsOrdinaryFile(p.enabled)) throw Error("SUPERVISOR_NOT_ENABLED");
+  const enabled = await safeRead(p.enabled);
+  if (!enabled || enabled.schemaVersion !== 1 ||
+    enabled.kind !== "independent-windows-supervisor" ||
+    enabled.sourceHead !== fromHead || enabled.modelDispatchAllowed !== false ||
+    enabled.sourceMutationAllowed !== false || enabled.autonomousMergeAllowed !== false)
+    throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+  const info = await paired({ appRoot });
+  if (!info?.enabled || info.hostId !== enabled.hostId ||
+    info.authorizedActor !== enabled.authorizedActor)
+    throw Error("PAIRING_CHANGED_OR_DISABLED");
+  const previousHeartbeat = await safeRead(p.heartbeat);
+  if (!previousHeartbeat && await existsOrdinaryFile(p.heartbeat))
+    throw Error("SUPERVISOR_HEARTBEAT_UNVERIFIABLE");
+  const instant = now();
+  if (previousHeartbeat?.sourceHead === fromHead &&
+    Number.isSafeInteger(previousHeartbeat.at) &&
+    previousHeartbeat.at > instant - INTERVAL_MS * 3 &&
+    previousHeartbeat.at <= instant + 5000 &&
+    ["RUNNING", "PAUSED", "BLOCKED"].includes(previousHeartbeat.state))
+    throw Error("SUPERVISOR_MAY_STILL_BE_RUNNING");
+
+  const verified = await checkout(fromHead);
+  if (!verified || !SHA.test(verified.sourceHead || "") ||
+    verified.sourceHead === fromHead || verified.trackedClean !== true ||
+    verified.branch !== "main" || verified.originVerified !== true ||
+    verified.ancestorVerified !== true) throw Error("CLEAN_FAST_FORWARD_MAIN_REQUIRED");
+  // Recheck local identity before atomic replacement, not just before git checks.
+  if (await existsOrdinaryFile(p.lock) || await existsOrdinaryFile(p.stop) ||
+    await existsOrdinaryFile(p.pause)) throw Error("SUPERVISOR_CONTROL_CHANGED");
+  const current = await safeRead(p.enabled);
+  if (JSON.stringify(current) !== JSON.stringify(enabled))
+    throw Error("SUPERVISOR_AUTHORITY_CHANGED");
+  const archive = path.join(p.dir, "migration-" + fromHead + "-to-" + verified.sourceHead + ".json");
+  const previous = Object.freeze({ schemaVersion: 1, kind: "supervisor-revision-migration",
+    fromHead, toHead: verified.sourceHead, migratedAt: instant,
+    hostId: enabled.hostId, authorizedActor: enabled.authorizedActor,
+    priorEnabledAt: enabled.enabledAt, permissionChanged: false,
+    workerStarted: false, replayAuthorized: false,
+    autonomousMergeAllowed: false });
+  // Write-once audit entry: a failed/uncertain migration is never silently
+  // retried over the same previous evidence.
+  await writeFile(archive, JSON.stringify(previous) + "\n", { flag: "wx", mode: 0o600 });
+  const next = { ...enabled, sourceHead: verified.sourceHead,
+    lastMigrationFrom: fromHead, migratedAt: instant };
+  const temporary = path.join(p.dir, "enabled-migration-" + process.pid + "-" + instant + ".tmp");
+  try {
+    await writeFile(temporary, JSON.stringify(next) + "\n", { flag: "wx", mode: 0o600 });
+    await rename(temporary, p.enabled);
+  } finally { await rm(temporary, { force: true }).catch(() => {}); }
+  return Object.freeze({ state: "HEAD_MIGRATED_NOT_RUNNING", fromHead,
+    exactSha: verified.sourceHead, workerProcessVerified: false,
+    issueReplayed: false, sourceModified: false, automaticMergeEnabled: false });
 }
 
 export async function reenableSupervisor({ appRoot = appRootDefault(), consent, platform = process.platform,
@@ -284,22 +374,30 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
   }
 }
 function parseCli(argv) {
-  const modes = ["--enable", "--reenable", "--serve", "--status", "--disable", "--pause", "--resume"].filter(x => argv.includes(x));
+  const modes = ["--enable", "--reenable", "--serve", "--status", "--disable", "--pause", "--resume", "--migrate"].filter(x => argv.includes(x));
   if (modes.length !== 1) throw Error("SUPERVISOR_ONE_MODE_REQUIRED");
   const consentIndex = argv.indexOf("--consent");
   const allowed = ["--enable", "--reenable", "--serve", "--pause", "--resume"].includes(modes[0]);
+  if (modes[0] === "--migrate") {
+    if (argv.length !== 5 || argv[1] !== "--from" ||
+      !SHA.test(argv[2] || "") || argv[3] !== "--consent" || argv[4] !== CONSENT)
+      throw Error("MIGRATION_REQUIRES_EXPLICIT_OLD_HEAD_AND_LOCAL_CONSENT");
+    return { mode: "--migrate", fromHead: argv[2] };
+  }
   if (allowed && (argv.length !== 3 || consentIndex !== 1
     || argv[2] !== CONSENT)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   if (!allowed && argv.length !== 1) throw Error("UNSUPPORTED_SUPERVISOR_ARGS");
-  return modes[0];
+  return { mode: modes[0], fromHead: null };
 }
 async function main() {
-  const mode = parseCli(process.argv.slice(2));
+  const command = parseCli(process.argv.slice(2));
+  const mode = command.mode;
   const result = mode === "--enable" ? await enableSupervisor({ consent: CONSENT })
     : mode === "--reenable" ? await reenableSupervisor({ consent: CONSENT })
     : mode === "--serve" ? await serveSupervisor({ consent: CONSENT })
     : mode === "--pause" ? await pauseSupervisor({ consent: CONSENT })
     : mode === "--resume" ? await resumeSupervisor({ consent: CONSENT })
+    : mode === "--migrate" ? await migrateSupervisorHead({ consent: CONSENT, fromHead: command.fromHead })
     : mode === "--disable" ? await disableSupervisor() : await supervisorStatus();
   process.stdout.write(JSON.stringify(result) + "\n");
 }

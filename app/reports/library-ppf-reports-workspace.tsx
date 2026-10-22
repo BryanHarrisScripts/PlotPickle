@@ -43,7 +43,12 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, author
   return <section className={styles.workspace} aria-label="Library PPF Reports" data-reports-authority="active-library-ppf">
     <header className={styles.header}>
       <div><small>EXPLORE / REPORTS · READ ONLY</small><h1>Reports</h1><p>Evidence from the selected Human Library story—not a separate Reports database.</p></div>
-      <div className={styles.actions}><button type="button" onClick={onRefresh}>Refresh Library selection</button></div>
+      <nav className={styles.actions} aria-label="Reports navigation">
+        <a href="/skin-v1">Back to Dashboard</a>
+        <a href="/library">Library</a>
+        <a href={`/reports?section=${encodeURIComponent(section)}`}>Reload Reports</a>
+        <button type="button" onClick={onRefresh}>Refresh Library selection</button>
+      </nav>
     </header>
     {!checked ? <p role="status">Checking the current Library selection…</p>
       : !project || !report ? <div className={styles.empty} role="status" data-reports-state="no-active-library-story">

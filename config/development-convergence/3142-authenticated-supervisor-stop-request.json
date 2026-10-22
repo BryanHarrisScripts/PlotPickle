@@ -64,7 +64,7 @@
         {
           "type": "file-contains",
           "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-          "contains": "same disposable local supervisor marker as CMD"
+          "contains": "STOP through HTTP modifies the SAME disposable local supervisor marker as CMD"
         },
         {
           "type": "file-contains",

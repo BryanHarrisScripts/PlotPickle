@@ -5637,7 +5637,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "ad5c82687364870dcf70f9667aee65e754479242a62aabd945b243af5f7cdecb",
+        "targetDigest": "9934037838abb8a412b431eea85c743f63ac8036ccc55ad81555ece9a5fe5470",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -5663,17 +5663,17 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
           }
         ]
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
-        "targetDigest": "970a988fa21621a67aaabd1ea843cfafef0dbf2e093ec068517cfd274053bd50",
+        "targetDigest": "55952f8513e5326a6a346ed8de604fcba48b7ba42dfb06cc1691004f33b5b002",
         "catalogueIds": [
           "experience.reports-current-route-legacy-contract-118"
         ],
@@ -5702,11 +5702,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
           },
           {
             "path": "app/build-workspace.tsx",
@@ -9698,7 +9698,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "e825e895f89651315d4311da61439647f185f33de30d4c774b392fb201eb7136",
+        "targetDigest": "7c88d3a6fdcbea871c11cf8e5493f690e80d915badc6d176745d5b38806a628d",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9736,11 +9736,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
           }
         ]
       },

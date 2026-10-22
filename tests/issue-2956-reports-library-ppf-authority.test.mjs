@@ -126,3 +126,21 @@ test("#2956 Reports is strictly read-only for the selected story, with no altern
   assert.match(ui,/No blank legacy project has been substituted/);
   assert.match(ui,/No legacy project or placeholder has been substituted/);
 });
+
+test("#2956 Reports exposes same-tab Dashboard, Library and section-preserving Reload in every selection state", async () => {
+  const [surface, styles] = await Promise.all([
+    read("app/reports/library-ppf-reports-workspace.tsx"),
+    read("app/reports/library-ppf-reports-workspace.module.css"),
+  ]);
+  assert.match(surface, /aria-label="Reports navigation"/u);
+  assert.ok(surface.includes('<a href="/skin-v1">Back to Dashboard</a>'));
+  assert.ok(surface.includes('<a href="/library">Library</a>'));
+  assert.ok(surface.includes('href={`/reports?section=${encodeURIComponent(section)}`}'));
+  assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
+  assert.match(surface, /Reload Reports/u);
+  assert.match(surface, /Refresh Library selection/u);
+  assert.doesNotMatch(surface, /target="_blank"|window\.open\(/u);
+  assert.match(styles, /\.actions\{display:flex/u);
+  assert.match(styles, /\.actions a:focus-visible/u);
+  assert.match(styles, /\.stat\[data-hollywood-stage\] strong/u);
+});

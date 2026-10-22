@@ -7114,7 +7114,7 @@
           },
           {
             "path": "vite.config.ts",
-            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+            "digest": "124f0bff7037d03abec080ae2bf0064363f1f03bbfa6d0f33ed0c1343d02c1ac"
           },
           {
             "path": "app/collaboration-invitations.tsx",
@@ -7142,7 +7142,7 @@
           },
           {
             "path": "app/layout.tsx",
-            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
+            "digest": "cce0bbfb90823dbed7345a9fbc4ab78e66a6934b8a5677d8c6ff53b59d52b53a"
           },
           {
             "path": "package.json",
@@ -7238,7 +7238,7 @@
           },
           {
             "path": "vite.config.ts",
-            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+            "digest": "124f0bff7037d03abec080ae2bf0064363f1f03bbfa6d0f33ed0c1343d02c1ac"
           },
           {
             "path": "docs/issue-163-github-recovery-centre.md",
@@ -7302,7 +7302,7 @@
           },
           {
             "path": "vite.config.ts",
-            "digest": "5a9a14f2b9f639780a1bc7356f72cbb3fd7d6584e8dade6b6eb649dfbc8e2f6e"
+            "digest": "124f0bff7037d03abec080ae2bf0064363f1f03bbfa6d0f33ed0c1343d02c1ac"
           },
           {
             "path": "docs/issue-165-github-repository-recovery.md",
@@ -8512,7 +8512,7 @@
           },
           {
             "path": "app/layout.tsx",
-            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
+            "digest": "cce0bbfb90823dbed7345a9fbc4ab78e66a6934b8a5677d8c6ff53b59d52b53a"
           },
           {
             "path": "build/voice/local-voice-runtime.ts",
@@ -9844,18 +9844,18 @@
       },
       {
         "target": "tests/issue-3222-verified-pr-launch.test.mjs",
-        "targetDigest": "5bac5b62affd261ae90051b2e1f1adffc77d049f57be25ed82eb9efb2e4b88a5",
+        "targetDigest": "cfab2dc70be93ea8d15bdbb7ae507282ac02db71037be597b7078d5a5b63009d",
         "catalogueIds": [
           "agent.owner-app-pr-test-launch-3222"
         ],
         "inputs": [
           {
             "path": "modules/intent/model/launch-identity.mjs",
-            "digest": "2bc6d98e4020cce88caaa50747ab4c06e0e6cf9f8d135f58a7e64459b56e57e7"
+            "digest": "386b4b04c0ebaca5428186a31690600baf662237db8ff3ac3797f404d7dd7890"
           },
           {
             "path": "app/layout.tsx",
-            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
+            "digest": "cce0bbfb90823dbed7345a9fbc4ab78e66a6934b8a5677d8c6ff53b59d52b53a"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",

@@ -9392,7 +9392,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
+            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9436,7 +9436,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
+            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
           }
         ],
         "truthRefs": [
@@ -9457,14 +9457,14 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "0df6249243f58997fa8a4153be8e0f817a13c88f8cb03d1944b5266cbe90ca0c",
+        "targetDigest": "91225fa748e53a6a2bdf3d893b8b510ac1035fbd55f48cafebf4545bf3580b72",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "462ebece6e73f4fa9e65bf134a2df29e1c20f760edd5b1603854c90e69b7cec4"
+            "digest": "432dcc302b790c3fa7bb5d458765fd64576d25cfd5c300f49d49295038b721f0"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
@@ -9472,7 +9472,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "7cdcf9d8f6728e1f1d7c6d4ea075488597d9e511d51feb59e284771cae7539b1"
+            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
           }
         ],
         "truthRefs": [
@@ -9489,7 +9489,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Fixture-only authenticated MCP control, duplicate request, synthetic Windows Node test subprocess and Git dirty/stale HEAD checks. No real Windows native suite/Product Gate, scheduled ChatGPT MCP wakeup, isolated worktree source edit, autonomous merge or Normal release verified."
+        "limits": "Runtime synthetic exact pinned worktree stage, allowlisted Git-error classification, browser-denial on staging failure, and immutable authenticated MCP receipt scrub against private path injection. No on-owner Windows root-cause, actual browser run, STOP/tree proof, or authorized cleanup."
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",

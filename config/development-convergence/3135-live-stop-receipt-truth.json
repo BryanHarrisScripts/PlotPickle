@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 3135,
-  "phase": "honest-remote-stop-outcome-before-live-process-proof",
+  "phase": "owned-child-tree-stop-with-native-fixture-and-honest-remote-receipts",
   "brief": "docs/developer-briefs/3135-live-stop-receipt-truth.md",
   "allowedChanges": [
     "scripts/windows-uat-control.mjs",
@@ -10,7 +10,8 @@
     "tests/issue-3110-authenticated-windows-control.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3135-live-stop-receipt-truth.md",
-    "config/development-convergence/3135-live-stop-receipt-truth.json"
+    "config/development-convergence/3135-live-stop-receipt-truth.json",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {
@@ -76,11 +77,43 @@
           "contains": "mergeEligible: false"
         }
       ]
+    },
+    {
+      "id": "WORKER-OWNED-TREE-STOP",
+      "criterion": "Local Windows UAT worker terminates only its own child process tree, retains separate descendant-unproven receipt, and never promotes failed STOP or timeout into cancellation success.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/windows-uat-control.mjs",
+          "contains": "await stopOwnedTree(child)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "OWNED_TREE_STOP_FAILED"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-SENTINEL-PROOF",
+      "criterion": "Impact-selected exact-head Windows native fixture observes running child/descendant before requesting STOP, released listener and unrelated sentinel survival afterward; still not paired-host proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "PLOTPICKLE_NATIVE_UAT_STOP_FIXTURE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-windows-uat-control.test.mjs",
+          "contains": "native Windows live worker STOP terminates owned listening descendant"
+        }
+      ]
     }
   ],
   "constraints": [
     "No generic PID-kill endpoint, shell command, fixture-mode remote execution, new paid provider or story mutation.",
     "No automatic polling, permit expansion, automatic UAT slowing, or weakening W8/W9 original tests.",
-    "Native owned process tree and sentinel proof remain explicitly unproven until a separate Windows on-host fixture and real receipts."
+    "Native CI fixture proof must not be reported as the independently observed paired-owner-host live cancellation, which remains open until scoped receipts exist."
   ]
 }

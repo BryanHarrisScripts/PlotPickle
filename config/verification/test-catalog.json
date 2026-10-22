@@ -6537,7 +6537,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "d517d4b0b517d1552a295df1a9e8040ca1a48634beb7520a829b79d536311936"
+            "digest": "64cc59011105277c1ab4a92836a2f9aecc4b9c8a5b8714200e4fdacbc07233af"
           }
         ]
       },
@@ -7371,7 +7371,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "d517d4b0b517d1552a295df1a9e8040ca1a48634beb7520a829b79d536311936"
+            "digest": "64cc59011105277c1ab4a92836a2f9aecc4b9c8a5b8714200e4fdacbc07233af"
           }
         ]
       },
@@ -8785,7 +8785,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "41a038b665003c416728ffe444e6e98debb33360816d747c0c9761534d5a3433",
+        "targetDigest": "69413c96da98dc221a586702b99ffb018a7300ece1152f396fe1f71300b9b8a9",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -8803,11 +8803,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic temporary private filesystem and stubbed child process tests, not a native Windows runner or authorized remote software-factory control loop.",
+        "limits": "Synthetic private fixture and failure/time-budget contracts plus opt-in exact-head native Windows UAT worker + listening descendant + unrelated sentinel STOP proof on CI. Does not attest actual paired-owner-host transport, native on-device production task STOP, unknown orphan process elimination, model work, or merge eligibility.",
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
+            "digest": "e87c29f3ef5fcf693fb7ec65963cf328dba8c8485943b54a225443ee8243c365"
           }
         ]
       },
@@ -8839,7 +8839,7 @@
           },
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
+            "digest": "e87c29f3ef5fcf693fb7ec65963cf328dba8c8485943b54a225443ee8243c365"
           }
         ]
       },
@@ -8867,7 +8867,7 @@
         "inputs": [
           {
             "path": "scripts/windows-uat-control.mjs",
-            "digest": "ee3f95a59f8fbc3a1db5111c79136d3bdb4e41fb7ce8dced04608195205cbb8f"
+            "digest": "e87c29f3ef5fcf693fb7ec65963cf328dba8c8485943b54a225443ee8243c365"
           },
           {
             "path": "package.json",

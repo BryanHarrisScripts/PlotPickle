@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { spawn, execFileSync } from "node:child_process";
+import { createServer } from "node:net";
+import { terminateVerificationProcessTree } from "../scripts/full-verification-process.mjs";
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -28,6 +31,13 @@ async function reserve(root, cfg=config()) {
 function childFixture(callback) {
   const emitter = new EventEmitter();
   emitter.pid = 3210;
+  emitter.exitCode = null;
+  emitter.signalCode = null;
+  emitter.once("exit", (code, signal) => {
+    emitter.exitCode = typeof code === "number" ? code : null;
+    emitter.signalCode = signal || (code === null ? "SIGTERM" : null);
+    queueMicrotask(() => emitter.emit("close", code, signal));
+  });
   emitter.kill = (_signal) => { queueMicrotask(() => emitter.emit("exit",null)); return true; };
   queueMicrotask(() => callback(emitter));
   return emitter;
@@ -162,4 +172,125 @@ test("scope symlinks and stale SHA remain blocked; no production project files t
   await assert.rejects(startWindowsUat(config(),{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),launch:workerStub}),
     /private ordinary directory/);
   await assert.rejects(statusWindowsUat(scope,{appRoot:root}),/private ordinary directory/);
+}));
+
+test("#3135 STOP failures cannot publish cancellation or silently claim descendant termination", () => sandbox(async root => {
+  const scope = await reserve(root);
+  const running = driveWindowsUat(scope, {
+    appRoot: root, inspect: checkout, preflight: () => ({ ready: true }), pollMs: 5,
+    launch: () => childFixture(() => {}),
+    stopOwnedTree: async () => { throw new Error("disposable fixture STOP failure"); },
+  });
+  await new Promise(resolve => setTimeout(resolve, 40));
+  assert.equal((await requestStopWindowsUat(scope, { appRoot: root })).state, "stop-requested");
+  const outcome = await running;
+  assert.equal(outcome.state, "blocked");
+  assert.equal(outcome.cancellationAcknowledged, false);
+  assert.equal(outcome.ownedDescendantsVerifiedGone, false);
+  const record = JSON.parse(await readFile(path.join(controlFolder(root, scope), "terminal.json"), "utf8"));
+  assert.equal(record.code, "OWNED_TREE_STOP_FAILED");
+}));
+
+test("#3135 worker timeout must remain BLOCKED even when owned child exits after STOP", () => sandbox(async root => {
+  const scope = await reserve(root);
+  let stopCalls = 0;
+  const result = await driveWindowsUat(scope, {
+    appRoot: root, inspect: checkout, preflight: () => ({ ready: true }),
+    maxDurationMs: -1, pollMs: 5,
+    launch: () => childFixture(() => {}),
+    stopOwnedTree: async child => { stopCalls++; child.kill("SIGTERM"); },
+  });
+  assert.equal(stopCalls, 1);
+  assert.equal(result.state, "blocked");
+  assert.equal(result.cancellationAcknowledged, false);
+  assert.equal(result.ownedDescendantsVerifiedGone, false);
+  const terminal = JSON.parse(await readFile(path.join(controlFolder(root, scope), "terminal.json"), "utf8"));
+  assert.equal(terminal.code, "TIME_BUDGET_EXCEEDED");
+}));
+
+async function ephemeralPort() {
+  const listener = createServer();
+  await new Promise((resolve, reject) => {
+    listener.once("error", reject);
+    listener.listen(0, "127.0.0.1", resolve);
+  });
+  const port = listener.address().port;
+  await new Promise((resolve, reject) => listener.close(error => error ? reject(error) : resolve()));
+  return port;
+}
+async function portIsFree(port) {
+  return new Promise((resolve, reject) => {
+    const listener = createServer();
+    listener.once("error", error => error.code === "EADDRINUSE" ? resolve(false) : reject(error));
+    listener.listen(port, "127.0.0.1", () => {
+      listener.close(error => error ? reject(error) : resolve(true));
+    });
+  });
+}
+async function waitFor(predicate, attempts = 120, delayMs = 50) {
+  for (let i = 0; i < attempts; i++) {
+    if (await predicate()) return true;
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  return false;
+}
+
+test("#3135 native Windows live worker STOP terminates owned listening descendant, not unrelated sentinel", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_UAT_STOP_FIXTURE !== "1",
+  timeout: 45_000,
+}, () => sandbox(async root => {
+  assert.equal(
+    execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim().toLowerCase(),
+    process.env.PLOTPICKLE_PROOF_SOURCE_HEAD,
+    "native Windows fixture must execute at exact PR head",
+  );
+  const port = await ephemeralPort();
+  const scope = await reserve(root);
+  const leaf = [
+    'const net=require("node:net");',
+    'net.createServer().listen(' + port + ',"127.0.0.1");',
+    'setInterval(()=>{},1000);',
+  ].join("\n");
+  const parent = [
+    'const {spawn}=require("node:child_process");',
+    'spawn(process.execPath,["-e",' + JSON.stringify(leaf) + '],',
+    '{stdio:"ignore",shell:false,windowsHide:true});',
+    'setInterval(()=>{},1000);',
+  ].join("\n");
+  const sentinel = spawn(process.execPath, ["-e", 'setInterval(()=>{},1000)'], {
+    stdio: "ignore", shell: false, windowsHide: true,
+  });
+  let owned = null;
+  try {
+    const running = driveWindowsUat(scope, {
+      appRoot: root, inspect: checkout, preflight: () => ({ ready: true }),
+      pollMs: 25, maxDurationMs: 20_000,
+      launch: () => {
+        owned = spawn(process.execPath, ["-e", parent], {
+          stdio: "ignore", shell: false, windowsHide: true,
+        });
+        return owned;
+      },
+    });
+    const realRunning = await waitFor(async () =>
+      owned?.pid && !(await portIsFree(port))
+        && (await statusWindowsUat(scope, { appRoot: root })).state === "running-heartbeat");
+    assert.equal(realRunning, true, "worker and owned descendant must be live before STOP");
+    const request = await requestStopWindowsUat(scope, { appRoot: root });
+    assert.equal(request.state, "stop-requested");
+    assert.equal(request.stopDisposition, "STOP_REQUESTED_UNCONFIRMED");
+    assert.equal(request.ownedDescendantsVerifiedGone, false);
+    const terminal = await running;
+    assert.equal(terminal.state, "cancelled-child-exited");
+    assert.equal(terminal.childExitObserved, true);
+    assert.equal(terminal.ownedDescendantsVerifiedGone, false, "production worker cannot self-attest descendant absence");
+    assert.equal(await waitFor(() => portIsFree(port)), true, "independent listening descendant must be gone");
+    assert.equal(sentinel.exitCode, null, "unrelated sentinel remains alive");
+    assert.equal(sentinel.signalCode, null);
+    const post = await requestStopWindowsUat(scope, { appRoot: root });
+    assert.equal(post.stopDisposition, "ALREADY_TERMINAL_NOOP");
+  } finally {
+    if (owned?.exitCode === null && owned?.signalCode === null) await terminateVerificationProcessTree(owned);
+    if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+  }
 }));

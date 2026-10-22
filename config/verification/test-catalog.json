@@ -4356,7 +4356,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3203-read-only-project-observation.test.mjs"
+          "tests/issue-3203-read-only-project-observation.test.mjs",
+          "tests/issue-3203-dashboard-creator-intent.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4897,7 +4898,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+            "digest": "9c4c3dc2161ebc68e4954f75c52d61819a7896eb33e66aee372c1ed8d88fa0ca"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -6404,7 +6405,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+            "digest": "9c4c3dc2161ebc68e4954f75c52d61819a7896eb33e66aee372c1ed8d88fa0ca"
           }
         ]
       },
@@ -10073,6 +10074,46 @@
           {
             "path": "package.json",
             "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3203-dashboard-creator-intent.test.mjs",
+        "targetDigest": "cdde1200577520815bf5733205770747323d42f4e67c0c5f7e12455a9a0681c1",
+        "catalogueIds": [
+          "story-canon.intent-read-only-project-status-3203"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Deterministic intent vocabulary and static Dashboard wiring to selected PPF, read-only Reports observation and existing Library/Outline. No live user authentication, independent Windows browser, project persistence, provider execution, generated film evidence, or Human acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "9c4c3dc2161ebc68e4954f75c52d61819a7896eb33e66aee372c1ed8d88fa0ca"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+          },
+          {
+            "path": "app/skin-v1/continue-this-film.tsx",
+            "digest": "551dfb9b372114843c3b32c8e9521d196f2f1ca217f3130f38addfac2ef1a180"
+          },
+          {
+            "path": "modules/intent/model/read-only-creator-intent.ts",
+            "digest": "022bf1d552ae4cd2c828bb4b53535fcfe50497b868e4d941dd9af6c8b80be0a3"
           }
         ]
       }

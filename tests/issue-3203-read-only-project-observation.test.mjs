@@ -145,7 +145,7 @@ test("#3203 ten Hollywood stages report retained PPF evidence without film certi
   assert.equal(result.modelCalled, false);
   assert.equal(result.paidGenerationPermitted, false);
   assert.deepEqual(JSON.stringify(project), before);
-  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_SOURCE_NEVER_EXPOSE_3203|SECRET_TITLE_DO_NOT_RENDER|private\\.fountain|sk-test/i);
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_SOURCE_NEVER_EXPOSE_3203|SECRET_TITLE_DO_NOT_RENDER|private\.fountain|sk-test/i);
 });
 
 test("#3203 ten-stage projection rejects stale/cross-profile/cross-story and missing source without fallback", async () => {
@@ -179,15 +179,15 @@ test("#3203 real Reports Production GUI invokes the same headless read-only capa
     read("app/reports/page.tsx"), read("app/reports/library-ppf-reports-workspace.tsx"),
     read("modules/intent/model/hollywood-production-readiness.ts"),
   ]);
-  assert.match(page, /sessionActiveProjectId\\(\\)/u);
-  assert.match(page, /profilePrivateBrowserReadyFor\\(profileId\\)/u);
+  assert.match(page, /sessionActiveProjectId\(\)/u);
+  assert.match(page, /profilePrivateBrowserReadyFor\(profileId\)/u);
   assert.match(page, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
-  assert.match(workspace, /observeHollywoodProductionReadiness\\(\\{/u);
+  assert.match(workspace, /observeHollywoodProductionReadiness\(\{/u);
   assert.match(workspace, /projectId: selectedId/u);
-  assert.match(workspace, /projectRevision: project\\.revision/u);
+  assert.match(workspace, /projectRevision: project\.revision/u);
   assert.match(workspace, /providerPolicy: "LOCAL_READ_ONLY"/u);
   assert.match(workspace, /data-hollywood-stage-count/u);
-  assert.match(workspace, /stage\\.filmStageVerified|stage\\.state/u);
-  assert.doesNotMatch(workspace, /saveActiveLibraryProject\\(|Save & Lock.*onClick|authenticatedComputeFetch\\(/u);
-  assert.doesNotMatch(model, /fetch\\(|localStorage|sessionStorage|writeFile|spawn\\(|paidGenerationPermitted: true/u);
+  assert.match(workspace, /stage\.filmStageVerified|stage\.state/u);
+  assert.doesNotMatch(workspace, /saveActiveLibraryProject\(|Save & Lock.*onClick|authenticatedComputeFetch\(/u);
+  assert.doesNotMatch(model, /fetch\(|localStorage|sessionStorage|writeFile|spawn\(|paidGenerationPermitted: true/u);
 });

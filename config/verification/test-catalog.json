@@ -6757,7 +6757,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
+            "digest": "6aaee7b9ee22b9789e20abc0ea090d84f57734114a0aa67e9d75fd64f94d9959"
           }
         ]
       },
@@ -7591,7 +7591,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
+            "digest": "6aaee7b9ee22b9789e20abc0ea090d84f57734114a0aa67e9d75fd64f94d9959"
           }
         ]
       },
@@ -9589,7 +9589,7 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "91225fa748e53a6a2bdf3d893b8b510ac1035fbd55f48cafebf4545bf3580b72",
+        "targetDigest": "778aabf93fb859b220c2d011456b3f99714b7b0be7422dd9da591f36559e5736",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -9811,7 +9811,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "bf5045282bc1cbcd7958bf4afd21b7cedd9686912d86379e4ae4fb06e181b507"
+            "digest": "d8ada9fe56177f6fec2af0057fe97a1cd26b6438e20d99b94ba2544cd546e117"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -9844,7 +9844,7 @@
       },
       {
         "target": "tests/issue-3222-verified-pr-launch.test.mjs",
-        "targetDigest": "ad18bd8936d4ce38a2845410413d7f68d8f48ec41ceca1438b62b99fccc0a805",
+        "targetDigest": "9a9b6c603be9e0953e9d1b1c2858e1819046064754588ad38ed521b44980b153",
         "catalogueIds": [
           "agent.owner-app-pr-test-launch-3222"
         ],
@@ -9867,15 +9867,15 @@
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "bf5045282bc1cbcd7958bf4afd21b7cedd9686912d86379e4ae4fb06e181b507"
+            "digest": "d8ada9fe56177f6fec2af0057fe97a1cd26b6438e20d99b94ba2544cd546e117"
           },
           {
-            "path": "scripts/engineering-team/mcp/plotpickle-candidate-source.mjs",
+            "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
             "digest": "865c1126c480ccb4ede13bc1d0922ea7d49728d80d1925a9c6b30984a5b35288"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
+            "digest": "6aaee7b9ee22b9789e20abc0ea090d84f57734114a0aa67e9d75fd64f94d9959"
           }
         ],
         "truthRefs": [

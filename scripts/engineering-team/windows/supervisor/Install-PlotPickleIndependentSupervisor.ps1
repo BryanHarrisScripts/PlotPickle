@@ -15,7 +15,7 @@ param(
     [string]$Consent = ''
 )
 $ErrorActionPreference = 'Stop'
-$selected = @($Install, $Start, $Status, $Stop, $Uninstall | Where-Object { $_ })
+$selected = @(@($Install, $Start, $Status, $Stop, $Uninstall) | Where-Object { $_ })
 if ($selected.Count -ne 1) {
     throw 'EXACTLY_ONE_SUPERVISOR_OPERATION_REQUIRED'
 }
@@ -108,7 +108,7 @@ if ($Stop) {
     }
     [pscustomobject]@{
         state = [string]$receipt.state
-        stopDisposition = 'STOP_REQUESTED_UNCONFIRMED'
+        stopDisposition = if ($receipt.state -eq 'STOP_REQUESTED') { 'STOP_REQUESTED_UNCONFIRMED' } else { 'NO_ENABLED_SUPERVISOR' }
         ownedDescendantsVerifiedGone = $false
         workerProcessVerified = $false
     } | ConvertTo-Json -Compress

@@ -6757,7 +6757,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b5c197a37cf0dac6b4ebca50a43888d20b27d99ba02857f0b26dadd92c7b4bf4"
+            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
           }
         ]
       },
@@ -7591,7 +7591,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b5c197a37cf0dac6b4ebca50a43888d20b27d99ba02857f0b26dadd92c7b4bf4"
+            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
           }
         ]
       },
@@ -9875,7 +9875,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b5c197a37cf0dac6b4ebca50a43888d20b27d99ba02857f0b26dadd92c7b4bf4"
+            "digest": "4e21f8644fe23333eda06034843adf90d06157490f4182a90e0777957afd99ad"
           }
         ],
         "truthRefs": [

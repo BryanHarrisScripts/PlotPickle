@@ -9639,7 +9639,7 @@
       },
       {
         "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-        "targetDigest": "21edffb4409aa4c3624256778be406df3ba4c9cc04f14251a5ca8002c4750645",
+        "targetDigest": "6fa5a75594a11dd2161c715a8ac9fd0559123d2f646eb90e6fef4e6178f3a42e",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -9661,7 +9661,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
-            "digest": "5ef0efb14119c4649a70c382a019c54ac8991b78e94ba291705f169076e29b5f"
+            "digest": "26e9ab86623a305ac0aaa2476eb09c7aa39d9db10488169c254a4815601aa510"
           },
           {
             "path": "app/api/factory/supervisor/route.ts",

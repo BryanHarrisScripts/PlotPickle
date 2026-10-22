@@ -225,3 +225,36 @@ test("#3142 Factory Settings UI changes select the real Windows Product Gate", a
   assert.match(workflow, /then build=true; fi/u);
   assert.match(workflow, /name: Impact-selected Windows Product Gate/u);
 });
+
+test("#3142 falsified ACK on non-PAUSED state cannot become a public verified pause", async () => {
+  const summary = summarizeSupervisorForGui({
+    state: "BLOCKED", pauseAcknowledged: true, exactSha: HEAD,
+    inFlightCancellationProven: true, workerProcessVerified: true,
+  });
+  assert.equal(summary.state, "BLOCKED");
+  assert.equal(summary.pauseAcknowledged, false);
+  assert.equal(summary.inFlightCancellationProven, false);
+  assert.equal(summary.workerProcessVerified, false);
+});
+
+test("#3142 successful PAUSE marker followed by unreadable status remains uncertain", async () => {
+  let writes = 0;
+  const { go } = harness({
+    lifecycle: {
+      pause: async () => { writes++; return { state: "PAUSE_REQUESTED" }; },
+      resume: async () => { throw Error("must not resume"); },
+      stop: async () => { throw Error("must not stop"); },
+      status: async () => { throw Error("PRIVATE_ERROR_MUST_NOT_LEAK"); },
+    },
+  });
+  const reply = await go(req("POST", { action: "pause" }));
+  const body = await reply.json();
+  assert.equal(reply.status, 409);
+  assert.equal(body.code, "ACTION_SUBMITTED_STATUS_UNVERIFIED");
+  assert.equal(body.requested, true);
+  assert.equal(body.inFlightCancellationProven, false);
+  assert.equal(body.workerProcessVerified, false);
+  assert.equal(body.automaticMergeEnabled, false);
+  assert.equal(writes, 1);
+  assert.doesNotMatch(JSON.stringify(body), /PRIVATE_ERROR_MUST_NOT_LEAK/);
+});

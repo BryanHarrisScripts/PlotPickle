@@ -97,6 +97,17 @@ export default defineConfig(async ({ command }) => {
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
+      // Runtime-defined, exact-launch inputs: do not read process.env in
+      // Vinext's server component because it may be shimmed/bundled there.
+      __PLOTPICKLE_LAUNCH_SOURCE_HEAD__: JSON.stringify(
+        process.env.PLOTPICKLE_LAUNCH_SOURCE_HEAD ?? "",
+      ),
+      __PLOTPICKLE_LAUNCH_CHANNEL__: JSON.stringify(
+        process.env.PLOTPICKLE_LAUNCH_CHANNEL ?? "",
+      ),
+      __PLOTPICKLE_LAUNCH_PR_NUMBER__: JSON.stringify(
+        process.env.PLOTPICKLE_LAUNCH_PR_NUMBER ?? "",
+      ),
       __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: JSON.stringify(localBuzzAgentIdentities),
     },
     optimizeDeps: {

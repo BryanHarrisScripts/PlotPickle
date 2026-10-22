@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 3118,
+  "phase": "real-owner-windows-private-worktree-stage-diagnostics-without-auto-replay",
+  "brief": "docs/developer-briefs/3118-source-stage-failure-diagnostics.md",
+  "allowedChanges": [
+    "scripts/engineering-team/mcp/factory-named-tests.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3110-factory-named-test-mcp.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3118-source-stage-failure-diagnostics.md",
+    "config/development-convergence/3118-source-stage-failure-diagnostics.json"
+  ],
+  "acceptance": [
+    {
+      "id": "FAILURE-CLASSIFICATION",
+      "criterion": "Private worktree staging failures return only a bounded diagnosed reason and never raw stderr.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+          "contains": "classifyFactoryStoryStageFailure"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "contains": "bounded Windows worktree errors classify failures"
+        }
+      ]
+    },
+    {
+      "id": "IMMUTABLE-RECEIPT-BOUND",
+      "criterion": "Public UAT stageReason is allowlisted only on blocked staging; all other values are null.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "contains": "immutable authenticated MCP receipts preserve only allowlisted"
+        }
+      ]
+    },
+    {
+      "id": "NO-BROWSER-IF-NO-STAGE",
+      "criterion": "An unverified detached source cannot execute the browser, and no data or model is touched.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+          "contains": "PRODUCT_UAT_STAGE_UNVERIFIED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-factory-named-test-mcp.test.mjs",
+          "contains": "browser must never run"
+        }
+      ]
+    },
+    {
+      "id": "NO-BLIND-PRIVATE-CLEANUP",
+      "criterion": "Developer brief retains outstanding on-owner Windows verification and bans implicit worktree removal/retry.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3118-source-stage-failure-diagnostics.md",
+          "contains": "Do **not** close #3118"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No worktree clean/reset/prune/delete on owner host, duplicate immutable controls, paid inference or story/profile mutation.",
+    "Only enum failure classifications may traverse MCP; no paths, exception text, logs, user/private data or synthetic PASS.",
+    "Use protected W8/W9 exact LF digests and seven architecture gates; keep #3118 open for real browser proof."
+  ]
+}

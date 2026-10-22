@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "authenticated-local-human-supervisor-settings-parity-no-dispatch",
+  "brief": "docs/developer-briefs/3142-profile-authenticated-supervisor-gui.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+    "app/api/factory/supervisor/route.ts",
+    "app/skin-v1/factory-supervisor-panel.tsx",
+    "app/skin-v1/factory-supervisor-panel.module.css",
+    "app/skin-v1/settings-workspace-panel.tsx",
+    "build/local-profile-auth-gateway.ts",
+    "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+    "tests/issue-3142-profile-auth-supervisor-controls.test.mjs",
+    "docs/developer-briefs/3142-profile-authenticated-supervisor-gui.md",
+    "config/development-convergence/3142-profile-authenticated-supervisor-gui.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    ".github/workflows/architecture-shadow.yml"
+  ],
+  "acceptance": [
+    {
+      "id": "HUMAN-SESSION-AND-CSRF",
+      "criterion": "GET requires session, mutation requires recent reauthentication and CSRF; network server disabled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/factory/supervisor/route.ts",
+          "contains": "recentReauthentication: true"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "requires local Windows and authenticated profile"
+        }
+      ]
+    },
+    {
+      "id": "CANONICAL-LOCAL-SUPERVISOR",
+      "criterion": "GUI/CMD invoke existing supervisor owner; not a competing queue/worker or remote arbitrary commands.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/factory/supervisor/route.ts",
+          "contains": "supervisorStatus, pauseSupervisor, resumeSupervisor"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-profile-auth-supervisor-controls.test.mjs",
+          "contains": "same owner-scoped supervisor state"
+        }
+      ]
+    },
+    {
+      "id": "ORIGIN-AND-PRIVACY",
+      "criterion": "Bounded same-origin, local Windows, no arbitrary PID/issue/merge endpoint and sanitized evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+          "contains": "LOCAL_WINDOWS_ONLY"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "arbitrary PID"
+        }
+      ]
+    },
+    {
+      "id": "REAL-SETTINGS-CONTROL",
+      "criterion": "Existing Settings Panel embeds control backed by real profile-auth gateway and CSRF; no Start/Stop pretence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/settings-workspace-panel.tsx",
+          "contains": "<FactorySupervisorPanel />"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/local-profile-auth-gateway.ts",
+          "contains": "/api/factory/supervisor"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-CI",
+      "criterion": "Impact-selected exact-head Windows job executes both HTTP and actual-supervisor lifecycle fixture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "issue-3142-profile-auth-supervisor-controls.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "PLOTPICKLE_NATIVE_SUPERVISOR_PAUSE"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No new unattended issue dispatcher, GUI Start/Stop, Pi queue activation, arbitrary PID kill or merge grant.",
+    "Synthetic and native Windows CI fixtures are not independent owner-host GUI clickthrough or reboot persistence.",
+    "No lowering the existing W8/W9, profile-auth or Windows Product Gate constraints."
+  ]
+}

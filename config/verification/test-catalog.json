@@ -4338,6 +4338,27 @@
         ]
       },
       "notes": "#3110 synthetic explicit consent, local kill switch, paired control poll and heartbeat only. Native Windows service persistence, real pairing, agent code generation, PR/CI automation and independent merge remain unproven."
+    },
+    {
+      "id": "story-canon.intent-read-only-project-status-3203",
+      "ownerLayer": "story-canon",
+      "architectureComponents": [
+        "story-evidence-graph",
+        "evidence-revision-review"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "intent",
+        "evidence",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3203-read-only-project-observation.test.mjs"
+        ]
+      }
     }
   ],
   "truthGovernance": {
@@ -9463,6 +9484,43 @@
           {
             "path": "modules/wyrmwood/ui/wyrmwood-workspace.tsx",
             "digest": "746bd305125253612e195256a4842d7a339624a7d587967249a1cbe7c4c31e1e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3203-read-only-project-observation.test.mjs",
+        "targetDigest": "739611ab892a0e0998c535e8cbf2c794b15244df1f43ba046841669dcdf1d241",
+        "catalogueIds": [
+          "story-canon.intent-read-only-project-status-3203"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "runtime-fixture",
+          "derived-project-truth",
+          "static-source"
+        ],
+        "limits": "Runtime esbuild bundle of actual canonical projection and readiness functions with isolated synthetic Library project. Does not attest persisted profile, Browser/GUI, real owner Windows, an authenticated user, agent/model invocation, approval or paid production.",
+        "inputs": [
+          {
+            "path": "modules/intent/model/observe-project-status.ts",
+            "digest": "7318d8c2e5c56082a7fdf89563e0aeae5319149c1cd5641c2eda66fe26ed4bb2"
+          },
+          {
+            "path": "modules/plan/projections/canonical-project-outline.ts",
+            "digest": "a90d6a43b8cb2161adf25e51a05a4fc098b3fd006db5e8edaad99d0c371a963e"
+          },
+          {
+            "path": "modules/plan/outline-readiness.ts",
+            "digest": "a2a87b929afe4fe3b07a8bc64a3ba3e0614f07adc7bc9a4204c14968ca4ee033"
           }
         ]
       }

@@ -70,8 +70,9 @@ export function createPlotpickleAppController({
 
   async function headIs(expectedHead){
     if(!SHA.test(expectedHead||""))return false;
-    try{return await verifyHead({repoRoot})===expectedHead;}
-    catch{return false;}
+    // The verifier already fails closed to null on an unreadable Git
+    // identity; unexpected errors propagate as uncertain, never a PASS.
+    return await verifyHead({repoRoot})===expectedHead;
   }
   async function stopping(expectedHead) {
     if(!owned || owned.head!==expectedHead || !alive(owned.child))

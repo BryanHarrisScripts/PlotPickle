@@ -117,3 +117,110 @@ test("#3203 selected coordinate preserves identity and source-linked block addre
   assert.ok(result.attention.every(item => item.blockId && item.source === "canonical-outline-readiness"));
   assert.equal(result.nextDecision?.blockNumber, 1);
 });
+
+test("#3203 ten Hollywood stages report retained PPF evidence without film certification", async () => {
+  const [{ observeHollywoodProductionReadiness }, { project, request, context }] = await Promise.all([
+    runtime("modules/intent/model/hollywood-production-readiness.ts"),
+    setup(),
+  ]);
+  const before = JSON.stringify(project);
+  const result = observeHollywoodProductionReadiness(request, context);
+  assert.equal(result.state, "OBSERVED");
+  assert.equal(result.project.id, fixtureId);
+  assert.equal(result.project.revision, 7);
+  assert.equal(result.stages.length, 10);
+  assert.deepEqual(result.stages.map(stage => stage.id), [
+    "concept-script", "planning-budget", "casting-locations", "technical-prep",
+    "principal-photography", "picture-editing", "vfx-compositing",
+    "sound-music", "final-mastering", "marketing-distribution",
+  ]);
+  assert.equal(result.stages[0].state, "OBSERVED");
+  assert.equal(result.stages[0].evidence[0].count, 1);
+  assert.equal(result.stages[4].state, "INSUFFICIENT_EVIDENCE");
+  assert.equal(result.stages[4].editorLink, null);
+  assert.ok(result.stages.every(stage => stage.filmStageVerified === false));
+  assert.equal(result.filmReadyVerified, false);
+  assert.equal(result.independentVerification, false);
+  assert.equal(result.canonMutated, false);
+  assert.equal(result.modelCalled, false);
+  assert.equal(result.paidGenerationPermitted, false);
+  assert.deepEqual(JSON.stringify(project), before);
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_SOURCE_NEVER_EXPOSE_3203|SECRET_TITLE_DO_NOT_RENDER|private\.fountain|sk-test/i);
+});
+
+test("#3203 ten-stage projection rejects stale/cross-profile/cross-story and missing source without fallback", async () => {
+  const [{ observeHollywoodProductionReadiness }, { project, request, context }] = await Promise.all([
+    runtime("modules/intent/model/hollywood-production-readiness.ts"), setup(),
+  ]);
+  const scenarios = [
+    [{ ...request, profileId: "other_profile" }, context, "PROFILE_NOT_BOUND"],
+    [request, { ...context, activeProfileId: null }, "PROFILE_NOT_BOUND"],
+    [{ ...request, projectId: "other_story" }, context, "PROJECT_NOT_BOUND"],
+    [request, { ...context, activeProject: { ...project, id: "other_story" } }, "PROJECT_NOT_BOUND"],
+    [{ ...request, projectRevision: 5 }, context, "STALE_PROJECT_REVISION"],
+    [{ ...request, providerPolicy: "HYBRID" }, context, "POLICY_NOT_ADMITTED"],
+    [request, { ...context, activeProject: { ...project, sourceEvidence: { ...project.sourceEvidence, screenplay: null } } }, "SOURCE_EVIDENCE_MISSING"],
+  ];
+  for (const [input, trusted, code] of scenarios) {
+    const result = observeHollywoodProductionReadiness(input, trusted);
+    assert.equal(result.state, "BLOCKED", code);
+    assert.equal(result.code, code);
+    assert.equal(result.project, null);
+    assert.deepEqual(result.stages, []);
+    assert.equal(result.nextDecision, null);
+    assert.equal(result.filmReadyVerified, false);
+  }
+});
+
+test("#3203 real Reports Production GUI invokes the same headless read-only capability from authenticated current session", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const read = p => readFile(new URL("../" + p, import.meta.url), "utf8");
+  const [page, workspace, model] = await Promise.all([
+    read("app/reports/page.tsx"), read("app/reports/library-ppf-reports-workspace.tsx"),
+    read("modules/intent/model/hollywood-production-readiness.ts"),
+  ]);
+  assert.match(page, /sessionActiveProjectId\(\)/u);
+  assert.match(page, /profilePrivateBrowserReadyFor\(profileId\)/u);
+  assert.match(page, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
+  assert.match(page, /browserProfileAuthGateway\.read\(\)/u);
+  assert.match(page, /profilePrivateBrowserReadyFor\(hydratedId\)/u);
+  assert.match(page, /stageSessionActiveProjectHandoff\(\)/u);
+  assert.match(page, /addEventListener\("pagehide", onPageHide\)/u);
+  assert.match(page, /window\.history\.replaceState/u);
+  assert.match(workspace, /observeHollywoodProductionReadiness\(\{/u);
+  assert.match(workspace, /projectId: selectedId/u);
+  assert.match(workspace, /projectRevision: project\.revision/u);
+  assert.match(workspace, /providerPolicy: "LOCAL_READ_ONLY"/u);
+  assert.match(workspace, /data-hollywood-stage-count/u);
+  assert.match(workspace, /stage\.filmStageVerified|stage\.state/u);
+  assert.doesNotMatch(workspace, /saveActiveLibraryProject\(|Save & Lock.*onClick|authenticatedComputeFetch\(/u);
+  assert.doesNotMatch(model, /fetch\(|localStorage|sessionStorage|writeFile|spawn\(|paidGenerationPermitted: true/u);
+});
+
+test("#3203 ten-stage Reports GUI has accessible return navigation and reload without creative mutation", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const surface = await readFile(new URL("../app/reports/library-ppf-reports-workspace.tsx", import.meta.url), "utf8");
+  assert.ok(surface.includes('onClick={() => router.push("/skin-v1")}'));
+  assert.ok(surface.includes('onClick={() => router.push("/library")}'));
+  assert.ok(surface.includes('onClick={onRefresh}>Reload Reports</button>'));
+  assert.match(surface, /Reload Reports/u);
+  assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
+  assert.doesNotMatch(surface, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|target="_blank"|window\.open\(|saveActiveLibraryProject\(|authenticatedComputeFetch\(/u);
+});
+
+test("#3203 candidate Reports remains visibly marked PR TEST and never impersonates merged main", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const layout=await readFile(new URL("../app/layout.tsx",import.meta.url),"utf8");
+  const mod=await import("../modules/intent/model/launch-identity.mjs");
+  const head="a".repeat(40);
+  const env={PLOTPICKLE_LAUNCH_SOURCE_HEAD:head,
+    PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"3219",
+    PLOTPICKLE_STARTUP_CONTRACT:"plotpickle-startup-v4-"+head+"-normal-local-human-vite-source"};
+  const label=mod.plotpickleLaunchIdentity(env);
+  assert.equal(label.channel,"PR_TEST");
+  assert.match(label.label,/PR #3219.*UNMERGED/u);
+  assert.match(layout,/data-plotpickle-launch-channel/u);
+  assert.ok(layout.indexOf("data-plotpickle-launch-channel")<layout.indexOf("<ProfileAccessRouter"));
+  assert.equal(mod.plotpickleLaunchIdentity({...env,PLOTPICKLE_STARTUP_CONTRACT:"spoofed"}).channel,
+    "UNVERIFIED");
+});

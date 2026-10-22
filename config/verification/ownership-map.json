@@ -1998,7 +1998,8 @@
       "id": "intent-read-only-project-observation-3203",
       "classification": "production",
       "include": [
-        "modules/intent/model/observe-project-status.ts"
+        "modules/intent/model/observe-project-status.ts",
+        "modules/intent/model/hollywood-production-readiness.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

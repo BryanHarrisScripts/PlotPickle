@@ -168,28 +168,35 @@ test("issue #118 derives reports without mutating canonical project data", async
 
 test("issue #118 mounts the live Reports workspace", async () => {
   const workspace = await source("app/reports-workspace.tsx");
-  const page = await source("app/page.tsx");
+  const page = await source("app/reports/page.tsx");
   assert.match(workspace, /createConsolidatedReportsModel/);
   assert.match(workspace, /aria-label="Reports sections"/);
   for (const renderer of ["renderProject", "renderStory", "renderCharacters", "renderScenes", "renderDialogue", "renderProduction", "renderFeedback", "renderProvenance", "renderConnections"]) {
     assert.ok(workspace.includes(renderer), `Missing live report renderer: ${renderer}`);
   }
-  assert.match(page, /<ReportsWorkspace project=\{project\}/);
+  assert.match(page, /<LibraryPpfReportsWorkspace/u);
+  assert.match(page, /resolveActiveLibraryReportsProject\(/u);
   assert.doesNotMatch(page, /activeTab === "reports"[^\n]+ScreenplayReports/);
 });
 
 test("issue #118 keeps report selection and provides exact-context return navigation", async () => {
   const workspace = await source("app/reports-workspace.tsx");
-  const page = await source("app/page.tsx");
+  const page = await source("app/reports/page.tsx");
   const build = await source("app/build-workspace.tsx");
   const writer = await source("app/script-workspace.tsx");
   assert.match(workspace, /onSectionChange\(item\.id\)/);
   assert.match(workspace, /target\.workspace === "reports"/);
-  assert.match(page, /function openReportTarget\(target: ReportTarget\)/);
-  assert.match(page, /reportReturnSection/);
-  assert.match(page, /Return to \{reportReturnSection/);
-  assert.match(page, /initialTargetId=\{reportBuildTargetId\}/);
-  assert.match(page, /initialSceneId=\{reportSceneId\}/);
+  const active = await source("app/reports/library-ppf-reports-workspace.tsx");
+  assert.match(page, /onSectionChange=\{changeSection\}/u);
+  assert.match(active, /aria-label="Reports navigation"/u);
+  assert.match(active, /useRouter\(\)/u);
+  assert.ok(active.includes('onClick={() => router.push("/skin-v1")}'));
+  assert.ok(active.includes('onClick={() => router.push("/library")}'));
+  assert.ok(active.includes('onClick={onRefresh}>Reload Reports</button>'));
+  assert.doesNotMatch(active, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|window\.location|target="_blank"|window\.open\(/u);
+  assert.match(page, /browserProfileAuthGateway\.read\(\)/u);
+  assert.match(page, /stageSessionActiveProjectHandoff\(\)/u);
+  assert.match(page, /window\.history\.replaceState/u);
   assert.match(build, /initialTargetId\?: string/);
   assert.match(build, /initialTargetId\?\.startsWith\("act-"\)/);
   assert.match(writer, /initialSceneId\?: string/);
@@ -209,6 +216,6 @@ test("issue #118 live Reports remains canonical, responsive and useful with empt
 
 test("issue #118 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-118-consolidated-reports\.test\.mjs/);
+  assert.equal(packageJson.scripts.test, "npm run test:foundation");
   assert.equal(packageJson.scripts["test:consolidated-reports"], "node --test tests/issue-118-consolidated-reports.test.mjs");
 });

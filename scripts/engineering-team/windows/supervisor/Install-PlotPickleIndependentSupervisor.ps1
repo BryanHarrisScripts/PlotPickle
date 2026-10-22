@@ -137,6 +137,10 @@ if ($Install) {
     return
 }
 if ($Start) {
+    # A legacy task added after this supervisor was installed still blocks Start.
+    if (@(Get-TaskByName $legacyTask).Count -ne 0) {
+        throw 'LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY'
+    }
     $task = Read-OwnedTask
     if ($null -eq $task) { throw 'SUPERVISOR_TASK_NOT_INSTALLED' }
     $null = Assert-ExactBoundWorker

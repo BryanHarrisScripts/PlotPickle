@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "profile-authenticated-settings-status-pause-resume-shared-with-existing-windows-supervisor",
+  "brief": "docs/developer-briefs/3142-factory-shared-gui-status-pause-resume.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+    "app/api/factory/supervisor/route.ts",
+    "app/skin-v1/factory-supervisor-panel.tsx",
+    "app/skin-v1/factory-supervisor-panel.module.css",
+    "app/skin-v1/settings-workspace-panel.tsx",
+    "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+    ".github/workflows/architecture-shadow.yml",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/3142-factory-shared-gui-status-pause-resume.md",
+    "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json"
+  ],
+  "acceptance": [
+    {
+      "id": "GUI-REAL-SHARED-CONTROLLER",
+      "criterion": "Real Settings GUI calls authentic local API bound to the same CMD supervisor functions, not synthetic DOM buttons.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/factory/supervisor/route.ts",
+          "contains": "supervisorStatus, pauseSupervisor, resumeSupervisor"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/settings-workspace-panel.tsx",
+          "contains": "<FactorySupervisorPanel"
+        }
+      ]
+    },
+    {
+      "id": "PROFILE-GATED-LOCAL-ONLY",
+      "criterion": "Local node endpoint authorizes active Human session, CSRF and recent reauthentication on mutations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/factory/supervisor/route.ts",
+          "contains": "recentReauthentication: true"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+          "contains": "LOCAL_WINDOWS_ONLY"
+        }
+      ]
+    },
+    {
+      "id": "HONEST-REQUEST-RECEIPTS",
+      "criterion": "Adapter does not claim worker process verification or autonomous merge from a control request.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+          "contains": "workerProcessVerified: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "LIFECYCLE_RECEIPT_UNVERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-BOUNDARY-PROOF",
+      "criterion": "Impact-selected exact-head native Windows CI runs authenticated boundary and existing supervisor tests.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "#3142 GUI PAUSE/RESUME"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No new arbitrary command/PID/url endpoint, legacy Pi worker invocation, spend or unattended automatic merge.",
+    "No claim that static/win-ci proof is real owner Windows GUI, service startup or independently verified STOP.",
+    "Use existing product LOCKED UX contract; no rewrite of three-column creative shell."
+  ]
+}

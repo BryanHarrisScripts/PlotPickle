@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CONNECTED_DASHBOARD_ITEM_IDS, DASHBOARD_EXPLORATION_ITEM_IDS, DASHBOARD_REVIEW_ITEM_IDS, DASHBOARD_UNAVAILABLE_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import CommandReviewPanel from "../_components/settings/command-review-panel";
+import ContinueThisFilm from "./continue-this-film";
 import OpenPencilCommandPanel from "../_components/settings/openpencil-command-panel";
 import GlobalDsddConversation from "./global-dsdd-conversation";
 import LearnJourneyPreview from "./learn-journey-preview";
@@ -61,6 +62,8 @@ export default function DashboardBbsPanel({
   notice,
   learnRequest = null,
   onLearnRequestConsumed,
+  onOpenLibrary,
+  onOpenOutline,
 }: {
   readonly items: readonly DashboardBbsItem[];
   readonly selectedIndex: number;
@@ -71,6 +74,8 @@ export default function DashboardBbsPanel({
   readonly notice?: string;
   readonly learnRequest?: Readonly<{ requestId: number; topicId?: string | null; lessonId?: string | null }> | null;
   readonly onLearnRequestConsumed?: () => void;
+  readonly onOpenLibrary: () => void;
+  readonly onOpenOutline: (blockNumber: number) => void;
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
@@ -461,6 +466,8 @@ export default function DashboardBbsPanel({
         </div>
 
         <PlotPickleScorePanel />
+
+        <ContinueThisFilm onOpenLibrary={onOpenLibrary} onOpenOutline={onOpenOutline} />
 
         <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
           <h1 data-skin-reference-type="brand">PlotPickle</h1>

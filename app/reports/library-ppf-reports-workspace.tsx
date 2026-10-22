@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import type { LibraryPPFProject } from "@/core/storage/library-project";
 import { CONSOLIDATED_REPORT_SECTIONS, type ConsolidatedReportSection } from "@/lib/consolidated-reports";
 import { summarizeLibraryPpfReport } from "@/modules/reports/model/library-ppf-report.mjs";
@@ -29,6 +30,7 @@ function Unavailable({ children }: { readonly children: string }) {
 }
 
 export default function LibraryPpfReportsWorkspace({ project, selectedId, authorizedProfileId, checked, section, onSectionChange, onRefresh }: Props) {
+  const router = useRouter();
   const report = useMemo(() => project ? summarizeLibraryPpfReport(project) : null, [project]);
   const source = report?.imported;
   const readiness = useMemo(() => project && selectedId && authorizedProfileId
@@ -44,9 +46,9 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, author
     <header className={styles.header}>
       <div><small>EXPLORE / REPORTS · READ ONLY</small><h1>Reports</h1><p>Evidence from the selected Human Library story—not a separate Reports database.</p></div>
       <nav className={styles.actions} aria-label="Reports navigation">
-        <a href="/skin-v1">Back to Dashboard</a>
-        <a href="/library">Library</a>
-        <a href={`/reports?section=${encodeURIComponent(section)}`}>Reload Reports</a>
+        <button type="button" onClick={() => router.push("/skin-v1")}>Back to Dashboard</button>
+        <button type="button" onClick={() => router.push("/library")}>Library</button>
+        <button type="button" onClick={onRefresh}>Reload Reports</button>
         <button type="button" onClick={onRefresh}>Refresh Library selection</button>
       </nav>
     </header>

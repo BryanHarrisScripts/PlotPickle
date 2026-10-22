@@ -9,6 +9,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { inspectEngineeringCheckout } from "./engineering-team/run-local.mjs";
+import { terminateVerificationProcessTree } from "./full-verification-process.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -230,6 +231,7 @@ export async function statusWindowsUat(scope, { appRoot = privateAppRoot(), now 
   return Object.freeze({
     schemaVersion: 1, scope, exactSha: reservation.head, task: reservation.task,
     state, cancellationAcknowledged: state === "cancelled-child-exited",
+    ownedDescendantsVerifiedGone: false,
     childExitObserved: terminalStatus !== null && terminal?.childExitObserved === true,
     evidenceSha256: terminalStatus ? terminal.evidenceSha256 || null : null,
     browserUatProven: false, independentVerification: false, mergeEligible: false,
@@ -265,6 +267,7 @@ export async function driveWindowsUat(scope, {
   appRoot = privateAppRoot(), repoRoot = REPO, now = Date.now,
   inspect, launch, preflight = () => checkWindowsUatToolchain({ repoRoot }),
   maxDurationMs = MAX_DURATION_MS, pollMs = POLL_MS,
+  stopOwnedTree = terminateVerificationProcessTree,
 } = {}) {
   const folder = await privateScope(appRoot, scope);
   const reservation = await safeJson(path.join(folder,"reservation.json"));
@@ -275,11 +278,13 @@ export async function driveWindowsUat(scope, {
   await writeFile(path.join(folder,"worker-started.json"), JSON.stringify({ scope, state: "started-uncertain-on-crash" })+"\n",
     { flag:"wx", mode: 0o600 });
   let child = null, exitCode = null, exitObserved = false, exitError = null;
+  let stopReason = null, stopFailure = null;
   const startAt = now();
   async function finish(state, code, evidenceSha256 = null) {
     await atomicJson(path.join(folder,"terminal.json"), {
       schemaVersion: 1, scope, head: reservation.head, state, code,
-      childExitObserved: exitObserved, evidenceSha256, completedAt: now(),
+      childExitObserved: exitObserved, ownedDescendantsVerifiedGone: false,
+      evidenceSha256, completedAt: now(),
       independentVerification: false, mergeEligible: false,
     });
     return statusWindowsUat(scope, { appRoot, now });
@@ -302,12 +307,17 @@ export async function driveWindowsUat(scope, {
     while (!exitObserved && !exitError) {
       await atomicJson(path.join(folder,"heartbeat.json"), { schemaVersion:1, scope, at: now(), state: "running" });
       if (await safeJson(path.join(folder,"stop-request.json"))) {
-        child.kill("SIGTERM");
-        // Do not claim descendant Windows process-tree termination here.
-        break;
+        stopReason = "operator";
+      } else if (now() - startAt > maxDurationMs) {
+        stopReason = "timeout";
       }
-      if (now() - startAt > maxDurationMs) {
-        child.kill("SIGTERM");
+      if (stopReason) {
+        // This is ONLY the just-spawned UAT ChildProcess handle. Never resolve
+        // an external PID, process name, port, or stale stored process identity.
+        // On Windows the shared helper issues bounded taskkill /T for the
+        // owned tree. Direct-child exit is still not descendant attestation.
+        try { await stopOwnedTree(child); }
+        catch { stopFailure = "OWNED_TREE_STOP_FAILED"; }
         break;
       }
       await new Promise((resolve) => setTimeout(resolve,pollMs));
@@ -317,9 +327,12 @@ export async function driveWindowsUat(scope, {
       for(let wait=0;wait<20&&!exitObserved&&!exitError;wait++)
         await new Promise((resolve)=>setTimeout(resolve,pollMs));
     }
+    if (stopFailure) return finish("blocked", stopFailure);
     if (!exitObserved) return finish("blocked", exitError || "CHILD_EXIT_UNCONFIRMED");
-    if (await safeJson(path.join(folder,"stop-request.json"))) return finish("cancelled-child-exited","OPERATOR_STOP");
-    if (now() - startAt > maxDurationMs) return finish("blocked","TIME_BUDGET_EXCEEDED");
+    if (stopReason === "timeout") return finish("blocked","TIME_BUDGET_EXCEEDED");
+    if (stopReason === "operator") return finish("cancelled-child-exited","OPERATOR_STOP");
+    // A STOP arriving after natural child exit does not establish cancellation.
+    // Preserve the regular report verdict (or block if its report is absent).
     const after = await (inspect || (() => inspectEngineeringCheckout({repoRoot,base:reservation.base})))();
     if (after.head !== reservation.head) return finish("stale","STALE_CHECKOUT_AFTER_UAT");
     const report = await safeJson(path.join(artifactRoot,"autopilot-report.json"));

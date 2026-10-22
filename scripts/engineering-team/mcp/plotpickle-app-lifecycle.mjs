@@ -15,7 +15,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 import { readFactoryVerificationHead } from "./factory-named-tests.mjs";
-import { prepareStagedHumanCandidate } from "./plotpickle-candidate-source.mjs";
+import { prepareStagedHumanCandidate } from "./candidate/plotpickle-candidate-source.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const SHA = /^[0-9a-f]{40}$/u;

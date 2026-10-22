@@ -17,3 +17,7 @@ Status: bounded implementation candidate. This is a real Human-profile-gated sta
 - `#3142` stays OPEN for an actual authenticated profile GUI click-and-readback trace on the owner device; native Windows on-login install/reboot, START and STOP with independent owned descendant/sentinel proof; full status/pause/resume/stop parity; and the ChatGPT-only authorized issue-to-PR dispatch cycle.
 
 No automatic Pi queue startup, generic PID kill, background task auto-install, story canon mutation, cost approval or automatic merge is permitted by this slice.
+
+## Receipt correctness tightening
+
+The public `pauseAcknowledged` flag must be **false** unless the same status is explicitly `PAUSED` and a matching current heartbeat confirmed the private pause marker. If an authenticated PAUSE/RESUME operation wrote the local marker but reading the subsequent status fails, the API reports `ACTION_SUBMITTED_STATUS_UNVERIFIED` rather than claiming that the mutation failed or that the worker acknowledged it. The Human should refresh status rather than assume that another submission is safe. The native Windows fixture and runtime negative test cover these cases.

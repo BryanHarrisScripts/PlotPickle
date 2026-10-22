@@ -9,6 +9,7 @@ import { allowedFactoryTestNames, readFactoryVerificationHead,
   inspectFactorySyncSource,syncFactoryMain,
   runFactoryStoryUat,executeOwnedFactoryStoryUat,
   stageFactoryStorySource,verifyFactoryStorySource,
+  classifyFactoryStoryStageFailure, FACTORY_STORY_STAGE_REASONS,
   runFactoryStoryEvidenceVerify } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { attestStoryBrowserEvidence } from "../scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs";
 import { factoryControlAction, factoryControlReceipt, handleRpc, MCP_CONTROL_TOOLS,
@@ -960,4 +961,75 @@ test("authenticated browser evidence verify is independently reserved and cannot
    "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
  assert.equal(runs,1);
  assert.deepEqual(await factoryControlReceipt({root,requestId:args.requestId}),result);
+}));
+
+
+test("#3118 bounded Windows worktree errors classify failures, never paths, without browser execution",()=>privateRoot(async root=>{
+  const cases=[
+    [{code:"ENOSPC",stderr:"PRIVATE_STORY_PATH no space left on device"},"WORKTREE_DISK_FULL"],
+    [{stderr:"fatal: Unable to create .git/index.lock: File exists"},"WORKTREE_LOCKED"],
+    [{code:"EEXIST",stderr:"PRIVATE_STORY_PATH already exists"},"WORKTREE_EXISTS"],
+    [{code:"EACCES",stderr:"C:/PRIVATE_STORY_PATH"},"WORKTREE_FILE_ACCESS"],
+    [{code:"ENAMETOOLONG",stderr:"C:/PRIVATE_STORY_PATH"},"WORKTREE_PATH_UNSUPPORTED"],
+    [{code:"ENOENT",stderr:"git not found"},"WORKTREE_GIT_UNAVAILABLE"],
+    [{stderr:"SECRET_PRIVATE_WORKTREE_UNCLASSIFIED"},"WORKTREE_GIT_FAILED"],
+  ];
+  assert.equal(FACTORY_STORY_STAGE_REASONS.length,9);
+  for(const [error,code] of cases) {
+    assert.equal(classifyFactoryStoryStageFailure(error),code);
+    assert.doesNotMatch(JSON.stringify({code}),/PRIVATE_STORY_PATH|SECRET_PRIVATE_WORKTREE/);
+  }
+  let stageReason=null;
+  const staged=await stageFactoryStorySource({
+    root,repoRoot:root,requestId:"f".repeat(32),expectedHead:HEAD,
+    run:async()=>{throw Object.assign(new Error("SECRET_PRIVATE_WORKTREE"),{
+      code:"ENOSPC",stderr:"PRIVATE_STORY_PATH no space left on device"});},
+    onFailure:reason=>{stageReason=reason;},
+  });
+  assert.equal(staged,null);
+  assert.equal(stageReason,"WORKTREE_DISK_FULL");
+  let executed=0;
+  const result=await runFactoryStoryUat({
+    root,repoRoot:root,platform:"win32",requestId:"f".repeat(32),
+    expectedHead:HEAD,verifyHead:async()=>HEAD,
+    stageMain:async({onFailure})=>{onFailure("WORKTREE_DISK_FULL");return null;},
+    execute:async()=>{executed++;throw Error("browser must never run");},
+  });
+  assert.equal(result.state,"BLOCKED");
+  assert.equal(result.code,"PRODUCT_UAT_STAGE_UNVERIFIED");
+  assert.equal(result.stageReason,"WORKTREE_DISK_FULL");
+  assert.equal(executed,0);
+  assert.doesNotMatch(JSON.stringify(result),/PRIVATE_STORY_PATH|SECRET_PRIVATE_WORKTREE/);
+  const malicious=await runFactoryStoryUat({
+    root,repoRoot:root,platform:"win32",requestId:"0".repeat(32),
+    expectedHead:HEAD,verifyHead:async()=>HEAD,
+    stageMain:async({onFailure})=>{onFailure("C:/PRIVATE_STORY_PATH");return null;},
+  });
+  assert.equal(malicious.stageReason,"WORKTREE_GIT_FAILED");
+}));
+
+test("#3118 immutable authenticated MCP receipts preserve only allowlisted worktree stage reasons",()=>privateRoot(async root=>{
+  const call=async(requestId,stageReason)=>{
+    const result=await factoryControlAction("factory_run_named_test",{
+      requestId,expectedHead:HEAD,suite:"factory-story-uat",
+    },{root,ops:{
+      testHead:async()=>HEAD,
+      storyUat:async()=>({state:"BLOCKED",code:"PRODUCT_UAT_STAGE_UNVERIFIED",
+        sourceHead:HEAD,stageReason}),
+    }});
+    return {result,stored:await factoryControlReceipt({root,requestId})};
+  };
+  const safe=await call("1".repeat(32),"WORKTREE_GIT_UNAVAILABLE");
+  assert.equal(safe.result.state,"BLOCKED");
+  assert.equal(safe.result.stageReason,"WORKTREE_GIT_UNAVAILABLE");
+  assert.deepEqual(safe.stored,safe.result);
+  const malicious=await call("2".repeat(32),"C:/PRIVATE_HUMAN_SECRET");
+  assert.equal(malicious.result.state,"BLOCKED");
+  assert.equal(malicious.result.code,"PRODUCT_UAT_STAGE_UNVERIFIED");
+  assert.equal(malicious.result.stageReason,null);
+  assert.equal(malicious.stored.stageReason,null);
+  assert.doesNotMatch(JSON.stringify(malicious),/PRIVATE_HUMAN_SECRET/);
+  const retry=await call("2".repeat(32),"WORKTREE_DISK_FULL");
+  assert.equal(retry.result.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+  assert.equal(retry.stored.stageReason,null);
 }));

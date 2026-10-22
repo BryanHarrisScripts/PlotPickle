@@ -6625,7 +6625,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
+            "digest": "30404a4eeeb263748d8c378f167b0659701e527d1d2d7c435b36468240c9adb4"
           }
         ]
       },
@@ -7459,7 +7459,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
+            "digest": "30404a4eeeb263748d8c378f167b0659701e527d1d2d7c435b36468240c9adb4"
           }
         ]
       },
@@ -9592,7 +9592,7 @@
       },
       {
         "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-        "targetDigest": "0aac43e72a04f62f71d8b9a0ac285c6097d77cb6a58976d06cd4755e70870fce",
+        "targetDigest": "21edffb4409aa4c3624256778be406df3ba4c9cc04f14251a5ca8002c4750645",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -9610,19 +9610,19 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime Node Request/Response adapter fixtures plus static linkage to real authenticated node route and GUI. Native Windows tests exercise this adapter and existing supervisor in isolation; not actual owner's authenticated GUI/paired runtime, reboot/service, independent STOP or auto merge.",
+        "limits": "Real pure Node HTTP Request/Response adapter and actual disposable local supervisor STOP-marker readback, plus source linkage to authenticated Settings. Native Windows fixture does NOT independently prove owner-host process stop, live browser click/CSRF parity, PID/descendant absence, reboot persistence, AI coding or merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
-            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
+            "digest": "5ef0efb14119c4649a70c382a019c54ac8991b78e94ba291705f169076e29b5f"
           },
           {
             "path": "app/api/factory/supervisor/route.ts",
-            "digest": "fa5036bed6ba926b7daa395053fc86d5b639b645fd9561b23057c7b522c47336"
+            "digest": "adf1400eff1823608111a31bf81d05cbca77b7047d1e1e2f00147feb0b9ec8d4"
           },
           {
             "path": "app/skin-v1/factory-supervisor-panel.tsx",
-            "digest": "836635e08e09c73384d24b6d6f75ab161602338b8c6cd03353d519d514dec64c"
+            "digest": "d25dced5b1322ea39e0447f30f287ec35dc92c6e776f165519ea13283ad223d5"
           },
           {
             "path": "app/skin-v1/settings-workspace-panel.tsx",

@@ -1,7 +1,7 @@
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import { dispatchSupervisorRequest } from "../../../../scripts/engineering-team/windows/supervisor/supervisor-http.mjs";
 import {
-  supervisorStatus, pauseSupervisor, resumeSupervisor,
+  supervisorStatus, pauseSupervisor, resumeSupervisor, disableSupervisor,
 } from "../../../../scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs";
 
 export const runtime = "nodejs";
@@ -14,6 +14,8 @@ const lifecycle = Object.freeze({
   status: () => supervisorStatus(),
   pause: () => pauseSupervisor({ consent: CONSENT }),
   resume: () => resumeSupervisor({ consent: CONSENT }),
+  // STOP is only a local marker request, never a PID-kill or cleanup proof.
+  stop: () => disableSupervisor(),
 });
 
 async function authorize(request: Request, mutation: boolean) {

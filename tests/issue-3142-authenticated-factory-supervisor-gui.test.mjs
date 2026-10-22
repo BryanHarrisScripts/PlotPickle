@@ -218,3 +218,10 @@ test("#3142 STOP through HTTP modifies the SAME disposable local supervisor mark
     await rm(appRoot, { recursive: true, force: true });
   }
 });
+
+test("#3142 Factory Settings UI changes select the real Windows Product Gate", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/architecture-shadow.yml", import.meta.url), "utf8");
+  assert.match(workflow, /settings-workspace-panel\|factory-supervisor-panel\|settings-review-system-panel/u);
+  assert.match(workflow, /then build=true; fi/u);
+  assert.match(workflow, /name: Impact-selected Windows Product Gate/u);
+});

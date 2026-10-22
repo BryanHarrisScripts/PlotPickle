@@ -128,7 +128,7 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, author
                   : "Review the source baseline and production plan."} No Save &amp; Lock, paid generation or release is authorized.</p>
               </>}
             <Unavailable>{report.unavailable.production}</Unavailable>
-          </> : null>
+          </> : null}
           {section === "feedback" ? <><h2>Feedback evidence</h2><Unavailable>{report.unavailable.feedback}</Unavailable></> : null}
           {section === "connections" ? <><h2>Connection evidence</h2><Unavailable>{report.unavailable.connections}</Unavailable></> : null}
           {section === "provenance" ? <>

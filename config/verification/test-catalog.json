@@ -6580,7 +6580,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "64cc59011105277c1ab4a92836a2f9aecc4b9c8a5b8714200e4fdacbc07233af"
+            "digest": "a683b346ea11caa153728fc26ea0487c6717a8ccca17694334a7398cbec41bc4"
           }
         ]
       },
@@ -7414,7 +7414,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "64cc59011105277c1ab4a92836a2f9aecc4b9c8a5b8714200e4fdacbc07233af"
+            "digest": "a683b346ea11caa153728fc26ea0487c6717a8ccca17694334a7398cbec41bc4"
           }
         ]
       },
@@ -9304,14 +9304,14 @@
       },
       {
         "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
-        "targetDigest": "d9ab9f45db9f510da595f73d19a718939643e4a43cb1b6e6d165c8769e679217",
+        "targetDigest": "d3c7d1e8f72c0363b0c02f4aacb63aab3834cc236d8d304a735fd89a5e0dba15",
         "catalogueIds": [
           "agent.persistent-windows-supervisor-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
-            "digest": "1b6629d41d32f932c90532ac28317291030c4981d46d48d61953f5024ebc376f"
+            "digest": "a537a7e970d952153e567c65d70bced18ffb7530c4d3af12160362c4a411b43a"
           },
           {
             "path": "scripts/engineering-team/queue/unattended-queue.mjs",
@@ -9332,7 +9332,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Injected in-memory Windows platform, private temporary filesystem, simulated pairing and GitHub poll. No real OS service, native STOP, actual hosted agent, protected GitHub PR or autonomous merge."
+        "limits": "Synthetic private local filesystem and injected pairing/poll, plus opt-in exact-head Windows runner process loop/file fixture. No owner paired-host resume proof, real CMD/GUI parity, OS-on-logon persistence, actual remote STOP or autonomous code/PR/merge."
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   validateSupervisorConsent, enableSupervisor, reenableSupervisor, disableSupervisor,
-  supervisorStatus, supervisorCycle, serveSupervisor,
+  supervisorStatus, supervisorCycle, serveSupervisor, pauseSupervisor, resumeSupervisor,
 } from "../scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs";
 
 const SHA = "a".repeat(40);
@@ -100,4 +100,130 @@ test("service runs bounded injected cycles and releases lock, never claims code 
   assert.equal((await loop()).state, "STOPPED");
   assert.equal(cycles, 2);
   assert.equal((await supervisorStatus({ appRoot: root, now })).state, "OFFLINE");
+}));
+
+test("#3142 PAUSE request is not ACK until worker observes it; RESUME has same exact host authority", () => sandbox(async root => {
+  await enable(root);
+  const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+  const first = await pauseSupervisor(opts);
+  assert.equal(first.state, "PAUSE_REQUESTED");
+  assert.equal(first.pauseAcknowledged, false);
+  const pending = await supervisorStatus({ appRoot: root, now });
+  assert.equal(pending.state, "PAUSE_REQUESTED");
+  assert.equal(pending.pauseAcknowledged, false);
+  assert.equal(pending.reason, "NO_FRESH_OWNED_HEARTBEAT");
+  const repeat = await pauseSupervisor(opts);
+  assert.equal(repeat.alreadyRequested, true);
+
+  let polls = 0, queueReads = 0;
+  const cycle = () => supervisorCycle({
+    appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => { queueReads++; return { eligible: 1 }; },
+    poll: async () => { polls++; return { state: "POLL_COMPLETE", processed: 1 }; },
+  });
+  const paused = await cycle();
+  assert.equal(paused.state, "PAUSED");
+  assert.equal(paused.remoteProcessed, 0);
+  assert.equal(paused.agentExecutionProven, false);
+  assert.equal(polls, 0);
+  assert.equal(queueReads, 0);
+  const ack = await supervisorStatus({ appRoot: root, now });
+  assert.equal(ack.state, "PAUSED");
+  assert.equal(ack.pauseAcknowledged, true);
+  assert.equal(ack.autonomousPrLifecycleProven, false);
+
+  const resume = await resumeSupervisor(opts);
+  assert.equal(resume.state, "RESUME_REQUESTED");
+  assert.equal(resume.workerRunningProven, false);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "RESUME_REQUESTED");
+  assert.equal((await resumeSupervisor(opts)).alreadyResumed, true);
+  const running = await cycle();
+  assert.equal(running.state, "RUNNING");
+  assert.equal(polls, 1);
+  assert.equal(queueReads, 1);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "RUNNING");
+}));
+
+test("#3142 pause arriving during queue observation does not authorize the next remote poll", () => sandbox(async root => {
+  await enable(root);
+  let polls = 0;
+  const mid = await supervisorCycle({
+    appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => {
+      await pauseSupervisor({ appRoot: root, platform: "win32", consent: CONSENT, head, paired, now });
+      return { eligible: 1 };
+    },
+    poll: async () => { polls++; return { state: "POLL_COMPLETE", processed: 1 }; },
+  });
+  assert.equal(mid.state, "PAUSE_REQUESTED");
+  assert.equal(mid.remoteProcessed, 0);
+  assert.equal(polls, 0);
+  const acknowledged = await supervisorCycle({
+    appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => { throw Error("paused queue must not inspect"); },
+    poll: async () => { throw Error("paused control must not poll"); },
+  });
+  assert.equal(acknowledged.state, "PAUSED");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).pauseAcknowledged, true);
+}));
+
+test("#3142 STOP supersedes PAUSE and forbids RESUME; restart never replays a paused request", () => sandbox(async root => {
+  await enable(root);
+  const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+  await pauseSupervisor(opts);
+  const stop = await disableSupervisor({ appRoot: root, now });
+  assert.equal(stop.state, "STOP_REQUESTED");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "STOP_REQUESTED");
+  await assert.rejects(resumeSupervisor(opts), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+  await assert.rejects(pauseSupervisor(opts), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+  const stopped = await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => { throw Error("no polling after STOP"); },
+    poll: async () => { throw Error("no polling after STOP"); } });
+  assert.equal(stopped.state, "STOPPED");
+  await reenableSupervisor(opts);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "OFFLINE");
+  assert.equal((await resumeSupervisor(opts)).alreadyResumed, true);
+}));
+
+test("#3142 stale SHA/pairing, corrupt private PAUSE and expired heartbeat block safely", () => sandbox(async root => {
+  await enable(root);
+  const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+  await assert.rejects(pauseSupervisor({ ...opts, head: async () => "b".repeat(40) }), /STALE_SOURCE_HEAD/);
+  await assert.rejects(pauseSupervisor({ ...opts, paired: async () => ({ ...PAIRING, hostId: "forged-host" }) }), /PAIRING_CHANGED_OR_DISABLED/);
+  await pauseSupervisor(opts);
+  await assert.rejects(resumeSupervisor({ ...opts, head: async () => "b".repeat(40) }), /STALE_SOURCE_HEAD/);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "PAUSE_REQUESTED");
+  const pauseFile = path.join(folder(root), "pause-request.json");
+  await writeFile(pauseFile, JSON.stringify({ schemaVersion: 1, sourceHead: "b".repeat(40),
+    hostId: PAIRING.hostId, requestedAt: now() }) + "\n");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "BLOCKED");
+  let called = false;
+  const failed = await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => { called = true; return { eligible: 1 }; },
+    poll: async () => { called = true; return { state: "POLL_COMPLETE", processed: 1 }; } });
+  assert.equal(failed.reason, "PAUSE_REQUEST_UNVERIFIABLE");
+  assert.equal(called, false);
+  await assert.rejects(resumeSupervisor(opts), /PAUSE_REQUEST_UNVERIFIABLE/);
+}));
+
+test("#3142 real local Node supervisor loop honors PAUSE without dispatch (Windows runner fixture)", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_SUPERVISOR_PAUSE !== "1",
+  timeout: 15_000,
+}, () => sandbox(async root => {
+  await enable(root);
+  let calls = 0;
+  const opts = { appRoot: root, platform: process.platform, consent: CONSENT, head, paired, now };
+  await pauseSupervisor(opts);
+  const result = await serveSupervisor({
+    appRoot: root, consent: CONSENT, platform: process.platform, now, maxCycles: 2,
+    cycle: args => supervisorCycle({ ...args, platform: process.platform, head, paired, now,
+      queue: async () => { calls++; throw Error("must not inspect paused work"); },
+      poll: async () => { calls++; throw Error("must not poll paused work"); } }),
+    delay: async () => {},
+  });
+  assert.equal(result.state, "STOPPED");
+  assert.equal(calls, 0);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "PAUSE_REQUESTED",
+    "terminal stale heartbeat is not proof of a still-running worker");
+  assert.equal((await resumeSupervisor(opts)).workerRunningProven, false);
 }));

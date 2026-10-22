@@ -169,6 +169,7 @@ jobs:
       voice: ${{ steps.scope.outputs.voice }}
       build: ${{ steps.scope.outputs.build }}
       verifier: ${{ steps.scope.outputs.verifier }}
+      supervisor: ${{ steps.scope.outputs.supervisor }}
       any: ${{ steps.scope.outputs.any }}
     steps:
       - uses: actions/checkout@v4
@@ -189,6 +190,7 @@ jobs:
           voice=false
           build=false
           verifier=false
+          supervisor=false
 
           # Workflow/test/documentation edits are validated by focused Linux contracts below.
           # Heavy Windows lanes are selected only by product/runtime paths they actually prove.
@@ -200,6 +202,7 @@ jobs:
           if printf '%s\n' "$changed" | grep -Eq '^(modules/library/afterglow-image-review\.mjs$|tests/issue-2863-current-master-image-recovery\.test\.mjs$|modules/library/ui/afterglow-management-panel(\.module\.css|\.tsx)$|app/_components/preproduction/storyboard-locked-shot-handoff\.tsx$|app/_components/previs/previs-(readiness-workspace\.tsx|graphic-novel-presentation\.ts)$|app/_components/timeline/timeline-assembly-workspace\.tsx$|app/api/previs/narration/route\.ts$|core/media/previs-narration\.mjs$|app/_components/settings/|app/skin-v1/(story-mode-host|local-ai-skin-host|cloud-story-mode-host|hybrid-story-mode-panel|story-mode-capability-connections|compute-ready-marker|capability-diagnostics-log|local-comfyui-api-video-setup|local-comfyui-panel|provider-consent-setup|settings-workspace-panel|settings-review-system-panel|uat-guide-panel)(\.module\.css|\.tsx)$|app/skin-v1-standard-surface-shell\.css$|app/api/cloud-story-mode/provider/route\.ts$|core/contracts/compute/capability-routes\.mjs$|build/ai/capabilities/capability-(routing-state|diagnostics)\.ts$|build/ai-routing-gateway\.ts$|tests/issue-2841-capability-harness\.test\.mjs$|scripts/developer-diagnostics/product-proof/2841-capability-settings\.mjs$|build/provider-url\.ts$|build/media-provider-common\.ts$|package(-lock)?\.json$|next\.config\.ts$|vite\.config\.ts$|scripts/windows-runtime\.mjs$|scripts/build-verified\.mjs$|build/local-profile-auth-gateway\.ts$|core/storage/profile-private-browser\.ts$|tests/issue-2821-save-session-continuity\.test\.mjs$|tests/issue-2839-storyboard-text-narration\.test\.mjs$|tests/issue-2847-process-restart\.test\.mjs$|lib/verification/oss-radar/|config/oss-radar/|Start-PlotPickle\.(bat|command)$|start-plotpickle\.sh$|tests/issue-1456-windows-installer\.test\.mjs$|installer/|scripts/windows-installer/)'; then build=true; fi
 
           if printf '%s\n' "$changed" | grep -Eq '^(scripts/(verification-webmcp-live|full-verification-process|windows-uat-control)\.mjs$|tests/(issue-3121-windows-live-verifier-cleanup|issue-3110-windows-uat-control)\.test\.mjs$)'; then verifier=true; fi
+          if printf '%s\n' "$changed" | grep -Eq '^(scripts/engineering-team/windows/supervisor/unattended-supervisor\.mjs$|tests/issue-3110-persistent-local-supervisor\.test\.mjs$)'; then supervisor=true; fi
 
           any=false
           if [ "$command" = true ] || [ "$pi" = true ] || [ "$story" = true ] || [ "$media" = true ] || [ "$voice" = true ] || [ "$build" = true ]; then any=true; fi
@@ -211,6 +214,7 @@ jobs:
           echo "voice=$voice" >> "$GITHUB_OUTPUT"
           echo "build=$build" >> "$GITHUB_OUTPUT"
           echo "verifier=$verifier" >> "$GITHUB_OUTPUT"
+          echo "supervisor=$supervisor" >> "$GITHUB_OUTPUT"
           echo "any=$any" >> "$GITHUB_OUTPUT"
           echo "Selected Windows lanes: command=$command pi=$pi story=$story media=$media voice=$voice build=$build"
 
@@ -260,6 +264,37 @@ jobs:
           PLOTPICKLE_NATIVE_UAT_STOP_FIXTURE: '1'
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node --test tests/issue-3110-windows-uat-control.test.mjs
+
+  windows-factory-supervisor-lifecycle:
+    name: Windows factory supervisor PAUSE/RESUME truth
+    needs: windows-product-scope
+    if: needs.windows-product-scope.outputs.supervisor == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+          cache: npm
+      - name: Admit reviewed truth bindings
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
+      - name: Install locked dependencies
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Test native Windows supervisor pause/resume, scope refusals and kill-switch precedence
+        shell: pwsh
+        env:
+          PLOTPICKLE_NATIVE_SUPERVISOR_PAUSE: '1'
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($actual -ne $env:PLOTPICKLE_PROOF_SOURCE_HEAD) { throw "Wrong exact-head Windows test checkout" }
+          node --test tests/issue-3110-persistent-local-supervisor.test.mjs
 
   modular-runtime-windows-scope:
     name: Detect modular runtime Windows proof scope

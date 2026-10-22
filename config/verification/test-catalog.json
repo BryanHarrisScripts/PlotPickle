@@ -4380,7 +4380,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#3203 first callable isolated read-only project observation. Runtime test bundles actual TS canonical project projection and readiness, refuses wrong profile/project/revision, source absent, CLOUD/HYBRID, invalid coordinate, noncanonical structure and privacy leakage. No GUI, real user, verified persistence, independent Windows acceptance or paid provider."
+      "notes": "#3203 canonical read-only 24/96 observation plus ten Hollywood production stages; source metadata cannot certify a finished film. Synthetic runtime negatives and static Reports GUI-to-headless wiring; owner authenticated Windows product acceptance remains separately unverified."
     },
     {
       "id": "agent.authenticated-factory-supervisor-gui-3142",
@@ -5619,11 +5619,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "00c13501517f0b2f16490ddc0f1752b3316bc2bac08d67321416a270ab1b36a0"
+            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "6fef576d4ae03f5692900f0d74b05e8f56d847afbfbc450179c8c1c3fc31c53e"
+            "digest": "8d7286ec0eddeffcc4d65c4223146a0e7872c754039c3a3240f43767dcb4b796"
           }
         ]
       },
@@ -9134,7 +9134,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "3539419ad4500a3c98289ecdf0ff1e36c3da210882765271f537b095e02c35ae"
+            "digest": "b88f95b64128f75845ab5e19a66f18363a30fb4811328ec57854a25037b5b7a2"
           }
         ]
       },
@@ -9603,7 +9603,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "739611ab892a0e0998c535e8cbf2c794b15244df1f43ba046841669dcdf1d241",
+        "targetDigest": "0c6f63dc97a6d77b119d732fa44c1643dda427782281a597f210f7a7853e6c81",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9621,7 +9621,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime esbuild bundle of actual canonical projection and readiness functions with isolated synthetic Library project. Does not attest persisted profile, Browser/GUI, real owner Windows, an authenticated user, agent/model invocation, approval or paid production.",
+        "limits": "Synthetic actual-module canonical 24/96 and ten-stage read-only source evidence, privacy and identity refusals; static current-profile Reports GUI wiring checks. No authenticated live Windows/browser, persisted encrypted readback, independent finishing or model/provider proof.",
         "inputs": [
           {
             "path": "modules/intent/model/observe-project-status.ts",
@@ -9634,6 +9634,18 @@
           {
             "path": "modules/plan/outline-readiness.ts",
             "digest": "a2a87b929afe4fe3b07a8bc64a3ba3e0614f07adc7bc9a4204c14968ca4ee033"
+          },
+          {
+            "path": "modules/intent/model/hollywood-production-readiness.ts",
+            "digest": "03d6db0c8971614fc383e04b9de510aca7cc65f1f9d72d3355e0156dcaf462c9"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "8d7286ec0eddeffcc4d65c4223146a0e7872c754039c3a3240f43767dcb4b796"
           }
         ]
       },

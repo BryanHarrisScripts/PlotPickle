@@ -120,7 +120,8 @@
           "tests/issue-3031-screenplay-character-roster.test.mjs",
           "tests/issue-3032-character-sheet-portrait.test.mjs",
           "tests/issue-3033-assets-image-route-switch.test.mjs",
-          "tests/issue-3035-assets-surface-polish.test.mjs"
+          "tests/issue-3035-assets-surface-polish.test.mjs",
+          "tests/issue-3230-reports-in-shell-navigation.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4897,7 +4898,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+            "digest": "29b25a5f7fe40d51e7315450cbbf3292fe76b6f8ab3d6fca0ff1eacad52a312b"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -5819,11 +5820,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
+            "digest": "27b441952c1cd4ec126007cbd96499f15cabf66e0d8a8e5b93bdcc7c907d90fb"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
           }
         ]
       },
@@ -6404,7 +6405,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+            "digest": "29b25a5f7fe40d51e7315450cbbf3292fe76b6f8ab3d6fca0ff1eacad52a312b"
           }
         ]
       },
@@ -6470,7 +6471,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "06321863fdbbc096098395132347c5c8b97833b3ceb6120e60c9ad15a4f88be4"
+            "digest": "29b25a5f7fe40d51e7315450cbbf3292fe76b6f8ab3d6fca0ff1eacad52a312b"
           }
         ]
       },
@@ -9841,11 +9842,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
+            "digest": "27b441952c1cd4ec126007cbd96499f15cabf66e0d8a8e5b93bdcc7c907d90fb"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
           },
           {
             "path": "app/layout.tsx",
@@ -10056,11 +10057,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
+            "digest": "27b441952c1cd4ec126007cbd96499f15cabf66e0d8a8e5b93bdcc7c907d90fb"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
           },
           {
             "path": "app/build-workspace.tsx",
@@ -10073,6 +10074,45 @@
           {
             "path": "package.json",
             "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3230-reports-in-shell-navigation.test.mjs",
+        "targetDigest": "973e5772d1ae2d03491fc140576523bd6efc1ec8491c8c96558e028343dbc25e",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source checks that embedded Reports calls existing Dashboard/Library host callbacks rather than forcing full route reload. Not authenticated owner-Windows browser navigation or durable storage verification.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "29b25a5f7fe40d51e7315450cbbf3292fe76b6f8ab3d6fca0ff1eacad52a312b"
+          },
+          {
+            "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
+            "digest": "4c3ff536174db3a656acb18de6f999c545f342f3ccd90c8ef9a72b12c53dce8c"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "27b441952c1cd4ec126007cbd96499f15cabf66e0d8a8e5b93bdcc7c907d90fb"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
           }
         ]
       }

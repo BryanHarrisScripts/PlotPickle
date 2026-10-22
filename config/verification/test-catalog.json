@@ -9844,7 +9844,7 @@
       },
       {
         "target": "tests/issue-3222-verified-pr-launch.test.mjs",
-        "targetDigest": "9a9b6c603be9e0953e9d1b1c2858e1819046064754588ad38ed521b44980b153",
+        "targetDigest": "5bac5b62affd261ae90051b2e1f1adffc77d049f57be25ed82eb9efb2e4b88a5",
         "catalogueIds": [
           "agent.owner-app-pr-test-launch-3222"
         ],

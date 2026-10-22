@@ -182,6 +182,11 @@ test("#3203 real Reports Production GUI invokes the same headless read-only capa
   assert.match(page, /sessionActiveProjectId\(\)/u);
   assert.match(page, /profilePrivateBrowserReadyFor\(profileId\)/u);
   assert.match(page, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
+  assert.match(page, /browserProfileAuthGateway\.read\(\)/u);
+  assert.match(page, /profilePrivateBrowserReadyFor\(hydratedId\)/u);
+  assert.match(page, /stageSessionActiveProjectHandoff\(\)/u);
+  assert.match(page, /addEventListener\("pagehide", onPageHide\)/u);
+  assert.match(page, /window\.history\.replaceState/u);
   assert.match(workspace, /observeHollywoodProductionReadiness\(\{/u);
   assert.match(workspace, /projectId: selectedId/u);
   assert.match(workspace, /projectRevision: project\.revision/u);
@@ -195,10 +200,10 @@ test("#3203 real Reports Production GUI invokes the same headless read-only capa
 test("#3203 ten-stage Reports GUI has accessible return navigation and reload without creative mutation", async () => {
   const { readFile } = await import("node:fs/promises");
   const surface = await readFile(new URL("../app/reports/library-ppf-reports-workspace.tsx", import.meta.url), "utf8");
-  assert.ok(surface.includes('<a href="/skin-v1">Back to Dashboard</a>'));
-  assert.ok(surface.includes('<a href="/library">Library</a>'));
-  assert.ok(surface.includes('href={`/reports?section=${encodeURIComponent(section)}`}'));
+  assert.ok(surface.includes('onClick={() => router.push("/skin-v1")}'));
+  assert.ok(surface.includes('onClick={() => router.push("/library")}'));
+  assert.ok(surface.includes('onClick={onRefresh}>Reload Reports</button>'));
   assert.match(surface, /Reload Reports/u);
   assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
-  assert.doesNotMatch(surface, /target="_blank"|window\.open\(|saveActiveLibraryProject\(|authenticatedComputeFetch\(/u);
+  assert.doesNotMatch(surface, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|target="_blank"|window\.open\(|saveActiveLibraryProject\(|authenticatedComputeFetch\(/u);
 });

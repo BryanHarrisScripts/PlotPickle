@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "bounded-existing-supervisor-pause-resume-before-real-gui-parity",
+  "brief": "docs/developer-briefs/3142-supervisor-pause-resume-foundation.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+    "tests/issue-3110-persistent-local-supervisor.test.mjs",
+    ".github/workflows/architecture-shadow.yml",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3142-supervisor-pause-resume-foundation.md",
+    "config/development-convergence/3142-supervisor-pause-resume-foundation.json"
+  ],
+  "acceptance": [
+    {
+      "id": "WRITE-ONCE-PAUSE-SCOPE",
+      "criterion": "Explicitly authorized exact-head/host PAUSE stores a one-attempt scope-bound marker without asserting running child cancellation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+          "contains": "PAUSE_REQUESTED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "pauseAcknowledged, false"
+        }
+      ]
+    },
+    {
+      "id": "NO-POLL-WHILE-PAUSED",
+      "criterion": "Worker checks PAUSE before queue work and before a new paired GitHub poll; periodic PAUSED heartbeat distinct from unacknowledged PAUSE_REQUESTED.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+          "contains": "state: \"PAUSED\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "polls, 0"
+        }
+      ]
+    },
+    {
+      "id": "STOP-SUPERSEDES-RESUME",
+      "criterion": "A local STOP denies RESUME, while a matched resume does not assert a running worker or replay reserved jobs.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+          "contains": "RESUME_REQUESTED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "STOP supersedes PAUSE"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-SELECTED",
+      "criterion": "Impact-selected Windows job runs the exact-head native fixture tests for this supervisor.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "PLOTPICKLE_NATIVE_SUPERVISOR_PAUSE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "Windows runner fixture"
+        }
+      ]
+    },
+    {
+      "id": "NOT-FULL-FACTORY",
+      "criterion": "Documentation explicitly distinguishes bounded lifecycle fixture from GUI parity, reboot-resident service, dispatch and owner device acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-supervisor-pause-resume-foundation.md",
+          "contains": "issue stays OPEN"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No legacy Pi worker start, new paid provider/model call, implicit source mutation, autonomous merge, arbitrary PID or issue-text command execution.",
+    "No new remote control endpoint or GUI pretend button. Native CI is not owner-device reboot/STOP/GUI acceptance.",
+    "W8/W9 SHA256-LF binding truth must remain admitted; no bypass of protected required checks."
+  ]
+}

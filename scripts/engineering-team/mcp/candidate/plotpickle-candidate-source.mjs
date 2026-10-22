@@ -10,7 +10,7 @@ import { lstat, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
-import { inspectFactoryCandidatePr } from "./factory-named-tests.mjs";
+import { inspectFactoryCandidatePr } from "../factory-named-tests.mjs";
 
 const exec=promisify(execFile);
 const SHA=/^[a-f0-9]{40}$/u;

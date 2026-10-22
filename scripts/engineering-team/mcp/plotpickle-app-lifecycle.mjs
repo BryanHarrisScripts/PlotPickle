@@ -49,7 +49,7 @@ export async function probePlotpickleApp(expectedHead) {
   try{
     const response=await fetch(`http://${HOST}:${PORT}/skin-v1`,{
       cache:"no-store",signal:AbortSignal.timeout(4000),
-      headers:{"X-PlotPickle-Startup-Probe":"mcp-owner-app-control"},
+      headers:{"X-PlotPickle-Startup-Probe":"warmup"},
     });
     if(!response.ok)return false;
     const body=await response.text();

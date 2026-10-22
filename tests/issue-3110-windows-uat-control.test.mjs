@@ -152,7 +152,17 @@ test("live stop kills only launched UAT child, then observes child exit before c
       emitter.kill=()=>{killed=true;setImmediate(()=>emitter.emit("exit",null));return true};
     }),
   });
-  await new Promise(resolve=>setTimeout(resolve,45));
+  // A fixed 45ms delay could race worker initialization on loaded native
+  // Windows runners. Observe the actual owned-worker heartbeat before STOP;
+  // if startup is terminal/blocked, report that failure instead of guessing.
+  const deadline=Date.now()+5000;
+  let preStop=await statusWindowsUat(scope,{appRoot:root});
+  while(preStop.state==="unconfirmed" && Date.now()<deadline){
+    await new Promise(resolve=>setTimeout(resolve,10));
+    preStop=await statusWindowsUat(scope,{appRoot:root});
+  }
+  assert.equal(preStop.state,"running-heartbeat",
+    "STOP fixture must first observe a live owned worker, not assume readiness from elapsed time");
   const requested=await requestStopWindowsUat(scope,{appRoot:root});
   assert.equal(requested.state,"stop-requested");
   assert.equal(requested.cancellationAcknowledged,false);

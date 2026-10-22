@@ -12,6 +12,7 @@ import {
   observeHollywoodProductionReadiness,
   type HollywoodReadinessResult,
 } from "../../modules/intent/model/hollywood-production-readiness";
+import { interpretReadOnlyCreatorIntent, type ReadOnlyCreatorIntent } from "../../modules/intent/model/read-only-creator-intent";
 import styles from "./continue-this-film.module.css";
 
 type CurrentObservation = Readonly<{
@@ -58,18 +59,6 @@ function observeCurrentSelection(): CurrentObservation {
   }
 }
 
-type SupportedIntent = "WHERE_AM_I" | "REVIEW_FILM";
-function classifyIntent(value: string): SupportedIntent | null {
-  const normalized = value.trim().toLowerCase().replace(/[?.!]+$/u, "");
-  if (normalized === "where am i" || normalized === "what should i review next" || normalized === "continue this film") {
-    return "WHERE_AM_I";
-  }
-  if (normalized === "review film readiness" || normalized === "review my film's readiness") {
-    return "REVIEW_FILM";
-  }
-  return null;
-}
-
 export default function ContinueThisFilm({
   onOpenLibrary,
   onOpenOutline,
@@ -79,7 +68,7 @@ export default function ContinueThisFilm({
 }>) {
   const [observation, setObservation] = useState<CurrentObservation | null>(null);
   const [intentText, setIntentText] = useState("Where am I?");
-  const [intent, setIntent] = useState<SupportedIntent>("WHERE_AM_I");
+  const [intent, setIntent] = useState<ReadOnlyCreatorIntent>("WHERE_AM_I");
   const [notice, setNotice] = useState("");
 
   const refresh = useCallback(() => setObservation(observeCurrentSelection()), []);
@@ -98,13 +87,13 @@ export default function ContinueThisFilm({
 
   function submitIntent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const selected = classifyIntent(intentText);
-    if (!selected) {
+    const selected = interpretReadOnlyCreatorIntent(intentText);
+    if (selected.state !== "SUPPORTED" || !selected.kind) {
       setNotice("This first release can answer ‘Where am I?’ and ‘Review film readiness’. It has not executed any other request.");
       return;
     }
     setNotice("");
-    setIntent(selected);
+    setIntent(selected.kind);
     refresh();
   }
 

@@ -4380,7 +4380,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#3203 first callable isolated read-only project observation. Runtime test bundles actual TS canonical project projection and readiness, refuses wrong profile/project/revision, source absent, CLOUD/HYBRID, invalid coordinate, noncanonical structure and privacy leakage. No GUI, real user, verified persistence, independent Windows acceptance or paid provider."
+      "notes": "#3203 canonical read-only 24/96 observation plus ten Hollywood production stages; source metadata cannot certify a finished film. Synthetic runtime negatives and static Reports GUI-to-headless wiring; owner authenticated Windows product acceptance remains separately unverified."
     },
     {
       "id": "agent.authenticated-factory-supervisor-gui-3142",
@@ -4558,6 +4558,50 @@
         ]
       },
       "notes": "#3222 static source truth and bounded simulated Windows main/candidate controls; native runner coverage selects fixed owner STOP sentinel and #3222 security suites. Does not certify owner's browser session continuity or live unmerged PR source, credential validity, paid media, or automatic merges."
+    },
+    {
+      "id": "experience.reports-current-route-legacy-contract-118",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "canon",
+        "storage"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-118-consolidated-reports.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#118 retained legacy consolidated report model and actual Library-owned Reports route; source assertions verify preserved current navigation, reload and stable editor target contracts. Static tests only: no authenticated Windows browser, independent runtime readiness, cross-profile isolation or persistence proof."
     }
   ],
   "truthGovernance": {
@@ -5682,7 +5726,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "3c3df3064fb0949aa1280ca722a4f0ee9ea90d0987ed8f3c60815a5957e335dd",
+        "targetDigest": "9934037838abb8a412b431eea85c743f63ac8036ccc55ad81555ece9a5fe5470",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -5708,11 +5752,11 @@
           },
           {
             "path": "app/reports/page.tsx",
-            "digest": "00c13501517f0b2f16490ddc0f1752b3316bc2bac08d67321416a270ab1b36a0"
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "6fef576d4ae03f5692900f0d74b05e8f56d847afbfbc450179c8c1c3fc31c53e"
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
           }
         ]
       },
@@ -9692,7 +9736,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "739611ab892a0e0998c535e8cbf2c794b15244df1f43ba046841669dcdf1d241",
+        "targetDigest": "632e1514fb28952cc2fa12245e122514cdf74f93c15e315643ee5edc421c4974",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9710,7 +9754,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime esbuild bundle of actual canonical projection and readiness functions with isolated synthetic Library project. Does not attest persisted profile, Browser/GUI, real owner Windows, an authenticated user, agent/model invocation, approval or paid production.",
+        "limits": "Synthetic actual-module canonical 24/96 and ten-stage read-only source evidence, privacy and identity refusals; static current-profile Reports GUI wiring checks. No authenticated live Windows/browser, persisted encrypted readback, independent finishing or model/provider proof.",
         "inputs": [
           {
             "path": "modules/intent/model/observe-project-status.ts",
@@ -9723,6 +9767,26 @@
           {
             "path": "modules/plan/outline-readiness.ts",
             "digest": "a2a87b929afe4fe3b07a8bc64a3ba3e0614f07adc7bc9a4204c14968ca4ee033"
+          },
+          {
+            "path": "modules/intent/model/hollywood-production-readiness.ts",
+            "digest": "03d6db0c8971614fc383e04b9de510aca7cc65f1f9d72d3355e0156dcaf462c9"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+          },
+          {
+            "path": "app/layout.tsx",
+            "digest": "cce0bbfb90823dbed7345a9fbc4ab78e66a6934b8a5677d8c6ff53b59d52b53a"
+          },
+          {
+            "path": "modules/intent/model/launch-identity.mjs",
+            "digest": "386b4b04c0ebaca5428186a31690600baf662237db8ff3ac3797f404d7dd7890"
           }
         ]
       },
@@ -9893,6 +9957,57 @@
           "static-source"
         ],
         "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence."
+      },
+      {
+        "target": "tests/issue-118-consolidated-reports.test.mjs",
+        "targetDigest": "55952f8513e5326a6a346ed8de604fcba48b7ba42dfb06cc1691004f33b5b002",
+        "catalogueIds": [
+          "experience.reports-current-route-legacy-contract-118"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical #118 source-contract assertions cover the retained legacy report builders and the current selected-Library-PPF Reports route, same-tab exit/reload affordances and editor target declarations. No live Windows Human profile, browser keyboard reload, durable story readback, complete film or independently verified product outcome is established by these static checks.",
+        "inputs": [
+          {
+            "path": "lib/consolidated-reports.ts",
+            "digest": "b8e598a942fb0e002b3da6dccb7232f1ed9ddd6be4f9a1754bae2cd39696d248"
+          },
+          {
+            "path": "app/reports-workspace.tsx",
+            "digest": "f49ceec15f698af0c6b3184cbda5f5eb845ccaafbf68451fe1aae0e4680f4635"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "53dddd42be68a7eaddec63791d6368006c29b80fc199ccbb919f034ecf039480"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+          },
+          {
+            "path": "app/build-workspace.tsx",
+            "digest": "b76f5f2dff42188f974e1bd4221b2b65381a0c81fd8b78d851632667ca68c456"
+          },
+          {
+            "path": "app/script-workspace.tsx",
+            "digest": "a502ff145f26e3ca9b4cf31dbdc8ff78c2e16483abbc80c5f7ebf1a083f1eb3b"
+          },
+          {
+            "path": "package.json",
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+          }
+        ]
       }
     ]
   }

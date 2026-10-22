@@ -5593,7 +5593,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "3c3df3064fb0949aa1280ca722a4f0ee9ea90d0987ed8f3c60815a5957e335dd",
+        "targetDigest": "ad5c82687364870dcf70f9667aee65e754479242a62aabd945b243af5f7cdecb",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -5623,7 +5623,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "5ae431c538285188fcc302ec316ee4827e9777934924a8a849460fa235d51faa"
+            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
           }
         ]
       },
@@ -9603,7 +9603,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "722924b89dec8b4bc858336c13b04d5ef3cb023aeb208df9c4c399633ab0bac3",
+        "targetDigest": "e825e895f89651315d4311da61439647f185f33de30d4c774b392fb201eb7136",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9645,7 +9645,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "5ae431c538285188fcc302ec316ee4827e9777934924a8a849460fa235d51faa"
+            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
           }
         ]
       },

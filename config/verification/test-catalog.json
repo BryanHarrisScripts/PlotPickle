@@ -9603,7 +9603,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "0c6f63dc97a6d77b119d732fa44c1643dda427782281a597f210f7a7853e6c81",
+        "targetDigest": "722924b89dec8b4bc858336c13b04d5ef3cb023aeb208df9c4c399633ab0bac3",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],

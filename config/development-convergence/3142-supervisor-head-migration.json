@@ -62,7 +62,7 @@
         {
           "type": "file-contains",
           "path": "docs/developer-briefs/3142-supervisor-head-migration.md",
-          "contains": "#3142\\` remains OPEN"
+          "contains": "remains OPEN for actual owner-initiated migration"
         }
       ]
     }

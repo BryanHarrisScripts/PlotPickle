@@ -10,7 +10,8 @@
     "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
     "docs/developer-briefs/3142-authenticated-supervisor-stop-request.md",
     "config/development-convergence/3142-authenticated-supervisor-stop-request.json",
-    "config/verification/test-catalog.json"
+    "config/verification/test-catalog.json",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {
@@ -80,6 +81,22 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/3142-authenticated-supervisor-stop-request.md",
           "contains": "#3142, #3135 and #3121 remain OPEN"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-GUI-BUILD-SELECTED",
+      "criterion": "Changing the Factory Settings panel selects the actual Windows Product Gate build, not only the synthetic native supervisor tests.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "settings-workspace-panel|factory-supervisor-panel|settings-review-system-panel"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "Factory Settings UI changes select the real Windows Product Gate"
         }
       ]
     }

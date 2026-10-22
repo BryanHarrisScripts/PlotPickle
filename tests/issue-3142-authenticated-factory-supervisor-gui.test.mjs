@@ -127,7 +127,8 @@ test("#3142 route and GUI bind to same reviewed supervisor, Human session and ex
   assert.match(files[1], /data-factory-supervisor-state/u);
   assert.match(files[2], /<FactorySupervisorPanel/u);
   assert.match(files[3], /"X-PlotPickle-CSRF"/u);
-  assert.match(files[4], /GET as supervisorGet, POST as supervisorPost/u);
+  assert.ok(files[4].includes('await import("../app/api/factory/supervisor/route")'),
+    "Factory endpoint must load lazily inside the live Node profile gateway");
   assert.match(files[4], /"\/api\/factory\/supervisor"/u);
   assert.match(files[4], /handlers: Object\.freeze\(\{ GET: supervisorGet, POST: supervisorPost \}\)/u);
   assert.doesNotMatch(files[0], /spawn\(|execFile\(|taskkill|shell: true|modelRoute|merge_pull/u);

@@ -9504,8 +9504,7 @@
           }
         ],
         "scopes": [
-          "runtime-fixture",
-          "derived-project-truth",
+          "unit-fixture",
           "static-source"
         ],
         "limits": "Runtime esbuild bundle of actual canonical projection and readiness functions with isolated synthetic Library project. Does not attest persisted profile, Browser/GUI, real owner Windows, an authenticated user, agent/model invocation, approval or paid production.",

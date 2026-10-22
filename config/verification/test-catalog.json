@@ -6801,7 +6801,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "f918c62187fe03cebfb1f203ca98e9e39f8748c2572b2b58fc0811d8913d1ea2"
+            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
           }
         ]
       },
@@ -7635,7 +7635,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "f918c62187fe03cebfb1f203ca98e9e39f8748c2572b2b58fc0811d8913d1ea2"
+            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
           }
         ]
       },
@@ -9267,7 +9267,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "29d66c03b984ecc8a714db270d16e2ef582dbdd091a41d09f0eb236b82359bb2"
+            "digest": "2a8ef2226adf1e09b01c479e62e952b4ca879f6f3bcdc99aa3d5591b76f7dff8"
           }
         ]
       },
@@ -9939,7 +9939,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "f918c62187fe03cebfb1f203ca98e9e39f8748c2572b2b58fc0811d8913d1ea2"
+            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
           }
         ],
         "truthRefs": [

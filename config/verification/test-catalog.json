@@ -4400,7 +4400,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs"
+          "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "tests/issue-3142-profile-auth-supervisor-controls.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4425,7 +4426,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3142 real Settings surface and authenticated Human-session HTTP adapter to existing Windows supervisor status/pause/resume, with runtime request/denial fixtures. Native Windows CI, but no owner-host GUI live parity, service startup, PID stop or autonomous coding claimed."
+      "notes": "#3142 real Settings surface and authenticated Human-session HTTP adapter to existing Windows supervisor status/pause/resume, with runtime request/denial fixtures. Native Windows CI, but no owner-host GUI live parity, service startup, PID stop or autonomous coding claimed.#3142 additional runtime fixture uses original private host bound supervisor to prove GUI/CMD pause/resume/STOP parity and policy negatives. Native Windows and Product Gate selected on GUI changes; owner-device signed-in clickthrough remains unproven."
     }
   ],
   "truthGovernance": {
@@ -6625,7 +6626,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
+            "digest": "7ea6a3094b0e4a483f586b7a03bcfa80c52a0dcf5bed25b2b401c71961189364"
           }
         ]
       },
@@ -7459,7 +7460,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
+            "digest": "7ea6a3094b0e4a483f586b7a03bcfa80c52a0dcf5bed25b2b401c71961189364"
           }
         ]
       },
@@ -9610,7 +9611,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime Node Request/Response adapter fixtures plus static linkage to real authenticated node route and GUI. Native Windows tests exercise this adapter and existing supervisor in isolation; not actual owner's authenticated GUI/paired runtime, reboot/service, independent STOP or auto merge.",
+        "limits": "Runtime synthetic HTTP auth/origin/policy refusals plus static checks of real route/Settings/local profile gateway, native Windows CI job. Does not attest actual paired-owner session GUI, OS reboot, real worker stop or automatic merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
@@ -9631,6 +9632,66 @@
           {
             "path": "build/local-profile-auth-gateway.ts",
             "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
+          },
+          {
+            "path": "app/skin-v1/factory-supervisor-panel.module.css",
+            "digest": "1c652436f9c06304afd32476259a733838426c1e3c5745db298da15743b2ad45"
+          },
+          {
+            "path": "core/auth/profile-request-browser.ts",
+            "digest": "47bda6cbbadde6674452c598b6baf372a71ad5fef033235c988b01c943318351"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-profile-auth-supervisor-controls.test.mjs",
+        "targetDigest": "1542f05d8edd49adc9ee64a895f948c0509e6791a8db60cfb5dd9df85872423c",
+        "catalogueIds": [
+          "agent.authenticated-factory-supervisor-gui-3142"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Executes actual HTTP adapter and original supervisor in private synthetic filesystem with injected current pairing, auth and commands; static GUI/route binding. No real signed-in owner GUI session, long-lived Windows on-login service, external process STOP, paid provider or autonomous merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
+          },
+          {
+            "path": "app/api/factory/supervisor/route.ts",
+            "digest": "fa5036bed6ba926b7daa395053fc86d5b639b645fd9561b23057c7b522c47336"
+          },
+          {
+            "path": "app/skin-v1/factory-supervisor-panel.tsx",
+            "digest": "836635e08e09c73384d24b6d6f75ab161602338b8c6cd03353d519d514dec64c"
+          },
+          {
+            "path": "app/skin-v1/factory-supervisor-panel.module.css",
+            "digest": "1c652436f9c06304afd32476259a733838426c1e3c5745db298da15743b2ad45"
+          },
+          {
+            "path": "app/skin-v1/settings-workspace-panel.tsx",
+            "digest": "117c4eef209daf6a59437627b2faac987e13bfe99d05824273cd05d887b2d19b"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
+          },
+          {
+            "path": "core/auth/profile-request-browser.ts",
+            "digest": "47bda6cbbadde6674452c598b6baf372a71ad5fef033235c988b01c943318351"
           }
         ]
       }

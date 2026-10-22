@@ -1461,7 +1461,9 @@
         "targets": [
           "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
           "tests/issue-2746-oss-radar-creative-focus.test.mjs",
-          "tests/issue-2348-oss-rules-intelligence.test.mjs"
+          "tests/issue-2348-oss-rules-intelligence.test.mjs",
+          "tests/issue-2210-oss-radar-state-store.test.mjs",
+          "tests/issue-3227-oss-radar-learning-evolution.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1486,7 +1488,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "#2034 deterministic OSS Radar recall regression. Proves atomic query families, configuration-owned bounds, hard rejection before read-only enrichment, two-stage scoring, InkOS sentinel relevance, coverage, query-effectiveness history, and preserved Top-5/idempotence/security contracts without live-network authority."
+      "notes": "#2034 deterministic OSS Radar recall regression. Proves atomic query families, configuration-owned bounds, hard rejection before read-only enrichment, two-stage scoring, InkOS sentinel relevance, coverage, query-effectiveness history, and preserved Top-5/idempotence/security contracts without live-network authority. #3227 includes governed existing state/artifact regressions and read-only Learning & Evolution evidence proposals; fixture and local artifact checks do not certify live upstream research, editorial quality or in-app UAT."
     },
     {
       "id": "story-canon.story-bible-projection-2251",
@@ -4775,6 +4777,71 @@
       }
     ],
     "bindings": [
+      {
+        "target": "tests/issue-2210-oss-radar-state-store.test.mjs",
+        "targetDigest": "cc8682b57fec2d2f09218deae98fe7864a6e87bea38e5ba966cdf9ac8d66afbd",
+        "catalogueIds": [
+          "verification.oss-radar-discovery-recall"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Mocked GitHub state API, same-day/next-day fixture, and actual local temporary artifact-file readback, including research-only additions. Does not establish live GitHub state persistence, a real scheduled run, upstream source quality, product UX or Human acceptance.",
+        "inputs": [
+          {
+            "path": "lib/verification/oss-radar/artifact-bundle.mjs",
+            "digest": "16888f44daef230a8ffc482c1c2d5bd015a6815ae6df797c0ae9db3c1ea9136f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3227-oss-radar-learning-evolution.test.mjs",
+        "targetDigest": "4bf256ecb51dcaf74f7604543945ecccd19305278bc1fdcc61ac192350b35b86",
+        "catalogueIds": [
+          "verification.oss-radar-discovery-recall"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source",
+          "real-boundary"
+        ],
+        "limits": "Deterministic synthetic Creative Focus projection, negative cases, actual local temporary artifact-file readback and static scheduler source inspection. No live OSS fetch, editorial review, LEARN lesson assessment, published blog, installed dependency or authenticated Windows UI acceptance.",
+        "inputs": [
+          {
+            "path": "lib/verification/oss-radar/learning-evolution/review-proposals.mjs",
+            "digest": "19e6575676f563d95ee1811aecaf7e6e39ad3d69f2ab4ccdc121fdf2e2843dda"
+          },
+          {
+            "path": "lib/verification/oss-radar/artifact-bundle.mjs",
+            "digest": "16888f44daef230a8ffc482c1c2d5bd015a6815ae6df797c0ae9db3c1ea9136f"
+          },
+          {
+            "path": ".github/workflows/oss-radar.yml",
+            "digest": "9d8bf317f42c80930ab2a038b160cc1521076b7ddc6144ef491b439772fc0403"
+          }
+        ]
+      },
       {
         "target": "tests/issue-2959-sage-shortcut-guard.test.mjs",
         "targetDigest": "af5bef1c67e1f581f5c2c1b9153a1fd5980f8862cc8b5b7dc9db6d89955d68a0",

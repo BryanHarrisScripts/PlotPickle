@@ -154,7 +154,7 @@ test("#3142 GUI receipt bounds private reason, head and process verification", (
   });
   assert.deepEqual(sample, {
     state: "BLOCKED", reason: "SOURCE_UNVERIFIED", sourceHead: null, heartbeatAt: null,
-    pauseAcknowledged: true, inFlightCancellationProven: false, workerProcessVerified: false,
+    pauseAcknowledged: false, inFlightCancellationProven: false, workerProcessVerified: false,
     autonomousCodingVerified: false, automaticMergeEnabled: false,
   });
   assert.doesNotMatch(JSON.stringify(sample), /secret|NEVER_DISCLOSE_SOURCE|owner-key/);
@@ -179,4 +179,35 @@ test("#3142 Settings GUI and route share the single HTTP adapter and profile-aut
   assert.match(settings, /<FactorySupervisorPanel \/>/);
   assert.match(style, /\.panel/);
   assert.doesNotMatch(panel, /Start-ScheduledTask|taskkill|process\.kill|execFile|merge_pull_request/);
+});
+
+test("#3142 forged acknowledged pause never becomes public acknowledged PAUSED", async () => {
+  const unsafe = summarizeSupervisorForGui({
+    state: "RUNNING", exactSha: HEAD, checkedAt: NOW(),
+    pauseAcknowledged: true, inFlightCancellationProven: true,
+  });
+  assert.equal(unsafe.state, "RUNNING");
+  assert.equal(unsafe.pauseAcknowledged, false);
+  assert.equal(unsafe.inFlightCancellationProven, false);
+});
+
+test("#3142 committed PAUSE with lost status is uncertain, not incorrectly reported as failure", async () => {
+  let writes = 0;
+  const result = await dispatchSupervisorRequest({
+    request: request("POST", { action: "pause" }), platform: "win32",
+    authorize: async () => {},
+    lifecycle: {
+      pause: async () => { writes++; return { state: "PAUSE_REQUESTED" }; },
+      resume: async () => { throw Error("unrelated"); },
+      status: async () => { throw Error("PRIVATE_STATUS_IO_ERROR"); },
+    },
+  });
+  assert.equal(writes, 1);
+  assert.equal(result.status, 409);
+  const body = await result.json();
+  assert.equal(body.code, "ACTION_SUBMITTED_STATUS_UNVERIFIED");
+  assert.equal(body.requested, true);
+  assert.equal(body.workerProcessVerified, false);
+  assert.equal(body.automaticMergeEnabled, false);
+  assert.doesNotMatch(JSON.stringify(body), /PRIVATE_STATUS_IO_ERROR/);
 });

@@ -45,7 +45,7 @@ export async function plotpickleAppPortOccupied() {
 }
 
 /** Identity, not merely an HTTP 200, is required before reporting ready. */
-export async function probePlotpickleApp(expectedHead) {
+export async function probePlotpickleApp(expectedHead,channel="MAIN",candidatePrNumber=null) {
   const marker=`plotpickle-startup-v4-${expectedHead}-normal-local-human-vite-source`;
   try{
     const response=await fetch(`http://${HOST}:${PORT}/skin-v1`,{
@@ -54,7 +54,11 @@ export async function probePlotpickleApp(expectedHead) {
     });
     if(!response.ok)return false;
     const body=await response.text();
-    return body.includes(marker)&&/PlotPickle/i.test(body);
+    const kind=channel==="PR_TEST"?"PR_TEST":"MAIN";
+    return body.includes(marker)&&
+      body.includes(`data-plotpickle-launch-channel="${kind}"`)&&
+      body.includes(`data-plotpickle-launch-head="${expectedHead}"`)&&
+      (channel!=="PR_TEST" || body.includes(`PR #${candidatePrNumber}`));
   }catch{return false;}
 }
 

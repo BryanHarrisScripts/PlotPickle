@@ -71,13 +71,27 @@ export async function dispatchSupervisorRequest({
   let body;
   try { body = await request.json(); } catch { return respond({ code: "ACTION_INVALID" }, 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)
-    || Object.keys(body).length !== 1 || !["pause", "resume"].includes(body.action))
+    || Object.keys(body).length !== 1 || !["pause", "resume", "stop"].includes(body.action))
     return respond({ code: "ACTION_NOT_AUTHORIZED" }, 400);
   try {
-    const result = body.action === "pause"
-      ? await lifecycle.pause() : await lifecycle.resume();
-    if (result?.state !== (body.action === "pause" ? "PAUSE_REQUESTED" : "RESUME_REQUESTED"))
+    // STOP is the already-reviewed local kill-switch request. Unlike process
+    // termination, its receipt cannot establish child/descendant cleanup.
+    // It remains admissible if the previous pairing became unreachable.
+    const result = body.action === "pause" ? await lifecycle.pause()
+      : body.action === "resume" ? await lifecycle.resume()
+        : await lifecycle.stop();
+    const expected = body.action === "pause" ? "PAUSE_REQUESTED"
+      : body.action === "resume" ? "RESUME_REQUESTED" : "STOP_REQUESTED";
+    if (result?.state !== expected)
       return respond({ code: "LIFECYCLE_RECEIPT_UNVERIFIED" }, 409);
+    // A completed STOP request is not a verified stopped process or released port.
+    // Do not call status again for STOP: its heartbeat might still be RUNNING.
+    if (body.action === "stop") return respond({
+      version: 1, capability: "factory.supervisor.stop",
+      requested: true, acknowledged: false, stopDisposition: "STOP_REQUESTED_UNCONFIRMED",
+      ownedDescendantsVerifiedGone: false,
+      ...summarizeSupervisorForGui({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" }),
+    });
     const status = await lifecycle.status();
     return respond({ version: 1, capability: "factory.supervisor." + body.action,
       requested: true, acknowledged: body.action === "pause"

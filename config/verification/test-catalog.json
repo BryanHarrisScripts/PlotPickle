@@ -9592,7 +9592,7 @@
       },
       {
         "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-        "targetDigest": "c10227928e02b4215e70896e8a57afedf588a844efd262ef6d142efb2b43179e",
+        "targetDigest": "0aac43e72a04f62f71d8b9a0ac285c6097d77cb6a58976d06cd4755e70870fce",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -9630,7 +9630,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "6546d2c52050459adea7a41d2d9f1c3df50591a43f855d3459c17c01557b5fc3"
+            "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
           }
         ]
       }

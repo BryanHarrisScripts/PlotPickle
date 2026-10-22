@@ -31,8 +31,8 @@ export function summarizeSupervisorForGui(result) {
 }
 
 function admittedOrigin(request, mutation) {
-  let url;
-  try { url = new URL(request?.url); } catch { return false; }
+  if (typeof request?.url !== "string" || !URL.canParse(request.url)) return false;
+  const url = new URL(request.url);
   if (url.protocol !== "http:" || !LOOPBACK.has(url.hostname)
     || url.username || url.password || url.search || url.hash) return false;
   const headers = request.headers;

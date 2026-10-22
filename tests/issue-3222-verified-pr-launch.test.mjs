@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { plotpickleLaunchIdentity } from "../modules/intent/model/launch-identity.mjs";
 import { createPlotpickleAppController } from "../scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs";
-import { prepareStagedHumanCandidate } from "../scripts/engineering-team/mcp/plotpickle-candidate-source.mjs";
+import { prepareStagedHumanCandidate } from "../scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs";
 import { inspectFactoryCandidatePr } from "../scripts/engineering-team/mcp/factory-named-tests.mjs";
 import { handleRpc, MCP_CONTROL_TOOLS } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 import { readFile } from "node:fs/promises";

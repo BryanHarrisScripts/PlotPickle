@@ -2662,6 +2662,50 @@
       "notes": "#2956 bounded selected Library PPF Reports projection, explicit no active story and mismatched ID refusal, no legacy fallback, evidence-only metrics and unsupported/truncated status. Synthetic project and route source evidence; not live Human Windows acceptance."
     },
     {
+      "id": "experience.reports-current-route-legacy-contract-118",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "canon",
+        "storage"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-118-consolidated-reports.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#118 retained legacy consolidated report model and actual Library-owned Reports route; source assertions verify preserved current navigation, reload and stable editor target contracts. Static tests only: no authenticated Windows browser, independent runtime readiness, cross-profile isolation or persistence proof."
+    },
+    {
       "id": "agent.pi-draft-grounding-correction-2975",
       "ownerLayer": "agent-runtime",
       "architectureComponents": [
@@ -5624,6 +5668,57 @@
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
             "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-118-consolidated-reports.test.mjs",
+        "targetDigest": "970a988fa21621a67aaabd1ea843cfafef0dbf2e093ec068517cfd274053bd50",
+        "catalogueIds": [
+          "experience.reports-current-route-legacy-contract-118"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Historical #118 source-contract assertions cover the retained legacy report builders and the current selected-Library-PPF Reports route, same-tab exit/reload affordances and editor target declarations. No live Windows Human profile, browser keyboard reload, durable story readback, complete film or independently verified product outcome is established by these static checks.",
+        "inputs": [
+          {
+            "path": "lib/consolidated-reports.ts",
+            "digest": "b8e598a942fb0e002b3da6dccb7232f1ed9ddd6be4f9a1754bae2cd39696d248"
+          },
+          {
+            "path": "app/reports-workspace.tsx",
+            "digest": "f49ceec15f698af0c6b3184cbda5f5eb845ccaafbf68451fe1aae0e4680f4635"
+          },
+          {
+            "path": "app/reports/page.tsx",
+            "digest": "ae839d5af09a80d949287f2abf46e8635043e7868565a90d4a83dd15368ac536"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "aae8e8b9121bd1d100a426f556c80287cef0000c1c1bb41e7c411c2671f8808e"
+          },
+          {
+            "path": "app/build-workspace.tsx",
+            "digest": "b76f5f2dff42188f974e1bd4221b2b65381a0c81fd8b78d851632667ca68c456"
+          },
+          {
+            "path": "app/script-workspace.tsx",
+            "digest": "a502ff145f26e3ca9b4cf31dbdc8ff78c2e16483abbc80c5f7ebf1a083f1eb3b"
+          },
+          {
+            "path": "package.json",
+            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
           }
         ]
       },

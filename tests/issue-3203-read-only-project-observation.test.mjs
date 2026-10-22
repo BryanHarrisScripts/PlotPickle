@@ -207,3 +207,20 @@ test("#3203 ten-stage Reports GUI has accessible return navigation and reload wi
   assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
   assert.doesNotMatch(surface, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|target="_blank"|window\.open\(|saveActiveLibraryProject\(|authenticatedComputeFetch\(/u);
 });
+
+test("#3203 candidate Reports remains visibly marked PR TEST and never impersonates merged main", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const layout=await readFile(new URL("../app/layout.tsx",import.meta.url),"utf8");
+  const mod=await import("../modules/intent/model/launch-identity.mjs");
+  const head="a".repeat(40);
+  const env={PLOTPICKLE_LAUNCH_SOURCE_HEAD:head,
+    PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"3219",
+    PLOTPICKLE_STARTUP_CONTRACT:"plotpickle-startup-v4-"+head+"-normal-local-human-vite-source"};
+  const label=mod.plotpickleLaunchIdentity(env);
+  assert.equal(label.channel,"PR_TEST");
+  assert.match(label.label,/PR #3219.*UNMERGED/u);
+  assert.match(layout,/data-plotpickle-launch-channel/u);
+  assert.ok(layout.indexOf("data-plotpickle-launch-channel")<layout.indexOf("<ProfileAccessRouter"));
+  assert.equal(mod.plotpickleLaunchIdentity({...env,PLOTPICKLE_STARTUP_CONTRACT:"spoofed"}).channel,
+    "UNVERIFIED");
+});

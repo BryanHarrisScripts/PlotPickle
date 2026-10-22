@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { plotpickleLaunchIdentity } from "@/modules/intent/model/launch-identity.mjs";
 import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
 import ProfileAccessRouter from "./profile-access/profile-access-router";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
@@ -114,6 +115,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const publicWebRoot = (await headers()).get("x-plotpickle-public-web") === "1";
+  const launchIdentity = plotpickleLaunchIdentity(process.env);
+
 
   return (
     <html
@@ -131,6 +134,25 @@ export default async function RootLayout({
             '\"JetBrains Mono\", \"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
         } as React.CSSProperties}
       >
+        <aside
+          aria-label="Running PlotPickle version"
+          data-plotpickle-launch-channel={launchIdentity.channel}
+          data-plotpickle-launch-head={launchIdentity.sourceHead ?? "unverified"}
+          style={{
+            position: "fixed",right: 12,bottom: 12,zIndex: 2147480000,
+            maxWidth: "min(440px, calc(100vw - 24px))",
+            padding: "7px 12px",
+            border: "1px solid #517c70",
+            borderRadius: 6,
+            background: "#0b1917",
+            color: launchIdentity.channel === "PR_TEST" ? "#ffcb78" : "#91d8bb",
+            font: "700 11px/1.4 monospace",
+            letterSpacing: "0.04em",
+            pointerEvents: "none",
+          }}
+        >
+          {launchIdentity.label}
+        </aside>
         <AppearanceRuntime />
         <SkinV1Runtime publicWebRoot={publicWebRoot} />
         <UniversalVoiceInputLayer />

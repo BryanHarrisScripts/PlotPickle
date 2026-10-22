@@ -22,7 +22,7 @@ export function summarizeSupervisorForGui(result) {
     sourceHead: SHA.test(result?.exactSha || "") ? result.exactSha : null,
     heartbeatAt: Number.isSafeInteger(result?.checkedAt) && result.checkedAt >= 0
       ? result.checkedAt : null,
-    pauseAcknowledged: result?.pauseAcknowledged === true,
+    pauseAcknowledged: state === "PAUSED" && result?.pauseAcknowledged === true,
     inFlightCancellationProven: false,
     workerProcessVerified: false,
     autonomousCodingVerified: false,
@@ -78,11 +78,18 @@ export async function dispatchSupervisorRequest({
       ? await lifecycle.pause() : await lifecycle.resume();
     if (result?.state !== (body.action === "pause" ? "PAUSE_REQUESTED" : "RESUME_REQUESTED"))
       return respond({ code: "LIFECYCLE_RECEIPT_UNVERIFIED" }, 409);
-    const status = await lifecycle.status();
+    let status;
+    try { status = await lifecycle.status(); }
+    catch {
+      // The marker may have been committed. Deny a "failed/never happened"
+      // claim, and do not invite a second non-replayable mutation.
+      return respond({ code: "ACTION_SUBMITTED_STATUS_UNVERIFIED",
+        requested: true, workerProcessVerified: false, automaticMergeEnabled: false }, 409);
+    }
+    const bounded = summarizeSupervisorForGui(status);
     return respond({ version: 1, capability: "factory.supervisor." + body.action,
-      requested: true, acknowledged: body.action === "pause"
-        && status.state === "PAUSED" && status.pauseAcknowledged === true,
-      ...summarizeSupervisorForGui(status) });
+      requested: true, acknowledged: body.action === "pause" && bounded.pauseAcknowledged,
+      ...bounded });
   } catch {
     return respond({ code: "LIFECYCLE_OPERATION_BLOCKED" }, 409);
   }

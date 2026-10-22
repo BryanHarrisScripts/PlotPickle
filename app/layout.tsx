@@ -1,4 +1,13 @@
 import type { Metadata } from "next";
+
+// Compile-time, allowlisted source identity injected by the trusted Vite
+// launcher. Do not read a different process.env in the Cloudflare RSC worker.
+declare const __PLOTPICKLE_LAUNCH_CONTEXT__: Readonly<{
+  PLOTPICKLE_STARTUP_CONTRACT: string;
+  PLOTPICKLE_LAUNCH_SOURCE_HEAD: string;
+  PLOTPICKLE_LAUNCH_CHANNEL: string;
+  PLOTPICKLE_LAUNCH_PR_NUMBER: string;
+}>;
 import { headers } from "next/headers";
 import { plotpickleLaunchIdentity } from "@/modules/intent/model/launch-identity.mjs";
 import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
@@ -115,7 +124,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const publicWebRoot = (await headers()).get("x-plotpickle-public-web") === "1";
-  const launchIdentity = plotpickleLaunchIdentity(process.env);
+  const launchIdentity = plotpickleLaunchIdentity(__PLOTPICKLE_LAUNCH_CONTEXT__);
 
 
   return (

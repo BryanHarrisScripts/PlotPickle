@@ -94,6 +94,15 @@ export default defineConfig(async ({ command }) => {
 
   return {
     define: {
+      // Vinext/Cloudflare RSC must receive source identity through the Vite
+      // compilation boundary; process.env is not reliable inside its renderer.
+      // Only these four non-secret, owner-controlled launch values are exposed.
+      __PLOTPICKLE_LAUNCH_CONTEXT__: JSON.stringify({
+        PLOTPICKLE_STARTUP_CONTRACT: process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "",
+        PLOTPICKLE_LAUNCH_SOURCE_HEAD: process.env.PLOTPICKLE_LAUNCH_SOURCE_HEAD ?? "",
+        PLOTPICKLE_LAUNCH_CHANNEL: process.env.PLOTPICKLE_LAUNCH_CHANNEL ?? "",
+        PLOTPICKLE_LAUNCH_PR_NUMBER: process.env.PLOTPICKLE_LAUNCH_PR_NUMBER ?? "",
+      }),
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),

@@ -27,7 +27,7 @@ test("#3222 version label recognizes only source-matched launch contracts; other
     PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"3219",
     PLOTPICKLE_LAUNCH_SOURCE_HEAD:PR,
     PLOTPICKLE_STARTUP_CONTRACT:marker(PR),
-  }).label,`PR #3219 · TEST / UNMERGED · ${PR.slice(0,12)}`);
+  }).label,`UAT · PR #3219 · UNMERGED · ${PR.slice(0,12)}`);
   for(const extra of [
     {PLOTPICKLE_LAUNCH_CHANNEL:"main"},
     {PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"0"},
@@ -42,7 +42,13 @@ test("#3222 version label recognizes only source-matched launch contracts; other
 test("#3222 root layout keeps launch label visible across locked profile gate and Reports",async()=>{
   const layout=await readFile(new URL("../app/layout.tsx",import.meta.url),"utf8");
   const ui=await readFile(new URL("../scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",import.meta.url),"utf8");
-  assert.match(layout,/plotpickleLaunchIdentity\(process\.env\)/u);
+  const config=await readFile(new URL("../vite.config.ts",import.meta.url),"utf8");
+  assert.match(layout,/plotpickleLaunchIdentity\(__PLOTPICKLE_LAUNCH_CONTEXT__\)/u);
+  assert.doesNotMatch(layout,/plotpickleLaunchIdentity\(process\.env\)/u);
+  assert.match(config,/__PLOTPICKLE_LAUNCH_CONTEXT__: JSON\.stringify/u);
+  for(const name of ["PLOTPICKLE_STARTUP_CONTRACT","PLOTPICKLE_LAUNCH_SOURCE_HEAD",
+    "PLOTPICKLE_LAUNCH_CHANNEL","PLOTPICKLE_LAUNCH_PR_NUMBER"])
+    assert.match(config,new RegExp(name+String.raw`:\s*process\.env\.`+name,"u"));
   assert.match(layout,/data-plotpickle-launch-channel/u);
   assert.match(layout,/data-plotpickle-launch-head/u);
   assert.ok(layout.indexOf("data-plotpickle-launch-channel")<layout.indexOf("<ProfileAccessRouter"));

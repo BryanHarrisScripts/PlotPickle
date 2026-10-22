@@ -18,7 +18,7 @@ export function plotpickleLaunchIdentity(env={}) {
       sourceHead:head,candidatePrNumber:null,verifiedContract:true});
   if(recognized&&channel==="pr-test"&&PR.test(pr))
     return Object.freeze({channel:"PR_TEST",
-      label:`PR #${pr} · TEST / UNMERGED · ${short}`,
+      label:`UAT · PR #${pr} · UNMERGED · ${short}`,
       sourceHead:head,candidatePrNumber:Number(pr),verifiedContract:true});
   return Object.freeze({channel:"UNVERIFIED",label:"SOURCE / VERSION UNVERIFIED",
     sourceHead:null,candidatePrNumber:null,verifiedContract:false});

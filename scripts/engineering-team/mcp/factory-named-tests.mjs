@@ -340,8 +340,36 @@ export async function executeOwnedFactoryStoryUat({
  */
 
 /** Isolate dependency installation and live-browser artifacts from owner main. */
+/**
+ * A bounded diagnostic, not an error dump, a repair grant or source evidence.
+ * The owner may decide whether an immutable failed stage can be inspected.
+ */
+export const FACTORY_STORY_STAGE_REASONS=Object.freeze([
+  "WORKTREE_DISK_FULL","WORKTREE_LOCKED","WORKTREE_EXISTS",
+  "WORKTREE_FILE_ACCESS","WORKTREE_PATH_UNSUPPORTED","WORKTREE_GIT_UNAVAILABLE",
+  "WORKTREE_HEAD_MISMATCH","WORKTREE_DIRTY","WORKTREE_GIT_FAILED",
+]);
+export function classifyFactoryStoryStageFailure(error){
+  const code=typeof error?.code==="string"?error.code.toUpperCase():"";
+  const detail=[error?.stderr,error?.message].filter(v=>typeof v==="string")
+    .join(" ").slice(0,2048);
+  if(code==="ENOSPC"||/no space left|disk full|not enough space/i.test(detail))
+    return "WORKTREE_DISK_FULL";
+  if(/index\.lock|another git process|worktree is locked|unable to create.*lock/i.test(detail))
+    return "WORKTREE_LOCKED";
+  if(code==="EEXIST"||/already exists|already registered.*worktree|is a working tree/i.test(detail))
+    return "WORKTREE_EXISTS";
+  if(code==="ENAMETOOLONG"||/filename too long|path too long/i.test(detail))
+    return "WORKTREE_PATH_UNSUPPORTED";
+  if(["EACCES","EPERM","EBUSY"].includes(code)||/access is denied|permission denied|sharing violation/i.test(detail))
+    return "WORKTREE_FILE_ACCESS";
+  if(code==="ENOENT"||/not a git repository|git.*not found/i.test(detail))
+    return "WORKTREE_GIT_UNAVAILABLE";
+  return "WORKTREE_GIT_FAILED";
+}
+/** Isolated exact-head source stage, without automatic cleanup/replay. */
 export async function stageFactoryStorySource({
-  expectedHead,requestId,root,repoRoot=ROOT,run=exec,
+  expectedHead,requestId,root,repoRoot=ROOT,run=exec,onFailure=()=>{},
 }={}) {
   if(!SHA.test(expectedHead||"")||!/^[a-f0-9]{32}$/.test(requestId||"")||
      typeof root!=="string"||!path.isAbsolute(root))return null;
@@ -355,10 +383,17 @@ export async function stageFactoryStorySource({
   try{
     await git(["-c","core.hooksPath="+path.join(root,"hooks-disabled"),
       "worktree","add","--detach",stage,expectedHead],repoRoot,120_000);
-    if(await git(["rev-parse","HEAD"],stage)!==expectedHead)return null;
-    if(await git(["status","--porcelain","--untracked-files=no"],stage)!=="")return null;
+    if(await git(["rev-parse","HEAD"],stage)!==expectedHead){
+      onFailure("WORKTREE_HEAD_MISMATCH");return null;
+    }
+    if(await git(["status","--porcelain","--untracked-files=no"],stage)!==""){
+      onFailure("WORKTREE_DIRTY");return null;
+    }
     return stage;
-  }catch{return null;} // No unverified cleanup or replay.
+  }catch(error){
+    onFailure(classifyFactoryStoryStageFailure(error));
+    return null;
+  } // No unverified cleanup or replay.
 }
 export async function verifyFactoryStorySource({stage,expectedHead,run=exec}={}) {
   if(typeof stage!=="string"||!path.isAbsolute(stage)||!SHA.test(expectedHead||""))
@@ -393,12 +428,17 @@ export async function runFactoryStoryUat({
     sourceHead:expectedHead});}
   // All npm, browser and artifact writes occur inside a PRIVATE detached
   // checkout of the trusted installed exact main, never the owner's main.
-  let staged;
-  try{staged=await stageMain({expectedHead,requestId,root,repoRoot});}
-  catch{staged=null;}
+  let staged,stageReason=null;
+  try{
+    staged=await stageMain({expectedHead,requestId,root,repoRoot,
+      onFailure:reason=>{
+        if(FACTORY_STORY_STAGE_REASONS.includes(reason))stageReason=reason;
+      }});
+  }catch{staged=null;}
   if(typeof staged!=="string"||!path.isAbsolute(staged))
     return Object.freeze({state:"BLOCKED",
-      code:"PRODUCT_UAT_STAGE_UNVERIFIED",sourceHead:expectedHead});
+      code:"PRODUCT_UAT_STAGE_UNVERIFIED",sourceHead:expectedHead,
+      stageReason:stageReason||"WORKTREE_GIT_FAILED"});
   let observed;
   try{
     observed=await execute({repoRoot:staged,env:{

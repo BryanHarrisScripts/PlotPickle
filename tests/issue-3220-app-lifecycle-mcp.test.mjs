@@ -21,7 +21,7 @@ function fixture(overrides={}) {
     launch:(exe,args,opts)=>{
       assert.equal(opts.shell,false);
       assert.equal(opts.cwd,"C:\\PlotPickle-fixture");
-      assert.deepEqual(args.slice(-6),["--host","127.0.0.1","--port","4173","--strictPort"]);
+      assert.deepEqual(args.slice(-5),["--host","127.0.0.1","--port","4173","--strictPort"]);
       assert.equal(opts.env.PLOTPICKLE_FACTORY_MCP_CONTROL_TOKEN,undefined);
       assert.match(opts.env.PLOTPICKLE_STARTUP_CONTRACT,/plotpickle-startup-v4-a{40}-normal-local-human-vite-source/);
       const child=Object.assign(new EventEmitter(),{pid:4321+launches.length,exitCode:null,signalCode:null});

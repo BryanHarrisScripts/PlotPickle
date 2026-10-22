@@ -9614,7 +9614,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
-            "digest": "2adc126e1cc07bda9293ec969aed698bc9981b3db2ef96c6aa7e6ef67b7c860c"
+            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
           },
           {
             "path": "app/api/factory/supervisor/route.ts",

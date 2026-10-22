@@ -4,11 +4,13 @@ import { useMemo } from "react";
 import type { LibraryPPFProject } from "@/core/storage/library-project";
 import { CONSOLIDATED_REPORT_SECTIONS, type ConsolidatedReportSection } from "@/lib/consolidated-reports";
 import { summarizeLibraryPpfReport } from "@/modules/reports/model/library-ppf-report.mjs";
+import { observeHollywoodProductionReadiness } from "@/modules/intent/model/hollywood-production-readiness";
 import styles from "./library-ppf-reports-workspace.module.css";
 
 type Props = {
   readonly project: LibraryPPFProject | null;
   readonly selectedId: string | null;
+  readonly authorizedProfileId: string | null;
   readonly checked: boolean;
   readonly section: ConsolidatedReportSection;
   readonly onSectionChange: (value: ConsolidatedReportSection) => void;
@@ -26,9 +28,18 @@ function Unavailable({ children }: { readonly children: string }) {
   </p>;
 }
 
-export default function LibraryPpfReportsWorkspace({ project, selectedId, checked, section, onSectionChange, onRefresh }: Props) {
+export default function LibraryPpfReportsWorkspace({ project, selectedId, authorizedProfileId, checked, section, onSectionChange, onRefresh }: Props) {
   const report = useMemo(() => project ? summarizeLibraryPpfReport(project) : null, [project]);
   const source = report?.imported;
+  const readiness = useMemo(() => project && selectedId && authorizedProfileId
+    ? observeHollywoodProductionReadiness({
+      capability: "project-status.observe",
+      profileId: authorizedProfileId,
+      projectId: selectedId,
+      projectRevision: project.revision,
+      providerPolicy: "LOCAL_READ_ONLY",
+    }, { activeProfileId: authorizedProfileId, activeProject: project })
+    : null, [project, selectedId, authorizedProfileId]);
   return <section className={styles.workspace} aria-label="Library PPF Reports" data-reports-authority="active-library-ppf">
     <header className={styles.header}>
       <div><small>EXPLORE / REPORTS · READ ONLY</small><h1>Reports</h1><p>Evidence from the selected Human Library story—not a separate Reports database.</p></div>
@@ -92,10 +103,32 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, checke
             <Unavailable>{report.unavailable.dialogue}</Unavailable>
           </> : null}
           {section === "production" ? <>
-            <h2>Production readiness</h2>
-            <div className={styles.statGrid}><Statistic label="Storyboard stage acceptances" value={report.structure.storyboardAccepted} detail="PPF structure stage only" /></div>
+            <h2>Hollywood production readiness · 10 stages</h2>
+            <p>Derived from the selected PPF revision only. OBSERVED means retained project metadata, not a completed or independently verified film stage.</p>
+            {!readiness ? <Unavailable>Unlock the current Human profile and select a saved Library project before observing production evidence.</Unavailable>
+              : readiness.state !== "OBSERVED" ? <p role="status" data-production-readiness-state="BLOCKED">
+                Observation blocked: {readiness.code}. No project or revision fallback was used.
+              </p> : <>
+                <p data-production-readiness-state="OBSERVED" data-production-readiness-project={readiness.project?.id}>
+                  Observed Library revision {readiness.project?.revision}. Source coverage is partial or unverified; film readiness is not certified.
+                </p>
+                <div className={styles.statGrid} data-hollywood-stage-count={readiness.stages.length}>
+                  {readiness.stages.map((stage, index) => <article className={styles.stat} key={stage.id}
+                    data-hollywood-stage={stage.id} data-hollywood-stage-state={stage.state}>
+                    <span>STAGE {index + 1}</span>
+                    <strong>{stage.label}</strong>
+                    <small>{stage.state === "OBSERVED" ? "Observed PPF metadata only" : "Insufficient evidence"}</small>
+                    {stage.evidence.map((item) => <small key={item.source}>{item.count} retained records · {item.source}</small>)}
+                    <small>{stage.limitation}</small>
+                    {stage.editorLink ? <a href={stage.editorLink}>Open existing editor</a> : null}
+                  </article>)}
+                </div>
+                <p role="status">Next Human decision: {readiness.nextDecision?.kind === "REVIEW_BLOCK_SOURCE_EVIDENCE"
+                  ? `Review source support for Block ${readiness.nextDecision.blockNumber} in Outline.`
+                  : "Review the source baseline and production plan."} No Save &amp; Lock, paid generation or release is authorized.</p>
+              </>}
             <Unavailable>{report.unavailable.production}</Unavailable>
-          </> : null}
+          </> : null>
           {section === "feedback" ? <><h2>Feedback evidence</h2><Unavailable>{report.unavailable.feedback}</Unavailable></> : null}
           {section === "connections" ? <><h2>Connection evidence</h2><Unavailable>{report.unavailable.connections}</Unavailable></> : null}
           {section === "provenance" ? <>

@@ -9399,7 +9399,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
-            "digest": "0090aa40b79a4cf967840f3516e2f7db18b3c76397d1ce002fc9a1dd450a55f0"
+            "digest": "aeedf69918ba744e6abfe0a065893bfc31133137c1b24daf8d05b42b95cdc0e5"
           },
           {
             "path": "scripts/engineering-team/queue/unattended-queue.mjs",
@@ -9705,7 +9705,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
-            "digest": "0090aa40b79a4cf967840f3516e2f7db18b3c76397d1ce002fc9a1dd450a55f0"
+            "digest": "aeedf69918ba744e6abfe0a065893bfc31133137c1b24daf8d05b42b95cdc0e5"
           },
           {
             "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",

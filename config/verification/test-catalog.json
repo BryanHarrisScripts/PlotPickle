@@ -9615,7 +9615,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
-            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
+            "digest": "8b97e106aaeb31332f75b6ccc5e891d916d7fb23598b3fd3a553b2d29dd447cc"
           },
           {
             "path": "app/api/factory/supervisor/route.ts",
@@ -9645,7 +9645,7 @@
       },
       {
         "target": "tests/issue-3142-profile-auth-supervisor-controls.test.mjs",
-        "targetDigest": "1542f05d8edd49adc9ee64a895f948c0509e6791a8db60cfb5dd9df85872423c",
+        "targetDigest": "4dbf51f9d8695a989cd62c64de7874bc93ed83207b96cec05aa79f640bcc53f9",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -9667,7 +9667,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
-            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
+            "digest": "8b97e106aaeb31332f75b6ccc5e891d916d7fb23598b3fd3a553b2d29dd447cc"
           },
           {
             "path": "app/api/factory/supervisor/route.ts",

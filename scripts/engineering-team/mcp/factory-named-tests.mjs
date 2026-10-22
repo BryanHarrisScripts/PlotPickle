@@ -73,8 +73,20 @@ export async function inspectFactoryCandidatePr({
     state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:SHA.test(after||"")?after:null});
   if(metadata?.number!==prNumber||metadata?.state!=="OPEN")
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_NOT_OPEN",sourceHead:initial});
-  if(metadata.baseRefName!=="main"||metadata.baseRefOid!==expectedHead)
+  if(metadata.baseRefName!=="main"||!SHA.test(metadata.baseRefOid||""))
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_BASE_MISMATCH",sourceHead:initial});
+  // A draft may retain its original main-base OID after current main advances.
+  // That is safe ONLY if Git proves that exact base is an ancestor of the
+  // currently clean, exact main. No guessed base, force-push, or unrelated tree.
+  if(metadata.baseRefOid!==expectedHead){
+    try{
+      await run("git",["merge-base","--is-ancestor",metadata.baseRefOid,expectedHead],{
+        ...GIT_OPTIONS,cwd:repoRoot,
+      });
+    }catch{
+      return Object.freeze({state:"BLOCKED",code:"CANDIDATE_BASE_MISMATCH",sourceHead:initial});
+    }
+  }
   if(metadata.headRefOid!==candidateHead)
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_HEAD_MISMATCH",sourceHead:initial});
   return Object.freeze({

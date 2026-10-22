@@ -108,6 +108,16 @@ export async function migrateSupervisorHead({
   if (await existsOrdinaryFile(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
   if (await existsOrdinaryFile(p.pause)) throw Error("PAUSE_REQUEST_REQUIRES_OPERATOR_REVIEW");
   if (!await existsOrdinaryFile(p.enabled)) throw Error("SUPERVISOR_NOT_ENABLED");
+  // Serialize against serveSupervisor's exclusive service.lock. Never change
+  // source authority concurrently with a resident worker or logon start.
+  const migrationOwner = hash("supervisor-head-migration:" + process.pid + ":" + now() + ":" + fromHead);
+  await writeFile(p.lock, JSON.stringify({ schemaVersion: 1, kind: "supervisor-head-migration",
+    owner: migrationOwner, pid: process.pid, at: now() }) + "\n",
+    { flag: "wx", mode: 0o600 }).catch(error => {
+    if (error?.code === "EEXIST") throw Error("SUPERVISOR_LOCKED_OR_STALE");
+    throw error;
+  });
+  try {
   const enabled = await safeRead(p.enabled);
   if (!enabled || enabled.schemaVersion !== 1 ||
     enabled.kind !== "independent-windows-supervisor" ||
@@ -135,8 +145,9 @@ export async function migrateSupervisorHead({
     verified.branch !== "main" || verified.originVerified !== true ||
     verified.ancestorVerified !== true) throw Error("CLEAN_FAST_FORWARD_MAIN_REQUIRED");
   // Recheck local identity before atomic replacement, not just before git checks.
-  if (await existsOrdinaryFile(p.lock) || await existsOrdinaryFile(p.stop) ||
-    await existsOrdinaryFile(p.pause)) throw Error("SUPERVISOR_CONTROL_CHANGED");
+  if ((await safeRead(p.lock))?.owner !== migrationOwner ||
+    await existsOrdinaryFile(p.stop) || await existsOrdinaryFile(p.pause))
+    throw Error("SUPERVISOR_CONTROL_CHANGED");
   const current = await safeRead(p.enabled);
   if (JSON.stringify(current) !== JSON.stringify(enabled))
     throw Error("SUPERVISOR_AUTHORITY_CHANGED");
@@ -160,6 +171,11 @@ export async function migrateSupervisorHead({
   return Object.freeze({ state: "HEAD_MIGRATED_NOT_RUNNING", fromHead,
     exactSha: verified.sourceHead, workerProcessVerified: false,
     issueReplayed: false, sourceModified: false, automaticMergeEnabled: false });
+  } finally {
+    // The same owner that took this exclusion may release it. After a crash
+    // the leftover lock requires manual review, never an automatic takeover.
+    if ((await safeRead(p.lock))?.owner === migrationOwner) await rm(p.lock, { force: true });
+  }
 }
 
 export async function reenableSupervisor({ appRoot = appRootDefault(), consent, platform = process.platform,

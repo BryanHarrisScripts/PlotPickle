@@ -214,10 +214,12 @@ test("#2210 builds a complete Actions artifact bundle from a successful Radar re
       writeFile(resultPath, `${JSON.stringify(result)}\n`, "utf8")
     );
     const written = await writeRadarArtifactBundle({ resultPath, outputDir });
-    assert.deepEqual(written.files.sort(), ["creative-focus.json", "discovery.json", "oss-rules-intelligence.json", "public-blog-draft.md", "public-digest.txt", "report.md", "result.json", "state.json"].sort());
+    assert.deepEqual(written.files.sort(), ["creative-focus.json", "discovery.json", "learning-evolution-proposals.json", "learning-evolution-review.md", "oss-rules-intelligence.json", "public-blog-draft.md", "public-digest.txt", "report.md", "result.json", "state.json"].sort());
     assert.equal(await readFile(path.join(outputDir, "report.md"), "utf8"), "# Human report");
     assert.match(await readFile(path.join(outputDir, "public-digest.txt"), "utf8"), /Story-to-Screen/u);
     assert.match(await readFile(path.join(outputDir, "public-blog-draft.md"), "utf8"), /Human review required/u);
+    assert.match(await readFile(path.join(outputDir, "learning-evolution-review.md"), "utf8"), /No source-verified proposals qualified/u);
+    assert.deepEqual(JSON.parse(await readFile(path.join(outputDir, "learning-evolution-proposals.json"), "utf8")).proposals, []);
     const stored = JSON.parse(await readFile(path.join(outputDir, "state.json"), "utf8"));
     assert.equal(stored.lastReportDate, "2026-09-18");
   } finally {

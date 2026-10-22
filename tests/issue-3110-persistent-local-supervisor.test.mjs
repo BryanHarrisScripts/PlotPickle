@@ -248,7 +248,11 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(script, /START_REQUESTED_UNCONFIRMED/);
   assert.match(script, /STOP_REQUESTED_UNCONFIRMED/);
   assert.doesNotMatch(script, /Start-ScheduledTask\s+-TaskName\s+\$legacyTask/);
-  assert.doesNotMatch(script, /Stop-ScheduledTask|taskkill|TerminateProcess|--merge|--code|autonomous-queue\.mjs/);
+  // Only executable PowerShell lines count; explanatory comments that name
+  // forbidden operations are not an execution path.
+  const executable = script.replace(/<#[\\s\\S]*?#>/gu, "")
+    .split(/\\r?\\n/u).filter(line => !line.trimStart().startsWith("#")).join("\\n");
+  assert.doesNotMatch(executable, /Stop-ScheduledTask|taskkill|TerminateProcess|--merge|--code|autonomous-queue\\.mjs/u);
 });
 
 test("#3142 native Windows PowerShell logon installer denies unauthorized install/start/uninstall and reports only observation", {

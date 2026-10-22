@@ -5,6 +5,7 @@
  * Loopback HTTP is for local protocol inspection, NEVER an unauthenticated tunnel.
  */
 import http from "node:http";
+import { controlPlotpickleOwnerApp, observePlotpickleOwnerApp } from "./plotpickle-app-lifecycle.mjs";
 import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
@@ -162,6 +163,7 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
   // Surface independently checked local Git truth in ordinary status instead
   // of adding a fifth public tool that prevents paired tunnel startup.
   result.hostRevision=await factoryHostHead({verify:verifyHead});
+  result.application=await observePlotpickleOwnerApp();
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
     await privateJson(path.join(root,"dependency-preflight-result.json"),2048));
@@ -305,14 +307,20 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "PRODUCT_UAT_EVIDENCE_UNVERIFIED","PRODUCT_UAT_OBSERVED_PASS",
   "PRODUCT_UAT_ATTESTATION_INVALID","PRODUCT_UAT_ORIGINAL_NOT_PASSED",
   "PRODUCT_UAT_CHECKPOINT_FAILED","PRODUCT_UAT_PROJECT_MISMATCH",
-  "PRODUCT_UAT_VERIFIER_UNAVAILABLE","PRODUCT_UAT_EVIDENCE_ATTESTED"]);
+  "PRODUCT_UAT_VERIFIER_UNAVAILABLE","PRODUCT_UAT_EVIDENCE_ATTESTED",
+  "APP_STARTED_VERIFIED","APP_STOPPED_VERIFIED","APP_RESTARTED_VERIFIED",
+  "APP_ALREADY_RUNNING_OWNED","APP_PORT_OCCUPIED","APP_PROCESS_NOT_OWNED",
+  "APP_DEPENDENCIES_UNAVAILABLE","APP_START_FAILED","APP_START_TIMEOUT",
+  "APP_STOP_UNVERIFIED","APP_SOURCE_CHANGED","APP_CONTROL_BUSY",
+  "APP_ACTION_INVALID"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
   const a=Buffer.from(presented),b=Buffer.from(configured);
   return a.length===b.length&&timingSafeEqual(a,b);
 }
-const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),
+const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart"]);
+const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
@@ -330,7 +338,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated owner-Windows fixed Node tests, PR staging, main sync or isolated LOCAL synthetic-profile browser Story Factory UAT. No arbitrary shell, candidate execution, models or merge.",
+    description:"Authenticated owner-Windows fixed tests and clean-main-only PlotPickle app Start/Stop/Restart; fixed PR identity/static stages and LOCAL synthetic UAT. No arbitrary shell, candidate execution, models or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -360,7 +368,8 @@ function validControlArgs(name,args) {
       CONTROL_HEAD.test(args.candidateHead||"");
     if(args.suite==="factory-story-verify")return keys.length===4 &&
       REQUEST_ID.test(args.sourceRequestId||"") && args.sourceRequestId!==args.requestId;
-    return keys.length===3 && (allowedFactoryTestNames().includes(args.suite) ||
+    return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
+      allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
@@ -419,6 +428,7 @@ export async function factoryControlAction(name,args,{
     inspectPr:inspectFactoryCandidatePr,stagePr:stageFactoryCandidatePr,
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
+    appControl:controlPlotpickleOwnerApp,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -486,6 +496,9 @@ export async function factoryControlAction(name,args,{
               ?await ops.stagePr({prNumber:args.candidatePrNumber,
                 candidateHead:args.candidateHead,expectedHead:args.expectedHead,
                 requestId:args.requestId,root,verifyHead:ops.testHead})
+              :APP_CONTROL_SUITES.includes(args.suite)
+                ?await ops.appControl({action:args.suite.slice("plotpickle-app-".length),
+                  expectedHead:args.expectedHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -557,7 +570,7 @@ export async function factoryControlAction(name,args,{
 
 export const MCP_TOOLS=Object.freeze([
   {name:"factory_status",title:"Read PlotPickle Factory status",
-    description:"Read the local Factory heartbeat, approved issue count and sanitized last outcome. Never treats heartbeat as verification.",
+    description:"Read local Factory status and owned PlotPickle app state; heartbeat and browser HTTP alone never prove product acceptance.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_observer",title:"Read deterministic Factory Observer snapshot",
     description:"Read bounded Windows Factory queue, heartbeat and immutable issue receipts. Reports the Pi legacy dispatcher and ChatGPT-MCP engineering as NOT READY. Does not run, admit, modify or retry work.",
@@ -586,7 +599,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       return {result:{protocolVersion:MCP_PROTOCOL,
         capabilities:{tools:{listChanged:false}},
         serverInfo:{name:MCP_NAME,version:controlAuthenticated?"0.2.0":"0.1.0"},
-        instructions:controlAuthenticated?"Authenticated native dependency preflight and bounded issue admission are available; no unattended Windows start/stop or autonomous merge is implied.":
+        instructions:controlAuthenticated?"Authenticated fixed app lifecycle on clean owner-Windows main and bounded Factory tests; no general shell, unmerged candidate execution or autonomous merge is implied.":
           "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
     case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS]:MCP_TOOLS}};

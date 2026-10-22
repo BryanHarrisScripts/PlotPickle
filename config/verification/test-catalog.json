@@ -6625,7 +6625,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30404a4eeeb263748d8c378f167b0659701e527d1d2d7c435b36468240c9adb4"
+            "digest": "8d720064174796ff465f56256d8c22ebb49a63a21397a6b5300c79d4969ef68f"
           }
         ]
       },
@@ -7459,7 +7459,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30404a4eeeb263748d8c378f167b0659701e527d1d2d7c435b36468240c9adb4"
+            "digest": "8d720064174796ff465f56256d8c22ebb49a63a21397a6b5300c79d4969ef68f"
           }
         ]
       },
@@ -9091,7 +9091,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "371f251d546f2e9515d95438be1029418b42d660ce7ba6152c85e8bc15b8006b"
+            "digest": "3539419ad4500a3c98289ecdf0ff1e36c3da210882765271f537b095e02c35ae"
           }
         ]
       },
@@ -9349,7 +9349,7 @@
       },
       {
         "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
-        "targetDigest": "d3c7d1e8f72c0363b0c02f4aacb63aab3834cc236d8d304a735fd89a5e0dba15",
+        "targetDigest": "7c4241ff04c4322372c98d484a8bc3aeb2927a4979ce1424d6d983075237cd97",
         "catalogueIds": [
           "agent.persistent-windows-supervisor-3110"
         ],
@@ -9361,6 +9361,10 @@
           {
             "path": "scripts/engineering-team/queue/unattended-queue.mjs",
             "digest": "17360a8ffe5457d6cec431ac51e5f81407ae602ce092baf44912ca74b053541c"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+            "digest": "c4d2de77193a68a3f7e65f480e632bcce8d33fbc68c6b66230deca37d25ca4b3"
           }
         ],
         "truthRefs": [
@@ -9377,7 +9381,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private local filesystem and injected pairing/poll, plus opt-in exact-head Windows runner process loop/file fixture. No owner paired-host resume proof, real CMD/GUI parity, OS-on-logon persistence, actual remote STOP or autonomous code/PR/merge."
+        "limits": "Isolated synthetic paired-supervisor heartbeat/pause/STOP fixtures and native Windows PowerShell denial + read-only Status against disposable CI account. No real scheduled task installation or start, no independent owner-host process tree verification, restart/GUI Start parity, ChatGPT code worker or autonomous merge."
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",

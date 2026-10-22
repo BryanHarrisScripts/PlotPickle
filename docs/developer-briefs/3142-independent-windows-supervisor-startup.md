@@ -1,0 +1,19 @@
+# #3142 — Independent Windows supervisor startup registration, not legacy Pi factory
+
+This is one bounded **software** increment after merged PRs #3210, #3211 and #3212. The existing paired `unattended-supervisor.mjs` remains the **only** authority to observe bounded control and the advisory queue. It has no unattended ChatGPT coding, merge, spending or story mutation authority.
+
+## Verified ownership boundary
+
+`scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1` uses a new scheduled-task name, `PlotPickleIndependentSupervisor`. The existing `scripts/engineering-team/windows/Install-PlotPickleSoftwareFactory.ps1` and its `PlotPickleSoftwareFactory` Pi-queue task are **not modified or invoked**. Installation refuses to proceed while a legacy task exists, rather than silently running two overlapping dispatchers.
+
+The **local Human operator** must separately pair the authorized Windows control and enable the supervisor at a clean exact main SHA before explicitly installing this user-owned logon task. Installation requires `-Install -Consent ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR`; it performs no immediate start and never silently registers at product boot, CI or ChatGPT invocation. The Windows Task Scheduler task is scoped to the currently logged-in user, interactive logon, limited privilege, `IgnoreNew` process concurrency, and the fixed existing Node binary/JS script/working directory. It cannot accept a caller-supplied path, PID, shell command, issue payload or model. Unknown preexisting tasks are not overwritten. Future Windows login schedules only the explicitly installed, already opt-in read-only control supervisor.
+
+`-Start -Consent ...` validates the exact owned task, clean tracked repository SHA, matching enabled source revision, and OFFLINE supervisor state. It then uses `Start-ScheduledTask` and returns only `START_REQUESTED_UNCONFIRMED`. It does **not** attest that an OS child is running or that GitHub polling/coding occurred. If a STOP marker exists, stale source, task not ready, active worker, existing legacy task during install, mismatched Windows identity or scheduler action, the operation fails closed. `-Stop` requests the supervisor's existing `--disable` marker without killing an arbitrary process; no descendant-termination claim. `-Status` exposes bounded read-only task/heartbeat observation; `-Uninstall -Consent ...` operates only on an action/identity/working-directory matched task and refuses Running/Queued/Unknown tasks rather than force killing a PID. The existing GUI Status/Pause/Resume/Request STOP uses the same state store. Adding a GUI **Start** awaits verified process ownership and full user-action parity in a separate accepted slice.
+
+## Actual test scope
+
+The Node test checks the reviewed PowerShell scheduler contract, absence of legacy Pi invocation, and non-claim receipts. The opt-in exact-head Windows fixture invokes PowerShell for unauthorized install/start/uninstall refusal and read-only Status; it does not install a task or change the host scheduler. The CI impact selector runs it alongside the existing native supervisor suite; the seven Architecture Verification layers, W8/W9 source bindings and developer convergence criteria remain gates. A pass proves **safe tooling and native refusal**, not unattended lifecycle or main-device ownership.
+
+## Outstanding #3142 acceptance
+
+Real owner Windows installation after explicit authorization; logon start; head update migration without replay of uncertain work; crash/restart recovery; GUI/CMD Start/Status/Pause/Resume/Stop parity against one running task; independent STOP descendant and unrelated-sentinel verification (#3135/#3121); and a working ChatGPT-only dispatch → edit → test → PR → independent green → governed merge pipeline (#3141). No task is installed or started by this PR.

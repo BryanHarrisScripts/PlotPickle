@@ -14,7 +14,8 @@
     "config/verification/test-catalog.json",
     "config/verification/ownership-map.json",
     "docs/developer-briefs/3142-factory-shared-gui-status-pause-resume.md",
-    "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json"
+    "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json",
+    "build/local-profile-auth-gateway.ts"
   ],
   "acceptance": [
     {
@@ -78,6 +79,22 @@
           "type": "file-contains",
           "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
           "contains": "#3142 GUI PAUSE/RESUME"
+        }
+      ]
+    },
+    {
+      "id": "SAME-LOGIN-NODE-RUNTIME",
+      "criterion": "Authenticated local Factory status/pause/resume are intercepted by the existing Node profile gateway and share live login session/vault rather than RSC's separate graph.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/local-profile-auth-gateway.ts",
+          "contains": "handlers: Object.freeze({ GET: supervisorGet, POST: supervisorPost })"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "GET as supervisorGet, POST as supervisorPost"
         }
       ]
     }

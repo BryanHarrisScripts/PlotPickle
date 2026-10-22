@@ -57,7 +57,8 @@ export default function FactorySupervisorPanel() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  async function request(action: "pause" | "resume") {
+  async function request(action: "pause" | "resume" | "stop") {
+    if (action === "stop" && !window.confirm("Request STOP for the local Windows Factory supervisor? In-flight work may still be running until the worker acknowledges this request. This does not verify process cleanup.")) return;
     setBusy(true);
     setMessage("");
     try {
@@ -69,7 +70,8 @@ export default function FactorySupervisorPanel() {
       const receipt = await readBody(response);
       setMessage(action === "pause"
         ? "Pause submitted. Only an actual worker heartbeat can acknowledge PAUSED; in-flight work may still complete."
-        : "Resume submitted. This does not prove that the supervisor is running or restart blocked work.");
+        : action === "resume" ? "Resume submitted. This does not prove that the supervisor is running or restart blocked work."
+          : "Local STOP requested. Worker cancellation and descendant cleanup remain unverified. Check the supervisor status and independent Windows evidence.");
       setStatus(receipt);
     } catch {
       setMessage("Operation blocked. Confirm an unlocked, recently reauthenticated local Human profile and unchanged Windows host pairing.");
@@ -79,6 +81,7 @@ export default function FactorySupervisorPanel() {
 
   const canPause = status && ["OFFLINE", "RUNNING", "RESUME_REQUESTED"].includes(status.state);
   const canResume = status && ["PAUSE_REQUESTED", "PAUSED"].includes(status.state);
+  const canStop = status && !["OFF", "STOP_REQUESTED"].includes(status.state);
   return (
     <section className={styles.panel} aria-label="Software Factory supervisor" data-factory-supervisor-panel="local-authenticated">
       <div className={styles.heading}>
@@ -96,11 +99,13 @@ export default function FactorySupervisorPanel() {
       <div className={styles.actions}>
         <button type="button" disabled={busy || !canPause} onClick={() => void request("pause")}>Pause new work</button>
         <button type="button" disabled={busy || !canResume} onClick={() => void request("resume")}>Resume polling</button>
+        <button type="button" disabled={busy || !canStop} onClick={() => void request("stop")}>Request STOP</button>
       </div>
       {message && <p className={styles.detail} role="status">{message}</p>}
       <p className={styles.note}>
-        These commands use the same paired Windows supervisor as CMD. They cannot start a
-        worker, cancel an in-flight task, or approve code, providers, spending or merges.
+        These commands use the same paired Windows supervisor as CMD. Request STOP is a
+        local kill-switch marker, not proof an in-flight task or child process has exited.
+        None of these controls can start a worker or approve code, providers, spending or merges.
         A healthy heartbeat is not independent verification of process ownership.
       </p>
     </section>

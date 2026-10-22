@@ -1999,7 +1999,8 @@
       "classification": "production",
       "include": [
         "modules/intent/model/observe-project-status.ts",
-        "modules/intent/model/hollywood-production-readiness.ts"
+        "modules/intent/model/hollywood-production-readiness.ts",
+        "modules/intent/model/read-only-creator-intent.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

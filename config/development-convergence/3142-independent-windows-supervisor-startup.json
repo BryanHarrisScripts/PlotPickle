@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "independent-opt-in-windows-logon-supervisor-starter-not-legacy-pi",
+  "brief": "docs/developer-briefs/3142-independent-windows-supervisor-startup.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+    "tests/issue-3110-persistent-local-supervisor.test.mjs",
+    ".github/workflows/architecture-shadow.yml",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3142-independent-windows-supervisor-startup.md",
+    "config/development-convergence/3142-independent-windows-supervisor-startup.json"
+  ],
+  "acceptance": [
+    {
+      "id": "SEPARATE-WINDOWS-TASK",
+      "criterion": "Native PowerShell script targets the already-reviewed paired supervisor with a distinct task identity; legacy Pi task cannot be started and overlapping scheduled services are refused.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+          "contains": "LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "never starts or modifies the legacy Pi factory"
+        }
+      ]
+    },
+    {
+      "id": "CONSENT-EXACT-HEAD-READY",
+      "criterion": "Install and Start require explicit local consent, exact source head and trusted Windows task ownership, and never claim immediate running process.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+          "contains": "SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+          "contains": "START_REQUESTED_UNCONFIRMED"
+        }
+      ]
+    },
+    {
+      "id": "NO-UNPROVEN-PID-KILL",
+      "criterion": "STOP only requests the canonical supervisor marker; uninstall refuses to terminate running or unknown task.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+          "contains": "SUPERVISOR_TASK_MAY_STILL_BE_RUNNING_REQUEST_STOP_FIRST"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+          "contains": "STOP_REQUESTED_UNCONFIRMED"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-ADMISSION",
+      "criterion": "Changed startup script selects real native Windows test lane with PowerShell mutation-denial fixture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "PLOTPICKLE_NATIVE_SUPERVISOR_INSTALL_FIXTURE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "contains": "native Windows PowerShell logon installer denies unauthorized"
+        }
+      ]
+    },
+    {
+      "id": "LIFECYCLE-STILL-UNPROVEN",
+      "criterion": "Developer brief explicitly distinguishes this first startup tooling from owner-device logon, crash/reboot, child process STOP and automatic coding/merging.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-independent-windows-supervisor-startup.md",
+          "contains": "No task is installed or started by this PR."
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Never install a task on user or CI machine as a side effect of code or tests, ever; explicit Human action separately required.",
+    "Keep legacy Pi factory and possible unrelated scheduled tasks intact, no arbitrary PID kills, no unspecified commands or credentials.",
+    "Do not alter W8/W9 verification or claim owner-device start/stop/merge success from native CI fixtures."
+  ]
+}

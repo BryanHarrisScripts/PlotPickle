@@ -1,8 +1,10 @@
 import test from "node:test";
+import { execFileSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   validateSupervisorConsent, enableSupervisor, reenableSupervisor, disableSupervisor,
   supervisorStatus, supervisorCycle, serveSupervisor, pauseSupervisor, resumeSupervisor,
@@ -227,3 +229,59 @@ test("#3142 real local Node supervisor loop honors PAUSE without dispatch (Windo
     "terminal stale heartbeat is not proof of a still-running worker");
   assert.equal((await resumeSupervisor(opts)).workerRunningProven, false);
 }));
+
+test("#3142 independent Windows logon plan never starts or modifies the legacy Pi factory", async () => {
+  const script = await readFile(new URL("../scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1", import.meta.url), "utf8");
+  assert.match(script, /PlotPickleIndependentSupervisor/);
+  assert.match(script, /PlotPickleSoftwareFactory/);
+  assert.match(script, /LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY/);
+  // A separate Pi task can be registered *after* our initial install, so Start
+  // must refuse that too; otherwise the two schedules could run side by side.
+  const startMode = script.slice(script.indexOf("if ($Start) {"), script.indexOf("if ($Uninstall) {"));
+  assert.match(startMode, /Get-TaskByName \$legacyTask/);
+  assert.match(startMode, /LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY/);
+  assert.match(script, /unattended-supervisor\.mjs/);
+  assert.match(script, /--serve --consent/);
+  assert.match(script, /ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR/);
+  assert.match(script, /-AtLogOn -User \$identity/);
+  assert.match(script, /-MultipleInstances IgnoreNew/);
+  assert.match(script, /-LogonType Interactive -RunLevel Limited/);
+  assert.match(script, /SUPERVISOR_TASK_OWNERSHIP_UNVERIFIED/);
+  assert.match(script, /TRACKED_SOURCE_NOT_CLEAN/);
+  assert.match(script, /SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD/);
+  assert.match(script, /SUPERVISOR_TASK_MAY_STILL_BE_RUNNING_REQUEST_STOP_FIRST/);
+  assert.match(script, /START_REQUESTED_UNCONFIRMED/);
+  assert.match(script, /STOP_REQUESTED_UNCONFIRMED/);
+  assert.doesNotMatch(script, /Start-ScheduledTask\s+-TaskName\s+\$legacyTask/);
+  // Only executable PowerShell lines count; explanatory comments that name
+  // forbidden operations are not an execution path.
+  const executable = script.replace(/<#[\s\S]*?#>/gu, "")
+    .split(/\r?\n/u).filter(line => !line.trimStart().startsWith("#")).join("\n");
+  assert.doesNotMatch(executable, /Stop-ScheduledTask|taskkill|TerminateProcess|--merge|--code|autonomous-queue\.mjs/u);
+});
+
+test("#3142 native Windows PowerShell logon installer denies unauthorized install/start/uninstall and reports only observation", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_SUPERVISOR_INSTALL_FIXTURE !== "1",
+  timeout: 25_000,
+}, () => {
+  const file = new URL("../scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1", import.meta.url);
+  const script = fileURLToPath(file);
+  const run = (args) => execFileSync("pwsh", ["-NoProfile", "-NonInteractive", "-File", script, ...args], {
+    windowsHide: true, encoding: "utf8", timeout: 8000,
+  });
+  // All denial probes exit before Get-ScheduledTask/Register/Start/Unregister.
+  for (const arguments_ of [
+    [], ["-Install"], ["-Start"], ["-Uninstall"],
+    ["-Install", "-Consent", "WRONG_CONSENT"],
+    ["-Start", "-Consent", "WRONG_CONSENT"],
+    ["-Uninstall", "-Consent", "WRONG_CONSENT"],
+  ]) {
+    assert.throws(() => run(arguments_), /Command failed/, String(arguments_));
+  }
+  const result = JSON.parse(run(["-Status"]));
+  assert.equal(result.state, "OBSERVED_NOT_INDEPENDENTLY_VERIFIED");
+  assert.equal(result.workerProcessVerified, false);
+  assert.equal(result.autonomousCodingVerified, false);
+  assert.equal(result.automaticMergeEnabled, false);
+  assert.equal(result.taskInstalled, false, "disposable Windows CI must not have installed a supervisor task");
+});

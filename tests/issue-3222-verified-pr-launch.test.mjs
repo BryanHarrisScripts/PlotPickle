@@ -18,16 +18,16 @@ const receipt={state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
   sourceHead:MAIN,candidateHead:PR,candidatePrNumber:3219,stageId:STAGE};
 
 test("#3222 version label recognizes only source-matched launch contracts; otherwise UNVERIFIED",()=>{
-  const marker=head=>\`plotpickle-startup-v4-\${head}-normal-local-human-vite-source\`;
+  const marker=head=>`plotpickle-startup-v4-${head}-normal-local-human-vite-source`;
   assert.equal(plotpickleLaunchIdentity({
     PLOTPICKLE_LAUNCH_CHANNEL:"main",PLOTPICKLE_LAUNCH_SOURCE_HEAD:MAIN,
     PLOTPICKLE_STARTUP_CONTRACT:marker(MAIN),
-  }).label,\`MAIN · MERGED · \${MAIN.slice(0,12)}\`);
+  }).label,`MAIN · MERGED · ${MAIN.slice(0,12)}`);
   assert.equal(plotpickleLaunchIdentity({
     PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"3219",
     PLOTPICKLE_LAUNCH_SOURCE_HEAD:PR,
     PLOTPICKLE_STARTUP_CONTRACT:marker(PR),
-  }).label,\`PR #3219 · TEST / UNMERGED · \${PR.slice(0,12)}\`);
+  }).label,`PR #3219 · TEST / UNMERGED · ${PR.slice(0,12)}`);
   for(const extra of [
     {PLOTPICKLE_LAUNCH_CHANNEL:"main"},
     {PLOTPICKLE_LAUNCH_CHANNEL:"pr-test",PLOTPICKLE_LAUNCH_PR_NUMBER:"0"},
@@ -72,12 +72,12 @@ test("#3222 older draft PR base needs independently verified ancestry of clean c
 });
 
 function stagedFixture(overrides={}){
-  const calls=[],stage=path.join("C:\\fake-private","chat-candidate-stages",STAGE);
+  const calls=[],stage=path.join(os.tmpdir(),"pp-fixture-private","chat-candidate-stages",STAGE);
   let marker="identical";
   const options={
-    root:"C:\\fake-private",sourceRequestId:STAGE,expectedHead:MAIN,
+    root:path.join(os.tmpdir(),"pp-fixture-private"),sourceRequestId:STAGE,expectedHead:MAIN,
     candidateHead:PR,candidatePrNumber:3219,stageReceipt:receipt,
-    repoRoot:"C:\\main",platform:"win32",
+    repoRoot:path.join(os.tmpdir(),"pp-fixture-main"),platform:"win32",
     verifyHead:async()=>MAIN,
     inspectPr:async()=>({state:"TEST_PASSED",code:"CANDIDATE_HEAD_VERIFIED"}),
     fileOps:{
@@ -111,7 +111,7 @@ test("#3222 private exact PR candidate requires stage receipt, clean head and lo
     run:async(program,args)=>args[0]==="rev-parse"?{stdout:OLD}:{stdout:""}})).code,
     "APP_CANDIDATE_SOURCE_CHANGED");
   assert.equal((await prepareStagedHumanCandidate({...x.options,
-    fileOps:{...x.options.fileOps,readFile:async p=>Buffer.from(p.startsWith("C:\\main")?"a":"b")}})).code,
+    fileOps:{...x.options.fileOps,readFile:async p=>Buffer.from(p.startsWith(path.join(os.tmpdir(),"pp-fixture-main"))?"a":"b")}})).code,
     "APP_CANDIDATE_DEPENDENCY_DRIFT");
 });
 

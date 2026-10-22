@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "consent-bound-offline-supervisor-source-revision-migration",
+  "brief": "docs/developer-briefs/3142-supervisor-head-migration.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+    "tests/issue-3142-supervisor-head-migration.test.mjs",
+    ".github/workflows/architecture-shadow.yml",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3142-supervisor-head-migration.md",
+    "config/development-convergence/3142-supervisor-head-migration.json"
+  ],
+  "acceptance": [
+    {
+      "id": "ATOMIC-REBOUND",
+      "criterion": "Explicit old SHA, clean verified fast-forward new main and same paired owner required before single atomic enabled record migration.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+          "contains": "CLEAN_FAST_FORWARD_MAIN_REQUIRED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-supervisor-head-migration.test.mjs",
+          "contains": "one-way head migration changes only scoped supervisor binding"
+        }
+      ]
+    },
+    {
+      "id": "NO-STOP-BYPASS-REPLAY",
+      "criterion": "STOP/PAUSE/current lock, active heartbeat and wrong pairing/refusal keep original config unchanged and no replay permission.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-supervisor-head-migration.test.mjs",
+          "contains": "STOP, PAUSE, live/malformed lock"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+          "contains": "SUPERVISOR_LOCKED_OR_STALE"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-CI",
+      "criterion": "Impact-selected exact-head Windows supervisor suite includes offline migration test.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "tests/issue-3142-supervisor-head-migration.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "NO-OWNER-DEVICE-OVERCLAIM",
+      "criterion": "Developer brief explicitly states product and ongoing verification remain open.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-supervisor-head-migration.md",
+          "contains": "remains OPEN for actual owner-initiated migration"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not remove STOP, change model/merge/spend authority or perform issue replay.",
+    "No automatic migration on upgrade; requires local exact-SHA Human intent.",
+    "Native CI is not owner task startup/reboot/service descendant STOP evidence."
+  ]
+}

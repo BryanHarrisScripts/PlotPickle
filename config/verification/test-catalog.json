@@ -4426,6 +4426,49 @@
         ]
       },
       "notes": "#3142 real Settings surface and authenticated Human-session HTTP adapter to existing Windows supervisor status/pause/resume, with runtime request/denial fixtures. Native Windows CI, but no owner-host GUI live parity, service startup, PID stop or autonomous coding claimed."
+    },
+    {
+      "id": "agent.windows-supervisor-offline-source-migration-3142",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3142-supervisor-head-migration.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3142 actual supervisor source migration through owner-signed exact-fast-forward-only local CLI, private immutable audit, no replay, fresh-worker/STOP/pairing blocks. Runtime synthetic checkout fixture plus native Windows CI; does not attest owner task logon, manual migration or browser parity."
     }
   ],
   "truthGovernance": {
@@ -6625,7 +6668,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "8d720064174796ff465f56256d8c22ebb49a63a21397a6b5300c79d4969ef68f"
+            "digest": "df857df861a4ab4b04e2227046f299d9794b7cc47692575fff91dba5ce6e56ac"
           }
         ]
       },
@@ -7459,7 +7502,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "8d720064174796ff465f56256d8c22ebb49a63a21397a6b5300c79d4969ef68f"
+            "digest": "df857df861a4ab4b04e2227046f299d9794b7cc47692575fff91dba5ce6e56ac"
           }
         ]
       },
@@ -9356,7 +9399,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
-            "digest": "a537a7e970d952153e567c65d70bced18ffb7530c4d3af12160362c4a411b43a"
+            "digest": "aeedf69918ba744e6abfe0a065893bfc31133137c1b24daf8d05b42b95cdc0e5"
           },
           {
             "path": "scripts/engineering-team/queue/unattended-queue.mjs",
@@ -9635,6 +9678,38 @@
           {
             "path": "build/local-profile-auth-gateway.ts",
             "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-supervisor-head-migration.test.mjs",
+        "targetDigest": "2eeea0acf9c95fe369b21d271e34f4bf1bb7586b4bb9d992f63f02307acf010e",
+        "catalogueIds": [
+          "agent.windows-supervisor-offline-source-migration-3142"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Actual source module executed with isolated temporary filesystem and injected paired/git authority, plus exact-head Windows CI tests. Cannot prove real human's Windows task, real browser login, process-tree STOP, merge autonomy or real installed startup.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "aeedf69918ba744e6abfe0a065893bfc31133137c1b24daf8d05b42b95cdc0e5"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
+            "digest": "c3d29f0218b6ef16b1abc6ec7047ba7b72ae2ff13ba17f16ec1b8b20fa77233f"
           }
         ]
       }

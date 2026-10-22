@@ -133,14 +133,19 @@ test("#2956 Reports exposes same-tab Dashboard, Library and section-preserving R
     read("app/reports/library-ppf-reports-workspace.module.css"),
   ]);
   assert.match(surface, /aria-label="Reports navigation"/u);
-  assert.ok(surface.includes('<a href="/skin-v1">Back to Dashboard</a>'));
-  assert.ok(surface.includes('<a href="/library">Library</a>'));
-  assert.ok(surface.includes('href={`/reports?section=${encodeURIComponent(section)}`}'));
+  assert.ok(surface.includes('onClick={() => router.push("/skin-v1")}'));
+  assert.ok(surface.includes('onClick={() => router.push("/library")}'));
+  assert.ok(surface.includes('onClick={onRefresh}>Reload Reports</button>'));
   assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
   assert.match(surface, /Reload Reports/u);
   assert.match(surface, /Refresh Library selection/u);
-  assert.doesNotMatch(surface, /target="_blank"|window\.open\(/u);
+  assert.doesNotMatch(surface, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|target="_blank"|window\.open\(/u);
+  const page = await read("app/reports/page.tsx");
+  assert.match(page, /browserProfileAuthGateway\.read\(\)/u);
+  assert.match(page, /stageSessionActiveProjectHandoff\(\)/u);
+  assert.match(page, /window\.history\.replaceState/u);
+  assert.doesNotMatch(page, /location\.assign\(/u);
   assert.match(styles, /\.actions\{display:flex/u);
-  assert.match(styles, /\.actions a:focus-visible/u);
+  assert.match(styles, /\.actions button:focus-visible/u);
   assert.match(styles, /\.stat\[data-hollywood-stage\] strong/u);
 });

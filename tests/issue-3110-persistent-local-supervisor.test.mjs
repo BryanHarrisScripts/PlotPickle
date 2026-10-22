@@ -238,7 +238,7 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   // A separate Pi task can be registered *after* our initial install, so Start
   // must refuse that too; otherwise the two schedules could run side by side.
   const startMode = script.slice(script.indexOf("if ($Start) {"), script.indexOf("if ($Uninstall) {"));
-  assert.match(startMode, /Get-TaskByName \\$legacyTask/);
+  assert.match(startMode, /Get-TaskByName \$legacyTask/);
   assert.match(startMode, /LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY/);
   assert.match(script, /unattended-supervisor\.mjs/);
   assert.match(script, /--serve --consent/);

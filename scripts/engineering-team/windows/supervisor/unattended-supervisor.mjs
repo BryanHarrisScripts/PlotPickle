@@ -174,7 +174,8 @@ export async function supervisorStatus({ appRoot = appRootDefault(), now = Date.
   const hb = await safeRead(p.heartbeat);
   if (!hb || hb.sourceHead !== enabled.sourceHead || hb.hostId !== enabled.hostId
     || !Number.isSafeInteger(hb.at) || hb.at > now() + 5_000 || now() - hb.at > INTERVAL_MS * 3)
-    return Object.freeze({ state: "OFFLINE", exactSha: enabled.sourceHead,
+    return Object.freeze({ state: pause ? "PAUSE_REQUESTED" : "OFFLINE",
+      pauseAcknowledged: false, inFlightCancellationProven: false, exactSha: enabled.sourceHead,
       reason: "NO_FRESH_OWNED_HEARTBEAT" });
   const acknowledgedPause = pause && hb.state === "PAUSED"
     && hb.pauseRequestAt === pause.requestedAt && hb.at >= pause.requestedAt;

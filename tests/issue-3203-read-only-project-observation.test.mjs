@@ -191,3 +191,14 @@ test("#3203 real Reports Production GUI invokes the same headless read-only capa
   assert.doesNotMatch(workspace, /saveActiveLibraryProject\(|Save & Lock.*onClick|authenticatedComputeFetch\(/u);
   assert.doesNotMatch(model, /fetch\(|localStorage|sessionStorage|writeFile|spawn\(|paidGenerationPermitted: true/u);
 });
+
+test("#3203 ten-stage Reports GUI has accessible return navigation and reload without creative mutation", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const surface = await readFile(new URL("../app/reports/library-ppf-reports-workspace.tsx", import.meta.url), "utf8");
+  assert.ok(surface.includes('<a href="/skin-v1">Back to Dashboard</a>'));
+  assert.ok(surface.includes('<a href="/library">Library</a>'));
+  assert.ok(surface.includes('href={`/reports?section=${encodeURIComponent(section)}`}'));
+  assert.match(surface, /Reload Reports/u);
+  assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
+  assert.doesNotMatch(surface, /target="_blank"|window\.open\(|saveActiveLibraryProject\(|authenticatedComputeFetch\(/u);
+});

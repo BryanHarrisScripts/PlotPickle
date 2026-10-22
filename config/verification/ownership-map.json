@@ -2578,6 +2578,20 @@
         "windows",
         "test-harness"
       ]
+    },
+    {
+      "id": "independent-factory-supervisor-logon-3142",
+      "classification": "production",
+      "include": [
+        "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "windows",
+        "security",
+        "test-harness"
+      ]
     }
   ]
 }

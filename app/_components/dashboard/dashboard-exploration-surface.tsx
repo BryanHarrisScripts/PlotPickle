@@ -34,13 +34,17 @@ export default function DashboardExplorationSurface({
   workspace,
   onOpenLearn,
   onOpenOutline,
+  onBackDashboard,
+  onOpenLibrary,
 }: {
   readonly workspace: DashboardExplorationWorkspace;
   readonly onOpenLearn: () => void;
   readonly onOpenOutline: () => void;
+  readonly onBackDashboard: () => void;
+  readonly onOpenLibrary: () => void;
 }) {
   return <div style={{ minWidth: 0, maxWidth: "100%", overflow: "auto" }}><Suspense fallback={<p role="status">Opening {workspace}…</p>}>
-    {workspace === "reports" ? <ReportsPage />
+    {workspace === "reports" ? <ReportsPage onBackDashboard={onBackDashboard} onOpenLibrary={onOpenLibrary} />
       : workspace === "edit" ? <EditWorkspace />
         : workspace === "refine" ? <DiagnosticCraftPage />
           : workspace === "feedback" ? <FeedbackPage />

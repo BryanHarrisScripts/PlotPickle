@@ -4349,8 +4349,6 @@
       "triggerTokens": [
         "canon",
         "graph",
-        "intent",
-        "evidence",
         "test-harness"
       ],
       "runner": {
@@ -4358,7 +4356,31 @@
         "targets": [
           "tests/issue-3203-read-only-project-observation.test.mjs"
         ]
-      }
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
+      },
+      "notes": "#3203 first callable isolated read-only project observation. Runtime test bundles actual TS canonical project projection and readiness, refuses wrong profile/project/revision, source absent, CLOUD/HYBRID, invalid coordinate, noncanonical structure and privacy leakage. No GUI, real user, verified persistence, independent Windows acceptance or paid provider."
     }
   ],
   "truthGovernance": {

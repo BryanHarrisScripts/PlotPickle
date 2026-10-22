@@ -94,7 +94,7 @@
         {
           "type": "file-contains",
           "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-          "contains": "GET as supervisorGet, POST as supervisorPost"
+          "contains": "await import(\"../app/api/factory/supervisor/route\")"
         }
       ]
     }

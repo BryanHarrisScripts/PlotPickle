@@ -4469,6 +4469,50 @@
         ]
       },
       "notes": "#3142 actual supervisor source migration through owner-signed exact-fast-forward-only local CLI, private immutable audit, no replay, fresh-worker/STOP/pairing blocks. Runtime synthetic checkout fixture plus native Windows CI; does not attest owner task logon, manual migration or browser parity."
+    },
+    {
+      "id": "agent.owner-app-lifecycle-3220",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "mcp"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3220-app-lifecycle-mcp.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3220 fixture-based owner-authenticated fixed PlotPickle application START/STOP/RESTART. No arbitrary shell, user passphrase, media upload, foreign process takeover, unmerged PR candidate, real local Windows owner process receipt, complete GUI UAT or automatic merge. Native Windows proof and tunnel deployment remain separate."
     }
   ],
   "truthGovernance": {
@@ -9435,7 +9479,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
+            "digest": "6539fa0a81416ef940cc54b14589d4a34ecb27b6692b7b0fe6b18b06583162c4"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9479,7 +9523,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
+            "digest": "6539fa0a81416ef940cc54b14589d4a34ecb27b6692b7b0fe6b18b06583162c4"
           }
         ],
         "truthRefs": [
@@ -9515,7 +9559,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "07f5f6ba74a66e69d10d30a5d9aa05c348ef6dbcfd7837a2ffe0fdea8f92d24b"
+            "digest": "6539fa0a81416ef940cc54b14589d4a34ecb27b6692b7b0fe6b18b06583162c4"
           }
         ],
         "truthRefs": [
@@ -9712,6 +9756,46 @@
             "digest": "c3d29f0218b6ef16b1abc6ec7047ba7b72ae2ff13ba17f16ec1b8b20fa77233f"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3220-app-lifecycle-mcp.test.mjs",
+        "targetDigest": "e750d39eacdcb74b6ddbe1579b9e97f347050a723c3dd675478cf78155ca5a84",
+        "catalogueIds": [
+          "agent.owner-app-lifecycle-3220"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
+            "digest": "5145ca5df1d14bb85b725e2bbc1b265e0e5f098f91adb1baf538e18b2dfd9913"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "6539fa0a81416ef940cc54b14589d4a34ecb27b6692b7b0fe6b18b06583162c4"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "432dcc302b790c3fa7bb5d458765fd64576d25cfd5c300f49d49295038b721f0"
+          },
+          {
+            "path": "scripts/full-verification-process.mjs",
+            "digest": "837f1e7f1af9f4483286ef9da0a987820845f95bedc14256d7c1678968627d84"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Only fixture safety behavior of fixed clean-main local Windows Vite lifecycle and MCP caller authorization/receipts. No real owner Windows app startup or browser proof; no independent source-authorized merge."
       }
     ]
   }

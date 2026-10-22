@@ -7,7 +7,17 @@ import { POST as profileBackupPost } from "../app/api/auth/profile-backup/route"
 import { GET as outlineTasksGet, POST as outlineTasksPost } from "../app/api/outline/tasks/route";
 import { POST as cloudProviderPost } from "../app/api/cloud-story-mode/provider/route";
 import { POST as narrationPost } from "../app/api/previs/narration/route";
-import { GET as supervisorGet, POST as supervisorPost } from "../app/api/factory/supervisor/route";
+// Lazy endpoint activation preserves the long-lived local login runtime. Eager
+// importing Factory OS supervision here activates unrelated modules during
+// profile/Outline authentication tests, before any Factory request is made.
+const supervisorGet: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/supervisor/route");
+  return route.GET(request);
+};
+const supervisorPost: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/supervisor/route");
+  return route.POST(request);
+};
 
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";

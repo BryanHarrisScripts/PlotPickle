@@ -7148,7 +7148,7 @@
           },
           {
             "path": "app/layout.tsx",
-            "digest": "8436f7e894388622d0423dd6a7007822ddce48227b46527bed549ce28591e387"
+            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
           },
           {
             "path": "package.json",
@@ -8518,7 +8518,7 @@
           },
           {
             "path": "app/layout.tsx",
-            "digest": "8436f7e894388622d0423dd6a7007822ddce48227b46527bed549ce28591e387"
+            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
           },
           {
             "path": "build/voice/local-voice-runtime.ts",
@@ -9698,7 +9698,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "7c88d3a6fdcbea871c11cf8e5493f690e80d915badc6d176745d5b38806a628d",
+        "targetDigest": "632e1514fb28952cc2fa12245e122514cdf74f93c15e315643ee5edc421c4974",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9741,6 +9741,14 @@
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
             "digest": "f48b6872be6fdfcd4907898a41b73281fd3dc29f92ecadfc71f1937bfc74d8c3"
+          },
+          {
+            "path": "app/layout.tsx",
+            "digest": "e06bbe18ae08a7fe698ba635d610982f1f0466be7ef32e11ec657d6e03f96cff"
+          },
+          {
+            "path": "modules/intent/model/launch-identity.mjs",
+            "digest": "2bc6d98e4020cce88caaa50747ab4c06e0e6cf9f8d135f58a7e64459b56e57e7"
           }
         ]
       },

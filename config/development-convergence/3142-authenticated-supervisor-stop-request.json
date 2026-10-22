@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "authenticated-local-stop-request-only-without-process-termination-claim",
+  "brief": "docs/developer-briefs/3142-authenticated-supervisor-stop-request.md",
+  "allowedChanges": [
+    "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+    "app/api/factory/supervisor/route.ts",
+    "app/skin-v1/factory-supervisor-panel.tsx",
+    "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+    "docs/developer-briefs/3142-authenticated-supervisor-stop-request.md",
+    "config/development-convergence/3142-authenticated-supervisor-stop-request.json",
+    "config/verification/test-catalog.json"
+  ],
+  "acceptance": [
+    {
+      "id": "SAME-STOP-OWNER",
+      "criterion": "Authenticated profile route delegates to the SAME supervisor local STOP marker capability as CMD.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/factory/supervisor/route.ts",
+          "contains": "stop: () => disableSupervisor()"
+        }
+      ]
+    },
+    {
+      "id": "NO-FALSE-STOP",
+      "criterion": "STOP receipt explicitly denies verification of owned descendant cleanup and in-flight cancellation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+          "contains": "STOP_REQUESTED_UNCONFIRMED"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+          "contains": "ownedDescendantsVerifiedGone: false"
+        }
+      ]
+    },
+    {
+      "id": "HUMAN-ONLY-STOP",
+      "criterion": "GUI confirms STOP and native adapter test blocks forged shell/PID and unauthenticated requests.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/factory-supervisor-panel.tsx",
+          "contains": "window.confirm(\"Request STOP"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "unauthenticated STOP never touches"
+        }
+      ]
+    },
+    {
+      "id": "REAL-DISPOSABLE-MARKER",
+      "criterion": "Runtime test invokes the actual local STOP method on disposable private state; no fake success asserted.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "same disposable local supervisor marker as CMD"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+          "contains": "stop-request.json"
+        }
+      ]
+    },
+    {
+      "id": "REMAINING-WINDOWS-STOP-OPEN",
+      "criterion": "The implementation brief explicitly retains owner-device process-tree verification and service start proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-authenticated-supervisor-stop-request.md",
+          "contains": "#3142, #3135 and #3121 remain OPEN"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No arbitrary PID, model/provider spend, source mutation, unattended dispatch, automatic merger or user project changes.",
+    "STOP_REQUESTED is not independently verified killed descendant STOP.",
+    "No weakening existing W8/W9 digests, owner mapping or protected safety tests."
+  ]
+}

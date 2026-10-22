@@ -2549,6 +2549,35 @@
         "security",
         "test-harness"
       ]
+    },
+    {
+      "id": "factory-supervisor-http-boundary-3142",
+      "classification": "production",
+      "include": [
+        "app/api/factory/supervisor/route.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "api",
+        "security",
+        "native",
+        "windows",
+        "agent"
+      ]
+    },
+    {
+      "id": "factory-supervisor-gui-adapter-3142",
+      "classification": "production",
+      "include": [
+        "scripts/engineering-team/windows/supervisor/supervisor-http.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "security",
+        "windows",
+        "test-harness"
+      ]
     }
   ]
 }

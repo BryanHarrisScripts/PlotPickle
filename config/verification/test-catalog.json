@@ -4381,6 +4381,51 @@
         ]
       },
       "notes": "#3203 first callable isolated read-only project observation. Runtime test bundles actual TS canonical project projection and readiness, refuses wrong profile/project/revision, source absent, CLOUD/HYBRID, invalid coordinate, noncanonical structure and privacy leakage. No GUI, real user, verified persistence, independent Windows acceptance or paid provider."
+    },
+    {
+      "id": "agent.authenticated-factory-supervisor-gui-3142",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "api",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3142 real Settings surface and authenticated Human-session HTTP adapter to existing Windows supervisor status/pause/resume, with runtime request/denial fixtures. Native Windows CI, but no owner-host GUI live parity, service startup, PID stop or autonomous coding claimed."
     }
   ],
   "truthGovernance": {
@@ -6580,7 +6625,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "a683b346ea11caa153728fc26ea0487c6717a8ccca17694334a7398cbec41bc4"
+            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
           }
         ]
       },
@@ -7414,7 +7459,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "a683b346ea11caa153728fc26ea0487c6717a8ccca17694334a7398cbec41bc4"
+            "digest": "26991edcfc2f81605022394a03ad0eda336401b974667c3b3e84f9fa3d381675"
           }
         ]
       },
@@ -9046,7 +9091,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "7bc995cefc4b0ba176fc6de4ed61b220e1e2d74050dde0982197e8949386dd65"
+            "digest": "371f251d546f2e9515d95438be1029418b42d660ce7ba6152c85e8bc15b8006b"
           }
         ]
       },
@@ -9542,6 +9587,50 @@
           {
             "path": "modules/plan/outline-readiness.ts",
             "digest": "a2a87b929afe4fe3b07a8bc64a3ba3e0614f07adc7bc9a4204c14968ca4ee033"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+        "targetDigest": "0aac43e72a04f62f71d8b9a0ac285c6097d77cb6a58976d06cd4755e70870fce",
+        "catalogueIds": [
+          "agent.authenticated-factory-supervisor-gui-3142"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Runtime Node Request/Response adapter fixtures plus static linkage to real authenticated node route and GUI. Native Windows tests exercise this adapter and existing supervisor in isolation; not actual owner's authenticated GUI/paired runtime, reboot/service, independent STOP or auto merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
+            "digest": "6478e167b92fb0173668085364e7452c20dca832d4ce25f18d5801db002d50ae"
+          },
+          {
+            "path": "app/api/factory/supervisor/route.ts",
+            "digest": "fa5036bed6ba926b7daa395053fc86d5b639b645fd9561b23057c7b522c47336"
+          },
+          {
+            "path": "app/skin-v1/factory-supervisor-panel.tsx",
+            "digest": "836635e08e09c73384d24b6d6f75ab161602338b8c6cd03353d519d514dec64c"
+          },
+          {
+            "path": "app/skin-v1/settings-workspace-panel.tsx",
+            "digest": "117c4eef209daf6a59437627b2faac987e13bfe99d05824273cd05d887b2d19b"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
           }
         ]
       }

@@ -12,6 +12,7 @@ import SettingsReviewSystemPanel from "./settings-review-system-panel";
 import AfterglowManagementPanel from "../../modules/library/ui/afterglow-management-panel";
 import UatGuidePanel from "./uat-guide-panel";
 import SystemMathematicsCard from "../_components/settings/system-mathematics-card";
+import FactorySupervisorPanel from "./factory-supervisor-panel";
 import ProfileSessionPanel from "../_components/settings/profile-session-panel";
 import styles from "./settings-workspace-panel.module.css";
 
@@ -114,6 +115,7 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
       </section>
 
       <ProfileSessionPanel />
+      <FactorySupervisorPanel />
       <section className={styles.form} aria-label="General preferences">
         <h3>General</h3>
         <label>

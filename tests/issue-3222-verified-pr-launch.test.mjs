@@ -100,7 +100,8 @@ test("#3222 private exact PR candidate requires stage receipt, clean head and lo
   const pass=await prepareStagedHumanCandidate(x.options);
   assert.equal(pass.code,"APP_CANDIDATE_PREPARED");
   assert.equal(pass.repoRoot,x.stage);
-  assert.equal(x.calls.length,2);
+  assert.equal(x.calls.length,4,
+    "stage HEAD and tracked-clean state must be rechecked both before and after dependency resolution");
   assert.equal((await prepareStagedHumanCandidate({...x.options,
     stageReceipt:{...receipt,stageId:requestId(98)}})).code,
     "APP_CANDIDATE_RECEIPT_INVALID");

@@ -9592,7 +9592,7 @@
       },
       {
         "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-        "targetDigest": "7a311d213b9871414014420a69eec727dc8d96d18508ae7190a54c98d4acf791",
+        "targetDigest": "c10227928e02b4215e70896e8a57afedf588a844efd262ef6d142efb2b43179e",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -9627,6 +9627,10 @@
           {
             "path": "app/skin-v1/settings-workspace-panel.tsx",
             "digest": "117c4eef209daf6a59437627b2faac987e13bfe99d05824273cd05d887b2d19b"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "6546d2c52050459adea7a41d2d9f1c3df50591a43f855d3459c17c01557b5fc3"
           }
         ]
       }

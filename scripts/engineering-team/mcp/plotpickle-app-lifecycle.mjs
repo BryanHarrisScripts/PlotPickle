@@ -114,8 +114,11 @@ export function createPlotpickleAppController({
     while(now()<deadline){
       if(!alive(child))return result("BLOCKED","APP_START_FAILED",expectedHead);
       if(await probe(expectedHead)){
-        if(!alive(child)||!(await headIs(expectedHead)))
-          return result("BLOCKED","APP_SOURCE_CHANGED",expectedHead);
+        if(!alive(child)||!(await headIs(expectedHead))){
+          const stopped=await stopping(expectedHead);
+          return result("BLOCKED",stopped.code==="APP_STOPPED_VERIFIED"
+            ?"APP_SOURCE_CHANGED":"APP_STOP_UNVERIFIED",expectedHead);
+        }
         return result("TEST_PASSED","APP_STARTED_VERIFIED",expectedHead);
       }
       await delay(1000);

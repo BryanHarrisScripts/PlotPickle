@@ -312,14 +312,18 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "APP_ALREADY_RUNNING_OWNED","APP_PORT_OCCUPIED","APP_PROCESS_NOT_OWNED",
   "APP_DEPENDENCIES_UNAVAILABLE","APP_START_FAILED","APP_START_TIMEOUT",
   "APP_STOP_UNVERIFIED","APP_SOURCE_CHANGED","APP_CONTROL_BUSY",
-  "APP_ACTION_INVALID"]);
+  "APP_ACTION_INVALID","APP_CANDIDATE_PREPARED","APP_CANDIDATE_STARTED_VERIFIED",
+  "APP_CANDIDATE_INVALID","APP_CANDIDATE_RECEIPT_INVALID","APP_CANDIDATE_STAGE_INVALID",
+  "APP_CANDIDATE_SOURCE_CHANGED","APP_CANDIDATE_DEPENDENCY_DRIFT",
+  "APP_CANDIDATE_NPM_UNAVAILABLE","APP_CANDIDATE_DEPENDENCIES_FAILED",
+  "APP_CANDIDATE_RESTART_REQUIRED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
   const a=Buffer.from(presented),b=Buffer.from(configured);
   return a.length===b.length&&timingSafeEqual(a,b);
 }
-const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart"]);
+const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart","plotpickle-app-candidate-start"]);
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify"];
@@ -338,7 +342,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated owner-Windows fixed tests and clean-main-only PlotPickle app Start/Stop/Restart; fixed PR identity/static stages and LOCAL synthetic UAT. No arbitrary shell, candidate execution, models or merge.",
+    description:"Authenticated owner-Windows MAIN or isolated unmerged PR TEST startup and owned STOP. Exact source identity at fixed 127.0.0.1:4173; no shell, passphrase, images or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -366,6 +370,10 @@ function validControlArgs(name,args) {
     if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
+    if(args.suite==="plotpickle-app-candidate-start")return keys.length===6 &&
+      Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
+      CONTROL_HEAD.test(args.candidateHead||"")&&REQUEST_ID.test(args.sourceRequestId||"")&&
+      args.sourceRequestId!==args.requestId;
     if(args.suite==="factory-story-verify")return keys.length===4 &&
       REQUEST_ID.test(args.sourceRequestId||"") && args.sourceRequestId!==args.requestId;
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
@@ -386,9 +394,9 @@ function safeControlReceipt(raw,requestId) {
   if(!state||!code)return null;
   return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
     suite:allowedFactoryControlSuites().includes(raw.suite)?raw.suite:null,
-    candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(raw.code)&&
+    candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
-    candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(raw.code)&&
+    candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
     stageReason:raw.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&raw.state==="BLOCKED"&&
       FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)?raw.stageReason:null,
@@ -397,7 +405,7 @@ function safeControlReceipt(raw,requestId) {
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
       raw.changedFileCount<=500?raw.changedFileCount:null,
-    sourceRequestId:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+    sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       REQUEST_ID.test(raw.sourceRequestId||"")?raw.sourceRequestId:null,
     checkpointCount:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.checkpointCount)&&raw.checkpointCount>=55&&
@@ -465,9 +473,9 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidatePrNumber:null,
-      candidateHead:["factory-pr-head","factory-pr-stage"].includes(args.suite)?args.candidateHead:null,
-      sourceRequestId:args.suite==="factory-story-verify"?args.sourceRequestId:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start"].includes(args.suite)?args.sourceRequestId:null,
       at:now(),replayAuthorized:false,
     })+"\n",{flag:"wx",mode:0o600});
   }catch{return {state:"DUPLICATE_OR_UNVERIFIABLE_REQUEST",requestId:args.requestId,
@@ -498,7 +506,15 @@ export async function factoryControlAction(name,args,{
                 requestId:args.requestId,root,verifyHead:ops.testHead})
               :APP_CONTROL_SUITES.includes(args.suite)
                 ?await ops.appControl({action:args.suite.slice("plotpickle-app-".length),
-                  expectedHead:args.expectedHead})
+                  expectedHead:args.expectedHead,
+                  ...(args.suite==="plotpickle-app-candidate-start"?{
+                    root,sourceRequestId:args.sourceRequestId,
+                    candidatePrNumber:args.candidatePrNumber,
+                    candidateHead:args.candidateHead,
+                    stageReceipt:await factoryControlReceipt({
+                      root,requestId:args.sourceRequestId,
+                    }),
+                  }:{})})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -514,17 +530,17 @@ export async function factoryControlAction(name,args,{
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,
-            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(result.code)
-              ?result.candidatePrNumber:null,
-            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(result.code)
-              ?result.candidateHead:null,
+            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
+              ?(result.candidatePrNumber??args.candidatePrNumber):null,
+            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
+              ?(result.candidateHead??args.candidateHead):null,
             stageId:result.code==="CANDIDATE_STATIC_STAGED"?result.stageId:null,
             stageReason:result.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&
               FACTORY_STORY_STAGE_REASONS.includes(result.stageReason)
               ?result.stageReason:null,
             changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
               ?result.changedFileCount:null,
-            sourceRequestId:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.sourceRequestId:null,
+            sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)?(result.sourceRequestId??args.sourceRequestId):null,
             checkpointCount:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.checkpointCount:null,
             evidenceDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.evidenceDigest:null,
             projectIdentityDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.projectIdentityDigest:null};

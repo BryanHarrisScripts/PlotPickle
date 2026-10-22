@@ -154,7 +154,10 @@ test("Chat-authored candidate PR is attested by exact GitHub metadata without ex
  ];
  for(const [response,code] of cases){
    const result=await inspectFactoryCandidatePr({...opts,
-     run:async()=>({stdout:JSON.stringify(response)})});
+     run:async program=>{
+       if(program==="git")throw Error("Fixture base is not an ancestor of current main");
+       return {stdout:JSON.stringify(response)};
+     }});
    assert.equal(result.code,code);
    assert.equal(result.state,"BLOCKED");
    assert.equal(JSON.stringify(result).includes("PRIVATE"),false);

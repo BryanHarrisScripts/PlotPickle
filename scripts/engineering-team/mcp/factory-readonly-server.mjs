@@ -23,7 +23,7 @@ import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat,
-  runFactoryStoryEvidenceVerify } from "./factory-named-tests.mjs";
+  FACTORY_STORY_STAGE_REASONS,runFactoryStoryEvidenceVerify } from "./factory-named-tests.mjs";
 
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
@@ -381,6 +381,8 @@ function safeControlReceipt(raw,requestId) {
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
     candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
+    stageReason:raw.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&raw.state==="BLOCKED"&&
+      FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)?raw.stageReason:null,
     stageId:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       REQUEST_ID.test(raw.stageId||"")?raw.stageId:null,
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
@@ -504,6 +506,9 @@ export async function factoryControlAction(name,args,{
             candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED"].includes(result.code)
               ?result.candidateHead:null,
             stageId:result.code==="CANDIDATE_STATIC_STAGED"?result.stageId:null,
+            stageReason:result.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&
+              FACTORY_STORY_STAGE_REASONS.includes(result.stageReason)
+              ?result.stageReason:null,
             changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
               ?result.changedFileCount:null,
             sourceRequestId:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.sourceRequestId:null,

@@ -42,6 +42,7 @@ function dirs(appRoot) {
     dir: path.join(appRoot, "engineering-team", "supervisor"),
     enabled: path.join(appRoot, "engineering-team", "supervisor", "enabled.json"),
     stop: path.join(appRoot, "engineering-team", "supervisor", "stop-request.json"),
+    pause: path.join(appRoot, "engineering-team", "supervisor", "pause-request.json"),
     lock: path.join(appRoot, "engineering-team", "supervisor", "running.lock"),
     heartbeat: path.join(appRoot, "engineering-team", "supervisor", "heartbeat.json"),
   };
@@ -83,6 +84,9 @@ export async function reenableSupervisor({ appRoot = appRootDefault(), consent, 
   if (!info.enabled || info.hostId !== enabled.hostId
     || info.authorizedActor !== enabled.authorizedActor) throw Error("PAIRING_CHANGED_OR_DISABLED");
   await rm(p.stop, { force: true });
+  // A local STOP revokes the old pause state; the explicit reenable is still
+  // required and never silently revives an already stopped or stale process.
+  await rm(p.pause, { force: true });
   return Object.freeze({ state: "ENABLED_NOT_RUNNING", exactSha: enabled.sourceHead });
 }
 export async function disableSupervisor({ appRoot = appRootDefault(), now = Date.now } = {}) {
@@ -94,17 +98,91 @@ export async function disableSupervisor({ appRoot = appRootDefault(), now = Date
   } catch (error) { if (error?.code !== "EEXIST") throw error; }
   return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
 }
+/**
+ * PAUSE is a durable local request, not proof that an in-flight remote poll
+ * was cancelled. The supervisor acknowledges it on its next bounded cycle.
+ * No arbitrary process/PID control or editable issue grant is involved.
+ */
+export async function pauseSupervisor({ appRoot = appRootDefault(), consent,
+  platform = process.platform, head = exactHead, paired = readWindowsGitHubPairing,
+  now = Date.now } = {}) {
+  if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
+  const p = dirs(appRoot);
+  const enabled = await safeRead(p.enabled);
+  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
+  if (await safeRead(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
+  const info = await paired({ appRoot });
+  if (!info.enabled || info.hostId !== enabled.hostId ||
+    info.authorizedActor !== enabled.authorizedActor) throw Error("PAIRING_CHANGED_OR_DISABLED");
+  const previous = await safeRead(p.pause);
+  if (previous) {
+    if (previous.schemaVersion !== 1 || previous.sourceHead !== enabled.sourceHead ||
+      previous.hostId !== enabled.hostId || !Number.isSafeInteger(previous.requestedAt))
+      throw Error("PAUSE_REQUEST_UNVERIFIABLE");
+    return Object.freeze({ state: "PAUSE_REQUESTED", exactSha: enabled.sourceHead,
+      alreadyRequested: true, pauseAcknowledged: false, inFlightCancellationProven: false });
+  }
+  await writeFile(p.pause, JSON.stringify({ schemaVersion: 1, sourceHead: enabled.sourceHead,
+    hostId: enabled.hostId, requestedAt: now(), localOperator: true }) + "\n",
+    { flag: "wx", mode: 0o600 });
+  return Object.freeze({ state: "PAUSE_REQUESTED", exactSha: enabled.sourceHead,
+    alreadyRequested: false, pauseAcknowledged: false, inFlightCancellationProven: false });
+}
+
+/** RESUME removes only this exact owner's verified pause request, never STOP. */
+export async function resumeSupervisor({ appRoot = appRootDefault(), consent,
+  platform = process.platform, head = exactHead, paired = readWindowsGitHubPairing } = {}) {
+  if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
+  const p = dirs(appRoot);
+  const enabled = await safeRead(p.enabled);
+  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
+  if (await safeRead(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
+  const info = await paired({ appRoot });
+  if (!info.enabled || info.hostId !== enabled.hostId ||
+    info.authorizedActor !== enabled.authorizedActor) throw Error("PAIRING_CHANGED_OR_DISABLED");
+  const pause = await safeRead(p.pause);
+  if (!pause) {
+    if (await existsOrdinaryFile(p.pause)) throw Error("PAUSE_REQUEST_UNVERIFIABLE");
+    return Object.freeze({ state: "RESUME_REQUESTED", alreadyResumed: true,
+      exactSha: enabled.sourceHead, workerRunningProven: false });
+  }
+  if (pause.schemaVersion !== 1 || pause.sourceHead !== enabled.sourceHead ||
+    pause.hostId !== enabled.hostId || !Number.isSafeInteger(pause.requestedAt))
+    throw Error("PAUSE_REQUEST_UNVERIFIABLE");
+  await rm(p.pause);
+  return Object.freeze({ state: "RESUME_REQUESTED", alreadyResumed: false,
+    exactSha: enabled.sourceHead, workerRunningProven: false });
+}
+async function existsOrdinaryFile(file) {
+  try { await lstat(file); return true; }
+  catch (error) { if (error?.code === "ENOENT") return false; throw error; }
+}
+
 export async function supervisorStatus({ appRoot = appRootDefault(), now = Date.now } = {}) {
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
   if (!enabled) return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
   if (await safeRead(p.stop)) return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
+  const pause = await safeRead(p.pause);
+  if (!pause && await existsOrdinaryFile(p.pause))
+    return Object.freeze({ state: "BLOCKED", exactSha: enabled.sourceHead, reason: "PAUSE_REQUEST_UNVERIFIABLE" });
+  if (pause && (pause.schemaVersion !== 1 || pause.sourceHead !== enabled.sourceHead ||
+    pause.hostId !== enabled.hostId || !Number.isSafeInteger(pause.requestedAt)))
+    return Object.freeze({ state: "BLOCKED", exactSha: enabled.sourceHead, reason: "PAUSE_REQUEST_UNVERIFIABLE" });
   const hb = await safeRead(p.heartbeat);
   if (!hb || hb.sourceHead !== enabled.sourceHead || hb.hostId !== enabled.hostId
     || !Number.isSafeInteger(hb.at) || hb.at > now() + 5_000 || now() - hb.at > INTERVAL_MS * 3)
     return Object.freeze({ state: "OFFLINE", exactSha: enabled.sourceHead,
       reason: "NO_FRESH_OWNED_HEARTBEAT" });
-  return Object.freeze({ state: ["RUNNING", "BLOCKED"].includes(hb.state) ? hb.state : "OFFLINE",
+  const acknowledgedPause = pause && hb.state === "PAUSED"
+    && hb.pauseRequestAt === pause.requestedAt && hb.at >= pause.requestedAt;
+  const observedState = pause ? (acknowledgedPause ? "PAUSED" : "PAUSE_REQUESTED")
+    : hb.state === "PAUSED" ? "RESUME_REQUESTED"
+      : ["RUNNING", "BLOCKED"].includes(hb.state) ? hb.state : "OFFLINE";
+  return Object.freeze({ state: observedState,
+    pauseAcknowledged: Boolean(acknowledgedPause), inFlightCancellationProven: false,
     exactSha: enabled.sourceHead, checkedAt: hb.at, reason: hb.reason || null,
     queueEligible: Number.isSafeInteger(hb.queueEligible) ? hb.queueEligible : null,
     remoteProcessed: Number.isSafeInteger(hb.remoteProcessed) ? hb.remoteProcessed : null,
@@ -128,7 +206,24 @@ export async function supervisorCycle({
     return Object.freeze({ state: "BLOCKED", reason: "PAIRING_CHANGED_OR_DISABLED" });
   // Queue remains observational until independently authorized implementation
   // and verifier/PR pathways exist. A JSON grant is not sufficient authority.
+  const pause = await safeRead(p.pause);
+  if (pause || await existsOrdinaryFile(p.pause)) {
+    if (!pause || pause.schemaVersion !== 1 || pause.sourceHead !== enabled.sourceHead ||
+      pause.hostId !== enabled.hostId || !Number.isSafeInteger(pause.requestedAt))
+      return Object.freeze({ state: "BLOCKED", reason: "PAUSE_REQUEST_UNVERIFIABLE" });
+    const snapshot = Object.freeze({ schemaVersion: 1, sourceHead: enabled.sourceHead,
+      hostId: enabled.hostId, at: now(), state: "PAUSED", reason: "LOCAL_OPERATOR_PAUSED",
+      pauseRequestAt: pause.requestedAt, queueEligible: null, remoteProcessed: 0,
+      agentExecutionProven: false, autonomousPrLifecycleProven: false });
+    await writeFile(p.heartbeat, JSON.stringify(snapshot) + "\n", { mode: 0o600 });
+    return snapshot;
+  }
   const q = await queue();
+  // A pause arriving during inspection must block any *new* remote poll.
+  if (await existsOrdinaryFile(p.pause)) {
+    return Object.freeze({ state: "PAUSE_REQUESTED", reason: "NEXT_CYCLE_ACK_PENDING",
+      remoteProcessed: 0, agentExecutionProven: false, autonomousPrLifecycleProven: false });
+  }
   let remoteProcessed = 0, reason = null;
   try {
     const result = await poll({ appRoot });
@@ -166,7 +261,8 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
       if (await safeRead(p.stop)) break;
       const result = await cycle({ appRoot });
       if (result.state === "OFF" || result.state === "STOPPED"
-        || result.reason === "PAIRING_CHANGED_OR_DISABLED" || result.reason === "STALE_SOURCE_HEAD")
+        || result.reason === "PAIRING_CHANGED_OR_DISABLED" || result.reason === "STALE_SOURCE_HEAD"
+        || result.reason === "PAUSE_REQUEST_UNVERIFIABLE")
         break;
       if (count + 1 < maxCycles) await delay(INTERVAL_MS);
     }
@@ -187,10 +283,10 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
   }
 }
 function parseCli(argv) {
-  const modes = ["--enable", "--reenable", "--serve", "--status", "--disable"].filter(x => argv.includes(x));
+  const modes = ["--enable", "--reenable", "--serve", "--status", "--disable", "--pause", "--resume"].filter(x => argv.includes(x));
   if (modes.length !== 1) throw Error("SUPERVISOR_ONE_MODE_REQUIRED");
   const consentIndex = argv.indexOf("--consent");
-  const allowed = ["--enable", "--reenable", "--serve"].includes(modes[0]);
+  const allowed = ["--enable", "--reenable", "--serve", "--pause", "--resume"].includes(modes[0]);
   if (allowed && (argv.length !== 3 || consentIndex !== 1
     || argv[2] !== CONSENT)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   if (!allowed && argv.length !== 1) throw Error("UNSUPPORTED_SUPERVISOR_ARGS");
@@ -201,6 +297,8 @@ async function main() {
   const result = mode === "--enable" ? await enableSupervisor({ consent: CONSENT })
     : mode === "--reenable" ? await reenableSupervisor({ consent: CONSENT })
     : mode === "--serve" ? await serveSupervisor({ consent: CONSENT })
+    : mode === "--pause" ? await pauseSupervisor({ consent: CONSENT })
+    : mode === "--resume" ? await resumeSupervisor({ consent: CONSENT })
     : mode === "--disable" ? await disableSupervisor() : await supervisorStatus();
   process.stdout.write(JSON.stringify(result) + "\n");
 }

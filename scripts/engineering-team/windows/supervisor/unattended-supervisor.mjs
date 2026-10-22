@@ -83,8 +83,9 @@ async function cleanMigrationCheckout(fromHead) {
   ]);
   if (!SHA.test(sourceHead) || branch !== "main" || changed) return null;
   if (!/^(?:https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle(?:\.git)?|git@github\.com:BryanHarrisScripts\/PlotPickle(?:\.git)?)$/u.test(origin)) return null;
-  try { await command(["merge-base", "--is-ancestor", fromHead, sourceHead]); }
-  catch { return null; }
+  // Unexpected Git failures are not ordinary negative ancestry evidence.
+  // They propagate to the caller and never authorize a migration.
+  await command(["merge-base", "--is-ancestor", fromHead, sourceHead]);
   return Object.freeze({ sourceHead, trackedClean: true, branch: "main",
     originVerified: true, ancestorVerified: true });
 }

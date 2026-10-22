@@ -9766,7 +9766,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "5145ca5df1d14bb85b725e2bbc1b265e0e5f098f91adb1baf538e18b2dfd9913"
+            "digest": "dfd4311ba49fbced172bc9d5dd97d70b7f4ead7d22a07c99a863217894bb8c96"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

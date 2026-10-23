@@ -9525,7 +9525,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "8f75bb2bea89a199c22d5f30b71162c5de159fd44a33443fe4bff0df07f62e14"
+            "digest": "af78579510087e2f6a7e2c98f8a67e2ad485ece1930b3ecfe52eee54469f6320"
           }
         ]
       },
@@ -10740,7 +10740,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "664d8ef81b83cccf9e433f240bc250f81747ca8720b2710e2ac2a00149ecf61a",
+        "targetDigest": "54b047eecb6b12ee2da5ea8f31c5aeefc22dc960453208be8bbaeafb07786121",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10778,7 +10778,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "ae5136258f7ea48b9f73ab611dd67a4e4a87b4fc2dcf88f2006f005c63711c11"
+            "digest": "f907de12c8068d8980ffa9f413aab5e3eb304357beead7f082d0b311d55e8c06"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",

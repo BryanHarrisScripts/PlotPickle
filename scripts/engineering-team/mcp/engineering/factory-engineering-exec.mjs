@@ -256,6 +256,6 @@ export async function runStagedEngineeringTask({
     exitCode: Number.isInteger(execution?.exitCode) ? execution.exitCode : null,
     durationMs, outputDigest: createHash("sha256").update(text).digest("hex"),
     diagnostic: passed ? null : text,
-    independentVerification: false, modelInvoked: false, replayAuthorized: false,
+    independentVerification: false, modelInvoked: null, replayAuthorized: false,
   });
 }

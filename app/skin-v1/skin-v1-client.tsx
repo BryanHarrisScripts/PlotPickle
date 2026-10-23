@@ -201,7 +201,10 @@ export default function SkinV1Client() {
     if (startupAppliedRef.current) return;
     startupAppliedRef.current = true;
 
-    const startupPage = readStartupPage();
+    // #3227: a read-only Discover URL survives F5, but never bypasses
+    // the authenticated profile gate or becomes an account startup setting.
+    const discoverDeepLink = new URLSearchParams(window.location.search).get("workspace") === "discover";
+    const startupPage = discoverDeepLink ? "discover" : readStartupPage();
     if (startupPage === "dashboard") return;
     const index = DASHBOARD_MENU.findIndex((item) => item.id === startupPage);
     if (index < 0) return;

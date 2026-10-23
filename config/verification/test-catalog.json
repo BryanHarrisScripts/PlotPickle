@@ -10568,6 +10568,38 @@
             "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2559-library-example-gateway.test.mjs",
+        "targetDigest": "2202cdd90b19d9a5b1bb203579b28a259b9e0d6c065b5f920c54adb62e55b6ed",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Source-only proof of a compact LOAD poster card and retained navigable EXAMPLES poster gallery; does not establish owner Windows visuals, local posters present, loaded film profile identity or image quality.",
+        "inputs": [
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.module.css",
+            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+          }
+        ]
       }
     ]
   }

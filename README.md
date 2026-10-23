@@ -32,7 +32,11 @@ It combines writing education, story planning, visual development, screenplay wo
 
 PlotPickle's ambition reaches beyond an AI-assisted screenplay or a collection of creative screens. We envision a **creative operating system** where Humans and AI agents work together to learn, design, write, make films, build playable worlds and improve the tools they depend on. This describes an operating environment for creative work, **not** a replacement for the computer's underlying operating system.
 
-An LLM can be more useful here than in an isolated chat. With the right permissions, it can carry forward selected project context, understand the intended outcome, coordinate specialist capabilities, perform real actions, inspect their results, recover from ordinary failures and explain what remains uncertain. The Human should not have to translate every creative intention into a series of menus, prompts and disconnected technical steps.
+**The key distinction is that PlotPickle would not simply give an LLM more tools.** It would give the LLM a working environment with **continuity, evidence, responsibilities and the ability to turn decisions into verified results**. Instead of isolated instructions and disconnected outputs, authorized context carries forward, work is accountable, actions can be observed, and important outcomes can be independently checked.
+
+An LLM can be more useful here than in an isolated chat. With the right permissions, it can understand the intended outcome, coordinate specialist capabilities, perform real actions, inspect their results, recover from ordinary failures and explain what remains uncertain. The Human should not have to translate every creative intention into a series of menus, prompts and disconnected technical steps.
+
+**PlotPickle is not trying to remove Humans from creativity. It is trying to eliminate unnecessary friction between imagination and execution.** Human purpose, taste and judgment lead; the environment handles more of the coordination and mechanical work required to realize those choices. That begins to resemble **an operating system for Human and artificial intelligence working together**.
 
 ### Beyond storytelling: a foundation for many kinds of work
 
@@ -63,6 +67,8 @@ That freedom should be **substantial within an explicit delegation**. An agent m
 Creative canon changes, publishing or sharing private material, new paid spending permissions, installing unreviewed code and merges outside approved gates remain distinct decisions. The goal is **maximum useful agency with accountable authority**, not an agent that claims every power or interrupts the Human at every step.
 
 ### Build truth into every action
+
+**Build truth rather than simply building screens.** This principle matters because more powerful agents need more than interfaces that appear to work: they need reliable state, preserved decisions, accountable execution and evidence that proves what happened. Visual workspaces should reveal that truth and help Humans act on it, rather than becoming the authority themselves.
 
 A system that acts must distinguish four different things:
 

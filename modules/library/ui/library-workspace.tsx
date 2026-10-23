@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import { FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW, lockedMarketingReference } from "../../../core/contracts/build-progress";
 import packagedAfterglowManifest from "../../../data/afterglow-packaged-current/manifest.json";
@@ -259,35 +259,27 @@ function ExampleGatewayCard({ item, posterUrls, onOpen, active = false, unloadin
   readonly onUnload?: () => void;
 }) {
   const posters = posterUrls.length ? posterUrls : [AFTERGLOW_EXAMPLE_FALLBACK_POSTER];
-  const [posterIndex, setPosterIndex] = useState(0);
-  const safePosterIndex = Math.min(posterIndex, Math.max(0, posters.length - 1));
-  const posterUrl = posters[safePosterIndex] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
+  const posterUrl = posters[0] ?? AFTERGLOW_EXAMPLE_FALLBACK_POSTER;
 
   return (
     <article className={`${styles.card} ${styles.loadStoryCard} ${active ? styles.activeCard : ""}`} data-library-example-gateway={item.id} data-library-currently-loaded={active ? "true" : "false"}>
       <div className={styles.loadPosterFrame}>
         <button
-          aria-label={`Open ${item.title} example · poster ${safePosterIndex + 1} of ${posters.length}`}
+          aria-label={`Open ${item.title} example`}
           className={styles.loadPosterButton}
           onClick={onOpen}
           type="button"
         >
           <Image
             src={posterUrl}
-            alt={`${item.title} poster ${safePosterIndex + 1} of ${posters.length}`}
+            alt={`${item.title} poster`}
             fill
             sizes="(max-width: 760px) 100vw, 25vw"
             unoptimized={posterUrl.startsWith("/api/local-ai/assets/")}
-            priority={safePosterIndex === 0}
+            priority
           />
         </button>
-        {posters.length > 1 ? (
-          <div className={styles.loadPosterNavigation} aria-label="Afterglow poster versions">
-            <button aria-label="Previous Afterglow poster" disabled={safePosterIndex <= 0} onClick={() => setPosterIndex(safePosterIndex - 1)} type="button">‹</button>
-            <span aria-live="polite">{safePosterIndex + 1} / {posters.length}</span>
-            <button aria-label="Next Afterglow poster" disabled={safePosterIndex >= posters.length - 1} onClick={() => setPosterIndex(safePosterIndex + 1)} type="button">›</button>
-          </div>
-        ) : null}
+
       </div>
       <div className={styles.loadCardBody}>
         <div className={styles.loadCardStatusRow}>
@@ -350,7 +342,6 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
   readonly unloading?: boolean;
   readonly onUnload?: () => void;
 }) {
-  const progress = Math.max(0, Math.min(100, Math.round(item.progress)));
   const resumePoint = item.frontier || "Getting Started";
   const snapshot = loadLibraryProjectSnapshot(item.id);
   const approvedPoster = snapshot
@@ -359,7 +350,6 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
   const posterUrl = approvedPoster?.assetUrl.startsWith("/api/local-ai/assets/") || approvedPoster?.assetUrl.startsWith("/assets/")
     ? approvedPoster.assetUrl
     : null;
-  const resumeDetails = savedStoryResumeDetails(snapshot);
   const intendedRuntime = snapshot?.storyIntent?.targetMinutes ?? null;
 
   return (
@@ -391,36 +381,10 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
             />
           </div>
         ) : null}
-        <div className={styles.savedStoryResumeHeader}>
-          <span>Resume your story</span>
-          <small>{displayDate(item.updatedAt)}</small>
-        </div>
         <div className={styles.loadCardBody}>
           <span>{item.genre || "Story"} · {item.format || "PlotPickle"}{intendedRuntime !== null ? ` · Target ${intendedRuntime} min` : ""}</span>
           <strong>{item.title}</strong>
-          <p className={styles.savedStoryStateSummary}>{resumeDetails.summary}</p>
-          {resumeDetails.actions.length ? (
-            <ul className={styles.savedStoryActionSummary} aria-label="Meaningful saved work">
-              {resumeDetails.actions.slice(0, 4).map((action) => <li key={action}>{action}</li>)}
-            </ul>
-          ) : null}
-          <div className={styles.savedStoryResumeSummary}>
-            <span>Last working area</span>
-            <b>{resumePoint}</b>
-            <span>Tracked progress</span>
-            <b>{progress}%</b>
-          </div>
-          <div
-            aria-label={`${progress}% tracked story progress`}
-            className={styles.savedStoryProgressTrack}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={progress}
-          >
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          <small>Open this saved state to continue. Nothing loads into the workspace until you choose it.</small>
+          <small>Open this saved story</small>
         </div>
       </button>
     </article>
@@ -589,7 +553,7 @@ function NewStoryCard({ onCreate, creating }: {
   );
 }
 
-export default function LibraryWorkspace() {
+export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ currentFilmDetails?: ReactNode }> = {}) {
   const catalogCreatedAt = useMemo(() => "2026-08-20T00:00:00.000Z", []);
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
@@ -1205,6 +1169,7 @@ export default function LibraryWorkspace() {
           <div className={`${styles.sectionHeading} ${styles.loadSectionHeading}`}>
             <div><p className={styles.eyebrow}>Stories</p><h2 id="load-title">LOAD</h2></div>
           </div>
+          <div className={styles.loadStoryLayout} data-library-load-layout="posters-and-details">
           {visibleLoadCards.length ? (
             <div className={`${styles.loadCarousel} ${loadPaged ? styles.loadCarouselPaged : ""}`} data-library-load-pages={loadPageCount}>
               {loadPaged ? (
@@ -1255,6 +1220,32 @@ export default function LibraryWorkspace() {
               ) : null}
             </div>
           ) : <div className={styles.empty}><h3>No stories are available to load.</h3></div>}
+            <aside className={styles.loadStoryDetails} aria-label="Active story information" data-library-film-details="true">
+              {currentFilmDetails ?? (
+                <section className={styles.loadedStoryOverview} aria-label="Current film">
+                  <h3>Current film</h3>
+                  <p>Open Library through the Matrix Dashboard to inspect the selected screenplay and production-readiness evidence.</p>
+                </section>
+              )}
+              <section className={styles.loadedStoryOverview} aria-label="Saved story coverage">
+                <p className={styles.eyebrow}>Saved story evidence</p>
+                {activeProjectSummary ? (
+                  <>
+                    <h3>{activeProjectSummary.title}</h3>
+                    <p>{savedStoryResumeDetails(loadLibraryProjectSnapshot(activeProjectSummary.id)).summary}</p>
+                    <dl className={styles.loadStoryFacts}>
+                      <div><dt>Last working area</dt><dd>{activeProjectSummary.frontier || "Getting Started"}</dd></div>
+                      <div><dt>Tracked progress</dt><dd>{Math.max(0, Math.min(100, Math.round(activeProjectSummary.progress)))}%</dd></div>
+                      <div><dt>Screenplay source</dt><dd>{loadLibraryProjectSnapshot(activeProjectSummary.id)?.sourceEvidence.screenplay?.sourceFileName || "No imported screenplay attached"}</dd></div>
+                      <div><dt>Imported passages</dt><dd>{loadLibraryProjectSnapshot(activeProjectSummary.id)?.sourceEvidence.screenplay?.storedPassageCount ?? 0}</dd></div>
+                    </dl>
+                  </>
+                ) : (
+                  <p>Select a saved story or open the packaged example. Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it.</p>
+                )}
+              </section>
+            </aside>
+          </div>
         </section>
       );
     }

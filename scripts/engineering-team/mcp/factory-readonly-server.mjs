@@ -427,13 +427,16 @@ function safeControlReceipt(raw,requestId) {
     durationMs:Number.isSafeInteger(raw.durationMs)&&raw.durationMs>=0&&raw.durationMs<=240_000?raw.durationMs:null,
     diagnostic:raw.code==="ENGINEERING_TASK_FAILED"&&raw.state==="TEST_FAILED"?sanitizeEngineeringOutput(raw.diagnostic):null,
     outputDigest:/^[a-f0-9]{64}$/.test(raw.outputDigest||"")?raw.outputDigest:null,
-    candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
+    candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
-    candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
+    candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
     stageReason:raw.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&raw.state==="BLOCKED"&&
       FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)?raw.stageReason:null,
-    stageId:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
+    stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+      ["TEST_PASSED","TEST_FAILED"].includes(raw.state)&&
       REQUEST_ID.test(raw.stageId||"")?raw.stageId:null,
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
@@ -448,7 +451,9 @@ function safeControlReceipt(raw,requestId) {
     projectIdentityDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.projectIdentityDigest||"")?raw.projectIdentityDigest:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
-      ?raw.issueCount:null,modelInvoked:false,replayAuthorized:false,
+      ?raw.issueCount:null,
+    modelInvoked:raw.code.startsWith("ENGINEERING_")?null:false,
+    replayAuthorized:false,
     independentVerification:false};
 }
 export async function factoryControlReceipt({root,requestId}){
@@ -571,6 +576,8 @@ export async function factoryControlAction(name,args,{
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,
             mode:name==="factory_engineering_run"?result.mode:null,
+            stageId:name==="factory_engineering_run"?result.stageId:null,
+            target:name==="factory_engineering_run"?result.target:null,
             exitCode:name==="factory_engineering_run"?result.exitCode:null,
             durationMs:name==="factory_engineering_run"?result.durationMs:null,
             diagnostic:name==="factory_engineering_run"?result.diagnostic:null,
@@ -618,7 +625,8 @@ export async function factoryControlAction(name,args,{
     return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
   }
   const record={requestId:args.requestId,...outcome,
-    modelInvoked:false,replayAuthorized:false,independentVerification:false};
+    modelInvoked:name==="factory_engineering_run"?null:false,
+    replayAuthorized:false,independentVerification:false};
   try{
     await writeFile(path.join(dir,args.requestId+"-result.json"),
       JSON.stringify(record)+"\n",{flag:"wx",mode:0o600});

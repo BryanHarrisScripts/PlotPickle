@@ -14,6 +14,7 @@ test("#2446/#2458/#3019 moves Sound under ASSETS while preserving its three owni
     .map((match) => ({ id: match[1], shortcut: match[2], label: match[3], group: match[5] }));
   assert.deepEqual(rows.filter((row) => row.group === "ASSETS"), [
     { id: "assets", shortcut: "A", label: "Assets", group: "ASSETS" },
+    { id: "discover", shortcut: "J", label: "Discover", group: "ASSETS" },
   ]);
   assert.equal(rows.some((row) => row.group === "SOUND"), false);
   assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);

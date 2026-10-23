@@ -10540,7 +10540,8 @@
         "targetDigest": "7c408d7c279bf7483d1083cdf1fc282e7b5837ba3c22ac11021634be24b7b28f",
         "catalogueIds": [
           "production.library-active-handoff-2621",
-          "story-canon.library-unload-active-story-2625"
+          "story-canon.library-unload-active-story-2625",
+          "story-canon.mind-map-retirement-2632"
         ],
         "truthRefs": [
           {

@@ -756,6 +756,7 @@ export default function DashboardBbsReviewHost({
   if (storyboardOpen) {
     return (
       <section
+        className={reviewStyles.reviewSurface}
         aria-label="Storyboard pre-production"
         data-dashboard-review-surface="storyboard"
         data-review-state="in-review"
@@ -789,6 +790,7 @@ export default function DashboardBbsReviewHost({
   if (previsOpen) {
     return (
       <section
+        className={reviewStyles.reviewSurface}
         aria-label="Previs pre-production"
         data-dashboard-review-surface="previs"
         data-review-state="in-review"
@@ -813,6 +815,7 @@ export default function DashboardBbsReviewHost({
   if (timelineOpen) {
     return (
       <section
+        className={reviewStyles.reviewSurface}
         aria-label="Timeline pre-production"
         data-dashboard-review-surface="timeline"
         data-review-state="in-review"
@@ -845,6 +848,7 @@ export default function DashboardBbsReviewHost({
   if (productionOpen) {
     return (
       <section
+        className={reviewStyles.reviewSurface}
         aria-label="Rough Cut"
         data-dashboard-review-surface="production"
         data-review-state="in-review"

@@ -10,7 +10,7 @@ export default function StoryHomePage() {
   function navigateWorkspace(workspace: RootWorkspace) {
     if (workspace === "story") return;
     if (workspace === "library") {
-      router.push("/library");
+      router.push("/skin-v1?workspace=library");
       return;
     }
     router.push(`/?workspace=${encodeURIComponent(workspace)}`);

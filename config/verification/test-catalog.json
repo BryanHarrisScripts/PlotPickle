@@ -10160,7 +10160,7 @@
       },
       {
         "target": "tests/issue-3232-visual-workspace-shell-parity.test.mjs",
-        "targetDigest": "cdd947a133f127e345ed36ba3ceac714c4f87931cadd05f33350a8aa1a436d5e",
+        "targetDigest": "05623a5b47233adbb99a79e3be4fc73b7638d1b35a1abc1efb5f0f8e2b844cd6",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],

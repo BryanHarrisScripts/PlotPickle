@@ -5521,7 +5521,7 @@
       },
       {
         "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-        "targetDigest": "e09a22e8e89bb83a9565f96adb4bc7c246a3165a0f89874b9a7c68f4c7fd2fe5",
+        "targetDigest": "f8587eda046a2053db4fa7fc044e559a8272f8b7c0238bb0ef746aa93ddec926",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -5563,7 +5563,7 @@
         ],
         "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": [],
-        "targetDigest": "cdaee51904acbad5c6ee2adda078ef9aa5a0d7bbdd481b743cb1990888be3a1b"
+        "targetDigest": "7c0fc971e77c3b1c2b6f45cc7666db78551cf978c6d4b8f08e2dd92fbcc6066c"
       },
       {
         "target": "tests/issue-2469-webmcp-surface-maturity.test.mjs",

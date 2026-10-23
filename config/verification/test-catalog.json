@@ -10184,7 +10184,7 @@
       },
       {
         "target": "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-        "targetDigest": "51d59bfcc76320512fd2a3277bb78f98297a7b29bbd97e2d1f5a972d2f150342",
+        "targetDigest": "42ad42604143bc625234c873d2a7738f517d462c3193207ea67f3eba145f4e49",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],

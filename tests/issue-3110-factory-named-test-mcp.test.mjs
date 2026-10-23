@@ -320,7 +320,7 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
  };
  const checkoutError=await stageFactoryCandidatePr({...base,
    requestId:"f".repeat(32),run:checkoutRun});
- assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ADD_FAILED");
+ assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ACCESS_DENIED");
  assert.equal(checkoutError.state,"BLOCKED");
  assert.equal(JSON.stringify(checkoutError).includes("PRIVATE"),false);
 }));

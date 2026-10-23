@@ -41,6 +41,8 @@ test("#3232 five Visualize workspaces share the full-width outer Matrix shell", 
     const next = host.indexOf("\n  if (", stageStart + 1);
     const body = host.slice(stageStart, next < 0 ? undefined : next);
     assert.ok(body.includes('data-dashboard-review-surface="' + stage + '"'), stage + " must retain its identity");
+    // An unused CSS-module selector proves nothing: every actual host must apply the class.
+    assert.match(body, /<section\s+className=\{reviewStyles\.reviewSurface\}[\s\S]*?data-dashboard-review-surface="[^"]+"/u, stage + " must attach the full-width CSS module class to its rendered section");
     assert.ok(body.includes('className="pp-skin-v1-bbs-banner"'), stage + " must retain a common title bar");
     assert.ok(body.includes("<StoryActRail "), stage + " must retain Act-rail controls");
     assert.ok(body.includes("Back to Dashboard"), stage + " must preserve in-app return");

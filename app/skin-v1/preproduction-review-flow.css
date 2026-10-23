@@ -39,10 +39,15 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
   font-family: var(--pp-skin-font-ui);
 }
 
-/* #2426/#2529: Storyboard keeps full-browser; every canonical Story Act rail
- * uses the same four-column geometry and active-Act treatment as Outline.
+/* #2426/#2529/#3232: Storyboard, Previs, Timeline and Rough Cut share the
+ * same full-width outer Matrix review shell as Outline. Keep inner media/panel
+ * sizing independent; this rule must not stretch shots or timelines.
+ * Every canonical Story Act rail keeps the same four-column geometry.
  */
-html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] {
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"],
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="previs"],
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="timeline"],
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="production"] {
   width:100%; max-width:none; min-width:0; min-height:100dvh; margin:0; box-sizing:border-box;
 }
 html[data-plotpickle-skin^="skin-"] [data-story-act-rail="four-acts"] {

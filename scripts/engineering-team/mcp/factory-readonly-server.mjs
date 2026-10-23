@@ -322,6 +322,7 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "APP_CANDIDATE_INVALID","APP_CANDIDATE_RECEIPT_INVALID","APP_CANDIDATE_STAGE_INVALID",
   "APP_CANDIDATE_SOURCE_CHANGED","APP_CANDIDATE_DEPENDENCY_DRIFT",
   "APP_CANDIDATE_NPM_UNAVAILABLE","APP_CANDIDATE_DEPENDENCIES_FAILED",
+  "APP_CANDIDATE_HOME_EXISTS",
   "APP_CANDIDATE_RESTART_REQUIRED",
   "ENGINEERING_SELECTION_INVALID","ENGINEERING_STAGE_INVALID",
   "ENGINEERING_STAGE_RECEIPT_INVALID","ENGINEERING_TARGET_INVALID",
@@ -335,7 +336,7 @@ export function controlTokenMatches(presented,configured) {
   const a=Buffer.from(presented),b=Buffer.from(configured);
   return a.length===b.length&&timingSafeEqual(a,b);
 }
-const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart","plotpickle-app-candidate-start"]);
+const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart","plotpickle-app-candidate-start","plotpickle-app-factory-start","plotpickle-app-factory-stop"]);
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify"];
@@ -401,7 +402,7 @@ function validControlArgs(name,args) {
     if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
-    if(args.suite==="plotpickle-app-candidate-start")return keys.length===6 &&
+    if(["plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite))return keys.length===6 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"")&&REQUEST_ID.test(args.sourceRequestId||"")&&
       args.sourceRequestId!==args.requestId;
@@ -515,9 +516,9 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidatePrNumber:null,
-      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidateHead:null,
-      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start"].includes(args.suite)?args.sourceRequestId:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.sourceRequestId:null,
       stageRequestId:name==="factory_engineering_run"?args.stageRequestId:null,
       mode:name==="factory_engineering_run"?args.mode:null,
       at:now(),replayAuthorized:false,
@@ -555,7 +556,7 @@ export async function factoryControlAction(name,args,{
               :APP_CONTROL_SUITES.includes(args.suite)
                 ?await ops.appControl({action:args.suite.slice("plotpickle-app-".length),
                   expectedHead:args.expectedHead,
-                  ...(args.suite==="plotpickle-app-candidate-start"?{
+                  ...(["plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?{
                     root,sourceRequestId:args.sourceRequestId,
                     candidatePrNumber:args.candidatePrNumber,
                     candidateHead:args.candidateHead,

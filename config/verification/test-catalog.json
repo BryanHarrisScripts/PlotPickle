@@ -121,7 +121,8 @@
           "tests/issue-3032-character-sheet-portrait.test.mjs",
           "tests/issue-3033-assets-image-route-switch.test.mjs",
           "tests/issue-3035-assets-surface-polish.test.mjs",
-          "tests/issue-3230-reports-in-shell-navigation.test.mjs"
+          "tests/issue-3230-reports-in-shell-navigation.test.mjs",
+          "tests/issue-3227-discover-matrix-journal.test.mjs"
         ]
       },
       "cost": "fast",
@@ -6371,7 +6372,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           }
         ]
       },
@@ -6398,7 +6399,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
@@ -6433,7 +6434,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           }
         ]
       },
@@ -6468,7 +6469,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -10105,7 +10106,7 @@
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
-            "digest": "4c3ff536174db3a656acb18de6f999c545f342f3ccd90c8ef9a72b12c53dce8c"
+            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
           },
           {
             "path": "app/reports/page.tsx",
@@ -10154,6 +10155,62 @@
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
             "digest": "022bf1d552ae4cd2c828bb4b53535fcfe50497b868e4d941dd9af6c8b80be0a3"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3227-discover-matrix-journal.test.mjs",
+        "targetDigest": "65defa067caf9d65f201a2f420a8eb9938494d2e60427f8583f59ae39c28d430",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Fixture verifies editorial and capability evidence admission, HTTPS source safety, search, source-dated review and source-bound Dashboard/F5 contract. Does not establish native Windows browser acceptance or automatically publish research proposals.",
+        "inputs": [
+          {
+            "path": "modules/discover/model/discover-catalog.ts",
+            "digest": "83469375db37aaa7381649c87b4d1321f1a8a733e2be222bec5ce8e3cfae89c3"
+          },
+          {
+            "path": "content/discover/editorial-catalog.json",
+            "digest": "2e25a28f4957d1abb415b195243575051b004c25c9ef567566d22922ca8bfb02"
+          },
+          {
+            "path": "app/_components/discover/discover-journal.tsx",
+            "digest": "0993367099dfb346e57ad62c22d65842489c649f7b50ea472b3832cb5bbe3eeb"
+          },
+          {
+            "path": "app/_components/discover/discover-journal.module.css",
+            "digest": "e28e0e5df3eb230dda253618dea204cf98a53a021cbc449a4cbced1ef89b12c2"
+          },
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/skin-v1-client.tsx",
+            "digest": "083ac259ed8633f6425a30c65008aa4162f3f3a37501bef626f0f660724c90cf"
+          },
+          {
+            "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
+            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
           }
         ]
       }

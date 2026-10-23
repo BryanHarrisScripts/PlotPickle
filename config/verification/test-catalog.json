@@ -9996,7 +9996,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "2db244a4b0dc3e8dcf7e799495b54531dfeb5c29de231b61e0d69d7a28477fdf"
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -10052,7 +10052,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "2db244a4b0dc3e8dcf7e799495b54531dfeb5c29de231b61e0d69d7a28477fdf"
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10081,18 +10081,18 @@
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
-        "targetDigest": "0c54d9aee8763786d7e3729afa75508076dd954ce42d9cfe04bc85ca42b9a586",
+        "targetDigest": "7c3f741892fceb0c06b325e65d60698a1ae9aca9710537924a07388c5717e423",
         "catalogueIds": [
           "agent.factory-concurrent-session-3222"
         ],
         "inputs": [
           {
-            "path": "scripts/engineering-team/mcp/factory-isolated-session.mjs",
-            "digest": "032103f3d9099348491f3a3008391547556eb1c7ba528f07193daaf2de74e6db"
+            "path": "scripts/engineering-team/mcp/candidate/factory-isolated-session.mjs",
+            "digest": "a1513414f6f959486722f389d6490f16f903afab7a118540aea08332744aeabe"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "2db244a4b0dc3e8dcf7e799495b54531dfeb5c29de231b61e0d69d7a28477fdf"
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

@@ -57,10 +57,13 @@ test("#3203 Library film inspector uses exactly the existing Library PPF and Rep
   assert.match(host, /setLibraryOpen\(false\); openOutline\(\{ blockNumber, miniBlockNumber: 1 \}\)/u);
   assert.match(library, /data-library-load-layout="posters-and-details"/u);
   assert.match(library, /data-library-film-details="true"/u);
+  assert.match(library, /data-library-continue-story=\{item.id\}/u);
+  assert.match(library, /data-library-continue-story=\{`example:\$\{item.id\}`\}/u);
+  assert.match(host, /onInspectStory=\{\(id, exampleTitle\) => setInspectedFilm/u);
   assert.match(library, /\{currentFilmDetails \?\?/u);
   assert.doesNotMatch(library.slice(library.indexOf("function SavedStoryLoadCard"), library.indexOf("function CatalogCard")), /savedStoryResumeSummary|savedStoryActionSummary|savedStoryProgressTrack/u);
   assert.match(library, /aria-label="Saved story coverage"/u);
-  assert.match(library, /loadLibraryProjectSnapshot\(activeProjectSummary\.id\)\?\.sourceEvidence\.screenplay/u);
+  assert.match(library, /loadLibraryProjectSnapshot\(inspectedSummary\.id\)\?\.sourceEvidence\.screenplay/u);
   assert.equal((host.match(/<ContinueThisFilm/g) ?? []).length, 1, "exactly one active film inspector");
   assert.match(surface, /interpretReadOnlyCreatorIntent\(intentText\)/u);
   assert.match(surface, /profilePrivateBrowserReadyFor\(profileId\)/u);
@@ -83,8 +86,10 @@ test("#3203 a missing or blocked source never presents observed film readiness",
   assert.match(source, /const observed = observation\?\.status === "OBSERVED" && result\?\.state === "OBSERVED"/u);
   assert.match(source, /\{observed \? "OBSERVED" : "NOT VERIFIED"\}/u);
   assert.match(source, /status === "BLOCKED" \? `Observation blocked:/u);
-  assert.match(source, /\{observed && block !== null && onOpenOutline \? <button/u);
+  assert.match(source, /\{observed && isCurrentFilm && block !== null && onOpenOutline \? <button/u);
   assert.match(source, /No project-bound production evidence can be shown/u);
+  assert.match(source, /selectedStoryId === undefined \? sessionActiveProjectId\(\) : selectedStoryId/u);
+  assert.match(source, /EXAMPLE_NOT_OPEN/u);
   assert.match(source, /none is certified film-ready/u);
   assert.doesNotMatch(source, /filmReadyVerified: true|independentVerification: true|modelCalled: true|paidGenerationPermitted: true/u);
 });

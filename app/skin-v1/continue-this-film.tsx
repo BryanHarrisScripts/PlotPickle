@@ -19,10 +19,10 @@ type CurrentObservation = Readonly<{
   projectTitle: string | null;
   revision: number | null;
   result: HollywoodReadinessResult | null;
-  status: "NO_PROFILE" | "NO_PROJECT" | "PROJECT_UNAVAILABLE" | "OBSERVED" | "BLOCKED";
+  status: "NO_PROFILE" | "NO_PROJECT" | "PROJECT_UNAVAILABLE" | "EXAMPLE_NOT_OPEN" | "OBSERVED" | "BLOCKED";
 }>;
 
-function observeCurrentSelection(): CurrentObservation {
+function observeCurrentSelection(selectedStoryId?: string | null, exampleTitle?: string | null): CurrentObservation {
   // The Dashboard is a consumer of the same current-session Library authority
   // as Reports. A detached foundation project must never be treated as selected.
   try {
@@ -30,7 +30,11 @@ function observeCurrentSelection(): CurrentObservation {
     if (!profileId || !profilePrivateBrowserReadyFor(profileId)) {
       return { projectTitle: null, revision: null, result: null, status: "NO_PROFILE" };
     }
-    const selectedId = sessionActiveProjectId();
+    // #3266: inspect saved-card identity without changing the active story.
+    if (exampleTitle) {
+      return { projectTitle: exampleTitle, revision: null, result: null, status: "EXAMPLE_NOT_OPEN" };
+    }
+    const selectedId = selectedStoryId === undefined ? sessionActiveProjectId() : selectedStoryId;
     if (!selectedId) {
       return { projectTitle: null, revision: null, result: null, status: "NO_PROJECT" };
     }
@@ -60,16 +64,18 @@ function observeCurrentSelection(): CurrentObservation {
 }
 
 export default function ContinueThisFilm({
-  onOpenOutline,
+  onOpenOutline, selectedStoryId, exampleTitle,
 }: Readonly<{
   onOpenOutline?: (blockNumber: number) => void;
+  selectedStoryId?: string | null;
+  exampleTitle?: string | null;
 }>) {
   const [observation, setObservation] = useState<CurrentObservation | null>(null);
   const [intentText, setIntentText] = useState("Where am I?");
   const [intent, setIntent] = useState<ReadOnlyCreatorIntent>("WHERE_AM_I");
   const [notice, setNotice] = useState("");
 
-  const refresh = useCallback(() => setObservation(observeCurrentSelection()), []);
+  const refresh = useCallback(() => setObservation(observeCurrentSelection(selectedStoryId, exampleTitle)), [selectedStoryId, exampleTitle]);
 
   useEffect(() => {
     refresh();
@@ -101,23 +107,30 @@ export default function ContinueThisFilm({
   const block = observed && result.nextDecision?.kind === "REVIEW_BLOCK_SOURCE_EVIDENCE"
     ? result.nextDecision.blockNumber : null;
   const status = observation?.status ?? "CHECKING";
-  const nextDecision = observed
+  const isBrowsingSaved = Boolean(selectedStoryId);
+  const isCurrentFilm = !exampleTitle && (selectedStoryId === undefined || selectedStoryId === sessionActiveProjectId());
+  const nextDecision = exampleTitle
+    ? "Open the packaged example in EXAMPLES before continuing production."
+    : isBrowsingSaved && !isCurrentFilm
+      ? "Open this saved story to resume editing; previewing does not switch the active project."
+      : observed
     ? block !== null
       ? `Human review of source support for Block ${block}.`
       : "Human review of the screenplay source and production plan."
     : "Select or restore the active Library story before continuing.";
   const now = status === "CHECKING" ? "Checking the current Library selection."
     : status === "NO_PROFILE" ? "Current Human profile is not ready."
-      : status === "NO_PROJECT" ? "No saved Library story selected."
+      : status === "EXAMPLE_NOT_OPEN" ? "Packaged example preview; no working PPF has been opened."
+      : status === "NO_PROJECT" ? "No saved Library story selected. Select Continue This Film on a story card to inspect it."
         : status === "PROJECT_UNAVAILABLE" ? "The selected Library story cannot be read."
           : status === "BLOCKED" ? `Observation blocked: ${result?.code || "UNKNOWN"}.`
-            : `Selected PPF revision ${observation?.revision}; this is a read-only observation.`;
+            : `${isBrowsingSaved && !isCurrentFilm ? "Previewing saved" : "Selected"} PPF revision ${observation?.revision}; this is a read-only observation.`;
 
   return (
     <section className={styles.root} aria-label="Continue This Film" data-continue-film-status={status}>
       <header className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>INTENT · CURRENT LIBRARY PPF · READ ONLY</span>
+          <span className={styles.eyebrow}>INTENT · {exampleTitle ? "PACKAGED EXAMPLE" : isBrowsingSaved ? "SAVED LIBRARY PPF" : "CURRENT LIBRARY PPF"} · READ ONLY</span>
           <h2>Continue This Film</h2>
           <p>{observation?.projectTitle || "No active film"}{observation?.revision != null ? ` · Revision ${observation.revision}` : ""}</p>
         </div>
@@ -145,7 +158,7 @@ export default function ContinueThisFilm({
         <div><strong>NEXT HUMAN DECISION</strong><p>{nextDecision}</p></div>
       </div>
       <div className={styles.actions}>
-        {observed && block !== null && onOpenOutline ? <button type="button" onClick={() => onOpenOutline(block)}>Review Block {block} in Outline</button> : null}
+        {observed && isCurrentFilm && block !== null && onOpenOutline ? <button type="button" onClick={() => onOpenOutline(block)}>Review Block {block} in Outline</button> : null}
         <button type="button" onClick={refresh}>Refresh evidence</button>
       </div>
       <small className={styles.disclaimer}>No creative approval, Save & Lock, paid generation, project switch, or production-readiness certification.</small>

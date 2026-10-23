@@ -21,7 +21,7 @@ function requestedReportSection(value: string | null): ConsolidatedReportSection
     : "project";
 }
 
-export default function ReportsPage() {
+export default function ReportsPage({ onBackDashboard, onOpenLibrary }: Readonly<{ onBackDashboard?: () => void; onOpenLibrary?: () => void }> = {}) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [authorizedProfileId, setAuthorizedProfileId] = useState<string | null>(null);
@@ -102,6 +102,7 @@ export default function ReportsPage() {
       <LibraryPpfReportsWorkspace
         project={project} selectedId={selectedId} authorizedProfileId={authorizedProfileId} checked={checked}
         section={section} onSectionChange={changeSection} onRefresh={refresh}
+        onBackDashboard={onBackDashboard} onOpenLibrary={onOpenLibrary}
       />
     </main>
   );

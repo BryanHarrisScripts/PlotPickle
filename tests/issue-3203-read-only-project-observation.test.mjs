@@ -200,8 +200,8 @@ test("#3203 real Reports Production GUI invokes the same headless read-only capa
 test("#3203 ten-stage Reports GUI has accessible return navigation and reload without creative mutation", async () => {
   const { readFile } = await import("node:fs/promises");
   const surface = await readFile(new URL("../app/reports/library-ppf-reports-workspace.tsx", import.meta.url), "utf8");
-  assert.ok(surface.includes('onClick={() => router.push("/skin-v1")}'));
-  assert.ok(surface.includes('onClick={() => router.push("/library")}'));
+  assert.ok(surface.includes('onClick={onBackDashboard ?? (() => router.push("/skin-v1"))}'));
+  assert.ok(surface.includes('onClick={onOpenLibrary ?? (() => router.push("/library"))}'));
   assert.ok(surface.includes('onClick={onRefresh}>Reload Reports</button>'));
   assert.match(surface, /Reload Reports/u);
   assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));

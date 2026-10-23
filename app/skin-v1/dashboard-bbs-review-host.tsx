@@ -540,6 +540,8 @@ export default function DashboardBbsReviewHost({
         workspace={explorationOpen}
         onOpenLearn={() => { closeExploration(); const index = items.findIndex((item) => item.id === "learn"); if (index >= 0) activateItem(index); }}
         onOpenOutline={() => { closeExploration(); openOutline(reviewAddress); }}
+        onBackDashboard={closeExploration}
+        onOpenLibrary={() => { closeExploration(); setLibraryOpen(true); onSurfaceNameChange("LIBRARY"); }}
       />
     </section>;
   }

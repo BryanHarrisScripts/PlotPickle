@@ -16,6 +16,8 @@ type Props = {
   readonly section: ConsolidatedReportSection;
   readonly onSectionChange: (value: ConsolidatedReportSection) => void;
   readonly onRefresh: () => void;
+  readonly onBackDashboard?: () => void;
+  readonly onOpenLibrary?: () => void;
 };
 
 function Statistic({ label, value, detail }: { readonly label: string; readonly value: string | number; readonly detail?: string }) {
@@ -29,7 +31,7 @@ function Unavailable({ children }: { readonly children: string }) {
   </p>;
 }
 
-export default function LibraryPpfReportsWorkspace({ project, selectedId, authorizedProfileId, checked, section, onSectionChange, onRefresh }: Props) {
+export default function LibraryPpfReportsWorkspace({ project, selectedId, authorizedProfileId, checked, section, onSectionChange, onRefresh, onBackDashboard, onOpenLibrary }: Props) {
   const router = useRouter();
   const report = useMemo(() => project ? summarizeLibraryPpfReport(project) : null, [project]);
   const source = report?.imported;
@@ -46,8 +48,8 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, author
     <header className={styles.header}>
       <div><small>EXPLORE / REPORTS · READ ONLY</small><h1>Reports</h1><p>Evidence from the selected Human Library story—not a separate Reports database.</p></div>
       <nav className={styles.actions} aria-label="Reports navigation">
-        <button type="button" onClick={() => router.push("/skin-v1")}>Back to Dashboard</button>
-        <button type="button" onClick={() => router.push("/library")}>Library</button>
+        <button type="button" onClick={onBackDashboard ?? (() => router.push("/skin-v1"))}>Back to Dashboard</button>
+        <button type="button" onClick={onOpenLibrary ?? (() => router.push("/library"))}>Library</button>
         <button type="button" onClick={onRefresh}>Reload Reports</button>
         <button type="button" onClick={onRefresh}>Refresh Library selection</button>
       </nav>

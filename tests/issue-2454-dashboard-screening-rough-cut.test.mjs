@@ -37,7 +37,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
   assert.equal(new Set(rows.map((row) => row.shortcut)).size, rows.length);
 });
 
-test("#2454/#2458/#2612 keeps the approved IA while Screening is a gray selectable placeholder", async () => {
+test("#2454/#2458/#2612 keeps Screening a connected, Human-enterable review surface", async () => {
   const [menu, host] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -47,7 +47,11 @@ test("#2454/#2458/#2612 keeps the approved IA while Screening is a gray selectab
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"),
   );
-  assert.match(unavailable, /"screening"/u);
+  assert.match(unavailable, /new Set<string>\(\)/u);
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_EXPLORATION_ITEM_IDS"));
+  const exploration = menu.slice(menu.indexOf("export const DASHBOARD_EXPLORATION_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
+  assert.match(connected, /"screening"/u);
+  assert.match(exploration, /"screening"/u);
   assert.match(host, /item\.id === "screening"[\s\S]*setScreeningOpen\(true\)/u);
   assert.ok(
     host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf('item.id === "screening"'),
@@ -55,12 +59,13 @@ test("#2454/#2458/#2612 keeps the approved IA while Screening is a gray selectab
   );
   assert.match(host, /item\.id === "production"[\s\S]*openProduction\(reviewAddress\)/u);
   assert.match(host, /onSurfaceNameChange\("MindMap"\)/u);
-  assert.match(host, /<h1>MindMap<\/h1>/u);
+  assert.match(host, /aria-label="MindMap"/u);
 
   const review = menu.slice(
     menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"),
     menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"),
   );
-  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["previs", "timeline", "production"]);
+  assert.deepEqual([...review.matchAll(/"([^"]+)"/gu)].map((match) => match[1]), ["assets", "previs", "timeline", "production"]);
+  assert.match(review, /\.\.\.DASHBOARD_EXPLORATION_ITEM_IDS/u);
   for (const id of ["discovery", "story-bible", "plan", "storyboard"]) assert.doesNotMatch(review, new RegExp(`"${id}"`, "u"));
 });

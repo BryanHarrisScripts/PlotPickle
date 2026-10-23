@@ -6922,7 +6922,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "51029adc0e0a7f94ce7603c551d0c81a68958afbf98eaa3dc9d42b31feaa6acb"
+            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
           }
         ]
       },
@@ -7756,7 +7756,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "51029adc0e0a7f94ce7603c551d0c81a68958afbf98eaa3dc9d42b31feaa6acb"
+            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
           }
         ]
       },
@@ -10060,7 +10060,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "51029adc0e0a7f94ce7603c551d0c81a68958afbf98eaa3dc9d42b31feaa6acb"
+            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
           }
         ],
         "truthRefs": [
@@ -10081,7 +10081,7 @@
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
-        "targetDigest": "7c3f741892fceb0c06b325e65d60698a1ae9aca9710537924a07388c5717e423",
+        "targetDigest": "019b1dab67db75aa9bc58567a2a9a4a9ee2f9d9d92691f4b698496648e9f2caf",
         "catalogueIds": [
           "agent.factory-concurrent-session-3222"
         ],
@@ -10100,7 +10100,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "51029adc0e0a7f94ce7603c551d0c81a68958afbf98eaa3dc9d42b31feaa6acb"
+            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",

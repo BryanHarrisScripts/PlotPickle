@@ -1,6 +1,6 @@
 .workspace{width:100%;max-width:none;min-width:0;padding:clamp(1rem,2vw,2rem);box-sizing:border-box;color:var(--pp-skin-ink,var(--foreground,#e9e9eb));}
 .header{border-bottom:1px solid var(--pp-skin-border,#535f6b);padding-bottom:1rem;}
-.header p:first-child{font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;}
+.header p:first-of-type{font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;}
 .header h2{margin:.35rem 0;font-size:clamp(1.6rem,3vw,2.4rem);}
 .status{margin:1.25rem 0;padding:.9rem 1rem;border:1px solid var(--pp-skin-border,#6b7280);border-radius:.35rem;}
 .filters{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1rem;margin:1rem 0 1.3rem;}

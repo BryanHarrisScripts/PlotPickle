@@ -54,7 +54,7 @@ test("#3259 P1 supports a future typed vocabulary but executes only private ques
   assert.ok(validateGatewayEnvelope(message("answer", {}, now), {now}));
   for (const kind of GATEWAY_KINDS.filter(x => !["question", "answer"].includes(x)))
     assert.equal(validateGatewayEnvelope(message(kind, {}, now), {now}), null);
-  assert.equal(validateGatewayEnvelope(message("question", {shell:"rm -rf /"}, now), null);
+  assert.equal(validateGatewayEnvelope(message("question", {shell:"rm -rf /"}, now), {now}), null);
   assert.equal(validateGatewayEnvelope(message("question",
     {protocolVersion:"2.0"}, now), {now}), null);
   assert.equal(validateGatewayEnvelope(message("question",

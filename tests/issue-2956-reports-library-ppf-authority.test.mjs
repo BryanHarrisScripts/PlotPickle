@@ -134,7 +134,7 @@ test("#2956 Reports exposes same-tab Dashboard, Library and section-preserving R
   ]);
   assert.match(surface, /aria-label="Reports navigation"/u);
   assert.ok(surface.includes('onClick={onBackDashboard ?? (() => router.push("/skin-v1"))}'));
-  assert.ok(surface.includes('onClick={onOpenLibrary ?? (() => router.push("/library"))}'));
+  assert.ok(surface.includes('onClick={onOpenLibrary ?? (() => router.push("/skin-v1?workspace=library"))}'));
   assert.ok(surface.includes('onClick={onRefresh}>Reload Reports</button>'));
   assert.ok(surface.indexOf('aria-label="Reports navigation"') < surface.indexOf('{!checked'));
   assert.match(surface, /Reload Reports/u);

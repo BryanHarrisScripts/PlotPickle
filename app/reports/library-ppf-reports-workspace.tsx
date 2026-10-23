@@ -49,7 +49,7 @@ export default function LibraryPpfReportsWorkspace({ project, selectedId, author
       <div><small>EXPLORE / REPORTS · READ ONLY</small><h1>Reports</h1><p>Evidence from the selected Human Library story—not a separate Reports database.</p></div>
       <nav className={styles.actions} aria-label="Reports navigation">
         <button type="button" onClick={onBackDashboard ?? (() => router.push("/skin-v1"))}>Back to Dashboard</button>
-        <button type="button" onClick={onOpenLibrary ?? (() => router.push("/library"))}>Library</button>
+        <button type="button" onClick={onOpenLibrary ?? (() => router.push("/skin-v1?workspace=library"))}>Library</button>
         <button type="button" onClick={onRefresh}>Reload Reports</button>
         <button type="button" onClick={onRefresh}>Refresh Library selection</button>
       </nav>

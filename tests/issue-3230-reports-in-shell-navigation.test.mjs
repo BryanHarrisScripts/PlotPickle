@@ -30,7 +30,7 @@ test("#3233 Reports Library button returns into canonical Matrix Library and not
     source("app/reports/library-ppf-reports-workspace.tsx"),
   ]);
   assert.match(host, /onOpenLibrary=\{\(\) => \{ closeExploration\(\); setLibraryOpen\(true\); onSurfaceNameChange\("LIBRARY"\); \}\}/u);
-  assert.match(workspace, /onClick=\{onOpenLibrary \?\? \(\(\) => router\.push\("\/library"\)\)\}/u);
+  assert.ok(workspace.includes('onClick={onOpenLibrary ?? (() => router.push("/skin-v1?workspace=library"))}'));
   assert.match(host, /<LibraryWorkspace\s*\/>/u);
 });
 
@@ -44,7 +44,7 @@ test("#3230/#3233 preserve standalone Reports routes and report data authority",
   assert.match(page, /resolveActiveLibraryReportsProject/u);
   assert.match(page, /profilePrivateBrowserReadyFor/u);
   assert.match(workspace, /router\.push\("\/skin-v1"\)/u);
-  assert.match(workspace, /router\.push\("\/library"\)/u);
+  assert.ok(workspace.includes('router.push("/skin-v1?workspace=library")'));
   assert.match(workspace, /data-reports-authority="active-library-ppf"/u);
   assert.doesNotMatch(workspace, /saveActiveLibraryProject\(|switchActiveLibraryProject\(|Save & Lock.*onClick/u);
 });

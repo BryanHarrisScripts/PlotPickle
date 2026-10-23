@@ -1352,7 +1352,9 @@
       "classification": "production",
       "include": [
         "app/page.tsx",
-        "proxy.ts"
+        "proxy.ts",
+        "app/story/page.tsx",
+        "app/_components/story/story-zero-workspace.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

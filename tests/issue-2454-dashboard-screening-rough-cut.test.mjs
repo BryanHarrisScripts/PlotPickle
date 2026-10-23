@@ -11,7 +11,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
 
   assert.deepEqual(
     rows.filter((row) => row.group === "EXPLORE").map((row) => row.label),
-    ["Learn", "Library", "Community", "Screening", "Reports"],
+    ["Learn", "Library", "Community", "Screening", "Reports", "Discover"],
   );
   assert.deepEqual(
     rows.filter((row) => row.group === "VISUALIZE").map((row) => row.label),

@@ -12,7 +12,7 @@ const source = normalizeDiscoverCatalog(catalogue);
 const isVerified = (status: DiscoverCapability["status"]) =>
   status === "VERIFIED_NATIVE" || status === "VERIFIED_EQUIVALENT";
 
-export default function DiscoverJournal() {
+export default function DiscoverJournal({ onBackDashboard }: { readonly onBackDashboard: () => void }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -28,6 +28,7 @@ export default function DiscoverJournal() {
   const stale = Number.isFinite(reviewDate) && today.getTime() - reviewDate > 90 * 86400000;
   return <main className={styles.workspace} aria-label="PlotPickle Discover journal" data-discover-authority="read-only" data-discover-version="1">
     <header className={styles.header}>
+      <button type="button" className={styles.backDashboard} onClick={onBackDashboard}>Back to Dashboard</button>
       <p>EXPLORE / DISCOVER · LEARNING &amp; EVOLUTION</p>
       <h2>Discovery journal</h2>
       <p>Investigate filmmaking craft, tools and PlotPickle capabilities. Research suggestions are not approved lessons, installed tools or verified product features.</p>

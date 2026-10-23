@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import { EventEmitter } from "node:events";
 import path from "node:path";
-import { allowedFactoryTestNames, readFactoryVerificationHead,
+import { allowedFactoryTestNames, readFactoryVerificationHead, classifyNamedTestFailure,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,
   runFactoryStoryUat,executeOwnedFactoryStoryUat,
@@ -1036,3 +1036,28 @@ test("#3118 immutable authenticated MCP receipts preserve only allowlisted workt
   assert.equal(retry.result.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
   assert.equal(retry.stored.stageReason,null);
 }));
+
+test("named Factory test failure receipts classify safely without leaking secrets",async()=>{
+  const cases=[
+    [Object.assign(Error("TOKEN=private"),{code:1,stdout:"SECRET",stderr:"C:/private"}),"NONZERO_EXIT",1],
+    [Object.assign(Error("SECRET"),{code:"ENOENT",path:"C:/private"}),"PROCESS_LAUNCH",null],
+    [Object.assign(Error("SECRET"),{killed:true,code:"ETIMEDOUT"}),"TIMEOUT",null],
+    [Object.assign(Error("SECRET"),{signal:"SIGKILL"}),"SIGNAL",null],
+  ];
+  for(const [err,kind,exitCode] of cases){
+    const diagnostic=classifyNamedTestFailure(err);
+    assert.equal(diagnostic.failureKind,kind);
+    assert.equal(diagnostic.exitCode,exitCode);
+    assert.equal(JSON.stringify(diagnostic).includes("SECRET"),false);
+    assert.equal(JSON.stringify(diagnostic).includes("private"),false);
+  }
+  const response=await runFactoryNamedTest({suite:"factory-mcp",
+    expectedHead:HEAD,platform:"win32",verifyHead:async()=>HEAD,
+    run:async()=>{throw Object.assign(Error("TOKEN=secret"),{code:1,stderr:"C:/private"});}});
+  assert.equal(response.state,"TEST_FAILED");
+  assert.equal(response.code,"NODE_TEST_FAILED");
+  assert.equal(response.failureKind,"NONZERO_EXIT");
+  assert.equal(response.exitCode,1);
+  assert.equal(JSON.stringify(response).includes("secret"),false);
+  assert.equal(JSON.stringify(response).includes("private"),false);
+});

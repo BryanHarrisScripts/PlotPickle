@@ -25,6 +25,70 @@ It combines writing education, story planning, visual development, screenplay wo
 >
 > So the work ahead is to make that truth observable in the product.
 
+
+## Vision: a creative operating system for Human–AI collaboration
+
+> **A person brings imagination and purpose. PlotPickle connects that intention to capable collaborators, real work, trustworthy evidence and continuous learning.**
+
+PlotPickle's ambition reaches beyond an AI-assisted screenplay or a collection of creative screens. We envision a **creative operating system** where Humans and AI agents work together to learn, design, write, make films, build playable worlds and improve the tools they depend on. This describes an operating environment for creative work, **not** a replacement for the computer's underlying operating system.
+
+**The key distinction is that PlotPickle would not simply give an LLM more tools.** It would give the LLM a working environment with **continuity, evidence, responsibilities and the ability to turn decisions into verified results**. Instead of isolated instructions and disconnected outputs, authorized context carries forward, work is accountable, actions can be observed, and important outcomes can be independently checked.
+
+An LLM can be more useful here than in an isolated chat. With the right permissions, it can understand the intended outcome, coordinate specialist capabilities, perform real actions, inspect their results, recover from ordinary failures and explain what remains uncertain. The Human should not have to translate every creative intention into a series of menus, prompts and disconnected technical steps.
+
+**PlotPickle is not trying to remove Humans from creativity. It is trying to eliminate unnecessary friction between imagination and execution.** Human purpose, taste and judgment lead; the environment handles more of the coordination and mechanical work required to realize those choices. That begins to resemble **an operating system for Human and artificial intelligence working together**.
+
+### Beyond storytelling: a foundation for many kinds of work
+
+**Storytelling is PlotPickle's first proving ground, not the limit of its ambition.** Once the underlying architecture is reliable, its reusable capabilities—learning, context, agent orchestration, governed execution, independent verification and creative collaboration—need not be confined to screenplays or films.
+
+The same foundation could support **interactive worlds, games, education, design, research, software development and other complex creative undertakings**. A learner might build and test a course; a designer might coordinate research, prototypes and reviews; a researcher might trace claims to evidence and reproduce findings; a developer might delegate a scoped software change through independent tests. These are examples of future domain experiences, **not claims of functionality already delivered**.
+
+This calls for a **domain-extensible operating environment**, not a filmmaking application with more unrelated tabs. The foundational capabilities should be reusable; each domain brings its own tools, artifact types, specialists, evaluation methods and decision rights. A screenplay's PPF canon remains authoritative for its story, but it must not become a forced data model for education, scientific research or software repositories. Sharing an orchestration and evidence foundation does not mean pretending every field has the same rules.
+
+**Build the common capabilities once. Let people and agents apply them to many disciplines, with domain-specific truth and Human authority preserved.** Film and playable stories provide demanding real-world tests of this architecture; success there should help PlotPickle expand responsibly into new kinds of work.
+
+### From an idea to something you can experience
+
+Imagine a creator arriving with an idea for a story about two estranged brothers. PlotPickle helps explore the premise, develop character motivations, learn relevant craft, write and revise the screenplay, build consistent visual references, plan cinematography, assemble shots and review an evolving film. The writing, character, directing, storyboard, editing and sound capabilities share **approved, versioned project context** instead of independently inventing what earlier collaborators decided.
+
+The creator can pause to examine a scene, challenge a suggestion, make a new artistic choice or enter the precise workspace where a decision matters. **The Human remains the author and director; agents make skilled work easier to attempt, inspect and improve.**
+
+The same environment can also help improve itself. If the storyboard workflow fails, an authorized Software Factory worker could reproduce the defect, inspect the code, prepare a fix in isolation, run focused tests and build checks, and request independent Windows/browser verification. A verified change becomes eligible for the applicable review and merge authority. If a production challenge reveals a missing filmmaking technique, the Learning & Evolution Factory could investigate professional references, evaluate an approach and propose a reusable lesson or agent Skill.
+
+Together, the existing **Software Factory**, **Learning & Evolution Factory**, **Game Factory — STORY: The Unwritten** and **Semantic Story Coordinator** form connected responsibilities, not competing authorities. The Coordinator supports story-to-screen work; STORY supports deterministic playable experiences; Software repairs the tools; Learning improves the methods and teaching. Evidence-backed handoffs let each contribute to the others without silently rewriting story canon or promoting unreviewed knowledge. The detailed [roadmap](#roadmap-three-factories-and-one-semantic-story-coordinator) describes their separate boundaries.
+
+### Give agents meaningful freedom, not just more buttons
+
+Our direction is to give capable agents **more room to work toward Human-defined objectives**. A user should be able to delegate an outcome—such as developing a sequence, validating a playable scene, diagnosing a broken workflow or completing a batch of approved engineering issues—rather than personally orchestrating every tool call.
+
+That freedom should be **substantial within an explicit delegation**. An agent may investigate, plan, coordinate tools, execute authorized steps, test alternatives, react to failures and report progress without repeatedly seeking permission for routine actions already covered by the user's decision. PlotPickle should support evolving delegation scopes, chosen providers, resource limits, safety and privacy boundaries, stop controls and observable work receipts. Greater proven capability should make broader *Human-granted* delegation practical; an agent cannot expand its own permissions.
+
+Creative canon changes, publishing or sharing private material, new paid spending permissions, installing unreviewed code and merges outside approved gates remain distinct decisions. The goal is **maximum useful agency with accountable authority**, not an agent that claims every power or interrupts the Human at every step.
+
+### Build truth into every action
+
+**Build truth rather than simply building screens.** This principle matters because more powerful agents need more than interfaces that appear to work: they need reliable state, preserved decisions, accountable execution and evidence that proves what happened. Visual workspaces should reveal that truth and help Humans act on it, rather than becoming the authority themselves.
+
+A system that acts must distinguish four different things:
+
+1. **Believed:** an agent's interpretation or hypothesis.
+2. **Proposed:** a change, plan, lesson or creative option awaiting the appropriate decision.
+3. **Executed:** an observable action with a source, owner and result.
+4. **Independently verified:** a result checked by the relevant deterministic, product or Human acceptance authority.
+
+Passing a unit test is not proof that a Windows interface works. A running tunnel is not proof that a remote plugin authenticated. A generated scene is not approved screenplay canon. PlotPickle must make those distinctions visible, preserve provenance and allow correction when evidence contradicts an agent's expectations.
+
+**Learning and evolution are practical, evidence-driven loops.** Research, production outcomes, playtests, evaluations and verified repairs may improve approved lessons, Skills, workflows and agent references. This does not mean an LLM silently retrains its model weights or that unreviewed findings become authoritative.
+
+### The destination
+
+Over time, people should spend less energy explaining how PlotPickle operates and more energy imagining what they want to create. AI agents should gain more durable context, useful tools, authorized initiative and feedback from the real world; the software should become easier to use and better equipped for the next project.
+
+**Arrive with an idea. Create something meaningful. Leave both the work and the tools better than you found them.**
+
+This is a direction for development, not a claim that fully autonomous production, self-repair, self-improvement or unrestricted agent operation has shipped. We will earn that freedom through working capabilities, demonstrated results and Human trust.
+
 ## Why PlotPickle is evolving: from screens to intent
 
 PlotPickle's visual workspaces grew as its storytelling, film-production, learning and game capabilities expanded. They are valuable when a Human wants to write dialogue, inspect a character, compare storyboard frames, edit a timeline or play a game. But requiring people to find and coordinate an ever-growing sequence of menus and screens before work can happen is no longer the right default. AI agents also should not have to imitate mouse clicks to perform operations the application already understands.

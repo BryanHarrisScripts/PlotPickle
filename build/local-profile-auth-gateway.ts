@@ -19,6 +19,16 @@ const supervisorPost: LocalProfileHandler = async (request) => {
   return route.POST(request);
 };
 
+// Opt-in Tunnel requires the same live authenticated Human profile as Factory.
+const tunnelGet: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/tunnel/route");
+  return route.GET(request);
+};
+const tunnelPost: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/tunnel/route");
+  return route.POST(request);
+};
+
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
 const PROFILE_PRIVATE_API = "/api/auth/profile-private";
@@ -61,6 +71,10 @@ const ROUTES = new Map<string, RouteContract>([
   ["/api/factory/supervisor", Object.freeze({
     maximumBodyBytes: 256,
     handlers: Object.freeze({ GET: supervisorGet, POST: supervisorPost }),
+  })],
+  ["/api/factory/tunnel", Object.freeze({
+    maximumBodyBytes: 128,
+    handlers: Object.freeze({ GET: tunnelGet, POST: tunnelPost }),
   })],
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,

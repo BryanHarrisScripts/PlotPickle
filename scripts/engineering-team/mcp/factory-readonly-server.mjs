@@ -14,7 +14,7 @@ import path from "node:path";
 import process from "node:process";
 import readline from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { ENGINEERING_MODES, runStagedEngineeringTask, validEngineeringSelection, sanitizeEngineeringOutput } from "./factory-engineering-exec.mjs";
+import { ENGINEERING_MODES, runStagedEngineeringTask, validEngineeringSelection, sanitizeEngineeringOutput } from "./engineering/factory-engineering-exec.mjs";
 import {
   readFactoryStatus, planNewestFirst, createQueueGitHubClient, admitFactoryIssues,
 } from "../windows/autonomous-queue.mjs";

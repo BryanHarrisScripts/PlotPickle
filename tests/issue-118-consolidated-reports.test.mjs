@@ -191,7 +191,7 @@ test("issue #118 keeps report selection and provides exact-context return naviga
   assert.match(active, /aria-label="Reports navigation"/u);
   assert.match(active, /useRouter\(\)/u);
   assert.ok(active.includes('onClick={onBackDashboard ?? (() => router.push("/skin-v1"))}'));
-  assert.ok(active.includes('onClick={onOpenLibrary ?? (() => router.push("/library"))}'));
+  assert.ok(active.includes('onClick={onOpenLibrary ?? (() => router.push("/skin-v1?workspace=library"))}'));
   assert.ok(active.includes('onClick={onRefresh}>Reload Reports</button>'));
   assert.doesNotMatch(active, /<a href="\/(?:skin-v1|library)|href=\{`\/reports|window\.location|target="_blank"|window\.open\(/u);
   assert.match(page, /browserProfileAuthGateway\.read\(\)/u);

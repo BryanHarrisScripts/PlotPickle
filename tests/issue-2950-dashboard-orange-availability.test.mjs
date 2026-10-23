@@ -6,16 +6,20 @@ import test from "node:test";
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const registrySource = await read("app/skin-v1/dashboard-menu-registry.ts");
 const registry = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(registrySource)).toString("base64")}`);
-const explorationIds = ["screening", "reports", "write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"];
+const explorationIds = ["discover", "screening", "reports", "write", "edit", "refine", "sound-foley", "sound-narration", "sound-music", "pitch-deck", "pitch-package", "feedback", "wyrmwood", "story"];
 
-test("#2950 all thirteen requested destinations are available for orange exploration", () => {
+test("#2950 preserves thirteen requested destinations plus Human-approved Discover exploration", () => {
   assert.deepEqual([...registry.DASHBOARD_EXPLORATION_ITEM_IDS], explorationIds);
   for (const id of explorationIds) {
     assert.ok(registry.CONNECTED_DASHBOARD_ITEM_IDS.has(id), `${id} must use an existing connected owner`);
     assert.ok(registry.DASHBOARD_REVIEW_ITEM_IDS.has(id), `${id} must remain in review`);
     assert.equal(registry.DASHBOARD_UNAVAILABLE_ITEM_IDS.has(id), false, `${id} must be enterable`);
     assert.equal(registry.matrixPrimaryNavigationMode(id), "in-shell");
-    assert.ok(registry.DASHBOARD_STARTUP_CHOICES.some(item => item.id === id) || id.startsWith("sound-"), `${id} must be accessible from Dashboard or nested Sounds`);
+    if (id === "discover") {
+      assert.equal(registry.DASHBOARD_STARTUP_CHOICES.some(item => item.id === id), false, "Discover must not become a startup preference");
+    } else {
+      assert.ok(registry.DASHBOARD_STARTUP_CHOICES.some(item => item.id === id) || id.startsWith("sound-"), `${id} must be accessible from Dashboard or nested Sounds`);
+    }
   }
 });
 

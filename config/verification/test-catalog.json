@@ -122,7 +122,12 @@
           "tests/issue-3033-assets-image-route-switch.test.mjs",
           "tests/issue-3035-assets-surface-polish.test.mjs",
           "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-          "tests/issue-3232-visual-workspace-shell-parity.test.mjs"
+          "tests/issue-3232-visual-workspace-shell-parity.test.mjs",
+          "tests/issue-3233-canonical-library-entry.test.mjs",
+          "tests/issue-3227-discover-matrix-journal.test.mjs",
+          "tests/issue-2444-dashboard-review-fold.test.mjs",
+          "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
+          "tests/issue-2587-dashboard-shortcut-remap.test.mjs"
         ]
       },
       "cost": "fast",
@@ -5519,7 +5524,7 @@
       },
       {
         "target": "tests/issue-2612-dashboard-deferred-placeholders.test.mjs",
-        "targetDigest": "e09a22e8e89bb83a9565f96adb4bc7c246a3165a0f89874b9a7c68f4c7fd2fe5",
+        "targetDigest": "f8587eda046a2053db4fa7fc044e559a8272f8b7c0238bb0ef746aa93ddec926",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],
@@ -5561,7 +5566,7 @@
         ],
         "limits": "Human-authorized orange exploration availability supersedes the older gray deferral. Checks cover registry, status styling and retained Matrix owners, including merged Write continuity; they do not certify every legacy workspace, real provider generation, durable recovery or a finished movie. #3019 retains historical orange exploration semantics; ASSETS and nested Sounds are separately designated current entry paths.",
         "inputs": [],
-        "targetDigest": "cdaee51904acbad5c6ee2adda078ef9aa5a0d7bbdd481b743cb1990888be3a1b"
+        "targetDigest": "7c0fc971e77c3b1c2b6f45cc7666db78551cf978c6d4b8f08e2dd92fbcc6066c"
       },
       {
         "target": "tests/issue-2469-webmcp-surface-maturity.test.mjs",
@@ -5797,7 +5802,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "7318f634008239f3333b31999c224009f2a330e75564d93b4398d0dbf287a6fe",
+        "targetDigest": "71566d75549828988c96e07ca5c499521561b3146d1f07907d792e2e112fde79",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -5827,7 +5832,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           }
         ]
       },
@@ -6373,7 +6378,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           }
         ]
       },
@@ -6400,7 +6405,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
@@ -6414,7 +6419,7 @@
       },
       {
         "target": "tests/layer1-navigation-continuity.test.mjs",
-        "targetDigest": "a895acb5968770cf3ad95d598c4bc6b8c734155c9c0db6f6b477b243ffda436c",
+        "targetDigest": "369e804b69f9cdfb87be751ac428656b7aff538cf7fd312eae31954f06af77a9",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -6435,7 +6440,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           }
         ]
       },
@@ -6470,7 +6475,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "06c3e4ff868b5802165bb6be8b91c3355b29de97eff2ad6a3388f776247f5514"
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -9338,7 +9343,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "936c33b698c8dd28d462abc6799b75dc6e2d71cb85ee89d551c861761814ba79"
+            "digest": "01525f9d6e67efb549d8b253e7ccbc43292fd993b0a23cb3339bd118c45c0623"
           }
         ]
       },
@@ -9797,7 +9802,7 @@
           },
           {
             "path": "app/page.tsx",
-            "digest": "994df3ee750b24fa4d5a02088c5b844db8858e9e8ce98023bfe5d6702a412fb7"
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
           },
           {
             "path": "modules/wyrmwood/ui/wyrmwood-workspace.tsx",
@@ -9807,7 +9812,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "233b4cd6504ace1091aafa8fddf9c2047166a6e783ed178847e884dd0a1e9eb4",
+        "targetDigest": "1c7a5b22089b7a57579decac3dd945898494b97c376f3da501b88d117799372b",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9849,7 +9854,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           },
           {
             "path": "app/layout.tsx",
@@ -10031,7 +10036,7 @@
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
-        "targetDigest": "5d63ccdecc6fc9bb17ff7a4906ebabf8d7cdf670282003549361538e825bd52e",
+        "targetDigest": "d405b7f3938b08ff76ee5e54cefcac9fa3cfd3f884884102a53f22c207a35548",
         "catalogueIds": [
           "experience.reports-current-route-legacy-contract-118"
         ],
@@ -10064,7 +10069,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           },
           {
             "path": "app/build-workspace.tsx",
@@ -10082,7 +10087,7 @@
       },
       {
         "target": "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-        "targetDigest": "973e5772d1ae2d03491fc140576523bd6efc1ec8491c8c96558e028343dbc25e",
+        "targetDigest": "51d59bfcc76320512fd2a3277bb78f98297a7b29bbd97e2d1f5a972d2f150342",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10107,7 +10112,7 @@
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
-            "digest": "4c3ff536174db3a656acb18de6f999c545f342f3ccd90c8ef9a72b12c53dce8c"
+            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
           },
           {
             "path": "app/reports/page.tsx",
@@ -10115,7 +10120,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           }
         ]
       },
@@ -10223,6 +10228,213 @@
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
             "digest": "3e1bd50c1234a88098f6b2313fe00c9dd23a38e14551213e9d6daba175c3d626"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3233-canonical-library-entry.test.mjs",
+        "targetDigest": "8ee9bdfb8be8cccc1c68a644b3f1f197c33e1c05d07f4aab812b08541adcf22b",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static evidence of read-only Library navigation to authenticated Matrix; does not prove live Windows session continuity, profile hydration, current-story persistence or zero legacy routes. Real browser UAT deferred to Human morning acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/skin-v1-client.tsx",
+            "digest": "ca2f07a21674056bfe0385f5569ed7fd2aa3d2431d36c36799a27ffba952a337"
+          },
+          {
+            "path": "app/page.tsx",
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
+          },
+          {
+            "path": "app/story/page.tsx",
+            "digest": "74ed6f5c9ded7b1f57e1d3a0bfd7c881e2979ce71fd68896362cc218daf508f7"
+          },
+          {
+            "path": "app/_components/story/story-zero-workspace.tsx",
+            "digest": "bee7331d999ad5729c1fa456f45c29fa38e3100b0a9bbd642099f55d6bb6f275"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3227-discover-matrix-journal.test.mjs",
+        "targetDigest": "65defa067caf9d65f201a2f420a8eb9938494d2e60427f8583f59ae39c28d430",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Fixture verifies editorial and capability evidence admission, HTTPS source safety, search, source-dated review and source-bound Dashboard/F5 contract. Does not establish native Windows browser acceptance or automatically publish research proposals.",
+        "inputs": [
+          {
+            "path": "modules/discover/model/discover-catalog.ts",
+            "digest": "71dff88f1a41a5e874612b4a73efceb1111e5edec763d8f75d344897db7ed915"
+          },
+          {
+            "path": "content/discover/editorial-catalog.json",
+            "digest": "2e25a28f4957d1abb415b195243575051b004c25c9ef567566d22922ca8bfb02"
+          },
+          {
+            "path": "app/_components/discover/discover-journal.tsx",
+            "digest": "0993367099dfb346e57ad62c22d65842489c649f7b50ea472b3832cb5bbe3eeb"
+          },
+          {
+            "path": "app/_components/discover/discover-journal.module.css",
+            "digest": "e28e0e5df3eb230dda253618dea204cf98a53a021cbc449a4cbced1ef89b12c2"
+          },
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/skin-v1-client.tsx",
+            "digest": "ca2f07a21674056bfe0385f5569ed7fd2aa3d2431d36c36799a27ffba952a337"
+          },
+          {
+            "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
+            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2444-dashboard-review-fold.test.mjs",
+        "targetDigest": "848a297e4f44b3b32155f17903879138813b0ccae556a1b381831c6b7d6d29ba",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
+        "targetDigest": "5db30e1d562298a344891cdcabe0b7f2d6c87c8717233d20055a570dad7a378c",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2587-dashboard-shortcut-remap.test.mjs",
+        "targetDigest": "8d80b9d0b29b3906306414e51ca6123e4ed9c5b40ed9e83f4b5bfbbb273b0978",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
           }
         ]
       }

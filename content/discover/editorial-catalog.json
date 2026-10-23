@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "editorialAuthority": "HUMAN_REVIEW_REQUIRED",
+  "reviewedAt": null,
+  "sourceArtifact": "oss-radar/learning-evolution-proposals.json",
+  "entries": [],
+  "capabilities": [
+    {
+      "id": "screenwriting-craft",
+      "title": "Screenplay craft and professional terminology",
+      "category": "Writing",
+      "status": "UNKNOWN",
+      "description": "Source review and curriculum comparison are pending; no product capability verdict is asserted.",
+      "ownerModule": null,
+      "exactCommit": null,
+      "productEvidenceUrl": null
+    },
+    {
+      "id": "directing-lighting",
+      "title": "Directing, blocking and cinematography",
+      "category": "Film craft",
+      "status": "UNKNOWN",
+      "description": "Research has not been independently mapped to a verified PlotPickle workflow.",
+      "ownerModule": null,
+      "exactCommit": null,
+      "productEvidenceUrl": null
+    },
+    {
+      "id": "blender-previs",
+      "title": "Blender and 3D previs interoperability",
+      "category": "Visual tools",
+      "status": "UNKNOWN",
+      "description": "External 3D workflows are research targets, not claimed installed or supported integrations.",
+      "ownerModule": null,
+      "exactCommit": null,
+      "productEvidenceUrl": null
+    },
+    {
+      "id": "editing-sound",
+      "title": "Editing, foley, narration and music",
+      "category": "Production",
+      "status": "UNKNOWN",
+      "description": "Owning features require exact-head and real product evidence before verification.",
+      "ownerModule": null,
+      "exactCommit": null,
+      "productEvidenceUrl": null
+    },
+    {
+      "id": "inclusive-teaching",
+      "title": "Accessible creative learning and Skills",
+      "category": "Learning",
+      "status": "UNKNOWN",
+      "description": "Curriculum and teaching improvements require review and observed learning outcomes.",
+      "ownerModule": null,
+      "exactCommit": null,
+      "productEvidenceUrl": null
+    }
+  ],
+  "researchFeeds": [
+    {
+      "title": "OSS RADAR — existing research workflow",
+      "url": "https://github.com/BryanHarrisScripts/PlotPickle/blob/main/.github/workflows/oss-radar.yml",
+      "state": "REVIEW_REQUIRED"
+    },
+    {
+      "title": "Creative Focus research companion",
+      "url": "https://github.com/BryanHarrisScripts/PlotPickle/blob/main/docs/developer-briefs/oss-radar-creative-top-three.md",
+      "state": "REVIEW_REQUIRED"
+    },
+    {
+      "title": "Discover editorial and evidence contract",
+      "url": "https://github.com/BryanHarrisScripts/PlotPickle/blob/main/docs/developer-briefs/3227-plotpickle-discover-learning-evolution.md",
+      "state": "REVIEW_REQUIRED"
+    }
+  ]
+}

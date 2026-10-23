@@ -16,6 +16,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     ["community", "3", "Community", "Share and Collaborate", "EXPLORE"],
     ["screening", "4", "Screening", "Screen Stories and Gather Reactions", "EXPLORE"],
     ["reports", "5", "Reports", "Review Story Health and Coverage Reports", "EXPLORE"],
+    ["discover", "J", "Discover", "Research Journal and Capability Evidence", "EXPLORE"],
     ["discovery", "M", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
     ["story-bible", "W", "WorldMap", "Map the Story World", "DEVELOP"],
     ["write", "D", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],

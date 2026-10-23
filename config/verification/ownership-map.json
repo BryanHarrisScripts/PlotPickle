@@ -32,7 +32,9 @@
         "app/responsibility-run-activity.tsx",
         "app/responsibility-run-activity.module.css",
         "app/_components/settings/**",
-        "app/_components/dashboard/dashboard-exploration-surface.tsx"
+        "app/_components/dashboard/dashboard-exploration-surface.tsx",
+        "app/_components/discover/discover-journal.tsx",
+        "app/_components/discover/discover-journal.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [
@@ -1350,7 +1352,9 @@
       "classification": "production",
       "include": [
         "app/page.tsx",
-        "proxy.ts"
+        "proxy.ts",
+        "app/story/page.tsx",
+        "app/_components/story/story-zero-workspace.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [
@@ -2594,6 +2598,19 @@
         "windows",
         "security",
         "test-harness"
+      ]
+    },
+    {
+      "id": "discover-catalog-contract-3227",
+      "classification": "production",
+      "include": [
+        "modules/discover/model/discover-catalog.ts",
+        "content/discover/editorial-catalog.json"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "navigation",
+        "security"
       ]
     }
   ]

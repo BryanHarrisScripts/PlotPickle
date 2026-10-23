@@ -6,6 +6,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const EXPLORATION_DASHBOARD_IDS = [
+  "discover",
   "screening",
   "reports",
   "write",

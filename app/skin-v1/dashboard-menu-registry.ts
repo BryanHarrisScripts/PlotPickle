@@ -12,6 +12,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "3", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
   { id: "screening", shortcut: "4", label: "Screening", description: "Screen Stories and Gather Reactions", group: "EXPLORE" },
   { id: "reports", shortcut: "5", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" },
+  { id: "discover", shortcut: "J", label: "Discover", description: "Research Journal and Capability Evidence", group: "EXPLORE" },
 
   { id: "discovery", shortcut: "M", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
   { id: "story-bible", shortcut: "W", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
@@ -43,6 +44,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
 ];
 
 export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
+  "discover",
   "community",
   "screening",
   "reports",
@@ -77,6 +79,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 
 /** Enterable for Human-directed exploration; this is not acceptance or production readiness. */
 export const DASHBOARD_EXPLORATION_ITEM_IDS = new Set<string>([
+  "discover",
   "screening",
   "reports",
   "write",
@@ -105,7 +108,7 @@ export const DASHBOARD_UNAVAILABLE_ITEM_IDS = new Set<string>();
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },
   ...DASHBOARD_MENU
-    .filter((item) => !["logout", "shutdown"].includes(item.id)
+    .filter((item) => !["logout", "shutdown", "discover"].includes(item.id)
       && CONNECTED_DASHBOARD_ITEM_IDS.has(item.id)
       && !DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id))
     .map((item) => ({ id: item.id, label: item.label })),

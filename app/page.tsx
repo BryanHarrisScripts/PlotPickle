@@ -113,7 +113,7 @@ function navigateGuided(workspace: "learn" | "plan" | "build", section: GuidedSe
 
 function navigateWorkspace(workspace: Workspace) {
   if (workspace === "library") {
-    window.location.assign("/library");
+    window.location.assign("/skin-v1?workspace=library");
     return;
   }
   const destination = new URL(window.location.href);

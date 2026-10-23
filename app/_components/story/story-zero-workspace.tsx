@@ -71,7 +71,7 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
           message="STORY does not create a shadow project. Pick an existing PlotPickle story first, then build only the pieces needed for the scene you want to test."
           detail="Nothing becomes canon simply because you play it."
           action={(
-            <UiAction variant="primary" data-pp-primary-probe="true" onClick={() => router.push("/library")}>
+            <UiAction variant="primary" data-pp-primary-probe="true" onClick={() => router.push("/skin-v1?workspace=library")}>
               Choose a story
             </UiAction>
           )}

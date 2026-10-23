@@ -34,9 +34,14 @@ export async function verifiedTunnelLauncher({
     const [rootInfo, fileInfo, resolvedRoot, resolvedFile] = await Promise.all([
       readStat(root), readStat(launcher), resolveReal(root), resolveReal(launcher),
     ]);
+    // Windows filesystem paths are case-insensitive. A differently cased realpath
+    // is not a symlink, but any actual symlink is rejected by lstat.
+    const samePath = (left, right) => process.platform === "win32"
+      ? path.resolve(left).toLowerCase() === path.resolve(right).toLowerCase()
+      : path.resolve(left) === path.resolve(right);
     if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink() ||
         !fileInfo.isFile() || fileInfo.isSymbolicLink() ||
-        path.resolve(resolvedRoot) !== root || path.resolve(resolvedFile) !== launcher) {
+        !samePath(resolvedRoot, root) || !samePath(resolvedFile, launcher)) {
       return null;
     }
     return launcher;

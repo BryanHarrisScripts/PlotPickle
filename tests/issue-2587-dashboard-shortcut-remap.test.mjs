@@ -17,9 +17,7 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
   assert.deepEqual(byGroup("VISUALIZE"), [
     ["Outline", "O"], ["Storyboard", "S"], ["Previs", "P"], ["Timeline", "T"], ["Rough Cut", "C"],
   ]);
-  assert.deepEqual(byGroup("SOUND"), [
-    ["Foley", "F"], ["Narration", "N"], ["Music", "A"],
-  ]);
+  assert.deepEqual(byGroup("ASSETS"), [["Assets", "A"]]);
   assert.deepEqual(byGroup("PITCH"), [
     ["Deck", "K"], ["Package", "G"], ["Feedback", "B"],
   ]);
@@ -27,9 +25,9 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
     ["Identity", "I"], ["Wyrmwood", "Y"], ["The Unwritten", "U"],
   ]);
 
-  const creative = rows.filter((row) => ["DEVELOP", "VISUALIZE", "SOUND", "PITCH", "PLAY"].includes(row.group));
-  assert.equal(creative.length, 19);
-  assert.equal(new Set(creative.map((row) => row.shortcut)).size, 19);
+  const creative = rows.filter((row) => ["DEVELOP", "VISUALIZE", "ASSETS", "PITCH", "PLAY"].includes(row.group));
+  assert.equal(creative.length, 17);
+  assert.equal(new Set(creative.map((row) => row.shortcut)).size, 17);
 
   assert.deepEqual(byGroup("EXPLORE"), [
     ["Learn", "1"], ["Library", "2"], ["Community", "3"], ["Screening", "4"], ["Reports", "5"], ["Discover", "J"],
@@ -42,7 +40,7 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
 test("#2587 displayed shortcuts and keypress activation share one canonical registry value", async () => {
   const panel = await read("app/skin-v1/dashboard-bbs-panel.tsx");
 
-  assert.match(panel, /const command = `\[\${item\.shortcut}\] \${item\.label}`/u);
+  assert.ok(panel.includes('const command = `[${item.shortcut}] ${item.label}`'));
   assert.match(panel, /data-dashboard-shortcut=\{item\.shortcut\}/u);
   assert.match(panel, /data-skin-menu-shortcut=\{item\.shortcut\}/u);
   assert.match(panel, /const shortcut = event\.key\.toUpperCase\(\)/u);
@@ -50,37 +48,26 @@ test("#2587 displayed shortcuts and keypress activation share one canonical regi
   assert.match(panel, /activateItem\(shortcutIndex\)/u);
 });
 
-test("#2587/#2612 preserves canonical authorities behind deferred Dashboard maturity gates", async () => {
-  const [menu, host] = await Promise.all([
+test("#2587/#2612 preserves connected destinations and in-shell authority", async () => {
+  const [menu, host, explore] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
+    read("app/_components/dashboard/dashboard-exploration-surface.tsx"),
   ]);
-
-  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_EXPLORATION_ITEM_IDS"));
+  const exploration = menu.slice(menu.indexOf("export const DASHBOARD_EXPLORATION_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
   const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
-  for (const id of ["write", "edit", "refine", "feedback", "pitch-deck", "pitch-package", "wyrmwood", "story"]) {
-    assert.match(connected, new RegExp(`"${id}"`, "u"), `${id} should remain connected underneath the maturity gate`);
-    assert.match(unavailable, new RegExp(`"${id}"`, "u"), `${id} should be gray/deferred on Dashboard`);
+  for (const id of ["write", "edit", "refine", "feedback", "pitch-deck", "pitch-package", "wyrmwood", "story"]) assert.ok(connected.includes(`"${id}"`), `${id} must remain connected`);
+  for (const id of ["edit", "refine", "feedback", "pitch-deck", "pitch-package", "wyrmwood", "story"]) {
+    assert.ok(exploration.includes(`"${id}"`), `${id} must remain in-shell`);
+    assert.ok(explore.includes(`case "${id}":`) || explore.includes(`workspace === "${id}"`), `${id} must resolve to its owned workspace`);
   }
-
-  const routes = new Map([
-    ["write", "/write"],
-    ["edit", "/edit"],
-    ["refine", "/diagnostics"],
-    ["feedback", "/feedback"],
-    ["pitch-deck", "/pitch-review?scope=pitch&view=exports&return=dashboard"],
-    ["pitch-package", "/pitch-review?scope=pitch&view=package&return=dashboard"],
-    ["wyrmwood", "/?workspace=wyrmwood"],
-    ["story", "/story"],
-  ]);
-  for (const [id, route] of routes) {
-    assert.ok(host.includes(`${JSON.stringify(id)}: ${JSON.stringify(route)}`) || host.includes(`${id}: ${JSON.stringify(route)}`), `Missing canonical route for ${id}`);
-  }
-  assert.match(host, /window\.location\.assign\(canonicalRoute\)/u);
-  assert.ok(
-    host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf("const canonicalRoutes"),
-    "Gray maturity guard must run before canonical route activation",
-  );
+  assert.match(unavailable, /new Set<string>\(\)/u);
+  assert.match(host, /if \(DASHBOARD_UNAVAILABLE_ITEM_IDS\.has\(item\.id\)\)/u);
+  assert.match(host, /if \(isDashboardExplorationWorkspace\(item\.id\)\)/u);
+  assert.match(host, /setExplorationOpen\(item\.id\)/u);
+  assert.ok(host.indexOf("DASHBOARD_UNAVAILABLE_ITEM_IDS.has(item.id)") < host.indexOf("if (isDashboardExplorationWorkspace(item.id))"));
+  assert.match(host, /if \(item\.id === "write"\)[\s\S]*?setWriteOpen\(true\)/u);
 });
 
 test("#2587 gives Deck and Package real canonical pitch subviews without changing the pitch workspace", async () => {
@@ -89,12 +76,12 @@ test("#2587 gives Deck and Package real canonical pitch subviews without changin
     read("app/pitch-review/page.tsx"),
   ]);
   const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
-  const unavailable = menu.slice(menu.indexOf("export const DASHBOARD_UNAVAILABLE_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  const exploration = menu.slice(menu.indexOf("export const DASHBOARD_EXPLORATION_ITEM_IDS"), menu.indexOf("export const DASHBOARD_REVIEW_ITEM_IDS"));
 
   assert.match(connected, /"pitch-deck"/u);
   assert.match(connected, /"pitch-package"/u);
-  assert.match(unavailable, /"pitch-deck"/u);
-  assert.match(unavailable, /"pitch-package"/u);
+  assert.match(exploration, /"pitch-deck"/u);
+  assert.match(exploration, /"pitch-package"/u);
   assert.match(page, /requestedView === "logline" \|\| requestedView === "package" \|\| requestedView === "exports"/u);
   assert.match(page, /entryView === "package" \? "Pitch Package" : "Exports"/u);
   assert.match(page, /nav\[aria-label="Pitch and review workflows"\] button/u);

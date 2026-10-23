@@ -271,7 +271,13 @@ jobs:
         run: |
           $actual = (& git rev-parse HEAD).Trim()
           if ($actual -ne $env:PLOTPICKLE_PROOF_SOURCE_HEAD) { throw "Wrong exact-head Windows lifecycle checkout" }
-          node --test tests/issue-3220-app-lifecycle-mcp.test.mjs tests/issue-3222-verified-pr-launch.test.mjs tests/issue-3222-factory-concurrent-session.test.mjs
+          node --test tests/issue-3220-app-lifecycle-mcp.test.mjs tests/issue-3222-verified-pr-launch.test.mjs
+      - name: Run real Windows Factory candidate listener with isolated synthetic Auth and MAIN sentinel
+        shell: pwsh
+        env:
+          PLOTPICKLE_NATIVE_FACTORY_SESSION_PROOF: '1'
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node --test tests/issue-3222-factory-concurrent-session.test.mjs
 
   windows-factory-supervisor-lifecycle:
     name: Windows factory supervisor PAUSE/RESUME truth

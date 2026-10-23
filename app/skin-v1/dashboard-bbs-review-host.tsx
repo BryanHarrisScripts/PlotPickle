@@ -932,6 +932,8 @@ export default function DashboardBbsReviewHost({
           lessonId: learnRequest.lessonId,
         } : null}
         onLearnRequestConsumed={() => setLearnRequest(null)}
+        onOpenLibrary={() => { setLibraryOpen(true); onSurfaceNameChange("LIBRARY"); }}
+        onOpenOutline={(blockNumber) => openOutline({ blockNumber, miniBlockNumber: 1 })}
       />
     </div>
   );

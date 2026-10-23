@@ -1,0 +1,53 @@
+.root {
+  margin: 1rem auto;
+  width: min(100%, 1150px);
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+  background: #171a20;
+  border: 1px solid #444a55;
+  border-radius: 12px;
+  color: #f3f4f6;
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.header h2 { font-size: 1.2rem; font-weight: 650; margin: 0.15rem 0 0; }
+.header p { color: #d1d5db; margin: 0.15rem 0 0.6rem; overflow-wrap: anywhere; }
+.eyebrow { color: #b6beca; font-size: 0.7rem; letter-spacing: 0.07em; }
+.status { color: #e5e7eb; border: 1px solid #606a78; border-radius: 5px; padding: 0.2rem 0.45rem; white-space: nowrap; font-size: 0.7rem; }
+.intent { margin-top: 0.7rem; }
+.intent label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+.intentControls { display: flex; gap: 0.5rem; }
+.intentControls input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  background: #101217;
+  border: 1px solid #7d8593;
+  border-radius: 6px;
+  color: #fff;
+  font: inherit;
+}
+.intent small, .disclaimer { display: block; color: #cbd0d8; margin-top: 0.4rem; }
+.root button {
+  color: #f9fafb;
+  background: #343a44;
+  border: 1px solid #87919e;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+.root button:hover { background: #47515e; }
+.root button:focus-visible, .root input:focus-visible { outline: 2px solid #f4f5f7; outline-offset: 2px; }
+.columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; margin-top: 0.9rem; }
+.columns > div { min-width: 0; border-top: 1px solid #4b5563; padding-top: 0.55rem; }
+.columns strong { font-size: 0.7rem; letter-spacing: 0.05em; }
+.columns p { margin: 0.25rem 0; color: #dbe0e6; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }
+@media (max-width: 690px) {
+  .columns { grid-template-columns: minmax(0, 1fr); }
+  .intentControls { flex-wrap: wrap; }
+  .intentControls input { flex-basis: 100%; }
+  .root { padding: 0.8rem; }
+}

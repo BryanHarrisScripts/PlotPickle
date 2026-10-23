@@ -10081,7 +10081,7 @@
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
-        "targetDigest": "0ac99f5ae9001c89ed25a2a92e02a8e13ac7810c3fdcad705ec10d775ad2175c",
+        "targetDigest": "00000000000000000000000000000000c40752dbc49851c3ad7cf2acf654ab2f",
         "catalogueIds": [
           "agent.factory-concurrent-session-3222"
         ],

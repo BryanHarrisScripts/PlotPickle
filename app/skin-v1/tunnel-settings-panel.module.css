@@ -40,3 +40,19 @@
 .help code { overflow-wrap: anywhere; }
 .help a { color: var(--pp-skin-accent-bright); }
 .help small { display: block; color: var(--pp-skin-ink-soft); margin-top: 12px; line-height: 1.6; }
+
+/* Keep a direct Dashboard exit inside the Tunnel panel even when its outer
+   Settings banner is out of view in the nested scroll surface. */
+.topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.topline p { margin: 0; }
+.backDashboard {
+  min-height: 42px;
+  padding: 8px 16px;
+  font: inherit;
+  color: var(--pp-skin-ink);
+  background: var(--pp-skin-fill-row);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  cursor: pointer;
+}
+.backDashboard:focus-visible { outline: 2px solid var(--pp-skin-focus); outline-offset: 2px; }

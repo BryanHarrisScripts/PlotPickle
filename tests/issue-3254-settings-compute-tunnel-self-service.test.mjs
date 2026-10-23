@@ -157,3 +157,17 @@ test("#3254 Settings Compute has only one Tunnel with guarded owner-start, no br
   assert.match(route, /recentReauthentication: true/u);
   assert.match(route, /state\.accessMode !== "desktop-loopback"/u);
 });
+
+test("#3254 Tunnel includes a visible Dashboard exit inside the scrollable panel", async () => {
+  const read = p => readFile(new URL("../" + p, import.meta.url), "utf8");
+  const [menu, ui, css] = await Promise.all([
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/tunnel-settings-panel.tsx"),
+    read("app/skin-v1/tunnel-settings-panel.module.css"),
+  ]);
+  assert.match(ui, /Back to Dashboard/u);
+  assert.match(ui, /window\.dispatchEvent\(new Event\("plotpickle:return-dashboard"\)\)/u);
+  assert.match(menu, /window\.addEventListener\("plotpickle:return-dashboard", returnDashboard\)/u);
+  assert.match(menu, /setTunnelOpen\(false\)/u);
+  assert.match(css, /\.backDashboard:focus-visible/u);
+});

@@ -72,7 +72,12 @@ export default function TunnelSettingsPanel() {
   return (
     <section className={styles.root} aria-label="Tunnel settings" data-settings-tunnel="owner-controlled">
       <header className={styles.head}>
-        <p>SETTINGS / COMPUTE / TUNNEL</p>
+        <div className={styles.topline}>
+          <p>SETTINGS / COMPUTE / TUNNEL</p>
+          <button type="button" className={styles.backDashboard} onClick={() => window.dispatchEvent(new Event("plotpickle:return-dashboard"))}>
+            Back to Dashboard
+          </button>
+        </div>
         <h2>My PlotPickle Tunnel</h2>
         <span>Use your own authenticated MCP connection for development and creative tools. Existing story and Factory permissions do not change.</span>
       </header>

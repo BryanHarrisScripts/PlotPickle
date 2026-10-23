@@ -121,7 +121,8 @@
           "tests/issue-3032-character-sheet-portrait.test.mjs",
           "tests/issue-3033-assets-image-route-switch.test.mjs",
           "tests/issue-3035-assets-surface-polish.test.mjs",
-          "tests/issue-3230-reports-in-shell-navigation.test.mjs"
+          "tests/issue-3230-reports-in-shell-navigation.test.mjs",
+          "tests/issue-3232-visual-workspace-shell-parity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -10155,6 +10156,41 @@
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
             "digest": "022bf1d552ae4cd2c828bb4b53535fcfe50497b868e4d941dd9af6c8b80be0a3"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3232-visual-workspace-shell-parity.test.mjs",
+        "targetDigest": "05623a5b47233adbb99a79e3be4fc73b7638d1b35a1abc1efb5f0f8e2b844cd6",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Source-level proof that all five Matrix Visualize views share outer full-width shell and Act rail, without forcing nested media expansion. Real authenticated Windows visual screenshots, responsive overflow and interaction acceptance remain separate Human UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/preproduction-review-flow.css",
+            "digest": "cfc9b7466b8e9dae6fc4879f73764ee3f4ef88120dac525203676d493086f468"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.module.css",
+            "digest": "e828540fd628b35cbbf088e0f47291beb5b585adb20bd13bd5ad2bbc14952fec"
           }
         ]
       },

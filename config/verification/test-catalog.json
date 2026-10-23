@@ -4658,6 +4658,51 @@
         ]
       },
       "notes": "#118 retained legacy consolidated report model and actual Library-owned Reports route; source assertions verify preserved current navigation, reload and stable editor target contracts. Static tests only: no authenticated Windows browser, independent runtime readiness, cross-profile isolation or persistence proof."
+    },
+    {
+      "id": "agent.settings-compute-tunnel-3254",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "tunnel",
+        "compute",
+        "factory",
+        "settings",
+        "authenticated",
+        "mcp"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3254 owner Windows PowerShell launcher and local-only profile/CSRF, without importing credentials into browser. Unit fixtures are not native UAT."
     }
   ],
   "truthGovernance": {
@@ -9951,7 +9996,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
+            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
           }
         ]
       },
@@ -10249,7 +10294,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
@@ -10459,7 +10504,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
           }
         ]
       },
@@ -10495,7 +10540,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
           }
         ]
       },
@@ -10531,7 +10576,55 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
+        "targetDigest": "c12600144aff1de056e1763d5d9852709fdace24c325ae53107c2b34b69a6aab",
+        "catalogueIds": [
+          "agent.settings-compute-tunnel-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected Windows HTTP/Request and disposable filesystem tests only. Does not prove native PowerShell window creation, remote authorization, ChatGPT plugin connection, paid providers, autonomous coding or merges; independent Windows GUI UAT remains outstanding.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
+            "digest": "cd100ba5e05df49445be684f892440a5ee49a0c1097532aba03ff8e11938ed6c"
+          },
+          {
+            "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
+            "digest": "2ef24a85e60a102021803f81a3544f37663e5e35967b47a37e2dbaf1cbd47f9b"
+          },
+          {
+            "path": "app/api/factory/tunnel/route.ts",
+            "digest": "9c7063079242996bd795c3b9fda299147c517379f43ffa881f96cc644c6009c6"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
+          },
+          {
+            "path": "app/skin-v1/tunnel-settings-panel.tsx",
+            "digest": "ae5136258f7ea48b9f73ab611dd67a4e4a87b4fc2dcf88f2006f005c63711c11"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
           }
         ]
       }

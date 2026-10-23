@@ -10719,6 +10719,7 @@
         "target": "tests/issue-2751-settings-organization.test.mjs",
         "targetDigest": "5231e796649b6d9e1c5f9d990cc17d65169e9994d3aeece17e8ae790eb7a7152",
         "catalogueIds": [
+          "experience.skin-surface-contract",
           "experience.settings-tunnel-navigation-3254"
         ],
         "truthRefs": [
@@ -10759,6 +10760,7 @@
         "target": "tests/issue-2863-settings-time-and-operations-order.test.mjs",
         "targetDigest": "a07b268e48cb7d7037c99fe6083b62f5da5c0bc1caa1b8f713416d22d860bf82",
         "catalogueIds": [
+          "experience.skin-surface-contract",
           "experience.settings-tunnel-navigation-3254"
         ],
         "truthRefs": [

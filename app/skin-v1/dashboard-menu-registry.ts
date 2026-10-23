@@ -12,7 +12,6 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "3", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
   { id: "screening", shortcut: "4", label: "Screening", description: "Screen Stories and Gather Reactions", group: "EXPLORE" },
   { id: "reports", shortcut: "5", label: "Reports", description: "Review Story Health and Coverage Reports", group: "EXPLORE" },
-  { id: "discover", shortcut: "J", label: "Discover", description: "Research Journal and Capability Evidence", group: "EXPLORE" },
 
   { id: "discovery", shortcut: "M", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
   { id: "story-bible", shortcut: "W", label: "WorldMap", description: "Map the Story World", group: "DEVELOP" },
@@ -27,6 +26,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "production", shortcut: "C", label: "Rough Cut", description: "Review Production Intent and Handoff Readiness", group: "VISUALIZE" },
 
   { id: "assets", shortcut: "A", label: "Assets", description: "Sounds, Characters, Collectibles, Posters and World for the Loaded Story", group: "ASSETS" },
+  { id: "discover", shortcut: "J", label: "Discover", description: "Research Journal and Capability Evidence", group: "ASSETS" },
 
   { id: "pitch-deck", shortcut: "K", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },
   { id: "pitch-package", shortcut: "G", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },

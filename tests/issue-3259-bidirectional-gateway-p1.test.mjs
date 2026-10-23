@@ -11,6 +11,16 @@ import {
 
 const Q = "a".repeat(32), A = "b".repeat(32), C = "c".repeat(32);
 const MAIN = "1".repeat(40), OTHER = "2".repeat(40);
+// Windows without Developer Mode may refuse native symlink creation. Keep
+// fail-closed corruption coverage without converting that to a false PASS.
+async function symlinkOrCorruptFile(target, link) {
+  try { await symlink(target, link); }
+  catch (error) {
+    if (process.platform !== "win32" ||
+        !["EPERM", "EACCES", "ENOTSUP"].includes(error?.code)) throw error;
+    await writeFile(link, "UNVERIFIABLE_RECORD");
+  }
+}
 const withRoot = async fn => {
   const root = await mkdtemp(path.join(os.tmpdir(), "pp-gateway-3259-"));
   try { return await fn(root); } finally { await rm(root, {recursive: true, force: true}); }
@@ -165,7 +175,7 @@ test("#3259 P1 expiration and unreadable records do not turn into success or sil
     authorization:auth("worker1","answer.record",now),now:now+21_000});
   assert.equal(late.state,"CORRELATION_DENIED");
   const answers=path.join(root,"answers");
-  await symlink(path.join(root,"questions",Q+".json"),path.join(answers,Q+".json"));
+  await symlinkOrCorruptFile(path.join(root,"questions",Q+".json"),path.join(answers,Q+".json"));
   const corrupt=await readGatewayReceipt({root,questionId:Q,
     authorization:readAuth,now:now+100});
   assert.equal(corrupt.state,"UNVERIFIABLE");
@@ -175,7 +185,7 @@ test("#3259 P1 expiration and unreadable records do not turn into success or sil
 test("#3259 P1 invalid private storage and forged/read-only caller cannot mutate", () => withRoot(async root => {
   const now=Date.now(), q=message("question",{},now), outside=path.join(root,"outside");
   await writeFile(outside,"DO NOT OVERWRITE");
-  await symlink(root,path.join(root,"symlink"));
+  await symlinkOrCorruptFile(root,path.join(root,"symlink"));
   assert.equal((await persistGatewayQuestion({root:path.join(root,"symlink"),
     envelope:q,now,authorization:auth("desktop1","question.create",now)})).state,
     "STORAGE_UNVERIFIABLE");

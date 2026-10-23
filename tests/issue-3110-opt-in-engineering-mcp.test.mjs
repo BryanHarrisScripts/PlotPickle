@@ -115,7 +115,7 @@ test("#3110 exact staged receipt and candidate PR attestations precede any scrip
   assert.equal(success.sourceHead, BASE);
   assert.equal(success.candidateHead, CANDIDATE);
   assert.equal(success.independentVerification, false);
-  assert.equal(success.modelInvoked, false);
+  assert.equal(success.modelInvoked, null);
   assert.equal(h.calls.length, 1);
   assert.equal(h.calls[0].program, process.execPath);
   assert.deepEqual(h.calls[0].argv.slice(0, 1), ["--test"]);

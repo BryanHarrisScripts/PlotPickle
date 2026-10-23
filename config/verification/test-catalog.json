@@ -11184,6 +11184,34 @@
             "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2310-surface-coverage-convergence.test.mjs",
+        "targetDigest": "bd0e3350419168a9f2b7b4a426e98bdcda2fb7bd3adcbb02706b6a264169e8d1",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Registry current census count and actual Settings parent/orchestrated identity, navigation/static source only. No native owner-Windows browser layout, credential or authenticated plugin proof.",
+        "inputs": [
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
+          }
+        ]
       }
     ]
   }

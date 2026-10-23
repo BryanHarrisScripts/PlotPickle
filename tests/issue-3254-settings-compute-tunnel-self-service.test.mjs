@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, rm, symlink } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, symlink, lstat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -100,8 +100,28 @@ test("#3254 launcher is fixed to repo root, must be regular non-symlink file", a
   const root = await mkdtemp(path.join(os.tmpdir(), "pp-tunnel-link-"));
   try {
     await writeFile(path.join(root, "target.ps1"), "Write-Host 'source'\n");
-    await symlink("target.ps1", path.join(root, TUNNEL_LAUNCHER_NAME));
-    assert.equal(await verifiedTunnelLauncher({ repoRoot: root }), null);
+    const launcher = path.join(root, TUNNEL_LAUNCHER_NAME);
+    await writeFile(launcher, "Write-Host 'ordinary file'\n");
+    // Deterministic symlink rejection is mandatory even on Windows hosts
+    // without the privilege to create a real filesystem symlink.
+    assert.equal(await verifiedTunnelLauncher({
+      repoRoot: root,
+      readStat: async (candidate) => {
+        const info = await lstat(candidate);
+        return candidate === launcher
+          ? { isFile: () => true, isSymbolicLink: () => true }
+          : info;
+      },
+    }), null);
+    await rm(launcher);
+    try {
+      await symlink("target.ps1", launcher);
+      assert.equal(await verifiedTunnelLauncher({ repoRoot: root }), null);
+    } catch (error) {
+      // Creating a symlink may require Windows Developer Mode or elevation.
+      // Only the native fixture is unavailable; injected rejection above passed.
+      if (!["EPERM", "EACCES", "ENOTSUP"].includes(error?.code)) throw error;
+    }
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

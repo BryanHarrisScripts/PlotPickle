@@ -16,6 +16,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { resolveActiveNpmCommand, runPortableCommand } from "../../pi-worker-runtime.mjs";
 import { inspectFactoryServiceLock } from "./factory-service-lock.mjs";
+import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "./factory-disk-space.mjs";
 
 const exec=promisify(execFile);
 const HERE=path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +35,7 @@ const PREFLIGHT_CODES=new Set([
   "NPM_NETWORK_UNAVAILABLE","NPM_INTEGRITY_FAILURE","NPM_FILE_MISSING",
   "NPM_INSTALL_UNCLASSIFIED","NPM_PREFLIGHT_UNAVAILABLE",
   "GIT_PROBE_FAILED","MANIFEST_READ_FAILED","PROBE_DIRECTORY_UNAVAILABLE",
+  "DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED",
   "WORKTREE_PATH_BLOCKED","WORKTREE_LOCKED","WORKTREE_FILE_ACCESS",
   "WORKTREE_ADD_FAILED","PROOF_WRITE_FAILED",
 ]);
@@ -79,6 +81,8 @@ export function factoryNpmFailureCode(error) {
     return "NPM_INSTALL_TIMEOUT";
   if(/\b(?:EUSAGE|ELOCKVERIFY)\b|package\.json and package-lock\.json are not in sync/i.test(message))
     return "NPM_LOCKFILE_MISMATCH";
+  if(/\bENOSPC\b|no space left on device|not enough space on the disk/i.test(message))
+    return "DISK_SPACE_INSUFFICIENT";
   if(/\b(?:EPERM|EACCES|EBUSY|ENOTEMPTY)\b/.test(message))
     return "NPM_WINDOWS_FILE_ACCESS";
   if(/\b(?:ENOTFOUND|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH)\b/.test(message))
@@ -138,7 +142,7 @@ export async function installFactoryDependencies({
 export async function runFactoryDependencyPreflight({
   root=ROOT,repoRoot=REPO_ROOT,platform=process.platform,
   git=gitCommand,install=installFactoryDependencies,
-  now=Date.now,nodeVersion=process.version,
+  now=Date.now,nodeVersion=process.version,diskPreflight=readFactoryDiskSpace,
 }={}) {
   if(platform!=="win32")return Object.freeze({state:"BLOCKED",code:"WINDOWS_ONLY"});
   if(existsSync(path.join(root,"disabled.json")))
@@ -172,6 +176,24 @@ export async function runFactoryDependencyPreflight({
   try{key=await dependencyFingerprintForRepo(repoRoot,nodeVersion);}
   catch{return Object.freeze({state:"BLOCKED",code:"MANIFEST_READ_FAILED",sourceHead:head});}
   const probeDir=factoryDependencyProbeDirectory({root,platform});
+  // #3241: no Git checkout or npm install without verified destination headroom.
+  // This probes both worktree and npm cache volumes, without exposing paths.
+  const checkSpace = async () => {
+    try {
+      const result = await diskPreflight({
+        locations: [repoRoot, probeDir, factoryNpmCache(root)],
+        requiredBytes: FACTORY_DISK_MIN_FREE_BYTES.dependencyInstall,
+      });
+      return result?.state === "READY" && result?.code === "DISK_SPACE_SUFFICIENT"
+        ? null : result?.code === "DISK_SPACE_INSUFFICIENT"
+          ? "DISK_SPACE_INSUFFICIENT" : "DISK_SPACE_UNVERIFIED";
+    } catch { return "DISK_SPACE_UNVERIFIED"; }
+  };
+  const insufficient = await checkSpace();
+  if (insufficient) return Object.freeze({
+    state: "BLOCKED", code: insufficient, phase: "CHECK_DISK",
+    sourceHead: head, issueReserved: false,
+  });
   try{await mkdir(probeDir,{recursive:true,mode:0o700});}
   catch{return Object.freeze({state:"BLOCKED",code:"PROBE_DIRECTORY_UNAVAILABLE",sourceHead:head});}
   const probe=path.join(probeDir,
@@ -192,6 +214,11 @@ export async function runFactoryDependencyPreflight({
     return Object.freeze({state:"BLOCKED",code,sourceHead:head,
       probePreserved:existsSync(probe),issueReserved:false});
   }
+  const beforeInstallSpace = await checkSpace();
+  if (beforeInstallSpace) return Object.freeze({
+    state:"BLOCKED",code:beforeInstallSpace,phase:"CHECK_DISK",
+    sourceHead:head,probePreserved:true,issueReserved:false,
+  });
   try{await install({cwd:probe,root});}
   catch(error){
     return Object.freeze({state:"BLOCKED",code:factoryNpmFailureCode(error),

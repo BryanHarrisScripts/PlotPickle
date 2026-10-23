@@ -4794,6 +4794,50 @@
         ]
       },
       "notes": "#3259 P1 non-promoting, transport-independent messages and write-once private records. Unit fixtures only; outbound AI and native tunnel UAT remain unproven."
+    },
+    {
+      "id": "agent.factory-storage-headroom-3241",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "mcp"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3241-disk-space-preflight.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3241 first non-destructive slice: typed free-space checks before Windows Factory dependency install and PR candidate worktree staging. No cleanup/retention or live owner-Windows capacity proof."
     }
   ],
   "truthGovernance": {
@@ -9729,11 +9773,15 @@
           },
           {
             "path": "scripts/engineering-team/queue/factory-dependency-preflight.mjs",
-            "digest": "908494c99018114fa7a0d18dc38a4e6c571117fe8384679fd1524b90ebe4aa45"
+            "digest": "366606096e11ff2a21f53f912b170a21519b8914a794f44d1a9f5d32ddc8a133"
           },
           {
             "path": "scripts/engineering-team/queue/factory-service-lock.mjs",
             "digest": "3b6720b35cbc1a854b056a91e63704578d085a244a0897e0426852d81b5a1bb1"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
+            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
           }
         ],
         "truthRefs": [
@@ -9897,7 +9945,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "07f18a1a8294699a37b9547c473a6a31d3d27ea1642302bd77357402aa7a978d"
+            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
@@ -9906,6 +9954,10 @@
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
             "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
+            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
           }
         ],
         "truthRefs": [
@@ -10140,7 +10192,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "07f18a1a8294699a37b9547c473a6a31d3d27ea1642302bd77357402aa7a978d"
+            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
           },
           {
             "path": "scripts/full-verification-process.mjs",
@@ -10180,7 +10232,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "07f18a1a8294699a37b9547c473a6a31d3d27ea1642302bd77357402aa7a978d"
+            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -10998,6 +11050,42 @@
           {
             "path": "schema/gateway/message-envelope.v1.schema.json",
             "digest": "71b52398cf50611f6e59d8f26688478e001c69fdece34e49e4fd73fb245a9196"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-disk-space-preflight.test.mjs",
+        "targetDigest": "97ea2d383ec6bd886a54f991e72b0e985d8ad721ee31007b29779b3c96795ff8",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected Windows platform and synthetic disk statistics. Does not attest real owner Windows capacity, OS reservation, runtime installation, safe cleanup, process retention, native Product Gate or source advancement.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
+            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-dependency-preflight.mjs",
+            "digest": "366606096e11ff2a21f53f912b170a21519b8914a794f44d1a9f5d32ddc8a133"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
           }
         ]
       }

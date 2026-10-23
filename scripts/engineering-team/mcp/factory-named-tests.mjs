@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import process from "node:process";
 import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
+import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "../queue/factory-disk-space.mjs";
 const exec=promisify(execFile);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..");
 const SHA=/^[a-f0-9]{40}$/;
@@ -127,7 +128,7 @@ export async function stageFactoryCandidatePr({
   prNumber,candidateHead,expectedHead,requestId,root,repoRoot=ROOT,
   platform=process.platform,verifyHead=readFactoryVerificationHead,
   inspectPr=inspectFactoryCandidatePr,run=exec,
-  fileOps={mkdir,lstat},
+  fileOps={mkdir,lstat},diskPreflight=readFactoryDiskSpace,
 }={}) {
   if(platform!=="win32")return Object.freeze({
     state:"BLOCKED",code:"WINDOWS_ONLY",sourceHead:null});
@@ -157,6 +158,21 @@ export async function stageFactoryCandidatePr({
   }catch {
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_PATH_BLOCKED",sourceHead:expectedHead});
   }
+  // #3241: prevent Git fetch/checkout when the owner staging volume is low.
+  let space;
+  try {
+    space = await diskPreflight({
+      locations:[repoRoot,base],
+      requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.candidateStage,
+    });
+  } catch { space = null; }
+  if(space?.state!=="READY"||space?.code!=="DISK_SPACE_SUFFICIENT")
+    return Object.freeze({
+      state:"BLOCKED",
+      code:space?.code==="DISK_SPACE_INSUFFICIENT"
+        ?"DISK_SPACE_INSUFFICIENT":"DISK_SPACE_UNVERIFIED",
+      sourceHead:expectedHead,issueReserved:false,
+    });
   const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
     ...GIT_OPTIONS,cwd,timeout,
     env:{

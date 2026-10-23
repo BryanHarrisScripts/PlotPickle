@@ -32,7 +32,7 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
   assert.equal(new Set(creative.map((row) => row.shortcut)).size, 19);
 
   assert.deepEqual(byGroup("EXPLORE"), [
-    ["Learn", "1"], ["Library", "2"], ["Community", "3"], ["Screening", "4"], ["Reports", "5"],
+    ["Learn", "1"], ["Library", "2"], ["Community", "3"], ["Screening", "4"], ["Reports", "5"], ["Discover", "J"],
   ]);
   assert.deepEqual(byGroup("SYSTEM"), [
     ["Settings", "6"], ["Service", "7"], ["Legal", "8"], ["Log Off", "9"], ["Shut Down", "0"],

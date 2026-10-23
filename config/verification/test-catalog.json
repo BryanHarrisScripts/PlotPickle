@@ -10676,6 +10676,29 @@
         ]
       },
       {
+        "target": "tests/layer1-skin-surface-contract.test.mjs",
+        "targetDigest": "a892116b25779b2f78e3f5d7d704379d6021d0468ed8f29ec188515c6dad8ef3",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Exact Layer 1 ordinary owner selection, secure profile-gate source contracts and deterministic Skin composition fixtures only. Does not prove rendered Windows product acceptance, remote Tunnel authorization, Human credentials or live browser continuity.",
+        "inputs": []
+      },
+      {
         "target": "tests/issue-2730-settings-directory-groups.test.mjs",
         "targetDigest": "fb76c6583123249d0ca209c8a3c506744d7ba17ca7608f92d4e1f8bc453265c6",
         "catalogueIds": [

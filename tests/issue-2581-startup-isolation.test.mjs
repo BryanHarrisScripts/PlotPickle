@@ -89,14 +89,16 @@ test("#2581 Library Load uses a text-first resume-state summary for saved storie
   const workspace = await read("modules/library/ui/library-workspace.tsx");
   const styles = await read("modules/library/ui/library-workspace.module.css");
 
-  assert.match(workspace, /Resume your story/u);
+  // #3251: text-first resume evidence is shown once beside the poster rail.
+  assert.match(workspace, /aria-label="Saved story coverage"/u);
   assert.match(workspace, /Last working area/u);
   assert.match(workspace, /Tracked progress/u);
-  assert.match(workspace, /Nothing loads into the workspace until you choose it/u);
-  assert.match(workspace, /role="progressbar"/u);
+  assert.match(workspace, /data-library-load-layout="posters-and-details"/u);
+  assert.match(workspace, /data-library-film-details="true"/u);
+  assert.match(workspace, /Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it/u);
   assert.doesNotMatch(workspace, /function SavedStoryLoadCard[\s\S]*item\.thumbnail/u);
 
-  assert.match(styles, /\.savedStoryResumeHeader/u);
-  assert.match(styles, /\.savedStoryResumeSummary/u);
-  assert.match(styles, /\.savedStoryProgressTrack/u);
+  assert.match(styles, /\.loadStoryLayout/u);
+  assert.match(styles, /\.loadStoryDetails/u);
+  assert.match(styles, /\.loadStoryFacts/u);
 });

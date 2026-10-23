@@ -31,7 +31,7 @@ test("#3233 Reports Library button returns into canonical Matrix Library and not
   ]);
   assert.match(host, /onOpenLibrary=\{\(\) => \{ closeExploration\(\); setLibraryOpen\(true\); onSurfaceNameChange\("LIBRARY"\); \}\}/u);
   assert.ok(workspace.includes('onClick={onOpenLibrary ?? (() => router.push("/skin-v1?workspace=library"))}'));
-  assert.match(host, /<LibraryWorkspace\s*\/>/u);
+  assert.match(host, /<LibraryWorkspace currentFilmDetails=\{<ContinueThisFilm/u);
 });
 
 test("#3230/#3233 preserve standalone Reports routes and report data authority", async () => {

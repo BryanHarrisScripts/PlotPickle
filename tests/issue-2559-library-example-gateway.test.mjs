@@ -28,10 +28,12 @@ test("#2559/#2570 LOAD keeps Afterglow as one poster card and restores Human-own
   const gatewayStart = source.indexOf("function ExampleGatewayCard");
   const gatewayEnd = source.indexOf("function SavedStoryLoadCard", gatewayStart);
   const gateway = source.slice(gatewayStart, gatewayEnd);
-  assert.match(gateway, /const \[posterIndex, setPosterIndex\] = useState\(0\)/u);
+  assert.match(gateway, /const posterUrl = posters\[0\]/u);
+  // #3251: poster-version paging remains in EXAMPLES, not in the LOAD rail.
+  assert.doesNotMatch(gateway, /const \[posterIndex, setPosterIndex\]|loadPosterNavigation/u);
   assert.match(gateway, /src=\{posterUrl\}/u);
-  assert.match(gateway, /Previous Afterglow poster/u);
-  assert.match(gateway, /Next Afterglow poster/u);
+  assert.doesNotMatch(gateway, /Previous Afterglow poster/u);
+  assert.doesNotMatch(gateway, /Next Afterglow poster/u);
   assert.doesNotMatch(gateway, /posters\.map/u);
   assert.match(css, /\.loadCardGrid \{[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/u);
 });
@@ -79,7 +81,7 @@ test("#2559/#2823 Open Example bypasses scanning while Your Changes prepares one
   assert.match(source, /async function continueSavedStoryResume/u);
   assert.doesNotMatch(source, />Select All<\/button>|requires your explicit selection|selectedRecoveryOrigins/u);
 });
-test("#2559/#2560/#2570 packaged Afterglow artwork stays whole while Load and Examples browse one poster at a time", async () => {
+test("#2559/#2560/#2570 Afterglow posters remain intact; LOAD is compact and EXAMPLES keeps version browsing", async () => {
   const [source, css] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/ui/library-workspace.module.css"),
@@ -91,11 +93,14 @@ test("#2559/#2560/#2570 packaged Afterglow artwork stays whole while Load and Ex
   assert.match(source, /return packagedPosters\.length \? packagedPosters : \[AFTERGLOW_EXAMPLE_FALLBACK_POSTER\]/u);
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
   assert.match(source, /className=\{styles\.loadPosterButton\}/u);
-  assert.match(source, /className=\{styles\.loadPosterNavigation\}/u);
+  assert.doesNotMatch(source, /className=\{styles\.loadPosterNavigation\}/u);
+  // EXAMPLES must keep its poster-version controls; only the LOAD gateway loses them.
   assert.match(source, /Previous Afterglow poster/u);
   assert.match(source, /Next Afterglow poster/u);
   assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);
   assert.match(css, /\.examplePoster \{[\s\S]*aspect-ratio: 2 \/ 3/u);
   assert.match(css, /\.examplePoster img \{[\s\S]*object-fit: contain/u);
   assert.match(css, /\.examplePosterNavigation/u);
+  assert.match(css, /\.loadStoryLayout/u);
+  assert.match(source, /className=\{styles\.examplePosterNavigation\}/u);
 });

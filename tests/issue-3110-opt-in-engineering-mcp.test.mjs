@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   ENGINEERING_MODES, validEngineeringSelection, runStagedEngineeringTask,
   sanitizeEngineeringOutput,
-} from "../scripts/engineering-team/mcp/factory-engineering-exec.mjs";
+} from "../scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs";
 import {
   MCP_TOOLS, MCP_CONTROL_TOOLS, MCP_ENGINEERING_TOOLS, handleRpc,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";

@@ -9709,7 +9709,7 @@
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
-        "targetDigest": "797f5234607957fba388f3575412f43273e28f83af02ed14cad649e72298a9b1",
+        "targetDigest": "85ef3c7ee1787a973deb11599fff27376d0e97f1a9a54bd17a8073611efdc03f",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

@@ -79,8 +79,10 @@ test("#3110 opt-in engineering changes neither default public nor authenticated 
   assert.equal(readOnly.result.tools.length, 4);
   assert.equal((await call(false, true, "tools/call", "factory_engineering_run")).error.code, -32601);
   assert.equal((await call(true, false, "tools/call", "factory_engineering_run")).error.code, -32001);
-  assert.equal((await call(true, true, "tools/call", "factory_engineering_run")).error.code !== -32602, true,
-    "well-formed command is admitted to the authenticated tool path");
+  const malformed = await handleRpc({jsonrpc:"2.0",id:2,method:"tools/call",
+    params:{name:"factory_engineering_run",arguments:{requestId:"not-valid"}}},
+    {engineeringEnabled:true,controlAuthenticated:true});
+  assert.equal(malformed.error.code,-32602);
 });
 
 test("#3110 flexible script selection is path-scoped, not a raw arbitrary shell", () => {

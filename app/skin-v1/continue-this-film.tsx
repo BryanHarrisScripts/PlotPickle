@@ -60,11 +60,9 @@ function observeCurrentSelection(): CurrentObservation {
 }
 
 export default function ContinueThisFilm({
-  onOpenLibrary,
   onOpenOutline,
 }: Readonly<{
-  onOpenLibrary: () => void;
-  onOpenOutline: (blockNumber: number) => void;
+  onOpenOutline?: (blockNumber: number) => void;
 }>) {
   const [observation, setObservation] = useState<CurrentObservation | null>(null);
   const [intentText, setIntentText] = useState("Where am I?");
@@ -147,8 +145,7 @@ export default function ContinueThisFilm({
         <div><strong>NEXT HUMAN DECISION</strong><p>{nextDecision}</p></div>
       </div>
       <div className={styles.actions}>
-        {observed && block !== null ? <button type="button" onClick={() => onOpenOutline(block)}>Review Block {block} in Outline</button> : null}
-        <button type="button" onClick={onOpenLibrary}>Open Library</button>
+        {observed && block !== null && onOpenOutline ? <button type="button" onClick={() => onOpenOutline(block)}>Review Block {block} in Outline</button> : null}
         <button type="button" onClick={refresh}>Refresh evidence</button>
       </div>
       <small className={styles.disclaimer}>No creative approval, Save & Lock, paid generation, project switch, or production-readiness certification.</small>

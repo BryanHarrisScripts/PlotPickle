@@ -9,6 +9,7 @@ import type { LibraryPPFProject } from "../../core/storage/library-project";
 import type { LearnTopicSpineId } from "../../modules/learn/model/story-learning-context";
 import type { StoryDevelopmentAct } from "../../modules/learn/model/story-development-fields";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
+import ContinueThisFilm from "./continue-this-film";
 import BlockNativeWriteWorkspace from "../../modules/write/ui/block-native-write-workspace";
 import DashboardExplorationSurface, { isDashboardExplorationWorkspace, type DashboardExplorationWorkspace } from "../_components/dashboard/dashboard-exploration-surface";
 import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
@@ -691,7 +692,7 @@ export default function DashboardBbsReviewHost({
           <h1>LIBRARY</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("library")}>Back to Dashboard</button>
         </div>
-        <LibraryWorkspace />
+        <LibraryWorkspace currentFilmDetails={<ContinueThisFilm onOpenOutline={(blockNumber) => { setLibraryOpen(false); openOutline({ blockNumber, miniBlockNumber: 1 }); }} />} />
       </section>
     );
   }
@@ -936,8 +937,6 @@ export default function DashboardBbsReviewHost({
           lessonId: learnRequest.lessonId,
         } : null}
         onLearnRequestConsumed={() => setLearnRequest(null)}
-        onOpenLibrary={() => { setLibraryOpen(true); onSurfaceNameChange("LIBRARY"); }}
-        onOpenOutline={(blockNumber) => openOutline({ blockNumber, miniBlockNumber: 1 })}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 .root {
-  margin: 1rem auto;
-  width: min(100%, 1150px);
+  margin: 0;
+  width: 100%;
   padding: 1rem 1.25rem;
   box-sizing: border-box;
   background: #171a20;

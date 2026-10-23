@@ -5043,7 +5043,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -6214,7 +6214,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "a94138d1656379018489ea662a52968267c4f1c4474b137e8bb90abe495060d0"
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -6550,7 +6550,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           }
         ]
       },
@@ -6608,7 +6608,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "a94138d1656379018489ea662a52968267c4f1c4474b137e8bb90abe495060d0"
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
@@ -6616,7 +6616,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           }
         ]
       },
@@ -10276,7 +10276,7 @@
       },
       {
         "target": "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-        "targetDigest": "51d59bfcc76320512fd2a3277bb78f98297a7b29bbd97e2d1f5a972d2f150342",
+        "targetDigest": "42ad42604143bc625234c873d2a7738f517d462c3193207ea67f3eba145f4e49",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10297,7 +10297,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
@@ -10315,7 +10315,7 @@
       },
       {
         "target": "tests/issue-3203-dashboard-creator-intent.test.mjs",
-        "targetDigest": "cdde1200577520815bf5733205770747323d42f4e67c0c5f7e12455a9a0681c1",
+        "targetDigest": "16d884d372d2ea6da829fcd7636f48bc0cfb12842e1e83f88227f47f4321cfd5",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -10337,15 +10337,15 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
-            "digest": "551dfb9b372114843c3b32c8e9521d196f2f1ca217f3130f38addfac2ef1a180"
+            "digest": "0ba9f116716dff28a3599b65f36dbfb0bed2a62c4e9a6feba84959f27ae57cd7"
           },
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
@@ -10380,7 +10380,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.module.css",
@@ -10515,7 +10515,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           }
         ]
       },
@@ -10547,11 +10547,11 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10583,11 +10583,11 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10619,11 +10619,77 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
+            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2581-startup-isolation.test.mjs",
+        "targetDigest": "7c408d7c279bf7483d1083cdf1fc282e7b5837ba3c22ac11021634be24b7b28f",
+        "catalogueIds": [
+          "production.library-active-handoff-2621",
+          "story-canon.library-unload-active-story-2625",
+          "story-canon.mind-map-retirement-2632"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Library LOAD poster rail and text-first resume detail placement assertions. Does not prove live browser geometry, encrypted private PPF readback, actual screenplay provenance, or owner Windows acceptance.",
+        "inputs": [
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.module.css",
+            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2559-library-example-gateway.test.mjs",
+        "targetDigest": "70f37717edd230da4f68ac2ed0095a0a0240dd3a5565966b1fb8df7cfcff30cf",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Source-only proof of a compact LOAD poster card and retained navigable EXAMPLES poster gallery; does not establish owner Windows visuals, local posters present, loaded film profile identity or image quality.",
+        "inputs": [
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.module.css",
+            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
           }
         ]
       },
@@ -10671,7 +10737,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10722,7 +10788,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
@@ -10763,7 +10829,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
@@ -10804,7 +10870,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
@@ -10843,7 +10909,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "lib/verification/skin-v1-menu-contract-audit.mjs",

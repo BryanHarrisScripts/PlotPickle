@@ -4230,7 +4230,8 @@
           "tests/issue-1571-autonomous-qa-defect-publication.test.mjs",
           "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
           "tests/issue-3110-factory-named-test-mcp.test.mjs",
-          "tests/issue-3159-pi-headless-inference.test.mjs"
+          "tests/issue-3159-pi-headless-inference.test.mjs",
+          "tests/issue-3110-opt-in-engineering-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9637,7 +9638,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "610abb28b6c883b7094cd0980db40fe3269d9bade03a481440ec5380050a407c"
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9681,7 +9682,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "610abb28b6c883b7094cd0980db40fe3269d9bade03a481440ec5380050a407c"
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
           }
         ],
         "truthRefs": [
@@ -9717,7 +9718,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "610abb28b6c883b7094cd0980db40fe3269d9bade03a481440ec5380050a407c"
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
           }
         ],
         "truthRefs": [
@@ -9948,7 +9949,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "610abb28b6c883b7094cd0980db40fe3269d9bade03a481440ec5380050a407c"
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -9996,7 +9997,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "610abb28b6c883b7094cd0980db40fe3269d9bade03a481440ec5380050a407c"
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10154,6 +10155,38 @@
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
             "digest": "022bf1d552ae4cd2c828bb4b53535fcfe50497b868e4d941dd9af6c8b80be0a3"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+        "targetDigest": "6409ef48b9b47d44280c2a2fb0bbfd735ff5c9652290f0b8c7d34c687231e0b9",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "d997ea153d1b2458c68a15c8c2c23c4ddfd92ec59d24e1d6bf664874635a5e67"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-engineering-exec.mjs",
+            "digest": "b44aac8f6703f7a1e83fea7b210f44b9085a0139049cf825fb9df9eda2972dfe"
           }
         ]
       }

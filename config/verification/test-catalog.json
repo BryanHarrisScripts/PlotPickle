@@ -10534,6 +10534,39 @@
             "digest": "17922ea53881085d58c317f54db2682277b8bd849941ac9dcbb6de11cf3c20f7"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2581-startup-isolation.test.mjs",
+        "targetDigest": "7c408d7c279bf7483d1083cdf1fc282e7b5837ba3c22ac11021634be24b7b28f",
+        "catalogueIds": [
+          "production.library-active-handoff-2621",
+          "story-canon.library-unload-active-story-2625"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Library LOAD poster rail and text-first resume detail placement assertions. Does not prove live browser geometry, encrypted private PPF readback, actual screenplay provenance, or owner Windows acceptance.",
+        "inputs": [
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.module.css",
+            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+          }
+        ]
       }
     ]
   }

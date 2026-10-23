@@ -10883,7 +10883,7 @@
       },
       {
         "target": "tests/layer1-skin-surface-contract.test.mjs",
-        "targetDigest": "a892116b25779b2f78e3f5d7d704379d6021d0468ed8f29ec188515c6dad8ef3",
+        "targetDigest": "947d825b4b6c01ab92936f4a6477a3bb7377acd005e04c9b2a435314830d48e9",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],

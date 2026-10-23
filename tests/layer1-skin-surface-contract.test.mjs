@@ -74,6 +74,7 @@ test("Layer 1 ordinary selection includes the approved Settings Tunnel owner wit
     .map((entry) => entry.id)
     .sort();
   assert.deepEqual(ordinary, [
+    "experience.library-tunnel-windows-uat-3266",
     "experience.navigation-continuity",
     "experience.settings-tunnel-navigation-3254",
     "experience.skin-surface-contract",

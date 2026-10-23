@@ -10112,7 +10112,7 @@
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
-            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
+            "digest": "c8a9c79ab1abbf42af2fb247764aee1ad4f1b9da49411339cbac24ce5324be2a"
           },
           {
             "path": "app/reports/page.tsx",
@@ -10276,7 +10276,7 @@
       },
       {
         "target": "tests/issue-3227-discover-matrix-journal.test.mjs",
-        "targetDigest": "65defa067caf9d65f201a2f420a8eb9938494d2e60427f8583f59ae39c28d430",
+        "targetDigest": "cf92e3f7b9577b955ad0b8aecd3f9ae2c36133d97727867218081c2ce820282e",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10306,11 +10306,11 @@
           },
           {
             "path": "app/_components/discover/discover-journal.tsx",
-            "digest": "0993367099dfb346e57ad62c22d65842489c649f7b50ea472b3832cb5bbe3eeb"
+            "digest": "8d095930ea3bf749e9afbd1dbd6ff6dc61daf78501a26b5673a0ed7aeb9d3a57"
           },
           {
             "path": "app/_components/discover/discover-journal.module.css",
-            "digest": "e28e0e5df3eb230dda253618dea204cf98a53a021cbc449a4cbced1ef89b12c2"
+            "digest": "5895e937b5083ae2e70efbfe65f9b90011d655d77136281d3396009be813e6b3"
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
@@ -10322,7 +10322,7 @@
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
-            "digest": "04da15d7b463dca408368e85d01c44a6d924b92bb7950a2dfc60ea1021eec222"
+            "digest": "c8a9c79ab1abbf42af2fb247764aee1ad4f1b9da49411339cbac24ce5324be2a"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",

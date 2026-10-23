@@ -125,7 +125,7 @@ test("#3254 Settings Compute has only one Tunnel with guarded owner-start, no br
     read("build/local-profile-auth-gateway.ts"),
     read("app/api/factory/tunnel/route.ts"),
   ]);
-  assert.match(menu, /id: "tunnel", shortcut: SETTINGS_SHORTCUTS\.tunnel, label: "Tunnel"[^\\n]*group: "COMPUTE"/u);
+  assert.match(menu, /id: "tunnel", shortcut: SETTINGS_SHORTCUTS\.tunnel, label: "Tunnel"[^\n]*group: "COMPUTE"/u);
   assert.match(menu, /if \(item\.id === "tunnel"\) \{ setTunnelOpen\(true\)/u);
   assert.match(menu, /<TunnelSettingsPanel \/>/u);
   assert.match(ui, /Start My Tunnel/u);

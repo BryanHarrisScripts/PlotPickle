@@ -6922,7 +6922,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ]
       },
@@ -7756,7 +7756,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ]
       },
@@ -10060,7 +10060,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ],
         "truthRefs": [
@@ -10081,7 +10081,7 @@
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
-        "targetDigest": "019b1dab67db75aa9bc58567a2a9a4a9ee2f9d9d92691f4b698496648e9f2caf",
+        "targetDigest": "08dc6f0b4845ec2496915ffb3b44b49d2605823566903b3b85030af72c84de7e",
         "catalogueIds": [
           "agent.factory-concurrent-session-3222"
         ],
@@ -10100,7 +10100,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2eb30a63fcd9f3fcb06296a9b054fa9b08ef9862495360b52f07e41e7d2773cb"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10109,6 +10109,10 @@
           {
             "path": "scripts/full-verification-auth.mjs",
             "digest": "de73567a7a52f527942ae6353a5bb84a3332c7d37c1ee3c72935c98f9a97d326"
+          },
+          {
+            "path": "scripts/run-webmcp-startup-uat.mjs",
+            "digest": "241ba7675905a1edfd8064d04b9a77d9c44c9641f60b14999a8f3740f0a47659"
           }
         ],
         "truthRefs": [

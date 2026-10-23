@@ -10263,7 +10263,7 @@
       },
       {
         "target": "tests/issue-3232-visual-workspace-shell-parity.test.mjs",
-        "targetDigest": "05623a5b47233adbb99a79e3be4fc73b7638d1b35a1abc1efb5f0f8e2b844cd6",
+        "targetDigest": "c1bf5e7e457af98b01ebacb1ac14ee395cc4988d3efad7a45014479d39f81ea7",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10292,7 +10292,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.module.css",
-            "digest": "e828540fd628b35cbbf088e0f47291beb5b585adb20bd13bd5ad2bbc14952fec"
+            "digest": "f64bd8db3ea2268948789a124a3e3da0091b157f7bfa3e2f3f97df28fc587ee4"
           }
         ]
       },

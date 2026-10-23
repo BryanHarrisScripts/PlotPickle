@@ -10,7 +10,9 @@ test("#3232 five Visualize workspaces share the full-width outer Matrix shell", 
     read("app/skin-v1/dashboard-bbs-review-host.module.css"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
   ]);
-  assert.ok(outlineCss.includes('.reviewSurface[data-dashboard-review-surface="outline"]'), "Outline reference selector");
+  for (const stage of ["outline", "storyboard", "previs", "timeline", "production"]) {
+    assert.ok(outlineCss.includes('.reviewSurface[data-dashboard-review-surface="' + stage + '"]'), "missing host-level shell parity for " + stage);
+  }
   assert.ok(outlineCss.includes("width: 100%;"), "Outline reference is full width");
   const start = css.indexOf("/* #2426/#2529/#3232:");
   assert.ok(start >= 0, "shared outer geometry contract must be documented");

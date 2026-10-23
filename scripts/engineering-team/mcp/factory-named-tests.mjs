@@ -103,6 +103,26 @@ export async function inspectFactoryCandidatePr({
  * Only fixed git subcommands; DO NOT run npm, Node, scripts or candidate tools.
  * No cleanup on uncertainty: preserve staged evidence for manual review.
  */
+// Reduce Git for Windows worktree failures to an allowlisted category only.
+// Never disclose stderr, local paths, command line or credentials.
+export function classifyCandidateWorktreeFailure(error) {
+  const raw = String(error?.stderr || "");
+  const code = String(error?.code || "");
+  if (error?.killed === true || code === "ETIMEDOUT")
+    return "CANDIDATE_STAGE_WORKTREE_TIMEOUT";
+  if (code === "ENAMETOOLONG" || /filename too long|path too long/i.test(raw))
+    return "CANDIDATE_STAGE_WORKTREE_PATH_TOO_LONG";
+  if (code === "EACCES" || code === "EPERM" || /permission denied|access is denied/i.test(raw))
+    return "CANDIDATE_STAGE_WORKTREE_ACCESS_DENIED";
+  if (code === "ENOSPC" || /no space left on device|not enough space on the disk/i.test(raw))
+    return "CANDIDATE_STAGE_WORKTREE_DISK_FULL";
+  if (/already exists|is already registered/i.test(raw))
+    return "CANDIDATE_STAGE_WORKTREE_EXISTS";
+  if (/invalid path|unable to create file/i.test(raw))
+    return "CANDIDATE_STAGE_WORKTREE_CHECKOUT_FAILED";
+  return "CANDIDATE_STAGE_WORKTREE_ADD_FAILED";
+}
+
 export async function stageFactoryCandidatePr({
   prNumber,candidateHead,expectedHead,requestId,root,repoRoot=ROOT,
   platform=process.platform,verifyHead=readFactoryVerificationHead,
@@ -206,10 +226,12 @@ export async function stageFactoryCandidatePr({
       sourceExecuted:false,modelInvoked:false,issueReserved:false,
       windowsUatVerified:false,
     });
-  }catch {
-    // Failure may follow a successful worktree checkout. Preserve its contents
-    // and worktree registration for on-host review: no silent rollback/replay.
-    return Object.freeze({state:"BLOCKED",code:failureCode,
+  }catch(error) {
+    // Preserve uncertain worktrees and registration; never automatically retry.
+    // Report only a fixed category, never raw Git output or local paths.
+    return Object.freeze({state:"BLOCKED",
+      code:failureCode==="CANDIDATE_STAGE_WORKTREE_ADD_FAILED"
+        ? classifyCandidateWorktreeFailure(error) : failureCode,
       sourceHead:expectedHead});
   }
 }
@@ -508,6 +530,25 @@ export async function runFactoryStoryUat({
     independentVerification:false});
 }
 
+// Expose only fixed classifications and bounded numeric status, never child output,
+// paths, error messages or environment values.
+export function classifyNamedTestFailure(error) {
+  const exitCode = Number.isSafeInteger(error?.code) && error.code >= 0 && error.code <= 255
+    ? error.code : null;
+  const launchCode = typeof error?.code === "string" &&
+    ["ENOENT", "EACCES", "EPERM", "ENOMEM", "EAGAIN"].includes(error.code)
+    ? error.code : null;
+  const signal = typeof error?.signal === "string" &&
+    ["SIGTERM", "SIGKILL", "SIGINT", "SIGABRT"].includes(error.signal)
+    ? error.signal : null;
+  const timedOut = error?.killed === true || error?.code === "ETIMEDOUT";
+  return Object.freeze({
+    failureKind: timedOut ? "TIMEOUT" : launchCode ? "PROCESS_LAUNCH" :
+      exitCode !== null ? "NONZERO_EXIT" : signal ? "SIGNAL" : "UNKNOWN",
+    exitCode, launchCode, signal,
+  });
+}
+
 export async function runFactoryNamedTest({
   suite,expectedHead,repoRoot=ROOT,platform=process.platform,
   verifyHead=readFactoryVerificationHead,run=exec,
@@ -534,11 +575,11 @@ export async function runFactoryNamedTest({
     sourceHead:SHA.test(after||"")?after:null,suite});
   if(!error)return Object.freeze({state:"TEST_PASSED",code:"NODE_TEST_PASS",
     sourceHead:actual,suite});
-  // No raw stdout/stderr/environment leaks into MCP/issue telemetry.
-  const timeout=error?.killed===true||error?.code==="ETIMEDOUT";
+  // Only allowlisted categories and bounded status escape this process.
+  const failure=classifyNamedTestFailure(error);
   return Object.freeze({state:"TEST_FAILED",
-    code:timeout?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
-    sourceHead:actual,suite});
+    code:failure.failureKind==="TIMEOUT"?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
+    sourceHead:actual,suite,...failure});
 }
 
 /**

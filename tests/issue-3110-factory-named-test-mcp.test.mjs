@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import { EventEmitter } from "node:events";
 import path from "node:path";
-import { allowedFactoryTestNames, readFactoryVerificationHead,
+import { allowedFactoryTestNames, readFactoryVerificationHead, classifyNamedTestFailure, classifyCandidateWorktreeFailure,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,
   runFactoryStoryUat,executeOwnedFactoryStoryUat,
@@ -320,7 +320,7 @@ test("isolated candidate stage rejects changed PR, incorrect fetch, dirty main a
  };
  const checkoutError=await stageFactoryCandidatePr({...base,
    requestId:"f".repeat(32),run:checkoutRun});
- assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ADD_FAILED");
+ assert.equal(checkoutError.code,"CANDIDATE_STAGE_WORKTREE_ACCESS_DENIED");
  assert.equal(checkoutError.state,"BLOCKED");
  assert.equal(JSON.stringify(checkoutError).includes("PRIVATE"),false);
 }));
@@ -1036,3 +1036,45 @@ test("#3118 immutable authenticated MCP receipts preserve only allowlisted workt
   assert.equal(retry.result.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
   assert.equal(retry.stored.stageReason,null);
 }));
+
+test("named Factory test failure receipts classify safely without leaking secrets",async()=>{
+  const cases=[
+    [Object.assign(Error("TOKEN=private"),{code:1,stdout:"SECRET",stderr:"C:/private"}),"NONZERO_EXIT",1],
+    [Object.assign(Error("SECRET"),{code:"ENOENT",path:"C:/private"}),"PROCESS_LAUNCH",null],
+    [Object.assign(Error("SECRET"),{killed:true,code:"ETIMEDOUT"}),"TIMEOUT",null],
+    [Object.assign(Error("SECRET"),{signal:"SIGKILL"}),"SIGNAL",null],
+  ];
+  for(const [err,kind,exitCode] of cases){
+    const diagnostic=classifyNamedTestFailure(err);
+    assert.equal(diagnostic.failureKind,kind);
+    assert.equal(diagnostic.exitCode,exitCode);
+    assert.equal(JSON.stringify(diagnostic).includes("SECRET"),false);
+    assert.equal(JSON.stringify(diagnostic).includes("private"),false);
+  }
+  const response=await runFactoryNamedTest({suite:"factory-mcp",
+    expectedHead:HEAD,platform:"win32",verifyHead:async()=>HEAD,
+    run:async()=>{throw Object.assign(Error("TOKEN=secret"),{code:1,stderr:"C:/private"});}});
+  assert.equal(response.state,"TEST_FAILED");
+  assert.equal(response.code,"NODE_TEST_FAILED");
+  assert.equal(response.failureKind,"NONZERO_EXIT");
+  assert.equal(response.exitCode,1);
+  assert.equal(JSON.stringify(response).includes("secret"),false);
+  assert.equal(JSON.stringify(response).includes("private"),false);
+});
+
+test("staging Git errors are fixed classifications without sensitive stderr",()=>{
+  const scenarios=[
+    ["fatal: cannot checkout filename too long at C:/private/TOKEN","CANDIDATE_STAGE_WORKTREE_PATH_TOO_LONG"],
+    ["fatal: Permission denied for C:/private/TOKEN","CANDIDATE_STAGE_WORKTREE_ACCESS_DENIED"],
+    ["fatal: No space left on device at C:/private/TOKEN","CANDIDATE_STAGE_WORKTREE_DISK_FULL"],
+    ["fatal: worktree already exists at C:/private/TOKEN","CANDIDATE_STAGE_WORKTREE_EXISTS"],
+    ["error: invalid path C:/private/TOKEN","CANDIDATE_STAGE_WORKTREE_CHECKOUT_FAILED"],
+    ["unrecognized TOKEN at C:/private","CANDIDATE_STAGE_WORKTREE_ADD_FAILED"],
+  ];
+  for(const [stderr,expected] of scenarios){
+    const diagnostic=classifyCandidateWorktreeFailure({stderr});
+    assert.equal(diagnostic,expected);
+    assert.equal(diagnostic.includes("TOKEN"),false);
+    assert.equal(diagnostic.includes("private"),false);
+  }
+});

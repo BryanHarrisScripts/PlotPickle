@@ -9340,7 +9340,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "f67ee6eefcb991549d80b3c0a82a926d7659186517ec795ad43ae182b4b9ac0b"
+            "digest": "cb56da1932a7b3b7317c284522acce7baf249f51da25fbb2ddf5f3aecc34abc1"
           }
         ]
       },
@@ -10185,7 +10185,7 @@
         "inputs": [
           {
             "path": "modules/discover/model/discover-catalog.ts",
-            "digest": "83469375db37aaa7381649c87b4d1321f1a8a733e2be222bec5ce8e3cfae89c3"
+            "digest": "71dff88f1a41a5e874612b4a73efceb1111e5edec763d8f75d344897db7ed915"
           },
           {
             "path": "content/discover/editorial-catalog.json",

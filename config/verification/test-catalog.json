@@ -4951,7 +4951,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -6458,7 +6458,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           }
         ]
       },
@@ -6524,7 +6524,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           }
         ]
       },
@@ -10205,7 +10205,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
@@ -10245,7 +10245,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10263,7 +10263,7 @@
       },
       {
         "target": "tests/issue-3232-visual-workspace-shell-parity.test.mjs",
-        "targetDigest": "c1bf5e7e457af98b01ebacb1ac14ee395cc4988d3efad7a45014479d39f81ea7",
+        "targetDigest": "bf0deafeab50536cb814ce3ffb5e6efd261cf0cee51bf6b52cc52270a641be31",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10288,7 +10288,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.module.css",
@@ -10423,7 +10423,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           }
         ]
       },
@@ -10455,7 +10455,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10491,7 +10491,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10527,7 +10527,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+            "digest": "afd9075ed1eb5f530793e2fbb15a21647500caaebb7afdbbda7d9ee33e293f45"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",

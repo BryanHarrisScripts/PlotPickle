@@ -13,7 +13,8 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import readline from "node:readline";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { ENGINEERING_MODES, runStagedEngineeringTask, validEngineeringSelection, sanitizeEngineeringOutput } from "./factory-engineering-exec.mjs";
 import {
   readFactoryStatus, planNewestFirst, createQueueGitHubClient, admitFactoryIssues,
 } from "../windows/autonomous-queue.mjs";
@@ -29,6 +30,8 @@ import { allowedFactoryTestNames, readFactoryVerificationHead,
 export const MCP_PROTOCOL = "2025-06-18";
 export const MCP_NAME = "plotpickle-factory-readonly";
 const REPOSITORY = "BryanHarrisScripts/PlotPickle";
+const ENGINEERING_REPO_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..");
+const engineeringEnabledByHost=()=>process.env.PLOTPICKLE_FACTORY_ENGINEERING_ENABLED==="1";
 const HEX_SHA = /^[a-f0-9]{40}$/;
 const MAX_BYTES = 65_536;
 const states = new Set(["OFF","OFFLINE","IDLE","RUNNING","BLOCKED","PR_OPEN",
@@ -316,7 +319,13 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "APP_CANDIDATE_INVALID","APP_CANDIDATE_RECEIPT_INVALID","APP_CANDIDATE_STAGE_INVALID",
   "APP_CANDIDATE_SOURCE_CHANGED","APP_CANDIDATE_DEPENDENCY_DRIFT",
   "APP_CANDIDATE_NPM_UNAVAILABLE","APP_CANDIDATE_DEPENDENCIES_FAILED",
-  "APP_CANDIDATE_RESTART_REQUIRED"]);
+  "APP_CANDIDATE_RESTART_REQUIRED",
+  "ENGINEERING_SELECTION_INVALID","ENGINEERING_STAGE_INVALID",
+  "ENGINEERING_STAGE_RECEIPT_INVALID","ENGINEERING_TARGET_INVALID",
+  "ENGINEERING_SOURCE_CHANGED","ENGINEERING_SOURCE_UNVERIFIED",
+  "ENGINEERING_EXECUTABLE_UNAVAILABLE","ENGINEERING_EXECUTION_UNCONFIRMED",
+  "ENGINEERING_TASK_TIMEOUT","ENGINEERING_STOP_UNVERIFIED",
+  "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -359,7 +368,26 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
 ].map(tool=>Object.freeze({...tool,annotations:{
   readOnlyHint:tool.name==="factory_control_receipt",destructiveHint:false,openWorldHint:false,
 }})));
+export const MCP_ENGINEERING_TOOLS=Object.freeze([{
+  name:"factory_engineering_run",
+  title:"Run flexible engineering task on verified isolated PR source",
+  description:"Owner-opt-in authenticated source-bound Node tests/scripts, existing npm tasks, or PowerShell -File from scripts/ in a verified isolated PR worktree. No inline shell, arbitrary Windows paths, GitHub merge or browser acceptance.",
+  inputSchema:{type:"object",properties:{
+    requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    stageRequestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    candidatePrNumber:{type:"integer",minimum:1,maximum:9999999},
+    candidateHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    mode:{type:"string",enum:ENGINEERING_MODES},
+    target:{type:"string",maxLength:256},
+    scriptArgs:{type:"array",items:{type:"string",maxLength:128},maxItems:8},
+  },required:["requestId","expectedHead","stageRequestId","candidatePrNumber",
+    "candidateHead","mode","scriptArgs"],additionalProperties:false},
+  annotations:{readOnlyHint:false,destructiveHint:false,openWorldHint:false},
+}]);
+
 function validControlArgs(name,args) {
+  if(name==="factory_engineering_run")return validEngineeringSelection(args);
   const keys=Object.keys(args);
   if(!REQUEST_ID.test(args.requestId||""))return false;
   if(name==="factory_control_receipt")return keys.length===1;
@@ -394,6 +422,11 @@ function safeControlReceipt(raw,requestId) {
   if(!state||!code)return null;
   return {requestId,state,code,sourceHead:safeSha(raw.sourceHead),
     suite:allowedFactoryControlSuites().includes(raw.suite)?raw.suite:null,
+    mode:ENGINEERING_MODES.includes(raw.mode)?raw.mode:null,
+    exitCode:Number.isSafeInteger(raw.exitCode)&&raw.exitCode>=0&&raw.exitCode<=255?raw.exitCode:null,
+    durationMs:Number.isSafeInteger(raw.durationMs)&&raw.durationMs>=0&&raw.durationMs<=240_000?raw.durationMs:null,
+    diagnostic:raw.code==="ENGINEERING_TASK_FAILED"&&raw.state==="TEST_FAILED"?sanitizeEngineeringOutput(raw.diagnostic):null,
+    outputDigest:/^[a-f0-9]{64}$/.test(raw.outputDigest||"")?raw.outputDigest:null,
     candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
     candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&
@@ -437,6 +470,7 @@ export async function factoryControlAction(name,args,{
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
+    engineering:runStagedEngineeringTask,
   },
 }={}) {
   if(name==="factory_control_receipt")return factoryControlReceipt({root,requestId:args.requestId});
@@ -458,7 +492,7 @@ export async function factoryControlAction(name,args,{
         requestId:args.requestId,replayAuthorized:false};
       head=source.sourceHead;
     }else{
-      head=name==="factory_run_named_test"
+      head=["factory_run_named_test","factory_engineering_run"].includes(name)
         ?await ops.testHead():await github.exactHead();
     }
   }catch{return {
@@ -476,13 +510,15 @@ export async function factoryControlAction(name,args,{
       candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidatePrNumber:null,
       candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start"].includes(args.suite)?args.candidateHead:null,
       sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start"].includes(args.suite)?args.sourceRequestId:null,
+      stageRequestId:name==="factory_engineering_run"?args.stageRequestId:null,
+      mode:name==="factory_engineering_run"?args.mode:null,
       at:now(),replayAuthorized:false,
     })+"\n",{flag:"wx",mode:0o600});
   }catch{return {state:"DUPLICATE_OR_UNVERIFIABLE_REQUEST",requestId:args.requestId,
     replayAuthorized:false};}
   let outcome;
   try{
-    if(name==="factory_run_named_test"){
+    if(name==="factory_run_named_test"||name==="factory_engineering_run"){
       // A crash preserves a lock for manual review; no auto replay/unlock.
       const lockFile=path.join(dir,"named-test-active.lock");
       let locked=false;
@@ -496,7 +532,11 @@ export async function factoryControlAction(name,args,{
       }
       if(locked){
         try{
-          const result=args.suite==="factory-pr-head"
+          const result=name==="factory_engineering_run"
+            ?await ops.engineering({selection:args,root,repoRoot:ENGINEERING_REPO_ROOT,
+              stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
+              verifyHead:ops.testHead})
+            :args.suite==="factory-pr-head"
             ?await ops.inspectPr({prNumber:args.candidatePrNumber,
               candidateHead:args.candidateHead,expectedHead:args.expectedHead,
               verifyHead:ops.testHead})
@@ -530,6 +570,11 @@ export async function factoryControlAction(name,args,{
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,
+            mode:name==="factory_engineering_run"?result.mode:null,
+            exitCode:name==="factory_engineering_run"?result.exitCode:null,
+            durationMs:name==="factory_engineering_run"?result.durationMs:null,
+            diagnostic:name==="factory_engineering_run"?result.diagnostic:null,
+            outputDigest:name==="factory_engineering_run"?result.outputDigest:null,
             candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
               ?(result.candidatePrNumber??args.candidatePrNumber):null,
             candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
@@ -607,7 +652,8 @@ export const MCP_TOOLS=Object.freeze([
 function invalidParams() {return {code:-32602,message:"Invalid tool arguments"};}
 
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
-  now=Date.now,controlAuthenticated=false,controlOps}={}) {
+  now=Date.now,controlAuthenticated=false,controlOps,
+  engineeringEnabled=false}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -615,16 +661,19 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       return {result:{protocolVersion:MCP_PROTOCOL,
         capabilities:{tools:{listChanged:false}},
         serverInfo:{name:MCP_NAME,version:controlAuthenticated?"0.2.0":"0.1.0"},
-        instructions:controlAuthenticated?"Authenticated fixed app lifecycle on clean owner-Windows main and bounded Factory tests; no general shell, unmerged candidate execution or autonomous merge is implied.":
+        instructions:controlAuthenticated?"Authenticated app lifecycle plus bounded Factory tests; optional host-enabled staged engineering tasks execute selected repository scripts without inline shell or merge permissions. No autonomous merge is implied.":
           "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
-    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS]:MCP_TOOLS}};
+    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS,
+      ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
       if(!args || typeof args!=="object" || Array.isArray(args))
         return {error:invalidParams()};
       const keys=Object.keys(args);
-      const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name);
+      const isEngineering=name==="factory_engineering_run";
+      const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
+      if(isEngineering&&!engineeringEnabled)return {error:{code:-32601,message:"Unknown tool"}};
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(!isControl&&name!=="factory_evidence" && keys.length)
@@ -669,7 +718,8 @@ export async function handleRpc(payload,services) {
 }
 
 export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=Date.now,
-  controlToken=process.env.PLOTPICKLE_FACTORY_MCP_CONTROL_TOKEN,controlOps}={}) {
+  controlToken=process.env.PLOTPICKLE_FACTORY_MCP_CONTROL_TOKEN,controlOps,
+  engineeringEnabled=engineeringEnabledByHost()}={}) {
   return http.createServer(async(req,res)=>{
     const target=req.url||"";
     const host=String(req.headers.host||"").toLowerCase();
@@ -706,7 +756,8 @@ export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=D
       catch {res.writeHead(400);return res.end();}
       const controlAuthenticated=controlTokenMatches(
         req.headers["x-plotpickle-factory-control-token"],controlToken);
-      const answer=await handleRpc(parsed,{root,github,now,controlAuthenticated,controlOps});
+      const answer=await handleRpc(parsed,{root,github,now,controlAuthenticated,controlOps,
+        engineeringEnabled});
       if(answer===null){res.writeHead(202);return res.end();}
       res.writeHead(200,{"content-type":"application/json; charset=utf-8",
         "cache-control":"no-store","mcp-protocol-version":MCP_PROTOCOL});

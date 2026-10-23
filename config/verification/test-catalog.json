@@ -6416,7 +6416,7 @@
       },
       {
         "target": "tests/layer1-navigation-continuity.test.mjs",
-        "targetDigest": "a895acb5968770cf3ad95d598c4bc6b8c734155c9c0db6f6b477b243ffda436c",
+        "targetDigest": "369e804b69f9cdfb87be751ac428656b7aff538cf7fd312eae31954f06af77a9",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10219,7 +10219,7 @@
       },
       {
         "target": "tests/issue-2444-dashboard-review-fold.test.mjs",
-        "targetDigest": "8978630f12b890f48d3fdff0b21a150bc5491d1af8f50333ff8cf79d21866faa",
+        "targetDigest": "848a297e4f44b3b32155f17903879138813b0ccae556a1b381831c6b7d6d29ba",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10255,7 +10255,7 @@
       },
       {
         "target": "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
-        "targetDigest": "67c52b0e72c67fd2b4f897fc8cf99a3a946cce290b57d6beb1013eda7530969b",
+        "targetDigest": "5db30e1d562298a344891cdcabe0b7f2d6c87c8717233d20055a570dad7a378c",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10291,7 +10291,7 @@
       },
       {
         "target": "tests/issue-2587-dashboard-shortcut-remap.test.mjs",
-        "targetDigest": "63b0ada8cb7ac4a94e3b8da31a6455d178efd43cfdb48216360801d8a54d4f37",
+        "targetDigest": "8d80b9d0b29b3906306414e51ca6123e4ed9c5b40ed9e83f4b5bfbbb273b0978",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],

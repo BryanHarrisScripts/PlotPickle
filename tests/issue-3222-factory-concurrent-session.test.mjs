@@ -196,7 +196,7 @@ test("#3222 MCP authenticated Factory start and stop accept fixed selection, rej
       "APP_CANDIDATE_STARTED_VERIFIED");
     assert.equal(received[0].action,"factory-start");
     assert.deepEqual([received[0].candidatePrNumber,received[0].candidateHead],[3248,PR]);
-    assert.equal(received[0].stageReceipt,null,
+    assert.equal(received[0].stageReceipt.state,"NO_REQUEST",
       "MCP source receipt must be separately attested before real Factory startup");
     assert.equal((await call(start)).result.structuredContent.state,
       "DUPLICATE_OR_UNVERIFIABLE_REQUEST");

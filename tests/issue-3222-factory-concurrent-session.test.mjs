@@ -7,7 +7,7 @@ import test from "node:test";
 import {
   FACTORY_SESSION_ENDPOINT,createFactoryIsolatedSessionController,
   factorySessionEnvironment,
-} from "../scripts/engineering-team/mcp/factory-isolated-session.mjs";
+} from "../scripts/engineering-team/mcp/candidate/factory-isolated-session.mjs";
 import { createPlotpickleAppController } from "../scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs";
 import { handleRpc, MCP_CONTROL_TOOLS } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 

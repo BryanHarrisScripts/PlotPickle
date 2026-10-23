@@ -2558,6 +2558,21 @@
       ]
     },
     {
+      "id": "factory-tunnel-http-boundary-3254",
+      "classification": "production",
+      "include": [
+        "app/api/factory/tunnel/route.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "api",
+        "security",
+        "native",
+        "windows",
+        "surface"
+      ]
+    },
+    {
       "id": "factory-supervisor-http-boundary-3142",
       "classification": "production",
       "include": [

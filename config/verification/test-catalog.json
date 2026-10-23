@@ -4750,6 +4750,50 @@
         ]
       },
       "notes": "Owner-directed #3254 Settings Compute Tunnel T. Static/group/time regressions do not prove remote tunnel auth or native Human terminal launch."
+    },
+    {
+      "id": "agent.bidirectional-gateway-p1-3259",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "mcp",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3259-bidirectional-gateway-p1.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3259 P1 non-promoting, transport-independent messages and write-once private records. Unit fixtures only; outbound AI and native tunnel UAT remain unproven."
     }
   ],
   "truthGovernance": {
@@ -9480,7 +9524,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "8f75bb2bea89a199c22d5f30b71162c5de159fd44a33443fe4bff0df07f62e14"
+            "digest": "af78579510087e2f6a7e2c98f8a67e2ad485ece1930b3ecfe52eee54469f6320"
           }
         ]
       },
@@ -10922,6 +10966,38 @@
           {
             "path": "config/skin-v1-surface-registry.json",
             "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3259-bidirectional-gateway-p1.test.mjs",
+        "targetDigest": "9be4a0ce95535b0520e82b5b21fb2ede9b885391244562b65a84864535f37ce1",
+        "catalogueIds": [
+          "agent.bidirectional-gateway-p1-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
+            "digest": "1564fa24dbffee77e7aaa0a5e1a07cef7f36d17288f2aeaa51070eb4cab9be74"
+          },
+          {
+            "path": "schema/gateway/message-envelope.v1.schema.json",
+            "digest": "71b52398cf50611f6e59d8f26688478e001c69fdece34e49e4fd73fb245a9196"
           }
         ]
       }

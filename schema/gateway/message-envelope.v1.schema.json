@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schema/gateway/message-envelope.v1.schema.json",
+  "title": "PlotPickle bidirectional Gateway P1 question/answer envelope",
+  "description": "Schema for transport-independent P1 records only. Actual host authentication and filesystem state must be validated separately. Later message kinds require new implementation and approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "messageId",
+    "correlationId",
+    "causationId",
+    "conversationId",
+    "createdAt",
+    "expiresAt",
+    "sender",
+    "recipient",
+    "projectId",
+    "taskId",
+    "kind",
+    "schemaId",
+    "payload",
+    "capabilityScope",
+    "expectedSourceHead",
+    "sourceChannel",
+    "idempotencyKey",
+    "evidenceRefs",
+    "integrity"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": "1.0"
+    },
+    "messageId": {
+      "$ref": "#/$defs/id"
+    },
+    "correlationId": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/id"
+        }
+      ]
+    },
+    "causationId": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/id"
+        }
+      ]
+    },
+    "conversationId": {
+      "$ref": "#/$defs/id",
+      "description": "Gateway-managed ID, never a ChatGPT UI conversation token"
+    },
+    "createdAt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expiresAt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sender": {
+      "$ref": "#/$defs/actor"
+    },
+    "recipient": {
+      "$ref": "#/$defs/actor"
+    },
+    "projectId": {
+      "$ref": "#/$defs/refOrNull"
+    },
+    "taskId": {
+      "$ref": "#/$defs/refOrNull"
+    },
+    "kind": {
+      "enum": [
+        "question",
+        "answer"
+      ]
+    },
+    "schemaId": {
+      "enum": [
+        "gateway.question.v1",
+        "gateway.answer.v1"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      }
+    },
+    "capabilityScope": {
+      "enum": [
+        "OBSERVE",
+        "ENGINEER",
+        "ORCHESTRATE",
+        "AUTONOMOUS_POLICY"
+      ]
+    },
+    "expectedSourceHead": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "sourceChannel": {
+      "enum": [
+        "main",
+        "candidate"
+      ]
+    },
+    "idempotencyKey": {
+      "$ref": "#/$defs/id"
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "payloadDigest"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "sha256"
+        },
+        "payloadDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "question"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "schemaId": {
+            "const": "gateway.question.v1"
+          },
+          "correlationId": {
+            "type": "null"
+          },
+          "causationId": {
+            "type": "null"
+          },
+          "sender": {
+            "properties": {
+              "role": {
+                "const": "plotpickle"
+              }
+            }
+          },
+          "recipient": {
+            "properties": {
+              "role": {
+                "const": "ai-worker"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "answer"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "schemaId": {
+            "const": "gateway.answer.v1"
+          },
+          "correlationId": {
+            "$ref": "#/$defs/id"
+          },
+          "causationId": {
+            "$ref": "#/$defs/id"
+          },
+          "sender": {
+            "properties": {
+              "role": {
+                "const": "ai-worker"
+              }
+            }
+          },
+          "recipient": {
+            "properties": {
+              "role": {
+                "const": "plotpickle"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "refOrNull": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+        }
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "id"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "plotpickle",
+            "ai-worker",
+            "human",
+            "mcp-client"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,47}$"
+        }
+      }
+    }
+  }
+}

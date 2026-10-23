@@ -2627,6 +2627,19 @@
         "navigation",
         "security"
       ]
+    },
+    {
+      "id": "bidirectional-gateway-envelope-schema-3259",
+      "classification": "production",
+      "include": [
+        "schema/gateway/**"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "security",
+        "mcp",
+        "agent"
+      ]
     }
   ]
 }

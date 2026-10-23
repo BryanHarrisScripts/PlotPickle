@@ -10571,7 +10571,7 @@
       },
       {
         "target": "tests/issue-2559-library-example-gateway.test.mjs",
-        "targetDigest": "2202cdd90b19d9a5b1bb203579b28a259b9e0d6c065b5f920c54adb62e55b6ed",
+        "targetDigest": "70f37717edd230da4f68ac2ed0095a0a0240dd3a5565966b1fb8df7cfcff30cf",
         "catalogueIds": [
           "experience.skin-surface-contract"
         ],

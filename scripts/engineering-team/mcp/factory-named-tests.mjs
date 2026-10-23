@@ -508,6 +508,25 @@ export async function runFactoryStoryUat({
     independentVerification:false});
 }
 
+// Expose only fixed classifications and bounded numeric status, never child output,
+// paths, error messages or environment values.
+export function classifyNamedTestFailure(error) {
+  const exitCode = Number.isSafeInteger(error?.code) && error.code >= 0 && error.code <= 255
+    ? error.code : null;
+  const launchCode = typeof error?.code === "string" &&
+    ["ENOENT", "EACCES", "EPERM", "ENOMEM", "EAGAIN"].includes(error.code)
+    ? error.code : null;
+  const signal = typeof error?.signal === "string" &&
+    ["SIGTERM", "SIGKILL", "SIGINT", "SIGABRT"].includes(error.signal)
+    ? error.signal : null;
+  const timedOut = error?.killed === true || error?.code === "ETIMEDOUT";
+  return Object.freeze({
+    failureKind: timedOut ? "TIMEOUT" : launchCode ? "PROCESS_LAUNCH" :
+      exitCode !== null ? "NONZERO_EXIT" : signal ? "SIGNAL" : "UNKNOWN",
+    exitCode, launchCode, signal,
+  });
+}
+
 export async function runFactoryNamedTest({
   suite,expectedHead,repoRoot=ROOT,platform=process.platform,
   verifyHead=readFactoryVerificationHead,run=exec,
@@ -534,11 +553,11 @@ export async function runFactoryNamedTest({
     sourceHead:SHA.test(after||"")?after:null,suite});
   if(!error)return Object.freeze({state:"TEST_PASSED",code:"NODE_TEST_PASS",
     sourceHead:actual,suite});
-  // No raw stdout/stderr/environment leaks into MCP/issue telemetry.
-  const timeout=error?.killed===true||error?.code==="ETIMEDOUT";
+  // Only allowlisted categories and bounded status escape this process.
+  const failure=classifyNamedTestFailure(error);
   return Object.freeze({state:"TEST_FAILED",
-    code:timeout?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
-    sourceHead:actual,suite});
+    code:failure.failureKind==="TIMEOUT"?"NODE_TEST_TIMEOUT":"NODE_TEST_FAILED",
+    sourceHead:actual,suite,...failure});
 }
 
 /**

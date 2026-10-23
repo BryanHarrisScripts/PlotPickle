@@ -17,7 +17,7 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
   assert.deepEqual(byGroup("VISUALIZE"), [
     ["Outline", "O"], ["Storyboard", "S"], ["Previs", "P"], ["Timeline", "T"], ["Rough Cut", "C"],
   ]);
-  assert.deepEqual(byGroup("ASSETS"), [["Assets", "A"]]);
+  assert.deepEqual(byGroup("ASSETS"), [["Assets", "A"], ["Discover", "J"]]);
   assert.deepEqual(byGroup("PITCH"), [
     ["Deck", "K"], ["Package", "G"], ["Feedback", "B"],
   ]);
@@ -26,11 +26,11 @@ test("#2587 locks the Human-approved creative shortcut map and preserves numeric
   ]);
 
   const creative = rows.filter((row) => ["DEVELOP", "VISUALIZE", "ASSETS", "PITCH", "PLAY"].includes(row.group));
-  assert.equal(creative.length, 17);
-  assert.equal(new Set(creative.map((row) => row.shortcut)).size, 17);
+  assert.equal(creative.length, 18);
+  assert.equal(new Set(creative.map((row) => row.shortcut)).size, 18);
 
   assert.deepEqual(byGroup("EXPLORE"), [
-    ["Learn", "1"], ["Library", "2"], ["Community", "3"], ["Screening", "4"], ["Reports", "5"], ["Discover", "J"],
+    ["Learn", "1"], ["Library", "2"], ["Community", "3"], ["Screening", "4"], ["Reports", "5"],
   ]);
   assert.deepEqual(byGroup("SYSTEM"), [
     ["Settings", "6"], ["Service", "7"], ["Legal", "8"], ["Log Off", "9"], ["Shut Down", "0"],

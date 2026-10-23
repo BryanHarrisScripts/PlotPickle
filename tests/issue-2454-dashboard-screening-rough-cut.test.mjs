@@ -11,7 +11,7 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
 
   assert.deepEqual(
     rows.filter((row) => row.group === "EXPLORE").map((row) => row.label),
-    ["Learn", "Library", "Community", "Screening", "Reports", "Discover"],
+    ["Learn", "Library", "Community", "Screening", "Reports"],
   );
   assert.deepEqual(
     rows.filter((row) => row.group === "VISUALIZE").map((row) => row.label),
@@ -21,6 +21,8 @@ test("#2454 applies the Human-approved Dashboard IA without changing underlying 
     rows.filter((row) => row.group === "PITCH").map((row) => row.label),
     ["Deck", "Package", "Feedback"],
   );
+
+  assert.deepEqual(rows.filter((row) => row.group === "ASSETS").map((row) => row.label), ["Assets", "Discover"]);
 
   const roughCut = rows.find((row) => row.label === "Rough Cut");
   assert.equal(roughCut?.id, "production");

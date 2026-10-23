@@ -94,8 +94,9 @@ test("#2559/#2560/#2570 Afterglow posters remain intact; LOAD is compact and EXA
   assert.match(source, /MAX_EXAMPLE_POSTERS = 5/u);
   assert.match(source, /className=\{styles\.loadPosterButton\}/u);
   assert.doesNotMatch(source, /className=\{styles\.loadPosterNavigation\}/u);
-  assert.doesNotMatch(source, /Previous Afterglow poster/u);
-  assert.doesNotMatch(source, /Next Afterglow poster/u);
+  // EXAMPLES must keep its poster-version controls; only the LOAD gateway loses them.
+  assert.match(source, /Previous Afterglow poster/u);
+  assert.match(source, /Next Afterglow poster/u);
   assert.match(source, /safePosterIndex \+ 1\} \/ \{examplePosters\.length\}/u);
   assert.match(css, /\.examplePoster \{[\s\S]*aspect-ratio: 2 \/ 3/u);
   assert.match(css, /\.examplePoster img \{[\s\S]*object-fit: contain/u);

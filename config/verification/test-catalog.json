@@ -6346,7 +6346,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "f9cc867265e7f7a98a9b6a0f70cec478ff038aac4eb1860085d3a4c735d104b0"
+            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -6740,7 +6740,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "f9cc867265e7f7a98a9b6a0f70cec478ff038aac4eb1860085d3a4c735d104b0"
+            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
@@ -10793,7 +10793,7 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "f9cc867265e7f7a98a9b6a0f70cec478ff038aac4eb1860085d3a4c735d104b0"
+            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
@@ -10825,7 +10825,7 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "f9cc867265e7f7a98a9b6a0f70cec478ff038aac4eb1860085d3a4c735d104b0"
+            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
@@ -11135,7 +11135,7 @@
       },
       {
         "target": "tests/issue-3266-library-tunnel-windows-uat.test.mjs",
-        "targetDigest": "1fe66c5fe0187f9a7ab7b6dcd07578a6090ba02a6ff0d9daf6fd6c42b77ea5a1",
+        "targetDigest": "61f44178bc5acf3ba1ffd8a00e44518aaab66f2dd217101aa5158cbc68638313",
         "catalogueIds": [
           "experience.library-tunnel-windows-uat-3266"
         ],
@@ -11173,7 +11173,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "f9cc867265e7f7a98a9b6a0f70cec478ff038aac4eb1860085d3a4c735d104b0"
+            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",

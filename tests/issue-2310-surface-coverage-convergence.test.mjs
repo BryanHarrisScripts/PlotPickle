@@ -16,8 +16,13 @@ test("#2310 separates migration inventory from current Matrix governance", () =>
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 32);
   // #2863: Afterglow Management is an actual Matrix Settings child with a
   // governed return path. The migration census grows by exactly this surface.
-  assert.equal(SKIN_V1_SURFACES.length, 88);
-  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 51);
+  // #3266: owner-provisioned Tunnel is a newly registered nested Settings surface.
+  assert.equal(SKIN_V1_SURFACES.length, 89);
+  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 52);
+  const tunnel = SKIN_V1_SURFACES.find((surface) => surface.id === "tunnel");
+  assert.equal(tunnel?.parent, "settings");
+  assert.equal(tunnel?.orchestrated, true);
+  assert.equal(tunnel?.capturePolicy, "census-only");
   const afterglow = SKIN_V1_SURFACES.find((surface) => surface.id === "afterglow-management");
   assert.equal(afterglow?.parent, "settings");
   assert.equal(afterglow?.orchestrated, true);

@@ -1276,7 +1276,7 @@ export default function LibraryWorkspace({ currentFilmDetails, onInspectStory }:
                 ) : (
                   <p>{inspectedExampleTitle
                     ? `${inspectedExampleTitle} is a packaged example, not an opened working story. Open EXAMPLES to inspect or restore its PPF before making production decisions.`
-                    : "Choose Continue This Film on a saved story card to inspect its own evidence. Nothing is opened, saved or locked by this preview."}</p>
+                    : "Choose Continue This Film on a saved story card to inspect its own evidence. Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it."}</p>
                 )}
               </section>
             </aside>

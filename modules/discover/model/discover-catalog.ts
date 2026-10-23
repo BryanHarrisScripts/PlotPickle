@@ -33,11 +33,10 @@ const STATUS = new Set<DiscoverCapability["status"]>([
 
 export function safeDiscoverUrl(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 2048) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && url.hostname.includes(".") &&
-      !url.username && !url.password ? url.href : null;
-  } catch { return null; }
+  if (!URL.canParse(value)) return null;
+  const url = new URL(value);
+  return url.protocol === "https:" && url.hostname.includes(".") &&
+    !url.username && !url.password ? url.href : null;
 }
 function date(value: unknown): value is string {
   return typeof value === "string" && DATE.test(value) &&

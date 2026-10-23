@@ -77,7 +77,7 @@ test("#2863 Matrix Settings actually navigates to dedicated Afterglow Management
   assert.doesNotMatch(workspace, /section === "afterglow-management" \? <SettingsReviewSystemPanel/u);
   assert.match(menuAudit, /page\.keyboard\.press\("F"\)/u);
   assert.match(menuAudit, /data-afterglow-management='phase2-preview'/u);
-  assert.match(webmcpAudit, /settingsRows\.length === 11/u);
+  assert.match(webmcpAudit, /settingsRows\.length === 12/u);
   assert.match(webmcpAudit, /agents,data-recovery,afterglow-management,semantic-uat/u);
   const afterglowSurface = JSON.parse(registryText).surfaces.find((item) => item.id === "afterglow-management");
   assert.ok(afterglowSurface, "the actual Human route must be registered with the Matrix orchestrator");

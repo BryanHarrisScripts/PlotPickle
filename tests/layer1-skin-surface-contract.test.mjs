@@ -67,7 +67,7 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
   assert.match(auth, /action: "login"/u);
 });
 
-test("Layer 1 ordinary selection stays consolidated to three current-product owners", async () => {
+test("Layer 1 ordinary selection includes the approved Settings Tunnel owner without unrelated expansion", async () => {
   const catalog = JSON.parse(await read("config/verification/test-catalog.json"));
   const ordinary = catalog.entries
     .filter((entry) => entry.ownerLayer === "experience-skins" && entry.modes.some((mode) => mode === "baseline" || mode === "impact"))
@@ -75,6 +75,7 @@ test("Layer 1 ordinary selection stays consolidated to three current-product own
     .sort();
   assert.deepEqual(ordinary, [
     "experience.navigation-continuity",
+    "experience.settings-tunnel-navigation-3254",
     "experience.skin-surface-contract",
     "experience.webmcp-live-observer",
   ]);

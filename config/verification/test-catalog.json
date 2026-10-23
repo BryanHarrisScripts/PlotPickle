@@ -4658,6 +4658,98 @@
         ]
       },
       "notes": "#118 retained legacy consolidated report model and actual Library-owned Reports route; source assertions verify preserved current navigation, reload and stable editor target contracts. Static tests only: no authenticated Windows browser, independent runtime readiness, cross-profile isolation or persistence proof."
+    },
+    {
+      "id": "agent.settings-compute-tunnel-3254",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "api",
+        "surface"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3254 owner Windows PowerShell launcher and local-only profile/CSRF, without importing credentials into browser. Unit fixtures are not native UAT."
+    },
+    {
+      "id": "experience.settings-tunnel-navigation-3254",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "auth",
+        "voice"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2730-settings-directory-groups.test.mjs",
+          "tests/issue-2751-settings-organization.test.mjs",
+          "tests/issue-2863-settings-time-and-operations-order.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "Owner-directed #3254 Settings Compute Tunnel T. Static/group/time regressions do not prove remote tunnel auth or native Human terminal launch."
     }
   ],
   "truthGovernance": {
@@ -9388,7 +9480,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "01525f9d6e67efb549d8b253e7ccbc43292fd993b0a23cb3339bd118c45c0623"
+            "digest": "8f75bb2bea89a199c22d5f30b71162c5de159fd44a33443fe4bff0df07f62e14"
           }
         ]
       },
@@ -9951,7 +10043,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "8ef9dd755778f0b39e12be82ccb6efd0f7efb6b89b745358719de4177b4eaa0c"
+            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
           }
         ]
       },
@@ -10249,7 +10341,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "17922ea53881085d58c317f54db2682277b8bd849941ac9dcbb6de11cf3c20f7"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
@@ -10459,7 +10551,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "17922ea53881085d58c317f54db2682277b8bd849941ac9dcbb6de11cf3c20f7"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10495,7 +10587,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "17922ea53881085d58c317f54db2682277b8bd849941ac9dcbb6de11cf3c20f7"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10531,7 +10623,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
-            "digest": "17922ea53881085d58c317f54db2682277b8bd849941ac9dcbb6de11cf3c20f7"
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
           }
         ]
       },
@@ -10598,6 +10690,238 @@
           {
             "path": "modules/library/ui/library-workspace.module.css",
             "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
+        "targetDigest": "664d8ef81b83cccf9e433f240bc250f81747ca8720b2710e2ac2a00149ecf61a",
+        "catalogueIds": [
+          "agent.settings-compute-tunnel-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected Windows HTTP/Request and disposable filesystem tests only. Does not prove native PowerShell window creation, remote authorization, ChatGPT plugin connection, paid providers, autonomous coding or merges; independent Windows GUI UAT remains outstanding.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
+            "digest": "cd100ba5e05df49445be684f892440a5ee49a0c1097532aba03ff8e11938ed6c"
+          },
+          {
+            "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
+            "digest": "2ef24a85e60a102021803f81a3544f37663e5e35967b47a37e2dbaf1cbd47f9b"
+          },
+          {
+            "path": "app/api/factory/tunnel/route.ts",
+            "digest": "9c7063079242996bd795c3b9fda299147c517379f43ffa881f96cc644c6009c6"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
+          },
+          {
+            "path": "app/skin-v1/tunnel-settings-panel.tsx",
+            "digest": "ae5136258f7ea48b9f73ab611dd67a4e4a87b4fc2dcf88f2006f005c63711c11"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          }
+        ]
+      },
+      {
+        "target": "tests/layer1-skin-surface-contract.test.mjs",
+        "targetDigest": "a892116b25779b2f78e3f5d7d704379d6021d0468ed8f29ec188515c6dad8ef3",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Exact Layer 1 ordinary owner selection, secure profile-gate source contracts and deterministic Skin composition fixtures only. Does not prove rendered Windows product acceptance, remote Tunnel authorization, Human credentials or live browser continuity.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-2730-settings-directory-groups.test.mjs",
+        "targetDigest": "fb76c6583123249d0ca209c8a3c506744d7ba17ca7608f92d4e1f8bc453265c6",
+        "catalogueIds": [
+          "experience.settings-tunnel-navigation-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Approved Settings navigation and WebMCP source contracts only. Does not establish native Windows browser/PowerShell, remote ChatGPT tunnel/plugin authorization, secret safety at runtime, or product UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          },
+          {
+            "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+            "digest": "c88004d4497867f5b86d68c2ece67d10944da53bb3dc64606b89f76f67066f9a"
+          },
+          {
+            "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+            "digest": "fd6f576fb645a30051e488f566f20c7bb316820f53d1c68b12e155d908cd789f"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2751-settings-organization.test.mjs",
+        "targetDigest": "5231e796649b6d9e1c5f9d990cc17d65169e9994d3aeece17e8ae790eb7a7152",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "experience.settings-tunnel-navigation-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Approved Settings navigation and WebMCP source contracts only. Does not establish native Windows browser/PowerShell, remote ChatGPT tunnel/plugin authorization, secret safety at runtime, or product UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          },
+          {
+            "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+            "digest": "c88004d4497867f5b86d68c2ece67d10944da53bb3dc64606b89f76f67066f9a"
+          },
+          {
+            "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+            "digest": "fd6f576fb645a30051e488f566f20c7bb316820f53d1c68b12e155d908cd789f"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2863-settings-time-and-operations-order.test.mjs",
+        "targetDigest": "a07b268e48cb7d7037c99fe6083b62f5da5c0bc1caa1b8f713416d22d860bf82",
+        "catalogueIds": [
+          "experience.skin-surface-contract",
+          "experience.settings-tunnel-navigation-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Approved Settings navigation and WebMCP source contracts only. Does not establish native Windows browser/PowerShell, remote ChatGPT tunnel/plugin authorization, secret safety at runtime, or product UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          },
+          {
+            "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+            "digest": "c88004d4497867f5b86d68c2ece67d10944da53bb3dc64606b89f76f67066f9a"
+          },
+          {
+            "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+            "digest": "fd6f576fb645a30051e488f566f20c7bb316820f53d1c68b12e155d908cd789f"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2863-afterglow-settings-preview.test.mjs",
+        "targetDigest": "459577c57b1a1f7fdb99976a69402fb0e46dd5ecb3168a659a68d9ee2456bdf3",
+        "catalogueIds": [
+          "story-canon.save-session-continuity-2821"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source assertion that the authenticated Matrix Settings directory exposes all twelve current destinations, including Tunnel, while Afterglow Recovery retains its own registered route. Does not establish native Windows login, launcher execution, remote ChatGPT authorization, or Human product acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          },
+          {
+            "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+            "digest": "c88004d4497867f5b86d68c2ece67d10944da53bb3dc64606b89f76f67066f9a"
+          },
+          {
+            "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+            "digest": "fd6f576fb645a30051e488f566f20c7bb316820f53d1c68b12e155d908cd789f"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
           }
         ]
       }

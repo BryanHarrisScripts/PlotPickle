@@ -14,6 +14,7 @@ import PlotPickleScorePanel from "./plotpickle-score-panel";
 import SettingsWorkspacePanel, { WORKSPACE_SETTINGS_LABELS, isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 import StoryModeHost, { type StoryModePolicy } from "./story-mode-host";
+import TunnelSettingsPanel from "./tunnel-settings-panel";
 
 export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
@@ -26,6 +27,7 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   local: "L",
   cloud: "C",
   hybrid: "H",
+  tunnel: "T",
   "node-info": "I",
   agents: "A",
   "buzz-settings": "B",
@@ -38,6 +40,7 @@ const SETTINGS_MENU = [
   { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "COMPUTE" },
   { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "COMPUTE" },
   { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Connections", description: "Route capabilities across Local and Cloud.", group: "COMPUTE" },
+  { id: "tunnel", shortcut: SETTINGS_SHORTCUTS.tunnel, label: "Tunnel", description: "Start your own authenticated MCP and Factory connection.", group: "COMPUTE" },
   { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "Buzz", description: "Configure BUZZ identity, presence and runtime settings.", group: "OPERATIONS" },
   { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Inspect Agents and their selected Writing connection.", group: "OPERATIONS" },
   { id: "data-recovery", shortcut: SETTINGS_SHORTCUTS["data-recovery"], label: "Data Recovery", description: "Review project files and rolling recovery points.", group: "OPERATIONS" },
@@ -77,6 +80,7 @@ export default function DashboardBbsPanel({
   const [commandOpen, setCommandOpen] = useState(false);
   const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
   const [storyModeView, setStoryModeView] = useState<StoryModePolicy | null>(null);
+  const [tunnelOpen, setTunnelOpen] = useState(false);
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
@@ -92,6 +96,7 @@ export default function DashboardBbsPanel({
       setSettingsWorkspace(null);
       setCommandOpen(false);
       setStoryModeView(null);
+      setTunnelOpen(false);
       setNodeInfoOpen(false);
       setPlotPickleAgentsOpen(false);
       onSurfaceNameChange("DASHBOARD");
@@ -112,6 +117,7 @@ export default function DashboardBbsPanel({
       setNodeInfoOpen(false);
       setPlotPickleAgentsOpen(false);
       setStoryModeView(mode);
+      setTunnelOpen(false);
     };
     window.addEventListener("plotpickle:open-story-mode", openConnections);
     return () => window.removeEventListener("plotpickle:open-story-mode", openConnections);
@@ -165,6 +171,10 @@ export default function DashboardBbsPanel({
       onSurfaceNameChange(storyModeView.toUpperCase());
       return;
     }
+    if (settingsMenuOpen && tunnelOpen) {
+      onSurfaceNameChange("TUNNEL");
+      return;
+    }
     if (settingsMenuOpen && nodeInfoOpen) {
       onSurfaceNameChange("NODE");
       return;
@@ -182,6 +192,7 @@ export default function DashboardBbsPanel({
     settingsMenuOpen,
     settingsWorkspace,
     storyModeView,
+    tunnelOpen,
     writerCraftMenuOpen,
   ]);
 
@@ -233,6 +244,7 @@ export default function DashboardBbsPanel({
       setStoryModeView(item.id);
       return;
     }
+    if (item.id === "tunnel") { setTunnelOpen(true); return; }
     if (item.id === "node-info") {
       setNodeInfoOpen(true);
       return;
@@ -317,6 +329,18 @@ export default function DashboardBbsPanel({
 
   if (settingsMenuOpen && storyModeView) {
     return <StoryModeHost initialView={storyModeView} onReturnToSettings={() => setStoryModeView(null)} />;
+  }
+
+  if (settingsMenuOpen && tunnelOpen) {
+    return <section aria-label="Tunnel compute setup" data-settings-tunnel-surface="true" onKeyDown={(event) => {
+      if (event.key === "Escape") { event.preventDefault(); setTunnelOpen(false); }
+    }}>
+      <div className="pp-skin-v1-bbs-banner">
+        <h1>TUNNEL</h1>
+        <button type="button" className="pp-skin-v1-return" onClick={() => setTunnelOpen(false)}>Back to Settings</button>
+      </div>
+      <TunnelSettingsPanel />
+    </section>;
   }
 
   if (settingsMenuOpen && nodeInfoOpen) {

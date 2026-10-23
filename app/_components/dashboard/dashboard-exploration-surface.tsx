@@ -46,7 +46,7 @@ export default function DashboardExplorationSurface({
   readonly onOpenLibrary: () => void;
 }) {
   return <div style={{ minWidth: 0, maxWidth: "100%", overflow: "auto" }}><Suspense fallback={<p role="status">Opening {workspace}…</p>}>
-    {workspace === "discover" ? <DiscoverJournal />
+    {workspace === "discover" ? <DiscoverJournal onBackDashboard={onBackDashboard} />
       : workspace === "reports" ? <ReportsPage onBackDashboard={onBackDashboard} onOpenLibrary={onOpenLibrary} />
       : workspace === "edit" ? <EditWorkspace />
         : workspace === "refine" ? <DiagnosticCraftPage />

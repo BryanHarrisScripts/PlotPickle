@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { createServer } from "node:http";
+import { randomBytes } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -10,6 +13,7 @@ import {
 } from "../scripts/engineering-team/mcp/candidate/factory-isolated-session.mjs";
 import { createPlotpickleAppController } from "../scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs";
 import { handleRpc, MCP_CONTROL_TOOLS } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
+import { establishVerificationSyntheticHuman, verificationSyntheticRuntime, cleanupVerificationSyntheticHome } from "../scripts/full-verification-auth.mjs";
 
 const MAIN="1".repeat(40),PR="2".repeat(40),STAGE="a".repeat(32);
 const stageReceipt={state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
@@ -205,4 +209,85 @@ test("#3222 MCP authenticated Factory start and stop accept fixed selection, rej
     assert.equal((await call(stop)).result.structuredContent.code,"APP_STOPPED_VERIFIED");
     assert.equal(received[1].action,"factory-stop");
   }finally{await rm(root,{recursive:true,force:true});}
+});
+
+test("#3222 native Windows Factory process and synthetic session do not disturb MAIN 4173 sentinel",{
+  skip:process.platform!=="win32"||process.env.PLOTPICKLE_NATIVE_FACTORY_SESSION_PROOF!=="1",
+  timeout:180_000,
+},async()=>{
+  const head=String(process.env.PLOTPICKLE_PROOF_SOURCE_HEAD||"").trim();
+  assert.match(head,/^[a-f0-9]{40}$/u);
+  assert.equal(execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),head,
+    "Windows proof must execute the exact checked-out candidate");
+  const request=randomBytes(16).toString("hex");
+  const runtime=verificationSyntheticRuntime(`factory-pr-3249-${request}`);
+  const sentinel=createServer((request,response)=>{
+    response.writeHead(200,{"content-type":"text/plain"});
+    response.end("OWNER_MAIN_SENTINEL");
+  });
+  const listen=()=>new Promise((resolve,reject)=>{
+    sentinel.once("error",reject);
+    sentinel.listen(4173,"127.0.0.1",resolve);
+  });
+  const close=()=>new Promise(resolve=>sentinel.close(resolve));
+  let controller=null,confirmedStop=false;
+  try{
+    await listen();
+    const fakeStage={state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
+      stageId:request,sourceHead:head,candidateHead:head,candidatePrNumber:3249};
+    controller=createFactoryIsolatedSessionController({
+      repoRoot:process.cwd(),
+      platform:"win32",
+      verifyHead:async()=>{
+        const actual=execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+        return actual===head?head:null;
+      },
+      prepareCandidate:async attestation=>{
+        assert.equal(attestation.expectedHead,head);
+        assert.equal(attestation.candidateHead,head);
+        assert.deepEqual(attestation.stageReceipt,fakeStage);
+        return {state:"TEST_PASSED",code:"APP_CANDIDATE_PREPARED",
+          repoRoot:process.cwd()};
+      },
+      startTimeoutMs:120_000,
+    });
+    const launched=await controller.control({
+      action:"factory-start",expectedHead:head,
+      root:path.resolve("fixture","private"),sourceRequestId:request,
+      candidateHead:head,candidatePrNumber:3249,stageReceipt:fakeStage,
+    });
+    assert.equal(launched.code,"APP_CANDIDATE_STARTED_VERIFIED",
+      "real Windows localhost:4174 startup and source marker must pass");
+    const response=await fetch(FACTORY_SESSION_ENDPOINT.url,{cache:"no-store"});
+    assert.equal(response.ok,true);
+    const html=await response.text();
+    assert.ok(html.includes(`data-plotpickle-launch-head="${head}"`));
+    assert.ok(html.includes("PR #3249"));
+    const synthetic=await establishVerificationSyntheticHuman({
+      baseUrl:"http://localhost:4174",home:runtime.home,
+    });
+    assert.equal(synthetic.home,runtime.home);
+    const auth=await fetch("http://localhost:4174/api/auth/profile",{
+      headers:{Cookie:synthetic.environment.PLOTPICKLE_VERIFICATION_AUTH_COOKIE},
+      cache:"no-store",
+    });
+    assert.equal(auth.status,200);
+    assert.equal((await auth.json()).authenticated,true);
+    const mainResponse=await fetch("http://127.0.0.1:4173/");
+    assert.equal(await mainResponse.text(),"OWNER_MAIN_SENTINEL");
+    const stopping=await controller.control({action:"factory-stop",expectedHead:head});
+    assert.equal(stopping.code,"APP_STOPPED_VERIFIED");
+    confirmedStop=true;
+    const after=await fetch("http://127.0.0.1:4173/");
+    assert.equal(await after.text(),"OWNER_MAIN_SENTINEL",
+      "independent Factory STOP must leave MAIN listener alive");
+  }finally{
+    if(controller&&!confirmedStop){
+      const stopping=await controller.control({action:"factory-stop",expectedHead:head});
+      confirmedStop=stopping.code==="APP_STOPPED_VERIFIED";
+    }
+    await close();
+    // Only remove the self-owned synthetic home after verified STOP.
+    if(confirmedStop)await cleanupVerificationSyntheticHome(runtime.home);
+  }
 });

@@ -4762,7 +4762,6 @@
         "agent",
         "security",
         "test-harness",
-        "gateway",
         "mcp",
         "api"
       ],

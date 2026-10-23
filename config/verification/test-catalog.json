@@ -122,7 +122,10 @@
           "tests/issue-3033-assets-image-route-switch.test.mjs",
           "tests/issue-3035-assets-surface-polish.test.mjs",
           "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-          "tests/issue-3227-discover-matrix-journal.test.mjs"
+          "tests/issue-3227-discover-matrix-journal.test.mjs",
+          "tests/issue-2444-dashboard-review-fold.test.mjs",
+          "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
+          "tests/issue-2587-dashboard-shortcut-remap.test.mjs"
         ]
       },
       "cost": "fast",
@@ -10211,6 +10214,114 @@
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
             "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2444-dashboard-review-fold.test.mjs",
+        "targetDigest": "8978630f12b890f48d3fdff0b21a150bc5491d1af8f50333ff8cf79d21866faa",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
+        "targetDigest": "67c52b0e72c67fd2b4f897fc8cf99a3a946cce290b57d6beb1013eda7530969b",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2587-dashboard-shortcut-remap.test.mjs",
+        "targetDigest": "63b0ada8cb7ac4a94e3b8da31a6455d178efd43cfdb48216360801d8a54d4f37",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Historical Dashboard group/shortcut regression amended solely for the Human-directed new EXPLORE Discover row; old mapping for established rows remains and is not evidence of browser acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-menu-registry.ts",
+            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "330f3d78b96bf7230a23c8fe4fff83f8d930c12154eb70eb1d3f95096d54e348"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "6212e084a58a7960e9a9ed4342b6b211a8221e31a6fd2e9f13e1f2087badced5"
           }
         ]
       }

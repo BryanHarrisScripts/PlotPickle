@@ -121,7 +121,8 @@
           "tests/issue-3032-character-sheet-portrait.test.mjs",
           "tests/issue-3033-assets-image-route-switch.test.mjs",
           "tests/issue-3035-assets-surface-polish.test.mjs",
-          "tests/issue-3230-reports-in-shell-navigation.test.mjs"
+          "tests/issue-3230-reports-in-shell-navigation.test.mjs",
+          "tests/issue-3233-canonical-library-entry.test.mjs"
         ]
       },
       "cost": "fast",
@@ -5795,7 +5796,7 @@
       },
       {
         "target": "tests/issue-2956-reports-library-ppf-authority.test.mjs",
-        "targetDigest": "7318f634008239f3333b31999c224009f2a330e75564d93b4398d0dbf287a6fe",
+        "targetDigest": "71566d75549828988c96e07ca5c499521561b3146d1f07907d792e2e112fde79",
         "catalogueIds": [
           "experience.reports-active-library-ppf-2956"
         ],
@@ -5825,7 +5826,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           }
         ]
       },
@@ -9795,7 +9796,7 @@
           },
           {
             "path": "app/page.tsx",
-            "digest": "994df3ee750b24fa4d5a02088c5b844db8858e9e8ce98023bfe5d6702a412fb7"
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
           },
           {
             "path": "modules/wyrmwood/ui/wyrmwood-workspace.tsx",
@@ -9805,7 +9806,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "233b4cd6504ace1091aafa8fddf9c2047166a6e783ed178847e884dd0a1e9eb4",
+        "targetDigest": "1c7a5b22089b7a57579decac3dd945898494b97c376f3da501b88d117799372b",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -9847,7 +9848,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           },
           {
             "path": "app/layout.tsx",
@@ -10029,7 +10030,7 @@
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
-        "targetDigest": "5d63ccdecc6fc9bb17ff7a4906ebabf8d7cdf670282003549361538e825bd52e",
+        "targetDigest": "d405b7f3938b08ff76ee5e54cefcac9fa3cfd3f884884102a53f22c207a35548",
         "catalogueIds": [
           "experience.reports-current-route-legacy-contract-118"
         ],
@@ -10062,7 +10063,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           },
           {
             "path": "app/build-workspace.tsx",
@@ -10080,7 +10081,7 @@
       },
       {
         "target": "tests/issue-3230-reports-in-shell-navigation.test.mjs",
-        "targetDigest": "973e5772d1ae2d03491fc140576523bd6efc1ec8491c8c96558e028343dbc25e",
+        "targetDigest": "51d59bfcc76320512fd2a3277bb78f98297a7b29bbd97e2d1f5a972d2f150342",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -10113,7 +10114,7 @@
           },
           {
             "path": "app/reports/library-ppf-reports-workspace.tsx",
-            "digest": "472cf4fd2e65d5ea6d86bcc9c2c24e9939070b4eb687f7323d6da73d983e9d30"
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           }
         ]
       },
@@ -10154,6 +10155,49 @@
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
             "digest": "022bf1d552ae4cd2c828bb4b53535fcfe50497b868e4d941dd9af6c8b80be0a3"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3233-canonical-library-entry.test.mjs",
+        "targetDigest": "8ee9bdfb8be8cccc1c68a644b3f1f197c33e1c05d07f4aab812b08541adcf22b",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static evidence of read-only Library navigation to authenticated Matrix; does not prove live Windows session continuity, profile hydration, current-story persistence or zero legacy routes. Real browser UAT deferred to Human morning acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/skin-v1-client.tsx",
+            "digest": "96320ed52e819c793c9a877af0a1a6436d4a1e2d65ed0009a4489bc43c5c31b4"
+          },
+          {
+            "path": "app/page.tsx",
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
+          },
+          {
+            "path": "app/story/page.tsx",
+            "digest": "74ed6f5c9ded7b1f57e1d3a0bfd7c881e2979ce71fd68896362cc218daf508f7"
+          },
+          {
+            "path": "app/_components/story/story-zero-workspace.tsx",
+            "digest": "bee7331d999ad5729c1fa456f45c29fa38e3100b0a9bbd642099f55d6bb6f275"
+          },
+          {
+            "path": "app/reports/library-ppf-reports-workspace.tsx",
+            "digest": "fb0412dfa1fa7a0e491e42f46e59804cda99a9ff288292513a5ed0cbe551bfdc"
           }
         ]
       }

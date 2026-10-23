@@ -10819,6 +10819,45 @@
             "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2863-afterglow-settings-preview.test.mjs",
+        "targetDigest": "459577c57b1a1f7fdb99976a69402fb0e46dd5ecb3168a659a68d9ee2456bdf3",
+        "catalogueIds": [
+          "story-canon.save-session-continuity-2821"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source assertion that the authenticated Matrix Settings directory exposes all twelve current destinations, including Tunnel, while Afterglow Recovery retains its own registered route. Does not establish native Windows login, launcher execution, remote ChatGPT authorization, or Human product acceptance.",
+        "inputs": [
+          {
+            "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+            "digest": "4f0871169817cd3d5924a9c9d6aa843a0478b56c6cf97e91e538d80a3831f751"
+          },
+          {
+            "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+            "digest": "c88004d4497867f5b86d68c2ece67d10944da53bb3dc64606b89f76f67066f9a"
+          },
+          {
+            "path": "lib/verification/webmcp-surface-visual-audit.mjs",
+            "digest": "fd6f576fb645a30051e488f566f20c7bb316820f53d1c68b12e155d908cd789f"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+          }
+        ]
       }
     ]
   }

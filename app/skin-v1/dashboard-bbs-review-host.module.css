@@ -26,7 +26,12 @@
   letter-spacing: var(--pp-skin-tracking-label);
 }
 
-.reviewSurface[data-dashboard-review-surface="outline"] {
+/* Direct host-level parity: do not rely on an ancestor skin attribute. */
+.reviewSurface[data-dashboard-review-surface="outline"],
+.reviewSurface[data-dashboard-review-surface="storyboard"],
+.reviewSurface[data-dashboard-review-surface="previs"],
+.reviewSurface[data-dashboard-review-surface="timeline"],
+.reviewSurface[data-dashboard-review-surface="production"] {
   width: 100%;
   margin: 0;
   box-sizing: border-box;

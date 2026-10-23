@@ -4667,12 +4667,12 @@
         "verification-harness"
       ],
       "triggerTokens": [
-        "tunnel",
-        "compute",
-        "factory",
-        "settings",
-        "authenticated",
-        "mcp"
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "api",
+        "surface"
       ],
       "runner": {
         "kind": "node-test",
@@ -4712,11 +4712,11 @@
         "experience-navigation"
       ],
       "triggerTokens": [
-        "settings",
-        "tunnel",
-        "compute",
-        "navigation",
-        "authenticated"
+        "skin",
+        "surface",
+        "visual",
+        "auth",
+        "voice"
       ],
       "runner": {
         "kind": "node-test",

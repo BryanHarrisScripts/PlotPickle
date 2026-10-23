@@ -201,7 +201,11 @@ export default function SkinV1Client() {
     if (startupAppliedRef.current) return;
     startupAppliedRef.current = true;
 
-    const startupPage = readStartupPage();
+    // #3233: honor only the read-only Library navigation deep link, and only
+    // after the authenticated profile gate has succeeded. Query parameters do
+    // not grant profile, project, story-canon or provider authority.
+    const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
+    const startupPage = requestedWorkspace === "library" ? "library" : readStartupPage();
     if (startupPage === "dashboard") return;
     const index = DASHBOARD_MENU.findIndex((item) => item.id === startupPage);
     if (index < 0) return;

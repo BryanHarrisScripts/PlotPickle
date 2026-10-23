@@ -34,6 +34,16 @@ PlotPickle's ambition reaches beyond an AI-assisted screenplay or a collection o
 
 An LLM can be more useful here than in an isolated chat. With the right permissions, it can carry forward selected project context, understand the intended outcome, coordinate specialist capabilities, perform real actions, inspect their results, recover from ordinary failures and explain what remains uncertain. The Human should not have to translate every creative intention into a series of menus, prompts and disconnected technical steps.
 
+### Beyond storytelling: a foundation for many kinds of work
+
+**Storytelling is PlotPickle's first proving ground, not the limit of its ambition.** Once the underlying architecture is reliable, its reusable capabilities—learning, context, agent orchestration, governed execution, independent verification and creative collaboration—need not be confined to screenplays or films.
+
+The same foundation could support **interactive worlds, games, education, design, research, software development and other complex creative undertakings**. A learner might build and test a course; a designer might coordinate research, prototypes and reviews; a researcher might trace claims to evidence and reproduce findings; a developer might delegate a scoped software change through independent tests. These are examples of future domain experiences, **not claims of functionality already delivered**.
+
+This calls for a **domain-extensible operating environment**, not a filmmaking application with more unrelated tabs. The foundational capabilities should be reusable; each domain brings its own tools, artifact types, specialists, evaluation methods and decision rights. A screenplay's PPF canon remains authoritative for its story, but it must not become a forced data model for education, scientific research or software repositories. Sharing an orchestration and evidence foundation does not mean pretending every field has the same rules.
+
+**Build the common capabilities once. Let people and agents apply them to many disciplines, with domain-specific truth and Human authority preserved.** Film and playable stories provide demanding real-world tests of this architecture; success there should help PlotPickle expand responsibly into new kinds of work.
+
 ### From an idea to something you can experience
 
 Imagine a creator arriving with an idea for a story about two estranged brothers. PlotPickle helps explore the premise, develop character motivations, learn relevant craft, write and revise the screenplay, build consistent visual references, plan cinematography, assemble shots and review an evolving film. The writing, character, directing, storyboard, editing and sound capabilities share **approved, versioned project context** instead of independently inventing what earlier collaborators decided.

@@ -4873,7 +4873,15 @@
           ".artifacts/verification-shadow/experience-skins.json"
         ]
       },
-      "notes": "#3266: read-only static/TSX syntax and canonical UI wiring checks; no actual Windows browser profile, connected tunnel, native process or saved film acceptance."
+      "notes": "#3266: read-only static/TSX syntax and canonical UI wiring checks; no actual Windows browser profile, connected tunnel, native process or saved film acceptance.",
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ]
     }
   ],
   "truthGovernance": {

@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 import { readFactoryVerificationHead } from "./factory-named-tests.mjs";
 import { prepareStagedHumanCandidate } from "./candidate/plotpickle-candidate-source.mjs";
+import { createFactoryIsolatedSessionController } from "./candidate/factory-isolated-session.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const SHA = /^[0-9a-f]{40}$/u;
@@ -68,11 +69,18 @@ export function createPlotpickleAppController({
   probe=probePlotpickleApp,stopTree=terminateVerificationProcessTree,
   hasFile=existsSync,delay=pause,now=Date.now,startTimeoutMs=START_TIMEOUT_MS,
   prepareCandidate=prepareStagedHumanCandidate,
+  isolatedFactoryController=null,
 }={}) {
   // An ephemeral child handle is the sole STOP authority. Never read a PID
   // from an MCP argument, lock file, task listing, or arbitrary TCP listener.
   let owned=null;
   let busy=false;
+  // Separate owned child and fixed localhost:4174 synthetic auth state.
+  // Never infer authority over the Human MAIN listener from Factory status.
+  const factory=isolatedFactoryController??createFactoryIsolatedSessionController({
+    repoRoot,platform,verifyHead,prepareCandidate,
+    stopTree,launch,hasFile,delay,now,startTimeoutMs,
+  });
 
   async function headIs(expectedHead){
     if(!SHA.test(expectedHead||""))return false;
@@ -149,13 +157,16 @@ export function createPlotpickleAppController({
     async control({action,expectedHead,root,sourceRequestId,candidateHead,
       candidatePrNumber,stageReceipt}={}){
       if(platform!=="win32")return result("BLOCKED","WINDOWS_ONLY");
-      if(!["start","stop","restart","candidate-start"].includes(action))
+      if(!["start","stop","restart","candidate-start","factory-start","factory-stop"].includes(action))
         return result("BLOCKED","APP_ACTION_INVALID");
       if(busy)return result("BLOCKED","APP_CONTROL_BUSY");
       busy=true;
       try{
         if(!(await headIs(expectedHead)))
           return result("BLOCKED","EXACT_HEAD_MISMATCH");
+        if(action==="factory-start"||action==="factory-stop")
+          return await factory.control({action,expectedHead,root,sourceRequestId,
+            candidateHead,candidatePrNumber,stageReceipt});
         if(action==="start")return await starting(expectedHead);
         if(action==="stop")return await stopping(expectedHead);
         if(action==="candidate-start"){
@@ -184,15 +195,16 @@ export function createPlotpickleAppController({
       }finally{busy=false;}
     },
     async status(){
+      const factorySession=await factory.status();
       const occupied=await portOccupied();
       if(owned && alive(owned.child) && occupied)
         return Object.freeze({state:"OWNED_PROCESS_OBSERVED",sourceHead:owned.head,
           channel:owned.channel,candidatePrNumber:owned.candidatePrNumber,
           ready:await probe(owned.head,owned.channel,owned.candidatePrNumber),
-          ownerVerified:true,independentVerification:false});
+          ownerVerified:true,independentVerification:false,factorySession});
       return Object.freeze({state:occupied?"UNOWNED_PORT_OCCUPIED":"NOT_RUNNING",
         sourceHead:null,channel:null,candidatePrNumber:null,ready:false,
-        ownerVerified:false,independentVerification:false});
+        ownerVerified:false,independentVerification:false,factorySession});
     },
   });
 }

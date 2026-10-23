@@ -191,7 +191,16 @@ test("#3135 STOP failures cannot publish cancellation or silently claim descenda
     launch: () => childFixture(() => {}),
     stopOwnedTree: async () => { throw new Error("disposable fixture STOP failure"); },
   });
-  await new Promise(resolve => setTimeout(resolve, 40));
+  // Prove the owned worker heartbeat before asking for STOP. A fixed sleep
+  // can race worker initialization on loaded native Windows CI runners.
+  const deadline=Date.now()+5000;
+  let beforeStop=await statusWindowsUat(scope,{appRoot:root});
+  while(beforeStop.state==="unconfirmed" && Date.now()<deadline){
+    await new Promise(resolve=>setTimeout(resolve,10));
+    beforeStop=await statusWindowsUat(scope,{appRoot:root});
+  }
+  assert.equal(beforeStop.state,"running-heartbeat",
+    "STOP-failure fixture must observe a live owned child before cancellation");
   assert.equal((await requestStopWindowsUat(scope, { appRoot: root })).state, "stop-requested");
   const outcome = await running;
   assert.equal(outcome.state, "blocked");

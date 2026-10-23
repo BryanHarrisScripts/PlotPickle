@@ -4571,6 +4571,51 @@
       "notes": "#3222 static source truth and bounded simulated Windows main/candidate controls; native runner coverage selects fixed owner STOP sentinel and #3222 security suites. Does not certify owner's browser session continuity or live unmerged PR source, credential validity, paid media, or automatic merges."
     },
     {
+      "id": "agent.factory-concurrent-session-3222",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "windows",
+        "mcp",
+        "navigation"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3222-factory-concurrent-session.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3222 fixture proof of owned Factory PR session on fixed localhost:4174, synthetic HOME/auth separation, exact stage receipt, no arbitrary host, foreign process adoption or MAIN stop. Native Windows and browser acceptance separate; not an OS sandbox, user PPF continuity or automatic merge."
+    },
+    {
       "id": "experience.reports-current-route-legacy-contract-118",
       "ownerLayer": "experience-contract",
       "architectureComponents": [
@@ -6877,7 +6922,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ]
       },
@@ -7711,7 +7756,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ]
       },
@@ -9125,7 +9170,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "d80500df7929e311ab54663b7d2535bfbd8262cabc45b17fa39ba674dc3805b0",
+        "targetDigest": "d978cc4d3e9e2f03646ebcbd5a397dec380f3b2c3ec491cf4e8b3bbfac23981c",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -9644,7 +9689,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9688,7 +9733,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           }
         ],
         "truthRefs": [
@@ -9724,7 +9769,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           }
         ],
         "truthRefs": [
@@ -9951,11 +9996,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "d8ada9fe56177f6fec2af0057fe97a1cd26b6438e20d99b94ba2544cd546e117"
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10003,11 +10048,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
-            "digest": "d8ada9fe56177f6fec2af0057fe97a1cd26b6438e20d99b94ba2544cd546e117"
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10015,7 +10060,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9e472b46ec49532907395b5ecc7a8b9c0541dd77bb6d0adc4e7b73f147576d7a"
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
           }
         ],
         "truthRefs": [
@@ -10033,6 +10078,58 @@
           "static-source"
         ],
         "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence."
+      },
+      {
+        "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
+        "targetDigest": "08dc6f0b4845ec2496915ffb3b44b49d2605823566903b3b85030af72c84de7e",
+        "catalogueIds": [
+          "agent.factory-concurrent-session-3222"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/candidate/factory-isolated-session.mjs",
+            "digest": "a1513414f6f959486722f389d6490f16f903afab7a118540aea08332744aeabe"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
+            "digest": "4f05ea35489059aa5da910579b20ba4221aa48149ce586c0af9ae15e0f9dffc0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+          },
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
+            "digest": "c205c33658dc25abb8f775627b6d62b9966f7e93579245a987de692e866eca60"
+          },
+          {
+            "path": "scripts/full-verification-auth.mjs",
+            "digest": "de73567a7a52f527942ae6353a5bb84a3332c7d37c1ee3c72935c98f9a97d326"
+          },
+          {
+            "path": "scripts/run-webmcp-startup-uat.mjs",
+            "digest": "241ba7675905a1edfd8064d04b9a77d9c44c9641f60b14999a8f3740f0a47659"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Only deterministic fixture assertions of loopback separation, synthetic storage metadata and owned Factory lifecycle. Not real owner Windows process/browser acceptance, kernel isolation, profile continuity or merge authorization."
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
@@ -10223,7 +10320,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "557ff84d2e5cb793229a2f8e661e0a48c3348fb82ff0a7c1f0af28c9a4f3a477"
+            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",

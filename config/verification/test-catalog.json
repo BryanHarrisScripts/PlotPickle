@@ -6378,7 +6378,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           }
         ]
       },
@@ -6405,7 +6405,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/assets-workspace.tsx",
@@ -6419,7 +6419,7 @@
       },
       {
         "target": "tests/layer1-navigation-continuity.test.mjs",
-        "targetDigest": "369e804b69f9cdfb87be751ac428656b7aff538cf7fd312eae31954f06af77a9",
+        "targetDigest": "4b3fa42c6899080c54793487dff70b92315b76aa469667c7f0e62b3f92fcff4f",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -6440,7 +6440,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           }
         ]
       },
@@ -6475,7 +6475,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -10314,7 +10314,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/skin-v1-client.tsx",
@@ -10354,7 +10354,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -10390,7 +10390,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
@@ -10426,7 +10426,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
-            "digest": "8f6e2c321b5756fd945b1239c1a88b93c3b579816b38ae4c4a80ef5397d61583"
+            "digest": "7f5302f3c0192e3ba01f4ad25ebab28fb82db10bc04e1b9d9f0ac9e3d098429c"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",

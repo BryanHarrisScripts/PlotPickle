@@ -54,8 +54,8 @@ test("#3266 every saved/packaged Library card can inspect its own film without s
   // One shared read-only inspector, many distinct per-story entry points.
   assert.equal((host.match(/<ContinueThisFilm/g)||[]).length,1);
   assert.match(library,/data-library-continue-story=\{item.id\}/u);
-  assert.match(library,/data-library-continue-story=\{\`example:/u);
-  assert.match(library,/aria-label=\{\`Continue This Film: /u);
+  assert.match(library,/data-library-continue-story=\{`example:/u);
+  assert.match(library,/aria-label=\{`Continue This Film: /u);
   assert.match(library,/onInspect=\{\(\) => \{/u);
   assert.match(library,/onInspectStory\?\.\(entry.item.id\)/u);
   assert.match(library,/onInspectStory\?\.\(previewId/u);

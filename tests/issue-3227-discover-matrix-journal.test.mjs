@@ -100,7 +100,9 @@ test("#3227 Discover opens inside authenticated Matrix with Back/F5, without a n
   assert.ok(menu.includes('id: "discover", shortcut: "J", label: "Discover"'));
   assert.ok(menu.includes('["logout", "shutdown", "discover"]'));
   assert.ok(explore.includes('case "discover":'));
-  assert.ok(explore.includes('<DiscoverJournal />'));
+  assert.ok(explore.includes('<DiscoverJournal onBackDashboard={onBackDashboard} />'));
+  assert.ok(ui.includes('onBackDashboard: () => void'));
+  assert.ok(ui.includes('onClick={onBackDashboard}>Back to Dashboard</button>'));
   assert.ok(host.includes('url.searchParams.set("workspace", item.id)'));
   assert.ok(host.includes('url.searchParams.set("workspace", "dashboard")'));
   assert.ok(host.includes('Back to Dashboard'));

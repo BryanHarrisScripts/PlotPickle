@@ -14,7 +14,7 @@ test("Settings Operations lists Buzz, Agents, Data Recovery, Afterglow Recovery 
   const operations=[["buzz-settings","B","Buzz"],["agents","A","Agents"],
     ["data-recovery","D","Data Recovery"],["afterglow-management","F","Afterglow Recovery"],
     ["semantic-uat","U","Semantic UAT"]];
-  let previous=menu.indexOf('id: "hybrid"');
+  let previous=menu.indexOf('id: "tunnel"');
   for(const [id,shortcut,label] of operations){
     const i=menu.indexOf('id: "'+id+'"');
     assert.ok(i>previous,id+" must be after the previous operation");
@@ -23,7 +23,7 @@ test("Settings Operations lists Buzz, Agents, Data Recovery, Afterglow Recovery 
     previous=i;
     assert.ok(ui.includes('"'+id+'": "'+shortcut+'"') || ui.includes(id+': "'+shortcut+'"'));
   }
-  assert.match(audit,/G,I,M,L,C,H,B,A,D,F,U/u);
+  assert.match(audit,/G,I,M,L,C,H,T,B,A,D,F,U/u);
   assert.match(audit,/page\.keyboard\.press\("F"\)/u);
   const registry=JSON.parse(registryText);
   for(let i=0;i<operations.length;i++){

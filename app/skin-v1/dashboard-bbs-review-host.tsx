@@ -80,6 +80,7 @@ export default function DashboardBbsReviewHost({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [inspectedFilm, setInspectedFilm] = useState<{ id: string | null; exampleTitle: string | null } | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
   const [explorationOpen, setExplorationOpen] = useState<DashboardExplorationWorkspace | null>(null);
   const [screeningOpen, setScreeningOpen] = useState(false);
@@ -157,6 +158,7 @@ export default function DashboardBbsReviewHost({
     const returnToDashboard = () => {
       setExplorationOpen(null);
       setLibraryOpen(false);
+      setInspectedFilm(null);
       setWriteOpen(false);
       setLearnRequest(null);
       setScreeningOpen(false);
@@ -692,7 +694,11 @@ export default function DashboardBbsReviewHost({
           <h1>LIBRARY</h1>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("library")}>Back to Dashboard</button>
         </div>
-        <LibraryWorkspace currentFilmDetails={<ContinueThisFilm onOpenOutline={(blockNumber) => { setLibraryOpen(false); openOutline({ blockNumber, miniBlockNumber: 1 }); }} />} />
+        <LibraryWorkspace currentFilmDetails={<ContinueThisFilm
+          selectedStoryId={inspectedFilm === null ? undefined : inspectedFilm.id}
+          exampleTitle={inspectedFilm?.exampleTitle}
+          onOpenOutline={(blockNumber) => { setLibraryOpen(false); openOutline({ blockNumber, miniBlockNumber: 1 }); }}
+        />} onInspectStory={(id, exampleTitle) => setInspectedFilm({ id, exampleTitle: exampleTitle ?? null })} />
       </section>
     );
   }

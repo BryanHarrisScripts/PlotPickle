@@ -26,6 +26,7 @@ export default function TunnelSettingsPanel() {
   const [engineering, setEngineering] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("Checking the local Windows tunnel launcher…");
+  const occupied = status?.state === "LOCAL_MCP_PORT_OCCUPIED";
 
   const refresh = useCallback(async () => {
     try {
@@ -85,6 +86,7 @@ export default function TunnelSettingsPanel() {
         <strong>{status ? LABELS[status.state] : "Local status unverified"}</strong>
         <span>Local MCP: {status?.localMcpPortOccupied ? "PORT 43115 OCCUPIED (IDENTITY UNVERIFIED)" : "NOT OBSERVED"}</span>
         <span>ChatGPT plugin authorization: NOT VERIFIED BY THIS PAGE</span>
+        {occupied ? <p data-tunnel-existing-listener="unverified">Port 43115 already has a listener. Start My Tunnel is intentionally unavailable while that port is in use. This is not proof that the listener belongs to PlotPickle or that the ChatGPT plugin is connected. Check the owning PowerShell window for PLOTPICKLE TUNNEL READY, or close only your own launcher with Ctrl+C, then refresh. Never stop an unknown process.</p> : null}
         {notice ? <p>{notice}</p> : null}
       </div>
       <div className={styles.controls}>
@@ -94,17 +96,18 @@ export default function TunnelSettingsPanel() {
         </label>
         <div className={styles.actions}>
           <button type="button" disabled={busy || !status?.launcherAvailable || status.localMcpPortOccupied} onClick={() => void start()}>
-            {busy ? "Requesting launch…" : "Start My Tunnel"}
+            {busy ? "Requesting launch…" : occupied ? "Port occupied — check existing tunnel" : "Start My Tunnel"}
           </button>
-          <button type="button" disabled={busy} onClick={() => void refresh()}>Refresh local status</button>
+          <button type="button" disabled={busy} onClick={() => void refresh()}>{occupied ? "Recheck existing listener" : "Refresh local status"}</button>
         </div>
       </div>
       <div className={styles.help}>
-        <h3>Set up your own tunnel</h3>
+        <h3>{occupied ? "Review an existing listener or restart your own tunnel" : "Set up your own tunnel"}</h3>
         <ol>
           <li>Keep your local PlotPickle app running and unlock your Human profile.</li>
           <li>Make sure <code>Start-PlotPickle-Tunnel-Authenticated.ps1</code> exists in your PlotPickle repository directory. If it is missing, install the separately provisioned authenticated launcher first.</li>
-          <li>Select <strong>Start My Tunnel</strong>. In the separate PowerShell window, provide your own restricted Tunnel Runtime API key at its hidden prompt. Do not enter it here or paste it into ChatGPT.</li>
+          <li>If port 43115 is already occupied, check the PowerShell launcher you own and the ChatGPT plugin connection. This page must not start another server on that port or assume the listener is authorized. Use Ctrl+C in the owning PowerShell window before launching again.</li>
+          <li>When the port is free, select <strong>Start My Tunnel</strong>. In the separate PowerShell window, provide your own restricted Tunnel Runtime API key at its hidden prompt. Do not enter it here or paste it into ChatGPT.</li>
           <li>Wait for <strong>PLOTPICKLE TUNNEL READY</strong> in that window. Configure your own PlotPickle MCP Tunnel plugin in ChatGPT. Local port availability does not confirm the plugin is connected.</li>
           <li>When finished, use <strong>Ctrl+C</strong> in the owning PowerShell window. This GUI will not guess a process ID or stop unrelated services.</li>
         </ol>

@@ -1311,3 +1311,29 @@
   .loadStoryLayout .loadCardGrid { grid-template-columns: minmax(0, 1fr); }
   .loadStoryFacts > div { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* #3266: each Library poster card owns a source-scoped read-only continuation entry. */
+.continueStoryButton {
+  display: block;
+  width: calc(100% - 24px);
+  min-height: 36px;
+  margin: 0 12px 12px;
+  padding: 6px 8px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+.continueStoryButton[aria-pressed="true"] {
+  background: var(--pp-skin-accent-deep);
+  box-shadow: inset 0 0 0 1px var(--pp-skin-accent-bright);
+}
+.continueStoryButton:is(:hover, :focus-visible) {
+  outline: 2px solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}

@@ -2444,6 +2444,38 @@
       "runtimeSelector": "section[aria-label='Command'][data-settings-command='true']",
       "runtimeReadySelector": "section[aria-label='Command'] [data-command-review-state]",
       "orchestrated": true
+    },
+    {
+      "id": "tunnel",
+      "label": "Tunnel",
+      "family": "settings",
+      "parent": "settings",
+      "surfaceClass": "nested",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 5,
+          "slug": "tunnel",
+          "label": "Tunnel"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "section[aria-label='Tunnel compute setup'][data-settings-tunnel-surface='true']",
+      "runtimeReadySelector": "section[aria-label='Tunnel compute setup'] [data-settings-tunnel='owner-controlled']",
+      "orchestrated": true
     }
   ],
   "navigationIdentity": {

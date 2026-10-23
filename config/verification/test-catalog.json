@@ -4838,6 +4838,42 @@
         ]
       },
       "notes": "#3241 first non-destructive slice: typed free-space checks before Windows Factory dependency install and PR candidate worktree staging. No cleanup/retention or live owner-Windows capacity proof."
+    },
+    {
+      "id": "experience.library-tunnel-windows-uat-3266",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "security",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3266-library-tunnel-windows-uat.test.mjs"
+        ]
+      },
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json"
+        ]
+      },
+      "notes": "#3266: read-only static/TSX syntax and canonical UI wiring checks; no actual Windows browser profile, connected tunnel, native process or saved film acceptance."
     }
   ],
   "truthGovernance": {
@@ -5131,7 +5167,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/matrix-story-map-surface.tsx",
@@ -6302,7 +6338,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+            "digest": "878c8753efc043ca6fe254a805de81039b92224cf761c3d0807e8b53a59874f5"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -6638,7 +6674,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           }
         ]
       },
@@ -6696,7 +6732,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+            "digest": "878c8753efc043ca6fe254a805de81039b92224cf761c3d0807e8b53a59874f5"
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
@@ -6704,7 +6740,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           }
         ]
       },
@@ -10393,7 +10429,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/_components/dashboard/dashboard-exploration-surface.tsx",
@@ -10411,7 +10447,7 @@
       },
       {
         "target": "tests/issue-3203-dashboard-creator-intent.test.mjs",
-        "targetDigest": "16d884d372d2ea6da829fcd7636f48bc0cfb12842e1e83f88227f47f4321cfd5",
+        "targetDigest": "3fee276d237ba467783c4f305b42c99f0d5cb478188f7a89c8a006025a474120",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -10433,7 +10469,7 @@
         "inputs": [
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10441,7 +10477,7 @@
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
-            "digest": "0ba9f116716dff28a3599b65f36dbfb0bed2a62c4e9a6feba84959f27ae57cd7"
+            "digest": "17bf1203076da382dccc07295eb136840da94a941ebe01fad3956ab7fed57ef6"
           },
           {
             "path": "modules/intent/model/read-only-creator-intent.ts",
@@ -10476,7 +10512,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.module.css",
@@ -10611,7 +10647,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           }
         ]
       },
@@ -10643,7 +10679,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10679,7 +10715,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10715,7 +10751,7 @@
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
-            "digest": "82fb68819417e255224db2048cb0241397b11d31e441c1246025209b8a648b95"
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10749,11 +10785,11 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+            "digest": "878c8753efc043ca6fe254a805de81039b92224cf761c3d0807e8b53a59874f5"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
-            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
           }
         ]
       },
@@ -10781,11 +10817,11 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "cb427dd991fb90ee4d4d1bac8a6130a019ae2b5ac31c751397fbe64c8272f616"
+            "digest": "878c8753efc043ca6fe254a805de81039b92224cf761c3d0807e8b53a59874f5"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
-            "digest": "cf535c2d3413de12c136234dc5b6982ca8216b5d254b137a35168db32700e075"
+            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
           }
         ]
       },
@@ -10829,7 +10865,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "f907de12c8068d8980ffa9f413aab5e3eb304357beead7f082d0b311d55e8c06"
+            "digest": "1d19529e0ce896f76d9f0b2f55607b58b4d73baf46d59d7f5e0f97efd371d722"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -10896,7 +10932,7 @@
           },
           {
             "path": "config/skin-v1-surface-registry.json",
-            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
           }
         ]
       },
@@ -10937,7 +10973,7 @@
           },
           {
             "path": "config/skin-v1-surface-registry.json",
-            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
           }
         ]
       },
@@ -10978,7 +11014,7 @@
           },
           {
             "path": "config/skin-v1-surface-registry.json",
-            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
           }
         ]
       },
@@ -11017,7 +11053,7 @@
           },
           {
             "path": "config/skin-v1-surface-registry.json",
-            "digest": "49581a2ab6ea5a3c5a53b18680a141713ac9691a49240344de1d1314487def74"
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
           }
         ]
       },
@@ -11086,6 +11122,58 @@
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
             "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3266-library-tunnel-windows-uat.test.mjs",
+        "targetDigest": "fc9f72fcbbd3ba408dc2d45fd6a1393767934a979dfc0458b17c177ad77c6295",
+        "catalogueIds": [
+          "experience.library-tunnel-windows-uat-3266"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Exact source schema, static wiring, TSX syntax and bundled fixture only; real owner Windows/browser visuals, login, plugin auth, remote AI, story persistence and true film evidence remain Human UAT.",
+        "inputs": [
+          {
+            "path": "app/skin-v1-surface-orchestrator.css",
+            "digest": "825249d7114412041f90b09a44dea74855db4951f9a260967a36c20fc2fd1615"
+          },
+          {
+            "path": "config/skin-v1-surface-registry.json",
+            "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
+          },
+          {
+            "path": "app/skin-v1/tunnel-settings-panel.tsx",
+            "digest": "1d19529e0ce896f76d9f0b2f55607b58b4d73baf46d59d7f5e0f97efd371d722"
+          },
+          {
+            "path": "app/skin-v1/continue-this-film.tsx",
+            "digest": "17bf1203076da382dccc07295eb136840da94a941ebe01fad3956ab7fed57ef6"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.tsx",
+            "digest": "878c8753efc043ca6fe254a805de81039b92224cf761c3d0807e8b53a59874f5"
+          },
+          {
+            "path": "modules/library/ui/library-workspace.module.css",
+            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
+          },
+          {
+            "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+            "digest": "c4febc5d1c9f1f1e4f3163da55575ea196a8c16da654ff9f5de052fd47cac96d"
           }
         ]
       }

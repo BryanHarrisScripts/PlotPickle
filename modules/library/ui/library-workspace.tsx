@@ -250,10 +250,12 @@ async function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
 }
 
-function ExampleGatewayCard({ item, posterUrls, onOpen, active = false, unloading = false, onUnload }: {
+function ExampleGatewayCard({ item, posterUrls, onOpen, onInspect, inspecting = false, active = false, unloading = false, onUnload }: {
   readonly item: LibraryCatalogItem;
   readonly posterUrls: readonly string[];
   readonly onOpen: () => void;
+  readonly onInspect?: () => void;
+  readonly inspecting?: boolean;
   readonly active?: boolean;
   readonly unloading?: boolean;
   readonly onUnload?: () => void;
@@ -288,6 +290,10 @@ function ExampleGatewayCard({ item, posterUrls, onOpen, active = false, unloadin
         </div>
         <strong>{item.title}</strong>
       </div>
+      {onInspect ? <button type="button" className={styles.continueStoryButton}
+        aria-label={`Continue This Film: ${item.title}`}
+        aria-pressed={inspecting} data-library-continue-story={`example:${item.id}`}
+        onClick={onInspect}>Continue This Film</button> : null}
     </article>
   );
 }
@@ -335,9 +341,11 @@ function savedStoryResumeDetails(project: LibraryPPFProject | null) {
   return { summary, actions };
 }
 
-function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, onUnload }: {
+function SavedStoryLoadCard({ item, onOpen, onInspect, inspecting = false, active = false, unloading = false, onUnload }: {
   readonly item: ProjectLibrarySummary;
   readonly onOpen: () => void;
+  readonly onInspect?: () => void;
+  readonly inspecting?: boolean;
   readonly active?: boolean;
   readonly unloading?: boolean;
   readonly onUnload?: () => void;
@@ -387,6 +395,10 @@ function SavedStoryLoadCard({ item, onOpen, active = false, unloading = false, o
           <small>Open this saved story</small>
         </div>
       </button>
+      {onInspect ? <button type="button" className={styles.continueStoryButton}
+        aria-label={`Continue This Film: ${item.title}`}
+        aria-pressed={inspecting} data-library-continue-story={item.id}
+        onClick={onInspect}>Continue This Film</button> : null}
     </article>
   );
 }
@@ -553,7 +565,10 @@ function NewStoryCard({ onCreate, creating }: {
   );
 }
 
-export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ currentFilmDetails?: ReactNode }> = {}) {
+export default function LibraryWorkspace({ currentFilmDetails, onInspectStory }: Readonly<{
+  currentFilmDetails?: ReactNode;
+  onInspectStory?: (projectId: string | null, exampleTitle?: string) => void;
+}> = {}) {
   const catalogCreatedAt = useMemo(() => "2026-08-20T00:00:00.000Z", []);
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
@@ -576,6 +591,8 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
   const [afterglowSaveAudit, setAfterglowSaveAudit] = useState<AfterglowMasterSaveAudit | null>(null);
   const [afterglowPosters, setAfterglowPosters] = useState<readonly string[]>([]);
   const [loadPage, setLoadPage] = useState(0);
+  const [inspectedStoryId, setInspectedStoryId] = useState<string | null>(null);
+  const [inspectedExampleTitle, setInspectedExampleTitle] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [recovery, setRecovery] = useState<PendingResume | null>(null);
   const [notice, setNotice] = useState("");
@@ -1158,6 +1175,9 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
         (safeLoadPage + 1) * LOAD_CARDS_PER_PAGE,
       );
       const loadPaged = loadPageCount > 1;
+      const inspectedSummary = inspectedStoryId
+        ? stories.find((item) => item.id === inspectedStoryId) ?? null
+        : inspectedExampleTitle ? null : activeProjectSummary;
       const afterglowCurrentlyLoaded = activeProjectSummary?.sourceKind === "example"
         && (
           activeProjectSummary.sourceId === AFTERGLOW_EXAMPLE_DEFAULTS_SOURCE_ID
@@ -1189,6 +1209,13 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
                       key={`example:${entry.item.id}`}
                       posterUrls={afterglowPosters}
                       active={afterglowCurrentlyLoaded}
+                      inspecting={inspectedExampleTitle === entry.item.title || (afterglowCurrentlyLoaded && inspectedStoryId === activeProjectSummary?.id)}
+                      onInspect={() => {
+                        const previewId = afterglowCurrentlyLoaded ? activeProjectSummary?.id ?? null : null;
+                        setInspectedStoryId(previewId);
+                        setInspectedExampleTitle(previewId ? null : entry.item.title);
+                        onInspectStory?.(previewId, previewId ? undefined : entry.item.title);
+                      }}
                       unloading={unloadingStory}
                       onUnload={() => void unloadCurrentStory()}
                       onOpen={() => {
@@ -1202,6 +1229,12 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
                       item={entry.item}
                       key={`story:${entry.item.id}`}
                       active={activeProjectSummary?.id === entry.item.id}
+                      inspecting={inspectedStoryId === entry.item.id}
+                      onInspect={() => {
+                        setInspectedStoryId(entry.item.id);
+                        setInspectedExampleTitle(null);
+                        onInspectStory?.(entry.item.id);
+                      }}
                       unloading={unloadingStory}
                       onUnload={() => void unloadCurrentStory()}
                       onOpen={() => setPending({ kind: "story", item: entry.item })}
@@ -1220,7 +1253,7 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
               ) : null}
             </div>
           ) : <div className={styles.empty}><h3>No stories are available to load.</h3></div>}
-            <aside className={styles.loadStoryDetails} aria-label="Active story information" data-library-film-details="true">
+            <aside className={styles.loadStoryDetails} aria-label="Selected film information" data-library-film-details="true">
               {currentFilmDetails ?? (
                 <section className={styles.loadedStoryOverview} aria-label="Current film">
                   <h3>Current film</h3>
@@ -1229,19 +1262,21 @@ export default function LibraryWorkspace({ currentFilmDetails }: Readonly<{ curr
               )}
               <section className={styles.loadedStoryOverview} aria-label="Saved story coverage">
                 <p className={styles.eyebrow}>Saved story evidence</p>
-                {activeProjectSummary ? (
+                {inspectedSummary ? (
                   <>
-                    <h3>{activeProjectSummary.title}</h3>
-                    <p>{savedStoryResumeDetails(loadLibraryProjectSnapshot(activeProjectSummary.id)).summary}</p>
+                    <h3>{inspectedSummary.title}</h3>
+                    <p>{savedStoryResumeDetails(loadLibraryProjectSnapshot(inspectedSummary.id)).summary}</p>
                     <dl className={styles.loadStoryFacts}>
-                      <div><dt>Last working area</dt><dd>{activeProjectSummary.frontier || "Getting Started"}</dd></div>
-                      <div><dt>Tracked progress</dt><dd>{Math.max(0, Math.min(100, Math.round(activeProjectSummary.progress)))}%</dd></div>
-                      <div><dt>Screenplay source</dt><dd>{loadLibraryProjectSnapshot(activeProjectSummary.id)?.sourceEvidence.screenplay?.sourceFileName || "No imported screenplay attached"}</dd></div>
-                      <div><dt>Imported passages</dt><dd>{loadLibraryProjectSnapshot(activeProjectSummary.id)?.sourceEvidence.screenplay?.storedPassageCount ?? 0}</dd></div>
+                      <div><dt>Last working area</dt><dd>{inspectedSummary.frontier || "Getting Started"}</dd></div>
+                      <div><dt>Tracked progress</dt><dd>{Math.max(0, Math.min(100, Math.round(inspectedSummary.progress)))}%</dd></div>
+                      <div><dt>Screenplay source</dt><dd>{loadLibraryProjectSnapshot(inspectedSummary.id)?.sourceEvidence.screenplay?.sourceFileName || "No imported screenplay attached"}</dd></div>
+                      <div><dt>Imported passages</dt><dd>{loadLibraryProjectSnapshot(inspectedSummary.id)?.sourceEvidence.screenplay?.storedPassageCount ?? 0}</dd></div>
                     </dl>
                   </>
                 ) : (
-                  <p>Select a saved story or open the packaged example. Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it.</p>
+                  <p>{inspectedExampleTitle
+                    ? `${inspectedExampleTitle} is a packaged example, not an opened working story. Open EXAMPLES to inspect or restore its PPF before making production decisions.`
+                    : "Choose Continue This Film on a saved story card to inspect its own evidence. Nothing is opened, saved or locked by this preview."}</p>
                 )}
               </section>
             </aside>

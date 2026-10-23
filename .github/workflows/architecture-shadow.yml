@@ -278,6 +278,14 @@ jobs:
           PLOTPICKLE_NATIVE_FACTORY_SESSION_PROOF: '1'
           PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node --test tests/issue-3222-factory-concurrent-session.test.mjs
+      - name: Preserve sanitized native Factory browser screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-browser-3222-${{ github.run_id }}
+          path: .artifacts/factory-session-3222/factory-candidate.png
+          if-no-files-found: warn
+          retention-days: 5
 
   windows-factory-supervisor-lifecycle:
     name: Windows factory supervisor PAUSE/RESUME truth

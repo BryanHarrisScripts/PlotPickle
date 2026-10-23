@@ -161,7 +161,7 @@ test("#3259 P1 expiration and unreadable records do not turn into success or sil
     authorization:readAuth,now:now+21_000});
   assert.equal(expired.state,"EXPIRED_UNANSWERED");
   assert.equal(expired.receipt.answerId,null);
-  const late=await persistGatewayAnswer({root,envelope:message("answer",{},now),
+  const late=await persistGatewayAnswer({root,envelope:message("answer",{expiresAt:now+30_000},now),
     authorization:auth("worker1","answer.record",now),now:now+21_000});
   assert.equal(late.state,"CORRELATION_DENIED");
   const answers=path.join(root,"answers");

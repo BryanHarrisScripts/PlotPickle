@@ -10972,7 +10972,7 @@
       },
       {
         "target": "tests/issue-3259-bidirectional-gateway-p1.test.mjs",
-        "targetDigest": "58052a0c5c91e7202091dc3c7a2fb9420771016b19b228c4f06dd2acbb64fb74",
+        "targetDigest": "381ea19f67822d4266260a4b0f328c2565b83526bf3108b4cb40296794ae9eb3",
         "catalogueIds": [
           "agent.bidirectional-gateway-p1-3259"
         ],

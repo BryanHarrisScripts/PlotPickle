@@ -3,6 +3,8 @@ import { EventEmitter } from "node:events";
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
+import { mkdir } from "node:fs/promises";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -14,6 +16,7 @@ import {
 import { createPlotpickleAppController } from "../scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs";
 import { handleRpc, MCP_CONTROL_TOOLS } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 import { establishVerificationSyntheticHuman, verificationSyntheticRuntime, cleanupVerificationSyntheticHome } from "../scripts/full-verification-auth.mjs";
+import { ensureVerificationTools } from "../scripts/run-webmcp-startup-uat.mjs";
 
 const MAIN="1".repeat(40),PR="2".repeat(40),STAGE="a".repeat(32);
 const stageReceipt={state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
@@ -213,7 +216,7 @@ test("#3222 MCP authenticated Factory start and stop accept fixed selection, rej
 
 test("#3222 native Windows Factory process and synthetic session do not disturb MAIN 4173 sentinel",{
   skip:process.platform!=="win32"||process.env.PLOTPICKLE_NATIVE_FACTORY_SESSION_PROOF!=="1",
-  timeout:180_000,
+  timeout:330_000,
 },async()=>{
   const head=String(process.env.PLOTPICKLE_PROOF_SOURCE_HEAD||"").trim();
   assert.match(head,/^[a-f0-9]{40}$/u);
@@ -230,7 +233,7 @@ test("#3222 native Windows Factory process and synthetic session do not disturb 
     sentinel.listen(4173,"127.0.0.1",resolve);
   });
   const close=()=>new Promise(resolve=>sentinel.close(resolve));
-  let controller=null,confirmedStop=false;
+  let controller=null,confirmedStop=false,browser=null;
   try{
     await listen();
     const fakeStage={state:"TEST_PASSED",code:"CANDIDATE_STATIC_STAGED",
@@ -273,6 +276,22 @@ test("#3222 native Windows Factory process and synthetic session do not disturb 
     });
     assert.equal(auth.status,200);
     assert.equal((await auth.json()).authenticated,true);
+    // This is a real Chromium DOM/browser proof, not only an HTTP marker.
+    const toolRoot=path.join(runtime.home,"playwright-tools");
+    await ensureVerificationTools(toolRoot);
+    const toolRequire=createRequire(path.join(toolRoot,"package.json"));
+    const {chromium}=toolRequire("@playwright/test");
+    browser=await chromium.launch({headless:true});
+    const context=await browser.newContext({storageState:synthetic.storageStatePath});
+    const page=await context.newPage();
+    await page.goto(FACTORY_SESSION_ENDPOINT.url,{waitUntil:"domcontentloaded",timeout:30_000});
+    await page.locator('aside[aria-label="Running PlotPickle version"][data-plotpickle-launch-channel="PR_TEST"]').waitFor({timeout:30_000});
+    assert.equal(await page.locator('aside[aria-label="Running PlotPickle version"]').getAttribute("data-plotpickle-launch-head"),head);
+    await page.locator("main.pp-skin-v1-home[data-experience-surface='DASHBOARD']").waitFor({timeout:30_000});
+    const image=path.join(process.cwd(),".artifacts","factory-session-3222","factory-candidate.png");
+    await mkdir(path.dirname(image),{recursive:true});
+    await page.screenshot({path:image,fullPage:false});
+    await context.close();await browser.close();browser=null;
     const mainResponse=await fetch("http://127.0.0.1:4173/");
     assert.equal(await mainResponse.text(),"OWNER_MAIN_SENTINEL");
     const stopping=await controller.control({action:"factory-stop",expectedHead:head});
@@ -282,6 +301,7 @@ test("#3222 native Windows Factory process and synthetic session do not disturb 
     assert.equal(await after.text(),"OWNER_MAIN_SENTINEL",
       "independent Factory STOP must leave MAIN listener alive");
   }finally{
+    if(browser)await browser.close();
     if(controller&&!confirmedStop){
       const stopping=await controller.control({action:"factory-stop",expectedHead:head});
       confirmedStop=stopping.code==="APP_STOPPED_VERIFIED";

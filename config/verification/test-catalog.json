@@ -9969,7 +9969,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10017,7 +10017,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           }
         ],
         "truthRefs": [
@@ -10053,7 +10053,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10292,7 +10292,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10340,7 +10340,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10388,7 +10388,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10612,7 +10612,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11410,7 +11410,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           }
         ]
       },
@@ -11442,7 +11442,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11494,7 +11494,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2ee5a5c3a7e01ed12241ec89f43b8725c51d9ed0430e34a311818a1abeb33327"
+            "digest": "3ec671d2fc9c78ebfaa69f97085f5babe4e32e7f6ab545d45d4db856ef1938c7"
           }
         ]
       },

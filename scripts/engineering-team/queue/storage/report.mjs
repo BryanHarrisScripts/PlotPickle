@@ -2,8 +2,8 @@
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { inventoryFactoryStorage, previewFactoryRetention } from "./factory-storage-inventory.mjs";
-import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "./factory-disk-space.mjs";
+import { inventoryFactoryStorage, previewFactoryRetention } from "./inventory.mjs";
+import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "../factory-disk-space.mjs";
 
 export function factoryStorageRoots({ appHome, repoRoot }) {
   return [
@@ -16,7 +16,7 @@ export function factoryStorageRoots({ appHome, repoRoot }) {
 
 async function main() {
   if (process.argv.length > 2) throw Error("STORAGE_REPORT_TAKES_NO_ARGUMENTS");
-  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
   const appHome = process.env.PLOTPICKLE_HOME ? path.resolve(process.env.PLOTPICKLE_HOME) :
     process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, "PlotPickle") : path.join(os.homedir(), ".plotpickle");
   const inventory = await inventoryFactoryStorage({ roots: factoryStorageRoots({ appHome, repoRoot }),

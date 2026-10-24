@@ -2,7 +2,7 @@
 
 This slice adds a local, metadata-only report before any cleanup implementation. It preserves the existing capacity preflight and does not close #3241.
 
-Run `node scripts/engineering-team/queue/factory-storage-report.mjs` locally. It reports immediate children of the persistent runtime, npm cache, engineering-team and repository artifact roots, with aggregate file counts, timestamps, lossless apparent byte totals, free-space observations and progress. It does not read screenplay, project, evidence or credential contents. No file is created, changed or removed by the report.
+Run `node scripts/engineering-team/queue/storage/report.mjs` locally. It reports immediate children of the persistent runtime, npm cache, engineering-team and repository artifact roots, with aggregate file counts, timestamps, lossless apparent byte totals, free-space observations and progress. It does not read screenplay, project, evidence or credential contents. No file is created, changed or removed by the report.
 
 Traversal rejects redirected roots/ancestors, skips symbolic links and Windows junctions, deduplicates usable inode identities within each root, and bounds entries, depth and total elapsed time. Missing, blocked and partial roots have distinct states; partial totals are lower bounds. These are best-effort observations of a changing filesystem, not a snapshot or an ownership attestation. Apparent bytes cannot establish how many bytes deletion would release.
 

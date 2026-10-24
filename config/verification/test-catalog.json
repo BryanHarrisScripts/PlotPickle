@@ -11216,7 +11216,7 @@
       },
       {
         "target": "tests/issue-3241-storage-inventory.test.mjs",
-        "targetDigest": "8c9d32b24a6071c4ea8372ba332aa3cddc2fa541b062889ca5beb61b1303652f",
+        "targetDigest": "3a5b4709767d3129e0138392b20fed00d0eb582ec347e17ad96639d97d2e7bb4",
         "catalogueIds": [
           "agent.factory-storage-headroom-3241"
         ],
@@ -11236,12 +11236,12 @@
         "limits": "Synthetic filesystem metadata and retention-policy fixtures only. Does not prove the current owner disk contents, process/task/worktree reference completeness, Windows disk usage/reclaimed capacity, hostile concurrent filesystem replacement, safe deletion or any browser workflow. Dry run cannot authorize cleanup.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/queue/factory-storage-inventory.mjs",
-            "digest": "84a5abacd3ee8623bf6d20a9ec98b474e491879a38261034261436f6af17461f"
+            "path": "scripts/engineering-team/queue/storage/inventory.mjs",
+            "digest": "58c850129731e4693b6bb2aa7ab0521eee90d265169b5c84f381f0e41d639bac"
           },
           {
-            "path": "scripts/engineering-team/queue/factory-storage-report.mjs",
-            "digest": "9efb4d1ac8b42806dd2f915235ef40c44a3e7c60c2c24e0d95302f970e92be4f"
+            "path": "scripts/engineering-team/queue/storage/report.mjs",
+            "digest": "0926272f30857eb1b293ac18e5b8d28e82f78190e994bd1c779831c2977f3f9e"
           }
         ]
       }

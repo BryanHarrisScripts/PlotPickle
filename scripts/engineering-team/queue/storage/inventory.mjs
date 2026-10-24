@@ -42,7 +42,7 @@ export async function inventoryFactoryStorage({ roots, maxEntries = 50000, maxDe
   const limits = { maxEntries: bounded(maxEntries, 50000, 1000000),
     maxDepth: bounded(maxDepth, 64, 128), maxDurationMs: bounded(maxDurationMs, 10000, 120000) };
   const startedAt = now(), deadline = startedAt + limits.maxDurationMs;
-  let visitedEntries = 0;
+  let visitedEntries = 0, progressObserverErrors = 0;
   const results = [];
   const canonicalRoots = roots.map(r => path.resolve(r.directory));
   if (canonicalRoots.some((r, i) => canonicalRoots.some((other, j) =>
@@ -105,7 +105,7 @@ export async function inventoryFactoryStorage({ roots, maxEntries = 50000, maxDe
         result.children.push({ name: row.name, modifiedAtMs: row.modifiedAtMs, apparentBytes: String(row.bytes), files: row.files,
           directories: row.directories, skippedLinks: row.skippedLinks, errors: row.errors });
         // Progress carries aggregate metadata only, never absolute paths or contents.
-        try { onProgress({ rootId: selection.id, visitedEntries, apparentBytes: String(apparent) }); } catch { /* UI observers do not control traversal. */ }
+        try { onProgress({ rootId: selection.id, visitedEntries, apparentBytes: String(apparent) }); } catch { progressObserverErrors++; }
       }
       const after = await lstat(directory, { bigint: true });
       if (after.isSymbolicLink() || identity(after) !== identity(before) || after.mtimeNs !== before.mtimeNs)
@@ -118,7 +118,7 @@ export async function inventoryFactoryStorage({ roots, maxEntries = 50000, maxDe
     result.children.sort((a, b) => a.name.localeCompare(b.name));
     results.push(result);
   }
-  return { schemaVersion: 1, startedAt, completedAt: now(), limits, visitedEntries, roots: results,
+  return { schemaVersion: 1, startedAt, completedAt: now(), limits, visitedEntries, progressObserverErrors, roots: results,
     metadataOnly: true, cleanupAuthorized: false, bytesAreReclaimable: false,
     measurement: "Apparent file lengths; uniqueFileBytes deduplicates usable inode identities within each root only. Sparse, compressed and shared files may occupy different physical space. Partial totals are lower bounds. Concurrent filesystem activity can invalidate an observation." };
 }

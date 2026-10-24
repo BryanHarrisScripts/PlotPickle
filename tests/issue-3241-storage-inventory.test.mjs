@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, link, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { inventoryFactoryStorage, previewFactoryRetention } from "../scripts/engineering-team/queue/factory-storage-inventory.mjs";
-import { factoryStorageRoots } from "../scripts/engineering-team/queue/factory-storage-report.mjs";
+import { inventoryFactoryStorage, previewFactoryRetention } from "../scripts/engineering-team/queue/storage/inventory.mjs";
+import { factoryStorageRoots } from "../scripts/engineering-team/queue/storage/report.mjs";
 
 async function sandbox(fn) {
   const base = await mkdtemp(path.join(os.tmpdir(), "pp-storage-3241-"));
@@ -81,6 +81,7 @@ test("#3241 missing roots, unsafe/overlapping selections and observer failures r
   const r = await inventoryFactoryStorage({ roots: selection(base), onProgress: () => { throw Error("OBSERVER_FAILURE"); } });
   assert.equal(r.roots[0].state, "COMPLETE");
   assert.equal(r.roots[0].files, 1);
+  assert.equal(r.progressObserverErrors, 1);
 }));
 
 test("#3241 retention protects active, fallback, ten selected histories, references and all unidentified Factory content", () => {

@@ -225,6 +225,8 @@ test("real managed Pi must execute a mock-model write tool rather than merely cl
     const pi = await ensureManagedPiInstalled();
     assert.equal(pi.version, "1.3.0", "Use the repository-locked managed Pi version");
     const cli = await resolveManagedPiCliEntry(pi);
+    assert.equal(path.basename(path.dirname(cli)), "dist",
+      "The real managed Pi mock-model E2E must use dist/cli.js, not dist/bundle/cli.js");
     model = await startMockModel();
     process.env.LOCALAPPDATA = root;
     const runtime = { kind: "fixture", label: "Loopback CI fixture", model: MODEL, baseUrl: model.baseUrl };

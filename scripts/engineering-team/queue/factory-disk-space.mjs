@@ -12,7 +12,7 @@ import process from "node:process";
 
 export const FACTORY_DISK_MIN_FREE_BYTES = Object.freeze({
   dependencyInstall: 4 * 1024 ** 3,
-  candidateStage: 2 * 1024 ** 3,
+  candidateStage: 8 * 1024 ** 3, // default owner-disk safety reserve for multi-GB PR snapshots
 });
 
 const validDestination = p =>

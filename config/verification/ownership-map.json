@@ -2684,6 +2684,21 @@
         "storage",
         "test-harness"
       ]
+    },
+    {
+      "id": "factory-candidate-stage-default-budget-3241",
+      "classification": "production",
+      "include": [
+        "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "windows",
+        "security",
+        "storage",
+        "agent",
+        "test-harness"
+      ]
     }
   ]
 }

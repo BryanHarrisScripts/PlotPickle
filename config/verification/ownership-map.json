@@ -8,6 +8,20 @@
   },
   "rules": [
     {
+      "id": "factory-reviewed-mcp-tool-catalog-3278",
+      "classification": "production",
+      "include": [
+        "config/mcp/factory-tool-catalog.json"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "mcp",
+        "security",
+        "windows",
+        "test-harness"
+      ]
+    },
+    {
       "id": "experience-skin-v1",
       "classification": "production",
       "include": [

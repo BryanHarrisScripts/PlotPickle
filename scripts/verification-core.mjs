@@ -169,6 +169,10 @@ async function main() {
   }
 
   const started = Date.now();
+  // Reject an incorrect source revision before reading mutable truth inputs
+  // or executing tests; an unrelated admission failure must not mask a
+  // supplied-commit mismatch or make a test run on the wrong checkout.
+  const exactSha = resolveCommitSha(options);
   const truthAdmission = await assessRepositoryTestTruth({root,baseRef:options.baseRef || "origin/main",includeWorkingTree:true});
   if (truthAdmission.status !== "ready") throw new Error(`Approved test truth admission BLOCKED: ${truthAdmission.findings.map((finding)=>`${finding.target}: ${finding.detail}`).join("\n")}`);
   const run = await runLayer({ plan, catalog: configuration.catalog, layerId: options.layerId, runners: typedRunners(), context: { source: "local-cli" } });
@@ -177,7 +181,7 @@ async function main() {
     catalog: configuration.catalog,
     architecture: configuration.architecture,
     layerId: options.layerId,
-    commitSha: resolveCommitSha(options),
+    commitSha: exactSha,
     run,
     runtime: { platform: options.platform, runner: "local-cli", nodeVersion: process.version },
     durationMs: Date.now() - started,

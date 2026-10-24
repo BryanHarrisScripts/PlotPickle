@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import process from "node:process";
 import test from "node:test";
 import {
   ensureManagedPiInstalled,
@@ -31,6 +32,7 @@ test("#3289 same-version dependency repair validates actual installed files and 
   const expectedUndici = JSON.parse(lock).packages["node_modules/undici"].version;
   let installs = 0;
   const options = { root, nodeVersion: "26.12.0", npmCommand: "npm",
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     existsSync: (file) => file === command,
     runPortableCommand: async (_cmd, args) => {
       if (args[0] === "ci") {
@@ -64,6 +66,7 @@ test("#3289 same-version dependency repair validates actual installed files and 
 test("#3289 a successful installer exit cannot conceal stale installed dependencies", async () => {
   await assert.rejects(ensureManagedPiInstalled({
     root: "synthetic-pi-3289", nodeVersion: "26.12.0", npmCommand: "npm",
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     existsSync: () => true, mkdir: async () => {}, writeFile: async () => {},
     readFile: async (file, encoding) => String(file).replaceAll("\\", "/").endsWith("undici/package.json")
       ? JSON.stringify({ name: "undici", version: "8.10.2" }) : reviewedRead(file, encoding),
@@ -112,6 +115,7 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
     root,
     nodeExecutable,
     nodeVersion: "22.19.0",
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     existsSync: (candidate) => existing.has(String(candidate).toLowerCase()),
     commandOnPath: () => { throw new Error("PATH lookup must not be required when npm.cmd is beside node.exe"); },
     runPortableCommand,
@@ -140,6 +144,7 @@ test("#1185 existing managed Pi validates without reinstalling only when it matc
     env,
     existsSync: (candidate) => candidate === command,
     readFile: reviewedRead,
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     runPortableCommand: async () => { calls += 1; return { stdout: "pi 1.3.0", stderr: "" }; },
   });
   assert.equal(result.ready, true);
@@ -163,6 +168,7 @@ test("#1551 stale managed Pi is upgraded to the pinned 1.3.0 package rather than
     nodeExecutable: "C:\\Program Files\\nodejs\\node.exe",
     nodeVersion: "22.19.0",
     npmCommand,
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     existsSync: (candidate) => candidate === command || candidate === npmCommand,
     mkdir: async () => {},
     writeFile: async () => {},
@@ -190,6 +196,7 @@ test("#1185 wrong managed Pi version fails closed when installation is disabled"
     env,
     nodeVersion: "22.19.0",
     allowInstall: false,
+    resolveCliEntry: async () => "synthetic-safe-dist-cli.js",
     existsSync: (candidate) => candidate === command,
     readFile: reviewedRead,
     runPortableCommand: async () => ({ stdout: "0.83.0", stderr: "" }),
@@ -244,4 +251,65 @@ test("#1185 Full Verification stage 5, stage 6, and nested Pi quality review sta
   assert.match(preflight, /PLOTPICKLE_PI_COMMAND = pi\.command/u);
   assert.match(preflight, /env: \{ PLOTPICKLE_PI_COMMAND: pi\.command \}/u);
   assert.match(review, /command: pi\.command/u);
+});
+
+test("#3291 managed readiness probes unbundled Pi through Node, never the embedded-Undici npm shim", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-pi-safe-probe-"));
+  const command = managedPiCommand({ root });
+  const packageRoot = path.join(root, "node_modules", "@earendil-works", "pi-coding-agent");
+  const bundled = path.join(packageRoot, "dist", "bundle", "cli.js");
+  const safeCli = path.join(packageRoot, "dist", "cli.js");
+  const launches = [];
+  try {
+    await mkdir(path.dirname(command), { recursive: true });
+    await mkdir(path.dirname(bundled), { recursive: true });
+    await writeFile(command, "throw new Error('npm wrapper must not run')\n");
+    await writeFile(path.join(packageRoot, "package.json"), JSON.stringify({
+      name: "@earendil-works/pi-coding-agent", version: "1.3.0",
+      bin: { pi: "dist/bundle/cli.js" },
+    }));
+    await writeFile(bundled, "throw new Error('embedded Undici must not run')\n");
+    await writeFile(safeCli, "// published unbundled Pi entry\n");
+    const result = await probeManagedPi({
+      root,
+      existsSync: candidate => candidate === command,
+      readFile: reviewedRead,
+      runPortableCommand: async (executable, args) => {
+        launches.push([executable, ...args]);
+        return { stdout: "1.3.0", stderr: "" };
+      },
+    });
+    assert.equal(result.ready, true);
+    assert.deepEqual(launches, [[process.execPath, safeCli, "--version"]]);
+    assert.notEqual(launches[0][0], command);
+    assert.notEqual(launches[0][1], bundled);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("#3291 managed readiness fails closed when unbundled Pi is missing even if bundled wrapper exists", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-pi-no-safe-cli-"));
+  const command = managedPiCommand({ root });
+  const packageRoot = path.join(root, "node_modules", "@earendil-works", "pi-coding-agent");
+  let launches = 0;
+  try {
+    await mkdir(path.dirname(command), { recursive: true });
+    await mkdir(path.join(packageRoot, "dist", "bundle"), { recursive: true });
+    await writeFile(command, "unsafe wrapper\n");
+    await writeFile(path.join(packageRoot, "package.json"), JSON.stringify({
+      name: "@earendil-works/pi-coding-agent", version: "1.3.0",
+      bin: { pi: "dist/bundle/cli.js" },
+    }));
+    await writeFile(path.join(packageRoot, "dist", "bundle", "cli.js"), "unsafe bundle\n");
+    const result = await probeManagedPi({
+      root, existsSync: candidate => candidate === command,
+      runPortableCommand: async () => { launches++; return { stdout: "1.3.0", stderr: "" }; },
+    });
+    assert.equal(result.ready, false);
+    assert.equal(result.state, "invalid-managed-install");
+    assert.equal(launches, 0, "Neither the published shim nor the bundled fallback may run");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

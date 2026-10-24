@@ -48,14 +48,15 @@ $replacement = @'
 $updated = $source.Substring(0, $first) + $replacement + $source.Substring($last)
 $temp = Join-Path $repoRoot ('tunnel-catalog-upgrade-' + [Guid]::NewGuid().ToString('N') + '.ps1')
 try {
-    [System.IO.File]::WriteAllText($temp, $updated)
+    [System.IO.File]::WriteAllText($temp, $updated, [System.Text.UTF8Encoding]::new($true))
     $tokens = $null
     $parseErrors = $null
     [System.Management.Automation.Language.Parser]::ParseFile($temp, [ref]$tokens, [ref]$parseErrors) | Out-Null
     if ($parseErrors.Count -ne 0) { throw 'TUNNEL_CATALOG_UPGRADE_PARSE_FAILED' }
-    $backup = "$launcher.catalog-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-    Copy-Item -LiteralPath $launcher -Destination $backup
-    [System.IO.File]::WriteAllText($launcher, $updated)
+    $backup = "$launcher.catalog-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')-$([Guid]::NewGuid().ToString('N'))"
+    # Atomic same-volume replacement creates the backup as part of the
+    # transaction; errors leave the original launcher in place.
+    [System.IO.File]::Replace($temp, $launcher, $backup, $false)
     Write-Host 'PASS: Launcher now verifies MCP names against reviewed local GitHub manifest.' -ForegroundColor Green
     Write-Host "Backup: $backup"
 } finally {

@@ -4812,7 +4812,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3241-disk-space-preflight.test.mjs"
+          "tests/issue-3241-disk-space-preflight.test.mjs",
+          "tests/issue-3241-storage-inventory.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4837,7 +4838,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3241 first non-destructive slice: typed free-space checks before Windows Factory dependency install and PR candidate worktree staging. No cleanup/retention or live owner-Windows capacity proof."
+      "notes": "#3241 non-destructive capacity preflight plus bounded metadata inventory and retention dry-run. Filesystem fixtures only; no owner-Windows disk inventory, independent reference collection, deletion or live storage acceptance is claimed."
     },
     {
       "id": "experience.library-tunnel-windows-uat-3266",
@@ -11210,6 +11211,37 @@
           {
             "path": "config/skin-v1-surface-registry.json",
             "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-storage-inventory.test.mjs",
+        "targetDigest": "8c9d32b24a6071c4ea8372ba332aa3cddc2fa541b062889ca5beb61b1303652f",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic filesystem metadata and retention-policy fixtures only. Does not prove the current owner disk contents, process/task/worktree reference completeness, Windows disk usage/reclaimed capacity, hostile concurrent filesystem replacement, safe deletion or any browser workflow. Dry run cannot authorize cleanup.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/factory-storage-inventory.mjs",
+            "digest": "84a5abacd3ee8623bf6d20a9ec98b474e491879a38261034261436f6af17461f"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-storage-report.mjs",
+            "digest": "9efb4d1ac8b42806dd2f915235ef40c44a3e7c60c2c24e0d95302f970e92be4f"
           }
         ]
       }

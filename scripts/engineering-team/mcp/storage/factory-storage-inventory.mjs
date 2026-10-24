@@ -11,11 +11,12 @@ import { fileURLToPath } from "node:url";
 import { inventoryFactoryStoragePerRoot, planFactoryStorageRoots } from "../../queue/storage/report.mjs";
 import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "../../queue/factory-disk-space.mjs";
 import { readFactoryVerificationHead } from "../factory-named-tests.mjs";
+import { profileFactoryStorage } from "./factory-storage-profile.mjs";
 
 export const STORAGE_ROOT_IDS = Object.freeze([
   "runtimes", "npm-cache", "engineering-team", "repository-artifacts",
 ]);
-export const STORAGE_SCAN_MODES = Object.freeze(["quick", "deep"]);
+export const STORAGE_SCAN_MODES = Object.freeze(["quick", "deep", "profile"]);
 const SHA = /^[a-f0-9]{40}$/u;
 const DIGITS = /^\d+$/u;
 const safeBytes = value => typeof value === "string" && DIGITS.test(value) ? value : null;
@@ -45,7 +46,8 @@ export async function inspectFactoryStorage({
   expectedHead, rootId, scanMode, repoRoot = fileURLToPath(new URL("../../../../", import.meta.url)),
   environment = process.env, home = os.homedir(),
   verifyHead = readFactoryVerificationHead,
-  scan = inventoryFactoryStoragePerRoot, capacityCheck = readFactoryDiskSpace,
+  scan = inventoryFactoryStoragePerRoot, profileScan = profileFactoryStorage,
+  capacityCheck = readFactoryDiskSpace,
 } = {}) {
   if (!validStorageReportArgs({expectedHead, rootId, scanMode}))
     return { state: "BLOCKED", code: "STORAGE_SELECTION_INVALID", cleanupAuthorized: false };
@@ -62,6 +64,62 @@ export async function inspectFactoryStorage({
   if (!selected)
     return {state:"BLOCKED",code:"STORAGE_ROOT_OVERLAP_OMITTED",sourceHead,rootId,
       cleanupAuthorized:false};
+  // "profile" traverses each immediate fixed-root bucket with an independent
+  // short budget. It is read-only and cannot select a caller-controlled path.
+  if (scanMode === "profile") {
+    let profile, capacity;
+    try {
+      [profile, capacity] = await Promise.all([
+        profileScan({selected,rootId}),capacityCheck({
+          locations:[appHome,repoRoot],
+          requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.dependencyInstall,
+        }),
+      ]);
+    } catch {
+      return {state:"BLOCKED",code:"STORAGE_PROFILE_UNVERIFIED",
+        sourceHead,rootId,cleanupAuthorized:false};
+    }
+    let after;
+    try { after=await verifyHead({repoRoot}); } catch { after=null; }
+    if (after!==expectedHead)
+      return {state:"BLOCKED",code:"EXACT_HEAD_MISMATCH",sourceHead:null,
+        rootId,cleanupAuthorized:false};
+    if (profile?.rootId!==rootId || profile?.scanMode!=="profile" ||
+        profile?.metadataOnly!==true || profile?.cleanupAuthorized!==false ||
+        profile?.bytesAreReclaimable!==false ||
+        !["COMPLETE","PARTIAL"].includes(profile.state) ||
+        !safeBytes(profile.apparentBytes) || !Array.isArray(profile.children) ||
+        profile.children.length>128 || profile.children.some(child=>
+          !child || typeof child.name!=="string" ||
+          safeBytes(child.apparentBytes)===null ||
+          !["COMPLETE","PARTIAL","BLOCKED","MISSING"].includes(child.state)))
+      return {state:"BLOCKED",code:"STORAGE_PROFILE_UNVERIFIED",
+        sourceHead,rootId,cleanupAuthorized:false};
+    return {
+      state:profile.state,code:profile.code,sourceHead,rootId,
+      scanMode:"profile",scope:profile.scope,
+      apparentBytes:safeBytes(profile.apparentBytes),
+      visitedEntries:safeCount(profile.visitedEntries),
+      children:profile.children.slice(0,25).map(child=>({
+        name:safeName(child.name),state:child.state,code:child.code,
+        apparentBytes:safeBytes(child.apparentBytes),
+        files:safeCount(child.files),directories:safeCount(child.directories),
+        skippedLinks:safeCount(child.skippedLinks),
+        visitedEntries:safeCount(child.visitedEntries),
+      })),
+      childrenObserved:safeCount(profile.childrenObserved),
+      childrenOmitted:Math.max(0,profile.children.length-25) +
+        safeCount(profile.childrenOmitted),
+      discoveryTruncated:profile.discoveryTruncated===true,
+      skippedLinks:safeCount(profile.skippedLinks),
+      limit:profile.limit,
+      totalsAreLowerBounds:profile.totalsAreLowerBounds===true,
+      capacity:safeCapacity(capacity),
+      metadataOnly:true,cleanupAuthorized:false,deletionImplemented:false,
+      retentionReferenceState:"UNVERIFIED",independentVerification:false,
+      note:"Per-child bounded observation, not reclaimable bytes or deletion eligibility. Incomplete buckets are lower bounds.",
+    };
+  }
   const limit = scanMode === "deep"
     ? {maxEntriesPerRoot: 200000, maxDurationMsPerRoot: 60000}
     : {maxEntriesPerRoot: 35000, maxDurationMsPerRoot: 15000};

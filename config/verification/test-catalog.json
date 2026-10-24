@@ -7762,7 +7762,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "828398d8a91da7ecb1f4404b55f7c71df11961d1d192f63f21c60e65e1bd0ec8",
+        "targetDigest": "fd48d65bac410802e01043242bccf1c983050cfa9c2fad8ecc8c5f0336a509f5",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -7784,7 +7784,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7876,7 +7876,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7953,7 +7953,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8061,7 +8061,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8153,7 +8153,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8249,7 +8249,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8317,7 +8317,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
+            "digest": "2eab426873db108aaba398de4cb63924a1accfad5c5c5348a6d62efca99aa5a9"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",

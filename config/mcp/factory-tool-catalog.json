@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "description": "Authoritative reviewed tool catalogue for the separate owner tunnel launcher; compare exact names and authentication boundaries, never infer authorization from a count or open port.",
+  "public": [
+    "factory_status",
+    "factory_observer",
+    "factory_evidence",
+    "factory_issue_preview"
+  ],
+  "control": [
+    "factory_run_dependency_preflight",
+    "factory_admit_issues",
+    "factory_run_named_test",
+    "factory_control_receipt"
+  ],
+  "conversation": [
+    "factory_conversation"
+  ],
+  "storage": [
+    "factory_storage_inventory"
+  ],
+  "engineeringOptIn": [
+    "factory_engineering_run"
+  ]
+}

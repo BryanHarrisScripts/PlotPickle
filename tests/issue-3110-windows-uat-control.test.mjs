@@ -186,8 +186,10 @@ test("scope symlinks and stale SHA remain blocked; no production project files t
 
 test("#3135 STOP failures cannot publish cancellation or silently claim descendant termination", () => sandbox(async root => {
   const scope = await reserve(root);
+  // Keep polling faster than production's 400ms but avoid a 5ms Windows
+  // file-handle race between heartbeat replacement and STOP receipt reads.
   const running = driveWindowsUat(scope, {
-    appRoot: root, inspect: checkout, preflight: () => ({ ready: true }), pollMs: 5,
+    appRoot: root, inspect: checkout, preflight: () => ({ ready: true }), pollMs: 40,
     launch: () => childFixture(() => {}),
     stopOwnedTree: async () => { throw new Error("disposable fixture STOP failure"); },
   });

@@ -4237,7 +4237,8 @@
           "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
           "tests/issue-3110-factory-named-test-mcp.test.mjs",
           "tests/issue-3159-pi-headless-inference.test.mjs",
-          "tests/issue-3110-opt-in-engineering-mcp.test.mjs"
+          "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+        "tests/issue-3278-storage-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9441,7 +9442,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "31480ab0bef0b12661f8d8f3657e749f6e7d100b530aefb6d602c6dd3a421293",
+        "targetDigest": "fc8a888b8f051f89a6f9df6be5eeb5c7d2ee7c878edb0b97352329fa33e0fcab",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -9659,7 +9660,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "bffdb4f487430b5ecedaaa4bae7d0128fb335964b49115ecfee237a1ad7f5220"
+            "digest": "1137d42902fc121ec9b608f686625c6c49767f3a13bc98fa261f9a8b250787bb"
           }
         ]
       },
@@ -9957,14 +9958,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "c5f2b7c5a463cd3abe669d8d70576f4d1655a4d6a1217999155b9853c415e9a5",
+        "targetDigest": "e2301acfe3e825f6aaf5c556b96e0b8ec15c56a5479b3155d2eff0999e5d1596",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10008,7 +10009,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           }
         ],
         "truthRefs": [
@@ -10044,7 +10045,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10283,7 +10284,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10331,7 +10332,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10379,7 +10380,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10581,7 +10582,7 @@
       },
       {
         "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "targetDigest": "1d75786fd140dcfa19d8e36f1e7812423cd5d93d48307b8ee7ab47f4bbea0370",
+        "targetDigest": "92152187e977028ee4ec01972c1792aea82adb66e322de3161998f9c0036ccb8",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -10603,7 +10604,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11401,8 +11402,56 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
           }
+        ]
+      },
+      {
+        "target": "tests/issue-3278-storage-mcp.test.mjs",
+        "targetDigest": "19458222bef3bcf493299dcb918dc68ecd949aaadc5ead0ae69e1aab7992ef1c",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "#3278 synthetic storage scanner state, exact main head, privacy projection, authenticated MCP list and guarded migration source assertions only. Not live owner Windows storage acceptance, Windows PowerShell 5.1 execution, authenticated launcher migration, browser UAT, cleanup permission or independent product proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs",
+            "digest": "26d6583b74fa5172f57af0754b396bb4f125f631f27e7461fc8a6c4fbe9f5418"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+          },
+          {
+            "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
+            "digest": "77a17ffe521cf35cf41c5f37f340beb54b164405be20c15c133a1e225875e572"
+          },
+          {
+            "path": "scripts/engineering-team/windows/tunnel/Assert-PlotPickleMcpCatalog.ps1",
+            "digest": "b64319dd4a3358f3ecb9ad6e5ca1ddcb1651cb4993869eafc556352e9316eda1"
+          },
+          {
+            "path": "config/mcp/factory-tool-catalog.json",
+            "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
+          },
+          {
+                      "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
+                      "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+                    }
         ]
       }
     ]

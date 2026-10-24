@@ -1337,3 +1337,9 @@
   outline: 2px solid var(--pp-skin-focus);
   outline-offset: 2px;
 }
+
+/* #3269: a loaded film is the sole conversational focus; other posters remain visible. */
+.continueStoryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

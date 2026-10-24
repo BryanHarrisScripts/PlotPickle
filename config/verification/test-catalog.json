@@ -11510,7 +11510,7 @@
         ],
         "scopes": [
           "static-source",
-          "native-windows-fixture"
+          "unit-fixture"
         ],
         "limits": "Source verifies metadata-only owner-invoked fixed C: scanner, bounds, reparse nontraversal, path-free output and absence of cleanup/repair. Native Windows synthetic fixture executes only when Windows CI/test host runs this test; neither reports an actual Windows drive scan nor proves file integrity.",
         "inputs": [

@@ -6,6 +6,7 @@
   "allowedChanges": [
     "scripts/engineering-team/mcp/factory-readonly-server.mjs",
     "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+    "config/verification/test-catalog.json",
     "docs/developer-briefs/3142-authenticated-supervisor-observation.md",
     "config/development-convergence/3142-authenticated-supervisor-observation.json"
   ],

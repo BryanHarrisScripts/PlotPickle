@@ -9660,7 +9660,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "bffdb4f487430b5ecedaaa4bae7d0128fb335964b49115ecfee237a1ad7f5220"
+            "digest": "1137d42902fc121ec9b608f686625c6c49767f3a13bc98fa261f9a8b250787bb"
           }
         ]
       },
@@ -11447,7 +11447,11 @@
           {
             "path": "config/mcp/factory-tool-catalog.json",
             "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
-          }
+          },
+          {
+                      "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
+                      "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+                    }
         ]
       }
     ]

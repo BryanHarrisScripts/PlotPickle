@@ -669,7 +669,7 @@ function invalidParams() {return {code:-32602,message:"Invalid tool arguments"};
 export const MCP_STORAGE_TOOLS = Object.freeze([{
   name:"factory_storage_inventory",
   title:"Inspect one PlotPickle operational storage root",
-  description:"Authenticated exact-clean-MAIN read-only Windows storage inventory. Choose a fixed operational root and quick/deep bounded scan. Metadata/size only; no paths, file contents, cleanup or process actions.",
+  description:"Authenticated exact-clean-MAIN read-only Windows storage inventory. Choose a fixed operational root and quick/deep/profile bounded scan. Profile partitions immediate buckets to expose growth without a single subtree consuming the full budget. Metadata/size only; no paths, file contents, cleanup or process actions.",
   inputSchema:{type:"object",properties:{
     expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
     rootId:{type:"string",enum:STORAGE_ROOT_IDS},

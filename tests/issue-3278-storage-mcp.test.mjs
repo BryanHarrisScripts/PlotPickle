@@ -39,7 +39,7 @@ const harness = (root, changes = {}) => {
 
 test("#3278 storage selection accepts only fixed roots, modes and an exact SHA", () => {
   assert.deepEqual(STORAGE_ROOT_IDS, ["runtimes", "npm-cache", "engineering-team", "repository-artifacts"]);
-  assert.deepEqual(STORAGE_SCAN_MODES, ["quick", "deep"]);
+  assert.deepEqual(STORAGE_SCAN_MODES, ["quick", "deep", "profile"]);
   assert.equal(validStorageReportArgs(args), true);
   for (const change of [{ rootId: "../../private" }, { rootId: "secret" },
     { scanMode: "unbounded" }, { expectedHead: "not-a-sha" },

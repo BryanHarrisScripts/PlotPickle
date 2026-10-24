@@ -2669,6 +2669,21 @@
         "surface",
         "mcp"
       ]
+    },
+    {
+      "id": "owner-initiated-recent-c-drive-metadata-3241",
+      "classification": "production",
+      "include": [
+        "scripts/engineering-team/windows/Measure-PlotPickleRecentCDrive.ps1"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "native",
+        "windows",
+        "security",
+        "storage",
+        "test-harness"
+      ]
     }
   ]
 }

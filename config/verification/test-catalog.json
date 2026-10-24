@@ -4813,7 +4813,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3241-disk-space-preflight.test.mjs"
+          "tests/issue-3241-disk-space-preflight.test.mjs",
+          "tests/issue-3241-storage-inventory.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4838,7 +4839,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3241 first non-destructive slice: typed free-space checks before Windows Factory dependency install and PR candidate worktree staging. No cleanup/retention or live owner-Windows capacity proof."
+      "notes": "#3241 non-destructive capacity preflight plus bounded metadata inventory and retention dry-run. Filesystem fixtures only; no owner-Windows disk inventory, independent reference collection, deletion or live storage acceptance is claimed."
     },
     {
       "id": "experience.library-tunnel-windows-uat-3266",
@@ -11242,6 +11243,37 @@
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
             "digest": "2ef37bc7cdacfd4c35b6d2cd0cc31bd97991b86f7430a0406177ccff0b8798bf"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-storage-inventory.test.mjs",
+        "targetDigest": "b3201f208e78ecd15f8489aa4e1e9a2397841a49453d6ae23979b114def55181",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic filesystem metadata and retention-policy fixtures only. Does not prove the current owner disk contents, process/task/worktree reference completeness, Windows disk usage/reclaimed capacity, hostile concurrent filesystem replacement, safe deletion or any browser workflow. Dry run cannot authorize cleanup.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/storage/inventory.mjs",
+            "digest": "58c850129731e4693b6bb2aa7ab0521eee90d265169b5c84f381f0e41d639bac"
+          },
+          {
+            "path": "scripts/engineering-team/queue/storage/report.mjs",
+            "digest": "b683ac20aafd4d8ffc0a7b311a3c6ca334e0174d19ed4a5eb864cc605bc7700d"
           }
         ]
       }

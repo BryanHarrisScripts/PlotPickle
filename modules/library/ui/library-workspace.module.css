@@ -1342,5 +1342,4 @@
 .continueStoryButton:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  border-color: var(--pp-skin-border-thin);
 }

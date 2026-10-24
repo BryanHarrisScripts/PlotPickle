@@ -17,6 +17,7 @@ import process from "node:process";
 import readline from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ENGINEERING_MODES, runStagedEngineeringTask, validEngineeringSelection, sanitizeEngineeringOutput } from "./engineering/factory-engineering-exec.mjs";
+import { inspectFactoryStorage, validStorageReportArgs, STORAGE_ROOT_IDS, STORAGE_SCAN_MODES } from "./factory-storage-inventory.mjs";
 import {
   readFactoryStatus, planNewestFirst, createQueueGitHubClient, admitFactoryIssues,
 } from "../windows/autonomous-queue.mjs";
@@ -665,6 +666,18 @@ export const MCP_TOOLS=Object.freeze([
 
 function invalidParams() {return {code:-32602,message:"Invalid tool arguments"};}
 
+export const MCP_STORAGE_TOOLS = Object.freeze([{
+  name:"factory_storage_inventory",
+  title:"Inspect one PlotPickle operational storage root",
+  description:"Authenticated exact-clean-MAIN read-only Windows storage inventory. Choose a fixed operational root and quick/deep bounded scan. Metadata/size only; no paths, file contents, cleanup or process actions.",
+  inputSchema:{type:"object",properties:{
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    rootId:{type:"string",enum:STORAGE_ROOT_IDS},
+    scanMode:{type:"string",enum:STORAGE_SCAN_MODES},
+  },required:["expectedHead","rootId","scanMode"],additionalProperties:false},
+  annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false},
+}]);
+
 export const MCP_CONVERSATION_TOOLS = Object.freeze([{
   name: "factory_conversation", title: "Read and answer PlotPickle's durable conversation",
   description: "Authenticated connection only. Poll pending source-bound questions, read one to receive its delivery ID, then answer it using that ID and a new answer ID. Receipt reads reconcile lost replies. Does not wake ChatGPT, run a model, change source, or grant Factory/merge authority.",
@@ -691,7 +704,8 @@ async function conversationSource(expectedHead) {
 
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
   now=Date.now,controlAuthenticated=false,controlOps,
-  engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource}={}) {
+  engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
+  storageInspect=inspectFactoryStorage}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -702,7 +716,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         instructions:controlAuthenticated?"Authenticated app lifecycle plus bounded Factory tests; optional host-enabled staged engineering tasks execute selected repository scripts without inline shell or merge permissions. No autonomous merge is implied.":
           "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
-    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS,...MCP_CONVERSATION_TOOLS,
+    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS,...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
@@ -710,6 +724,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         return {error:invalidParams()};
       const keys=Object.keys(args);
       const isConversation=name==="factory_conversation";
+      const isStorage=name==="factory_storage_inventory";
       const isEngineering=name==="factory_engineering_run";
       const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
       if(isEngineering&&!engineeringEnabled)return {error:{code:-32601,message:"Unknown tool"}};
@@ -717,7 +732,9 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(isConversation&&!controlAuthenticated)return {error:{code:-32001,message:"Conversation authorization required"}};
       if(isConversation&&!validConversationArgs(args))return {error:invalidParams()};
-      if(!isControl&&!isConversation&&name!=="factory_evidence" && keys.length)
+      if(isStorage&&!controlAuthenticated)return {error:{code:-32001,message:"Storage inventory authorization required"}};
+      if(isStorage&&!validStorageReportArgs(args))return {error:invalidParams()};
+      if(!isControl&&!isConversation&&!isStorage&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
       if(name==="factory_status")value=await factoryStatus({root,now});
@@ -731,6 +748,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
       }else if(isConversation)value=await conversationMcpAction(args,{
         root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
+      else if(isStorage)value=await storageInspect(args);
       else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};
@@ -762,7 +780,8 @@ export async function handleRpc(payload,services) {
 
 export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=Date.now,
   controlToken=process.env.PLOTPICKLE_FACTORY_MCP_CONTROL_TOKEN,controlOps,
-  engineeringEnabled=engineeringEnabledByHost(),gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource}={}) {
+  engineeringEnabled=engineeringEnabledByHost(),gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
+  storageInspect=inspectFactoryStorage}={}) {
   return http.createServer(async(req,res)=>{
     const target=req.url||"";
     const host=String(req.headers.host||"").toLowerCase();
@@ -800,7 +819,7 @@ export function createLocalMcpHttpServer({root=privateFactoryRoot(),github,now=D
       const controlAuthenticated=controlTokenMatches(
         req.headers["x-plotpickle-factory-control-token"],controlToken);
       const answer=await handleRpc(parsed,{root,github,now,controlAuthenticated,controlOps,
-        engineeringEnabled,gatewayRoot,gatewaySource});
+        engineeringEnabled,gatewayRoot,gatewaySource,storageInspect});
       if(answer===null){res.writeHead(202);return res.end();}
       res.writeHead(200,{"content-type":"application/json; charset=utf-8",
         "cache-control":"no-store","mcp-protocol-version":MCP_PROTOCOL});

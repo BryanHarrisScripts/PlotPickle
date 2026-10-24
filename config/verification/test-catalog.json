@@ -7761,7 +7761,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "01f42002cf94d036234b6c334b105c371b9d9a57bfa971d36d46f92bfed3f564",
+        "targetDigest": "828398d8a91da7ecb1f4404b55f7c71df11961d1d192f63f21c60e65e1bd0ec8",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -7779,11 +7779,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established.",
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7875,7 +7875,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7952,7 +7952,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8060,7 +8060,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8152,7 +8152,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8248,7 +8248,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8316,7 +8316,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",

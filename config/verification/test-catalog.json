@@ -3387,7 +3387,8 @@
           "tests/issue-1185-pi-managed-install.test.mjs",
           "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
           "tests/issue-641-developer-agent-stack.test.mjs",
-          "tests/issue-667-669-agent-output-quality.test.mjs"
+          "tests/issue-667-669-agent-output-quality.test.mjs",
+          "tests/issue-3291-pi-unbundled-cli.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7923,7 +7924,7 @@
           },
           {
             "path": "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs",
-            "digest": "aab328e55cbda5a1943b8769fbd3942351eb5d66ba260ff5910db752522ce272"
+            "digest": "a0ce94a6a775fed575797bbaddf94af6c614a3833983f461aed1c066aa065a02"
           }
         ]
       },
@@ -10074,7 +10075,7 @@
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",
-        "targetDigest": "0cc0da6f6e82b23ae99056d8acd4e74757bb4fa62ad1e338d17c993d2a7e64eb",
+        "targetDigest": "eef8358fec922e8096b453708fcf93e13981292e99176b33db06be2c7b20a0d5",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11579,6 +11580,34 @@
         ],
         "limits": "Dependency manifest and lockfile version/provenance checks only. #3279 raises the Undici 7 floor to upstream 7.30.1; other existing security assertions preserved. Does not establish installed compatibility, exploit reachability, Windows acceptance or live Dependabot alert closure.",
         "inputs": []
+      },
+      {
+        "target": "tests/issue-3291-pi-unbundled-cli.test.mjs",
+        "targetDigest": "e1a89920b3a900e4ea1efaad7c8ee99452f567c0f881c686841e396247410d29",
+        "catalogueIds": [
+          "agent.managed-pi-install-3067"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Isolated published-bin versus unbundled entry selection, missing-entry fail-closed and non-Windows symlink boundary only. Does not demonstrate a real installed Pi CLI, patched Undici behavior, nested subagents, Windows host acceptance or live Dependabot alert closure.",
+        "inputs": [
+          {
+            "path": "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs",
+            "digest": "a0ce94a6a775fed575797bbaddf94af6c614a3833983f461aed1c066aa065a02"
+          }
+        ]
       }
     ]
   }

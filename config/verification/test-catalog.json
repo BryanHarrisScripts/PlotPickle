@@ -8009,7 +8009,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -8117,7 +8117,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -8978,7 +8978,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           },
           {
             "path": "config/third-party-oss.json",

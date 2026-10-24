@@ -77,6 +77,14 @@ test("#3241 real metadata inventory scans each small root and never changes cont
 test("#3241 refuses invalid selection or unverified scanner evidence without promoting status", async () => {
   await assert.rejects(inventoryFactoryStoragePerRoot({ roots: [] }), /STORAGE_SELECTION_INVALID/u);
   await assert.rejects(inventoryFactoryStoragePerRoot({ roots: [roots[0], roots[0]] }), /STORAGE_SELECTION_INVALID/u);
+  await assert.rejects(inventoryFactoryStoragePerRoot({ roots: [
+    roots[0],
+    { ...roots[1], directory: path.join(roots[0].directory, "nested") },
+  ], scan: async () => { throw Error("SHOULD_NOT_SCAN_OVERLAPPING_ROOTS"); } }),
+  /STORAGE_ROOTS_OVERLAP/u);
+  await assert.rejects(inventoryFactoryStoragePerRoot({ roots: [
+    { ...roots[0], directory: "relative/root" },
+  ] }), /STORAGE_SELECTION_INVALID/u);
   await assert.rejects(inventoryFactoryStoragePerRoot({ roots, maxDurationMsPerRoot: 120001 }),
     /STORAGE_SELECTION_INVALID/u);
   await assert.rejects(inventoryFactoryStoragePerRoot({

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
   ensureManagedPiInstalled,
@@ -10,7 +12,64 @@ import {
   probeManagedPi,
 } from "../scripts/pi-managed-install.mjs";
 
+async function reviewedRead(file, encoding) {
+  if (file instanceof URL) return readFile(file, encoding);
+  if (String(file).replaceAll("\\", "/").endsWith("undici/package.json")) {
+    const lock = JSON.parse(await readFile(new URL("../.pi/managed/package-lock.json", import.meta.url), "utf8"));
+    return JSON.stringify({ name: "undici", version: lock.packages["node_modules/undici"].version });
+  }
+  return readFile(new URL(String(file).endsWith("package-lock.json") ? "../.pi/managed/package-lock.json" : "../.pi/managed/package.json", import.meta.url), encoding);
+}
+
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
+
+test("#3289 same-version dependency repair validates actual installed files and then reuses the current graph", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-pi-3289-"));
+  const command = managedPiCommand({ root });
+  const manifest = await read(".pi/managed/package.json");
+  const lock = await read(".pi/managed/package-lock.json");
+  const expectedUndici = JSON.parse(lock).packages["node_modules/undici"].version;
+  let installs = 0;
+  const options = { root, nodeVersion: "26.12.0", npmCommand: "npm",
+    existsSync: (file) => file === command,
+    runPortableCommand: async (_cmd, args) => {
+      if (args[0] === "ci") {
+        installs += 1;
+        await writeFile(path.join(root, "node_modules/undici/package.json"), JSON.stringify({ name: "undici", version: expectedUndici }));
+      }
+      return { stdout: "1.3.0", stderr: "" };
+    } };
+  try {
+    await mkdir(path.join(root, "node_modules/undici"), { recursive: true });
+    await writeFile(path.join(root, "package.json"), manifest);
+    await writeFile(path.join(root, "package-lock.json"), lock);
+    await writeFile(path.join(root, "node_modules/undici/package.json"), JSON.stringify({ name: "undici", version: "8.10.2" }));
+    assert.equal((await probeManagedPi(options)).state, "dependency-mismatch");
+    await assert.rejects(ensureManagedPiInstalled({ ...options, allowInstall: false }), /automatic installation is disabled.*reviewed repository lock/u);
+    assert.equal(installs, 0);
+    assert.equal((await ensureManagedPiInstalled(options)).installed, true);
+    assert.equal(installs, 1);
+    assert.equal((await ensureManagedPiInstalled(options)).installed, false);
+    assert.equal(installs, 1);
+    await writeFile(path.join(root, "package-lock.json"), "{}");
+    assert.equal((await probeManagedPi(options)).state, "dependency-mismatch");
+    await writeFile(path.join(root, "package-lock.json"), lock);
+    await rm(path.join(root, "node_modules/undici/package.json"));
+    assert.equal((await probeManagedPi(options)).ready, false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("#3289 a successful installer exit cannot conceal stale installed dependencies", async () => {
+  await assert.rejects(ensureManagedPiInstalled({
+    root: "synthetic-pi-3289", nodeVersion: "26.12.0", npmCommand: "npm",
+    existsSync: () => true, mkdir: async () => {}, writeFile: async () => {},
+    readFile: async (file, encoding) => String(file).replaceAll("\\", "/").endsWith("undici/package.json")
+      ? JSON.stringify({ name: "undici", version: "8.10.2" }) : reviewedRead(file, encoding),
+    runPortableCommand: async () => ({ stdout: "1.3.0", stderr: "" }),
+  }), /private executable failed validation/u);
+});
 
 test("#1185 managed Windows Pi lives under LOCALAPPDATA rather than the locked global npm wrapper", () => {
   const env = {
@@ -56,6 +115,7 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
     existsSync: (candidate) => existing.has(String(candidate).toLowerCase()),
     commandOnPath: () => { throw new Error("PATH lookup must not be required when npm.cmd is beside node.exe"); },
     runPortableCommand,
+    readFile: reviewedRead,
     mkdir: async () => {},
     writeFile: async () => {},
   });
@@ -79,6 +139,7 @@ test("#1185 existing managed Pi validates without reinstalling only when it matc
     platform: "win32",
     env,
     existsSync: (candidate) => candidate === command,
+    readFile: reviewedRead,
     runPortableCommand: async () => { calls += 1; return { stdout: "pi 1.3.0", stderr: "" }; },
   });
   assert.equal(result.ready, true);
@@ -105,6 +166,7 @@ test("#1551 stale managed Pi is upgraded to the pinned 1.3.0 package rather than
     existsSync: (candidate) => candidate === command || candidate === npmCommand,
     mkdir: async () => {},
     writeFile: async () => {},
+    readFile: reviewedRead,
     runPortableCommand: async (cmd, args) => {
       calls.push([cmd, ...args]);
       if (args[0] === "ci") {
@@ -129,6 +191,7 @@ test("#1185 wrong managed Pi version fails closed when installation is disabled"
     nodeVersion: "22.19.0",
     allowInstall: false,
     existsSync: (candidate) => candidate === command,
+    readFile: reviewedRead,
     runPortableCommand: async () => ({ stdout: "0.83.0", stderr: "" }),
   }), /Expected 1\.3\.0; found 0\.83\.0/u);
 });

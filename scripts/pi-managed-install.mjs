@@ -74,6 +74,23 @@ export async function probeManagedPi(options = {}) {
         detail: `PlotPickle-managed Pi must be exactly ${expectedVersion}; found ${version}.`,
       };
     }
+    // A CLI version does not identify its dependency graph. In particular, a
+    // same-version security lock update must invalidate an older private install.
+    const load = options.readFile || readFile;
+    const [reviewedManifest, reviewedLock, installedManifest, installedLock, undici] = await Promise.all([
+      load(new URL("../.pi/managed/package.json", import.meta.url), "utf8").then(JSON.parse),
+      load(new URL("../.pi/managed/package-lock.json", import.meta.url), "utf8").then(JSON.parse),
+      load(path.join(root, "package.json"), "utf8").then(JSON.parse),
+      load(path.join(root, "package-lock.json"), "utf8").then(JSON.parse),
+      load(path.join(root, "node_modules", "undici", "package.json"), "utf8").then(JSON.parse),
+    ]);
+    if (JSON.stringify(reviewedManifest) !== JSON.stringify(installedManifest)
+      || JSON.stringify(reviewedLock) !== JSON.stringify(installedLock)
+      || undici.name !== "undici"
+      || undici.version !== reviewedLock.packages?.["node_modules/undici"]?.version) {
+      return { ready: false, root, command, version, expectedVersion,
+        state: "dependency-mismatch", detail: "Managed Pi dependencies do not match the reviewed repository lock." };
+    }
     return { ready: true, root, command, version, expectedVersion, state: "ready" };
   } catch (error) {
     return {
@@ -107,13 +124,14 @@ export async function ensureManagedPiInstalled(options = {}) {
     expectedVersion,
     existsSync: fileExists,
     runPortableCommand: run,
+    readFile: options.readFile,
   });
   if (existing.ready) return { ...existing, installed: false };
   if (options.allowInstall === false || env.PLOTPICKLE_PI_AUTO_INSTALL === "0") {
     const mismatch = existing.state === "version-mismatch"
       ? ` Expected ${expectedVersion}; found ${existing.version}.`
       : "";
-    throw new Error(`PlotPickle-managed Pi ${expectedVersion} is not ready and automatic installation is disabled.${mismatch}`);
+    throw new Error(`PlotPickle-managed Pi ${expectedVersion} is not ready and automatic installation is disabled.${mismatch} ${existing.detail || existing.state}`);
   }
 
   await (options.mkdir || mkdir)(root, { recursive: true, mode: 0o700 });
@@ -158,6 +176,7 @@ export async function ensureManagedPiInstalled(options = {}) {
     expectedVersion,
     existsSync: fileExists,
     runPortableCommand: run,
+    readFile: options.readFile,
   });
   if (!installed.ready) {
     throw new Error(`PlotPickle-managed Pi ${expectedVersion} installation completed but the private executable failed validation. ${installed.detail || installed.state}`);

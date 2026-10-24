@@ -88,7 +88,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
     },
     {
       "id": "experience.navigation-continuity",
@@ -787,7 +787,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn → Mind Map → World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
+      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn \u2192 Mind Map \u2192 World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
     },
     {
       "id": "story-canon.learn-curriculum-integrity",
@@ -1157,7 +1157,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
+      "notes": "#2354 protects the DSDD Interpret \u2192 Pi Draft \u2192 Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
     },
     {
       "id": "agent.dsdd-brief-handoff-2354",
@@ -1252,7 +1252,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
+      "notes": "#2357 protects the numbered 01 Interpret \u2192 02 Pi Draft \u2192 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "provider.dsdd-production-interpretation-2357",
@@ -1948,7 +1948,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2614 makes Agent Profile → Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
+      "notes": "#2614 makes Agent Profile \u2192 Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
     },
     {
       "id": "production.profile-library-segmented-persistence-2616",
@@ -2322,7 +2322,7 @@
           ".artifacts/verification-shadow/production-harness.json"
         ]
       },
-      "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret → Pi Draft → Publish Brief → GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
+      "notes": "#2780 proves explicit Settings \u2192 Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret \u2192 Pi Draft \u2192 Publish Brief \u2192 GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
     },
     {
       "id": "story-canon.save-session-continuity-2821",
@@ -2979,7 +2979,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
+      "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24\u00d74 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
     },
     {
       "id": "agent.settings-command-win-proof-3000",
@@ -4977,42 +4977,42 @@
         "obligations": [
           {
             "id": "T1",
-            "start": "**T1 — truthful success (safety):**",
-            "end": "**T2 — confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**"
+            "start": "**T1 \u2014 truthful success (safety):**",
+            "end": "**T2 \u2014 confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**"
           },
           {
             "id": "T2",
-            "start": "**T2 — confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**",
-            "end": "**T3 — independence/non-interference (invariant):**"
+            "start": "**T2 \u2014 confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**",
+            "end": "**T3 \u2014 independence/non-interference (invariant):**"
           },
           {
             "id": "T3",
-            "start": "**T3 — independence/non-interference (invariant):**",
-            "end": "**T4 — idempotence (invariant):**"
+            "start": "**T3 \u2014 independence/non-interference (invariant):**",
+            "end": "**T4 \u2014 idempotence (invariant):**"
           },
           {
             "id": "T4",
-            "start": "**T4 — idempotence (invariant):**",
-            "end": "**T5 — authorized revision (invariant):**"
+            "start": "**T4 \u2014 idempotence (invariant):**",
+            "end": "**T5 \u2014 authorized revision (invariant):**"
           },
           {
             "id": "T5",
-            "start": "**T5 — authorized revision (invariant):**",
-            "end": "**T6 — recovery (progress plus independent observation):**"
+            "start": "**T5 \u2014 authorized revision (invariant):**",
+            "end": "**T6 \u2014 recovery (progress plus independent observation):**"
           },
           {
             "id": "T6",
-            "start": "**T6 — recovery (progress plus independent observation):**",
-            "end": "**T7 — downstream identity (safety):**"
+            "start": "**T6 \u2014 recovery (progress plus independent observation):**",
+            "end": "**T7 \u2014 downstream identity (safety):**"
           },
           {
             "id": "T7",
-            "start": "**T7 — downstream identity (safety):**",
-            "end": "**T8 — meaningful progress / truthful uncertainty:**"
+            "start": "**T7 \u2014 downstream identity (safety):**",
+            "end": "**T8 \u2014 meaningful progress / truthful uncertainty:**"
           },
           {
             "id": "T8",
-            "start": "**T8 — meaningful progress / truthful uncertainty:**",
+            "start": "**T8 \u2014 meaningful progress / truthful uncertainty:**",
             "end": "## 5."
           }
         ]
@@ -5026,47 +5026,47 @@
         "obligations": [
           {
             "id": "B1",
-            "start": "**B1 — Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.",
-            "end": "**B2 — Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness."
+            "start": "**B1 \u2014 Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.",
+            "end": "**B2 \u2014 Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness."
           },
           {
             "id": "B2",
-            "start": "**B2 — Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness.",
-            "end": "**B2a — Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets."
+            "start": "**B2 \u2014 Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness.",
+            "end": "**B2a \u2014 Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets."
           },
           {
             "id": "B2a",
-            "start": "**B2a — Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets.",
-            "end": "**B3 — Meaningful brevity.** Propose approximately **5–8 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state."
+            "start": "**B2a \u2014 Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets.",
+            "end": "**B3 \u2014 Meaningful brevity.** Propose approximately **5\u20138 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state."
           },
           {
             "id": "B3",
-            "start": "**B3 — Meaningful brevity.** Propose approximately **5–8 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state.",
-            "end": "**B4 — Dialogue or caption.** Choose the form that makes sense:"
+            "start": "**B3 \u2014 Meaningful brevity.** Propose approximately **5\u20138 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state.",
+            "end": "**B4 \u2014 Dialogue or caption.** Choose the form that makes sense:"
           },
           {
             "id": "B4",
-            "start": "**B4 — Dialogue or caption.** Choose the form that makes sense:",
-            "end": "**B5 — Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**."
+            "start": "**B4 \u2014 Dialogue or caption.** Choose the form that makes sense:",
+            "end": "**B5 \u2014 Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**."
           },
           {
             "id": "B5",
-            "start": "**B5 — Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**.",
-            "end": "**B6 — Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit."
+            "start": "**B5 \u2014 Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**.",
+            "end": "**B6 \u2014 Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit."
           },
           {
             "id": "B6",
-            "start": "**B6 — Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit.",
-            "end": "**B7 — Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library → Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities."
+            "start": "**B6 \u2014 Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit.",
+            "end": "**B7 \u2014 Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library \u2192 Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities."
           },
           {
             "id": "B7",
-            "start": "**B7 — Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library → Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities.",
-            "end": "**B8 — No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display “Saved & Locked” while persistence is unknown."
+            "start": "**B7 \u2014 Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library \u2192 Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities.",
+            "end": "**B8 \u2014 No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display \u201cSaved & Locked\u201d while persistence is unknown."
           },
           {
             "id": "B8",
-            "start": "**B8 — No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display “Saved & Locked” while persistence is unknown.",
+            "start": "**B8 \u2014 No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display \u201cSaved & Locked\u201d while persistence is unknown.",
             "end": "## 4."
           }
         ]
@@ -5080,27 +5080,27 @@
         "obligations": [
           {
             "id": "T1",
-            "start": "**T1 — Collect comprehensively; retrieve selectively; decide precisely.**",
-            "end": "**T2 — 4,000 characters is not a creative-information cap.**"
+            "start": "**T1 \u2014 Collect comprehensively; retrieve selectively; decide precisely.**",
+            "end": "**T2 \u2014 4,000 characters is not a creative-information cap.**"
           },
           {
             "id": "T2",
-            "start": "**T2 — 4,000 characters is not a creative-information cap.**",
-            "end": "**T3 — Discovery is not execution proof.**"
+            "start": "**T2 \u2014 4,000 characters is not a creative-information cap.**",
+            "end": "**T3 \u2014 Discovery is not execution proof.**"
           },
           {
             "id": "T3",
-            "start": "**T3 — Discovery is not execution proof.**",
-            "end": "**T4 — Settings express one readiness truth.**"
+            "start": "**T3 \u2014 Discovery is not execution proof.**",
+            "end": "**T4 \u2014 Settings express one readiness truth.**"
           },
           {
             "id": "T4",
-            "start": "**T4 — Settings express one readiness truth.**",
-            "end": "**T5 — Bubble provider authority remains local for the approved pilot.**"
+            "start": "**T4 \u2014 Settings express one readiness truth.**",
+            "end": "**T5 \u2014 Bubble provider authority remains local for the approved pilot.**"
           },
           {
             "id": "T5",
-            "start": "**T5 — Bubble provider authority remains local for the approved pilot.**",
+            "start": "**T5 \u2014 Bubble provider authority remains local for the approved pilot.**",
             "end": "## Deterministic state and invariants"
           }
         ]
@@ -6904,7 +6904,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic selected screenplay cue→candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
+        "limits": "Synthetic selected screenplay cue\u2192candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
         "inputs": [
           {
             "path": "modules/learn/model/screenplay-character-roster.ts",
@@ -7761,7 +7761,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "01f42002cf94d036234b6c334b105c371b9d9a57bfa971d36d46f92bfed3f564",
+        "targetDigest": "828398d8a91da7ecb1f4404b55f7c71df11961d1d192f63f21c60e65e1bd0ec8",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -7779,11 +7779,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests.",
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established.",
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7875,7 +7875,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -7952,7 +7952,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8060,7 +8060,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8152,7 +8152,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8248,7 +8248,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",
@@ -8316,7 +8316,7 @@
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
-            "digest": "d182e276cf5bd0e53f5a68a0ff5a9f12f364633e7ac169cdfb108fd7eaa49390"
+            "digest": "266d552b6983b167533390d2f464aae3018b3ee9df662321425e8d672e74d470"
           },
           {
             "path": "scripts/pi-worker-runtime.mjs",

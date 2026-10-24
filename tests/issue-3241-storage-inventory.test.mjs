@@ -3,8 +3,11 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, link, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 import { inventoryFactoryStorage, previewFactoryRetention } from "../scripts/engineering-team/queue/storage/inventory.mjs";
-import { factoryStorageRoots } from "../scripts/engineering-team/queue/storage/report.mjs";
+import { factoryStorageRoots, planFactoryStorageRoots } from "../scripts/engineering-team/queue/storage/report.mjs";
 
 async function sandbox(fn) {
   const base = await mkdtemp(path.join(os.tmpdir(), "pp-storage-3241-"));
@@ -114,4 +117,21 @@ test("#3241 report confines discovery to operational roots and never includes pr
   const roots = factoryStorageRoots({ appHome, repoRoot });
   assert.deepEqual(roots.map(r => r.directory), [path.join(appHome, "runtimes"), path.join(appHome, "npm-cache"),
     path.join(appHome, "engineering-team"), path.join(repoRoot, ".artifacts")]);
+});
+
+test("#3241 real CLI works when an isolated Windows-style app home is nested beneath repository artifacts", async () => {
+  const repoRoot = fileURLToPath(new URL("../", import.meta.url));
+  const appHome = path.join(repoRoot, ".artifacts", "engineering-localappdata", "PlotPickle");
+  const plan = planFactoryStorageRoots({ appHome, repoRoot });
+  assert.deepEqual(plan.roots.map(r => r.id), ["runtimes", "npm-cache", "engineering-team"]);
+  assert.deepEqual(plan.excludedRoots, [{ id: "repository-artifacts", code: "BROADER_OPERATIONAL_ROOT_OMITTED" }]);
+  const report = fileURLToPath(new URL("../scripts/engineering-team/queue/storage/report.mjs", import.meta.url));
+  const { stdout } = await promisify(execFile)(process.execPath, [report], {
+    env: { ...process.env, PLOTPICKLE_HOME: appHome }, timeout: 15000, maxBuffer: 262144, windowsHide: true,
+  });
+  const observed = JSON.parse(stdout);
+  assert.equal(observed.retention.cleanupAuthorized, false);
+  assert.equal(observed.retention.candidates.length, 0);
+  assert.deepEqual(observed.excludedRoots, plan.excludedRoots);
+  assert.equal(JSON.stringify(observed).includes(repoRoot), false);
 });

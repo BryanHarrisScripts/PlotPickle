@@ -17,7 +17,7 @@ import process from "node:process";
 import readline from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ENGINEERING_MODES, runStagedEngineeringTask, validEngineeringSelection, sanitizeEngineeringOutput } from "./engineering/factory-engineering-exec.mjs";
-import { inspectFactoryStorage, validStorageReportArgs, STORAGE_ROOT_IDS, STORAGE_SCAN_MODES } from "./factory-storage-inventory.mjs";
+import { inspectFactoryStorage, validStorageReportArgs, STORAGE_ROOT_IDS, STORAGE_SCAN_MODES } from "./storage/factory-storage-inventory.mjs";
 import {
   readFactoryStatus, planNewestFirst, createQueueGitHubClient, admitFactoryIssues,
 } from "../windows/autonomous-queue.mjs";

@@ -47,6 +47,16 @@ export async function inventoryFactoryStoragePerRoot({
       !Number.isSafeInteger(maxDurationMsPerRoot) || maxDurationMsPerRoot < 1 ||
       maxDurationMsPerRoot > 120000)
     throw Error("STORAGE_SELECTION_INVALID");
+  const directories = roots.map(root => path.resolve(root.directory));
+  if (roots.some(root => !root || typeof root.directory !== "string" ||
+      !path.isAbsolute(root.directory) || root.directory.includes("\\0")) ||
+      directories.some((root, i) => directories.some((other, j) => {
+        if (i === j) return false;
+        const relative = path.relative(root, other);
+        return relative === "" || (!path.isAbsolute(relative) && relative !== ".." &&
+          !relative.startsWith(`..${path.sep}`));
+      })))
+    throw Error("STORAGE_SELECTION_INVALID");
   const scans = [];
   for (const root of roots) {
     const result = await scan({

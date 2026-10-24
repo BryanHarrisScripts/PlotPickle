@@ -203,7 +203,7 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
   result.application=await observePlotpickleOwnerApp();
   if(typeof readSupervisor==="function") {
     let supervisor=null;
-    try {supervisor=await readSupervisor();}catch {}
+    try {supervisor=await readSupervisor();}catch {supervisor=null;}
     result.supervisor=sanitizeSupervisorObservation(supervisor,now());
   }
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.

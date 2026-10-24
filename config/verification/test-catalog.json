@@ -10580,7 +10580,7 @@
       },
       {
         "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "targetDigest": "4f2c77f159d8ae473cf75404227c749986d547de084cae37bdccaf6cef3763aa",
+        "targetDigest": "1d75786fd140dcfa19d8e36f1e7812423cd5d93d48307b8ee7ab47f4bbea0370",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

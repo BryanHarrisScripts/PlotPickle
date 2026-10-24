@@ -4818,7 +4818,8 @@
           "tests/issue-3241-storage-inventory.test.mjs",
           "tests/issue-3241-storage-per-root-budget.test.mjs",
           "tests/issue-3241-storage-growth-profile.test.mjs",
-          "tests/issue-3241-recent-c-drive.test.mjs"
+          "tests/issue-3241-recent-c-drive.test.mjs",
+          "tests/issue-3241-stage-growth-budget.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9662,7 +9663,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "a633840f8e5eaee191b9bb7b46eb6999625f39c19e1f78ea6923efa6b3296411"
+            "digest": "c47aef85652b6d5e49692056785cfc289e5708d8f18e92197cd78f30bfb48d00"
           }
         ]
       },
@@ -9875,7 +9876,7 @@
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
-            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
+            "digest": "40bb83d24a538ea7874cfba538b2b50569c2cd55e67522efef6af1b401bc16b9"
           }
         ],
         "truthRefs": [
@@ -10039,7 +10040,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
+            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
@@ -10051,7 +10052,7 @@
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
-            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
+            "digest": "40bb83d24a538ea7874cfba538b2b50569c2cd55e67522efef6af1b401bc16b9"
           }
         ],
         "truthRefs": [
@@ -10290,7 +10291,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
+            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
           },
           {
             "path": "scripts/full-verification-process.mjs",
@@ -10330,7 +10331,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
+            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -11179,7 +11180,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
-            "digest": "c17ee4a4c920448d19c16ed9cc0ec396bcc7ace84a5a6c9918dd8cff0a47c60c"
+            "digest": "40bb83d24a538ea7874cfba538b2b50569c2cd55e67522efef6af1b401bc16b9"
           },
           {
             "path": "scripts/engineering-team/queue/factory-dependency-preflight.mjs",
@@ -11187,7 +11188,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "8eafc43339129b3bfb0deeab98c04550b6476f49124cbb3f6678401a78346394"
+            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
           }
         ]
       },
@@ -11517,6 +11518,42 @@
           {
             "path": "scripts/engineering-team/windows/Measure-PlotPickleRecentCDrive.ps1",
             "digest": "77ae5102dd0bedd07c7d5d97ce7c1dc8a431fed0aca2d0d2294deb54a4fc1dab"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-stage-growth-budget.test.mjs",
+        "targetDigest": "e2952483b1bce47662723b14e0350b9e236e4b5c60b0bfe9bde300b43cca2462",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic staging lock and count ceiling, no deletion, pathless typed result, 8GiB preflight and fail-closed races. This is NOT independently verified user Windows reclaim, physical allocation, runtime retention or product UI acceptance.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+            "digest": "992c4080e3325115edfe1533d4b343accbde53e6ef5bb85625b6cb130596e13b"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+          },
+          {
+            "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
+            "digest": "40bb83d24a538ea7874cfba538b2b50569c2cd55e67522efef6af1b401bc16b9"
           }
         ]
       }

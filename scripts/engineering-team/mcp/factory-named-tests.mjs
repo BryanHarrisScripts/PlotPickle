@@ -12,6 +12,7 @@ import { promisify } from "node:util";
 import process from "node:process";
 import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "../queue/factory-disk-space.mjs";
+import { withCandidateStageBudget } from "./storage/factory-stage-budget.mjs";
 const exec=promisify(execFile);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..");
 const SHA=/^[a-f0-9]{40}$/;
@@ -129,6 +130,7 @@ export async function stageFactoryCandidatePr({
   platform=process.platform,verifyHead=readFactoryVerificationHead,
   inspectPr=inspectFactoryCandidatePr,run=exec,
   fileOps={mkdir,lstat},diskPreflight=readFactoryDiskSpace,
+  stageBudget=withCandidateStageBudget,
 }={}) {
   if(platform!=="win32")return Object.freeze({
     state:"BLOCKED",code:"WINDOWS_ONLY",sourceHead:null});
@@ -173,6 +175,7 @@ export async function stageFactoryCandidatePr({
         ?"DISK_SPACE_INSUFFICIENT":"DISK_SPACE_UNVERIFIED",
       sourceHead:expectedHead,issueReserved:false,
     });
+  return await stageBudget({root,base,onStage:async()=>{
   const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
     ...GIT_OPTIONS,cwd,timeout,
     env:{
@@ -250,6 +253,7 @@ export async function stageFactoryCandidatePr({
         ? classifyCandidateWorktreeFailure(error) : failureCode,
       sourceHead:expectedHead});
   }
+  }});
 }
 
 

@@ -4814,7 +4814,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3241-disk-space-preflight.test.mjs",
-          "tests/issue-3241-storage-inventory.test.mjs"
+          "tests/issue-3241-storage-inventory.test.mjs",
+          "tests/issue-3241-storage-per-root-budget.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11325,7 +11326,38 @@
           },
           {
             "path": "scripts/engineering-team/queue/storage/report.mjs",
-            "digest": "b683ac20aafd4d8ffc0a7b311a3c6ca334e0174d19ed4a5eb864cc605bc7700d"
+            "digest": "b06092b2071e8b0e4f1d4f73adb26febaa8635912b2b156b0c8ef39c14554e03"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-storage-per-root-budget.test.mjs",
+        "targetDigest": "0345de5e42a1c73db0f313a4b558e022eeec2b12f2dd28da5ae4f91700240f4a",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic per-root timeout fairness and disposable filesystem tests only. Does not prove native Windows storage inventory completion, real process ownership, bytes reclaimable, safe deletion, or independent Product Gate. No source mutation or cleanup is authorized by this evidence.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/queue/storage/inventory.mjs",
+            "digest": "58c850129731e4693b6bb2aa7ab0521eee90d265169b5c84f381f0e41d639bac"
+          },
+          {
+            "path": "scripts/engineering-team/queue/storage/report.mjs",
+            "digest": "b06092b2071e8b0e4f1d4f73adb26febaa8635912b2b156b0c8ef39c14554e03"
           }
         ]
       },

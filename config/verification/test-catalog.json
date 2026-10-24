@@ -88,7 +88,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence. #2471 adds readable Previs Flip Book and Graphic Novel presentation/export coverage without expanding the three canonical Layer 1 owners. #2475 keeps Previs identity/Act navigation aligned with Outline/Storyboard and removes the duplicate Visual Coverage rail. #2485 makes inline child ownership registry-driven and requires settled rendered surface identity so Previs cannot be reclassified as Outline after mount. #2489 restores Previs five-state colour semantics, aligns Rough Cut runtime identity, and extends settled Dashboard rendering proof through Timeline, Sound, Rough Cut and Screening. #2469 projects Dashboard LOCKED/IN REVIEW/UNAVAILABLE maturity into WebMCP evidence and governs current Screening/Sound review surfaces. #2483 replaces the Storyboard Frame pull-down with bounded image chevrons and visible exact prompt provenance without changing review authority. #2491 removed HTML export; #2497 supersedes animation with one authenticated static WebP Graphic Novel sheet, adds observed screenplay speech bubbles, and collapses Previs to one project-hydration owner while retaining 25-position and Keep/Lock authority. #2499 separates explicit local Save from Storyboard Lock and adds visible N/X image counts to all 25 position cards. #2487 closes the story-to-screen live parity proof by requiring every downstream Dashboard stage to return through the visible Back to Dashboard control and settle on Dashboard. #2603 establishes Blank versus explicit Example startup/data ownership, first-save project identity, and packaged Afterglow isolation. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store. #2612 formalizes Dashboard maturity gating: green locked, yellow active review, and gray selectable deferred destinations that cannot open until promoted. #2623 keeps the canonical authenticated Dashboard shutdown while adding a confirmed, loopback-only Node stop action to the unauthenticated profile gate before login and after logout. #2627 moves the locked shutdown proof onto the live Skin V1 LOGON presentation and requires rendered 1366x768 visibility before login and after Log Off."
     },
     {
       "id": "experience.navigation-continuity",
@@ -787,7 +787,7 @@
           ".artifacts/verification-shadow/story-canon.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn → Mind Map → World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project → Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
+      "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work. #2602 adds the deterministic twelve-topic Learn \u2192 Mind Map \u2192 World Map parity/migration audit and stable shared-field identity policy. #2604 makes Mind Map the canonical create/edit surface for the full Learn taxonomy using stable shared project-field IDs and field-specific agent proposals. #2605 makes World Map a twelve-topic read/review projection over the same canonical fields as Mind Map, with lesson deep-links and exact Mind Map edit routing. #2606 adds the versioned read-only canonical project \u2192 Outline projection and end-to-end Blank/Afterglow continuity proof without introducing an Outline-owned story store."
     },
     {
       "id": "story-canon.learn-curriculum-integrity",
@@ -1157,7 +1157,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
+      "notes": "#2354 protects the DSDD Interpret \u2192 Pi Draft \u2192 Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
     },
     {
       "id": "agent.dsdd-brief-handoff-2354",
@@ -1252,7 +1252,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
+      "notes": "#2357 protects the numbered 01 Interpret \u2192 02 Pi Draft \u2192 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367. #2376 protects microphone-always-action semantics and current-cycle invalidation of stale DSDD locked/Pi/published state. #2470 adds Human-validated Conversational UAT candidate/checkpoint and no-canon publication-boundary coverage."
     },
     {
       "id": "provider.dsdd-production-interpretation-2357",
@@ -1947,7 +1947,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2614 makes Agent Profile → Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
+      "notes": "#2614 makes Agent Profile \u2192 Agent Skill URI integrity a Layer 4 exact-head contract and keeps built-in skill trust metadata 1:1 with the canonical skill registry."
     },
     {
       "id": "production.profile-library-segmented-persistence-2616",
@@ -2321,7 +2321,7 @@
           ".artifacts/verification-shadow/production-harness.json"
         ]
       },
-      "notes": "#2780 proves explicit Settings → Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret → Pi Draft → Publish Brief → GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
+      "notes": "#2780 proves explicit Settings \u2192 Command OpenPencil MCP connection. #2782 adds authenticated Human profile scope, pinned after-ready managed MCP preparation and the repository-owned designs/openpencil workspace. #2787 adds an explicit named-surface GUI workflow: OpenPencil open <surface> launches the visual editor and activates the registered page; OpenPencil review <surface> gathers read-only design Git evidence for Human-controlled Interpret \u2192 Pi Draft \u2192 Publish Brief \u2192 GitHub issue. Context-aware surface inference and implementation-PR creation are explicitly excluded. #2800 adds content-hash design-session tracking, isolated non-main design publication, automatic developer-brief issue creation, idempotent retry, and focus-return finalization after the native document closes."
     },
     {
       "id": "story-canon.save-session-continuity-2821",
@@ -2978,7 +2978,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24×4 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
+      "notes": "#2961 LIBRARY-NEW-001 validates explicit Human title, Short Film/Feature selection, target minutes, real core Library storage roundtrip, pre-existing project bytes, no duplicate retry source path, static preservation of 24\u00d74 structure. Fixture evidence, not observed Windows encrypted profile acceptance."
     },
     {
       "id": "agent.settings-command-win-proof-3000",
@@ -4884,6 +4884,50 @@
       "platforms": [
         "any"
       ]
+    },
+    {
+      "id": "agent.conversation-mcp-3259",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "verification-harness"
+      ],
+      "triggerTokens": [
+        "agent",
+        "security",
+        "test-harness",
+        "mcp",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-3259-conversation-mcp.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json"
+        ]
+      },
+      "notes": "#3259 active-conversation durable test and authenticated MCP reply boundary. Disposable local HTTP, Git and fresh-process fixtures; real tunnel and owner GUI acceptance remain unproven."
     }
   ],
   "truthGovernance": {
@@ -4927,42 +4971,42 @@
         "obligations": [
           {
             "id": "T1",
-            "start": "**T1 — truthful success (safety):**",
-            "end": "**T2 — confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**"
+            "start": "**T1 \u2014 truthful success (safety):**",
+            "end": "**T2 \u2014 confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**"
           },
           {
             "id": "T2",
-            "start": "**T2 — confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**",
-            "end": "**T3 — independence/non-interference (invariant):**"
+            "start": "**T2 \u2014 confirmed Save prerequisite and durable approval (safety; Human-confirmed ordering):**",
+            "end": "**T3 \u2014 independence/non-interference (invariant):**"
           },
           {
             "id": "T3",
-            "start": "**T3 — independence/non-interference (invariant):**",
-            "end": "**T4 — idempotence (invariant):**"
+            "start": "**T3 \u2014 independence/non-interference (invariant):**",
+            "end": "**T4 \u2014 idempotence (invariant):**"
           },
           {
             "id": "T4",
-            "start": "**T4 — idempotence (invariant):**",
-            "end": "**T5 — authorized revision (invariant):**"
+            "start": "**T4 \u2014 idempotence (invariant):**",
+            "end": "**T5 \u2014 authorized revision (invariant):**"
           },
           {
             "id": "T5",
-            "start": "**T5 — authorized revision (invariant):**",
-            "end": "**T6 — recovery (progress plus independent observation):**"
+            "start": "**T5 \u2014 authorized revision (invariant):**",
+            "end": "**T6 \u2014 recovery (progress plus independent observation):**"
           },
           {
             "id": "T6",
-            "start": "**T6 — recovery (progress plus independent observation):**",
-            "end": "**T7 — downstream identity (safety):**"
+            "start": "**T6 \u2014 recovery (progress plus independent observation):**",
+            "end": "**T7 \u2014 downstream identity (safety):**"
           },
           {
             "id": "T7",
-            "start": "**T7 — downstream identity (safety):**",
-            "end": "**T8 — meaningful progress / truthful uncertainty:**"
+            "start": "**T7 \u2014 downstream identity (safety):**",
+            "end": "**T8 \u2014 meaningful progress / truthful uncertainty:**"
           },
           {
             "id": "T8",
-            "start": "**T8 — meaningful progress / truthful uncertainty:**",
+            "start": "**T8 \u2014 meaningful progress / truthful uncertainty:**",
             "end": "## 5."
           }
         ]
@@ -4976,47 +5020,47 @@
         "obligations": [
           {
             "id": "B1",
-            "start": "**B1 — Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.",
-            "end": "**B2 — Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness."
+            "start": "**B1 \u2014 Correct single-frame scope.** Create narration only for the currently selected **Saved and Locked** Storyboard image. Never claim that a different Shot or different image version supplied the final text. Generation does not change image Save or Lock.",
+            "end": "**B2 \u2014 Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness."
           },
           {
             "id": "B2",
-            "start": "**B2 — Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness.",
-            "end": "**B2a — Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets."
+            "start": "**B2 \u2014 Real local writing execution.** Use the configured and working **local writing provider**. The interface need not explain routing when it works. Provider selection, readiness or a mocked green test cannot substitute for an actual successful local inference call. If the local provider is unavailable, **do not silently switch provider**; keep current work and show a short, truthful failure/retry message, with diagnostic detail in the existing logging harness.",
+            "end": "**B2a \u2014 Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets."
           },
           {
             "id": "B2a",
-            "start": "**B2a — Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets.",
-            "end": "**B3 — Meaningful brevity.** Propose approximately **5–8 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state."
+            "start": "**B2a \u2014 Capability-proven visual reading.** If the *configured Local* model genuinely supports image input, verify by sending a known test image and checking that its answer correctly identifies grounded visible features (not merely echoing filenames, prompts or a description). When this capability is verified and the real selected Shot image can be supplied, the Bubble Agent may use the image together with the screenplay/Shot facts. If the configured writer is text-only or the image route is unverified, use those written facts and **do not falsely assert visual understanding**. Never require an extra provider or automatic Cloud switching; any new provider capability requires a separate explicit setup decision. Log whether image evidence was actually read, with image/artifact version reference, without exposing profile secrets.",
+            "end": "**B3 \u2014 Meaningful brevity.** Propose approximately **5\u20138 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state."
           },
           {
             "id": "B3",
-            "start": "**B3 — Meaningful brevity.** Propose approximately **5–8 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state.",
-            "end": "**B4 — Dialogue or caption.** Choose the form that makes sense:"
+            "start": "**B3 \u2014 Meaningful brevity.** Propose approximately **5\u20138 printed words**, hard maximum **12 words total for the selected single printed expression**. It must communicate a specific story moment, not repeat technical camera labels, shot numbers or filler. An excellent creative choice is subject to Human judgment; automated proof can enforce word count, provenance and state.",
+            "end": "**B4 \u2014 Dialogue or caption.** Choose the form that makes sense:"
           },
           {
             "id": "B4",
-            "start": "**B4 — Dialogue or caption.** Choose the form that makes sense:",
-            "end": "**B5 — Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**."
+            "start": "**B4 \u2014 Dialogue or caption.** Choose the form that makes sense:",
+            "end": "**B5 \u2014 Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**."
           },
           {
             "id": "B5",
-            "start": "**B5 — Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**.",
-            "end": "**B6 — Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit."
+            "start": "**B5 \u2014 Human decision controls.** Create Narration produces a reviewable **DRAFT**, not an approval. The three human-facing actions are **Save & Lock**, **Regenerate**, and **No Bubble**.",
+            "end": "**B6 \u2014 Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit."
           },
           {
             "id": "B6",
-            "start": "**B6 — Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit.",
-            "end": "**B7 — Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library → Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities."
+            "start": "**B6 \u2014 Correct stale/concurrent behaviour.** A model response arriving for a previously selected Shot/image or older story/Shot facts cannot become current or overwrite an approved decision. If authored camera, continuity, lighting, dialogue or other used facts change, previous approval is visibly **stale**, not deceptively current. Re-approval is explicit.",
+            "end": "**B7 \u2014 Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library \u2192 Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities."
           },
           {
             "id": "B7",
-            "start": "**B7 — Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library → Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities.",
-            "end": "**B8 — No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display “Saved & Locked” while persistence is unknown."
+            "start": "**B7 \u2014 Same in Storyboard and Previs after restart.** The exact saved-and-locked Bubble/Caption or intentional No Bubble is displayed consistently in both Storyboard and Previs, without rewriting, regenerating or replacing it. Reopen the same user project through **Library \u2192 Open Example with Your Changes**, after a supported normal stop/start, and independently compare associated image and text identities.",
+            "end": "**B8 \u2014 No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display \u201cSaved & Locked\u201d while persistence is unknown."
           },
           {
             "id": "B8",
-            "start": "**B8 — No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display “Saved & Locked” while persistence is unknown.",
+            "start": "**B8 \u2014 No collateral effects or false success.** Failed local compute, failed/expired authentication, invalid model output, missing evidence, failed/unknown encrypted write, cancellation and stale results must leave previously locked text, story canon, underlying image/Lock and unrelated Shot/profile records intact. Do not blame missing image pixels or falsely require a new sign-in if actual auth is valid. Do not display \u201cSaved & Locked\u201d while persistence is unknown.",
             "end": "## 4."
           }
         ]
@@ -5030,27 +5074,27 @@
         "obligations": [
           {
             "id": "T1",
-            "start": "**T1 — Collect comprehensively; retrieve selectively; decide precisely.**",
-            "end": "**T2 — 4,000 characters is not a creative-information cap.**"
+            "start": "**T1 \u2014 Collect comprehensively; retrieve selectively; decide precisely.**",
+            "end": "**T2 \u2014 4,000 characters is not a creative-information cap.**"
           },
           {
             "id": "T2",
-            "start": "**T2 — 4,000 characters is not a creative-information cap.**",
-            "end": "**T3 — Discovery is not execution proof.**"
+            "start": "**T2 \u2014 4,000 characters is not a creative-information cap.**",
+            "end": "**T3 \u2014 Discovery is not execution proof.**"
           },
           {
             "id": "T3",
-            "start": "**T3 — Discovery is not execution proof.**",
-            "end": "**T4 — Settings express one readiness truth.**"
+            "start": "**T3 \u2014 Discovery is not execution proof.**",
+            "end": "**T4 \u2014 Settings express one readiness truth.**"
           },
           {
             "id": "T4",
-            "start": "**T4 — Settings express one readiness truth.**",
-            "end": "**T5 — Bubble provider authority remains local for the approved pilot.**"
+            "start": "**T4 \u2014 Settings express one readiness truth.**",
+            "end": "**T5 \u2014 Bubble provider authority remains local for the approved pilot.**"
           },
           {
             "id": "T5",
-            "start": "**T5 — Bubble provider authority remains local for the approved pilot.**",
+            "start": "**T5 \u2014 Bubble provider authority remains local for the approved pilot.**",
             "end": "## Deterministic state and invariants"
           }
         ]
@@ -6854,7 +6898,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic selected screenplay cue→candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
+        "limits": "Synthetic selected screenplay cue\u2192candidate projection, provenance/alias visibility and static Human approval/saved project guard. No real Human Brotherly Love full-cast completeness, cloud generation, Windows restart, generated art or private screenplay content is proved.",
         "inputs": [
           {
             "path": "modules/learn/model/screenplay-character-roster.ts",
@@ -7148,7 +7192,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
+            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
           }
         ]
       },
@@ -7982,7 +8026,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
+            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
           }
         ]
       },
@@ -9614,7 +9658,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "af78579510087e2f6a7e2c98f8a67e2ad485ece1930b3ecfe52eee54469f6320"
+            "digest": "77b1620cf23d8060972b29a2c76943ada25aa30751a930fee543b0ecb219d0c0"
           }
         ]
       },
@@ -9912,14 +9956,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "3e5d3a24ebdcfd903a4953b396fd6b99fd56c214144090e1a31fd5416605c738",
+        "targetDigest": "279c4fa98cd7121042d357954f0165e53c291fc5998dd53bde240e84d2e60aa6",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9963,7 +10007,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           }
         ],
         "truthRefs": [
@@ -9999,7 +10043,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10147,7 +10191,7 @@
       },
       {
         "target": "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
-        "targetDigest": "6fa5a75594a11dd2161c715a8ac9fd0559123d2f646eb90e6fef4e6178f3a42e",
+        "targetDigest": "8ab2f9208f6468b29af7c8623e0491af486c8b573af690294035b68e0ea352c6",
         "catalogueIds": [
           "agent.authenticated-factory-supervisor-gui-3142"
         ],
@@ -10173,7 +10217,7 @@
           },
           {
             "path": "app/api/factory/supervisor/route.ts",
-            "digest": "adf1400eff1823608111a31bf81d05cbca77b7047d1e1e2f00147feb0b9ec8d4"
+            "digest": "562ced418566ea164637bc1a9c72b62e8fb1b5a0979e49369742e42810062943"
           },
           {
             "path": "app/skin-v1/factory-supervisor-panel.tsx",
@@ -10185,7 +10229,11 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
+            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+          },
+          {
+            "path": "core/auth/profile-experience/local-factory-request.ts",
+            "digest": "a1f71c4bbe465dad1cc1cd1e64f0edc04b9d933d22eccda1ad980e1208870602"
           }
         ]
       },
@@ -10234,7 +10282,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10282,7 +10330,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10294,7 +10342,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
+            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
           }
         ],
         "truthRefs": [
@@ -10330,11 +10378,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "2de86af4d0d50ea8a92253548913ae470ce9f5f371c746d582afcc90a3a8bf6a"
+            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10554,7 +10602,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "d22b46b419398e80c3e4dbbe8a57ad668927712c636073b4bc5f04551cd5536e"
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -10837,7 +10885,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "54b047eecb6b12ee2da5ea8f31c5aeefc22dc960453208be8bbaeafb07786121",
+        "targetDigest": "f7846362b10efdac812fbb443b1d3106e53f808df3c671838b7bb303f67f263b",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10867,19 +10915,23 @@
           },
           {
             "path": "app/api/factory/tunnel/route.ts",
-            "digest": "52279ad7c8ad975455873684673c722212b568bf9ac44189b34843196edd60d8"
+            "digest": "87c4209c5f1e01addf0ba43839ea9d020460c9157f7a4cde52c0b545d623319e"
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "4bdc602e74cf42580ed9326df36225de81a5886019ff9785caa3d1a353f84390"
+            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "2aa0c9c0289394bed6106b40d81ad6baf07357af84836dbe2bc498e9f0112486"
+            "digest": "c1e290114b495373bc15f3eb66aa6c7720397a161ac3c3657a14eb58120e0949"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
             "digest": "8a650d5fad7bf1ba23bfa63e7cd13d73134f5520b2340ee0884bed078a3ed465"
+          },
+          {
+            "path": "core/auth/profile-experience/local-factory-request.ts",
+            "digest": "a1f71c4bbe465dad1cc1cd1e64f0edc04b9d933d22eccda1ad980e1208870602"
           }
         ]
       },
@@ -11091,7 +11143,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "1564fa24dbffee77e7aaa0a5e1a07cef7f36d17288f2aeaa51070eb4cab9be74"
+            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
           },
           {
             "path": "schema/gateway/message-envelope.v1.schema.json",
@@ -11167,7 +11219,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "2aa0c9c0289394bed6106b40d81ad6baf07357af84836dbe2bc498e9f0112486"
+            "digest": "c1e290114b495373bc15f3eb66aa6c7720397a161ac3c3657a14eb58120e0949"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
@@ -11274,6 +11326,50 @@
           {
             "path": "scripts/engineering-team/queue/storage/report.mjs",
             "digest": "b683ac20aafd4d8ffc0a7b311a3c6ca334e0174d19ed4a5eb864cc605bc7700d"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3259-conversation-mcp.test.mjs",
+        "targetDigest": "47144c4a3c6b8803120174ccd63110a95dd207e9c68ddd7aba127abde66a9e85",
+        "catalogueIds": [
+          "agent.conversation-mcp-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Disposable local HTTP MCP with synthetic token and host identity, temporary private records, temporary Git repository, and fresh Node process readback. Proves scoped local transport/authentication, immutable correlation/idempotency, expiry, source pinning, and recoverable readback within fixtures only. Does not prove owner GUI, external ChatGPT, provider/model identity or execution, unattended delivery, Windows owner restart/reconnect or independent product acceptance.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
+            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/conversation-service.mjs",
+            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/conversation-http.mjs",
+            "digest": "55c55edb3bb92e4c163dc94c379894572159e4a1bcdec0785662a3c41c5cda35"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "2dfa9c0f32fb7fe61c1f3edaad297835fcdf5c7b025072f95203ff0126ea79e8"
           }
         ]
       }

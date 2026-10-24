@@ -15,7 +15,8 @@
     "config/verification/ownership-map.json",
     "docs/developer-briefs/3142-factory-shared-gui-status-pause-resume.md",
     "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json",
-    "build/local-profile-auth-gateway.ts"
+    "build/local-profile-auth-gateway.ts",
+    "core/auth/profile-experience/local-factory-request.ts"
   ],
   "acceptance": [
     {
@@ -40,7 +41,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/api/factory/supervisor/route.ts",
+          "path": "core/auth/profile-experience/local-factory-request.ts",
           "contains": "recentReauthentication: true"
         },
         {

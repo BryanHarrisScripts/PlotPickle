@@ -189,6 +189,19 @@ function receipt(question, answer, state) {
   });
 }
 
+function matchesQuestion(question, answer) {
+  return question.kind === "question" && answer.kind === "answer" &&
+    answer.correlationId === question.messageId &&
+    answer.causationId === question.messageId &&
+    question.conversationId === answer.conversationId &&
+    question.projectId === answer.projectId && question.taskId === answer.taskId &&
+    question.expectedSourceHead === answer.expectedSourceHead &&
+    question.sourceChannel === answer.sourceChannel &&
+    question.recipient.id === answer.sender.id &&
+    question.sender.id === answer.recipient.id &&
+    answer.createdAt >= question.createdAt && answer.createdAt < question.expiresAt;
+}
+
 export async function persistGatewayQuestion({
   root, envelope, authorization, now = Date.now(),
 } = {}) {
@@ -219,15 +232,7 @@ export async function persistGatewayAnswer({
     const found = await privateRecord(path.join(questions, answer.correlationId + ".json"));
     if (found.state !== "FOUND") return { state: "QUESTION_UNVERIFIABLE" };
     const question = found.envelope;
-    if (question.kind !== "question" || question.expiresAt <= now ||
-        question.conversationId !== answer.conversationId ||
-        question.projectId !== answer.projectId || question.taskId !== answer.taskId ||
-        question.expectedSourceHead !== answer.expectedSourceHead ||
-        question.sourceChannel !== answer.sourceChannel ||
-        question.recipient.id !== answer.sender.id ||
-        question.sender.id !== answer.recipient.id ||
-        answer.createdAt < question.createdAt ||
-        answer.createdAt > question.expiresAt)
+    if (question.expiresAt <= now || !matchesQuestion(question, answer))
       return { state: "CORRELATION_DENIED" };
     const folder = await storeFolder(root, "answers");
     const state = await writeOnce(path.join(folder, question.messageId + ".json"), answer);
@@ -260,10 +265,29 @@ export async function readGatewayReceipt({
         receipt: receipt(question, null,
           question.expiresAt <= now ? "EXPIRED_UNANSWERED" : "PENDING") };
     const answer = a.envelope;
-    if (answer.kind !== "answer" || answer.correlationId !== question.messageId ||
-        answer.expectedSourceHead !== question.expectedSourceHead ||
-        answer.conversationId !== question.conversationId)
+    if (!matchesQuestion(question, answer))
       return { state: "UNVERIFIABLE" };
     return { state: "ANSWERED", receipt: receipt(question, answer, "ANSWERED") };
+  } catch { return { state: "STORAGE_UNVERIFIABLE" }; }
+}
+
+/** Explicit conversation delivery, not telemetry. Only the host-authorized
+ * sender or addressed recipient may read text; receipt-only readers cannot. */
+export async function readGatewayMessages({
+  root, questionId, authorization, now = Date.now(),
+} = {}) {
+  const observed = await readGatewayReceipt({ root, questionId, authorization, now });
+  if (!observed.receipt) return observed;
+  try {
+    const q = await privateRecord(path.join(root, "questions", questionId + ".json"));
+    if (q.state !== "FOUND" ||
+        ![q.envelope.sender.id, q.envelope.recipient.id].includes(authorization?.principalId))
+      return { state: "DENIED" };
+    const a = await privateRecord(path.join(root, "answers", questionId + ".json"));
+    if (a.state === "UNVERIFIABLE" ||
+        (a.state === "FOUND" && !matchesQuestion(q.envelope, a.envelope)))
+      return { state: "UNVERIFIABLE" };
+    return { ...observed, question: q.envelope,
+      answer: a.state === "FOUND" ? a.envelope : null };
   } catch { return { state: "STORAGE_UNVERIFIABLE" }; }
 }

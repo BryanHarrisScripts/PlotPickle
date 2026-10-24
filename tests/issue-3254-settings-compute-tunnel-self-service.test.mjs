@@ -139,11 +139,12 @@ test("#3254 local port observation never implies remote authorization", async ()
 
 test("#3254 Settings Compute has only one Tunnel with guarded owner-start, no browser credentials", async () => {
   const read = p => readFile(new URL("../" + p, import.meta.url), "utf8");
-  const [menu, ui, gateway, route] = await Promise.all([
+  const [menu, ui, gateway, route, authorization] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/tunnel-settings-panel.tsx"),
     read("build/local-profile-auth-gateway.ts"),
     read("app/api/factory/tunnel/route.ts"),
+    read("core/auth/profile-experience/local-factory-request.ts"),
   ]);
   assert.match(menu, /id: "tunnel", shortcut: SETTINGS_SHORTCUTS\.tunnel, label: "Tunnel"[^\n]*group: "COMPUTE"/u);
   assert.match(menu, /if \(item\.id === "tunnel"\) \{ setTunnelOpen\(true\)/u);
@@ -154,8 +155,9 @@ test("#3254 Settings Compute has only one Tunnel with guarded owner-start, no br
   assert.match(ui, /not.*remote|remote.*not|plugin authorization|authorization: NOT VERIFIED/iu);
   assert.doesNotMatch(ui, /type="password"|localStorage|sessionStorage|CONTROL_PLANE_API_KEY/u);
   assert.match(gateway, /"\/api\/factory\/tunnel"/u);
-  assert.match(route, /recentReauthentication: true/u);
-  assert.match(route, /state\.accessMode !== "desktop-loopback"/u);
+  assert.match(route, /authorizeLocalFactoryRequest as authorize/u);
+  assert.match(authorization, /recentReauthentication: true/u);
+  assert.match(authorization, /state\.accessMode !== "desktop-loopback"/u);
 });
 
 test("#3254 Tunnel includes a visible Dashboard exit inside the scrollable panel", async () => {

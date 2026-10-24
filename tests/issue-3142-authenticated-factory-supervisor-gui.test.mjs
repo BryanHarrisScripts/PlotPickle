@@ -122,11 +122,13 @@ test("#3142 route and GUI bind to same reviewed supervisor, Human session and ex
     "app/skin-v1/settings-workspace-panel.tsx",
     "core/auth/profile-request-browser.ts",
     "build/local-profile-auth-gateway.ts",
+    "core/auth/profile-experience/local-factory-request.ts",
   ];
   const files = await Promise.all(paths.map(p => readFile(new URL("../" + p, import.meta.url), "utf8")));
-  assert.match(files[0], /boundary\.authorizeRequest\(requestBoundary\(request\), mutation/u);
-  assert.match(files[0], /recentReauthentication: true/u);
-  assert.match(files[0], /accessMode !== "desktop-loopback"/u);
+  assert.match(files[0], /authorizeLocalFactoryRequest as authorize/u);
+  assert.match(files[5], /boundary\.authorizeRequest\(requestBoundary\(request\), mutation/u);
+  assert.match(files[5], /recentReauthentication: true/u);
+  assert.match(files[5], /accessMode !== "desktop-loopback"/u);
   assert.match(files[0], /supervisorStatus, pauseSupervisor, resumeSupervisor, disableSupervisor/u);
   assert.match(files[0], /dispatchSupervisorRequest/u);
   assert.match(files[1], /authenticatedProfileFetch\(ENDPOINT/u);

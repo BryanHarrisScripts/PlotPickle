@@ -4,6 +4,18 @@ Date: October 23, 2026
 Parent issue: #3259
 Status: architecture proposal; not implemented autonomous ChatGPT sessions.
 
+## P2 delivery slice (October 23, 2026)
+
+The current implementation adds Settings / Compute / Tunnel's **Test Two-Way Conversation** control and an authenticated `factory_conversation` MCP tool. The local, profile-authorized action persists one fixed, nonprivate question, with MAIN or PR TEST and its exact clean source SHA. It cannot record a reply. The connected client polls `pending`, uses `read` to receive a durable delivery ID, and uses `answer` to return its answer and that ID. `receipt` reconciles a lost response. The same question, acknowledgement and answer are displayed after reloading the local page.
+
+Two independent indicators represent acknowledged delivery and a durably persisted, read-back reply. Reading a question alone, a local echo, open port, build success, or a missing/expired answer cannot establish both directions. The receipt describes an authenticated MCP client; the host cannot independently attest the client's model or provider. This is an active-conversation path. It does not wake this ChatGPT window or provide an unattended outbound worker.
+
+Questions expire after fifteen minutes. Duplicate reads reuse the delivery ID, identical answer retries preserve the original timestamp, and conflicting answers cannot overwrite it. A completed answer remains reconcilable after expiry; an unanswered expired test requires a fresh request. Records remain source-scoped and are retained without deletion. Conversation text is explicit delivery content, not developer telemetry. No story, provider, Factory, source-write, spending or merge authority is added.
+
+Required deterministic checks: approved-truth admission; P1 and P2 storage/authentication/source/expiry/duplicate/recovery regressions; existing MCP and Tunnel tests; focused UAT; production build; convergence and exact-head CI. Disposable native Windows tests exercise real local HTTP and a fresh Node process, with synthetic credentials and a fixture repository. They do not prove a real external ChatGPT exchange or owner browser acceptance.
+
+Product acceptance remains UNPROVEN until the exact candidate is started on Windows, its test button is observed, and the actual authenticated ChatGPT connection reads and answers it, with matching receipts before and after reconnect/restart. The installed MCP server and plugin must discover the new tool; an older running server cannot supply it. Existing #3258/#3259 track this acceptance and the subsequent persistent dispatcher; no new planning issue is needed.
+
 ## Goal
 
 Eliminate the Human-as-message-courier. PlotPickle and AI workers should ask questions, return answers, request evidence and verifiable tests, and coordinate Software, Learning & Evolution, and Creative factories using a shared, versioned, durable protocol. Preserve owner control of creative decisions and provable source truth.

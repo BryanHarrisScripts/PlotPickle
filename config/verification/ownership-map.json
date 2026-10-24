@@ -2640,6 +2640,20 @@
         "mcp",
         "agent"
       ]
+    },
+    {
+      "id": "factory-conversation-http-boundary-3259",
+      "classification": "production",
+      "include": [
+        "app/api/factory/conversation/route.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "api",
+        "security",
+        "surface",
+        "mcp"
+      ]
     }
   ]
 }

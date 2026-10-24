@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import {
-  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, factoryStatus, factoryEvidence,
+  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, factoryEvidence,
   factoryIssuePreview, factoryObserver, factoryHostHead, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
   MCP_CONTROL_TOOLS, factoryControlReceipt,
@@ -178,6 +178,50 @@ test("factory status provides exact verified local Git SHA within stable launche
   assert.deepEqual(MCP_TOOLS.map(t=>t.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
   assert.equal(MCP_CONTROL_TOOLS.length,4);
 }));
+test("#3142 authenticated Factory status observes canonical supervisor without starting worker",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:42,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const supervisorRead=async()=>{
+    reads++;
+    return {state:"RUNNING",exactSha:OLD,checkedAt:3900,
+      reason:"SECRET_PRIVATE_HOST_ID",hostId:"SECRET_PRIVATE_HOST_ID",
+      autonomousPrLifecycleProven:true,agentExecutionProven:true};
+  };
+  const guest=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:false,supervisorRead});
+  assert.equal(reads,0,"unauthenticated clients cannot inspect supervisor state");
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"supervisor"),false);
+  const owner=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,supervisorRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.supervisor,{
+    state:"RUNNING",sourceHead:OLD,reason:null,heartbeatFresh:true,
+    pauseAcknowledged:false,workerProcessVerified:false,
+    autonomousCodingVerified:false,independentWindowsAcceptance:false,
+    automaticMergeEnabled:false,startActionAvailable:false,replayAuthorized:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/SECRET_PRIVATE_HOST_ID/);
+  const stale=sanitizeSupervisorObservation({state:"RUNNING",exactSha:OLD,
+    checkedAt:100,reason:"NO_FRESH_OWNED_HEARTBEAT"},200_000);
+  assert.equal(stale.heartbeatFresh,false);
+  const paused=sanitizeSupervisorObservation({state:"PAUSED",exactSha:OLD,
+    checkedAt:4000,pauseAcknowledged:true,reason:"LOCAL_OPERATOR_PAUSED"},4000);
+  assert.equal(paused.pauseAcknowledged,true);
+  assert.equal(paused.workerProcessVerified,false);
+  const untrusted=sanitizeSupervisorObservation({state:"RUNNING;execute",exactSha:"../secret",
+    checkedAt:4000,reason:"SECRET"},4000);
+  assert.equal(untrusted.state,"UNVERIFIED");
+  assert.equal(untrusted.sourceHead,null);
+  assert.equal(untrusted.heartbeatFresh,false);
+  const failed=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,supervisorRead:async()=>{throw Error("SECRET_SUPERVISOR");}});
+  assert.equal(failed.result.structuredContent.supervisor.state,"UNVERIFIED");
+  assert.equal(failed.result.structuredContent.supervisor.workerProcessVerified,false);
+  assert.doesNotMatch(JSON.stringify(failed),/SECRET_SUPERVISOR/);
+}));
+
 test("protocol initialization, tool schemas, denylist and malformed args fail closed",()=>sandbox(async root=>{
   await seed(root);
   const init=await executeMcpRequest({jsonrpc:"2.0",method:"initialize",id:1});

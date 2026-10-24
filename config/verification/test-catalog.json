@@ -7198,7 +7198,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
+            "digest": "83c2b694c8dcc032fe0c2a036f9fc0a7a52c0b5ade0712f03d52525caa43c1c4"
           }
         ]
       },
@@ -8008,7 +8008,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "512f2920bb61dd0fe3358c54adde6dbcc4c88b00877839e957e57ebe72b95844"
           },
           {
             "path": "build/dsdd/dsdd-session-gateway.ts",
@@ -8032,7 +8032,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
+            "digest": "83c2b694c8dcc032fe0c2a036f9fc0a7a52c0b5ade0712f03d52525caa43c1c4"
           }
         ]
       },
@@ -8116,7 +8116,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "512f2920bb61dd0fe3358c54adde6dbcc4c88b00877839e957e57ebe72b95844"
           },
           {
             "path": "config/pi-087-dsdd-session-evaluation.json",
@@ -8977,7 +8977,7 @@
           },
           {
             "path": ".github/workflows/product-gate.yml",
-            "digest": "0b4b06dc7c82980476787ddbd8821f2bef1e1bf60eae159466a36b6ebbf7fdf8"
+            "digest": "512f2920bb61dd0fe3358c54adde6dbcc4c88b00877839e957e57ebe72b95844"
           },
           {
             "path": "config/third-party-oss.json",
@@ -10348,7 +10348,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
+            "digest": "83c2b694c8dcc032fe0c2a036f9fc0a7a52c0b5ade0712f03d52525caa43c1c4"
           }
         ],
         "truthRefs": [
@@ -10388,7 +10388,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "7233f964e06d16348eac7b7917f1f3794288e56af4e024cae4bc9597309ecde5"
+            "digest": "83c2b694c8dcc032fe0c2a036f9fc0a7a52c0b5ade0712f03d52525caa43c1c4"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",

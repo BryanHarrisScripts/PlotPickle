@@ -113,7 +113,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || inputs.pi
     name: Pi runtime Windows proof
     runs-on: windows-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - name: Checkout exact head with history
         uses: actions/checkout@v4

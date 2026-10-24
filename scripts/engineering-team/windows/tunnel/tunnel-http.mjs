@@ -23,7 +23,7 @@ function admittedRequest(request, mutation) {
 }
 
 export async function dispatchTunnelRequest({
-  request, authorize, status, start, platform = process.platform,
+  request, authorize, status, start, stop, clearStaleSession, platform = process.platform,
 } = {}) {
   const mutation = request?.method === "POST";
   if (request?.method !== "GET" && !mutation)
@@ -42,12 +42,22 @@ export async function dispatchTunnelRequest({
   let body;
   try { body = await request.json(); }
   catch { return json({ code: "ACTION_INVALID" }, 400); }
-  if (!body || typeof body !== "object" || Array.isArray(body) ||
-      Object.keys(body).length !== 2 || body.action !== "start" ||
-      typeof body.engineering !== "boolean") {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return json({ code: "ACTION_NOT_AUTHORIZED" }, 400);
   }
+  const startAction = body.action === "start" && Object.keys(body).length === 2 && typeof body.engineering === "boolean";
+  const control = body.action === "stop" ? stop : body.action === "clear-stale-session" ? clearStaleSession : null;
+  if (!startAction && !(Object.keys(body).length === 1 && typeof control === "function"))
+    return json({ code: "ACTION_NOT_AUTHORIZED" }, 400);
   try {
+    if (!startAction) {
+      const result = await control();
+      const expected = body.action === "stop" ? "OWNED_LAUNCHER_STOPPED" : "STALE_SESSION_CLEARED";
+      if (result?.state !== expected) return json({ state: "BLOCKED",
+        code: result?.code || "TUNNEL_CONTROL_UNVERIFIED", remoteAuthorized: false }, 409);
+      return json({ ...result, version: 1, capability: "factory.tunnel." + body.action,
+        remoteAuthorized: false }, 200);
+    }
     const result = await start({ engineering: body.engineering });
     if (result?.state !== "LAUNCH_REQUESTED") {
       return json({ code: result?.code || "TUNNEL_START_BLOCKED",

@@ -81,7 +81,7 @@ test("#3266 occupied MCP port stays a safety interlock but offers actionable own
     read("scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs"),
   ]);
   assert.match(ui,/const occupied = status\?\.state === "LOCAL_MCP_PORT_OCCUPIED"/u);
-  assert.match(ui,/disabled=\{busy \|\| !status\?\.launcherAvailable \|\| status.localMcpPortOccupied\}/u);
+  assert.match(ui,/disabled=\{busy \|\| !status\?\.launcherAvailable \|\| status.localMcpPortOccupied \|\| status.launcherOwned \|\| status.staleSession\}/u);
   assert.match(ui,/data-tunnel-existing-listener="unverified"/u);
   assert.match(ui,/This is not proof that the listener belongs to PlotPickle/u);
   assert.match(ui,/Recheck existing listener/u);

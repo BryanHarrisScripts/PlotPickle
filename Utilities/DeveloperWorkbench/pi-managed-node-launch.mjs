@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
@@ -34,7 +34,12 @@ export async function resolveManagedPiCliEntry(pi) {
     throw new Error(`PlotPickle-managed Pi package metadata does not declare the expected pi CLI entry at ${packageJsonPath}.`);
   }
 
-  const cliEntry = path.resolve(packageRoot, binEntry);
+  // Pi publishes dist/cli.js beside dist/bundle/cli.js. The bundled CLI
+  // contains an embedded Undici copy that npm overrides cannot patch. Never
+  // fall back to that bundle if the unbundled entry is unavailable.
+  const selectedEntry = binEntry.replaceAll("\\\\", "/") === "dist/bundle/cli.js"
+    ? "dist/cli.js" : binEntry;
+  const cliEntry = path.resolve(packageRoot, selectedEntry);
   const relative = path.relative(packageRoot, cliEntry);
   if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error(`PlotPickle-managed Pi declared an unsafe CLI entry outside its private package root: ${binEntry}`);
@@ -43,6 +48,11 @@ export async function resolveManagedPiCliEntry(pi) {
     await access(cliEntry);
   } catch (error) {
     throw new Error(`PlotPickle-managed Pi CLI entry is missing or unreadable at ${cliEntry}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  }
+  const [physicalRoot, physicalCli] = await Promise.all([realpath(packageRoot), realpath(cliEntry)]);
+  const physicalRelative = path.relative(physicalRoot, physicalCli);
+  if (!physicalRelative || physicalRelative.startsWith("..") || path.isAbsolute(physicalRelative)) {
+    throw new Error("PlotPickle-managed Pi CLI resolved outside its private package root.");
   }
   return cliEntry;
 }

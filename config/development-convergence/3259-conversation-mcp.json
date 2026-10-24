@@ -27,7 +27,8 @@
     "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
     "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
     "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json",
-    "tests/issue-3110-opt-in-engineering-mcp.test.mjs"
+    "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs"
   ],
   "acceptance": [
     {

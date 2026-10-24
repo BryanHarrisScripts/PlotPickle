@@ -201,7 +201,17 @@ test("#3135 STOP failures cannot publish cancellation or silently claim descenda
   }
   assert.equal(beforeStop.state,"running-heartbeat",
     "STOP-failure fixture must observe a live owned child before cancellation");
-  assert.equal((await requestStopWindowsUat(scope, { appRoot: root })).state, "stop-requested");
+  const requested = await requestStopWindowsUat(scope, { appRoot: root });
+  // The worker may publish its STOP failure while the request reads back the
+  // receipt. Both observations preserve uncertainty; neither is cancellation.
+  if (requested.state === "stop-requested") {
+    assert.equal(requested.stopDisposition, "STOP_REQUESTED_UNCONFIRMED");
+  } else {
+    assert.equal(requested.state, "blocked");
+    assert.equal(requested.stopDisposition, "TERMINAL_DURING_REQUEST_UNPROVEN");
+  }
+  assert.equal(requested.cancellationAcknowledged, false);
+  assert.equal(requested.ownedDescendantsVerifiedGone, false);
   const outcome = await running;
   assert.equal(outcome.state, "blocked");
   assert.equal(outcome.cancellationAcknowledged, false);

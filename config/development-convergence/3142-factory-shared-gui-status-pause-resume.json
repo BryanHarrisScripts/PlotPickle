@@ -32,7 +32,8 @@
     "config/development-convergence/3259-conversation-mcp.json",
     "app/api/factory/tunnel/route.ts",
     "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-    "tests/issue-3110-opt-in-engineering-mcp.test.mjs"
+    "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs"
   ],
   "acceptance": [
     {

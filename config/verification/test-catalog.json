@@ -1325,7 +1325,8 @@
           "tests/issue-2937-verifier-receipts.test.mjs",
           "tests/issue-2938-safety-progress.test.mjs",
           "tests/issue-2939-composition-migration.test.mjs",
-          "tests/issue-2940-outcome-measurement.test.mjs"
+          "tests/issue-2940-outcome-measurement.test.mjs",
+          "tests/issue-1228-security-closeout.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4238,7 +4239,7 @@
           "tests/issue-3110-factory-named-test-mcp.test.mjs",
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "tests/issue-3278-storage-mcp.test.mjs"
+          "tests/issue-3278-storage-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7294,11 +7295,11 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "package-lock.json",
-            "digest": "410c9ffefed4a14df29fb9aff6de04309190d64b7a05230f799b3495ea51e298"
+            "digest": "d3b88bf8d665440cda59871f27707cd4c89266340043d40251eec16b404fc8db"
           }
         ]
       },
@@ -7466,7 +7467,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7506,7 +7507,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7586,7 +7587,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           }
         ]
       },
@@ -7686,7 +7687,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -7750,7 +7751,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -9531,11 +9532,11 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           },
           {
             "path": "package-lock.json",
-            "digest": "410c9ffefed4a14df29fb9aff6de04309190d64b7a05230f799b3495ea51e298"
+            "digest": "d3b88bf8d665440cda59871f27707cd4c89266340043d40251eec16b404fc8db"
           }
         ]
       },
@@ -10465,7 +10466,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc9668a29cc40db40d040f65063a0fb1ec9ada52455e0eceb2d36c7d482d7fb0"
+            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
           }
         ]
       },
@@ -11452,9 +11453,9 @@
             "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
           },
           {
-                      "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
-                      "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
-                    }
+            "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
+            "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+          }
         ]
       },
       {
@@ -11556,6 +11557,28 @@
             "digest": "40bb83d24a538ea7874cfba538b2b50569c2cd55e67522efef6af1b401bc16b9"
           }
         ]
+      },
+      {
+        "target": "tests/issue-1228-security-closeout.test.mjs",
+        "targetDigest": "cb28f5a0d42ccf2a9b9770feff2355eedd293febf23138d6f94f292f12ca3d71",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Dependency manifest and lockfile version/provenance checks only. #3279 raises the Undici 7 floor to upstream 7.30.1; other existing security assertions preserved. Does not establish installed compatibility, exploit reachability, Windows acceptance or live Dependabot alert closure.",
+        "inputs": []
       }
     ]
   }

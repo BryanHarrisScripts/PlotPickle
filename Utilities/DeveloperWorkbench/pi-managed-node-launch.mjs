@@ -37,7 +37,7 @@ export async function resolveManagedPiCliEntry(pi) {
   // Pi publishes dist/cli.js beside dist/bundle/cli.js. The bundled CLI
   // contains an embedded Undici copy that npm overrides cannot patch. Never
   // fall back to that bundle if the unbundled entry is unavailable.
-  const selectedEntry = binEntry.replaceAll("\\\\", "/") === "dist/bundle/cli.js"
+  const selectedEntry = binEntry.split(path.sep).join("/") === "dist/bundle/cli.js"
     ? "dist/cli.js" : binEntry;
   const cliEntry = path.resolve(packageRoot, selectedEntry);
   const relative = path.relative(packageRoot, cliEntry);

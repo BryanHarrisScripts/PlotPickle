@@ -72,11 +72,13 @@ test("#3110 opt-in engineering changes neither default public nor authenticated 
       ...(name ? { params: { name, arguments: selection() } } : {}),
     }, { engineeringEnabled, controlAuthenticated });
   const defaultList = await call(false, true, "tools/list");
-  assert.equal(defaultList.result.tools.length, 8);
+  assert.equal(defaultList.result.tools.length, 9);
+  assert.ok(defaultList.result.tools.some(tool => tool.name === "factory_conversation"));
   const optInList = await call(true, true, "tools/list");
-  assert.equal(optInList.result.tools.length, 9);
+  assert.equal(optInList.result.tools.length, 10);
   const readOnly = await call(true, false, "tools/list");
   assert.equal(readOnly.result.tools.length, 4);
+  assert.equal(readOnly.result.tools.some(tool => tool.name === "factory_conversation"), false);
   assert.equal((await call(false, true, "tools/call", "factory_engineering_run")).error.code, -32601);
   assert.equal((await call(true, false, "tools/call", "factory_engineering_run")).error.code, -32001);
   const malformed = await handleRpc({jsonrpc:"2.0",id:2,method:"tools/call",

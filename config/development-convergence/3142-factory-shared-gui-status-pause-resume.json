@@ -15,7 +15,25 @@
     "config/verification/ownership-map.json",
     "docs/developer-briefs/3142-factory-shared-gui-status-pause-resume.md",
     "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json",
-    "build/local-profile-auth-gateway.ts"
+    "build/local-profile-auth-gateway.ts",
+    "core/auth/profile-experience/local-factory-request.ts",
+    "scripts/engineering-team/gateway/gateway-contract.mjs",
+    "scripts/engineering-team/gateway/gateway-host.mjs",
+    "scripts/engineering-team/gateway/conversation-service.mjs",
+    "scripts/engineering-team/gateway/conversation-http.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "app/api/factory/conversation/route.ts",
+    "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+    "app/_components/settings/tunnel/two-way-conversation-panel.module.css",
+    "app/skin-v1/tunnel-settings-panel.tsx",
+    "tests/issue-3259-conversation-mcp.test.mjs",
+    "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+    "docs/developer-briefs/bidirectional-chatgpt-plotpickle-gateway.md",
+    "config/development-convergence/3259-conversation-mcp.json",
+    "app/api/factory/tunnel/route.ts",
+    "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
+    "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs"
   ],
   "acceptance": [
     {
@@ -40,7 +58,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/api/factory/supervisor/route.ts",
+          "path": "core/auth/profile-experience/local-factory-request.ts",
           "contains": "recentReauthentication: true"
         },
         {

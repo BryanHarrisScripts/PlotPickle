@@ -1,4 +1,4 @@
-import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
+import { authorizeLocalFactoryRequest as authorize } from "../../../../core/auth/profile-experience/local-factory-request";
 import { dispatchSupervisorRequest } from "../../../../scripts/engineering-team/windows/supervisor/supervisor-http.mjs";
 import {
   supervisorStatus, pauseSupervisor, resumeSupervisor, disableSupervisor,
@@ -17,14 +17,6 @@ const lifecycle = Object.freeze({
   // STOP is only a local marker request, never a PID-kill or cleanup proof.
   stop: () => disableSupervisor(),
 });
-
-async function authorize(request: Request, mutation: boolean) {
-  const state = await getProfileExperienceRuntime();
-  if (state.accessMode !== "desktop-loopback") throw Error("NETWORK_MODE_NOT_AUTHORIZED");
-  const boundary = state.boundaryFor(new URL(request.url).origin);
-  await boundary.authorizeRequest(requestBoundary(request), mutation
-    ? { mutation: true, recentReauthentication: true } : undefined);
-}
 
 export async function GET(request: Request) {
   return dispatchSupervisorRequest({ request, authorize, lifecycle });

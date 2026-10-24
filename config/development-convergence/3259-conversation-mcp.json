@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "issue": 3259,
+  "phase": "source-bound-active-conversation-test-and-authenticated-mcp-replies",
+  "brief": "docs/developer-briefs/bidirectional-chatgpt-plotpickle-gateway.md",
+  "allowedChanges": [
+    "scripts/engineering-team/gateway/gateway-contract.mjs",
+    "scripts/engineering-team/gateway/gateway-host.mjs",
+    "scripts/engineering-team/gateway/conversation-service.mjs",
+    "scripts/engineering-team/gateway/conversation-http.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "app/api/factory/conversation/route.ts",
+    "build/local-profile-auth-gateway.ts",
+    "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+    "app/_components/settings/tunnel/two-way-conversation-panel.module.css",
+    "app/skin-v1/tunnel-settings-panel.tsx",
+    "tests/issue-3259-conversation-mcp.test.mjs",
+    "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    ".github/workflows/architecture-shadow.yml",
+    "docs/developer-briefs/bidirectional-chatgpt-plotpickle-gateway.md",
+    "config/development-convergence/3259-conversation-mcp.json",
+    "core/auth/profile-experience/local-factory-request.ts",
+    "app/api/factory/tunnel/route.ts",
+    "app/api/factory/supervisor/route.ts",
+    "tests/issue-3142-authenticated-factory-supervisor-gui.test.mjs",
+    "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
+    "config/development-convergence/3142-factory-shared-gui-status-pause-resume.json",
+    "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
+    "tests/issue-3110-windows-uat-control.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "PROFILE-ONLY-QUESTION",
+      "criterion": "The fixed nonprivate test uses the existing live profile/CSRF boundary; source and paths are host-controlled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/auth/profile-experience/local-factory-request.ts",
+          "contains": "recentReauthentication: true"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/local-profile-auth-gateway.ts",
+          "contains": "handlers: Object.freeze({ GET: conversationGet, POST: conversationPost })"
+        }
+      ]
+    },
+    {
+      "id": "AUTHENTICATED-REPLY-ONLY",
+      "criterion": "Only the authenticated MCP path can read the delivery ID and record an answer. Local creation and an echo cannot mark a successful exchange.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "isConversation&&!controlAuthenticated"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-conversation-mcp.test.mjs",
+          "contains": "missing delivery, echo, wrong source and arbitrary capabilities"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE-RECONCILIATION",
+      "criterion": "Fresh-process readback, duplicate requests, lost reply reconciliation, expiry and corrupted records are covered without promoting fixtures into product acceptance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-conversation-mcp.test.mjs",
+          "contains": "then survives a fresh process"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-conversation-mcp.test.mjs",
+          "contains": "local HTTP fixture does not certify real ChatGPT delivery"
+        }
+      ]
+    },
+    {
+      "id": "SEPARATE-DIRECTION-AND-SOURCE",
+      "criterion": "The existing Tunnel panel shows the real action, independently rendered directions, channel, exact source head and uncertainty.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/tunnel-settings-panel.tsx",
+          "contains": "<TwoWayConversationTest />"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+          "contains": "Test Two-Way Conversation"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+          "contains": "data-direction=\"chatgpt-to-plotpickle\""
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-FIXTURES",
+      "criterion": "The exact-head Windows lifecycle lane also runs the new conversation and existing MCP regressions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "node --test tests/issue-3259-bidirectional-gateway-p1.test.mjs tests/issue-3259-conversation-mcp.test.mjs tests/issue-3154-chatgpt-factory-mcp.test.mjs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No background ChatGPT wakeup, automatic reply/echo, provider call, source edit, Factory start, deletion or merge authority.",
+    "Fixture tests and source registration do not certify owner browser interaction, live external ChatGPT identity, or unattended dispatcher availability.",
+    "Keep #3258/#3259 open until real round-trip and restart/reconnect product evidence exists."
+  ]
+}

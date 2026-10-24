@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
+import TwoWayConversationTest from "../_components/settings/tunnel/two-way-conversation-panel";
 import styles from "./tunnel-settings-panel.module.css";
 
 type TunnelLocalState = "WINDOWS_ONLY" | "LAUNCHER_NOT_INSTALLED" |
@@ -132,6 +133,7 @@ export default function TunnelSettingsPanel() {
           <button type="button" disabled={busy || !status?.staleSession} onClick={() => void control("clear-stale-session")}>Clear Stale Session</button>
         </div>
       </div>
+      <TwoWayConversationTest />
       <div className={styles.help}>
         <h3>{occupied ? "Review an existing listener or restart your own tunnel" : "Set up your own tunnel"}</h3>
         <ol>

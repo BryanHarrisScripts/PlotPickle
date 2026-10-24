@@ -28,6 +28,14 @@ const tunnelPost: LocalProfileHandler = async (request) => {
   const route = await import("../app/api/factory/tunnel/route");
   return route.POST(request);
 };
+const conversationGet: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/conversation/route");
+  return route.GET(request);
+};
+const conversationPost: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/conversation/route");
+  return route.POST(request);
+};
 
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
@@ -75,6 +83,10 @@ const ROUTES = new Map<string, RouteContract>([
   ["/api/factory/tunnel", Object.freeze({
     maximumBodyBytes: 128,
     handlers: Object.freeze({ GET: tunnelGet, POST: tunnelPost }),
+  })],
+  ["/api/factory/conversation", Object.freeze({
+    maximumBodyBytes: 128,
+    handlers: Object.freeze({ GET: conversationGet, POST: conversationPost }),
   })],
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,

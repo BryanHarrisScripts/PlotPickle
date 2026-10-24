@@ -1,0 +1,13 @@
+.root { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--border, #424242); border-radius: 8px; }
+.root h3, .root p { margin: 0; }
+.root small { opacity: .75; line-height: 1.5; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.actions button { padding: 10px 14px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 5px; cursor: pointer; }
+.actions button:disabled { opacity: .5; cursor: default; }
+.indicators { display: grid; gap: 8px; }
+.indicators span { padding: 10px; border: 1px solid var(--border, #424242); border-radius: 5px; }
+.indicators [data-state="VERIFIED"] { color: #72e4b2; border-color: #388966; background: #15332a; }
+.identity { overflow-wrap: anywhere; font-family: monospace; font-size: 12px; }
+.root details { display: grid; gap: 8px; }
+.root summary { cursor: pointer; }
+.root details p, .root details blockquote { margin-top: 10px; }

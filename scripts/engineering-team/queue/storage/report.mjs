@@ -30,13 +30,66 @@ export function planFactoryStorageRoots(options) {
   return { roots, excludedRoots };
 }
 
+/**
+ * Scan each operational root with its own bounded metadata budget.
+ * A large runtime tree must not prevent the Factory/cache/artifact roots
+ * from receiving any inspection time. PARTIAL remains a lower bound, never
+ * cleanup eligibility or a reason to infer that an unscanned root is empty.
+ */
+export async function inventoryFactoryStoragePerRoot({
+  roots, scan = inventoryFactoryStorage, onProgress = () => {},
+  maxEntriesPerRoot = 200000, maxDurationMsPerRoot = 60000,
+} = {}) {
+  if (!Array.isArray(roots) || roots.length < 1 || roots.length > 4 ||
+      new Set(roots.map(root => root?.id)).size !== roots.length ||
+      !Number.isSafeInteger(maxEntriesPerRoot) || maxEntriesPerRoot < 1 ||
+      maxEntriesPerRoot > 1000000 ||
+      !Number.isSafeInteger(maxDurationMsPerRoot) || maxDurationMsPerRoot < 1 ||
+      maxDurationMsPerRoot > 120000)
+    throw Error("STORAGE_SELECTION_INVALID");
+  if (roots.some(root => !root || typeof root.directory !== "string" ||
+      !path.isAbsolute(root.directory) || root.directory.includes(String.fromCharCode(0))))
+    throw Error("STORAGE_SELECTION_INVALID");
+  const directories = roots.map(root => path.resolve(root.directory));
+  if (directories.some((root, i) => directories.some((other, j) => {
+    if (i === j) return false;
+    const relative = path.relative(root, other);
+    return relative === "" || (!path.isAbsolute(relative) && relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`));
+  })))
+    throw Error("STORAGE_ROOTS_OVERLAP");
+  const scans = [];
+  for (const root of roots) {
+    const result = await scan({
+      roots: [root], maxEntries: maxEntriesPerRoot,
+      maxDurationMs: maxDurationMsPerRoot, onProgress,
+    });
+    if (result?.roots?.length !== 1 || result.roots[0]?.id !== root.id ||
+        result.metadataOnly !== true || result.cleanupAuthorized !== false ||
+        result.bytesAreReclaimable !== false)
+      throw Error("STORAGE_REPORT_UNVERIFIED");
+    scans.push(result);
+  }
+  return {
+    schemaVersion: 1,
+    startedAt: scans[0].startedAt,
+    completedAt: scans[scans.length - 1].completedAt,
+    limits: { maxEntriesPerRoot, maxDurationMsPerRoot, rootsPlanned: roots.length },
+    visitedEntries: scans.reduce((sum, result) => sum + result.visitedEntries, 0),
+    progressObserverErrors: scans.reduce((sum, result) => sum + result.progressObserverErrors, 0),
+    roots: scans.map(result => result.roots[0]),
+    metadataOnly: true, cleanupAuthorized: false, bytesAreReclaimable: false,
+    measurement: `${scans[0].measurement} Each operational root has an independent bounded scan budget; PARTIAL totals are lower bounds.`,
+  };
+}
+
 async function main() {
   if (process.argv.length > 2) throw Error("STORAGE_REPORT_TAKES_NO_ARGUMENTS");
   const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
   const appHome = process.env.PLOTPICKLE_HOME ? path.resolve(process.env.PLOTPICKLE_HOME) :
     process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, "PlotPickle") : path.join(os.homedir(), ".plotpickle");
   const plan = planFactoryStorageRoots({ appHome, repoRoot });
-  const inventory = await inventoryFactoryStorage({ roots: plan.roots,
+  const inventory = await inventoryFactoryStoragePerRoot({ roots: plan.roots,
     onProgress: progress => process.stderr.write(`${JSON.stringify(progress)}\n`) });
   const capacity = await readFactoryDiskSpace({ locations: [appHome, repoRoot],
     requiredBytes: FACTORY_DISK_MIN_FREE_BYTES.dependencyInstall });

@@ -7295,7 +7295,7 @@
           },
           {
             "path": "package-lock.json",
-            "digest": "193ba094aae9e443b28bad0f475a90921158a4ae808c98193de8102dc16d15c1"
+            "digest": "410c9ffefed4a14df29fb9aff6de04309190d64b7a05230f799b3495ea51e298"
           }
         ]
       },
@@ -9532,7 +9532,7 @@
           },
           {
             "path": "package-lock.json",
-            "digest": "193ba094aae9e443b28bad0f475a90921158a4ae808c98193de8102dc16d15c1"
+            "digest": "410c9ffefed4a14df29fb9aff6de04309190d64b7a05230f799b3495ea51e298"
           }
         ]
       },

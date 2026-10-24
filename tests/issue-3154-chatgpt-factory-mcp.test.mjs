@@ -330,6 +330,25 @@ test("MCP recognizes blocked dependency wait as a real state, not a model-run su
  assert.equal(status.activeIssue,3164);
 }));
 
+test("engineering opt-in catalogue stays authenticated and explicit",async()=>{
+ const request={jsonrpc:"2.0",id:1,method:"tools/list"};
+ const ordinary=await executeMcpRequest(request,{
+   controlAuthenticated:true,engineeringEnabled:false,
+ });
+ const enabled=await executeMcpRequest(request,{
+   controlAuthenticated:true,engineeringEnabled:true,
+ });
+ const guest=await executeMcpRequest(request,{
+   controlAuthenticated:false,engineeringEnabled:true,
+ });
+ assert.equal(ordinary.result.tools.length,9);
+ assert.equal(enabled.result.tools.length,10);
+ assert.equal(enabled.result.tools.at(-1).name,"factory_engineering_run");
+ assert.equal(ordinary.result.tools.some(tool=>tool.name==="factory_engineering_run"),false);
+ assert.equal(guest.result.tools.length,4);
+ assert.equal(guest.result.tools.some(tool=>tool.name==="factory_engineering_run"),false);
+});
+
 test("MCP write tools are hidden without paired authentication and reject replay",()=>sandbox(async root=>{
  await seed(root);
  const token="T".repeat(64);
@@ -353,8 +372,10 @@ test("MCP write tools are hidden without paired authentication and reject replay
      admissionCalls++;return {state:"ISSUES_ADMITTED",issueCount:2};
    },
  };
+ // Pin the non-opt-in catalogue: the launcher's environment may enable
+ // Engineering Workbench, but this fixture tests the default tool set.
  const server=createLocalMcpHttpServer({root,controlToken:token,controlOps:ops,
-   github:{exactHead:async()=>OLD},now:()=>100000});
+   engineeringEnabled:false,github:{exactHead:async()=>OLD},now:()=>100000});
  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
  try{
    const url="http://127.0.0.1:"+server.address().port+"/mcp";

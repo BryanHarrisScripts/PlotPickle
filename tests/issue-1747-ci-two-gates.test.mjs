@@ -45,8 +45,18 @@ test("issue #1747 keeps retired legacy diagnostics available explicitly", async 
   assert.match(productGate, /current Skin V1 startup boundary/i);
   assert.match(productGate, /Production web build on Windows/);
   assert.match(productGate, /Windows installer source contract/);
-  assert.equal((productGate.match(/npm ci/g) || []).length, 5, "Command, Pi, Story Architect, media and build lanes each install their own exact-head dependencies; voice needs no npm install.");
-  assert.equal((productGate.match(/timeout-minutes: 12/g) || []).length, 6, "Every native Product Gate lane is capped at 12 minutes.");
+  assert.equal((productGate.match(/npm ci/g) || []).length, 6, "Command, Pi, Pi mock-model, Story Architect, media and build lanes each install their own exact-head dependencies; voice needs no npm install.");
+  assert.equal((productGate.match(/timeout-minutes: 12/g) || []).length, 7, "Every native Product Gate lane, including independent Pi mock-model writes, is capped at 12 minutes.");
+  const mockStart = productGate.indexOf("  pi-cli-mock-windows:");
+  const storyStart = productGate.indexOf("  story-architect-windows:", mockStart);
+  assert.ok(mockStart > 0 && storyStart > mockStart, "Pi mock-model Windows proof needs its own independent job");
+  const mockLane = productGate.slice(mockStart, storyStart);
+  assert.match(mockLane, /if: github.event_name == 'workflow_dispatch' \|\| inputs.pi/);
+  assert.match(mockLane, /issue-3291-pi-unbundled-cli.test.mjs/);
+  assert.match(mockLane, /PLOTPICKLE_PI_MOCK_E2E: '1'/);
+  assert.match(mockLane, /issue-3159-pi-headless-inference.test.mjs/);
+  const piLane = productGate.slice(productGate.indexOf("  pi-runtime-windows:"), mockStart);
+  assert.doesNotMatch(piLane, /issue-3159-pi-headless-inference.test.mjs/, "mock E2E must not run at the end of the long general Pi job");
 });
 
 test("issue #1747 leaves specialized workflows outside ordinary PR verification", async () => {

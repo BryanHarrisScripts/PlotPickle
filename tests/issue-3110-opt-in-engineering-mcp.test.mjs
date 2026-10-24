@@ -72,10 +72,11 @@ test("#3110 opt-in engineering changes neither default public nor authenticated 
       ...(name ? { params: { name, arguments: selection() } } : {}),
     }, { engineeringEnabled, controlAuthenticated });
   const defaultList = await call(false, true, "tools/list");
-  assert.equal(defaultList.result.tools.length, 9);
+  assert.equal(defaultList.result.tools.length, 10);
+  assert.ok(defaultList.result.tools.some(tool => tool.name === "factory_storage_inventory"));
   assert.ok(defaultList.result.tools.some(tool => tool.name === "factory_conversation"));
   const optInList = await call(true, true, "tools/list");
-  assert.equal(optInList.result.tools.length, 10);
+  assert.equal(optInList.result.tools.length, 11);
   const readOnly = await call(true, false, "tools/list");
   assert.equal(readOnly.result.tools.length, 4);
   assert.equal(readOnly.result.tools.some(tool => tool.name === "factory_conversation"), false);

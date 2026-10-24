@@ -11608,6 +11608,34 @@
             "digest": "a0ce94a6a775fed575797bbaddf94af6c614a3833983f461aed1c066aa065a02"
           }
         ]
+      },
+      {
+        "target": "tests/issue-1747-ci-two-gates.test.mjs",
+        "targetDigest": "d571eca0947f05ebfacf44e895b60e6adfc0c0ba90403419e6529b4760b5bcb9",
+        "catalogueIds": [
+          "verification.phase7-merge-authority"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Static CI-workflow job-count and split Pi mock-model proof boundary; tests pin native job 12-minute caps and exact-head workflow wiring. Does not establish that actual Windows Pi, model calls, negative controls, installed Undici, or all security alerts pass without separate native execution.",
+        "inputs": [
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
+          }
+        ]
       }
     ]
   }

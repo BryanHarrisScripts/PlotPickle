@@ -25,6 +25,7 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
+import { supervisorStatus } from "../windows/supervisor/unattended-supervisor.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat,
@@ -148,7 +149,37 @@ export async function factoryEvidence({root=privateFactoryRoot(),issueNumber,att
   }};
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead}={}) {
+const SUPERVISOR_OBSERVED_STATES=new Set([
+  "OFF","OFFLINE","RUNNING","BLOCKED","PAUSE_REQUESTED","PAUSED",
+  "RESUME_REQUESTED","STOP_REQUESTED",
+]);
+const SUPERVISOR_OBSERVED_REASONS=new Set([
+  "NOT_ENABLED","LOCAL_KILL_SWITCH","PAUSE_REQUEST_UNVERIFIABLE",
+  "NO_FRESH_OWNED_HEARTBEAT","GITHUB_TRANSPORT_OFFLINE",
+  "STALE_SOURCE_HEAD","PAIRING_CHANGED_OR_DISABLED",
+  "LOCAL_OPERATOR_PAUSED","SUPERVISOR_EXITED",
+]);
+// Only owner-authenticated status may include this sanitized, read-only
+// canonical supervisor snapshot. Its heartbeat does NOT verify a PID tree,
+// coding dispatcher, issue replay authority, Windows acceptance, or merge.
+export function sanitizeSupervisorObservation(raw,now=Date.now()) {
+  const state=SUPERVISOR_OBSERVED_STATES.has(raw?.state)?raw.state:"UNVERIFIED";
+  const checkedAt=Number.isSafeInteger(raw?.checkedAt)&&raw.checkedAt>=0
+    ?raw.checkedAt:null;
+  const age=checkedAt===null?null:now-checkedAt;
+  return Object.freeze({
+    state,sourceHead:safeSha(raw?.exactSha),
+    reason:safeText(raw?.reason,SUPERVISOR_OBSERVED_REASONS),
+    heartbeatFresh:age!==null&&age>=0&&age<=180_000&&
+      ["RUNNING","BLOCKED","PAUSED","RESUME_REQUESTED"].includes(state),
+    pauseAcknowledged:raw?.pauseAcknowledged===true&&state==="PAUSED",
+    workerProcessVerified:false,autonomousCodingVerified:false,
+    independentWindowsAcceptance:false,automaticMergeEnabled:false,
+    startActionAvailable:false,replayAuthorized:false,
+  });
+}
+
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -170,6 +201,11 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
   // of adding a fifth public tool that prevents paired tunnel startup.
   result.hostRevision=await factoryHostHead({verify:verifyHead});
   result.application=await observePlotpickleOwnerApp();
+  if(typeof readSupervisor==="function") {
+    let supervisor=null;
+    try {supervisor=await readSupervisor();}catch {}
+    result.supervisor=sanitizeSupervisorObservation(supervisor,now());
+  }
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
     await privateJson(path.join(root,"dependency-preflight-result.json"),2048));
@@ -705,7 +741,7 @@ async function conversationSource(expectedHead) {
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
-  storageInspect=inspectFactoryStorage}={}) {
+  storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -737,7 +773,9 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(!isControl&&!isConversation&&!isStorage&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
-      if(name==="factory_status")value=await factoryStatus({root,now});
+      if(name==="factory_status")value=await factoryStatus({
+        root,now,readSupervisor:controlAuthenticated?supervisorRead:null,
+      });
       else if(name==="factory_observer")value=await factoryObserver({root,now});
       else if(name==="factory_evidence"){
         if(keys.some(k=>!["issueNumber","attempt"].includes(k)) ||

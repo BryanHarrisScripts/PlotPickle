@@ -6346,7 +6346,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
+            "digest": "ecc2d7c890192e7c706cc70b683981ff1fed714776723f5edb307bad98c0d89d"
           },
           {
             "path": "core/storage/library-project.ts",
@@ -6740,7 +6740,7 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
+            "digest": "ecc2d7c890192e7c706cc70b683981ff1fed714776723f5edb307bad98c0d89d"
           },
           {
             "path": "app/skin-v1/dashboard-menu-registry.ts",
@@ -10793,11 +10793,11 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
+            "digest": "ecc2d7c890192e7c706cc70b683981ff1fed714776723f5edb307bad98c0d89d"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
-            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
+            "digest": "1196a1a376a155d618bdcd73d345c0da16e93c2a2f61ca5e0516c8d79c8ddc1a"
           }
         ]
       },
@@ -10825,11 +10825,11 @@
         "inputs": [
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
+            "digest": "ecc2d7c890192e7c706cc70b683981ff1fed714776723f5edb307bad98c0d89d"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
-            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
+            "digest": "1196a1a376a155d618bdcd73d345c0da16e93c2a2f61ca5e0516c8d79c8ddc1a"
           }
         ]
       },
@@ -11135,7 +11135,7 @@
       },
       {
         "target": "tests/issue-3266-library-tunnel-windows-uat.test.mjs",
-        "targetDigest": "61f44178bc5acf3ba1ffd8a00e44518aaab66f2dd217101aa5158cbc68638313",
+        "targetDigest": "186672de49fb24a798e66c671093ac19d034ad73cfcb3593bafe9eed691faa21",
         "catalogueIds": [
           "experience.library-tunnel-windows-uat-3266"
         ],
@@ -11153,7 +11153,7 @@
           "static-source",
           "unit-fixture"
         ],
-        "limits": "Exact source schema, static wiring, TSX syntax and bundled fixture only; real owner Windows/browser visuals, login, plugin auth, remote AI, story persistence and true film evidence remain Human UAT.",
+        "limits": "Static source/wiring and bundled fixture only, including the loaded-film Continue button interlock and retained explicit Load actions (#3269). Does not prove TSX compilation, interactive conversation, per-film history, actual active/selected project transitions, owner Windows/browser visuals, login, plugin auth, remote AI, story persistence or true film evidence; those require separate build and product observations.",
         "inputs": [
           {
             "path": "app/skin-v1-surface-orchestrator.css",
@@ -11173,11 +11173,11 @@
           },
           {
             "path": "modules/library/ui/library-workspace.tsx",
-            "digest": "dcbbd61a393ec068206151bd8d25e366055e93d1b1751599c3aad99954d910eb"
+            "digest": "ecc2d7c890192e7c706cc70b683981ff1fed714776723f5edb307bad98c0d89d"
           },
           {
             "path": "modules/library/ui/library-workspace.module.css",
-            "digest": "2d8fc64d9b4514d80735b3a624bc4676111618c2385f9487f8ffa8674f8455c8"
+            "digest": "1196a1a376a155d618bdcd73d345c0da16e93c2a2f61ca5e0516c8d79c8ddc1a"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-review-host.tsx",

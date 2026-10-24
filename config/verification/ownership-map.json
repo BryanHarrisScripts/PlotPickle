@@ -464,7 +464,8 @@
         "config/pi-130-compatibility.json",
         "tests/issue-1185-pi-managed-install.test.mjs",
         "tests/issue-1709-pi-0851-astra-evaluation.test.mjs",
-        "tests/issue-641-developer-agent-stack.test.mjs"
+        "tests/issue-641-developer-agent-stack.test.mjs",
+        "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

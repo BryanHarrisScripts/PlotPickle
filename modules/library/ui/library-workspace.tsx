@@ -250,12 +250,13 @@ async function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
 }
 
-function ExampleGatewayCard({ item, posterUrls, onOpen, onInspect, inspecting = false, active = false, unloading = false, onUnload }: {
+function ExampleGatewayCard({ item, posterUrls, onOpen, onInspect, inspecting = false, inspectDisabled = false, active = false, unloading = false, onUnload }: {
   readonly item: LibraryCatalogItem;
   readonly posterUrls: readonly string[];
   readonly onOpen: () => void;
   readonly onInspect?: () => void;
   readonly inspecting?: boolean;
+  readonly inspectDisabled?: boolean;
   readonly active?: boolean;
   readonly unloading?: boolean;
   readonly onUnload?: () => void;
@@ -292,7 +293,9 @@ function ExampleGatewayCard({ item, posterUrls, onOpen, onInspect, inspecting = 
       </div>
       {onInspect ? <button type="button" className={styles.continueStoryButton}
         aria-label={`Continue This Film: ${item.title}`}
-        aria-pressed={inspecting} data-library-continue-story={`example:${item.id}`}
+        aria-pressed={inspecting} disabled={inspectDisabled}
+        title={inspectDisabled ? "Unload the current film to inspect another." : undefined}
+        data-library-continue-story={`example:${item.id}`}
         onClick={onInspect}>Continue This Film</button> : null}
     </article>
   );
@@ -341,11 +344,12 @@ function savedStoryResumeDetails(project: LibraryPPFProject | null) {
   return { summary, actions };
 }
 
-function SavedStoryLoadCard({ item, onOpen, onInspect, inspecting = false, active = false, unloading = false, onUnload }: {
+function SavedStoryLoadCard({ item, onOpen, onInspect, inspecting = false, inspectDisabled = false, active = false, unloading = false, onUnload }: {
   readonly item: ProjectLibrarySummary;
   readonly onOpen: () => void;
   readonly onInspect?: () => void;
   readonly inspecting?: boolean;
+  readonly inspectDisabled?: boolean;
   readonly active?: boolean;
   readonly unloading?: boolean;
   readonly onUnload?: () => void;
@@ -397,7 +401,9 @@ function SavedStoryLoadCard({ item, onOpen, onInspect, inspecting = false, activ
       </button>
       {onInspect ? <button type="button" className={styles.continueStoryButton}
         aria-label={`Continue This Film: ${item.title}`}
-        aria-pressed={inspecting} data-library-continue-story={item.id}
+        aria-pressed={inspecting} disabled={inspectDisabled}
+        title={inspectDisabled ? "Unload the current film to inspect another." : undefined}
+        data-library-continue-story={item.id}
         onClick={onInspect}>Continue This Film</button> : null}
     </article>
   );
@@ -1210,6 +1216,7 @@ export default function LibraryWorkspace({ currentFilmDetails, onInspectStory }:
                       posterUrls={afterglowPosters}
                       active={afterglowCurrentlyLoaded}
                       inspecting={inspectedExampleTitle === entry.item.title || (afterglowCurrentlyLoaded && inspectedStoryId === activeProjectSummary?.id)}
+                      inspectDisabled={Boolean(activeProjectSummary && !afterglowCurrentlyLoaded)}
                       onInspect={() => {
                         const previewId = afterglowCurrentlyLoaded ? activeProjectSummary?.id ?? null : null;
                         setInspectedStoryId(previewId);
@@ -1230,6 +1237,7 @@ export default function LibraryWorkspace({ currentFilmDetails, onInspectStory }:
                       key={`story:${entry.item.id}`}
                       active={activeProjectSummary?.id === entry.item.id}
                       inspecting={inspectedStoryId === entry.item.id}
+                      inspectDisabled={Boolean(activeProjectSummary && activeProjectSummary.id !== entry.item.id)}
                       onInspect={() => {
                         setInspectedStoryId(entry.item.id);
                         setInspectedExampleTitle(null);
@@ -1276,7 +1284,7 @@ export default function LibraryWorkspace({ currentFilmDetails, onInspectStory }:
                 ) : (
                   <p>{inspectedExampleTitle
                     ? `${inspectedExampleTitle} is a packaged example, not an opened working story. Open EXAMPLES to inspect or restore its PPF before making production decisions.`
-                    : "Choose Continue This Film on a saved story card to inspect its own evidence. Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it."}</p>
+                    : "Choose Continue This Film on a saved story card to inspect its own evidence. If a film is loaded, unload it before inspecting another. Your screenplay, creative decisions and approvals remain unchanged until you explicitly open it."}</p>
                 )}
               </section>
             </aside>
